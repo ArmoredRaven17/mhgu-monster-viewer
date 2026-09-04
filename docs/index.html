@@ -427,6 +427,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           <label class="chk"><input type="checkbox" id="monGround" checked>Keep the lowest bone on the ground</label>
           <label class="chk"><input type="checkbox" id="monNormalFlip">Flip the normal map's green channel</label>
           <label class="chk"><input type="checkbox" id="monUndef">Draw meshes the game's material file does not define</label>
+          <label class="chk" id="monExtendRow" hidden><input type="checkbox" id="monExtend"><span id="monExtendText">Draw the overlays whose albedo needs a second map</span></label>
           <div class="field"><label for="monNormalScale">Normal strength <span id="monNormalScaleVal" class="hint"></span></label>
             <input type="range" id="monNormalScale" min="0" max="2" step="0.05" value="1"></div>
           <p id="monStats" class="hint"></p>
@@ -857,7 +858,8 @@ import { PoseDriver } from './render/pose.js';
 import { loadMaterialsDb } from './render/materials-db.js';
 import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
          partVerts, partsDrawn, applyParts, groupLabel, setNormalOpt,
-         setUndefinedMaterialVisible, setEffectVisible, monsterMats } from './render/monster.js';
+         setUndefinedMaterialVisible, setEffectVisible, setExtendVisible, extendCount,
+         monsterMats } from './render/monster.js';
 
 const errEl = document.getElementById('err');
 const errors = [];
@@ -1009,8 +1011,8 @@ function applyCameraState(c){
 }
 const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: false,
                 trueSize: true, anchor: true, ground: true, normalFlip: false, normalScale: 1,
-                // OFF by default: see applyUndef
-                undef: false,
+                // both OFF by default: see applyUndef and applyExtend
+                undef: false, extend: false,
                 // the additive effect meshes as a class; the ROM's part table already keeps
                 // them off at rest, so this is a way to look at them, not a correction
                 effects: true };
@@ -1145,6 +1147,7 @@ function applyPartState(){
   // applyParts writes o.visible from the part table, so the class toggles run after it
   for (const g of Object.values(mounted)) setEffectVisible(g, state.effects);
   for (const g of Object.values(mounted)) setUndefinedMaterialVisible(g, state.undef);
+  for (const g of Object.values(mounted)) setExtendVisible(g, state.extend);
 }
 function clearMounts(){
   // give the materials and geometry back: a sweep steps through every monster in the game
@@ -1204,7 +1207,7 @@ async function mount(){
     world.add(main); mounted.main = main;
     for (const [name, g] of extra){ world.add(g); mounted[name] = g; }
     applySize();
-    buildGroups(); applyPartState(); paintAbout(); applyUndef(); applyEffects();
+    buildGroups(); applyPartState(); paintAbout(); applyUndef(); applyEffects(); applyExtend();
     setNormalOpt(state.normalFlip, state.normalScale);
   } finally { setLoading(false); }
 }
@@ -1231,6 +1234,18 @@ function sizeScale(){
 // judge it against the game; it is a question, not a settled call.
 function applyUndef(){
   for (const g of Object.values(mounted)) setUndefinedMaterialVisible(g, state.undef);
+}
+// The overlays built from two albedo maps, of which this viewer samples one. Drawn, they are
+// the base texture at full strength -- Khezu's black veins. Off by default; the row only
+// appears on a monster that carries one.
+function applyExtend(){
+  for (const g of Object.values(mounted)) setExtendVisible(g, state.extend);
+  let n = 0;
+  for (const g of Object.values(mounted)) n += extendCount(g);
+  document.getElementById('monExtendRow').hidden = !n;
+  document.getElementById('monExtendText').textContent =
+    'Draw the overlays whose albedo needs a second map (' + n + ')';
+  document.getElementById('monExtend').checked = state.extend;
 }
 // The additive effect meshes as a class. The game shows them in states this viewer does not
 // model -- enraged, mode changes -- so on a monster that carries any, they are worth being
@@ -1361,6 +1376,7 @@ function paintNormal(){
 }
 document.getElementById('monNormalFlip').onchange = e => { state.normalFlip = e.target.checked; paintNormal(); saveState(); };
 document.getElementById('monUndef').onchange = e => { state.undef = e.target.checked; applyUndef(); saveState(); };
+document.getElementById('monExtend').onchange = e => { state.extend = e.target.checked; applyPartState(); applyExtend(); saveState(); };
 document.getElementById('monEffects').onchange = e => { state.effects = e.target.checked; applyEffects(); saveState(); };
 normScaleEl.oninput = e => { state.normalScale = +e.target.value; paintNormal(); saveState(); };
 document.getElementById('resetBtn').onclick = async () => {
@@ -1389,7 +1405,7 @@ document.querySelectorAll('.panel-head').forEach(h => {
 // ---- start ---------------------------------------------------------------------------------
 if (SAVED){
   for (const k of ['id', 'list', 'clip']) if (typeof SAVED[k] === 'string') state[k] = SAVED[k];
-  for (const k of ['loop', 'tail', 'trueSize', 'anchor', 'ground', 'normalFlip', 'undef', 'effects'])
+  for (const k of ['loop', 'tail', 'trueSize', 'anchor', 'ground', 'normalFlip', 'undef', 'effects', 'extend'])
     if (typeof SAVED[k] === 'boolean') state[k] = SAVED[k];
   if (typeof SAVED.normalScale === 'number') state.normalScale = SAVED.normalScale;
   if (Array.isArray(SAVED.groups)) state.groups = SAVED.groups.map(Boolean);
@@ -1403,6 +1419,7 @@ document.getElementById('monTrueSize').checked = state.trueSize;
 document.getElementById('monAnchor').checked = state.anchor;
 document.getElementById('monGround').checked = state.ground;
 document.getElementById('monUndef').checked = state.undef;
+document.getElementById('monExtend').checked = state.extend;
 animLoopBtn.classList.toggle('on', state.loop);
 await mount();
 await play();
@@ -1439,7 +1456,7 @@ async function runScene(name){
                          groups: Array.isArray(sc.groups) ? sc.groups.map(Boolean) : null,
                          tail: !!sc.tail, trueSize: sc.trueSize !== false,
                          anchor: sc.anchor !== false, ground: sc.ground !== false,
-                         normalFlip: !!sc.normalFlip, undef: !!sc.undef,
+                         normalFlip: !!sc.normalFlip, undef: !!sc.undef, extend: !!sc.extend,
                          effects: sc.effects !== false });
   buildMonsterList(); buildLists(); paintNormal();
   await mount();

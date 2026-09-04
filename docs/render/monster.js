@@ -218,6 +218,25 @@ export async function loadMonster(rec, opt, ctx){
     // covered in, what I believe is a mesh since we are handling effects").
     if (rom && rom.state && (rom.state.blend === 'add' || rom.state.blend === 'revsub'))
       o.userData.effect = true;
+    // AN OVERLAY WHOSE ALBEDO THIS VIEWER CANNOT COMPUTE. The ROM builds these from TWO maps:
+    // the base albedo modulated (TypeExtendModulate) or added (TypeExtendAdd) with a second
+    // texture, tAlbedoBlendMap, sampled through a second UV set and offset by the material
+    // animation. material.js implements only the first map, so drawn they are the raw base
+    // texture at full strength -- Khezu's blood as black veins over its back and wings
+    // (Raven, 2026-09-04: "Khezu has black veins again ... I suspect this is the enraged
+    // effect, but not being rendered correctly"). 13 such overlays over 11 monsters: Akantor's
+    // kekkan (血管, blood vessel), both Tigrexes' angry and blood, both Glavenuses', both
+    // Astaloses' tikuden, Alatreon, Nakarkos' shell.
+    //
+    // Hidden by default and exposed in Debug, exactly as the meshes whose material the game's
+    // own file does not define. Two deliberate exclusions:
+    //   * OPAQUE extend materials are left drawn -- Crystalbeard Uragaan's m00_ore is body
+    //     geometry on head, body and tail, not an overlay, so hiding it would delete part of
+    //     the monster. It renders with half its intended albedo, which is a lesser wrong.
+    //   * every effect Raven judged as looking RIGHT is a single-map material (Brachydios'
+    //     slime, Agnaktor's lava, Teostra's, Valstrax's), so none of them is affected.
+    if (rom && rom.feat && /^TypeExtend/.test(String(rom.feat.albedo)) &&
+        rom.state && rom.state.blend !== 'opaque') o.userData.extendAlbedo = true;
     // the ROM's own material class: Std is lit, MaterialConstant / MaterialConstantFog are
     // the map as a flat colour (a monster's eye). material.js's unlit path is opt-in and
     // honours the cull mode and blend state either way.
@@ -260,6 +279,20 @@ export function setEffectVisible(root, on){
 // Show or hide the meshes whose material the ROM's material file does not define.
 export function setUndefinedMaterialVisible(root, on){
   root.traverse(o => { if (o.userData.undefinedMaterial) o.visible = !!on; });
+}
+
+// Show or hide the overlays whose albedo needs a second map this viewer does not sample.
+// Hide-only in the same sense as setEffectVisible: turning it back off returns the mesh to
+// whatever the part table said, rather than forcing on something the table had switched off.
+export function setExtendVisible(root, on){
+  root.traverse(o => { if (o.userData.extendAlbedo && !on) o.visible = false; });
+}
+
+// how many of them a mounted monster carries, for the Debug label
+export function extendCount(root){
+  let n = 0;
+  root.traverse(o => { if (o.userData.extendAlbedo) n++; });
+  return n;
 }
 
 // a mounted root's bind pose, so "Bind pose" can actually return to it
