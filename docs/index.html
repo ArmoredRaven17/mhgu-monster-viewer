@@ -1,0 +1,1504 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MHGU Monster Viewer TEST</title>
+<link rel="icon" href="assets/MH4G-Binoculars_Icon_White.png?v=1">
+<style>
+/* MHFU game font, as the sibling MHGU apps use */
+@font-face{ font-family:'MHFU'; src:url('fonts/mhfu_font.ttf') format('truetype'); font-display:swap; }
+
+:root{
+  --bg:#3e3e3e; --bg1:#000000; --bg2:#333; --hover:#2f2f2f;
+  --accent:#7a7a7a; --accent-hover:#9a9a9a; --cta:#19e0d2;
+  --text:#f3f3f3; --text-dim:#ffffff; --text-hint:#b9b9b9;
+  --stage:#0e1013;
+  --line:#ffffff1f; --card:#ffffff0d;
+}
+*{box-sizing:border-box}
+/* The standard properties and ::-webkit-scrollbar are mutually exclusive in Chrome: set
+   `scrollbar-color` or `scrollbar-width` on an element and the -webkit pseudo-elements
+   below are IGNORED for it. Having both on `*` is why the width here had no effect --
+   scrollbars measured 15px (the `auto` default) no matter what was asked for. So the
+   standard ones are scoped to engines with no -webkit pseudo-element (Firefox), which
+   get the colours; Chrome takes the rules below and an actual custom width. */
+@supports not selector(::-webkit-scrollbar){
+  *{scrollbar-color:var(--accent) var(--bg2);scrollbar-width:auto}
+}
+::-webkit-scrollbar{width:22px;height:22px}
+/* a touch darker than the panel so the channel itself is visible */
+::-webkit-scrollbar-track{background:var(--bg);border-radius:11px}
+/* min-height matters more than width on these lists: an equipment dropdown holds over a
+   thousand options, so a proportional thumb is a few pixels tall and unusable to drag. */
+/* The thumb sat on a track the same colour as the panel behind it, so it read as part of
+   the background. A lighter fill plus a light inset edge gives it a shape of its own
+   without hard-coding a colour that would fight the theme. */
+::-webkit-scrollbar-thumb{background:var(--accent-hover);border-radius:10px;min-height:56px;
+  border:3px solid transparent;background-clip:padding-box;
+  box-shadow:inset 0 0 0 1px #ffffff55}
+::-webkit-scrollbar-thumb:hover{background:var(--accent-hover);background-clip:padding-box;
+  border:2px solid transparent;box-shadow:inset 0 0 0 1px #ffffff99}
+/* Stated again for the dropdown lists. Whether a native <select> popup honours page CSS
+   is up to the engine -- Chrome on Windows draws that list itself and ignores it. */
+select::-webkit-scrollbar{width:22px}
+select::-webkit-scrollbar-thumb{min-height:56px}
+input,select,button,textarea{font-family:inherit}
+html,body{margin:0;height:100%;overflow:hidden}
+body{font-family:'MHFU',"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);
+     font-size:14px;user-select:none;-webkit-user-select:none}
+#app{display:flex;flex-direction:column;height:100vh}
+.hidden{display:none !important}
+
+/* Title bar */
+.titlebar{display:flex;align-items:center;gap:10px;padding:8px 14px}
+.titlebar-header{
+  background-image:
+    linear-gradient(color-mix(in srgb,var(--accent) 90%,transparent),color-mix(in srgb,var(--accent) 90%,transparent)),
+    url('assets/titlebar-background.png');
+  background-size:auto 100%;background-position:left center;background-repeat:repeat;
+}
+.titlebar h1{font-size:15px;font-weight:600;margin:0;flex:1}
+.titlebar .btn.tiny{margin-right:6px;white-space:nowrap}
+.title-icon{width:32px;height:32px;object-fit:contain}
+.icon-btn{background:transparent;border:none;color:var(--text);font-size:18px;
+  cursor:pointer;padding:6px 9px;border-radius:6px;line-height:1}
+.icon-btn:hover{background:#ffffff1a}
+/* an id rule setting display: would outrank the UA [hidden] rule */
+[hidden]{display:none !important}
+
+/* Layout */
+.layout{display:flex;flex:1;min-height:0}
+/* the sidebar's own gap only reaches its direct children, and the panels are now one
+   level down inside a pane -- so each pane carries the same column gap itself */
+#paneMonster{display:flex;flex-direction:column;gap:8px}
+.sidebar{
+  width:300px;flex-shrink:0;padding:12px;overflow-y:scroll;scrollbar-gutter:stable;
+  display:flex;flex-direction:column;gap:8px;
+  background-image:
+    linear-gradient(color-mix(in srgb,var(--accent) 90%,transparent),color-mix(in srgb,var(--accent) 90%,transparent)),
+    url('assets/sidebar-background-texture1.png');
+  background-size:auto 100%;background-position:left center;background-repeat:repeat;
+}
+/* The render area is the Weapon Tree's stage: --stage, the darkest shade in the set. It is
+   the one surface with no backing of its own — the model sits directly on it. */
+.content{
+  flex:1;min-width:0;position:relative;
+  background-color:var(--stage);
+  background-image:
+    linear-gradient(color-mix(in srgb,var(--stage) 78%,transparent),color-mix(in srgb,var(--stage) 78%,transparent)),
+    url('assets/rockyTextureDark2.png');
+  background-repeat:repeat;background-size:auto,200px 200px;
+}
+/* The render area is the Weapon Tree's stage: --stage, the darkest shade in the set — the one
+   surface with no backing of its own, with the model sitting directly on it.
+
+   The texture and its tint are the Hunting Log's .editor (its editorPane), verbatim, so the two
+   apps' main working surfaces match: rockyTextureDark.png under an 84% wash of the surface
+   colour, repeated at 200px. */
+.content{
+  flex:1;min-width:0;position:relative;
+  background-color:var(--stage);
+  background-image:
+    linear-gradient(color-mix(in srgb,var(--stage) 84%,transparent),color-mix(in srgb,var(--stage) 84%,transparent)),
+    url('assets/rockyTextureDark.png');
+  background-repeat:repeat;background-size:auto,200px 200px;
+}
+/* A chroma backdrop has to be a flat, single value for a keyer to pull, so the texture and its
+   tint come off. Nothing else about the app changes — only the surface being keyed. */
+:root.chroma .content{background-image:none}
+#viewport{position:absolute;inset:0}
+/* "Loading..." over the render area until the first framed render (Raven, 2026-09-03) */
+#loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  color:var(--text-hint);font-size:15px;letter-spacing:.06em;pointer-events:none}
+#loading[hidden]{display:none}
+/* Floating toolbar over the render area, matching the Weapon Tree's #bar.
+   width:max-content is load-bearing: with left:50% the default shrink-to-fit only
+   counts the space from the centre to the right edge, so the bar would cap at half
+   the viewport and wrap into a stack while the left half sat empty. */
+#bar{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);
+  display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;
+  width:max-content;max-width:calc(100% - 32px);
+  padding:8px 12px;border:1px solid var(--line);border-radius:8px;
+  background-color:var(--bg2);
+  background-image:
+    linear-gradient(color-mix(in srgb,var(--bg2) 84%,transparent),
+                    color-mix(in srgb,var(--bg2) 84%,transparent)),
+    url('assets/rockyTextureDark2.png');
+  background-repeat:repeat;background-size:auto,200px 200px;
+  box-shadow:0 10px 40px rgba(0,0,0,.5)}
+#bar > *{flex:0 0 auto}
+#bar button{white-space:nowrap}
+#bar .sep{width:1px;height:20px;background:var(--line);margin:0 3px}
+#bar .btn.on{border-color:var(--accent-hover);background:#ffffff26}
+/* the Animation panel: Loop, frame stepping, the scrubber and a frame readout. Greyed
+   out until an animation is playing, so the panel never has to hide or move. */
+#anim{display:flex;flex-direction:column;gap:6px}
+#anim .row{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}   /* Raven: centred */
+#anim .btn.on{border-color:var(--accent-hover);background:#ffffff26}
+#animPlay{min-width:var(--play-w,58px)}   /* one width for "Play" and "Pause" (Raven) */
+#anim input[type=range]{width:100%;margin:0}
+#anim.idle .transport .btn,#anim.idle .transport input{opacity:.4;pointer-events:none}
+#anim .transport{display:flex;flex-direction:column;gap:6px}
+#anim .chain-head{font-size:13px;font-weight:600;color:var(--text-dim);margin-top:6px}
+#anim .row.pick{justify-content:flex-start;flex-wrap:nowrap}
+#anim .row.pick select{flex:1 1 auto;min-width:0}
+#anim .row.pick .btn{flex:0 0 auto}
+#animFrame{font-size:12px;color:var(--text-hint);text-align:center}   /* under the scrubber, centred (Raven) */
+/* the chain, listed in order under its buttons (Raven); the playing link is lit, the x removes */
+.chain{list-style:none;margin:2px 0 0;padding:0;display:flex;flex-direction:column;gap:2px}
+.chain li{display:flex;align-items:center;gap:6px;font-size:12px;padding:3px 8px;border:1px solid var(--line);border-radius:6px;background:#ffffff14}
+.chain li.on{border-color:var(--accent-hover);background:#ffffff26}
+.chain li.off .lab{opacity:.45}
+/* the hunter slots: click a row to switch to that hunter; the one on screen is lit */
+.chain.hunters li{cursor:pointer}
+.chain.hunters li.on{cursor:default}
+.chain.hunters .tag{font-size:11px;color:var(--text-hint)}
+.chain.hunters input{flex:1 1 auto;min-width:0;font:inherit;font-size:12px;padding:1px 4px;background:#00000033;color:var(--text);border:1px solid var(--line);border-radius:4px}
+.chain li .n{color:var(--text-hint);min-width:1.4em}
+.chain li .lab{flex:1 1 auto}
+.chain li .x{cursor:pointer;color:var(--text-hint);padding:0 4px}
+.chain li .x:hover{color:var(--text)}
+.chain-row{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px}
+/* Toggled off, the toolbar MOVES into the header rather than disappearing, so the
+   controls stay reachable while the render area is left clear. It is the same element,
+   so `#bar .sep` and `#bar .btn.on` keep applying -- which is why the whole bar moves
+   rather than its buttons being reparented one by one. */
+header #bar{position:static;transform:none;width:auto;max-width:none;
+  padding:0;border:none;border-radius:0;background:none;box-shadow:none;flex-wrap:nowrap}
+header #bar .sep{height:16px}
+/* the titlebar adds its own margin to .btn.tiny, which doubles up with #bar's gap */
+header #bar .btn.tiny{margin-right:0}
+#orbitLock{display:inline-flex;align-items:center;gap:6px}
+#orbitLock img{width:14px;height:14px;display:block}
+/* the monster's own icon, from the set the sibling apps share */
+.mon-icon{width:34px;height:34px;flex:0 0 auto;object-fit:contain;
+  image-rendering:auto;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
+#monHead{align-items:center}
+#monHead .hint{margin:0}
+#viewport canvas{display:block;width:100%;height:100%}
+/* Scoped to the render area on purpose: #bar and the overlays are SIBLINGS of #viewport,
+   so the toolbar keeps its pointer and stays usable while the cursor is hidden. */
+#viewport.nocursor,#viewport.nocursor canvas{cursor:none}
+
+/* Buttons */
+.btn{background:#ffffff14;color:var(--text);border:1px solid var(--line);
+  border-radius:7px;padding:8px 14px;cursor:pointer;font-size:14px}
+.btn:hover{background:#ffffff24}
+.btn.block{width:100%}
+.btn.tiny{padding:3px 10px;font-size:12px}
+.btn.block,.btn.tiny{
+  background-image:
+    linear-gradient(color-mix(in srgb,var(--bg2) 80%,transparent),color-mix(in srgb,var(--bg2) 80%,transparent)),
+    url('assets/banner-background.png');
+  background-position:right;
+}
+.btn.accent{background:var(--bg1);border-color:#000;color:#fff;font-weight:600}
+/* Reset: the Bingo app's accent button on the theme's complementary colour (--cta) */
+.btn.cta{background:var(--cta);background-image:none;border-color:rgba(0,0,0,.45);color:#fff;font-weight:600;
+  text-shadow:-1px 0 rgba(0,0,0,.55),1px 0 rgba(0,0,0,.55),0 -1px rgba(0,0,0,.55),0 1px rgba(0,0,0,.55)}
+.btn.cta:hover{background:color-mix(in srgb,var(--cta) 84%,#ffffff)}
+/* Selected gender. Was a fixed green (#3d6b45) that ignored the theme entirely; this is the
+   theme's own colour instead — var(--hover) is darken(hex,.30), the family's deep shade.
+
+   The white border does the selecting, not the fill. A lighter fill was the obvious try (the
+   family's .btn.on white wash) and it reads well but costs legibility: white label text drops
+   to 3.67:1 on the pale themes, against 6.5:1 on the green it replaced, so it made the button
+   worse to read in order to look righter. --hover goes the other way and holds white text at
+   14.7:1 everywhere. The fill difference alone is slight, which is why the border is white and
+   the label bold — that pair is unambiguous without asking the fill to carry it. */
+.btn.accent.on{background:var(--hover);border-color:#fff;color:#fff;font-weight:600}
+
+/* Collapsible panels */
+.panel{border:1px solid var(--line);border-radius:8px;overflow:clip;background:var(--bg2)}
+.panel-head{width:100%;text-align:left;background:transparent;border:none;color:var(--text);
+  padding:8px 14px;font-size:16px;font-weight:600;cursor:pointer;
+  display:flex;justify-content:space-between;align-items:center;
+  background-image:
+    linear-gradient(color-mix(in srgb,var(--bg2) 80%,transparent),color-mix(in srgb,var(--bg2) 80%,transparent)),
+    url('assets/banner-background.png');
+  background-size:auto 100%;background-position:left center;background-repeat:repeat;
+}
+.panel-head:hover{background-color:#ffffff0d}
+/* The panel chevrons are hidden -- the accordion only ever has one panel open, so the
+   open one is obvious from the panel body and the arrows were just noise. The spans stay
+   in the markup so the heads keep their layout. */
+.chev{display:none}
+.panel-body{display:none;padding:8px 12px 12px;flex-direction:column;gap:6px;
+  background-image:
+    linear-gradient(color-mix(in srgb,var(--bg1) 60%,transparent),color-mix(in srgb,var(--bg1) 60%,transparent)),
+    url('assets/panel-body-bg.png');
+  background-size:contain 100%;background-position:left center;background-repeat:repeat;
+}
+.panel[data-open="true"] .panel-body{display:flex}
+
+/* Controls */
+.chk{display:flex;align-items:center;gap:8px;padding:3px 0;cursor:pointer;line-height:1.3}
+.chk input{accent-color:var(--accent);width:16px;height:16px;cursor:pointer;flex-shrink:0}
+.chk:hover{color:var(--accent-hover)}
+.hint{color:var(--text-hint);font-size:12px;margin:2px 0}
+.row{display:flex;align-items:center}
+.row.gap{gap:8px}
+.field{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--text-dim)}
+.field .row.gap > select{flex:1;min-width:0}
+.hexbtn{flex:1;min-width:0;background:transparent;border:1px solid transparent;
+  color:var(--text-hint);font-family:inherit;font-size:12px;letter-spacing:.02em;
+  text-align:left;padding:3px 5px;border-radius:5px;cursor:text}
+.hexbtn:hover{border-color:var(--line);color:var(--text)}
+.hexbtn:focus{border-color:var(--accent-hover);color:var(--text);outline:none;
+  background:var(--bg2)}
+.rgb-input{flex:0 0 auto;width:34px;height:30px;padding:0;cursor:pointer;
+  background:var(--bg2);border:1px solid var(--line);border-radius:7px}
+.rgb-input::-webkit-color-swatch-wrapper{padding:2px}
+/* the colour itself gets the black edge, so a pale pigment still reads as a swatch */
+.rgb-input::-webkit-color-swatch{border:1px solid #000;border-radius:5px}
+.rgb-input::-moz-color-swatch{border:1px solid #000;border-radius:5px}
+.field select,.field input[type=text]{
+  background:var(--bg2);color:var(--text);border:1px solid var(--line);border-radius:7px;
+  padding:6px 8px;font-size:13px;line-height:1.4;
+  /* option names run past 60 chars; without min-width:0 a flex select forces the
+     sidebar far wider than its declared width */
+  width:100%;min-width:0;max-width:100%;text-overflow:ellipsis;
+}
+
+/* no focus ring on selects: a select just picked stays focused, and the ring around it
+   read as a stray highlight (Raven, 2026-09-04: "We don't need the highlight around the
+   box") -- Chrome keeps :focus-visible on after its popup closes, so it goes outright */
+select:focus{outline:none}
+.field input[type=text]::placeholder{color:var(--text-hint);opacity:1}
+input[type=range]{width:100%;accent-color:var(--accent)}
+
+/* Pigment swatches */
+#pig{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;max-height:170px;overflow-y:auto}
+#pig i{display:block;aspect-ratio:1;border-radius:3px;cursor:pointer;border:1px solid #0006}
+#pig i.on{outline:2px solid var(--accent-hover);outline-offset:1px}
+
+/* Viewport overlays */
+#hud{display:none;position:absolute;top:12px;left:12px;white-space:pre;font-size:12px;line-height:1.5;
+  background:rgba(0,0,0,.55);border:1px solid var(--line);border-radius:8px;padding:10px 12px;
+  pointer-events:none;color:var(--text)}
+#err{position:absolute;bottom:12px;left:12px;color:#ff6b6b;white-space:pre;max-width:60ch}
+/* sits over the render area; pointer-events off so it never eats an orbit drag */
+#renderNote{position:absolute;top:10px;left:0;right:0;margin:0;text-align:center;
+  font-size:12px;line-height:1.4;color:var(--text-hint);opacity:.75;
+  pointer-events:none;padding:0 12px}
+#legend{font-size:11px;line-height:1.35}
+
+/* In-game pigment palette. Opens per pigment row and writes into that row's hex field,
+   so it is a way to REACH the game's 125 colours through the existing RGB interface
+   rather than a second interface beside it. */
+.palbtn{flex:0 0 auto;width:26px;height:26px;padding:0;line-height:1;font-size:13px;
+  background:transparent;color:var(--text);border:1px solid var(--line);border-radius:6px;
+  cursor:pointer}
+.palbtn:hover{background:#ffffff1a;border-color:var(--accent-hover)}
+#pigModal .modal-card{width:min(420px,92vw)}
+#pigGrid,.pig-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin:12px 0}
+/* black, not --line: a pale swatch against the panel had no edge at all, so light
+   colours ran together and white was invisible */
+#pigGrid button,.pig-grid button{aspect-ratio:1;padding:0;border:1px solid #000;
+  border-radius:4px;cursor:pointer}
+#pigGrid button:hover,.pig-grid button:hover{border-color:#fff}
+#pigGrid button.sel,.pig-grid button.sel{outline:2px solid #fff;outline-offset:1px}
+#pigDeviant .stage-h{margin:14px 0 0}
+#pigDevList .stage-h{margin:14px 0 6px}
+#pigPalettes .stage-h,#pigBaseHead .stage-h{margin:16px 0 0;font-size:13px}
+#pigPalettes .hx,#pigBaseHead .hx{font-weight:400;font-size:11px;opacity:.6}
+#pigPalettes .stage-h:first-child{margin-top:6px}
+.devrow{display:flex;align-items:center;gap:6px;margin:0 0 4px}
+.devpick{display:flex;align-items:center;gap:8px;flex:1;min-width:0;padding:5px 8px;
+  background:transparent;border:1px solid var(--line);border-radius:6px;color:var(--text);
+  cursor:pointer;font:inherit;font-size:12px;text-align:left}
+.devpick:hover{border-color:var(--accent-hover);background:#ffffff12}
+.devanim{flex:0 0 auto;width:76px}
+.devrow .sw{width:16px;height:16px;border-radius:3px;border:1px solid #000;flex:0 0 auto}
+.devrow .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.devrow .hx{opacity:.65;font-size:11px}
+
+/* Other MHGU apps modal — the block is shared verbatim with the sibling apps. */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;
+  align-items:center;justify-content:center;z-index:100;padding:20px}
+.modal-card{background:var(--bg2);border:1px solid var(--line);border-radius:10px;
+  padding:20px;max-width:560px;width:100%;max-height:82vh;overflow-y:auto}
+.modal-card h2{margin:0 0 12px;font-size:22px}
+.modal-card h3{margin:16px 0 6px;font-size:14px;color:var(--text-dim)}
+.modal-card code{font-size:12px;opacity:.85}
+.modal-card p{line-height:1.55;font-size:13px}
+.modal-card a{color:var(--accent-hover)}
+.modal-card .muted{color:var(--text-dim);font-size:13px;opacity:.75}
+/* Backdrop override, above the swatches so it is seen. Chroma chips sit on the two key buttons so
+   the colour is visible on the control that sets it. */
+.stage-h{margin:0 0 4px;font-size:14px}
+.stage-row{margin-bottom:15px}
+.stage-row .btn{position:relative;padding-left:26px}
+.stage-row .btn::before{content:"";position:absolute;left:8px;top:50%;width:10px;height:10px;
+  margin-top:-5px;border-radius:2px;border:1px solid #0006;background:var(--chip,transparent)}
+#stgTheme::before{display:none}
+#stgGreen{--chip:#00FF00}
+#stgBlue{--chip:#0000FF}
+
+/* Settings modal — Theme and Backdrop live here too, because "Theme" on its own was
+   easy to miss when looking for a setting. The swatch grid is copied verbatim from the
+   other apps; the id stays `themeModal` so the shared theme script needs no change. */
+/* The links modal is wider (560px); the family sizes the THEME card at 460 so a swatch
+   comes out the same size here as in every other app. Scoped so the links modal is untouched. */
+#themeModal .modal-card{width:min(460px,90vw)}
+.swatches{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:15px}
+.swatch{aspect-ratio:1;border-radius:8px;border:2px solid transparent;cursor:pointer;position:relative;overflow:hidden;padding:0}
+.swatch.sel{border-color:#fff}
+.swatch-icon{position:absolute;top:7%;left:50%;transform:translateX(-50%);width:60%;pointer-events:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))}
+.swatch span{position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:10px;line-height:1.5;color:#fff;background:rgba(0,0,0,.45)}
+.row.end{justify-content:flex-end}
+.app-links{list-style:none;margin:0 0 14px;padding:0;display:flex;flex-direction:column;gap:10px}
+.app-links li{border:1px solid var(--line);border-radius:8px;padding:9px 12px;background:#ffffff08}
+.app-links li.current{opacity:.72}
+.app-links a,.app-name{font-weight:600;font-size:14px}
+.app-here{font-weight:400;font-size:11px;opacity:.7;border:1px solid var(--line);border-radius:6px;padding:1px 7px;margin-left:7px}
+.app-desc{display:block;margin-top:3px;font-size:12px;opacity:.8;line-height:1.4}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="titlebar titlebar-header">
+    <img class="title-icon" src="assets/MonsterIcons/MHGU-Question_Mark_Icon.webp" alt="">
+    <!-- TEST while the app is under review: Raven, 2026-09-04, deploying with known issues
+         outstanding. Drop the word when it stops being a test build. -->
+    <h1>MHGU Monster Viewer TEST</h1>
+    <button id="barBtn" class="btn tiny on" title="Show or hide the camera controls">Camera controls</button>
+    <button id="resetBtn"  class="btn tiny cta" title="Back to the first monster and its first clip">Reset</button>
+    <button id="aboutBtn" class="icon-btn" title="About" aria-label="About">&#9432;</button>
+    <button id="themeBtn" class="icon-btn" title="Settings" aria-label="Settings">&#9881;</button>
+    <button id="linksBtn" class="icon-btn" title="Other MHGU apps" aria-label="Other MHGU apps">&#128279;</button>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <div id="paneMonster">
+
+      <section class="panel" data-open="true">
+        <button class="panel-head">Monster <span class="chev">&#9662;</span></button>
+        <div class="panel-body">
+          <div class="field"><input type="text" id="monFilter" placeholder="filter by name&hellip;"></div>
+          <div class="field"><label for="monSel">Monster</label><select id="monSel"></select></div>
+          <div class="row gap" id="monHead"><img id="monIcon" class="mon-icon" alt="" hidden><p id="monAbout" class="hint"></p></div>
+        </div>
+      </section>
+
+      <section class="panel" data-open="false">
+        <button class="panel-head">Animation <span class="chev">&#9662;</span></button>
+        <div class="panel-body">
+          <div class="field"><label for="monList">Motion list</label><select id="monList"></select></div>
+          <div class="field"><label for="monClip">Clip</label><select id="monClip"></select></div>
+          <div id="anim" class="idle">
+            <div class="transport">
+              <input id="animScrub" type="range" min="0" max="1" step="1" value="0" title="Scrub through the frames">
+              <div id="animFrame" class="hint">no animation playing</div>
+              <div class="row">
+                <button id="animFirst" class="btn tiny" title="First frame">|&lt;</button>
+                <button id="animPrev" class="btn tiny" title="Previous frame">&lt;</button>
+                <button id="animPlay" class="btn tiny" title="Play or pause">Pause</button>
+                <button id="animNext" class="btn tiny" title="Next frame">&gt;</button>
+                <button id="animLast" class="btn tiny" title="Last frame">&gt;|</button>
+              </div>
+              <div class="row">
+                <button id="animLoop" class="btn tiny on" title="Repeat the clip instead of holding its last frame">Loop</button>
+                <button id="animReplay" class="btn tiny" title="Play this clip again from its first frame">Replay</button>
+              </div>
+            </div>
+          </div>
+          <p class="hint">The game names these only by number. A clip ending in _loop is a held cycle, _start the entry into it.</p>
+        </div>
+      </section>
+
+      <section class="panel" data-open="false">
+        <button class="panel-head">Parts <span class="chev">&#9662;</span></button>
+        <div class="panel-body">
+          <p class="hint">The game's own part-visibility groups. Alternatives over one set of parts share a row; which one a monster spawns with is not read from the ROM yet.</p>
+          <div id="monGroups"></div>
+          <label class="chk" id="monTailRow" hidden><input type="checkbox" id="monTail">Show the severed parts</label>
+          <label class="chk" id="monEffectRow" hidden><input type="checkbox" id="monEffects" checked>Show the effect meshes (rage auras, glows)</label>
+        </div>
+      </section>
+
+      <section class="panel" data-open="false">
+        <button class="panel-head">Debug <span class="chev">&#9662;</span></button>
+        <div class="panel-body">
+          <label class="chk"><input type="checkbox" id="monTrueSize" checked>True size (the game's own multiplier)</label>
+          <label class="chk"><input type="checkbox" id="monAnchor" checked>Hold the monster in place while it moves</label>
+          <label class="chk"><input type="checkbox" id="monGround" checked>Keep the lowest bone on the ground</label>
+          <label class="chk"><input type="checkbox" id="monNormalFlip">Flip the normal map's green channel</label>
+          <label class="chk"><input type="checkbox" id="monUndef">Draw meshes the game's material file does not define</label>
+          <div class="field"><label for="monNormalScale">Normal strength <span id="monNormalScaleVal" class="hint"></span></label>
+            <input type="range" id="monNormalScale" min="0" max="2" step="0.05" value="1"></div>
+          <p id="monStats" class="hint"></p>
+        </div>
+      </section>
+
+      </div>
+    </aside>
+
+    <section class="content">
+      <div id="viewport"></div>
+      <div id="loading">Loading...</div>
+      <div id="hud">loading&hellip;</div>
+      <p id="renderNote">Some models may not render correctly at this time or some oddities may happen</p>
+      <div id="err"></div>
+      <div id="bar">
+        <button id="fitBtn" class="btn tiny" title="Frame the whole monster">Fit to View</button>
+        <button id="spinBtn" class="btn tiny" title="Cycle the turntable speed">Rotate</button>
+        <button id="orbitLock" class="btn tiny" title="Lock the orbit so dragging pans the view instead of rotating it"><img id="orbitLockIcon" alt=""><span id="orbitLockText">Orbit</span></button>
+        <button id="wireBtn" class="btn tiny" title="Draw the meshes as wireframe">Wireframe</button>
+        <button id="cursorBtn" class="btn tiny" title="Hide the mouse pointer over the model">Hide Cursor</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="themeModal" class="modal hidden">
+  <div class="modal-card">
+    <h2>Settings</h2>
+    <h3 class="stage-h">Display</h3>
+    <label class="chk"><input type="checkbox" id="setNote">Hide rendering notice</label>
+    <h3 class="stage-h">Backdrop</h3>
+    <p class="hint">Overrides the render background so the model can be keyed out.</p>
+    <div class="row gap stage-row">
+      <button id="stgTheme" class="btn accent" style="flex:1">Theme</button>
+      <button id="stgGreen" class="btn accent" style="flex:1">Digital Green</button>
+      <button id="stgBlue"  class="btn accent" style="flex:1">Digital Blue</button>
+    </div>
+    <h3 class="stage-h">Theme</h3>
+    <div id="swatches" class="swatches"></div>
+    <button id="themeClose" class="btn accent">Done</button>
+  </div>
+</div>
+
+<div id="aboutModal" class="modal hidden">
+  <div class="modal-card">
+    <h2>About</h2>
+    <p class="muted">A fan-made viewer for the monsters of Monster Hunter Generations Ultimate, with the game's own models, textures and motion lists. Not affiliated with, endorsed by, or supported by Capcom.</p>
+
+    <h3>Game content</h3>
+    <p>Monster Hunter Generations Ultimate and all of its models, textures, animations and data tables are &copy; CAPCOM CO., LTD. All rights reserved. Every asset here was extracted from a personally owned copy of the game and is shown for reference only.</p>
+
+    <h3>What you are looking at</h3>
+    <p>Each monster is its own archive in the game: one model, its maps, a part-visibility table and several motion lists. The clips carry no names in the game data, only numbers, so they are listed as the game stores them. The part rows come from the game's own visibility groups.</p>
+
+    <h3>Tools used to build this</h3>
+    <ul class="app-links">
+      <li><span class="app-name">RevilLib / RevilToolset</span> &mdash; by PredatorCZ (Lukas Cone)
+        <span class="app-desc">Unpacked the <code>.arc</code> archives and converted MT Framework <code>.mod</code> meshes to glTF, <code>.tex</code> textures to DDS, <code>.lmt</code> motion lists to animation, and the part tables to XML.</span></li>
+      <li><span class="app-name">hactool</span>
+        <span class="app-desc">Unpacked the game's romfs and executable from the cartridge image.</span></li>
+      <li><span class="app-name">three.js</span>
+        <span class="app-desc">Renders the scene, with GLTFLoader, OrbitControls and SkeletonUtils.</span></li>
+      <li><span class="app-name">Pillow</span>
+        <span class="app-desc">Converted the extracted textures during the build.</span></li>
+      <li><span class="app-name">MHGU-Modding wiki</span> &mdash; by RTHKKona and contributors, ported from GReinoso96 and Aradi147's XXModding
+        <span class="app-desc">Documented the model and texture extraction route this project followed.</span></li>
+    </ul>
+
+    <h3>Assets</h3>
+    <p>Monster icons, UI textures and the MHFU font are shared with the sibling MHGU fan apps listed under <em>Other MHGU Apps</em>. Monster names come from the game's own carve tables and from the MHGU Monster Info project.</p>
+
+    <div class="row end gap">
+      <button id="aboutClose" class="btn">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="linksModal" class="modal hidden">
+  <div class="modal-card">
+    <h2>Other MHGU Apps</h2>
+    <p class="muted">Companion fan tools by the same author. Each opens in a new tab.</p>
+    <ul class="app-links">
+      <li>
+        <a href="https://armoredraven17.github.io/MHGU-Quest-Randomizer/" target="_blank" rel="noopener">Quest Randomizer</a>
+        <span class="app-desc">Rolls random quests when you can't decide what to hunt.</span>
+      </li>
+      <li>
+        <a href="https://armoredraven17.github.io/mhgu-collection-tracker/" target="_blank" rel="noopener">Collection Tracker</a>
+        <span class="app-desc">Tracks which weapons, armor and Palico gear you own, and what it costs to finish them.</span>
+      </li>
+      <li>
+        <a href="https://armoredraven17.github.io/mhgu-equipment-box/" target="_blank" rel="noopener">Equipment Box</a>
+        <span class="app-desc">Mirrors the in-game box &mdash; 2000 hunter slots and 1000 Palico &mdash; so you can plan where things sit.</span>
+      </li>
+      <li>
+        <a href="https://armoredraven17.github.io/MHGU-Bingo/" target="_blank" rel="noopener">Bingo</a>
+        <span class="app-desc">Builds a bingo card of hunting goals, with a shareable seed so a group can race the same board.</span>
+      </li>
+      <li>
+        <a href="https://armoredraven17.github.io/MHGU-Hunting-Log/" target="_blank" rel="noopener">Hunting Log</a>
+        <span class="app-desc">Keeps a running record of your hunts &mdash; what you were after, what you wore, who came along.</span>
+      </li>
+      <li>
+        <a href="https://armoredraven17.github.io/MHGU-Zenny-Gauntlet/" target="_blank" rel="noopener">Zenny Gauntlet</a>
+        <span class="app-desc">A scored challenge run &mdash; fail a hunt or get carted and you lose that weapon/style combo for the rest of the run.</span>
+      </li>
+      <li>
+        <a href="https://armoredraven17.github.io/mhgu-set-builder/" target="_blank" rel="noopener">Set Builder</a>
+        <span class="app-desc">Assemble a full set by hand and see exactly which skills it activates.</span>
+      </li>
+      <li>
+        <a href="https://armoredraven17.github.io/mhgu-weapon-trees/" target="_blank" rel="noopener">Weapon Trees</a>
+        <span class="app-desc">Browse every weapon upgrade tree, with full stats on any node you click.</span>
+      </li>
+      <li>
+        <a href="https://armoredraven17.github.io/MHGU-Challenge-Run/" target="_blank" rel="noopener">Challenge Run</a>
+        <span class="app-desc">A permadeath challenge run &mdash; start from a root weapon, lose it on any quest failure, clear every Key Quest.</span>
+      </li>
+      <li>
+        <a href="https://armoredraven17.github.io/mhgu-charm-farm/" target="_blank" rel="noopener">Charm Farm</a>
+        <span class="app-desc">A Clicker/Idle game about beating up various Brachydios until you finally get the desired God Charms you always wanted.</span>
+      </li>
+      <li>
+        <a href="https://armoredraven17.github.io/mhgu-talisman-bingo/" target="_blank" rel="noopener">Talisman Bingo</a>
+        <span class="app-desc">A bingo card of talisman conditions &mdash; keep drawing charms until one finally fills the line you needed.</span>
+      </li>
+      <li>
+        <a href="https://armoredraven17.github.io/mhgu-fishing/" target="_blank" rel="noopener">Fishing</a>
+        <span class="app-desc">A fishing sim on the game's own tables &mdash; prepare at camp, travel to a locale, come home with the catch.</span>
+      </li>
+      <li>
+        <a href="https://armoredraven17.github.io/mhgu-armor-viewer/" target="_blank" rel="noopener">Armor Viewer</a>
+        <span class="app-desc">Renders a hunter in 3D with every armor piece swappable, so you can mix and match a set.</span>
+      </li>
+      <li class="current">
+        <span class="app-name">Monster Viewer <span class="app-here">you are here</span></span>
+        <span class="app-desc">Renders every monster in 3D with its own motion lists, so you can watch what they actually do.</span>
+      </li>
+    </ul>
+    <div class="row end gap">
+      <button id="linksClose" class="btn">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Plain script, not the module below: the modals and the view preferences are independent
+  // of the viewer, and reading them here means a hidden notice or bar never flashes before
+  // the module has loaded. Copied from the Armor Viewer, less its Hunter/Palico tabs.
+  (function () {
+    var am = document.getElementById("aboutModal");
+    document.getElementById("aboutBtn").onclick = function () { am.classList.remove("hidden"); };
+    document.getElementById("aboutClose").onclick = function () { am.classList.add("hidden"); };
+    am.onclick = function (e) { if (e.target === am) am.classList.add("hidden"); };
+
+    var UI_KEY = "mhgu-monster-viewer-ui";
+    var ui = { note: true, bar: true };
+    try { ui = Object.assign(ui, JSON.parse(localStorage.getItem(UI_KEY) || "{}")); } catch (_) {}
+    var noteEl = document.getElementById("renderNote"),
+        barEl = document.getElementById("bar"),
+        barHome = barEl.parentNode,
+        barBtn = document.getElementById("barBtn"),
+        header = barBtn.parentNode,
+        setNote = document.getElementById("setNote");
+    function paintUi() {
+      noteEl.hidden = !ui.note;
+      // Toggled off, the toolbar MOVES into the header rather than disappearing, so the
+      // controls stay reachable. Moving the element keeps every handler the module binds by
+      // id intact -- the nodes themselves never change.
+      if (ui.bar) barHome.appendChild(barEl);
+      else header.insertBefore(barEl, barBtn);
+      barBtn.classList.toggle("on", ui.bar);
+      setNote.checked = !ui.note;
+      try { localStorage.setItem(UI_KEY, JSON.stringify(ui)); } catch (_) {}
+    }
+    paintUi();
+    barBtn.onclick = function () { ui.bar = !ui.bar; paintUi(); };
+    setNote.onchange = function () { ui.note = !setNote.checked; paintUi(); };
+
+    var m = document.getElementById("linksModal");
+    document.getElementById("linksBtn").onclick = function () { m.classList.remove("hidden"); };
+    document.getElementById("linksClose").onclick = function () { m.classList.add("hidden"); };
+    m.onclick = function (e) { if (e.target === m) m.classList.add("hidden"); };
+  })();
+</script>
+
+<script>
+  // Theme system — the MHGU family's, installed from mhgu-fishing/docs/theme.js. Every shade
+  // is derived from ONE chosen colour by moving only its lightness in HSL, so hue and
+  // saturation are preserved and every derived surface stays "in family". That is why the
+  // palette can be a list of bare hexes rather than a set of hand-built themes.
+  //
+  // THE PALETTE HAS ONE INVARIANT: every swatch holds white text and a white checkbox tick.
+  // Both come off one number — the browser picks a checkbox tick itself, white below relative
+  // luminance .1791 and black above, and white body text needs its ground at .1833 or below to
+  // clear 4.5:1 — so the checkbox line is the stricter of the two. Every theme clears it, which
+  // is why this app paints white text unconditionally and has no light-theme branch.
+  //
+  // A NEW COLOUR HAS TO CLEAR THAT. Do not add one without checking it, and keep this list
+  // byte-identical to the other apps: it is hand-copied with no shared source.
+  (function () {
+    const THEMES = [
+    { name: "Teostra", hex: "#570B0B" },
+    { name: "Rathalos", hex: "#b51717" },
+    { name: "Tetsucabra", hex: "#783E0F" },
+    { name: "Agnaktor", hex: "#C7620E" },
+    { name: "Tigrex", hex: "#74631D" },
+    { name: "Rajang", hex: "#9C8328" },
+    { name: "Najarala", hex: "#436713" },
+    { name: "Gendrome", hex: "#67922E" },
+    { name: "Deviljho", hex: "#0B570F" },
+    { name: "Rathian", hex: "#39993E" },
+    { name: "Astalos", hex: "#14503d" },
+    { name: "Zinogre", hex: "#279773" },
+    { name: "Zamtrios", hex: "#0C5D68" },
+    { name: "Kirin", hex: "#118898" },
+    { name: "S. Ceanataur", hex: "#005984", icon: "Shogun Ceanataur" },
+    { name: "Plesioth", hex: "#0080c1" },
+    { name: "Brachydios", hex: "#0B2757" },
+    { name: "Lagiacrus", hex: "#0b3f97" },
+    { name: "G. Magala", hex: "#1F0B57", icon: "Gore Magala" },
+    { name: "Nerscylla", hex: "#4e2fa2" },
+    { name: "Y. Garuga", hex: "#62008f", icon: "Yian Garuga" },
+    { name: "Chameleos", hex: "#8e50ab" },
+    { name: "Mizutsune", hex: "#D4358C" },
+    { name: "Congalala", hex: "#C8679D" },
+    { name: "Duramboros", hex: "#5a411f" },
+    { name: "Diablos", hex: "#997c54" },
+    { name: "Barroth", hex: "#835A32" },
+    { name: "Bulldrome", hex: "#B17A47" },
+    { name: "K. Daora", hex: "#505358", icon: "Kushala Daora" },
+    { name: "Valstrax", hex: "#7C879B" },
+    { name: "Forbidden", hex: "#1E2025", icon: "Question Mark" },
+    ];
+    const KEY = "mhgu-monster-viewer-theme";
+    const DEFAULT_HEX = "#1E2025";           // Forbidden, the family default
+
+    // Backdrop override for the render area. The stage is normally darken(hex,.18) — the
+    // Weapon Tree's factor — but these two are chroma-key colours, so a screenshot of the
+    // model can be keyed out. They deliberately do NOT follow the theme: the whole point is a
+    // flat, known value the keyer can pull. Everything else (sidebar, titlebar, panels) still
+    // follows the theme, so only the surface being composited is overridden.
+    //
+    // Full-gun primaries, #00FF00 and #0000FF, chosen deliberately over the SMPTE-ish digital
+    // greens and blues. Those key more forgivingly on real footage, where the backdrop is lit
+    // cloth, but here the backdrop is a flat framebuffer value with no lighting on it at all,
+    // so the reason to prefer them does not apply and a full channel is the easier pull.
+    const STAGE_KEY = "mhgu-monster-viewer-stage";
+    const STAGES = { theme: null, green: "#00FF00", blue: "#0000FF" };
+    let stageMode = "theme";
+    try { const v = localStorage.getItem(STAGE_KEY); if (v && v in STAGES) stageMode = v; } catch (e) {}
+    const FALLBACK_ICON = "assets/MonsterIcons/MHGU-Question_Mark_Icon.webp";
+
+    const byHex = new Map(THEMES.map(t => [t.hex.toUpperCase(), t]));
+    const monsterIcon = name => `assets/MonsterIcons/MHGU-${name.replace(/ /g, "_")}_Icon.webp`;
+
+    // A saved theme is a bare hex, so anyone sitting on a retired one keeps a colour that is no
+    // longer in the list: it never picks up the change, and anything keyed off the hex stops
+    // matching. Remap on read, not on write. Kept identical to the other apps rather than
+    // trimmed to this app's own history, because a per-app map is one more thing to drift.
+    const LEGACY_HEX = {
+      '#C8A319': '#74631D', '#57470B': '#74631D', '#5E4D0C': '#74631D',           // Tigrex
+      '#574916': '#74631D', '#68581A': '#74631D',
+      '#F1D364': '#9C8328', '#B59417': '#9C8328', '#C39F19': '#9C8328',           // Rajang
+      '#BEA031': '#9C8328',
+      '#C65900': '#783E0F', '#FC933E': '#C7620E',                                 // Tetsucabra, Agnaktor
+      '#68360D': '#783E0F', '#B5590D': '#C7620E',
+      '#3A9B3F': '#39993E', '#2DAE85': '#279773',                                 // Rathian, Zinogre
+      '#D84696': '#D4358C', '#CE79A8': '#C8679D',                                 // Mizutsune, Congalala
+      '#B57C45': '#835A32', '#CFAA87': '#B17A47',                                 // Barroth, Bulldrome
+      '#AEB5C1': '#7C879B',                                                       // Valstrax
+
+    };
+    const migrateHex = (h) => (h && LEGACY_HEX[h.toUpperCase()]) || h;
+
+    const hexRgb = h => { h = h.replace("#", ""); return [0, 2, 4].map(i => parseInt(h.substr(i, 2), 16)); };
+    const clamp = n => Math.max(0, Math.min(255, Math.round(n)));
+    const clamp01 = n => Math.max(0, Math.min(1, n));
+    const rgbToHsl = ([r, g, b]) => {
+      r /= 255; g /= 255; b /= 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+      const l = (max + min) / 2;
+      if (d === 0) return [0, 0, l];
+      const s = d / (1 - Math.abs(2 * l - 1));
+      const h = max === r ? ((g - b) / d + (g < b ? 6 : 0)) / 6
+        : max === g ? ((b - r) / d + 2) / 6
+          : ((r - g) / d + 4) / 6;
+      return [h, s, l];
+    };
+    const hslToRgb = ([h, s, l]) => {
+      const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h * 6) % 2 - 1)), m = l - c / 2;
+      const hi = Math.floor(h * 6) % 6;
+      const [r, g, b] = hi === 0 ? [c, x, 0] : hi === 1 ? [x, c, 0] : hi === 2 ? [0, c, x]
+        : hi === 3 ? [0, x, c] : hi === 4 ? [x, 0, c] : [c, 0, x];
+      return [r + m, g + m, b + m].map(v => clamp(v * 255));
+    };
+    // darken/lighten only nudge lightness, so every derived shade keeps the chosen
+    // colour's hue and saturation.
+    const darken = (rgb, f) => { const [h, s, l] = rgbToHsl(rgb); return hslToRgb([h, s, clamp01(l * f)]); };
+    const lighten = (rgb, t) => { const [h, s, l] = rgbToHsl(rgb); return hslToRgb([h, s, clamp01(l + (1 - l) * t)]); };
+    const css = rgb => `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+    // The complementary colour, the Bingo app's rule for its highlight (winColor): the hue
+    // rotated a full 180 deg from the theme, saturation .95, the lightest shade from .60 down
+    // that keeps white text at 4.5:1. The Reset button wears it (Raven, 2026-09-03:
+    // "complementary colored, refer to Bingo App").
+    const lin = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    const relLum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+    const contrast = (a, b) => { const x = relLum(a), y = relLum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    const WHITE = [255, 255, 255];
+    function complement(c) {
+      const hue = (rgbToHsl(c)[0] + 0.5) % 1;
+      for (let l = 0.60; l >= 0.20; l -= 0.01) {
+        const cand = hslToRgb([hue, 0.95, l]);
+        if (contrast(cand, WHITE) >= 4.5) return cand;
+      }
+      return hslToRgb([hue, 0.95, 0.20]);
+    }
+
+    let current = DEFAULT_HEX;
+
+    function applyTheme(hex) {
+      const c = hexRgb(hex), r = document.documentElement.style;
+      r.setProperty("--bg", css(darken(c, .70)));
+      r.setProperty("--bg1", css(darken(c, .80)));
+      r.setProperty("--bg2", css(darken(c, .95)));
+      r.setProperty("--hover", css(darken(c, .30)));
+      r.setProperty("--accent", css(darken(c, .70)));
+      r.setProperty("--accent-hover", css(lighten(c, .40)));
+      r.setProperty("--cta", css(complement(c)));
+      // Weapon Trees' factor, verbatim — unless a chroma backdrop is overriding it.
+      r.setProperty("--stage", STAGES[stageMode] || css(darken(c, .18)));
+      r.setProperty("--text", "#ffffff");
+      r.setProperty("--text-dim", "#fffffff5");
+      r.setProperty("--line", "rgba(11, 8, 8, 0.12)");
+      r.setProperty("--card", "rgba(255,255,255,0.05)");
+
+      current = hex;
+      try { localStorage.setItem(KEY, hex); } catch (e) { /* private mode */ }
+
+      document.querySelectorAll(".swatch").forEach(s => s.classList.toggle("sel", s.dataset.hex === hex));
+
+      // Flat for a chroma key, textured for a theme colour. The canvas is transparent, so
+      // .content is what shows and this is the only switch needed.
+      document.documentElement.classList.toggle("chroma", stageMode !== "theme");
+      const icon = document.querySelector(".title-icon");
+      if (icon) {
+        const t = byHex.get(hex.toUpperCase());
+        icon.src = t ? monsterIcon(t.icon || t.name) : FALLBACK_ICON;
+        icon.alt = t ? t.name : "";
+      }
+    }
+
+    function renderSwatches() {
+      const grid = document.getElementById("swatches");
+      if (!grid) return;
+      grid.textContent = "";
+      for (const t of THEMES) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "swatch" + (t.hex === current ? " sel" : "");
+        b.dataset.hex = t.hex;
+        b.style.background = t.hex;      // the tile IS the colour, as in every other app
+        b.title = t.name;
+        const img = document.createElement("img");
+        img.className = "swatch-icon";
+        img.alt = "";
+        img.src = monsterIcon(t.icon || t.name);
+        img.onerror = () => { img.onerror = null; img.src = FALLBACK_ICON; };
+        const span = document.createElement("span");
+        span.textContent = t.name;
+        b.append(img, span);
+        b.addEventListener("click", () => applyTheme(t.hex));
+        grid.appendChild(b);
+      }
+    }
+
+    let saved = DEFAULT_HEX;
+    try { saved = migrateHex(localStorage.getItem(KEY)) || DEFAULT_HEX; } catch (e) { /* private mode */ }
+    if (!byHex.has(saved.toUpperCase())) saved = DEFAULT_HEX;
+    applyTheme(saved);
+    renderSwatches();
+    applyTheme(saved);   // re-run so the freshly drawn swatches get the `sel` marker
+
+    const modal = document.getElementById("themeModal");
+    document.getElementById("themeBtn").onclick = () => modal.classList.remove("hidden");
+    const STAGE_BTN = { theme: "stgTheme", green: "stgGreen", blue: "stgBlue" };
+    function setStage(mode) {
+      stageMode = mode in STAGES ? mode : "theme";
+      try { localStorage.setItem(STAGE_KEY, stageMode); } catch (e) { /* private mode */ }
+      for (const m in STAGE_BTN) document.getElementById(STAGE_BTN[m]).classList.toggle("on", m === stageMode);
+      applyTheme(current);   // re-derives --stage and repaints the scene
+    }
+    for (const m in STAGE_BTN) document.getElementById(STAGE_BTN[m]).onclick = () => setStage(m);
+    setStage(stageMode);
+
+    document.getElementById("themeClose").onclick = () => modal.classList.add("hidden");
+    modal.onclick = (e) => { if (e.target === modal) modal.classList.add("hidden"); };
+  })();
+</script>
+
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+}}
+</script>
+
+<script type="module">
+// The MHGU Monster Viewer. One figure: a monster from the game's own enemy archives, on its
+// own skeleton, with the game's part-visibility groups and its motion lists.
+//
+// The render core (render/stage.js, assets.js, skeleton.js, material.js, materials-db.js,
+// pose.js) is COPIED from the MHGU Armor Viewer and kept in step by dev/sync-render.py --
+// see docs/render/SOURCE.json. A fix to any of those belongs upstream, in the Armor Viewer,
+// and comes back here with `--pull`. render/monster.js is this app's own.
+//
+// Data (all built from the ROM by C:\MHGU-Extract\harvest-monsters.py and build-materials.py):
+//   monsters.json    per monster: model, parts, part-visibility groups, motion lists and
+//                    their clips, the base size multiplier, the name and its source
+//   materials.json   what the game's own material files say about every material
+//   models/monsters  one glb per model      poses/monsters  one glb per motion list
+import * as THREE from 'three';
+import { createStage } from './render/stage.js';
+import { initAssets, loadJson } from './render/assets.js';
+import { allMats, setWire, setBiasUnitsPerStep } from './render/material.js';
+import { PoseDriver } from './render/pose.js';
+import { loadMaterialsDb } from './render/materials-db.js';
+import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
+         partVerts, partsDrawn, applyParts, groupLabel, setNormalOpt,
+         setUndefinedMaterialVisible, setEffectVisible, monsterMats } from './render/monster.js';
+
+const errEl = document.getElementById('err');
+const errors = [];
+window.__errors = errors;
+function noteError(msg){ errors.push(String(msg)); errEl.textContent = String(msg); }
+addEventListener('error', e => noteError('ERROR: ' + e.message));
+const _consoleError = console.error.bind(console);
+console.error = (...a) => { errors.push(a.map(String).join(' ')); _consoleError(...a); };
+
+// `?clean` hides the chrome; `?scene=<name>` renders one of dev/scenes.json's fixed scenes at
+// a fixed size for before/after diffing (dev/serve.py saves the shots) and never writes state.
+const CLEAN = new URLSearchParams(location.search).has('clean');
+const SCENE = new URLSearchParams(location.search).get('scene');
+const MARGIN = CLEAN ? 1.02 : 1.35;
+if (CLEAN){ document.querySelector('.sidebar').style.display = 'none';
+            document.querySelector('.titlebar').style.display = 'none'; }
+
+const MON = await loadJson('monsters.json');
+await loadMaterialsDb();
+
+const viewport = document.getElementById('viewport');
+const stage = createStage(viewport, { margin: MARGIN, fixedSize: SCENE ? [1280, 800] : null });
+const { renderer, scene, camera, controls, world } = stage;
+const head = stage.lights.head;
+initAssets(renderer);
+
+// ---- camera bar (the Armor Viewer's, verbatim in behaviour) --------------------------------
+const BOOK_ICON = {
+  locked: "data:image/webp;base64,UklGRs4AAABXRUJQVlA4TMIAAAAvMUAMEAZIjSRJkgbWkCtCQ2cYHZtRmV779yIQhHDN0C65hCAQNDfGOimscP8VuW2kpDOHZYY3COmRDIrltX30bL1tHcBdSHBAYOEA2bUf2HAdxT/qBspp09K0jwm1ESgteCe6ttJbFQUrfCiLGjrQCpRDCoNsoYWFidwOxKUJi7VJWv7kuhcgIAJEFqIiYucQu5M4AcQpI04ycVsQNxJx6xE3K39733uPYzEimoUzL/YB+P7bYvh/0TpTEcP8rwuCkQ==",
+  unlocked: "data:image/webp;base64,UklGRs4AAABXRUJQVlA4TMEAAAAvMUAMEAZGkSRJQRC2MIMUZF5z1fLvJsi2mc7cjjKVOxJk20xnbFeZyh37r8htIyWdOSwzvEGQNhgUy1mSdtVZbS2Ajs0ECwTscXxrOOCXRvFHMwE79E8n+jjDdWyFlngnOrbQWxUlFvhIlpclHWgFwiElg2xhB5ZMZDmQLk2yWGXszOKe1AIERIDIQlRE7BxidxIngDhlxEkmbgviRiJuPeJm5W9vScvhEdHYMy/2Auj622L4X7Q0UxHD/K8LgpEAAA==" };
+let orbitLocked = false;
+const orbitLockBtn = document.getElementById('orbitLock'),
+      orbitLockIcon = document.getElementById('orbitLockIcon'),
+      orbitLockText = document.getElementById('orbitLockText');
+(function lockOrbitWidth(){
+  let w = 0;
+  for (const t of ['Orbit', 'Pan']){ orbitLockText.textContent = t; w = Math.max(w, orbitLockBtn.offsetWidth); }
+  orbitLockBtn.style.minWidth = w + 'px'; orbitLockBtn.style.justifyContent = 'center';
+})();
+function paintOrbitLock(){
+  orbitLockIcon.src = BOOK_ICON[orbitLocked ? 'unlocked' : 'locked'];
+  orbitLockText.textContent = orbitLocked ? 'Pan' : 'Orbit';
+  orbitLockBtn.classList.toggle('on', !orbitLocked);
+  controls.mouseButtons.LEFT = orbitLocked ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;
+  controls.touches.ONE = orbitLocked ? THREE.TOUCH.PAN : THREE.TOUCH.ROTATE;
+}
+function toggleOrbitLock(){ orbitLocked = !orbitLocked; paintOrbitLock(); saveState(); }
+orbitLockBtn.onclick = toggleOrbitLock;
+let midAt = null;
+viewport.addEventListener('pointerdown', e => { if (e.button === 1) midAt = [e.clientX, e.clientY]; });
+viewport.addEventListener('auxclick', e => {
+  if (e.button !== 1 || !midAt) return;
+  const moved = Math.abs(e.clientX - midAt[0]) + Math.abs(e.clientY - midAt[1]);
+  midAt = null;
+  if (moved < 5){ e.preventDefault(); toggleOrbitLock(); }
+});
+const SPIN_STEPS = [{ label: 'Rotate', speed: 0 }, { label: 'Rotate', speed: 1.8 }, { label: 'Turbo', speed: 6 }];
+let spinStep = 0;
+const spinBtn = document.getElementById('spinBtn');
+(function lockSpinWidth(){
+  let w = 0;
+  for (const st of SPIN_STEPS){ spinBtn.textContent = st.label; w = Math.max(w, spinBtn.offsetWidth); }
+  spinBtn.style.minWidth = w + 'px'; spinBtn.style.textAlign = 'center';
+})();
+function paintSpin(){
+  const st = SPIN_STEPS[spinStep];
+  spinBtn.textContent = st.label;
+  spinBtn.classList.toggle('on', st.speed > 0);
+  controls.autoRotate = st.speed > 0;
+  controls.autoRotateSpeed = st.speed || 3;
+}
+spinBtn.onclick = () => { spinStep = (spinStep + 1) % SPIN_STEPS.length; paintSpin(); saveState(); };
+paintSpin();
+let wireOn = false;
+const wireBtn = document.getElementById('wireBtn');
+function paintWire(){ wireBtn.classList.toggle('on', wireOn); setWire(allMats, wireOn); }
+wireBtn.onclick = () => { wireOn = !wireOn; paintWire(); saveState(); };
+let hideCursor = false;
+const cursorBtn = document.getElementById('cursorBtn');
+function paintCursor(){
+  cursorBtn.classList.toggle('on', hideCursor);
+  viewport.classList.toggle('nocursor', hideCursor);
+}
+cursorBtn.onclick = () => { hideCursor = !hideCursor; paintCursor(); saveState(); };
+
+// ---- framing --------------------------------------------------------------------------
+// A monster is anywhere from a 2 m Aptonoth to a Lao-Shan Lung, so the near and far planes
+// are set from the fitted distance rather than fixed. Under a clip the bind-pose bounding
+// box is wrong (a skinned mesh keeps its T-pose bounds), so the pose driver's own bounds --
+// the union of the WHOLE loop, computed once when the clip starts -- win where it has them.
+function frameAll(){
+  const objs = Object.values(mounted);
+  if (!objs.length) return;
+  const box = new THREE.Box3();
+  objs.forEach(o => box.expandByObject(o));
+  // The driver measures its bounds on the proxy, which is never scaled, so they need the
+  // world's factor before they can frame a monster shown at its true size.
+  const s = world.scale.x || 1;
+  if (pose.bounds && !pose.bounds.isEmpty()){
+    box.copy(pose.bounds); box.min.multiplyScalar(s); box.max.multiplyScalar(s);
+  }
+  if (box.isEmpty()) return;
+  const size = box.getSize(new THREE.Vector3());
+  const c = box.getCenter(new THREE.Vector3());
+  if (pose.center) c.copy(pose.center).multiplyScalar(s);
+  const vFov = THREE.MathUtils.degToRad(camera.fov);
+  let dist = Math.max((size.y * 0.5) / Math.tan(vFov / 2),
+                      (size.x * 0.5) / Math.tan(vFov / 2) / camera.aspect) * MARGIN + size.z * 0.5;
+  if (pose.center){
+    const reachY = Math.max(box.max.y - c.y, c.y - box.min.y) * 2;
+    const reachX = Math.max(box.max.x - c.x, c.x - box.min.x) * 2;
+    dist = Math.max((reachY * 0.5) / Math.tan(vFov / 2),
+                    (reachX * 0.5) / Math.tan(vFov / 2) / camera.aspect) * MARGIN + size.z * 0.5;
+  }
+  controls.target.copy(c);
+  camera.position.copy(c).add(new THREE.Vector3(0, 0, dist));
+  camera.near = Math.max(dist / 1000, 1e-4); camera.far = dist * 20;
+  camera.updateProjectionMatrix(); controls.update();
+}
+document.getElementById('fitBtn').onclick = () => frameAll();
+// The ROM's depth bias is in depth-buffer units, whose real size depends on the projection,
+// so the page re-expresses one step as a fixed push in metres every frame.
+const BIAS_STEP_M = 0.0005;
+function updateDepthBias(){
+  const dist = camera.position.distanceTo(controls.target);
+  const lsb = dist * dist / camera.near / 16777216;
+  if (lsb > 0) setBiasUnitsPerStep(BIAS_STEP_M / lsb);
+}
+
+// ---- state ------------------------------------------------------------------------------
+const LS_KEY = 'mhgu-monster-viewer';
+let restoring = true;
+const SAVED = (() => {
+  if (SCENE) return null;
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (_) { return null; }
+})();
+function cameraState(){
+  try {
+    return { p: camera.position.toArray().map(n => +n.toFixed(4)),
+             t: controls.target.toArray().map(n => +n.toFixed(4)) };
+  } catch (_) { return null; }
+}
+function applyCameraState(c){
+  if (!c || !Array.isArray(c.p) || !Array.isArray(c.t)) return false;
+  if (!c.p.every(Number.isFinite) || !c.t.every(Number.isFinite)) return false;
+  camera.position.fromArray(c.p); controls.target.fromArray(c.t);
+  camera.lookAt(controls.target); controls.update();
+  return true;
+}
+const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: false,
+                trueSize: true, anchor: true, ground: true, normalFlip: false, normalScale: 1,
+                // OFF by default: see applyUndef
+                undef: false,
+                // the additive effect meshes as a class; the ROM's part table already keeps
+                // them off at rest, so this is a way to look at them, not a correction
+                effects: true };
+function saveState(){
+  if (restoring || SCENE) return;
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(Object.assign({}, state, {
+      camera: cameraState(), orbitLocked, spinStep, wireOn, hideCursor })));
+  } catch (_) {}
+}
+
+// ---- the monster ------------------------------------------------------------------------
+const mounted = {};
+let seq = 0;
+const pose = new PoseDriver({ frame: world, onError: msg => noteError(msg) });
+const monSel = document.getElementById('monSel'), monFilter = document.getElementById('monFilter'),
+      monListSel = document.getElementById('monList'), monClipSel = document.getElementById('monClip'),
+      monGroupsEl = document.getElementById('monGroups'), monAbout = document.getElementById('monAbout'),
+      monStats = document.getElementById('monStats'),
+      monTail = document.getElementById('monTail'), monTailRow = document.getElementById('monTailRow');
+
+function entry(){ return MON.monsters.find(e => e.id === state.id) || null; }
+function listOf(e){ return (e && e.lists.find(l => l.id === state.list)) || null; }
+function clipOf(l){ return (l && (l.clips || []).find(c => c.clip === state.clip)) || null; }
+const label = e => (e.name || e.id) + (e.name ? '' : ' (unnamed)');
+
+function buildMonsterList(){
+  const f = (monFilter.value || '').trim().toLowerCase();
+  // The monster ON SCREEN always stays in the list, whatever the filter says. Dropping it
+  // used to re-point state.id at whichever monster the filter left first -- without
+  // remounting, because setting a select's value from script fires no change event -- so the
+  // app then ran one monster's size, part groups and clips against another's model. (The
+  // Armor Viewer keeps the worn piece listed for exactly this reason.)
+  const hit = e => !f || label(e).toLowerCase().includes(f) || e.id.includes(f) || e.id === state.id;
+  const opt = e => '<option value="' + e.id + '">' + label(e) + '</option>';
+  const big = MON.monsters.filter(e => !e.small && hit(e)).map(opt).join('');
+  const small = MON.monsters.filter(e => e.small && hit(e)).map(opt).join('');
+  monSel.innerHTML = (big ? '<optgroup label="Large monsters">' + big + '</optgroup>' : '') +
+                     (small ? '<optgroup label="Small monsters">' + small + '</optgroup>' : '');
+  if (![...monSel.options].some(o => o.value === state.id)){
+    const first = MON.monsters.find(e => !e.small) || MON.monsters[0];
+    if (first) state.id = first.id;
+  }
+  monSel.value = state.id;
+}
+function buildLists(){
+  const e = entry();
+  const lists = (e && e.lists) || [];
+  monListSel.innerHTML = lists.map(l =>
+    '<option value="' + l.id + '">List ' + l.id + ' &mdash; ' + (l.clips || []).length + ' clips' +
+    (l.shared ? ' (shared)' : '') + '</option>').join('');
+  if (!lists.some(l => l.id === state.list)) state.list = lists.length ? lists[0].id : '';
+  monListSel.value = state.list;
+  buildClips();
+}
+function buildClips(){
+  const clips = (listOf(entry()) || {}).clips || [];
+  monClipSel.innerHTML = '<option value="">Bind pose</option>' +
+    clips.map(c => '<option value="' + c.clip + '">' + c.clip + ' &mdash; ' + c.dur.toFixed(2) + ' s</option>').join('');
+  if (!clips.some(c => c.clip === state.clip)) state.clip = clips.length ? clips[0].clip : '';
+  monClipSel.value = state.clip;
+}
+function paintAbout(){
+  const e = entry();
+  if (!e) { monAbout.textContent = ''; return; }
+  // The monster's own icon, beside the readout. Not every monster has one (the set covers the
+  // named ones), so it hides rather than showing a broken image.
+  //
+  // It does NOT go in the title bar. That icon belongs to the THEME across these apps -- the
+  // themes are named after monsters and the header icon is how you see which one is selected --
+  // and writing the mounted monster there overwrote the reading (Raven, 2026-09-04: "those are
+  // meant to reflect which theme is selected"). The Armor Viewer sets .title-icon in exactly one
+  // place, its theme block, and this app now matches.
+  const icon = document.getElementById('monIcon');
+  if (e.icon){ icon.src = e.icon; icon.hidden = false; icon.alt = e.name || e.id; }
+  else { icon.hidden = true; }
+  const nclips = e.lists.reduce((n, l) => n + (l.clips || []).length, 0);
+  monAbout.textContent = e.id + '  \u00b7  ' + e.bones + ' bones, ' + e.verts.toLocaleString() +
+    ' vertices  \u00b7  ' + e.lists.length + ' motion lists, ' + nclips + ' clips' +
+    (e.sizeBase && e.sizeBase !== 1 ? '  \u00b7  size ' + e.sizeBase + '\u00d7' : '');
+  monStats.textContent = 'name from ' + (e.nameSource || 'nothing') +
+    (e.nameRom && e.name !== e.nameRom ? ' (carves say ' + e.nameRom + ')' : '') +
+    (e.sharesModelOf ? '  \u00b7  model shared with ' + e.sharesModelOf : '') +
+    '  \u00b7  ' + monsterMats.length + ' materials';
+}
+// The part-visibility groups come in clusters over one set of parts: on Rathian, group 1 is
+// "1 on, 9 off" and group 2 the reverse -- a part SWAP, the intact part against the broken
+// one. Which alternative the game applies at spawn is not read from the ROM, so the first of
+// each cluster is the default and every cluster is a row here.
+function buildGroups(){
+  const e = entry();
+  const groups = (e && e.groups) || [];
+  if (!state.groups || state.groups.length !== groups.length) state.groups = defaultGroupsOn(groups);
+  monGroupsEl.innerHTML = '';
+  if (!groups.length){
+    monGroupsEl.innerHTML = '<p class="hint">This monster ships no part-visibility table.</p>';
+  }
+  for (const c of clusterGroups(groups)){
+    const row = document.createElement('div'); row.className = 'field';
+    const lab = document.createElement('label');
+    lab.textContent = 'Parts ' + c.parts.split(',').join(', ');
+    const sel = document.createElement('select');
+    if (c.members.length === 1){
+      const k = c.members[0];
+      sel.innerHTML = '<option value="on">' + groupLabel(groups[k]) + '</option>' +
+                      '<option value="off">not applied</option>';
+      sel.value = state.groups[k] ? 'on' : 'off';
+      sel.onchange = () => { state.groups[k] = sel.value === 'on'; applyPartState(); saveState(); };
+    } else {
+      sel.innerHTML = c.members.map(k => '<option value="' + k + '">' + groupLabel(groups[k]) + '</option>').join('');
+      const cur = c.members.find(k => state.groups[k]);
+      sel.value = String(cur === undefined ? c.members[0] : cur);
+      sel.onchange = () => {
+        c.members.forEach(k => { state.groups[k] = String(k) === sel.value; });
+        applyPartState(); saveState();
+      };
+    }
+    row.appendChild(lab); row.appendChild(sel); monGroupsEl.appendChild(row);
+  }
+  const e2 = entry();
+  monTailRow.hidden = !(e2 && e2.parts.length);
+  monTail.checked = state.tail;
+}
+function applyPartState(){
+  const e = entry();
+  if (!e) return;
+  // Only the main model. The visibility table numbers the parts of THAT model, and the
+  // severed pieces are separate models with their own numbering -- applying the monster's
+  // table to Nakarkos' two halves hid about a third of each of them.
+  if (mounted.main) applyParts(mounted.main, partsDrawn(e.groups || [], state.groups));
+  for (const [k, g] of Object.entries(mounted)) if (k !== 'main') g.visible = state.tail;
+  // applyParts writes o.visible from the part table, so the class toggles run after it
+  for (const g of Object.values(mounted)) setEffectVisible(g, state.effects);
+  for (const g of Object.values(mounted)) setUndefinedMaterialVisible(g, state.undef);
+}
+function clearMounts(){
+  // give the materials and geometry back: a sweep steps through every monster in the game
+  for (const k of Object.keys(mounted)){
+    world.remove(mounted[k]); releaseMonster(mounted[k]); delete mounted[k];
+  }
+}
+// The Loading overlay is a SCREEN, not a caption. Showing the text on its own left the
+// outgoing monster rendering underneath it (Raven, 2026-09-04: "The loading... doesn't bring up
+// the screen, it just says loading... over the model"), because the animation loop kept drawing
+// and the overlay is transparent. Two things make it a screen, both taken from the Armor
+// Viewer's setLoading: the loop is suspended while a hold is out, and the canvas is CLEARED on
+// the way in -- with the loop suspended the last frame would otherwise sit there under the text.
+// Counted, so a mount nested inside another cannot leave the overlay stuck on.
+let loadHold = 0;
+function setLoading(on){
+  loadHold = Math.max(0, loadHold + (on ? 1 : -1));
+  const show = loadHold > 0;
+  document.getElementById('loading').hidden = !show;
+  if (show && on) renderer.clear();
+}
+
+// Selecting a monster is three steps -- mount the models, load the motion list, frame the
+// camera -- and the screen has to span all three. Holding only across mount() would drop it on
+// an unposed monster at the previous monster's camera, which then jumps when frameAll runs.
+// The hold is counted, so mount()'s own hold nesting inside this one is harmless.
+async function remount({ play: withPlay = true, frame = true } = {}){
+  setLoading(true);
+  try {
+    await mount();
+    if (withPlay) await play();
+    if (frame) frameAll();
+  } finally { setLoading(false); }
+}
+
+async function mount(){
+  const e = entry();
+  const mine = ++seq;
+  if (!e) { clearMounts(); return; }
+  setLoading(true);
+  // finally, not a plain call at the end: the superseded path below returns early and a throw
+  // in loadMonster would otherwise leave the hold out and the screen up for good
+  try {
+    const main = await loadMonster(e, {}, { wire: wireOn });
+    // the severed parts (a cut tail, Nakarkos' two halves) are separate models the game places
+    // on the ground; they mount at the origin and are off unless asked for
+    const extra = [];
+    for (const p of e.parts) extra.push([p.name, await loadMonster(p, {}, { wire: wireOn })]);
+    if (mine !== seq){
+      // Superseded while loading. Hand back what was built, or its materials sit in the
+      // registries for the rest of the session and every later toggle walks them.
+      releaseMonster(main);
+      for (const pair of extra) releaseMonster(pair[1]);
+      return;
+    }
+    clearMounts();
+    world.add(main); mounted.main = main;
+    for (const [name, g] of extra){ world.add(g); mounted[name] = g; }
+    applySize();
+    buildGroups(); applyPartState(); paintAbout(); applyUndef(); applyEffects();
+    setNormalOpt(state.normalFlip, state.normalScale);
+  } finally { setLoading(false); }
+}
+// The game's own multiplier for this monster (rEnemyDtBase): a Deviant is 1.2 times its
+// base, and the models are all authored at 1.0, so this is what makes two monsters comparable.
+//
+// It scales the WORLD group, not the mounted roots. The pose driver rewrites every driven
+// bone's LOCAL transform out of world matrices and drops the scale component, so a scale on
+// the root was cancelled the moment a clip played: the bones came back at their unscaled
+// positions inside a scaled root, which is a distortion rather than a resize. Scaling the
+// group the driver rebases THROUGH survives, because the inverse-parent and the frame carry
+// the same factor and it lands once, at the top.
+function sizeScale(){
+  return state.trueSize ? ((entry() && entry().sizeBase) || 1) : 1;
+}
+// The meshes whose material the game's OWN material file does not define: the model names
+// the material "Scene_Material" and the .mrl carries no entry for it, so there is nothing to
+// bind and no ROM answer for how they should look. 8 monsters, 15 meshes. Hidden by default,
+// on this reasoning: the material file is the authority on how a material is drawn and it
+// defines none, and each of those monsters is visibly COMPLETE without them (Valstrax shows
+// white patches across its head, chest and wings when they are drawn -- see
+// dev/shots/open-questions). Their mesh-table mask is 0xffff where every other drawn mesh is
+// 0xefff, which may mean something and has not been decoded. The toggle is here so Raven can
+// judge it against the game; it is a question, not a settled call.
+function applyUndef(){
+  for (const g of Object.values(mounted)) setUndefinedMaterialVisible(g, state.undef);
+}
+// The additive effect meshes as a class. The game shows them in states this viewer does not
+// model -- enraged, mode changes -- so on a monster that carries any, they are worth being
+// able to switch off in one go rather than hunting through the part rows.
+function applyEffects(){
+  // hide-only, so turning it back on means re-running the part table rather than forcing
+  // every effect mesh visible
+  applyPartState();
+  let n = 0;
+  for (const g of Object.values(mounted)) g.traverse(o => { if (o.userData.effect) n++; });
+  const row = document.getElementById('monEffectRow');
+  row.hidden = !n;
+  const cb = document.getElementById('monEffects');
+  cb.checked = state.effects;
+  if (cb.nextSibling && cb.nextSibling.nodeType === 3)
+    cb.nextSibling.textContent = 'Show the effect meshes, rage auras and glows (' + n + ')';
+}
+function applySize(){
+  for (const g of Object.values(mounted)) g.scale.setScalar(1);
+  world.scale.setScalar(sizeScale());
+  world.updateMatrixWorld(true);
+}
+let playSeq = 0;
+async function play(){
+  const mine = ++playSeq;
+  const e = entry(), l = listOf(e), c = clipOf(l);
+  if (!c){
+    // "Bind pose". Stopping the driver leaves the bones wherever the last clip left them,
+    // so the model has to be put back explicitly.
+    pose.stop();
+    for (const g of Object.values(mounted)) restoreBind(g);
+    return;
+  }
+  pose.loopMode = () => (state.loop ? 'repeat' : 'once');
+  // 18 monsters play another monster's motion list (Rathalos uses Rathian's, Genprey uses
+  // Velociprey's). Those files name their tracks after the OWNER's bones, so the clip is
+  // retargeted onto this model by global bone id first -- see clipFor.
+  const clip3 = await clipFor(l, c.clip, e.glb);
+  if (mine !== playSeq) return;          // a later selection won while this one was loading
+  await pose.play({ file: l.file, clip: c.clip, model: e.glb, clip3 },
+                  { figure: 'monster', joints: e.joints || [],
+                    anchorXZ: state.anchor, groundLock: state.ground });
+  if (mine !== playSeq) pose.stop();     // ...or won while the clip was being prepared
+}
+function poseRoots(){ return Object.values(mounted); }
+
+// ---- animation transport ------------------------------------------------------------------
+// The motions run at 60 frames a second, so a frame step is 1/60 s. The transport drives the
+// pose driver's action directly, as the Armor Viewer's does.
+const FRAME = 1 / 60;
+const animBar = document.getElementById('anim'), animScrub = document.getElementById('animScrub'),
+      animFrameEl = document.getElementById('animFrame'), animPlayBtn = document.getElementById('animPlay'),
+      animLoopBtn = document.getElementById('animLoop');
+const clipDur = act => Math.max(0, act.getClip().duration - 1e-3);
+let animLast = '';
+function paintAnim(){
+  const act = pose.action;
+  animBar.classList.toggle('idle', !act);
+  if (!act){ if (animLast !== ''){ animLast = ''; animFrameEl.textContent = 'no animation playing'; } return; }
+  const dur = clipDur(act), total = Math.round(dur / FRAME), cur = Math.min(total, Math.round(act.time / FRAME));
+  const playing = !act.paused && act.isRunning();
+  const key = cur + '/' + total + (playing ? 'p' : 's') + (act.loop === THREE.LoopRepeat ? 'L' : '');
+  if (key === animLast) return;
+  animLast = key;
+  animFrameEl.textContent = 'frame ' + cur + ' of ' + total + '  (' + (cur / 60).toFixed(2) + ' s)';
+  animScrub.max = String(total); animScrub.value = String(cur);
+  animPlayBtn.textContent = playing ? 'Pause' : 'Play';
+  animLoopBtn.classList.toggle('on', act.loop === THREE.LoopRepeat);
+}
+function seekTo(t){
+  const act = pose.action;
+  if (!act) return;
+  act.paused = true; act.enabled = true;
+  act.time = Math.max(0, Math.min(t, clipDur(act)));
+  pose.step(poseRoots());
+}
+animScrub.oninput = () => seekTo(+animScrub.value * FRAME);
+document.getElementById('animFirst').onclick = () => seekTo(0);
+document.getElementById('animLast').onclick = () => { if (pose.action) seekTo(clipDur(pose.action)); };
+document.getElementById('animPrev').onclick = () => { if (pose.action) seekTo(pose.action.time - FRAME); };
+document.getElementById('animNext').onclick = () => { if (pose.action) seekTo(pose.action.time + FRAME); };
+animPlayBtn.onclick = () => {
+  const act = pose.action;
+  if (!act) return;
+  if (act.paused || !act.isRunning()){
+    if (act.time >= clipDur(act)) act.time = 0;
+    act.paused = false; act.enabled = true; act.play();
+  } else act.paused = true;
+};
+animLoopBtn.onclick = () => {
+  state.loop = !state.loop;
+  animLoopBtn.classList.toggle('on', state.loop);
+  const act = pose.action;
+  if (act){
+    act.loop = state.loop ? THREE.LoopRepeat : THREE.LoopOnce;
+    act.clampWhenFinished = !state.loop; act.repetitions = Infinity;
+    if (state.loop && (act.paused || !act.isRunning())){
+      if (act.time >= clipDur(act)) act.time = 0;
+      act.paused = false; act.enabled = true; act.play();
+    }
+  }
+  saveState();
+};
+document.getElementById('animReplay').onclick = () => play();
+
+// ---- controls -----------------------------------------------------------------------------
+monFilter.oninput = () => { buildMonsterList(); };
+monSel.onchange = async () => {
+  state.id = monSel.value; state.groups = null; state.list = ''; state.clip = '';
+  buildLists();
+  await remount(); saveState();
+};
+monListSel.onchange = async () => {
+  state.list = monListSel.value; state.clip = '';
+  buildClips(); await play(); saveState();
+};
+monClipSel.onchange = async () => { state.clip = monClipSel.value; await play(); saveState(); };
+monTail.onchange = () => { state.tail = monTail.checked; applyPartState(); saveState(); };
+document.getElementById('monTrueSize').onchange = e => { state.trueSize = e.target.checked; applySize(); saveState(); };
+document.getElementById('monAnchor').onchange = async e => { state.anchor = e.target.checked; await play(); saveState(); };
+document.getElementById('monGround').onchange = async e => { state.ground = e.target.checked; await play(); saveState(); };
+const normScaleEl = document.getElementById('monNormalScale'), normScaleVal = document.getElementById('monNormalScaleVal');
+function paintNormal(){
+  document.getElementById('monNormalFlip').checked = state.normalFlip;
+  normScaleEl.value = String(state.normalScale);
+  normScaleVal.textContent = state.normalScale.toFixed(2) + '\u00d7';
+  setNormalOpt(state.normalFlip, state.normalScale);
+}
+document.getElementById('monNormalFlip').onchange = e => { state.normalFlip = e.target.checked; paintNormal(); saveState(); };
+document.getElementById('monUndef').onchange = e => { state.undef = e.target.checked; applyUndef(); saveState(); };
+document.getElementById('monEffects').onchange = e => { state.effects = e.target.checked; applyEffects(); saveState(); };
+normScaleEl.oninput = e => { state.normalScale = +e.target.value; paintNormal(); saveState(); };
+document.getElementById('resetBtn').onclick = async () => {
+  const first = MON.monsters.find(e => !e.small) || MON.monsters[0];
+  Object.assign(state, { id: first ? first.id : '', list: '', clip: '', groups: null, loop: true,
+                         tail: false, trueSize: true, anchor: true, ground: true,
+                         normalFlip: false, normalScale: 1 });
+  monFilter.value = '';
+  buildMonsterList(); buildLists(); paintNormal();
+  document.getElementById('monTrueSize').checked = true;
+  document.getElementById('monAnchor').checked = true;
+  document.getElementById('monGround').checked = true;
+  animLoopBtn.classList.toggle('on', true);
+  await remount(); saveState();
+};
+
+// panels: one open at a time, clicking the open one closes it
+document.querySelectorAll('.panel-head').forEach(h => {
+  h.onclick = () => {
+    const p = h.parentElement, wasOpen = p.dataset.open === 'true';
+    document.querySelectorAll('.panel').forEach(o => o.dataset.open = 'false');
+    p.dataset.open = wasOpen ? 'false' : 'true';
+  };
+});
+
+// ---- start ---------------------------------------------------------------------------------
+if (SAVED){
+  for (const k of ['id', 'list', 'clip']) if (typeof SAVED[k] === 'string') state[k] = SAVED[k];
+  for (const k of ['loop', 'tail', 'trueSize', 'anchor', 'ground', 'normalFlip', 'undef', 'effects'])
+    if (typeof SAVED[k] === 'boolean') state[k] = SAVED[k];
+  if (typeof SAVED.normalScale === 'number') state.normalScale = SAVED.normalScale;
+  if (Array.isArray(SAVED.groups)) state.groups = SAVED.groups.map(Boolean);
+  if (typeof SAVED.orbitLocked === 'boolean') orbitLocked = SAVED.orbitLocked;
+  if (typeof SAVED.spinStep === 'number') spinStep = SAVED.spinStep % SPIN_STEPS.length;
+  if (typeof SAVED.wireOn === 'boolean') wireOn = SAVED.wireOn;
+  if (typeof SAVED.hideCursor === 'boolean') hideCursor = SAVED.hideCursor;
+}
+buildMonsterList(); buildLists(); paintNormal(); paintOrbitLock(); paintSpin(); paintWire(); paintCursor();
+document.getElementById('monTrueSize').checked = state.trueSize;
+document.getElementById('monAnchor').checked = state.anchor;
+document.getElementById('monGround').checked = state.ground;
+document.getElementById('monUndef').checked = state.undef;
+animLoopBtn.classList.toggle('on', state.loop);
+await mount();
+await play();
+if (!applyCameraState(SAVED && SAVED.camera)) frameAll();
+restoring = false;
+
+new ResizeObserver(stage.fit).observe(viewport);
+addEventListener('resize', stage.fit);
+stage.fit();
+// Nothing is drawn until the start-up camera is in place, so the first frames never show the
+// model through the default camera and then jump.
+let booted = true;
+renderer.setAnimationLoop(() => {
+  // a hold from setLoading suspends drawing, so the cleared canvas stays cleared and the
+  // Loading overlay reads as a screen rather than a caption over the outgoing monster
+  if (!booted || loadHold > 0) return;
+  pose.step(poseRoots());
+  updateDepthBias();
+  paintAnim();
+  controls.update();
+  head.position.copy(camera.position);
+  renderer.render(scene, camera);
+});
+
+// ---- dev harness ---------------------------------------------------------------------------
+// `?clean&scene=<name>[&run=<label>][&shot]` applies one of dev/scenes.json's fixed scenes and
+// exposes __view.shot(), which renders one frame and POSTs the PNG to dev/serve.py.
+async function runScene(name){
+  const doc = await (await fetch('dev/scenes.json?v=' + Date.now())).json();
+  if (!doc.scenes[name]) throw new Error('unknown scene: ' + name);
+  const sc = Object.assign({}, doc.defaults, doc.scenes[name]);
+  Object.assign(state, { id: sc.monster || state.id, list: String(sc.list === undefined ? '' : sc.list),
+                         clip: sc.clip === undefined ? '' : sc.clip,
+                         groups: Array.isArray(sc.groups) ? sc.groups.map(Boolean) : null,
+                         tail: !!sc.tail, trueSize: sc.trueSize !== false,
+                         anchor: sc.anchor !== false, ground: sc.ground !== false,
+                         normalFlip: !!sc.normalFlip, undef: !!sc.undef,
+                         effects: sc.effects !== false });
+  buildMonsterList(); buildLists(); paintNormal();
+  await mount();
+  await play();
+  frameAll();
+  const ang = { front: 0, back: Math.PI, left: Math.PI / 2, right: -Math.PI / 2 }[sc.camera] || 0;
+  if (ang){
+    const t = controls.target.clone(), p = camera.position.clone().sub(t);
+    p.applyAxisAngle(new THREE.Vector3(0, 1, 0), ang);
+    camera.position.copy(t).add(p); camera.lookAt(t); controls.update();
+  }
+  window.__scene = { name, spec: sc, ready: true };
+  return sc;
+}
+window.__view = { camera, controls, scene, world, renderer, frameAll, pose, state, MON, mounted,
+                  monsterMats, runScene };
+window.__view.shot = async function(run, nameArg, atArg){
+  const q = new URLSearchParams(location.search);
+  run = run || q.get('run') || 'default';
+  const name = nameArg || (window.__scene && window.__scene.name) || SCENE || 'shot';
+  const act = pose.action;
+  if (act && pose.mixer){
+    const clip = act.getClip();
+    act.enabled = true; act.paused = false; act.timeScale = 0;
+    act.time = (typeof atArg === 'number') ? Math.min(Math.max(0, atArg), Math.max(0, clip.duration - 1e-3))
+             : (act.loop === THREE.LoopOnce ? Math.max(0, clip.duration - 1e-3) : 0);
+    pose.step(poseRoots());
+  }
+  controls.update(); head.position.copy(camera.position);
+  renderer.render(scene, camera);
+  const url = renderer.domElement.toDataURL('image/png');
+  const res = await fetch('/shot?run=' + encodeURIComponent(run) + '&name=' + encodeURIComponent(name),
+                          { method: 'POST', body: url });
+  const out = await res.json();
+  out.errors = errors.slice();
+  out.monster = { id: state.id, list: state.list, clip: state.clip, size: state.trueSize };
+  window.__shot = out;
+  return out;
+};
+// every monster, first list, first clip, one shot each: the sweep a build is judged on
+window.__view.sweep = async function(run, only){
+  const ids = (only && only.length ? only : MON.monsters.map(e => e.id));
+  const report = [];
+  for (const id of ids){
+    errors.length = 0;
+    state.id = id; state.groups = null; state.list = ''; state.clip = '';
+    buildMonsterList(); buildLists();
+    await remount();
+    const r = await window.__view.shot(run || 'sweep', id, 0);
+    report.push({ id, errors: r.errors, bytes: r.bytes });
+  }
+  window.__sweep = report;
+  return report.filter(r => r.errors.length);
+};
+if (SCENE){
+  await runScene(SCENE);
+  if (new URLSearchParams(location.search).has('shot')) await window.__view.shot();
+}
+
+</script>
+</body>
+</html>

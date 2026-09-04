@@ -1,0 +1,12 @@
+{
+ "source": "../../MHGU-Armor-Viewer/docs/render",
+ "commit": "b818be2c4bdd1eb4b90e07a9b3b87ce873f8887b",
+ "files": {
+  "stage.js": "4045a544d4f7ce9ca5943d099e74ca8a45bc4fa8ef41ec4c2f1cb170a6eaacfe",
+  "assets.js": "9c58c5cebb9c7d01bf8dd234cbae65be2324c6f3b6b9285d0b7ea730921b9c34",
+  "skeleton.js": "dff7ad2373095286fe8f6713208a92d98d696fd9764d62c90116314cd7ed4e47",
+  "material.js": "b8e457f818f79aac8b8de9381317b2341a3ff299bd0ca1fe000d6f5ce436556c",
+  "materials-db.js": "bed02a28a9a38908922bfab177ad924f370b56a8faf6243d449b97cf11e098fb",
+  "pose.js": "a43d9304a017c4f83bc39f2f4f164213b6895c0818b9c16f26d772fdf347d5f8"
+ }
+}

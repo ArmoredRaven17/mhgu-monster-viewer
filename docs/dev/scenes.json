@@ -1,0 +1,35 @@
+{
+ "_doc": "Fixed scenes for before/after renders. Loaded by index.html when the URL carries ?scene=<name>, applied through the same handlers the UI uses, framed, and shot with __view.shot(run, name). Fields this build does not understand are ignored, so one file serves an older and a newer viewer. `monster` is an arc id, `list` a motion-list id, `clip` a clip name ('' = the bind pose), `groups` the per-group on/off array (null = the default, the first alternative of each cluster).",
+ "viewport": [1280, 800],
+ "defaults": {
+  "monster": "em001_00",
+  "list": "0",
+  "clip": "Motion[1]_loop",
+  "groups": null,
+  "tail": false,
+  "trueSize": true,
+  "anchor": true,
+  "ground": true,
+  "normalFlip": false,
+  "camera": "front"
+ },
+ "scenes": {
+  "rathian-idle": {},
+  "rathian-side": { "camera": "left" },
+  "rathian-bind": { "clip": "" },
+  "rathian-tail": { "tail": true },
+  "rathian-parts-alt": { "groups": [true, false, true, false, true, false, true, false, true, false, true, false, true] },
+  "rathian-noflip": { "normalFlip": true },
+  "dreadqueen": { "monster": "em001_04", "list": "4" },
+  "gold-rathian": { "monster": "em001_02", "list": "4" },
+  "nakarkos": { "monster": "em084_00", "list": "0", "clip": "", "tail": true },
+  "aptonoth": { "monster": "ems001_00", "clip": "" },
+  "old-fatalis": { "monster": "em013_02", "clip": "" },
+  "kushala": { "monster": "em024_00", "clip": "" },
+  "lao-shan": { "monster": "em012_00", "clip": "" },
+  "great-maccao": { "monster": "em085_00", "clip": "" },
+  "amatsu": { "monster": "em067_00", "clip": "", "ground": false },
+  "ahtal-ka": { "monster": "em088_00", "clip": "" },
+  "em087": { "monster": "em087_00", "clip": "" }
+ }
+}
