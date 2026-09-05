@@ -431,6 +431,22 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           <label class="chk"><input type="checkbox" id="monGround" checked>Keep the lowest bone on the ground</label>
           <label class="chk"><input type="checkbox" id="monNormalFlip">Flip the normal map's green channel</label>
           <label class="chk"><input type="checkbox" id="monUndef">Draw meshes the game's material file does not define</label>
+          <div class="field" id="monHeatRow" hidden>
+            <label>Hit-zone heat map</label>
+            <select id="monHeat">
+              <option value="">off</option>
+              <option value="cut">Cut</option><option value="impact">Impact</option>
+              <option value="shot">Shot</option><option value="fire">Fire</option>
+              <option value="water">Water</option><option value="ice">Ice</option>
+              <option value="thunder">Thunder</option><option value="dragon">Dragon</option>
+              <option value="stun">Stun</option><option value="exhaust">Exhaust</option>
+            </select>
+          </div>
+          <div class="field" id="monHeatTableRow" hidden>
+            <label>Damage table</label>
+            <select id="monHeatTable"></select>
+          </div>
+          <p class="hint" id="monHeatLegend" hidden></p>
           <label class="chk" id="monExtendRow" hidden><input type="checkbox" id="monExtend"><span id="monExtendText">Draw the overlays whose albedo needs a second map</span></label>
           <div class="field"><label for="monNormalScale">Normal strength <span id="monNormalScaleVal" class="hint"></span></label>
             <input type="range" id="monNormalScale" min="0" max="2" step="0.05" value="1"></div>
@@ -863,6 +879,7 @@ import { loadMaterialsDb } from './render/materials-db.js';
 import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
          partVerts, partsDrawn, applyParts, groupLabel, groupIsInert, setNormalOpt,
          setUndefinedMaterialVisible, setEffectVisible, setExtendVisible, extendCount,
+         applyHeatmap, clearHeatmap, parseZones,
          monsterMats } from './render/monster.js';
 
 const errEl = document.getElementById('err');
@@ -887,6 +904,17 @@ const MON = await loadJson('monsters.json');
 // ROM has no part-name table, so these are community names reached through
 // part id -> bones -> rBodyData hit-zone slot, and every one carries its confidence.
 const PARTNAMES = await loadJson('partnames.json').catch(() => ({ monsters: {} }));
+// Hit zones, baked by build-hitzones.py: every drawn vertex carries the slot of the nearest
+// rBodyData capsule, and that slot indexes the ROM's dt_tune damage table. Optional, like the
+// part names -- an older deploy without it simply has no heat map.
+const HITZONES = await loadJson('hitzones.json').catch(() => ({ monsters: {} }));
+// ONE fixed scale, 0-100, so two monsters can be compared at a glance. Scaling to the library
+// maximum was tried and wasted the ramp: the top values are real but rare -- Khezu is dragon 255
+// and thunder 150, a Deviant is cut 255 -- while the 95th percentile is 100 for every type. At
+// 0-255 a Tigrex head of 65 came out dark blue. Values above 100 clamp to the top of the ramp,
+// and the legend always prints the number, so nothing is hidden by the clamp.
+const HEATSCALE = 100;
+let zoneCache = null;      // { id, zones } for the mounted monster
 await loadMaterialsDb();
 
 const viewport = document.getElementById('viewport');
@@ -1021,7 +1049,7 @@ function applyCameraState(c){
 const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: false,
                 trueSize: true, anchor: true, ground: true, normalFlip: false, normalScale: 1,
                 // both OFF by default: see applyUndef and applyExtend
-                undef: false, extend: false,
+                undef: false, extend: false, heat: '', heatTable: 0,
                 // the additive effect meshes as a class; the ROM's part table already keeps
                 // them off at rest, so this is a way to look at them, not a correction
                 effects: true };
@@ -1258,6 +1286,7 @@ async function mount(){
     for (const [name, g] of extra){ world.add(g); mounted[name] = g; }
     applySize();
     buildGroups(); applyPartState(); paintAbout(); applyUndef(); applyEffects(); applyExtend();
+    zoneCache = null; await applyHeat();
     setNormalOpt(state.normalFlip, state.normalScale);
   } finally { setLoading(false); }
 }
@@ -1288,6 +1317,47 @@ function applyUndef(){
 // The overlays built from two albedo maps, of which this viewer samples one. Drawn, they are
 // the base texture at full strength -- Khezu's black veins. Off by default; the row only
 // appears on a monster that carries one.
+// The heat map. Values come from the ROM's own damage table; the colour is a rank, not a
+// reading, so the legend gives the numbers rather than asking anyone to judge a hue.
+async function applyHeat(){
+  const e = entry();
+  const rec = e && HITZONES.monsters && HITZONES.monsters[e.id];
+  document.getElementById('monHeatRow').hidden = !rec;
+  document.getElementById('monHeatTableRow').hidden = !(rec && rec.tables.length > 1);
+  const legend = document.getElementById('monHeatLegend');
+  if (!rec || !state.heat){
+    for (const g of Object.values(mounted)) clearHeatmap(g);
+    legend.hidden = true;
+    return;
+  }
+  if (!zoneCache || zoneCache.id !== e.id){
+    const buf = await (await fetch(rec.bin)).arrayBuffer();
+    zoneCache = { id: e.id, zones: parseZones(buf, rec.prims) };
+  }
+  const tsel = document.getElementById('monHeatTable');
+  if (tsel.options.length !== rec.tables.length){
+    tsel.innerHTML = rec.tables.map((_, i) => '<option value="' + i + '">table ' + i + '</option>').join('');
+  }
+  const ti = Math.min(state.heatTable | 0, rec.tables.length - 1);
+  tsel.value = String(ti);
+  document.getElementById('monHeat').value = state.heat;
+  const table = rec.tables[ti];
+  const value = {};
+  table.forEach((row, slot) => { value[slot] = row[state.heat]; });
+  const max = HEATSCALE;
+  if (mounted.main) applyHeatmap(mounted.main, zoneCache.zones, value, max, THREE);
+  // the legend: every slot this monster actually uses, with its value and name where known
+  const nm = (PARTNAMES.monsters[e.id] || {}).parts || {};
+  const named = rec.names || {};
+  legend.hidden = false;
+  const over = (rec.slotsUsed || []).some(sl => value[sl] > max);
+  legend.textContent = state.heat + ' (0–' + max + (over ? ', clamped' : '') + '): ' +
+    (rec.slotsUsed || []).map(sl => (named[sl] || 'slot ' + sl) + ' ' + (value[sl] === undefined ? '?' : value[sl]))
+      .join('   ·   ') +
+    (rec.tables.length > 1 ? '   — table ' + ti + ' of ' + rec.tables.length +
+      ' (the ROM does not say what the second one is)' : '');
+}
+
 function applyExtend(){
   for (const g of Object.values(mounted)) setExtendVisible(g, state.extend);
   let n = 0;
@@ -1427,6 +1497,8 @@ function paintNormal(){
 document.getElementById('monNormalFlip').onchange = e => { state.normalFlip = e.target.checked; paintNormal(); saveState(); };
 document.getElementById('monUndef').onchange = e => { state.undef = e.target.checked; applyUndef(); saveState(); };
 document.getElementById('monExtend').onchange = e => { state.extend = e.target.checked; applyPartState(); applyExtend(); saveState(); };
+document.getElementById('monHeat').onchange = async e => { state.heat = e.target.value; await applyHeat(); saveState(); };
+document.getElementById('monHeatTable').onchange = async e => { state.heatTable = +e.target.value; await applyHeat(); saveState(); };
 document.getElementById('monEffects').onchange = e => { state.effects = e.target.checked; applyEffects(); saveState(); };
 normScaleEl.oninput = e => { state.normalScale = +e.target.value; paintNormal(); saveState(); };
 document.getElementById('resetBtn').onclick = async () => {
@@ -1457,6 +1529,9 @@ if (SAVED){
   for (const k of ['id', 'list', 'clip']) if (typeof SAVED[k] === 'string') state[k] = SAVED[k];
   for (const k of ['loop', 'tail', 'trueSize', 'anchor', 'ground', 'normalFlip', 'undef', 'effects', 'extend'])
     if (typeof SAVED[k] === 'boolean') state[k] = SAVED[k];
+  // the heat map is a damage-type NAME and a table index, not booleans
+  if (typeof SAVED.heat === 'string') state.heat = SAVED.heat;
+  if (typeof SAVED.heatTable === 'number') state.heatTable = SAVED.heatTable;
   if (typeof SAVED.normalScale === 'number') state.normalScale = SAVED.normalScale;
   if (Array.isArray(SAVED.groups)) state.groups = SAVED.groups.map(Boolean);
   if (typeof SAVED.orbitLocked === 'boolean') orbitLocked = SAVED.orbitLocked;

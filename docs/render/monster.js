@@ -327,3 +327,76 @@ export function restoreBind(root){
     node.position.copy(p); node.quaternion.copy(q); node.scale.copy(sc);
   }
 }
+
+
+// ---- hit-zone heat map ---------------------------------------------------------------------
+// Every drawn vertex carries a hit-zone slot, baked by build-hitzones.py: the nearest rBodyData
+// capsule in glb world space, which is how the game itself resolves where a hit lands. Colouring
+// by BONE instead was tried and cannot work -- a third to a half of a monster's vertices weight
+// to bones with no capsule at all, mostly the root and spine, which is the torso.
+//
+// The slot indexes the ROM's dt_tune damage table: 8 rows of ten values -- cut, impact, shot,
+// fire, water, ice, thunder, dragon, stun, exhaust. Higher means the zone takes more damage.
+const heatSaved = new WeakMap();
+
+// Blue is tough, red is soft. A plain hue sweep reads better here than a perceptual ramp
+// because the eye needs to rank regions, not read absolute numbers off them.
+export function heatColor(t){
+  t = Math.max(0, Math.min(1, t));
+  const stops = [[0.05, 0.13, 0.42], [0.13, 0.45, 0.70], [0.35, 0.72, 0.62],
+                 [0.85, 0.83, 0.35], [0.90, 0.52, 0.20], [0.75, 0.14, 0.16]];
+  const x = t * (stops.length - 1), i = Math.min(stops.length - 2, Math.floor(x)), f = x - i;
+  return [stops[i][0] + (stops[i+1][0] - stops[i][0]) * f,
+          stops[i][1] + (stops[i+1][1] - stops[i][1]) * f,
+          stops[i][2] + (stops[i+1][2] - stops[i][2]) * f];
+}
+
+// zones: { primOrdinal: Uint8Array of slot per vertex }.  value: slot -> number.  max: the
+// scale's top, per damage type, so two monsters can be compared.
+export function applyHeatmap(root, zones, value, max, THREE){
+  root.traverse(o => {
+    if (!(o.isMesh || o.isSkinnedMesh)) return;
+    const z = zones[o.userData.prim];
+    if (!z) return;
+    const n = o.geometry.attributes.position.count;
+    if (z.length !== n) return;                 // the bake and the file disagree: leave it alone
+    if (!heatSaved.has(o)) heatSaved.set(o, { mat: o.material, col: o.geometry.getAttribute('color') || null });
+    const col = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++){
+      const v = value[z[i]];
+      const c = heatColor(v === undefined ? 0 : v / (max || 1));
+      col[i*3] = c[0]; col[i*3+1] = c[1]; col[i*3+2] = c[2];
+    }
+    o.geometry.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    const m = new THREE.MeshBasicMaterial({ vertexColors: true, side: o.material.side,
+                                            name: 'heat:' + (o.material.name || '') });
+    o.material = m;
+  });
+}
+
+export function clearHeatmap(root){
+  root.traverse(o => {
+    const sv = heatSaved.get(o);
+    if (!sv) return;
+    if (o.material && /^heat:/.test(o.material.name || '')) o.material.dispose();
+    o.material = sv.mat;
+    if (sv.col) o.geometry.setAttribute('color', sv.col);
+    else o.geometry.deleteAttribute('color');
+    heatSaved.delete(o);
+  });
+}
+
+// <em>.bin: u32 primCount, primCount x u32 vertexCount, then the slot bytes in primitive order.
+export function parseZones(buf, prims){
+  const dv = new DataView(buf);
+  const n = dv.getUint32(0, true);
+  const counts = [];
+  for (let i = 0; i < n; i++) counts.push(dv.getUint32(4 + i*4, true));
+  let off = 4 + n*4;
+  const out = {};
+  for (let i = 0; i < n; i++){
+    out[prims[i]] = new Uint8Array(buf, off, counts[i]);
+    off += counts[i];
+  }
+  return out;
+}
