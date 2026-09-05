@@ -209,6 +209,14 @@ export async function loadMonster(rec, opt, ctx){
   // part and vertex count with a proxy one -- em020_04 lost meshes that way.
   const hideIdx = new Set(rec.hideIdx || []);
   const hideSig = rec.hideIdx ? null : new Set((rec.hide || []).map(h => h[0] + '#' + h[1]));
+  // ems017_00 "Great Thunderbug" renders nothing, and no change here can alter that. Its whole
+  // .mod is 964 bytes: one bone, one mesh, three vertices at (0,0,0) (1,0,0) (0.5,1,0) -- a
+  // placeholder triangle -- and its only texture is 16x16 with ALPHA 0 ON ALL 256 PIXELS, so
+  // the alpha test discards every fragment. Un-hiding its proxy primitive was tried: the
+  // triangle does reach the GPU (1 draw call, 1 triangle) and is still invisible. The game
+  // ships the monster as a stub and draws the real swarm some other way. Checked 2026-09-05
+  // against Raven's "if we know what the issue is, we can fix the rendering to ensure it is
+  // rendered" -- there is no geometry to fix, only a listing decision.
   let prim = -1;
   const ref = refForGlb(rec.glb);
   const texByName = (opt && opt.tex) || {};
@@ -353,7 +361,19 @@ export function heatColor(t){
 
 // zones: { primOrdinal: Uint8Array of slot per vertex }.  value: slot -> number.  max: the
 // scale's top, per damage type, so two monsters can be compared.
-export function applyHeatmap(root, zones, value, max, THREE){
+// The four kinsect extract colours, as the game's own names for them. These are CATEGORIES, not
+// ranks, so they are painted literally rather than run through the 0-100 ramp: an extract map
+// answers "which colour does this part give me", and a gradient would be a lie about it.
+// White is dimmed off pure so it still reads as shaded geometry rather than a silhouette.
+export const EXTRACT_RGB = {
+  red:    [0.78, 0.16, 0.16],
+  orange: [0.90, 0.52, 0.13],
+  white:  [0.88, 0.88, 0.90],
+  green:  [0.30, 0.68, 0.30],
+};
+// value: slot -> number, scaled by max through the ramp. colorBySlot: slot -> [r,g,b], used
+// literally and taking precedence. A slot in neither comes out at the ramp's floor.
+export function applyHeatmap(root, zones, value, max, THREE, colorBySlot){
   root.traverse(o => {
     if (!(o.isMesh || o.isSkinnedMesh)) return;
     const z = zones[o.userData.prim];
@@ -363,8 +383,9 @@ export function applyHeatmap(root, zones, value, max, THREE){
     if (!heatSaved.has(o)) heatSaved.set(o, { mat: o.material, col: o.geometry.getAttribute('color') || null });
     const col = new Float32Array(n * 3);
     for (let i = 0; i < n; i++){
-      const v = value[z[i]];
-      const c = heatColor(v === undefined ? 0 : v / (max || 1));
+      const sl = z[i];
+      const c = colorBySlot ? (colorBySlot[sl] || [0.10, 0.11, 0.13])
+                            : heatColor(value[sl] === undefined ? 0 : value[sl] / (max || 1));
       col[i*3] = c[0]; col[i*3+1] = c[1]; col[i*3+2] = c[2];
     }
     o.geometry.setAttribute('color', new THREE.BufferAttribute(col, 3));
