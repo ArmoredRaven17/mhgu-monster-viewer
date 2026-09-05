@@ -112,6 +112,10 @@ body{font-family:'MHFU',"Segoe UI",system-ui,sans-serif;background:var(--bg);col
 #loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   color:var(--text-hint);font-size:15px;letter-spacing:.06em;pointer-events:none}
 #loading[hidden]{display:none}
+/* the part id line under an inferred name: secondary, and orange when the join could not tell
+   several rows apart */
+.part-ids{font-weight:400;font-size:11px;color:var(--text-hint);letter-spacing:.02em}
+.part-ids.warn{color:#d08a3e}
 /* Floating toolbar over the render area, matching the Weapon Tree's #bar.
    width:max-content is load-bearing: with left:50% the default shrink-to-fit only
    counts the space from the centre to the right edge, so the bar would cap at half
@@ -878,6 +882,11 @@ if (CLEAN){ document.querySelector('.sidebar').style.display = 'none';
             document.querySelector('.titlebar').style.display = 'none'; }
 
 const MON = await loadJson('monsters.json');
+// Part NAMES, built by build-part-names.py. Optional: an older deploy without the file still
+// runs, the rows just read as part ids. See that script for where the names come from -- the
+// ROM has no part-name table, so these are community names reached through
+// part id -> bones -> rBodyData hit-zone slot, and every one carries its confidence.
+const PARTNAMES = await loadJson('partnames.json').catch(() => ({ monsters: {} }));
 await loadMaterialsDb();
 
 const viewport = document.getElementById('viewport');
@@ -1110,10 +1119,30 @@ function buildGroups(){
   if (!groups.length){
     monGroupsEl.innerHTML = '<p class="hint">This monster ships no part-visibility table.</p>';
   }
+  const pn = (PARTNAMES.monsters && PARTNAMES.monsters[e && e.id]) || {};
+  const pnParts = pn.parts || {};
   for (const c of clusterGroups(groups)){
     const row = document.createElement('div'); row.className = 'field';
     const lab = document.createElement('label');
-    lab.textContent = 'Parts ' + c.parts.split(',').join(', ');
+    const ids = 'Parts ' + c.parts.split(',').join(', ');
+    // The name leads and the ids stay, because the ids are what the ROM actually says and the
+    // name is inferred. A flag is shown as a suffix rather than hidden in a tooltip: this is a
+    // TEST build and the doubtful ones are exactly what Raven is reviewing.
+    const nm = pnParts[c.parts];
+    if (nm){
+      lab.textContent = nm.name;
+      const sub = document.createElement('span');
+      sub.className = 'part-ids';
+      const fl = nm.flags || [];
+      sub.textContent = ids + (fl.length ? '  ·  ' + fl.join(', ') : '');
+      if (fl.indexOf('ambiguous') >= 0) sub.classList.add('warn');
+      lab.title = nm.name + ' — hit-zone slot ' + nm.slot + ', ' +
+                  Math.round(nm.share * 100) + '% of this row’s vertices, community name';
+      lab.appendChild(document.createElement('br'));
+      lab.appendChild(sub);
+    } else {
+      lab.textContent = ids;
+    }
     const sel = document.createElement('select');
     if (c.members.length === 1 && groupIsInert(groups, c.members[0], e && e.partIds)){
       // The ROM's base state: this group only re-asserts parts that nothing else turns off, so
@@ -1144,6 +1173,14 @@ function buildGroups(){
       };
     }
     row.appendChild(lab); row.appendChild(sel); monGroupsEl.appendChild(row);
+  }
+  if (pn.questNouns && pn.questNouns.length){
+    const note = document.createElement('p');
+    note.className = 'hint';
+    note.textContent = 'The game’s own quest objectives call this monster’s parts: '
+                     + pn.questNouns.join(', ') + '. Nothing in the ROM ties those words to a '
+                     + 'part id, so they are here to check the names against, not as labels.';
+    monGroupsEl.appendChild(note);
   }
   const e2 = entry();
   monTailRow.hidden = !(e2 && e2.parts.length);
