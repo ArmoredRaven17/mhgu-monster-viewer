@@ -1,0 +1,1541 @@
+[
+ {
+  "id": "em001_00",
+  "name": "Rathian",
+  "verts": 8298,
+  "prims": 26,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "13 part groups"
+  ]
+ },
+ {
+  "id": "em001_02",
+  "name": "Gold Rathian",
+  "verts": 7651,
+  "prims": 25,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "13 part groups",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em001_04",
+  "name": "Dreadqueen Rathian",
+  "verts": 8143,
+  "prims": 26,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "14 part groups",
+   "size x1.2",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em002_00",
+  "name": "Rathalos",
+  "verts": 7690,
+  "prims": 22,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "13 part groups",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em002_02",
+  "name": "Silver Rathalos",
+  "verts": 7679,
+  "prims": 22,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "13 part groups",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em002_04",
+  "name": "Dreadking Rathalos",
+  "verts": 7897,
+  "prims": 26,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "14 part groups",
+   "size x1.2",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em003_00",
+  "name": "Khezu",
+  "verts": 3863,
+  "prims": 13,
+  "parts": 0,
+  "flags": [
+   "5 part groups",
+   "2 hidden extend overlay(s)",
+   "1 additive effect material(s)",
+   "1 reverse-subtract material(s)"
+  ]
+ },
+ {
+  "id": "em004_00",
+  "name": "Basarios",
+  "verts": 5131,
+  "prims": 18,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "9 part groups",
+   "borrows motions from em001_00, em005_00"
+  ]
+ },
+ {
+  "id": "em005_00",
+  "name": "Gravios",
+  "verts": 7499,
+  "prims": 29,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "21 part groups",
+   "1 additive effect material(s)",
+   "size x1.5",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em007_00",
+  "name": "Diablos",
+  "verts": 5790,
+  "prims": 22,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "11 part groups",
+   "size x1.2",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em007_04",
+  "name": "Bloodbath Diablos",
+  "verts": 6974,
+  "prims": 34,
+  "parts": 2,
+  "flags": [
+   "extra models: head x1, tail x1",
+   "18 part groups",
+   "1 additive effect material(s)",
+   "size x1.35",
+   "borrows motions from em007_00"
+  ]
+ },
+ {
+  "id": "em008_00",
+  "name": "Yian Kut-Ku",
+  "verts": 5281,
+  "prims": 12,
+  "parts": 0,
+  "flags": [
+   "5 part groups",
+   "size x0.72"
+  ]
+ },
+ {
+  "id": "em009_00",
+  "name": "Gypceros",
+  "verts": 3876,
+  "prims": 13,
+  "parts": 0,
+  "flags": [
+   "10 part groups",
+   "1 additive effect material(s)",
+   "size x0.8"
+  ]
+ },
+ {
+  "id": "em010_00",
+  "name": "Plesioth",
+  "verts": 5132,
+  "prims": 32,
+  "parts": 0,
+  "flags": [
+   "11 part groups",
+   "1 additive effect material(s)",
+   "size x1.7"
+  ]
+ },
+ {
+  "id": "em011_00",
+  "name": "Kirin",
+  "verts": 2524,
+  "prims": 11,
+  "parts": 0,
+  "flags": [
+   "5 part groups",
+   "size x2.3"
+  ]
+ },
+ {
+  "id": "em012_00",
+  "name": "Lao-Shan Lung",
+  "verts": 11182,
+  "prims": 29,
+  "parts": 0,
+  "flags": [
+   "13 part groups"
+  ]
+ },
+ {
+  "id": "em013_00",
+  "name": "Fatalis",
+  "verts": 6310,
+  "prims": 23,
+  "parts": 0,
+  "flags": [
+   "9 part groups",
+   "size x1.15"
+  ]
+ },
+ {
+  "id": "em013_01",
+  "name": "Crimson Fatalis",
+  "verts": 6305,
+  "prims": 23,
+  "parts": 0,
+  "flags": [
+   "9 part groups",
+   "size x1.15",
+   "borrows motions from em013_00"
+  ]
+ },
+ {
+  "id": "em013_02",
+  "name": "Old Fatalis",
+  "verts": 7891,
+  "prims": 29,
+  "parts": 0,
+  "flags": [
+   "9 part groups",
+   "1 additive effect material(s)",
+   "1 reverse-subtract material(s)",
+   "size x1.15",
+   "borrows motions from em013_00"
+  ]
+ },
+ {
+  "id": "em014_00",
+  "name": "Velocidrome",
+  "verts": 2153,
+  "prims": 9,
+  "parts": 0,
+  "flags": [
+   "5 part groups",
+   "size x1.65"
+  ]
+ },
+ {
+  "id": "em015_00",
+  "name": "Gendrome",
+  "verts": 2380,
+  "prims": 9,
+  "parts": 0,
+  "flags": [
+   "5 part groups",
+   "size x1.65",
+   "borrows motions from em014_00"
+  ]
+ },
+ {
+  "id": "em016_00",
+  "name": "Iodrome",
+  "verts": 1619,
+  "prims": 9,
+  "parts": 0,
+  "flags": [
+   "5 part groups",
+   "size x1.65",
+   "borrows motions from em014_00"
+  ]
+ },
+ {
+  "id": "em017_00",
+  "name": "Cephadrome",
+  "verts": 3770,
+  "prims": 22,
+  "parts": 0,
+  "flags": [
+   "8 part groups",
+   "size x1.2"
+  ]
+ },
+ {
+  "id": "em018_00",
+  "name": "Yian Garuga",
+  "verts": 6197,
+  "prims": 25,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "14 part groups",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em018_04",
+  "name": "Deadeye Yian Garuga",
+  "verts": 6344,
+  "prims": 27,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "15 part groups",
+   "size x0.85",
+   "borrows motions from em001_00, em018_00"
+  ]
+ },
+ {
+  "id": "em019_00",
+  "name": "Daimyo Hermitaur",
+  "verts": 6797,
+  "prims": 20,
+  "parts": 0,
+  "flags": [
+   "8 part groups"
+  ]
+ },
+ {
+  "id": "em019_04",
+  "name": "Stonefist Hermitaur",
+  "verts": 7139,
+  "prims": 27,
+  "parts": 0,
+  "flags": [
+   "12 part groups",
+   "size x1.5",
+   "borrows motions from em019_00"
+  ]
+ },
+ {
+  "id": "em020_00",
+  "name": "Shogun Ceanataur",
+  "verts": 9524,
+  "prims": 25,
+  "parts": 0,
+  "flags": [
+   "11 part groups"
+  ]
+ },
+ {
+  "id": "em020_04",
+  "name": "Rustrazor Ceanataur",
+  "verts": 12317,
+  "prims": 29,
+  "parts": 0,
+  "flags": [
+   "14 part groups",
+   "size x1.15",
+   "borrows motions from em020_00"
+  ]
+ },
+ {
+  "id": "em021_00",
+  "name": "Congalala",
+  "verts": 3994,
+  "prims": 27,
+  "parts": 0,
+  "flags": [
+   "27 part groups"
+  ]
+ },
+ {
+  "id": "em022_00",
+  "name": "Blangonga",
+  "verts": 6331,
+  "prims": 16,
+  "parts": 0,
+  "flags": [
+   "8 part groups",
+   "size x1.2"
+  ]
+ },
+ {
+  "id": "em023_00",
+  "name": "Rajang",
+  "verts": 7777,
+  "prims": 35,
+  "parts": 0,
+  "flags": [
+   "20 part groups",
+   "size x1.35"
+  ]
+ },
+ {
+  "id": "em023_05",
+  "name": "Furious Rajang",
+  "verts": 7777,
+  "prims": 35,
+  "parts": 0,
+  "flags": [
+   "20 part groups",
+   "shares em023_00's model",
+   "size x1.35"
+  ]
+ },
+ {
+  "id": "em024_00",
+  "name": "Kushala Daora",
+  "verts": 5406,
+  "prims": 18,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "12 part groups",
+   "size x0.8",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em025_00",
+  "name": "Chameleos",
+  "verts": 5839,
+  "prims": 23,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "10 part groups",
+   "1 additive effect material(s)",
+   "size x0.8",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em027_00",
+  "name": "Teostra",
+  "verts": 7221,
+  "prims": 28,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "11 part groups",
+   "3 additive effect material(s)",
+   "size x0.8",
+   "borrows motions from em001_00, em024_00"
+  ]
+ },
+ {
+  "id": "em030_00",
+  "name": "Bulldrome",
+  "verts": 2020,
+  "prims": 6,
+  "parts": 0,
+  "flags": [
+   "size x2.5"
+  ]
+ },
+ {
+  "id": "em032_00",
+  "name": "Tigrex",
+  "verts": 5607,
+  "prims": 20,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "13 part groups",
+   "1 hidden extend overlay(s)",
+   "1 additive effect material(s)",
+   "size x0.9",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em032_04",
+  "name": "Grimclaw Tigrex",
+  "verts": 7895,
+  "prims": 27,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "14 part groups",
+   "3 hidden extend overlay(s)",
+   "3 additive effect material(s)",
+   "1 reverse-subtract material(s)",
+   "size x1.1",
+   "borrows motions from em001_00, em032_00"
+  ]
+ },
+ {
+  "id": "em033_00",
+  "name": "Akantor",
+  "verts": 8479,
+  "prims": 33,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "20 part groups",
+   "1 hidden extend overlay(s)",
+   "3 additive effect material(s)",
+   "size x1.5",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em034_00",
+  "name": "Giadrome",
+  "verts": 2337,
+  "prims": 9,
+  "parts": 0,
+  "flags": [
+   "5 part groups",
+   "size x1.65",
+   "borrows motions from em014_00"
+  ]
+ },
+ {
+  "id": "em036_00",
+  "name": "Lavasioth",
+  "verts": 4993,
+  "prims": 20,
+  "parts": 0,
+  "flags": [
+   "10 part groups",
+   "2 additive effect material(s)",
+   "size x1.4"
+  ]
+ },
+ {
+  "id": "em037_00",
+  "name": "Nargacuga",
+  "verts": 5376,
+  "prims": 30,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "18 part groups",
+   "1 additive effect material(s)",
+   "size x0.8",
+   "borrows motions from em001_00, em032_00"
+  ]
+ },
+ {
+  "id": "em037_04",
+  "name": "Silverwind Nargacuga",
+  "verts": 5811,
+  "prims": 29,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "18 part groups",
+   "1 additive effect material(s)",
+   "size x0.85",
+   "borrows motions from em001_00, em032_00, em037_00"
+  ]
+ },
+ {
+  "id": "em038_00",
+  "name": "Ukanlos",
+  "verts": 12210,
+  "prims": 31,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "16 part groups",
+   "size x1.5",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em042_00",
+  "name": "Barioth",
+  "verts": 7242,
+  "prims": 28,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "20 part groups",
+   "1 additive effect material(s)",
+   "size x0.75",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em043_00",
+  "name": "Deviljho",
+  "verts": 6400,
+  "prims": 22,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "13 part groups",
+   "1 additive effect material(s)",
+   "size x1.2",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em043_05",
+  "name": "Savage Deviljho",
+  "verts": 9716,
+  "prims": 24,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "14 part groups",
+   "1 additive effect material(s)",
+   "size x1.2",
+   "borrows motions from em001_00, em043_00"
+  ]
+ },
+ {
+  "id": "em044_00",
+  "name": "Barroth",
+  "verts": 6125,
+  "prims": 17,
+  "parts": 2,
+  "flags": [
+   "extra models: head x1, tail x1",
+   "21 part groups",
+   "size x0.9"
+  ]
+ },
+ {
+  "id": "em045_00",
+  "name": "Uragaan",
+  "verts": 7272,
+  "prims": 25,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "10 part groups",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em045_04",
+  "name": "Crystalbeard Uragaan",
+  "verts": 9201,
+  "prims": 29,
+  "parts": 2,
+  "flags": [
+   "extra models: head x1, tail x1",
+   "10 part groups",
+   "size x1.25",
+   "borrows motions from em045_00"
+  ]
+ },
+ {
+  "id": "em046_00",
+  "name": "Lagiacrus",
+  "verts": 7604,
+  "prims": 27,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "16 part groups",
+   "2 additive effect material(s)",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em047_00",
+  "name": "Royal Ludroth",
+  "verts": 7201,
+  "prims": 17,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "10 part groups",
+   "1 additive effect material(s)",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em049_00",
+  "name": "Agnaktor",
+  "verts": 7395,
+  "prims": 44,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "37 part groups",
+   "6 additive effect material(s)",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em050_00",
+  "name": "Alatreon",
+  "verts": 13684,
+  "prims": 42,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "18 part groups",
+   "1 hidden extend overlay(s)",
+   "1 additive effect material(s)",
+   "size x1.2",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em055_00",
+  "name": "Duramboros",
+  "verts": 4974,
+  "prims": 28,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "11 part groups",
+   "1 additive effect material(s)",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em056_00",
+  "name": "Nibelsnarf",
+  "verts": 7684,
+  "prims": 24,
+  "parts": 0,
+  "flags": [
+   "13 part groups",
+   "size x1.3"
+  ]
+ },
+ {
+  "id": "em057_00",
+  "name": "Zinogre",
+  "verts": 6430,
+  "prims": 41,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "20 part groups",
+   "2 additive effect material(s)",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em057_04",
+  "name": "Thunderlord Zinogre",
+  "verts": 7378,
+  "prims": 46,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "20 part groups",
+   "2 additive effect material(s)",
+   "borrows motions from em001_00, em057_00"
+  ]
+ },
+ {
+  "id": "em058_00",
+  "name": "Amatsu",
+  "verts": 14111,
+  "prims": 64,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "18 part groups",
+   "3 additive effect material(s)",
+   "size x1.2",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em060_00",
+  "name": "Arzuros",
+  "verts": 5787,
+  "prims": 11,
+  "parts": 0,
+  "flags": [
+   "6 part groups",
+   "size x1.1"
+  ]
+ },
+ {
+  "id": "em060_04",
+  "name": "Redhelm Arzuros",
+  "verts": 6018,
+  "prims": 13,
+  "parts": 0,
+  "flags": [
+   "10 part groups",
+   "size x1.6",
+   "borrows motions from em060_00"
+  ]
+ },
+ {
+  "id": "em061_00",
+  "name": "Lagombi",
+  "verts": 4844,
+  "prims": 9,
+  "parts": 0,
+  "flags": [
+   "5 part groups",
+   "size x1.1"
+  ]
+ },
+ {
+  "id": "em061_04",
+  "name": "Snowbaron Lagombi",
+  "verts": 5528,
+  "prims": 17,
+  "parts": 0,
+  "flags": [
+   "5 part groups",
+   "size x1.35",
+   "borrows motions from em061_00"
+  ]
+ },
+ {
+  "id": "em062_00",
+  "name": "Volvidon",
+  "verts": 6157,
+  "prims": 10,
+  "parts": 0,
+  "flags": [
+   "5 part groups",
+   "size x1.1"
+  ]
+ },
+ {
+  "id": "em063_00",
+  "name": "Brachydios",
+  "verts": 9563,
+  "prims": 35,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "14 part groups",
+   "3 additive effect material(s)",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em063_05",
+  "name": "Raging Brachydios",
+  "verts": 10654,
+  "prims": 36,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "13 part groups",
+   "5 additive effect material(s)",
+   "borrows motions from em001_00, em063_00"
+  ]
+ },
+ {
+  "id": "em065_00",
+  "name": "Kecha Wacha",
+  "verts": 5788,
+  "prims": 26,
+  "parts": 0,
+  "flags": [
+   "19 part groups",
+   "1 additive effect material(s)"
+  ]
+ },
+ {
+  "id": "em066_00",
+  "name": "Tetsucabra",
+  "verts": 5951,
+  "prims": 27,
+  "parts": 0,
+  "flags": [
+   "14 part groups",
+   "size x1.1"
+  ]
+ },
+ {
+  "id": "em066_04",
+  "name": "Drilltusk Tetsucabra",
+  "verts": 6043,
+  "prims": 26,
+  "parts": 0,
+  "flags": [
+   "14 part groups",
+   "size x1.3",
+   "borrows motions from em066_00"
+  ]
+ },
+ {
+  "id": "em067_00",
+  "name": "Zamtrios",
+  "verts": 8432,
+  "prims": 49,
+  "parts": 0,
+  "flags": [
+   "33 part groups",
+   "size x1.3"
+  ]
+ },
+ {
+  "id": "em068_00",
+  "name": "Najarala",
+  "verts": 12475,
+  "prims": 32,
+  "parts": 0,
+  "flags": [
+   "17 part groups",
+   "size x0.8"
+  ]
+ },
+ {
+  "id": "em069_00",
+  "name": "Seltas Queen",
+  "verts": 7544,
+  "prims": 21,
+  "parts": 0,
+  "flags": [
+   "16 part groups",
+   "1 additive effect material(s)",
+   "size x0.9"
+  ]
+ },
+ {
+  "id": "em070_00",
+  "name": "Nerscylla",
+  "verts": 7637,
+  "prims": 49,
+  "parts": 0,
+  "flags": [
+   "18 part groups",
+   "1 additive effect material(s)",
+   "size x0.9"
+  ]
+ },
+ {
+  "id": "em071_00",
+  "name": "Gore Magala",
+  "verts": 10512,
+  "prims": 51,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "15 part groups",
+   "1 additive effect material(s)",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em071_05",
+  "name": "Chaotic Gore Magala",
+  "verts": 11101,
+  "prims": 63,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "17 part groups",
+   "1 additive effect material(s)",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em072_00",
+  "name": "Shagaru Magala",
+  "verts": 12709,
+  "prims": 36,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "13 part groups",
+   "borrows motions from em001_00, em071_00"
+  ]
+ },
+ {
+  "id": "em076_00",
+  "name": "Seltas",
+  "verts": 8717,
+  "prims": 18,
+  "parts": 0,
+  "flags": [
+   "12 part groups",
+   "1 additive effect material(s)",
+   "size x0.4"
+  ]
+ },
+ {
+  "id": "em077_00",
+  "name": "Seregios",
+  "verts": 13825,
+  "prims": 66,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "32 part groups",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em079_00",
+  "name": "Malfestio",
+  "verts": 7436,
+  "prims": 42,
+  "parts": 0,
+  "flags": [
+   "19 part groups",
+   "1 additive effect material(s)"
+  ]
+ },
+ {
+  "id": "em079_04",
+  "name": "Nightcloak Malfestio",
+  "verts": 8433,
+  "prims": 44,
+  "parts": 0,
+  "flags": [
+   "19 part groups",
+   "1 additive effect material(s)",
+   "size x1.2",
+   "borrows motions from em079_00"
+  ]
+ },
+ {
+  "id": "em080_00",
+  "name": "Glavenus",
+  "verts": 11398,
+  "prims": 44,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "26 part groups",
+   "1 hidden extend overlay(s)",
+   "2 additive effect material(s)"
+  ]
+ },
+ {
+  "id": "em080_04",
+  "name": "Hellblade Glavenus",
+  "verts": 14127,
+  "prims": 52,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "30 part groups",
+   "1 hidden extend overlay(s)",
+   "2 additive effect material(s)",
+   "size x1.1",
+   "borrows motions from em080_00"
+  ]
+ },
+ {
+  "id": "em081_00",
+  "name": "Astalos",
+  "verts": 11765,
+  "prims": 70,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "33 part groups",
+   "1 hidden extend overlay(s)",
+   "2 additive effect material(s)",
+   "size x0.95",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em081_04",
+  "name": "Boltreaver Astalos",
+  "verts": 11846,
+  "prims": 70,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "45 part groups",
+   "1 hidden extend overlay(s)",
+   "4 additive effect material(s)",
+   "size x1.15",
+   "borrows motions from em001_00, em081_00"
+  ]
+ },
+ {
+  "id": "em082_00",
+  "name": "Mizutsune",
+  "verts": 10056,
+  "prims": 61,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "20 part groups",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em082_04",
+  "name": "Soulseer Mizutsune",
+  "verts": 11922,
+  "prims": 107,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "37 part groups",
+   "size x1.2",
+   "borrows motions from em001_00, em082_00"
+  ]
+ },
+ {
+  "id": "em083_00",
+  "name": "Gammoth",
+  "verts": 11212,
+  "prims": 56,
+  "parts": 0,
+  "flags": [
+   "31 part groups"
+  ]
+ },
+ {
+  "id": "em083_04",
+  "name": "Elderfrost Gammoth",
+  "verts": 13844,
+  "prims": 57,
+  "parts": 0,
+  "flags": [
+   "34 part groups",
+   "borrows motions from em083_00"
+  ]
+ },
+ {
+  "id": "em084_00",
+  "name": "Nakarkos",
+  "verts": 10735,
+  "prims": 48,
+  "parts": 2,
+  "flags": [
+   "extra models: left x1, right x1",
+   "17 part groups",
+   "1 hidden extend overlay(s)",
+   "1 additive effect material(s)",
+   "size x1.1"
+  ]
+ },
+ {
+  "id": "em085_00",
+  "name": "Great Maccao",
+  "verts": 5017,
+  "prims": 16,
+  "parts": 0,
+  "flags": [
+   "7 part groups"
+  ]
+ },
+ {
+  "id": "em086_00",
+  "name": "Valstrax",
+  "verts": 17834,
+  "prims": 110,
+  "parts": 1,
+  "flags": [
+   "extra models: tail x1",
+   "30 part groups",
+   "3 additive effect material(s)",
+   "borrows motions from em001_00"
+  ]
+ },
+ {
+  "id": "em087_00",
+  "name": null,
+  "verts": 40236,
+  "prims": 44,
+  "parts": 4,
+  "flags": [
+   "extra models: other x4",
+   "25 part groups"
+  ]
+ },
+ {
+  "id": "em088_00",
+  "name": "Ahtal-Ka",
+  "verts": 12123,
+  "prims": 40,
+  "parts": 0,
+  "flags": [
+   "11 part groups"
+  ]
+ },
+ {
+  "id": "ems001_00",
+  "name": "Aptonoth",
+  "verts": 2287,
+  "prims": 2,
+  "parts": 0,
+  "flags": []
+ },
+ {
+  "id": "ems002_00",
+  "name": "Apceros",
+  "verts": 1803,
+  "prims": 2,
+  "parts": 0,
+  "flags": [
+   "borrows motions from ems001_00"
+  ]
+ },
+ {
+  "id": "ems003_00",
+  "name": "Kelbi",
+  "verts": 3523,
+  "prims": 8,
+  "parts": 0,
+  "flags": [
+   "4 part groups"
+  ]
+ },
+ {
+  "id": "ems004_00",
+  "name": "Mosswine",
+  "verts": 1109,
+  "prims": 2,
+  "parts": 0,
+  "flags": [
+   "size x1.2"
+  ]
+ },
+ {
+  "id": "ems005_00",
+  "name": "Hornetaur",
+  "verts": 2472,
+  "prims": 9,
+  "parts": 0,
+  "flags": [
+   "borrows motions from ems006_00"
+  ]
+ },
+ {
+  "id": "ems006_00",
+  "name": "Vespoid",
+  "verts": 2840,
+  "prims": 9,
+  "parts": 0,
+  "flags": [
+   "size x0.6"
+  ]
+ },
+ {
+  "id": "ems007_00",
+  "name": "Felyne",
+  "verts": 1121,
+  "prims": 8,
+  "parts": 0,
+  "flags": [
+   "2 part groups",
+   "size x1.2"
+  ]
+ },
+ {
+  "id": "ems008_00",
+  "name": "Melynx",
+  "verts": 1571,
+  "prims": 8,
+  "parts": 0,
+  "flags": [
+   "2 part groups",
+   "size x1.2",
+   "borrows motions from ems007_00"
+  ]
+ },
+ {
+  "id": "ems009_00",
+  "name": "Velociprey",
+  "verts": 2017,
+  "prims": 3,
+  "parts": 0,
+  "flags": [
+   "2 part groups",
+   "size x1.1"
+  ]
+ },
+ {
+  "id": "ems010_00",
+  "name": "Genprey",
+  "verts": 2055,
+  "prims": 3,
+  "parts": 0,
+  "flags": [
+   "2 part groups",
+   "size x1.1",
+   "borrows motions from ems009_00"
+  ]
+ },
+ {
+  "id": "ems011_00",
+  "name": "Ioprey",
+  "verts": 1712,
+  "prims": 3,
+  "parts": 0,
+  "flags": [
+   "2 part groups",
+   "size x1.1",
+   "borrows motions from ems009_00"
+  ]
+ },
+ {
+  "id": "ems012_00",
+  "name": "Cephalos",
+  "verts": 3095,
+  "prims": 3,
+  "parts": 0,
+  "flags": [
+   "size x0.65"
+  ]
+ },
+ {
+  "id": "ems013_00",
+  "name": "Bullfango",
+  "verts": 1305,
+  "prims": 3,
+  "parts": 0,
+  "flags": [
+   "size x1.8"
+  ]
+ },
+ {
+  "id": "ems014_00",
+  "name": "Popo",
+  "verts": 3227,
+  "prims": 4,
+  "parts": 0,
+  "flags": [
+   "2 part groups",
+   "size x1.1",
+   "borrows motions from ems001_00"
+  ]
+ },
+ {
+  "id": "ems015_00",
+  "name": "Giaprey",
+  "verts": 2017,
+  "prims": 3,
+  "parts": 0,
+  "flags": [
+   "2 part groups",
+   "size x1.1",
+   "borrows motions from ems009_00"
+  ]
+ },
+ {
+  "id": "ems016_00",
+  "name": "Anteka",
+  "verts": 3132,
+  "prims": 2,
+  "parts": 0,
+  "flags": [
+   "borrows motions from ems003_00"
+  ]
+ },
+ {
+  "id": "ems017_00",
+  "name": "Great Thunderbug",
+  "verts": 3,
+  "prims": 1,
+  "parts": 0,
+  "flags": [
+   "1 bone(s)"
+  ]
+ },
+ {
+  "id": "ems019_00",
+  "name": "Remobra",
+  "verts": 2321,
+  "prims": 4,
+  "parts": 0,
+  "flags": [
+   "2 part groups",
+   "size x0.5"
+  ]
+ },
+ {
+  "id": "ems020_00",
+  "name": "Hermitaur",
+  "verts": 3862,
+  "prims": 2,
+  "parts": 0,
+  "flags": [
+   "size x0.35"
+  ]
+ },
+ {
+  "id": "ems021_00",
+  "name": "Ceanataur",
+  "verts": 4075,
+  "prims": 2,
+  "parts": 0,
+  "flags": [
+   "size x0.35",
+   "borrows motions from ems020_00"
+  ]
+ },
+ {
+  "id": "ems022_00",
+  "name": "Conga",
+  "verts": 2720,
+  "prims": 6,
+  "parts": 0,
+  "flags": [
+   "2 part groups",
+   "size x0.6"
+  ]
+ },
+ {
+  "id": "ems023_00",
+  "name": "Blango",
+  "verts": 2368,
+  "prims": 4,
+  "parts": 0,
+  "flags": [
+   "size x0.6"
+  ]
+ },
+ {
+  "id": "ems025_00",
+  "name": "Rhenoplos",
+  "verts": 1997,
+  "prims": 2,
+  "parts": 0,
+  "flags": [
+   "size x0.6"
+  ]
+ },
+ {
+  "id": "ems026_00",
+  "name": "Bnahabra",
+  "verts": 2449,
+  "prims": 6,
+  "parts": 0,
+  "flags": [
+   "4 part groups",
+   "size x0.6"
+  ]
+ },
+ {
+  "id": "ems027_00",
+  "name": "Altaroth",
+  "verts": 2310,
+  "prims": 6,
+  "parts": 0,
+  "flags": [
+   "3 part groups",
+   "1 additive effect material(s)",
+   "size x0.85"
+  ]
+ },
+ {
+  "id": "ems034_00",
+  "name": "Jaggi",
+  "verts": 3097,
+  "prims": 3,
+  "parts": 0,
+  "flags": [
+   "2 part groups"
+  ]
+ },
+ {
+  "id": "ems035_00",
+  "name": "Jaggia",
+  "verts": 2289,
+  "prims": 16,
+  "parts": 0,
+  "flags": [
+   "2 part groups"
+  ]
+ },
+ {
+  "id": "ems039_00",
+  "name": "Ludroth",
+  "verts": 1968,
+  "prims": 3,
+  "parts": 0,
+  "flags": [
+   "size x0.5"
+  ]
+ },
+ {
+  "id": "ems040_00",
+  "name": "Uroktor",
+  "verts": 1452,
+  "prims": 3,
+  "parts": 0,
+  "flags": [
+   "size x0.5"
+  ]
+ },
+ {
+  "id": "ems041_00",
+  "name": "Slagtoth",
+  "verts": 1724,
+  "prims": 3,
+  "parts": 0,
+  "flags": [
+   "2 part groups",
+   "borrows motions from ems014_00"
+  ]
+ },
+ {
+  "id": "ems042_00",
+  "name": "Gargwa",
+  "verts": 2554,
+  "prims": 3,
+  "parts": 0,
+  "flags": [
+   "2 part groups"
+  ]
+ },
+ {
+  "id": "ems044_00",
+  "name": "Zamite",
+  "verts": 2116,
+  "prims": 10,
+  "parts": 0,
+  "flags": [
+   "2 part groups"
+  ]
+ },
+ {
+  "id": "ems045_00",
+  "name": "Konchu",
+  "verts": 2122,
+  "prims": 7,
+  "parts": 0,
+  "flags": [
+   "2 part groups"
+  ]
+ },
+ {
+  "id": "ems046_00",
+  "name": "Maccao",
+  "verts": 3206,
+  "prims": 7,
+  "parts": 0,
+  "flags": [
+   "3 part groups"
+  ]
+ },
+ {
+  "id": "ems047_00",
+  "name": "Larinoth",
+  "verts": 2483,
+  "prims": 4,
+  "parts": 0,
+  "flags": [
+   "3 part groups"
+  ]
+ },
+ {
+  "id": "ems048_00",
+  "name": "Moofah",
+  "verts": 2086,
+  "prims": 8,
+  "parts": 0,
+  "flags": [
+   "3 part groups",
+   "size x1.1"
+  ]
+ }
+]

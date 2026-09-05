@@ -1,0 +1,28 @@
+{
+  "_comment": [
+    "Clips Raven wants left exactly as they are. A monster clip that plays wrong is NOT",
+    "automatically a defect: some are keepers for their comedic value (Raven, 2026-09-04:",
+    "'there are some animations that are super buggy potentially, but I want to keep some in",
+    "their current state since they have a ton of comedic value').",
+    "",
+    "Before any change that could alter clips broadly -- the pose driver, the motion build, the",
+    "keyframe reducer's tolerances, the borrowed-list retargeting -- check what it does to these",
+    "and say so. Reference frames of each are in dev/shots/keeper-<slug>/.",
+    "",
+    "This is not a list of everything janky. It is the list Raven has explicitly claimed."
+  ],
+  "keepers": [
+    {
+      "monster": "em080_00",
+      "name": "Glavenus",
+      "list": "option",
+      "stem": "em080_00_option",
+      "clip": "Motion[1]",
+      "duration": 1.22,
+      "sharedWith": ["em080_04 Hellblade Glavenus"],
+      "why": "Raven, 2026-09-04: \"Glavenus List Option Motion[1] is an example of the 'Jank' Animations I want to keep\"",
+      "looksLike": "the whole animal tumbles nose-over-tail: flat at 0 s, pitched vertical nose-down by 0.5 s, rotating through 0.7 s, flat again by 1.0 s",
+      "reference": "dev/shots/keeper-glavenus-option/keeper-strip.png"
+    }
+  ]
+}

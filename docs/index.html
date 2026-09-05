@@ -857,7 +857,7 @@ import { allMats, setWire, setBiasUnitsPerStep } from './render/material.js';
 import { PoseDriver } from './render/pose.js';
 import { loadMaterialsDb } from './render/materials-db.js';
 import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
-         partVerts, partsDrawn, applyParts, groupLabel, setNormalOpt,
+         partVerts, partsDrawn, applyParts, groupLabel, groupIsInert, setNormalOpt,
          setUndefinedMaterialVisible, setEffectVisible, setExtendVisible, extendCount,
          monsterMats } from './render/monster.js';
 
@@ -1115,6 +1115,19 @@ function buildGroups(){
     const lab = document.createElement('label');
     lab.textContent = 'Parts ' + c.parts.split(',').join(', ');
     const sel = document.createElement('select');
+    if (c.members.length === 1 && groupIsInert(groups, c.members[0], e && e.partIds)){
+      // The ROM's base state: this group only re-asserts parts that nothing else turns off, so
+      // applying it or not cannot change a pixel. It was a dropdown, which read as broken --
+      // 84 of the library's 85 single-member rows are like this (Raven, 2026-09-05: "a lot of
+      // monsters have Parts that have 'not applied' but I don't see anything that changes").
+      // Still shown, because the panel is a view of what the table says, but not as a switch.
+      state.groups[c.members[0]] = true;
+      const txt = document.createElement('p');
+      txt.className = 'hint';
+      txt.textContent = groupLabel(groups[c.members[0]]) + '  ·  always on, nothing turns these off';
+      row.appendChild(lab); row.appendChild(txt); monGroupsEl.appendChild(row);
+      continue;
+    }
     if (c.members.length === 1){
       const k = c.members[0];
       sel.innerHTML = '<option value="on">' + groupLabel(groups[k]) + '</option>' +

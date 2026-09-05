@@ -118,6 +118,31 @@ export function groupLabel(g){
   return (on.length ? 'on ' + on.join(', ') : '') + (on.length && off.length ? '  /  ' : '') + (off.length ? 'off ' + off.join(', ') : '');
 }
 
+// Can applying this group change what is drawn, under ANY selection of the others?
+//
+// applyParts defaults a part the table does not mention to VISIBLE, so a group that only ever
+// says "true" re-asserts what is already the case. It can still matter if some OTHER group
+// turns one of its parts off, because the later group wins -- but if nothing does, the group is
+// inert and offering it as a choice is a control that cannot do anything (Raven, 2026-09-05:
+// "a lot of monsters have Parts that have 'not applied' but I don't see anything that changes").
+//
+// Measured over the library: 85 of the 625 part rows have a single member, and 84 of those are
+// inert -- 83 because every entry is true, and Royal Ludroth's because the only part it turns
+// off is 100, the proxy layer, which carries no drawn geometry. They are the ROM's base state,
+// worth SHOWING but not worth offering as a switch.
+export function groupIsInert(groups, index, partIds){
+  const g = (groups || [])[index];
+  if (!g) return true;
+  const real = new Set(partIds || []);
+  const mine = new Set(g.map(e => e[0]));
+  // it turns a part with actual geometry off: a real choice
+  if (g.some(e => !e[1] && real.has(e[0]))) return false;
+  // something else turns one of its parts off, so re-asserting true is a real override
+  const contested = (groups || []).some((og, j) =>
+    j !== index && og.some(e => !e[1] && mine.has(e[0])));
+  return !(contested && g.some(e => real.has(e[0])));
+}
+
 // ---- borrowed motion lists -------------------------------------------------------------------
 // The game gives one monster another's motion list: Rathalos plays Rathian's lists 0-3,
 // Genprey and Ioprey play Velociprey's, Nargacuga borrows one of Tigrex's. 18 monsters and 57
