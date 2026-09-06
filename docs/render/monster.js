@@ -80,13 +80,107 @@ export function clusterGroups(groups){
 // incorrectly like the CB ran into with its glow effects"). An effect mesh is often the larger
 // half of its pair, so "most geometry" selects for exactly the wrong thing.
 //
-// It leaves one known oddity, which is a question for Raven rather than a rule: on Rathian the
-// first alternative of the pair {1: an 18-vertex patch in the body material, 9: a 28-vertex
-// mesh in the EYE material} hides the eye mesh.
-export function defaultGroupsOn(groups, _partVerts){
+// ONE exception, settled by Raven 2026-09-05 ("a lot of monsters have a part for their eyes, I
+// would like to have Eyes Open by default"): where first-of-cluster leaves a monster drawing no
+// eye mesh AT ALL, the cluster holding an eye is switched to the alternative that draws one.
+// On Rathian that is the pair {1: an 18-vertex patch in the body material, 9: a 28-vertex mesh in
+// the EYE material}, whose first member hides 9.
+//
+// It is deliberately narrow. It fires only when NOT ONE eye mesh is drawn, so the 67 monsters
+// that already show an eye keep the ROM's own order untouched -- including the ones with several
+// eye parts, where forcing them all on would stack an open eye over a closed one. Measured over
+// the library: 87 monsters carry an eye part, 67 already draw one, and this moves the remaining
+// 20 (the Rath pair and their Deviants, Basarios, Gravios, Diablos, Congalala, Uragaan, Zinogre,
+// Lagombi, Hellblade Glavenus, Astalos).
+// Parts a monster should not open with, per monster, whatever the ROM's own order says. Raven's
+// calls, made while reviewing that monster -- exceptions granted on verification, not taken while
+// building. 2026-09-05: "Congalala, turn off parts 12-18 by default."
+export const DEFAULT_PARTS_OFF = {
+  em021_00: [12, 13, 14, 15, 16, 17, 18],   // Congalala
+};
+export function defaultGroupsOn(groups, _partVerts, eyeParts, effectParts, forceOff){
   const on = (groups || []).map(() => false);
-  for (const c of clusterGroups(groups)) on[c.members[0]] = true;
+  const cl = clusterGroups(groups);
+  for (const c of cl) on[c.members[0]] = true;
+  const eyes = eyeParts instanceof Set ? eyeParts : new Set(eyeParts || []);
+  if (!eyes.size) return applyForcedOff(groups, on, forceOff);
+  const drawsAnEye = state => {
+    const drawn = new Map();
+    (groups || []).forEach((g, i) => { if (state[i]) for (const [p, v] of g) drawn.set(p, v); });
+    for (const p of eyes) if (drawn.get(p) !== false) return true;
+    return false;
+  };
+  if (drawsAnEye(on)) return applyForcedOff(groups, on, forceOff);
+  // Every alternative that would show an eye is scored, and the one lighting the FEWEST effect
+  // meshes wins. Taking the first that worked switched 2 of Amatsu's rage/glow meshes on to get
+  // its eye, and one more of Hellblade Glavenus's -- undoing the 2026-09-04 finding that an
+  // effect mesh is often the larger half of its pair. A tie keeps the earlier alternative, which
+  // is the ROM's own order.
+  const fx = effectParts instanceof Set ? effectParts : new Set(effectParts || []);
+  const litEffects = state => {
+    const drawn = new Map();
+    (groups || []).forEach((g, i) => { if (state[i]) for (const [p, v] of g) drawn.set(p, v); });
+    let n = 0;
+    for (const p of fx) if (drawn.get(p) !== false) n++;
+    return n;
+  };
+  const floor = litEffects(on);
+  let best = null, bestCost = Infinity;
+  for (const c of cl){
+    if (c.members.length < 2) continue;
+    for (const m of c.members){
+      const trial = on.slice();
+      for (const mm of c.members) trial[mm] = (mm === m);
+      if (!drawsAnEye(trial)) continue;
+      const cost = Math.max(0, litEffects(trial) - floor);
+      if (cost < bestCost){ best = trial; bestCost = cost;
+        if (!cost) return applyForcedOff(groups, best, forceOff); }
+    }
+  }
+  return applyForcedOff(groups, best || on, forceOff);
+}
+// The per-monster "start with these parts off" list, applied last so it wins over the ROM's order
+// AND over the eye rule. For each part named, the cluster that owns it is switched to whichever of
+// its alternatives sets that part false; a cluster with no such alternative is left alone rather
+// than forced, since nothing there can turn the part off.
+function applyForcedOff(groups, on, off){
+  if (!off || !off.length) return on;
+  const cl = clusterGroups(groups);
+  const want = new Set(off);
+  for (const c of cl){
+    const parts = c.parts.split(',').map(Number);
+    if (!parts.some(p => want.has(p))) continue;
+    for (const m of c.members){
+      const g = groups[m] || [];
+      // this alternative turns every wanted part in the cluster off
+      const ok = parts.filter(p => want.has(p))
+                      .every(p => g.some(e => e[0] === p && !e[1]));
+      if (!ok) continue;
+      for (const mm of c.members) on[mm] = (mm === m);
+      break;
+    }
+  }
   return on;
+}
+// part ids drawn in one of the game's own additive or reverse-subtractive materials -- the rage
+// auras and glows the part default is careful not to switch on
+export function effectPartIds(root){
+  const out = new Set();
+  root.traverse(o => {
+    if (!(o.isMesh || o.isSkinnedMesh) || o.userData.proxy) return;
+    if (o.userData.effect) out.add(o.userData.part);
+  });
+  return out;
+}
+// The part ids a mounted model draws in a material the game named for an eye. Read off the
+// model rather than baked, so it needs no rebuild and cannot drift from what is on screen.
+export function eyePartIds(root){
+  const out = new Set();
+  root.traverse(o => {
+    if (!(o.isMesh || o.isSkinnedMesh) || o.userData.proxy) return;
+    if (o.userData.eye) out.add(o.userData.part);
+  });
+  return out;
 }
 
 // part id -> the vertices a mounted model draws for it (the proxy layer excluded)
@@ -228,6 +322,9 @@ export async function loadMonster(rec, opt, ctx){
     const verts = o.geometry.attributes.position.count;
     const part = meshGroupId(o);
     o.userData.part = part;
+    // recorded here, off the model file's OWN material name, because the material is replaced
+    // below and replaced again by the heat map -- by then the name is gone
+    if (/eye/i.test(srcName)) o.userData.eye = true;
     o.frustumCulled = false;              // bind-pose bounds, same as the armour
     prim++;
     o.userData.prim = prim;
@@ -408,16 +505,23 @@ export function clearHeatmap(root){
 }
 
 // <em>.bin: u32 primCount, primCount x u32 vertexCount, then the slot bytes in primitive order.
+// The bin holds TWO equal blocks of one byte per vertex: first the damage-table slot, then the
+// .dtt part-record index. They are different part lists (the .bdd names both, at record +6 and
+// +8), so damage values are read through the first and kinsect extract through the second.
 export function parseZones(buf, prims){
   const dv = new DataView(buf);
   const n = dv.getUint32(0, true);
   const counts = [];
   for (let i = 0; i < n; i++) counts.push(dv.getUint32(4 + i*4, true));
-  let off = 4 + n*4;
-  const out = {};
+  const head = 4 + n*4;
+  const total = counts.reduce((a, b) => a + b, 0);
+  const hasParts = buf.byteLength >= head + total * 2;   // a bin from before the part map has one
+  const slots = {}, parts = {};
+  let off = head, poff = head + total;
   for (let i = 0; i < n; i++){
-    out[prims[i]] = new Uint8Array(buf, off, counts[i]);
-    off += counts[i];
+    slots[prims[i]] = new Uint8Array(buf, off, counts[i]);
+    if (hasParts) parts[prims[i]] = new Uint8Array(buf, poff, counts[i]);
+    off += counts[i]; poff += counts[i];
   }
-  return out;
+  return hasParts ? { slots, parts } : { slots, parts: null };
 }

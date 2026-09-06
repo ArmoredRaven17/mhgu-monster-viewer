@@ -156,6 +156,13 @@ dl.info dd{margin:0;color:var(--text);font-variant-numeric:tabular-nums;
 /* stagger, break and extract come from the same record but are not damage: a rule separates them */
 #monZoneChart th.xcol:first-of-type,#monZoneChart td.xcol:first-of-type{border-left:2px solid var(--line)}
 #monZoneChart .xcol{font-variant-numeric:tabular-nums}
+/* the part record's own table, kept visually apart from the damage one it does not align with */
+#monPartsChart{border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums;margin:10px 6px 6px}
+#monPartsChart th,#monPartsChart td{padding:2px 8px;text-align:center;white-space:nowrap}
+#monPartsChart thead th{color:var(--text-hint);font-weight:600;border-bottom:1px solid var(--line)}
+#monPartsChart thead th.sel{color:var(--cta)}
+#monPartsChart tbody th{text-align:left;font-weight:400;color:var(--text)}
+#monPartsChart td.sel{outline:1px solid var(--cta);outline-offset:-1px}
 /* Floating toolbar over the render area, matching the Weapon Tree's #bar.
    width:max-content is load-bearing: with left:50% the default shrink-to-fit only
    counts the space from the centre to the right edge, so the bar would cap at half
@@ -533,7 +540,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
            Zones panel"). Its toggle is #monZoneShow, in that panel. -->
       <div id="zonePanel" hidden>
         <div id="zoneHead"><span id="zoneTitle">Hit zones</span><button id="zoneClose" title="Hide the chart">&times;</button></div>
-        <div id="monZoneWrap"><table id="monZoneChart"></table></div>
+        <div id="monZoneWrap"><table id="monZoneChart"></table>
+          <table id="monPartsChart"></table></div>
       </div>
       <p id="renderNote">Some models may not render correctly at this time or some oddities may happen</p>
       <div id="err"></div>
@@ -955,6 +963,7 @@ import { PoseDriver } from './render/pose.js';
 import { loadMaterialsDb } from './render/materials-db.js';
 import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
          partVerts, partsDrawn, applyParts, groupLabel, groupIsInert, setNormalOpt,
+         eyePartIds, effectPartIds, DEFAULT_PARTS_OFF,
          setUndefinedMaterialVisible, setEffectVisible, setExtendVisible, extendCount,
          applyHeatmap, clearHeatmap, parseZones, heatColor, EXTRACT_RGB,
          monsterMats } from './render/monster.js';
@@ -985,6 +994,10 @@ const PARTNAMES = await loadJson('partnames.json').catch(() => ({ monsters: {} }
 // rBodyData capsule, and that slot indexes the ROM's dt_tune damage table. Optional, like the
 // part names -- an older deploy without it simply has no heat map.
 const HITZONES = await loadJson('hitzones.json').catch(() => ({ monsters: {} }));
+// The monster CLASS, for the picker's grouping (Raven, 2026-09-05: "sort the list by monster
+// type ... this way we can group things by skeleton"). Guarded like the other optional files:
+// an older deploy without it just falls back to Large/Small.
+const MONCLASS = await loadJson('monster-classes.json').catch(() => ({ classes: {}, _about: {} }));
 // ONE fixed scale, 0-100, so two monsters can be compared at a glance. Scaling to the library
 // maximum was tried and wasted the ramp: the top values are real but rare -- Khezu is dragon 255
 // and thunder 150, a Deviant is cut 255 -- while the 95th percentile is 100 for every type. At
@@ -1473,23 +1486,77 @@ function buildMonsterList(){
   // Armor Viewer keeps the worn piece listed for exactly this reason.)
   const hit = e => !f || label(e).toLowerCase().includes(f) || e.id.includes(f) || e.id === state.id;
   const opt = e => '<option value="' + e.id + '">' + label(e) + '</option>';
-  const big = MON.monsters.filter(e => !e.small && hit(e)).map(opt).join('');
-  const small = MON.monsters.filter(e => e.small && hit(e)).map(opt).join('');
-  monSel.innerHTML = (big ? '<optgroup label="Large monsters">' + big + '</optgroup>' : '') +
-                     (small ? '<optgroup label="Small monsters">' + small + '</optgroup>' : '');
+  // Grouped by the monster's CLASS, in the game's own order, so everything on one skeleton sits
+  // together -- and LARGE AND SMALL STAY APART (Raven, 2026-09-05: "Keep Large and Small
+  // Separate"), every large class first, then every small one. A select cannot nest optgroups, so
+  // the two levels are spelled out in the heading rather than indented. Within a class the em id
+  // order is kept, which already puts a monster next to its own variants.
+  const order = (MONCLASS._about && MONCLASS._about.order) || [];
+  const cls = MONCLASS.classes || {};
+  let html = '';
+  if (order.length){
+    const key = (small, k) => (small ? 'S|' : 'L|') + k;
+    const bucket = new Map();
+    for (const e of MON.monsters){
+      if (!hit(e)) continue;
+      const k = cls[e.id] && order.includes(cls[e.id]) ? cls[e.id] : order[order.length - 1];
+      const kk = key(!!e.small, k);
+      if (!bucket.has(kk)) bucket.set(kk, []);
+      bucket.get(kk).push(e);
+    }
+    for (const small of [false, true])
+      for (const k of order){
+        const list = bucket.get(key(small, k)) || [];
+        if (!list.length) continue;
+        html += '<optgroup label="' + (small ? 'Small' : 'Large') + ' — ' + k + '">' +
+                list.map(opt).join('') + '</optgroup>';
+      }
+  } else {                                    // no class file: the old split
+    const big = MON.monsters.filter(e => !e.small && hit(e)).map(opt).join('');
+    const small = MON.monsters.filter(e => e.small && hit(e)).map(opt).join('');
+    html = (big ? '<optgroup label="Large monsters">' + big + '</optgroup>' : '') +
+           (small ? '<optgroup label="Small monsters">' + small + '</optgroup>' : '');
+  }
+  monSel.innerHTML = html;
   if (![...monSel.options].some(o => o.value === state.id)){
     const first = MON.monsters.find(e => !e.small) || MON.monsters[0];
     if (first) state.id = first.id;
   }
   monSel.value = state.id;
 }
+// The ROM's array order is not a reading order: Basarios ships its OWN list 4 and borrows 0-3 from
+// Gravios, so the harvest listed it 4, 0, 1, 2, 3 (Raven, 2026-09-05: "Basarios Motion lists are
+// 4, 1, 2, 3, make it 1->4, option"). Sorted numerically here, at DISPLAY time, with the named
+// lists ('option') last. The ids are untouched, so a saved state and the scene harness still
+// resolve, and only which list comes up FIRST on a monster changes.
+// Per-monster opening view, where the first list and first clip are not the one worth landing on.
+// Raven's calls, made while reviewing a monster, so they are exceptions to the ROM's own order --
+// see the picker's own note. 2026-09-05: "Tigrex, Grimclaw, Nargacuga and Silverwind should use
+// List 0: Moton 25 as their defaults."
+const DEFAULT_VIEW = {
+  em032_00: { list: '0', clip: 'Motion[25]_loop' },   // Tigrex
+  em032_04: { list: '0', clip: 'Motion[25]_loop' },   // Grimclaw Tigrex
+  em037_00: { list: '0', clip: 'Motion[25]_loop' },   // Nargacuga
+  em037_04: { list: '0', clip: 'Motion[25]_loop' },   // Silverwind Nargacuga
+};
+function listOrder(a, b){
+  const na = /^\d+$/.test(a.id), nb = /^\d+$/.test(b.id);
+  if (na && nb) return (+a.id) - (+b.id);
+  if (na !== nb) return na ? -1 : 1;            // numbered first, named after
+  return String(a.id).localeCompare(String(b.id));
+}
 function buildLists(){
   const e = entry();
-  const lists = (e && e.lists) || [];
+  const lists = ((e && e.lists) || []).slice().sort(listOrder);
   monListSel.innerHTML = lists.map(l =>
     '<option value="' + l.id + '">List ' + l.id + ' &mdash; ' + (l.clips || []).length + ' clips' +
     (l.shared ? ' (shared)' : '') + '</option>').join('');
-  if (!lists.some(l => l.id === state.list)) state.list = lists.length ? lists[0].id : '';
+  if (!lists.some(l => l.id === state.list)){
+    // the monster's own opening list where one is set, else the first the ROM gives
+    const want = (DEFAULT_VIEW[e && e.id] || {}).list;
+    const pick = lists.find(l => l.id === want) || lists[0];
+    state.list = pick ? pick.id : '';
+  }
   monListSel.value = state.list;
   buildClips();
 }
@@ -1497,7 +1564,15 @@ function buildClips(){
   const clips = (listOf(entry()) || {}).clips || [];
   monClipSel.innerHTML = '<option value="">Bind pose</option>' +
     clips.map(c => '<option value="' + c.clip + '">' + c.clip + ' &mdash; ' + c.dur.toFixed(2) + ' s</option>').join('');
-  if (!clips.some(c => c.clip === state.clip)) state.clip = clips.length ? clips[0].clip : '';
+  if (!clips.some(c => c.clip === state.clip)){
+    const e = entry();
+    const dv = DEFAULT_VIEW[e && e.id];
+    // only honour the clip when its list is the one showing, or picking another list would
+    // silently drop the monster onto a clip from the wrong one
+    const want = (dv && dv.list === state.list) ? dv.clip : null;
+    const pick = clips.find(c => c.clip === want) || clips[0];
+    state.clip = pick ? pick.clip : '';
+  }
   monClipSel.value = state.clip;
 }
 function paintAbout(){
@@ -1520,6 +1595,7 @@ function paintAbout(){
   // Size is always shown, even at 1.0, so the row count does not change between monsters.
   const rows = [
     ['ID', e.id],
+    ['Type', (MONCLASS.classes || {})[e.id] || '—'],
     ['Bones', e.bones],
     ['Vertices', e.verts.toLocaleString()],
     ['Motion lists', e.lists.length],
@@ -1549,7 +1625,13 @@ function infoList(el, rows){
 function buildGroups(){
   const e = entry();
   const groups = (e && e.groups) || [];
-  if (!state.groups || state.groups.length !== groups.length) state.groups = defaultGroupsOn(groups);
+  // the eye parts come off the MOUNTED model, so this has to run after mount() -- which it does,
+  // buildGroups() being called from there once the model is in the world
+  if (!state.groups || state.groups.length !== groups.length)
+    state.groups = defaultGroupsOn(groups, null,
+      mounted.main ? eyePartIds(mounted.main) : null,
+      mounted.main ? effectPartIds(mounted.main) : null,
+      DEFAULT_PARTS_OFF[e && e.id]);
   monGroupsEl.innerHTML = '';
   if (!groups.length){
     monGroupsEl.innerHTML = '<p class="hint">This monster ships no part-visibility table.</p>';
@@ -1819,12 +1901,18 @@ async function applyHeat(){
   // Every mount, not just the body: with the severed parts shown, painting only mounted.main
   // left a full-colour tail beside a heat-mapped monster.
   if (state.heat === 'extract'){
-    // categorical: each part is painted the colour it actually yields
-    const byslot = {};
-    (rec.parts || []).forEach((p, sl) => { if (p && p.extract) byslot[sl] = EXTRACT_RGB[p.extract]; });
-    for (const g of Object.values(mounted)) applyHeatmap(g, zoneCache.zones, null, 1, THREE, byslot);
+    // Painted through the PART map, not the damage slots. The .bdd names both for every capsule
+    // (its u16 at record+6 is the damage row, at +8 the .dtt part-record index), and the bake now
+    // assigns each vertex against both. Going damage -> part instead would be ambiguous: 203 of
+    // 681 damage slots are covered by more than one part record and on 68 those parts disagree on
+    // the colour.
+    const byPart = {};
+    (rec.parts || []).forEach((p, i) => { if (p && p.extract) byPart[i] = EXTRACT_RGB[p.extract]; });
+    const map = zoneCache.zones.parts;
+    if (!map) { for (const g of Object.values(mounted)) clearHeatmap(g); }
+    else for (const g of Object.values(mounted)) applyHeatmap(g, map, null, 1, THREE, byPart);
   } else if (state.heat){
-    for (const g of Object.values(mounted)) applyHeatmap(g, zoneCache.zones, value, HEATSCALE, THREE);
+    for (const g of Object.values(mounted)) applyHeatmap(g, zoneCache.zones.slots, value, HEATSCALE, THREE);
   } else {
     for (const g of Object.values(mounted)) clearHeatmap(g);
   }
@@ -1851,26 +1939,12 @@ function buildZoneChart(rec, table, ti){
     };
     head.appendChild(th);
   }
-  // Stagger, Break and the extract colour sit to the right of the damage columns: they come from
-  // the SAME .dtt part record, but they are not damage, so they are not on the damage ramp.
-  // Only Extract is clickable, because only it can be painted onto the model.
-  const parts = rec.parts || [];
-  for (const extra of ['Stagger', 'Break', 'Extract']){
-    const th = document.createElement('th');
-    th.textContent = extra;
-    th.className = 'xcol' + (extra === 'Extract' && state.heat === 'extract' ? ' sel' : '');
-    if (extra === 'Extract'){
-      th.title = 'Paint each part the kinsect extract colour it gives';
-      th.onclick = () => {
-        state.heat = (state.heat === 'extract') ? '' : 'extract';
-        applyHeat().catch(noteError); saveState();
-      };
-    } else {
-      th.title = extra === 'Stagger' ? 'Damage that staggers this part'
-                                     : 'Damage that breaks this part, where it can be broken';
-    }
-    head.appendChild(th);
-  }
+  // Stagger, break and the extract colour are NOT shown here. They come from the .dtt's part
+  // record, which is a DIFFERENT part list from the damage table -- proved on Mizutsune, where the
+  // part record splits the hind legs into left and right that the damage table keeps as one row,
+  // and merges neck and torso that the damage table keeps apart (Raven, 2026-09-05, spotting it:
+  // "I have noticed things in the Stagger Extract tables have differing positions"). Putting them
+  // on the damage rows attached every value to the wrong part. They get their own table below.
   const body = chart.createTBody();
   for (const sl of slots){
     const tr = body.insertRow();
@@ -1890,30 +1964,62 @@ function buildZoneChart(rec, table, ti){
       }
       if (t === state.heat) td.classList.add('sel');
     }
-    const pr = parts[sl] || {};
-    const stag = tr.insertCell(); stag.className = 'xcol';
-    stag.textContent = pr.stagger ? pr.stagger : '—';
-    const brk = tr.insertCell(); brk.className = 'xcol';
-    // null is the ROM's 0xffff: this part cannot be broken at all, which is not the same as 0
-    brk.textContent = (pr.break === null || pr.break === undefined) ? '—' : pr.break;
-    const ex = tr.insertCell(); ex.className = 'xcol' + (state.heat === 'extract' ? ' sel' : '');
-    if (pr.extract){
-      const c = EXTRACT_RGB[pr.extract];
-      ex.style.background = 'rgb(' + c.map(x => Math.round(x * 255)).join(',') + ')';
-      const lum = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
-      ex.style.color = lum > 0.45 ? '#101216' : '#f2f4f8';
-      ex.textContent = pr.extract.charAt(0).toUpperCase();
-      ex.title = pr.extract;
-    } else ex.textContent = '—';
   }
   const n = document.getElementById('monZoneNote');
   if (rec.tables.length > 1){
     n.hidden = false;
     n.textContent = 'Table ' + ti + ' of ' + rec.tables.length + '. The ROM does not say what the others are.';
   }
+  buildPartsChart(rec);
   document.getElementById('zoneTitle').textContent =
     'Hit zones' + (rec.tables.length > 1 ? ' — table ' + ti : '');
   paintZonePanel();
+}
+// The .dtt's PART RECORD, as its own table. It is deliberately NOT joined to the damage table
+// above: the two index different part lists. On Mizutsune the part record has separate left and
+// right hind legs where the damage table has one "Hind Legs" row, and one "Neck / Torso" row where
+// the damage table has neck and torso apart -- so there is no 1:1 join to make, and pretending
+// otherwise put every value on the wrong part. The rows are numbered rather than named because the
+// names we have belong to the DAMAGE list and would be a lie here.
+function buildPartsChart(rec){
+  const chart = document.getElementById('monPartsChart');
+  const parts = rec.parts || [];
+  chart.textContent = '';
+  const live = parts.map((p, i) => [i, p]).filter(([, p]) => p && (p.stagger || p.extract));
+  if (!live.length) return;
+  const head = chart.createTHead().insertRow();
+  for (const h of ['Part', 'Stagger', 'Break', 'Extract']){
+    const th = document.createElement('th');
+    th.textContent = h;
+    if (h === 'Extract'){
+      th.title = 'Paint each part the kinsect extract colour it gives';
+      th.className = state.heat === 'extract' ? 'sel' : '';
+      th.onclick = () => {
+        state.heat = (state.heat === 'extract') ? '' : 'extract';
+        applyHeat().catch(noteError); saveState();
+      };
+    } else if (h === 'Stagger') th.title = 'Damage that staggers this part';
+    else if (h === 'Break') th.title = 'Damage that breaks it, where it can be broken';
+    head.appendChild(th);
+  }
+  const body = chart.createTBody();
+  for (const [i, p] of live){
+    const tr = body.insertRow();
+    const th = document.createElement('th'); th.textContent = 'Part ' + i; tr.appendChild(th);
+    tr.insertCell().textContent = p.stagger || '—';
+    // null is the ROM's 0xffff: cannot be broken at all, which is not the same as 0
+    tr.insertCell().textContent = (p.break === null || p.break === undefined) ? '—' : p.break;
+    const ex = tr.insertCell();
+    if (p.extract){
+      const c = EXTRACT_RGB[p.extract];
+      ex.style.background = 'rgb(' + c.map(x => Math.round(x * 255)).join(',') + ')';
+      const lum = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+      ex.style.color = lum > 0.45 ? '#101216' : '#f2f4f8';
+      ex.textContent = p.extract.charAt(0).toUpperCase();
+      ex.title = p.extract;
+    } else ex.textContent = '—';
+    if (state.heat === 'extract') ex.classList.add('sel');
+  }
 }
 // The floating window shows only when the toggle is on AND this monster has a chart to put in
 // it, so it never opens empty over the render.
