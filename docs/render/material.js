@@ -77,6 +77,25 @@ let alphaOverride = null;
 // the raw 32 units.
 const biasMats = new Set();
 let biasUnitsPerStep = 32;
+// RSMeshBiasN pulls a layer toward the camera. Every path that builds a material has to apply it,
+// so it lives here rather than being repeated: the additive and reverse-subtract branches returned
+// before the copy that used to sit further down, which silently dropped the bias on EVERY additive
+// material that carries one. Counted 2026-09-06: 72 of the monsters' 78 add/revsub materials, and
+// 375 of the 970 additive armour and weapon materials -- so this is NOT monster-only and it does
+// change what this app draws (m680's _add_ layers, m576_helm's bma01, o072's symadd00, and 372
+// more). Those are decal layers meant to sit ON the surface; with no bias they z-fight it.
+// Raven, 2026-09-06, on Savage Deviljho's groups 0/3/12/100: "we need to be better able to render
+// these", and "we don't 'decide' how, we let the ROM tell us how the game does it" -- the ROM says
+// bias -512 on that group's XfB__m02_body_k, so it gets bias -512.
+function applyRomBias(mat, st){
+  if (!(st && st.bias)) return mat;
+  mat.polygonOffset = true; mat.polygonOffsetFactor = 0;   // constant only: a slope term put a
+  mat.userData.romBias = st.bias;                          // black sliver on the Lecturer's boots
+  mat.polygonOffsetUnits = st.bias / 32 * biasUnitsPerStep;
+  biasMats.add(mat);
+  mat.addEventListener('dispose', () => biasMats.delete(mat));
+  return mat;
+}
 export function setBiasUnitsPerStep(v){
   if (!(v > 0) || Math.abs(v - biasUnitsPerStep) < biasUnitsPerStep * 0.05) return false;
   biasUnitsPerStep = v;
@@ -152,7 +171,10 @@ export function applyTint(mat){
                  ' uniform float uAlphaCut;' +
                  ' uniform sampler2D uSpec; uniform float uSpecOn; uniform float uViewUv; uniform float uF0;' +
                  ' uniform float uDark;' +
-                 ' float gGloss = 0.0; vec3 gBase = vec3( 1.0 ); void main() {')
+                 ' float gGloss = 0.0; vec3 gBase = vec3( 1.0 );' +
+                 ' vec3 mhguSrgbOetf( vec3 c ){ c = max( c, vec3( 0.0 ) ); return mix( pow( c, vec3( 1.0 / 2.4 ) ) * 1.055 - 0.055, c * 12.92, vec3( lessThanEqual( c, vec3( 0.0031308 ) ) ) ); }' +
+                 ' vec3 mhguSrgbEotf( vec3 c ){ c = max( c, vec3( 0.0 ) ); return mix( pow( ( c + 0.055 ) / 1.055, vec3( 2.4 ) ), c / 12.92, vec3( lessThanEqual( c, vec3( 0.04045 ) ) ) ); }' +
+                 ' void main() {')
         .replace('#include <map_fragment>',
           `#ifdef USE_MAP
              vec2 mapUv = vMapUv;
@@ -226,10 +248,13 @@ export function applyTint(mat){
            #endif
            totalEmissiveRadiance *= 1.0 - uDark;`)
         // MHGU shades armor with a 64x64 spherical env map (a matcap) scaled by gloss.
-        // Sample it with the view-space normal and add it on top of the lit color.
-        .replace('#include <dithering_fragment>',
-          `#include <dithering_fragment>
-           if ( uEnvAmt > 0.0 ) {
+        // Sample it with the view-space normal and screen it over the lit colour. The screen
+        // has always run on the sRGB-ENCODED colour -- it sat after <colorspace_fragment>,
+        // on the canvas -- so it runs here on an explicit encode and is decoded again: the
+        // same pixels on the canvas, and right in a linear render target too, where three's
+        // own <colorspace_fragment> is the identity (Raven, 2026-09-04: post-processing).
+        .replace('#include <colorspace_fragment>',
+          `if ( uEnvAmt > 0.0 ) {
              vec3 vn = normalize( normal );
              vec2 muv = vn.xy * 0.5 + 0.5;
              vec3 env = texture2D( uEnv, muv ).rgb;
@@ -241,8 +266,11 @@ export function applyTint(mat){
              float fres = uF0 + ( 1.0 - uF0 ) * pow( 1.0 - clamp( vn.z, 0.0, 1.0 ), 5.0 );
              // SCREEN blend, not additive -- a + b*(1-a) cannot exceed 1, so bright
              // armor keeps its detail instead of clipping to white.
-             gl_FragColor.rgb += env * g * uEnvAmt * fres * ( 1.0 - gl_FragColor.rgb );
-           }`);
+             vec3 enc = mhguSrgbOetf( gl_FragColor.rgb );
+             enc += env * g * uEnvAmt * fres * ( 1.0 - enc );
+             gl_FragColor.rgb = mhguSrgbEotf( enc );
+           }
+           #include <colorspace_fragment>`);
     };
     mat.needsUpdate = true;
   }
@@ -323,7 +351,7 @@ export function createMaterial(spec){
     if (cb && ft && ft.transp === 'AlphaConstant') mat.opacity = cb.transparency;
     mat.userData.rom = rom; mat.userData.unlit = true; mat.userData.noTint = true;
     mat.userData.renderOrder = 20;
-    return mat;
+    return applyRomBias(mat, st);
   }
   if (st && st.blend === 'revsub'){
     // The additive path's mirror image: same source and destination factors, the opposite
@@ -350,7 +378,7 @@ export function createMaterial(spec){
     if (cb && ft && ft.transp === 'AlphaConstant') mat.opacity = cb.transparency;
     mat.userData.rom = rom; mat.userData.unlit = true; mat.userData.noTint = true;
     mat.userData.renderOrder = 20;
-    return mat;
+    return applyRomBias(mat, st);
   }
   if (spec.unlit){
     // The map IS the colour: no lights, no matcap, no pigment. The ROM's cull mode and blend
@@ -364,15 +392,7 @@ export function createMaterial(spec){
     if (ft && (ft.transp === 'Alpha' || ft.transp === 'AlphaConstant') && rom.alphaTest)
       mat.alphaTest = Math.max(0, gl ? gl.clip : 0) + ALPHA_EPS;
     if (gl && cb) mat.color.setRGB(gl.albedo[0] * cb.diffuse[0], gl.albedo[1] * cb.diffuse[1], gl.albedo[2] * cb.diffuse[2]);
-    if (st && st.bias){
-      // registered like the lit path's, so setBiasUnitsPerStep can re-express a step as a
-      // fixed push in metres each frame -- left out, this material kept the raw ROM value
-      // and drifted through whatever it decals as the camera moved
-      mat.polygonOffset = true; mat.polygonOffsetFactor = 0;
-      mat.userData.romBias = st.bias;
-      mat.polygonOffsetUnits = st.bias / 32 * biasUnitsPerStep;
-      biasMats.add(mat);
-    }
+    applyRomBias(mat, st);
     mat.userData.rom = rom; mat.userData.unlit = true; mat.userData.noTint = true;
     return mat;
   }
@@ -392,15 +412,7 @@ export function createMaterial(spec){
     if (cb) mat.opacity = cb.transparency;
     if (ft && ft.transp) texAlpha = true;
   }
-  // depth bias: RSMeshBiasN pulls the layer toward the camera, constant only (no slope
-  // term: that put a black sliver on the Lecturer's boots), scaled per step as above
-  if (st && st.bias){
-    mat.polygonOffset = true; mat.polygonOffsetFactor = 0;
-    mat.userData.romBias = st.bias;
-    mat.polygonOffsetUnits = st.bias / 32 * biasUnitsPerStep;
-    biasMats.add(mat);
-    mat.addEventListener('dispose', () => biasMats.delete(mat));
-  }
+  applyRomBias(mat, st);
   // albedo tint, emission, shininess
   if (gl && cb) mat.color.setRGB(gl.albedo[0] * cb.diffuse[0], gl.albedo[1] * cb.diffuse[1], gl.albedo[2] * cb.diffuse[2]);
   if (gl && (gl.emission[0] + gl.emission[1] + gl.emission[2]) > 0){

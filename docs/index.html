@@ -143,26 +143,57 @@ dl.info dd{margin:0;color:var(--text);font-variant-numeric:tabular-nums;
 #zoneClose{background:none;border:none;color:var(--text-hint);cursor:pointer;font-size:15px;
   line-height:1;padding:2px 5px;border-radius:4px}
 #zoneClose:hover{color:var(--text);background:#ffffff1a}
+/* One table at a time. Three stacked in a fixed box made the window a scrolling column of
+   unrelated grids; Raven, 2026-09-06: "can we have the pop up use tabs that switch if they are
+   selected in the drop down" and "this window can be resize with the table, no need to keep the
+   element the same size". The panel has no width of its own, so with a single table showing it
+   shrink-wraps whichever one that is. */
+/* The strip sets the window's MINIMUM width, and wraps below it. Measured both ways: taking the
+   tabs out of the intrinsic width (width:0 + min-width:100%) does let the window track each table
+   -- 184 to 280px -- but the five tabs then wrap to three rows and the window grows TALLER than it
+   saved in width, reflowing on every switch. One row of tabs is the better trade, so the window
+   floors at the strip's width and only wraps when the render area is genuinely narrower than that
+   (it was clipping the last tabs before the wrap was added). Height still tracks the table. */
+#zoneTabs{display:flex;flex-wrap:wrap;gap:2px;padding:4px 6px 0;border-bottom:1px solid var(--line)}
+.ztab{background:none;border:none;border-bottom:2px solid transparent;color:var(--text-hint);
+  cursor:pointer;font:inherit;font-size:11px;padding:3px 9px 4px;border-radius:4px 4px 0 0;
+  white-space:nowrap}
+.ztab:hover:not(:disabled){color:var(--text);background:#ffffff0f}
+.ztab[aria-selected="true"]{color:var(--cta);border-bottom-color:var(--cta)}
+.ztab:disabled{opacity:.35;cursor:default}
+#monZoneWrap > table{display:none}
+#monZoneWrap > table.shown{display:table}
 #monZoneWrap{overflow:auto;max-width:100%}
-#monZoneChart{border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums}
-#monZoneChart th,#monZoneChart td{padding:2px 5px;text-align:center;white-space:nowrap}
-#monZoneChart thead th{color:var(--text-hint);font-weight:600;cursor:pointer;
+/* Five panes now share two shapes, so these are classes rather than a growing list of ids:
+   .zchart is a damage grid (parts down, types across), .pchart the two narrow record tables. */
+.zchart,.pchart{border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums}
+.pchart{margin:6px}
+.zchart th,.zchart td{padding:2px 5px;text-align:center;white-space:nowrap}
+.pchart th,.pchart td{padding:2px 8px;text-align:center;white-space:nowrap}
+.zchart thead th,.pchart thead th{color:var(--text-hint);font-weight:600;
   border-bottom:1px solid var(--line);user-select:none}
-#monZoneChart thead th:hover{color:var(--text)}
-#monZoneChart tbody th{text-align:left;font-weight:400;color:var(--text);
-  position:sticky;left:0;background:var(--bg2)}
-#monZoneChart th.sel{color:var(--cta)}
-#monZoneChart td.sel{outline:1px solid var(--cta);outline-offset:-1px}
-/* stagger, break and extract come from the same record but are not damage: a rule separates them */
-#monZoneChart th.xcol:first-of-type,#monZoneChart td.xcol:first-of-type{border-left:2px solid var(--line)}
-#monZoneChart .xcol{font-variant-numeric:tabular-nums}
-/* the part record's own table, kept visually apart from the damage one it does not align with */
-#monPartsChart{border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums;margin:10px 6px 6px}
-#monPartsChart th,#monPartsChart td{padding:2px 8px;text-align:center;white-space:nowrap}
-#monPartsChart thead th{color:var(--text-hint);font-weight:600;border-bottom:1px solid var(--line)}
-#monPartsChart thead th.sel{color:var(--cta)}
-#monPartsChart tbody th{text-align:left;font-weight:400;color:var(--text)}
-#monPartsChart td.sel{outline:1px solid var(--cta);outline-offset:-1px}
+.zchart thead th{cursor:pointer}
+.zchart thead th:hover{color:var(--text)}
+.zchart tbody th,.pchart tbody th{text-align:left;font-weight:400;color:var(--text)}
+.zchart tbody th{position:sticky;left:0;background:var(--bg2)}
+/* Selecting a type lights the WHOLE COLUMN, not each cell in it. Ported from the Zenny Gauntlet's
+   crosshair, whose comment records why: every single-cell marker there "read as off", while a lit
+   band is visible from anywhere on the board. Outlining each cell separately drew a stack of little
+   boxes rather than one column, which is the same failure.
+   That app spans its band with a single grid-placed overlay; these are <table>s, so the band is
+   drawn instead by giving the column's cells their left and right edges, the header its top and the
+   last row its bottom. border-collapse merges them into one unbroken rectangle.
+   The dark sandwich is the Zenny trick too: these cells carry heat colours from dark blue to red,
+   and a bare accent line cannot separate itself from a cell of similar lightness. A dark hairline
+   inside the accent gives it an edge to read against whatever it lands on. */
+.zchart th.sel,.pchart th.sel{color:var(--cta)}
+.zchart .sel,.pchart .sel{border-left:2px solid var(--cta);border-right:2px solid var(--cta);
+  box-shadow:inset 1px 0 rgba(0,0,0,.55), inset -1px 0 rgba(0,0,0,.55)}
+.zchart thead th.sel,.pchart thead th.sel{border-top:2px solid var(--cta);
+  box-shadow:inset 1px 1px rgba(0,0,0,.55), inset -1px 0 rgba(0,0,0,.55)}
+.zchart tbody tr:last-child td.sel,.pchart tbody tr:last-child td.sel{
+  border-bottom:2px solid var(--cta);
+  box-shadow:inset 1px -1px rgba(0,0,0,.55), inset -1px 0 rgba(0,0,0,.55)}
 /* Floating toolbar over the render area, matching the Weapon Tree's #bar.
    width:max-content is load-bearing: with left:50% the default shrink-to-fit only
    counts the space from the centre to the right edge, so the bar would cap at half
@@ -429,7 +460,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <!-- TEST while the app is under review: Raven, 2026-09-04, deploying with known issues
          outstanding. Drop the word when it stops being a test build. -->
     <h1>MHGU Monster Viewer TEST</h1>
-    <button id="barBtn" class="btn tiny on" title="Show or hide the camera controls">Camera controls</button>
+    <button id="barBtn" class="btn tiny on" title="Show or hide the camera controls">Camera Controls</button>
     <button id="saveBtn"   class="btn tiny" title="Save the current view">Save</button>
     <button id="saveAsBtn" class="btn tiny" title="Save the current view to a new file">Save As&hellip;</button>
     <button id="openBtn"   class="btn tiny" title="Open a saved view">Open</button>
@@ -447,7 +478,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <section class="panel" data-open="true">
         <button class="panel-head">Monster <span class="chev">&#9662;</span></button>
         <div class="panel-body">
-          <div class="field"><input type="text" id="monFilter" placeholder="filter by name&hellip;"></div>
+          <div class="field"><input type="text" id="monFilter" placeholder="Filter by name&hellip;"></div>
           <div class="field"><label for="monSel">Monster</label><select id="monSel"></select></div>
           <div class="row gap" id="monHead"><img id="monIcon" class="mon-icon" alt="" hidden><dl id="monAbout" class="info"></dl></div>
         </div>
@@ -456,12 +487,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <section class="panel" data-open="false">
         <button class="panel-head">Animation <span class="chev">&#9662;</span></button>
         <div class="panel-body">
-          <div class="field"><label for="monList">Motion list</label><select id="monList"></select></div>
+          <div class="field"><label for="monList">Motion List</label><select id="monList"></select></div>
           <div class="field"><label for="monClip">Clip</label><select id="monClip"></select></div>
           <div id="anim" class="idle">
             <div class="transport">
               <input id="animScrub" type="range" min="0" max="1" step="1" value="0" title="Scrub through the frames">
-              <div id="animFrame" class="hint">no animation playing</div>
+              <div id="animFrame" class="hint">No animation playing</div>
               <div class="row">
                 <button id="animFirst" class="btn tiny" title="First frame">|&lt;</button>
                 <button id="animPrev" class="btn tiny" title="Previous frame">&lt;</button>
@@ -482,8 +513,9 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <button class="panel-head">Parts <span class="chev">&#9662;</span></button>
         <div class="panel-body">
           <div id="monGroups"></div>
-          <label class="chk" id="monTailRow" hidden><input type="checkbox" id="monTail">Show the severed parts</label>
-          <label class="chk" id="monEffectRow" hidden><input type="checkbox" id="monEffects" checked>Show the effect meshes (rage auras, glows)</label>
+          <label class="chk" id="monTailRow" hidden><input type="checkbox" id="monTail">Show the Severed Parts</label>
+          <label class="chk" id="monEffectRow" hidden><input type="checkbox" id="monEffects" checked>Show the Effect Meshes (Rage Auras, Glows)</label>
+          <label class="chk" id="monRageRow" hidden><input type="checkbox" id="monRage">Enraged</label>
         </div>
       </section>
 
@@ -491,25 +523,34 @@ input[type=range]{width:100%;accent-color:var(--accent)}
            "the idea will be to display the Hitzone chart along with the Heatmaps"). The chart and
            the heat map are one control: a column header both selects the type and paints it. -->
       <section class="panel" data-open="false">
-        <button class="panel-head">Hit zones <span class="chev">&#9662;</span></button>
+        <button class="panel-head">Hit Zones <span class="chev">&#9662;</span></button>
         <div class="panel-body">
           <div class="field" id="monHeatRow" hidden>
-            <label for="monHeat">Heat map</label>
+            <label for="monHeat">Heat Map</label>
             <select id="monHeat">
-              <option value="">off</option>
+              <option value="">Off</option>
               <option value="cut">Cut</option><option value="impact">Impact</option>
               <option value="shot">Shot</option><option value="fire">Fire</option>
               <option value="water">Water</option><option value="ice">Ice</option>
               <option value="thunder">Thunder</option><option value="dragon">Dragon</option>
               <option value="stun">Stun</option><option value="exhaust">Exhaust</option>
-              <option value="extract">Kinsect extract</option>
+              <option value="extract">Kinsect Extract</option>
+              <option value="hardness-cut">Hardness (Cut)</option>
+              <option value="hardness-impact">Hardness (Impact)</option>
             </select>
           </div>
           <div class="field" id="monHeatTableRow" hidden>
-            <label for="monHeatTable">Damage table</label>
+            <label for="monHeatTable">Damage Table</label>
             <select id="monHeatTable"></select>
           </div>
-          <label class="chk" id="monZoneShowRow"><input type="checkbox" id="monZoneShow" checked>Show the chart over the render</label>
+          <div class="field" id="monBounceTRow" hidden>
+            <label for="monBounceT">Deflect Threshold</label>
+            <select id="monBounceT">
+              <option value="normal">0.25</option>
+              <option value="strict">0.27 &mdash; Sturdier</option>
+            </select>
+          </div>
+          <label class="chk" id="monZoneShowRow"><input type="checkbox" id="monZoneShow" checked>Show the Chart over the Render</label>
           <p class="hint" id="monZoneNote" hidden></p>
         </div>
       </section>
@@ -521,8 +562,10 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           <label class="chk"><input type="checkbox" id="monGround" checked>Ground Lowest Bone</label>
           <label class="chk"><input type="checkbox" id="monNormalFlip">Flip Green Channel</label>
           <label class="chk"><input type="checkbox" id="monUndef">Draw Undefined Meshes</label>
-          <label class="chk" id="monExtendRow" hidden><input type="checkbox" id="monExtend"><span id="monExtendText">Draw the overlays whose albedo needs a second map</span></label>
-          <div class="field"><label for="monNormalScale">Normal strength <span id="monNormalScaleVal" class="hint"></span></label>
+          <label class="chk"><input type="checkbox" id="monGap">Gap Detection</label>
+          <label class="chk" id="monProxyRow" hidden><input type="checkbox" id="monProxy"><span id="monProxyText">Draw Mask-Hidden Meshes</span></label>
+          <label class="chk" id="monExtendRow" hidden><input type="checkbox" id="monExtend"><span id="monExtendText">Draw the Overlays Whose Albedo Needs a Second Map</span></label>
+          <div class="field"><label for="monNormalScale">Normal Strength <span id="monNormalScaleVal" class="hint"></span></label>
             <input type="range" id="monNormalScale" min="0" max="2" step="0.05" value="1"></div>
         </div>
       </section>
@@ -539,9 +582,22 @@ input[type=range]{width:100%;accent-color:var(--accent)}
            displayed in a window in the Render Area, but it can be hidden by a toggle in the Hit
            Zones panel"). Its toggle is #monZoneShow, in that panel. -->
       <div id="zonePanel" hidden>
-        <div id="zoneHead"><span id="zoneTitle">Hit zones</span><button id="zoneClose" title="Hide the chart">&times;</button></div>
-        <div id="monZoneWrap"><table id="monZoneChart"></table>
-          <table id="monPartsChart"></table></div>
+        <div id="zoneHead"><span id="zoneTitle">Hit Zones</span><button id="zoneClose" title="Hide the chart">&times;</button></div>
+        <!-- Ten damage columns in one grid was more than the eye groups on its own. Raven,
+             2026-09-06: "break it up into Raw Hit Zones (3 types), Elemental (5), Stun/Exhaust (2),
+             Extracts (but show Stagger and Break still) and update Bounce to be Hardness". -->
+        <div id="zoneTabs" role="tablist">
+          <button class="ztab" data-tab="raw"      role="tab">Raw</button>
+          <button class="ztab" data-tab="elem"     role="tab">Elemental</button>
+          <button class="ztab" data-tab="status"   role="tab">Stun/Exhaust</button>
+          <button class="ztab" data-tab="extracts" role="tab">Extracts</button>
+          <button class="ztab" data-tab="hardness" role="tab">Hardness</button>
+        </div>
+        <div id="monZoneWrap"><table id="monRawChart"    class="zchart" data-pane="raw"></table>
+          <table id="monElemChart"   class="zchart" data-pane="elem"></table>
+          <table id="monStatusChart" class="zchart" data-pane="status"></table>
+          <table id="monPartsChart"  class="pchart" data-pane="extracts"></table>
+          <table id="monHardChart"   class="pchart" data-pane="hardness"></table></div>
       </div>
       <p id="renderNote">Some models may not render correctly at this time or some oddities may happen</p>
       <div id="err"></div>
@@ -963,9 +1019,11 @@ import { PoseDriver } from './render/pose.js';
 import { loadMaterialsDb } from './render/materials-db.js';
 import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
          partVerts, partsDrawn, applyParts, groupLabel, groupIsInert, setNormalOpt,
-         eyePartIds, effectPartIds, DEFAULT_PARTS_OFF,
+         eyePartIds, effectPartIds, DEFAULT_PARTS_OFF, DEFAULT_PARTS_ON,
          setUndefinedMaterialVisible, setEffectVisible, setExtendVisible, extendCount,
-         applyHeatmap, clearHeatmap, parseZones, heatColor, EXTRACT_RGB,
+         applyHeatmap, clearHeatmap, applyFlat, parseZones, heatColor, EXTRACT_RGB,
+         SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, stepMatAnim,
+         setProxyVisible, proxyCount, enrageParts,
          monsterMats } from './render/monster.js';
 
 const errEl = document.getElementById('err');
@@ -994,6 +1052,19 @@ const PARTNAMES = await loadJson('partnames.json').catch(() => ({ monsters: {} }
 // rBodyData capsule, and that slot indexes the ROM's dt_tune damage table. Optional, like the
 // part names -- an older deploy without it simply has no heat map.
 const HITZONES = await loadJson('hitzones.json').catch(() => ({ monsters: {} }));
+// Which part-visibility group the GAME switches, and where in its AI it does it: the call sites of
+// rMonsterPartsManager::setVisibleGroup (0x00072c78) read out of the executable by
+// build-partstates.py. Raven, 2026-09-06: "Keep in mind part ids don't tell me what part is which"
+// -- "on 0, 3 / off 12" says nothing, so a row that the ROM demonstrably switches gets told so.
+// The label is INFERRED (the nearest string in the calling function) and only the defensible subset
+// ships: found within 200 bytes, struct-field names dropped. It is shown as a hint, never as a name
+// the ROM gives the state.
+const PARTSTATES = await loadJson('part-states.json').catch(() => ({ groups: {} }));
+function partStateFor(id, groupIndex){
+  const base = String(id || '').split('_')[0];
+  const g = PARTSTATES.groups && PARTSTATES.groups[base];
+  return (g && g[String(groupIndex)]) || null;
+}
 // The monster CLASS, for the picker's grouping (Raven, 2026-09-05: "sort the list by monster
 // type ... this way we can group things by skeleton"). Guarded like the other optional files:
 // an older deploy without it just falls back to Large/Small.
@@ -1004,6 +1075,22 @@ const MONCLASS = await loadJson('monster-classes.json').catch(() => ({ classes: 
 // 0-255 a Tigrex head of 65 came out dark blue. Values above 100 clamp to the top of the ramp,
 // and the legend always prints the number, so nothing is hidden by the clamp.
 const HEATSCALE = 100;
+// The elemental zones do not use their range the way the raw ones do. Measured over all 5,785
+// elemental cells in the library: median 10, p75 15, p95 30, and 17-34% are exactly 0 depending on
+// element. Against a linear 0..100 ramp three quarters of the table renders as one cold colour and
+// the differences that matter are invisible (Raven, 2026-09-06: "scale Element so it looks more
+// meaningful").
+// A SQUARE ROOT rather than a smaller ceiling. Clamping at, say, 40 would have made 40 and 100 the
+// same colour, and 100 is a real and distinct value here -- 134 cells sit at exactly 100 while only
+// 5 are in the 90s and 3 in the 80s, so it is a designated weak point, not the top of a curve.
+// The curve keeps every value distinct and orders them the same; it just gives the crowded low end
+// most of the ramp. 10 -> 0.32, 30 -> 0.55, 50 -> 0.71, 100 -> 1.
+const ELEM_TYPES = new Set(['fire', 'water', 'ice', 'thunder', 'dragon']);
+function heatShape(type, v){
+  if (!(v > 0)) return 0;
+  const t = Math.max(0, Math.min(1, v / HEATSCALE));
+  return (ELEM_TYPES.has(type) ? Math.sqrt(t) : t) * HEATSCALE;
+}
 let zoneCache = null;      // { id, zones } for the mounted monster
 await loadMaterialsDb();
 
@@ -1454,7 +1541,9 @@ function applyCameraState(c){
 const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: false,
                 anchor: true, ground: true, normalFlip: false, normalScale: 1,
                 // both OFF by default: see applyUndef and applyExtend
-                undef: false, extend: false, heat: '', heatTable: 0, zoneShow: true, zonePos: null,
+                undef: false, extend: false, gap: false, proxy: false, rage: false, heat: '', heatTable: 0, deflectT: 'normal',
+                zoneTab: 'raw',
+                zoneShow: true, zonePos: null,
                 // the additive effect meshes as a class; the ROM's part table already keeps
                 // them off at rest, so this is a way to look at them, not a correction
                 effects: true };
@@ -1622,6 +1711,13 @@ function infoList(el, rows){
 // "1 on, 9 off" and group 2 the reverse -- a part SWAP, the intact part against the broken
 // one. Which alternative the game applies at spawn is not read from the ROM, so the first of
 // each cluster is the default and every cluster is a row here.
+// " — switched by <label>" on an option the executable is known to switch. Nothing is appended
+// when there is no evidence, so a bare row means "not found", not "never switched".
+function stateSuffix(groupIndex){
+  const e = entry();
+  const st = partStateFor(e && e.id, groupIndex);
+  return st ? '  — switched by ' + st.label : '';
+}
 function buildGroups(){
   const e = entry();
   const groups = (e && e.groups) || [];
@@ -1631,7 +1727,7 @@ function buildGroups(){
     state.groups = defaultGroupsOn(groups, null,
       mounted.main ? eyePartIds(mounted.main) : null,
       mounted.main ? effectPartIds(mounted.main) : null,
-      DEFAULT_PARTS_OFF[e && e.id]);
+      DEFAULT_PARTS_OFF[e && e.id], DEFAULT_PARTS_ON[e && e.id]);
   monGroupsEl.innerHTML = '';
   if (!groups.length){
     monGroupsEl.innerHTML = '<p class="hint">This monster ships no part-visibility table.</p>';
@@ -1675,12 +1771,12 @@ function buildGroups(){
     }
     if (c.members.length === 1){
       const k = c.members[0];
-      sel.innerHTML = '<option value="on">' + groupLabel(groups[k]) + '</option>' +
+      sel.innerHTML = '<option value="on">' + groupLabel(groups[k]) + stateSuffix(k) + '</option>' +
                       '<option value="off">not applied</option>';
       sel.value = state.groups[k] ? 'on' : 'off';
       sel.onchange = () => { state.groups[k] = sel.value === 'on'; applyPartState(); saveState(); };
     } else {
-      sel.innerHTML = c.members.map(k => '<option value="' + k + '">' + groupLabel(groups[k]) + '</option>').join('');
+      sel.innerHTML = c.members.map(k => '<option value="' + k + '">' + groupLabel(groups[k]) + stateSuffix(k) + '</option>').join('');
       const cur = c.members.find(k => state.groups[k]);
       sel.value = String(cur === undefined ? c.members[0] : cur);
       sel.onchange = () => {
@@ -1771,8 +1867,8 @@ async function mount(){
     world.add(main); mounted.main = main;
     for (const [name, g] of extra){ world.add(g); mounted[name] = g; }
     applySize();
-    buildGroups(); applyPartState(); paintAbout(); applyUndef(); applyEffects(); applyExtend();
-    zoneCache = null; await applyHeat();
+    buildGroups(); applyPartState(); paintAbout(); applyUndef(); applyEffects(); applyExtend(); applyProxy(); applyRage();
+    zoneCache = null; await applyHeat(); applyGap();
     setNormalOpt(state.normalFlip, state.normalScale);
     placeParts();
   } finally { setLoading(false); }
@@ -1869,14 +1965,18 @@ async function applyHeat(){
   const e = entry();
   const rec = e && HITZONES.monsters && HITZONES.monsters[e.id];
   const note = document.getElementById('monZoneNote');
-  const chart = document.getElementById('monZoneChart');
   document.getElementById('monHeatRow').hidden = !rec;
   document.getElementById('monHeatTableRow').hidden = !(rec && rec.tables.length > 1);
+  document.getElementById('monBounceTRow').hidden = !(rec && /^hardness-/.test(state.heat));
   if (!rec){
     // Two monsters ship no damage table (em087_00 and ems017_00). The panel says so rather than
     // emptying itself out, which read as the app having lost the feature.
     for (const g of Object.values(mounted)) clearHeatmap(g);
-    chart.textContent = '';
+    // all three panes, or a stale table from the previous monster stays on its tab
+    for (const g of ZONE_GROUPS) document.getElementById(g.id).textContent = '';
+    document.getElementById('monPartsChart').textContent = '';
+    document.getElementById('monHardChart').textContent = '';
+    paintZoneTabs();
     note.hidden = false;
     note.textContent = 'The game ships no damage table for this one, so it has no hit zones to show.';
     paintZonePanel();
@@ -1890,14 +1990,18 @@ async function applyHeat(){
   }
   const tsel = document.getElementById('monHeatTable');
   if (tsel.options.length !== rec.tables.length){
-    tsel.innerHTML = rec.tables.map((_, i) => '<option value="' + i + '">table ' + i + '</option>').join('');
+    tsel.innerHTML = rec.tables.map((_, i) => '<option value="' + i + '">Table ' + i + '</option>').join('');
   }
   const ti = Math.min(rec.tables.length - 1, Math.max(0, state.heatTable | 0));
   tsel.value = String(ti);
   document.getElementById('monHeat').value = state.heat;
+  document.getElementById('monBounceT').value = state.deflectT || 'normal';
+  const wantTab = tabForHeat(state.heat);
+  if (wantTab) state.zoneTab = wantTab;
   const table = rec.tables[ti];
   const value = {};
-  table.forEach((row, slot) => { value[slot] = row[state.heat]; });   // undefined for 'extract'
+  // shaped, so the model and the chart read on the same ramp
+  table.forEach((row, slot) => { value[slot] = heatShape(state.heat, row[state.heat]); });
   // Every mount, not just the body: with the severed parts shown, painting only mounted.main
   // left a full-colour tail beside a heat-mapped monster.
   if (state.heat === 'extract'){
@@ -1911,6 +2015,17 @@ async function applyHeat(){
     const map = zoneCache.zones.parts;
     if (!map) { for (const g of Object.values(mounted)) clearHeatmap(g); }
     else for (const g of Object.values(mounted)) applyHeatmap(g, map, null, 1, THREE, byPart);
+  } else if (state.heat === 'hardness-cut' || state.heat === 'hardness-impact'){
+    // Painted the sharpness colour you have to bring, so the model reads as "green here, white
+    // there". A slot no sharpness clears is left the default dark, which is the honest answer.
+    const type = state.heat === 'hardness-cut' ? 'cut' : 'impact';
+    const t = DEFLECT_T[state.deflectT] || DEFLECT_T.normal;
+    const bySlot = {};
+    table.forEach((row, slot) => {
+      const lv = hardnessLevel(row[type], t);
+      if (lv !== null) bySlot[slot] = SHARP_RGB[lv];
+    });
+    for (const g of Object.values(mounted)) applyHeatmap(g, zoneCache.zones.slots, null, 1, THREE, bySlot);
   } else if (state.heat){
     for (const g of Object.values(mounted)) applyHeatmap(g, zoneCache.zones.slots, value, HEATSCALE, THREE);
   } else {
@@ -1920,13 +2035,21 @@ async function applyHeat(){
 }
 // Parts down, damage types across, on the same colour ramp the model uses. Ten numeric columns
 // do not fit a 300px sidebar, so #monZoneWrap scrolls sideways rather than the page.
-function buildZoneChart(rec, table, ti){
-  const chart = document.getElementById('monZoneChart');
-  const types = (HITZONES._about && HITZONES._about.types) || [];
+// The ten damage columns, split into the three groups a reader actually compares within. Raven,
+// 2026-09-06. Each group is its own pane, built by the same code off its own slice of the types.
+const ZONE_GROUPS = [
+  { pane: 'raw',    id: 'monRawChart',    types: ['cut', 'impact', 'shot'] },
+  { pane: 'elem',   id: 'monElemChart',   types: ['fire', 'water', 'ice', 'thunder', 'dragon'] },
+  { pane: 'status', id: 'monStatusChart', types: ['stun', 'exhaust'] },
+];
+// Parts down, the group's types across, on the same ramp the model uses. A column header both
+// selects the type and paints it, so the chart and the heat map stay one control.
+function buildTypeChart(el, types, rec, table){
   const named = rec.names || {};
   const slots = rec.slotsUsed || [];
-  chart.textContent = '';
-  const head = chart.createTHead().insertRow();
+  el.textContent = '';
+  if (!slots.length) return;
+  const head = el.createTHead().insertRow();
   head.appendChild(document.createElement('th'));   // corner, over the part names
   for (const t of types){
     const th = document.createElement('th');
@@ -1939,13 +2062,7 @@ function buildZoneChart(rec, table, ti){
     };
     head.appendChild(th);
   }
-  // Stagger, break and the extract colour are NOT shown here. They come from the .dtt's part
-  // record, which is a DIFFERENT part list from the damage table -- proved on Mizutsune, where the
-  // part record splits the hind legs into left and right that the damage table keeps as one row,
-  // and merges neck and torso that the damage table keeps apart (Raven, 2026-09-05, spotting it:
-  // "I have noticed things in the Stagger Extract tables have differing positions"). Putting them
-  // on the damage rows attached every value to the wrong part. They get their own table below.
-  const body = chart.createTBody();
+  const body = el.createTBody();
   for (const sl of slots){
     const tr = body.insertRow();
     const th = document.createElement('th');
@@ -1956,7 +2073,7 @@ function buildZoneChart(rec, table, ti){
       const v = table[sl] && table[sl][t];
       td.textContent = v === undefined ? '?' : v;
       if (v !== undefined){
-        const c = heatColor(Math.max(0, Math.min(1, v / HEATSCALE)));
+        const c = heatColor(Math.max(0, Math.min(1, heatShape(t, v) / HEATSCALE)));
         td.style.background = 'rgb(' + c.map(x => Math.round(x * 255)).join(',') + ')';
         // the ramp runs dark blue to red, so a fixed ink is unreadable at one end or the other
         const lum = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
@@ -1965,15 +2082,105 @@ function buildZoneChart(rec, table, ti){
       if (t === state.heat) td.classList.add('sel');
     }
   }
-  const n = document.getElementById('monZoneNote');
-  if (rec.tables.length > 1){
-    n.hidden = false;
-    n.textContent = 'Table ' + ti + ' of ' + rec.tables.length + '. The ROM does not say what the others are.';
-  }
+}
+// Stagger, break and the extract colour are NOT on the damage grids. They come from the .dtt's part
+// record, which is a DIFFERENT part list from the damage table -- proved on Mizutsune, where the
+// part record splits the hind legs into left and right that the damage table keeps as one row, and
+// merges neck and torso that the damage table keeps apart (Raven, 2026-09-05, spotting it: "I have
+// noticed things in the Stagger Extract tables have differing positions"). Putting them on the
+// damage rows attached every value to the wrong part, so they keep their own pane.
+function buildZoneChart(rec, table, ti){
+  for (const g of ZONE_GROUPS)
+    buildTypeChart(document.getElementById(g.id), g.types, rec, table);
   buildPartsChart(rec);
+  buildHardnessChart(rec, table);
+  paintZoneTabs();
   document.getElementById('zoneTitle').textContent =
-    'Hit zones' + (rec.tables.length > 1 ? ' — table ' + ti : '');
+    'Hit Zones' + (rec.tables.length > 1 ? ' — Table ' + ti : '');
   paintZonePanel();
+}
+// Which pane a heat-map selection belongs to, so picking a type in the dropdown brings its table
+// to the front instead of leaving the reader on the wrong tab.
+function tabForHeat(h){
+  if (!h) return null;
+  if (h === 'extract') return 'extracts';
+  if (h.indexOf('hardness-') === 0) return 'hardness';
+  const g = ZONE_GROUPS.find(x => x.types.indexOf(h) >= 0);
+  return g ? g.pane : null;
+}
+// Empty tables are disabled rather than hidden: the set of tabs stays put between monsters, so the
+// strip does not reshuffle under the pointer when you switch.
+function paintZoneTabs(){
+  const wrap = document.getElementById('monZoneWrap');
+  let sel = state.zoneTab || 'zones';
+  const has = {};
+  for (const t of ['raw', 'elem', 'status', 'extracts', 'hardness']){
+    const tbl = wrap.querySelector('table[data-pane="' + t + '"]');
+    has[t] = !!(tbl && tbl.rows.length);
+  }
+  if (!has[sel]) sel = ['raw', 'elem', 'status', 'extracts', 'hardness'].find(t => has[t]) || 'raw';
+  state.zoneTab = sel;
+  for (const b of document.querySelectorAll('#zoneTabs .ztab')){
+    const t = b.dataset.tab;
+    b.disabled = !has[t];
+    b.setAttribute('aria-selected', String(t === sel));
+  }
+  for (const tbl of wrap.querySelectorAll('table'))
+    tbl.classList.toggle('shown', tbl.dataset.pane === sel);
+  // the panel shrink-wraps the visible table, so a stale scroll offset would strand it
+  wrap.scrollLeft = 0; wrap.scrollTop = 0;
+}
+for (const b of document.querySelectorAll('#zoneTabs .ztab')){
+  b.onclick = () => { state.zoneTab = b.dataset.tab; paintZoneTabs(); saveState(); };
+}
+// The lowest sharpness that does NOT bounce off each zone, worked from the ROM's own multiplier
+// table (.rodata 0x0161e37c) against the deflect threshold at 0x00177ed4. Cut and impact are worked
+// separately because the deflect uses the ATTACK's cut/impact split, so a cutting attack is judged
+// on the cut zone alone. A dash means no sharpness in the game clears it.
+function buildHardnessChart(rec, table){
+  const chart = document.getElementById('monHardChart');
+  const named = rec.names || {};
+  const slots = rec.slotsUsed || [];
+  const t = DEFLECT_T[state.deflectT] || DEFLECT_T.normal;
+  chart.textContent = '';
+  if (!slots.length) return;
+  const head = chart.createTHead().insertRow();
+  const corner = document.createElement('th'); corner.textContent = 'Part'; head.appendChild(corner);
+  for (const [key, label] of [['cut', 'Cut'], ['impact', 'Impact']]){
+    const th = document.createElement('th');
+    th.textContent = label;
+    th.title = 'Paint the sharpness each part needs against ' + label.toLowerCase();
+    if (state.heat === 'hardness-' + key) th.className = 'sel';
+    th.onclick = () => {
+      state.heat = (state.heat === 'hardness-' + key) ? '' : 'hardness-' + key;
+      applyHeat().then(applyGap).catch(noteError); saveState();
+    };
+    head.appendChild(th);
+  }
+  const body = chart.createTBody();
+  for (const sl of slots){
+    const tr = body.insertRow();
+    const th = document.createElement('th');
+    th.textContent = named[sl] || 'Slot ' + sl;
+    tr.appendChild(th);
+    for (const key of ['cut', 'impact']){
+      const td = tr.insertCell();
+      const hz = table[sl] && table[sl][key];
+      const lv = hardnessLevel(hz, t);
+      if (lv === null){
+        td.textContent = '—';
+        td.title = hz ? 'Bounces at every sharpness' : 'No hit zone';
+      } else {
+        const c = SHARP_RGB[lv];
+        td.style.background = 'rgb(' + c.map(x => Math.round(x * 255)).join(',') + ')';
+        const lum = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+        td.style.color = lum > 0.45 ? '#101216' : '#f2f4f8';
+        td.textContent = SHARP_NAME[lv];
+        td.title = SHARP_NAME[lv] + ' or better against a hit zone of ' + hz;
+      }
+      if (state.heat === 'hardness-' + key) td.classList.add('sel');
+    }
+  }
 }
 // The .dtt's PART RECORD, as its own table. It is deliberately NOT joined to the damage table
 // above: the two index different part lists. On Mizutsune the part record has separate left and
@@ -1986,7 +2193,7 @@ function buildPartsChart(rec){
   const parts = rec.parts || [];
   chart.textContent = '';
   const live = parts.map((p, i) => [i, p]).filter(([, p]) => p && (p.stagger || p.extract));
-  if (!live.length) return;
+  if (!live.length) return;      // left empty; paintZoneTabs disables the tab
   const head = chart.createTHead().insertRow();
   for (const h of ['Part', 'Stagger', 'Break', 'Extract']){
     const th = document.createElement('th');
@@ -1996,7 +2203,7 @@ function buildPartsChart(rec){
       th.className = state.heat === 'extract' ? 'sel' : '';
       th.onclick = () => {
         state.heat = (state.heat === 'extract') ? '' : 'extract';
-        applyHeat().catch(noteError); saveState();
+        applyHeat().then(applyGap).catch(noteError); saveState();
       };
     } else if (h === 'Stagger') th.title = 'Damage that staggers this part';
     else if (h === 'Break') th.title = 'Damage that breaks it, where it can be broken';
@@ -2021,11 +2228,62 @@ function buildPartsChart(rec){
     if (state.heat === 'extract') ex.classList.add('sel');
   }
 }
+// The colour for a gap-detection silhouette: the complement of whatever sits behind the model, so
+// a hole reads as an obvious wrong-coloured pixel. Green chroma gives magenta, blue gives yellow,
+// and the themed backdrop gives the complement of its own stage colour.
+// Gap detection runs AFTER the heat map and overrides it: it is a silhouette, and a coloured one
+// defeats the point. Kept separate from applyHeat so it works on the monsters that have no
+// hit-zone data at all.
+function applyGap(){
+  if (!state.gap) return false;
+  const c = backdropComplement();
+  for (const g of Object.values(mounted)) applyFlat(g, c, THREE);
+  return true;
+}
+// The theme block writes --stage straight onto <html>, and the chroma backdrop toggles a class
+// there too, so watching that one element catches every change to what sits behind the model --
+// a theme swatch, the Backdrop buttons, all of it -- without the module having to hook a function
+// it does not own (Raven, 2026-09-05: "have the Gap Detection change color with the theme and
+// background changes").
+new MutationObserver(() => { if (state.gap) applyGap(); })
+  .observe(document.documentElement, { attributes: true, attributeFilter: ['style', 'class'] });
+function backdropComplement(){
+  const css = getComputedStyle(document.documentElement).getPropertyValue('--stage').trim();
+  let r = 0, g = 0, b = 0, got = false;
+  const hex = /^#?([0-9a-f]{6})$/i.exec(css);
+  if (hex){
+    const n = parseInt(hex[1], 16);
+    r = ((n >> 16) & 255) / 255; g = ((n >> 8) & 255) / 255; b = (n & 255) / 255; got = true;
+  } else {
+    const m = /rgba?\(([^)]+)\)/.exec(css);
+    if (m){ const p = m[1].split(',').map(Number); r = p[0] / 255; g = p[1] / 255; b = p[2] / 255; got = true; }
+  }
+  if (!got) return [1, 0, 1];
+  // The OPPOSITE HUE at full strength, not the RGB complement. The themed backdrops are very dark,
+  // and their RGB complement is a near-white that neither contrasts well nor tracks the theme --
+  // every one of them came out the same. Rotating the hue keeps the chroma keys exactly where they
+  // should be (green -> magenta, blue -> yellow) and gives each theme its own vivid opposite.
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  if (d < 0.02) return [1, 0, 1];                 // grey or black has no hue to oppose
+  let h;
+  if (mx === r) h = ((g - b) / d) % 6;
+  else if (mx === g) h = (b - r) / d + 2;
+  else h = (r - g) / d + 4;
+  h = ((h * 60) + 180 + 360) % 360;               // the opposite hue
+  const c = 1, x = 1 - Math.abs(((h / 60) % 2) - 1);
+  if (h < 60)  return [c, x, 0];
+  if (h < 120) return [x, c, 0];
+  if (h < 180) return [0, c, x];
+  if (h < 240) return [0, x, c];
+  if (h < 300) return [x, 0, c];
+  return [c, 0, x];
+}
 // The floating window shows only when the toggle is on AND this monster has a chart to put in
 // it, so it never opens empty over the render.
 function paintZonePanel(){
-  const chart = document.getElementById('monZoneChart');
-  const has = !!(chart.tBodies[0] && chart.tBodies[0].rows.length);
+  // any pane with rows counts: a monster can have a damage table but no part record, or the reverse
+  const has = [...document.querySelectorAll('#monZoneWrap table')]
+    .some(t => t.tBodies[0] && t.tBodies[0].rows.length);
   const shown = state.zoneShow && has;
   document.getElementById('zonePanel').hidden = !shown;
   document.getElementById('monZoneShow').checked = state.zoneShow;
@@ -2077,13 +2335,40 @@ function placeZonePanel(){
 // the render area changes size with the window and the sidebar: keep the corner in view
 addEventListener('resize', () => { if (!zonePanel.hidden) placeZonePanel(); });
 
+// The meshes the ROM's draw mask holds back. A looking tool: it says nothing about whether they
+// SHOULD draw, only what is being withheld.
+// The enraged state, driven by the ROM's clip names -- CLIP SELECTION ONLY.
+//
+// It used to also OPEN the part groups whose meshes carry an enraged clip, which was wrong and
+// Raven caught it immediately: "you turned on parts that showed part breaks on Savage. So, nothing
+// actually changed or was added". A material is shared across parts -- XfB__m02_body_k is on parts
+// 3, 6 AND 9 of Savage Deviljho -- so keying the part off the material opened part 3, which is
+// BREAK geometry, not the rage layer. The clip lives on the MATERIAL; the part it should open is
+// not derivable from it, and guessing produced a toggle that revealed part breaks and added nothing.
+//
+// So this now only asks stepMatAnim for the enraged clip. Which parts an enraged monster opens is
+// still unknown and is not being invented.
+function applyRage(){
+  const main = mounted.main;
+  const has = main ? enrageParts(main).size > 0 : false;
+  document.getElementById('monRageRow').hidden = !has;
+  document.getElementById('monRage').checked = !!state.rage;
+}
+function applyProxy(){
+  let n = 0;
+  for (const g of Object.values(mounted)) n += proxyCount(g);
+  document.getElementById('monProxyRow').hidden = !n;
+  document.getElementById('monProxyText').textContent = 'Draw Mask-Hidden Meshes (' + n + ')';
+  document.getElementById('monProxy').checked = !!state.proxy;
+  if (state.proxy) for (const g of Object.values(mounted)) setProxyVisible(g, true);
+}
 function applyExtend(){
   for (const g of Object.values(mounted)) setExtendVisible(g, state.extend);
   let n = 0;
   for (const g of Object.values(mounted)) n += extendCount(g);
   document.getElementById('monExtendRow').hidden = !n;
   document.getElementById('monExtendText').textContent =
-    'Draw the overlays whose albedo needs a second map (' + n + ')';
+    'Draw the Overlays Whose Albedo Needs a Second Map (' + n + ')';
   document.getElementById('monExtend').checked = state.extend;
 }
 // The additive effect meshes as a class. The game shows them in states this viewer does not
@@ -2100,7 +2385,7 @@ function applyEffects(){
   const cb = document.getElementById('monEffects');
   cb.checked = state.effects;
   if (cb.nextSibling && cb.nextSibling.nodeType === 3)
-    cb.nextSibling.textContent = 'Show the effect meshes, rage auras and glows (' + n + ')';
+    cb.nextSibling.textContent = 'Show the Effect Meshes, Rage Auras and Glows (' + n + ')';
 }
 function applySize(){
   for (const g of Object.values(mounted)) g.scale.setScalar(1);
@@ -2143,7 +2428,7 @@ let animLast = '';
 function paintAnim(){
   const act = pose.action;
   animBar.classList.toggle('idle', !act);
-  if (!act){ if (animLast !== ''){ animLast = ''; animFrameEl.textContent = 'no animation playing'; } return; }
+  if (!act){ if (animLast !== ''){ animLast = ''; animFrameEl.textContent = 'No animation playing'; } return; }
   const dur = clipDur(act), total = Math.round(dur / FRAME), cur = Math.min(total, Math.round(act.time / FRAME));
   const playing = !act.paused && act.isRunning();
   const key = cur + '/' + total + (playing ? 'p' : 's') + (act.loop === THREE.LoopRepeat ? 'L' : '');
@@ -2216,12 +2501,33 @@ function paintNormal(){
 }
 document.getElementById('monNormalFlip').onchange = e => { state.normalFlip = e.target.checked; paintNormal(); saveState(); };
 document.getElementById('monUndef').onchange = e => { state.undef = e.target.checked; applyUndef(); saveState(); };
-document.getElementById('monExtend').onchange = e => { state.extend = e.target.checked; applyPartState(); applyExtend(); saveState(); };
-document.getElementById('monHeat').onchange = async e => { state.heat = e.target.value; await applyHeat(); saveState(); };
-document.getElementById('monHeatTable').onchange = async e => { state.heatTable = +e.target.value; await applyHeat(); saveState(); };
+document.getElementById('monExtend').onchange = e => { state.extend = e.target.checked; applyPartState(); applyExtend(); applyProxy(); applyRage(); saveState(); };
+document.getElementById('monHeat').onchange = async e => { state.heat = e.target.value; await applyHeat(); applyGap(); saveState(); };
+document.getElementById('monHeatTable').onchange = async e => { state.heatTable = +e.target.value; await applyHeat(); applyGap(); saveState(); };
+document.getElementById('monBounceT').onchange = async e => { state.deflectT = e.target.value; await applyHeat(); applyGap(); saveState(); };
+document.getElementById('monRage').onchange = e => {
+  state.rage = e.target.checked;
+  applyRage(); saveState();
+};
+document.getElementById('monProxy').onchange = e => {
+  state.proxy = e.target.checked;
+  for (const g of Object.values(mounted)) setProxyVisible(g, state.proxy);
+  saveState();
+};
+document.getElementById('monGap').onchange = e => {
+  state.gap = e.target.checked;
+  // straight back to the real materials when it goes off, then whatever the heat map wants
+  if (!state.gap) for (const g of Object.values(mounted)) clearHeatmap(g);
+  applyHeat().then(applyGap).catch(noteError); saveState();
+};
 document.getElementById('monZoneShow').onchange = e => { state.zoneShow = e.target.checked; paintZonePanel(); saveState(); };
 document.getElementById('zoneClose').onclick = () => {
+  // Closing the window turns the map off too (Raven, 2026-09-05). Leaving the monster painted with
+  // its chart gone gave no way to read the colours and no obvious way to undo it.
   state.zoneShow = false; document.getElementById('monZoneShow').checked = false;
+  state.heat = '';
+  document.getElementById('monHeat').value = '';
+  applyHeat().then(applyGap).catch(noteError);
   paintZonePanel(); saveState();
 };
 document.getElementById('monEffects').onchange = e => { state.effects = e.target.checked; applyEffects(); saveState(); };
@@ -2300,6 +2606,7 @@ async function loadSet(text, btn){
   document.getElementById('monAnchor').checked = state.anchor;
   document.getElementById('monGround').checked = state.ground;
   document.getElementById('monUndef').checked = state.undef;
+document.getElementById('monGap').checked = state.gap;
   document.getElementById('monNormalFlip').checked = state.normalFlip;
   animLoopBtn.classList.toggle('on', state.loop);
   await remount({ frame: !o.camera });
@@ -2340,11 +2647,21 @@ document.querySelectorAll('.panel-head').forEach(h => {
 function applySet(o){
   if (!o || typeof o !== 'object') return;
   for (const k of ['id', 'list', 'clip']) if (typeof o[k] === 'string') state[k] = o[k];
-  for (const k of ['loop', 'tail', 'anchor', 'ground', 'normalFlip', 'undef', 'effects', 'extend', 'zoneShow'])
+  for (const k of ['loop', 'tail', 'anchor', 'ground', 'normalFlip', 'undef', 'effects', 'extend', 'zoneShow', 'gap'])
     if (typeof o[k] === 'boolean') state[k] = o[k];
   // the heat map is a damage-type NAME and a table index, not booleans
   if (typeof o.heat === 'string') state.heat = o.heat;
   if (typeof o.heatTable === 'number') state.heatTable = Math.max(0, o.heatTable | 0);
+  // accept the pre-rename keys so a saved set from before the Bounce -> Hardness change still opens
+  const dt = o.deflectT || o.bounceT;
+  if (dt === 'normal' || dt === 'strict') state.deflectT = dt;
+  if (typeof o.proxy === 'boolean') state.proxy = o.proxy;
+  if (typeof o.rage === 'boolean') state.rage = o.rage;
+  const TABMAP = { zones: 'raw', parts: 'extracts', bounce: 'hardness' };
+  const tab = TABMAP[o.zoneTab] || o.zoneTab;
+  if (['raw','elem','status','extracts','hardness'].indexOf(tab) >= 0) state.zoneTab = tab;
+  if (typeof o.heat === 'string' && o.heat.indexOf('bounce-') === 0)
+    state.heat = 'hardness-' + o.heat.slice(7);
   if (typeof o.normalScale === 'number') state.normalScale = Math.max(0, Math.min(2, o.normalScale));
   if (Array.isArray(o.groups)) state.groups = o.groups.map(Boolean);
   if (typeof o.orbitLocked === 'boolean') orbitLocked = o.orbitLocked;
@@ -2386,6 +2703,12 @@ renderer.setAnimationLoop(() => {
   if (!booted || loadHold > 0) return;
   pose.step(poseRoots());
   updateDepthBias();
+  // the ROM's own material animation: scrolling UVs, pulsing alpha, tinted glows
+  if (state.matAnim !== false){
+    const t = performance.now() / 1000;
+    const st = state.rage ? 'enraged' : null;
+    for (const g of Object.values(mounted)) stepMatAnim(g, t, st);
+  }
   paintAnim();
   // update() would look at the target, which fly does not have
   if (camMode === 'fly') stepFly(); else controls.update();

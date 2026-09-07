@@ -44,6 +44,11 @@ export function specFor(ref, name){
   const pick = i => (i && tex[i - 1]) || null;
   const t = m.t || {};
   return { name, entry: e, m,
+           // material animation, baked from the MRL by build-matanim.py: [{frames, loop, hash,
+           // tracks:[{target, type, cb, kind, interp, keys}]}]. The target is a NAMED shader
+           // constant (fUVTransform, fConstantColor, fTransparency ...) resolved through the
+           // shader package, not a guessed field.
+           anim: m.anim || null,
            albedo: pick(t.albedo), spec: pick(t.spec), sphere: pick(t.sphere),
            // the tNormalMap binding: monsters only (no armour or weapon ships one)
            normal: pick(t.normal),
