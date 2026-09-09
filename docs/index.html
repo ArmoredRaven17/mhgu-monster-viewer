@@ -2063,18 +2063,26 @@ function buildGroups(){
       // exactly one member of a cluster applied, and picks the highest index when nothing is.
       // The lower indices are still selectable; only the all-on placeholder is gone.
       sel.innerHTML = c.members.map(k => '<option value="' + k + '">' + groupLabel(groups[k]) + stateSuffix(k) + '</option>').join('');
-      // THE HIGHEST INDEX IS THE DEFAULT, not merely the fallback. Raven asked for every toggle
-      // moved there, so a cluster the rest sets already chose for is moved too, and `partsPicked`
-      // keeps a choice he makes by hand from being pulled back on the next rebuild.
+      // THE ROM'S OWN CHOICE FIRST, then the highest index. Raven asked on 2026-09-09 for every
+      // toggle moved to its highest index; that was tried (5366bb2) and REVERTED here the same day
+      // because on this data "highest" is frequently the ALL-OFF variant:
       //
-      // WORTH KNOWING, because it overrides ROM-derived data: part-rest.json's `sets` are the
-      // UNDAMAGED sets, and in the clusters read so far the higher index of an exclusive pair is
-      // the alternate -- Nibelsnarf's group 2 is [[2,on],[3,off]] and its group 8 is the reverse.
-      // So defaulting high can show a damaged or alternate variant where the rest set would have
-      // shown the intact one. That is the trade for never drawing a cluster's members on top of
-      // each other, which is what the all-on state did.
-      let cur = partsPicked[c.members.join(',')] !== undefined ? partsPicked[c.members.join(',')]
-                                                 : Math.max.apply(null, c.members);
+      //   Agnaktor      g25 = [[12,F],[13,F],[14,F]], and g27/g29/g31/g33 likewise. Picking the
+      //                 highest of every cluster drew 10 meshes and hid 36 -- his "lava meshes are
+      //                 off, so the cooled lava shows through".
+      //   Royal Ludroth g6 = [[1,F],[2,F]], both members off -- his "gaps along non-breakable
+      //                 parts".
+      //
+      // So the default is the member the rest sets already applied, which is the ROM's UNDAMAGED
+      // choice from part-rest.json and is equally exactly one member -- it satisfies the reason for
+      // the request (never draw a cluster's alternatives on top of each other) without deleting
+      // geometry. The highest index remains the fallback when nothing is applied, which is what
+      // covers clusters the rest sets do not reach, such as Nibelsnarf's part 9.
+      // The all-on placeholder stays gone, and every member stays selectable by hand.
+      const applied = c.members.find(k => state.groups[k]);
+      const picked = partsPicked[c.members.join(',')];
+      let cur = picked !== undefined ? picked
+              : (applied !== undefined ? applied : Math.max.apply(null, c.members));
       if (c.members.indexOf(cur) < 0) cur = Math.max.apply(null, c.members);
       c.members.forEach(k => { state.groups[k] = (k === cur); });
       sel.value = String(cur);
