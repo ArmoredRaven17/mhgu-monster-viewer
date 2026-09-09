@@ -409,6 +409,58 @@ unreachable - `stealth`, `stealth_start`, `stealth_end`, `stealth_start_S`, `ste
 whose own NAMES are unresolved hashes (`#3d0edb2c`, `#8d3c9f15`, `#d2c9c25d`). Every one is
 `auto = 0` and none is in either clip list, so the cloak never engages. Those three material-name
 hashes should invert the same way the clip hashes did - same `crc32 ^ 0xFFFFFFFF` scheme.
+### Zinogre (em057_00) and Thunderlord Zinogre (em057_04) - gaps, and blobification
+> "Zinorge has a lot of gaps in its rendering, I suspect we are missing an effect/mesh"
+> "It also suffers from the same effect blobification Deviljho has"
+
+**STATUS** charge effects diagnosed, "missing mesh" NOT confirmed - **CAUSE** shared
+
+**The charge effects are the clip cause, and Zinogre is the worst case of it so far** - every clip
+it owns is one the picker cannot reach:
+
+| material | clips | in a list? |
+|---|---|---|
+| `XfB__m02_light` | `normal_Loop`, `tyoutaiden_Loop`, `Death` | none |
+| `XfB__I0__m03_effect` (base) | `tyoutaiden_Loop` ONLY | none |
+| `XfB__I0__m03_effect` (Thunderlord) | `normal_Loop`, `shintaiden_Loop` | none |
+| `XfB_N__E_m00_body1` (Thunderlord) | `Animation` | none |
+
+`tyoutaiden` is 超帯電, super-charged, and `shintaiden` is the Thunderlord's own charge state. Base
+Zinogre's `m03_effect` carries `tyoutaiden_Loop` and nothing else, so in the calm state there is
+NOTHING to select for it at all - not by name, not by the auto bit. Its lightning never runs.
+
+**"Missing an effect/mesh" is NOT confirmed and I am not claiming it.** Zinogre has 41 prims / 43
+meshes against 5 materials, but a high mesh-to-material ratio is normal and is not evidence on its
+own. The build report shows no unmatched material, no missing MRL and no missing texture for
+`em/057`. Two things worth checking that I have not: whether `_drop_hidden_prims` is removing more
+than the game hides, and whether a part group is holding meshes off. Until one of those shows
+something, "gaps" is unexplained.
+
+---
+
+## MY REGRESSION: effect blobification (51a71d0) - now on three monsters
+
+Reported on Savage Deviljho, then Deviljho, then Zinogre. That is enough to treat it as a bad
+change rather than a per-monster oddity.
+
+`51a71d0` makes any fragment that survives the alpha test write FULL coverage:
+
+    diffuseColor.a = mix( diffuseColor.a, opacity, uCutSolid * uAlphaCut );
+
+Effect layers are authored with a SOFT alpha ramp, so every texel above the cut threshold used to
+fade (0.3, 0.6, 0.9) and now reads 1.0. Feathered edges become filled shapes. It affects every
+cut-out material, which is why it turned up on three unrelated monsters at once.
+
+It was made to fix the capture cut-out, and it does. The two needs are in direct conflict: a capture
+wants full coverage, an effect layer wants its ramp. **The resolution is to stop applying it to
+additive/effect layers and keep it for the body**, rather than reverting - but that is Raven's call
+once he has compared them:
+
+    __view.cutSolid(false)   soft ramps back
+    __view.cutSolid(true)    filled coverage, current default
+
+---
+
 
 ---
 
