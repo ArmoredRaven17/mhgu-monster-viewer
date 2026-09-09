@@ -607,6 +607,36 @@ their contents or the ROM ships them empty before deciding whether to hide the r
 
 Soulseer is also by far the most part-heavy monster in the library - 51 part ids, 37 groups, 107
 prims, 140 meshes - so it is the worst case for the parts panel generally.
+### Najarala (em068_00) - blocky and black textures
+> "Narajarala renders poorly, blocky texutres and black textures"
+
+**STATUS** narrowed - **CAUSE** likely shared, and it is NOT texture quality
+
+**The webp-density lead does not explain this one.** Najarala's four textures are healthy:
+1024x1024 at 1.00 B/px, 1024x1024 at 1.43 (lossless VP8L), 1024x1024 at 0.37, and a 512x256 at
+0.29. Nothing near the 0.005 outliers, and nothing undersized. So "blocky" is not coming from the
+encode or the resolution here, which is worth knowing because it was the standing hypothesis.
+
+**What DOES stand out: Najarala is one of the 66 materials whose NAME and FEATURE WORD disagree
+about alpha.** The build report's own `checks.xfbaAlpha` counts 495 agreeing and **66 exceptions**,
+split `featAlpha-nameB: 45` and `nameA-featOff: 21`. `XfB_N__E0__m01_alpha` is in that list: its
+feature word says `transp: Alpha`, but its name carries no `A` in the `XfB` prefix - it is
+`XfB_N__E0__`, not `XfBA...`. Anywhere the viewer decides alpha handling from the NAME rather than
+the feature word, this material takes the wrong path, and a blend layer drawn opaque is exactly how
+black patches appear. This is a censusable mechanism with 66 members, not a Najarala fault.
+
+It is also the most extreme depth-biased layer on the monster: `BSBlendAlpha` with `RSMeshBias12`,
+bias **-512**, so it is a blend overlay pulled hard toward the camera over the body.
+
+Related and already on the board: "alphaTest has never discarded anything, anywhere in this app" -
+the same confusion about which signal decides alpha.
+
+**Also worth noting:** 59 meshes and 32 prims against **3 materials**. A high ratio is normal, but
+combined with black patches it is worth checking whether any of those meshes resolves to no
+material at all rather than to one of the three.
+
+---
+
 
 ---
 
