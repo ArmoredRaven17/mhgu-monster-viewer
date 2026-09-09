@@ -168,6 +168,12 @@ dl.info dd{margin:0;color:var(--text);font-variant-numeric:tabular-nums;
    .zchart is a damage grid (parts down, types across), .pchart the two narrow record tables. */
 .zchart,.pchart{border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums}
 .pchart{margin:6px}
+/* A Hardness cell is the whole deflect ladder: one swatch per rung (avoids a bounce / bites /
+   bites clean), the selected rung widened and named, the other two initialled. */
+.pchart td.ladder{padding:2px 4px;white-space:nowrap}
+.pchart td.ladder .rung{display:inline-block;min-width:14px;padding:1px 3px;margin:0 1px;
+  border-radius:2px;font-size:10px;line-height:13px;opacity:.55}
+.pchart td.ladder .rung.cur{min-width:44px;padding:1px 6px;opacity:1;font-weight:600}
 .zchart th,.zchart td{padding:2px 5px;text-align:center;white-space:nowrap}
 .pchart th,.pchart td{padding:2px 8px;text-align:center;white-space:nowrap}
 .zchart thead th,.pchart thead th{color:var(--text-hint);font-weight:600;
@@ -514,7 +520,6 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <div class="panel-body">
           <div id="monGroups"></div>
           <label class="chk" id="monTailRow" hidden><input type="checkbox" id="monTail">Show the Severed Parts</label>
-          <label class="chk" id="monEffectRow" hidden><input type="checkbox" id="monEffects" checked>Show the Effect Meshes (Rage Auras, Glows)</label>
           <label class="chk" id="monRageRow" hidden><input type="checkbox" id="monRage">Enraged</label>
         </div>
       </section>
@@ -544,10 +549,16 @@ input[type=range]{width:100%;accent-color:var(--accent)}
             <select id="monHeatTable"></select>
           </div>
           <div class="field" id="monBounceTRow" hidden>
-            <label for="monBounceT">Deflect Threshold</label>
+            <label for="monBounceT" title="cQuestData's own field name for the byte that picks the floor (0x3a8430 reads [sQuest+0xa4]+0x0f). Its values are named by cOtQuestExpBias: 0 Village Low, 1 Low, 3 High, 5 G.">Monster Level</label>
             <select id="monBounceT">
-              <option value="normal">0.25</option>
-              <option value="strict">0.27 &mdash; Sturdier</option>
+              <option value="normal">Village / Low / High &mdash; floor 0.25</option>
+              <option value="strict">G &mdash; floor 0.27</option>
+            </select>
+            <label for="monTier" title="The ROM grades every hit 4/3/2/0 and stores it on the hit record (MhHitAtk+6). It names none of the tiers, so these are labelled by the threshold they clear. What they drive: tier 4 freezes the attacker's animation for 1.5x as long as tier 3; tier 3 freezes or slows; tier 2 does neither; tier 0 is the bounce and costs double sharpness. Long Sword and Dual Blades also gain gauge at 0.75x / 1.0x / 1.1x. The tier does not change damage.">Rung</label>
+            <select id="monTier">
+              <option value="2">Tier 2 &mdash; the floor</option>
+              <option value="3">Tier 3 &mdash; 0.45</option>
+              <option value="4">Tier 4 &mdash; 0.66</option>
             </select>
           </div>
           <label class="chk" id="monZoneShowRow"><input type="checkbox" id="monZoneShow" checked>Show the Chart over the Render</label>
@@ -1019,12 +1030,15 @@ import { PoseDriver } from './render/pose.js';
 import { loadMaterialsDb } from './render/materials-db.js';
 import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
          partVerts, partsDrawn, applyParts, groupLabel, groupIsInert, setNormalOpt,
-         eyePartIds, effectPartIds, DEFAULT_PARTS_OFF, DEFAULT_PARTS_ON,
-         setUndefinedMaterialVisible, setEffectVisible, setExtendVisible, extendCount,
+         DEFAULT_PARTS_OFF, ROM_RAGE_SET, setRestSets, stepRefract,
+         setUndefinedMaterialVisible, setExtendVisible, extendCount,
          applyHeatmap, clearHeatmap, applyFlat, parseZones, heatColor, EXTRACT_RGB,
-         SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, stepMatAnim,
+         SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS,
+         deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts,
-         monsterMats } from './render/monster.js';
+         monsterMats,
+         enableRomAmbient, enableRomSpecular, enableRomPhong,
+         setSHAmount, setRomSpecularAmount, anchorMisses } from './render/monster.js';
 
 const errEl = document.getElementById('err');
 const errors = [];
@@ -1060,6 +1074,9 @@ const HITZONES = await loadJson('hitzones.json').catch(() => ({ monsters: {} }))
 // ships: found within 200 bytes, struct-field names dropped. It is shown as a hint, never as a name
 // the ROM gives the state.
 const PARTSTATES = await loadJson('part-states.json').catch(() => ({ groups: {} }));
+// The ROM's undamaged part sets, applied on top of PartsDisp all-on so part BREAKS are not drawn
+// alongside the intact parts they replace. See ROM_REST_SETS in render/monster.js.
+setRestSets(await loadJson('part-rest.json').catch(() => ({ sets: {}, defaultSet: {} })));
 function partStateFor(id, groupIndex){
   const base = String(id || '').split('_')[0];
   const g = PARTSTATES.groups && PARTSTATES.groups[base];
@@ -1098,6 +1115,50 @@ const viewport = document.getElementById('viewport');
 const stage = createStage(viewport, { margin: MARGIN, fixedSize: SCENE ? [1280, 800] : null });
 const { renderer, scene, camera, controls, world } = stage;
 const head = stage.lights.head;
+
+// ---- THE ROM-DERIVED LIGHTING CORRECTIONS ---------------------------------------------------
+// Five differences between what the ROM's own shader program does and what this viewer drew,
+// each read out of AppShaderPackage.mfx rather than inferred. Switched on here rather than in
+// render/rom/*, because two of them overlap something the SHARED modules already do and the
+// pairing has to happen in one place.
+//
+//   FFinalCombiner (the ROM's whole output assembly) is
+//       out.rgb = MC.albedo * MC.diffuse + MC.specular * MC.fresnel
+//   FBRDF is Lambert diffuse + Blinn-Phong specular with MC.shininess as the exponent.
+//   FAmbientSH, selected by all 570 monster materials, is
+//       getSHdiffuse(MC.normal) * MC.ambient_occlusion   -- an L2 spherical-harmonic evaluation.
+//
+// AMBIENT. rom/ambient.js carries getSHdiffuse statement for statement. stage.js's
+// HemisphereLight is a two-colour lerp along Y -- a DIFFERENT FUNCTION, not a tuning of it -- and
+// it writes to the same indirectDiffuse slot, so the two must be switched together or the scene
+// simply gets brighter. stage.js is shared with the Armor Viewer and is not edited; the lights it
+// returns are muted here instead.
+//
+// The SH COEFFICIENTS are ours, not the ROM's, and cannot be otherwise: fSHCoef is filled per
+// scene from stage state, and censusing all 1,441 stage archives by type hash finds no lighting
+// resource anywhere. The FORMULA is translated; the INPUT is a choice.
+enableRomAmbient(true);
+stage.lights.hemi.intensity = 0;
+stage.lights.ambient.intensity = 0;
+
+// SPECULAR. Two corrections from the same combine: the Fresnel multiplies the WHOLE specular term
+// (material.js applies its Schlick to the sphere map only -- the formula there is right, the scope
+// is not), and FChannelSpecularMap is the IDENTITY, so the specular map is full RGB where
+// material.js takes dot(rgb, luma). A coloured spec map tints the lobe in the ROM and merely
+// scales it here.
+enableRomSpecular(true);
+
+// BRDF CLASS. Left OFF. MeshPhongMaterial is literally the ROM's model, but swapping it changes
+// every lit material at once and wants its own look. Flip to true to compare.
+enableRomPhong(false);
+
+// If material.js moves upstream, rom/specular.js's string anchors stop matching and it no-ops
+// rather than half-applying. Say so loudly instead of silently drawing the old way.
+queueMicrotask(() => {
+  const miss = anchorMisses();
+  if (miss.length) console.warn('[rom] specular anchors missed:', miss.join(', '),
+    '-- rom/specular.js did not apply; material.js has changed upstream.');
+});
 initAssets(renderer);
 
 // ---- camera bar (the Armor Viewer's, ported 2026-09-05 at Raven's "simply copy over the
@@ -1505,7 +1566,8 @@ const BIAS_STEP_M = 0.0005;
 function updateDepthBias(){
   const dist = camera.position.distanceTo(controls.target);
   const lsb = dist * dist / camera.near / 16777216;
-  if (lsb > 0) setBiasUnitsPerStep(BIAS_STEP_M / lsb);
+  // both material paths keep their own registry of biased materials
+  if (lsb > 0){ setBiasUnitsPerStep(BIAS_STEP_M / lsb); setRomBiasUnitsPerStep(BIAS_STEP_M / lsb); }
 }
 
 // ---- state ------------------------------------------------------------------------------
@@ -1541,7 +1603,7 @@ function applyCameraState(c){
 const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: false,
                 anchor: true, ground: true, normalFlip: false, normalScale: 1,
                 // both OFF by default: see applyUndef and applyExtend
-                undef: false, extend: false, gap: false, proxy: false, rage: false, heat: '', heatTable: 0, deflectT: 'normal',
+                undef: false, extend: false, gap: false, proxy: false, rage: false, heat: '', heatTable: 0, deflectT: 'normal', deflectTier: 2,
                 zoneTab: 'raw',
                 zoneShow: true, zonePos: null,
                 // the additive effect meshes as a class; the ROM's part table already keeps
@@ -1721,13 +1783,10 @@ function stateSuffix(groupIndex){
 function buildGroups(){
   const e = entry();
   const groups = (e && e.groups) || [];
-  // the eye parts come off the MOUNTED model, so this has to run after mount() -- which it does,
-  // buildGroups() being called from there once the model is in the world
+  // the default is the ROM's own: the set the monster's class registers, keyed by em class
   if (!state.groups || state.groups.length !== groups.length)
-    state.groups = defaultGroupsOn(groups, null,
-      mounted.main ? eyePartIds(mounted.main) : null,
-      mounted.main ? effectPartIds(mounted.main) : null,
-      DEFAULT_PARTS_OFF[e && e.id], DEFAULT_PARTS_ON[e && e.id]);
+    state.groups = defaultGroupsOn(groups, e && e.em, e && e.id, !!state.rage,
+                                   DEFAULT_PARTS_OFF[e && e.id]);
   monGroupsEl.innerHTML = '';
   if (!groups.length){
     monGroupsEl.innerHTML = '<p class="hint">This monster ships no part-visibility table.</p>';
@@ -1776,9 +1835,17 @@ function buildGroups(){
       sel.value = state.groups[k] ? 'on' : 'off';
       sel.onchange = () => { state.groups[k] = sel.value === 'on'; applyPartState(); saveState(); };
     } else {
-      sel.innerHTML = c.members.map(k => '<option value="' + k + '">' + groupLabel(groups[k]) + stateSuffix(k) + '</option>').join('');
+      // "NOT APPLIED" IS A REAL STATE AND THE PANEL HAS TO SAY SO.
+      // The ROM starts every group ON and applies only the sets its driver selects, so a cluster
+      // with no set applied leaves all of its parts DRAWN. This select used to fall back to
+      // displaying members[0] when nothing was applied, which reads as that group being active --
+      // on Savage Deviljho the "Parts 4, 5, 6" row showed "on 4 / off 5, 6" while parts 5 and 6
+      // were in fact both drawn. Part 6 is the eye glow, so the panel was reporting the opposite of
+      // the truth about exactly the thing Raven kept asking about (2026-09-07).
+      sel.innerHTML = '<option value="none">not applied — all on</option>' +
+                      c.members.map(k => '<option value="' + k + '">' + groupLabel(groups[k]) + stateSuffix(k) + '</option>').join('');
       const cur = c.members.find(k => state.groups[k]);
-      sel.value = String(cur === undefined ? c.members[0] : cur);
+      sel.value = (cur === undefined) ? 'none' : String(cur);
       sel.onchange = () => {
         c.members.forEach(k => { state.groups[k] = String(k) === sel.value; });
         applyPartState(); saveState();
@@ -1801,7 +1868,6 @@ function applyPartState(){
   if (mounted.main) applyParts(mounted.main, partsDrawn(e.groups || [], state.groups));
   for (const [k, g] of Object.entries(mounted)) if (k !== 'main') g.visible = state.tail;
   // applyParts writes o.visible from the part table, so the class toggles run after it
-  for (const g of Object.values(mounted)) setEffectVisible(g, state.effects);
   for (const g of Object.values(mounted)) setUndefinedMaterialVisible(g, state.undef);
   for (const g of Object.values(mounted)) setExtendVisible(g, state.extend);
 }
@@ -1867,7 +1933,7 @@ async function mount(){
     world.add(main); mounted.main = main;
     for (const [name, g] of extra){ world.add(g); mounted[name] = g; }
     applySize();
-    buildGroups(); applyPartState(); paintAbout(); applyUndef(); applyEffects(); applyExtend(); applyProxy(); applyRage();
+    buildGroups(); applyPartState(); paintAbout(); applyUndef(); applyExtend(); applyProxy(); applyRage();
     zoneCache = null; await applyHeat(); applyGap();
     setNormalOpt(state.normalFlip, state.normalScale);
     placeParts();
@@ -1996,6 +2062,7 @@ async function applyHeat(){
   tsel.value = String(ti);
   document.getElementById('monHeat').value = state.heat;
   document.getElementById('monBounceT').value = state.deflectT || 'normal';
+  document.getElementById('monTier').value = String(+state.deflectTier || 2);
   const wantTab = tabForHeat(state.heat);
   if (wantTab) state.zoneTab = wantTab;
   const table = rec.tables[ti];
@@ -2016,13 +2083,16 @@ async function applyHeat(){
     if (!map) { for (const g of Object.values(mounted)) clearHeatmap(g); }
     else for (const g of Object.values(mounted)) applyHeatmap(g, map, null, 1, THREE, byPart);
   } else if (state.heat === 'hardness-cut' || state.heat === 'hardness-impact'){
-    // Painted the sharpness colour you have to bring, so the model reads as "green here, white
-    // there". A slot no sharpness clears is left the default dark, which is the honest answer.
+    // Painted the sharpness colour you have to bring to reach the SELECTED RUNG, so the model reads
+    // as "green here, white there" for that tier. A slot no sharpness carries to the rung is left
+    // the default dark, which is the honest answer -- and switching rung repaints the whole model,
+    // which is the ladder doing the work rather than describing itself.
     const type = state.heat === 'hardness-cut' ? 'cut' : 'impact';
     const t = DEFLECT_T[state.deflectT] || DEFLECT_T.normal;
+    const tier = +state.deflectTier || 2;
     const bySlot = {};
     table.forEach((row, slot) => {
-      const lv = hardnessLevel(row[type], t);
+      const lv = hardnessLevel(row[type], t, tier);
       if (lv !== null) bySlot[slot] = SHARP_RGB[lv];
     });
     for (const g of Object.values(mounted)) applyHeatmap(g, zoneCache.zones.slots, null, 1, THREE, bySlot);
@@ -2142,6 +2212,7 @@ function buildHardnessChart(rec, table){
   const named = rec.names || {};
   const slots = rec.slotsUsed || [];
   const t = DEFLECT_T[state.deflectT] || DEFLECT_T.normal;
+  const tier = +state.deflectTier || 2;
   chart.textContent = '';
   if (!slots.length) return;
   const head = chart.createTHead().insertRow();
@@ -2166,17 +2237,33 @@ function buildHardnessChart(rec, table){
     for (const key of ['cut', 'impact']){
       const td = tr.insertCell();
       const hz = table[sl] && table[sl][key];
-      const lv = hardnessLevel(hz, t);
-      if (lv === null){
+      // EVERY rung is drawn, as three swatches -- the cell is the ladder, not one number with the
+      // rest of it hidden in a tooltip. The selected rung is the one that carries the name.
+      const lad = deflectLadder(hz, t);
+      if (lad[2] === null && lad[3] === null && lad[4] === null){
         td.textContent = '—';
         td.title = hz ? 'Bounces at every sharpness' : 'No hit zone';
       } else {
-        const c = SHARP_RGB[lv];
-        td.style.background = 'rgb(' + c.map(x => Math.round(x * 255)).join(',') + ')';
-        const lum = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
-        td.style.color = lum > 0.45 ? '#101216' : '#f2f4f8';
-        td.textContent = SHARP_NAME[lv];
-        td.title = SHARP_NAME[lv] + ' or better against a hit zone of ' + hz;
+        td.className = 'ladder';
+        for (const rung of DEFLECT_TIERS){
+          const lv = lad[rung];
+          const sw = document.createElement('span');
+          sw.className = 'rung' + (rung === tier ? ' cur' : '');
+          if (lv === null){
+            sw.textContent = '—';
+            sw.title = TIER_LABEL[rung] + ' (' + tierRule(rung, t) + '): out of reach at every sharpness';
+          } else {
+            const c = SHARP_RGB[lv];
+            sw.style.background = 'rgb(' + c.map(x => Math.round(x * 255)).join(',') + ')';
+            const lum = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+            sw.style.color = lum > 0.45 ? '#101216' : '#f2f4f8';
+            sw.textContent = rung === tier ? SHARP_NAME[lv] : SHARP_NAME[lv].slice(0, 1);
+            sw.title = TIER_LABEL[rung] + ' (' + tierRule(rung, t) + '): ' +
+                       SHARP_NAME[lv] + ' or better';
+          }
+          td.appendChild(sw);
+        }
+        td.title = 'Hit zone ' + hz;
       }
       if (state.heat === 'hardness-' + key) td.classList.add('sel');
     }
@@ -2374,19 +2461,19 @@ function applyExtend(){
 // The additive effect meshes as a class. The game shows them in states this viewer does not
 // model -- enraged, mode changes -- so on a monster that carries any, they are worth being
 // able to switch off in one go rather than hunting through the part rows.
-function applyEffects(){
-  // hide-only, so turning it back on means re-running the part table rather than forcing
-  // every effect mesh visible
-  applyPartState();
-  let n = 0;
-  for (const g of Object.values(mounted)) g.traverse(o => { if (o.userData.effect) n++; });
-  const row = document.getElementById('monEffectRow');
-  row.hidden = !n;
-  const cb = document.getElementById('monEffects');
-  cb.checked = state.effects;
-  if (cb.nextSibling && cb.nextSibling.nodeType === 3)
-    cb.nextSibling.textContent = 'Show the Effect Meshes, Rage Auras and Glows (' + n + ')';
-}
+// REMOVED 2026-09-07: the effect-mesh class toggle.
+// It marked every `add` and `revsub` material as an "effect" and hid the lot as one class,
+// because the viewer could not model the states that switch them on. It can now: part visibility
+// comes from the .mpm group sets the ROM's own driver applies, and the layers' strength comes from
+// their material constants and clips. So the class does not exist in the ROM and nothing here
+// should invent it.
+//
+// It was also actively hiding what Raven kept reporting missing. Savage Deviljho's eye glow is
+// XfB__m02_body_k, blend `add` -- one of the four meshes this checkbox switched off. With the box
+// unchecked no material or part work could ever have shown it. Raven, 2026-09-07: "Savage's eye
+// effect is still not present despite you being told they were not appearing multiple times", and
+// earlier: "we don't need to preserve anything before this scan, so debug options or how we set the
+// parts panel up to hide effect meshes, if we follow the ROM closely won't be needed".
 function applySize(){
   for (const g of Object.values(mounted)) g.scale.setScalar(1);
   world.scale.setScalar(sizeScale());
@@ -2505,8 +2592,22 @@ document.getElementById('monExtend').onchange = e => { state.extend = e.target.c
 document.getElementById('monHeat').onchange = async e => { state.heat = e.target.value; await applyHeat(); applyGap(); saveState(); };
 document.getElementById('monHeatTable').onchange = async e => { state.heatTable = +e.target.value; await applyHeat(); applyGap(); saveState(); };
 document.getElementById('monBounceT').onchange = async e => { state.deflectT = e.target.value; await applyHeat(); applyGap(); saveState(); };
+document.getElementById('monTier').onchange = async e => { state.deflectTier = +e.target.value; await applyHeat(); applyGap(); saveState(); };
 document.getElementById('monRage').onchange = e => {
   state.rage = e.target.checked;
+  // Rage switches PARTS as well as materials -- the driver applies a group set chosen straight from
+  // the rage state (Savage Deviljho 9 calm / 13 enraged, ordinary Deviljho 0 / 9). So the toggle
+  // recomputes the part table for the new state instead of leaving geometry behind. This is what
+  // Raven asked for: "I would like to have Enrage toggles turn on all parts since having the parts
+  // and needing to select the check the box is not intuitive." Recomputing discards manual
+  // checkbox edits for the monster, which is the predictable behaviour -- the toggle now means
+  // "show me this monster's calm/enraged state", not "flip a material flag".
+  const en = entry();
+  if (en && ROM_RAGE_SET[en.id]){
+    state.groups = defaultGroupsOn(en.groups || [], en.em, en.id, state.rage,
+                                   DEFAULT_PARTS_OFF[en.id]);
+    buildGroups(); applyPartState();
+  }
   applyRage(); saveState();
 };
 document.getElementById('monProxy').onchange = e => {
@@ -2530,7 +2631,6 @@ document.getElementById('zoneClose').onclick = () => {
   applyHeat().then(applyGap).catch(noteError);
   paintZonePanel(); saveState();
 };
-document.getElementById('monEffects').onchange = e => { state.effects = e.target.checked; applyEffects(); saveState(); };
 normScaleEl.oninput = e => { state.normalScale = +e.target.value; paintNormal(); saveState(); };
 document.getElementById('resetBtn').onclick = async () => {
   const first = MON.monsters.find(e => !e.small) || MON.monsters[0];
@@ -2655,6 +2755,7 @@ function applySet(o){
   // accept the pre-rename keys so a saved set from before the Bounce -> Hardness change still opens
   const dt = o.deflectT || o.bounceT;
   if (dt === 'normal' || dt === 'strict') state.deflectT = dt;
+  if ([2, 3, 4].indexOf(+o.deflectTier) >= 0) state.deflectTier = +o.deflectTier;
   if (typeof o.proxy === 'boolean') state.proxy = o.proxy;
   if (typeof o.rage === 'boolean') state.rage = o.rage;
   const TABMAP = { zones: 'raw', parts: 'extracts', bounce: 'hardness' };
@@ -2706,8 +2807,18 @@ renderer.setAnimationLoop(() => {
   // the ROM's own material animation: scrolling UVs, pulsing alpha, tinted glows
   if (state.matAnim !== false){
     const t = performance.now() / 1000;
-    const st = state.rage ? 'enraged' : null;
-    for (const g of Object.values(mounted)) stepMatAnim(g, t, st);
+    // 'calm', NOT null. Passing null makes stepMatAnim skip the clip lookup altogether, and a
+    // material whose clips are all auto:0 -- Savage Deviljho's Gekikou_* and Angry_* pairs, every
+    // one of them -- then matches nothing and returns having applied NOTHING, leaving the material
+    // frozen wherever the enraged pass last wrote it. Raven, 2026-09-07: "Enrage toggle doesn't
+    // turn off the enrage changes." The ROM does not do nothing either: its driver plays
+    // Gekikou_End on the way out of rage (0xe80b34 vs 0xe80b54), which is what CALM_CLIPS asks for.
+    const st = state.rage ? 'enraged' : 'calm';
+    const mid = (entry() || {}).id;
+    for (const g of Object.values(mounted)) stepMatAnim(g, t, st, mid);
+    // Refract samples the scene colour, so the capture has to happen AFTER the animation has set
+    // fDistortionFactor / fDistortionBlend for this frame and BEFORE the visible render.
+    stepRefract(renderer, scene, camera, THREE);
   }
   paintAnim();
   // update() would look at the target, which fly does not have
@@ -2757,6 +2868,20 @@ window.__view.shot = async function(run, nameArg, atArg){
     act.time = (typeof atArg === 'number') ? Math.min(Math.max(0, atArg), Math.max(0, clip.duration - 1e-3))
              : (act.loop === THREE.LoopOnce ? Math.max(0, clip.duration - 1e-3) : 0);
     pose.step(poseRoots());
+  }
+  // THE HARNESS HAS TO TICK THE MATERIAL ANIMATION TOO, or it cannot see one change.
+  // Found 2026-09-07: this function drove pose.step() and then rendered directly, bypassing the
+  // rAF loop that calls stepMatAnim -- so a full 130-monster sweep with the material animation
+  // switched ON came out PIXEL-IDENTICAL to one with it switched OFF, and the regression gate was
+  // blind to the entire subsystem. Driven from `at` rather than performance.now() so a shot is
+  // deterministic and re-shooting the same scene twice cannot differ: the material clock is
+  // otherwise wall time, which is also why scrubbing the transport never scrubbed it.
+  if (state.matAnim !== false){
+    const tMat = (typeof atArg === 'number') ? atArg : 0;
+    const stMat = state.rage ? 'enraged' : 'calm';
+    const midMat = (entry() || {}).id;
+    for (const g of Object.values(mounted)) stepMatAnim(g, tMat, stMat, midMat);
+    stepRefract(renderer, scene, camera, THREE);
   }
   controls.update(); head.position.copy(camera.position);
   renderer.render(scene, camera);

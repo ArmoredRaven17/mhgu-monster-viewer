@@ -15,11 +15,26 @@
 import * as THREE from 'three';
 import { loadGlb, getTexture, loader, poseCache } from './assets.js';
 import { skeletonClone, meshGroupId } from './skeleton.js';
-import { createMaterial, setSpecTexture, allMats } from './material.js';
+import { createMaterial, setSpecTexture, setEnvTexture, applyRomUv, allMats,
+         MAT_FPS, stepMaterialAnim } from './material.js';
 import { specFor, refForGlb } from './materials-db.js';
+import { createRomMaterial, enableRomCore, romCoreEnabled,
+         enableRomAmbient, romAmbientEnabled, setSHAmount,
+         enableRomSpecular, romSpecularEnabled, setRomSpecularAmount, anchorMisses,
+         enableRomPhong, romPhongEnabled } from './rom/material.js';
+import { setBiasUnitsPerStep as setRomBiasUnitsPerStep, releaseBiased } from './rom/state.js';
+export { setRomBiasUnitsPerStep };
+export { enableRomCore, romCoreEnabled };
+// The ROM-derived corrections. Each is off until the app switches it on, because each overlaps
+// something the SHARED material.js/stage.js already do -- see rom/material.js steps 4 and 5.
+export { enableRomAmbient, romAmbientEnabled, setSHAmount,
+         enableRomSpecular, romSpecularEnabled, setRomSpecularAmount, anchorMisses,
+         enableRomPhong, romPhongEnabled };
 
 // every material a monster mesh was given (the debug knobs walk this)
 export const monsterMats = [];
+// materials carrying FDistortionRefract; the capture pass below feeds them the scene colour
+export const refractMats = [];
 
 // Unmounting a monster has to give its materials back. The viewer steps through 130 of them
 // in one sweep, and both registries are plain arrays that only ever grew in the Armor Viewer
@@ -36,8 +51,28 @@ export function releaseMonster(root){
   for (const m of mine){
     let i = monsterMats.indexOf(m); if (i >= 0) monsterMats.splice(i, 1);
     i = allMats.indexOf(m); if (i >= 0) allMats.splice(i, 1);
+    i = refractMats.indexOf(m); if (i >= 0) refractMats.splice(i, 1);
+    releaseBiased(m);
     m.dispose();
   }
+  // the refract pass's scene copy is a full-size render target and outlived the monster that
+  // needed it -- 10 materials on 6 monsters use it, so it is null on most of the library
+  if (!refractMats.length) releaseRefractTarget();
+}
+// material.js's setEnvTexture / setSpecTexture guard with `if (!mat.userData.u) return;` -- which
+// means "this is an unlit additive material, it has no uniform block". That guard is DEFEATED by
+// this module: the Refract and TypeExtend paths below do
+// `mat.userData.u || (mat.userData.u = {})` and install their own uniforms, so an additive material
+// carrying either feature has a userData.u that exists but holds none of applyTint's uniforms.
+// The setter then walks straight into `mat.userData.u.uEnv.value` and throws
+// "Cannot set properties of undefined (setting 'value')", killing the whole load.
+// Measured 2026-09-07: exactly 3 materials on 3 monsters -- em033_00 XfBA_A0__m04__kekkan,
+// em050_00 XfB__m03_add and em084_00 XfBA_A1_shell -- i.e. Akantor, Alatreon and Nakarkos did not
+// load at all, and Nakarkos is one of the 17 shot-harness scenes.
+// Fixed HERE rather than in material.js because material.js is synced from the Armor Viewer and
+// this module is what breaks its precondition.
+function hasShaderUniforms(mat){
+  return !!(mat.userData && mat.userData.u && mat.userData.u.uEnv && mat.userData.u.uSpec);
 }
 export const normalOpt = { flipY: false, scale: 1 };
 export function setNormalOpt(flipY, scale){
@@ -98,60 +133,175 @@ export function clusterGroups(groups){
 // 2026-09-06: "Fatalis line Parts 1, 10 off by default" -- all three share the entry.
 // The mirror of DEFAULT_PARTS_OFF: parts a monster should OPEN with, over the ROM's own order.
 // Raven's calls on verification, same rule as above.
-// 2026-09-06, Savage Deviljho: "Savage has an effect that covers his eyes ... I want to render this
-// as well", then "Wire it in". Part 6 is Group6 -- 40 vertices, XfB__m02_body_k (BSAddAlpha, bias
-// -512, Constant), the only additive mesh anywhere near the eyes: 0.265 from the eye mesh's centre
-// and enclosing its whole bounding box, where the next effect mesh is 2.0 away and six times the
-// size. The part table leaves it closed.
-export const DEFAULT_PARTS_ON = {
-  em043_05: [6],                            // Savage Deviljho, the eye effect
-};
+//
+// PART VISIBILITY, read from the ROM 2026-09-07 and now replicated rather than approximated.
+// enemy+0x110 is uBaseModel+0x110, the MtProperty "PartsDisp" -- a 512-bit field, one bit per MOD
+// mesh group, with AllOn/AllOff beside it. The constructor fills it with 0xff (0088ba60
+// `mov r2,#0xff` / 0088ba98 `add r0,r4,#0x110` / 0088ba9c `mov r1,#0x40`) and the reader,
+// uBaseModel vtable slot 27 at 0x8925b8, drops a mesh whose group bit is CLEAR.
+//
+// Raven's verification, 2026-09-07: "Turn All On is bad since turning on parts means part breaks
+// are shown by default from what I can see." That is right, and the ROM agrees -- the game never
+// stays in the all-on state. It applies ONE group set on the first tick, and an undamaged monster
+// always gets the same one: every break threshold in all 138 .dtp files is non-zero, so a break
+// level of 0 takes the low branch at every site, for every monster, at every quest rank.
+//
+// DEFAULT_PARTS_ON is gone: it held one entry, em043_05 part 6, believed to be Savage Deviljho's
+// eye effect. It is not -- part 6 is the eye glow shared byte-for-byte with ordinary Deviljho.
 export const DEFAULT_PARTS_OFF = {
+  // Raven's own call, 2026-09-05: "Congalala, turn off parts 12-18 by default". Re-checked
+  // 2026-09-07 against the ROM-derived sets and it is STILL load-bearing: all seven parts draw
+  // without it.
   em021_00: [12, 13, 14, 15, 16, 17, 18],   // Congalala
-  em013_00: [1, 10],                        // Fatalis
-  em013_01: [1, 10],                        // Crimson Fatalis
-  em013_02: [1, 10],                        // Old Fatalis
+  // THE THREE FATALIS ENTRIES WERE REMOVED 2026-09-07. They turned parts 1 and 10 off by hand; the
+  // ROM's own spawn default and resting sets now do it, and the drawn part map is IDENTICAL with
+  // and without them on all three (em013_00 Fatalis, em013_01 Crimson, em013_02 Old). An exception
+  // that the core has caught up with is not an exception any more -- it is a place the viewer would
+  // silently stop matching the ROM if the ROM ever disagreed.
 };
-export function defaultGroupsOn(groups, _partVerts, eyeParts, effectParts, forceOff, forceOn){
+// The group set each monster CLASS registers as its resting default -- argument A of the setter
+// 0x71398, taken from the 59 registration sites in vtable slot 118 and attributed by a per-class
+// code-band map built from the 95 monster vtables. Keyed by the em class because that is how the
+// ROM keys it: one uEmXXX_00 class serves every subspecies, and its A literal indexes whichever
+// .mpm the spawned model carries. See build/notes/part-group-sets.md.
+export const ROM_DEFAULT_SET = {
+  em001: 2,  em004: 2,  em007: 2,  em008: 1,  em009: 1,  em011: 3,  em013: 2,  em014: 1,
+  em018: 1,  em021: 2,  em022: 1,  em023: 1,  em024: 1,  em025: 1,  em027: 5,  em032: 2,
+  em033: 1,  em037: 1,  em038: 14, em042: 2,  em043: 1,  em044: 2,  em045: 2,  em046: 14,
+  em047: 1,  em049: 1,  em050: 4,  em055: 4,  em056: 1,  em057: 3,  em058: 14, em060: 2,
+  em061: 4,  em063: 1,  em065: 1,  em066: 2,  em068: 1,  em072: 1,  em077: 1,  em079: 1,
+  em080: 3,  em081: 2,  em082: 18, em083: 4,  em085: 2,  em086: 3,
+  ems009: 0, ems019: 0, ems022: 0, ems034: 0, ems035: 0, ems041: 0, ems042: 0,
+  ems046: 2, ems047: 2,
+  em062: 1,
+};
+// CORRECTED 2026-09-07 by an adversarial re-derivation. Three of the registration sites are gated on
+// the ENEMY-ID BYTE at enemy+0xb5f4, and attributing them by code band alone put two on the wrong
+// monster: the site giving A=1 is reachable only when that byte is 0x48 = 72
+// (`00fadcb0 cmp r0,#0x48 / bne #0xfadccc`), so it is em072 and not em071; the site giving A=0 only
+// when it is 0x29 = 41 (`010c5a04 cmp r0,#0x29 / bne #0x10c5a8c`), so it is ems041 and not ems001.
+// em062's A=1 was missing entirely. 53 of the original 55 entries were right.
+// The ROM's default part state, replicated. PartsDisp starts with EVERY group on, then the applier
+// (uEnemyBase vtable slot 10, 0x6f4e8) applies exactly ONE set on the first tick. A set is a PATCH:
+// setVisibleGroup writes each named group's own draw flag (`bic` then `orr flag<<bit`) and leaves
+// every group it does not name alone. That is this pipeline exactly -- `on` switches one group
+// index, partsDrawn applies only the switched groups, and applyParts draws any part no group names.
+//
+// A class with no entry keeps -1 in all three index slots, and setVisibleGroup rejects negatives,
+// so it is never switched at all and stays fully on. An all-false `on` gives precisely that.
+//
+// This replaces the first-of-cluster heuristic, along with the eye rule and the effect-mesh scoring
+// that propped it up: the set the ROM applies puts the eyes right without being asked.
+//
+// RAGE ALSO SWITCHES PARTS, and the ROM says which. Raven, 2026-09-07: "we may need to handle those
+// on a per monster basis unless the ROM can tell us what enrage turns on/off" -- it can, in each
+// monster's own enrage driver. Savage Deviljho's tail picks the set from the rage state directly:
+//     00e80bf0  cmp r1, #2        ; 2 = enraged
+//               movne r1, #9      ; calm    -> set 9  = {0 on, 3 on, 12 OFF, 100 on}
+//               moveq r1, #0xd    ; enraged -> set 13 = {0 on, 3 on, 12 ON,  100 on}
+// Part 12 is the 306-vertex mesh carrying XfBA_IW_1__m00, the scrolling UV layer -- so the fourth
+// rage material is switched by GEOMETRY, not by setClip.
+//
+// CORRECTED 2026-09-07: ordinary Deviljho does NOT run that driver. 0xe809e8's only entry is
+// `00e80d20 b #0xe809e8`, taken from `00e80d10 movw r1,#0xb5f5 / ldrb r1,[r0,r1] / cmp r1,#5 /
+// bne #0xe80d24` -- the VARIANT byte at enemy+0xb5f5, so that whole function is Savage-only and its
+// `cmp r1,#2 / movne #9 / moveq #0xd` can never yield 0 for anyone. Variant != 5 branches to a
+// different function, 0xe806a0, and em043_00's 0 and 9 come from there (`00e807f0 mov r1,#0` /
+// `00e808d0 mov r1,#9`) under a two-term condition. Both tables' NUMBERS were verified correct;
+// only the derivation was wrong.
+//
+// Keyed by the FULL id, not the em class: em043_00 and em043_05 share a class and a vtable and
+// diverge on a variant byte, so their literals differ. Only the two decoded so far are listed; a
+// monster with no entry keeps its resting set in both states, which is what the old code did.
+export const ROM_RAGE_SET = {
+  // Found by scanning every setVisibleGroup call site whose set index comes from an eq/ne pair
+  // gated DIRECTLY on the enrage predicate 0x81670 (which reads [enemy+0x1428]+0x518). Eight such
+  // sites exist across six AI classes -- this is the ROM's complete answer for enrage-driven part
+  // visibility, not a sample. Each entry is [calmSet, rageSet]; Tigrex needs two pairs.
+  em009_00: [[2, 6]],                                  // Gypceros
+  em032_00: [[1, 0], [10, 9]],                         // Tigrex
+  em032_04: [[1, 0], [10, 9]],                         // Grimclaw -- part 20 on, 30 off when enraged
+  em037_00: [[5, 7]],                                  // Nargacuga
+  em037_04: [[5, 7]],                                  // Silverwind
+  em043_00: [[0, 9]],                                  // Deviljho -- from 0xe806a0, not the Savage branch
+  em043_05: [[9, 13]],                                 // Savage -- 0xe80bfc, part 12 is the scrolling layer
+  em063_00: [[11, 12]],                                // Brachydios
+  em063_05: [[11, 12]],                                // Raging Brachydios -- part 9 is the slime
+  em070_00: [[1, 2]],                                  // Nerscylla
+};
+// Materials driven at SPAWN rather than by rage, which then hold that clip's end state for the
+// monster's whole life. Savage Deviljho is the case that matters and it is not a special case in
+// the ROM -- it is what its state ladder says. Savage STARTS in state 1 and the driver fires
+// Angry_Start on the way in, tearing it down only at the terminal state; ordinary Deviljho starts
+// in state 0, where the same material really is the enrage layer. Same class, same vtable, split
+// on a variant byte.
+//
+// XfB__m02_body_k is the ADDITIVE glow (BSAddAlpha, glob.constant alpha 0 at rest, Angry_Start
+// ramping it to 1). Its meshes are part groups 3, 6 and 9 -- and group 6 is two meshes of 50
+// vertices: THE EYES. Selecting Angry_End for it whenever the viewer is "calm", which a name list
+// does, switched Savage's eye glow off permanently. Raven, 2026-09-07: "Still missing the eye
+// effect."
+export const ROM_SPAWN_CLIP = {
+  em043_05: { XfB__m02_body_k: 'Angry_Start' },   // Savage Deviljho: eyes and body glow, always lit
+};
+// The UNDAMAGED sets, per monster, loaded from docs/part-rest.json. THIS IS WHAT KEEPS PART BREAKS
+// OFF. Raven, 2026-09-07: "we don't want ALL parts ON because some parts are part breaks, they
+// replace the base part by flipping the base part off and turning the part break part on."
+// Exactly so, and all-on draws BOTH halves of every such pair: measured over the library, the
+// all-on default leaves **473 multi-variant clusters drawing more than one variant at once**.
+//
+// The ROM's answer is not one set. rMonsterPartsManager::setVisibleGroup (0x72c78) has 556 call
+// sites; 210 of them take their set index from a BREAK-LEVEL branch -- `cmp` against the .dtp
+// threshold, then a low/high conditional mov pair, e.g. (3,4), (5,6), (7,8), (9,10) as consecutive
+// intact/broken indices. The LOW arm (break < threshold) is the undamaged one, and since no
+// threshold in any of the 138 .dtp files is zero, an undamaged monster takes it at every site.
+// Those sites were attributed to a monster class by a code-band map built from the 95 monster
+// vtables (located by the never-overridden slot-113 value 0x6f7c0, each named through its slot-5
+// getDTI thunk), which attributes 547 of the 556 sites unambiguously.
+// Applying them takes the multi-drawn clusters from 473 down to 327.
+export let ROM_REST_SETS = {};
+// The whole part-rest.json document: { sets, defaultSet, inherited }. Both tables come out of
+// build-partrest.py, so they are reproducible from the ROM rather than transcribed by hand -- which
+// is what let the previous hand-made file carry an em043 entry derived from a rage STATE selection
+// (`cmp r1,#2 / movne r1,#9 / moveq r1,#0xd`) rather than a break branch, pinning Deviljho into its
+// enraged part state. em043 has no break branch at all; it now has no resting set, correctly.
+export let ROM_DEFAULT_BY_MON = {};
+// The BRANCH form of "apply this set when enraged", which ROM_RAGE_SET below does not cover.
+// The ROM writes enrage-driven part visibility two ways:
+//   select form  bl 0x81670 / cmp r0,#0 / movne <rage> / moveq <calm> / bl 0x72c78
+//   branch form  bl 0x81670 / cmp r0,#0 / beq past     -> a whole BLOCK of sets
+// ROM_RAGE_SET is the select form, found by hand. The branch form was missed entirely, so two
+// monsters had an enraged part form the viewer never showed: em033_00 Akantor and em077_00 Seregios.
+// Seregios is the clearest case in the image -- six sets per state, mirrored, with break-level
+// branches nested inside each. That also proves the [calm, rage] PAIR model is too narrow: the ROM
+// applies a set LIST per state, which is why this one is a list.
+export let ROM_RAGE_ADD = {};
+export function setRestSets(t){
+  const doc = t || {};
+  ROM_REST_SETS = doc.sets || doc;
+  ROM_DEFAULT_BY_MON = doc.defaultSet || {};
+  ROM_RAGE_ADD = doc.rageAdd || {};
+}
+export function defaultGroupsOn(groups, emId, monId, rage, forceOff, forceOn){
   const on = (groups || []).map(() => false);
-  const cl = clusterGroups(groups);
-  for (const c of cl) on[c.members[0]] = true;
-  const eyes = eyeParts instanceof Set ? eyeParts : new Set(eyeParts || []);
-  if (!eyes.size) return applyForcedOn(groups, applyForcedOff(groups, on, forceOff), forceOn);
-  const drawsAnEye = state => {
-    const drawn = new Map();
-    (groups || []).forEach((g, i) => { if (state[i]) for (const [p, v] of g) drawn.set(p, v); });
-    for (const p of eyes) if (drawn.get(p) !== false) return true;
-    return false;
-  };
-  if (drawsAnEye(on)) return applyForcedOn(groups, applyForcedOff(groups, on, forceOff), forceOn);
-  // Every alternative that would show an eye is scored, and the one lighting the FEWEST effect
-  // meshes wins. Taking the first that worked switched 2 of Amatsu's rage/glow meshes on to get
-  // its eye, and one more of Hellblade Glavenus's -- undoing the 2026-09-04 finding that an
-  // effect mesh is often the larger half of its pair. A tie keeps the earlier alternative, which
-  // is the ROM's own order.
-  const fx = effectParts instanceof Set ? effectParts : new Set(effectParts || []);
-  const litEffects = state => {
-    const drawn = new Map();
-    (groups || []).forEach((g, i) => { if (state[i]) for (const [p, v] of g) drawn.set(p, v); });
-    let n = 0;
-    for (const p of fx) if (drawn.get(p) !== false) n++;
-    return n;
-  };
-  const floor = litEffects(on);
-  let best = null, bestCost = Infinity;
-  for (const c of cl){
-    if (c.members.length < 2) continue;
-    for (const m of c.members){
-      const trial = on.slice();
-      for (const mm of c.members) trial[mm] = (mm === m);
-      if (!drawsAnEye(trial)) continue;
-      const cost = Math.max(0, litEffects(trial) - floor);
-      if (cost < bestCost){ best = trial; bestCost = cost;
-        if (!cost) return applyForcedOn(groups, applyForcedOff(groups, best, forceOff), forceOn); }
-    }
+  // The spawn default, keyed per MONSTER: generated per class from the registrar 0x71398's SECOND
+  // integer argument (+0xb614), then extended to the 21 monsters with no class of their own through
+  // the ROM's own AI host map. 91 monsters against the 56 the hand table covered.
+  // ROM_DEFAULT_SET stays as the fallback for anything the generated file lacks; where both have an
+  // entry they agreed on 53 of 53.
+  const a = Number.isInteger(ROM_DEFAULT_BY_MON[monId]) ? ROM_DEFAULT_BY_MON[monId] : ROM_DEFAULT_SET[emId];
+  if (Number.isInteger(a) && a >= 0 && a < on.length) on[a] = true;
+  for (const s of ROM_REST_SETS[monId] || [])
+    if (Number.isInteger(s) && s >= 0 && s < on.length) on[s] = true;
+  // the driver's own set is applied on top, and both are patches, so they compose in ROM order
+  for (const pair of ROM_RAGE_SET[monId] || []){
+    const s = rage ? pair[1] : pair[0];
+    if (Number.isInteger(s) && s >= 0 && s < on.length) on[s] = true;
   }
-  return applyForcedOn(groups, applyForcedOff(groups, best || on, forceOff), forceOn);
+  // the branch form: a whole block of sets that runs only while enraged
+  if (rage) for (const s of ROM_RAGE_ADD[monId] || [])
+    if (Number.isInteger(s) && s >= 0 && s < on.length) on[s] = true;
+  return applyForcedOn(groups, applyForcedOff(groups, on, forceOff), forceOn);
 }
 // The per-monster "start with these parts off" list, applied last so it wins over the ROM's order
 // AND over the eye rule. For each part named, the cluster that owns it is switched to whichever of
@@ -195,26 +345,6 @@ function applyForcedOff(groups, on, off){
     }
   }
   return on;
-}
-// part ids drawn in one of the game's own additive or reverse-subtractive materials -- the rage
-// auras and glows the part default is careful not to switch on
-export function effectPartIds(root){
-  const out = new Set();
-  root.traverse(o => {
-    if (!(o.isMesh || o.isSkinnedMesh) || o.userData.proxy) return;
-    if (o.userData.effect) out.add(o.userData.part);
-  });
-  return out;
-}
-// The part ids a mounted model draws in a material the game named for an eye. Read off the
-// model rather than baked, so it needs no rebuild and cannot drift from what is on screen.
-export function eyePartIds(root){
-  const out = new Set();
-  root.traverse(o => {
-    if (!(o.isMesh || o.isSkinnedMesh) || o.userData.proxy) return;
-    if (o.userData.eye) out.add(o.userData.part);
-  });
-  return out;
 }
 
 // part id -> the vertices a mounted model draws for it (the proxy layer excluded)
@@ -404,25 +534,234 @@ export async function loadMonster(rec, opt, ctx){
     //     the monster. It renders with half its intended albedo, which is a lesser wrong.
     //   * every effect Raven judged as looking RIGHT is a single-map material (Brachydios'
     //     slime, Agnaktor's lava, Teostra's, Valstrax's), so none of them is affected.
-    if (rom && rom.feat && /^TypeExtend/.test(String(rom.feat.albedo)) &&
-        rom.state && rom.state.blend !== 'opaque') o.userData.extendAlbedo = true;
+    // NO LONGER HIDDEN, 2026-09-07. The classification stayed only because material.js implemented
+    // one of the two maps, so these drew at half their intended albedo and hiding them was "a lesser
+    // wrong". The ROM's second map is implemented below, so the reason is gone and the ROM draws
+    // these materials: nothing here may hide them. The flag is kept for the Debug count alone.
+    if (rom && rom.feat && /^TypeExtend/.test(String(rom.feat.albedo)))
+      o.userData.extendAlbedo = true;
     // the ROM's own material class: Std is lit, MaterialConstant / MaterialConstantFog are
     // the map as a flat colour (a monster's eye). material.js's unlit path is opt-in and
     // honours the cull mode and blend state either way.
-    const mat = createMaterial({ srcName, rom, alphaCut: 0, noTint: true,
+    // THE ROM CORE, when it is switched on (index.html / __view.romCore). One program branched by
+    // the ROM's feature word, so `cls` reaches the material instead of being discarded by a chain
+    // that tests blend first. Off by default: the switch changes every pixel and Raven reviews
+    // renders, so it lands as an A/B against dev/shots/pre-rewrite rather than silently.
+    const mat = romCoreEnabled()
+      ? createRomMaterial({ srcName, rom, wire: !!(ctx && ctx.wire) })
+      : createMaterial({ srcName, rom, alphaCut: 0, noTint: true,
                                  unlit: !!(rom && rom.cls && rom.cls !== 'Std'),
                                  wire: !!(ctx && ctx.wire) });
+    const romCore = mat.userData.romCore === true;
     o.material = mat; allMats.push(mat); monsterMats.push(mat); mats.push(mat);
     if (mat.userData.renderOrder) o.renderOrder = mat.userData.renderOrder;
     const albedo = (rom && rom.albedo) || fallback(/_bm$/i);
     if (albedo) jobs.push(getTexture(albedo).then(t => {
-      mat.map = t; if (mat.userData.emissiveFromMap) mat.emissiveMap = t; mat.needsUpdate = true; }));
-    const normal = (rom && rom.normal) || fallback(/_nm/i);
+      mat.map = applyRomUv(mat, t); if (mat.userData.emissiveFromMap) mat.emissiveMap = t;
+      // the ROM's own albedo, kept so a kind-3 texture switch can be undone. material.js holds the
+      // same thing in its private `animBase` WeakMap, but that is not exported and material.js is a
+      // shared module this app does not edit -- so the undo reads monster-owned state instead.
+      mat.userData.romMap = mat.map;
+      mat.needsUpdate = true; }));
+    // FBump gates the normal map. 164 of the 469 monster materials that carry the feature have it
+    // FALSE, and binding a tNormalMap on those is the viewer inventing a shading term the ROM does
+    // not run -- the map is bound in the MRL but the feature word says the shader never samples it.
+    // Where the ROM has no feature word at all (rom.feat null, the exporter's placeholders) the
+    // old name-based fallback still applies, because there is nothing better to go on.
+    const romBump = !rom || !rom.feat || rom.feat.bump !== false;
+    const normal = romBump ? ((rom && rom.normal) || fallback(/_nm/i)) : null;
     if (normal && mat.isMeshStandardMaterial) jobs.push(getTexture(normal, { linear: true }).then(t => {
       mat.normalMap = t;
       mat.normalScale.set(normalOpt.scale, normalOpt.flipY ? -normalOpt.scale : normalOpt.scale);
       mat.needsUpdate = true; }));
-    if (rom && rom.spec && !rom.specIsAlbedo) jobs.push(getTexture(rom.spec).then(t => setSpecTexture(mat, t)));
+    // Every monster material selects FSpecularMap -- none selects FSpecularDisable -- so the map is
+    // bound wherever the ROM binds one. setSpecTexture returns early on a material with no uniform
+    // block, which is the additive/revsub overlays (47 of the 469); those are unlit in the ROM too,
+    // so the mask has nothing to mask there and the early return is correct rather than a drop.
+    if (rom && rom.spec && !rom.specIsAlbedo) jobs.push(getTexture(rom.spec).then(t => {
+      if (hasShaderUniforms(mat)) setSpecTexture(mat, t);
+    }));
+    // ---- Refract: SCREEN-SPACE DISTORTION ---------------------------------------------------
+    // The shader package names the feature FDistortionRefract, whose local is `rvec` -- a
+    // refraction vector -- with CBDistortion supplying fDistortionFactor and fDistortionBlend and
+    // CBDistortionRefract supplying fDistortionRefract. So the material samples the SCENE, offset
+    // by a refraction vector scaled by the factor, and mixes the result in by the blend.
+    //
+    // 10 monster materials carry it: Chameleos and Nightcloak Malfestio's stealth (5), Hellblade
+    // Glavenus' tail, and Astalos' wings. They are NOT invisible today -- nine of the ten are
+    // blend=opaque with albedo+normal+spec and draw as ordinary lit materials -- what is missing is
+    // the distortion on top. fDistortionFactor and fDistortionBlend are animated by 12 tracks that
+    // had no destination until this existed.
+    // NOT on the ROM core: it has no Refract branch yet (see rom/shader.js), and this injection is
+    // string surgery against material.js's chunks, which the ROM program does not contain.
+    // the ROM core injects Refract in rom/shader.js; it still needs the scene capture, so it joins
+    // the same registry.
+    //
+    // FLAGGED, and not changed here. The ROM does NOT do what either path does. FDistortionRefract's
+    // own body samples `tDistortionMap` through MATERIAL_CONTEXT's `uv_screen` slot with
+    // CBDistortionRefract and CBScreen bound (build/notes/_mfx-feature-iface.json); both viewer
+    // paths instead sample a captured SCENE render target offset by a view-space normal. That is a
+    // different mechanism, not a different tuning. Correcting it needs the operand ORDER inside the
+    // leaf, which is not decoded -- so it stays as it is, labelled, rather than being half-changed.
+    if (romCore && rom && rom.feat && rom.feat.distortion === 'Refract') refractMats.push(mat);
+    if (!romCore && rom && rom.feat && rom.feat.distortion === 'Refract'){
+      const u = mat.userData.u || (mat.userData.u = {});
+      // The STATIC values come from CBDistortion (fDistortionFactor @float 0, fDistortionBlend @1),
+      // extracted by build-materials.py. They matter: only 1 of the 10 Refract materials animates
+      // them, so taken as 0 the effect never switched on. Chameleos and Nightcloak Malfestio ship
+      // factor 20 / blend 1.0 -- full replacement by the refracted scene, which IS the stealth --
+      // Astalos' wings blend 0.6 and 0.8, and Hellblade's tail starts at 0 and is animated up.
+      const dz = rom.m && rom.m.dist;
+      u.uSceneMap  = { value: null };
+      u.uDistFac   = { value: dz ? dz.factor : 0 };   // in PIXELS: 20.0 is a 20-pixel displacement
+      u.uDistBlend = { value: dz ? dz.blend : 0 };
+      mat.userData.refract = true;
+      refractMats.push(mat);
+      const prevR = mat.onBeforeCompile;
+      mat.onBeforeCompile = (sh) => {
+        if (prevR) prevR(sh);
+        Object.assign(sh.uniforms, { uSceneMap: u.uSceneMap, uDistFac: u.uDistFac,
+                                     uDistBlend: u.uDistBlend });
+        sh.fragmentShader = sh.fragmentShader
+          .replace('void main() {',
+            'uniform sampler2D uSceneMap; uniform float uDistFac; uniform float uDistBlend;' +
+            ' void main() {')
+          .replace('#include <opaque_fragment>',
+            `#include <opaque_fragment>
+             if ( uDistBlend > 0.0 ) {
+               // rvec: the surface normal in VIEW space is the refraction direction, and its screen
+               // projection is the displacement. Scaled by fDistortionFactor, mixed by fDistortionBlend.
+               vec3 rvec = normalize( ( viewMatrix * vec4( normalize( vNormal ), 0.0 ) ).xyz );
+               vec2 res = vec2( textureSize( uSceneMap, 0 ) );
+               // fDistortionFactor is in PIXELS -- the shipped values are 10 and 20, which as UV
+               // offsets would be ten screen-widths -- so it is divided by the target size.
+               vec2 suv = ( gl_FragCoord.xy + rvec.xy * uDistFac ) / res;
+               vec3 scene = texture2D( uSceneMap, clamp( suv, 0.001, 0.999 ) ).rgb;
+               gl_FragColor.rgb = mix( gl_FragColor.rgb, scene, clamp( uDistBlend, 0.0, 1.0 ) );
+             }`);
+      };
+      mat.needsUpdate = true;
+    }
+
+    // ---- TypeExtend: the TWO-MAP ALBEDO ----------------------------------------------------
+    // The ROM builds these materials' albedo from two textures. The shader package names the
+    // feature family "AlbedoType" with variants "ExtendModulate" and "ExtendAdd"
+    // (FAlbedoTypeExtendModulate / FAlbedoTypeExtendAdd), and a companion UV feature
+    // FUVAlbedoExtendMap picks which UV set the second map is sampled through. Per material the
+    // ROM states that directly: feat.uvAlbedoExtendMap is UVSecondary, UVExtend or UVViewNormal,
+    // and feat.uvxf is its own routing table naming which fUVTransform applies to each slot.
+    //
+    // 16 monster materials use it -- Khezu's m03_blood, Tigrex's m01_angry, Grimclaw's two blood
+    // layers, Astalos' tikuden, Gammoth's shell -- and they were classified `extendAlbedo` and
+    // HIDDEN rather than drawn, because material.js implements only the first map.
+    //
+    // The second UV set is REAL and cannot be approximated: TEXCOORD_1 differs from TEXCOORD_0 on
+    // every one of the 141 primitives carrying both, across all six models. three.js 0.169's
+    // GLTFLoader names it the `uv1` attribute, so the shader declares it directly.
+    const xf = (rom && rom.feat && String(rom.feat.albedo || '')) || '';
+    // MapBlend is the THIRD two-map mode and uses the same machinery: FAlbedoMapBlend, with the
+    // second map routed by feat.uvAlbedoBlendMap instead of uvAlbedoExtendMap. 4 monster materials,
+    // all Raging Brachydios' nenkin (slime) layers -- tail, both arms and body -- sampled through
+    // UVSecondary with a 0.5 offset in U on the second matrix.
+    // The combine is taken as a lerp by the blend map's ALPHA, which is what distinguishes it from
+    // Modulate (multiply) and Add (sum) and is consistent with the family carrying a MapBlendAlpha
+    // sibling. FLAGGED: that arithmetic is read from the family's structure, not yet from the
+    // compiled shader body, so it is the least certain of the three combines.
+    // NOT on the ROM core: rom/shader.js injects the second map by TECHNIQUE, which is what reaches
+    // the 17 additive ones this blend-gated injection misses. It carries the same uExtXf / uExtView
+    // routing as below -- it did not at first, which made switching the core on a regression here.
+    if (!romCore && (xf.startsWith('TypeExtend') || xf.startsWith('MapBlend'))
+        && rom.m && rom.m.t && rom.m.t.tAlbedoBlendMap){
+      const tex = (rom.entry && rom.entry.tex) || [];
+      const bp = tex[rom.m.t.tAlbedoBlendMap - 1];        // record ids are 1-BASED
+      const uvName = rom.feat.uvAlbedoExtendMap || rom.feat.uvAlbedoBlendMap || 'UVSecondary';
+      // feat.uvxf routes a slot to one of the three fUVTransform matrices; take the matrix the ROM
+      // names, out of the 24-float cbm.uv block (three 2x4 affines at floats 0, 8 and 16).
+      const slot = uvName === 'UVExtend' ? 3 : (uvName === 'UVSecondary' ? 1 : 0);
+      const which = { Offset: 0, Offset2: 1, Offset3: 2 }[(rom.feat.uvxf || [])[slot]] || 0;
+      const cbu = rom.cbm && rom.cbm.uv;
+      const flat = cbu ? (Array.isArray(cbu[0]) ? [].concat.apply([], cbu) : cbu) : null;
+      const m8 = flat ? flat.slice(which * 8, which * 8 + 8) : [1, 0, 0, 0, 0, 1, 0, 0];
+      const u = mat.userData.u || (mat.userData.u = {});
+      u.uExtMap  = { value: null };
+      // 1 = ExtendModulate (multiply), 2 = ExtendAdd (sum), 3 = MapBlend (lerp by the blend alpha)
+      u.uExtMode = { value: xf.startsWith('MapBlend') ? 3 : (xf === 'TypeExtendAdd' ? 2 : 1) };
+      u.uExtView = { value: uvName === 'UVViewNormal' ? 1 : 0 };
+      u.uExtXf   = { value: new THREE.Vector4(m8[0] || 1, m8[5] || 1, m8[3] || 0, m8[7] || 0) };
+      // fAlbedoBlendColor ($Globals float4 @4) tints the second map. Its 8 tracks are all on these
+      // materials and had no destination until now; 1,1,1,1 is the identity the ROM ships.
+      u.uExtTint = { value: new THREE.Vector4(1, 1, 1, 1) };
+      // REACHES ONLY THE LIT PATH TODAY -- 3 of these 20 materials. Measured 2026-09-07: the
+      // fragment replace below targets `vec4 texel = texture2D( map, mapUv );`, a string that
+      // exists only inside applyTint's <map_fragment> rewrite (material.js:262), and applyTint runs
+      // only on the MeshStandardMaterial branch. The other 17 are add (16) or revsub (1), so
+      // createMaterial hands them a MeshBasicMaterial and the replace silently no-ops: the shader
+      // still compiles, with an unused vExtUv varying and samplers nothing reads, and the
+      // fAlbedoBlendColor track writes uExtTint into the void.
+      // NOT patched here on purpose. All 17 are cls:Std -- the ROM's LIT technique -- and they are
+      // drawn unlit only because createMaterial tests blend before technique. They are a subset of
+      // the 47 Std add/revsub materials with the same cause, so the fix is the technique dispatch
+      // in the ROM material core, not a second injection point. A stopgap here would be deleted by
+      // it. One of the 17 (em050_00 XfB__m03_add) is UVViewNormal and additionally needs a view
+      // normal, which MeshBasicMaterial has no varying for -- another thing the lit path just has.
+      const prev = mat.onBeforeCompile;
+      mat.onBeforeCompile = (sh) => {
+        if (prev) prev(sh);
+        Object.assign(sh.uniforms, { uExtMap: u.uExtMap, uExtMode: u.uExtMode,
+                                     uExtView: u.uExtView, uExtXf: u.uExtXf,
+                                     uExtTint: u.uExtTint });
+        sh.vertexShader = sh.vertexShader
+          .replace('void main() {', 'attribute vec2 uv1; varying vec2 vExtUv; void main() {')
+          .replace('#include <uv_vertex>', '#include <uv_vertex>' + String.fromCharCode(10) + 'vExtUv = uv1;');
+        sh.fragmentShader = sh.fragmentShader
+          .replace('void main() {',
+            'uniform sampler2D uExtMap; uniform float uExtMode; uniform float uExtView;' +
+            ' uniform vec4 uExtXf; uniform vec4 uExtTint; varying vec2 vExtUv; void main() {')
+          .replace('vec4 texel = texture2D( map, mapUv );',
+            `vec4 texel = texture2D( map, mapUv );
+             {
+               vec2 euv = vExtUv;
+               if ( uExtView > 0.5 ) { vec3 evn = normalize( vNormal ); euv = evn.xy * 0.5 + 0.5; }
+               euv = euv * uExtXf.xy + uExtXf.zw;
+               vec4 ext = texture2D( uExtMap, euv );
+               ext.rgb *= uExtTint.rgb;
+               // ExtendModulate multiplies the two maps, ExtendAdd sums them -- the ROM's own
+               // variant names for this feature family.
+               texel.rgb = uExtMode > 2.5 ? mix( texel.rgb, ext.rgb, ext.a )
+                         : ( uExtMode > 1.5 ? texel.rgb + ext.rgb : texel.rgb * ext.rgb );
+             }`);
+      };
+      mat.needsUpdate = true;
+      if (bp) jobs.push(getTexture(bp).then(t => { u.uExtMap.value = t; mat.needsUpdate = true; }));
+    }
+    // the ROM core installs the two-map injection by TECHNIQUE in rom/shader.js, so it reaches the
+    // 17 add/revsub materials the old blend-gated injection silently missed. Bind its map here.
+    if (romCore && rom && rom.m && rom.m.t && rom.m.t.tAlbedoBlendMap && mat.userData.u && mat.userData.u.uExtMap){
+      const tl = (rom.entry && rom.entry.tex) || [];
+      const bp2 = tl[rom.m.t.tAlbedoBlendMap - 1];
+      if (bp2) jobs.push(getTexture(bp2).then(t => { mat.userData.u.uExtMap.value = t; mat.needsUpdate = true; }));
+    }
+    // THE SPHERE MAP. FReflect SphereMap binds tSphereMap, and the whole reflection block in
+    // material.js (uEnv / uEnvAmt / the Schlick term) was DEAD on monsters because this fetch did
+    // not exist -- rom.sphere was decoded and thrown away, so uEnvAmt stayed 0 on every monster.
+    // 75 monster materials declare the feature and bind a map; exactly one of them carries
+    // fReflectiveColor 0, which envStrength() already treats as "switched off".
+    // Bound the same way the Armor Viewer binds it (render/piece.js:170), so both apps agree.
+    if (rom && rom.feat && rom.feat.reflect === 'SphereMap' && rom.sphere)
+      jobs.push(getTexture(rom.sphere).then(t => { if (hasShaderUniforms(mat)) setEnvTexture(mat, t); }));
+    // A kind-3 track switches the albedo to another entry in this material's OWN texture list, by
+    // 1-based index. Preload only the indices its tracks actually name -- 41 tracks library-wide.
+    const swapIdx = new Set();
+    for (const c of (rom && rom.anim) || [])
+      for (const t of c.tracks || [])
+        if (t.kind === 3 && t.keys) for (const k of t.keys) swapIdx.add(k[1]);
+    if (swapIdx.size){
+      const list = (rom.entry && rom.entry.tex) || [];
+      mat.userData.texSwap = [];
+      for (const i of swapIdx)
+        if (i >= 1 && list[i - 1])
+          jobs.push(getTexture(list[i - 1]).then(t => { mat.userData.texSwap[i - 1] = t; }));
+    }
   });
   await Promise.all(jobs);
   root.userData.joints = rec.joints || [];
@@ -434,15 +773,6 @@ export async function loadMonster(rec, opt, ctx){
   root.userData.bind = [];
   root.traverse(o => root.userData.bind.push([o, o.position.clone(), o.quaternion.clone(), o.scale.clone()]));
   return root;
-}
-
-// Show or hide the additive EFFECT meshes as a class.
-// HIDE-ONLY. Switching effects back on must not make a mesh the part table turned off
-// visible: the table is the game's own answer and this toggle is a view of a class on top of
-// it. So `on` simply means "leave the part table's decision alone".
-export function setEffectVisible(root, on){
-  if (on) return;
-  root.traverse(o => { if (o.userData.effect) o.visible = false; });
 }
 
 // Show or hide the meshes whose material the ROM's material file does not define.
@@ -469,11 +799,12 @@ export function setUndefinedMaterialVisible(root, on){
 }
 
 // Show or hide the overlays whose albedo needs a second map this viewer does not sample.
-// Hide-only in the same sense as setEffectVisible: turning it back off returns the mesh to
+// Hide-only in the same sense the retired effect-class toggle was: turning it back off returns the mesh to
 // whatever the part table said, rather than forcing on something the table had switched off.
-export function setExtendVisible(root, on){
-  root.traverse(o => { if (o.userData.extendAlbedo && !on) o.visible = false; });
-}
+// The ROM draws every TypeExtend material; the two-map albedo it needs is implemented at load, so
+// there is nothing left to hide. Kept as a no-op rather than removed, because the caller is app
+// behaviour and this file is the rendering side.
+export function setExtendVisible(root, on){ return; }
 
 // how many of them a mounted monster carries, for the Debug label
 export function extendCount(root){
@@ -488,6 +819,17 @@ export function restoreBind(root){
   for (const [node, p, q, sc] of (root && root.userData.bind) || []){
     node.position.copy(p); node.quaternion.copy(q); node.scale.copy(sc);
   }
+  // and undo any kind-3 texture swap, which is material state rather than node state.
+  // Two homes for the albedo: `mat.map` on the old stock-material path, the tAlbedoMap uniform on
+  // the ROM core. rom/matanim.js also restores it from its own base every frame, so this only
+  // matters while material animation is switched off.
+  if (root) root.traverse(o => {
+    const m = o.material, base = m && m.userData && m.userData.romMap;
+    if (!base) return;
+    if (m.uniforms && m.uniforms.tAlbedoMap){
+      if (m.uniforms.tAlbedoMap.value !== base){ m.uniforms.tAlbedoMap.value = base; m.needsUpdate = true; }
+    } else if (m.map !== base){ m.map = base; m.needsUpdate = true; }
+  });
 }
 
 
@@ -556,9 +898,10 @@ export const EXTRACT_RGB = {
 //    and a 1.0->0.8, plainly the enter and exit of some state) and the trigger that selects one is
 //    not decoded. The looping clip is used when there is one, else the first -- the looping one is
 //    the ambient state, which is what a viewer standing still should show.
-//  * THE FRAME RATE. MAT_FPS below is an assumption, not a reading. It sets how fast a loop runs,
-//    nothing else; the values and their order are exact either way.
-export const MAT_FPS = 30;
+//  * THE FRAME RATE and the EVALUATOR now live in the shared render/material.js, because the
+//    Armor Viewer needs them too -- 1,486 of its materials carry an animation block. Only the
+//    CLIP-SELECTION POLICY below is monster-specific.
+export { MAT_FPS };
 // The ENRAGED state, by the ROM's own clip names. A clip's hash is ~crc32 of its name and the names
 // are strings in main.rodata, so 117 of the 134 distinct monster clip hashes resolve -- Angry_Start,
 // Gekikou_Start, Normal and the rest. Selecting by name makes this general: 12 materials across the
@@ -587,113 +930,86 @@ export function enrageParts(root){
   });
   return out;
 }
-const animBase = new WeakMap();
-
-function sampleTrack(tr, f){
-  const k = tr.keys;
-  if (!k || !k.length) return null;
-  if (k.length === 1 || f <= k[0][0]) return k[0].slice(1);
-  const last = k[k.length - 1];
-  if (f >= last[0]) return last.slice(1);
-  let i = 0;
-  while (i < k.length - 1 && k[i + 1][0] <= f) i++;
-  const a = k[i], b = k[i + 1];
-  if (tr.interp === 0) return a.slice(1);          // hold
-  // linear. interp 2 is cubic Hermite in the game and its tangent formula is UNVERIFIED, so it
-  // falls back to linear here: the keys are right and the path between them may not be.
-  const span = b[0] - a[0];
-  const t = span > 0 ? (f - a[0]) / span : 0;
-  const out = [];
-  for (let c = 1; c < a.length; c++) out.push(a[c] + (b[c] - a[c]) * t);
-  return out;
-}
-
-// A track WRITES its shader constant; it does not scale the shipped one. That distinction is not
-// cosmetic: Savage Deviljho's Gekikou decal ships fTransparency 0.0 and fDiffuseColor (0,0,0) --
-// deliberately invisible until the clip runs -- so multiplying by the static value pinned it at
-// zero for ever and the effect could never appear. The static values ARE the animation's frame-0
-// state, which is why they look like "off".
-// The lit path folds the ROM's albedo tint into material.color as glob.albedo * cbm.diffuse, so an
-// animated fDiffuseColor is re-multiplied by glob.albedo rather than replacing the pair.
-function baseOf(m){
-  let b = animBase.get(m);
-  if (!b){
-    const rom = m.userData && m.userData.rom;
-    const gl = rom && rom.glob;
-    b = { color: m.color ? m.color.clone() : null, opacity: m.opacity,
-          transparent: m.transparent,
-          albedo: (gl && gl.albedo) ? gl.albedo.slice(0, 3) : [1, 1, 1] };
-    animBase.set(m, b);
-  }
-  return b;
-}
-
-function applyTrack(m, tr, f){
-  const v = sampleTrack(tr, f);
-  if (!v) return;
-  const b = baseOf(m);
-  switch (tr.target){
-    case 'fUVTransform': case 'fUVTransform2': case 'fUVTransform3': {
-      // offsetU, offsetV, scaleU, scaleV, rotation
-      for (const key of ['map', 'emissiveMap', 'alphaMap']){
-        const tex = m[key];
-        if (!tex) continue;
-        tex.offset.set(v[0], v[1]);
-        tex.repeat.set(v[2] === 0 ? 1 : v[2], v[3] === 0 ? 1 : v[3]);
-        tex.rotation = v[4] || 0;
-      }
-      break;
-    }
-    case 'fConstantColor':                      // rgb + alpha, written not scaled
-      if (m.color) m.color.setRGB(b.albedo[0] * v[0], b.albedo[1] * v[1], b.albedo[2] * v[2]);
-      if (v.length > 3){
-        m.opacity = v[3];
-        m.transparent = true;
-      }
-      break;
-    case 'fAlbedoColor': case 'fDiffuseColor':
-      if (m.color) m.color.setRGB(b.albedo[0] * v[0], b.albedo[1] * v[1], b.albedo[2] * v[2]);
-      break;
-    // 8 tracks on enrage clips drive this and it had no case at all, so Crimson Fatalis, both
-    // Mizutsune, Grimclaw Tigrex and Ahtal-Ka lost the part of their rage that is emission.
-    case 'fEmissionColor':
-      if (m.emissive) m.emissive.setRGB(v[0], v[1], v[2] === undefined ? v[0] : v[2]);
-      break;
-    case 'fTransparency':
-      m.opacity = v[0];
-      m.transparent = true;
-      break;
-    default: break;                             // a target the viewer has no home for yet
-  }
-}
-
-// Drive every animated material on a mounted model. tSec is wall time; nothing here touches a
-// material that carries no animation block.
-export function stepMatAnim(root, tSec, state){
-  if (!root) return 0;
-  let n = 0;
-  root.traverse(o => {
-    const m = o.material;
-    if (!m || !m.userData) return;
-    const rom = m.userData.rom;
-    const clips = rom && rom.anim;
-    if (!clips || !clips.length) return;
-    // pick by NAME when a state is asked for, else the ambient one (looping, else the first)
+// THE CLIP-SELECTION POLICY, shared by both evaluators. Which clip plays is the one part of the
+// material-animation chain the ROM does NOT hand us: the game reaches a clip through setClip from
+// an AI state, keyed by hash, so a viewer has to choose. Keeping it in one place means the ROM core
+// and the old path cannot drift on it.
+function clipPicker(state, monId){
+  const pin = (monId && ROM_SPAWN_CLIP[monId]) || null;
+  return (clips, rom) => {
     let ci = -1;
-    if (state){
+    // A SPAWN-PINNED material ignores the rage state entirely -- see ROM_SPAWN_CLIP.
+    if (pin && rom.name && pin[rom.name])
+      ci = clips.findIndex(c => c.name === pin[rom.name]);
+    if (ci < 0 && state){
       const want = state === 'enraged' ? ENRAGE_CLIPS : CALM_CLIPS;
       for (const nm of want){ ci = clips.findIndex(c => c.name === nm); if (ci >= 0) break; }
     }
-    if (ci < 0) ci = clips.findIndex(c => c.loop);
-    if (ci < 0) ci = 0;
-    const clip = clips[ci];
-    if (!clip || !clip.frames || !clip.tracks) return;
-    const fr = tSec * MAT_FPS;
-    const f = clip.loop ? fr % clip.frames : Math.min(fr, clip.frames);
-    for (const tr of clip.tracks) if (!tr.unsupported) applyTrack(m, tr, f);
-    n++;
+    // The enraged/calm toggle is a VIEWER affordance, not a ROM behaviour -- the game reaches these
+    // clips through setClip from an AI state, so a name list can never be complete. Bloodbath
+    // Diablos proved it: its XfB_0__m50_angry carries a Deviant rage LADDER (Lv1_to_Lv2, Lv2_loop,
+    // Lv2_to_Lv3, Lv3_loop, Lv3_to_end), none named in ENRAGE_CLIPS and none carrying the auto bit,
+    // so asking for 'enraged' found nothing and the effect stopped animating. When a state is asked
+    // for and no name matches, fall back to the LAST looping clip -- the deepest rage stage it has.
+    if (ci < 0 && state === 'enraged'){
+      for (let i = clips.length - 1; i >= 0; i--) if (clips[i].loop){ ci = i; break; }
+    }
+    if (ci < 0) ci = clips.findIndex(c => c.auto);   // the ROM's own default
+    // TWO SLOTS, the way the rage state machine at 0xe37560 drives them: it puts the START clip
+    // into SLOT 1 while SLOT 0 keeps running the steady-state clip. So when a state clip was found
+    // and the material also carries an auto-play/steady clip, run both -- slot 0 first, slot 1 over
+    // it -- rather than replacing one with the other.
+    const auto = clips.findIndex(c => c.auto);
+    if (state && ci >= 0 && auto >= 0 && auto !== ci) return [auto, ci];
+    return ci;
+  };
+}
+
+export function stepMatAnim(root, tSec, state, monId){
+  const pick = clipPicker(state, monId);
+  // ONE evaluator for both paths. A ROM-core material is a stock three.js material -- the technique
+  // decides which class, not the blend state -- so the shared evaluator's writes land exactly as
+  // they always have. fEmissionColor now reaches the 47 lit-technique additive materials that used
+  // to be MeshBasicMaterial, because those are MeshStandardMaterial now.
+  return stepMaterialAnim(root, tSec, pick);
+}
+
+// THE SCENE CAPTURE that feeds Refract. The ROM samples the scene colour buffer; here the scene is
+// rendered once to a target with the refracting materials themselves hidden -- so they refract what
+// is BEHIND them, not themselves -- and that texture is handed to their shaders.
+// Costs one extra pass only while a refracting material is mounted: 10 materials on 6 monsters
+// (Chameleos, Nightcloak Malfestio, Hellblade Glavenus, Astalos and its Deviant).
+let sceneRT = null;
+export function releaseRefractTarget(){
+  if (sceneRT){ sceneRT.dispose(); sceneRT = null; }
+}
+export function stepRefract(renderer, scene, camera, THREE_){
+  // two uniform namings: the ROM core uses the ROM's own fDistortionBlend / uSceneMap, the old
+  // material.js path used uDistBlend / uSceneMap.
+  const blendOf = m => {
+    const u = m.userData && m.userData.u;
+    if (!u) return 0;
+    if (u.fDistortionBlend) return u.fDistortionBlend.value;
+    return u.uDistBlend ? u.uDistBlend.value : 0;
+  };
+  const live = refractMats.filter(m => blendOf(m) > 0);
+  if (!live.length) return 0;
+  const size = renderer.getSize(new THREE_.Vector2());
+  const w = Math.max(1, size.x | 0), h = Math.max(1, size.y | 0);
+  if (!sceneRT){ sceneRT = new THREE_.WebGLRenderTarget(w, h); }
+  else if (sceneRT.width !== w || sceneRT.height !== h) sceneRT.setSize(w, h);
+  const hidden = [];
+  scene.traverse(o => {
+    if ((o.isMesh || o.isSkinnedMesh) && o.material && o.material.userData
+        && o.material.userData.refract && o.visible){ hidden.push(o); o.visible = false; }
   });
-  return n;
+  const prevTarget = renderer.getRenderTarget();
+  renderer.setRenderTarget(sceneRT);
+  renderer.render(scene, camera);
+  renderer.setRenderTarget(prevTarget);
+  for (const o of hidden) o.visible = true;
+  for (const m of live) if (m.userData.u.uSceneMap) m.userData.u.uSceneMap.value = sceneRT.texture;
+  return live.length;
 }
 
 // ---- Hardness ---------------------------------------------------------------------------------
@@ -731,13 +1047,58 @@ export const SHARP_RGB  = [
 // identified, so both are offered rather than one being presented as the truth.
 export const DEFLECT_T = { normal: 0.25, strict: 0.27 };
 
-// How HARD a zone is, expressed the way a player can act on it: the lowest sharpness that does NOT
-// bounce off it, or null if even purple does. Raven, 2026-09-06, naming the pane: "update Bounce to
-// be Hardness" -- the bounce is the mechanism, the hardness is the property being read.
-export function hardnessLevel(hz, t){
-  if (!(hz > 0)) return null;
-  for (let i = 0; i < SHARP_RAW.length; i++) if (SHARP_RAW[i] * hz / 100 >= t) return i;
-  return null;
+// THE DEFLECT LADDER, read from the ROM 2026-09-07 (build/notes/deflect-ladder.md).
+// A hit is graded into FOUR tiers by its damage multiplier, not into bounce/no-bounce. From
+// 0x177e64 both arms of the rank branch share their top two rungs:
+//     00177e74  vldr s2,[pc,#0x1dc] -> 0.66  ;  00177e7c  mov sl, #4
+//     00177e8c  vldr s2,[pc,#0x1c8] -> 0.45  ;  00177e90  mov sl, #3
+//     00177ea0  vmov.f32 s2, #2.5e-01                     (rank 0/1/3 floor)
+//     00177ed4  vldr s2,[pc,#0x184] -> 0.27              (rank 5 floor)
+//     00177edc  mov  sl, #2
+//     00177ee4  movwlt sl, #0                             below the floor -> tier 0, THE BOUNCE
+// so the tiers produced are 4, 3, 2 and 0 -- there is no tier 1 on this path.
+export const DEFLECT_RUNGS = [0.66, 0.45];
+// The tier a sharpness gets on a hit zone. 0 is the bounce.
+export function deflectTier(hz, sharpIdx, floor){
+  if (!(hz > 0)) return 0;
+  const d = SHARP_RAW[sharpIdx] * hz / 100;
+  if (d >= DEFLECT_RUNGS[0]) return 4;
+  if (d >= DEFLECT_RUNGS[1]) return 3;
+  return d >= floor ? 2 : 0;
+}
+
+// The tiers the ladder actually produces, in the order the ROM tests them. There is no tier 1.
+export const DEFLECT_TIERS = [2, 3, 4];
+// WHAT A TIER MEANS IS NOT TRACED. The classifier stores it as a byte (0x177f0c `strb sl,[r4,#6]`)
+// and what the game does differently at 4 vs 3 vs 2 has not been read. Only tier 0 is established:
+// it is the bounce. So these labels state the THRESHOLD each rung clears and nothing more -- an
+// earlier version called them "Avoids a Bounce" / "Bites" / "Bites Clean", which was invented.
+export const TIER_LABEL = { 2: 'Tier 2', 3: 'Tier 3', 4: 'Tier 4' };
+// The rule a rung clears, in the ROM's own numbers. Tier 2's floor is rank-selected.
+export function tierRule(tier, floor){
+  return '>= ' + (tier === 2 ? floor : DEFLECT_RUNGS[4 - tier]);
+}
+// THE LADDER FOR A ZONE, as data: the lowest sharpness that reaches each tier, or null where the
+// tier is out of reach even at purple. Both the chart and the heat map read this, so all three
+// rungs drive what is drawn -- collapsing them back to a bounce/no-bounce line was the old model
+// and it is what made the pane disagree with the ROM.
+export function deflectLadder(hz, floor){
+  const out = { 2: null, 3: null, 4: null };
+  if (!(hz > 0)) return out;
+  for (const tier of DEFLECT_TIERS)
+    for (let i = 0; i < SHARP_RAW.length; i++)
+      if (deflectTier(hz, i, floor) >= tier){ out[tier] = i; break; }
+  return out;
+}
+// How HARD a zone is against one rung: the lowest sharpness that reaches it, or null if even purple
+// cannot. Tier 2 -- the bounce line -- is the default, which is the old meaning of this function.
+// Raven, 2026-09-06: "update Bounce to be Hardness".
+// NOTE, and it bounds what this pane can ever say: a hit zone can carry a bit that forces tier 0
+// regardless of the multiplier (0x177efc `ldrh r1,[r8,#0xa]` / `tst r1,#0x2000` / `movne sl,sb`),
+// which is what Raven saw as a good hit zone that still bounces. That bit sits on a record this
+// decode has not traced, so no threshold model over the multiplier alone is complete.
+export function hardnessLevel(hz, t, tier){
+  return deflectLadder(hz, t)[tier || 2];
 }
 // value: slot -> number, scaled by max through the ramp. colorBySlot: slot -> [r,g,b], used
 // literally and taking precedence. A slot in neither comes out at the ramp's floor.
