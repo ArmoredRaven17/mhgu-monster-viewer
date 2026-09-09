@@ -21,10 +21,13 @@ import { specFor, refForGlb } from './materials-db.js';
 import { createRomMaterial, enableRomCore, romCoreEnabled,
          enableRomAmbient, romAmbientEnabled, setSHAmount,
          enableRomSpecular, romSpecularEnabled, setRomSpecularAmount, anchorMisses,
-         enableRomPhong, romPhongEnabled } from './rom/material.js';
+         enableRomPhong, romPhongEnabled,
+         setCutoutSolid, cutoutSolidCount, cutoutAnchorMisses } from './rom/material.js';
 import { setBiasUnitsPerStep as setRomBiasUnitsPerStep, releaseBiased } from './rom/state.js';
 export { setRomBiasUnitsPerStep };
 export { enableRomCore, romCoreEnabled };
+// The cut-out coverage knob: 1 is on. Raven flips it to compare a capture both ways.
+export { setCutoutSolid, cutoutSolidCount, cutoutAnchorMisses };
 // The ROM-derived corrections. Each is off until the app switches it on, because each overlaps
 // something the SHARED material.js/stage.js already do -- see rom/material.js steps 4 and 5.
 export { enableRomAmbient, romAmbientEnabled, setSHAmount,

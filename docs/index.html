@@ -1037,6 +1037,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          DEFAULT_PARTS_OFF, ROM_RAGE_SET, setRestSets, stepRefract,
          setUndefinedMaterialVisible, setExtendVisible, extendCount,
          applyHeatmap, clearHeatmap, applyFlat, parseZones, heatColor, EXTRACT_RGB,
+         setCutoutSolid, cutoutSolidCount, cutoutAnchorMisses,
          SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS,
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts,
@@ -3053,6 +3054,11 @@ async function runScene(name){
 }
 window.__view = { camera, controls, scene, world, renderer, frameAll, pose, state, MON, mounted,
                   monsterMats, runScene, capture: captureHarness };
+// Cut-out coverage, for Raven to judge a capture both ways without a reload:
+//   __view.cutSolid(false) -> the old behaviour, a surviving cut-out texel keeps its map alpha
+//   __view.cutSolid(true)  -> a surviving texel writes full coverage (the default)
+window.__view.cutSolid = on => { setCutoutSolid(on); renderer.render(scene, camera); 
+  return { on: !!on, materials: cutoutSolidCount(), missed: cutoutAnchorMisses() }; };
 window.__view.shot = async function(run, nameArg, atArg){
   const q = new URLSearchParams(location.search);
   run = run || q.get('run') || 'default';

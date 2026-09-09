@@ -177,6 +177,7 @@ export function createRomMaterial(spec){
     u.uViewUv.value = mat.userData.viewUv ? 1 : 0;
     u.uF0.value.fromArray(mat.userData.f0);
   }
+  if (lit && mat.alphaTest) installCutoutSolid(mat);
 
   // 3. THE FEATURE WORD on top: the alpha rules the ROM states in words, the second albedo map and
   //    Refract. Each carries the ROM's own description at its site in rom/shader.js.
@@ -235,3 +236,58 @@ export function selfCheck(db){
   }
   return bad;
 }
+
+
+// A CUT-OUT FRAGMENT THAT SURVIVES THE ALPHA TEST IS FULLY PRESENT, so it writes full coverage.
+//
+// Raven, 2026-09-09: parts of a MONSTER capture come out transparent. The mechanism is in the
+// shared shader, one line of applyTint's <map_fragment> rewrite:
+//
+//     diffuseColor.a *= mix( 1.0, texel.a, uAlphaCut );
+//
+// On a cut-out material (uAlphaCut = 1) that hands the sampled alpha to the alpha test, which is
+// what it is for -- but it also leaves it in diffuseColor.a, and three.js writes that straight out
+// as the fragment's alpha. Cut-out maps on fur fringes, wing membranes, fins and frills are authored
+// with a SOFT ramp, so every texel between the threshold and 1.0 survives the test and then writes
+// partial coverage. 41 monster materials carry the alpha-test bit.
+//
+// It is invisible on screen -- the page paints a backdrop behind the canvas and the RGB is right --
+// and it is invisible in the two capture modes that composite over that backdrop. It shows in
+// exactly the two that keep alpha: a screenshot with the backdrop off, and a frame sequence.
+//
+// The texel alpha's job is to DECIDE THE DISCARD. Once <alphatest_fragment> has run, a surviving
+// fragment is part of the model, so its coverage is the material's opacity. This restores that,
+// after the test and never before it, so which texels are discarded does not change. RGB is
+// untouched. Non-cut-out materials are unaffected: uAlphaCut is 0 for them and the mix is a no-op.
+//
+// NOT A ROM FINDING. The game renders to an opaque framebuffer and never reads this alpha, so the
+// ROM says nothing about it -- same standing as the coverage-preserving blend alpha in state.js.
+// uCutSolid is a review knob, 1 on: set it to 0 to get the old behaviour back without a reload.
+const cutSolid = [];
+export function setCutoutSolid(on){
+  const v = on ? 1 : 0;
+  for (const u of cutSolid) u.value = v;
+}
+export function cutoutSolidCount(){ return cutSolid.length; }
+function installCutoutSolid(mat){
+  const u = mat.userData.u;
+  if (!u) return;
+  u.uCutSolid = u.uCutSolid || { value: 1 };
+  cutSolid.push(u.uCutSolid);
+  const prev = mat.onBeforeCompile;
+  mat.onBeforeCompile = (sh, r) => {
+    if (prev) prev(sh, r);
+    Object.assign(sh.uniforms, { uCutSolid: u.uCutSolid });
+    let f = sh.fragmentShader;
+    f = 'uniform float uCutSolid;' + String.fromCharCode(10) + f;
+    const A = '#include <alphatest_fragment>';
+    if (f.indexOf(A) >= 0){
+      f = f.replace(A, A + String.fromCharCode(10) +
+        '	diffuseColor.a = mix( diffuseColor.a, opacity, uCutSolid * uAlphaCut );');
+    } else { cutMisses.push(mat.name || '?'); }
+    sh.fragmentShader = f;
+  };
+  mat.needsUpdate = true;
+}
+const cutMisses = [];
+export function cutoutAnchorMisses(){ return cutMisses.slice(); }
