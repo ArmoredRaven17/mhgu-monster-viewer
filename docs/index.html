@@ -2711,10 +2711,13 @@ function applyRage(){
   // CHARGED IS ITS OWN STATE, not a deeper rage -- Khezu's Taiden branch (0xd1ec1c) hangs off a
   // different value of the same state byte as Angry, and running both at once put a 4Hz full-body
   // strobe over the rage veins. Offered only where the monster has somewhere to put it.
+  // CLEAR BEFORE PAINTING. The other order left the box ticked while the state behind it had
+  // already been cleared, so a monster with no charge state carried a stale tick under a hidden
+  // row and the next monster that could charge inherited it.
   const canCharge = main ? hasChargeState(main, state.id) : false;
+  if (!canCharge && state.charged) state.charged = false;
   document.getElementById('monChargeRow').hidden = !canCharge;
   document.getElementById('monCharge').checked = !!state.charged;
-  if (!canCharge && state.charged) state.charged = false;
   const st = matState();
   for (const g of Object.values(mounted)) applyMaterialSwap(g, st);
 }
@@ -2889,6 +2892,11 @@ document.getElementById('monBounceT').onchange = async e => { state.deflectT = e
 document.getElementById('monTier').onchange = async e => { state.deflectTier = +e.target.value; await applyHeat(); applyGap(); saveState(); };
 document.getElementById('monRage').onchange = e => {
   state.rage = e.target.checked;
+  // ONE STATE AT A TIME, because the ROM has one state to be in: Khezu's Angry and Taiden branches
+  // are two values of a single byte at enemy+0x48, dispatched through a jump table (0xd1e5ec,
+  // 0xd1e64c, 0xd1e8a8). Both boxes ticked used to leave Enraged silently inert -- matState picks
+  // charged -- which reads as a checkbox that does nothing.
+  if (state.rage) state.charged = false;
   markStateChange();
   // Rage switches PARTS as well as materials -- the driver applies a group set chosen straight from
   // the rage state (Savage Deviljho 9 calm / 13 enraged, ordinary Deviljho 0 / 9). So the toggle
@@ -2907,6 +2915,7 @@ document.getElementById('monRage').onchange = e => {
 };
 document.getElementById('monCharge').onchange = e => {
   state.charged = e.target.checked;
+  if (state.charged) state.rage = false;      // see the note on monRage: one state byte, one value
   markStateChange();
   applyRage(); saveState();
 };

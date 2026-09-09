@@ -1031,10 +1031,19 @@ const STATE_NAMES = {
              end: ['Body_Taiden_End', 'Alpha_Taiden_End', 'Taiden_End'] },
   calm:    { rest: ['Nomal_Repeat', 'Normal'] },
 };
-// WHICH MATERIAL A STATE REPLACES, per monster. Keyed by material NAME rather than by the array
-// index the ROM uses (setMaterialAt's third argument is 0 for Khezu, and for Khezu index 0 is the
-// blood layer) -- nothing here verifies that our export preserves the model's material-array
-// order, and the name is the half we can check. See the swap build in loadMonster.
+// WHICH MATERIAL A STATE REPLACES, per monster. Keyed by material NAME; the ROM keys by the array
+// index (setMaterialAt's third argument is 0 for Khezu). VERIFIED that those are the same material,
+// 2026-09-09, out of em003_00.mod itself rather than out of our export: the model's material name
+// table is at 0x1a5c, 128-byte stride, and the header's material count is 4 --
+//
+//     index 0  XfBA_A0__m03_blood          <- what setMaterialAt(model, taiden, 0) replaces
+//     index 1  XfBAN__E0__m02_body_d
+//     index 2  XfB_N__E_m01_body
+//     index 3  XfBAN__E0__m50_body_alpha
+//
+// -- and XfBA_A0__m04__taiden is NOT in that table at all. That is why no mesh binds it, why the
+// glTF export has no trace of it, and why the ROM has to fetch it by name into enemy+0x44 before it
+// can swap it in. See the swap build in loadMonster.
 //
 // XfBA_A0__m04__taiden against XfBA_A0__m03_blood is the whole of Khezu's "black veins": they are
 // the same geometry and the same two textures under the same feature word (f4,
@@ -1123,27 +1132,43 @@ const END_NAME = /_end$/i;
 let clipFallback = false;
 export function setClipFallback(on){ clipFallback = !!on; }
 export function clipFallbackOn(){ return clipFallback; }
-// Materials that carry an enraged clip -- the layers the game lights when a monster rages.
-export function enrageMaterials(root){
+// EVERY MATERIAL A MESH CAN CARRY -- what is on it now, and what a state swap took off it.
+// A scanner that looks only at o.material sees a different model depending on which state happens
+// to be showing: with Khezu charged, the mesh holding Angry_Start is carrying #833258c1 instead,
+// so enrageParts came back empty and the Enraged checkbox VANISHED, then came back the moment the
+// swap was undone. Raven, 2026-09-09: "They disappear for some reason" / "almost each selection
+// causes one to appear then reappear".
+function matsOfMesh(o){
+  const cur = o.material;
+  const orig = o.userData && o.userData.matOrig;
+  return (orig && orig !== cur) ? [cur, orig] : [cur];
+}
+// Materials that carry a clip from `list`, over every material the model can put on a mesh --
+// including the swap-ins, which is how a clip that lives ONLY on a swapped-in material counts.
+function materialsWithClip(root, list){
   const out = new Set();
+  if (!root) return out;
   root.traverse(o => {
-    const m = o.material, rom = m && m.userData && m.userData.rom;
-    for (const c of (rom && rom.anim) || [])
-      if (clipInList(c, ENRAGE_CLIPS)) out.add(m.name);
+    for (const m of matsOfMesh(o)){
+      const rom = m && m.userData && m.userData.rom;
+      for (const c of (rom && rom.anim) || [])
+        if (clipInList(c, list)) out.add(m.name);
+    }
   });
+  const sw = root.userData && root.userData.matSwap;
+  for (const st of Object.keys(sw || {}))
+    for (const m of Object.values(sw[st])){
+      const rom = m && m.userData && m.userData.rom;
+      for (const c of (rom && rom.anim) || [])
+        if (clipInList(c, list)) out.add(m.name);
+    }
   return out;
 }
+// Materials that carry an enraged clip -- the layers the game lights when a monster rages.
+export function enrageMaterials(root){ return materialsWithClip(root, ENRAGE_CLIPS); }
 // Materials that carry a CHARGE clip -- Khezu's Taiden family. Gates the Charged checkbox, which
 // is offered only on monsters that have somewhere to put it.
-export function chargeMaterials(root){
-  const out = new Set();
-  root.traverse(o => {
-    const m = o.material, rom = m && m.userData && m.userData.rom;
-    for (const c of (rom && rom.anim) || [])
-      if (clipInList(c, CHARGE_CLIPS)) out.add(m.name);
-  });
-  return out;
-}
+export function chargeMaterials(root){ return materialsWithClip(root, CHARGE_CLIPS); }
 // A monster whose CHARGE state swaps a material also has one, even when no mesh currently carries
 // a charge clip -- the clips live on the material that gets swapped IN.
 export function hasChargeState(root, monId){
@@ -1154,8 +1179,9 @@ export function hasChargeState(root, monId){
 export function enrageParts(root){
   const mats = enrageMaterials(root), out = new Set();
   root.traverse(o => {
-    const m = o.material;
-    if (m && mats.has(m.name) && o.userData && o.userData.part !== undefined) out.add(o.userData.part);
+    if (!o.userData || o.userData.part === undefined) return;
+    for (const m of matsOfMesh(o))
+      if (m && mats.has(m.name)) out.add(o.userData.part);
   });
   return out;
 }
