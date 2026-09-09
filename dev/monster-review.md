@@ -204,6 +204,57 @@ monster has no `Angry_Repeat` or `Gekikou_Repeat` to sustain them. That is consi
 2026-09-06 note that "the small eye patch was showing and the large layer over it was not".
 Whether all three should be lit at once, and in what order, is authored - same standing as the
 enrage toggle.
+### Brachydios (em063_00) and Raging Brachydios (em063_05)
+> "Brachydios renders poorly, likely due to a) it has a shiny carapace that needs to be handled
+> better b) the slime effects c) enrage changes. Raging also has issues."
+
+**STATUS** (b) and (c) diagnosed, (a) narrowed - **CAUSE** shared
+
+Raven's three-way split holds up, and the ROM separates them the same way.
+
+**(a) the shiny carapace.** `XfB__E0__m00_body` / `XfB__E_m00_body` is the only part of this monster
+using `reflect: SphereMap` - one of just **75 monster materials** that do, against **391 on
+`GlobalCubeMap`**. It also asks for `spec: Map`, `fresnel: Schlick` and `shininess 30.0` where the
+library default is 16.0, with `specular [0.4,0.4,0.4]` (0.3 on Raging). So the carapace is
+deliberately the shiniest thing on the animal and it takes its reflection from a DIFFERENT source
+than almost everything else.
+
+NOT yet established: whether `uEnvAmt` is non-zero for it. The viewer's sphere-map reflection lives
+entirely inside `if ( uEnvAmt > 0.0 )` (material.js:357), so if that resolves to 0 the carapace gets
+no reflection at all and reads flat. That is the one thing to check first, and I have not checked
+it - `fReflectiveColor` comes from CBMaterial, not from the `glob` row, so it needs reading at
+runtime rather than from materials.json.
+
+**(b) the slime.** `nenkin` is 粘菌, slime mould - the slime family, and every one of them is
+additive (`BSAddAlpha`) with `emission` at 1.0.
+
+On RAGING, four slime materials - `m01_nenkin_arm_l`, `m02_nenkin_arm_r`, `m03_nenkin_body`,
+`m04_nenkin_tail` - each carry exactly two clips:
+
+    Yellow_to_Red    auto=0  loop=0
+    Red_to_Yellow    auto=0  loop=0
+
+**Neither name is in `ENRAGE_CLIPS` or `CALM_CLIPS`, and neither carries the auto bit, so neither
+can ever be selected.** The slime never makes its colour transition. That is the whole of (b) on
+Raging, and it is the same shape as Boltreaver's charge pair: a matched pair of state clips that
+the name lists do not know about.
+
+Base Brachydios's slime carries NO clips at all, so it is static by design; if it also looks wrong
+the cause is elsewhere, most likely the additive-over-empty-scene problem the Astalos entry
+describes.
+
+**(c) enrage.** Raging's `XfB__m05_add` carries four clips:
+
+    Normal          auto=0 loop=0     <- in CALM_CLIPS, selectable
+    Angry_Start     auto=0 loop=0     <- in ENRAGE_CLIPS, selectable
+    Angry_Repeat    auto=0 loop=1     <- NOT in either list
+    Angry_End       auto=0 loop=0     <- in CALM_CLIPS, selectable
+
+`Angry_Start` is a one-shot and `Angry_Repeat` is the loop that should sustain it, so this flashes
+and stops exactly like Khezu. Same shared cause, third monster to show it.
+
+---
+
 
 ---
 
