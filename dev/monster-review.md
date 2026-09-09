@@ -84,6 +84,42 @@ albedo map are in play here. Needs the material list read before choosing.
 
 See Diablos above. Census first.
 
+### Astalos (em081_00) and Boltreaver Astalos (em081_04) - wings refract the body
+> "Boltreaver and Astalos wing effects reflect oddly, they reflect other parts of the model,
+> likely since there isn't anything else to reflect"
+
+**STATUS** diagnosed, needs Raven's decision - **CAUSE** shared, and it is the SCENE, not the shader
+
+Raven's reading is right, and the mechanism is REFRACTION rather than reflection. Both wing
+materials on both monsters carry `distortion: Refract`:
+
+| material | monsters | feature |
+|---|---|---|
+| `XfB_N__E0_wingRM` | Astalos, Boltreaver | `distortion: Refract` |
+| `XfBAN__E1_wing_taiden` | Astalos, Boltreaver | `distortion: Refract` |
+
+`stepRefract` renders the scene to a target and hands that texture to those shaders, hiding only
+the refracting meshes themselves so they do not refract themselves:
+
+    if (... o.material.userData.refract && o.visible){ hidden.push(o); o.visible = false; }
+
+Everything else stays in the capture. In the game that buffer holds a LEVEL and the monster is a
+small part of it. Here the scene is one monster on a transparent backdrop, so the only thing left
+to refract IS the rest of the monster. The implementation follows the ROM's mechanism; the input
+does not match the game's.
+
+Separately, every material on both monsters also selects `reflect: GlobalCubeMap` - an environment
+the viewer does not have either. That channel cannot show model parts, so it is not what Raven is
+seeing, but it is the same missing-scene problem one layer over.
+
+**THE CHOICE IS RAVEN'S, because every option changes how it looks and none is more "ROM" than the
+others - the ROM's answer depends on a level we do not render:**
+
+1. hide the WHOLE monster from the refraction capture, so the wings refract the empty backdrop;
+2. put something in the capture on purpose - the stage backdrop or an environment - so there is
+   something to refract;
+3. leave it, and treat the artifact as the honest consequence of an empty scene.
+
 ---
 
 ## Standing census: the clip-name lists reach 9 of 136 names
