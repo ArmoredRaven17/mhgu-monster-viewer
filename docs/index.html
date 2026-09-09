@@ -2038,12 +2038,26 @@ function buildGroups(){
       continue;
     }
     if (c.members.length === 1){
+      // NO "not applied" OPTION. Raven, 2026-09-09: "I told you to remove the Not Implement - All
+      // On options from the drop downs" / "I don't want to see them at all" / "I did not ask for
+      // them in the first place". It is the same family as the all-on placeholder removed from the
+      // multi-member branch, and the same instruction as the inert rows above, which are already
+      // dropped for having nothing to choose ("Remove any parts that are always on, people won't
+      // need to know about this", 2026-09-05).
+      //
+      // With the option gone there is nothing to pick, so this renders as a plain label rather
+      // than a one-entry dropdown: the row still says which group and which parts it covers, and
+      // the group is applied. Multi-member clusters keep their select, because there a choice
+      // genuinely exists.
       const k = c.members[0];
-      sel.innerHTML = '<option value="on">' + groupLabel(groups[k]) + stateSuffix(k) + '</option>' +
-                      '<option value="off">not applied</option>';
-      sel.value = state.groups[k] ? 'on' : 'off';
-      sel.onchange = () => { state.groups[k] = sel.value === 'on'; applyPartState(); saveState(); };
-    } else {
+      state.groups[k] = true;
+      const only = document.createElement('span');
+      only.className = 'part-only';
+      only.textContent = groupLabel(groups[k]) + stateSuffix(k);
+      row.appendChild(lab); row.appendChild(only); monGroupsEl.appendChild(row);
+      continue;
+    }
+    {
       // "NOT APPLIED" IS A REAL STATE AND THE PANEL HAS TO SAY SO.
       // The ROM starts every group ON and applies only the sets its driver selects, so a cluster
       // with no set applied leaves all of its parts DRAWN. This select used to fall back to
