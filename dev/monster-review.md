@@ -634,6 +634,34 @@ the same confusion about which signal decides alpha.
 **Also worth noting:** 59 meshes and 32 prims against **3 materials**. A high ratio is normal, but
 combined with black patches it is worth checking whether any of those meshes resolves to no
 material at all rather than to one of the three.
+### Ahtal-Ka (em088_00) - enraged eye barely shows, never toggles off
+> "Athal-ka enraged toggle does not really show the eye effect, it also does not toggle off like
+> Khezu's flashing"
+
+**STATUS** diagnosed - **CAUSE** shared, and this is the PUREST case-mismatch in the log
+
+Ahtal-Ka has exactly one animated material, and it is the eye Raven names. Its three clips differ
+from the viewer's lists ONLY in capitalisation, and the result splits three ways:
+
+| clip in the data | list holds | outcome |
+|---|---|---|
+| `angry_start` | `Angry_Start` | **miss** - the ramp-in never plays |
+| `angry_loop` | `angry_loop` | **hit** - the only one that matches |
+| `angry_end` | `Angry_End` | **miss** - nothing to return to |
+
+So on enrage the picker skips `Angry_Start`, falls through to `angry_loop` and selects the sustained
+loop with no ramp - "does not really show the eye effect". On calm it looks for `Gekikou_End`,
+`Angry_End`, `Normal`, `angry_End`, finds none of them, selects nothing, and the eye stays where it
+was - "does not toggle off like Khezu's flashing".
+
+Note the asymmetry: `angry_loop` is in `ENRAGE_CLIPS` in lowercase while `Angry_Start` and
+`Angry_End` are capitalised, so this monster hits on one of three by luck of how the list was typed.
+It is the strongest argument in the log for making the match case-insensitive - a one-line change
+that invents nothing, since the ROM supplies both spellings, and it fixes Ahtal-Ka completely along
+with the eight other monsters in the case census.
+
+---
+
 
 ---
 
