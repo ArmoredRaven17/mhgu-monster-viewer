@@ -203,8 +203,25 @@ export function createRomMaterial(spec){
   mat.userData.cls = cls;
   mat.userData.romCore = true;
   if (feat && feat.distortion === 'Refract') mat.userData.refract = true;
+  // DRAW ORDER COMES FROM THE ROM'S DEPTH BIAS, not from the blend mode.
+  //
+  // This used to be `(add || revsub) ? 20 : (blend ? 10 : 0)` -- a rule with no source in the ROM,
+  // and it inverted layers the ROM stacks the other way. Khezu: m02_body_d is a BLEND layer at bias
+  // -384, m03_blood is REVSUB at bias -160, so the ROM puts m02_body_d in FRONT; the old rule drew
+  // it first and let the vein layer composite over the top of it. Raven, 2026-09-09: "I suspect the
+  // wounds are also in the wrong order since I see areas around the wound marks that normally are
+  // not seen."
+  //
+  // The bias IS the stacking: RSMeshBiasN pulls a layer toward the camera, and applyRomBias already
+  // turns it into the polygon offset, so depth was right and only the blend order was wrong -- which
+  // is why it shows as fringing around a mark rather than z-fighting. Correct alpha blending is
+  // far-to-near, so the nearest layer (most negative bias) must draw LAST.
+  //
+  // Opaque stays at 0 so it always precedes the overlays. Everything else is ordered by bias, and
+  // materials sharing a bias keep their insertion order.
   const blend = st && st.blend;
-  mat.userData.renderOrder = (blend === 'add' || blend === 'revsub') ? 20 : (blend === 'blend' ? 10 : 0);
+  const bias = (st && typeof st.bias === 'number') ? st.bias : 0;
+  mat.userData.renderOrder = (!blend || blend === 'opaque') ? 0 : 10 + Math.max(0, -bias);
   mat.needsUpdate = true;
   return mat;
 }
