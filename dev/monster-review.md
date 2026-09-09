@@ -298,6 +298,43 @@ rather than by missing assets:
 
 So "apply the variant level changes" resolves to three different jobs: load Furious Rajang's own
 archive, make the state clips selectable, and then decide the states - the last being authored.
+### Off-centred effect meshes - Glavenus, Deviljho, and probably more
+> "the Sword mesh for things like the heated up effect are off centered, an issue I know I have
+> pointed out before" / "Off centered meshes were also an issue with Deviljho"
+
+**STATUS** strong lead, not confirmed - **CAUSE** shared, and it is in the BUILD, not the viewer
+
+Two monsters with the same geometric symptom is a mechanism, not two patches. The build pipeline
+already knows this exact failure by name. `buildlib._fix_rigid_skins`:
+
+> "Bind the primitives the converter leaves weightless. The .mod is passed so the REAL bone can be
+> read from its one-bone vertex format; **without it every such primitive falls back to joint 0,
+> which is what stranded Brachydios' arm slime at the origin.**"
+
+A rigid, unweighted primitive - which is what an effect mesh like Glavenus's heated sword layer
+is - lands at the ROOT instead of the bone the `.mod` names. That is "off centred" exactly.
+
+**Why it can still be wrong even though the fix exists:** `mod_to_gltf` skips conversion entirely
+when the output is already present -
+
+    glb = mod_path[:-4] + ".glb"
+    if not os.path.isfile(glb):
+        run_tool("mod_to_gltf", mod_path)
+        ... _fix_rigid_skins(glb, mod_path) ...
+
+so any `.glb` built BEFORE the fix landed is never re-fixed and keeps its joint-0 binding forever.
+The shipped assets are the suspect, not the current code.
+
+**The check, which I have not run:** scan the shipped `docs/models/monsters/*.glb` for primitives
+whose JOINTS_0 is entirely 0 with full weight on that joint, and compare against the bone their
+`.mod` names. Any mismatch is a stale asset that needs its `.glb` deleted and rebuilt. That also
+gives the blast radius across all 130 rather than chasing Glavenus and Deviljho one at a time.
+
+Related and already on the board: the Armor/Weapon Viewer calls the same script WITHOUT a `.mod`
+path, so its rigid primitives all take the joint-0 fallback by construction.
+
+---
+
 
 ---
 
