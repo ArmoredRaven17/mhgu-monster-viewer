@@ -161,6 +161,52 @@ also have no auto clip, so nothing can ever be selected:
 2. AUTHORED - which of the pair is which charge state, and which part groups are on in each. Same
    standing as the enrage toggle: the ROM reaches these through an AI state, so it is Raven's to
    decide, and it is what his note about "tuning on and off multiple part groups" describes.
+### Savage Deviljho (em043_05) - enrage still incomplete, and the effect went blobby
+> "Savage, enrage effects are still incomplete, I also think the effect we have currently is
+> rendered more loosely than I've seen it rendered. It looks more like a blob now compared to
+> previous versions."
+
+**STATUS** two findings, one of them a REGRESSION I SHIPPED TODAY - **CAUSE** shared
+
+**The blob is almost certainly mine, from 51a71d0, and it is togglable.** That commit makes a
+fragment that survives the alpha test write FULL coverage instead of keeping its sampled alpha:
+
+    #include <alphatest_fragment>
+    diffuseColor.a = mix( diffuseColor.a, opacity, uCutSolid * uAlphaCut );
+
+Savage's effect layers are exactly what that hits. `XfBA0__m03_body_a` is `transp: Alpha`;
+`XfB__m02_body_k` and `XfBA_IW_1__m00` are `AlphaConstant`. A cut-out effect texture is authored
+with a SOFT ramp, so before the change the texels above the cut threshold still faded out
+(0.3, 0.6, 0.9) and now every one of them is 1.0. A feathered edge becomes a filled shape, which is
+what "more like a blob" describes.
+
+I made that change to fix the capture cut-out and said at the time it would change what is on
+screen. This is that cost landing, on the layers where it shows most. Settle it without a reload:
+
+    __view.cutSolid(false)   the old soft edges
+    __view.cutSolid(true)    the current filled coverage
+
+If the old look is right, the fix is to stop applying it to EFFECT layers rather than revert it
+wholesale, because it is also what stops the body going see-through in a capture.
+
+**Separately, "incomplete" has a structural reason: three effect materials, three clip families,
+not selected together.**
+
+| material | transp | clips | selectable? |
+|---|---|---|---|
+| `XfB__m02_body_k` | AlphaConstant | `Angry_Start`, `Angry_End`, both loop 0 | pinned by `ROM_SPAWN_CLIP` to `Angry_Start` |
+| `XfBA0__m03_body_a` | Alpha | `Gekikou_Start`, `Gekikou_End`, both loop 0 | by name; `Gekikou_Start` is first in `ENRAGE_CLIPS` |
+| `XfBA_IW_1__m00` | AlphaConstant | one unnamed clip, hash `1235185165` = **`effect`** | yes, `auto = 1` |
+
+The third resolves now: `1235185165` inverts to `effect` and carries the auto bit, so it plays
+regardless. The first two are one-shots with no loop, so like Khezu they play once and stop - this
+monster has no `Angry_Repeat` or `Gekikou_Repeat` to sustain them. That is consistent with Raven's
+2026-09-06 note that "the small eye patch was showing and the large layer over it was not".
+Whether all three should be lit at once, and in what order, is authored - same standing as the
+enrage toggle.
+
+---
+
 
 ## Clip-name hashes: the names are in the ROM, and clips should be picked by HASH
 
