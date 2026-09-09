@@ -51,6 +51,23 @@ export const BLEND = {
 };
 // every record above carries the same alpha triple
 const ALPHA_ONE_ZERO_ADD = { src: 'ONE', dst: 'ZERO', eq: 'ADD' };
+// WHAT WE ACTUALLY SET, AND WHY IT IS NOT THE ROM'S TRIPLE.
+// ONE / ZERO / ADD means destination alpha is REPLACED by the source's. On the game's framebuffer
+// that is free: it is opaque and nothing ever reads its alpha. Our canvas is transparent, and its
+// alpha IS read -- by the browser compositing the canvas over the CSS backdrop, and by the two
+// capture modes that keep it (a screenshot with the backdrop off, and a frame sequence). Replacing
+// coverage there means any surface with alpha < 1 drawn over the body PUNCHES ITS OWN ALPHA THROUGH
+// the body behind it.
+// Raven, 2026-09-09: "when capturing, I notice some parts become transparent". Measured on Khezu,
+// whose three CustomBlending materials are the ones in play: with the ROM triple, 35,243 model
+// pixels came out part-transparent and 22,012 of those below half alpha; with the triple below,
+// 4,386 and 1,380 -- and 30,886 pixels went fully opaque. What is left is silhouette antialiasing.
+// So the ALPHA channel uses standard "over", which can only ever add coverage. RGB is untouched:
+// blendSrcAlpha / blendDstAlpha / blendEquationAlpha do not affect the colour channels, so every
+// blend record still composites its colour exactly as decoded above.
+// THIS IS APP BEHAVIOUR, NOT THE ROM. The decode above stands as the record of what the hardware
+// did; we deviate only where the ROM's choice has no meaning and ours does.
+const ALPHA_COVERAGE_OVER = { src: 'ONE', dst: 'INV_SRC_ALPHA', eq: 'ADD' };
 
 const F = {
   ONE:            THREE.OneFactor,
@@ -149,10 +166,10 @@ export function applyRomState(mat, st){
   } else {
     mat.blending = THREE.CustomBlending;
     mat.blendSrc = F[b.src]; mat.blendDst = F[b.dst]; mat.blendEquation = EQ[b.eq];
-    // the half neither app has ever set -- see the note on w7 above
-    mat.blendSrcAlpha = F[ALPHA_ONE_ZERO_ADD.src];
-    mat.blendDstAlpha = F[ALPHA_ONE_ZERO_ADD.dst];
-    mat.blendEquationAlpha = EQ[ALPHA_ONE_ZERO_ADD.eq];
+    // the half neither app has ever set -- see the notes on w7 and on coverage above
+    mat.blendSrcAlpha = F[ALPHA_COVERAGE_OVER.src];
+    mat.blendDstAlpha = F[ALPHA_COVERAGE_OVER.dst];
+    mat.blendEquationAlpha = EQ[ALPHA_COVERAGE_OVER.eq];
     mat.transparent = true;
   }
 
