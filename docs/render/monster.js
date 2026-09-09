@@ -24,6 +24,8 @@ import { createRomMaterial, enableRomCore, romCoreEnabled,
          enableRomPhong, romPhongEnabled,
          setCutoutSolid, cutoutSolidCount, cutoutAnchorMisses } from './rom/material.js';
 import { setBiasUnitsPerStep as setRomBiasUnitsPerStep, releaseBiased } from './rom/state.js';
+import { extendMapMisses } from './rom/shader.js';
+export { extendMapMisses };
 import { loadEffectMounts, attachEffectMounts, detachEffectMounts, enableEffectMounts,
          effectMountsEnabled, effectMountsFor, effectMountsLive } from './rom/effect-mounts.js';
 // The proof-effect models a monster hangs on a joint. Felyne only on shipped data; the module
@@ -942,6 +944,16 @@ const sameClip = (a, b) => typeof a === 'string' && typeof b === 'string' &&
 const clipInList = (c, list) => !!c && list.some(nm => sameClip(c.name, nm));
 // Names the ROM uses for a base state. `nomal` is its own spelling, not a typo of mine.
 const REST_NAME = /normal|nomal|cool|off/i;
+// A clip named *_End is the ROM's transition INTO the base state, and its final frame -- which the
+// evaluator clamps and holds -- IS that state. CALM_CLIPS already lists three of them by hand
+// (Angry_End, Gekikou_End, angry_End); the suffix is the rule behind those. It reaches Khezu's
+// Taiden_End, Body_Taiden_End and Alpha_Taiden_End, and the same shape on Agnaktor (maguma_End),
+// Alatreon (blue_End, red_End), Nightcloak (stealth_end) and Soulseer (tuya_end).
+//
+// Khezu is why: its #833258c1 is an ADDITIVE electric layer whose unnamed looping clip writes only
+// a UV scroll and no transparency, so once anything switched it on it stayed on at full strength.
+// Taiden_End is the clip that takes fTransparency 1.0 -> 0.0, and nothing selected it.
+const END_NAME = /_end$/i;
 // DEFAULT OFF, and it stays off until Raven has looked at it. The premise -- that a looping clip
 // is a safe thing to show at rest -- did not survive the data. Valstrax's m05_eye carries exactly
 // three clips and its `Loop` drives fConstantColor to [0, 0, 0, 1], BLACK, for its whole duration:
@@ -1064,6 +1076,12 @@ function clipPicker(state, monId){
     if (steady < 0 && state && state !== 'enraged'){
       steady = clips.findIndex(c => typeof c.name === 'string' && REST_NAME.test(c.name));
       restOnly = steady >= 0;
+    }
+    // No rest clip: an *_End clip is the off state. Only for CALM, and only when the name lists
+    // found nothing -- it never overrides an explicit match.
+    if (ci < 0 && steady < 0 && state && state !== 'enraged'){
+      const e = clips.findIndex(c => typeof c.name === 'string' && END_NAME.test(c.name));
+      if (e >= 0){ steady = e; restOnly = true; }
     }
     if (ci < 0) ci = steady;                       // nothing matched: the base state alone
     // A REST CLIP IS THE STATE, NOT A BACKDROP -- run it ALONE, do not put the transition over it.

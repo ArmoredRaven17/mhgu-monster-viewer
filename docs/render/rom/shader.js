@@ -18,6 +18,11 @@ function chain(mat, fn){
   mat.needsUpdate = true;
 }
 
+// Materials whose second-albedo-map GLSL found no anchor. Empty is the expected state; anything
+// here means the injection is being dropped again, which is silent in every other respect.
+const extMisses = [];
+export function extendMapMisses(){ return extMisses.slice(); }
+
 export function injectFeatures(mat, rom, lit){
   const feat = rom && rom.feat;
   if (!feat) return mat;
@@ -122,12 +127,23 @@ export function injectFeatures(mat, rom, lit){
       sh.vertexShader = sh.vertexShader
         .replace('void main() {', 'attribute vec2 uv1;\nvarying vec2 vExtUv;\nvoid main() {')
         .replace('#include <uv_vertex>', '#include <uv_vertex>\n\tvExtUv = uv1;');
-      sh.fragmentShader = sh.fragmentShader
-        .replace('void main() {',
-          'uniform sampler2D uExtMap;\nuniform vec4 uExtTint;\nuniform float uExtMode;\n' +
-          'uniform vec4 uExtXf;\nuniform float uExtView;\nvarying vec2 vExtUv;\nvoid main() {')
-        .replace('#include <map_fragment>',
-          '#include <map_fragment>\n' +
+      // TWO ANCHORS, because `#include <map_fragment>` IS NOT THERE BY THE TIME THIS RUNS.
+      // rom/material.js calls applyTint(mat) BEFORE injectFeatures(mat, ...), and applyTint
+      // replaces that include wholesale with its own block. This injection was then replacing a
+      // string that no longer existed: the uniforms were still assigned, so uExtMap, uExtMode and
+      // uExtXf all read back correctly bound and animating, while not one line of GLSL sampled
+      // them. Nothing threw, exactly like the uRomSpecAmount miss.
+      //
+      // Raven, 2026-09-09, on Khezu: the veins are "black" and "present at all times". Its
+      // m03_blood is TypeExtendModulate -- an achromatic vein mask, mean RGB (0.696, 0.698, 0.696),
+      // modulated by a TEAL second map, mean (0.085, 0.270, 0.244) -- drawn reverse-subtract.
+      // Modulated, the layer subtracts teal and leaves a reddish tint. Un-modulated it subtracts
+      // neutral grey, which is black, and without the second map masking it down it shows
+      // everywhere. Both halves of his report, one cause.
+      //
+      // 20 materials carry a second map: 13 TypeExtendModulate, 3 TypeExtendAdd, 4 MapBlend.
+      // A miss is now RECORDED rather than silent.
+      const EXT =
           '\t{ vec2 euv = vExtUv;\n' +
           '\t  if ( uExtView > 0.5 ) { vec3 evn = normalize( vNormal ); euv = evn.xy * 0.5 + 0.5; }\n' +
           '\t  euv = euv * uExtXf.xy + uExtXf.zw;\n' +
@@ -143,7 +159,19 @@ export function injectFeatures(mat, rom, lit){
           // the ROM saturates the Add, via intrinsic 57 (arity 1) sitting on the ADD's result
           '\t    diffuseColor.rgb = uExtMode > 1.5 ? clamp( diffuseColor.rgb + ext.rgb, 0.0, 1.0 )\n' +
           '\t                                      : diffuseColor.rgb * ext.rgb;\n' +
-          '\t  } }');
+          '\t  } }';
+      sh.fragmentShader = sh.fragmentShader
+        .replace('void main() {',
+          'uniform sampler2D uExtMap;\nuniform vec4 uExtTint;\nuniform float uExtMode;\n' +
+          'uniform vec4 uExtXf;\nuniform float uExtView;\nvarying vec2 vExtUv;\nvoid main() {');
+      // applyTint's block ends with this line; it is what survives when the include does not.
+      const A_INC  = '#include <map_fragment>';
+      const A_TINT = 'diffuseColor.a *= mix( 1.0, texel.a, uAlphaCut );';
+      let f = sh.fragmentShader;
+      if (f.indexOf(A_INC) >= 0)       f = f.replace(A_INC,  A_INC  + '\n' + EXT);
+      else if (f.indexOf(A_TINT) >= 0) f = f.replace(A_TINT, A_TINT + '\n' + EXT);
+      else extMisses.push(mat.name || '?');
+      sh.fragmentShader = f;
     });
   }
 
