@@ -940,6 +940,28 @@ const CALM_CLIPS = ['Gekikou_End', 'Angry_End', 'Normal', 'angry_End'];
 const sameClip = (a, b) => typeof a === 'string' && typeof b === 'string' &&
                            a.toLowerCase() === b.toLowerCase();
 const clipInList = (c, list) => !!c && list.some(nm => sameClip(c.name, nm));
+// Names the ROM uses for a base state. `nomal` is its own spelling, not a typo of mine.
+const REST_NAME = /normal|nomal|cool|off/i;
+// DEFAULT OFF, and it stays off until Raven has looked at it. The premise -- that a looping clip
+// is a safe thing to show at rest -- did not survive the data. Valstrax's m05_eye carries exactly
+// three clips and its `Loop` drives fConstantColor to [0, 0, 0, 1], BLACK, for its whole duration:
+//
+//     start   [1,1,1,1] -> [0,0,0,1]    the eye fading OFF
+//     Loop    [0,0,0,1]  held           the eye held OFF
+//     end     [0,0,0,1] -> [1,1,1,1]    the eye coming ON
+//
+// So on that material "the sustained loop" is the OFF state, and selecting it would have turned
+// the eyes black rather than restoring them. `Loop` carries no rest marker, so the name heuristic
+// does not save it either. The same shape is likely on other effect layers: an effect's steady
+// state is frequently "not showing".
+//
+// The code is kept because the fallback is still the right SHAPE for the 46 materials that
+// currently sit on a static constant -- it is the CHOICE of clip that is unsafe, and that is
+// Raven's to make per material, not mine to guess library-wide.
+// __view.clipFallback(true) turns it on for comparison.
+let clipFallback = false;
+export function setClipFallback(on){ clipFallback = !!on; }
+export function clipFallbackOn(){ return clipFallback; }
 // Materials that carry an enraged clip -- the layers the game lights when a monster rages.
 export function enrageMaterials(root){
   const out = new Set();
@@ -984,6 +1006,40 @@ function clipPicker(state, monId){
       for (let i = clips.length - 1; i >= 0; i--) if (clips[i].loop){ ci = i; break; }
     }
     if (ci < 0) ci = clips.findIndex(c => c.auto);   // the ROM's own default
+    // LAST RESORT: a SUSTAINED clip, so a material with animation is never left sitting on its
+    // static constant. Raven, 2026-09-09, asked for fixes to be general "since it may fix things
+    // across multiple monsters", and this is the general half of the clip problem: 46 materials on
+    // 23 monsters reach this point with nothing selected, and most of them are the reported faults.
+    // Valstrax's eye and heat, Gypceros's crest, Boltreaver's charge, Khezu's Nomal_Repeat, Gore
+    // Magala's kasan, Soulseer's dry coat, Teostra's Effect_Loop and Agnaktor's lava are all here.
+    // Left unselected they draw their static constant, which is white on most of them -- that is
+    // the "renders white", "not coloured" and "no eyes" family in the review log.
+    //
+    // Only LOOPING clips are eligible. A one-shot would play once and stop, which is the Khezu
+    // flash; a loop is a state by definition and is safe to hold. Enrage names are skipped so a
+    // calm material does not come up angry.
+    //
+    // THE ONE JUDGEMENT, and it is small: among the candidates, prefer a name that marks the base
+    // state -- normal, nomal (the ROM's own typo), cool, off. Without it the first candidate wins
+    // and that is wrong on the monsters where the rest state is authored last: Agnaktor would take
+    // maguma_Loop over cool_Loop, Khezu Angry_Repeat over Nomal_Repeat, Gypceros Light_on over
+    // Light_off. With it, all three land correctly.
+    //
+    // THIS IS A VIEWER AFFORDANCE, NOT THE ROM. The game reaches these clips from an AI state, so
+    // no rule here can be right by construction -- __view.clipFallback(false) turns it off and
+    // restores the previous behaviour for comparison.
+    if (ci < 0 && clipFallback){
+      const eligible = [];
+      for (let i = 0; i < clips.length; i++)
+        if (clips[i].loop && !clipInList(clips[i], ENRAGE_CLIPS)) eligible.push(i);
+      if (!eligible.length)
+        for (let i = 0; i < clips.length; i++) if (clips[i].loop) eligible.push(i);
+      if (eligible.length){
+        ci = eligible[0];
+        for (const i of eligible)
+          if (typeof clips[i].name === 'string' && REST_NAME.test(clips[i].name)){ ci = i; break; }
+      }
+    }
     // TWO SLOTS, the way the rage state machine at 0xe37560 drives them: it puts the START clip
     // into SLOT 1 while SLOT 0 keeps running the steady-state clip. So when a state clip was found
     // and the material also carries an auto-play/steady clip, run both -- slot 0 first, slot 1 over

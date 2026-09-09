@@ -1038,6 +1038,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          setUndefinedMaterialVisible, setExtendVisible, extendCount,
          applyHeatmap, clearHeatmap, applyFlat, parseZones, heatColor, EXTRACT_RGB,
          setCutoutSolid, cutoutSolidCount, cutoutAnchorMisses,
+         setClipFallback, clipFallbackOn,
          loadEffectMounts, attachEffectMounts, detachEffectMounts,
          enableEffectMounts, effectMountsEnabled, effectMountsFor, effectMountsLive,
          SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS,
@@ -3133,6 +3134,15 @@ window.__view.effects = async (on, only) => {
   return { on: effectMountsEnabled(), mounted: effectMountsLive() };
 };
 window.__view.effectsAvailable = () => effectMountsFor(state.id);
+// The sustained-clip fallback: on by default. Off restores the previous behaviour, where a material
+// whose clips match no name and carry no auto bit was left on its static constant.
+window.__view.clipFallback = on => {
+  setClipFallback(on);
+  const st = state.rage ? 'enraged' : 'calm';
+  for (const g of Object.values(mounted)) stepMatAnim(g, 0, st, state.id);
+  renderer.render(scene, camera);
+  return { on: clipFallbackOn() };
+};
 // Cut-out coverage, for Raven to judge a capture both ways without a reload:
 //   __view.cutSolid(false) -> the old behaviour, a surviving cut-out texel keeps its map alpha
 //   __view.cutSolid(true)  -> a surviving texel writes full coverage (the default)
