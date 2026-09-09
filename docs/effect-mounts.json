@@ -1,0 +1,148 @@
+{
+ "ems007_00": [
+  {
+   "model": "cm030_002",
+   "joint": -1,
+   "array": 2,
+   "index": 0
+  },
+  {
+   "model": "cm030_001",
+   "joint": 12,
+   "array": 2,
+   "index": 0
+  },
+  {
+   "model": "cm030_001",
+   "joint": 8,
+   "array": 2,
+   "index": 1
+  },
+  {
+   "model": "cm030_001",
+   "joint": 12,
+   "array": 2,
+   "index": 2
+  },
+  {
+   "model": "cm030_003",
+   "joint": 6,
+   "array": 2,
+   "index": 3
+  },
+  {
+   "model": "cm030_003",
+   "joint": 12,
+   "array": 2,
+   "index": 6
+  },
+  {
+   "model": "cm030_003",
+   "joint": 12,
+   "array": 2,
+   "index": 7
+  },
+  {
+   "model": "cm030_008",
+   "joint": 8,
+   "array": 2,
+   "index": 8
+  },
+  {
+   "model": "cm030_001",
+   "joint": 12,
+   "array": 2,
+   "index": 9
+  },
+  {
+   "model": "cm030_001",
+   "joint": 12,
+   "array": 2,
+   "index": 10
+  },
+  {
+   "model": "cm030_001",
+   "joint": 12,
+   "array": 2,
+   "index": 11
+  },
+  {
+   "model": "cm030_001",
+   "joint": -1,
+   "array": 2,
+   "index": 12
+  },
+  {
+   "model": "cm030_006",
+   "joint": -1,
+   "array": 2,
+   "index": 13
+  },
+  {
+   "model": "cm030_003",
+   "joint": -1,
+   "array": 2,
+   "index": 14
+  },
+  {
+   "model": "cm030_001",
+   "joint": -1,
+   "array": 2,
+   "index": 15
+  },
+  {
+   "model": "cm030_001",
+   "joint": 8,
+   "array": 2,
+   "index": 22
+  },
+  {
+   "model": "cm030_001",
+   "joint": 8,
+   "array": 2,
+   "index": 23
+  },
+  {
+   "model": "cm030_001",
+   "joint": 6,
+   "array": 2,
+   "index": 42
+  },
+  {
+   "model": "cm030_001",
+   "joint": 6,
+   "array": 2,
+   "index": 43
+  },
+  {
+   "model": "cm030_001",
+   "joint": 6,
+   "array": 2,
+   "index": 44
+  },
+  {
+   "model": "cm030_001",
+   "joint": 6,
+   "array": 2,
+   "index": 45
+  },
+  {
+   "model": "cm030_001",
+   "joint": 9,
+   "array": 2,
+   "index": 46
+  },
+  {
+   "model": "cm030_001",
+   "joint": 9,
+   "array": 2,
+   "index": 47
+  },
+  {
+   "model": "cm030_001",
+   "joint": 9,
+   "array": 2,
+   "index": 48
+  }
+ ]
+}

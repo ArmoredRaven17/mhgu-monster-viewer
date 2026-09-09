@@ -1038,6 +1038,8 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          setUndefinedMaterialVisible, setExtendVisible, extendCount,
          applyHeatmap, clearHeatmap, applyFlat, parseZones, heatColor, EXTRACT_RGB,
          setCutoutSolid, cutoutSolidCount, cutoutAnchorMisses,
+         loadEffectMounts, attachEffectMounts, detachEffectMounts,
+         enableEffectMounts, effectMountsEnabled, effectMountsFor, effectMountsLive,
          SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS,
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts,
@@ -1082,6 +1084,7 @@ const PARTSTATES = await loadJson('part-states.json').catch(() => ({ groups: {} 
 // The ROM's undamaged part sets, applied on top of PartsDisp all-on so part BREAKS are not drawn
 // alongside the intact parts they replace. See ROM_REST_SETS in render/monster.js.
 setRestSets(await loadJson('part-rest.json').catch(() => ({ sets: {}, defaultSet: {} })));
+  await loadEffectMounts('effect-mounts.json');
 function partStateFor(id, groupIndex){
   const base = String(id || '').split('_')[0];
   const g = PARTSTATES.groups && PARTSTATES.groups[base];
@@ -1819,6 +1822,7 @@ function saveState(){
 // ---- the monster ------------------------------------------------------------------------
 const mounted = {};
 let seq = 0;
+let effectOnly = null;      // which proof-effect record to mount, null = all
 const pose = new PoseDriver({ frame: world, onError: msg => noteError(msg) });
 const monSel = document.getElementById('monSel'), monFilter = document.getElementById('monFilter'),
       monListSel = document.getElementById('monList'), monClipSel = document.getElementById('monClip'),
@@ -2139,6 +2143,10 @@ async function mount(){
     zoneCache = null; await applyHeat(); applyGap();
     setNormalOpt(state.normalFlip, state.normalScale);
     placeParts();
+    // The proof-effect models this monster hangs on a joint. Off unless asked for: the game
+    // fires these per action and what fires which is undecoded, so showing them all at once is
+    // an inspection, not a reconstruction. See render/rom/effect-mounts.js.
+    await attachEffectMounts(main, state.id, effectOnly);
   } finally { setLoading(false); }
 }
 // Fan the severed parts around the monster, on the ground, leaving the camera-facing front
@@ -3061,6 +3069,20 @@ async function runScene(name){
 }
 window.__view = { camera, controls, scene, world, renderer, frameAll, pose, state, MON, mounted,
                   monsterMats, runScene, capture: captureHarness };
+// Proof-effect model mounts (Felyne only on shipped data -- see the module header).
+//   __view.effects(true)      mount every joint-bound record
+//   __view.effects(true, 3)   mount only record 3
+//   __view.effects(false)     take them off
+//   __view.effectsAvailable() what this monster has, before mounting
+window.__view.effects = async (on, only) => {
+  effectOnly = (only === undefined) ? null : only;
+  enableEffectMounts(on);
+  if (!on) detachEffectMounts();
+  else await attachEffectMounts(mounted.main, state.id, effectOnly);
+  renderer.render(scene, camera);
+  return { on: effectMountsEnabled(), mounted: effectMountsLive() };
+};
+window.__view.effectsAvailable = () => effectMountsFor(state.id);
 // Cut-out coverage, for Raven to judge a capture both ways without a reload:
 //   __view.cutSolid(false) -> the old behaviour, a surviving cut-out texel keeps its map alpha
 //   __view.cutSolid(true)  -> a surviving texel writes full coverage (the default)
