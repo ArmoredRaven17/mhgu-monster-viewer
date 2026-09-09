@@ -503,6 +503,38 @@ question to answer next, and it would explain reports that resolution cannot.
 and the body is `albedo: MapColorOnly` with no blend map bound, so there is no second albedo layer
 carrying wound detail. Whether the wounds are in the body's own 1024 map, on a mesh held off by
 part state, or somewhere not loaded at all, is unestablished.
+### Nibelsnarf (em056_00) - part 9 renders very wrongly
+> "Nibelsnarf, part 9 is rendering very wrongly"
+
+**STATUS** narrowed, mapping NOT confirmed - **CAUSE** part state, not material
+
+Part 9 is structurally the odd one out on this monster. Nibelsnarf ships 13 part groups, and most
+of them are EXCLUSIVE PAIRS - one part on while its partner is off, in both directions:
+
+    group 2   [[2, True ], [3, False]]      group 8    [[2, False], [3, True ]]
+    group 4   [[5, True ], [6, False]]      group 10   [[5, False], [6, True ]]
+    group 5   [[7, True ], [8, False]]      group 11   [[7, False], [8, True ]]
+
+Part 9's two groups name no partner at all:
+
+    group 6   [[9, False]]                  group 12   [[9, True ]]
+
+and neither of them is reachable through the rest-set machinery. `part-rest.json` gives Nibelsnarf
+`defaultSet: 1` and `sets: [2, 3, 4, 5]` - so groups 6 and 12 are in NEITHER the default nor any
+undamaged set. Part 9 sits outside the system that decides what is on at rest, which is exactly the
+shape of a part that renders in the wrong state.
+
+**The likely occupant, not confirmed:** Nibelsnarf has only four materials - `m00_eye`,
+`m01_body`, `m02_era` and `m03_gitai`. `era` is 鰓, gills; **`gitai` is 擬態, mimicry** - the
+sand-camouflage layer it wears while buried. A layer that should only appear in one state, sitting
+on the one part that the rest-set logic does not govern, fits the report. I have NOT confirmed the
+part-to-mesh mapping, so which prims part 9 actually owns is still to be read from the `.mod`.
+
+Related: this is the same missing machinery as Yian Kut-Ku's ears - exclusive pairs and standalone
+toggles both need the grouping layer before they can be driven correctly.
+
+---
+
 
 ---
 
