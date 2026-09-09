@@ -1034,7 +1034,7 @@ import { PoseDriver } from './render/pose.js';
 import { loadMaterialsDb } from './render/materials-db.js';
 import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
          partVerts, partsDrawn, applyParts, groupLabel, groupIsInert, setNormalOpt,
-         DEFAULT_PARTS_OFF, ROM_RAGE_SET, setRestSets, stepRefract,
+         DEFAULT_PARTS_OFF, DEFAULT_PARTS_ON, ROM_RAGE_SET, setRestSets, stepRefract,
          setUndefinedMaterialVisible, setExtendVisible, extendCount,
          applyHeatmap, clearHeatmap, applyFlat, parseZones, heatColor, EXTRACT_RGB,
          setCutoutSolid, cutoutSolidCount, cutoutAnchorMisses,
@@ -1996,7 +1996,7 @@ function buildGroups(){
   // the default is the ROM's own: the set the monster's class registers, keyed by em class
   if (!state.groups || state.groups.length !== groups.length)
     state.groups = defaultGroupsOn(groups, e && e.em, e && e.id, !!state.rage,
-                                   DEFAULT_PARTS_OFF[e && e.id]);
+                                   DEFAULT_PARTS_OFF[e && e.id], DEFAULT_PARTS_ON[e && e.id]);
   monGroupsEl.innerHTML = '';
   if (!groups.length){
     monGroupsEl.innerHTML = '<p class="hint">This monster ships no part-visibility table.</p>';
@@ -2866,7 +2866,7 @@ document.getElementById('monRage').onchange = e => {
   const en = entry();
   if (en && ROM_RAGE_SET[en.id]){
     state.groups = defaultGroupsOn(en.groups || [], en.em, en.id, state.rage,
-                                   DEFAULT_PARTS_OFF[en.id]);
+                                   DEFAULT_PARTS_OFF[en.id], DEFAULT_PARTS_ON[en.id]);
     buildGroups(); applyPartState();
   }
   applyRage(); saveState();

@@ -157,8 +157,9 @@ export function clusterGroups(groups){
 // always gets the same one: every break threshold in all 138 .dtp files is non-zero, so a break
 // level of 0 takes the low branch at every site, for every monster, at every quest rank.
 //
-// DEFAULT_PARTS_ON is gone: it held one entry, em043_05 part 6, believed to be Savage Deviljho's
-// eye effect. It is not -- part 6 is the eye glow shared byte-for-byte with ordinary Deviljho.
+// DEFAULT_PARTS_ON was emptied 2026-09-07: its one entry, em043_05 part 6, was believed to be
+// Savage Deviljho's eye effect and is not -- part 6 is the eye glow shared byte-for-byte with
+// ordinary Deviljho. It comes back 2026-09-09 for the Rathian and Rathalos lines, on Raven's call.
 export const DEFAULT_PARTS_OFF = {
   // Raven's own call, 2026-09-05: "Congalala, turn off parts 12-18 by default". Re-checked
   // 2026-09-07 against the ROM-derived sets and it is STILL load-bearing: all seven parts draw
@@ -169,6 +170,24 @@ export const DEFAULT_PARTS_OFF = {
   // and without them on all three (em013_00 Fatalis, em013_01 Crimson, em013_02 Old). An exception
   // that the core has caught up with is not an exception any more -- it is a place the viewer would
   // silently stop matching the ROM if the ROM ever disagreed.
+};
+// Parts a monster should OPEN with, whatever the ROM's own order says -- the mirror of
+// DEFAULT_PARTS_OFF and, like it, Raven's call on verification rather than something taken while
+// building. Applied by applyForcedOn, which switches the cluster owning the part to whichever of
+// its alternatives DRAWS it, and runs after applyForcedOff so an explicit "on" wins a collision.
+//
+// 2026-09-09: "for Rathian line, have part 101 on by default" / "Same for Rahtalos". Part 101 is
+// clustered with part 8 in all six: groups 11 (101 on / 8 off) and 12 (8 on / 101 off) for the
+// four 13-group models, and 11, 12 (both 101 on) against 13 (101 off) for the two 14-group ones.
+// The ROM's own resting sets are [3,5,7,9] with defaultSet 2 -- none of them name a 101 group, so
+// without this the cluster falls through to its last member and 101 draws off.
+export const DEFAULT_PARTS_ON = {
+  em001_00: [101],   // Rathian
+  em001_02: [101],   // Gold Rathian
+  em001_04: [101],   // Dreadqueen Rathian
+  em002_00: [101],   // Rathalos
+  em002_02: [101],   // Silver Rathalos
+  em002_04: [101],   // Dreadking Rathalos
 };
 // The group set each monster CLASS registers as its resting default -- argument A of the setter
 // 0x71398, taken from the 59 registration sites in vtable slot 118 and attributed by a per-class
