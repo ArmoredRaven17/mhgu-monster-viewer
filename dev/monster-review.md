@@ -567,6 +567,49 @@ name the transitions between three charge levels:
 
 00 to 01, 01 to 02, and both ways back. So Lagiacrus has a three-level charge ladder that can never
 step, on top of having no bloom to make any of it glow.
+### Mizutsune (em082_00) and Soulseer Mizutsune (em082_04)
+> "Soulseer, back doesn't show enraged color correctly, one of the forelegs doesn't show options in
+> the drop down" / "Both mizutsunes do not show exhausted or rage colors on parts that should"
+
+**STATUS** both diagnosed - **CAUSE** shared (clips) and a DATA defect (empty groups)
+
+**The exhausted state can never be shown on either monster.** `XfBA1__m01_angry` is the state layer
+on both, and it carries four clips:
+
+    angry_Change    <- in ENRAGE_CLIPS, selectable
+    angry_End       <- in CALM_CLIPS, selectable
+    tired_Change    <- in NEITHER
+    tired_End       <- in NEITHER
+
+So rage has a path and **exhausted has none**. That is half the report exactly, and it is the same
+cause as everywhere else in this log.
+
+**Soulseer carries a whole second exhausted set that is equally unreachable.** Four materials -
+`m53_dry`, `m03_dry2`, `m54_dry_arm_L`, `m55_dry_arm_R` - each with clips `dry`, `tuya_start`,
+`tuya_end`. `tuya` is 艶, gloss or lustre, so these are the dulled-coat layers, and the two
+`_arm_L` / `_arm_R` ones are the FORELEGS Raven names. None of the three clip names is in either
+list, so the dry state never engages on any of them.
+
+Note the shape: rage animates through `m01_angry`, but the exhausted look needs both `tired_*` on
+that layer AND `dry` / `tuya_*` on four more. A single missing state, spread over five materials.
+
+**The foreleg dropdown with no options is a DATA defect, not the clip cause.** Soulseer's group
+list contains two EMPTY entries:
+
+    g18   []
+    g19   []
+
+A group with no members produces a cluster with no members, and `buildGroups` renders that as
+`c.members.map(...)` over an empty array - a `<select>` with zero `<option>` elements. That is
+literally "doesn't show options in the drop down". Every other monster's groups are non-empty; this
+is the only pair of empty ones seen so far, so it is worth finding out whether the builder dropped
+their contents or the ROM ships them empty before deciding whether to hide the row or fill it.
+
+Soulseer is also by far the most part-heavy monster in the library - 51 part ids, 37 groups, 107
+prims, 140 meshes - so it is the worst case for the parts panel generally.
+
+---
+
 
 ---
 
