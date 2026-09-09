@@ -332,6 +332,52 @@ gives the blast radius across all 130 rather than chasing Glavenus and Deviljho 
 
 Related and already on the board: the Armor/Weapon Viewer calls the same script WITHOUT a `.mod`
 path, so its rigid primitives all take the joint-0 fallback by construction.
+### Gypceros (em009_00) - crest renders white instead of shining
+> "Gypceroes crest renders all white instead of shining"
+
+**STATUS** diagnosed - **CAUSE** shared, and it is the THIRD instance of one exact shape
+
+`XfBA0__m01_light` is the crest. Additive (`BSAddAlpha`), `albedo: MapConstant`,
+`transp: AlphaConstant`, static `constant = [1,1,1,1]` - white - and three clips:
+
+    Angry        hash 4278187618   auto=0  loop=1    <- in ENRAGE_CLIPS
+    Light_on     hash 2376112157   auto=0  loop=1    <- in NEITHER list
+    Light_off    hash 260276772    auto=0  loop=1    <- in NEITHER list
+
+In the CALM state the picker looks for `Gekikou_End`, `Angry_End`, `Normal`, `angry_End`; Gypceros
+has none of them. It then falls back to the auto bit, and none of the three carries it. So nothing
+is selected at rest, `fConstantColor` stays at white, and the crest draws as a flat white additive
+patch. The "shining" is `Light_on` / `Light_off`, which can never be reached.
+
+This is the same shape as Boltreaver's charge effects and Savage's third layer: **an additive
+`MapConstant` layer whose colour lives ENTIRELY in an `fConstantColor` animation, with a static
+constant of white, and clips the picker cannot select.** Three monsters, one mechanism. Whenever
+"renders white" or "not coloured" is reported, this is the first thing to check.
+
+### Yian Kut-Ku (em008_00) - no way to lower the ears
+> "Yian Kut should have an animation or part state that lowers its ears"
+
+**STATUS** diagnosed as DATA PRESENT, feature absent - **CAUSE** shared (the parts panel)
+
+The part data already carries it. Yian Kut-Ku ships five part groups, and four of them are two
+MUTUALLY EXCLUSIVE PAIRS:
+
+    group 1   [[1, False], [4, True ]]
+    group 3   [[1, True ], [4, False]]
+
+    group 2   [[2, True ], [3, False]]
+    group 4   [[2, False], [3, True ]]
+
+Parts 1 and 4 swap against each other, and so do 2 and 3 - one member on while the other is off,
+in both directions. That is the shape of an up/down swap on two symmetric pieces, which is what
+lowered ears would be: the raised mesh hidden and the lowered mesh shown.
+
+So this is not missing data and not a per-monster fix. It needs the grouping layer already on the
+board - "one toggle -> N mesh groups" - so an exclusive pair reads as a single control rather than
+four independent part checkboxes. Which pair is "down" is Raven's to name once the control exists.
+
+---
+
 
 ---
 
