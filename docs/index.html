@@ -1634,7 +1634,14 @@ let recorder = null, recTimer = null, recStart = 0;
                 type: capture.clip === 'png' ? 'image/png' : 'image/webp',
                 ext: capture.clip === 'png' ? 'png' : 'webp',
                 quality: capture.clip === 'png' ? undefined : 0.92 };
-        recFrame();
+        // NO PRIMING FRAME HERE. The MP4 branch below calls recFrame() to put something in
+        // recCanvas before captureStream reads it, and copying that here is what made
+        // frame_0001 blank on every sequence (Raven, 2026-09-09). This runs inside the CLICK
+        // handler, and the context is not preserveDrawingBuffer -- the same rule the screenshot
+        // path states above: the drawing buffer is only guaranteed readable inside the task that
+        // drew it. Read from a click, it comes back cleared, and that empty copy became frame 1.
+        // A sequence needs no priming: every frame comes from the render loop's recFrame(), which
+        // runs immediately after renderer.render() and is therefore inside the drawing task.
         recStart = performance.now();
         setIcon(btn, 'stop'); btn.classList.add('on');
         const tickSeq = () => {
