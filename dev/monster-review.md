@@ -435,6 +435,40 @@ own. The build report shows no unmatched material, no missing MRL and no missing
 `em/057`. Two things worth checking that I have not: whether `_drop_hidden_prims` is removing more
 than the game hides, and whether a part group is holding meshes off. Until one of those shows
 something, "gaps" is unexplained.
+### Rajang (em023_00) - golden fur covers only part of the body
+> "Rajang golden fur doesn't cover whole body"
+
+**STATUS** diagnosed - **CAUSE** shared, and this is the cleanest demonstration of it in the log
+
+Rajang's seven materials fall into three groups, and the split lands exactly where Raven says it
+does:
+
+| material | clips | turns gold on enrage? |
+|---|---|---|
+| `XfB__m03_eye` | `Angry_Start`, `Angry`, `Angry_End` | **yes** - all in `ENRAGE_CLIPS` |
+| `XfBAN__E1__m02_hair_a` | `Normal`, `Angry_Start`, `Angry`, `Angry_End` | **yes** |
+| `XfBAN__E1__m01_hairline` | `Normal`, `Angry_Start`, `Angry`, `Angry_End` | **yes** |
+| `XfBAN__E1__m00_hair` | `Normal`, **`PumpUp`** | **no** |
+| `XfB_N__E0__m00_body` | `Normal`, **`PumpUp`** | **no** |
+| `XfB__E0__m03_pumpup_arm` | none | static |
+| `XfBA_E1__m04_pumpup_fur` | none | static |
+
+The three that carry `Angry*` animate, because those names are in the list. The two that carry
+**`PumpUp`** do not, because `PumpUp` is in neither list - so they select `Normal` and stay in the
+calm state while the rest of the monster goes gold.
+
+**The two that stay behind are `m00_hair` and `m00_body`** - the main pelt and the body, the two
+largest surfaces on the animal. That is precisely "doesn't cover whole body", and it is not a
+Rajang-specific fault: it is one missing name in a list, and which materials happen to carry that
+name decides which parts of which monster transform.
+
+`PumpUp` is Rajang's golden state, so adding it to the enrage list is the obvious move - but it is
+the same authored decision as every other clip in section B, and it is Raven's. The two dedicated
+`pumpup_arm` / `pumpup_fur` meshes carry no clips at all, so they are presumably meant to be shown
+by part state during that form rather than animated into it.
+
+---
+
 
 ---
 
