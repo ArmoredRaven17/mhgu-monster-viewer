@@ -791,6 +791,42 @@ variants.
 **Also unreachable:** `m52_wing_l` carries a `Wing_damage` clip, `auto = 0`, in neither list - so
 the damaged-wing state cannot be shown either. And `XfBAN__EW_0__m50_UVA` has one unnamed clip with
 `auto = 1`, so that one DOES play; it is the only animated thing on the monster that does.
+### Valstrax (em086_00) - no eyes, chest effect poor
+> "Valstrax has no eyes, chest effect rendering poorly"
+
+**STATUS** diagnosed - **CAUSE** shared, and this is the sharpest correlation in the log
+
+Valstrax has nine materials. **Six of them carry clips named `start`, `Loop`, `end`** - none of
+which is in `ENRAGE_CLIPS` or `CALM_CLIPS`, so the name lookup fails on every one. What separates
+them is the ROM's own auto bit:
+
+| material | clips | auto | plays? |
+|---|---|---|---|
+| `XfB_N__EW_0__m03_eff` | start, Loop, end | 0, **1**, 0 | yes, via the auto fallback |
+| `XfB_W_0__m02_angry` | start, Loop, end | 0, **1**, 0 | yes |
+| `XfB__I0__m04_breathe` | start, Loop, end, tired_* | 0, **1**, 0, 0, 0, 0 | yes |
+| `XfBA_E1__m01_black` | start, Loop, end | 0, **1**, 0 | yes |
+| **`XfB_0__m05_eye`** | start, Loop, end | **0, 0, 0** | **NO** |
+| **`XfB__I0__m06_heat`** | start, Loop, end | **0, 0, 0** | **NO** |
+
+**The two that cannot play are the eye and the heat layer** - which is exactly "no eyes" and "chest
+effect rendering poorly", reported independently. Nothing else on the monster is affected, and
+nothing else was reported.
+
+So the mechanism is confirmed twice over on one monster: where the auto bit is set the material
+animates despite the name miss; where it is clear, the name miss is fatal and the material sits at
+its static state. `m05_eye` is `MapConstant` / `AlphaConstant` whose visibility rides on
+`fConstantColor`, so with no clip it never becomes visible at all.
+
+This is the cleanest evidence in the log that the fix belongs at clip SELECTION rather than in any
+per-monster data: six materials, one monster, identical clip names, and the only thing separating
+what works from what does not is a bit the picker already knows how to read.
+
+**Valstrax is also the second-heaviest monster in the library** - 110 prims, 153 meshes, 31 part
+ids - so it is a good stress case for the parts panel once the clip work is done.
+
+---
+
 
 ---
 
