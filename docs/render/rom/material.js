@@ -177,7 +177,12 @@ export function createRomMaterial(spec){
     u.uViewUv.value = mat.userData.viewUv ? 1 : 0;
     u.uF0.value.fromArray(mat.userData.f0);
   }
-  if (lit && mat.alphaTest) installCutoutSolid(mat);
+  // ONLY WHERE THE ALPHA IS COVERAGE AND NOTHING ELSE -- i.e. an OPAQUE material. See the note on
+  // installCutoutSolid: on a blended, additive or reverse-subtractive material diffuseColor.a is
+  // not output coverage, it is the SRC_ALPHA blend factor, and forcing it to 1 makes every surviving
+  // texel composite at full strength.
+  if (lit && mat.alphaTest && (!rom || !rom.state || rom.state.blend === 'opaque'))
+    installCutoutSolid(mat);
 
   // 3. THE FEATURE WORD on top: the alpha rules the ROM states in words, the second albedo map and
   //    Refract. Each carries the ROM's own description at its site in rom/shader.js.
@@ -280,6 +285,21 @@ export function selfCheck(db){
 // NOT A ROM FINDING. The game renders to an opaque framebuffer and never reads this alpha, so the
 // ROM says nothing about it -- same standing as the coverage-preserving blend alpha in state.js.
 // uCutSolid is a review knob, 1 on: set it to 0 to get the old behaviour back without a reload.
+//
+// OPAQUE MATERIALS ONLY, corrected 2026-09-09. The reasoning above holds for a material that WRITES
+// its fragment and nothing composites with it. It is wrong for a blended one: with BSBlendAlpha,
+// BSAddAlpha or BSRevSubAlpha the ROM's blend factor IS SRC_ALPHA, so diffuseColor.a is not output
+// coverage at all -- it is how much of this layer reaches the framebuffer. Forcing it to `opacity`
+// made every texel that cleared the alpha test composite at FULL strength, and the test's threshold
+// is the material's own clip value, 1/512 on these, which almost nothing fails.
+//
+// 105 materials across the library are on that path -- 69 add, 33 blend, and all 3 revsub. The
+// revsub three are Khezu's m03_blood, Old Fatalis' m01_face_sub and Grimclaw Tigrex's
+// m60_angry_arm; the additive ones include the rage auras and charge glows. On a vein or fur or
+// spark texture, which is thin strands over mostly-transparent ground, forcing the whole quad to
+// full alpha draws the QUAD rather than the strands. Raven, 2026-09-09: "the charge state doesn't
+// look correct or right", and earlier on Savage Deviljho "it looks more like a blob now compared to
+// previous versions" and on Zinogre "it also suffers from the same effect blobification".
 const cutSolid = [];
 export function setCutoutSolid(on){
   const v = on ? 1 : 0;

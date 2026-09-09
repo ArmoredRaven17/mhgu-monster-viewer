@@ -162,6 +162,49 @@ lost was the **UV scroll**, not brightness.
 **FIXED, UNJUDGED** — timed slot-1 transitions with hand-off, a separate Charged toggle,
 `STATE_MATERIAL_SWAP`, and parts 1/2 off by default.
 
+#### 2026-09-09, third pass — the charge state still looked wrong, and the cause is MINE
+
+> "The issue is the charge state doesn't look correct or right"
+
+`installCutoutSolid` (rom/material.js, my change of 2026-09-09) forces
+`diffuseColor.a = opacity` for every fragment that survives the alpha test, on every LIT material
+carrying an alpha test. It was written for an opaque cut-out — fur fringes, wing membranes — where
+`diffuseColor.a` is nothing but output coverage and the soft ramp in the map was writing partial
+coverage into a saved PNG.
+
+**That reasoning does not hold for a BLENDED material.** With `BSBlendAlpha`, `BSAddAlpha` or
+`BSRevSubAlpha` the ROM's source factor IS `SRC_ALPHA` (state.js: `src: 'SRC_ALPHA'`), so
+`diffuseColor.a` is not coverage — it is *how much of this layer reaches the framebuffer*. Forcing
+it to `opacity` made every texel that cleared the test composite at FULL strength, and the test's
+threshold is the material's own clip value, 1/512 on these, which almost nothing fails.
+
+On a vein, fur or spark texture — thin strands over mostly-transparent ground — that draws the
+**quad** instead of the strands. Khezu's vein map measures alpha mean 0.088.
+
+**66 materials with the alpha-test bit were on that path: 39 add, 25 blend, 2 revsub.** They land
+squarely on the reports already in this list:
+
+| monster | material | blend | report |
+|---|---|---|---|
+| Khezu | `m03_blood`, `m02_body_d`, `m04__taiden` | revsub / blend / add | black veins, charge state |
+| Kirin | `m02_hairalpha` | blend | "Kirin hair renders poorly" |
+| Rajang | `m01_hairline` | blend | "golden fur doesn't cover whole body" |
+| Gypceros | `m03_eye_add` | blend | "crest renders all white instead of shining" |
+| Teostra | `m01_effect01`, `m02_effect02` | add | "Teostra's effects are very poorly rendered" |
+| Tigrex / Grimclaw | `m01_angry`, `m51_blood`, `m52_blood2` | add | "Albedo layers for its enraged effect are poorly rendered" |
+| Old Fatalis | `m00_body_alpha` | blend | "chest effect renders poorly when the chest break is enabled" |
+
+`installCutoutSolid` now runs only where `rom.state.blend === 'opaque'`. 133 materials keep it;
+the 66 above get their sampled alpha back as the blend factor, which is what the ROM's state word
+says it is.
+
+**STILL OPEN on Khezu's charge, and NOT changed on a guess:** `m04__taiden` ships
+`glob.emission [2,2,2]` and `rom/material.js` sets `emissiveFromMap`, so the viewer computes
+`2.0 x albedoTexel` and adds it on an already-additive pass. The ROM's feature word says
+`emission: "Constant"` — a constant — and nothing decoded here says it is multiplied by the albedo
+map. That multiply is an addition of ours with no shader read behind it, it governs exactly how
+bright the charge glow is, and it wants the shader package before it is touched.
+
 ### Diablos — pixelated textures
 > "Diablos, has pixelated textures; I've seen this issue on multiple monsters"
 
