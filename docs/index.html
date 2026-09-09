@@ -521,6 +521,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           <div id="monGroups"></div>
           <label class="chk" id="monTailRow" hidden><input type="checkbox" id="monTail">Show the Severed Parts</label>
           <label class="chk" id="monRageRow" hidden><input type="checkbox" id="monRage">Enraged</label>
+          <label class="chk" id="monChargeRow" hidden><input type="checkbox" id="monCharge">Charged</label>
         </div>
       </section>
 
@@ -1035,6 +1036,7 @@ import { loadMaterialsDb } from './render/materials-db.js';
 import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
          partVerts, partsDrawn, applyParts, groupLabel, groupIsInert, setNormalOpt,
          DEFAULT_PARTS_OFF, DEFAULT_PARTS_ON, ROM_RAGE_SET, setRestSets, stepRefract,
+         hasChargeState, applyMaterialSwap,
          setUndefinedMaterialVisible, setExtendVisible, extendCount,
          applyHeatmap, clearHeatmap, applyFlat, parseZones, heatColor, EXTRACT_RGB,
          setCutoutSolid, cutoutSolidCount, cutoutAnchorMisses,
@@ -1809,7 +1811,7 @@ function applyCameraState(c){
 const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: false,
                 anchor: true, ground: true, normalFlip: false, normalScale: 1,
                 // both OFF by default: see applyUndef and applyExtend
-                undef: false, extend: false, gap: false, proxy: false, rage: false, heat: '', heatTable: 0, deflectT: 'f25', deflectTier: 2,
+                undef: false, extend: false, gap: false, proxy: false, rage: false, charged: false, heat: '', heatTable: 0, deflectT: 'f25', deflectTier: 2,
                 zoneTab: 'raw',
                 zoneShow: true, zonePos: null,
                 // the additive effect meshes as a class; the ROM's part table already keeps
@@ -2191,6 +2193,11 @@ async function mount(){
     for (const [name, g] of extra){ world.add(g); mounted[name] = g; }
     applySize();
     buildGroups(); applyPartState(); paintAbout(); applyUndef(); applyExtend(); applyProxy(); applyRage();
+    // A fresh mount is a state change: a monster restored with Charged already ticked has to start
+    // its Taiden_start ramp now, not at whatever time the previous monster's toggle was flipped.
+    // AFTER applyRage, which is where a Charged that this monster cannot do gets cleared -- marking
+    // before it would leave the clock believing in a state the monster is not in.
+    markStateChange(true);
     zoneCache = null; await applyHeat(); applyGap();
     setNormalOpt(state.normalFlip, state.normalScale);
     placeParts();
@@ -2701,6 +2708,32 @@ function applyRage(){
   const has = main ? enrageParts(main).size > 0 : false;
   document.getElementById('monRageRow').hidden = !has;
   document.getElementById('monRage').checked = !!state.rage;
+  // CHARGED IS ITS OWN STATE, not a deeper rage -- Khezu's Taiden branch (0xd1ec1c) hangs off a
+  // different value of the same state byte as Angry, and running both at once put a 4Hz full-body
+  // strobe over the rage veins. Offered only where the monster has somewhere to put it.
+  const canCharge = main ? hasChargeState(main, state.id) : false;
+  document.getElementById('monChargeRow').hidden = !canCharge;
+  document.getElementById('monCharge').checked = !!state.charged;
+  if (!canCharge && state.charged) state.charged = false;
+  const st = matState();
+  for (const g of Object.values(mounted)) applyMaterialSwap(g, st);
+}
+// The one place that turns the two checkboxes into the state name the clip table and the material
+// swap are keyed by. Charged wins a collision: it is the state that replaces the vein material, so
+// showing it half-applied under a rage clip would be neither state.
+function matState(){ return state.charged ? 'charged' : (state.rage ? 'enraged' : 'calm'); }
+// Wall seconds at the last state change, and WHICH STATE WAS LEFT. clipPicker needs both: when a
+// one-shot transition has run its course -- the ROM zeroes the slot's time word when it sets the
+// clip (0xd1e908) and hands off to the steady clip once that time passes the clip's frame count
+// (0xd1e914) -- and which end clip belongs to the state being left, since Khezu's discharge plays
+// Body_Taiden_End (0xd1e7a0) where its calm-down plays Angry_End (0xd1e698).
+let tStateChanged = 0, prevMatState = 'calm', curMatState = 'calm';
+function markStateChange(force){
+  const next = matState();
+  if (next === curMatState && !force) return;
+  if (next !== curMatState) prevMatState = curMatState;
+  curMatState = next;
+  tStateChanged = performance.now() / 1000;
 }
 function applyProxy(){
   let n = 0;
@@ -2856,6 +2889,7 @@ document.getElementById('monBounceT').onchange = async e => { state.deflectT = e
 document.getElementById('monTier').onchange = async e => { state.deflectTier = +e.target.value; await applyHeat(); applyGap(); saveState(); };
 document.getElementById('monRage').onchange = e => {
   state.rage = e.target.checked;
+  markStateChange();
   // Rage switches PARTS as well as materials -- the driver applies a group set chosen straight from
   // the rage state (Savage Deviljho 9 calm / 13 enraged, ordinary Deviljho 0 / 9). So the toggle
   // recomputes the part table for the new state instead of leaving geometry behind. This is what
@@ -2869,6 +2903,11 @@ document.getElementById('monRage').onchange = e => {
                                    DEFAULT_PARTS_OFF[en.id], DEFAULT_PARTS_ON[en.id]);
     buildGroups(); applyPartState();
   }
+  applyRage(); saveState();
+};
+document.getElementById('monCharge').onchange = e => {
+  state.charged = e.target.checked;
+  markStateChange();
   applyRage(); saveState();
 };
 document.getElementById('monProxy').onchange = e => {
@@ -3021,6 +3060,7 @@ function applySet(o){
   if ([2, 3, 4].indexOf(+o.deflectTier) >= 0) state.deflectTier = +o.deflectTier;
   if (typeof o.proxy === 'boolean') state.proxy = o.proxy;
   if (typeof o.rage === 'boolean') state.rage = o.rage;
+  if (typeof o.charged === 'boolean') state.charged = o.charged;
   const TABMAP = { zones: 'raw', parts: 'extracts', bounce: 'hardness' };
   const tab = TABMAP[o.zoneTab] || o.zoneTab;
   if (['raw','elem','status','extracts','hardness'].indexOf(tab) >= 0) state.zoneTab = tab;
@@ -3076,9 +3116,9 @@ renderer.setAnimationLoop(() => {
     // frozen wherever the enraged pass last wrote it. Raven, 2026-09-07: "Enrage toggle doesn't
     // turn off the enrage changes." The ROM does not do nothing either: its driver plays
     // Gekikou_End on the way out of rage (0xe80b34 vs 0xe80b54), which is what CALM_CLIPS asks for.
-    const st = state.rage ? 'enraged' : 'calm';
+    const st = matState();
     const mid = (entry() || {}).id;
-    for (const g of Object.values(mounted)) stepMatAnim(g, t, st, mid);
+    for (const g of Object.values(mounted)) stepMatAnim(g, t, st, mid, tStateChanged, prevMatState);
     // Refract samples the scene colour, so the capture has to happen AFTER the animation has set
     // fDistortionFactor / fDistortionBlend for this frame and BEFORE the visible render.
     stepRefract(renderer, scene, camera, THREE);
@@ -3138,8 +3178,8 @@ window.__view.effectsAvailable = () => effectMountsFor(state.id);
 // whose clips match no name and carry no auto bit was left on its static constant.
 window.__view.clipFallback = on => {
   setClipFallback(on);
-  const st = state.rage ? 'enraged' : 'calm';
-  for (const g of Object.values(mounted)) stepMatAnim(g, 0, st, state.id);
+  const st = matState();
+  for (const g of Object.values(mounted)) stepMatAnim(g, 0, st, state.id, 0, prevMatState);
   renderer.render(scene, camera);
   return { on: clipFallbackOn() };
 };
@@ -3169,9 +3209,9 @@ window.__view.shot = async function(run, nameArg, atArg){
   // otherwise wall time, which is also why scrubbing the transport never scrubbed it.
   if (state.matAnim !== false){
     const tMat = (typeof atArg === 'number') ? atArg : 0;
-    const stMat = state.rage ? 'enraged' : 'calm';
+    const stMat = matState();
     const midMat = (entry() || {}).id;
-    for (const g of Object.values(mounted)) stepMatAnim(g, tMat, stMat, midMat);
+    for (const g of Object.values(mounted)) stepMatAnim(g, tMat, stMat, midMat, 0, prevMatState);
     stepRefract(renderer, scene, camera, THREE);
   }
   controls.update(); head.position.copy(camera.position);

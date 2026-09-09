@@ -165,6 +165,13 @@ export const DEFAULT_PARTS_OFF = {
   // 2026-09-07 against the ROM-derived sets and it is STILL load-bearing: all seven parts draw
   // without it.
   em021_00: [12, 13, 14, 15, 16, 17, 18],   // Congalala
+  // Khezu's two wound overlays. Raven, 2026-09-09: "Khezu, turn off both parts by default", and
+  // earlier "I also suspect the wounds are also in the wrong order since I see areas around the
+  // wound marks that normally are not seen" -- they are XfBAN__E0__m02_body_d, state 2, bias -384,
+  // so they draw LAST over everything. This IS a deviation from the decoded data and belongs here
+  // for that reason: part-rest.json gives em003_00 rest sets [3, 4], which are the two "on"
+  // alternatives, so the ROM's own resting state draws both. Same shape as the Congalala entry.
+  em003_00: [1, 2],                        // Khezu -- neck and body wounds
   // THE THREE FATALIS ENTRIES WERE REMOVED 2026-09-07. They turned parts 1 and 10 off by hand; the
   // ROM's own spawn default and resting sets now do it, and the drawn part map is IDENTICAL with
   // and without them on all three (em013_00 Fatalis, em013_01 Crimson, em013_02 Old). An exception
@@ -510,7 +517,11 @@ export async function loadMonster(rec, opt, ctx){
   const texByName = (opt && opt.tex) || {};
   const fallback = re => { const k = Object.keys(texByName).find(k => re.test(k)); return k ? texByName[k] : null; };
   const jobs = [], mats = [];
-  root.traverse(o => {
+  // NAMED, so the runtime material swap below can build its material through THIS code and not a
+  // reduced copy of it. A swap-in has to be indistinguishable from a mounted material -- same
+  // technique dispatch, same two-map injection, same texture jobs -- and the only way to be sure
+  // of that is to run the same function.
+  const buildMesh = (o) => {
     if (!(o.isMesh || o.isSkinnedMesh)) return;
     const srcName = (o.material && o.material.name) || '';
     const verts = o.geometry.attributes.position.count;
@@ -792,7 +803,43 @@ export async function loadMonster(rec, opt, ctx){
         if (i >= 1 && list[i - 1])
           jobs.push(getTexture(list[i - 1]).then(t => { mat.userData.texSwap[i - 1] = t; }));
     }
-  });
+  };
+  root.traverse(buildMesh);
+  // ---- RUNTIME MATERIAL SWAP -------------------------------------------------------------------
+  // The ROM does not only change a material's CONSTANTS for a state, it can replace the material
+  // object outright. Khezu's charge calls setMaterialAt(model, mat, 0) at 0xd1eca0 -- 0x88db20
+  // releases model->materials[+0xf8][0], stores the new pointer, addrefs it and refreshes the mesh
+  // array at +0x260 -- and only then plays Taiden_start on what is now index 0.
+  //
+  // The material it stores was fetched by NAME at spawn (0xd0f4e0, the literal
+  // "XfBA_A0__m04__taiden", parked at enemy+0x44). That name is why #833258c1 had no name in our
+  // data: crc32("XfBA_A0__m04__taiden") ^ 0xFFFFFFFF is exactly 0x833258c1.
+  //
+  // NOTHING IN THE MODEL BINDS IT, which is why the viewer never drew it: the .mrl carries the
+  // material, no mesh references it, so the glTF export has no trace of it. It exists only as a
+  // swap-in. Built here from the materials.json record, held aside, and hung on the mesh by
+  // applyMaterialSwap.
+  //
+  // The build runs on a DETACHED mesh sharing an existing geometry. buildMesh only reads geometry
+  // for a vertex count and writes classifications onto o.userData, so the throwaway costs nothing
+  // and guarantees the swap-in is built exactly as a mounted material is.
+  const swapTable = (rec.id && STATE_MATERIAL_SWAP[rec.id]) || null;
+  const swaps = {};
+  if (swapTable){
+    let geom = null;
+    root.traverse(o => { if (!geom && (o.isMesh || o.isSkinnedMesh)) geom = o.geometry; });
+    if (geom) for (const st of Object.keys(swapTable)){
+      for (const from of Object.keys(swapTable[st])){
+        const to = swapTable[st][from];
+        const probe = new THREE.Mesh(geom, new THREE.MeshBasicMaterial({ name: to }));
+        buildMesh(probe);
+        // specFor found no record for that name: do not hang a default-grey material on the model.
+        if (!(probe.material.userData && probe.material.userData.rom)) continue;
+        (swaps[st] || (swaps[st] = {}))[from] = probe.material;
+      }
+    }
+  }
+  root.userData.matSwap = swaps;
   await Promise.all(jobs);
   root.userData.joints = rec.joints || [];
   root.userData.mats = mats;
@@ -939,8 +986,91 @@ export { MAT_FPS };
 // Raven, 2026-09-06: "His eyes and the top of his face/head/neck should be covered in an effect once
 // enraged", and on what was already drawing: "We have the scarring effect, the small red highlighted
 // slices" -- the small eye patch was showing and the large layer over it was not.
-const ENRAGE_CLIPS = ['Gekikou_Start', 'Angry_Start', 'Angry', 'angry_loop', 'angry_Change'];
-const CALM_CLIPS = ['Gekikou_End', 'Angry_End', 'Normal', 'angry_End'];
+//
+// THE ROM'S OWN SHAPE, read out of Khezu 2026-09-09 and now modelled rather than approximated.
+// Khezu carries its own dispatcher (0xd0f4e0 - 0xd1ef40, keyed on the state byte at enemy+0x48),
+// and every state it runs has the same three parts: a one-shot START, a looping STEADY it hands
+// off to, and a one-shot END back to rest.
+//
+//   enrage   0xd1e8d4  setClip(blood, slot 1, "Angry_Start"); slot-1 time := 0
+//   ...then  0xd1e914  once slot-1 time >= Angry_Start's frame count:
+//                      clearAllSlots(0xb09a3c) then setClip(blood, slot 0, "Angry_Repeat")
+//   calm     0xd1e698  clearAllSlots then setClip(blood, slot 0, "Angry_End")
+//   ...then  0xd1e99c  once that elapses: clearAllSlots then setClip(slot 0, "Nomal_Repeat")
+//
+// Two things follow that the old flat lists could not express. The START goes in SLOT 1 OVER the
+// running steady clip with its own zeroed clock, and it is DROPPED when it finishes -- the viewer
+// used to select Angry_Start and clamp it at frame 60 for ever, which is Raven's "the flash also
+// does not revert when toggled off... it feels like we are not turning off the effect, simply
+// pausing it instead". And the END goes in SLOT 0 ALONE, not layered over the rest clip, because
+// the ROM clears every slot first.
+//
+// CHARGED IS A SEPARATE STATE, NOT PART OF RAGE. Khezu's Taiden (electric charge) branch at
+// 0xd1ec1c is reached through a different value of that same state byte: it drives
+// Body_Taiden_Repeat on enemy+0x30 and Alpha_Taiden_Repeat on +0x34, then swaps the vein
+// material (see STATE_MATERIAL_SWAP) and plays Taiden_start on it. Running it on the rage toggle
+// put a 15-frame -- 0.25s at MAT_FPS 60 -- full-body strobe on top of the rage veins, which is
+// Raven's "the enraged effect is also super bright".
+//
+// WHICH AI STATE FIRES WHICH IS NOT DECODED. This reads what each state DOES; what selects it is
+// a gap, so the two toggles are a viewer affordance over the ROM's state byte, not a
+// reconstruction of the game's transitions.
+// Each non-calm state owns its own END, because leaving one is not leaving the other: Khezu's
+// discharge (0xd1e7a0) plays Body_Taiden_End / Alpha_Taiden_End / Taiden_End, and its calm-down
+// (0xd1e698) plays Angry_End. Which one is right depends on the state being LEFT, so the picker is
+// given the previous state as well as the current one.
+const STATE_NAMES = {
+  enraged: { start: ['Gekikou_Start', 'Angry_Start', 'angry_Change'],
+             steady: ['Angry_Repeat', 'Angry', 'angry_loop'],
+             // Gekikou_End BEFORE Angry_End, which is the order the old flat list had and is not
+             // cosmetic: Savage Deviljho carries both and its driver plays Gekikou_End leaving
+             // rage (0xe80b34 against 0xe80b54).
+             end: ['Gekikou_End', 'Angry_End', 'angry_End'] },
+  charged: { start: ['Taiden_start'],
+             steady: ['Body_Taiden_Repeat', 'Alpha_Taiden_Repeat', 'Taiden_Repeat'],
+             end: ['Body_Taiden_End', 'Alpha_Taiden_End', 'Taiden_End'] },
+  calm:    { rest: ['Nomal_Repeat', 'Normal'] },
+};
+// WHICH MATERIAL A STATE REPLACES, per monster. Keyed by material NAME rather than by the array
+// index the ROM uses (setMaterialAt's third argument is 0 for Khezu, and for Khezu index 0 is the
+// blood layer) -- nothing here verifies that our export preserves the model's material-array
+// order, and the name is the half we can check. See the swap build in loadMonster.
+//
+// XfBA_A0__m04__taiden against XfBA_A0__m03_blood is the whole of Khezu's "black veins": they are
+// the same geometry and the same two textures under the same feature word (f4,
+// TypeExtendModulate). m03_blood is BSRevSubAlpha with authored emission 0 -- it SUBTRACTS, which
+// is what makes the veins read as black -- and m04__taiden is BSAddAlpha with authored emission
+// 2.0. One darkens, one glows, and the game picks between them by swapping the material.
+export const STATE_MATERIAL_SWAP = {
+  em003_00: { charged: { 'XfBA_A0__m03_blood': '#833258c1' } },   // Khezu -- XfBA_A0__m04__taiden
+};
+// Hang the swap materials for `state` on the meshes that carry the originals, or put the originals
+// back when the state has none. The ROM's own mechanism is different -- it replaces the entry in
+// the model's material array and refreshes the mesh list (0x88db20) -- and this reaches the same
+// place by retargeting the three.js meshes instead.
+export function applyMaterialSwap(root, state){
+  const table = root && root.userData && root.userData.matSwap;
+  if (!table) return 0;
+  const want = (state && table[state]) || null;
+  let n = 0;
+  root.traverse(o => {
+    if (!(o.isMesh || o.isSkinnedMesh) || !o.material) return;
+    if (o.userData.matOrig === undefined){
+      o.userData.matOrig = o.material;
+      o.userData.orderOrig = o.renderOrder || 0;
+    }
+    const orig = o.userData.matOrig;
+    const next = (want && orig && want[orig.name]) || orig;
+    if (o.material === next) return;
+    o.material = next;
+    o.renderOrder = (next.userData && next.userData.renderOrder) || o.userData.orderOrig || 0;
+    n++;
+  });
+  return n;
+}
+const ENRAGE_CLIPS = STATE_NAMES.enraged.start.concat(STATE_NAMES.enraged.steady);
+const CHARGE_CLIPS = STATE_NAMES.charged.start.concat(STATE_NAMES.charged.steady);
+const CALM_CLIPS = STATE_NAMES.enraged.end.concat(STATE_NAMES.charged.end, STATE_NAMES.calm.rest);
 // CLIP NAMES ARE MATCHED WITHOUT CASE. The ROM is not consistent about it and the lists above were
 // typed from whichever spelling was in front of whoever wrote them -- note `angry_loop` lowercase
 // sitting beside `Angry_Start` capitalised, in the same array.
@@ -1003,6 +1133,23 @@ export function enrageMaterials(root){
   });
   return out;
 }
+// Materials that carry a CHARGE clip -- Khezu's Taiden family. Gates the Charged checkbox, which
+// is offered only on monsters that have somewhere to put it.
+export function chargeMaterials(root){
+  const out = new Set();
+  root.traverse(o => {
+    const m = o.material, rom = m && m.userData && m.userData.rom;
+    for (const c of (rom && rom.anim) || [])
+      if (clipInList(c, CHARGE_CLIPS)) out.add(m.name);
+  });
+  return out;
+}
+// A monster whose CHARGE state swaps a material also has one, even when no mesh currently carries
+// a charge clip -- the clips live on the material that gets swapped IN.
+export function hasChargeState(root, monId){
+  if (STATE_MATERIAL_SWAP[monId] && STATE_MATERIAL_SWAP[monId].charged) return true;
+  return chargeMaterials(root).size > 0;
+}
 // The part ids whose meshes use those materials, so the part table can be asked to open them.
 export function enrageParts(root){
   const mats = enrageMaterials(root), out = new Set();
@@ -1016,13 +1163,107 @@ export function enrageParts(root){
 // material-animation chain the ROM does NOT hand us: the game reaches a clip through setClip from
 // an AI state, keyed by hash, so a viewer has to choose. Keeping it in one place means the ROM core
 // and the old path cannot drift on it.
-function clipPicker(state, monId){
+const STATES = ['enraged', 'charged'];
+function clipPicker(state, monId, tState, prev){
   const pin = (monId && ROM_SPAWN_CLIP[monId]) || null;
-  return (clips, rom) => {
+  const timed = typeof tState === 'number';
+  return (clips, rom, tSec) => {
     let ci = -1;
     // A SPAWN-PINNED material ignores the rage state entirely -- see ROM_SPAWN_CLIP.
     if (pin && rom.name && pin[rom.name])
       ci = clips.findIndex(c => sameClip(c.name, pin[rom.name]));
+    // THE STATE TABLE, run before the name lists below. It only decides when the material carries
+    // the clips the state names; everything it does not decide falls through to the general rules,
+    // which is why monsters with no entry -- Bloodbath's rage ladder, Agnaktor's cool_Loop -- are
+    // untouched by it.
+    if (ci < 0 && timed && STATE_NAMES[state]){
+      const byName = list => {
+        for (const nm of list || []){
+          const i = clips.findIndex(c => sameClip(c.name, nm));
+          if (i >= 0) return i;
+        }
+        return -1;
+      };
+      const byRe = re => clips.findIndex(c => typeof c.name === 'string' && re.test(c.name));
+      // THE BASE STATE, and the order matters on real data. A base state is a STATE, so it loops;
+      // a *_Change is a transition into one. Two monsters pull in opposite directions and the loop
+      // flag is what separates them:
+      //
+      //   Akantor  m04__kekkan   Normal (1f, loop) vs Angry (64f, loop, AUTO)
+      //                          -- the auto bit is on the rage clip, so auto-first leaves him
+      //                             permanently angry at rest. Normal is the answer.
+      //   Glavenus m04_tail      heat_Loop (200f, loop, AUTO) vs normal_dark_Change (210f, NOT a
+      //                          loop) -- name-first takes the transition. heat_Loop is the answer.
+      //
+      // So: a LOOPING rest-named clip, then the engine's own load-time default (clip+0x04 bit 1,
+      // written into a slot at load, 0xb09aac), then a rest-named clip of any kind.
+      const loops = i => i >= 0 && clips[i].loop;
+      const restIdx = () => {
+        const named = byName(STATE_NAMES.calm.rest), re = byRe(REST_NAME);
+        if (loops(named)) return named;
+        if (loops(re)) return re;
+        const a = clips.findIndex(c => c.auto);
+        if (a >= 0) return a;
+        if (named >= 0) return named;
+        return re;
+      };
+      // Does this material take part in that state at all? The ROM answers per material, not per
+      // monster: Khezu's Angry branch (0xd1e8d4) sets clips on enemy+0x38 -- the vein layer -- and
+      // NOTHING on +0x30 or +0x34, which are only ever driven by the Taiden branch (0xd1ec1c).
+      const takesPart = st => {
+        const t = STATE_NAMES[st];
+        return !!t && (byName(t.start) >= 0 || byName(t.steady) >= 0 || byName(t.end) >= 0);
+      };
+      const held = i => (i >= 0 && !clips[i].loop && clips[i].frames
+                         ? (tSec - tState) * MAT_FPS < clips[i].frames : false);
+      const tbl = STATE_NAMES[state];
+      if (state !== 'calm'){
+        const start = byName(tbl.start), steady = byName(tbl.steady);
+        if (start >= 0 && steady >= 0){
+          // Slot 1 carries the transition on its OWN clock over slot 0's steady clip, exactly as
+          // 0xd1e8f8 does; when it runs out the ROM clears every slot and slot 0 becomes the
+          // steady clip alone. `auto` first because that is the material's own default.
+          if (held(start)){
+            const base = restIdx();
+            return base >= 0 ? [base, [start, tState]] : [[start, tState]];
+          }
+          return steady;
+        }
+        // A one-shot with nothing to hand off to is HELD, and that is the ROM: Khezu's charge does
+        // clearAllSlots then setClip(slot 0, "Taiden_start") (0xd1ef00) and never replaces it, so
+        // the layer ramps 0 -> 1 over 60 frames and stays there. The evaluator's clamp at
+        // frameCount (0xb0cf38) is the same behaviour.
+        if (start >= 0) return [[start, tState]];
+        if (steady >= 0) return steady;
+        // THE MATERIAL TAKES NO PART IN THIS STATE. Sit where calm would put it rather than
+        // reaching for the loop fallback below -- that fallback is what put Khezu's 15-frame
+        // Taiden strobe on the rage toggle (Raven: "the enraged effect is also super bright").
+        // Only skipped for a material that takes part in some OTHER state; one that takes part in
+        // none is the Bloodbath case the fallback exists for, and it still gets it.
+        if (!STATES.some(takesPart)) { /* fall through to the general rules */ }
+        else {
+          const r = restIdx();
+          return r >= 0 ? r : -1;      // -1 is the material's OWN authored values
+        }
+      } else {
+        // Leaving a state runs THAT state's end clip, alone in slot 0 -- 0xd1e698 and 0xd1e7a0
+        // both call clearAllSlots first -- and only for as long as the clip lasts.
+        const prevTbl = STATE_NAMES[prev];
+        const end = prevTbl ? byName(prevTbl.end) : -1;
+        if (end >= 0 && held(end)) return [[end, tState]];
+        const rest = restIdx();
+        if (rest >= 0) return rest;
+        // No rest clip to hand off to. The ROM sets the end clip in slot 0 and never replaces it,
+        // so its last frame is HELD -- but only once the state has actually been left. Before that
+        // the material has never had a clip set on it at all: Khezu's spawn path (0xd0f590) writes
+        // Nomal_Repeat to the vein layer and nothing to anything else, so the rest sit on their
+        // shipped values. Holding an end clip a monster has never played is the thing that put
+        // Body_Taiden_End's fReflectiveColor -- twice m01_body's shipped 0.105/0.195/0.195 -- on
+        // a Khezu that had never charged.
+        if (end >= 0) return end;
+        if (STATES.some(takesPart)) return -1;
+      }
+    }
     if (ci < 0 && state){
       const want = state === 'enraged' ? ENRAGE_CLIPS : CALM_CLIPS;
       for (const nm of want){ ci = clips.findIndex(c => sameClip(c.name, nm)); if (ci >= 0) break; }
@@ -1119,8 +1360,8 @@ function clipPicker(state, monId){
   };
 }
 
-export function stepMatAnim(root, tSec, state, monId){
-  const pick = clipPicker(state, monId);
+export function stepMatAnim(root, tSec, state, monId, tState, prev){
+  const pick = clipPicker(state, monId, tState, prev);
   // ONE evaluator for both paths. A ROM-core material is a stock three.js material -- the technique
   // decides which class, not the blend state -- so the shared evaluator's writes land exactly as
   // they always have. fEmissionColor now reaches the 47 lit-technique additive materials that used

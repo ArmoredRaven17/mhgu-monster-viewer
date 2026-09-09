@@ -107,6 +107,61 @@ through to the opaque path). This is a second route to the same look. My 2026-09
 (4a42ef6) also makes the darkening composite at full strength where the backdrop used to bleed
 through it, so it may read as stronger than before even at the same clip state.
 
+#### 2026-09-09, second pass — Khezu's own code read, the diagnosis above was half right
+
+> "Review how the ROM handles the enraged state for Khezu, I feel like the glowing effect is either
+> too bright, needs an added layer/transformation or is in the wrong order"
+
+All three guesses are right and they share a root cause. Khezu does **not** use the generic rage
+machine at `0xe37560` — that one names `Angry_Start` / `Angry_End` / `Angry` / `Normal` on six
+material slots and belongs to another class. Khezu has its own dispatcher, `0xd0f4e0 – 0xd1ef40`,
+keyed on a state byte at `enemy+0x48`.
+
+**Its material cache**, built at spawn (`0xd0f520`) by reading bits 22..29 of `material+0x18` —
+which is the material's own number:
+
+| byte | slot | material |
+|---|---|---|
+| 1 | `enemy+0x30` | `XfB_N__E_m01_body` |
+| 0x32 | `enemy+0x34` | `XfBAN__E0__m50_body_alpha` |
+| 3 | `enemy+0x38` | `XfBA_A0__m03_blood` |
+| 4 | `enemy+0x3c` | `XfBA_A0__m04__taiden` |
+
+**Two states, not one.**
+
+*Angry* touches ONLY `+0x38`: `setClip(slot 1, "Angry_Start")` with slot-1 time zeroed
+(`0xd1e8f8`), then once that time passes the clip's frame count, `clearAllSlots` (`0xb09a3c`) and
+`setClip(slot 0, "Angry_Repeat")` (`0xd1e914`). Calm is `clearAllSlots` then `Angry_End` in slot 0
+(`0xd1e698`), then `Nomal_Repeat` (`0xd1e99c`). Spawn is `Nomal_Repeat` on `+0x38` and nothing at
+all on the others (`0xd0f590`).
+
+*Taiden* (electric charge) is a different value of the same state byte (`0xd1ec1c`):
+`Body_Taiden_Repeat` on `+0x30`, `Alpha_Taiden_Repeat` on `+0x34`, then
+**`setMaterialAt(model, mat, 0)`** (`0x88db20`) — a runtime material replacement — and
+`Taiden_start` on what is now index 0. Discharge plays `Taiden_End` (`0xd1e7a0`).
+
+**`#833258c1` is `XfBA_A0__m04__taiden`.** The name is a literal at `0xd0f4e8`, fetched by name at
+spawn into `enemy+0x44`; `crc32(name) ^ 0xFFFFFFFF` is `0x833258c1` exactly. It is `BSAddAlpha`
+with authored **emission 2.0**, against `m03_blood`'s `BSRevSubAlpha` and emission 0 — the same
+geometry and the same two textures under the same feature word. One darkens, one glows.
+
+So:
+
+* **black veins** — the ROM replaces the darkening layer with the glowing one for the charged
+  state. We never swapped, so we drew the reverse-subtract material in a state the game does not
+  draw it in. `Nomal_Repeat` at rest is correct and IS the ROM's spawn state.
+* **too bright** — the 15-frame (0.25 s at MAT_FPS 60) full-body `*_Taiden_Repeat` strobe was
+  firing on the rage toggle. It belongs to Taiden, which Angry never touches.
+* **wrong order** — the wound overlays `XfBAN__E0__m02_body_d` are state 2, bias −384 →
+  renderOrder 394, drawn last over everything. Now off by default at Raven's request.
+
+Corrected from the entry above: `Angry_Repeat` writes no `fTransparency` track and
+`cbm[0].transparency` is 1.0, the same value `Angry_Start` clamps to — so what the held transition
+lost was the **UV scroll**, not brightness.
+
+**FIXED, UNJUDGED** — timed slot-1 transitions with hand-off, a separate Charged toggle,
+`STATE_MATERIAL_SWAP`, and parts 1/2 off by default.
+
 ### Diablos — pixelated textures
 > "Diablos, has pixelated textures; I've seen this issue on multiple monsters"
 

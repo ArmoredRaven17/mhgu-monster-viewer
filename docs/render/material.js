@@ -728,13 +728,66 @@ function baseOf(m){
   if (!b){
     const rom = m.userData && m.userData.rom;
     const gl = rom && rom.glob;
+    const u = m.userData && m.userData.u;
+    const tx = m.map;
     b = { color: m.color ? m.color.clone() : null, opacity: m.opacity,
           transparent: m.transparent,
           map: m.map || null,                    // the shipped albedo, so a kind-3 swap reverses
-          albedo: (gl && gl.albedo) ? gl.albedo.slice(0, 3) : [1, 1, 1] };
+          albedo: (gl && gl.albedo) ? gl.albedo.slice(0, 3) : [1, 1, 1],
+          // EVERY OTHER DESTINATION A TRACK WRITES, snapshotted so it can be put back. Colour,
+          // opacity and the map used to be the whole of it, which meant a material that STOPPED
+          // being animated kept the last emission, reflection, specular and UV a clip had left on
+          // it -- for ever. Khezu, 2026-09-09: leaving the charged state put Body_Taiden_End's
+          // last frame on the body (fEmissionColor 0.1/0.11/0.15, fReflectiveColor 0.732 against
+          // its shipped 0.165) and nothing ever took it off again. The ROM has no such state: it
+          // rebuilds the constant buffer from the material's own values every frame.
+          emissive:  m.emissive ? m.emissive.clone() : null,
+          reflective: m.userData ? m.userData.reflective : undefined,
+          envAmt:    u && u.uEnvAmt   ? u.uEnvAmt.value   : undefined,
+          specTint:  u && u.uSpecTint ? u.uSpecTint.value : undefined,
+          distFac:   u && u.uDistFac  ? u.uDistFac.value  : undefined,
+          distBlend: u && u.uDistBlend ? u.uDistBlend.value : undefined,
+          extXf:     u && u.uExtXf   ? u.uExtXf.value.clone()   : null,
+          extTint:   u && u.uExtTint ? u.uExtTint.value.clone() : null,
+          // ONLY WHERE THIS MATERIAL ITSELF DRIVES IT. A texture object is SHARED between
+          // materials, so a material that merely happens to bind the same map must not put its own
+          // offset back every frame -- that would fight whichever material is actually scrolling
+          // it. Snapshot the UV only when one of this material's own clips targets fUVTransform.
+          uv: (tx && (rom && rom.anim || []).some(c => (c.tracks || [])
+                        .some(t => t.target === 'fUVTransform')))
+              ? { offset: tx.offset.clone(), repeat: tx.repeat.clone(), rotation: tx.rotation }
+              : null };
     animBase.set(m, b);
   }
   return b;
+}
+// Put a material back on its shipped values. Called before the running slots are applied, so every
+// frame starts from a known state whatever the clip selection did last frame.
+function restoreBase(m, b){
+  if (b.color && m.color) m.color.copy(b.color);
+  if (b.opacity !== undefined) m.opacity = b.opacity;
+  if (b.emissive && m.emissive) m.emissive.copy(b.emissive);
+  if (m.userData){
+    if (b.reflective !== undefined) m.userData.reflective = b.reflective;
+    else delete m.userData.reflective;
+    const u = m.userData.u;
+    if (u){
+      if (u.uEnvAmt    && b.envAmt    !== undefined) u.uEnvAmt.value    = b.envAmt;
+      if (u.uSpecTint  && b.specTint  !== undefined) u.uSpecTint.value  = b.specTint;
+      if (u.uDistFac   && b.distFac   !== undefined) u.uDistFac.value   = b.distFac;
+      if (u.uDistBlend && b.distBlend !== undefined) u.uDistBlend.value = b.distBlend;
+      if (u.uExtXf   && b.extXf)   u.uExtXf.value.copy(b.extXf);
+      if (u.uExtTint && b.extTint) u.uExtTint.value.copy(b.extTint);
+    }
+  }
+  // fUVTransform drives the texture objects themselves, and a texture is SHARED between
+  // materials -- so only the material that owns this base may put it back, and only to the
+  // values it was built with.
+  if (b.uv && m.map){
+    m.map.offset.copy(b.uv.offset);
+    m.map.repeat.copy(b.uv.repeat);
+    m.map.rotation = b.uv.rotation;
+  }
 }
 
 function applyTrack(m, tr, f){
@@ -880,26 +933,47 @@ export function stepMaterialAnim(root, tSec, pickClip){
     // puts findClipByName("Angry_Start") into SLOT 1 on three materials while slot 0 holds the
     // steady-state clip. So a picker may return several indices and they are evaluated in slot
     // order, later slots writing over earlier ones exactly as the ROM's loop does.
-    const pick = pickClip ? pickClip(clips, rom) : AUTO_CLIP(clips);
-    const list = (Array.isArray(pick) ? pick : [pick]).filter(i => i >= 0).slice(0, 4);
-    if (!list.length) return;                             // the ROM plays nothing here
+    // A SLOT MAY RUN ON ITS OWN CLOCK. The ROM zeroes a slot's time word when it puts a clip
+    // there -- Khezu's enrage is `setClip(mat, 1, "Angry_Start")` then `str 0,[mat+0x5c]` at
+    // 0xd1e908, +0x5c being slot 1's time -- so a transition dropped into a slot starts at frame
+    // 0 while slot 0 carries on from wherever it was. A picker may therefore return `[index, t0]`
+    // pairs as well as bare indices; the pair's slot is evaluated at `tSec - t0`.
+    const pick = pickClip ? pickClip(clips, rom, tSec) : AUTO_CLIP(clips);
+    const raw = Array.isArray(pick) ? pick : [pick];
+    const list = [];
+    for (const e of raw){
+      const i = Array.isArray(e) ? e[0] : e;
+      if (!(i >= 0)) continue;
+      const t0 = Array.isArray(e) && typeof e[1] === 'number' ? e[1] : 0;
+      list.push([i, tSec - t0]);
+      if (list.length === 4) break;
+    }
+    // NOTHING SELECTED MEANS THE MATERIAL'S OWN VALUES, NOT THE LAST ONES WRITTEN.
+    // This used to `return` here, BEFORE the restore below, so a material that stopped matching a
+    // clip kept whatever the previous clip had written -- for ever. Raven, 2026-09-09, on turning
+    // the enrage toggle off: "it should simply revert to its base form; so it feels like we are not
+    // turning off the effect after it is turned on, simply pausing it instead." That is exactly
+    // what the early return did. The restore is now unconditional and the return happens after it.
     // EVERY SLOT IS RE-EVALUATED FROM A KNOWN STATE each frame. The ROM rebuilds the constant
     // buffer from the material's shipped values and then applies the running slots; these writes
     // land on a three.js material and would otherwise accumulate, so the base is restored first.
     const bs = baseOf(m);
-    if (bs.color && m.color) m.color.copy(bs.color);
-    if (bs.opacity !== undefined) m.opacity = bs.opacity;
+    restoreBase(m, bs);
     if (bs.map && m.map !== bs.map && !clips.some(c => (c.tracks || []).some(t => t.kind === 3))){
       m.map = bs.map; m.needsUpdate = true;
     }
-    for (const ci of list) stepOneSlot(m, clips[ci], tSec);
+    if (!list.length) return;                             // restored above; nothing to play
+    for (const [ci, t] of list) stepOneSlot(m, clips[ci], t);
     n++;
   });
   return n;
 }
 function stepOneSlot(m, clip, tSec){
     if (!clip || !clip.frames || !clip.tracks) return;
-    const fr = tSec * MAT_FPS;
+    // Never below frame 0. A slot with its own origin can be handed a negative time -- the parts
+    // harness calls the stepper with tSec 0 while a state clock is already running -- and a
+    // negative frame would extrapolate off the front of the first key rather than sit on it.
+    const fr = Math.max(0, tSec) * MAT_FPS;
     // Clamped to frameCount, NOT frameCount-1. Chunk 1 disassembled this path
     // (0xb0cf38..0xb0cf88): `bge` on `time >= frameCount`, then for a non-looping clip
     // `vstr s0,[r3]` stores frameCount itself. Do NOT "fix" this to frames-1 -- that is
