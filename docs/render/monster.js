@@ -1044,8 +1044,40 @@ function clipPicker(state, monId){
     // into SLOT 1 while SLOT 0 keeps running the steady-state clip. So when a state clip was found
     // and the material also carries an auto-play/steady clip, run both -- slot 0 first, slot 1 over
     // it -- rather than replacing one with the other.
+    // THE STEADY SLOT, when the material carries no auto clip. Khezu, 2026-09-09: "the flash also
+    // does not revert when toggled off. It has the black veins issues again."
+    //
+    // `Angry_End` is a TRANSITION, not a rest state. On XfBA_A0__m03_blood its final keys are
+    // fTransparency 0.5 and fDiffuseColor alpha 0.6, so selecting it for calm leaves that layer
+    // holding at half strength for ever -- and because the layer is BSRevSubAlpha, which DARKENS
+    // what is behind it, half strength is a permanent dark shell. The rest state is `Nomal_Repeat`
+    // (the ROM's own spelling), which nothing selected because CALM_CLIPS carries `Normal`.
+    //
+    // So where a material has no auto clip but does have a rest-named one, that clip becomes the
+    // steady slot for the CALM state and the matched transition plays over it -- which is what the
+    // ROM does with slot 0 and slot 1 above. 24 materials on 16 monsters carry such a clip.
+    //
+    // Enraged is deliberately excluded: a rest-named clip is not the base state of an enraged
+    // material, and the enraged path already has its own fallback.
     const auto = clips.findIndex(c => c.auto);
-    if (state && ci >= 0 && auto >= 0 && auto !== ci) return [auto, ci];
+    let steady = auto, restOnly = false;
+    if (steady < 0 && state && state !== 'enraged'){
+      steady = clips.findIndex(c => typeof c.name === 'string' && REST_NAME.test(c.name));
+      restOnly = steady >= 0;
+    }
+    if (ci < 0) ci = steady;                       // nothing matched: the base state alone
+    // A REST CLIP IS THE STATE, NOT A BACKDROP -- run it ALONE, do not put the transition over it.
+    // Slot 1 is applied after slot 0 and wins every track it writes, and a transition is a
+    // one-shot that CLAMPS AND HOLDS its final frame for ever (material.js, from 0xb0cf38). So
+    // layering `Angry_End` over `Nomal_Repeat` just overwrites it permanently, which is what left
+    // Khezu's blood layer frozen at Angry_End's last frame: fTransparency 0.5, static, instead of
+    // Nomal_Repeat's 0.6 with its UV scrolling 0.5 -> -0.5 across 120 looping frames.
+    //
+    // The ROM drops slot 1 when the transition finishes; the viewer has no notion of WHEN the
+    // toggle happened, so it cannot time that. Showing the steady state at rest is the honest
+    // approximation -- the transition exists for the moment of the change, which we do not model.
+    if (restOnly && steady >= 0) return steady;
+    if (state && ci >= 0 && steady >= 0 && steady !== ci) return [steady, ci];
     return ci;
   };
 }
