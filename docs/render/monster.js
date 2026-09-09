@@ -1042,18 +1042,34 @@ export const SHARP_RGB  = [
   [0.93, 0.94, 0.96],   // white
   [0.64, 0.31, 0.85],   // purple
 ];
-// The two thresholds are both in the binary: 0.25 normally, 0.27 when the selector at 0x3a8430
-// returns 5. That selector passes through a signed byte taking 1, 3 or 5 and has NOT been
-// identified, so both are offered rather than one being presented as the truth.
-export const DEFLECT_T = { normal: 0.25, strict: 0.27 };
+// The two floors are both in the binary: 0.25, and 0.27 when the selector at 0x3a8430 returns 5.
+// THAT SELECTOR IS NOT IDENTIFIED. It reads a signed byte at +0x0f of the pointer at +0xa4,
+// returns 5/3/1 for those values and 0 for anything else, and only 5 reaches 0.27 -- that is the
+// whole of what is known. The values 1/3/5 resemble a rank ladder, which is why a previous label
+// called this Monster Level and cited cOtQuestExpBias for '0 Village Low, 1 Low, 3 High, 5 G'.
+// Checked 2026-09-08 and FALSE: cOtQuestExpBias is the Palico quest-EXP table, its level fields
+// are mLvVillageLow / mLvLow / mLvHigh -- three, no G -- and it carries no 0/1/3/5 mapping.
+// So the keys here are the floors themselves. Do not name this control after what it might pick.
+//
+// A CANDIDATE, strongly evidenced but not proven (2026-09-08). Quests ship as rQuestData, 3,451
+// files, every one 329 bytes and every one starting with the same 4 bytes 00 00 4b 43 -- a
+// constant header, so the loaded struct is very likely the file + 4. Byte +0x13 of the file is
+// then struct +0x0f, which is exactly where the selector reads. Scanning all 329 offsets over all
+// 3,451 files, +0x13 is the ONLY byte whose values are {0, 1, 3, 5} with a real spread
+// (0 x1142, 1 x266, 3 x1217, 5 x826); every other offset in that value set is >90% zero with a
+// handful of exceptions. Four agreements -- header, offset, value set, distribution.
+// WHAT WOULD FINISH IT: read the rQuestData loader and confirm it maps file+4 to struct+0, or
+// find the write to [singleton+0xa4]. Until then this stays a candidate and the UI stays generic:
+// the byte is quest-scoped, which is enough to know it is NOT per-monster.
+export const DEFLECT_T = { f25: 0.25, f27: 0.27 };
 
 // THE DEFLECT LADDER, read from the ROM 2026-09-07 (build/notes/deflect-ladder.md).
 // A hit is graded into FOUR tiers by its damage multiplier, not into bounce/no-bounce. From
-// 0x177e64 both arms of the rank branch share their top two rungs:
+// 0x177e64 both arms of the selector branch share their top two rungs:
 //     00177e74  vldr s2,[pc,#0x1dc] -> 0.66  ;  00177e7c  mov sl, #4
 //     00177e8c  vldr s2,[pc,#0x1c8] -> 0.45  ;  00177e90  mov sl, #3
-//     00177ea0  vmov.f32 s2, #2.5e-01                     (rank 0/1/3 floor)
-//     00177ed4  vldr s2,[pc,#0x184] -> 0.27              (rank 5 floor)
+//     00177ea0  vmov.f32 s2, #2.5e-01                     (selector 0/1/3 floor)
+//     00177ed4  vldr s2,[pc,#0x184] -> 0.27              (selector 5 floor)
 //     00177edc  mov  sl, #2
 //     00177ee4  movwlt sl, #0                             below the floor -> tier 0, THE BOUNCE
 // so the tiers produced are 4, 3, 2 and 0 -- there is no tier 1 on this path.
@@ -1069,12 +1085,18 @@ export function deflectTier(hz, sharpIdx, floor){
 
 // The tiers the ladder actually produces, in the order the ROM tests them. There is no tier 1.
 export const DEFLECT_TIERS = [2, 3, 4];
-// WHAT A TIER MEANS IS NOT TRACED. The classifier stores it as a byte (0x177f0c `strb sl,[r4,#6]`)
-// and what the game does differently at 4 vs 3 vs 2 has not been read. Only tier 0 is established:
-// it is the bounce. So these labels state the THRESHOLD each rung clears and nothing more -- an
-// earlier version called them "Avoids a Bounce" / "Bites" / "Bites Clean", which was invented.
+// WHAT A TIER MEANS IS ONLY PARTLY TRACED, so the labels stay generic. An earlier version called
+// them "Avoids a Bounce" / "Bites" / "Bites Clean", which was invented.
+// What IS read (2026-09-08): the classifier stores the tier as a byte (0x177f0c `strb sl,[r4,#6]`)
+// and hands it to 0x171c68, which dispatches on a byte at [..+0x4d4]-7 over 9 cases. Only four act
+// -- cases 7 and 11 share an arm, 14 and 15 have their own, and 8/9/10/12/13 fall straight through.
+// The acting arm at 0x171cfc scales an amount by a PER-TIER table: the pointer at .data 0x01833910
+// reaches .rodata 0x0161e364 = [0.5, 0.5, 0.75, 1.0, 1.1, ...] indexed by the tier, so tier 0/2/3/4
+// scale by 0.5 / 0.75 / 1.0 / 1.1. WHICH weapons those cases are is NOT established: the only
+// weapon enum found (cCatSkillBase's property order) puts Long Sword at 1 and Dual Blades at 3,
+// and neither of those cases acts -- so no weapon is named here.
 export const TIER_LABEL = { 2: 'Tier 2', 3: 'Tier 3', 4: 'Tier 4' };
-// The rule a rung clears, in the ROM's own numbers. Tier 2's floor is rank-selected.
+// The rule a rung clears, in the ROM's own numbers. Tier 2's floor is the selector's.
 export function tierRule(tier, floor){
   return '>= ' + (tier === 2 ? floor : DEFLECT_RUNGS[4 - tier]);
 }

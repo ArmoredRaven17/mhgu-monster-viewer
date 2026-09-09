@@ -549,12 +549,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
             <select id="monHeatTable"></select>
           </div>
           <div class="field" id="monBounceTRow" hidden>
-            <label for="monBounceT" title="cQuestData's own field name for the byte that picks the floor (0x3a8430 reads [sQuest+0xa4]+0x0f). Its values are named by cOtQuestExpBias: 0 Village Low, 1 Low, 3 High, 5 G.">Monster Level</label>
+            <label for="monBounceT" title="The floor a hit must clear to avoid bouncing. The ROM holds two, 0.25 and 0.27, and picks between them with a signed byte read at 0x3a8430 that is NOT identified -- so both are offered here and neither is presented as the monster's. It is not a per-monster value: the deflect site reads it from a global.">Threshold</label>
             <select id="monBounceT">
-              <option value="normal">Village / Low / High &mdash; floor 0.25</option>
-              <option value="strict">G &mdash; floor 0.27</option>
+              <option value="f25">Floor 0.25</option>
+              <option value="f27">Floor 0.27</option>
             </select>
-            <label for="monTier" title="The ROM grades every hit 4/3/2/0 and stores it on the hit record (MhHitAtk+6). It names none of the tiers, so these are labelled by the threshold they clear. What they drive: tier 4 freezes the attacker's animation for 1.5x as long as tier 3; tier 3 freezes or slows; tier 2 does neither; tier 0 is the bounce and costs double sharpness. Long Sword and Dual Blades also gain gauge at 0.75x / 1.0x / 1.1x. The tier does not change damage.">Rung</label>
+            <label for="monTier" title="The ROM grades every hit 4/3/2/0 and stores it on the hit record (+6). It names none of the tiers, so these are labelled by the threshold they clear. Tier 0 is the bounce. The tier is passed to 0x171c68, which scales an amount by a per-tier table (.rodata 0x0161e364) at 0.5 / 0.75 / 1.0 / 1.1 for tier 0 / 2 / 3 / 4, on 4 of its 9 cases. Which weapons those cases are, and what else the tier drives, is not established.">Rung</label>
             <select id="monTier">
               <option value="2">Tier 2 &mdash; the floor</option>
               <option value="3">Tier 3 &mdash; 0.45</option>
@@ -1797,7 +1797,7 @@ function applyCameraState(c){
 const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: false,
                 anchor: true, ground: true, normalFlip: false, normalScale: 1,
                 // both OFF by default: see applyUndef and applyExtend
-                undef: false, extend: false, gap: false, proxy: false, rage: false, heat: '', heatTable: 0, deflectT: 'normal', deflectTier: 2,
+                undef: false, extend: false, gap: false, proxy: false, rage: false, heat: '', heatTable: 0, deflectT: 'f25', deflectTier: 2,
                 zoneTab: 'raw',
                 zoneShow: true, zonePos: null,
                 // the additive effect meshes as a class; the ROM's part table already keeps
@@ -2255,7 +2255,7 @@ async function applyHeat(){
   const ti = Math.min(rec.tables.length - 1, Math.max(0, state.heatTable | 0));
   tsel.value = String(ti);
   document.getElementById('monHeat').value = state.heat;
-  document.getElementById('monBounceT').value = state.deflectT || 'normal';
+  document.getElementById('monBounceT').value = state.deflectT || 'f25';
   document.getElementById('monTier').value = String(+state.deflectTier || 2);
   const wantTab = tabForHeat(state.heat);
   if (wantTab) state.zoneTab = wantTab;
@@ -2947,8 +2947,10 @@ function applySet(o){
   if (typeof o.heat === 'string') state.heat = o.heat;
   if (typeof o.heatTable === 'number') state.heatTable = Math.max(0, o.heatTable | 0);
   // accept the pre-rename keys so a saved set from before the Bounce -> Hardness change still opens
-  const dt = o.deflectT || o.bounceT;
-  if (dt === 'normal' || dt === 'strict') state.deflectT = dt;
+  // ...and the pre-2026-09-08 floor keys, which named the floor after a selector value that was
+  // never identified. normal/strict were 0.25/0.27 and map straight across.
+  const dt = { normal: 'f25', strict: 'f27' }[o.deflectT || o.bounceT] || o.deflectT || o.bounceT;
+  if (dt === 'f25' || dt === 'f27') state.deflectT = dt;
   if ([2, 3, 4].indexOf(+o.deflectTier) >= 0) state.deflectTier = +o.deflectTier;
   if (typeof o.proxy === 'boolean') state.proxy = o.proxy;
   if (typeof o.rage === 'boolean') state.rage = o.rage;
