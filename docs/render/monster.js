@@ -920,13 +920,33 @@ export { MAT_FPS };
 // slices" -- the small eye patch was showing and the large layer over it was not.
 const ENRAGE_CLIPS = ['Gekikou_Start', 'Angry_Start', 'Angry', 'angry_loop', 'angry_Change'];
 const CALM_CLIPS = ['Gekikou_End', 'Angry_End', 'Normal', 'angry_End'];
+// CLIP NAMES ARE MATCHED WITHOUT CASE. The ROM is not consistent about it and the lists above were
+// typed from whichever spelling was in front of whoever wrote them -- note `angry_loop` lowercase
+// sitting beside `Angry_Start` capitalised, in the same array.
+//
+// Counted 2026-09-09 across every monster material: NINE monsters miss a clip on case ALONE, and
+// the ROM supplies both spellings itself, so comparing without case invents nothing.
+//
+//   angry_Loop   vs angry_loop    Congalala, Glavenus, Hellblade Glavenus, Nakarkos x3
+//   normal       vs Normal        Lavasioth, Glavenus
+//   angry_start  vs Angry_Start   Amatsu, Ahtal-Ka
+//   angry_end    vs Angry_End     Amatsu, Ahtal-Ka
+//
+// Ahtal-Ka is the clearest: its only animated material is the eye, carrying `angry_start`,
+// `angry_loop` and `angry_end`. It hit on exactly one of the three -- the loop, because that entry
+// happens to be lowercase in the list -- so the eye jumped to a held state with no ramp in and
+// nothing to return to. Raven, 2026-09-09: "enraged toggle does not really show the eye effect, it
+// also does not toggle off like Khezu's flashing".
+const sameClip = (a, b) => typeof a === 'string' && typeof b === 'string' &&
+                           a.toLowerCase() === b.toLowerCase();
+const clipInList = (c, list) => !!c && list.some(nm => sameClip(c.name, nm));
 // Materials that carry an enraged clip -- the layers the game lights when a monster rages.
 export function enrageMaterials(root){
   const out = new Set();
   root.traverse(o => {
     const m = o.material, rom = m && m.userData && m.userData.rom;
     for (const c of (rom && rom.anim) || [])
-      if (c.name && ENRAGE_CLIPS.indexOf(c.name) >= 0) out.add(m.name);
+      if (clipInList(c, ENRAGE_CLIPS)) out.add(m.name);
   });
   return out;
 }
@@ -949,10 +969,10 @@ function clipPicker(state, monId){
     let ci = -1;
     // A SPAWN-PINNED material ignores the rage state entirely -- see ROM_SPAWN_CLIP.
     if (pin && rom.name && pin[rom.name])
-      ci = clips.findIndex(c => c.name === pin[rom.name]);
+      ci = clips.findIndex(c => sameClip(c.name, pin[rom.name]));
     if (ci < 0 && state){
       const want = state === 'enraged' ? ENRAGE_CLIPS : CALM_CLIPS;
-      for (const nm of want){ ci = clips.findIndex(c => c.name === nm); if (ci >= 0) break; }
+      for (const nm of want){ ci = clips.findIndex(c => sameClip(c.name, nm)); if (ci >= 0) break; }
     }
     // The enraged/calm toggle is a VIEWER affordance, not a ROM behaviour -- the game reaches these
     // clips through setClip from an AI state, so a name list can never be complete. Bloodbath
