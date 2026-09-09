@@ -466,6 +466,46 @@ name decides which parts of which monster transform.
 the same authored decision as every other clip in section B, and it is Raven's. The two dedicated
 `pumpup_arm` / `pumpup_fur` meshes carry no clips at all, so they are presumably meant to be shown
 by part state during that form rather than animated into it.
+### Cephadrome (em017_00) - wounds render low-res  [+ the Diablos / Ukanlos cluster]
+> "Cephadrome's wounds render poorly, seem low resolution similar to the low res rendering issues
+> mentioned before"
+
+**STATUS** censused, cause NOT found - **CAUSE** unknown, and resolution is RULED OUT as the common one
+
+Three reports now - Diablos, Ukanlos, Cephadrome - so I censused every texture in the library
+instead of chasing them one at a time. The census kills the obvious explanation:
+
+* **Cephadrome's only small texture is its SPHERE MAP.** Its three textures are 1024 albedo,
+  1024 spec and a 64x64 bound to the `sphere` slot on `XfB__E0__m02_body`. A 64x64 sphere map is
+  normal - they are small by design. Nothing about Cephadrome is low resolution.
+* **Ukanlos is 1024 throughout**, twelve textures across body and tail, not one below. So whatever
+  is wrong there is not resolution at all.
+* **Diablos genuinely ships 512s** - `XfBAN__E0__m50_wing` binds normal, albedo and spec all at
+  512x512 while the body pair are 1024. That is the ROM's own choice, not a build fault, so the
+  wing really is half the detail of the body.
+
+Also ruled out:
+
+* **No missing textures and no fallbacks.** The build report has `texMissing: 0`,
+  `texUnboundMissing: 0`, `texFallbackByBasename: 0`, so nothing was substituted for anything.
+* **Filtering is correct.** `assets.js` sets `anisotropy = maxAnisotropy` and leaves three.js's
+  defaults, which are `LinearMipmapLinearFilter` / `LinearFilter` with mipmaps generated. All the
+  sizes involved are powers of two.
+
+**What is left, and is the next thing to check:** the build re-encodes every ROM texture to webp,
+and it does so inconsistently - 199 lossy VP8, 106 lossless VP8L, 176 VP8X. Median density is
+0.44 bytes per pixel, but the tail is extreme: `aecee8eb2de3e842.webp` is 1024x1024 at **0.0052
+B/px** and `7b7ee190912374e5.webp` is 512x512 at 0.0089. Those are compressed hard enough to show
+artifacts on anything with detail in it. Which monsters bind the low-density textures is the
+question to answer next, and it would explain reports that resolution cannot.
+
+**Cephadrome's "wounds" also need identifying.** It has only three materials - eye, body, fin -
+and the body is `albedo: MapColorOnly` with no blend map bound, so there is no second albedo layer
+carrying wound detail. Whether the wounds are in the body's own 1024 map, on a mesh held off by
+part state, or somewhere not loaded at all, is unestablished.
+
+---
+
 
 ---
 
