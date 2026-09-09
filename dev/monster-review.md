@@ -532,6 +532,44 @@ part-to-mesh mapping, so which prims part 9 actually owns is still to be read fr
 
 Related: this is the same missing machinery as Yian Kut-Ku's ears - exclusive pairs and standalone
 toggles both need the grouping layer before they can be driven correctly.
+### Lagiacrus (em046_00) - charge colours appear, no glow  [THE APP HAS NO BLOOM PASS]
+> "Lagiacrus, charge color changes appear but no glow effect currently"
+
+**STATUS** diagnosed, and the glow half is LIBRARY-WIDE - **CAUSE** shared, a missing feature
+
+**There is no glow because this app has no post-processing at all.** The Monster Viewer's render
+directory is `assets.js`, `material.js`, `materials-db.js`, `monster.js`, `pose.js`, `skeleton.js`,
+`stage.js` and `rom/` - and nothing else. No `EffectComposer`, no `RenderPass`, no bloom anywhere
+in the render modules or in `index.html`.
+
+The Armor Viewer HAS it: `docs/render/fx.js`, with an `EffectComposer` over the transparent canvas
+and its own `BloomPass` / `BloomCompositeShader`. That file is not one of the six shared modules, so
+it never came across.
+
+So every additive and emissive layer in the Monster Viewer draws bright but cannot bloom - Lagiacrus
+is simply where Raven noticed it. This is a feature to port, not a decode: the implementation
+already exists next door and is known to work over a transparent canvas, which is the hard part.
+
+**The charge side, separately.** Lagiacrus has two additive layers and they are in different states:
+
+| material | blend | constant | clips |
+|---|---|---|---|
+| `XfB__m01_ray` | add | `[1, 1, 1, 1]` white | **none at all** |
+| `XfB__m02_thornray` | add | `[0.4, 0.86, 1.0, 1.0]` pale blue | four, all `fConstantColor` |
+
+`m02_thornray` carries a REAL colour in its static constant, which is why a charge colour shows at
+all without any clip running. Its four clips are all `fConstantColor` tracks and all unselectable -
+unnamed in the data and `auto = 0`, the same shape as Boltreaver. Their hashes DO resolve, and they
+name the transitions between three charge levels:
+
+    20444700    thornray00-01        3465322991  thornray01-00
+    545439939   thornray01-02        2872983191  thornray02-01
+
+00 to 01, 01 to 02, and both ways back. So Lagiacrus has a three-level charge ladder that can never
+step, on top of having no bloom to make any of it glow.
+
+---
+
 
 ---
 
