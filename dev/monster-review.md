@@ -252,6 +252,55 @@ describes.
 
 `Angry_Start` is a one-shot and `Angry_Repeat` is the loop that should sustain it, so this flashes
 and stops exactly like Khezu. Same shared cause, third monster to show it.
+### Glavenus (em080_00) and Hellblade Glavenus (em080_04)
+> "Glavenus enraged effects are not rendering correctly and the Sword mesh for things like the
+> heated up effect are off centered, an issue I know I have pointed out before"
+
+**STATUS** enrage diagnosed, sword mesh open (REPEAT REPORT) - **CAUSE** shared / unknown
+
+**The enraged effects are the clip bug, and Glavenus is hit by BOTH halves of it at once:**
+
+| monster | clip in the data | why it never plays |
+|---|---|---|
+| Glavenus, Hellblade | `angry_Loop` | list holds `angry_loop`, lowercase L - case-only miss |
+| Glavenus | `normal` | list holds `Normal` - case-only miss |
+| Glavenus | `heat_Loop`, `dark_Change_Loop_End`, `normal_dark_Change` | not in either list |
+| Hellblade | `heat_Loop`, `overheat_Loop` | not in either list |
+
+So the heat/overheat states and the enraged loop are all unselectable, which covers "enraged
+effects are not rendering correctly". Glavenus is the clearest case for fixing the CASE half first:
+it is the only monster that misses on case in both directions, enraged and calm.
+
+**The off-centre sword mesh is NOT diagnosed and is a repeat report** - noted as such so it is not
+lost again. It is geometric, not a clip or a material problem, so it belongs with the mount/bone
+questions rather than with the rest of this entry.
+
+### Variant contrast: Raging, Savage, Furious
+> "Raging, Savage, Furious will all require ensuring the Variant level changes are applied to
+> ensure they contrast from the base version"
+
+**STATUS** one hard bug found, two blocked by the clip cause - **CAUSE** mixed
+
+**Furious Rajang is a real bug and the only one of its kind.** It is the ONLY monster in the whole
+viewer carrying `sharesModelOf` (`em023_05 -> em023_00`), so it renders on base Rajang's model and
+has NO material record of its own. The ROM disagrees: `em023_05.arc` ships **34 rModel, 34
+rMaterial and 67 rTexture** - a complete set, against base Rajang's 36/36/68. The variant's own
+assets exist and are not being used, so there is nothing to contrast WITH.
+
+The other two do have their own material sets, and their contrast is blocked by the clip cause
+rather than by missing assets:
+
+* **Raging Brachydios** - the contrast IS the red slime, and `Yellow_to_Red` is precisely the clip
+  that can never be selected. See the Brachydios entry.
+* **Savage Deviljho** - carries `Gekikou_Start` / `Gekikou_End` on top of the base's `Angry_*` pair,
+  which is the variant layer. Selectable by name but one-shot with nothing to sustain it. See the
+  Savage entry.
+
+So "apply the variant level changes" resolves to three different jobs: load Furious Rajang's own
+archive, make the state clips selectable, and then decide the states - the last being authored.
+
+---
+
 
 ---
 
