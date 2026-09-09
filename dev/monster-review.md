@@ -760,6 +760,40 @@ which is right.
 **What I cannot say is which cluster is the head.** That needs `partnames.json`, and the board
 already carries the caveat that those names are community-sourced rather than ROM-derived. Worth
 pinning before reviewing the breaks, otherwise the review is guessing at which row to look at.
+### Gore Magala (em071_00) and Chaotic Gore Magala (em071_05) - wing layer renders poorly
+> "Gore Magala has a wing effect or albedo layer that renders poorly"
+
+**STATUS** diagnosed, two causes at once - **CAUSE** shared, both already in this log
+
+**1. The frenzy body-light ladder never runs.** `XfB_W__m01_kasan` is the additive layer
+(`BSAddAlpha`) and it carries a five-rung ladder plus a rest state:
+
+    BodyLight_Start_LV1   BodyLight_Start_LV2   BodyLight_Start_LV3
+    BodyLight_Start_LVMAX BodyLight_Start_Finish  BodyLight_Normal
+
+**All six have `auto = 0` and none is in either clip list**, so nothing is ever selected and the
+static constant `[1, 1, 1, 1]` - white - is what draws. That is the Boltreaver / Gypceros shape for
+the fifth time: an additive layer whose colour lives in an animation that cannot be reached.
+Both Gore variants carry the identical ladder.
+
+**2. The wings are drawn OPAQUE while their feature word says Alpha.** Three wing materials on each
+monster are `BSSolid` / `blend: opaque` yet carry `transp: Alpha`:
+
+    XfBAN__E0__m52_wing_l      opaque / BSSolid   transp: Alpha
+    XfBAN__E0__m51_wing_s      opaque / BSSolid   transp: Alpha
+    XfBAN__EW_0__m50_UVA       opaque / BSSolid   transp: Alpha
+
+Gore's wings are membranous with soft and torn edges; drawn opaque they read as solid cards, which
+is the same visible fault as Kirin's hair. This is the third monster in the alpha-disagreement
+family after Najarala and Kirin, and it is the largest instance yet - six materials across the two
+variants.
+
+**Also unreachable:** `m52_wing_l` carries a `Wing_damage` clip, `auto = 0`, in neither list - so
+the damaged-wing state cannot be shown either. And `XfBAN__EW_0__m50_UVA` has one unnamed clip with
+`auto = 1`, so that one DOES play; it is the only animated thing on the monster that does.
+
+---
+
 
 ---
 
