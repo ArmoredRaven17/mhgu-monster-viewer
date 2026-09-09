@@ -11,9 +11,70 @@ Two columns matter more than the rest:
   "monster-specific" symptoms so far have turned out to be `shared` with sparse usage.
 * **STATUS** — `open`, `diagnosed` (cause found, not fixed), `fixed, unjudged`, `closed`.
 
+**This is a RUNNING list, not a one-off.** Pass 1 was 27 reports in one sitting; there will be
+more. New reports go under a new `## Pass N` heading with the date, and the status board above is
+updated at the same time - a report either extends a cause already listed there or opens a new
+one. So far almost every symptom that looked monster-specific has extended an existing cause, so
+opening a new one is itself worth noticing.
+
+Nothing here is closed on my reading of a render. `diagnosed` means the mechanism is found and
+shown; only Raven moves an entry to `closed`.
+
 ---
 
-## 2026-09-09
+## Status board
+
+Kept current as reports come in. **Causes** are what to fix; **entries** below carry the evidence.
+A new report either extends a cause here or opens a new one - if it opens a new one, that is worth
+noticing, because so far almost nothing has.
+
+### Causes, by weight
+
+| # | cause | monsters | state |
+|---|---|---|---|
+| A | **Clip selection.** Two hard-coded name lists reach 9 of 136 clip names. Four shapes: case-only miss; name absent with no auto bit (nothing plays); unnamed clips with no auto bit; auto bit present so one state is stuck. | ~20 | diagnosed, unfixed |
+| B | **Alpha disagreement.** `checks.xfbaAlpha`: 495 agree, **66 do not**, in both directions. Name-says-alpha-drawn-opaque gives solid cards; feature-says-alpha-name-does-not gives black patches. | Kirin, Gore x2, Najarala | diagnosed, needs a decision |
+| C | **No HDR path.** No bloom pass at all (the Armor Viewer has `fx.js`); no tone mapping, so anything above 1.0 clips flat to white. | library-wide | diagnosed, unfixed |
+| D | **Joint-0 rigid skins.** Weightless primitives bind to the root instead of the bone the `.mod` names. The fix exists but `mod_to_gltf` skips regeneration when the `.glb` is present, so stale assets keep it. | Glavenus, Deviljho, + unknown | strong lead |
+| E | **Empty scene.** Refraction samples a buffer holding only the monster; 391 materials want a `GlobalCubeMap` that does not exist. | Astalos x2, Brachydios? | needs Raven's decision |
+| F | **Parts machinery.** Exclusive pairs and standalone toggles need a grouping layer; some clusters sit outside the rest-set system. | Yian Kut-Ku, Nibelsnarf, Alatreon | diagnosed |
+| G | **Data defects.** One-off faults in the shipped data. | Soulseer (empty groups), Furious Rajang (`sharesModelOf`) | diagnosed |
+| H | **My regressions.** | see below | live |
+
+### Open - cause not established
+
+* **Bloodbath Diablos** - rage regression; `clipPicker` already carries a fallback written for it
+* **Diablos / Ukanlos / Cephadrome** - texture quality; resolution RULED OUT, webp encode density is the live lead
+* **Grimclaw Tigrex** - enraged albedo layers
+* **Old Fatalis** - chest effect when the chest break is on
+* **Teostra** - effects generally; carries `Effect_Loop`, in neither list
+* **Zinogre** - "missing mesh" not confirmed
+* **Cephadrome** - what the "wounds" actually are; no second albedo layer exists on it
+* **Glavenus** - off-centre sword mesh, likely cause D
+
+### My regressions, live
+
+* **Blobification** (`51a71d0`) - cut-out fragments write full coverage, so soft ramps fill solid.
+  Savage, Deviljho, Zinogre. `__view.cutSolid(false)` reverts it live. UNRESOLVED.
+* **Part toggles at highest index** (`5366bb2`) - hid whole clusters; corrected in `a895e1f`.
+  Agnaktor and Royal Ludroth were both this. RESOLVED.
+
+### The fixes, in leverage order
+
+1. **Case-insensitive clip match** - one line, invents nothing (the ROM supplies both spellings),
+   fixes 9 monsters outright including Ahtal-Ka completely.
+2. **Select clips by HASH, not name** - what the game itself does; makes every unnamed clip
+   reachable, which is Boltreaver, Lagiacrus and the rest of shape three.
+3. **Settle the alpha signal** - one decision, 66 materials.
+4. **Port `fx.js`** for bloom, and set a tone mapping.
+5. **Rebuild the stale `.glb`s** after checking which carry joint-0 bindings.
+
+Everything past that is authored - which clip is which state, which parts ride each - and is
+Raven's, not mine.
+
+---
+
+## Pass 1 - 2026-09-09
 
 ### Khezu (em003_00) — enrage flash, no revert, black veins
 > "When switched enrage state, it flashes but I don't think we replicated the effect well. The
