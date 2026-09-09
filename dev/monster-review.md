@@ -375,6 +375,43 @@ lowered ears would be: the raised mesh hidden and the lowered mesh shown.
 So this is not missing data and not a per-monster fix. It needs the grouping layer already on the
 board - "one toggle -> N mesh groups" - so an exclusive pair reads as a single control rather than
 four independent part checkboxes. Which pair is "down" is Raven's to name once the control exists.
+### Malfestio (em079_00) and Nightcloak Malfestio (em079_04) - wings always lit
+> "Malfestio wing effects should only display during certain attack animations, we will likely need
+> to animation work, but focus on rendering issues for now"
+
+**STATUS** diagnosed, and the rendering half is a NEGATIVE - **CAUSE** shared, but not the clip cause
+
+The useful finding is where the gate ISN'T. `XfB_0__m01_wing` is the wing effect on both monsters:
+
+    blend        add / BSAddAlpha
+    albedo       MapConstant, transp AlphaConstant
+    constant     [0.08, 0.32, 0.32, 1.0]   Malfestio (teal)
+                 [0.32, 0.08, 0.08, 1.0]   Nightcloak (red)
+    clips        Animation    auto=1  loop=1
+
+Two things follow, and they are the opposite of the other "always on" cases in this log:
+
+1. **The colour is real and already right.** Unlike Boltreaver, Savage and Gypceros, this constant
+   is not white - it carries the actual teal/red, and it differs between the two monsters. Nothing
+   to fix there.
+2. **The constant's ALPHA is 1.0 and its only clip is auto+loop**, so the material is fully visible
+   at rest and always animating, by its own data. Compare the overlays that ship
+   `fConstantColor.a = 0` and are ramped up by a rage clip - this is NOT one of those.
+
+So the material carries no "off" state at all, which means **the game does not gate this effect
+through the material.** It gates it by not drawing the mesh outside the attack. That puts it with
+part/mesh visibility driven by animation state, not with the material-clip work - and it is why
+nothing in the render path can fix it on its own. Raven's read was right.
+
+**Bonus, found while looking:** Nightcloak carries a whole stealth state machine that is equally
+unreachable - `stealth`, `stealth_start`, `stealth_end`, `stealth_start_S`, `stealth_end_S`,
+`escape01`, `escape02`, `fade_in`, `fade_out`, across five materials plus three refract materials
+whose own NAMES are unresolved hashes (`#3d0edb2c`, `#8d3c9f15`, `#d2c9c25d`). Every one is
+`auto = 0` and none is in either clip list, so the cloak never engages. Those three material-name
+hashes should invert the same way the clip hashes did - same `crc32 ^ 0xFFFFFFFF` scheme.
+
+---
+
 
 ---
 
