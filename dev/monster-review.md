@@ -722,6 +722,47 @@ the missing bloom pass from the Lagiacrus entry: this app has neither end of the
   materials, and `XfBA0__m02_body_add` is additive with an auto `Normal` clip.
 * **Teostra (em027_00 / em027_04)** - "effects are very poorly rendered". From the earlier census
   Teostra carries `Effect_Loop`, which is in neither clip list.
+### Alatreon (em050_00) - elemental modes, and the head break cluster
+> "Alatreon, may need to review part breaks for the head. Also, we will need to track down its
+> different modes, it changes elemental states"
+
+**STATUS** modes diagnosed, head breaks described - **CAUSE** shared (clips) / review
+
+**The elemental modes are one material, and exactly half of it is reachable.** `XfB__m03_add`
+(additive) carries a complete two-state machine:
+
+    blue_Change   blue_Loop   blue_End      auto = 0, 0, 0
+    red_Change    red_Loop    red_End       auto = 0, 1, 0
+
+**`red_Loop` carries the auto bit**, so it is the ROM's own default and the picker's auto fallback
+selects it. None of the six names is in `ENRAGE_CLIPS` or `CALM_CLIPS`. The result is that Alatreon
+is permanently in its RED state and the blue one can never be reached - along with all four
+transitions.
+
+This is a different outcome from the other clip cases in this log and worth noting as a pattern:
+where a monster has an auto clip, something renders and one state is simply stuck; where it has
+none (Boltreaver, Gypceros), nothing renders at all. Same cause, two symptoms.
+
+**The head breaks.** Alatreon's part clusters are three-stage, not two:
+
+    {2, 24, 101}   g11 [[2,T],[24,T],[101,F]]    intact
+                   g13 [[2,F],[24,T],[101,F]]    partial
+                   g1  [[2,F],[24,F],[101,T]]    broken, and 101 appears in its place
+
+    {5, 25, 104}   g12 [[5,T],[25,T],[104,F]]    intact
+                   g2  [[5,F],[25,F],[104,T]]    broken, 104 in its place
+
+The 10x pattern is consistent: a part in the 100s is the BROKEN replacement mesh for the pair below
+it. With the panel now defaulting to the rest sets (`defaultSet 4`, `sets [3,11,14,15,16,17]`),
+cluster {2,24,101} takes g11 and cluster {5,25,104} falls back to its highest, g12 - both intact,
+which is right.
+
+**What I cannot say is which cluster is the head.** That needs `partnames.json`, and the board
+already carries the caveat that those names are community-sourced rather than ROM-derived. Worth
+pinning before reviewing the breaks, otherwise the review is guessing at which row to look at.
+
+---
+
 
 ---
 
