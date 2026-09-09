@@ -659,6 +659,72 @@ Note the asymmetry: `angry_loop` is in `ENRAGE_CLIPS` in lowercase while `Angry_
 It is the strongest argument in the log for making the match case-insensitive - a one-line change
 that invents nothing, since the ROM supplies both spellings, and it fixes Ahtal-Ka completely along
 with the eight other monsters in the case census.
+### Kirin (em011_00) - hair renders poorly
+> "Kirin hair renders poorly"
+
+**STATUS** diagnosed - **CAUSE** shared, and it is the OPPOSITE direction of Najarala's
+
+Kirin has TWO hair materials and they disagree about what hair is:
+
+| material | state | albedo | maps bound |
+|---|---|---|---|
+| `XfBAN__E0__m02_hairalpha` | **blend / BSBlendAlpha** | `Map`, `transp: Alpha` | normal + albedo + spec |
+| `XfBA0__m00_hair` | **opaque / BSSolid** | `MapConstant`, `transp: AlphaConstant` | albedo only |
+
+The second is in the build report's `checks.xfbaAlpha` exception list as the `nameA-featOff` kind:
+its NAME carries the `A` for alpha (`XfBA0__`) while its state and feature word say opaque. Hair
+drawn opaque is a solid card where soft strands should be, which is what "renders poorly" looks
+like on a mane.
+
+Najarala is the same census, the other way round (`featAlpha-nameB` - feature says alpha, name does
+not). **Both directions produce a visible fault**, which is the argument for settling which signal
+wins: 495 materials agree, 66 do not, split 45 / 21.
+
+Textures are healthy and not the cause: three 1024x512 at 0.99, 0.34 and 0.17 B/px.
+
+### Crimson Fatalis (em013_01) - enraged effect whited out
+> "Crimson Fatalis enraged effect is whited out"
+
+**STATUS** narrowed, not settled - **CAUSE** shared
+
+Two findings, and the first is new to this log.
+
+**The Fatalis enrage is a TEXTURE SWAP, not a colour ramp.** Its clips carry a `tex` track beside
+`fEmissionColor`, and it moves the albedo between texture slots:
+
+    Normal            tex 7    emission 0,0,0
+    Angry_Start_01    tex 7    emission ramps to 0.6, 0.3, 0.0
+    Angry_Start_02    tex 9    emission 0.1 -> 0.2
+    Angry             tex 9    emission 0.2 held
+    Angry_End_01/02   tex 9 -> 7, emission back to 0
+
+So emission peaks at **0.2** and cannot white anything out. The white-out has to come from the
+texture side. `applyTrack` DOES implement `case 'tex'` (in the shared material.js, whose comment
+says "the Fatalis line is the heavy user"), but it only swaps when `m.userData.texSwap` is
+populated and the index resolves - otherwise it silently does nothing. Whether `texSwap` is
+populated for `XfB_N__E_m01_body`, and what slot 9 resolves to, is the next thing to read.
+I have NOT checked it.
+
+**Second, only the sustained state is reachable.** Of the six clips, `ENRAGE_CLIPS`/`CALM_CLIPS`
+match `Angry` and `Normal` only - `Angry_Start_01`, `Angry_Start_02`, `Angry_End_01` and
+`Angry_End_02` are in neither. So the enrage jumps straight to the held state with no two-stage
+ramp, and returns the same way. Same cause as everywhere else, with a two-stage variant.
+
+**Library-wide fact found while looking:** the renderer sets **no tone mapping at all** - there is
+no `toneMapping` assignment in `stage.js` or `index.html`, so three.js uses `NoToneMapping` and any
+value above 1.0 clips flat to white. That matters for every "whited out" report, and it pairs with
+the missing bloom pass from the Lagiacrus entry: this app has neither end of the HDR path.
+
+### Received, not yet diagnosed
+
+* **Old Fatalis (em013_02)** - "chest effect renders poorly when the chest break is enabled".
+  Related data already seen: `XfB__m01_face_sub` is one of the game's three reverse-subtract
+  materials, and `XfBA0__m02_body_add` is additive with an auto `Normal` clip.
+* **Teostra (em027_00 / em027_04)** - "effects are very poorly rendered". From the earlier census
+  Teostra carries `Effect_Loop`, which is in neither clip list.
+
+---
+
 
 ---
 
