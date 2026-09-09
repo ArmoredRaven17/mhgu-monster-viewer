@@ -1823,6 +1823,9 @@ function saveState(){
 const mounted = {};
 let seq = 0;
 let effectOnly = null;      // which proof-effect record to mount, null = all
+// Clusters Raven has picked by hand this session, keyed by cluster, so rebuilding the panel does
+// not drag them back to the highest index. Cleared on a monster change.
+let partsPicked = {};
 const pose = new PoseDriver({ frame: world, onError: msg => noteError(msg) });
 const monSel = document.getElementById('monSel'), monFilter = document.getElementById('monFilter'),
       monListSel = document.getElementById('monList'), monClipSel = document.getElementById('monClip'),
@@ -2048,11 +2051,35 @@ function buildGroups(){
       // on Savage Deviljho the "Parts 4, 5, 6" row showed "on 4 / off 5, 6" while parts 5 and 6
       // were in fact both drawn. Part 6 is the eye glow, so the panel was reporting the opposite of
       // the truth about exactly the thing Raven kept asking about (2026-09-07).
-      sel.innerHTML = '<option value="none">not applied — all on</option>' +
-                      c.members.map(k => '<option value="' + k + '">' + groupLabel(groups[k]) + stateSuffix(k) + '</option>').join('');
-      const cur = c.members.find(k => state.groups[k]);
-      sel.value = (cur === undefined) ? 'none' : String(cur);
+      // "NOT APPLIED - ALL ON" REMOVED, and the default is now the HIGHEST group index.
+      // Raven, 2026-09-09: "can we move all part toggles to their highest index, remove the
+      // 'not implemented - all on' option since we need some parts off".
+      //
+      // The state it described was real -- the ROM starts every group ON and applies only the sets
+      // its driver selects, so a cluster with nothing applied genuinely leaves all its parts drawn,
+      // and the option existed so the panel would not lie about that (see the note above). But it
+      // is not a state anyone wants to LOOK at: every alternative of a cluster drawn at once is
+      // overlapping geometry, which is why some parts need to be off. So the panel now always has
+      // exactly one member of a cluster applied, and picks the highest index when nothing is.
+      // The lower indices are still selectable; only the all-on placeholder is gone.
+      sel.innerHTML = c.members.map(k => '<option value="' + k + '">' + groupLabel(groups[k]) + stateSuffix(k) + '</option>').join('');
+      // THE HIGHEST INDEX IS THE DEFAULT, not merely the fallback. Raven asked for every toggle
+      // moved there, so a cluster the rest sets already chose for is moved too, and `partsPicked`
+      // keeps a choice he makes by hand from being pulled back on the next rebuild.
+      //
+      // WORTH KNOWING, because it overrides ROM-derived data: part-rest.json's `sets` are the
+      // UNDAMAGED sets, and in the clusters read so far the higher index of an exclusive pair is
+      // the alternate -- Nibelsnarf's group 2 is [[2,on],[3,off]] and its group 8 is the reverse.
+      // So defaulting high can show a damaged or alternate variant where the rest set would have
+      // shown the intact one. That is the trade for never drawing a cluster's members on top of
+      // each other, which is what the all-on state did.
+      let cur = partsPicked[c.members.join(',')] !== undefined ? partsPicked[c.members.join(',')]
+                                                 : Math.max.apply(null, c.members);
+      if (c.members.indexOf(cur) < 0) cur = Math.max.apply(null, c.members);
+      c.members.forEach(k => { state.groups[k] = (k === cur); });
+      sel.value = String(cur);
       sel.onchange = () => {
+        partsPicked[c.members.join(',')] = +sel.value;
         c.members.forEach(k => { state.groups[k] = String(k) === sel.value; });
         applyPartState(); saveState();
       };
@@ -2135,6 +2162,7 @@ async function mount(){
       for (const pair of extra) releaseMonster(pair[1]);
       return;
     }
+    partsPicked = {};            // a new monster: nothing has been picked by hand yet
     clearMounts();
     world.add(main); mounted.main = main;
     for (const [name, g] of extra){ world.add(g); mounted[name] = g; }
