@@ -120,6 +120,48 @@ others - the ROM's answer depends on a level we do not render:**
    something to refract;
 3. leave it, and treat the artifact as the honest consequence of an empty scene.
 
+### Boltreaver Astalos (em081_04) - charge effects draw uncoloured
+> "Boltreaver charge effects all not colored; note, Astalos and Boltreaver have charge states and
+> it will involve tuning on and off multiple part groups for each charge state"
+
+**STATUS** diagnosed - **CAUSE** shared mechanism, and the blast radius is exactly 2 monsters
+
+`taiden` is the charge material family. Their colour is not in the material at all - it is in the
+animation, and the animation can never be selected:
+
+| material | static `constant` | clip tracks | clip name | auto |
+|---|---|---|---|---|
+| `XfBA2_taiden_tale` | `[1,1,1,1]` white | `fConstantColor` ONLY | (none) | 0 |
+| `XfBA2_taiden_head` | `[1,1,1,1]` white | `fConstantColor` ONLY | (none) | 0 |
+| `XfBA2_taiden_crow` | `[1,1,1,1]` white | `fConstantColor` ONLY | (none) | 0 |
+| `XfBAN__E1_wing_taiden` | `[1,1,1,1]` white | `fEmissionColor`, `fSpecularColor`, `fReflectiveColor` | (none) | 0 |
+
+`clipPicker` selects by NAME first, then falls back to the ROM's auto bit
+(`clips.findIndex(c => c.auto)`). These clips have no name string and `auto = 0`, so BOTH routes
+fail, nothing is ever selected, `fConstantColor` stays at the static white, and the charge effects
+draw uncoloured. That is the whole of it.
+
+The names are not missing from the ROM, only unresolved: each material carries the SAME PAIR of
+clip hashes, `668876438` and `3084603398`, 30 frames, both looping. 117 of the 134 distinct monster
+clip hashes resolve to strings in `main.rodata`; these two are among the 17 that do not. A matched
+pair on all four materials is consistent with Raven's note that these are charge STATES - two of
+them - rather than one effect.
+
+**Library-wide count:** 11 materials have only unnamed clips; of those, **5 materials on 2 monsters**
+also have no auto clip, so nothing can ever be selected:
+
+* Boltreaver Astalos - `XfBA2_taiden_crow`, `XfBA2_taiden_head`, `XfBA2_taiden_tale`,
+  `XfBAN__E1_wing_taiden`
+* Lagiacrus - `XfB__m02_thornray`
+
+**Two separable pieces of work, and the second is Raven's:**
+
+1. MECHANICAL - let a clip be selectable when it has no name: by hash, or by index, or by resolving
+   the two hashes. Invents nothing; the clip and its keys are already in the data.
+2. AUTHORED - which of the pair is which charge state, and which part groups are on in each. Same
+   standing as the enrage toggle: the ROM reaches these through an AI state, so it is Raven's to
+   decide, and it is what his note about "tuning on and off multiple part groups" describes.
+
 ---
 
 ## Standing census: the clip-name lists reach 9 of 136 names
