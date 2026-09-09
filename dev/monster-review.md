@@ -162,6 +162,48 @@ also have no auto clip, so nothing can ever be selected:
    standing as the enrage toggle: the ROM reaches these through an AI state, so it is Raven's to
    decide, and it is what his note about "tuning on and off multiple part groups" describes.
 
+## Clip-name hashes: the names are in the ROM, and clips should be picked by HASH
+
+Raven, 2026-09-09, on my calling 17 clip hashes "unresolved": *"Nothing should be missing from the
+ROM, it's a dump from a game cart I used to play the game."* He is right, and the correction
+matters more than the names do.
+
+**The hash is `crc32(name) ^ 0xFFFFFFFF`** - the same MT Framework hash as the archive type hashes,
+without the 31-bit mask. Verified: `crc32('Angry_End') ^ 0xFFFFFFFF == 3185156404`, which is the
+hash the data carries for that clip.
+
+**Nine of the seventeen recovered.** Six were sitting in the executable the whole time; the old
+resolver looked in `main.rodata` alone and matched whole printable runs, so a name that begins
+mid-run was invisible. Scanning all three segments and every suffix found them at once. Three more
+fell to hash inversion over the vocabulary the ROM's own clip names use:
+
+| hash | name | monster | how |
+|---|---|---|---|
+| 1642803235 | `Taiden_Repeat` | Khezu | rodata suffix |
+| 836608300 | `taiden_Loop` | Astalos | rodata suffix |
+| 20444700 | `thornray00-01` | Lagiacrus | rodata suffix |
+| 545439939 | `thornray01-02` | Lagiacrus | rodata suffix |
+| 3465322991 | `thornray01-00` | Lagiacrus | rodata suffix |
+| 2872983191 | `thornray02-01` | Lagiacrus | rodata suffix |
+| 3889124741 | `Wing` | em071_00, em071_05 | inversion |
+| 2498077448 | `light` | em025_00, em079_04 | inversion |
+| 1235185165 | `effect` | em043_05 Savage Deviljho | inversion |
+
+**Eight still not found BY ME** - not missing from the ROM: `668876438` and `3084603398`
+(Boltreaver's charge pair), `3176832509`, `3986638774`, `2138177580` (em036_00), `3654015077`
+(em058_00), `1282980991` (em083_04), `3961659931` (em087_00). A 200k-candidate inversion over the
+charge vocabulary, including the 放電/帯電 pairing, returned nothing, and the rodata symbol region
+around the six that were found holds no more.
+
+**THE STRUCTURAL POINT, which is what this is really worth.** The game never needs the name. It
+identifies a clip by its hash - that is what the .mrl stores, and it is why a name string is
+shipped only when something else in the image happens to need it. `clipPicker` matching by NAME is
+the anomaly, not the ROM. Selecting by hash works whether or not a string is ever recovered, and it
+would have made Boltreaver's charge clips selectable without knowing what they are called. The name
+is for us; the hash is for the game.
+
+This also revises the census below: it counted names, and names are the wrong unit.
+
 ---
 
 ## Standing census: the clip-name lists reach 9 of 136 names
