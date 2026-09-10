@@ -302,19 +302,38 @@ export const ROM_DEFAULT_SET = {
 // monster with no entry keeps its resting set in both states, which is what the old code did.
 export const ROM_RAGE_SET = {
   // Found by scanning every setVisibleGroup call site whose set index comes from an eq/ne pair
-  // gated DIRECTLY on the enrage predicate 0x81670 (which reads [enemy+0x1428]+0x518). Eight such
-  // sites exist across six AI classes -- this is the ROM's complete answer for enrage-driven part
-  // visibility, not a sample. Each entry is [calmSet, rageSet]; Tigrex needs two pairs.
-  em009_00: [[2, 6]],                                  // Gypceros
-  em032_00: [[1, 0], [10, 9]],                         // Tigrex
-  em032_04: [[1, 0], [10, 9]],                         // Grimclaw -- part 20 on, 30 off when enraged
-  em037_00: [[5, 7]],                                  // Nargacuga
-  em037_04: [[5, 7]],                                  // Silverwind
-  em043_00: [[0, 9]],                                  // Deviljho -- from 0xe806a0, not the Savage branch
-  em043_05: [[9, 13]],                                 // Savage -- 0xe80bfc, part 12 is the scrolling layer
-  em063_00: [[11, 12]],                                // Brachydios
-  em063_05: [[11, 12]],                                // Raging Brachydios -- part 9 is the slime
-  em070_00: [[1, 2]],                                  // Nerscylla
+  // gated DIRECTLY on the enrage predicate 0x81670 (which reads [enemy+0x1428]+0x518). Each entry
+  // is [calmSet, rageSet]; Tigrex needs two pairs.
+  //
+  // THE PAIRS WERE RECORDED THE WRONG WAY ROUND AND ARE SWAPPED HERE, 2026-09-10. Read the
+  // predicate and one site together and the polarity is not ambiguous:
+  //
+  //   0x081670   ldrb r0,[r0,#0x518] / cmp r0,#1 / movwne r0,#0 / bx lr
+  //              -- returns 1 when the state byte IS 1, else 0. Non-zero MEANS ENRAGED.
+  //   0x0e22400  bl 0x81670 / cmp r0,#0 / movne r1,#1 / moveq r1,#0 / bl 0x72c78
+  //              -- so movne, the NON-ZERO branch, is the ENRAGED set. Tigrex: rage = set 1.
+  //
+  // Set 1 is g1 [0 on, 4 on, 100 on] and set 0 is g0 [0 on, 4 OFF, 100 on], and part 4 carries
+  // XfBA_A0__m01_angry, the vein layer. So the ROM turns the rage layer ON when enraged, which the
+  // old order had backwards -- it read movne as calm. Raven's own panels agree independently: his
+  // calm screenshot is part 4 off, his enraged one part 4 on.
+  //
+  // The polarity is a property of the code SHAPE, identical at every site, so every pair flips.
+  // Four are confirmed against their own site by matching set numbers -- Tigrex (0xe22400),
+  // Gypceros (0xd5e504, rage 2 / calm 6), Nargacuga (0xe48884, rage 5 / calm 7) and Nerscylla
+  // (0xf9bd30, rage 1 / calm 2). The Deviljho, Savage and Brachydios rows are flipped on the same
+  // reasoning but their sites use a different selection shape and were NOT re-read; they are the
+  // ones to check first if a monster looks inverted.
+  em009_00: [[6, 2]],                                  // Gypceros -- confirmed at 0xd5e504
+  em032_00: [[0, 1], [9, 10]],                         // Tigrex -- confirmed at 0xe22400
+  em032_04: [[0, 1], [9, 10]],                         // Grimclaw
+  em037_00: [[7, 5]],                                  // Nargacuga -- confirmed at 0xe48884
+  em037_04: [[7, 5]],                                  // Silverwind
+  em043_00: [[9, 0]],                                  // Deviljho -- flipped, site not re-read
+  em043_05: [[13, 9]],                                 // Savage -- flipped, site not re-read
+  em063_00: [[12, 11]],                                // Brachydios -- flipped, site not re-read
+  em063_05: [[12, 11]],                                // Raging Brachydios -- flipped, site not re-read
+  em070_00: [[2, 1]],                                  // Nerscylla -- confirmed at 0xf9bd30
 };
 // Materials driven at SPAWN rather than by rage, which then hold that clip's end state for the
 // monster's whole life. Savage Deviljho is the case that matters and it is not a special case in

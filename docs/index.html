@@ -2010,6 +2010,9 @@ function buildGroups(){
   if (!groups.length){
     monGroupsEl.innerHTML = '<p class="hint">This monster ships no part-visibility table.</p>';
   }
+  // what the state itself would choose, used to resolve a collapsed choice to one variant
+  const stateDefault = defaultGroupsOn(groups, e && e.em, e && e.id, !!state.rage,
+                                       DEFAULT_PARTS_OFF[e && e.id], forcedOn(e && e.id));
   const pn = (PARTNAMES.monsters && PARTNAMES.monsters[e && e.id]) || {};
   const pnParts = pn.parts || {};
   for (const c of clusterGroups(groups)){
@@ -2092,15 +2095,25 @@ function buildGroups(){
       // in the rung's own parts are the same choice to a user -- Bloodbath's Horn 2/32/102 offers
       // "on 102 / off 2" and "on 2 / off 102", and whether 32 draws is the Rage select's business.
       // Raven, 2026-09-10: "if the option has multiple choices, we will want to keep the drop down".
+      const sp = stateParts();
       const opts = isLadder
-        ? clusterChoices(groups, c.members, ladderParts).map(ms => ({ rep: ms[0], members: ms }))
+        ? clusterChoices(groups, c.members, sp).map(ms => ({ rep: ms[0], members: ms }))
         : c.members.map(k => ({ rep: k, members: [k] }));
-      const labelOf = o => (isLadder ? groupLabelWithout(groups[o.rep], ladderParts)
+      const labelOf = o => (isLadder ? groupLabelWithout(groups[o.rep], sp)
                                      : groupLabel(groups[o.rep])) + stateSuffix(o.rep);
-      // which variant of a choice actually applies: the rung decides, No Rage takes the OFF one
-      const variantOf = o => isLadder
-        ? ladderVariant(groups, o.members, ladderParts, state.rageLevel > 0)
-        : o.rep;
+      // WHICH VARIANT OF A CHOICE APPLIES is the state's business, not the user's. Match the owned
+      // parts against what defaultGroupsOn already picked for the state we are in -- that works for
+      // a ladder rung (parts on) and for a plain toggle alike, where Tigrex wants part 2 ON and
+      // part 1 OFF when enraged and the reverse when calm, which "all owned parts on" cannot say.
+      const ownedKey = i => (groups[i] || []).filter(x => sp.indexOf(x[0]) >= 0)
+                                             .map(x => x[0] + ':' + (x[1] ? 1 : 0)).sort().join(',');
+      const variantOf = o => {
+        if (!isLadder) return o.rep;
+        const def = c.members.find(k => stateDefault[k]);
+        if (def === undefined) return o.members[0];
+        const want = ownedKey(def);
+        return o.members.find(k => ownedKey(k) === want) || o.members[0];
+      };
       sel.innerHTML = opts.map(o => '<option value="' + o.rep + '">' + labelOf(o) + '</option>').join('');
       // THE ROM'S OWN CHOICE FIRST, then the highest index. Raven asked on 2026-09-09 for every
       // toggle moved to its highest index; that was tried (5366bb2) and REVERTED here the same day
@@ -2752,18 +2765,38 @@ function forcedOn(id){
   const base = defaultPartsOn(id, !!state.rage) || [];
   return (state.rageLevel > 0 && ladderParts.length) ? base.concat(ladderParts) : base;
 }
-// A cluster the rage control decides is not offered in the Parts panel -- Raven: "Then hide these
-// parts from the drop down menus". Showing it would offer a choice the rung immediately overrides.
+// THE PARTS THE STATE CONTROL OWNS, whichever control it is. Raven, 2026-09-10: "We need to
+// establish a tighter method of handling this ... a) need them to be turned on with a toggle
+// b) need the part options removed from the drop downs c) if a drop down only has one part after
+// handling the enrage parts, we don't need to display that drop down", and "despite the toggle not
+// being there, the drop downs were still populated; so I could see the enraged state still".
+//
+// A ladder monster hands us the parts directly. For a plain Enraged toggle they are the SYMMETRIC
+// DIFFERENCE of the two per-state lists: the parts that change hands between calm and enraged.
+// Tigrex's calm names 1 and his enraged names 2 and 4, so the owned set is {1, 2, 4} -- taking only
+// what rage ADDS would leave 1 behind and split the head cluster into two confusing choices.
+function stateParts(){
+  if (ladderParts.length) return ladderParts;
+  const dpo = DEFAULT_PARTS_ON[state.id];
+  if (!dpo || Array.isArray(dpo) || !dpo.rage) return [];
+  const calm = dpo.calm || [], rage = dpo.rage || [];
+  const cs = new Set(calm), rs = new Set(rage);
+  return calm.filter(p => !rs.has(p)).concat(rage.filter(p => !cs.has(p)));
+}
+// A cluster the state control decides does not offer those parts in the Parts panel. Showing them
+// would offer a choice the toggle immediately overrides -- and, before the toggle existed at all on
+// Tigrex, was the only way to reach the enraged state.
 function clusterIsLadder(c){
-  if (!ladderParts.length) return false;
-  return c.parts.split(',').some(p => ladderParts.indexOf(+p) >= 0);
+  const sp = stateParts();
+  if (!sp.length) return false;
+  return c.parts.split(',').some(p => sp.indexOf(+p) >= 0);
 }
 // Raven, 2026-09-10: "I simply wanted the drop down items to be removed, the top drop down would
 // have just one option, so removing it was fine". So a ladder cluster is DROPPED only when taking
 // the rung's parts out of it leaves a single choice -- Bloodbath's Back 0/30/100 is exactly that,
 // while Horn 2/32/102 and Horn 3/33/103 still carry the broken-horn options and stay.
 function ladderRowIsEmpty(groups, c){
-  return clusterChoices(groups, c.members, ladderParts).length < 2;
+  return clusterChoices(groups, c.members, stateParts()).length < 2;
 }
 function applyRage(){
   const main = mounted.main;
@@ -3002,8 +3035,10 @@ document.getElementById('monRage').onchange = e => {
   // and needing to select the check the box is not intuitive." Recomputing discards manual
   // checkbox edits for the monster, which is the predictable behaviour -- the toggle now means
   // "show me this monster's calm/enraged state", not "flip a material flag".
+  // ALWAYS recompute: a per-state DEFAULT_PARTS_ON switches parts even where ROM_RAGE_SET has no
+  // row, which is how Tigrex's part 4 and part 2 come on.
   const en = entry();
-  if (en && ROM_RAGE_SET[en.id]){
+  if (en){
     state.groups = defaultGroupsOn(en.groups || [], en.em, en.id, state.rage,
                                    DEFAULT_PARTS_OFF[en.id], forcedOn(en.id));
     buildGroups(); applyPartState();
