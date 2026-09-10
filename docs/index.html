@@ -2767,7 +2767,19 @@ function ladderRowIsEmpty(groups, c){
 }
 function applyRage(){
   const main = mounted.main;
-  const has = main ? enrageParts(main).size > 0 : false;
+  // WHEN IS THERE A RAGE STATE TO SHOW? Clips were the only test, and that missed Tigrex: its one
+  // animated material carries a single clip named `Normal`, which is in no enrage list, so
+  // enrageParts came back empty and the checkbox never appeared -- leaving no way to reach the
+  // state at all. Its vein layer sits on part 4, which the enraged panel turns ON, so the veins
+  // were unreachable rather than mis-ordered. Raven, 2026-09-10: "we would want an enraged toggle
+  // for Tigrex".
+  //
+  // Rage changes something if ANY of these say so: a material carries an enrage clip, the ROM
+  // switches part groups on the enrage predicate (ROM_RAGE_SET), or a per-state part default names
+  // a rage list. The last is what a monster reviewed this way will have.
+  const dpo = DEFAULT_PARTS_ON[state.id];
+  const perStateParts = !!(dpo && !Array.isArray(dpo) && dpo.rage);
+  const has = main ? (enrageParts(main).size > 0 || !!ROM_RAGE_SET[state.id] || perStateParts) : false;
   // A LEVELLED MONSTER GETS A DROPDOWN INSTEAD OF THE TOGGLE. Raven, 2026-09-10: "Just have a drop
   // down that ranges from No Rage to the max level". Bloodbath has two stages and Gore Magala four,
   // and a checkbox can only say the deepest -- which on Gore was not even a stage, because the only
