@@ -1340,6 +1340,53 @@ state, or that `Angry_Repeat` follows `Angry_Start`, or which rung of Bloodbath'
 from an AI state, so no name list can be complete — `clipPicker` says so already. Raven, 2026-09-05:
 "Things like enraged states for toggles will be up to me to determine."
 
+## 2026-09-10 - Mizutsune defaults, and NO, they do not hide the skinning splits
+
+Raven, screenshot: "Defaults for mizustune, see if setting those before viewing the bind pose then
+animated pose helps in resolving its skinning issues."
+
+**The defaults** are g0 g1 g7 g9 g11 g15 g18 -- on 1, 2, 101, 102 / off 11, 12, 13, 20, 22;
+on 3, 104 / off 14; on 4, 105 / off 15; on 5 / off 16, 21, 23; on 6, 103 / off 17, 18, 19;
+on 8 / off 7. Verified live against a CLEARED saved state, all six rows matching, no errors.
+
+**The question was the sharper half, and the answer is no.** It was a good hypothesis: the sweep's
+weak point is that it pairs vertices across parts that may never be drawn together, so restricting
+to the parts actually on should have deflated the result. Measured both ways on `em082_00`:
+
+| | same-part mismatched | worst separation | pairs > 0.2% |
+|---|---|---|---|
+| every primitive | 530 | 21.52% | 528 |
+| ONLY the default-visible parts | **530** | **21.52%** | **528** |
+
+Identical. The splits are **inside `Group[0]`**, the main body, which is drawn in every state, so no
+choice of parts can hide them. `--visible-parts` is now in `dev/seam-skin-sweep.py` so the same
+check is one flag for any monster.
+
+### What the restricted run does show
+
+Among the default-visible parts, 826 mismatched pairs, and the shape is specific:
+
+* **70% involve JOINT 0 on one side and not the other.**
+* 77% differ by no more than 1% of the total influence.
+* Concentrated in `Group[0]` sub-mesh pairs -- `#2/#16` x129, `#10/#15` x88, `#9/#14` x80.
+
+And the mechanism behind the large separations is visible in the worst case:
+
+    A  ((0, 0.0118), (23, 0.1922), (24, 0.5922), (25, 0.2039))     four influences, joint 0 among them
+    B  (             (23, 0.5059), (24, 0.3961), (25, 0.0980))     three, joint 0 absent
+
+The joint-0 influence is negligible at 1.2%. What does the damage is that dropping it and
+RENORMALISING swings the dominant weight from 0.592 to 0.396 -- nineteen points. So a hairline
+difference in the influence LIST produces a large difference in where the vertex actually goes.
+That is why 77% of pairs differing by <=1% still yields a 21% separation at the worst pair.
+
+This is cause D's signature at close range: "weightless primitives bind to the root instead of the
+bone the .mod names". The open question is unchanged and now sharper -- does the `.mod` carry both
+copies with the same influence list, and our export drops one of them on one copy? If so this is
+ours and fixable. The MOD weight lanes are still not located; that remains the next step.
+
+**Not judged.**
+
 ## 2026-09-10 - Library sweep: bind pose vs animated pose, every monster
 
 Raven: "Review each monster's bind pose for skinning issues compared to an animated pose." Run

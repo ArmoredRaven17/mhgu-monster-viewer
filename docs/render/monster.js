@@ -327,6 +327,19 @@ export const DEFAULT_PARTS_ON = {
   // of fighting.
   em037_00: { calm: [0, 100, 1, 7, 9, 11, 13, 14, 15, 18, 101],   // g0 g1 g4 g8 g10 g15
               rage: [0, 100, 2, 7, 9, 11, 13, 14, 15, 18, 101] }, // g5 for the head, rest as calm
+
+  // Raven, 2026-09-10, screenshot: "Defaults for mizustune" -- on 1, 2, 101, 102 / off 11, 12, 13,
+  // 20, 22; on 3, 104 / off 14; on 4, 105 / off 15; on 5 / off 16, 21, 23; on 6, 103 / off 17, 18,
+  // 19; on 8 / off 7. That is g1 g7 g9 g11 g15 g18, plus g0 which is the single-member body row.
+  //
+  // Asked for alongside a skinning question -- "see if setting those before viewing the bind pose
+  // then animated pose helps in resolving its skinning issues" -- and the answer measured out as
+  // NO, for a reason worth keeping here so it is not re-tried. Restricting the seam sweep to
+  // exactly these parts changes nothing: 530 same-part mismatched pairs either way, worst
+  // separation 21.52% of model size either way. The splits are INSIDE Group[0], the main body,
+  // which is drawn in every state, so no choice of parts can hide them. See the sweep entry in
+  // dev/monster-review.md.
+  em082_00: [0, 100, 1, 2, 101, 102, 3, 104, 4, 105, 5, 6, 103, 8],   // g0 g1 g7 g9 g11 g15 g18
   em001_00: [101],   // Rathian
   em001_02: [101],   // Gold Rathian
   em001_04: [101],   // Dreadqueen Rathian

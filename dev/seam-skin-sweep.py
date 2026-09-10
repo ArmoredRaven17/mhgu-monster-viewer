@@ -169,7 +169,7 @@ def skin_positions(pos, joints, weights, skinmats):
     return outp
 
 
-def analyse(model_path, pose_paths, samples, quant, max_clips=4):
+def analyse(model_path, pose_paths, samples, quant, max_clips=4, visible=None):
     got = load_glb(model_path)
     if not got:
         return None
@@ -181,8 +181,17 @@ def analyse(model_path, pose_paths, samples, quant, max_clips=4):
     ibm = acc(raw, js, binoff, skin['inverseBindMatrices']).reshape(-1, 4, 4)
     ibm = np.transpose(ibm, (0, 2, 1))
 
+    # `visible` restricts the whole analysis to the parts actually DRAWN in some state. Raven,
+    # 2026-09-10: "see if setting those before viewing the bind pose then animated pose helps".
+    # A seam between two parts that are never on screen together cannot be a gap anyone sees, so
+    # measuring it inflates the result -- this is the exact filter the same-part rule approximates.
     prims = []
     for mi, mesh in enumerate(js.get('meshes', [])):
+        nm = mesh.get('name') or ''
+        if visible is not None:
+            m = re.match(r'Group\[(\d+)\]', nm)
+            if m and int(m.group(1)) not in visible:
+                continue
         for pi, pr in enumerate(mesh.get('primitives', [])):
             a = pr['attributes']
             if not all(k in a for k in ('POSITION', 'JOINTS_0', 'WEIGHTS_0')):
@@ -349,6 +358,9 @@ def main():
     ap.add_argument('--samples', default='0.17,0.4,0.63,0.85')
     ap.add_argument('--poses-per-monster', type=int, default=1)
     ap.add_argument('--quant', type=float, default=10000.0)
+    ap.add_argument('--visible-parts', default=None,
+                    help='comma list of part ids drawn in the state under test; '
+                         'others are excluded entirely')
     ap.add_argument('--max-clips', type=int, default=4,
                     help='clips probed per pose file; a sweep ranks, it does not exhaust')
     ap.add_argument('--json', default=None)
@@ -358,6 +370,8 @@ def main():
     mdir = os.path.join(docs, 'models', 'monsters')
     pdir = os.path.join(docs, 'poses', 'monsters')
     samples = [float(x) for x in args.samples.split(',')]
+    visible = (set(int(x) for x in args.visible_parts.split(',') if x.strip())
+               if args.visible_parts else None)
 
     poses = collections.defaultdict(list)
     for f in sorted(os.listdir(pdir)):
@@ -376,7 +390,7 @@ def main():
         pl = poses.get(stem) or poses.get(stem.split('_tail')[0]) or []
         pl = pl[:args.poses_per_monster]
         try:
-            r = analyse(os.path.join(mdir, f), pl, samples, args.quant, args.max_clips)
+            r = analyse(os.path.join(mdir, f), pl, samples, args.quant, args.max_clips, visible)
         except Exception as e:
             skipped.append((stem, 'error: %s' % e))
             continue
