@@ -307,6 +307,26 @@ export const DEFAULT_PARTS_ON = {
   // ROM-driven gap, but it is a decision about those two monsters, not a free fix.
   em033_00: { calm: [0, 100, 103, 102, 7, 10, 12, 14, 101],          // g0  g1 g2 g3 g4 g5 g6 g7 g8
               rage: [0, 5, 100, 103, 102, 7, 10, 12, 14, 4, 101] },  // g16 and g19; the rest as calm
+
+  // Raven, 2026-09-10, screenshot: "Nargacua default parts" -- off 5, 6; on 1 / off 2, 4;
+  // on 9 / off 10; on 11 / off 12; on 13, 14, 15, 18, 101 / off 16, 17. Read off the LIVE panel
+  // rather than assumed, two of the five clusters disagreed with it:
+  //
+  //     Head  1,2,3,4,7,8   picked g5  (2 on, 1 off)             wanted g4  (1 on, 2 off)
+  //     Tail  13..18,101    picked g17 (13, 16, 17)              wanted g15 (13, 14, 15, 18, 101)
+  //
+  // The other three already matched. The tail one is the visible half: g17 draws neither 18 nor
+  // 101, so the tail tip was simply absent.
+  //
+  // BOTH STATES ARE NAMED because this monster HAS a ROM enrage pair -- ROM_RAGE_SET em037_00 is
+  // [[7, 5]], calm g7 against rage g5, on the head cluster. Raven's calm choice is g4, which is a
+  // deviation from the ROM's own g7 and his to make; but a flat list would then force g4 in the
+  // enraged state too and silently delete the ROM's 7 -> 5 switch. So rage keeps the ROM's set:
+  // g5 draws 2 and 7 where g4 draws 1 and 7, and everything else is held as calm. Same reasoning
+  // as the em032_04 entry above -- write the rage list out so the pair and the list agree instead
+  // of fighting.
+  em037_00: { calm: [0, 100, 1, 7, 9, 11, 13, 14, 15, 18, 101],   // g0 g1 g4 g8 g10 g15
+              rage: [0, 100, 2, 7, 9, 11, 13, 14, 15, 18, 101] }, // g5 for the head, rest as calm
   em001_00: [101],   // Rathian
   em001_02: [101],   // Gold Rathian
   em001_04: [101],   // Dreadqueen Rathian

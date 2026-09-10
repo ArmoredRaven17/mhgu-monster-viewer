@@ -1337,6 +1337,121 @@ state, or that `Angry_Repeat` follows `Angry_Start`, or which rung of Bloodbath'
 from an AI state, so no name list can be complete — `clipPicker` says so already. Raven, 2026-09-05:
 "Things like enraged states for toggles will be up to me to determine."
 
+## 2026-09-10 - Grimclaw's veins: the second albedo map never reaches the screen
+
+Raven: **"the veins don't appear still"**, and **"The albedo areas show now, so the vein layer does
+not appear to be applied."** Confirmed, localised, and NOT caused by anything changed today.
+
+### The finding
+
+`em032_04`, enraged, mesh `Group30_2`, material `XfBA_AW_0__m61_angry_blood`. With the app's own
+animation loop STOPPED (`setAnimationLoop(null)`) so the scene is provably static -- two identical
+renders diff to 0 px -- and with two controls that must move pixels:
+
+| test | pixels moved |
+|---|---|
+| CONTROL - `emissive` to black | **10,163** |
+| CONTROL - base map (`uv0`) to null | **10,161** |
+| ext map real vs flat WHITE | **0** |
+| `uExtTint.rgb` to zero | **0** |
+| `uExtMode` 1 to 3 | **0** |
+| `uExtXf` scrambled | **0** |
+
+The first map reaches the screen; **the second map's content reaches nothing**. That is exactly
+Raven's sentence, measured.
+
+### It is NOT global -- the same machinery is live on Tigrex
+
+`em032_00`, mesh `Group4`, `XfBA_A0__m01_angry`, same stable method:
+
+| test | pixels moved |
+|---|---|
+| CONTROL - `emissive` to black | 1,097 |
+| `uExtTint.rgb` to zero | **1,097** |
+| `uExtMode` 1 to 3 | **1,235** |
+
+So the EXT path works on Tigrex and is inert on Grimclaw. That is why Raven said "Tigrex still
+looks fine somehow" -- it is fine, and for a reason.
+
+### What is already ruled out
+
+* **Not cause J.** Old alpha rule vs new, with the scene frozen: **0 px** on every Grimclaw material.
+* **Not MAT_FPS.** Reverted to 60 before this was measured.
+* **Not the injection.** The compiled fragment shader declares `uExtMap`, samples it, and combines:
+  `gBase = base` (line 159), the ext block (167-178), `totalEmissiveRadiance *= gBase` (192),
+  `outgoingLight` (220). Order is correct.
+* **Not uniform binding.** Captured `sh.uniforms` during compile: `uExtMap`, `uExtTint`, `uExtMode`,
+  `uExtXf`, `uExtView` are all present AND `=== mat.userData.u[...]`, the same objects.
+* **Not the UV data.** Every `TEXCOORD_1` in `em032_04.glb` is 100% non-zero, and `uv0` vs `uv1` on
+  `Group30_2` are 0% identical, mean delta 0.90.
+* **Not a missing emissive map.** `emissiveMap` is set, so `USE_EMISSIVEMAP` is defined and the
+  chunk carrying `totalEmissiveRadiance *= gBase` compiles in.
+* **Not the texture.** `676b0f53e1868cbd.webp`, 256x256, alpha 255 everywhere. `uv0` samples a
+  252x7 strip at the top (u runs to 1.53, so it tiles -- a scrolling ramp); `uv1` spans the full
+  252x231 region, which is where the vein artwork lives.
+
+### The remaining suspect
+
+`m61_angry_blood` is bound by **two meshes** (`Group30_2` and `Group38`), so there are **2 material
+instances sharing the name**, where Tigrex's `m01_angry` has one. `Group38` is a 6-vertex mesh that
+contributes 0 px. A per-instance mismatch between the program in use and the uniform objects being
+written is the shape that fits -- the identity check passes on a FORCED recompile, which is not
+necessarily the program the live draw uses. Not proven; next thing to test.
+
+### Method note, because it cost most of the session
+
+Four separate measurements in this entry were WRONG before they were right, and every failure was
+the same class: **a diff whose two halves were not taken under identical conditions.**
+
+1. `findMat(name)` returns the LAST material with that name -- `Group38`'s instance, which draws
+   nothing. Every uniform change was being applied to an invisible material.
+2. `stepMaterialAnim` calls `restoreBase()` first, so stepping between the two grabs UNDOES the
+   change being measured.
+3. The app's `setAnimationLoop` keeps running, so the scene moves between grabs on its own. This
+   produced a 10,163-pixel "result" that was just the material animating.
+4. A `needsUpdate` recompile can produce a different program from the one the live draw used.
+
+**A before/after diff is worthless without a CONTROL that changes nothing and must read 0, and a
+control that changes something known and must read large.** Both, every time. The 11,693-pixel
+figure reported earlier for the alpha-clip change on Grimclaw was one of these artifacts and is
+withdrawn; the correct figure is 0.
+
+**Not judged.**
+
+## 2026-09-10 - Nargacuga: default parts
+
+Raven, screenshot: **"Nargacua default parts"** -- off 5, 6; on 1 / off 2, 4; on 9 / off 10;
+on 11 / off 12; on 13, 14, 15, 18, 101 / off 16, 17.
+
+`em037_00`. Read off the live panel, two of the five clusters disagreed:
+
+| cluster | panel picked | wanted |
+|---|---|---|
+| Head `1,2,3,4,7,8` | g5 - on **2**, off 1 | g4 - on **1**, off 2 |
+| Tail `13..18,101` | g17 - on 13, **16, 17** | g15 - on 13, **14, 15, 18, 101** |
+
+The tail one is the visible half: g17 draws neither 18 nor 101, so the tail tip was simply absent -
+which is what the render he attached shows.
+
+**Both states are named**, because this monster HAS a ROM enrage pair: `ROM_RAGE_SET em037_00` is
+`[[7, 5]]`, calm g7 against rage g5, on the head cluster. Raven's calm choice is g4, a deviation
+from the ROM's g7 and his to make; but a flat list would force g4 in the enraged state too and
+silently delete the ROM's 7 -> 5 switch. So rage keeps g5 (parts 2 and 7 where calm has 1 and 7)
+and holds everything else. Same reasoning as the `em032_04` entry.
+
+Verified on a fresh load: calm draws `0, 1, 7, 9, 11, 13, 14, 15, 18`; enraged the same with the
+head on 2 instead of 1; no console errors. The head row collapses to "off 4" because parts 1 and 2
+are enrage-owned and leave the dropdown - Raven's own rule from Bloodbath.
+
+**A TRAP WORTH KNOWING.** The first verification of this said the tail had NOT changed. It had; the
+page was showing **saved state**. `index.html` restores `state.groups` from
+`localStorage['mhgu-monster-viewer']`, and `buildGroups` prefers an already-applied option
+(`appliedOpt`) over the computed default. So a stored selection masks any new
+`DEFAULT_PARTS_ON` entry for whoever has one. Switching to another monster and back clears it, as
+does removing that key. Check defaults against a CLEARED state or the result is a lie.
+
+**Not judged.**
+
 ## 2026-09-10 - Material animation ran at double speed, and my evidence for 60 was circular
 
 Raven, on Akantor's rage effect: **"the timing feels too rapid"**, then **"The game runs at ~30 FPS,
