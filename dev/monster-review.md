@@ -273,6 +273,12 @@ with no identifiers and the `.mfx` feature body is an operation stream this repo
 Scaling the albedo is the shape `applyTint` already implemented; what changed is only that the
 albedo reaching it was half of one.
 
+**STATUS: STILL OPEN.** Raven, 2026-09-09, after the four passes above: "Khezu Charged State is not
+100%". Moved off it to keep the list going, not because it is right. What is fixed and measured is
+recorded above; what is left is unjudged and undiagnosed, and the next look should start from the
+one thing still unread — the emission combine — plus the two knobs that are viewer choices rather
+than ROM readings (`__view.cutSolid`, `__view.clipFallback`).
+
 ### Diablos — pixelated textures
 > "Diablos, has pixelated textures; I've seen this issue on multiple monsters"
 
