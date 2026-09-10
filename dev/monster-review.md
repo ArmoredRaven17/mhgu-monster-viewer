@@ -1424,6 +1424,46 @@ That is a question only Raven can answer, because it is a judgement about how th
 correct rate or a 0.5 `timeScale` on the mixer, and it is library-wide. If they look right, then the
 30 reading is wrong for motion and probably wrong here too, and this change should come back out.
 
+### REVERTED THE SAME DAY -- it regressed a monster already signed off
+
+Within the hour: **"Grimclaw albedo looks wrong agian"**, and **"Tigrex still looks fine
+somehow"**, and **"See, this is the exact situation I wanted to avoid"**.
+
+It was this change, and the attribution is airtight rather than argued. A diff of everything
+touching the app since Grimclaw last looked right returns exactly two hunks:
+
+    -export const MAT_FPS = 60;
+    +export const MAT_FPS = 30;
+
+    +  em033_00: { calm: [...], rage: [...] }      <- an em033_00-only parts entry
+
+The second cannot reach em032_04. Nothing else was in the running.
+
+**Why Tigrex survived and Grimclaw did not:** Tigrex has ONE animated material. Grimclaw has four,
+and  cycles fEmissionColor from (0.75, 0.25, 0.25) to (1, 0, 0) over a 90-frame
+loop, so halving the rate is obvious on him and nearly invisible on Tigrex.
+
+**Two false leads I chased first, both mine, both recorded so they are not repeated:**
+
+* I blamed  -- the one opaque  material -- on the theory that cause J had
+  exposed damaged texels. Measured: toggling it alone moves **0 pixels** on Tigrex AND on Grimclaw.
+  Its UVs never land on the alpha-0 region of the shared atlas.
+* I then measured  moving 10,163 pixels under the alpha toggle and nearly believed
+  it. **That measurement was confounded**: the two framebuffer grabs straddled the material's own
+  animation advancing, because the monster had just been switched to with rage on. Re-run with the
+  animation settled, and with a recompile-only CONTROL pass, every Grimclaw material moves **0
+  pixels**. Cause J is not implicated on this monster at all. A before/after diff needs a control
+  that changes nothing, and I did not run one until it had already misled me.
+
+**The lesson, which is the durable part.** A single global constant is the wrong instrument for a
+question the ROM has not answered. It silently re-times all 425 monster clips to buy one monster
+effect, and the cost lands on monsters already judged.  stays at 60 -- the value the
+library was reviewed at -- until  is actually read. Anything wanting a different
+speed should be a control Raven can turn, not a constant swapped underneath him.
+
+The argument for 30 above still stands on its own terms and is left in place; 60 is not a claim
+that 60 is the ROM rate, only that it is the rate everything was judged against.
+
 **Not judged.**
 
 ## 2026-09-10 - Akantor: default parts, and part 5 as the rage part

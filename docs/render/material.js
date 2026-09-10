@@ -695,9 +695,25 @@ export function setMaskWindow(mats, s0, s1, v0, kt, sb){
 // 577 monster materials across 187 files. So it is set by code that has not been found. Until it
 // is, this number rests on Raven's eyes rather than on the ROM, and it is labelled that way.
 //
-// SCOPE: the Armor Viewer keeps its own copy of this file. This edit is the monster app's alone
-// until someone judges armour at the new rate, so sync-render.py will report EDITED HERE.
-export const MAT_FPS = 30;
+// REVERTED TO 60 the same day, because changing it globally REGRESSED A MONSTER Raven had already
+// signed off. He set 30 from Akantor's rage effect looking fast against the game; within the hour:
+// "Grimclaw albedo looks wrong agian", and "Tigrex still looks fine somehow". A diff of every
+// change since Grimclaw last looked right came back with exactly two, one of them an em033_00-only
+// parts entry that cannot reach Grimclaw -- so this constant was the cause, with nothing else in
+// the running. Tigrex survived it because he has ONE animated material; Grimclaw has four, and one
+// of them cycles fEmissionColor from (0.75, 0.25, 0.25) to (1, 0, 0) on a 90-frame loop, so halving
+// the rate is plainly visible on him and nearly invisible on Tigrex.
+//
+// THE LESSON, and it is the reason this note is long. A single global constant is the wrong
+// instrument for a question the ROM has not answered. It silently re-times all 425 monster clips to
+// buy one monster's effect, and the cost lands on monsters already judged -- Raven, seeing it:
+// "this is the exact situation I wanted to avoid". The rate stays at the value everything was
+// judged against until material[+0x20] is actually read, and anything wanting a different speed
+// should be a control Raven can turn, not a constant swapped underneath him.
+//
+// So 60 here is NOT a claim that 60 is the ROM's rate. It is the value the library was reviewed at.
+// The argument above for 30 still stands on its own terms and is deliberately left in place.
+export const MAT_FPS = 60;
 
 const animBase = new WeakMap();
 

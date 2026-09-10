@@ -1208,7 +1208,7 @@ export { MAT_FPS };
 // 0xd1ec1c is reached through a different value of that same state byte: it drives
 // Body_Taiden_Repeat on enemy+0x30 and Alpha_Taiden_Repeat on +0x34, then swaps the vein
 // material (see STATE_MATERIAL_SWAP) and plays Taiden_start on it. Running it on the rage toggle
-// put a 15-frame -- 0.5s at MAT_FPS 30 -- full-body strobe on top of the rage veins, which is
+// put a 15-frame -- 0.25s at MAT_FPS 60 -- full-body strobe on top of the rage veins, which is
 // Raven's "the enraged effect is also super bright".
 //
 // WHICH AI STATE FIRES WHICH IS NOT DECODED. This reads what each state DOES; what selects it is
