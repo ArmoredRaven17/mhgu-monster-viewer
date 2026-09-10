@@ -1,0 +1,1182 @@
+[
+ {
+  "file": "em001_00.glb",
+  "primitives": 26,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em001_00"
+ },
+ {
+  "file": "em001_02.glb",
+  "primitives": 25,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em001_02"
+ },
+ {
+  "file": "em001_04.glb",
+  "primitives": 26,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em001_04"
+ },
+ {
+  "file": "em002_00.glb",
+  "primitives": 22,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em002_00"
+ },
+ {
+  "file": "em002_02.glb",
+  "primitives": 22,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em002_02"
+ },
+ {
+  "file": "em002_04.glb",
+  "primitives": 26,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em002_04"
+ },
+ {
+  "file": "em003_00.glb",
+  "primitives": 13,
+  "seamGroupsDisagreeing": 1,
+  "verticesRewritten": 1,
+  "influenceShift": {
+   "mean": 0.0078,
+   "median": 0.0078,
+   "p90": 0.0078,
+   "max": 0.0078,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em003_00"
+ },
+ {
+  "file": "em004_00.glb",
+  "primitives": 18,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em004_00"
+ },
+ {
+  "file": "em005_00.glb",
+  "primitives": 29,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em005_00"
+ },
+ {
+  "file": "em007_00.glb",
+  "primitives": 22,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em007_00"
+ },
+ {
+  "file": "em007_04.glb",
+  "primitives": 34,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em007_04"
+ },
+ {
+  "file": "em008_00.glb",
+  "primitives": 12,
+  "seamGroupsDisagreeing": 18,
+  "verticesRewritten": 20,
+  "influenceShift": {
+   "mean": 0.0094,
+   "median": 0.0078,
+   "p90": 0.0118,
+   "max": 0.0118,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em008_00"
+ },
+ {
+  "file": "em009_00.glb",
+  "primitives": 13,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em009_00"
+ },
+ {
+  "file": "em010_00.glb",
+  "primitives": 32,
+  "seamGroupsDisagreeing": 25,
+  "verticesRewritten": 31,
+  "influenceShift": {
+   "mean": 0.1276,
+   "median": 0.1059,
+   "p90": 0.2078,
+   "max": 0.251,
+   "over25pct": 2
+  },
+  "written": true,
+  "id": "em010_00"
+ },
+ {
+  "file": "em011_00.glb",
+  "primitives": 11,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em011_00"
+ },
+ {
+  "file": "em012_00.glb",
+  "primitives": 29,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em012_00"
+ },
+ {
+  "file": "em013_00.glb",
+  "primitives": 23,
+  "seamGroupsDisagreeing": 1,
+  "verticesRewritten": 1,
+  "influenceShift": {
+   "mean": 0.0078,
+   "median": 0.0078,
+   "p90": 0.0078,
+   "max": 0.0078,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em013_00"
+ },
+ {
+  "file": "em013_01.glb",
+  "primitives": 23,
+  "seamGroupsDisagreeing": 6,
+  "verticesRewritten": 6,
+  "influenceShift": {
+   "mean": 0.0078,
+   "median": 0.0078,
+   "p90": 0.0078,
+   "max": 0.0078,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em013_01"
+ },
+ {
+  "file": "em013_02.glb",
+  "primitives": 29,
+  "seamGroupsDisagreeing": 6,
+  "verticesRewritten": 12,
+  "influenceShift": {
+   "mean": 0.0281,
+   "median": 0.0118,
+   "p90": 0.0549,
+   "max": 0.0549,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em013_02"
+ },
+ {
+  "file": "em014_00.glb",
+  "primitives": 9,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em014_00"
+ },
+ {
+  "file": "em015_00.glb",
+  "primitives": 9,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em015_00"
+ },
+ {
+  "file": "em016_00.glb",
+  "primitives": 9,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em016_00"
+ },
+ {
+  "file": "em017_00.glb",
+  "primitives": 22,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em017_00"
+ },
+ {
+  "file": "em018_00.glb",
+  "primitives": 25,
+  "seamGroupsDisagreeing": 2,
+  "verticesRewritten": 2,
+  "influenceShift": {
+   "mean": 0.3549,
+   "median": 0.3549,
+   "p90": 0.6325,
+   "max": 0.702,
+   "over25pct": 1
+  },
+  "written": true,
+  "id": "em018_00"
+ },
+ {
+  "file": "em018_04.glb",
+  "primitives": 27,
+  "seamGroupsDisagreeing": 1,
+  "verticesRewritten": 1,
+  "influenceShift": {
+   "mean": 0.0078,
+   "median": 0.0078,
+   "p90": 0.0078,
+   "max": 0.0078,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em018_04"
+ },
+ {
+  "file": "em019_00.glb",
+  "primitives": 20,
+  "seamGroupsDisagreeing": 1,
+  "verticesRewritten": 1,
+  "influenceShift": {
+   "mean": 0.8941,
+   "median": 0.8941,
+   "p90": 0.8941,
+   "max": 0.8941,
+   "over25pct": 1
+  },
+  "written": true,
+  "id": "em019_00"
+ },
+ {
+  "file": "em019_04.glb",
+  "primitives": 27,
+  "seamGroupsDisagreeing": 1,
+  "verticesRewritten": 1,
+  "influenceShift": {
+   "mean": 0.8941,
+   "median": 0.8941,
+   "p90": 0.8941,
+   "max": 0.8941,
+   "over25pct": 1
+  },
+  "written": true,
+  "id": "em019_04"
+ },
+ {
+  "file": "em020_00.glb",
+  "primitives": 25,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em020_00"
+ },
+ {
+  "file": "em020_04.glb",
+  "primitives": 29,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em020_04"
+ },
+ {
+  "file": "em021_00.glb",
+  "primitives": 27,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em021_00"
+ },
+ {
+  "file": "em022_00.glb",
+  "primitives": 16,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em022_00"
+ },
+ {
+  "file": "em023_00.glb",
+  "primitives": 35,
+  "seamGroupsDisagreeing": 2,
+  "verticesRewritten": 3,
+  "influenceShift": {
+   "mean": 0.0118,
+   "median": 0.0118,
+   "p90": 0.0118,
+   "max": 0.0118,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em023_00"
+ },
+ {
+  "file": "em024_00.glb",
+  "primitives": 18,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em024_00"
+ },
+ {
+  "file": "em025_00.glb",
+  "primitives": 23,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em025_00"
+ },
+ {
+  "file": "em027_00.glb",
+  "primitives": 28,
+  "seamGroupsDisagreeing": 7,
+  "verticesRewritten": 8,
+  "influenceShift": {
+   "mean": 0.0167,
+   "median": 0.0098,
+   "p90": 0.0392,
+   "max": 0.0392,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em027_00"
+ },
+ {
+  "file": "em030_00.glb",
+  "primitives": 6,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em030_00"
+ },
+ {
+  "file": "em032_00.glb",
+  "primitives": 20,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em032_00"
+ },
+ {
+  "file": "em032_04.glb",
+  "primitives": 27,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em032_04"
+ },
+ {
+  "file": "em033_00.glb",
+  "primitives": 33,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em033_00"
+ },
+ {
+  "file": "em034_00.glb",
+  "primitives": 9,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em034_00"
+ },
+ {
+  "file": "em036_00.glb",
+  "primitives": 20,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em036_00"
+ },
+ {
+  "file": "em037_00.glb",
+  "primitives": 30,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em037_00"
+ },
+ {
+  "file": "em037_04.glb",
+  "primitives": 29,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em037_04"
+ },
+ {
+  "file": "em038_00.glb",
+  "primitives": 31,
+  "seamGroupsDisagreeing": 1,
+  "verticesRewritten": 2,
+  "influenceShift": {
+   "mean": 0.1137,
+   "median": 0.1137,
+   "p90": 0.1137,
+   "max": 0.1137,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em038_00"
+ },
+ {
+  "file": "em042_00.glb",
+  "primitives": 28,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em042_00"
+ },
+ {
+  "file": "em043_00.glb",
+  "primitives": 22,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em043_00"
+ },
+ {
+  "file": "em043_05.glb",
+  "primitives": 24,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em043_05"
+ },
+ {
+  "file": "em044_00.glb",
+  "primitives": 17,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em044_00"
+ },
+ {
+  "file": "em045_00.glb",
+  "primitives": 25,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em045_00"
+ },
+ {
+  "file": "em045_04.glb",
+  "primitives": 29,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em045_04"
+ },
+ {
+  "file": "em046_00.glb",
+  "primitives": 27,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em046_00"
+ },
+ {
+  "file": "em047_00.glb",
+  "primitives": 17,
+  "seamGroupsDisagreeing": 2,
+  "verticesRewritten": 2,
+  "influenceShift": {
+   "mean": 0.0078,
+   "median": 0.0078,
+   "p90": 0.0078,
+   "max": 0.0078,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em047_00"
+ },
+ {
+  "file": "em049_00.glb",
+  "primitives": 44,
+  "seamGroupsDisagreeing": 2,
+  "verticesRewritten": 4,
+  "influenceShift": {
+   "mean": 0.0275,
+   "median": 0.0275,
+   "p90": 0.0275,
+   "max": 0.0275,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em049_00"
+ },
+ {
+  "file": "em050_00.glb",
+  "primitives": 42,
+  "seamGroupsDisagreeing": 1,
+  "verticesRewritten": 3,
+  "influenceShift": {
+   "mean": 1.0,
+   "median": 1.0,
+   "p90": 1.0,
+   "max": 1.0,
+   "over25pct": 3
+  },
+  "written": true,
+  "id": "em050_00"
+ },
+ {
+  "file": "em055_00.glb",
+  "primitives": 28,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em055_00"
+ },
+ {
+  "file": "em056_00.glb",
+  "primitives": 24,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em056_00"
+ },
+ {
+  "file": "em057_00.glb",
+  "primitives": 41,
+  "seamGroupsDisagreeing": 1,
+  "verticesRewritten": 1,
+  "influenceShift": {
+   "mean": 0.0118,
+   "median": 0.0118,
+   "p90": 0.0118,
+   "max": 0.0118,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em057_00"
+ },
+ {
+  "file": "em057_04.glb",
+  "primitives": 46,
+  "seamGroupsDisagreeing": 7,
+  "verticesRewritten": 7,
+  "influenceShift": {
+   "mean": 0.0106,
+   "median": 0.0118,
+   "p90": 0.0118,
+   "max": 0.0118,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em057_04"
+ },
+ {
+  "file": "em058_00.glb",
+  "primitives": 64,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em058_00"
+ },
+ {
+  "file": "em060_00.glb",
+  "primitives": 11,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em060_00"
+ },
+ {
+  "file": "em060_04.glb",
+  "primitives": 13,
+  "seamGroupsDisagreeing": 1,
+  "verticesRewritten": 1,
+  "influenceShift": {
+   "mean": 0.0549,
+   "median": 0.0549,
+   "p90": 0.0549,
+   "max": 0.0549,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em060_04"
+ },
+ {
+  "file": "em061_00.glb",
+  "primitives": 9,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em061_00"
+ },
+ {
+  "file": "em061_04.glb",
+  "primitives": 17,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em061_04"
+ },
+ {
+  "file": "em062_00.glb",
+  "primitives": 10,
+  "seamGroupsDisagreeing": 1,
+  "verticesRewritten": 2,
+  "influenceShift": {
+   "mean": 0.0118,
+   "median": 0.0118,
+   "p90": 0.0118,
+   "max": 0.0118,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em062_00"
+ },
+ {
+  "file": "em063_00.glb",
+  "primitives": 35,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em063_00"
+ },
+ {
+  "file": "em063_05.glb",
+  "primitives": 36,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em063_05"
+ },
+ {
+  "file": "em065_00.glb",
+  "primitives": 26,
+  "seamGroupsDisagreeing": 4,
+  "verticesRewritten": 12,
+  "influenceShift": {
+   "mean": 1.0,
+   "median": 1.0,
+   "p90": 1.0,
+   "max": 1.0,
+   "over25pct": 12
+  },
+  "written": true,
+  "id": "em065_00"
+ },
+ {
+  "file": "em066_00.glb",
+  "primitives": 27,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em066_00"
+ },
+ {
+  "file": "em066_04.glb",
+  "primitives": 26,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em066_04"
+ },
+ {
+  "file": "em067_00.glb",
+  "primitives": 49,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em067_00"
+ },
+ {
+  "file": "em068_00.glb",
+  "primitives": 32,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em068_00"
+ },
+ {
+  "file": "em069_00.glb",
+  "primitives": 21,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em069_00"
+ },
+ {
+  "file": "em070_00.glb",
+  "primitives": 49,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em070_00"
+ },
+ {
+  "file": "em071_00.glb",
+  "primitives": 51,
+  "seamGroupsDisagreeing": 4,
+  "verticesRewritten": 6,
+  "influenceShift": {
+   "mean": 0.0118,
+   "median": 0.0118,
+   "p90": 0.0118,
+   "max": 0.0118,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em071_00"
+ },
+ {
+  "file": "em071_05.glb",
+  "primitives": 63,
+  "seamGroupsDisagreeing": 4,
+  "verticesRewritten": 5,
+  "influenceShift": {
+   "mean": 0.0118,
+   "median": 0.0118,
+   "p90": 0.0118,
+   "max": 0.0118,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em071_05"
+ },
+ {
+  "file": "em072_00.glb",
+  "primitives": 36,
+  "seamGroupsDisagreeing": 11,
+  "verticesRewritten": 24,
+  "influenceShift": {
+   "mean": 0.0154,
+   "median": 0.0118,
+   "p90": 0.0118,
+   "max": 0.0588,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em072_00"
+ },
+ {
+  "file": "em076_00.glb",
+  "primitives": 18,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em076_00"
+ },
+ {
+  "file": "em077_00.glb",
+  "primitives": 66,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em077_00"
+ },
+ {
+  "file": "em079_00.glb",
+  "primitives": 42,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em079_00"
+ },
+ {
+  "file": "em079_04.glb",
+  "primitives": 44,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em079_04"
+ },
+ {
+  "file": "em080_00.glb",
+  "primitives": 44,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em080_00"
+ },
+ {
+  "file": "em080_04.glb",
+  "primitives": 52,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em080_04"
+ },
+ {
+  "file": "em081_00.glb",
+  "primitives": 70,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em081_00"
+ },
+ {
+  "file": "em081_04.glb",
+  "primitives": 70,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em081_04"
+ },
+ {
+  "file": "em082_00.glb",
+  "primitives": 61,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em082_00"
+ },
+ {
+  "file": "em082_04.glb",
+  "primitives": 107,
+  "seamGroupsDisagreeing": 2,
+  "verticesRewritten": 4,
+  "influenceShift": {
+   "mean": 0.0078,
+   "median": 0.0078,
+   "p90": 0.0078,
+   "max": 0.0078,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em082_04"
+ },
+ {
+  "file": "em083_00.glb",
+  "primitives": 56,
+  "seamGroupsDisagreeing": 4,
+  "verticesRewritten": 7,
+  "influenceShift": {
+   "mean": 0.0118,
+   "median": 0.0118,
+   "p90": 0.0118,
+   "max": 0.0118,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em083_00"
+ },
+ {
+  "file": "em083_04.glb",
+  "primitives": 57,
+  "seamGroupsDisagreeing": 11,
+  "verticesRewritten": 20,
+  "influenceShift": {
+   "mean": 0.0096,
+   "median": 0.0078,
+   "p90": 0.0118,
+   "max": 0.0118,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em083_04"
+ },
+ {
+  "file": "em084_00.glb",
+  "primitives": 48,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em084_00"
+ },
+ {
+  "file": "em084_00_left.glb",
+  "primitives": 35,
+  "seamGroupsDisagreeing": 3,
+  "verticesRewritten": 6,
+  "influenceShift": {
+   "mean": 0.1085,
+   "median": 0.0118,
+   "p90": 0.302,
+   "max": 0.302,
+   "over25pct": 2
+  },
+  "written": true,
+  "id": "em084_00_left"
+ },
+ {
+  "file": "em084_00_right.glb",
+  "primitives": 33,
+  "seamGroupsDisagreeing": 1,
+  "verticesRewritten": 1,
+  "influenceShift": {
+   "mean": 0.2275,
+   "median": 0.2275,
+   "p90": 0.2275,
+   "max": 0.2275,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "em084_00_right"
+ },
+ {
+  "file": "em085_00.glb",
+  "primitives": 16,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em085_00"
+ },
+ {
+  "file": "em086_00.glb",
+  "primitives": 110,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em086_00"
+ },
+ {
+  "file": "em087_00.glb",
+  "primitives": 44,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em087_00"
+ },
+ {
+  "file": "em087_00_rubble_02.glb",
+  "primitives": 2,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em087_00_rubble_02"
+ },
+ {
+  "file": "em087_00_rubble_03.glb",
+  "primitives": 3,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "em087_00_rubble_03"
+ },
+ {
+  "file": "em088_00.glb",
+  "primitives": 40,
+  "seamGroupsDisagreeing": 5,
+  "verticesRewritten": 9,
+  "influenceShift": {
+   "mean": 0.8898,
+   "median": 1.0,
+   "p90": 1.0,
+   "max": 1.0,
+   "over25pct": 8
+  },
+  "written": true,
+  "id": "em088_00"
+ },
+ {
+  "file": "ems001_00.glb",
+  "primitives": 2,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems001_00"
+ },
+ {
+  "file": "ems002_00.glb",
+  "primitives": 2,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems002_00"
+ },
+ {
+  "file": "ems003_00.glb",
+  "primitives": 8,
+  "seamGroupsDisagreeing": 4,
+  "verticesRewritten": 4,
+  "influenceShift": {
+   "mean": 0.0078,
+   "median": 0.0078,
+   "p90": 0.0078,
+   "max": 0.0078,
+   "over25pct": 0
+  },
+  "written": true,
+  "id": "ems003_00"
+ },
+ {
+  "file": "ems004_00.glb",
+  "primitives": 2,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems004_00"
+ },
+ {
+  "file": "ems005_00.glb",
+  "primitives": 9,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems005_00"
+ },
+ {
+  "file": "ems006_00.glb",
+  "primitives": 9,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems006_00"
+ },
+ {
+  "file": "ems007_00.glb",
+  "primitives": 8,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems007_00"
+ },
+ {
+  "file": "ems008_00.glb",
+  "primitives": 8,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems008_00"
+ },
+ {
+  "file": "ems009_00.glb",
+  "primitives": 3,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems009_00"
+ },
+ {
+  "file": "ems010_00.glb",
+  "primitives": 3,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems010_00"
+ },
+ {
+  "file": "ems011_00.glb",
+  "primitives": 3,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems011_00"
+ },
+ {
+  "file": "ems012_00.glb",
+  "primitives": 3,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems012_00"
+ },
+ {
+  "file": "ems013_00.glb",
+  "primitives": 3,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems013_00"
+ },
+ {
+  "file": "ems014_00.glb",
+  "primitives": 4,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems014_00"
+ },
+ {
+  "file": "ems015_00.glb",
+  "primitives": 3,
+  "seamGroupsDisagreeing": 1,
+  "verticesRewritten": 1,
+  "influenceShift": {
+   "mean": 0.8,
+   "median": 0.8,
+   "p90": 0.8,
+   "max": 0.8,
+   "over25pct": 1
+  },
+  "written": true,
+  "id": "ems015_00"
+ },
+ {
+  "file": "ems016_00.glb",
+  "primitives": 2,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems016_00"
+ },
+ {
+  "file": "ems019_00.glb",
+  "primitives": 4,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems019_00"
+ },
+ {
+  "file": "ems020_00.glb",
+  "primitives": 2,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems020_00"
+ },
+ {
+  "file": "ems021_00.glb",
+  "primitives": 2,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems021_00"
+ },
+ {
+  "file": "ems022_00.glb",
+  "primitives": 6,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems022_00"
+ },
+ {
+  "file": "ems023_00.glb",
+  "primitives": 4,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems023_00"
+ },
+ {
+  "file": "ems025_00.glb",
+  "primitives": 2,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems025_00"
+ },
+ {
+  "file": "ems026_00.glb",
+  "primitives": 6,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems026_00"
+ },
+ {
+  "file": "ems027_00.glb",
+  "primitives": 6,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems027_00"
+ },
+ {
+  "file": "ems034_00.glb",
+  "primitives": 3,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems034_00"
+ },
+ {
+  "file": "ems035_00.glb",
+  "primitives": 16,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems035_00"
+ },
+ {
+  "file": "ems039_00.glb",
+  "primitives": 3,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems039_00"
+ },
+ {
+  "file": "ems040_00.glb",
+  "primitives": 3,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems040_00"
+ },
+ {
+  "file": "ems041_00.glb",
+  "primitives": 3,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems041_00"
+ },
+ {
+  "file": "ems042_00.glb",
+  "primitives": 3,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems042_00"
+ },
+ {
+  "file": "ems044_00.glb",
+  "primitives": 10,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems044_00"
+ },
+ {
+  "file": "ems045_00.glb",
+  "primitives": 7,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems045_00"
+ },
+ {
+  "file": "ems046_00.glb",
+  "primitives": 7,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems046_00"
+ },
+ {
+  "file": "ems047_00.glb",
+  "primitives": 4,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems047_00"
+ },
+ {
+  "file": "ems048_00.glb",
+  "primitives": 8,
+  "seamGroupsDisagreeing": 0,
+  "verticesRewritten": 0,
+  "id": "ems048_00"
+ }
+]

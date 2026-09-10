@@ -1340,6 +1340,65 @@ state, or that `Angry_Repeat` follows `Angry_Start`, or which rung of Bloodbath'
 from an AI state, so no name list can be complete — `clipPicker` says so already. Raven, 2026-09-05:
 "Things like enraged states for toggles will be up to me to determine."
 
+## 2026-09-10 - Seam welding rolled out across the library
+
+Raven, after judging the Mizutsune test case: "Okay, that seems to have worked well, so review each
+monster and weld any seams."
+
+`dev/weld-seam-skins.py --all --apply`. `--all` exists only because of that instruction; before it
+the script deliberately had no library-wide mode, and one of `--only` / `--all` is still required so
+it cannot run over everything by accident.
+
+### Result, by the same sweep that found the problem, carrying its own control
+
+| | before | after |
+|---|---|---|
+| same-part mismatched pairs | 21,152 | **0** |
+| worst posed separation | **611.19%** | **0.00%** |
+| models whose seams open past 3x their control | 74 | **0** |
+| max control, the noise floor | 0.665% | 0.000% |
+
+Counting every pair, including copies in mutually exclusive part variants, **zero** now open.
+132 models analysed, 54 skipped as every `_tail` / `_head` model ships no skin of its own.
+
+### The cost
+
+* **105 of 132** models needed a weld
+* **33,302 vertices** rewritten in total
+* median influence shift **0.0078** -- under 1%
+* **376 vertices, 1.1% of those touched, shifted more than 25%**, across 46 models
+
+Those 376 are the ones that MOVE geometry rather than close a hairline. They are worth knowing
+about, and they are also the cases that were already the worst broken -- `em088_00`'s pair was two
+coincident vertices bound 100% to joint 5 and 100% to joint 10, tearing to 611% of model size. A
+weld there does not make that vertex correct, it makes it CONTINUOUS: the surface stops splitting
+and follows one limb. Continuous-and-locally-wrong beats torn, but it is a judgement, and the models
+carrying the most of them are worth an eyeball: `em065_00` (12), `em088_00` (8+), `em071_05` (54 in
+the first pass), `em086_00` (26), `em012_00` (21).
+
+Spot-checked after: `em088_00` 45,738 silhouette pixels / 40 meshes / 8,188 vertices, `em071_05`
+66,130 / 65 / 9,303, no console errors.
+
+### A bug in the first pass, and what it cost
+
+The first pass left **208 pairs across 32 models** still disagreeing, and the sweep kept reporting
+them. The weld and the sweep disagreed about what "the same vertex" means: the sweep denormalises
+POSITION (SHORT with `normalized: true` under `KHR_mesh_quantization`) before grouping, while the
+weld grouped on the RAW shorts -- about three times tighter -- so it silently skipped near-coincident
+copies. Fixed by giving the weld the same denormalisation, and a second pass caught the remaining
+208. **A fix and its check have to share their definitions or they will quietly disagree**, which is
+the same lesson as the control rule, one level up.
+
+### Reversibility
+
+Nothing is destroyed: the pre-weld bytes are in git history. To restore one model,
+`git checkout <commit-before> -- docs/models/monsters/<id>.glb`; for all of them, the same against
+`docs/models/monsters/`. `--no-backup` was used for the bulk run precisely because git is the better
+restore path than 105 loose `.preweld` files.
+
+**Not judged.** This is a deliberate deviation from the ROM on 105 models, and whether the library
+looks right afterwards is Raven's call.
+
 ## 2026-09-10 - Mizutsune's seams welded, as a test case
 
 Raven: "As a test case, weld Mizu's seams. I want to hold off on doing it across the board until we

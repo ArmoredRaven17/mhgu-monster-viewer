@@ -55,13 +55,24 @@ def span(js, binoff, ai):
     return base, stride, a['count'], fmt, ncomp
 
 
+def denorm(arr, a):
+    if not a.get('normalized'):
+        return arr
+    fmt = CT[a['componentType']][0]
+    div = {'b': 127.0, 'B': 255.0, 'h': 32767.0, 'H': 65535.0}.get(fmt)
+    if not div:
+        return arr
+    arr = arr / div
+    return np.maximum(arr, -1.0) if fmt in ('b', 'h') else arr
+
+
 def read(raw, js, binoff, ai):
     base, stride, n, fmt, ncomp = span(js, binoff, ai)
     return np.array([struct.unpack_from('<' + fmt * ncomp, raw, base + k * stride)
                      for k in range(n)])
 
 
-def weld(path, quant=10000.0, apply_it=False, report=False):
+def weld(path, quant=10000.0, apply_it=False, report=False, backup=True):
     raw, js, binoff = load(path)
     prims = []
     for mi, mesh in enumerate(js.get('meshes', [])):
@@ -71,7 +82,13 @@ def weld(path, quant=10000.0, apply_it=False, report=False):
                 continue
             prims.append({
                 'name': (mesh.get('name') or 'm%d' % mi) + '#' + str(pi),
-                'pos': read(raw, js, binoff, a['POSITION']).astype(np.float64),
+                # DENORMALISED, and it must be. POSITION is SHORT with normalized=true under
+                # KHR_mesh_quantization, and grouping on the raw shorts makes the coincidence test
+                # ~3x tighter than the sweep's, so the weld silently left near-coincident copies
+                # alone and dev/seam-skin-sweep.py went on reporting them. The two have to share
+                # one definition of "the same vertex" or the fix and the check disagree.
+                'pos': denorm(read(raw, js, binoff, a['POSITION']).astype(np.float64),
+                              js['accessors'][a['POSITION']]),
                 'j': read(raw, js, binoff, a['JOINTS_0']).astype(int),
                 'w': read(raw, js, binoff, a['WEIGHTS_0']).astype(int),
                 'jspan': span(js, binoff, a['JOINTS_0']),
@@ -142,7 +159,8 @@ def weld(path, quant=10000.0, apply_it=False, report=False):
         }
 
     if apply_it and changes:
-        shutil.copy2(path, path + '.preweld')
+        if backup:
+            shutil.copy2(path, path + '.preweld')
         for pi_, k, nj, nw in changes:
             jb, jst, _n, jf, jc = prims[pi_]['jspan']
             wb, wst, _n2, wf, wc = prims[pi_]['wspan']
@@ -153,7 +171,8 @@ def weld(path, quant=10000.0, apply_it=False, report=False):
         open(tmp, 'wb').write(bytes(raw))
         os.replace(tmp, path)
         out['written'] = True
-        out['backup'] = os.path.basename(path) + '.preweld'
+        if backup:
+            out['backup'] = os.path.basename(path) + '.preweld'
     return out
 
 
@@ -161,19 +180,57 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--docs', default=os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                                    '..', 'docs'))
-    ap.add_argument('--only', required=True, help='model stem, e.g. em082_00 -- no library-wide '
-                                                  'default on purpose; this deviates from the ROM')
+    ap.add_argument('--only', help='model stem, e.g. em082_00')
+    # --all exists because Raven authorised the rollout on 2026-09-10 after judging the Mizutsune
+    # test case; before that this script deliberately had no library-wide mode, because it deviates
+    # from the ROM. One of the two is still required, so it cannot run over everything by accident.
+    ap.add_argument('--all', action='store_true', help='every model (needs the rollout to be wanted)')
+    ap.add_argument('--no-backup', action='store_true',
+                    help='skip the .preweld copies; git history is the restore path')
     ap.add_argument('--apply', action='store_true')
     ap.add_argument('--report', action='store_true', default=True)
+    ap.add_argument('--json', default=None)
     args = ap.parse_args()
     mdir = os.path.abspath(os.path.join(args.docs, 'models', 'monsters'))
-    files = [f for f in sorted(os.listdir(mdir)) if f.endswith('.glb') and f[:-4].startswith(args.only)]
+    if not args.only and not args.all:
+        print('give --only <stem> or --all')
+        return 1
+    files = [f for f in sorted(os.listdir(mdir)) if f.endswith('.glb')
+             and (args.all or f[:-4].startswith(args.only))]
     if not files:
         print('no model matching %r' % args.only)
         return 1
+    rows, skipped = [], []
     for f in files:
-        r = weld(os.path.join(mdir, f), apply_it=args.apply, report=args.report)
-        print(json.dumps(r, indent=1))
+        r = weld(os.path.join(mdir, f), apply_it=args.apply, report=args.report,
+                 backup=not args.no_backup)
+        if r is None:
+            skipped.append(f[:-4])
+            continue
+        r['id'] = f[:-4]
+        rows.append(r)
+        if r['verticesRewritten']:
+            sh = r.get('influenceShift', {})
+            print('  %-26s groups %4d  rewrote %5d  medianShift %.4f  max %.3f  over25%% %d'
+                  % (r['id'], r['seamGroupsDisagreeing'], r['verticesRewritten'],
+                     sh.get('median', 0), sh.get('max', 0), sh.get('over25pct', 0)), flush=True)
+    touched = [r for r in rows if r['verticesRewritten']]
+    print()
+    print('models examined      : %d   (skipped, no skin: %d)' % (len(rows), len(skipped)))
+    print('models needing a weld: %d' % len(touched))
+    print('vertices rewritten   : %d' % sum(r['verticesRewritten'] for r in touched))
+    big = sorted(touched, key=lambda r: -r.get('influenceShift', {}).get('over25pct', 0))
+    big = [r for r in big if r.get('influenceShift', {}).get('over25pct', 0)]
+    print()
+    print('models with vertices shifted MORE THAN 25%% of their influence -- these MOVE geometry')
+    print('rather than close a hairline, and are the ones worth eyeballing individually:')
+    for r in big[:20]:
+        sh = r['influenceShift']
+        print('   %-24s %4d vertices over 25%%   max shift %.3f' % (r['id'], sh['over25pct'], sh['max']))
+    if args.json:
+        json.dump(rows, open(args.json, 'w'), indent=1)
+        print()
+        print('wrote %s' % args.json)
     if not args.apply:
         print()
         print('REPORT ONLY -- pass --apply to write the GLB (a .preweld backup is kept).')
