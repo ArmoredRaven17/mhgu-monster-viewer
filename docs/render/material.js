@@ -659,11 +659,45 @@ export function setMaskWindow(mats, s0, s1, v0, kt, sb){
 // THE FRAME RATE. The evaluator's clock is `slotTime += material[+0x20] * dt`
 //     00b0cf24 vldr s18,[r3] / 00b0cf28 vldr s0,[sb,#0x20] / 00b0cf2c vldr s2,[sp,#0x10]
 //     00b0cf30 vmla.f32 s18, s0, s2
-// and uBaseModel 0x88c494 passes dt through unmodified (`0088c4c0 vldr s16,[r4,#0x1c]`,
-// cUnit::mDeltaTime), so material animation and MOTION share one tick. Of 14,538 shipped clip
-// durations 8,848 are an integral frame count at 60 fps and not at 30, against 691 the other way --
-// so 60, and the per-material rate at +0x20 is taken as 1.0 (its writer was not isolable).
-export const MAT_FPS = 60;
+// and the sum is compared against the clip's frame count, loaded as u32 and converted
+//     00b0cf38 ldr r0,[r5] / 00b0cf3c vmov s0,r0 / 00b0cf40 vcvt.f32.u32 s0,s0
+// so slotTime carries the SAME UNIT as `frames`. uBaseModel 0x88c494 passes dt through unmodified
+// (`0088c4c0 vldr s16,[r4,#0x1c]`, cUnit::mDeltaTime), so material animation and MOTION share one
+// tick. All of that is decoded and holds.
+//
+// WHAT IS NOT DECODED IS THE WALL-CLOCK RATE, and this constant is an ASSUMPTION, not a reading.
+// Corrected 2026-09-10 after Raven: "The game runs at ~30 FPS, so the effect looks fast compared to
+// what we see in game." The two arguments that used to sit here for 60 do not survive:
+//
+//   * "8,848 of 14,538 durations are an integral frame count at 60 and not at 30" does not
+//     discriminate. Any integer frame count is a whole number of frames at either rate; the test
+//     only ever measured how round the resulting SECONDS looked, which is a matter of taste.
+//   * The exported motion keyframes sit 0.01667 s apart, i.e. 59.99 fps, over 283,323 keys. That is
+//     `lmt_to_gltf`'s own choice when it turned LMT frame indices into glTF seconds -- a
+//     third-party tool's assumption, not the ROM's statement. Citing it as confirmation was
+//     circular, and it was mine.
+//
+// The one structural argument that does hold points at 30. material[+0x20] multiplies dt, so it is
+// a RATE MULTIPLIER, and a rate multiplier's neutral value is 1.0. For the sum to reach `frames`
+// with a 1.0 multiplier, dt must be in FRAME UNITS -- about 1.0 per tick, not ~0.0167 seconds. Then
+// a clip's duration is its frame count in GAME TICKS, and the wall-clock length is frames divided
+// by the rate the game actually ticks at. MHGU ticks at ~30. Akantor's 96-frame Angry loop is then
+// 3.2 s in game, and this viewer was playing it in 1.6 s -- exactly the doubling Raven reports.
+//
+// This also means the content may well be authored at 60, as Raven guessed ("it wouldn't shock me
+// to find out everything is calculated around 60fps, but looks different due to the 3DS
+// framerates") -- and it still plays at 30 ticks per second, because dt is counted in ticks.
+//
+// STILL UNREAD, and it is the thing that would settle this outright: material[+0x20] itself.
+// Searched again 2026-09-10 and it is not written anywhere in the material-animation module
+// (0xb08000..0xb12000 holds no `vstr` to [reg,#0x20]), and it does not come from the .mrl -- the
+// material record is 60 bytes and words 8..12 and 14, the only ones nothing reads, are ZERO on all
+// 577 monster materials across 187 files. So it is set by code that has not been found. Until it
+// is, this number rests on Raven's eyes rather than on the ROM, and it is labelled that way.
+//
+// SCOPE: the Armor Viewer keeps its own copy of this file. This edit is the monster app's alone
+// until someone judges armour at the new rate, so sync-render.py will report EDITED HERE.
+export const MAT_FPS = 30;
 
 const animBase = new WeakMap();
 

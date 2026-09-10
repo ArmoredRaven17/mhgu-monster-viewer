@@ -61,6 +61,10 @@ attention. Batch the visual-only ones and bring several candidates to a single j
 
 ### Open - cause not established
 
+* **Motion playback rate** - if material animation is right at 30 (2026-09-10), motion is
+  wrong:  baked the pose GLB timings in seconds at 60 fps and the mixer replays
+  them as written, so monster motions would also be 2x fast. The ROM says the two share one
+  tick, so they cannot both be right. Needs Raven: DO THE MONSTER ANIMATIONS RUN FAST?
 * **Seam gaps, residue after cause J** - Grimclaw enraged, Zinogre; the alpha clip was one
   contributor (4,596 background pixels on Thunderlord) and removing it left gaps still visible.
   Raven: "might be difficult to deal with since they are a visual issue". PARKED at his call to
@@ -1332,6 +1336,95 @@ state, or that `Angry_Repeat` follows `Angry_Start`, or which rung of Bloodbath'
 `Lv3_loop` ladder is "enraged", is authored semantics. The ROM reaches these clips through `setClip`
 from an AI state, so no name list can be complete — `clipPicker` says so already. Raven, 2026-09-05:
 "Things like enraged states for toggles will be up to me to determine."
+
+## 2026-09-10 - Material animation ran at double speed, and my evidence for 60 was circular
+
+Raven, on Akantor's rage effect: **"the timing feels too rapid"**, then **"The game runs at ~30 FPS,
+so the effect looks fast compared to what we see in game"**, then **"It wouldn't shock me to find
+out everything is calculated around 60fps, but looks different due to the 3DS framerates."**
+
+### What I got wrong first
+
+I answered that the timing was faithful and the rapidity authored, on three arguments. **One of the
+three was circular and it was the one I called decisive.** Written down so it is not repeated:
+
+* I measured the exported pose keyframes at 0.01667 s apart -- 59.99 fps over 283,323 keys -- and
+  presented it as an independent confirmation of 60. It is not independent. Those timings are
+  written by **`lmt_to_gltf`**, a third-party tool, when it converts LMT frame indices into glTF
+  seconds. I measured the tool's assumption and reported it as the ROM's answer. This is exactly
+  the failure the memory note names: a real measurement attached to a source that never said it.
+* The older argument in the code -- "8,848 of 14,538 durations are an integral frame count at 60 and
+  not at 30" -- does not discriminate either. Any integer frame count is a whole number of frames at
+  any rate. That test only measured how round the resulting SECONDS looked.
+
+What survives is the disassembly, and it never spoke to wall-clock rate at all.
+
+### What the ROM does say
+
+    00b0cf24  vldr      s18, [r3]            slotTime
+    00b0cf28  vldr      s0, [sb, #0x20]      material[+0x20]
+    00b0cf2c  vldr      s2, [sp, #0x10]      dt
+    00b0cf30  vmla.f32  s18, s0, s2          slotTime += material[+0x20] * dt
+    00b0cf38  ldr       r0, [r5]             the clip's frame count, u32
+    00b0cf40  vcvt.f32.u32 s0, s0
+    00b0cf44  vcmpe.f32 s18, s0              compared against it
+
+So slotTime carries the same unit as `frames`, and `material[+0x20]` is a **rate multiplier** on dt.
+A rate multiplier's neutral value is 1.0, and for the sum to reach `frames` with a 1.0 multiplier,
+**dt must be in FRAME UNITS** -- about 1.0 per tick, not ~0.0167 seconds. A clip's length is then
+its frame count in GAME TICKS, and its wall-clock duration is that divided by the rate the game
+actually ticks at. MHGU ticks at ~30.
+
+That also settles Raven's own hypothesis: the content may well be authored at 60, and it would
+still take 96 ticks to play, because dt counts ticks rather than seconds.
+
+### Still unread
+
+`material[+0x20]` itself, which would settle it outright. Searched again 2026-09-10:
+
+* **Not written in the material-animation module.** `0xb08000..0xb12000` contains no `vstr` to
+  `[reg, #0x20]` at all.
+* **Not from the .mrl.** The material record is 60 bytes = 15 u32s, of which words 8..12 and 14 are
+  read by nothing. All six are **exactly zero on all 577 monster materials across 187 files**, so
+  there is no shipped per-material rate that was being missed. If +0x20 came from the file at that
+  offset it would be 0.0 and nothing would ever animate.
+
+So it is set by code that has not been found, and the rate rests on Raven's eyes, labelled as such
+in `material.js` rather than dressed up as a decode.
+
+### The change
+
+`MAT_FPS` 60 -> **30**, in `docs/render/material.js`, with the whole argument above written at the
+site. Akantor, measured live afterwards:
+
+| clip | frames | was | now |
+|---|---|---|---|
+| `Angry` on m03_sukima / m06_body_add02 / m05_body_add01 | 96 | 1.60 s | **3.20 s** |
+| `Angry` on m04__kekkan | 64 | 1.07 s | **2.13 s** |
+| `Angry_Start` | 60 | 1.00 s | **2.00 s** |
+| m06_body_add02's UV oscillation | 6 | 0.10 s, 10 Hz | **0.20 s, 5 Hz** |
+
+Verified in the page: `MAT_FPS 30`, the Angry loop reports 3.2 s, enraged still draws parts
+0, 4, 5, 7, 10, 12, 14, 101, 102, 103, no console errors.
+
+Scoped to the monster app. The Armor Viewer keeps its own copy of `material.js`, so
+`sync-render.py --check` will now report EDITED HERE until armour is judged at the new rate.
+
+### AN INCONSISTENCY THIS CREATES, stated rather than hidden
+
+The ROM says material animation and MOTION share one tick -- `uBaseModel 0x88c494` passes
+cUnit::mDeltaTime through unmodified. Material animation now runs at 30. **Motion does not**: its
+timings are baked into the pose GLBs in seconds by `lmt_to_gltf` at 60 fps, and three.js
+`AnimationMixer` replays them at whatever the file says. So if the 30 reading is right, every
+monster motion in this viewer is also playing at double speed, and the two halves of one tick now
+disagree.
+
+That is a question only Raven can answer, because it is a judgement about how the game looks:
+**do the monster animations themselves run fast?** If they do, the fix is either a re-export at the
+correct rate or a 0.5 `timeScale` on the mixer, and it is library-wide. If they look right, then the
+30 reading is wrong for motion and probably wrong here too, and this change should come back out.
+
+**Not judged.**
 
 ## 2026-09-10 - Akantor: default parts, and part 5 as the rage part
 
