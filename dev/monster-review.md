@@ -1360,7 +1360,7 @@ clipping on it discards matte texels:
 | `em/017_00` Cephadrome | `XfBA_E1__m50_fin` | opaque | 46.1% |
 | `em/071_00` / `em/071_05` | `XfBAN__E0__m52_wing_l` | opaque | 38.7% / 37.8% |
 | **`em/057_00`** Zinogre | **`XfBAN__E0__m05_hair`** | opaque | **37.5%** |
-| **`em/057_04`** Stygian | **`XfBAN__E0__m05_hair`** | opaque | **30.6%** |
+| **`em/057_04`** Thunderlord | **`XfBAN__E0__m05_hair`** | opaque | **30.6%** |
 | **`em/032_04`** Grimclaw | **`XfBAN__E1__m50_wing`** | opaque | **30.0%** |
 
 Zinogre reads **one** texture three ways, which is the whole argument in miniature:
@@ -1398,10 +1398,10 @@ knob is a no-op there; that is the correct answer, not a loss.
 |---|---|
 | Grimclaw enraged, pixels moved by the fix | **11,693**, mean delta 333.6 of 765 |
 | Grimclaw, pixels that were holes to background | 0 - its wing sits over the body, so a hole showed body |
-| **Stygian Zinogre enraged, pixels moved** | **7,465** |
-| **Stygian Zinogre, solid now but BACKGROUND under the old rule** | **4,596** |
+| **Thunderlord Zinogre enraged, pixels moved** | **7,465** |
+| **Thunderlord Zinogre, solid now but BACKGROUND under the old rule** | **4,596** |
 
-The Zinogre number is the report itself: 4,596 pixels of that one view were holes straight through
+The Thunderlord number is the report itself: 4,596 pixels of that one view were holes straight through
 the model, punched by the gloss channel along the hair's UV islands. `m05_hair` sits on the
 silhouette, so they read as background; Grimclaw's wing sits over the body, so the same fault read
 as seams instead. One cause, two appearances - which is what Raven meant by "similar issue with

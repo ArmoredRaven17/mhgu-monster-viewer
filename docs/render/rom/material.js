@@ -162,7 +162,7 @@ export function createRomMaterial(spec){
   // Zinogre's m05_hair lost 37.5% of its texels and Grimclaw's m50_wing 30%; ems/017_00's
   // XfBA1__m00_body is alpha 0 everywhere, so every texel of it would go (that mesh is off by
   // default for other reasons, so it was never on screen to lose). Measured in the viewer at
-  // 607x875: the fix moves 11,693 pixels on enraged Grimclaw, and on Stygian Zinogre 4,596
+  // 607x875: the fix moves 11,693 pixels on enraged Grimclaw, and on Thunderlord Zinogre 4,596
   // pixels that now draw were showing the BACKGROUND -- holes straight through the model. That
   // is Raven's "gaps along seams", following the gloss map's own island borders (2026-09-10).
   const romClip = !!(feat && /AlphaClip$/.test(feat.transp || ''));
