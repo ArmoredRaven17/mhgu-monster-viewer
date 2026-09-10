@@ -40,6 +40,7 @@ noticing, because so far almost nothing has.
 | F | **Parts machinery.** Exclusive pairs and standalone toggles need a grouping layer; some clusters sit outside the rest-set system. | Yian Kut-Ku, Nibelsnarf, Alatreon | diagnosed |
 | G | **Data defects.** One-off faults in the shipped data. | Soulseer (empty groups), Furious Rajang (`sharesModelOf`) | diagnosed |
 | H | **My regressions.** | see below | live |
+| I | **Texture pool encode.** libwebp discarded the RGB under alpha-0 texels, and MT's albedo alpha is the GLOSS the shader reads, not opacity — so a third of some hides was compression fill. `exact=True` in `buildlib.stage_tex`. | 157 textures, library-wide | **FIXED, Diablos judged right 2026-09-09** |
 
 ### Open - cause not established
 
@@ -282,7 +283,7 @@ than ROM readings (`__view.cutSolid`, `__view.clipFallback`).
 ### Diablos — pixelated textures
 > "Diablos, has pixelated textures; I've seen this issue on multiple monsters"
 
-**STATUS** diagnosed, pipeline fixed, POOL NOT YET REGENERATED · **CAUSE** shared, 136 textures
+**STATUS** **CLOSED** 2026-09-09 — Raven: "Oh, Diablos looks fine now" · **CAUSE** shared, 157 textures
 
 **Ruled out first.** The census the earlier note asked for was run 2026-09-09 and both easy
 theories are dead:
@@ -338,8 +339,12 @@ method as before — the shipped file against the pipeline's decode of the ROM t
 The alpha>0 band did not move, which is what should happen: the flag only governs what libwebp does
 under transparent texels. Pool cost for those files 68.8 MB -> 70.2 MB, **+2.0%**.
 
-**STILL UNJUDGED.** Numbers are not a render — Raven, 2026-09-09: "your verifications, if visual,
-are not super reliable". This entry stays open until he has looked.
+**JUDGED AND CLOSED.** Raven, 2026-09-09, on the rebuilt pool: "Oh, Diablos looks fine now".
+
+The same 157 files serve the whole library, so the reports below that name a texture as looking
+wrong may have moved with it — **Ukanlos** ("textures on body render poorly") is the closest match,
+and Kirin, Rajang, Gypceros, Teostra, Tigrex/Grimclaw and Old Fatalis all had affected maps. None of
+them is closed by this: each still needs Raven's eyes on its own monster.
 
 ##### Three pipeline faults the rebuild exposed, all fixed, none of them in the viewer
 
