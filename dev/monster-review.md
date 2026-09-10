@@ -1340,6 +1340,95 @@ state, or that `Angry_Repeat` follows `Angry_Start`, or which rung of Bloodbath'
 from an AI state, so no name list can be complete — `clipPicker` says so already. Raven, 2026-09-05:
 "Things like enraged states for toggles will be up to me to determine."
 
+## 2026-09-10 - Library sweep: bind pose vs animated pose, every monster
+
+Raven: "Review each monster's bind pose for skinning issues compared to an animated pose." Run
+offline over the shipped assets by `dev/seam-skin-sweep.py`, which skins both copies of every shared
+seam vertex itself rather than asking the viewer -- the app poses through `pose.proxyBones` copied
+inside its own render loop, so the browser cannot be driven to a pose headlessly.
+
+**132 models analysed, 54 skipped** (every `_tail` / `_head` model ships no skin of its own).
+
+### What it measures
+
+Where two primitives meet, the seam edge exists TWICE at one bind-pose position. Same binding on
+both copies -> they can never separate. Different binding -> they separate the moment a bone turns.
+So: skin both, measure the distance, at bind and at real poses from `docs/poses/monsters/*.glb`.
+
+Two guards, because four measurements earlier today were wrong for want of them:
+
+* **A CONTROL that must read zero.** Pairs whose two copies SHARE a binding are measured too. They
+  cannot separate by construction. Across the library the control lands at 0.000-0.24% of model
+  size -- that is the method's noise floor, and it comes from the 1e-4 coincidence tolerance, not
+  from skinning.
+* **CO-VISIBILITY.** Primitives are `Group[N]#k`, so `N` is the part. Two different parts can be
+  exclusive alternatives -- a broken jaw and an intact one occupy the same vertices and are never
+  drawn together, so their "separation" is meaningless. Without this the sweep reports vertices a
+  model-length apart, which is two exclusive variants posed at once. **Only SAME-PART pairs are
+  ranked**, since sub-meshes of one part are always drawn together.
+
+### The result
+
+| worst SAME-PART separation | models |
+|---|---|
+| clean, no mismatch at all | **51** |
+| 0.2 - 2% of model size | 11 |
+| 2 - 10% | 22 |
+| **more than 10%** | **42** |
+
+**74 of 132 open past three times their own control.**
+
+Worst, all same-part and so all certainly co-visible:
+
+| monster | mismatched | worst | pairs > 0.2% | control | worst pair |
+|---|---|---|---|---|---|
+| `em088_00` | 74 | **611%** | 74 | 0.065% | `Group[0]#12 / Group[0]#13` |
+| `em086_00` | 221 | 538% | 221 | 0.000% | `Group[0]#0 / Group[0]#1` |
+| `em027_00` | 622 | 363% | 610 | 0.154% | `Group[101]#0 / Group[101]#2` |
+| `em012_00` | 353 | 155% | 353 | 0.000% | `Group[100]#0 / Group[100]#6` |
+| `em021_00` Congalala | 277 | 77% | 277 | 0.000% | `Group[0]#0 / Group[0]#3` |
+| `em083_04` | 1019 | 55% | 1018 | 0.169% | `Group[0]#4 / Group[0]#14` |
+| `em050_00` | 3949 | 26% | 3949 | 0.073% | `Group[103]#1 / Group[103]#2` |
+| `em082_00` Mizutsune | 530 | 22% | 528 | 0.057% | `Group[0]#10 / Group[0]#15` |
+
+The extremes are real, not artefacts. On `em088_00` the two coincident vertices are bound **100% to
+joint 5** and **100% to joint 10** -- different bones outright, so they travel with different limbs.
+
+### Two things that corroborate it against Raven's own reports
+
+* **Tigrex `em032_00` has ZERO same-part mismatches.** He is one of the 51 clean models. Raven,
+  hours earlier and about a different bug entirely: "Tigrex still looks fine somehow."
+* **Grimclaw `em032_04` has 724, worst 17.3%, and its worst pair is `Group[30]#1 / Group[30]#2`** --
+  both sub-meshes of PART 30, which is a rage part. Raven's original report was "Grimclaw enraged
+  has gaps along seams". The measurement lands on the part he was looking at, in the state he was
+  looking at it in.
+
+Neither was steered toward: the sweep ranks every model the same way and those two fell out of it.
+
+### Not yet established: whose fault it is
+
+Whether the `.mod` already disagrees, or our export introduces it. That decides whether this is
+fixable here at all. The MOD side is partly decoded already -- `em082_00.mod` holds 79 meshes across
+8 vertex formats, and the stride self-check passes (`sum(count * stride) == 367596 == vertexBufferSize`)
+-- but the weight/joint LANES within each format are not located yet, so the comparison cannot be
+made. That is the next step and it is a bounded one.
+
+A hint, not proof: `em032_00` is clean and `em032_04` has 724, through the same exporter on the same
+day. If the tool were manufacturing these, both would show them. That points at the source asset.
+
+Also worth noting against cause D: the export carries `JOINTS_0`/`WEIGHTS_0` only, so at most four
+influences per vertex survive, and the worst mismatches on Mizutsune carry a spurious **joint 0** --
+"weightless primitives bind to the root instead of the bone the `.mod` names" is the same signature.
+
+### Files
+
+* `dev/seam-skin-sweep.py` - the sweep, with the control and the co-visibility split built in
+* `dev/seam-skin-sweep.txt` - the full ranked run
+* `dev/seam-skin-sweep.json` - per-model rows, for whatever comes next
+
+**Not judged.** And nothing is fixed by this -- it is a measurement, and the fix depends on the
+`.mod` comparison above.
+
 ## 2026-09-10 - "The Bind Pose doesn't show the small gaps near break-able parts"
 
 Raven, with a Mizutsune capture. This is the most useful thing said about the seam gaps so far,
