@@ -1340,6 +1340,80 @@ state, or that `Angry_Repeat` follows `Angry_Start`, or which rung of Bloodbath'
 from an AI state, so no name list can be complete — `clipPicker` says so already. Raven, 2026-09-05:
 "Things like enraged states for toggles will be up to me to determine."
 
+## 2026-09-10 - The seam bindings differ IN THE .mod. The exporter is faithful.
+
+The question the whole skinning thread was building to: does the `.mod` give both copies of a seam
+vertex the same binding, so that our export broke it, or does it already disagree? **It already
+disagrees.** So this is not fixable in the export, and no render-side change can touch it either
+(see the previous entry, where every offset candidate came back identity).
+
+### How it was established
+
+`dev/mod-skin-solve.py` pairs each MOD mesh with the GLB primitive it became -- match on dequantised
+position, 61 of 61 paired on `em082_00` -- and then compares. What matters is that the comparison
+does not depend on decoding the weight lanes:
+
+* On **786** fmt-64593025 seam pairs the MOD's `w0` is byte-identical between the two copies while
+  the GLB weights differ. If the exporter were inventing the difference, that is where it would show
+  -- and instead the MOD's own JOINT SLOTS differ, and the GLB mirrors them exactly:
+
+      A   MOD joints16..19 [4, 3, 2, 2]  ->  GLB j=[4, 3, 2, 0]  w=[228, 25, 2, 0]
+      B   MOD joints16..19 [4, 3, 3, 3]  ->  GLB j=[4, 3, 0, 0]  w=[228, 27, 0, 0]
+
+  One copy carries three influences, the other two, with the third's weight folded into the second.
+  The exporter reads the slots, drops the repeated padding, and writes joint 0 at weight 0. Correct.
+
+* Which MOD bytes differ between the two copies is itself the tell. Across pairs whose GLB binding
+  AGREES vs pairs whose binding DIFFERS:
+
+  | MOD byte | binding agrees | binding differs |
+  |---|---|---|
+  | 16 (joint 1) | 0% | 1% |
+  | 17 (joint 2) | 16% | 4% |
+  | **18 (joint 3)** | 24% | **54%** |
+  | **19 (joint 4)** | 7% | **99%** |
+  | 6-7 (`w0`) | 0% | 4% |
+
+  The disagreement is concentrated in the MOD's trailing joint slots, which is MOD data the exporter
+  only reads.
+
+* What differs, on the GLB side, across all 1,963 differing pairs: 1,362 differ in both weights and
+  joints, 539 in joints alone, 62 in weights alone.
+
+### What was decoded, and what was NOT
+
+Decoded and checked across 6,936 vertices of fmt 64593025:
+
+* the vertex position is 4 shorts and the FOURTH is **w0**, normalised by 32767 --
+  `pos[3]/32767 == WEIGHTS_0[0]/255` on **97.9%** of vertices, max error 0.0079
+* the four **joint slots are bytes 16..19**, with unused slots padded by REPEATING an earlier joint
+  rather than by zero -- which is why the exported 4th joint is 0 wherever the MOD's is a repeat
+* `sum(WEIGHTS_0) == 255` on all 9,496 paired vertices
+* fmt `0cb68015` (stride 20) is the one format that gives itself away directly: bytes 12..15 sum to
+  255 on 100% of vertices (weights) with joints at 8..11
+
+**NOT decoded: w1, w2, w3.** They are not plain `u8/255` or `i16/32767` at any offset -- the best
+lane in an exhaustive search over all 40 offsets and both encodings reaches 39%, and the apparent
+83.9% hit for w3 is the dead field agreeing with zeros, not a decode. They are packed some other
+way. That gap is stated rather than papered over, and the conclusion above does not rest on them.
+
+### What this means
+
+* **Nothing in this viewer can fix it.** Not the export, not the renderer.
+* The ROM's own art binds these vertices inconsistently, so the GAME has the same data. Whether it
+  is VISIBLE in the game is a separate question and one only Raven can answer -- MHGU runs at ~30fps
+  on a handheld-derived renderer, while this viewer is static, high-resolution and zoomable, which
+  is exactly the condition under which a hairline shows.
+* If the residual gaps do need to go, the only honest routes are cosmetic and should be Raven's
+  call: weld coincident seam vertices to a single binding at BUILD time (pick one copy's, or average
+  them), or leave it as the ROM has it. The first is a deliberate deviation from the ROM and would
+  be the first such in this project, so it is not something to do unasked.
+
+`dev/mod-skin-lanes.py` finds the weight signature per format; `dev/mod-skin-solve.py` does the
+MOD-to-GLB pairing and the comparison.
+
+**Not judged.**
+
 ## 2026-09-10 - "Are break-able parts rendered slightly off?" - no, and here is everything checked
 
 Raven: "is there something rendering those slightly off by a small amount? Like are break-able parts
