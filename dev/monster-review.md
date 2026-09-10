@@ -79,6 +79,9 @@ attention. Batch the visual-only ones and bring several candidates to a single j
   (standing instruction), and each attempt would cost Raven a look. So it is not worth spending
   his attention one guess at a time. Pick it up only with either a measurable handle or several
   candidate fixes ready to judge in ONE pass.
+  **RECLASSIFIED 2026-09-10** after Raven: "the Bind Pose doesn't show the small gaps near
+  break-able parts." That makes it measurable -- see the entry below. It is a SKINNING
+  question, not a visual one, and belongs in the ROM-drivable column.
 * **Bloodbath Diablos** - rage regression; `clipPicker` already carries a fallback written for it
 * **Diablos / Ukanlos / Cephadrome** - texture quality; resolution RULED OUT, webp encode density is the live lead
 * **Old Fatalis** - chest effect when the chest break is on
@@ -1336,6 +1339,87 @@ state, or that `Angry_Repeat` follows `Angry_Start`, or which rung of Bloodbath'
 `Lv3_loop` ladder is "enraged", is authored semantics. The ROM reaches these clips through `setClip`
 from an AI state, so no name list can be complete — `clipPicker` says so already. Raven, 2026-09-05:
 "Things like enraged states for toggles will be up to me to determine."
+
+## 2026-09-10 - "The Bind Pose doesn't show the small gaps near break-able parts"
+
+Raven, with a Mizutsune capture. This is the most useful thing said about the seam gaps so far,
+because it **moves them out of the visual-only bucket**. If the geometry is closed at rest and only
+opens once the skeleton moves, the geometry is not the fault and the SKINNING is: two copies of one
+seam edge, living in two different primitives, driven by different joints or weights, must separate
+the moment a bone turns. That is measurable without anyone looking at it.
+
+### Measured: the two copies of a seam edge frequently DO disagree
+
+Coincident vertices (identical bind-pose position, different primitives), comparing their
+`JOINTS_0`/`WEIGHTS_0`:
+
+| model | coincident pairs across meshes | different skin binding |
+|---|---|---|
+| `em082_00` Mizutsune | 5,893 | **1,963 (33%)** |
+| `em032_04` Grimclaw | 6,562 | **3,644 (56%)** |
+
+By how much the influence disagrees, which is what decides whether a seam shows a hairline or a
+hole:
+
+| disagreement | Mizutsune | Grimclaw |
+|---|---|---|
+| identical | 66.7% | 44.5% |
+| <= 1% of the influence | 25.5% | 46.1% |
+| 1-5% | 6.8% | 9.4% |
+| 5-25% | 0.8% | - |
+| **> 25%, a real binding difference** | **8 pairs** | - |
+
+So the population is overwhelmingly hairline-scale, which is the right shape for "small gaps", with
+a handful on Mizutsune large enough to tear properly.
+
+The typical mismatch keeps the dominant influences and differs only on the smallest:
+
+    A  ((2, 2), (4, 215), (5, 38))
+    B  ((3, 2), (4, 215), (5, 38))      joint 2 vs joint 3, both at 2/255
+
+and the worst carries a spurious **joint 0**:
+
+    A  {24: 0.592, 23: 0.192, 25: 0.204, 0: 0.012}
+    B  {23: 0.506, 24: 0.396, 25: 0.098}
+
+which is **cause D's signature** -- "weightless primitives bind to the root instead of the bone the
+`.mod` names". This entry and cause D are probably the same fault seen from two ends.
+
+Also worth knowing: the export carries `JOINTS_0`/`WEIGHTS_0` and nothing else on every primitive
+of both models, so **at most four influences per vertex survive**. If the `.mod` carries more, the
+exporter is choosing which to keep, and two meshes choosing differently at a shared edge is exactly
+the pattern above.
+
+### NOT yet verified, and this is the gap in the finding
+
+**That these disagreements actually open the gaps.** Establishing it needs the model at a real
+animated pose, and that could not be reached from here: the Browser pane is hidden, which throttles
+rAF, and this app poses through `pose.proxyBones` copied onto the real skeleton inside its own
+render loop -- so `mixer.setTime()` alone moves nothing. `mixer.time` stayed at 0 across a reload
+and a 3-second wait, and 10 of 41 bones are non-identity, which is the held lobby pose rather than
+an animated one.
+
+At that held pose the seams are effectively shut: max separation **0.00058** against a model 0.984
+across, i.e. **0.06% of the model** -- sub-pixel. Which is consistent with Raven's report rather
+than against it: he is seeing this in MOTION.
+
+Two ways to close it, both cheap:
+
+1. Re-run the separation measurement with the Browser pane VISIBLE so rAF ticks, sampling across a
+   clip. The script is `scratchpad/seams.py` for the static half and the in-page pass for the posed
+   half.
+2. Or replicate the proxy-bone copy so the pose can be driven headlessly.
+
+Until one of them is done this is a strong lead with a measured mechanism, not a proven cause.
+
+### Why this matters beyond one monster
+
+It reclassifies the parked "seam gaps, residue after cause J" entry. That was parked because
+verification looked entirely visual and each attempt would cost Raven a look. It is not
+visual-only: the binding disagreement is a number in the shipped asset, and the separation under a
+pose is a number in world units. It belongs in the ROM-drivable column and can be worked in bulk.
+
+**Not judged.**
 
 ## 2026-09-10 - Grimclaw's veins: the second albedo map never reaches the screen
 
