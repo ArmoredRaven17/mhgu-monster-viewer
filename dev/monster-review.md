@@ -1440,15 +1440,15 @@ touching the app since Grimclaw last looked right returns exactly two hunks:
 The second cannot reach em032_04. Nothing else was in the running.
 
 **Why Tigrex survived and Grimclaw did not:** Tigrex has ONE animated material. Grimclaw has four,
-and  cycles fEmissionColor from (0.75, 0.25, 0.25) to (1, 0, 0) over a 90-frame
+and `m61_angry_blood` cycles fEmissionColor from (0.75, 0.25, 0.25) to (1, 0, 0) over a 90-frame
 loop, so halving the rate is obvious on him and nearly invisible on Tigrex.
 
 **Two false leads I chased first, both mine, both recorded so they are not repeated:**
 
-* I blamed  -- the one opaque  material -- on the theory that cause J had
+* I blamed `m50_wing` -- the one opaque `transp: Alpha` material -- on the theory that cause J had
   exposed damaged texels. Measured: toggling it alone moves **0 pixels** on Tigrex AND on Grimclaw.
   Its UVs never land on the alpha-0 region of the shared atlas.
-* I then measured  moving 10,163 pixels under the alpha toggle and nearly believed
+* I then measured `m61_angry_blood` moving 10,163 pixels under the alpha toggle and nearly believed
   it. **That measurement was confounded**: the two framebuffer grabs straddled the material's own
   animation advancing, because the monster had just been switched to with rage on. Re-run with the
   animation settled, and with a recompile-only CONTROL pass, every Grimclaw material moves **0
@@ -1457,8 +1457,8 @@ loop, so halving the rate is obvious on him and nearly invisible on Tigrex.
 
 **The lesson, which is the durable part.** A single global constant is the wrong instrument for a
 question the ROM has not answered. It silently re-times all 425 monster clips to buy one monster
-effect, and the cost lands on monsters already judged.  stays at 60 -- the value the
-library was reviewed at -- until  is actually read. Anything wanting a different
+effect, and the cost lands on monsters already judged. `MAT_FPS` stays at 60 -- the value the
+library was reviewed at -- until `material[+0x20]` is actually read. Anything wanting a different
 speed should be a control Raven can turn, not a constant swapped underneath him.
 
 The argument for 30 above still stands on its own terms and is left in place; 60 is not a claim
