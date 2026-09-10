@@ -1037,7 +1037,7 @@ import { PoseDriver } from './render/pose.js';
 import { loadMaterialsDb } from './render/materials-db.js';
 import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
          partVerts, partsDrawn, applyParts, groupLabel, groupIsInert, setNormalOpt,
-         DEFAULT_PARTS_OFF, DEFAULT_PARTS_ON, ROM_RAGE_SET, setRestSets, stepRefract,
+         DEFAULT_PARTS_OFF, DEFAULT_PARTS_ON, defaultPartsOn, ROM_RAGE_SET, setRestSets, stepRefract,
          hasChargeState, applyMaterialSwap, rageLadder, rageLadderParts,
          clusterChoices, ladderVariant, groupLabelWithout,
          setUndefinedMaterialVisible, setExtendVisible, extendCount,
@@ -2748,7 +2748,8 @@ function readLadder(){
 // that out". A rung switches the effect geometry on; No Rage leaves it off, which is how the panel
 // default can match the screenshot he asked for and the effect still appear when a rung is picked.
 function forcedOn(id){
-  const base = DEFAULT_PARTS_ON[id] || [];
+  // per state: Tigrex's calm and enraged panels differ, so the table may hold { calm, rage }
+  const base = defaultPartsOn(id, !!state.rage) || [];
   return (state.rageLevel > 0 && ladderParts.length) ? base.concat(ladderParts) : base;
 }
 // A cluster the rage control decides is not offered in the Parts panel -- Raven: "Then hide these

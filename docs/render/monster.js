@@ -220,6 +220,17 @@ export const DEFAULT_PARTS_ON = {
   // a second variant that draws the wanted partner AND the rage part (g1, g16, g17 against g0, g4,
   // g6), so 0/100, 102 and 103 come out as asked and only the three effect parts differ.
   em007_04: [0, 100, 5, 102, 103, 104, 101, 105, 106],   // Bloodbath Diablos
+  // AN ENTRY MAY BE PER STATE. Raven sent Tigrex's calm and enraged panels separately, 2026-09-10,
+  // and they differ: calm opens on 0, 100 / off 4 and on 1 / off 2, 3, while enraged wants
+  // on 0, 4, 100 and on 2 / off 1, 3. So a value is either a plain list, meaning both states, or
+  // { calm, rage }. Read it through defaultPartsOn() rather than indexing this table directly.
+  //
+  // NOTE, and it is Raven's call not a bug: ROM_RAGE_SET decodes em032_00 as [[1, 0], [10, 9]] --
+  // calm set 1 (g1, part 4 ON) switching to set 0 (g0, part 4 off) on rage. These panels are the
+  // other way round for that cluster. Naming both states here overrides the pair either way.
+  em032_00: { calm: [0, 100, 1, 5, 7, 8, 101],        // g0 g2 g5 g7 g9 g11
+              rage: [0, 4, 100, 2, 5, 7, 8, 101] },   // g1 g3, the rest as calm
+
   em001_00: [101],   // Rathian
   em001_02: [101],   // Gold Rathian
   em001_04: [101],   // Dreadqueen Rathian
@@ -227,6 +238,14 @@ export const DEFAULT_PARTS_ON = {
   em002_02: [101],   // Silver Rathalos
   em002_04: [101],   // Dreadking Rathalos
 };
+// A monster's forced-on list for the state it is in. An entry is a plain array (both states) or
+// { calm, rage }; a missing rage list falls back to calm, so naming only one state is fine.
+export function defaultPartsOn(id, rage){
+  const v = DEFAULT_PARTS_ON[id];
+  if (!v) return undefined;
+  if (Array.isArray(v)) return v;
+  return (rage ? (v.rage || v.calm) : v.calm) || undefined;
+}
 // The group set each monster CLASS registers as its resting default -- argument A of the setter
 // 0x71398, taken from the 59 registration sites in vtable slot 118 and attributed by a per-class
 // code-band map built from the 95 monster vtables. Keyed by the em class because that is how the
