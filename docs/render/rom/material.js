@@ -81,7 +81,6 @@ export function romCoreEnabled(){ return enabled; }
 // from the STAGE, which a model viewer does not have, so it renders as Constant; that is a named
 // limitation, not an approximation chosen here.
 const LIT = 'Std';
-const ALPHA_EPS = 1 / 512;
 
 export function createRomMaterial(spec){
   const rom = spec && spec.rom;
@@ -136,11 +135,43 @@ export function createRomMaterial(spec){
     mat.opacity = cb.transparency;
     mat.transparent = true;
   }
-  // The alpha TEST is bit 20 of the material feature word (rom.alphaTest) under transp 'Alpha',
-  // threshold in $Globals fAlphaClipThreshold. The old add/revsub branches handled only
-  // 'AlphaConstant', so 41 monster and 642 armour/weapon materials drew their cut texels.
-  if (feat && feat.transp === 'Alpha' && rom.alphaTest)
-    mat.alphaTest = Math.max(0, (gl && gl.clip) || 0) + ALPHA_EPS;
+  // THE ALPHA CLIP IS ITS OWN FEATURE, AND MHGU NEVER SELECTS IT. Measured 2026-09-10, from
+  // AppShaderPackage.mfx: the FTransparency family lists the clip as separate records from the
+  // blend source --
+  //
+  //     1395  FTransparencyAlpha          the albedo alpha is the SRC_ALPHA blend factor
+  //     1401  FTransparencyAlphaClip      the alpha CLIP
+  //     1402  FTransparencyMapAlphaClip
+  //     1910  FTransparencyAlphaConstant
+  //
+  // A census of every material the extractor produces -- 570 monster, 18,752 armour, 6,280 weapon,
+  // 25,602 in all -- selects only Alpha, AlphaConstant or nothing. NOT ONE selects a clip variant,
+  // and build-materials.py would spell them 'AlphaClip' / 'MapAlphaClip' if one did. On top of
+  // that, fAlphaClipThreshold is exactly 0.0 on all 199 monster materials carrying transp 'Alpha',
+  // and the ROM's clip(a - 0) discards only a < 0, i.e. nothing.
+  //
+  // What was here fired the clip on feat.transp === 'Alpha' -- the BLEND feature -- plus bit 20 of
+  // the flag word, and then added an invented 1/512 so the test would bite at all. Bit 20 was only
+  // ever matched against the artists' XfBA naming, and the "A" there IS the Alpha feature, so that
+  // agreement was circular; it never came from the shader.
+  //
+  // The cost, measured over the shipped textures: 161 of the 199 have an albedo whose alpha is
+  // more than 1% exactly-zero, because in MT that channel is the GLOSS, not coverage -- the same
+  // reason libwebp was destroying RGB under it. 116 of those are OPAQUE (BSSolid), where the ROM
+  // does not blend and the alpha is inert, so every zero-gloss texel was being discarded outright:
+  // Zinogre's m05_hair lost 37.5% of its texels and Grimclaw's m50_wing 30%; ems/017_00's
+  // XfBA1__m00_body is alpha 0 everywhere, so every texel of it would go (that mesh is off by
+  // default for other reasons, so it was never on screen to lose). Measured in the viewer at
+  // 607x875: the fix moves 11,693 pixels on enraged Grimclaw, and on Stygian Zinogre 4,596
+  // pixels that now draw were showing the BACKGROUND -- holes straight through the model. That
+  // is Raven's "gaps along seams", following the gloss map's own island borders (2026-09-10).
+  const romClip = !!(feat && /AlphaClip$/.test(feat.transp || ''));
+  if (romClip) mat.alphaTest = Math.max(0, (gl && gl.clip) || 0);
+  // FTransparencyAlpha still means the sampled alpha reaches diffuseColor.a -- but as the blend
+  // factor, so only where the ROM actually blends. On an opaque material there is no blending for
+  // it to feed and gl_FragColor.a would go to the canvas instead.
+  mat.userData.srcAlpha = !!(feat && feat.transp === 'Alpha'
+                             && rom.state && rom.state.blend !== 'opaque');
 
   // FEmissionConstant. 47 additive materials carry one and the old path dropped every one, because
   // MeshBasicMaterial has no emissive term. On the lit class it now lands. On a Constant material
@@ -236,7 +267,7 @@ export function createRomMaterial(spec){
   if (lit){
     applyTint(mat);
     const u = mat.userData.u;
-    u.uAlphaCut.value = mat.alphaTest ? 1 : 0;
+    u.uAlphaCut.value = (mat.alphaTest || mat.userData.srcAlpha) ? 1 : 0;
     u.uViewUv.value = mat.userData.viewUv ? 1 : 0;
     u.uF0.value.fromArray(mat.userData.f0);
     // fSpecularColor, $Globals float3 @44. ../material.js writes it at the end of createMaterial;

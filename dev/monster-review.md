@@ -33,23 +33,22 @@ noticing, because so far almost nothing has.
 | # | cause | monsters | state |
 |---|---|---|---|
 | A | **Clip selection.** Two hard-coded name lists reach 9 of 136 clip names. Four shapes: case-only miss; name absent with no auto bit (nothing plays); unnamed clips with no auto bit; auto bit present so one state is stuck. | ~20 | diagnosed, unfixed |
-| B | **Alpha disagreement.** `checks.xfbaAlpha`: 495 agree, **66 do not**, in both directions. Name-says-alpha-drawn-opaque gives solid cards; feature-says-alpha-name-does-not gives black patches. | Kirin, Gore x2, Najarala | diagnosed, needs a decision |
+| B | **Alpha disagreement.** `checks.xfbaAlpha`: 495 agree, **66 do not**, in both directions. Name-says-alpha-drawn-opaque gives solid cards; feature-says-alpha-name-does-not gives black patches. | Kirin, Gore x2, Najarala | **ANSWERED by J** - the name/bit agreement was circular; neither switch selects a clip |
 | C | **No HDR path.** No bloom pass at all (the Armor Viewer has `fx.js`); no tone mapping, so anything above 1.0 clips flat to white. | library-wide | diagnosed, unfixed |
 | D | **Joint-0 rigid skins.** Weightless primitives bind to the root instead of the bone the `.mod` names. The fix exists but `mod_to_gltf` skips regeneration when the `.glb` is present, so stale assets keep it. | Glavenus, Deviljho, + unknown | strong lead |
 | E | **Empty scene.** Refraction samples a buffer holding only the monster; 391 materials want a `GlobalCubeMap` that does not exist. | Astalos x2, Brachydios? | needs Raven's decision |
 | F | **Parts machinery.** Exclusive pairs and standalone toggles need a grouping layer; some clusters sit outside the rest-set system. | Yian Kut-Ku, Nibelsnarf, Alatreon | diagnosed |
 | G | **Data defects.** One-off faults in the shipped data. | Soulseer (empty groups), Furious Rajang (`sharesModelOf`) | diagnosed |
 | H | **My regressions.** | see below | live |
+| J | **The alpha clip the ROM never asks for.** `FTransparencyAlphaClip` (mfx 1401) is a SEPARATE feature from `FTransparencyAlpha` (1395, the SRC_ALPHA blend source), and **not one of the game's 25,602 materials selects a clip variant**; `fAlphaClipThreshold` is 0.0 on all 199 monster ones, and `clip(a - 0)` discards nothing. The viewer clipped on the BLEND feature plus flag bit 20, with an invented `+1/512` to make it bite - discarding every zero-GLOSS texel of 161 materials, 116 of them opaque. | 161 materials, library-wide | **FIXED 2026-09-10, unjudged** |
 | I | **Texture pool encode.** libwebp discarded the RGB under alpha-0 texels, and MT's albedo alpha is the GLOSS the shader reads, not opacity — so a third of some hides was compression fill. `exact=True` in `buildlib.stage_tex`. | 157 textures, library-wide | **FIXED, Diablos judged right 2026-09-09** |
 
 ### Open - cause not established
 
 * **Bloodbath Diablos** - rage regression; `clipPicker` already carries a fallback written for it
 * **Diablos / Ukanlos / Cephadrome** - texture quality; resolution RULED OUT, webp encode density is the live lead
-* **Grimclaw Tigrex** - enraged albedo layers
 * **Old Fatalis** - chest effect when the chest break is on
 * **Teostra** - effects generally; carries `Effect_Loop`, in neither list
-* **Zinogre** - "missing mesh" not confirmed
 * **Cephadrome** - what the "wounds" actually are; no second albedo layer exists on it
 * **Glavenus** - off-centre sword mesh, likely cause D
 
@@ -1284,3 +1283,137 @@ state, or that `Angry_Repeat` follows `Angry_Start`, or which rung of Bloodbath'
 `Lv3_loop` ladder is "enraged", is authored semantics. The ROM reaches these clips through `setClip`
 from an AI state, so no name list can be complete — `clipPicker` says so already. Raven, 2026-09-05:
 "Things like enraged states for toggles will be up to me to determine."
+
+## 2026-09-10 - "Grimclaw enraged has gaps along seams ... similar issue with Zinogre"
+
+Raven, on Grimclaw: **"enraged has gaps along seams"**, and **"I've seen this around break-able
+parts mainly, but similar issue with Zinorge"**.
+
+### What it was NOT
+
+Measured first, because these are the obvious readings and all four are wrong:
+
+* **Nothing is missing from the geometry.** Calm vs enraged silhouette: 43,691 -> 47,927 solid
+  pixels, and `pixelsSolidWhenCalmButBackgroundWhenEnraged = 0`.
+* **The geometry is closed.** Forcing all 10 opaque materials to `DoubleSide` moves **28 pixels**,
+  none strongly - there are no through-holes in the mesh.
+* **The 20 -> 30 body swap is clean.** Both variants share identical boundary vertex counts with
+  every neighbour (`Group0_1: 4, Group0_2: 3, Group0_3: 11, Group5: 1, Group7: 1, Group8: 1`) and
+  identical bounding boxes.
+* **Not the reverse-subtract layer.** `XfBA_AW_0__m60_angry_arm` darkens 13,020 pixels (mean 15.4,
+  max 53, none lightened), but it checks out exactly against the ROM - `cls: Std`, glob albedo
+  `[0.25, 0.75, 0.548]`, `cbm.transparency 0.2596`, emission zero - and the library holds only
+  **three** revsub materials in total (Khezu `m03_blood`, Old Fatalis `m01_face_sub`, this one).
+  **Zinogre has none**, so revsub could not be the shared cause. That is what sent the search to
+  the alpha machinery instead.
+
+Every `side` also matches the ROM's `cull` on all 14 Grimclaw meshes, so double-drawn back faces
+are ruled out too.
+
+### The cause: an alpha clip the ROM never asks for
+
+`AppShaderPackage.mfx` keeps the clip and the blend source as **different features**:
+
+| idx | record | meaning |
+|---|---|---|
+| 1395 | `FTransparencyAlpha` | the albedo alpha is the **SRC_ALPHA blend factor** |
+| 1401 | `FTransparencyAlphaClip` | the alpha **clip** |
+| 1402 | `FTransparencyMapAlphaClip` | clip, from the transparency map |
+| 1910 | `FTransparencyAlphaConstant` | constant |
+
+A census of every material the extractor produces - **570 monster, 18,752 armour, 6,280 weapon,
+25,602 in all** - selects only `Alpha`, `AlphaConstant` or nothing. **Not one selects a clip
+variant**, and `build-materials.py` would spell them `AlphaClip` / `MapAlphaClip` if one did
+(`mfx.feature_short(1394, 1401)` -> `'AlphaClip'`, checked). On top of that `fAlphaClipThreshold`
+is exactly **0.0** on all 199 monster materials carrying `transp: Alpha`, and the ROM's
+`clip(a - 0)` discards only `a < 0` - nothing.
+
+What the viewer did instead (`render/rom/material.js`, introduced silently in `928c351`):
+
+```js
+if (feat && feat.transp === 'Alpha' && rom.alphaTest)
+  mat.alphaTest = Math.max(0, (gl && gl.clip) || 0) + ALPHA_EPS;   // ALPHA_EPS = 1/512
+```
+
+It fired the clip on the **blend** feature, plus bit 20 of the flag word, and then added an
+invented `1/512` so the test would bite at all - because the ROM's own threshold is zero and
+would have done nothing. Bit 20 was only ever matched against the artists' `XfBA` naming, and
+the "A" in that name **is** the Alpha feature, so that agreement was circular. It never came
+from the shader. This is the failure mode the memory note names: a real ROM symbol
+(`fAlphaClipThreshold`) carrying an invented mapping.
+
+### What it cost
+
+In MT the albedo's alpha channel is the **GLOSS** - the same fact that produced cause I. So
+clipping on it discards matte texels:
+
+* **161 of the 199** `transp: Alpha` monster materials have an albedo whose alpha is more than 1%
+  exactly-zero. By ROM blend mode: 116 **opaque**, 24 blend, 20 add, 1 revsub.
+* The 116 opaque ones are the real damage - `BSSolid` does not blend, so with no clip feature the
+  alpha is entirely **inert** in the ROM, and every zero-gloss texel was being thrown away.
+
+| monster | material | ROM blend | of its texels discarded |
+|---|---|---|---|
+| `ems/017_00` Great Thunderbug | `XfBA1__m00_body` | opaque | **100.0%** (mesh off by default, so never on screen) |
+| `em/081_00` / `em/081_04` Astalos | `XfBAN__E1_wingbone_taiden` | opaque | 59.2% / 61.9% |
+| `em/086_00` | `XfBA_E1__m01_black` | opaque | 53.7% |
+| `em/017_00` Cephadrome | `XfBA_E1__m50_fin` | opaque | 46.1% |
+| `em/071_00` / `em/071_05` | `XfBAN__E0__m52_wing_l` | opaque | 38.7% / 37.8% |
+| **`em/057_00`** Zinogre | **`XfBAN__E0__m05_hair`** | opaque | **37.5%** |
+| **`em/057_04`** Stygian | **`XfBAN__E0__m05_hair`** | opaque | **30.6%** |
+| **`em/032_04`** Grimclaw | **`XfBAN__E1__m50_wing`** | opaque | **30.0%** |
+
+Zinogre reads **one** texture three ways, which is the whole argument in miniature:
+`XfB_N__E_m00_body` takes it as `MapColorOnly` + `transp: False` (alpha ignored - correct, it is
+gloss), while `m00_body1` and `m05_hair` take it as `Map` + `transp: Alpha` - and we clipped those.
+That alpha is 30.6% exactly-zero with a mean of 77/255: a gloss ramp, not a mask (a mask would sit
+bimodal at 0 and 255).
+
+Cephadrome appears in this table, which is worth noting against its open entry - "what the wounds
+actually are; no second albedo layer exists on it" - since its fin was losing 46% of its texels.
+
+### The fix
+
+`render/rom/material.js` - the clip fires only on the features that ARE the clip, at the ROM's own
+threshold, with no epsilon; and `FTransparencyAlpha` still hands the sampled alpha to
+`diffuseColor.a`, but only where the ROM actually blends, since on an opaque material there is no
+blend for it to feed and `gl_FragColor.a` would go to the canvas instead:
+
+```js
+const romClip = !!(feat && /AlphaClip$/.test(feat.transp || ''));
+if (romClip) mat.alphaTest = Math.max(0, (gl && gl.clip) || 0);
+mat.userData.srcAlpha = !!(feat && feat.transp === 'Alpha'
+                           && rom.state && rom.state.blend !== 'opaque');
+```
+
+`uAlphaCut` now follows `mat.alphaTest || srcAlpha` instead of `alphaTest` alone. `ALPHA_EPS` is
+gone from that module. Scoped to the monster path only: ROM core is on by default and monsters go
+through `createRomMaterial`, so `render/material.js` - shared with the Armor Viewer - is untouched.
+`mat.userData.cutout` is now false on every monster material, so Raven's alpha-override comparison
+knob is a no-op there; that is the correct answer, not a loss.
+
+### Measured after, at 607x875
+
+| | |
+|---|---|
+| Grimclaw enraged, pixels moved by the fix | **11,693**, mean delta 333.6 of 765 |
+| Grimclaw, pixels that were holes to background | 0 - its wing sits over the body, so a hole showed body |
+| **Stygian Zinogre enraged, pixels moved** | **7,465** |
+| **Stygian Zinogre, solid now but BACKGROUND under the old rule** | **4,596** |
+
+The Zinogre number is the report itself: 4,596 pixels of that one view were holes straight through
+the model, punched by the gloss channel along the hair's UV islands. `m05_hair` sits on the
+silhouette, so they read as background; Grimclaw's wing sits over the body, so the same fault read
+as seams instead. One cause, two appearances - which is what Raven meant by "similar issue with
+Zinorge".
+
+Verification was framebuffer readback in both directions (fix applied, old rule restored in place,
+fix restored), not visual judgement.
+
+**Not judged.** Raven's eyes decide.
+
+### Still open on Grimclaw
+
+The `m60_angry_arm` darkening above is unchanged by this fix and remains faithful to the ROM's own
+numbers. If seams persist after Raven looks again, that layer is the next thing to question - but
+it is authored, not a defect, on everything measured so far.
