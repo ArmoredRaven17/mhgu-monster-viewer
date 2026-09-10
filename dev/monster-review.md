@@ -1340,6 +1340,52 @@ state, or that `Angry_Repeat` follows `Angry_Start`, or which rung of Bloodbath'
 from an AI state, so no name list can be complete — `clipPicker` says so already. Raven, 2026-09-05:
 "Things like enraged states for toggles will be up to me to determine."
 
+## 2026-09-10 - Nargacuga's fur, and a w[6] correlation I am NOT using
+
+Raven: "Nargacuga fur has edges showing the full mesh still." Same class as the Rathian quills --
+`XfBAN__E0__m50_body` is a cutout and cause J took its discard away. Added to `AUTHORED_CUTOUT`.
+Used by em037_00, em037_04 and em037_04/tail and nothing else; its alpha-0 UV coverage across those
+runs 0.00 to 0.30, so the discard takes the card's surround and never the card. Verified: all seven
+fur meshes now carry `alphaTest 0.001953`, no console errors.
+
+### The hunt for the real switch, and where it stopped
+
+Raven's rule is that the ROM IS the game and is right 100% of the time, so the clip is in there and
+I have not read it. Two things were tried.
+
+**The flag word.** Comparing materials that need the clip against ones that must not, no `fb` bit
+separates them: the NEEDS cases are `8d901400` and the MUST-NOTs `8d900a00` and `8d903c00`, and the
+differing nibble looks like a small field rather than independent flags.
+
+**`w[6]` of the MRL material record, which nothing decodes.** It looked extremely promising:
+
+    Nargacuga fur    XfBAN__E0__m50_body      NEEDS       0x264dc020
+    Rathian wing     XfBAN__E0__m50_wing_l    NEEDS       0x264dc020
+    Nargacuga body   XfB_N__E_m00_body        no cutout   0x200dc020
+    Zinogre hair     XfBAN__E0__m05_hair      MUST NOT    0x20adc020
+
+Scanned over all 103 opaque `transp: Alpha` monster materials, **bits 22, 25 and 26 are set on every
+NEEDS case and clear on every MUST-NOT case**, and the group they select tops out at 69.8% alpha-0
+UV coverage while the excluded group reaches 100% -- which is exactly Zinogre's hair, the case where
+clipping deletes the whole mesh. A clean-looking partition.
+
+**It is not the alpha test, and it is not used.** `w[6]`'s low 12 bits decode the same way every
+other state word does -- `bs` 390 `BSSolid`, `ds` 441 `DSZTestWrite`, `rs` 450 `RSMesh` -- and w[6]
+gives record **32, `IASkinTBNLA2wt`**: an INPUT ASSEMBLER declaration. So w[6] selects a vertex
+format, and bit 25 correlates with fur-card-versus-skin art convention rather than meaning "clip".
+Bit 25 is also set on 13 materials with `transp: False`, which have no alpha feature at all. Using
+it would be a real ROM symbol carrying an invented meaning, which is the exact failure
+[[citation-does-not-mean-sourced]] names.
+
+**So the switch is still unread.** The next probe, not yet done: the material's technique key (w[0],
+`5fb0ebe4` on all four of the above) selects a shader from AppShaderPackage; read THAT shader and
+see whether it contains a discard and what gates it. That is where an alpha test would actually
+live, and it is the one place not yet looked.
+
+Until then `AUTHORED_CUTOUT` carries Raven's calls, three materials now, labelled as authored.
+
+**Not judged.**
+
 ## 2026-09-10 - Rathian's quills: cause J was too broad, and there is no rule to replace it
 
 Raven, with a close-up: "I noticed Rathian line had a regression, the back has quills that now show

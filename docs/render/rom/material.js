@@ -122,6 +122,11 @@ const AUTHORED_CUTOUT = new Set([
   // surround and never the geometry. Checked before adding them, not assumed.
   'XfBAN__E0__m50_wing_l',
   'XfBAN__E0__m51_wing_r',
+  // Nargacuga's fur. Raven, 2026-09-10: "Nargacuga fur has edges showing the full mesh still."
+  // Used by em037_00, em037_04 and em037_04/tail and by nothing else, and its alpha-0 UV coverage
+  // across those runs 0.00 to 0.30 -- no mesh loses more than a third, so the discard takes the
+  // card's surround and never the card. Checked, not assumed.
+  'XfBAN__E0__m50_body',
 ]);
 export function authoredCutout(matName){ return AUTHORED_CUTOUT.has(matName); }
 
