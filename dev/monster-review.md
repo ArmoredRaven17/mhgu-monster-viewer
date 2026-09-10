@@ -1340,6 +1340,64 @@ state, or that `Angry_Repeat` follows `Angry_Start`, or which rung of Bloodbath'
 from an AI state, so no name list can be complete — `clipPicker` says so already. Raven, 2026-09-05:
 "Things like enraged states for toggles will be up to me to determine."
 
+## 2026-09-10 - Mizutsune's seams welded, as a test case
+
+Raven: "As a test case, weld Mizu's seams. I want to hold off on doing it across the board until we
+patch more monster issues."
+
+**This is the project's first deliberate deviation from the ROM**, and it is here only because the
+faithful options ran out: the `.mod` binds the two copies of a seam vertex differently, our exporter
+reproduces the `.mod` correctly, and every render-side candidate came back identity. There was
+nothing left to fix faithfully.
+
+`dev/weld-seam-skins.py`, `--only em082_00 --apply`. It requires `--only`; there is no library-wide
+default, on purpose.
+
+### Which binding wins, and why not an average
+
+An average moves BOTH copies away from what the ROM says, and on a group of three copies it invents
+a binding that no copy had. Instead a canonical copy is ELECTED and the others are made to match, so
+at least one copy of every seam keeps the ROM's own answer exactly:
+
+1. the binding most copies already share -- changes the fewest vertices
+2. failing a majority, the richest, most non-zero influences -- loses the least
+3. failing that, the lowest primitive index -- so a rerun is deterministic
+
+### The cost, measured rather than assumed
+
+| | |
+|---|---|
+| seam groups whose copies disagreed | 427 |
+| vertices rewritten | **648** of 9,824 |
+| influence shift, median | **0.0078** -- under 1% |
+| influence shift, 90th percentile | 0.0118 |
+| influence shift, max | 0.3137 |
+| vertices shifted more than 25% | **2** |
+
+So all but two of the 648 changed vertices moved by a hair; the whole model is 6.6% of its vertices
+touched, almost all by under 1.2% of their influence.
+
+### The result
+
+| | mismatched pairs | worst posed separation | pairs > 0.2% | control |
+|---|---|---|---|---|
+| before | 530 | **21.52%** | 528 | 0.057% |
+| **after** | **0** | **0.00%** | **0** | 0.000% |
+
+Every seam now holds under every pose sampled. Renders clean afterwards: 76,810 silhouette pixels,
+63 meshes, 9,824 vertices, 41 bones, no console errors.
+
+### Reversibility
+
+The script writes `em082_00.glb.preweld` beside the model before touching it, and that file is NOT
+committed -- the pre-weld bytes are already in git history, which is the better restore path. To
+undo: `git checkout <commit-before> -- docs/models/monsters/em082_00.glb`.
+
+**NOT rolled out.** One monster only, at Raven's instruction. Whether the welded Mizutsune actually
+looks right is his call, and it is the whole point of the test case.
+
+**Not judged.**
+
 ## 2026-09-10 - The seam bindings differ IN THE .mod. The exporter is faithful.
 
 The question the whole skinning thread was building to: does the `.mod` give both copies of a seam
