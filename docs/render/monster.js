@@ -197,11 +197,29 @@ export const DEFAULT_PARTS_ON = {
   // 11-group table, 7 and 8 are the same cluster so the later one wins (6 on), and 10 draws 4 over
   // 101. The three head clusters no set names at all, so they fell to the highest member.
   em007_00: [5, 102, 103, 104, 101],   // Diablos
-  // Raven, 2026-09-09, screenshot again: "Bloodbath Diablos, those are the parts I want on by
-  // default" -- on 0, 100 / off 30; on 5 / off 1; on 102 / off 2, 32; on 103 / off 3, 33;
-  // on 104 / off 6; on 101 / off 4; on 105 / off 7; on 106 / off 8. Eight clusters, and the three
-  // Deviant-only parts (30, 32, 33) all end up off, which is what naming their partners does.
-  em007_04: [0, 100, 5, 102, 103, 104, 101, 105, 106],   // Bloodbath Diablos
+  // Raven, 2026-09-09, screenshot: "Bloodbath Diablos, those are the parts I want on by default" --
+  // on 0, 100 / off 30; on 5 / off 1; on 102 / off 2, 32; on 103 / off 3, 33; on 104 / off 6;
+  // on 101 / off 4; on 105 / off 7; on 106 / off 8.
+  //
+  // 30, 32 AND 33 ARE ON HERE, WHICH IS THREE ROWS OF THAT SCREENSHOT DELIBERATELY NOT FOLLOWED.
+  // Those three parts carry XfB_0__m50_angry -- the Deviant rage effect, 5 meshes, and the only
+  // animated material this monster has. Raven, immediately after that screenshot was applied:
+  // "right now the rage effect no longer is visible". Switching them off deletes the geometry, so
+  // the effect can never appear in any state.
+  //
+  // It does not need switching off, because the ROM hides it with ALPHA rather than with parts:
+  // the material's only track is fConstantColor, and its clips end at
+  //
+  //     Lv3_to_end   final frame  alpha 0.0        <- calm, invisible
+  //     Lv3_loop     1.0 -> 0.5 -> 1.0 over 60f    <- enraged, pulsing
+  //
+  // and ROM_RAGE_SET has no em007_04 entry -- the scan of all eight enrage-gated setVisibleGroup
+  // sites is complete, so the ROM never switches this monster's parts on rage at all.
+  //
+  // Every OTHER row of the screenshot is honoured exactly: the clusters carrying 30/32/33 each have
+  // a second variant that draws the wanted partner AND the rage part (g1, g16, g17 against g0, g4,
+  // g6), so 0/100, 102 and 103 come out as asked and only the three effect parts differ.
+  em007_04: [0, 100, 30, 5, 102, 32, 103, 33, 104, 101, 105, 106],   // Bloodbath Diablos
   em001_00: [101],   // Rathian
   em001_02: [101],   // Gold Rathian
   em001_04: [101],   // Dreadqueen Rathian
