@@ -190,12 +190,13 @@ export const DEFAULT_PARTS_OFF = {
 // without this the cluster falls through to its last member and 101 draws off.
 export const DEFAULT_PARTS_ON = {
   // Raven, 2026-09-09, with a screenshot of the panel he wants: "For Diablos, this is the default I
-  // want for parts" -- on 5 / off 1, on 102 / off 2, on 103 / off 3, on 6 / off 104, on 101 / off 4.
+  // want for parts" -- on 5 / off 1, on 102 / off 2, on 103 / off 3, on 101 / off 4, and then
+  // 2026-09-09: "Update Diablos to use on Part 104", flipping the Back cluster from 6 to 104.
   // Four of the five differ from what the ROM's own sets and the highest-index fallback produce:
   // part-rest.json gives em007_00 sets [7, 8, 10, 12, 14], of which 12 and 14 are past the end of an
   // 11-group table, 7 and 8 are the same cluster so the later one wins (6 on), and 10 draws 4 over
   // 101. The three head clusters no set names at all, so they fell to the highest member.
-  em007_00: [5, 102, 103, 6, 101],   // Diablos
+  em007_00: [5, 102, 103, 104, 101],   // Diablos
   em001_00: [101],   // Rathian
   em001_02: [101],   // Gold Rathian
   em001_04: [101],   // Dreadqueen Rathian
