@@ -239,6 +239,18 @@ export function createRomMaterial(spec){
     u.uAlphaCut.value = mat.alphaTest ? 1 : 0;
     u.uViewUv.value = mat.userData.viewUv ? 1 : 0;
     u.uF0.value.fromArray(mat.userData.f0);
+    // fSpecularColor, $Globals float3 @44. ../material.js writes it at the end of createMaterial;
+    // THIS path never did, so uSpecRGB sat at its (1,1,1) default and the ROM's own answer was
+    // thrown away on 459 of 570 monster materials -- 84 of which ship exactly ZERO and are matte in
+    // the ROM while drawing shiny here.
+    //
+    // Measured on Tigrex 2026-09-10. XfBA_A0__m01_angry is fDiffuseColor 0,0,0 and fSpecularColor
+    // 0,0,0: an additive layer with no albedo and no specular, so the ONLY thing it may contribute
+    // is its emission -- veins on nothing. With uSpecRGB left at 1 the lighting path painted the
+    // whole quad instead: forcing the emission to black still lit 1799 pixels at mean 32.5 of 255,
+    // against 35.7 with it, so the emission was almost none of what was on screen. That is Raven's
+    // "the albedo layer still shows its boundaries ... you can see the boundary as a pale area".
+    if (gl && gl.specular) u.uSpecRGB.value.fromArray(gl.specular.slice(0, 3));
   }
   // ONLY WHERE THE ALPHA IS COVERAGE AND NOTHING ELSE -- i.e. an OPAQUE material. See the note on
   // installCutoutSolid: on a blended, additive or reverse-subtractive material diffuseColor.a is
