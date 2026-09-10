@@ -40,11 +40,18 @@ noticing, because so far almost nothing has.
 | F | **Parts machinery.** Exclusive pairs and standalone toggles need a grouping layer; some clusters sit outside the rest-set system. | Yian Kut-Ku, Nibelsnarf, Alatreon | diagnosed |
 | G | **Data defects.** One-off faults in the shipped data. | Soulseer (empty groups), Furious Rajang (`sharesModelOf`) | diagnosed |
 | H | **My regressions.** | see below | live |
-| J | **The alpha clip the ROM never asks for.** `FTransparencyAlphaClip` (mfx 1401) is a SEPARATE feature from `FTransparencyAlpha` (1395, the SRC_ALPHA blend source), and **not one of the game's 25,602 materials selects a clip variant**; `fAlphaClipThreshold` is 0.0 on all 199 monster ones, and `clip(a - 0)` discards nothing. The viewer clipped on the BLEND feature plus flag bit 20, with an invented `+1/512` to make it bite - discarding every zero-GLOSS texel of 161 materials, 116 of them opaque. | 161 materials, library-wide | **FIXED 2026-09-10, unjudged** |
+| J | **The alpha clip the ROM never asks for.** `FTransparencyAlphaClip` (mfx 1401) is a SEPARATE feature from `FTransparencyAlpha` (1395, the SRC_ALPHA blend source), and **not one of the game's 25,602 materials selects a clip variant**; `fAlphaClipThreshold` is 0.0 on all 199 monster ones, and `clip(a - 0)` discards nothing. The viewer clipped on the BLEND feature plus flag bit 20, with an invented `+1/512` to make it bite - discarding every zero-GLOSS texel of 161 materials, 116 of them opaque. | 161 materials, library-wide | **FIXED 2026-09-10** - Raven 2026-09-10: "Still see some gaps". Real but PARTIAL; the residue is a separate cause, not yet isolated |
 | I | **Texture pool encode.** libwebp discarded the RGB under alpha-0 texels, and MT's albedo alpha is the GLOSS the shader reads, not opacity — so a third of some hides was compression fill. `exact=True` in `buildlib.stage_tex`. | 157 textures, library-wide | **FIXED, Diablos judged right 2026-09-09** |
 
 ### Open - cause not established
 
+* **Seam gaps, residue after cause J** - Grimclaw enraged, Zinogre; the alpha clip was one
+  contributor (4,596 background pixels on Thunderlord) and removing it left gaps still visible.
+  Raven: "might be difficult to deal with since they are a visual issue". PARKED at his call to
+  make board-wide progress. Ruled out already: missing geometry, open geometry, the 20->30 part
+  weld, cull/side mismatch, revsub. Untried: UV-island seam filtering (bilinear pulling in
+  neighbouring islands at low mips), mipmap/anisotropy settings, and the  ->
+  renderOrder mapping on coplanar overlays.
 * **Bloodbath Diablos** - rage regression; `clipPicker` already carries a fallback written for it
 * **Diablos / Ukanlos / Cephadrome** - texture quality; resolution RULED OUT, webp encode density is the live lead
 * **Old Fatalis** - chest effect when the chest break is on
@@ -1410,7 +1417,11 @@ Zinorge".
 Verification was framebuffer readback in both directions (fix applied, old rule restored in place,
 fix restored), not visual judgement.
 
-**Not judged.** Raven's eyes decide.
+**Judged 2026-09-10: partial.** Raven: "Still see some gaps, but moving on to make progress
+across the board; the gaps might be difficult to deal with since they are a visual issue."
+So cause J was real and is fixed, but it was not the whole of the seam report. The residue is
+now its own open entry above. Nothing here is withdrawn - the 4,596 background pixels were
+measured, not inferred - but it no longer claims to explain what he is still looking at.
 
 ### Still open on Grimclaw
 
