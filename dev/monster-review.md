@@ -1340,6 +1340,43 @@ state, or that `Angry_Repeat` follows `Angry_Start`, or which rung of Bloodbath'
 from an AI state, so no name list can be complete — `clipPicker` says so already. Raven, 2026-09-05:
 "Things like enraged states for toggles will be up to me to determine."
 
+## 2026-09-10 - "Are break-able parts rendered slightly off?" - no, and here is everything checked
+
+Raven: "is there something rendering those slightly off by a small amount? Like are break-able parts
+rendered differently? Are they rendered with a small adjustment that isn't needed? Around a slightly
+different origin?"
+
+A good hypothesis and worth killing properly, because if something in the render path were nudging
+those meshes the fix would be ours and trivial. It is not. Every candidate measured on `em082_00`
+in its default state comes back identity:
+
+| candidate | result |
+|---|---|
+| mesh node transform in the asset | **identity on all 28 mesh nodes** (also checked em032_04, em088_00) |
+| a separate skin per part | **one skin**, every mesh node references skin 0 |
+| three.js `bindMatrix` | identity on all 61 skinned meshes, ONE distinct value |
+| three.js `matrixWorld` | identity on all 61, one distinct value |
+| `bindMode` | `attached` on all 61 |
+| separate `Skeleton` objects | 61 distinct objects, but all EQUIVALENT - same bone objects, `boneInverses` identical to 1e-9, and `boneMatrices` differing by exactly 0 |
+| `polygonOffset` / ROM `RSMeshBias` | `false`, units 0, on every VISIBLE mesh |
+| `renderOrder` | 0 on every visible mesh |
+
+Worth knowing: three.js does NOT ignore a skinned mesh's node transform the way the glTF spec says
+to -- with `bindMode: 'attached'` it uses the mesh's own `matrixWorld` through `bindMatrix`. So a
+non-identity node transform on one part WOULD have offset it, and that was the strongest form of
+Raven's hypothesis. The asset simply does not have one.
+
+The only meshes carrying any offset at all are the rage parts -- `XfBA1__m01_angry`, `RSMeshBias12`,
+bias -512, `polygonOffset` on, `renderOrder` 522 -- and they are hidden in the default state, so they
+cannot be what he is looking at.
+
+**So nothing is rendering them off.** The only thing that differs between the two copies of a seam
+vertex is the skin binding itself, which is where the sweep already pointed. That also means the fix
+cannot be a render-side one; it has to be the weights, and whether those are wrong in the `.mod` or
+wrong in our export is still the open question.
+
+**Not judged.**
+
 ## 2026-09-10 - Mizutsune defaults, and NO, they do not hide the skinning splits
 
 Raven, screenshot: "Defaults for mizustune, see if setting those before viewing the bind pose then
