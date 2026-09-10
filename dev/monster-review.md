@@ -198,12 +198,31 @@ squarely on the reports already in this list:
 the 66 above get their sampled alpha back as the blend factor, which is what the ROM's state word
 says it is.
 
-**STILL OPEN on Khezu's charge, and NOT changed on a guess:** `m04__taiden` ships
-`glob.emission [2,2,2]` and `rom/material.js` sets `emissiveFromMap`, so the viewer computes
-`2.0 x albedoTexel` and adds it on an already-additive pass. The ROM's feature word says
-`emission: "Constant"` — a constant — and nothing decoded here says it is multiplied by the albedo
-map. That multiply is an addition of ours with no shader read behind it, it governs exactly how
-bright the charge glow is, and it wants the shader package before it is touched.
+**RESOLVED from the shader package** (Raven: "we want things to be as close to how the ROM does it
+as possible"). `m04__taiden` ships `glob.emission [2,2,2]` and `rom/material.js` was setting
+`emissiveFromMap`, handing the ALBEDO texture to three.js so the term came out as
+`constant x albedoTexel`. Nothing was read out of the ROM for that multiply — it was asserted.
+
+`AppShaderPackage.mfx` refutes it. The emission family carries its own map variant with its own
+texture, sampler, UV and channel features:
+
+    FEmissionMap        idx 1515   tEmissionMap (904), SSEmissionMap (568),
+                                   FUVEmissionMap (1510), FChannelEmissionMap (1511)
+    FEmissionConstant   idx 1513   declared float3, 放射量を定数で指定
+                                   -- "specify the emission amount by a constant"
+
+A material wanting a map-driven emission selects `FEmissionMap` and binds `tEmissionMap`. Across
+all **570 monster materials the only emission feature named is Constant**, and **none of the 198
+with a non-zero emission binds a `tEmissionMap`**. So the ROM's term is the constant, flat, and the
+albedo multiply was invented.
+
+What shapes it on a blended layer is the ALPHA: the ROM's source factor is `SRC_ALPHA`, so the GPU
+multiplies the whole fragment — emission included — by the texel's alpha at blend time. On Khezu's
+charge that is the vein network doing the shaping, through the same gate the cut-out-solid
+correction above restored.
+
+The Armor Viewer's copy of `material.js` carries the same assertion (`piece.js:194`, `:246`,
+`weapon.js:231`) and is untouched — logged on the task board.
 
 ### Diablos — pixelated textures
 > "Diablos, has pixelated textures; I've seen this issue on multiple monsters"
