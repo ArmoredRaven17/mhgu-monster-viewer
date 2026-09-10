@@ -1900,6 +1900,10 @@ function buildMonsterList(){
 // see the picker's own note. 2026-09-05: "Tigrex, Grimclaw, Nargacuga and Silverwind should use
 // List 0: Moton 25 as their defaults."
 const DEFAULT_VIEW = {
+  // Raven, 2026-09-10: "Update Bloodbath to use List 0, Motion 2 as its default animation" / "Same
+  // for Diablos". List 0 is shared between the two and holds Motion[2]_loop at 5.78s on both.
+  em007_00: { list: '0', clip: 'Motion[2]_loop' },    // Diablos
+  em007_04: { list: '0', clip: 'Motion[2]_loop' },    // Bloodbath Diablos
   em032_00: { list: '0', clip: 'Motion[25]_loop' },   // Tigrex
   em032_04: { list: '0', clip: 'Motion[25]_loop' },   // Grimclaw Tigrex
   em037_00: { list: '0', clip: 'Motion[25]_loop' },   // Nargacuga
