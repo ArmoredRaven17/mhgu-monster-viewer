@@ -197,6 +197,11 @@ export const DEFAULT_PARTS_ON = {
   // 11-group table, 7 and 8 are the same cluster so the later one wins (6 on), and 10 draws 4 over
   // 101. The three head clusters no set names at all, so they fell to the highest member.
   em007_00: [5, 102, 103, 104, 101],   // Diablos
+  // Raven, 2026-09-09, screenshot again: "Bloodbath Diablos, those are the parts I want on by
+  // default" -- on 0, 100 / off 30; on 5 / off 1; on 102 / off 2, 32; on 103 / off 3, 33;
+  // on 104 / off 6; on 101 / off 4; on 105 / off 7; on 106 / off 8. Eight clusters, and the three
+  // Deviant-only parts (30, 32, 33) all end up off, which is what naming their partners does.
+  em007_04: [0, 100, 5, 102, 103, 104, 101, 105, 106],   // Bloodbath Diablos
   em001_00: [101],   // Rathian
   em001_02: [101],   // Gold Rathian
   em001_04: [101],   // Dreadqueen Rathian
