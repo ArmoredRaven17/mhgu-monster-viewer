@@ -439,6 +439,43 @@ export function applyParts(root, drawn){
     o.visible = (v === undefined) ? true : v;
   });
 }
+// A cluster the rage ladder partly owns still holds real user choices -- the horn-break variants
+// sit in the same clusters as the effect geometry on Bloodbath. Raven, 2026-09-10: "You removed the
+// Horn Drop downs, so now users cannot see the broken horn options ... I simply wanted the drop down
+// items to be removed, the top drop down would have just one option, so removing it was fine".
+//
+// So: variants that differ ONLY in the ladder parts are the SAME choice, and the rung decides
+// between them. Returns [[groupIdx, ...], ...] -- one entry per distinct choice, each holding the
+// variants the rung picks from. A cluster that collapses to a single entry is purely the effect's
+// own geometry and the panel drops the row.
+export function clusterChoices(groups, members, ladderParts){
+  const lp = new Set(ladderParts || []);
+  const key = i => (groups[i] || []).filter(e => !lp.has(e[0]))
+                                    .map(e => e[0] + ':' + (e[1] ? 1 : 0)).sort().join(',');
+  const by = new Map();
+  for (const m of members || []){
+    const k = key(m);
+    if (!by.has(k)) by.set(k, []);
+    by.get(k).push(m);
+  }
+  return [...by.values()];
+}
+// Which variant of one choice to apply: the one whose ladder parts are ON when a rung is picked,
+// OFF at No Rage. Falls back to the first, which is what a cluster with only one variant gives.
+export function ladderVariant(groups, members, ladderParts, rageOn){
+  const lp = new Set(ladderParts || []);
+  for (const m of members){
+    const es = (groups[m] || []).filter(e => lp.has(e[0]));
+    if (!es.length) continue;
+    if (es.every(e => !!e[1] === !!rageOn)) return m;
+  }
+  return members[0];
+}
+// groupLabel with the ladder's own parts left out -- they are not the user's choice to make.
+export function groupLabelWithout(g, skipParts){
+  const lp = new Set(skipParts || []);
+  return groupLabel((g || []).filter(e => !lp.has(e[0])));
+}
 export function groupLabel(g){
   const on = g.filter(e => e[1]).map(e => e[0]), off = g.filter(e => !e[1]).map(e => e[0]);
   return (on.length ? 'on ' + on.join(', ') : '') + (on.length && off.length ? '  /  ' : '') + (off.length ? 'off ' + off.join(', ') : '');

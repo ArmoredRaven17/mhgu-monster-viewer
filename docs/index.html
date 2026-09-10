@@ -1039,6 +1039,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          partVerts, partsDrawn, applyParts, groupLabel, groupIsInert, setNormalOpt,
          DEFAULT_PARTS_OFF, DEFAULT_PARTS_ON, ROM_RAGE_SET, setRestSets, stepRefract,
          hasChargeState, applyMaterialSwap, rageLadder, rageLadderParts,
+         clusterChoices, ladderVariant, groupLabelWithout,
          setUndefinedMaterialVisible, setExtendVisible, extendCount,
          applyHeatmap, clearHeatmap, applyFlat, parseZones, heatColor, EXTRACT_RGB,
          setCutoutSolid, cutoutSolidCount, cutoutAnchorMisses,
@@ -2008,7 +2009,8 @@ function buildGroups(){
   const pn = (PARTNAMES.monsters && PARTNAMES.monsters[e && e.id]) || {};
   const pnParts = pn.parts || {};
   for (const c of clusterGroups(groups)){
-    if (clusterIsLadder(c)) continue;          // the Rage select decides this one
+    const isLadder = clusterIsLadder(c);
+    if (isLadder && ladderRowIsEmpty(groups, c)) continue;   // nothing left but the effect geometry
     const row = document.createElement('div'); row.className = 'field';
     const lab = document.createElement('label');
     const ids = 'Parts ' + c.parts.split(',').join(', ');
@@ -2082,7 +2084,20 @@ function buildGroups(){
       // overlapping geometry, which is why some parts need to be off. So the panel now always has
       // exactly one member of a cluster applied, and picks the highest index when nothing is.
       // The lower indices are still selectable; only the all-on placeholder is gone.
-      sel.innerHTML = c.members.map(k => '<option value="' + k + '">' + groupLabel(groups[k]) + stateSuffix(k) + '</option>').join('');
+      // ONE OPTION PER CHOICE, NOT PER VARIANT. On a ladder cluster the variants that differ only
+      // in the rung's own parts are the same choice to a user -- Bloodbath's Horn 2/32/102 offers
+      // "on 102 / off 2" and "on 2 / off 102", and whether 32 draws is the Rage select's business.
+      // Raven, 2026-09-10: "if the option has multiple choices, we will want to keep the drop down".
+      const opts = isLadder
+        ? clusterChoices(groups, c.members, ladderParts).map(ms => ({ rep: ms[0], members: ms }))
+        : c.members.map(k => ({ rep: k, members: [k] }));
+      const labelOf = o => (isLadder ? groupLabelWithout(groups[o.rep], ladderParts)
+                                     : groupLabel(groups[o.rep])) + stateSuffix(o.rep);
+      // which variant of a choice actually applies: the rung decides, No Rage takes the OFF one
+      const variantOf = o => isLadder
+        ? ladderVariant(groups, o.members, ladderParts, state.rageLevel > 0)
+        : o.rep;
+      sel.innerHTML = opts.map(o => '<option value="' + o.rep + '">' + labelOf(o) + '</option>').join('');
       // THE ROM'S OWN CHOICE FIRST, then the highest index. Raven asked on 2026-09-09 for every
       // toggle moved to its highest index; that was tried (5366bb2) and REVERTED here the same day
       // because on this data "highest" is frequently the ALL-OFF variant:
@@ -2099,16 +2114,21 @@ function buildGroups(){
       // geometry. The highest index remains the fallback when nothing is applied, which is what
       // covers clusters the rest sets do not reach, such as Nibelsnarf's part 9.
       // The all-on placeholder stays gone, and every member stays selectable by hand.
-      const applied = c.members.find(k => state.groups[k]);
+      const appliedOpt = opts.find(o => o.members.some(k => state.groups[k]));
       const picked = partsPicked[c.members.join(',')];
-      let cur = picked !== undefined ? picked
-              : (applied !== undefined ? applied : Math.max.apply(null, c.members));
-      if (c.members.indexOf(cur) < 0) cur = Math.max.apply(null, c.members);
-      c.members.forEach(k => { state.groups[k] = (k === cur); });
-      sel.value = String(cur);
+      let cur = opts.find(o => o.rep === picked)
+             || appliedOpt
+             || opts[opts.length - 1];
+      const apply = o => {
+        const keep = variantOf(o);
+        c.members.forEach(k => { state.groups[k] = (k === keep); });
+      };
+      apply(cur);
+      sel.value = String(cur.rep);
       sel.onchange = () => {
-        partsPicked[c.members.join(',')] = +sel.value;
-        c.members.forEach(k => { state.groups[k] = String(k) === sel.value; });
+        const o = opts.find(x => String(x.rep) === sel.value) || opts[0];
+        partsPicked[c.members.join(',')] = o.rep;
+        apply(o);
         applyPartState(); saveState();
       };
     }
@@ -2732,6 +2752,13 @@ function forcedOn(id){
 function clusterIsLadder(c){
   if (!ladderParts.length) return false;
   return c.parts.split(',').some(p => ladderParts.indexOf(+p) >= 0);
+}
+// Raven, 2026-09-10: "I simply wanted the drop down items to be removed, the top drop down would
+// have just one option, so removing it was fine". So a ladder cluster is DROPPED only when taking
+// the rung's parts out of it leaves a single choice -- Bloodbath's Back 0/30/100 is exactly that,
+// while Horn 2/32/102 and Horn 3/33/103 still carry the broken-horn options and stay.
+function ladderRowIsEmpty(groups, c){
+  return clusterChoices(groups, c.members, ladderParts).length < 2;
 }
 function applyRage(){
   const main = mounted.main;
