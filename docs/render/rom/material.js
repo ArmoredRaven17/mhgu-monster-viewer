@@ -82,6 +82,49 @@ export function romCoreEnabled(){ return enabled; }
 // limitation, not an approximation chosen here.
 const LIT = 'Std';
 
+// MATERIALS RAVEN HAS JUDGED TO BE REAL CUTOUTS, which the ROM census cannot tell apart from the
+// gloss ramps. This table is AUTHORED, not decoded, and it is labelled that way because the honest
+// decode ran out.
+//
+// The census above stands: no MHGU material selects FTransparencyAlphaClip, fAlphaClipThreshold is
+// 0.0 everywhere, and clipping on the blend feature destroyed 30% of some hides. But it is not the
+// whole truth, and Raven found where 2026-09-10: "I noticed Rathian line had a regression, the back
+// has quills that now show the entire mesh." Measured on em001_04, the fraction of each mesh's
+// on-screen pixels the old clip removed --
+//
+//     Group[102]#0  m50_wing_l   45.1%      the quill card's surround
+//     Group[120]#0  m50_wing_l   17.7%
+//     Group[0]#0    m50_wing_l   12.3%      the wing's scalloped edge
+//     Group[0]#1    m51_wing_r    0.0%
+//
+// -- so those cards genuinely are cutouts and want the discard.
+//
+// WHY THERE IS NO RULE HERE INSTEAD OF A LIST. Sampling every mesh's UVs against its albedo alpha
+// does not separate the two populations:
+//
+//     em001_04 quills, NEED the clip          19-26% of UV samples on alpha 0
+//     em057_04 hair,  MUST NOT be clipped     14-50%
+//     em057_00 hair,  MUST NOT be clipped     100%
+//
+// 26% and 45% overlap, so no threshold divides them, and the feature word is identical on both
+// (transp Alpha, albedo Map, blend opaque). Zinogre's 100% is the proof that the same channel is a
+// GLOSS ramp there -- nobody authors a mesh that is entirely cut away -- and clipping it is what
+// punched 4,596 background holes through him earlier today.
+//
+// So this stays a list of Raven's calls rather than a heuristic dressed up as a decode. Add a
+// material when a mesh is seen drawing its transparent surround; leave everything else alone. The
+// threshold is the ROM's own fAlphaClipThreshold plus one 8-bit step, which discards only the
+// exactly-zero texels and nothing else.
+const AUTHORED_CUTOUT = new Set([
+  // Rathian / Rathalos wing sheets. Shared by em001_00/02/04, em002_00/02/04, em010_00 and
+  // em050_00, and keyed by NAME because every one of those wants the same answer: their UV
+  // coverage of alpha-0 texels runs 0-29%, nowhere near Zinogre's 100%, so the discard takes the
+  // surround and never the geometry. Checked before adding them, not assumed.
+  'XfBAN__E0__m50_wing_l',
+  'XfBAN__E0__m51_wing_r',
+]);
+export function authoredCutout(matName){ return AUTHORED_CUTOUT.has(matName); }
+
 export function createRomMaterial(spec){
   const rom = spec && spec.rom;
   const feat = (rom && rom.feat) || null;
@@ -167,6 +210,10 @@ export function createRomMaterial(spec){
   // is Raven's "gaps along seams", following the gloss map's own island borders (2026-09-10).
   const romClip = !!(feat && /AlphaClip$/.test(feat.transp || ''));
   if (romClip) mat.alphaTest = Math.max(0, (gl && gl.clip) || 0);
+  // ...plus the materials Raven has judged to be cutouts, which the census cannot see. See
+  // AUTHORED_CUTOUT above for why this is a list and not a rule.
+  else if (authoredCutout(spec.srcName))
+    mat.alphaTest = Math.max(0, (gl && gl.clip) || 0) + 1 / 512;
   // FTransparencyAlpha still means the sampled alpha reaches diffuseColor.a -- but as the blend
   // factor, so only where the ROM actually blends. On an opaque material there is no blending for
   // it to feed and gl_FragColor.a would go to the canvas instead.

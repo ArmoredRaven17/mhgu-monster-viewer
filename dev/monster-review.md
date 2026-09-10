@@ -1340,6 +1340,61 @@ state, or that `Angry_Repeat` follows `Angry_Start`, or which rung of Bloodbath'
 from an AI state, so no name list can be complete — `clipPicker` says so already. Raven, 2026-09-05:
 "Things like enraged states for toggles will be up to me to determine."
 
+## 2026-09-10 - Rathian's quills: cause J was too broad, and there is no rule to replace it
+
+Raven, with a close-up: "I noticed Rathian line had a regression, the back has quills that now show
+the entire mesh." Real, and it is mine -- cause J removed the alpha clip from every monster material.
+
+**Not the weld.** Checked first, because it was the most recent change: the weld only rewrites
+JOINTS_0/WEIGHTS_0 bytes and cannot make a transparent surround opaque, and the Rathian line's weld
+was tiny anyway -- median influence shift 0.0078, max 0.106-0.408, 0-4 vertices over 25%.
+
+### Measured on em001_04
+
+Restoring the old clip per mesh, as a fraction of each mesh's own on-screen pixels:
+
+| mesh | material | on screen | cut by the clip |
+|---|---|---|---|
+| `Group[102]#0` | `m50_wing_l` | 266 px | **45.1%** |
+| `Group[120]#0` | `m50_wing_l` | 576 px | 17.7% |
+| `Group[0]#0` | `m50_wing_l` | 570 px | 12.3% |
+| `Group[0]#1` | `m51_wing_r` | 23 px | 0% |
+
+Nearly half of the quill card is surround. Those cards genuinely are cutouts.
+
+### Why this is a LIST and not a rule
+
+Cause J's census still stands on its own terms: no MHGU material selects `FTransparencyAlphaClip`,
+`fAlphaClipThreshold` is 0.0 everywhere, and clipping on the blend feature destroyed 30% of some
+hides and punched 4,596 background holes through Zinogre. It was right about those and wrong here.
+
+The obvious repair is a per-mesh statistic -- how much of a mesh's UV area lands on alpha-0 texels --
+and it **does not work**, measured:
+
+| mesh | UV samples on alpha 0 | wanted |
+|---|---|---|
+| `em001_04` quills | 19-26% | **clip** |
+| `em057_04` hair | 14-50% | **do not clip** |
+| `em057_00` hair | **100%** | **do not clip** |
+
+26% and 45% overlap, and the feature word is identical on both -- `transp: Alpha`, `albedo: Map`,
+`blend: opaque`. Zinogre's 100% is the proof that the same channel is a GLOSS ramp there: nobody
+authors a mesh that is entirely cut away.
+
+So there is no threshold, no feature bit, and no decode that separates them. Rather than invent one,
+`AUTHORED_CUTOUT` in `docs/render/rom/material.js` holds the materials Raven has judged to be
+cutouts, labelled as authored. Two entries so far, the Rathian/Rathalos wing sheets.
+
+Keyed by material NAME, which is safe here and was checked rather than assumed: that name is shared
+by em001_00/02/04, em002_00/02/04, em010_00 and em050_00, and every one of them has UV coverage of
+alpha-0 between 0% and 29% -- nowhere near Zinogre's 100% -- so the discard takes surround and never
+geometry. Name-keying also avoids `render/monster.js`, which Raven's other agent is editing.
+
+Verified: em001_04's four alpha materials carry `alphaTest 0.00195` again, em057_00's hair still
+carries 0 and renders 73,332 silhouette pixels, no console errors on either.
+
+**Not judged.**
+
 ## 2026-09-10 - Seam welding rolled out across the library
 
 Raven, after judging the Mizutsune test case: "Okay, that seems to have worked well, so review each
