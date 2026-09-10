@@ -30,6 +30,22 @@ noticing, because so far almost nothing has.
 
 ### Causes, by weight
 
+**Two kinds of issue, and they are not worth the same effort** (Raven, 2026-09-10:
+"the gaps might be difficult to deal with since they are a visual issue... unlike something we
+can drive with the ROM data like albedo values"):
+
+* **ROM-drivable.** The ROM holds a value we either match or do not - an albedo, a clip name, a
+  blend state, a bone index. I can decode it, diff it against what the viewer does, and fix it
+  with a number behind every step. Raven judges the result once, at the end. Cause J was this:
+  the shader package said no material selects a clip, and that settled it before anyone looked.
+* **Visual-only.** A rendering artifact with no ROM counterpart to check against - seam gaps,
+  filtering, bloom. There is nothing to decode; verification is Raven's eye, one look per
+  attempt, and my own visual verification is worth nothing by standing instruction.
+
+So: **work the ROM-drivable causes first and in bulk.** They close without spending his
+attention. Batch the visual-only ones and bring several candidates to a single judging pass.
+
+
 | # | cause | monsters | state |
 |---|---|---|---|
 | A | **Clip selection.** Two hard-coded name lists reach 9 of 136 clip names. Four shapes: case-only miss; name absent with no auto bit (nothing plays); unnamed clips with no auto bit; auto bit present so one state is stuck. | ~20 | diagnosed, unfixed |
