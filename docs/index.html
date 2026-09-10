@@ -522,6 +522,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           <label class="chk" id="monTailRow" hidden><input type="checkbox" id="monTail">Show the Severed Parts</label>
           <label class="chk" id="monRageRow" hidden><input type="checkbox" id="monRage">Enraged</label>
           <label class="chk" id="monChargeRow" hidden><input type="checkbox" id="monCharge">Charged</label>
+          <div id="monRageLevelRow" hidden><label for="monRageLevel">Rage</label>
+            <select id="monRageLevel"></select></div>
         </div>
       </section>
 
@@ -1036,7 +1038,7 @@ import { loadMaterialsDb } from './render/materials-db.js';
 import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
          partVerts, partsDrawn, applyParts, groupLabel, groupIsInert, setNormalOpt,
          DEFAULT_PARTS_OFF, DEFAULT_PARTS_ON, ROM_RAGE_SET, setRestSets, stepRefract,
-         hasChargeState, applyMaterialSwap,
+         hasChargeState, applyMaterialSwap, rageLadder, rageLadderParts,
          setUndefinedMaterialVisible, setExtendVisible, extendCount,
          applyHeatmap, clearHeatmap, applyFlat, parseZones, heatColor, EXTRACT_RGB,
          setCutoutSolid, cutoutSolidCount, cutoutAnchorMisses,
@@ -1811,7 +1813,7 @@ function applyCameraState(c){
 const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: false,
                 anchor: true, ground: true, normalFlip: false, normalScale: 1,
                 // both OFF by default: see applyUndef and applyExtend
-                undef: false, extend: false, gap: false, proxy: false, rage: false, charged: false, heat: '', heatTable: 0, deflectT: 'f25', deflectTier: 2,
+                undef: false, extend: false, gap: false, proxy: false, rage: false, charged: false, rageLevel: 0, heat: '', heatTable: 0, deflectT: 'f25', deflectTier: 2,
                 zoneTab: 'raw',
                 zoneShow: true, zonePos: null,
                 // the additive effect meshes as a class; the ROM's part table already keeps
@@ -1998,7 +2000,7 @@ function buildGroups(){
   // the default is the ROM's own: the set the monster's class registers, keyed by em class
   if (!state.groups || state.groups.length !== groups.length)
     state.groups = defaultGroupsOn(groups, e && e.em, e && e.id, !!state.rage,
-                                   DEFAULT_PARTS_OFF[e && e.id], DEFAULT_PARTS_ON[e && e.id]);
+                                   DEFAULT_PARTS_OFF[e && e.id], forcedOn(e && e.id));
   monGroupsEl.innerHTML = '';
   if (!groups.length){
     monGroupsEl.innerHTML = '<p class="hint">This monster ships no part-visibility table.</p>';
@@ -2006,6 +2008,7 @@ function buildGroups(){
   const pn = (PARTNAMES.monsters && PARTNAMES.monsters[e && e.id]) || {};
   const pnParts = pn.parts || {};
   for (const c of clusterGroups(groups)){
+    if (clusterIsLadder(c)) continue;          // the Rage select decides this one
     const row = document.createElement('div'); row.className = 'field';
     const lab = document.createElement('label');
     const ids = 'Parts ' + c.parts.split(',').join(', ');
@@ -2192,6 +2195,7 @@ async function mount(){
     world.add(main); mounted.main = main;
     for (const [name, g] of extra){ world.add(g); mounted[name] = g; }
     applySize();
+    readLadder();                              // before buildGroups: it decides which clusters show
     buildGroups(); applyPartState(); paintAbout(); applyUndef(); applyExtend(); applyProxy(); applyRage();
     // A fresh mount is a state change: a monster restored with Charged already ticked has to start
     // its Taiden_start ramp now, not at whatever time the previous monster's toggle was flipped.
@@ -2703,10 +2707,54 @@ addEventListener('resize', () => { if (!zonePanel.hidden) placeZonePanel(); });
 //
 // So this now only asks stepMatAnim for the enraged clip. Which parts an enraged monster opens is
 // still unknown and is not being invented.
+// The ladder for the mounted monster, [] when it has none, and the parts its material sits on.
+// Both are recomputed at mount BEFORE buildGroups, because the parts decide which clusters the
+// panel shows and which variant of them is chosen.
+let ladder = [], ladderParts = [];
+function readLadder(){
+  const main = mounted.main;
+  ladder = main ? rageLadder(main) : [];
+  ladderParts = (main && ladder.length) ? rageLadderParts(main) : [];
+  if (!ladder.length) state.rageLevel = 0;
+  else if (state.rageLevel > ladder.length) state.rageLevel = ladder.length;
+  state.rage = ladder.length ? state.rageLevel > 0 : state.rage;
+}
+// THE RAGE CONTROL OWNS ITS OWN PARTS. Raven, 2026-09-10: "For the rage levels have it switch the
+// parts that need to be on for the effect to show ... This way users don't have to somehow figure
+// that out". A rung switches the effect geometry on; No Rage leaves it off, which is how the panel
+// default can match the screenshot he asked for and the effect still appear when a rung is picked.
+function forcedOn(id){
+  const base = DEFAULT_PARTS_ON[id] || [];
+  return (state.rageLevel > 0 && ladderParts.length) ? base.concat(ladderParts) : base;
+}
+// A cluster the rage control decides is not offered in the Parts panel -- Raven: "Then hide these
+// parts from the drop down menus". Showing it would offer a choice the rung immediately overrides.
+function clusterIsLadder(c){
+  if (!ladderParts.length) return false;
+  return c.parts.split(',').some(p => ladderParts.indexOf(+p) >= 0);
+}
 function applyRage(){
   const main = mounted.main;
   const has = main ? enrageParts(main).size > 0 : false;
-  document.getElementById('monRageRow').hidden = !has;
+  // A LEVELLED MONSTER GETS A DROPDOWN INSTEAD OF THE TOGGLE. Raven, 2026-09-10: "Just have a drop
+  // down that ranges from No Rage to the max level". Bloodbath has two stages and Gore Magala four,
+  // and a checkbox can only say the deepest -- which on Gore was not even a stage, because the only
+  // looping clip on that material is BodyLight_Start_Finish.
+  const lvRow = document.getElementById('monRageLevelRow');
+  const lvSel = document.getElementById('monRageLevel');
+  lvRow.hidden = !ladder.length;
+  if (ladder.length){
+    if (state.rageLevel > ladder.length) state.rageLevel = ladder.length;
+    lvSel.innerHTML = '<option value="0">No Rage</option>' +
+      ladder.map((l, i) => '<option value="' + (i + 1) + '">' + l.label + '</option>').join('');
+    lvSel.value = String(state.rageLevel || 0);
+    state.rage = state.rageLevel > 0;
+  } else {
+    lvSel.innerHTML = '';                 // do not leave the previous monster's rungs in a hidden select
+    state.rageLevel = 0;
+  }
+  // the checkbox is the control only where there is no ladder
+  document.getElementById('monRageRow').hidden = !has || ladder.length > 0;
   document.getElementById('monRage').checked = !!state.rage;
   // CHARGED IS ITS OWN STATE, not a deeper rage -- Khezu's Taiden branch (0xd1ec1c) hangs off a
   // different value of the same state byte as Angry, and running both at once put a 4Hz full-body
@@ -2725,6 +2773,11 @@ function applyRage(){
 // swap are keyed by. Charged wins a collision: it is the state that replaces the vein material, so
 // showing it half-applied under a rage clip would be neither state.
 function matState(){ return state.charged ? 'charged' : (state.rage ? 'enraged' : 'calm'); }
+// The clip the chosen rung names, or null for No Rage / a monster with no ladder.
+function levelClip(){
+  const i = (state.rageLevel | 0) - 1;
+  return (i >= 0 && ladder[i]) ? ladder[i].clip : null;
+}
 // Wall seconds at the last state change, and WHICH STATE WAS LEFT. clipPicker needs both: when a
 // one-shot transition has run its course -- the ROM zeroes the slot's time word when it sets the
 // clip (0xd1e908) and hands off to the steady clip once that time passes the clip's frame count
@@ -2908,7 +2961,22 @@ document.getElementById('monRage').onchange = e => {
   const en = entry();
   if (en && ROM_RAGE_SET[en.id]){
     state.groups = defaultGroupsOn(en.groups || [], en.em, en.id, state.rage,
-                                   DEFAULT_PARTS_OFF[en.id], DEFAULT_PARTS_ON[en.id]);
+                                   DEFAULT_PARTS_OFF[en.id], forcedOn(en.id));
+    buildGroups(); applyPartState();
+  }
+  applyRage(); saveState();
+};
+document.getElementById('monRageLevel').onchange = e => {
+  state.rageLevel = +e.target.value | 0;
+  state.rage = state.rageLevel > 0;
+  if (state.rage) state.charged = false;      // one state at a time, as with the checkbox
+  markStateChange();
+  // ALWAYS recompute, not only where ROM_RAGE_SET has an entry: the rung owns the effect's parts
+  // whether or not the ROM switches anything else on rage, and Bloodbath has no ROM_RAGE_SET row.
+  const en = entry();
+  if (en){
+    state.groups = defaultGroupsOn(en.groups || [], en.em, en.id, state.rage,
+                                   DEFAULT_PARTS_OFF[en.id], forcedOn(en.id));
     buildGroups(); applyPartState();
   }
   applyRage(); saveState();
@@ -3070,6 +3138,7 @@ function applySet(o){
   if (typeof o.proxy === 'boolean') state.proxy = o.proxy;
   if (typeof o.rage === 'boolean') state.rage = o.rage;
   if (typeof o.charged === 'boolean') state.charged = o.charged;
+  if (typeof o.rageLevel === 'number') state.rageLevel = Math.max(0, o.rageLevel | 0);
   const TABMAP = { zones: 'raw', parts: 'extracts', bounce: 'hardness' };
   const tab = TABMAP[o.zoneTab] || o.zoneTab;
   if (['raw','elem','status','extracts','hardness'].indexOf(tab) >= 0) state.zoneTab = tab;
@@ -3127,7 +3196,7 @@ renderer.setAnimationLoop(() => {
     // Gekikou_End on the way out of rage (0xe80b34 vs 0xe80b54), which is what CALM_CLIPS asks for.
     const st = matState();
     const mid = (entry() || {}).id;
-    for (const g of Object.values(mounted)) stepMatAnim(g, t, st, mid, tStateChanged, prevMatState);
+    for (const g of Object.values(mounted)) stepMatAnim(g, t, st, mid, tStateChanged, prevMatState, levelClip());
     // Refract samples the scene colour, so the capture has to happen AFTER the animation has set
     // fDistortionFactor / fDistortionBlend for this frame and BEFORE the visible render.
     stepRefract(renderer, scene, camera, THREE);
@@ -3188,7 +3257,7 @@ window.__view.effectsAvailable = () => effectMountsFor(state.id);
 window.__view.clipFallback = on => {
   setClipFallback(on);
   const st = matState();
-  for (const g of Object.values(mounted)) stepMatAnim(g, 0, st, state.id, 0, prevMatState);
+  for (const g of Object.values(mounted)) stepMatAnim(g, 0, st, state.id, 0, prevMatState, levelClip());
   renderer.render(scene, camera);
   return { on: clipFallbackOn() };
 };
@@ -3220,7 +3289,7 @@ window.__view.shot = async function(run, nameArg, atArg){
     const tMat = (typeof atArg === 'number') ? atArg : 0;
     const stMat = matState();
     const midMat = (entry() || {}).id;
-    for (const g of Object.values(mounted)) stepMatAnim(g, tMat, stMat, midMat, 0, prevMatState);
+    for (const g of Object.values(mounted)) stepMatAnim(g, tMat, stMat, midMat, 0, prevMatState, levelClip());
     stepRefract(renderer, scene, camera, THREE);
   }
   controls.update(); head.position.copy(camera.position);

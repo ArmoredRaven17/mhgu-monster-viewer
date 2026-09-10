@@ -219,7 +219,7 @@ export const DEFAULT_PARTS_ON = {
   // Every OTHER row of the screenshot is honoured exactly: the clusters carrying 30/32/33 each have
   // a second variant that draws the wanted partner AND the rage part (g1, g16, g17 against g0, g4,
   // g6), so 0/100, 102 and 103 come out as asked and only the three effect parts differ.
-  em007_04: [0, 100, 30, 5, 102, 32, 103, 33, 104, 101, 105, 106],   // Bloodbath Diablos
+  em007_04: [0, 100, 5, 102, 103, 104, 101, 105, 106],   // Bloodbath Diablos
   em001_00: [101],   // Rathian
   em001_02: [101],   // Gold Rathian
   em001_04: [101],   // Dreadqueen Rathian
@@ -1195,6 +1195,74 @@ function materialsWithClip(root, list){
     }
   return out;
 }
+// A LEVELLED EFFECT LADDER, where a monster drives one material through numbered stages instead of
+// a single enraged state. Raven, 2026-09-10: "you found Bloodbath has a variable rage state, it's
+// not a normal Enraged State", and on how to show it: "Just have a drop down that ranges from No
+// Rage to the max level".
+//
+// Three monsters carry one, and a single toggle got two of them wrong rather than merely
+// incomplete, because the enraged fallback takes the LAST LOOPING clip:
+//
+//   Bloodbath Diablos  XfB_0__m50_angry   Lv1_to_Lv2  Lv2_loop  Lv2_to_Lv3  Lv3_loop  Lv3_to_end
+//                      -- two sustained levels; the fallback jumped to Lv3 and Lv2 was unreachable
+//   Gore Magala        XfB_W__m01_kasan   BodyLight_Start_LV1..LV3, LVMAX, Finish, Normal
+//   Chaotic Gore       (the same material) -- FOUR levels, all one-shots that hold their final
+//                      frame, and the only LOOPING clip is BodyLight_Start_Finish, so the fallback
+//                      selected the finish and no level was ever shown. That is Raven's Pass 1
+//                      report "Gore Magala has a wing effect or albedo layer that renders poorly".
+//
+// READ OFF THE CLIP NAMES, not a per-monster table: a clip naming exactly ONE level is that level's
+// own clip, one naming TWO is a transition between them (Lv1_to_Lv2), and an *_end is the way out
+// rather than a level (Lv3_to_end names Lv3 but is not it).
+const LEVEL_TOKEN = /lv\s*(\d+|max)/gi;
+function levelsOf(name){
+  if (typeof name !== 'string' || END_NAME.test(name)) return [];
+  const out = [];
+  let m;
+  LEVEL_TOKEN.lastIndex = 0;
+  while ((m = LEVEL_TOKEN.exec(name))) out.push(m[1].toLowerCase());
+  return out;
+}
+// [{ rank, label, clip }] ordered shallowest first, or [] when this monster has no ladder.
+// MAX sorts last whatever number it sits beside.
+export function rageLadder(root){
+  const seen = new Map();
+  if (root) root.traverse(o => {
+    for (const m of matsOfMesh(o)){
+      const rom = m && m.userData && m.userData.rom;
+      for (const c of (rom && rom.anim) || []){
+        const lv = levelsOf(c.name);
+        if (lv.length !== 1) continue;                 // 0 = not a level, 2 = a transition
+        const tok = lv[0];
+        if (!seen.has(tok)) seen.set(tok, c.name);
+      }
+    }
+  });
+  const rank = t => (t === 'max' ? 1e6 : parseInt(t, 10));
+  return [...seen.entries()]
+    .map(([tok, clip]) => ({ rank: rank(tok), label: tok === 'max' ? 'Max' : 'Level ' + tok, clip }))
+    .sort((a, b) => a.rank - b.rank);
+}
+// The PART IDS whose meshes carry the ladder material. Raven, 2026-09-10: "For the rage levels have
+// it switch the parts that need to be on for the effect to show" -- so choosing a rung turns its
+// geometry on and No Rage turns it back off, which is what lets the panel default match the
+// screenshot he asked for while the effect still appears when a rung is picked.
+export function rageLadderParts(root){
+  const mats = new Set();
+  if (root) root.traverse(o => {
+    for (const m of matsOfMesh(o)){
+      const rom = m && m.userData && m.userData.rom;
+      for (const c of (rom && rom.anim) || [])
+        if (levelsOf(c.name).length === 1) mats.add(m.name);
+    }
+  });
+  const out = new Set();
+  if (root) root.traverse(o => {
+    if (!o.userData || o.userData.part === undefined) return;
+    for (const m of matsOfMesh(o)) if (m && mats.has(m.name)) out.add(o.userData.part);
+  });
+  return [...out];
+}
 // Materials that carry an enraged clip -- the layers the game lights when a monster rages.
 export function enrageMaterials(root){ return materialsWithClip(root, ENRAGE_CLIPS); }
 // Materials that carry a CHARGE clip -- Khezu's Taiden family. Gates the Charged checkbox, which
@@ -1221,7 +1289,7 @@ export function enrageParts(root){
 // an AI state, keyed by hash, so a viewer has to choose. Keeping it in one place means the ROM core
 // and the old path cannot drift on it.
 const STATES = ['enraged', 'charged'];
-function clipPicker(state, monId, tState, prev){
+function clipPicker(state, monId, tState, prev, levelClip){
   const pin = (monId && ROM_SPAWN_CLIP[monId]) || null;
   const timed = typeof tState === 'number';
   return (clips, rom, tSec) => {
@@ -1229,6 +1297,14 @@ function clipPicker(state, monId, tState, prev){
     // A SPAWN-PINNED material ignores the rage state entirely -- see ROM_SPAWN_CLIP.
     if (pin && rom.name && pin[rom.name])
       ci = clips.findIndex(c => sameClip(c.name, pin[rom.name]));
+    // A LEVEL PICKED BY HAND wins over every rule below, on the material that carries it. See
+    // rageLadder: the ladder monsters have more stages than a toggle can say, so the panel asks for
+    // one by name. Materials that do not carry it fall through and behave as the state says, which
+    // is what keeps the rest of the monster in step with the level.
+    if (ci < 0 && levelClip){
+      const i = clips.findIndex(c => sameClip(c.name, levelClip));
+      if (i >= 0) return i;
+    }
     // THE STATE TABLE, run before the name lists below. It only decides when the material carries
     // the clips the state names; everything it does not decide falls through to the general rules,
     // which is why monsters with no entry -- Bloodbath's rage ladder, Agnaktor's cool_Loop -- are
@@ -1417,8 +1493,8 @@ function clipPicker(state, monId, tState, prev){
   };
 }
 
-export function stepMatAnim(root, tSec, state, monId, tState, prev){
-  const pick = clipPicker(state, monId, tState, prev);
+export function stepMatAnim(root, tSec, state, monId, tState, prev, levelClip){
+  const pick = clipPicker(state, monId, tState, prev, levelClip);
   // ONE evaluator for both paths. A ROM-core material is a stock three.js material -- the technique
   // decides which class, not the blend state -- so the shared evaluator's writes land exactly as
   // they always have. fEmissionColor now reaches the 47 lit-technique additive materials that used
