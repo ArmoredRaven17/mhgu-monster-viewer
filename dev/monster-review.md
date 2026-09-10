@@ -326,9 +326,43 @@ transparent, i.e. their entire RGB is fill. 58.8 MB to re-encode, about +2.35 MB
 is `tex/ecee39f1af579d49.webp` at 73.8%: **Khezu's vein map**, so this is very likely part of why
 its charged state is still not right.
 
-**THE POOL IS NOT REGENERATED YET.** `stage_tex` content-addresses by the source DDS, not by the
-encode, so a re-run is a no-op on anything already staged — the affected names have to be cleared
-from `docs/tex` first. That is a 136-file binary change and is Raven's call to make.
+**REGENERATED 2026-09-09** on Raven's "Rebuild, since the pixelated textures are still present".
+157 files cleared and re-staged; 154 changed, 3 came back byte-identical. Measured after, same
+method as before — the shipped file against the pipeline's decode of the ROM texture:
+
+| Diablos body albedo | alpha==0 band | alpha>0 band | whole |
+|---|---|---|---|
+| before | 18.2 dB, bias +22.13 | 35.6 dB | 22.8 dB |
+| after | **37.5 dB, bias +0.10** | 35.7 dB | **36.2 dB** |
+
+The alpha>0 band did not move, which is what should happen: the flag only governs what libwebp does
+under transparent texels. Pool cost for those files 68.8 MB -> 70.2 MB, **+2.0%**.
+
+**STILL UNJUDGED.** Numbers are not a render — Raven, 2026-09-09: "your verifications, if visual,
+are not super reliable". This entry stays open until he has looked.
+
+##### Three pipeline faults the rebuild exposed, all fixed, none of them in the viewer
+
+1. **`buildlib.ROOT` was hard-coded to `C:\MHGU-Extract`** while the tree lives at
+   `E:\offline\extract`. The first run created an empty `C:\MHGU-Extract\MHGU-Monster-Viewer\docs`
+   and wrote a 0-byte `materials.json` into it. ROOT now comes from `__file__`, and the ROM root is
+   searched for separately (`buildlib._rom_root`) because the dump is at `C:\MHGU-ROM`.
+2. **`build/frag/monsters.json` stores ABSOLUTE MRL paths** recorded under that old root, so all 187
+   missed. The build did not refuse — it reported `missing MRL 186` and wrote a valid-but-empty
+   `materials.json` OVER the shipped one. Restored from git. Added `buildlib.rehome()`, which
+   re-roots a stale recorded path at the current tree; all 187 resolve.
+3. **`build-materials.py` alone DROPS every material animation.** `anim` is added by a separate
+   pass, `build-matanim.py`, which updates `docs/materials.json` in place. A materials-only rebuild
+   set `anim: null` on 140 materials across 53 monsters — every clip in the game, Khezu's Angry and
+   Taiden families included. **The rebuild sequence is `build-materials.py` THEN
+   `build-matanim.py`.** Not needed this time: the pool is content-addressed by the source DDS, the
+   DDS did not change, so every texture NAME is identical and the shipped materials.json is still
+   exactly right for the new files — it was restored from git rather than regenerated. Verified:
+   texture lists identical across all 186 monsters, and every material difference was the `anim`
+   field alone.
+
+Worth its own fix later: a build whose job list comes up empty should refuse to write rather than
+ship an empty database.
 
 ### Bloodbath Diablos — rage effect does not animate
 > "Bloodbath, the rage effect does not animate and I know we have animated it at one point"
