@@ -1290,7 +1290,26 @@ This also revises the census below: it counted names, and names are the wrong un
 
 ---
 
-## Standing census: the clip-name lists reach 9 of 136 names
+## Standing census: RE-MEASURED 2026-09-10 -- the selector now reaches 44 of 152
+
+**The 9-of-136 figure below is STALE.** It was counted 2026-09-09, before the Khezu work made
+`sameClip` case-insensitive and added the `_End`-suffix and rest-name rules. Re-run against the
+selector as it actually stands: **152 distinct material-clip names, 44 reached** -- 22 by exact
+name (case-insensitive), 15 by the `_End` suffix, 7 by the rest-name regex. So cause A's FREE
+half -- the case-only mismatches on 9 monsters -- is closed; nothing there is left to fix.
+
+The remaining 108 are cause B, and they are authored semantics, not a matching bug: `Death`
+(8 monsters), `Animation` (7), `BodyLight_Start_LV1..LVMAX` (Gore Magala's ladder), Agnaktor's
+`maguma_*`, Nightcloak's `stealth_*`, Raging Brachydios's `Yellow_to_Red`. Deciding which of
+those is enraged is Raven's call, as he said on 2026-09-05.
+
+**31 monsters** carry at least one clip that no state selects AND no auto bit to fall back on,
+so those materials sit frozen at frame 0 in every state. Worst: Nightcloak Malfestio 21 of 25,
+Crimson Fatalis 16 of 25, Chameleos 15 of 17, Agnaktor 12 of 24, Altaroth 10 of 10.
+
+---
+
+## Superseded: the clip-name lists reach 9 of 136 names (2026-09-09)
 
 Counted 2026-09-09 across every monster material in `materials.json`. There are **136 distinct
 material-clip names**; the two lists name **9**.
@@ -1313,6 +1332,54 @@ state, or that `Angry_Repeat` follows `Angry_Start`, or which rung of Bloodbath'
 `Lv3_loop` ladder is "enraged", is authored semantics. The ROM reaches these clips through `setClip`
 from an AI state, so no name list can be complete — `clipPicker` says so already. Raven, 2026-09-05:
 "Things like enraged states for toggles will be up to me to determine."
+
+## 2026-09-10 - Akantor: default parts, and part 5 as the rage part
+
+Raven, screenshot: **"Akantor default parts"**, and **"Enraged already implemented at this time,
+but it needs to turn on 0, 5, 100 (the top drop down) when enraged is toggled on"**.
+
+`em033_00`. Read off the LIVE panel rather than assumed, four of the nine clusters disagreed with
+the screenshot:
+
+| cluster | panel picked | Raven wants |
+|---|---|---|
+| Belly `0, 5, 100` | g16 - on 0, **5**, 100 | g0 - on 0, 100 / off 5 |
+| Head `3, 103` | g11 - on **3** / off 103 | g2 - on 103 / off 3 |
+| Head `2, 102` | g10 - on **2** / off 102 | g3 - on 102 / off 2 |
+| Tail `4, 16, 101` | g19 - on **4**, 101 / off 16 | g8 - on 101 / off 4, 16 |
+
+The other five already matched. Same shape as every monster so far: the `>=100` parts are the
+intact pieces and the wanted state is the whole monster with every break variant off.
+
+### The rage part, and what the ROM says about it
+
+**The ROM does not switch Akantor's parts on rage.** `em033_00` is not one of the enrage-gated
+`setVisibleGroup` sites - that scan is complete and its result is `ROM_RAGE_SET`, which has no
+entry here - so this is the same situation as Bloodbath Diablos (`em007_04`), and the answer is
+authored rather than decoded. Raven supplied it: part 5.
+
+What the ROM *does* say corroborates the reading. Akantor's three rage materials -
+`XfBA_A0__m04__kekkan`, `XfB__m05_body_add01`, `XfB__m06_body_add02` - each carry a clip named
+`Angry` with the **auto-play bit** set (clip+0x04 bit 1; 50 clips across 27 monsters have it), and
+`XfB__m03_sukima` carries `Normal` the same way. An auto-play clip runs whenever its material is
+drawn. So the ROM gates this effect by **mesh visibility**, not by clip selection - which is
+exactly why the Enraged toggle had no visible effect before this entry, and why naming part 5 is
+the whole of the state rather than half of it.
+
+The Belly cluster holds a variant that is g0 plus part 5 and nothing else (g16), so the pair of
+lists resolves cleanly to g0 / g16.
+
+### Result, measured on the live page
+
+* Calm mesh groups drawn: `0, 7, 10, 12, 14, 101, 102, 103`
+* Enraged: the same **plus 5**, and nothing else moves
+* The panel drops from 9 rows to **8**: part 5 becomes an owned rage part, so it leaves the Belly
+  dropdown, that cluster is left with one option and the row hides itself - Raven's rule from
+  Bloodbath, "if a drop down only has one part after handling the enrage parts, we don't need to
+  display that drop down"
+* The remaining 8 rows match the screenshot exactly; no console errors
+
+**Not judged.** Raven's eyes decide.
 
 ## 2026-09-10 - "Grimclaw enraged has gaps along seams ... similar issue with Zinogre"
 

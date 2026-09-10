@@ -240,6 +240,38 @@ export const DEFAULT_PARTS_ON = {
   // owned parts from the pair of lists as well as from the ROM.
   em032_04: { calm: [0, 20, 100, 1, 5, 7, 8, 28, 101],        // g0 g2 g5 g7 g9  g12
               rage: [0, 30, 31, 100, 1, 5, 7, 8, 38, 101] },  // g1 g2 g5 g7 g10 g12
+
+  // Raven, 2026-09-10, screenshot: "Akantor default parts" -- on 0, 100 / off 5; off 1;
+  // on 103 / off 3; on 102 / off 2; on 7 / off 8, 9; on 10 / off 11; on 12 / off 13;
+  // on 14 / off 15; on 101 / off 4, 16. Four of those nine differ from what the panel produced
+  // before this entry, measured off the live page rather than assumed:
+  //
+  //     Belly  0, 5, 100   picked g16 (5 ON)          wanted g0   (5 off)
+  //     Head   3, 103      picked g11 (3 on, 103 off) wanted g2   (103 on)
+  //     Head   2, 102      picked g10 (2 on, 102 off) wanted g3   (102 on)
+  //     Tail   4, 16, 101  picked g19 (4 AND 101 on)  wanted g8   (101 alone)
+  //
+  // and the same as elsewhere: the >=100 parts are the intact pieces, so the wanted state is the
+  // whole monster with every break variant off.
+  //
+  // AND THE RAGE PART IS 5, WHICH THE ROM DOES NOT SWITCH. Raven: "Enraged already implemented at
+  // this time, but it needs to turn on 0, 5, 100 (the top drop down) when enraged is toggled on."
+  // em033_00 is NOT one of the enrage-gated setVisibleGroup sites -- that scan is complete and its
+  // results are ROM_RAGE_SET, which has no entry here -- so the ROM never moves this monster's
+  // parts on rage, exactly as with em007_04 above. The Belly cluster nevertheless holds a variant
+  // that is g0 plus part 5 and nothing else (g16), and Akantor's rage materials agree with that
+  // reading: XfBA_A0__m04__kekkan, XfB__m05_body_add01 and XfB__m06_body_add02 each carry a clip
+  // named `Angry` with the ROM's auto-play bit set, so whenever their geometry is drawn it is
+  // already animating. The ROM gates them by MESH VISIBILITY, not by clip selection -- which is
+  // why naming 5 as the rage part here is the whole of the state, and why the toggle had no
+  // visible effect before it.
+  //
+  // Naming both states makes the panel treat 5 as an owned part: it drops out of the Belly
+  // dropdown, and since that cluster then has one option left the row hides itself -- Raven's
+  // rule from Bloodbath, "if a drop down only has one part after handling the enrage parts, we
+  // don't need to display that drop down".
+  em033_00: { calm: [0, 100, 103, 102, 7, 10, 12, 14, 101],       // g0  g1 g2 g3 g4 g5 g6 g7 g8
+              rage: [0, 5, 100, 103, 102, 7, 10, 12, 14, 101] },  // g16, the rest as calm
   em001_00: [101],   // Rathian
   em001_02: [101],   // Gold Rathian
   em001_04: [101],   // Dreadqueen Rathian
