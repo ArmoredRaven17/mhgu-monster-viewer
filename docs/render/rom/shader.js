@@ -17,6 +17,33 @@ function chain(mat, fn){
   mat.onBeforeCompile = (sh, renderer) => { if (prev) prev(sh, renderer); fn(sh, renderer); };
   mat.needsUpdate = true;
 }
+// THREE.JS CACHES PROGRAMS ON THE MATERIAL'S PARAMETERS ALONE, and an onBeforeCompile edit is
+// INVISIBLE to that key. Two materials whose parameters match therefore share ONE compiled program,
+// and whichever compiled FIRST decides whose injected GLSL every one of them runs.
+//
+// Measured on Grimclaw, 2026-09-10. XfB__m02_eye (no second map) and XfBA_AW_0__m61_angry_blood
+// (TypeExtendModulate) both came back on program id 1, and the source the GPU actually compiled --
+// read with gl.getShaderSource on the attached shader, NOT the sh.fragmentShader handed to
+// onBeforeCompile -- held the ext uniform DECLARATIONS with not one `texture2D( uExtMap )` in it.
+// The eye's shader was running on the vein material. So uExtMap, uExtTint, uExtMode and uExtXf all
+// read back correctly bound, and changing any of them moved exactly ZERO pixels. That is Raven's
+// "the veins are not showing at all, but I can see the lighting effects clearly": the first albedo
+// map reaches the screen through the shared program, the second never does. Tigrex escaped it only
+// because his equivalent material happened to win its own program.
+//
+// extendMapMisses() stayed EMPTY through all of it, which is why nothing caught it: the injection
+// ran and produced correct GLSL that was then thrown away.
+//
+// So every injection tags the material, and customProgramCacheKey hands the accumulated tags to
+// three.js. Materials with the same set of injections still share a program; materials with
+// different sets no longer can.
+function tagProgram(mat, tag){
+  const tags = (mat.userData.progTags || '') + '|' + tag;
+  mat.userData.progTags = tags;
+  mat.customProgramCacheKey = () => tags;
+  mat.needsUpdate = true;
+}
+
 
 // Materials whose second-albedo-map GLSL found no anchor. Empty is the expected state; anything
 // here means the injection is being dropped again, which is silent in every other respect.
@@ -46,6 +73,7 @@ export function injectFeatures(mat, rom, lit){
       mat.userData.u.uAlphaCut.value = 0;          // the texel's alpha stops here
     } else if (!lit){
       // the unlit class has no such uniform: drop the sampled alpha in the stock chunk instead
+      tagProgram(mat, 'alphaOpaque');
       chain(mat, sh => {
         sh.fragmentShader = sh.fragmentShader.replace(
           '#include <map_fragment>',
@@ -121,6 +149,7 @@ export function injectFeatures(mat, rom, lit){
     u.uExtXf   = u.uExtXf   || { value: new THREE.Vector4(m8[0] || 1, m8[5] || 1, m8[3] || 0, m8[7] || 0) };
     u.uExtView = u.uExtView || { value: uvName === 'UVViewNormal' ? 1 : 0 };
 
+    tagProgram(mat, 'extendMap');
     chain(mat, sh => {
       Object.assign(sh.uniforms, { uExtMap: u.uExtMap, uExtTint: u.uExtTint, uExtMode: u.uExtMode,
                                    uExtXf: u.uExtXf, uExtView: u.uExtView });
@@ -199,6 +228,7 @@ export function injectFeatures(mat, rom, lit){
     u.uSceneMap  = u.uSceneMap  || { value: null };
     u.uDistFac   = u.uDistFac   || { value: dz ? dz.factor : 0 };
     u.uDistBlend = u.uDistBlend || { value: dz ? dz.blend : 0 };
+    tagProgram(mat, 'refract');
     chain(mat, sh => {
       Object.assign(sh.uniforms, { uSceneMap: u.uSceneMap, uDistFac: u.uDistFac,
                                    uDistBlend: u.uDistBlend });

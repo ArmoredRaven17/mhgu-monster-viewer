@@ -877,6 +877,9 @@ export async function loadMonster(rec, opt, ctx){
       u.uDistBlend = { value: dz ? dz.blend : 0 };
       mat.userData.refract = true;
       refractMats.push(mat);
+      // must change the program cache key; see rom/shader.js
+      { const tags = (mat.userData.progTags || '') + '|refractUnlit';
+        mat.userData.progTags = tags; mat.customProgramCacheKey = () => tags; }
       const prevR = mat.onBeforeCompile;
       mat.onBeforeCompile = (sh) => {
         if (prevR) prevR(sh);
@@ -964,6 +967,9 @@ export async function loadMonster(rec, opt, ctx){
       // in the ROM material core, not a second injection point. A stopgap here would be deleted by
       // it. One of the 17 (em050_00 XfB__m03_add) is UVViewNormal and additionally needs a view
       // normal, which MeshBasicMaterial has no varying for -- another thing the lit path just has.
+      // must change the program cache key; see rom/shader.js
+      { const tags = (mat.userData.progTags || '') + '|extendMapUnlit';
+        mat.userData.progTags = tags; mat.customProgramCacheKey = () => tags; }
       const prev = mat.onBeforeCompile;
       mat.onBeforeCompile = (sh) => {
         if (prev) prev(sh);

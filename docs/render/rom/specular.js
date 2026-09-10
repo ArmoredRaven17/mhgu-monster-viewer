@@ -55,6 +55,16 @@ function chain(mat, fn){
   mat.onBeforeCompile = (sh, r) => { if (prev) prev(sh, r); fn(sh, r); };
   mat.needsUpdate = true;
 }
+// An onBeforeCompile edit is invisible to three.js's program cache key, so two materials with
+// matching parameters share one compiled program and the first to compile decides whose injected
+// GLSL everyone runs. See the full note in rom/shader.js. Every injection must tag the material.
+function tagProgram(mat, tag){
+  const tags = (mat.userData.progTags || '') + '|' + tag;
+  mat.userData.progTags = tags;
+  mat.customProgramCacheKey = () => tags;
+  mat.needsUpdate = true;
+}
+
 
 export function installRomSpecular(mat){
   if (!enabled) return mat;
@@ -63,6 +73,7 @@ export function installRomSpecular(mat){
   if (!u || !u.uF0) return mat;                 // needs material.js's uniforms to be present
   u.uRomSpecAmount = u.uRomSpecAmount || { value: 1 };
 
+  tagProgram(mat, 'romSpec');
   chain(mat, sh => {
     Object.assign(sh.uniforms, { uRomSpecAmount: u.uRomSpecAmount });
     let f = sh.fragmentShader;

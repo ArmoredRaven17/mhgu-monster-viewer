@@ -76,6 +76,16 @@ function chain(mat, fn){
   mat.onBeforeCompile = (sh, r) => { if (prev) prev(sh, r); fn(sh, r); };
   mat.needsUpdate = true;
 }
+// An onBeforeCompile edit is invisible to three.js's program cache key, so two materials with
+// matching parameters share one compiled program and the first to compile decides whose injected
+// GLSL everyone runs. See the full note in rom/shader.js. Every injection must tag the material.
+function tagProgram(mat, tag){
+  const tags = (mat.userData.progTags || '') + '|' + tag;
+  mat.userData.progTags = tags;
+  mat.customProgramCacheKey = () => tags;
+  mat.needsUpdate = true;
+}
+
 
 // Install on a LIT (MeshStandardMaterial) ROM-core material. The term lands in indirectDiffuse,
 // which is where an irradiance probe belongs in three.js's accumulation -- the same slot its own
@@ -102,6 +112,7 @@ export function installRomAmbient(mat){
   u.uSHCoef = { value: COEF.map(v => v.clone()) };
   u.uSHAmount = u.uSHAmount || { value: 1 };
   live.add(u.uSHCoef);
+  tagProgram(mat, 'shAmbient');
   chain(mat, sh => {
     Object.assign(sh.uniforms, { uSHCoef: u.uSHCoef, uSHAmount: u.uSHAmount });
     sh.fragmentShader = sh.fragmentShader

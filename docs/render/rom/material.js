@@ -417,6 +417,13 @@ function installCutoutSolid(mat){
   if (!u) return;
   u.uCutSolid = u.uCutSolid || { value: 1 };
   cutSolid.push(u.uCutSolid);
+  // three.js keys its program cache on the material's parameters alone, so this injection has to
+  // change the key or a material without it can hand this one its shader. See rom/shader.js.
+  {
+    const tags = (mat.userData.progTags || '') + '|cutoutSolid';
+    mat.userData.progTags = tags;
+    mat.customProgramCacheKey = () => tags;
+  }
   const prev = mat.onBeforeCompile;
   mat.onBeforeCompile = (sh, r) => {
     if (prev) prev(sh, r);
