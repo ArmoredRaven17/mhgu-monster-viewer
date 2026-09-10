@@ -282,10 +282,53 @@ than ROM readings (`__view.cutSolid`, `__view.clipFallback`).
 ### Diablos — pixelated textures
 > "Diablos, has pixelated textures; I've seen this issue on multiple monsters"
 
-**STATUS** open · **CAUSE** unknown, likely shared
+**STATUS** diagnosed, pipeline fixed, POOL NOT YET REGENERATED · **CAUSE** shared, 136 textures
 
-Not yet diagnosed. Rhymes with the Ukanlos report below, so treat the two together and census
-texture dimensions and filtering across the library before touching either.
+**Ruled out first.** The census the earlier note asked for was run 2026-09-09 and both easy
+theories are dead:
+
+* **Not a downscale.** Every shipped `.webp` was compared against the `.tex` header dimensions of
+  all 129 extracted monsters: 88 match exactly and the 5 that differ do so by carrying an extra or
+  missing texture, never by resolution. Diablos' three 512s are the wing maps, and the ROM ships
+  those at 512 too.
+* **Not filtering.** In the page: `minFilter` LinearMipmapLinear, `magFilter` Linear,
+  `generateMipmaps` true, anisotropy 16, WebGL2, UV repeat 1,1 offset 0,0.
+
+**The cause is `buildlib.stage_tex`'s WebP encode.** libwebp rewrites the colour of every
+fully-transparent texel — for an ordinary image that colour is invisible, so zeroing it compresses
+better. **MT's albedo alpha is not opacity, it is the GLOSS** the shader reads
+(`render/material.js`: `gGloss = texel.a` where the material binds no separate specular map). So the
+RGB under alpha 0 is fully visible and was being replaced with compression fill.
+
+Measured on Diablos' body albedo, the shipped file against the pipeline's own decoded DDS, split by
+the albedo's alpha:
+
+| alpha band | share | PSNR | bias |
+|---|---|---|---|
+| 250–255 | 1.1% | 31.9 dB | +0.55 |
+| 128–249 | 8.7% | 34.2 dB | +0.26 |
+| 32–127 | 26.9% | 35.5 dB | −0.08 |
+| 1–31 | 30.1% | 36.4 dB | −0.12 |
+| **0** | **33.1%** | **18.2 dB** | **+22.17** |
+
+A third of the hide's colour, replaced with fill, in patches following the gloss mask.
+
+**The fix is one flag**, `exact=True` on the WebP save. Same texture, re-encoded:
+
+    q90            alpha==0: PSNR 18.2 dB bias +22.13   alpha>0: 35.6 dB   all 22.8   896 KB
+    q90 + exact    alpha==0: PSNR 37.5 dB bias  +0.10   alpha>0: 35.7 dB   all 36.2   934 KB
+    lossless+exact                     99.0 dB                  99.0 dB    99.0      1648 KB
+
+4% for the whole thing back. Applied to `buildlib.py`.
+
+**136 of the 176 RGBA textures in the monster pool are affected** — 77% — several of them 100%
+transparent, i.e. their entire RGB is fill. 58.8 MB to re-encode, about +2.35 MB after. Among them
+is `tex/ecee39f1af579d49.webp` at 73.8%: **Khezu's vein map**, so this is very likely part of why
+its charged state is still not right.
+
+**THE POOL IS NOT REGENERATED YET.** `stage_tex` content-addresses by the source DDS, not by the
+encode, so a re-run is a no-op on anything already staged — the affected names have to be cleared
+from `docs/tex` first. That is a 136-file binary change and is Raven's call to make.
 
 ### Bloodbath Diablos — rage effect does not animate
 > "Bloodbath, the rage effect does not animate and I know we have animated it at one point"
