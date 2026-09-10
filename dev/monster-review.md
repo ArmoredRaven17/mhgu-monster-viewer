@@ -50,8 +50,15 @@ noticing, because so far almost nothing has.
   Raven: "might be difficult to deal with since they are a visual issue". PARKED at his call to
   make board-wide progress. Ruled out already: missing geometry, open geometry, the 20->30 part
   weld, cull/side mismatch, revsub. Untried: UV-island seam filtering (bilinear pulling in
-  neighbouring islands at low mips), mipmap/anisotropy settings, and the  ->
-  renderOrder mapping on coplanar overlays.
+  neighbouring islands at low mips), mipmap/anisotropy settings, and the `RSMeshBias` -> renderOrder
+  mapping on coplanar overlays.
+  **Raven, 2026-09-10: "verification for them will be almost entirely visual."** That is the
+  reason this is parked and not merely deferred. Every cause closed so far had a ROM-side or
+  framebuffer-side number to sit behind it - cause J had 4,596 background pixels. This residue
+  has none: it is thin, low-contrast and judged by eye, my visual verification is worth nothing
+  (standing instruction), and each attempt would cost Raven a look. So it is not worth spending
+  his attention one guess at a time. Pick it up only with either a measurable handle or several
+  candidate fixes ready to judge in ONE pass.
 * **Bloodbath Diablos** - rage regression; `clipPicker` already carries a fallback written for it
 * **Diablos / Ukanlos / Cephadrome** - texture quality; resolution RULED OUT, webp encode density is the live lead
 * **Old Fatalis** - chest effect when the chest break is on
