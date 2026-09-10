@@ -110,11 +110,27 @@ export function createRomMaterial(spec){
   //    separate alpha blend factors (ONE/ZERO/ADD) that neither app has ever set.
   applyRomState(mat, st);
 
-  // fAlbedoColor x fConstantColor where the feature word asks for the constant. The old chain
-  // applied this on the lit branch only, so 24 monster and 588 armour/weapon materials drew untinted.
+  // fAlbedoColor x fDiffuseColor x fConstantColor where the feature word asks for the constant. The
+  // old chain applied this on the lit branch only, so 24 monster and 588 armour/weapon materials
+  // drew untinted.
+  //
+  // fDiffuseColor WAS MISSING HERE. ../material.js has always folded CBMaterial's fDiffuseColor in
+  // (`gl.albedo[i] * cb.diffuse[i]`); this path read $Globals and forgot the constant buffer, so 113
+  // monster materials drew at full albedo where the ROM asks for less -- 81 opaque, 23 additive, 9
+  // blended, and 39 of them exactly BLACK.
+  //
+  // Black is the interesting half, because those are the layers whose whole output is meant to be
+  // the EMISSION: the eyes (em004, em005, em007 ...) and Tigrex's XfBA_A0__m01_angry, which ships
+  // fDiffuseColor 0,0,0 with fEmissionColor 1.42 and scrolls fUVTransform 0 -> 1 across 90 frames.
+  // Drawn with a white albedo the raw vein texture is ADDED on top of the emission and washes the
+  // structure out; with the ROM's black it contributes nothing and the emission alone lights the
+  // veins. Raven, 2026-09-10: "the albedo layers should be lighting up veins".
   if (gl && gl.albedo){
     const k = (feat && feat.albedo === 'MapConstant' && gl.constant) ? gl.constant : [1, 1, 1, 1];
-    mat.color.setRGB(gl.albedo[0] * k[0], gl.albedo[1] * k[1], gl.albedo[2] * k[2]);
+    const df = (cb && cb.diffuse) ? cb.diffuse : [1, 1, 1];
+    mat.color.setRGB(gl.albedo[0] * df[0] * k[0],
+                     gl.albedo[1] * df[1] * k[1],
+                     gl.albedo[2] * df[2] * k[2]);
   }
   if (cb && typeof cb.transparency === 'number' && cb.transparency < 1){
     mat.opacity = cb.transparency;
