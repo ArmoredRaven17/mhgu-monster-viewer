@@ -224,6 +224,55 @@ correction above restored.
 The Armor Viewer's copy of `material.js` carries the same assertion (`piece.js:194`, `:246`,
 `weapon.js:231`) and is untouched — logged on the task board.
 
+#### 2026-09-09, fourth pass — the emission fix above was half wrong, and the real cause found
+
+> "I still think Charged needs correcting, the veins appear as bright white and the effect is super
+> bright"
+
+The pass above read "FEmissionConstant" as meaning the TERM is constant. It does not — it says the
+**amount** comes from a constant rather than a texture, which is a statement about where the number
+is read, not about what it scales. Making the term flat took Khezu's emission from 0.89 white to a
+full 2.0 white, i.e. it made the reported symptom worse.
+
+**`emissiveFromMap` was never a multiplicand — it is a DEFINE CARRIER.** `applyTint`
+(`render/material.js:344`) *replaces* `#include <emissivemap_fragment>` with
+
+    #ifdef USE_EMISSIVEMAP
+      totalEmissiveRadiance *= gBase;
+    #endif
+
+so the stock chunk that samples an emissive map never runs and the texture is never read as a
+texture at all. Setting `emissiveMap` exists solely to make three.js define `USE_EMISSIVEMAP`, which
+is the only thing that switches the `*= gBase` on. Removing it removed the multiply by the ALBEDO.
+
+**The real cause, and it predates today: `gBase` is only ever the FIRST map.** `applyTint` sets
+`gBase = base` inside its `<map_fragment>` block, and the ROM core's two-map combine
+(`rom/shader.js`) runs *after* that and touched only `diffuseColor.rgb`. So on the 20 materials that
+carry a second map, the emission was scaled by half the albedo. Measured off Khezu's own textures:
+
+| | R | G | B |
+|---|---|---|---|
+| `fEmissionColor` (from the .mrl, $Globals float 48) | 2.0 | 2.0 | 2.0 |
+| base map, alpha-weighted | 0.445 | 0.446 | 0.444 |
+| blend map (`tAlbedoBlendMap`) | 0.075 | 0.257 | 0.232 |
+| albedo after the modulate | 0.033 | 0.115 | 0.103 |
+| **emission now** | **0.067** | **0.229** | **0.206** |
+| emission before today (base map only) | 0.890 | 0.892 | 0.888 |
+| emission after the flat change | 2.0 | 2.0 | 2.0 |
+
+The base map is achromatic and the blend map is the teal — so scaled by the base map alone the glow
+is white at 0.89, and flat it is white at 2.0. Scaled by the albedo the material actually computes
+it is teal at about a quarter of that. Two things in the shipped data say the scale is right:
+Khezu's constant is WHITE and the highest of the 198, which only makes sense if the colour comes
+from what it scales; and authors who want a coloured glow put the colour in `fEmissionColor` and do
+(Zinogre `m03_effect` (0.2, 0.8, 0.8), Astalos `wing_taiden` (0.75, 0.925, 0.575), Amatsu
+`horn_add` (1.0, 0.615, 0.2)).
+
+**STILL UNREAD:** the exact combine in the shader. `AppShaderPackage.spkg` holds compiled binaries
+with no identifiers and the `.mfx` feature body is an operation stream this repo has no decoder for.
+Scaling the albedo is the shape `applyTint` already implemented; what changed is only that the
+albedo reaching it was half of one.
+
 ### Diablos — pixelated textures
 > "Diablos, has pixelated textures; I've seen this issue on multiple monsters"
 

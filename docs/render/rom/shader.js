@@ -154,11 +154,22 @@ export function injectFeatures(mat, rom, lit){
           // `tmp1 | tmp2 | $Globals.fAlbedoBlendColor | .a | LERP/3`
           '\t  if ( uExtMode > 2.5 ) {\n' +
           '\t    diffuseColor.rgb = mix( diffuseColor.rgb, ext.rgb, uExtTint.a );\n' +
+          '\t    gBase = mix( gBase, ext.rgb, uExtTint.a );\n' +
           '\t  } else {\n' +
           '\t    ext.rgb *= uExtTint.rgb;\n' +
           // the ROM saturates the Add, via intrinsic 57 (arity 1) sitting on the ADD's result
           '\t    diffuseColor.rgb = uExtMode > 1.5 ? clamp( diffuseColor.rgb + ext.rgb, 0.0, 1.0 )\n' +
           '\t                                      : diffuseColor.rgb * ext.rgb;\n' +
+          // gBase IS THE ALBEDO THE EMISSION SCALES, so the second map has to reach it too.
+          // applyTint sets `gBase = base` inside <map_fragment> -- the FIRST map alone -- and this
+          // block runs after it, so on a two-map material the emission was scaled by half the
+          // albedo. On Khezu's charged vein layer that is the difference between the teal the blend
+          // map carries and the achromatic 0.7 of the base map: fEmissionColor is (2,2,2), WHITE,
+          // and the highest of the 198 monster materials that ship one, so scaled by the base map
+          // alone it lands at 1.4 white and swamps the teal the two maps exist to produce. Raven,
+          // 2026-09-09: "the veins appear as bright white and the effect is super bright". 20
+          // materials carry a second map and every one of them was affected.
+          '\t    gBase = uExtMode > 1.5 ? clamp( gBase + ext.rgb, 0.0, 1.0 ) : gBase * ext.rgb;\n' +
           '\t  } }';
       sh.fragmentShader = sh.fragmentShader
         .replace('void main() {',

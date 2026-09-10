@@ -131,31 +131,56 @@ export function createRomMaterial(spec){
   // the ROM's own technique is unlit, so there is nowhere for it to go there -- that is the ROM's
   // answer, not a gap.
   //
-  // A CONSTANT, AND NOTHING TIMES IT. `emissiveFromMap` used to be set here, which handed the
-  // ALBEDO texture to three.js as emissiveMap and made the term `constant x albedoTexel`. Nothing
-  // read that out of the ROM; it was asserted. The shader package refutes it -- the emission family
-  // has its own map variant and its own texture slot:
+  // WHERE THE AMOUNT COMES FROM, and it is not a texture. The emission family carries its own map
+  // variant with its own texture slot, so the ROM states the difference outright:
   //
   //     FEmissionMap        idx 1515, with tEmissionMap (904), SSEmissionMap (568),
   //                         FUVEmissionMap (1510) and FChannelEmissionMap (1511)
   //     FEmissionConstant   idx 1513, declared float3, 放射量を定数で指定
   //                         -- "specify the emission amount by a constant"
   //
-  // A material that wanted a map-driven emission would select FEmissionMap and bind tEmissionMap.
-  // Across all 570 monster materials the only emission feature named is Constant, and NONE of the
-  // 198 with a non-zero emission binds a tEmissionMap. So the ROM's term is the constant, flat.
+  // A material wanting a map-driven emission selects FEmissionMap and binds tEmissionMap. Across
+  // all 570 monster materials the only emission feature named is Constant, and NONE of the 198 with
+  // a non-zero emission binds a tEmissionMap. fEmissionColor is read straight from the .mrl at
+  // $Globals float 48 -- (2,2,2) on Khezu's m04__taiden, checked against the file.
   //
-  // What shapes it on a blended layer is the ALPHA, not the albedo: the ROM's source factor is
-  // SRC_ALPHA, so the GPU multiplies the whole fragment -- emission included -- by the texel's
-  // alpha at blend time. That is the vein network doing the shaping, which is the same gate the
-  // cut-out-solid correction above restored. Raven, 2026-09-09: "we want things to be as close to
-  // how the ROM does it as possible".
+  // THAT SAYS WHERE THE AMOUNT COMES FROM, NOT WHAT IT SCALES, and I read it as the latter earlier
+  // today and made the term flat. That was wrong and it is what Raven then saw: "the veins appear
+  // as bright white and the effect is super bright". The amount being a constant does not make the
+  // TERM constant -- applyTint has always scaled it by gBase, the material's albedo, and the flag
+  // below is what switches that on. Two things in the shipped data say the scale is right:
   //
-  // The legacy createMaterial path in ../material.js still sets the flag. That module is shared
+  //   * Khezu's is (2,2,2) -- WHITE, and the highest emission of the 198. Added flat it erases the
+  //     teal its second map exists to produce. Scaled by the albedo it IS that teal, boosted.
+  //   * Authors who want a coloured glow put the colour in fEmissionColor and do: Zinogre's
+  //     m03_effect (0.2, 0.8, 0.8), Astalos' wing_taiden (0.75, 0.925, 0.575), Amatsu's horn_add
+  //     (1.0, 0.615, 0.2). Khezu's author wrote white, so the colour comes from what it scales.
+  //
+  // WHAT THE COMBINE IS EXACTLY IS STILL UNREAD. The compiled shaders in AppShaderPackage.spkg are
+  // binaries with no identifiers and the .mfx feature body is an operation stream this repo has no
+  // decoder for. Scaling the albedo is the shape applyTint already implemented; what this file
+  // fixes is only that the albedo reaching it was half of one -- see the gBase note in shader.js.
+  //
+  // The legacy createMaterial path in ../material.js sets the same flag. That module is shared
   // with the Armor Viewer and the monster app does not edit it; its path is the pre-rewrite A/B
   // baseline and is reached only with the ROM core switched off.
-  if (lit && gl && gl.emission && (gl.emission[0] + gl.emission[1] + gl.emission[2]) > 0)
+  if (lit && gl && gl.emission && (gl.emission[0] + gl.emission[1] + gl.emission[2]) > 0){
     mat.emissive.setRGB(gl.emission[0], gl.emission[1], gl.emission[2]);
+    // emissiveFromMap IS A DEFINE CARRIER, NOT A MULTIPLICAND, and I removed it earlier today on
+    // exactly that misreading. applyTint REPLACES `#include <emissivemap_fragment>` with
+    //
+    //     #ifdef USE_EMISSIVEMAP
+    //       totalEmissiveRadiance *= gBase;
+    //     #endif
+    //
+    // so the stock chunk that samples the emissive map never runs -- the map is never read as a
+    // texture at all. What the flag does is make three.js define USE_EMISSIVEMAP, which is the only
+    // thing that switches the `*= gBase` on. Dropping it did not remove a multiply by the albedo
+    // texture; it removed the multiply by the ALBEDO, leaving fEmissionColor to be added flat.
+    // On Khezu's charge that took a 2.0 WHITE constant from 1.4 white to a full 2.0 white, which is
+    // Raven, 2026-09-09: "the veins appear as bright white and the effect is super bright".
+    mat.userData.emissiveFromMap = true;
+  }
   // SHININESS. The ROM uses $Globals.fShininess directly as the Blinn-Phong exponent in
   // `pow( max(N.H, k), MC.shininess )`. On the Phong class it therefore goes straight in, with no
   // conversion at all -- that is the translation.
