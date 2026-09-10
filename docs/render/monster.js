@@ -231,6 +231,15 @@ export const DEFAULT_PARTS_ON = {
   em032_00: { calm: [0, 100, 1, 5, 7, 8, 101],        // g0 g2 g5 g7 g9 g11
               rage: [0, 4, 100, 2, 5, 7, 8, 101] },   // g1 g3, the rest as calm
 
+  // Raven, 2026-09-10, screenshot: "Grimclaw's default parts" -- on 0, 20, 100 / off 30, 31;
+  // on 1 / off 3; on 5 / off 6; on 7 / off 9; on 8, 28 / off 10, 38; on 101 / off 15.
+  //
+  // The RAGE list is what ROM_RAGE_SET's own rage sets draw -- [[0, 1], [9, 10]] for this monster,
+  // so set 1 is g1 (20 off, 30 and 31 on) and set 10 is g10 (28 off, 38 on). Writing it out rather
+  // than truncating it keeps the two agreeing instead of fighting, and lets the panel work out the
+  // owned parts from the pair of lists as well as from the ROM.
+  em032_04: { calm: [0, 20, 100, 1, 5, 7, 8, 28, 101],        // g0 g2 g5 g7 g9  g12
+              rage: [0, 30, 31, 100, 1, 5, 7, 8, 38, 101] },  // g1 g2 g5 g7 g10 g12
   em001_00: [101],   // Rathian
   em001_02: [101],   // Gold Rathian
   em001_04: [101],   // Dreadqueen Rathian
@@ -238,6 +247,23 @@ export const DEFAULT_PARTS_ON = {
   em002_02: [101],   // Silver Rathalos
   em002_04: [101],   // Dreadking Rathalos
 };
+// THE PARTS THE ROM ITSELF SWITCHES ON RAGE, read from ROM_RAGE_SET rather than hand-listed.
+// Raven, 2026-09-10: "Ideally, if we can let the ROM tell us how to handle enraged states, that is
+// what we will want." Grimclaw is the case where it can: its pairs are [0, 1] and [9, 10], and the
+// parts that differ between each pair's calm and rage set ARE the enrage parts -- 20, 30, 31 from
+// the first and 28, 38 from the second. Nothing needs listing by hand.
+export function romRageParts(monId, groups){
+  const pairs = ROM_RAGE_SET[monId];
+  if (!pairs || !groups) return [];
+  const out = new Set();
+  for (const [calmSet, rageSet] of pairs){
+    const a = new Map((groups[calmSet] || []).map(e => [e[0], !!e[1]]));
+    const b = new Map((groups[rageSet] || []).map(e => [e[0], !!e[1]]));
+    for (const p of new Set([...a.keys(), ...b.keys()]))
+      if (a.get(p) !== b.get(p)) out.add(p);
+  }
+  return [...out];
+}
 // A monster's forced-on list for the state it is in. An entry is a plain array (both states) or
 // { calm, rage }; a missing rage list falls back to calm, so naming only one state is fine.
 export function defaultPartsOn(id, rage){

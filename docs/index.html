@@ -1039,7 +1039,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          partVerts, partsDrawn, applyParts, groupLabel, groupIsInert, setNormalOpt,
          DEFAULT_PARTS_OFF, DEFAULT_PARTS_ON, defaultPartsOn, ROM_RAGE_SET, setRestSets, stepRefract,
          hasChargeState, applyMaterialSwap, rageLadder, rageLadderParts,
-         clusterChoices, ladderVariant, groupLabelWithout,
+         clusterChoices, ladderVariant, groupLabelWithout, romRageParts,
          setUndefinedMaterialVisible, setExtendVisible, extendCount,
          applyHeatmap, clearHeatmap, applyFlat, parseZones, heatColor, EXTRACT_RGB,
          setCutoutSolid, cutoutSolidCount, cutoutAnchorMisses,
@@ -2096,9 +2096,23 @@ function buildGroups(){
       // "on 102 / off 2" and "on 2 / off 102", and whether 32 draws is the Rage select's business.
       // Raven, 2026-09-10: "if the option has multiple choices, we will want to keep the drop down".
       const sp = stateParts();
-      const opts = isLadder
+      let opts = isLadder
         ? clusterChoices(groups, c.members, sp).map(ms => ({ rep: ms[0], members: ms }))
         : c.members.map(k => ({ rep: k, members: [k] }));
+      // IDENTICAL GROUPS ARE ONE CHOICE. Grimclaw's g2 and g3 are both [[1,true],[3,false]] -- the
+      // same row twice, where Tigrex's equivalent slot holds its part-2 head. Grimclaw has no part
+      // 2 at all (its partIds run 0 1 3 5 6 7 8 9 10 15 20 28 30 31 38 101), so this is a real
+      // duplicate in the data rather than something lost, and offering it twice says nothing.
+      {
+        const seenKey = new Map();
+        const merged = [];
+        for (const o of opts){
+          const k = (groups[o.rep] || []).map(e => e[0] + ':' + (e[1] ? 1 : 0)).sort().join(',');
+          if (seenKey.has(k)){ seenKey.get(k).members.push(...o.members); continue; }
+          seenKey.set(k, o); merged.push(o);
+        }
+        opts = merged;
+      }
       const labelOf = o => (isLadder ? groupLabelWithout(groups[o.rep], sp)
                                      : groupLabel(groups[o.rep])) + stateSuffix(o.rep);
       // WHICH VARIANT OF A CHOICE APPLIES is the state's business, not the user's. Match the owned
@@ -2777,11 +2791,27 @@ function forcedOn(id){
 // what rage ADDS would leave 1 behind and split the head cluster into two confusing choices.
 function stateParts(){
   if (ladderParts.length) return ladderParts;
+  const e = entry();
+  const out = new Set();
+  // THE ROM'S OWN ANSWER FIRST. Where ROM_RAGE_SET covers the monster, the parts that differ
+  // between a pair's calm and rage set ARE the enrage parts -- Grimclaw's 20, 30, 31, 28, 38 come
+  // from there and are listed nowhere by hand.
+  //
+  // A per-state list must then AGREE with the ROM rather than omit what it covers: a truncated rage
+  // list makes the symmetric difference meaningless, which briefly called parts 0, 8, 100 and 20
+  // "owned" on Grimclaw and swallowed its 8-vs-10 break choice.
+  for (const p of romRageParts(state.id, (e && e.groups) || [])) out.add(p);
+  // AND the hand-supplied ones, because the ROM does not always cover everything a monster does:
+  // Tigrex is in ROM_RAGE_SET for parts 4, 8 and 10, but its head swapping 1 -> 2 when enraged is
+  // in neither pair and comes only from the panels Raven sent. A union, so each covers the other.
   const dpo = DEFAULT_PARTS_ON[state.id];
-  if (!dpo || Array.isArray(dpo) || !dpo.rage) return [];
-  const calm = dpo.calm || [], rage = dpo.rage || [];
-  const cs = new Set(calm), rs = new Set(rage);
-  return calm.filter(p => !rs.has(p)).concat(rage.filter(p => !cs.has(p)));
+  if (dpo && !Array.isArray(dpo) && dpo.rage){
+    const calm = dpo.calm || [], rage = dpo.rage || [];
+    const cs = new Set(calm), rs = new Set(rage);
+    for (const p of calm) if (!rs.has(p)) out.add(p);
+    for (const p of rage) if (!cs.has(p)) out.add(p);
+  }
+  return [...out];
 }
 // A cluster the state control decides does not offer those parts in the Parts panel. Showing them
 // would offer a choice the toggle immediately overrides -- and, before the toggle existed at all on
