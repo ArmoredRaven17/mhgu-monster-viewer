@@ -3373,3 +3373,49 @@ skeleton (identical rest on all 101 bones), the weights (no root, no repeated sl
 material texture swap (the Angry albedo is the same UV layout, just lava-glow -- so the rage swap
 is correct), and the geometry itself (in the head bone's own local frame Crimson tracks Fatalis to
 4.009 vs 3.988).
+
+### Correction (same day): it does NOT move more. It is static, and the head turning reveals it.
+
+Raven: "I find it strange that Crimson's snout somehow moves more, but everything else is fine."
+Right to push -- the "emerges as the face deforms" wording above overstates it. Measured in the
+head bone's OWN frame, displacement from bind over Motion[3]:
+
+    Group[4]#0 / Group[5]#0 / Group[7]#0 / Group[102]#0 / Group[102]#1
+        crimson 0.000   fatalis 0.000      -- perfectly rigid, both models
+    Group[3]#0   crimson 0.359  fatalis 0.359
+    head skin    crimson 0.877  fatalis 0.905
+
+**Nothing moves differently.** The overlays are rigid on `22:3_s` on both monsters and the head
+skin deforms by the same amount on both. At BIND, before any animation, Crimson already shows
+3,767 excess pixels against Fatalis from the same camera (96.2% overlap), part 102 being 2,783 of
+them. So the defect is STATIC; the clip only rotates the head until it faces the camera.
+
+### Why it is Crimson and why it is the snout: the overlay is authored proud, and prouder here
+
+Signed distance OUTSIDE the head surface at bind, along the head mesh's own authored normals:
+
+    primitive       crimson max/mean        fatalis max/mean
+    Group[4]#0      1.875 / +0.518          0.796 / +0.286     <- 2.4x
+    Group[5]#0      1.124 / +0.255          0.559 / +0.204     <- 2.0x
+    Group[102]#0    1.245 / +0.162          0.527 / +0.137     <- 2.4x
+    Group[3]#0      0.139 / -0.002          0.129 / -0.005        same
+    Group[7]#0      0.177 / -0.032          0.172 / -0.032        same, and INSIDE the surface
+
+And in the raw quantised positions, which is the .mod exactly:
+
+    Group[7]#0    crimson x 13007..14361  y 5411..5880  z 27784..28570
+                  fatalis x 13007..14361  y 5411..5880  z 27784..28570   IDENTICAL to the integer
+    Group[4]#0    crimson x 12740..15115
+                  fatalis x 12740..14481    same minimum, 634 units further to the monster's +x
+
+`romcheck.py`: all three .mod files byte-identical to the ROM archive, so this is authored, not a
+conversion defect.
+
+**So the answer to "why only Crimson, why only the snout":** the wrong default is on all three
+Fatalis equally -- the head cluster has no ROM entry and falls through to group[3], drawing parts 4
+and 102. Part 7, the alternate, is the same mesh in both models and sits INSIDE the head surface
+(mean -0.032), which is why no other state shows anything. Parts 4/5/102 are authored to sit
+outside the surface on both, but Crimson's sit 2.4x further out and reach 634 units further to one
+side -- so the identical mistake breaks the silhouette on Crimson and stays buried on Fatalis.
+That is also why it is only the snout: those are the only meshes rigidly bound to `3_s` that sit
+outside the skin at all.
