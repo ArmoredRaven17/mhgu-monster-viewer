@@ -487,6 +487,36 @@ export const ROM_RAGE_SET = {
 export const ROM_SPAWN_CLIP = {
   em043_05: { XfB__m02_body_k: 'Angry_Start' },   // Savage Deviljho: eyes and body glow, always lit
 };
+// CLIPS SUPPRESSED FOR THE VIEWER. An AUTHORED deviation from the ROM, and the only one in the
+// clip path, so it is named rather than hidden inside a rule.
+//
+// Raven, 2026-09-11: "while I want things to be as close to the ROM as possible, we don't need to
+// keep the wing clip. It looks off in our app, in game it might have a purpose or be handled
+// differently."
+//
+// WHAT IT STANDS IN FOR. Crimson Fatalis's rage exit is two stages in the ROM -- Angry_End_01 fades
+// the emission on the angry texture, then Angry_End_02 swaps the texture back -- and only
+// `XfBAN__E0__m50_wing` also carries a single combined `Angry_End` (60 frames) that does both. Its
+// keys are emission (0.2,0.2,0.2) at frame 0, (0.1,0.1,0.1) at 29, **(0.6,0.3,0.0) at 30** and
+// (0,0,0) at 60, with the texture switching 13 -> 11 on that same frame 30. So the orange flash is
+// the ROM's own, but the viewer plays it on the WING ALONE: CALM_CLIPS matches `Angry_End`
+// exactly, and the body, leg and body_alpha materials have no clip by that name, so they take the
+// two-stage path and never flash. One layer flashing orange while the rest of the monster does not
+// is not what the game does either -- it is an artefact of matching by name across a set whose
+// members are named inconsistently.
+//
+// The honest fix is to drive the _01/_02 pair as the ROM's state machine does, on every material
+// at once. Until that is read, this suppresses the odd one out rather than showing a flash on one
+// wing. Keyed by monster and material NAME; the clip stays in the data and the index ladder is
+// unaffected, because suppression blanks the NAME only.
+export const SUPPRESS_CLIP = {
+  em013_01: { XfBAN__E0__m50_wing: ['Angry_End'] },   // Crimson Fatalis: the lone combined exit
+};
+function suppressedFor(monId, matName){
+  const t = monId && SUPPRESS_CLIP[monId];
+  const names = t && matName && t[matName];
+  return names ? new Set(names.map(n => String(n).toLowerCase())) : null;
+}
 // The UNDAMAGED sets, per monster, loaded from docs/part-rest.json. THIS IS WHAT KEEPS PART BREAKS
 // OFF. Raven, 2026-09-07: "we don't want ALL parts ON because some parts are part breaks, they
 // replace the base part by flipping the base part off and turning the part break part on."
@@ -1599,6 +1629,11 @@ function clipPicker(state, monId, tState, prev, levelClip){
   const pin = (monId && ROM_SPAWN_CLIP[monId]) || null;
   const timed = typeof tState === 'number';
   return (clips, rom, tSec) => {
+    // A SUPPRESSED clip keeps its slot and loses only its NAME, so every name-matched route below
+    // skips it while `auto`, the index ladder and stepMaterialAnim's own indexing are untouched.
+    const ban = suppressedFor(monId, rom && rom.name);
+    if (ban) clips = clips.map(c =>
+      (c && typeof c.name === 'string' && ban.has(c.name.toLowerCase())) ? { ...c, name: null } : c);
     let ci = -1;
     // A SPAWN-PINNED material ignores the rage state entirely -- see ROM_SPAWN_CLIP.
     if (pin && rom.name && pin[rom.name])
