@@ -512,6 +512,157 @@ also have no auto clip, so nothing can ever be selected:
 2. AUTHORED - which of the pair is which charge state, and which part groups are on in each. Same
    standing as the enrage toggle: the ROM reaches these through an AI state, so it is Raven's to
    decide, and it is what his note about "tuning on and off multiple part groups" describes.
+#### 2026-09-11 - the ROM answers it: the clips are selected BY INDEX, and the colours are green and cyan
+
+> Raven: "Review Boltreaver's effects, I don't see Green or Cyan coloring"
+
+His two colours ARE the two clips. Read out of `em081_04.mrl` directly, in file order, identical on
+all four taiden materials:
+
+| clip index | hash | `fConstantColor` RGB | |
+|---|---|---|---|
+| **0** | 668876438 | 0.32, 1.00, 0.20 | **green** |
+| **1** | 3084603398 | 0.20, 1.00, 1.00 | **cyan** |
+
+Both are 30 frames, `loop = 1`, `auto = 0`, and both carry the same alpha pulse
+(0.75, 1.0, 0.75, 0.85, 0.75, 0.95, 0.75). `XfBAN__E1_wing_taiden` carries the matching
+`fEmissionColor` / `fSpecularColor` / `fReflectiveColor` triples instead of `fConstantColor`.
+
+**The open question in the entry above is closed.** It offered three ways to reach an unnamed clip
+-- "by hash, or by index, or by resolving the two hashes" -- and the ROM uses the second. Neither
+hash appears anywhere in the binary as a literal, `uEm081_00` never calls `findMatClipByName`
+(0xb08b44) at all, and the selection is a bare index:
+
+    0101924c  mov  r1, #0          ; slot 0
+    01019250  mov  r2, #1          ; CLIP INDEX 1  -> cyan
+    010192c8  bl   0xb09ae8        ; setMatClip
+
+    010192c0  mov  r1, #0          ; slot 0
+    010192c4  mov  r2, #0          ; CLIP INDEX 0  -> green
+    010192c8  bl   0xb09ae8
+
+`0xb0cff0` reads the index currently in a slot and the code skips the call when it already matches.
+
+Boltreaver has NO class of its own -- `em081_04` runs `uEm081_00`, so base Astalos and Boltreaver
+share this code and differ only in the `.mrl`. Base Astalos's `XfBA2_taiden` carries ONE clip, hash
+836608300, white with only the alpha pulsing, and `auto = 1`, so it selects itself. Boltreaver's
+four carry the green/cyan pair with `auto = 0`.
+
+**Three parallel state machines**, one per charged region, each a 5-case jump table on its own byte,
+each driving its own cached material-anim object:
+
+| dispatcher | state byte | anim object(s) |
+|---|---|---|
+| A | `enemy+0xcb01` | `enemy+0xcb30` |
+| B | `enemy+0xcb02` | `enemy+0xcb34`, `enemy+0xcb38` |
+| C | `enemy+0xcb03` | (unread; `enemy+0xcb3c` is the fourth cached object) |
+
+The objects are cached at spawn (0x1011570-0x1011608) by the material number in
+`material+0x18 >> 22`, the same idiom as Khezu: 30 -> `0xcb30`, 32 -> `0xcb3c`, 33 -> `0xcb34`,
+36 -> `0xcb38`; numbers 31, 34 and 35 are deliberately not cached.
+
+Dispatcher A, read in full, with the `.mpm` groups each case applies:
+
+| state | setVisibleGroup | parts drawn | material clip |
+|---|---|---|---|
+| 0 | g3 / g4 | 20 / 30 | `clearAllSlots` - **off** |
+| 1 | g5 / g6 | 20,31,40 / 30,31,51 | `clearAllSlots` - **off** |
+| 2 | g7 / g8 | 20,41,50 / 30,41,101 | **clip 0 - green** |
+| 3 | g33 / g34 | 20,31,40,41,50 / 30,51,101 | **clip 0 - green** |
+| 4 | g7 / g8 | 20,41,50 / 30,41,101 | **clip 1 - cyan** |
+
+The `cmp r5,r6 / movwls` inside each case picks between the two group variants on a break level, so
+every charge stage has an intact and a broken form. Green is the lower charge and cyan the full one.
+This is exactly the shape of Raven's original note -- "charge states ... tuning on and off multiple
+part groups for each charge state" - now with the groups named.
+
+#### Why nothing is coloured on screen today
+
+Not the clip data and not the renderer. `fConstantColor` is applied on both the additive and the
+unlit Constant / ConstantFog paths (`render/material.js:880`, `render/rom/material.js:160`). The
+cause is that **nothing selects a clip at all**:
+
+* `clipPicker` matches by NAME -- both clips have `name: null`;
+* its `auto` fallback needs the load-time bit -- both have `auto = 0`;
+* the general last-resort loop fallback would pick one, but it is **default OFF**:
+  `let clipFallback = false` (`render/monster.js:1397`).
+
+So both materials sit on their shipped static `fConstantColor`, which is white. The fallback was
+left off for a stated reason -- Valstrax's `Loop` drives `fConstantColor` to BLACK, so "the
+sustained loop" is that material's OFF state, and the comment says the choice "is Raven's to make
+per material, not mine to guess library-wide". **That is no longer a guess for this monster:** the
+ROM names the index per charge state.
+
+Worth knowing alongside it: `part-rest.json` gives em081_04 no rest `sets` and `defaultSet 2`, and
+g2 is `on [52] / off [1, 2]` -- it touches nothing in the taiden family. Since the engine starts
+with every group drawn, Boltreaver currently draws EVERY charge-effect mesh at once (10, 20, 30,
+31, 40, 41, 50, 51, 101), all on the static white. Fixing the colour without the groups would make
+all of them green rather than one stage.
+
+**NOT ACTED ON.** The clip-by-index selection is mine to wire; the per-state part groups are the
+parts agent's table, and `render/monster.js` has their uncommitted changes in it right now.
+
+**Blocked, and worth fixing separately:** `arm32pic.py` and `build-matanim.py` both hardcode
+`C:\MHGU-Extract\exefs\`, which does not exist -- the ROM is at `C:\MHGU-ROM\exefs\`. Two
+build scripts could not be run this session because of it.
+
+#### PATCHED 2026-09-11 - `ROM_CLIP_LADDER`, selection by clip index
+
+> Raven: "Proceed with patching Boltreaver's coloration"
+
+Colour only. The per-charge-state PART groups are a separate change and are not made here.
+
+All of it is in `render/monster.js`; `index.html` is untouched, which matters because the parts
+agent has uncommitted work in that file.
+
+* **`ROM_CLIP_LADDER`** - a per-monster table naming, per material, the rungs the ROM addresses by
+  index. One entry: em081_04's four charge materials, rung `#0` Green and rung `#1` Cyan. Labels
+  are the DATA -- each rung is named for the colour its own clip writes -- and `part-review.json`'s
+  `rage` map renames them if different words are wanted.
+* **`rageLadder(root)`** falls back to that table only when the NAME-derived ladder came out empty,
+  so a named ladder can never be displaced by it.
+* **`clipPicker`** resolves a `#N` rung as a clip INDEX, and only on the materials the table lists.
+  Everything else falls through unchanged -- `XfB__A1_tikuden` carries its own auto-play UV scroll
+  and must not be dragged onto a charge colour.
+* **`loadMonster`** stashes `root.userData.monId`, so the ladder builder can reach the id without
+  `index.html` having to thread it in.
+
+The clip array the picker indexes is `rom.anim`, which `build-matanim.py` fills in .mrl FILE ORDER,
+so N here is the same N the ROM passes to setMatClip. Verified against the .mrl directly rather
+than assumed.
+
+**Verified by reading material values back out of the running app**, not by looking at it, and with
+both controls the Grimclaw lesson asks for -- one that changes nothing and must read 0, one that
+changes something known and must read large:
+
+| material | rung 0 (No Rage) | rung 1 (Green) | rung 2 (Cyan) |
+|---|---|---|---|
+| `XfBA2_taiden_head` `.color` | 1, 1, 1 | **0.32, 1, 0.2** | **0.2, 1, 1** |
+| `XfBA2_taiden_crow` `.color` | 1, 1, 1 | **0.32, 1, 0.2** | **0.2, 1, 1** |
+| `XfBA2_taiden_tale` `.color` | 1, 1, 1 | **0.32, 1, 0.2** | **0.2, 1, 1** |
+| `XfBAN__E1_wing_taiden` `.emissive` | 0.75, 0.925, 0.575 | **0.32, 1, 0.2** | **0.2, 1, 1** |
+| CONTROL `XfB__A1_tikuden` | 0.75,0.75,0.25 / em 0.5,0.5,0.5 | unchanged | unchanged |
+| CONTROL `XfB_N__E_m00_body` | 1,1,1 / em 0,0,0 | unchanged | unchanged |
+
+The values match the .mrl keys exactly. Returning to rung 0 restores every material to its base,
+including the wing's authored emissive -- the change is reversible, which is the ROM's
+`clearAllSlots` state.
+
+Driven through the app's OWN `levelClip()` (via `__view.clipFallback`, which re-steps with it), so
+the whole live chain is covered: select value -> `state.rageLevel` -> `levelClip()` -> `clipPicker`
+-> material. The rAF loop itself could not be exercised -- the Browser pane is hidden, which
+suspends `requestAnimationFrame`, so `renderer.info.render.frame` never advances and the tikuden UV
+scroll does not move either. That is environmental; the loop calls `stepMatAnim` with `levelClip()`
+every frame (`index.html:3983`), which is the call that was driven directly.
+
+No regression on the name-derived ladders: Bloodbath Diablos still reads Calm / Building / Full,
+Chaotic Gore Magala still reads No Rage / Level 1 / Level 2 / Level 3 / Max, and Rathian still has
+no ladder row at all.
+
+**STILL OPEN:** the parts half. `part-rest.json` gives em081_04 no rest sets, so every charge-effect
+mesh is drawn at once and picking a rung colours ALL of them rather than lighting one stage. The
+ROM's per-state group sets are in the table above (g3..g8, g33, g34).
+
 ### Savage Deviljho (em043_05) - enrage still incomplete, and the effect went blobby
 > "Savage, enrage effects are still incomplete, I also think the effect we have currently is
 > rendered more loosely than I've seen it rendered. It looks more like a blob now compared to
@@ -2315,3 +2466,150 @@ measured, not inferred - but it no longer claims to explain what he is still loo
 The `m60_angry_arm` darkening above is unchanged by this fix and remains faithful to the ROM's own
 numbers. If seams persist after Raven looks again, that layer is the next thing to question - but
 it is authored, not a defect, on everything measured so far.
+
+### Kecha Wacha (em065_00) - ears merge into each other; no folded-ear part
+> "Kecha Wacha's ears meshes are combining into each other. It also does not seem to have a part
+> to show the ears folded over his face."
+
+**STATUS** first half FIXED (it was mine), second half ANSWERED - no such part exists
+**CAUSE** H (my regression) for the merging; the fold is motion data, not a visibility group
+
+#### The merging was the weld
+
+`weld-seam-skins.py` elects one canonical binding per coincident seam vertex. On em065_00 it
+replaced the ENTIRE binding of 2 of the 68 vertices on the visible ear mesh, moving them by more
+than 25% of their weight - so the two ear meshes pulled toward each other. The parts system was
+never drawing two ears at once: with ancestor visibility resolved, only `Group5` draws;
+`Group103_1`, `Group103_2` and `Group12` are hidden.
+
+Fixed by restoring all 107 models to pre-weld (`git checkout 56a1dcd -- docs/models/monsters/`),
+adding a `--max-shift` cap (default 0.25) that leaves a disagreeing copy alone rather than
+rewriting it, and re-welding. 106 models, 33,523 vertices rewritten, 407 copies left alone, 0
+vertices still over 25%. em065_00's ear meshes: `Group[5]#0` 2 rewritten / max 0.102,
+`Group[103]#0` 1 / 0.008, `Group[12]#0` 2 / 0.008, `Group[13]#0` 5 / 0.239.
+
+Cost of the cap, from the sweep: same-part mismatched pairs 21,152 -> 298, models whose seams open
+74 -> 22, and em065_00 itself at 0 mismatched.
+
+#### There is no folded-ear part, and the ROM says so directly
+
+`uEm065_00` (band 0xf48f20..0xf56698) makes exactly EIGHT `setVisibleGroup` calls, and every one
+is accounted for:
+
+| site | groups | selector |
+|---|---|---|
+| 0xf49e7c | 0 | unconditional base set |
+| 0xf49eb4 | 2 / 9 / 10 | `tst` bits 2 and 1 of `[[enemy+0x1428]+0x5cfc]` - a 3-way STATE on the back cluster {2,3,4,102}, not a break. Unread. |
+| 0xf49f08 | 3 / 12 | break level of part 0 - **the ears** |
+| 0xf49f54 | 4 / 13 | break level of part 2 - right claw |
+| 0xf49fa0 | 5 / 14 | break level of part 2 - left claw |
+| 0xf49fec | 6 / 15 | break level of part 5 - tail fur |
+| 0xf4a050 / 0xf4a060 | 16 / 17 / 18 | `bl 0x81670` enrage, then the part-0 break level - the ear glow overlay {12,13} |
+
+The ears therefore have exactly TWO forms, intact and broken. Nothing in the 19 visibility groups
+moves them. This is the OPPOSITE finding to Yian Kut-Ku above, where the pair shape was read as a
+possible up/down swap - here the code that drives the pair was read, and it is a break.
+
+#### The fold is in the motion data
+
+Bones 132->133 and 134->135 are the two ears (roots at +-0.32, 0.58, 2.67; tips at +-0.32, 1.26,
+3.17). Skinning the intact ear mesh and the eye mesh at every one of the 191 clips and casting a
+ray from each eye vertex along the head's forward axis:
+
+    bind pose                       0.00 of the eye covered
+    List 5  Motion[16]  @0.61s      0.67     <- the fold
+    List 3  Motion[60]  @0.23s      0.61
+    List 3  Motion[22]  @0.00s      0.57
+    List 2  Motion[117]_start       0.57
+    List 0  Motion[19]  @1.09s      0.57
+
+So the pose exists and the viewer can already show it - it is a clip, not a checkbox.
+
+(The first run of this test read the index buffers as triangle lists. EVERY primitive in these
+models is a TRIANGLE_STRIP; the retracted run reported a 0.33 ceiling off garbage triangles.)
+
+#### Found on the way: part-rest.json has the break arm inverted at half the sites
+
+`build-partrest.py` documents the break branch as `cmp <break level>, <threshold>` and takes the
+`lo`/`ls` arm as undamaged at all 556 call sites. Kecha Wacha's five sites are written the other
+way round:
+
+    uxtb  r6, r7          ; r6 = the rank-picked THRESHOLD from [[enemy+0x75f0]+0x64]
+    bl    0x9d36c         ; r0 = the break LEVEL ([enemy+0x1428] + 0x3bc + 12*part)
+    cmp   r6, r0          ; cmp THRESHOLD, LEVEL  -- operands reversed
+    movhi r1, #3          ; thr >  level -> UNDAMAGED
+    movls r1, #0xc        ; thr <= level -> BROKEN
+
+Classifying all 556 sites by which cmp operand carries the threshold (`uxtb` destination) rather
+than by the condition codes:
+
+| form | sites | lo/ls means |
+|---|---|---|
+| `cmp level, THR`, arms hs/lo | 102 | undamaged - what build-partrest assumes |
+| `cmp THR, level`, arms hi/ls | 80 | **BROKEN** |
+
+No site disagrees with its arm pair, so the pair alone decides it: `hs`/`lo` -> `lo` undamaged,
+`hi`/`ls` -> `hi` undamaged. Khezu's sites (0xd1ef94, 0xd1efe4) are the second form too, which is
+why this docstring's own example - "Khezu pairs undamaged 3 against broken 1" - is backwards.
+
+For em065_00 that means the shipped rest sets `[12, 13, 14, 15, 18]` are the BROKEN ones and the
+undamaged sets are `[3, 4, 5, 6, 16]`. So the viewer opens Kecha Wacha on the broken ears:
+part 5 (68v, reaching z 4.05) instead of part 103 (163v, reaching z 4.64).
+
+Geometry agrees on three of the four pairs - the smaller mesh is mostly coincident with the larger,
+which is what a break replacement looks like:
+
+| pair | intact (corrected) | shared with the other | broken | shared |
+|---|---|---|---|---|
+| ears | 103, 113 unique verts | 29% | 5, 44 unique | 75% |
+| claw R | 6, 38 | 39% | 9, 19 | 79% |
+| claw L | 7, 46 | 35% | 8, 22 | 73% |
+| tail fur | 10, 28 | 43% | 11, 63 | 19% |
+
+**The tail row does not fit** - the corrected rule makes the SMALLER mesh the intact one there,
+the only one of the four that way round. Stated rather than smoothed over; the code is
+unambiguous at that site and the geometry is not, but it is unexplained.
+
+**NOT ACTED ON.** Fixing the rule in `build-partrest.py` moves the opening part state on 31 of the
+78 monsters in the file, which is a library-wide change to defaults and Raven's call.
+
+#### The fold isolates to four bones, exactly
+
+Raven, 2026-09-11: "Can we isolate the bone pose for the ear cover?" Yes, and it is structural
+rather than lucky:
+
+* the eye mesh `Group[14]` is **100%** weighted to head bone 3;
+* the ear meshes are **99.99%** on bones 132/133/134/135 (a 0.005-0.08% stray on bone 41 aside);
+* that ear chain hangs off bone 3 - `4:3 -> 8:132 -> 9:133` and `4:3 -> 10:134 -> 11:135`.
+
+So the drape over the face is a pure function of those four LOCAL rotations. Whatever the head,
+neck and body are doing cannot change it. Re-running the cover test with every other bone held at
+bind reproduces the full-clip number to the digit on all eight candidate clips.
+
+Scanning all 191 clips once per game frame, the best frame is **List 2, `Motion[116]`, 0.40s**, the
+only frame in the whole motion set that covers the eye completely:
+
+    bone 132  [ 0.543913,  0.009906, -0.014209,  0.838963]   65.9 deg   right ear root
+    bone 133  [ 0.203508, -0.170762,  0.123874,  0.956075]   34.1 deg   right ear tip
+    bone 134  [ 0.536824, -0.013552,  0.117852,  0.835313]   66.7 deg   left ear root
+    bone 135  [ 0.203491,  0.170745, -0.123878,  0.956082]   34.1 deg   left ear tip
+
+Typed back in literally, against an otherwise-bind skeleton: cover 0.00 -> **1.00**. Saved to
+`dev/ear-pose-em065_00.json`. The tips are an exact left/right mirror; the roots are not (residual
+0.104, the right root carries ~12 deg more z), so the authored pose has a slight lean.
+
+Cover against time, one character per game frame, shows two different things in the motion set:
+
+    List 2  Motion[116]     :@@-              a 2-frame snap to full cover
+    List 3  Motion[58]      :------ ... ---=-=+++-.     ~6s held at 0.38, then 0.67 at the end
+
+So `Motion[116]` is the pose to lift and `Motion[58]` is the one that *holds* a fold.
+
+**This corroborates the inverted rest set above.** The same four rotations give cover 1.00 on the
+intact ear (part 103) and only **0.22** on the broken one (part 5) - the torn ear is not long
+enough to reach across the face. The game authored a full-cover fold, and only part 103 can
+perform it, which is a second, independent reason to think part 103 is the undamaged mesh and the
+viewer is currently opening Kecha Wacha on the broken pair.
+
+**NOT WIRED INTO THE VIEWER.** That needs a bone-pose override control in `docs/index.html`, which
+the parts agent has uncommitted changes in right now.

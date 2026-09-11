@@ -1076,6 +1076,9 @@ export async function loadMonster(rec, opt, ctx){
   await Promise.all(jobs);
   root.userData.joints = rec.joints || [];
   root.userData.mats = mats;
+  // The monster id, so rageLadder() can consult ROM_CLIP_LADDER without index.html having to
+  // thread it in -- stepMatAnim already gets it, the ladder builder did not.
+  root.userData.monId = rec.id || null;
   // The pose driver writes bone transforms straight onto these nodes, so once a clip has
   // played there is nothing left that remembers the rest pose. Snapshot it here; the Clip
   // select's "Bind pose" entry restores it (before this, choosing it simply froze the
@@ -1457,6 +1460,52 @@ function levelsOf(name){
   while ((m = LEVEL_TOKEN.exec(name))) out.push(m[1].toLowerCase());
   return out;
 }
+// A LADDER THE ROM ADDRESSES BY CLIP INDEX, because these clips carry no name to match on.
+//
+// Boltreaver Astalos's four charge materials each hold the SAME PAIR of clips, and both are
+// `name: null` with `auto: 0` -- so neither of clipPicker's routes can reach them and they sit on
+// their shipped static fConstantColor, which is white. Raven, 2026-09-11: "Review Boltreaver's
+// effects, I don't see Green or Cyan coloring". His two colours ARE the two clips, read out of
+// em081_04.mrl in file order, identical on all four materials:
+//
+//     clip 0   hash 668876438   fConstantColor 0.32, 1.00, 0.20   GREEN
+//     clip 1   hash 3084603398  fConstantColor 0.20, 1.00, 1.00   CYAN
+//
+// and the game selects them BY INDEX. em081_04 has no class of its own -- it runs uEm081_00, the
+// base Astalos class -- and that class never calls findMatClipByName (0xb08b44) at all; neither
+// hash appears anywhere in the binary as a literal. It sets a bare index:
+//
+//     0101924c  mov r1,#0 / mov r2,#1 / bl 0xb09ae8     slot 0, clip 1 -> cyan
+//     010192c0  mov r1,#0 / mov r2,#0 / bl 0xb09ae8     slot 0, clip 0 -> green
+//
+// chosen by a 5-case jump table on the charge byte at enemy+0xcb01 (two more of the same shape sit
+// on +0xcb02 and +0xcb03, one per charged region):
+//
+//     case 0, 1   clearAllSlots     effect off
+//     case 2, 3   clip 0            green  -- the two cases differ only in which parts light
+//     case 4      clip 1            cyan
+//
+// Three stages, so rung 0 (No Rage) is the ROM's clearAllSlots: no clip selected, the material's
+// own authored values, which is what Boltreaver shows today. Cases 2 and 3 collapse into one rung
+// because they are the same colour and differ only in part visibility, which this table does not
+// touch -- the parts half of the charge states is a separate, unmade change.
+//
+// THE LABELS ARE THE DATA, not an invented game term: each rung is named for the colour its clip
+// writes. part-review.json's `rage` map renames them if different words are wanted.
+export const ROM_CLIP_LADDER = {
+  em081_04: {                                    // Boltreaver Astalos
+    mats: ['XfBA2_taiden_head', 'XfBA2_taiden_crow', 'XfBA2_taiden_tale', 'XfBAN__E1_wing_taiden'],
+    rungs: [{ label: 'Green', clip: '#0' }, { label: 'Cyan', clip: '#1' }],
+  },
+};
+// `#N` as a rung's clip means "the clip at INDEX N" -- the way the ROM addresses these. The clip
+// array here is the material's `rom.anim`, which build-matanim.py fills in .mrl file order, so N
+// is the same N the ROM passes to setMatClip.
+const INDEX_CLIP = /^#(\d+)$/;
+function ladderIndexMat(monId, matName){
+  const t = monId && ROM_CLIP_LADDER[monId];
+  return !!(t && typeof matName === 'string' && t.mats.indexOf(matName) >= 0);
+}
 // [{ rank, label, clip }] ordered shallowest first, or [] when this monster has no ladder.
 // MAX sorts last whatever number it sits beside.
 export function rageLadder(root){
@@ -1473,9 +1522,16 @@ export function rageLadder(root){
     }
   });
   const rank = t => (t === 'max' ? 1e6 : parseInt(t, 10));
-  return [...seen.entries()]
+  const out = [...seen.entries()]
     .map(([tok, clip]) => ({ rank: rank(tok), label: tok === 'max' ? 'Max' : 'Level ' + tok, clip }))
     .sort((a, b) => a.rank - b.rank);
+  // The index-addressed ladder, for a monster whose clips cannot be matched by name at all. Only
+  // when the names yielded nothing, so a name-derived ladder can never be displaced by the table.
+  const monId = root && root.userData && root.userData.monId;
+  const tbl = (monId && ROM_CLIP_LADDER[monId]) || null;
+  if (tbl && !out.length)
+    return tbl.rungs.map((r, i) => ({ rank: i, label: r.label, clip: r.clip }));
+  return out;
 }
 // The PART IDS whose meshes carry the ladder material. Raven, 2026-09-10: "For the rage levels have
 // it switch the parts that need to be on for the effect to show" -- so choosing a rung turns its
@@ -1536,8 +1592,18 @@ function clipPicker(state, monId, tState, prev, levelClip){
     // one by name. Materials that do not carry it fall through and behave as the state says, which
     // is what keeps the rest of the monster in step with the level.
     if (ci < 0 && levelClip){
-      const i = clips.findIndex(c => sameClip(c.name, levelClip));
-      if (i >= 0) return i;
+      const byIdx = INDEX_CLIP.exec(levelClip);
+      if (byIdx){
+        // ROM_CLIP_LADDER: the rung names a clip INDEX. Applied ONLY to the materials that table
+        // lists, so every other material on the monster falls through and keeps behaving as its
+        // own clips say -- Boltreaver's XfB__A1_tikuden carries its own auto-play UV scroll and
+        // must not be dragged onto a charge colour.
+        const i = +byIdx[1];
+        if (ladderIndexMat(monId, rom.name) && i >= 0 && i < clips.length) return i;
+      } else {
+        const i = clips.findIndex(c => sameClip(c.name, levelClip));
+        if (i >= 0) return i;
+      }
     }
     // THE STATE TABLE, run before the name lists below. It only decides when the material carries
     // the clips the state names; everything it does not decide falls through to the general rules,
