@@ -214,10 +214,39 @@ export function createRomMaterial(spec){
   // pixels that now draw were showing the BACKGROUND -- holes straight through the model. That
   // is Raven's "gaps along seams", following the gloss map's own island borders (2026-09-10).
   const romClip = !!(feat && /AlphaClip$/.test(feat.transp || ''));
+  // ...AND THE HALF OF CAUSE J THAT WAS MISSED. The census above is right that nothing selects
+  // FTransparencyAlphaClip. It stopped one step short: a material whose blend state is BSSolid and
+  // whose feature word is FTransparencyAlpha is declaring the albedo alpha to BE the transparency,
+  // on a material that does not blend. With no blend for it to be the SRC_ALPHA factor of, a
+  // discard is the only thing that alpha can mean -- which is why `srcAlpha` below has always
+  // excluded exactly this case, and nothing was put in its place.
+  //
+  // 133 of the 570 monster materials are opaque + Alpha, 77 distinct names on 67 models, and ALL
+  // THREE of the AUTHORED_CUTOUT entries fall inside it -- the rule was derived without looking at
+  // them. The artists' own naming agrees: `_nuki` (cut-out) on em050_00 and em086_00, `_ke` (hair)
+  // on em035_00, `_hire` (fin) on em010_00 and em049_00, `_far` (fur) on em065_00 and both
+  // Mizutsune, `_koke` (moss) on em055_00, beside the plain `_wing`, `_hair`, `_fur`, `_fin`.
+  //
+  // And the exclusions fall out without special-casing. Zinogre's `XfB_N__E_m00_body`, the hide
+  // cause J was protecting, is opaque + FALSE: the ROM never calls that alpha transparency, so its
+  // 62% alpha-0 coverage is beside the point. Kirin's `XfBAN__E0__m02_hairalpha` is BLEND + Alpha
+  // and stays blended.
+  //
+  // Raven, 2026-09-11, on fur drawn as solid quads: "I still notice some furs still draw meshes",
+  // and on Plesioth's head break: "It may be that the wound area needs transparency" -- that wound
+  // is `XfBAN__E0__m52_hire`, opaque + Alpha, one of the 133.
+  //
+  // THE RISK, stated rather than discovered later: `XfBAN__E0__m05_hair` is also one of the 133,
+  // and it is the material cause J took the clip OFF -- that removal is what closed 4,596 pixels of
+  // Thunderlord Zinogre showing background through its silhouette. If those holes come back, the
+  // threshold is what wants moving, not this rule. __view.cutSolid and the coverage numbers in
+  // dev/cutout-coverage.py are the tools for that.
+  const solidAlpha = !!(feat && feat.transp === 'Alpha'
+                        && rom && rom.state && rom.state.blend === 'opaque');
   if (romClip) mat.alphaTest = Math.max(0, (gl && gl.clip) || 0);
-  // ...plus the materials Raven has judged to be cutouts, which the census cannot see. See
-  // AUTHORED_CUTOUT above for why this is a list and not a rule.
-  else if (authoredCutout(spec.srcName))
+  // AUTHORED_CUTOUT is kept as an explicit override for anything the rule does not reach; every
+  // entry it holds today is already covered by `solidAlpha`.
+  else if (solidAlpha || authoredCutout(spec.srcName))
     mat.alphaTest = Math.max(0, (gl && gl.clip) || 0) + 1 / 512;
   // FTransparencyAlpha still means the sampled alpha reaches diffuseColor.a -- but as the blend
   // factor, so only where the ROM actually blends. On an opaque material there is no blending for
