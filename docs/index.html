@@ -530,8 +530,25 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           <label class="chk" id="monTailRow" hidden><input type="checkbox" id="monTail">Show the Severed Parts</label>
           <label class="chk" id="monRageRow" hidden><input type="checkbox" id="monRage">Enraged</label>
           <label class="chk" id="monChargeRow" hidden><input type="checkbox" id="monCharge">Charged</label>
+          <!-- HEATED is an ARMOUR state, not an AI one, so it is independent of Enraged and Charged
+               rather than exclusive with them. Agnaktor wears molten armour that cools: every one of
+               its part rows offers the same break twice, once with its XfB_0__m0N_lavNN meshes and
+               once without. Offered only where a review row asks for it. -->
+          <label class="chk" id="monHeatedRow" hidden><input type="checkbox" id="monHeated">Heated</label>
           <div id="monRageLevelRow" hidden><label for="monRageLevel">Rage</label>
             <select id="monRageLevel"></select></div>
+          <!-- A LEVEL AXIS WITH MORE THAN TWO VALUES, declared per monster in part-review.json's
+               `levels` and consumed by rows saying `"state": "level"`. Astalos is why it exists: its
+               charge is three states, not two, so no checkbox expresses it and its Rage ladder is
+               not the right name for it. Raven, 2026-09-11: "U = Uncharged, C = Charging, F = Fully
+               Charged ... And we will want a toggle for the charge states." -->
+          <div id="monLevelRow" hidden><label for="monLevel" id="monLevelLab">Level</label>
+            <select id="monLevel"></select></div>
+          <!-- A VARIANT picks between whole alternative bodies sharing one part table -- see
+               variantOff(). Kelbi is why it exists: two complete Kelbis in one model, drawn on top
+               of each other, with no group that can turn either off. -->
+          <div id="monVariantRow" hidden><label for="monVariant" id="monVariantLab">Variant</label>
+            <select id="monVariant"></select></div>
         </div>
       </section>
 
@@ -1054,6 +1071,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          setClipFallback, clipFallbackOn,
          loadEffectMounts, attachEffectMounts, detachEffectMounts,
          enableEffectMounts, effectMountsEnabled, effectMountsFor, effectMountsLive,
+         setEffectRage, effectAutoOnRage,
          SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS,
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts,
@@ -1118,15 +1136,27 @@ function optionKey(g, skipParts){
 // 11,101 / 12,101 / 8, so the bare key "101" names two options and has to be REFUSED -- the old
 // applyForcedOn silently took the first. Akantor's 7,8,9 row offers 7 / 8 / 8,9, where exact-first
 // is what keeps "8" and "8,9" meaning different things.
-function resolveOptionKey(opts, key, where){
+// A "|" KEY HAS AS MANY HALVES AS ITS AXIS HAS VALUES. Two for the three boolean axes -- rage,
+// charged, heated -- and N for a LEVEL axis, where the axis value is the rung index rather than a
+// flag. Astalos is the case: its charge is three states, not two ("U = Uncharged, C = Charging,
+// F = Fully Charged"), so its head reads "10,101|10,30,31,101|10,40,41,101" for Intact.
+// A short key is clamped to its last half rather than falling to the first, so a row whose top
+// rungs look alike can be written "a|b" and still mean b at rung 2 -- which is what the wings need,
+// their broken form being the same mesh at two of the three rungs.
+function pickHalf(halves, on){
+  const i = (on === true) ? 1 : (on === false || on === undefined || on === null) ? 0 : (on | 0);
+  return halves[Math.max(0, Math.min(i, halves.length - 1))] || halves[0];
+}
+function resolveOptionKey(opts, key, where, stateOn){
   if (key === undefined || key === null) return null;
   let raw = String(key).trim().toLowerCase();
-  // A "calm|rage" key resolves to the half this state is using, wherever it appears -- an option
-  // name, a `default`, an `order` entry. Handled here so every site agrees: the options loop below
-  // has already split its own, and passes a single half, so this is a no-op for it.
+  // A "off|on" key resolves to the half the row's STATE AXIS is currently on, wherever it appears --
+  // an option name, a `default`, an `order` entry. Handled here so every site agrees: the options
+  // loop below has already split its own and passes a single half, so this is a no-op for it.
+  // The axis is rage unless the row says otherwise; Lagiacrus' Shocker switches on CHARGED.
   if (raw.indexOf('|') >= 0){
-    const halves = raw.split('|').map(x => x.trim());
-    raw = (state.rage ? halves[1] : halves[0]) || halves[0];
+    const on = (stateOn === undefined) ? state.rage : stateOn;
+    raw = pickHalf(raw.split('|').map(x => x.trim()), on);
   }
   const want = (raw === '' || raw === 'none' || raw === 'off')
     ? 'none'
@@ -1898,7 +1928,7 @@ function applyCameraState(c){
 const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: false,
                 anchor: true, ground: true, normalFlip: false, normalScale: 1,
                 // both OFF by default: see applyUndef and applyExtend
-                undef: false, extend: false, gap: false, proxy: false, rage: false, charged: false, rageLevel: 0, heat: '', heatTable: 0, deflectT: 'f25', deflectTier: 2,
+                undef: false, extend: false, gap: false, proxy: false, rage: false, charged: false, heated: true, rageLevel: 0, level: 0, variant: 0, heat: '', heatTable: 0, deflectT: 'f25', deflectTier: 2,
                 zoneTab: 'raw',
                 zoneShow: true, zonePos: null,
                 // the additive effect meshes as a class; the ROM's part table already keeps
@@ -1987,16 +2017,14 @@ function buildMonsterList(){
 // Raven's calls, made while reviewing a monster, so they are exceptions to the ROM's own order --
 // see the picker's own note. 2026-09-05: "Tigrex, Grimclaw, Nargacuga and Silverwind should use
 // List 0: Moton 25 as their defaults."
-const DEFAULT_VIEW = {
-  // Raven, 2026-09-10: "Update Bloodbath to use List 0, Motion 2 as its default animation" / "Same
-  // for Diablos". List 0 is shared between the two and holds Motion[2]_loop at 5.78s on both.
-  em007_00: { list: '0', clip: 'Motion[2]_loop' },    // Diablos
-  em007_04: { list: '0', clip: 'Motion[2]_loop' },    // Bloodbath Diablos
-  em032_00: { list: '0', clip: 'Motion[25]_loop' },   // Tigrex
-  em032_04: { list: '0', clip: 'Motion[25]_loop' },   // Grimclaw Tigrex
-  em037_00: { list: '0', clip: 'Motion[25]_loop' },   // Nargacuga
-  em037_04: { list: '0', clip: 'Motion[25]_loop' },   // Silverwind Nargacuga
-};
+// MOVED TO docs/part-review.json 2026-09-11, as each monster's `view: {list, clip}`. These were
+// Raven's calls made while reviewing a monster -- the same kind of judgement as a part name or a
+// row default -- so they belong in the one hand-authored file rather than in a code constant, and
+// a reviewer no longer has to edit two places for one monster. The six that were here (Diablos and
+// Bloodbath on List 0 Motion[2]_loop; Tigrex, Grimclaw, Nargacuga and Silverwind on List 0
+// Motion[25]_loop) moved across unchanged.
+const DEFAULT_VIEW = new Proxy({}, { get: (_, id) =>
+  (typeof id === 'string' ? (reviewFor(id) || {}).view : undefined) || undefined });
 function listOrder(a, b){
   const na = /^\d+$/.test(a.id), nb = /^\d+$/.test(b.id);
   if (na && nb) return (+a.id) - (+b.id);
@@ -2090,11 +2118,49 @@ function stateSuffix(groupIndex){
 // THE PARTS A REVIEWED ROW'S OPTIONS ARE ABOUT, read out of its own option keys. Naming a part
 // there is a statement that choosing it is the USER'S, which is what lets a reviewed row escape
 // the state-parts stripping below.
+// SPLIT ON "|" AS WELL AS "+" AND ",". A per-state key names parts in BOTH halves and a row claims
+// all of them: Nargacuga's head is written "1,7|2,7" / "1,3,4,8|2,3,8", where 1 is the calm variant
+// and 2 the enraged one. Splitting only on [+,] left "7|2" to parseInt, which reads 7 and throws the
+// 2 away -- so part 2 stayed on the rage axis, both halves keyed to the same stripped "7", and the
+// key resolved to nothing. The halves are alternatives for the reader and are NOT alternatives here:
+// a row that names a part in either state is the row that owns it.
 function reviewedParts(rv){
   const out = new Set();
   for (const k of Object.keys((rv && rv.options) || {}))
-    for (const n of String(k).split(/[+,]/)){ const v = parseInt(n, 10); if (Number.isFinite(v)) out.add(v); }
+    for (const n of String(k).split(/[+,|]/)){ const v = parseInt(n, 10); if (Number.isFinite(v)) out.add(v); }
   return out;
+}
+// A ROW MAY SWITCH ON ANOTHER ROW INSTEAD OF ON A GLOBAL STATE. Raven, 2026-09-11, on Nargacuga's
+// eyes: "One Eye Closed should replace Closed when the Head Break is enabled" -- and then "we don't
+// need to tell the user it is One Eye Closed, it will simply be Closed". The lids are their own
+// cluster (5, 6) and the break is another (1,2,3,4,7,8), so neither a merge nor any of the three
+// global toggles expresses it: the row needs the SECOND HALF of a "5,6|5" key chosen by whether the
+// break mesh is currently drawn. `state` therefore also takes an object, { "on": "<part ids>" },
+// true when every part named is drawn right now.
+//
+// DELIBERATELY KEYED ON PARTS, NOT ON A ROW'S OPTION. state.groups is the one thing every row has
+// already written by the time any row is built, so this cannot depend on panel order -- the eyes
+// are built BEFORE the head here. It also survives the head row being renamed, reordered or merged,
+// none of which change which mesh means "broken".
+function rowStateOn(rv){
+  const st = rv && rv.state;
+  if (st && typeof st === 'object'){
+    const e = entry();
+    const want = String(st.on === undefined ? '' : st.on)
+      .split(',').map(s => parseInt(s, 10)).filter(Number.isFinite);
+    if (!want.length){
+      console.warn('part-review: ' + (e && e.id) + ' has a state object with no `on` part list');
+      return false;
+    }
+    const drawn = partsDrawn((e && e.groups) || [], state.groups);
+    return want.every(p => drawn.get(p) === true);
+  }
+  if (st === 'charged') return !!state.charged;
+  if (st === 'heated')  return !!state.heated;
+  // A LEVEL AXIS RETURNS THE RUNG INDEX, not a flag, and every site that consumes this passes it
+  // straight to pickHalf. The monster declares the rungs in `levels`; a row says `"state": "level"`.
+  if (st === 'level')   return state.level | 0;
+  return !!state.rage;
 }
 // A ROW THE REVIEW FILE NAMES OWNS ITS OWN PARTS. stateParts() lists what the Rage control decides,
 // and a cluster whose members differ only in those offers no choice, so it is normally folded away
@@ -2171,17 +2237,67 @@ function buildMergedRow(c, groups, rv, e, sp, stateDefault){
   const keep = reviewedParts(rv);
   const perSrc = c.merged.map(src => clusterOptions(src, groups, sp, keep));
   const pickVariant = c.merged.map(src => variantPicker(src, groups, sp, stateDefault, keep));
+  // A MERGED OPTION KEY NAMES ONLY THE SOURCES THAT ARE ON. Congalala's Item row merges NINE
+  // clusters -- the tail plus a bone, a rock, a mushroom stalk and five mushrooms that all share one
+  // 44v socket at x30 y87 z9 -- and writing one half per source would make every key eight ninths
+  // "none". Raven dictated them as "On 11, On 13, On 15", so that is what a key is: the halves that
+  // are on, resolved to whichever source owns them, with every unnamed source falling to its own
+  // all-off option. Positional keys still work, because a half is matched by its ON-SET and each is
+  // unique to one source -- "8+10", "102+103" and "2+3" resolve exactly as they did.
+  const canon = picks => picks.filter(x => x.key !== 'none').map(x => x.key).join('+') || 'none';
+  const norm = k => { const t = String(k).trim().toLowerCase();
+    if (t === '' || t === 'none' || t === 'off') return 'none';
+    const n = t.split(',').map(x => parseInt(x, 10)).filter(Number.isFinite).sort((a, b) => a - b);
+    return n.length ? n.join(',') : 'none'; };
+  // A MERGED KEY MAY ALSO BE PER-STATE: "calm halves|enraged halves", split on '|' BEFORE '+'. The
+  // whole combination swaps, which is what Najarala's back needs -- calm draws crest 103 alone,
+  // enraged draws 103 with its alpha layer 113 AND the body's own 8, 9 from the other source row.
+  // Unlike a plain row there is nothing to drop: a merged row's options exist only because the
+  // review declared them, so each simply resolves differently per state.
+  const mStOn = rowStateOn(rv);
+  const picksFor = (k, label) => {
+    let key = String(k);
+    if (key.indexOf('|') >= 0){
+      const sides = key.split('|').map(x => x.trim());
+      key = (mStOn ? sides[1] : sides[0]) || sides[0];
+    }
+    const halves = key.split('+').map(x => x.trim()).filter(x => norm(x) !== 'none');
+    const picks = new Array(perSrc.length).fill(null);
+    for (const h of halves){
+      const want = norm(h), hits = [];
+      perSrc.forEach((opts, i) => { const o = opts.find(x => x.key === want); if (o) hits.push([i, o]); });
+      if (hits.length !== 1){
+        console.warn('part-review: ' + where + ' ' + label + ' "' + k + '": "' + h + '" matches ' +
+                     hits.length + ' of its rows. Valid keys: ' +
+                     perSrc.map((o, i) => c.merged[i].parts + ' -> ' + o.map(x => x.key).join('/')).join('  |  '));
+        return null;
+      }
+      if (picks[hits[0][0]]){
+        console.warn('part-review: ' + where + ' ' + label + ' "' + k + '" names row ' +
+                     c.merged[hits[0][0]].parts + ' twice');
+        return null;
+      }
+      picks[hits[0][0]] = hits[0][1];
+    }
+    for (let i = 0; i < perSrc.length; i++){
+      if (picks[i]) continue;
+      const off = perSrc[i].find(o => o.key === 'none');
+      if (!off){
+        console.warn('part-review: ' + where + ' ' + label + ' "' + k + '" does not name row ' +
+                     c.merged[i].parts + ', and that row has no all-off option to fall back to');
+        return null;
+      }
+      picks[i] = off;
+    }
+    return picks;
+  };
   const combos = [];
   for (const [k, v] of Object.entries((rv && rv.options) || {})){
-    const partKeys = String(k).split('+');
-    if (partKeys.length !== perSrc.length){
-      console.warn('part-review: ' + where + ' option "' + k + '" names ' + partKeys.length +
-                   ' of ' + perSrc.length + ' rows; expected one per row joined by "+"');
-      continue;
-    }
-    const picks = partKeys.map((pk, i) => resolveOptionKey(perSrc[i], pk, where + ' [' + c.merged[i].parts + ']'));
-    if (picks.some(x => !x)) continue;
-    combos.push({ key: picks.map(x => x.key).join('+'), name: String(v), picks });
+    const picks = picksFor(k, 'option');
+    if (!picks) continue;
+    // `declared` is the key AS WRITTEN and is stable across states; `key` is the canonical form of
+    // the half currently in use and therefore is NOT. partsPicked has to remember the former.
+    combos.push({ key: canon(picks), declared: String(k), name: String(v), picks });
   }
   if (!combos.length){
     console.warn('part-review: ' + where + ' resolved no options; the row is not shown and its ' +
@@ -2189,7 +2305,9 @@ function buildMergedRow(c, groups, rv, e, sp, stateDefault){
     return;
   }
   if (Array.isArray(rv.order)){
-    const rank = new Map(); rv.order.forEach((k, i) => { if (!rank.has(String(k))) rank.set(String(k), i); });
+    const rank = new Map();
+    rv.order.forEach((k, i) => { const pk = picksFor(k, 'order'); if (!pk) return;
+                                 const ck = canon(pk); if (!rank.has(ck)) rank.set(ck, i); });
     const pos = new Map(combos.map((o, i) => [o, i]));
     const at = o => rank.has(o.key) ? rank.get(o.key) : rv.order.length + pos.get(o);
     combos.sort((a, b) => at(a) - at(b));
@@ -2217,9 +2335,22 @@ function buildMergedRow(c, groups, rv, e, sp, stateDefault){
     const keep = pickVariant[i](o.picks[i]);
     src.members.forEach(k => { state.groups[k] = (k === keep); });
   });
+  // A HAND-PICK MUST SURVIVE A STATE TOGGLE. Matched on `declared` below, because a per-state
+  // option's CANONICAL key changes with the state -- Najarala's Broken crest is "0,100+5" calm and
+  // "0,8,9,100+5,15" enraged -- so matching on `key` dropped the pick and silently reverted the row
+  // to its default the moment Enraged was ticked.
   const picked = partsPicked[c.members.join(',')];
-  const reviewOpt = combos.find(o => o.key === resolveMergedDefault(combos, rv, state.rage));
-  const cur = combos.find(o => o.key === picked)
+  const mAlt = (rv && rv.state === 'charged') ? rv.charged
+             : (rv && rv.state === 'heated')  ? rv.heated
+             : (rv && rv.state && typeof rv.state === 'object') ? rv.alt
+             : (rv && rv.rage);
+  const wantDef = (mStOn && mAlt !== undefined) ? mAlt : (rv && rv.default);
+  const defPicks = (wantDef === undefined || wantDef === null) ? null : picksFor(wantDef, 'default');
+  const reviewOpt = defPicks ? combos.find(o => o.key === canon(defPicks)) : null;
+  if (wantDef !== undefined && wantDef !== null && defPicks && !reviewOpt)
+    console.warn('part-review: ' + where + ' default "' + wantDef + '" resolves to ' + canon(defPicks) +
+                 ', which is not one of its options: ' + combos.map(o => o.key).join(' | '));
+  const cur = combos.find(o => o.declared === picked || o.key === picked)
            || (groupsExplicit ? null : reviewOpt)
            // no appliedOpt tier: the ROM has no opinion about a COMBINATION, only about each
            // cluster separately, and a pair the review file does not list is not offerable here
@@ -2228,19 +2359,10 @@ function buildMergedRow(c, groups, rv, e, sp, stateDefault){
   apply(cur); sel.value = cur.key;
   sel.onchange = () => {
     const o = combos.find(x => x.key === sel.value) || combos[0];
-    partsPicked[c.members.join(',')] = o.key;
+    partsPicked[c.members.join(',')] = o.declared;
     apply(o); applyPartState(); saveState();
   };
   row.appendChild(lab); row.appendChild(sel); monGroupsEl.appendChild(row);
-}
-function resolveMergedDefault(combos, rv, rage){
-  const want = (rage && rv && rv.rage !== undefined) ? rv.rage : (rv && rv.default);
-  if (want === undefined || want === null) return null;
-  const norm = String(want).trim();
-  const hit = combos.find(o => o.key === norm) || combos.find(o => o.name.toLowerCase() === norm.toLowerCase());
-  if (!hit) console.warn('part-review: merged default "' + want + '" matches no option; valid keys are ' +
-                         combos.map(o => o.key).join(' | '));
-  return hit ? hit.key : null;
 }
 function buildGroups(){
   const e = entry();
@@ -2259,6 +2381,8 @@ function buildGroups(){
   const pn = (PARTNAMES.monsters && PARTNAMES.monsters[e && e.id]) || {};
   const pnParts = pn.parts || {};
   const rvRows = reviewRows(e && e.id);
+  // Does any row on this monster watch another row? Only then does a pick rebuild the panel.
+  const watchers = Object.values(rvRows).some(r => r && r.state && typeof r.state === 'object');
   // TWO CLUSTERS, ONE CHOICE. Gravios' belly is authored as two adjacent swaps -- parts 8/9 and
   // 10/11 -- but a player does not experience two controls there, they experience one belly going
   // intact -> cracked -> broken. Raven, 2026-09-10: "the next two drop downs can be combined ...
@@ -2375,6 +2499,10 @@ function buildGroups(){
       lab.textContent = ids;
     }
     const sel = document.createElement('select');
+    // How many choices the select ended up offering, read after the block below has done its
+    // merging, per-state dropping and `hide` filtering. Declared out here because the append at the
+    // bottom needs it and `opts` is scoped to that block.
+    let optCount = 0;
     if (c.members.length === 1 && groupIsInert(groups, c.members[0], e && e.partIds)){
       // The ROM's base state: this group only re-asserts parts that nothing else turns off, so
       // applying it or not cannot change a pixel. It is NOT SHOWN AT ALL -- 84 of the library's
@@ -2437,6 +2565,11 @@ function buildGroups(){
       // the label already shows: "on 102 / off 2, 32" is keyed "102", which is what Raven reads off
       // the screen and what DEFAULT_PARTS_ON already spoke in. Verified unique per row across all
       // 540 multi-member rows in the library.
+      // WHICH STATE A "|" KEY SPLITS ON. Rage by default; a row may say `"state": "charged"` and
+      // split on the Charged toggle instead. Lagiacrus is the case: its Shocker's charged halves
+      // carry XfB__m02_thornray, and charge is a separate control from rage on this app (they are
+      // mutually exclusive -- see matState()).
+      const stOn = rowStateOn(rv);
       const sp = stateParts();
       let opts = clusterOptions(c, groups, sp, rvKeep);
       // THE HIGHEST-GROUP-INDEX FALLBACK, captured BEFORE any reordering below, because that is
@@ -2452,7 +2585,7 @@ function buildGroups(){
       if (rv && Array.isArray(rv.order)){
         const rank = new Map();
         rv.order.forEach((k, i) => {
-          const hit = resolveOptionKey(opts, k, (e && e.id) + ' row ' + c.parts + ' order');
+          const hit = resolveOptionKey(opts, k, (e && e.id) + ' row ' + c.parts + ' order', stOn);
           if (hit && !rank.has(hit)) rank.set(hit, i);
         });
         if (rank.size){
@@ -2476,24 +2609,45 @@ function buildGroups(){
       const dropped = new Set();
       if (rvOpts) for (const [k, v] of Object.entries(rvOpts)){
         const halves = String(k).split('|').map(x => x.trim());
-        const want = halves.length > 1 ? (halves[state.rage ? 1 : 0] || halves[0]) : halves[0];
-        const hit = resolveOptionKey(opts, want, (e && e.id) + ' row ' + c.parts);
+        const want = halves.length > 1 ? pickHalf(halves, stOn) : halves[0];
+        const hit = resolveOptionKey(opts, want, (e && e.id) + ' row ' + c.parts, stOn);
         if (!hit) continue;
         named.set(hit, String(v));
         // the halves this state is not using are not separate choices
         for (const h of halves){
           if (h === want) continue;
-          const other = resolveOptionKey(opts, h, (e && e.id) + ' row ' + c.parts);
+          const other = resolveOptionKey(opts, h, (e && e.id) + ' row ' + c.parts, stOn);
           if (other && other !== hit){ dropped.add(other); hit.altReps = (hit.altReps || []).concat(other.rep); }
         }
       }
-      if (dropped.size) opts = opts.filter(o => !dropped.has(o));
+      // `hide` DROPS AN OPTION THE ROW REALLY HAS. Raven, on Blangonga's middle eye item: "Enraged?
+      // (Hide this option for now)" -- parts 4 and 6 are both XfB_0__m00_eye and what reaches the
+      // second one is unread, so it is not offerable yet and not deletable either. Distinct from the
+      // "calm|rage" halves above, which are hidden BECAUSE the other state owns them; this is hidden
+      // because nobody knows what it is. Removing the key restores it.
+      if (Array.isArray(rv && rv.hide)) for (const k of rv.hide){
+        const o = resolveOptionKey(opts, k, (e && e.id) + ' row ' + c.parts + ' hide', stOn);
+        if (o) dropped.add(o);
+      }
+      if (dropped.size){
+        opts = opts.filter(o => !dropped.has(o));
+        if (!opts.length)
+          console.warn('part-review: ' + (e && e.id) + ' row ' + c.parts + ' hid every option');
+      }
       // A HALF-NAMED ROW is what a dictated edit gets wrong, and it is invisible otherwise: the
       // named items read "Intact", "Broken" and the one that was missed reads "on 33, 103 / off 3".
-      if (named.size && named.size !== opts.length)
-        console.warn('part-review: ' + (e && e.id) + ' row ' + c.parts + ' names ' + named.size +
-                     ' of ' + opts.length + ' options; unnamed: ' +
-                     opts.filter(o => !named.has(o)).map(o => o.key).join(' | '));
+      // COUNTED OVER WHAT IS STILL OFFERED. Naming an option and then hiding it is not half-naming a
+      // row: Gammoth names all five leg states and hides Animated Snow, which read as "names 5 of 4
+      // options; unnamed: " until this counted only the options surviving `hide` and the per-state
+      // drop. A warning that fires on a correct file is worse than no warning, because it trains the
+      // reviewer to ignore the one that matters.
+      {
+        const shownNamed = opts.filter(o => named.has(o)).length;
+        if (shownNamed && shownNamed !== opts.length)
+          console.warn('part-review: ' + (e && e.id) + ' row ' + c.parts + ' names ' + shownNamed +
+                       ' of ' + opts.length + ' options; unnamed: ' +
+                       opts.filter(o => !named.has(o)).map(o => o.key).join(' | '));
+      }
       const genLabel = o => (isLadder ? groupLabelWithout(groups[o.rep], sp)
                                       : groupLabel(groups[o.rep])) + stateSuffix(o.rep);
       // Named: the typed name ALONE. Raven, 2026-09-10, on simplifying the items -- the part ids
@@ -2507,6 +2661,7 @@ function buildGroups(){
       // reviewed name is typed by hand and "Wing & Claw" is a perfectly reasonable thing to type.
       // dataset.key is what __view.review() reads back, so the key Raven is told is the key the
       // resolver will look for -- there is no second derivation to drift.
+      optCount = opts.length;
       sel.textContent = '';
       for (const o of opts){
         const opt = document.createElement('option');
@@ -2545,9 +2700,16 @@ function buildGroups(){
       // the halves of a "calm|rage" item that this state is not using.
       const picked = partsPicked[c.members.join(',')];
       const pickedOpt = opts.find(o => o.rep === picked || (o.altReps || []).indexOf(picked) >= 0);
+      // the per-state default follows the same axis: `rage` for a rage row, `charged` for a charged one
+      // A row switched by another row takes its alternate default from `alt`, the axis-neutral name
+      // for what `rage`/`charged`/`heated` are on the three global axes.
+      const altDef = (rv && rv.state === 'charged') ? rv.charged
+                   : (rv && rv.state === 'heated')  ? rv.heated
+                   : (rv && rv.state && typeof rv.state === 'object') ? rv.alt
+                   : (rv && rv.rage);
       const reviewOpt = rv
-        ? resolveOptionKey(opts, (state.rage && rv.rage !== undefined) ? rv.rage : rv.default,
-                           (e && e.id) + ' row ' + c.parts + ' default')
+        ? resolveOptionKey(opts, (stOn && altDef !== undefined) ? altDef : rv.default,
+                           (e && e.id) + ' row ' + c.parts + ' default', stOn)
         : null;
       let cur = pickedOpt
              // a fixed dev scene states its own groups array and must keep saying what it says
@@ -2566,6 +2728,12 @@ function buildGroups(){
         const o = opts.find(x => String(x.rep) === sel.value) || opts[0];
         partsPicked[c.members.join(',')] = o.rep;
         apply(o);
+        // A ROW WATCHING ANOTHER ROW HAS TO BE RE-DERIVED WHEN THAT ROW MOVES. Picking Broken on
+        // Nargacuga's head has to re-key the eyes to "5", and the eye row was built long before
+        // this click. Only the monsters that declare a watcher pay for it, and the rebuild keeps
+        // every hand-pick: partsPicked was just written, and altReps carries a pick across the
+        // half swap exactly as it does for the Enraged toggle.
+        if (watchers) buildGroups();
         applyPartState(); saveState();
       };
     }
@@ -2574,7 +2742,20 @@ function buildGroups(){
     // not a choice anyone makes, it is a consequence of the rage state, so `hidden` keeps the row's
     // default (and its per-state `rage` default) applying while leaving it out of the panel.
     // Everything above still ran, so the parts are set exactly as a visible row would set them.
-    if (!(rv && rv.hidden)) { row.appendChild(lab); row.appendChild(sel); monGroupsEl.appendChild(row); }
+    // NOTHING IS HIDDEN THAT RAVEN HAS NOT ASKED TO HIDE. A one-option row was briefly dropped
+    // automatically here, on the reasoning that a control with nothing to pick is not a control --
+    // and that was wrong while the review is still running. Raven, 2026-09-11: "Don't hide drop
+    // downs unless I specify, since I need to also check what we have." A row he has not seen is a
+    // row he cannot review, and the value of the sweep is that he looks at every one. So `hidden`
+    // is the ONLY thing that removes a row, and it only ever comes from part-review.json.
+    // (optCount is still counted above; it is what the one-option census used and is left in place
+    // for the same kind of check, not for a decision.)
+    // A ROW BELONGING TO ONE VARIANT IS ONLY OFFERED WHILE THAT VARIANT IS SHOWING. Its parts are
+    // forced off by variantOff() the rest of the time, so the control would set something invisible.
+    // This is NOT the never-hide rule being bent: the row is not being tidied away, it is not part
+    // of the body currently on screen.
+    const wrongVariant = rv && rv.variant !== undefined && (rv.variant | 0) !== (state.variant | 0);
+    if (!(rv && rv.hidden) && !wrongVariant) { row.appendChild(lab); row.appendChild(sel); monGroupsEl.appendChild(row); }
   }
   // The quest-objective nouns used to be printed here as evidence to check the inferred names
   // against. Removed 2026-09-05 (Raven: "Remove the text at the bottom, it's out of place and
@@ -2582,13 +2763,48 @@ function buildGroups(){
   monTailRow.hidden = !(e && e.parts.length);
   monTail.checked = state.tail;
 }
+// A VARIANT IS A WHOLE ALTERNATIVE MODEL SHARING ONE PART TABLE, AND THE PART GROUPS CANNOT SAY SO.
+// Kelbi is the case and the first in the sweep the group model cannot express: it has no part 0 at
+// all, just two clusters, 1,2,3,101 and 4,5,6,104, where parts 1 and 4 are COMPLETE BODIES (966 and
+// 992 vertices, the male half again as wide) and 2/3 and 5/6 are that body's small and large horns.
+// Every cluster always has exactly one member on, so both bodies draw at once -- Raven, 2026-09-11:
+// "I also see both blue and green body meshes. This tells me we need a Gender Toggle."
+//
+// NOTHING EXISTING REACHES IT. An option can only choose a member, and every member of the male
+// cluster draws part 4; DEFAULT_PARTS_OFF gives up for the same reason, by its own rule that "a
+// cluster with no such alternative is left alone, since nothing there can turn the part off"; and
+// leaving a cluster with no member on is WORSE, because partsDrawn only lists parts an on-group
+// mentions and applyParts draws anything it does not hear about. So the only way is to force the
+// parts off after the map is built, which is what this does.
+//
+// **THE ROM PICKS A GENDER SOMEWHERE AND WE HAVE NOT DECODED IT.** Kelbi has no defaultSet and no
+// rest sets at all, so the panel falls to the highest index in each cluster and draws both. This
+// control is a VIEWER CONSTRUCT standing in for a selection the game certainly makes and this
+// project has not read -- the part table contains no notion of gender, only two clusters it happens
+// to draw together. Named from the render, not from the ROM.
+function variantOff(){
+  const rv = reviewFor(state.id);
+  const opts = (rv && rv.variants && rv.variants.options) || null;
+  if (!opts || !opts.length) return null;
+  const o = opts[Math.max(0, Math.min(state.variant | 0, opts.length - 1))];
+  const out = new Set();
+  for (const n of String((o && o.off) || '').split(',')){
+    const v = parseInt(n, 10); if (Number.isFinite(v)) out.add(v);
+  }
+  return out.size ? out : null;
+}
 function applyPartState(){
   const e = entry();
   if (!e) return;
   // Only the main model. The visibility table numbers the parts of THAT model, and the
   // severed pieces are separate models with their own numbering -- applying the monster's
   // table to Nakarkos' two halves hid about a third of each of them.
-  if (mounted.main) applyParts(mounted.main, partsDrawn(e.groups || [], state.groups));
+  if (mounted.main){
+    const drawn = partsDrawn(e.groups || [], state.groups);
+    const off = variantOff();
+    if (off) for (const p of off) drawn.set(p, false);
+    applyParts(mounted.main, drawn);
+  }
   for (const [k, g] of Object.entries(mounted)) if (k !== 'main') g.visible = state.tail;
   // applyParts writes o.visible from the part table, so the class toggles run after it
   for (const g of Object.values(mounted)) setUndefinedMaterialVisible(g, state.undef);
@@ -3253,7 +3469,14 @@ function applyRage(){
   // a rage list. The last is what a monster reviewed this way will have.
   const dpo = DEFAULT_PARTS_ON[state.id];
   const perStateParts = !!(dpo && !Array.isArray(dpo) && dpo.rage);
-  const has = main ? (enrageParts(main).size > 0 || !!ROM_RAGE_SET[state.id] || perStateParts) : false;
+  // A REVIEW ROW MAY DECLARE THE STATE, exactly as one can for Charged and Heated. Najarala's
+  // enrage layer is five meshes of XfB_N__E0__m01_alpha (parts 8, 9, 15, 111, 113) sitting in
+  // ordinary part groups -- enrageParts() looks for an enrage CLIP on a material and finds none,
+  // ROM_RAGE_SET has no row, and its DEFAULT_PARTS_ON entry is not per-state, so nothing offered the
+  // control. Raven, 2026-09-11: "Create Enraged toggle, then ensure drop downs switch to using the
+  // enraged versions."
+  const reviewRages = Object.values(reviewRows(state.id)).some(r => r && r.state === 'rage');
+  const has = reviewRages || (main ? (enrageParts(main).size > 0 || !!ROM_RAGE_SET[state.id] || perStateParts) : false);
   // A LEVELLED MONSTER GETS A DROPDOWN INSTEAD OF THE TOGGLE. Raven, 2026-09-10: "Just have a drop
   // down that ranges from No Rage to the max level". Bloodbath has two stages and Gore Magala four,
   // and a checkbox can only say the deepest -- which on Gore was not even a stage, because the only
@@ -3268,20 +3491,42 @@ function applyRage(){
     // Bloodbath: "Rage: Calm, Building, Full". part-review.json carries a `rage` map keyed by the
     // select's own value, 0 being No Rage and 1..n the rungs in order; anything it does not name
     // keeps the generated label, so a partly-named ladder still reads correctly.
+    // THE CONTROL'S OWN LABEL IS REVIEWABLE FOR THE SAME REASON THE RUNGS ARE. rageLadder() finds a
+    // ladder wherever a material carries level-tokened clips, and calls it Rage because that is what
+    // a ladder usually is -- but on Boltreaver the rungs come out "Green" and "Cyan", which are its
+    // CHARGE colours and not a temper at all. Raven, 2026-09-11: "Update Rage to Charge, Update
+    // Charge to Charge State, For Boltreaver". So `rage` may carry a "name" beside its numeric rung
+    // keys; the keys a ladder uses are all integers, so the two cannot collide.
     const rvRage = (reviewFor(state.id) || {}).rage || null;
     const rungName = (i, fallback) => (rvRage && rvRage[String(i)] !== undefined)
       ? String(rvRage[String(i)]) : fallback;
+    document.querySelector('label[for="monRageLevel"]').textContent =
+      (rvRage && rvRage.name) ? String(rvRage.name) : 'Rage';
     if (rvRage){
-      const extra = Object.keys(rvRage).map(Number).filter(n => !(n >= 0 && n <= ladder.length));
+      const extra = Object.keys(rvRage).filter(k => k !== 'name')
+                          .map(Number).filter(n => !(n >= 0 && n <= ladder.length));
       if (extra.length)
         console.warn('part-review: ' + state.id + ' rage names level(s) ' + extra.join(', ') +
                      ' but this monster has 0..' + ladder.length);
     }
+    // A RUNG NAMED `null` IS NOT OFFERED. Raven, 2026-09-11, on Boltreaver: "Remove the No Rage
+    // option" -- once the ladder is read as CHARGE rather than temper, a zero rung is a state this
+    // monster is never in, the same call he made on Najarala's enrage layer ("I thought it showed
+    // the orange when enraged, but they are always on"). Written as `"0": null` because the map
+    // already keys rungs by index, so dropping one is the same gesture as renaming it. Any rung may
+    // go, not only the zeroth; if the current level lands on one that has gone, it moves to the
+    // lowest that remains, which is what makes state.rage true for a monster with no zero rung.
+    let rungs = [{ v: 0, t: rungName(0, 'No Rage') }]
+      .concat(ladder.map((l, i) => ({ v: i + 1, t: rungName(i + 1, l.label) })));
+    if (rvRage){
+      const kept = rungs.filter(r => rvRage[String(r.v)] !== null);
+      if (!kept.length) console.warn('part-review: ' + state.id + ' rage drops every rung; keeping them all');
+      else rungs = kept;
+    }
+    if (!rungs.some(r => r.v === state.rageLevel)) state.rageLevel = rungs[0].v;
     lvSel.textContent = '';
-    [{ v: 0, t: rungName(0, 'No Rage') }]
-      .concat(ladder.map((l, i) => ({ v: i + 1, t: rungName(i + 1, l.label) })))
-      .forEach(r => { const o = document.createElement('option');
-                      o.value = String(r.v); o.textContent = r.t; lvSel.appendChild(o); });
+    rungs.forEach(r => { const o = document.createElement('option');
+                         o.value = String(r.v); o.textContent = r.t; lvSel.appendChild(o); });
     lvSel.value = String(state.rageLevel || 0);
     state.rage = state.rageLevel > 0;
   } else {
@@ -3297,12 +3542,84 @@ function applyRage(){
   // CLEAR BEFORE PAINTING. The other order left the box ticked while the state behind it had
   // already been cleared, so a monster with no charge state carried a stale tick under a hidden
   // row and the next monster that could charge inherited it.
-  const canCharge = main ? hasChargeState(main, state.id) : false;
+  // A REVIEW ROW THAT SWITCHES ON CHARGE NEEDS THE CONTROL, even where hasChargeState says no.
+  // That function looks for charge CLIPS and the material swap, which is how Khezu's Taiden family
+  // is found; Lagiacrus has neither, yet its shocker plainly has a charged form -- parts 9, 10 and
+  // 11, the only XfB__m02_thornray meshes on the model, appear in exactly the two options Raven
+  // marked "(Charged)". Raven, 2026-09-11: "Have charged toggle, then have the Shocker parts switch
+  // with the toggle." Without this the row's charged half is unreachable.
+  const reviewCharges = Object.values(reviewRows(state.id))
+                              .some(r => r && r.state === 'charged');
+  const canCharge = reviewCharges || (main ? hasChargeState(main, state.id) : false);
+  // HEATED comes only from the review file -- nothing in the ROM marks the state as such, only the
+  // lava MATERIALS on the meshes, and reading "has a lav* material" as "has a heated state" would
+  // be an inference. A row saying so is a person saying so.
+  const canHeat = Object.values(reviewRows(state.id)).some(r => r && r.state === 'heated');
+  document.getElementById('monHeatedRow').hidden = !canHeat;
+  document.getElementById('monHeated').checked = !!state.heated;
+  // THE LEVEL AXIS, whose rungs are NAMED BY A PERSON and by nothing else. Unlike the Rage ladder,
+  // which reads its rungs off level tokens in clip names, nothing in Astalos' data says how many
+  // charge states it has or what to call them -- its two charge materials carry one clip called
+  // "Animation" and one with no name at all. So the rungs come from part-review.json's `levels`,
+  // and the control appears only where a row asks for the axis. Same principle as Heated.
+  // THE VARIANT CONTROL, on the same footing as the level axis: named by a person, offered only
+  // where the review file declares it. A row may say `"variant": N` to belong to one variant alone,
+  // which is what keeps Kelbi's female horn row out of the way while the male is on screen.
+  {
+    const vr = (reviewFor(state.id) || {}).variants || null;
+    const opts = (vr && Array.isArray(vr.options)) ? vr.options : [];
+    const row = document.getElementById('monVariantRow');
+    const sel = document.getElementById('monVariant');
+    const show = opts.length > 1;
+    row.hidden = !show;
+    document.getElementById('monVariantLab').textContent = (vr && vr.name) || 'Variant';
+    if (!show) state.variant = 0;
+    else {
+      if (state.variant > opts.length - 1) state.variant = opts.length - 1;
+      if (state.variant < 0) state.variant = 0;
+      sel.textContent = '';
+      opts.forEach((o, i) => { const el = document.createElement('option');
+                               el.value = String(i); el.textContent = String((o && o.name) || ('Variant ' + i));
+                               sel.appendChild(el); });
+      sel.value = String(state.variant | 0);
+    }
+  }
+  {
+    const lv = (reviewFor(state.id) || {}).levels || null;
+    const uses = Object.values(reviewRows(state.id)).some(r => r && r.state === 'level');
+    const row = document.getElementById('monLevelRow');
+    const sel = document.getElementById('monLevel');
+    const rungs = (lv && Array.isArray(lv.rungs)) ? lv.rungs : [];
+    const show = !!(uses && rungs.length > 1);
+    if (uses && rungs.length < 2)
+      console.warn('part-review: ' + state.id + ' has rows on the level axis but `levels.rungs` ' +
+                   'names ' + rungs.length + ' rung(s); the control needs at least two');
+    row.hidden = !show;
+    document.getElementById('monLevelLab').textContent = (lv && lv.name) || 'Level';
+    if (!show) state.level = 0;
+    else {
+      if (state.level > rungs.length - 1) state.level = rungs.length - 1;
+      if (state.level < 0) state.level = 0;
+      sel.textContent = '';
+      rungs.forEach((t, i) => { const o = document.createElement('option');
+                                o.value = String(i); o.textContent = String(t); sel.appendChild(o); });
+      sel.value = String(state.level | 0);
+    }
+  }
   if (!canCharge && state.charged) state.charged = false;
   document.getElementById('monChargeRow').hidden = !canCharge;
   document.getElementById('monCharge').checked = !!state.charged;
   const st = matState();
   for (const g of Object.values(mounted)) applyMaterialSwap(g, st);
+  // THE EFFECT MODELS RIDE THIS TOGGLE for a monster that opts in. Raven, 2026-09-11: "Just add
+  // the effect to Savage's Enrage state". Only the monsters listed in effect-mounts.json's
+  // `_autoOnRage` -- Savage today -- so Felyne's 19 per-action proof effects keep showing nothing
+  // until __view.effects(true) asks for them. applyRage() is the single hook because both the
+  // rage toggle and a fresh mount already run through it.
+  if (main && effectAutoOnRage(state.id)){
+    setEffectRage(!!state.rage);
+    attachEffectMounts(main, state.id, null);
+  }
 }
 // The one place that turns the two checkboxes into the state name the clip table and the material
 // swap are keyed by. Charged wins a collision: it is the state that replaces the vein material, so
@@ -3518,11 +3835,43 @@ document.getElementById('monRageLevel').onchange = e => {
   }
   applyRage(); saveState();
 };
+// The level axis changes which HALF of a "a|b|c" key each row is using, so the rows have to be
+// rebuilt -- exactly as the Charged and Heated checkboxes do. It touches no material and no ROM
+// state, so unlike the rage controls there is nothing else to re-apply.
+document.getElementById('monLevel').onchange = e => {
+  state.level = +e.target.value | 0;
+  buildGroups(); applyPartState(); saveState();
+};
+// Changing variant changes which rows exist as well as which parts draw, so both are rebuilt.
+document.getElementById('monVariant').onchange = e => {
+  state.variant = +e.target.value | 0;
+  buildGroups(); applyPartState(); saveState();
+};
 document.getElementById('monCharge').onchange = e => {
   state.charged = e.target.checked;
   if (state.charged) state.rage = false;      // see the note on monRage: one state byte, one value
   markStateChange();
+  // REBUILD THE ROWS, as the two rage controls do. Charge used to swap materials only, which was
+  // enough while nothing switched PARTS on it. Raven, 2026-09-11: "Have charged toggle, then have
+  // the Shocker parts switch with the toggle" -- Lagiacrus' shocker draws its XfB__m02_thornray
+  // meshes only when charged, and a review row with `"state": "charged"` needs rebuilding to see
+  // the flag change. defaultGroupsOn is re-run with state.rage, which charging has just cleared.
+  const en = entry();
+  if (en){
+    state.groups = defaultGroupsOn(en.groups || [], en.em, en.id, state.rage,
+                                   DEFAULT_PARTS_OFF[en.id], forcedOn(en.id));
+    buildGroups(); applyPartState();
+  }
   applyRage(); saveState();
+};
+document.getElementById('monHeated').onchange = e => {
+  state.heated = e.target.checked;
+  markStateChange();
+  // rows only: Heated does not touch the material swap or the clip table, so applyRage is not
+  // called. It is independent of Enraged and Charged and clears neither.
+  const en = entry();
+  if (en){ buildGroups(); applyPartState(); }
+  saveState();
 };
 document.getElementById('monProxy').onchange = e => {
   state.proxy = e.target.checked;
@@ -3661,7 +4010,7 @@ document.querySelectorAll('.panel-head').forEach(h => {
 function applySet(o){
   if (!o || typeof o !== 'object') return;
   for (const k of ['id', 'list', 'clip']) if (typeof o[k] === 'string') state[k] = o[k];
-  for (const k of ['loop', 'tail', 'anchor', 'ground', 'normalFlip', 'undef', 'effects', 'extend', 'zoneShow', 'gap'])
+  for (const k of ['loop', 'tail', 'anchor', 'ground', 'normalFlip', 'undef', 'effects', 'extend', 'zoneShow', 'gap', 'heated'])
     if (typeof o[k] === 'boolean') state[k] = o[k];
   // the heat map is a damage-type NAME and a table index, not booleans
   if (typeof o.heat === 'string') state.heat = o.heat;
@@ -3676,6 +4025,9 @@ function applySet(o){
   if (typeof o.rage === 'boolean') state.rage = o.rage;
   if (typeof o.charged === 'boolean') state.charged = o.charged;
   if (typeof o.rageLevel === 'number') state.rageLevel = Math.max(0, o.rageLevel | 0);
+  // clamped against the monster's own rung count when the control is built, as rageLevel is
+  if (typeof o.level === 'number') state.level = Math.max(0, o.level | 0);
+  if (typeof o.variant === 'number') state.variant = Math.max(0, o.variant | 0);
   const TABMAP = { zones: 'raw', parts: 'extracts', bounce: 'hardness' };
   const tab = TABMAP[o.zoneTab] || o.zoneTab;
   if (['raw','elem','status','extracts','hardness'].indexOf(tab) >= 0) state.zoneTab = tab;

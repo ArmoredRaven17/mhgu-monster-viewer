@@ -28,13 +28,15 @@ import { extendMapMisses } from './rom/shader.js';
 export { extendMapMisses };
 import { loadEffectMounts, attachEffectMounts, detachEffectMounts, enableEffectMounts,
          effectMountsEnabled, effectMountsFor, effectMountsLive,
-         setEffectScale } from './rom/effect-mounts.js';
+         setEffectScale, setEffectRage, effectAutoOnRage } from './rom/effect-mounts.js';
 // The proof-effect models a monster hangs on a joint. Felyne only on shipped data; the module
 // header says why, and why it is off by default.
 export { loadEffectMounts, attachEffectMounts, detachEffectMounts, enableEffectMounts,
          effectMountsEnabled, effectMountsFor, effectMountsLive,
          // the undecoded mount scale, so it can be judged by eye without a reload
-         setEffectScale };
+         setEffectScale,
+         // a monster whose effect rides the Enrage toggle rather than the inspection switch
+         setEffectRage, effectAutoOnRage };
 export { setRomBiasUnitsPerStep };
 export { enableRomCore, romCoreEnabled };
 // The cut-out coverage knob: 1 is on. Raven flips it to compare a capture both ways.
@@ -453,8 +455,19 @@ export const ROM_RAGE_SET = {
   em032_04: [[0, 1], [9, 10]],                         // Grimclaw
   em037_00: [[7, 5]],                                  // Nargacuga -- confirmed at 0xe48884
   em037_04: [[7, 5]],                                  // Silverwind
-  em043_00: [[9, 0]],                                  // Deviljho -- flipped, site not re-read
-  em043_05: [[13, 9]],                                 // Savage -- flipped, site not re-read
+  // CORRECTED 2026-09-11, and NOT by re-reading the site -- by the part IDs, which is what the ROM
+  // addresses parts with. The comment above already named these as the rows to check first if a
+  // monster looks inverted, and Raven found exactly that: "the neck glow effect currently shows in
+  // normal state, it should only show in the enraged state", then on the base monster "the Enraged
+  // toggle does not show the enraged effect when enabled, it shows briefly when I deselect it".
+  //
+  // The test needs no site read because the effect layers are identifiable by material:
+  //   em043_00  g9 draws part 3, XfB__m02_body_k, the additive glow;  g0 draws no effect part.
+  //   em043_05  g13 draws 3 AND part 12, XfBA_IW_1__m00, the neck;    g9 draws 3 alone.
+  // A pair written [calm, rage] that puts the effect-bearing group on CALM makes enrage REMOVE the
+  // effect, which is not a thing an enrage pair does. So both are the other way round.
+  em043_00: [[0, 9]],                                  // Deviljho -- was [[9, 0]]; effect is g9
+  em043_05: [[9, 13]],                                 // Savage -- was [[13, 9]]; neck is g13
   em063_00: [[12, 11]],                                // Brachydios -- flipped, site not re-read
   em063_05: [[12, 11]],                                // Raging Brachydios -- flipped, site not re-read
   em070_00: [[2, 1]],                                  // Nerscylla -- confirmed at 0xf9bd30
