@@ -4193,6 +4193,51 @@ window.__view.clipFallback = on => {
   renderer.render(scene, camera);
   return { on: clipFallbackOn() };
 };
+// TONE MAPPING AND LIGHT LEVEL, as a review knob rather than a decision.
+//
+// The renderer has run with NO tone mapping, so anything a light pushes past 1.0 CLIPS PER CHANNEL
+// instead of rolling off -- which does not just brighten, it DESATURATES. A saturated orange texel
+// (0.8, 0.2, 0.1) under the stage's 4.85 of white directional light becomes (1.84, 0.46, 0.23) and
+// clips to (1.0, 0.46, 0.23): the red is pinned, the other two are not, and vivid orange collapses
+// toward pale pink. Raven on Crimson Fatalis enraged, 2026-09-11: "notice the lack of bright
+// orange", and earlier "whited out". That is cause C on the review board, diagnosed months ago and
+// never instrumented.
+//
+// This does NOT pick a value. It lets one be picked by eye, because which curve and how much light
+// is a look decision and Raven's to make:
+//
+//   __view.tone()            report the current mode, exposure and total light intensity
+//   __view.tone('aces')      'none' | 'linear' | 'reinhard' | 'cineon' | 'aces' | 'neutral'
+//   __view.tone('aces', 1.2) ...with an exposure
+//   __view.tone(null, null, 0.6)  scale every light to 60% of its authored intensity
+//
+// Changing the mode recompiles every material, which is why the traverse is here and not left to
+// the caller to remember.
+const TONE_MODES = { none: THREE.NoToneMapping, linear: THREE.LinearToneMapping,
+                     reinhard: THREE.ReinhardToneMapping, cineon: THREE.CineonToneMapping,
+                     aces: THREE.ACESFilmicToneMapping, neutral: THREE.NeutralToneMapping };
+const lightBase = new WeakMap();
+window.__view.tone = (mode, exposure, lightScale) => {
+  if (mode !== undefined && mode !== null){
+    const v = TONE_MODES[String(mode).toLowerCase()];
+    if (v === undefined) return { error: 'mode must be one of ' + Object.keys(TONE_MODES).join(', ') };
+    renderer.toneMapping = v;
+    scene.traverse(o => { for (const m of (o.material ? [].concat(o.material) : [])) m.needsUpdate = true; });
+  }
+  if (typeof exposure === 'number') renderer.toneMappingExposure = exposure;
+  if (typeof lightScale === 'number'){
+    scene.traverse(o => {
+      if (!o.isLight) return;
+      if (!lightBase.has(o)) lightBase.set(o, o.intensity);
+      o.intensity = lightBase.get(o) * lightScale;
+    });
+  }
+  let total = 0;
+  scene.traverse(o => { if (o.isLight) total += o.intensity; });
+  const name = Object.keys(TONE_MODES).find(k => TONE_MODES[k] === renderer.toneMapping) || '?';
+  renderer.render(scene, camera);
+  return { mode: name, exposure: renderer.toneMappingExposure, lightTotal: +total.toFixed(2) };
+};
 // Cut-out coverage, for Raven to judge a capture both ways without a reload:
 //   __view.cutSolid(false) -> the old behaviour, a surviving cut-out texel keeps its map alpha
 //   __view.cutSolid(true)  -> a surviving texel writes full coverage (the default)
