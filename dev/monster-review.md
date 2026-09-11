@@ -1207,6 +1207,48 @@ so this is reported, not changed.
 em043_05's g1/g5 came out empty, and the app's own shipped table is right where it is wrong. The
 `(.*?)</classref>` non-greedy match is the suspect. Anything read from that script wants checking
 against `monsters.json`'s `groups` before it is believed.
+### Crimson Fatalis (em013_01) - the face, cross-referenced against normal Fatalis
+> "Cross reference Crimson's model data with normal Fatalis. They will defer to some ways, but
+> their faces in the distorted region should be similar"
+
+Raven's method, and it was the right one: the sibling is the control. `dev/face-compare.py` walks
+both models primitive by primitive for a Z region and reports vertex count, x range, offset from
+each model's own midline, material and bound bone gids. Positions are the raw quantised shorts,
+which IS the bind pose -- every skin matrix is identity there -- so a difference is geometry or
+binding and never animation.
+
+**The two are near-identical, which kills three hypotheses at once.** Both carry the same 14
+primitives above z 27000, the same materials, the same midline of 13672, and the same asymmetric
+`Group[2]` / `Group[3]` at +377/+384 against +374/+374. So those right-of-centre face pieces are
+AUTHENTIC to the line and not a Crimson defect -- that was my first guess and it was wrong.
+
+**Two real differences, and neither is ours:**
+
+1. **Crimson binds 18 vertices to the ROOT bone; Fatalis binds none.** `Group[1]#0` and
+   `Group[10]#0` each have 9 of 14 vertices carrying a root influence, where Fatalis binds the same
+   vertices to bone gid 13. Both skeletons carry the same 59 gids (in a different order), so it is
+   not a missing bone. BUT the weight is at most 0.0118, the weight sums are exactly 1.0000, and
+   removing the root influence entirely displaces those vertices by **0.0** at bind pose. It cannot
+   be the visible shift.
+2. **Crimson's right-hand face pieces are sparser and reach further right.** `Group[4]#0` is 12
+   vertices (10 left at 12740..12855, and just TWO right at 14506 and 14723) against Fatalis's 22
+   (10 left, 12 spread 14148..14346). `Group[5]#0` and `Group[102]#1` show the same shape, all three
+   reaching exactly 14723 where Fatalis stops at 14346/14603.
+
+**NOT STALE.** Cause D says the joint-0 fix exists but `mod_to_gltf` skips regeneration when the
+.glb is present. Tested: the .glb was moved aside and regenerated from the .mod, and the result is
+**byte-identical, 248712 bytes, the same 18 root-weighted vertices**. So the shipped asset is
+current and the root binding is what the .mod itself says -- the ROM's own data.
+
+**Eliminated for the face shift, each by measurement:** the weld (Raven hard-refreshed on the
+reverted model and still saw it); parts 1 and 10 (15.1% left/right imbalance with them off against
+15.0% with them on -- 14-vertex pieces, far too small); a stale conversion (byte-identical
+regeneration); the root binding (1.2% weight, zero bind displacement).
+
+**STILL TO CHECK, and it post-dates the report:** `XfBAN__E0__m01_body_alpha` is opaque +
+FTransparencyAlpha, one of the 133 the cutout rule now covers, and a hard-edged plate over the
+snout is exactly what that material looks like drawn without its discard. The screenshot predates
+commit 8374d72.
 ### Brachydios (em063_00) and Raging Brachydios (em063_05)
 > "Brachydios renders poorly, likely due to a) it has a shiny carapace that needs to be handled
 > better b) the slime effects c) enrage changes. Raging also has issues."
