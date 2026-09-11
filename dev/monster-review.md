@@ -1167,6 +1167,46 @@ existing AUTHORED_CUTOUT comments cite. With controls it does not separate the c
 fur (in the list) is 9.7..22.7% while Zinogre's body hide (must stay out) is 17.8..62.2%. The
 coverage number is evidence about a single material, not a discriminator. Kept because the existing
 comments quote it and it should be reproducible.
+### Plesioth (em010_00) - head break looks like the wound sits on the surface
+> "Plesioth's head break looks very incorrect, like the wound mesh is on the surface level"
+
+**STATUS** NOT FOUND - four candidate causes measured and ELIMINATED, so this needs one more
+detail from Raven rather than another guess.
+
+The cluster is parts {2, 3}: g0 `on 2 / off 3`, g5 `on 3 / off 2`. Part 3 (173v `m52_hire` +
+244v `m00_body`) is the intact head, part 2 (54v + 168v) the break; both sit at z 0.80..1.00 with
+the eye at z 0.95.
+
+**Eliminated, each by measurement:**
+
+1. **DEPTH BIAS.** `XfBAN__E0__m52_hire` is `RSMeshBias12`, raw bias -512, and a first reading
+   showed `polygonOffsetUnits: -512` -- which would fling the layer at the camera. That was an
+   artefact of MY pane: `updateDepthBias()` runs in the animation loop and rAF is suspended while
+   the Browser pane is hidden, so `unitsPerStep` sat at its default 32. Driven at the live camera
+   distance (25.57, near 0.0256, lsb 1.524e-3) it comes out **-5.25**, and the body stays at 0.
+   The conversion works.
+2. **PART SWITCHING.** Toggling the row gives `on 2 / off 3` and `on 3 / off 2` exactly: broken
+   draws 2 meshes of part 2 and none of part 3, intact the reverse, part 0's 11 meshes throughout.
+   No state leaves both halves drawn.
+3. **A FLOATING OVERLAY.** Both halves share vertices with the always-on head `Group[0]#3`: part 2
+   is 43% coincident, part 3 25%. They are continuations of that surface, not patches laid on it.
+4. **PART 100 MISSING.** All 9 of its meshes are `proxy: true` -- the ROM's own MASK_DRAWN bit 0 is
+   clear, so they are collision/proxy hulls the game never draws either. Correct, not a gap.
+
+**Left over, and worth Raven's eye rather than mine:** the panel names this row **"NeckParts 2, 3"**
+while a separate row reads **"HeadParts 1"** -- and part 1 is 34v of `XfB__m02_ray`, an ADDITIVE
+`RSMeshBias12` effect at z 0.925..0.977, not head geometry at all. If he was reaching for the head
+break through the row called Head, he was toggling an effect layer. The names are the parts agent's,
+so this is reported, not changed.
+
+**What would settle it in one step:** which row he used, or a shot of the broken state.
+
+#### Tooling note
+
+`scratchpad/mpm.py` drops SINGLE-ENTRY visibility groups -- em010_00's g7/g8 (`on 1` / `off 1`) and
+em043_05's g1/g5 came out empty, and the app's own shipped table is right where it is wrong. The
+`(.*?)</classref>` non-greedy match is the suspect. Anything read from that script wants checking
+against `monsters.json`'s `groups` before it is believed.
 ### Brachydios (em063_00) and Raging Brachydios (em063_05)
 > "Brachydios renders poorly, likely due to a) it has a shiny carapace that needs to be handled
 > better b) the slime effects c) enrage changes. Raging also has issues."
