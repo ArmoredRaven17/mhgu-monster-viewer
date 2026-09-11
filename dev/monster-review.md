@@ -916,6 +916,66 @@ until the missing 17.7 MB is on screen beside them.
 
 **NOTHING DONE.** Harvesting `effect\` is a new pipeline -- a second model/material/texture source,
 a per-motion binding format, and an effect runtime -- not a patch. Raven's call.
+#### HARVESTED 2026-09-11 - `harvest-monster-effects.py`
+
+> Raven: "I will likely want the effects for various things like attack animations, so harvest them"
+
+`harvest-monster-effects.py` (in the extract root, unversioned like the other harvest scripts)
+walks all 137 enemy archives and extracts everything under `effect\`. **2,312 distinct resources,
+87.8 MB, no failures** -- every file's magic checked against its type hash rather than trusted:
+
+| ext | type | refs | distinct | size |
+|---|---|---|---|---|
+| `.tex` | rTexture `241f5deb` | 7379 | **188** | 73.9 MB |
+| `.efl` | EFL `6d5ae854` | 4042 | **1115** | 6.5 MB |
+| `.mod` | rModel `58a15856` | 3646 | **160** | 3.4 MB |
+| `.mrl` | rMaterial `2749c8a8` | 3646 | 160 | 0.2 MB |
+| `.ean` | EAN `4e397417` | 3256 | 70 | 0.0 MB |
+| `.psl` | rProofEffectMotSequenceList `254309c9` | 507 | **364** | 2.3 MB |
+| `.pel` | rProofEffectList `5a525c16` | 280 | 254 | 1.4 MB |
+| `.pep` | PEP `20ed9750` | 2 | 1 | 0.0 MB |
+
+730 of 2,131 paths are shared between archives, so keying the output by archive-internal path
+writes each shared `effect\cm\` and `effectase\` resource once.
+
+TWO LABELS I HAD BACKWARDS in the previous entry, corrected from `build/frag/resource-ids.json`
+(65,565 records) rather than from the folder names: **`58a15856` is rModel and `2749c8a8` is
+rMaterial**, not the other way round. `6d5ae854` and `4e397417` are in no id table at all; their
+magics are `EFL ` and `EAN `.
+
+This also refutes `harvest-monster-effect-models.py`'s premise. That script says "of the 605 rModel
+records in the whole image ... exactly 24 are in enemy archives and all 24 are in ems007_00.arc",
+and ships one `effect-mounts.json` entry on the strength of it. rModel is `58a15856`, of which the
+id table holds **18,968**, and `effectase\` carries **160 distinct effect models** across the
+enemy archives. That script was counting the wrong hash.
+
+#### The EFL references are PLAIN STRINGS, so the effect graph needs no format decode
+
+Savage's two own definitions name their resources in readable ASCII:
+
+    em043_05_000     effectase\cm202_042   cm150_000   cm100_000
+                     + @effectase\cm202_042_HQ_NOMIP, @...\cm100_000_GSM_HQ_NOMIP
+    em043_05_002_s   effectase\cm150_000   em024_00_001   cm202_042   cm090_009
+                     + chains to effect\em\em043\em043_00_900
+
+`cm090_009` has no `.mod` because it is an `.ean`, 72 bytes -- an effect animation, not geometry.
+The `@`-prefixed names are the textures.
+
+**All four models convert with the existing `buildlib.mod_to_gltf`**, first try:
+
+| model | meshes | verts | materials |
+|---|---|---|---|
+| `cm202_042` | 4 | 819 | `XfBAW_cm202_042` |
+| `cm150_000` | 15 | 4488 | `XfBA1__cm150_000` |
+| `cm100_000` | 58 | 5354 | `XfBAW__cm100_003v` + 3 |
+| `em024_00_001` | 7 | 1866 | `XfBAW_1__cm130_117v` + 3 |
+
+The material names follow the same `Xf*` convention as monster materials, so `build-materials.py`
+should read their MRLs unchanged.
+
+**STILL TO DO:** staging the models and textures into `docs/`, the EFL's own structure (emitter
+placement, timing, colour), the `.psl` motion -> effect binding that Raven wants for attack
+animations, and a runtime to mount and play them.
 ### Brachydios (em063_00) and Raging Brachydios (em063_05)
 > "Brachydios renders poorly, likely due to a) it has a shiny carapace that needs to be handled
 > better b) the slime effects c) enrage changes. Raging also has issues."
