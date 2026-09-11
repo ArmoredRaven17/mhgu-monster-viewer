@@ -1,0 +1,330 @@
+{
+ "_about": "Monster effect-base models staged by stage-monster-effects.py. Per material: the ROM's blend state (from build-materials.py's decode_material, resolved through mfx) and its texture bindings. The feature word and the $Globals / CBMaterial blocks are NOT carried -- see that script's header for why.",
+ "cm202_042": {
+  "tex": [
+   "tex/422e2220e2a73618.webp"
+  ],
+  "mats": {
+   "XfBAW_cm202_042": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm150_000": {
+  "tex": [
+   "tex/4c3d7eac8b2f926c.webp"
+  ],
+  "mats": {
+   "XfBA1__cm150_000": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm100_000": {
+  "tex": [
+   "tex/f93079c29cc254a2.webp",
+   "tex/e24f8e0d8578fc14.webp",
+   "tex/ee6c4244acafc1ed.webp",
+   "tex/254f305bfb34763d.webp",
+   "tex/83b44f3e236c1717.webp",
+   "tex/1c46f36f50f1dcc8.webp",
+   "tex/d0d28aab6a257355.webp",
+   "tex/57504b534607882b.webp",
+   "tex/6685fa9e86e39f9d.webp",
+   "tex/ce575a8db98e2d39.webp",
+   "tex/720d4b5b1cb75833.webp",
+   "tex/6ca0b19aa24de433.webp"
+  ],
+  "mats": {
+   "XfBAW__cm100_003v": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   },
+   "XfBA1__cm100_101": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 2
+    }
+   },
+   "XfBAW__cm100_901v": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 3
+    }
+   },
+   "XfBA1__cm100_100": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 4
+    }
+   },
+   "XfBA1__cm100_002b": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMesh",
+     "bias": 0,
+     "cull": "back",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 4
+    }
+   },
+   "XfBA1__cm100_000": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 5
+    }
+   },
+   "XfBAW__cm100_000v": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 5
+    }
+   },
+   "XfBAW__cm100_004v": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 6
+    }
+   },
+   "XfBA1__cm100_102b": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMesh",
+     "bias": 0,
+     "cull": "back",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 7
+    }
+   },
+   "XfBAW_cm100_014v": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 8
+    }
+   },
+   "XfBAW_cm100_102v": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 7
+    }
+   },
+   "XfBA1__cm100_100b": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMesh",
+     "bias": 0,
+     "cull": "back",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 4
+    }
+   },
+   "XfBA1__cm100_001b": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMesh",
+     "bias": 0,
+     "cull": "back",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 9
+    }
+   },
+   "XfBA1__cm110_000": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 10
+    }
+   },
+   "XfBA1__cm100_018": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 11
+    }
+   },
+   "XfBA1__cm100_007": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 12
+    }
+   }
+  }
+ },
+ "em024_00_001": {
+  "tex": [
+   "tex/5230c8cb0c2fc448.webp",
+   "tex/67fbecd6c4ec5651.webp",
+   "tex/a5798cc27c4354d6.webp"
+  ],
+  "mats": {
+   "XfBAW_1__cm130_117v": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   },
+   "XfBAW_cm150_006v": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 2
+    }
+   },
+   "XfBAW_em050_00_012vb": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMesh",
+     "bias": 0,
+     "cull": "back",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 3
+    }
+   },
+   "XfBAW_em050_00_12v": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 3
+    }
+   }
+  }
+ }
+}

@@ -28,10 +28,11 @@
 // bone's own space is, it inherits. If a piece sits wrong, that is the unread per-record transform
 // in the .pel payload, not a scale to be guessed here.
 import * as THREE from 'three';
-import { loader, loadJson } from '../assets.js';
+import { loader, loadJson, getTexture } from '../assets.js';
 import { gidBonesOf } from '../skeleton.js';
 
 let table = null;                 // the whole effect-mounts.json
+let mats = null;                  // the whole effect-materials.json
 let enabled = false;
 const live = [];                  // { obj, bone, model, joint, array, index }
 const cache = new Map();          // model name -> the loaded glb scene, cloned per use
@@ -39,7 +40,44 @@ const cache = new Map();          // model name -> the loaded glb scene, cloned 
 export async function loadEffectMounts(url){
   if (table) return table;
   table = await loadJson(url || 'effect-mounts.json').catch(() => ({}));
+  mats = await loadJson('effect-materials.json').catch(() => ({}));
   return table;
+}
+
+// THE ROM'S OWN BLEND STATE AND ALBEDO, and nothing else.
+//
+// stage-monster-effects.py carries `state` (blend / cull / bias / depth, resolved through mfx by
+// build-materials.py's decode_material) and the texture bindings. It does NOT carry the feature
+// word or the $Globals / CBMaterial blocks, because the shape of those rows in materials.json is
+// derived from a corpus-wide scan and cannot be reproduced for four models without rebuilding the
+// whole library. So an effect mesh gets its map and the ROM's blending; it does not get
+// fConstantColor, emission, or material animation. Without this it draws as untextured grey, which
+// on a stack of alpha cards is a solid blob and tells you nothing about what the mesh is.
+function dressEffect(scene, model){
+  const rec = mats && mats[model];
+  if (!rec) return 0;
+  let n = 0;
+  scene.traverse(o => {
+    const list = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
+    for (let i = 0; i < list.length; i++){
+      const src = rec.mats && rec.mats[list[i].name];
+      if (!src) continue;
+      const st = src.state || {};
+      const m = new THREE.MeshBasicMaterial({ name: list[i].name, toneMapped: false });
+      m.transparent = st.blend !== 'opaque';
+      m.depthWrite = st.ds === 'DSZTestWrite' && !m.transparent;
+      m.side = st.cull === 'none' ? THREE.DoubleSide
+             : (st.cull === 'front' ? THREE.BackSide : THREE.FrontSide);
+      if (st.blend === 'add'){ m.blending = THREE.AdditiveBlending; }
+      const slot = src.t && src.t.albedo;
+      const file = slot && rec.tex && rec.tex[slot - 1];
+      if (file) getTexture(file).then(t => { m.map = t; m.needsUpdate = true; });
+      m.userData.effectState = st;
+      if (Array.isArray(o.material)) o.material[i] = m; else o.material = m;
+      n++;
+    }
+  });
+  return n;
 }
 
 export function effectMountsFor(monsterId){
@@ -60,20 +98,43 @@ async function glbFor(model){
 export async function attachEffectMounts(root, monsterId, only){
   detachEffectMounts();
   if (!enabled || !root) return live.length;
-  const rows = effectMountsFor(monsterId).filter(r => r.joint >= 0);
+  // `joint: -1` normally means an UNBOUND .pel record and is skipped. A row that also carries
+  // `root: true` is different: it is an effect whose attachment point is not decoded yet -- the
+  // EFL names its models in plain text but its emitter placement is unread -- and it is mounted on
+  // the monster's own root so it can be looked at at all. Those rows say so in the table.
+  const rows = effectMountsFor(monsterId).filter(r => r.joint >= 0 || r.root);
   const bones = gidBonesOf(root);
   for (let k = 0; k < rows.length; k++){
     const r = rows[k];
     if (only !== undefined && only !== null && k !== only) continue;
-    const b = bones.find(x => x.gid === r.joint);
-    if (!b) continue;                       // the monster does not carry that bone: skip, do not guess
+    let parent = root;
+    if (!r.root){
+      const b = bones.find(x => x.gid === r.joint);
+      if (!b) continue;                     // the monster does not carry that bone: skip, do not guess
+      parent = b.node;
+    }
     let scene;
     try { scene = await glbFor(r.model); } catch (_) { continue; }
     const obj = scene.clone(true);
-    obj.userData.effectMount = { model: r.model, joint: r.joint, array: r.array, index: r.index };
-    b.node.add(obj);
-    live.push({ obj, bone: b.node, model: r.model, joint: r.joint, array: r.array, index: r.index });
+    dressEffect(obj, r.model);
+    // UNITS ARE UNDECODED. An effect base model spans 272..562 units where a monster's skeleton
+    // spans about 7-8, so the two are not in the same space and the EFL's own placement has not
+    // been read. `scale` is therefore a TABLE VALUE, not a decode: it is here so the thing can be
+    // seen and judged, and __view.effects.scale() retunes it without a reload.
+    const s = typeof r.scale === 'number' ? r.scale : 1;
+    if (s !== 1) obj.scale.setScalar(s);
+    obj.userData.effectMount = { model: r.model, joint: r.joint, array: r.array, index: r.index,
+                                 root: !!r.root, scale: s };
+    parent.add(obj);
+    live.push({ obj, bone: parent, model: r.model, joint: r.joint, array: r.array,
+                index: r.index, root: !!r.root });
   }
+  return live.length;
+}
+
+// Retune the undecoded mount scale on everything live, for judging it by eye.
+export function setEffectScale(s){
+  for (const m of live) m.obj.scale.setScalar(s);
   return live.length;
 }
 

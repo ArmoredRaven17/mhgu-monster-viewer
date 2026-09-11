@@ -144,5 +144,36 @@
    "array": 2,
    "index": 48
   }
+ ],
+ "_about_em043_05": "Savage Deviljho, 2026-09-11. His two own effect definitions effect/em/em043/em043_05_000 and em043_05_002_s name these models in PLAIN TEXT; the EFL's emitter placement, timing and colour are NOT decoded, so every row is root:true with a table scale rather than a joint. cm090_009 is in the same list but is an .ean (72 bytes), an effect animation, not geometry. Use __view.effects.scale() to retune.",
+ "em043_05": [
+  {
+   "model": "cm202_042",
+   "joint": -1,
+   "root": true,
+   "scale": 0.02,
+   "from": "em043_05_000, em043_05_002_s"
+  },
+  {
+   "model": "cm150_000",
+   "joint": -1,
+   "root": true,
+   "scale": 0.02,
+   "from": "em043_05_000, em043_05_002_s"
+  },
+  {
+   "model": "cm100_000",
+   "joint": -1,
+   "root": true,
+   "scale": 0.02,
+   "from": "em043_05_000"
+  },
+  {
+   "model": "em024_00_001",
+   "joint": -1,
+   "root": true,
+   "scale": 0.02,
+   "from": "em043_05_002_s"
+  }
  ]
 }
