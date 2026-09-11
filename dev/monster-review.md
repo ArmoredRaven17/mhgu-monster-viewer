@@ -3197,3 +3197,116 @@ viewer is currently opening Kecha Wacha on the broken pair.
 
 **NOT WIRED INTO THE VIEWER.** That needs a bone-pose override control in `docs/index.html`, which
 the parts agent has uncommitted changes in right now.
+# Crimson Fatalis: "bind position looks correct, it varies with animations"
+
+Raven, 2026-09-11, on the snout shifting to the monster's right. Every measurement I had run
+before this was on the raw quantised positions -- which IS the bind pose -- so it was measuring
+the one thing he says is fine. This is the animation-side pass. Tool: `dev/skin-sim.py`.
+
+## The short version
+
+**Nothing about Crimson's geometry or animation differs from Fatalis's.** Ten separate things
+were checked and every one came back clean or identical. One large, *general* render bug did
+fall out of the search: the viewer discards 100% of animated bone scale, on every monster.
+
+## What was eliminated, and how
+
+| # | Claim tested | Result |
+|---|---|---|
+| 1 | Crimson's `.glb` was edited / welded | **Byte-identical** to the original conversion `5ce0c17`. The weld was reverted in `fe02230`. (`em013_00` IS still welded; `em013_02` has an uncommitted working-tree change.) |
+| 2 | The motion data was altered | Crimson has no motion of its own: it borrows `em013_00`'s four lists, all 129 clips, via `lists[].remap`. |
+| 3 | The retarget binds a track to the wrong bone | Simulated `clipFor()` exactly, including three.js's colon-stripping `sanitizeNodeName`. 56 tracks kept by name, 27 remapped, **0 bound to a bone with a different global id**. No sanitised-name collisions within either skeleton. |
+| 4 | Crimson's skeleton differs | Same 101 global ids, same 114 nodes, same 42 `_s` leaves, **rest T/R/S identical on all 101 matched bones** (max delta 0.0). |
+| 5 | Skin weights are wrong | Weights sum to 1.0 everywhere; **no vertex bound to the root**; **no repeated joint slot carrying weight** on either model (the known MT slot-padding defect does not touch these). |
+| 6 | A mirrored bone breaks `decompose` | **No negative and no non-unit bind scale** on any node of any of the three. |
+| 7 | Multiple skins mis-index `joints[i]` | One skin, 59 joints, used by every node, on all three. |
+| 8 | The retargeted clip never reaches the mixer | It does -- `index.html:3715` builds it and passes it as `clip3`. (`pose.js`'s comment "nothing in this app passes it" is the armour app's, and is stale here.) |
+| 9 | The snout actually moves differently | Full skinning simulated over **all 129 clips x 3 phases**, per primitive. Largest Crimson-vs-Fatalis difference anywhere: **0.42 units**, and it moves every head primitive together -- a whole-head offset from the two models genuinely differing, not one part sliding. |
+| 10 | The dropped `_s` tracks cause it | Control: bind them too (`--fix-s`, verified to go from 2 dropped to 0). Snout offset changes by **+0.000**. |
+
+Part groups are identical across all three Fatalis, and so is the gid 241/242 split across mesh
+groups, so neither is a Crimson-only asymmetry either.
+
+**Therefore:** if the snout shift is real and animation-driven, it is *not* Crimson-specific, and
+the same behaviour must be visible on `em013_00` under the same clip. That is the cheapest way to
+split "Crimson is broken" from "the viewer is broken for everyone".
+
+## The real bug this turned up: animated scale never reaches the model
+
+Fatalis's motion files carry **1,112 scale tracks** -- 834 on base bones, 278 on `_s` leaves --
+and the values are not decoration:
+
+    9:132     0.0000 .. 14.7195   (and negative, to -2.5981)
+    2:130    -0.7914 ..  7.9797
+    20:131    0.0000 ..  3.7487
+    16:241   -2.5077 ..  1.2597
+    17:242   -2.5077 ..  1.0000
+    15:7      0.0340 ..  2.7916
+
+`0.0000` is how MT hides geometry -- it collapses the bound vertices to a point. Gids
+**130, 131, 132, 241, 242 are leaf skin joints with no children**: bones whose only function is
+to scale geometry. Nothing else is attached to them.
+
+The viewer throws all of it away, in two independent places:
+
+1. `render/pose.js` `step()` -- `_m.decompose(node.position, node.quaternion, _s3)`. Scale goes
+   into a scratch vector and is dropped. Base-bone scale never reaches the displayed model.
+2. `render/skeleton.js` `bonesByGid()` -- a gid maps to `info.leaf ? bone.parent : bone`, so for
+   every bone whose skin joint is the `_s` leaf, the driven node is the leaf's PARENT. Scale
+   authored on the leaf is never transferred at all.
+
+So geometry the ROM collapses to nothing is drawn at full bind size, and geometry the ROM
+inflates up to 14.7x stays small. Measured cost on the head region of these particular clips is
+small (<= 0.33 units, and identical on Crimson and Fatalis, which is why it is not by itself the
+snout symptom) -- but on the bones that reach 14.7x it will not be small.
+
+A third, related defect: `pose.js` snapshots the proxy's rest as
+`push([o, o.position.clone(), o.quaternion.clone()])` and restores only those two. **Scale is
+never restored**, and the proxy is cached per model and reused for every clip -- so any scale the
+mixer writes onto it persists into every later clip. Latent today only because (1) and (2) stop
+the scale being used; fixing either without fixing this would expose it.
+
+## Also found: the remap omits the `_s` twins
+
+`lists[].remap` is built for base bones only (27 entries for Crimson), so the 18 `_s` tracks in
+Fatalis's files are silently dropped for every borrowing monster -- `clipFor` counts them in
+`lost` and tells no one, and the list's `dropped` field stays `null`. Only 2 of the 18 are ever
+animated in these clips (a 0.5% scale on gid 5/6), so the measured effect here is 0.000, but the
+harvest gap is real and affects all 18 borrowers.
+
+Note this interacts with the bug above: those dropped tracks are scale tracks on `_s` leaves,
+which (2) would discard anyway.
+
+## Live-viewer control (2026-09-11, after Raven's 179-frame capture)
+
+Raven: "It shifts mid animation as well." So the offline simulation was checked against the running
+app, on his own local server, driving the page directly.
+
+Method: pause the transport so every comparison is one identical frame; toggle one mesh at a time
+and count changed pixels, with a **control that toggles nothing and must read 0** (it did, both
+models). Then put Crimson and Fatalis on the SAME clip at the SAME mixer time from the SAME camera
+and diff the silhouettes.
+
+    silhouette overlap  both 60,126 px | crimson-only 2,258 | fatalis-only 2,245   = 96.3% identical
+
+The 3.7% residue is edge antialiasing plus the authored differences between the two models. **The
+head is not displaced.** Per-mesh A/B on the same frame, both models draw the same parts (3, 4 and
+102 on; 1, 2, 5, 7, 9, 10 off) and each covers a comparable area:
+
+    prim10 Group3  part3    crimson 7,686 px   fatalis 6,864 px
+    prim22 Group102_2 p102  crimson 6,029 px   fatalis 5,279 px
+    prim11 Group4  part4    crimson     0 px   fatalis   806 px   (occluded on crimson)
+
+Two live findings worth keeping:
+
+- `Group4` (part 4) reaches x 2.81 where the head mesh stops at 1.86, and `Group102_2` reaches
+  2.31 -- both rigidly bound to bone 3 while the head around them deforms on 3/4/105/243. They do
+  separate under animation, but only from 2.05 to 2.76 and 0.92 to 1.26 units, and Fatalis does
+  the same thing, so it is not the symptom.
+- `Motion[2]_loop`, the clip the app restores on load, is a 14.42 s idle that never opens the
+  mouth. Raven's capture has the jaw wide open, so it is a different clip -- which one is not
+  known, and that is the one thing still needed to close this.
+
+**Status: not reproduced.** Everything measurable says Crimson's animated geometry matches
+Fatalis's. The real defect this search turned up is the discarded bone scale above, which is
+general rather than Crimson-specific.

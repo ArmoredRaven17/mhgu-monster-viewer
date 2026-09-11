@@ -1,0 +1,47 @@
+{
+ "_about": "Kecha Wacha with his ears folded over his face. Four LOCAL bone rotations, lifted from em065_00_2.glb Motion[116] at 0.40s -- the one frame in all 191 clips where the ear mesh covers the whole eye. The pose needs nothing else: the eye is 100% weighted to head bone 3, the ear parts are 99.99% on these four bones, and their chain hangs off bone 3, so the drape is a pure function of these rotations and is unaffected by whatever the head and body are doing. NOT a visibility group -- uEm065_00 has eight setVisibleGroup sites and none of them move the ears.",
+ "monster": "em065_00",
+ "source": {
+  "list": 2,
+  "clip": "Motion[116]",
+  "time": 0.4,
+  "coverAtSource": 1.0
+ },
+ "alsoHeld": {
+  "list": 3,
+  "clip": "Motion[58]",
+  "note": "holds a partial fold (~0.38 cover) for about 6 seconds, then peaks at 0.67"
+ },
+ "bones": {
+  "132": "right ear root",
+  "133": "right ear tip",
+  "134": "left ear root",
+  "135": "left ear tip"
+ },
+ "rotation": {
+  "132": [
+   0.543913,
+   0.009906,
+   -0.014209,
+   0.838963
+  ],
+  "133": [
+   0.203508,
+   -0.170762,
+   0.123874,
+   0.956075
+  ],
+  "134": [
+   0.536824,
+   -0.013552,
+   0.117852,
+   0.835313
+  ],
+  "135": [
+   0.203491,
+   0.170745,
+   -0.123878,
+   0.956082
+  ]
+ }
+}

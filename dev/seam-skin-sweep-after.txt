@@ -1,57 +1,57 @@
   [  1/186] em001_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [  3/186] em001_02                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [  5/186] em001_04                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [  7/186] em002_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [  9/186] em002_02                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [  5/186] em001_04                 same-part    2  posed(same)   25.72%  any    25.72%  CTL 0.000%
+  [  7/186] em002_00                 same-part    0  posed(same)    0.00%  any    69.34%  CTL 0.000%
+  [  9/186] em002_02                 same-part    0  posed(same)    0.00%  any    70.29%  CTL 0.000%
   [ 11/186] em002_04                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [ 13/186] em003_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [ 14/186] em004_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [ 16/186] em005_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [ 13/186] em003_00                 same-part    4  posed(same)   46.51%  any    76.91%  CTL 0.082%
+  [ 14/186] em004_00                 same-part    0  posed(same)    0.00%  any    56.98%  CTL 0.000%
+  [ 16/186] em005_00                 same-part    0  posed(same)    0.00%  any    16.24%  CTL 0.000%
   [ 18/186] em007_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [ 20/186] em007_04                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [ 23/186] em008_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [ 24/186] em009_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [ 25/186] em010_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [ 25/186] em010_00                 same-part    0  posed(same)    0.00%  any     6.19%  CTL 0.105%
   [ 26/186] em011_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [ 27/186] em012_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [ 27/186] em012_00                 same-part   38  posed(same)  155.00%  any   155.00%  CTL 0.000%
   [ 28/186] em013_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [ 29/186] em013_01                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [ 30/186] em013_02                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [ 31/186] em014_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [ 32/186] em015_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [ 33/186] em016_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [ 34/186] em017_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [ 35/186] em018_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [ 34/186] em017_00                 same-part    4  posed(same)    0.42%  any     2.68%  CTL 0.000%
+  [ 35/186] em018_00                 same-part    0  posed(same)    0.00%  any     4.03%  CTL 0.043%
   [ 37/186] em018_04                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [ 39/186] em019_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [ 40/186] em019_04                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [ 39/186] em019_00                 same-part    0  posed(same)    0.00%  any    30.64%  CTL 0.000%
+  [ 40/186] em019_04                 same-part    0  posed(same)    0.00%  any    29.99%  CTL 0.000%
   [ 41/186] em020_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [ 42/186] em020_04                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [ 43/186] em021_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [ 43/186] em021_00                 same-part    2  posed(same)   75.06%  any    75.06%  CTL 0.000%
   [ 44/186] em022_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [ 45/186] em023_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [ 45/186] em023_00                 same-part    0  posed(same)    0.00%  any     1.43%  CTL 0.038%
   [ 46/186] em024_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [ 48/186] em025_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [ 50/186] em027_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [ 50/186] em027_00                 same-part   44  posed(same)  363.18%  any   363.18%  CTL 0.154%
   [ 52/186] em030_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [ 53/186] em032_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [ 55/186] em032_04                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [ 57/186] em033_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [ 59/186] em034_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [ 60/186] em036_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [ 60/186] em036_00                 same-part    0  posed(same)    0.00%  any    53.68%  CTL 0.064%
   [ 61/186] em037_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [ 63/186] em037_04                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [ 65/186] em038_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [ 65/186] em038_00                 same-part    0  posed(same)    0.00%  any    35.09%  CTL 0.112%
   [ 67/186] em042_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [ 69/186] em043_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [ 71/186] em043_05                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [ 73/186] em044_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [ 69/186] em043_00                 same-part   15  posed(same)   48.49%  any    48.49%  CTL 0.104%
+  [ 71/186] em043_05                 same-part   22  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [ 73/186] em044_00                 same-part    0  posed(same)    0.00%  any    40.55%  CTL 0.000%
   [ 76/186] em045_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [ 78/186] em045_04                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [ 81/186] em046_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [ 81/186] em046_00                 same-part    0  posed(same)    0.00%  any    13.19%  CTL 0.000%
   [ 83/186] em047_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [ 85/186] em049_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [ 87/186] em050_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [ 85/186] em049_00                 same-part    0  posed(same)    0.00%  any   122.14%  CTL 0.083%
+  [ 87/186] em050_00                 same-part    3  posed(same)   10.14%  any   908.24%  CTL 0.000%
   [ 89/186] em055_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [ 91/186] em056_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [ 92/186] em057_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
@@ -60,41 +60,41 @@
   [ 98/186] em060_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [ 99/186] em060_04                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [100/186] em061_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [101/186] em061_04                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [102/186] em062_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [101/186] em061_04                 same-part    8  posed(same)   11.37%  any    49.21%  CTL 0.000%
+  [102/186] em062_00                 same-part    0  posed(same)    0.00%  any     2.25%  CTL 0.039%
   [103/186] em063_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [105/186] em063_05                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [107/186] em065_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [107/186] em065_00                 same-part    0  posed(same)    0.00%  any   309.29%  CTL 0.000%
   [108/186] em066_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [109/186] em066_04                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [110/186] em067_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [111/186] em068_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [112/186] em069_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [112/186] em069_00                 same-part    0  posed(same)    0.00%  any    21.55%  CTL 0.000%
   [113/186] em070_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [114/186] em071_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [116/186] em071_05                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [114/186] em071_00                 same-part    5  posed(same)   47.45%  any    47.45%  CTL 0.132%
+  [116/186] em071_05                 same-part   11  posed(same)   47.37%  any   963.69%  CTL 0.132%
   [118/186] em072_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [120/186] em076_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [121/186] em077_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [123/186] em079_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [124/186] em079_04                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [125/186] em080_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [127/186] em080_04                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [129/186] em081_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [131/186] em081_04                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [133/186] em082_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [135/186] em082_04                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [121/186] em077_00                 same-part    0  posed(same)    0.00%  any    12.23%  CTL 0.000%
+  [123/186] em079_00                 same-part    6  posed(same)   44.09%  any    44.09%  CTL 0.085%
+  [124/186] em079_04                 same-part   50  posed(same)   44.44%  any    44.44%  CTL 0.038%
+  [125/186] em080_00                 same-part    0  posed(same)    0.00%  any   101.06%  CTL 0.000%
+  [127/186] em080_04                 same-part    0  posed(same)    0.00%  any   115.20%  CTL 0.112%
+  [129/186] em081_00                 same-part    3  posed(same)   26.41%  any   133.43%  CTL 0.000%
+  [131/186] em081_04                 same-part    3  posed(same)   30.76%  any   141.53%  CTL 0.000%
+  [133/186] em082_00                 same-part    4  posed(same)   21.52%  any    21.52%  CTL 0.057%
+  [135/186] em082_04                 same-part    4  posed(same)   36.85%  any    36.85%  CTL 0.138%
   [137/186] em083_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [138/186] em083_04                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [139/186] em084_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [138/186] em083_04                 same-part    0  posed(same)    0.00%  any    79.17%  CTL 0.307%
+  [139/186] em084_00                 same-part    4  posed(same)   51.16%  any    51.28%  CTL 0.000%
   [140/186] em084_00_left            same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [141/186] em084_00_right           same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [142/186] em085_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [143/186] em086_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [143/186] em086_00                 same-part   42  posed(same)  538.48%  any   538.48%  CTL 0.000%
   [145/186] em087_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [148/186] em087_00_rubble_02       same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [149/186] em087_00_rubble_03       same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [150/186] em088_00                 same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [150/186] em088_00                 same-part   10  posed(same)  611.19%  any   611.19%  CTL 0.065%
   [151/186] ems001_00                same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [152/186] ems002_00                same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [153/186] ems003_00                same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
@@ -114,18 +114,18 @@
   [168/186] ems019_00                same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [169/186] ems020_00                same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [170/186] ems021_00                same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [171/186] ems022_00                same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [172/186] ems023_00                same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [173/186] ems025_00                same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [171/186] ems022_00                same-part   12  posed(same)   11.44%  any    11.44%  CTL 0.000%
+  [172/186] ems023_00                same-part    2  posed(same)   25.16%  any    25.16%  CTL 0.000%
+  [173/186] ems025_00                same-part    0  posed(same)    0.00%  any     6.47%  CTL 0.000%
   [174/186] ems026_00                same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [175/186] ems027_00                same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [175/186] ems027_00                same-part    0  posed(same)    0.00%  any    15.29%  CTL 0.000%
   [176/186] ems034_00                same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [177/186] ems035_00                same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [178/186] ems039_00                same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [179/186] ems040_00                same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [179/186] ems040_00                same-part    0  posed(same)    0.00%  any    15.59%  CTL 0.000%
   [180/186] ems041_00                same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [181/186] ems042_00                same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
-  [182/186] ems044_00                same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
+  [181/186] ems042_00                same-part    0  posed(same)    0.00%  any    16.51%  CTL 0.000%
+  [182/186] ems044_00                same-part    0  posed(same)    0.00%  any    11.50%  CTL 0.000%
   [183/186] ems045_00                same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [184/186] ems046_00                same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
   [185/186] ems047_00                same-part    0  posed(same)    0.00%  any     0.00%  CTL 0.000%
@@ -135,49 +135,49 @@
 WORST SEAM SEPARATION UNDER A POSE, as a percentage of the model's own size
 ============================================================================================================
 monster                same-part posed(same) over0.2% any-pair  CONTROL  worst same-part pair
+em088_00                      10    611.19%       10   611.2%   0.065%  Group[0]#12 / Group[0]#13
+em086_00                      42    538.48%       42   538.5%   0.000%  Group[0]#0 / Group[0]#1
+em027_00                      44    363.18%       44   363.2%   0.154%  Group[101]#0 / Group[101]#2
+em012_00                      38    155.00%       38   155.0%   0.000%  Group[100]#0 / Group[100]#6
+em021_00                       2     75.06%        2    75.1%   0.000%  Group[0]#0 / Group[0]#3
+em084_00                       4     51.16%        4    51.3%   0.000%  Group[100]#2 / Group[100]#5
+em043_00                      15     48.49%       15    48.5%   0.104%  Group[101]#0 / Group[101]#1
+em071_00                       5     47.45%        5    47.5%   0.132%  Group[0]#1 / Group[0]#11
+em071_05                      11     47.37%       11   963.7%   0.132%  Group[0]#1 / Group[0]#13
+em003_00                       4     46.51%        4    76.9%   0.082%  Group[0]#0 / Group[0]#4
+em079_04                      50     44.44%       50    44.4%   0.038%  Group[0]#7 / Group[0]#10
+em079_00                       6     44.09%        6    44.1%   0.085%  Group[0]#4 / Group[0]#9
+em082_04                       4     36.85%        4    36.9%   0.138%  Group[0]#3 / Group[0]#15
+em081_04                       3     30.76%        3   141.5%   0.000%  Group[100]#0 / Group[100]#1
+em081_00                       3     26.41%        3   133.4%   0.000%  Group[100]#0 / Group[100]#1
+em001_04                       2     25.72%        2    25.7%   0.000%  Group[100]#0 / Group[100]#1
+ems023_00                      2     25.16%        2    25.2%   0.000%  Group[0]#0 / Group[0]#2
+em082_00                       4     21.52%        4    21.5%   0.057%  Group[0]#10 / Group[0]#15
+ems022_00                     12     11.44%       12    11.4%   0.000%  Group[0]#0 / Group[0]#2
+em061_04                       8     11.37%        8    49.2%   0.000%  Group[0]#6 / Group[0]#7
+em050_00                       3     10.14%        3   908.2%   0.000%  Group[0]#3 / Group[0]#12
+em017_00                       4      0.42%        4     2.7%   0.000%  Group[102]#0 / Group[102]#2
 em001_00                       0      0.00%        0     0.0%   0.000%  -
 em001_02                       0      0.00%        0     0.0%   0.000%  -
-em001_04                       0      0.00%        0     0.0%   0.000%  -
-em002_00                       0      0.00%        0     0.0%   0.000%  -
-em002_02                       0      0.00%        0     0.0%   0.000%  -
+em002_00                       0      0.00%        0    69.3%   0.000%  -
+em002_02                       0      0.00%        0    70.3%   0.000%  -
 em002_04                       0      0.00%        0     0.0%   0.000%  -
-em003_00                       0      0.00%        0     0.0%   0.000%  -
-em004_00                       0      0.00%        0     0.0%   0.000%  -
-em005_00                       0      0.00%        0     0.0%   0.000%  -
+em004_00                       0      0.00%        0    57.0%   0.000%  -
+em005_00                       0      0.00%        0    16.2%   0.000%  -
 em007_00                       0      0.00%        0     0.0%   0.000%  -
 em007_04                       0      0.00%        0     0.0%   0.000%  -
 em008_00                       0      0.00%        0     0.0%   0.000%  -
 em009_00                       0      0.00%        0     0.0%   0.000%  -
-em010_00                       0      0.00%        0     0.0%   0.000%  -
+em010_00                       0      0.00%        0     6.2%   0.105%  -
 em011_00                       0      0.00%        0     0.0%   0.000%  -
-em012_00                       0      0.00%        0     0.0%   0.000%  -
 em013_00                       0      0.00%        0     0.0%   0.000%  -
 em013_01                       0      0.00%        0     0.0%   0.000%  -
 em013_02                       0      0.00%        0     0.0%   0.000%  -
 em014_00                       0      0.00%        0     0.0%   0.000%  -
 em015_00                       0      0.00%        0     0.0%   0.000%  -
-em016_00                       0      0.00%        0     0.0%   0.000%  -
-em017_00                       0      0.00%        0     0.0%   0.000%  -
-em018_00                       0      0.00%        0     0.0%   0.000%  -
-em018_04                       0      0.00%        0     0.0%   0.000%  -
-em019_00                       0      0.00%        0     0.0%   0.000%  -
-em019_04                       0      0.00%        0     0.0%   0.000%  -
-em020_00                       0      0.00%        0     0.0%   0.000%  -
-em020_04                       0      0.00%        0     0.0%   0.000%  -
-em021_00                       0      0.00%        0     0.0%   0.000%  -
-em022_00                       0      0.00%        0     0.0%   0.000%  -
-em023_00                       0      0.00%        0     0.0%   0.000%  -
-em024_00                       0      0.00%        0     0.0%   0.000%  -
-em025_00                       0      0.00%        0     0.0%   0.000%  -
-em027_00                       0      0.00%        0     0.0%   0.000%  -
-em030_00                       0      0.00%        0     0.0%   0.000%  -
-em032_00                       0      0.00%        0     0.0%   0.000%  -
-em032_04                       0      0.00%        0     0.0%   0.000%  -
-em033_00                       0      0.00%        0     0.0%   0.000%  -
-em034_00                       0      0.00%        0     0.0%   0.000%  -
 
 models analysed: 132   skipped: 54
-models whose SAME-PART seams open past 3x the control: 0 of 132
+models whose SAME-PART seams open past 3x the control: 22 of 132
    skipped em001_00_tail            no skin
    skipped em001_02_tail            no skin
    skipped em001_04_tail            no skin

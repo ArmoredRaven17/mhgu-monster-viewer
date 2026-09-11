@@ -4,6 +4,7 @@
   "primitives": 26,
   "seamGroupsDisagreeing": 172,
   "verticesRewritten": 262,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0094,
    "median": 0.0078,
@@ -19,6 +20,7 @@
   "primitives": 25,
   "seamGroupsDisagreeing": 85,
   "verticesRewritten": 111,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0079,
    "median": 0.0078,
@@ -33,13 +35,14 @@
   "file": "em001_04.glb",
   "primitives": 26,
   "seamGroupsDisagreeing": 129,
-  "verticesRewritten": 191,
+  "verticesRewritten": 189,
+  "leftAloneTooDifferent": 2,
   "influenceShift": {
-   "mean": 0.0109,
+   "mean": 0.0079,
    "median": 0.0078,
    "p90": 0.0078,
-   "max": 0.298,
-   "over25pct": 2
+   "max": 0.0118,
+   "over25pct": 0
   },
   "written": true,
   "id": "em001_04"
@@ -48,13 +51,14 @@
   "file": "em002_00.glb",
   "primitives": 22,
   "seamGroupsDisagreeing": 92,
-  "verticesRewritten": 153,
+  "verticesRewritten": 149,
+  "leftAloneTooDifferent": 4,
   "influenceShift": {
-   "mean": 0.0251,
+   "mean": 0.0148,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.4078,
-   "over25pct": 4
+   "max": 0.2078,
+   "over25pct": 0
   },
   "written": true,
   "id": "em002_00"
@@ -63,13 +67,14 @@
   "file": "em002_02.glb",
   "primitives": 22,
   "seamGroupsDisagreeing": 92,
-  "verticesRewritten": 151,
+  "verticesRewritten": 147,
+  "leftAloneTooDifferent": 4,
   "influenceShift": {
-   "mean": 0.0253,
+   "mean": 0.0149,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.4078,
-   "over25pct": 4
+   "max": 0.2078,
+   "over25pct": 0
   },
   "written": true,
   "id": "em002_02"
@@ -79,6 +84,7 @@
   "primitives": 26,
   "seamGroupsDisagreeing": 97,
   "verticesRewritten": 151,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.019,
    "median": 0.0078,
@@ -92,14 +98,15 @@
  {
   "file": "em003_00.glb",
   "primitives": 13,
-  "seamGroupsDisagreeing": 19,
-  "verticesRewritten": 19,
+  "seamGroupsDisagreeing": 20,
+  "verticesRewritten": 14,
+  "leftAloneTooDifferent": 6,
   "influenceShift": {
-   "mean": 0.1544,
-   "median": 0.0118,
-   "p90": 0.5302,
-   "max": 0.6431,
-   "over25pct": 6
+   "mean": 0.0092,
+   "median": 0.0078,
+   "p90": 0.0118,
+   "max": 0.0118,
+   "over25pct": 0
   },
   "written": true,
   "id": "em003_00"
@@ -108,13 +115,14 @@
   "file": "em004_00.glb",
   "primitives": 18,
   "seamGroupsDisagreeing": 134,
-  "verticesRewritten": 175,
+  "verticesRewritten": 171,
+  "leftAloneTooDifferent": 4,
   "influenceShift": {
-   "mean": 0.021,
+   "mean": 0.0108,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.4549,
-   "over25pct": 4
+   "max": 0.1059,
+   "over25pct": 0
   },
   "written": true,
   "id": "em004_00"
@@ -123,13 +131,14 @@
   "file": "em005_00.glb",
   "primitives": 29,
   "seamGroupsDisagreeing": 345,
-  "verticesRewritten": 653,
+  "verticesRewritten": 649,
+  "leftAloneTooDifferent": 4,
   "influenceShift": {
-   "mean": 0.0116,
+   "mean": 0.0092,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.4039,
-   "over25pct": 4
+   "max": 0.0118,
+   "over25pct": 0
   },
   "written": true,
   "id": "em005_00"
@@ -139,6 +148,7 @@
   "primitives": 22,
   "seamGroupsDisagreeing": 76,
   "verticesRewritten": 102,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0093,
    "median": 0.0078,
@@ -154,6 +164,7 @@
   "primitives": 34,
   "seamGroupsDisagreeing": 104,
   "verticesRewritten": 150,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0085,
    "median": 0.0078,
@@ -167,12 +178,13 @@
  {
   "file": "em008_00.glb",
   "primitives": 12,
-  "seamGroupsDisagreeing": 34,
-  "verticesRewritten": 36,
+  "seamGroupsDisagreeing": 46,
+  "verticesRewritten": 56,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
-   "mean": 0.0083,
+   "mean": 0.0087,
    "median": 0.0078,
-   "p90": 0.0098,
+   "p90": 0.0118,
    "max": 0.0118,
    "over25pct": 0
   },
@@ -184,18 +196,20 @@
   "primitives": 13,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "em009_00"
  },
  {
   "file": "em010_00.glb",
   "primitives": 32,
-  "seamGroupsDisagreeing": 241,
-  "verticesRewritten": 312,
+  "seamGroupsDisagreeing": 259,
+  "verticesRewritten": 340,
+  "leftAloneTooDifferent": 2,
   "influenceShift": {
-   "mean": 0.0229,
+   "mean": 0.0312,
    "median": 0.0078,
-   "p90": 0.0549,
-   "max": 0.1569,
+   "p90": 0.1059,
+   "max": 0.2078,
    "over25pct": 0
   },
   "written": true,
@@ -206,6 +220,7 @@
   "primitives": 11,
   "seamGroupsDisagreeing": 58,
   "verticesRewritten": 108,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0084,
    "median": 0.0078,
@@ -220,13 +235,14 @@
   "file": "em012_00.glb",
   "primitives": 29,
   "seamGroupsDisagreeing": 239,
-  "verticesRewritten": 275,
+  "verticesRewritten": 254,
+  "leftAloneTooDifferent": 21,
   "influenceShift": {
-   "mean": 0.0635,
+   "mean": 0.011,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 1.0,
-   "over25pct": 21
+   "max": 0.1882,
+   "over25pct": 0
   },
   "written": true,
   "id": "em012_00"
@@ -234,8 +250,9 @@
  {
   "file": "em013_00.glb",
   "primitives": 23,
-  "seamGroupsDisagreeing": 282,
-  "verticesRewritten": 333,
+  "seamGroupsDisagreeing": 283,
+  "verticesRewritten": 334,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0138,
    "median": 0.0078,
@@ -249,10 +266,11 @@
  {
   "file": "em013_01.glb",
   "primitives": 23,
-  "seamGroupsDisagreeing": 271,
-  "verticesRewritten": 335,
+  "seamGroupsDisagreeing": 276,
+  "verticesRewritten": 341,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
-   "mean": 0.0178,
+   "mean": 0.0176,
    "median": 0.0078,
    "p90": 0.0314,
    "max": 0.2078,
@@ -264,10 +282,11 @@
  {
   "file": "em013_02.glb",
   "primitives": 29,
-  "seamGroupsDisagreeing": 580,
-  "verticesRewritten": 967,
+  "seamGroupsDisagreeing": 581,
+  "verticesRewritten": 974,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
-   "mean": 0.0094,
+   "mean": 0.0096,
    "median": 0.0078,
    "p90": 0.0118,
    "max": 0.098,
@@ -281,6 +300,7 @@
   "primitives": 9,
   "seamGroupsDisagreeing": 4,
   "verticesRewritten": 4,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0078,
    "median": 0.0078,
@@ -296,6 +316,7 @@
   "primitives": 9,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "em015_00"
  },
  {
@@ -303,19 +324,21 @@
   "primitives": 9,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "em016_00"
  },
  {
   "file": "em017_00.glb",
   "primitives": 22,
   "seamGroupsDisagreeing": 163,
-  "verticesRewritten": 305,
+  "verticesRewritten": 295,
+  "leftAloneTooDifferent": 10,
   "influenceShift": {
-   "mean": 0.02,
+   "mean": 0.0103,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.3686,
-   "over25pct": 10
+   "max": 0.2039,
+   "over25pct": 0
   },
   "written": true,
   "id": "em017_00"
@@ -323,8 +346,9 @@
  {
   "file": "em018_00.glb",
   "primitives": 25,
-  "seamGroupsDisagreeing": 107,
-  "verticesRewritten": 129,
+  "seamGroupsDisagreeing": 108,
+  "verticesRewritten": 130,
+  "leftAloneTooDifferent": 1,
   "influenceShift": {
    "mean": 0.0088,
    "median": 0.0078,
@@ -339,7 +363,8 @@
   "file": "em018_04.glb",
   "primitives": 27,
   "seamGroupsDisagreeing": 98,
-  "verticesRewritten": 121,
+  "verticesRewritten": 122,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0091,
    "median": 0.0078,
@@ -353,8 +378,9 @@
  {
   "file": "em019_00.glb",
   "primitives": 20,
-  "seamGroupsDisagreeing": 18,
+  "seamGroupsDisagreeing": 19,
   "verticesRewritten": 18,
+  "leftAloneTooDifferent": 1,
   "influenceShift": {
    "mean": 0.0078,
    "median": 0.0078,
@@ -368,8 +394,9 @@
  {
   "file": "em019_04.glb",
   "primitives": 27,
-  "seamGroupsDisagreeing": 18,
+  "seamGroupsDisagreeing": 19,
   "verticesRewritten": 18,
+  "leftAloneTooDifferent": 1,
   "influenceShift": {
    "mean": 0.0296,
    "median": 0.0078,
@@ -385,6 +412,7 @@
   "primitives": 25,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "em020_00"
  },
  {
@@ -392,19 +420,21 @@
   "primitives": 29,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "em020_04"
  },
  {
   "file": "em021_00.glb",
   "primitives": 27,
   "seamGroupsDisagreeing": 115,
-  "verticesRewritten": 158,
+  "verticesRewritten": 157,
+  "leftAloneTooDifferent": 1,
   "influenceShift": {
-   "mean": 0.0177,
+   "mean": 0.0134,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.6902,
-   "over25pct": 1
+   "max": 0.2078,
+   "over25pct": 0
   },
   "written": true,
   "id": "em021_00"
@@ -414,6 +444,7 @@
   "primitives": 16,
   "seamGroupsDisagreeing": 28,
   "verticesRewritten": 38,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0078,
    "median": 0.0078,
@@ -427,14 +458,15 @@
  {
   "file": "em023_00.glb",
   "primitives": 35,
-  "seamGroupsDisagreeing": 408,
-  "verticesRewritten": 596,
+  "seamGroupsDisagreeing": 410,
+  "verticesRewritten": 597,
+  "leftAloneTooDifferent": 2,
   "influenceShift": {
-   "mean": 0.011,
+   "mean": 0.01,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.3059,
-   "over25pct": 2
+   "max": 0.1961,
+   "over25pct": 0
   },
   "written": true,
   "id": "em023_00"
@@ -444,6 +476,7 @@
   "primitives": 18,
   "seamGroupsDisagreeing": 70,
   "verticesRewritten": 73,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0096,
    "median": 0.0078,
@@ -459,6 +492,7 @@
   "primitives": 23,
   "seamGroupsDisagreeing": 428,
   "verticesRewritten": 520,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0086,
    "median": 0.0078,
@@ -472,14 +506,15 @@
  {
   "file": "em027_00.glb",
   "primitives": 28,
-  "seamGroupsDisagreeing": 324,
-  "verticesRewritten": 440,
+  "seamGroupsDisagreeing": 329,
+  "verticesRewritten": 432,
+  "leftAloneTooDifferent": 16,
   "influenceShift": {
-   "mean": 0.0275,
+   "mean": 0.01,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.9451,
-   "over25pct": 16
+   "max": 0.098,
+   "over25pct": 0
   },
   "written": true,
   "id": "em027_00"
@@ -489,6 +524,7 @@
   "primitives": 6,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "em030_00"
  },
  {
@@ -496,6 +532,7 @@
   "primitives": 20,
   "seamGroupsDisagreeing": 147,
   "verticesRewritten": 153,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0079,
    "median": 0.0078,
@@ -511,6 +548,7 @@
   "primitives": 27,
   "seamGroupsDisagreeing": 454,
   "verticesRewritten": 1107,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0086,
    "median": 0.0078,
@@ -526,6 +564,7 @@
   "primitives": 33,
   "seamGroupsDisagreeing": 608,
   "verticesRewritten": 1080,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0085,
    "median": 0.0078,
@@ -541,6 +580,7 @@
   "primitives": 9,
   "seamGroupsDisagreeing": 4,
   "verticesRewritten": 8,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0078,
    "median": 0.0078,
@@ -555,13 +595,14 @@
   "file": "em036_00.glb",
   "primitives": 20,
   "seamGroupsDisagreeing": 140,
-  "verticesRewritten": 148,
+  "verticesRewritten": 137,
+  "leftAloneTooDifferent": 11,
   "influenceShift": {
-   "mean": 0.0458,
+   "mean": 0.0151,
    "median": 0.0078,
-   "p90": 0.1059,
-   "max": 0.7451,
-   "over25pct": 11
+   "p90": 0.0118,
+   "max": 0.2431,
+   "over25pct": 0
   },
   "written": true,
   "id": "em036_00"
@@ -571,6 +612,7 @@
   "primitives": 30,
   "seamGroupsDisagreeing": 104,
   "verticesRewritten": 147,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0142,
    "median": 0.0078,
@@ -586,6 +628,7 @@
   "primitives": 29,
   "seamGroupsDisagreeing": 111,
   "verticesRewritten": 159,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0147,
    "median": 0.0078,
@@ -600,13 +643,14 @@
   "file": "em038_00.glb",
   "primitives": 31,
   "seamGroupsDisagreeing": 432,
-  "verticesRewritten": 531,
+  "verticesRewritten": 528,
+  "leftAloneTooDifferent": 5,
   "influenceShift": {
-   "mean": 0.0163,
+   "mean": 0.0137,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.3569,
-   "over25pct": 5
+   "max": 0.1804,
+   "over25pct": 0
   },
   "written": true,
   "id": "em038_00"
@@ -616,6 +660,7 @@
   "primitives": 28,
   "seamGroupsDisagreeing": 190,
   "verticesRewritten": 231,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0105,
    "median": 0.0078,
@@ -630,13 +675,14 @@
   "file": "em043_00.glb",
   "primitives": 22,
   "seamGroupsDisagreeing": 305,
-  "verticesRewritten": 391,
+  "verticesRewritten": 385,
+  "leftAloneTooDifferent": 6,
   "influenceShift": {
-   "mean": 0.0274,
+   "mean": 0.0202,
    "median": 0.0118,
-   "p90": 0.051,
-   "max": 0.8039,
-   "over25pct": 6
+   "p90": 0.0118,
+   "max": 0.2118,
+   "over25pct": 0
   },
   "written": true,
   "id": "em043_00"
@@ -645,13 +691,14 @@
   "file": "em043_05.glb",
   "primitives": 24,
   "seamGroupsDisagreeing": 405,
-  "verticesRewritten": 587,
+  "verticesRewritten": 579,
+  "leftAloneTooDifferent": 8,
   "influenceShift": {
-   "mean": 0.0257,
+   "mean": 0.0197,
    "median": 0.0118,
-   "p90": 0.0471,
-   "max": 0.8039,
-   "over25pct": 8
+   "p90": 0.0392,
+   "max": 0.2,
+   "over25pct": 0
   },
   "written": true,
   "id": "em043_05"
@@ -660,13 +707,14 @@
   "file": "em044_00.glb",
   "primitives": 17,
   "seamGroupsDisagreeing": 103,
-  "verticesRewritten": 117,
+  "verticesRewritten": 105,
+  "leftAloneTooDifferent": 12,
   "influenceShift": {
-   "mean": 0.0555,
+   "mean": 0.0105,
    "median": 0.0078,
-   "p90": 0.1647,
-   "max": 0.5843,
-   "over25pct": 12
+   "p90": 0.0118,
+   "max": 0.102,
+   "over25pct": 0
   },
   "written": true,
   "id": "em044_00"
@@ -676,6 +724,7 @@
   "primitives": 25,
   "seamGroupsDisagreeing": 246,
   "verticesRewritten": 330,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0127,
    "median": 0.0118,
@@ -691,6 +740,7 @@
   "primitives": 29,
   "seamGroupsDisagreeing": 246,
   "verticesRewritten": 330,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0127,
    "median": 0.0118,
@@ -705,13 +755,14 @@
   "file": "em046_00.glb",
   "primitives": 27,
   "seamGroupsDisagreeing": 280,
-  "verticesRewritten": 607,
+  "verticesRewritten": 605,
+  "leftAloneTooDifferent": 2,
   "influenceShift": {
-   "mean": 0.0111,
+   "mean": 0.0095,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.502,
-   "over25pct": 2
+   "max": 0.0549,
+   "over25pct": 0
   },
   "written": true,
   "id": "em046_00"
@@ -719,8 +770,9 @@
  {
   "file": "em047_00.glb",
   "primitives": 17,
-  "seamGroupsDisagreeing": 129,
-  "verticesRewritten": 140,
+  "seamGroupsDisagreeing": 131,
+  "verticesRewritten": 142,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0088,
    "median": 0.0078,
@@ -735,13 +787,14 @@
   "file": "em049_00.glb",
   "primitives": 44,
   "seamGroupsDisagreeing": 1118,
-  "verticesRewritten": 1716,
+  "verticesRewritten": 1704,
+  "leftAloneTooDifferent": 14,
   "influenceShift": {
-   "mean": 0.015,
+   "mean": 0.0105,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.902,
-   "over25pct": 14
+   "max": 0.1569,
+   "over25pct": 0
   },
   "written": true,
   "id": "em049_00"
@@ -749,14 +802,15 @@
  {
   "file": "em050_00.glb",
   "primitives": 42,
-  "seamGroupsDisagreeing": 1024,
-  "verticesRewritten": 1691,
+  "seamGroupsDisagreeing": 1025,
+  "verticesRewritten": 1676,
+  "leftAloneTooDifferent": 18,
   "influenceShift": {
-   "mean": 0.013,
+   "mean": 0.0098,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.6667,
-   "over25pct": 15
+   "max": 0.2353,
+   "over25pct": 0
   },
   "written": true,
   "id": "em050_00"
@@ -766,6 +820,7 @@
   "primitives": 28,
   "seamGroupsDisagreeing": 125,
   "verticesRewritten": 173,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.01,
    "median": 0.0118,
@@ -781,6 +836,7 @@
   "primitives": 24,
   "seamGroupsDisagreeing": 296,
   "verticesRewritten": 451,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0125,
    "median": 0.0118,
@@ -796,6 +852,7 @@
   "primitives": 41,
   "seamGroupsDisagreeing": 223,
   "verticesRewritten": 333,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0085,
    "median": 0.0078,
@@ -809,8 +866,9 @@
  {
   "file": "em057_04.glb",
   "primitives": 46,
-  "seamGroupsDisagreeing": 350,
-  "verticesRewritten": 549,
+  "seamGroupsDisagreeing": 357,
+  "verticesRewritten": 556,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0088,
    "median": 0.0078,
@@ -826,6 +884,7 @@
   "primitives": 64,
   "seamGroupsDisagreeing": 252,
   "verticesRewritten": 460,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0095,
    "median": 0.0078,
@@ -841,6 +900,7 @@
   "primitives": 11,
   "seamGroupsDisagreeing": 181,
   "verticesRewritten": 248,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0087,
    "median": 0.0078,
@@ -854,13 +914,14 @@
  {
   "file": "em060_04.glb",
   "primitives": 13,
-  "seamGroupsDisagreeing": 145,
-  "verticesRewritten": 188,
+  "seamGroupsDisagreeing": 146,
+  "verticesRewritten": 189,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
-   "mean": 0.0087,
+   "mean": 0.0089,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.051,
+   "max": 0.0549,
    "over25pct": 0
   },
   "written": true,
@@ -871,6 +932,7 @@
   "primitives": 9,
   "seamGroupsDisagreeing": 185,
   "verticesRewritten": 290,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0086,
    "median": 0.0078,
@@ -885,13 +947,14 @@
   "file": "em061_04.glb",
   "primitives": 17,
   "seamGroupsDisagreeing": 150,
-  "verticesRewritten": 219,
+  "verticesRewritten": 205,
+  "leftAloneTooDifferent": 14,
   "influenceShift": {
-   "mean": 0.0432,
+   "mean": 0.0189,
    "median": 0.0078,
-   "p90": 0.1263,
-   "max": 0.5059,
-   "over25pct": 14
+   "p90": 0.0118,
+   "max": 0.1843,
+   "over25pct": 0
   },
   "written": true,
   "id": "em061_04"
@@ -901,12 +964,13 @@
   "primitives": 10,
   "seamGroupsDisagreeing": 173,
   "verticesRewritten": 220,
+  "leftAloneTooDifferent": 1,
   "influenceShift": {
-   "mean": 0.0114,
+   "mean": 0.01,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.3059,
-   "over25pct": 1
+   "max": 0.0627,
+   "over25pct": 0
   },
   "written": true,
   "id": "em062_00"
@@ -916,6 +980,7 @@
   "primitives": 35,
   "seamGroupsDisagreeing": 302,
   "verticesRewritten": 328,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0092,
    "median": 0.0078,
@@ -931,6 +996,7 @@
   "primitives": 36,
   "seamGroupsDisagreeing": 258,
   "verticesRewritten": 290,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0091,
    "median": 0.0078,
@@ -945,13 +1011,14 @@
   "file": "em065_00.glb",
   "primitives": 26,
   "seamGroupsDisagreeing": 144,
-  "verticesRewritten": 215,
+  "verticesRewritten": 209,
+  "leftAloneTooDifferent": 14,
   "influenceShift": {
-   "mean": 0.0171,
+   "mean": 0.0138,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.4941,
-   "over25pct": 2
+   "max": 0.2392,
+   "over25pct": 0
   },
   "written": true,
   "id": "em065_00"
@@ -961,6 +1028,7 @@
   "primitives": 27,
   "seamGroupsDisagreeing": 113,
   "verticesRewritten": 157,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0115,
    "median": 0.0078,
@@ -976,6 +1044,7 @@
   "primitives": 26,
   "seamGroupsDisagreeing": 81,
   "verticesRewritten": 122,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0124,
    "median": 0.0078,
@@ -991,6 +1060,7 @@
   "primitives": 49,
   "seamGroupsDisagreeing": 116,
   "verticesRewritten": 165,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0139,
    "median": 0.0078,
@@ -1006,6 +1076,7 @@
   "primitives": 32,
   "seamGroupsDisagreeing": 129,
   "verticesRewritten": 243,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0086,
    "median": 0.0078,
@@ -1020,13 +1091,14 @@
   "file": "em069_00.glb",
   "primitives": 21,
   "seamGroupsDisagreeing": 60,
-  "verticesRewritten": 91,
+  "verticesRewritten": 90,
+  "leftAloneTooDifferent": 1,
   "influenceShift": {
-   "mean": 0.0111,
+   "mean": 0.0078,
    "median": 0.0078,
    "p90": 0.0078,
-   "max": 0.3059,
-   "over25pct": 1
+   "max": 0.0078,
+   "over25pct": 0
   },
   "written": true,
   "id": "em069_00"
@@ -1036,6 +1108,7 @@
   "primitives": 49,
   "seamGroupsDisagreeing": 160,
   "verticesRewritten": 198,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0115,
    "median": 0.0078,
@@ -1050,13 +1123,14 @@
   "file": "em071_00.glb",
   "primitives": 51,
   "seamGroupsDisagreeing": 483,
-  "verticesRewritten": 738,
+  "verticesRewritten": 739,
+  "leftAloneTooDifferent": 1,
   "influenceShift": {
-   "mean": 0.0101,
+   "mean": 0.0095,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.4902,
-   "over25pct": 1
+   "max": 0.1098,
+   "over25pct": 0
   },
   "written": true,
   "id": "em071_00"
@@ -1064,14 +1138,15 @@
  {
   "file": "em071_05.glb",
   "primitives": 63,
-  "seamGroupsDisagreeing": 517,
-  "verticesRewritten": 762,
+  "seamGroupsDisagreeing": 518,
+  "verticesRewritten": 711,
+  "leftAloneTooDifferent": 54,
   "influenceShift": {
-   "mean": 0.0732,
+   "mean": 0.0097,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 1.0,
-   "over25pct": 54
+   "max": 0.0549,
+   "over25pct": 0
   },
   "written": true,
   "id": "em071_05"
@@ -1079,10 +1154,11 @@
  {
   "file": "em072_00.glb",
   "primitives": 36,
-  "seamGroupsDisagreeing": 127,
-  "verticesRewritten": 207,
+  "seamGroupsDisagreeing": 138,
+  "verticesRewritten": 231,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
-   "mean": 0.0141,
+   "mean": 0.0142,
    "median": 0.0078,
    "p90": 0.0118,
    "max": 0.1608,
@@ -1096,19 +1172,21 @@
   "primitives": 18,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "em076_00"
  },
  {
   "file": "em077_00.glb",
   "primitives": 66,
   "seamGroupsDisagreeing": 468,
-  "verticesRewritten": 645,
+  "verticesRewritten": 625,
+  "leftAloneTooDifferent": 20,
   "influenceShift": {
-   "mean": 0.0235,
+   "mean": 0.0116,
    "median": 0.0118,
    "p90": 0.0118,
-   "max": 0.3961,
-   "over25pct": 20
+   "max": 0.2078,
+   "over25pct": 0
   },
   "written": true,
   "id": "em077_00"
@@ -1117,13 +1195,14 @@
   "file": "em079_00.glb",
   "primitives": 42,
   "seamGroupsDisagreeing": 161,
-  "verticesRewritten": 248,
+  "verticesRewritten": 242,
+  "leftAloneTooDifferent": 6,
   "influenceShift": {
-   "mean": 0.0337,
+   "mean": 0.0205,
    "median": 0.0078,
    "p90": 0.0549,
-   "max": 1.0,
-   "over25pct": 6
+   "max": 0.2078,
+   "over25pct": 0
   },
   "written": true,
   "id": "em079_00"
@@ -1132,13 +1211,14 @@
   "file": "em079_04.glb",
   "primitives": 44,
   "seamGroupsDisagreeing": 193,
-  "verticesRewritten": 308,
+  "verticesRewritten": 292,
+  "leftAloneTooDifferent": 16,
   "influenceShift": {
-   "mean": 0.0399,
+   "mean": 0.021,
    "median": 0.0078,
-   "p90": 0.1098,
-   "max": 1.0,
-   "over25pct": 16
+   "p90": 0.0549,
+   "max": 0.2078,
+   "over25pct": 0
   },
   "written": true,
   "id": "em079_04"
@@ -1147,13 +1227,14 @@
   "file": "em080_00.glb",
   "primitives": 44,
   "seamGroupsDisagreeing": 537,
-  "verticesRewritten": 903,
+  "verticesRewritten": 897,
+  "leftAloneTooDifferent": 6,
   "influenceShift": {
-   "mean": 0.0133,
+   "mean": 0.0109,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.5529,
-   "over25pct": 6
+   "max": 0.2392,
+   "over25pct": 0
   },
   "written": true,
   "id": "em080_00"
@@ -1162,13 +1243,14 @@
   "file": "em080_04.glb",
   "primitives": 52,
   "seamGroupsDisagreeing": 543,
-  "verticesRewritten": 1113,
+  "verticesRewritten": 1107,
+  "leftAloneTooDifferent": 6,
   "influenceShift": {
-   "mean": 0.0124,
+   "mean": 0.0104,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.5529,
-   "over25pct": 6
+   "max": 0.2392,
+   "over25pct": 0
   },
   "written": true,
   "id": "em080_04"
@@ -1177,13 +1259,14 @@
   "file": "em081_00.glb",
   "primitives": 70,
   "seamGroupsDisagreeing": 661,
-  "verticesRewritten": 1214,
+  "verticesRewritten": 1195,
+  "leftAloneTooDifferent": 19,
   "influenceShift": {
-   "mean": 0.0166,
+   "mean": 0.0109,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.5059,
-   "over25pct": 19
+   "max": 0.2078,
+   "over25pct": 0
   },
   "written": true,
   "id": "em081_00"
@@ -1192,13 +1275,14 @@
   "file": "em081_04.glb",
   "primitives": 70,
   "seamGroupsDisagreeing": 679,
-  "verticesRewritten": 1289,
+  "verticesRewritten": 1274,
+  "leftAloneTooDifferent": 15,
   "influenceShift": {
-   "mean": 0.0148,
+   "mean": 0.0102,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.5059,
-   "over25pct": 15
+   "max": 0.2078,
+   "over25pct": 0
   },
   "written": true,
   "id": "em081_04"
@@ -1206,21 +1290,31 @@
  {
   "file": "em082_00.glb",
   "primitives": 61,
-  "seamGroupsDisagreeing": 0,
-  "verticesRewritten": 0,
+  "seamGroupsDisagreeing": 427,
+  "verticesRewritten": 646,
+  "leftAloneTooDifferent": 2,
+  "influenceShift": {
+   "mean": 0.0102,
+   "median": 0.0078,
+   "p90": 0.0118,
+   "max": 0.1686,
+   "over25pct": 0
+  },
+  "written": true,
   "id": "em082_00"
  },
  {
   "file": "em082_04.glb",
   "primitives": 107,
   "seamGroupsDisagreeing": 427,
-  "verticesRewritten": 689,
+  "verticesRewritten": 688,
+  "leftAloneTooDifferent": 5,
   "influenceShift": {
-   "mean": 0.0143,
+   "mean": 0.0106,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.7922,
-   "over25pct": 5
+   "max": 0.1686,
+   "over25pct": 0
   },
   "written": true,
   "id": "em082_04"
@@ -1228,8 +1322,9 @@
  {
   "file": "em083_00.glb",
   "primitives": 56,
-  "seamGroupsDisagreeing": 629,
-  "verticesRewritten": 802,
+  "seamGroupsDisagreeing": 633,
+  "verticesRewritten": 809,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0101,
    "median": 0.0078,
@@ -1243,14 +1338,15 @@
  {
   "file": "em083_04.glb",
   "primitives": 57,
-  "seamGroupsDisagreeing": 620,
-  "verticesRewritten": 826,
+  "seamGroupsDisagreeing": 630,
+  "verticesRewritten": 844,
+  "leftAloneTooDifferent": 2,
   "influenceShift": {
-   "mean": 0.012,
+   "mean": 0.0096,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 1.0,
-   "over25pct": 2
+   "max": 0.2,
+   "over25pct": 0
   },
   "written": true,
   "id": "em083_04"
@@ -1259,13 +1355,14 @@
   "file": "em084_00.glb",
   "primitives": 48,
   "seamGroupsDisagreeing": 561,
-  "verticesRewritten": 656,
+  "verticesRewritten": 644,
+  "leftAloneTooDifferent": 12,
   "influenceShift": {
-   "mean": 0.0187,
+   "mean": 0.0136,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.3647,
-   "over25pct": 12
+   "max": 0.2471,
+   "over25pct": 0
   },
   "written": true,
   "id": "em084_00"
@@ -1273,14 +1370,15 @@
  {
   "file": "em084_00_left.glb",
   "primitives": 35,
-  "seamGroupsDisagreeing": 34,
-  "verticesRewritten": 40,
+  "seamGroupsDisagreeing": 36,
+  "verticesRewritten": 44,
+  "leftAloneTooDifferent": 2,
   "influenceShift": {
-   "mean": 0.0493,
-   "median": 0.0078,
-   "p90": 0.2275,
-   "max": 0.2902,
-   "over25pct": 2
+   "mean": 0.0332,
+   "median": 0.0098,
+   "p90": 0.109,
+   "max": 0.2275,
+   "over25pct": 0
   },
   "written": true,
   "id": "em084_00_left"
@@ -1288,14 +1386,15 @@
  {
   "file": "em084_00_right.glb",
   "primitives": 33,
-  "seamGroupsDisagreeing": 36,
-  "verticesRewritten": 46,
+  "seamGroupsDisagreeing": 37,
+  "verticesRewritten": 45,
+  "leftAloneTooDifferent": 2,
   "influenceShift": {
-   "mean": 0.0449,
+   "mean": 0.0376,
    "median": 0.0118,
-   "p90": 0.2176,
-   "max": 0.302,
-   "over25pct": 2
+   "p90": 0.1702,
+   "max": 0.2275,
+   "over25pct": 0
   },
   "written": true,
   "id": "em084_00_right"
@@ -1305,6 +1404,7 @@
   "primitives": 16,
   "seamGroupsDisagreeing": 11,
   "verticesRewritten": 31,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0922,
    "median": 0.1059,
@@ -1319,13 +1419,14 @@
   "file": "em086_00.glb",
   "primitives": 110,
   "seamGroupsDisagreeing": 175,
-  "verticesRewritten": 294,
+  "verticesRewritten": 268,
+  "leftAloneTooDifferent": 26,
   "influenceShift": {
-   "mean": 0.0978,
+   "mean": 0.0183,
    "median": 0.0078,
-   "p90": 0.1596,
-   "max": 1.0,
-   "over25pct": 26
+   "p90": 0.0392,
+   "max": 0.1725,
+   "over25pct": 0
   },
   "written": true,
   "id": "em086_00"
@@ -1335,6 +1436,7 @@
   "primitives": 44,
   "seamGroupsDisagreeing": 8,
   "verticesRewritten": 8,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0078,
    "median": 0.0078,
@@ -1350,6 +1452,7 @@
   "primitives": 2,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "em087_00_rubble_02"
  },
  {
@@ -1357,19 +1460,21 @@
   "primitives": 3,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "em087_00_rubble_03"
  },
  {
   "file": "em088_00.glb",
   "primitives": 40,
-  "seamGroupsDisagreeing": 98,
-  "verticesRewritten": 130,
+  "seamGroupsDisagreeing": 103,
+  "verticesRewritten": 129,
+  "leftAloneTooDifferent": 10,
   "influenceShift": {
-   "mean": 0.0573,
+   "mean": 0.0487,
    "median": 0.0078,
    "p90": 0.1059,
-   "max": 0.5882,
-   "over25pct": 2
+   "max": 0.2,
+   "over25pct": 0
   },
   "written": true,
   "id": "em088_00"
@@ -1379,6 +1484,7 @@
   "primitives": 2,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "ems001_00"
  },
  {
@@ -1386,17 +1492,19 @@
   "primitives": 2,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "ems002_00"
  },
  {
   "file": "ems003_00.glb",
   "primitives": 8,
-  "seamGroupsDisagreeing": 49,
-  "verticesRewritten": 58,
+  "seamGroupsDisagreeing": 51,
+  "verticesRewritten": 62,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
-   "mean": 0.0355,
+   "mean": 0.0337,
    "median": 0.0078,
-   "p90": 0.2078,
+   "p90": 0.1973,
    "max": 0.2078,
    "over25pct": 0
   },
@@ -1408,6 +1516,7 @@
   "primitives": 2,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "ems004_00"
  },
  {
@@ -1415,6 +1524,7 @@
   "primitives": 9,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "ems005_00"
  },
  {
@@ -1422,6 +1532,7 @@
   "primitives": 9,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "ems006_00"
  },
  {
@@ -1429,6 +1540,7 @@
   "primitives": 8,
   "seamGroupsDisagreeing": 70,
   "verticesRewritten": 70,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0088,
    "median": 0.0078,
@@ -1444,6 +1556,7 @@
   "primitives": 8,
   "seamGroupsDisagreeing": 46,
   "verticesRewritten": 48,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0084,
    "median": 0.0078,
@@ -1459,6 +1572,7 @@
   "primitives": 3,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "ems009_00"
  },
  {
@@ -1466,6 +1580,7 @@
   "primitives": 3,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "ems010_00"
  },
  {
@@ -1473,6 +1588,7 @@
   "primitives": 3,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "ems011_00"
  },
  {
@@ -1480,6 +1596,7 @@
   "primitives": 3,
   "seamGroupsDisagreeing": 50,
   "verticesRewritten": 55,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0158,
    "median": 0.0078,
@@ -1495,6 +1612,7 @@
   "primitives": 3,
   "seamGroupsDisagreeing": 43,
   "verticesRewritten": 48,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0103,
    "median": 0.0118,
@@ -1510,13 +1628,15 @@
   "primitives": 4,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "ems014_00"
  },
  {
   "file": "ems015_00.glb",
   "primitives": 3,
-  "seamGroupsDisagreeing": 0,
+  "seamGroupsDisagreeing": 1,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 1,
   "id": "ems015_00"
  },
  {
@@ -1524,6 +1644,7 @@
   "primitives": 2,
   "seamGroupsDisagreeing": 26,
   "verticesRewritten": 26,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0081,
    "median": 0.0078,
@@ -1539,6 +1660,7 @@
   "primitives": 4,
   "seamGroupsDisagreeing": 18,
   "verticesRewritten": 18,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0105,
    "median": 0.0118,
@@ -1554,6 +1676,7 @@
   "primitives": 2,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "ems020_00"
  },
  {
@@ -1561,19 +1684,21 @@
   "primitives": 2,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "ems021_00"
  },
  {
   "file": "ems022_00.glb",
   "primitives": 6,
   "seamGroupsDisagreeing": 99,
-  "verticesRewritten": 116,
+  "verticesRewritten": 112,
+  "leftAloneTooDifferent": 4,
   "influenceShift": {
-   "mean": 0.0305,
+   "mean": 0.0197,
    "median": 0.0078,
-   "p90": 0.0627,
-   "max": 0.3333,
-   "over25pct": 4
+   "p90": 0.0118,
+   "max": 0.2275,
+   "over25pct": 0
   },
   "written": true,
   "id": "ems022_00"
@@ -1582,13 +1707,14 @@
   "file": "ems023_00.glb",
   "primitives": 4,
   "seamGroupsDisagreeing": 41,
-  "verticesRewritten": 82,
+  "verticesRewritten": 81,
+  "leftAloneTooDifferent": 1,
   "influenceShift": {
-   "mean": 0.0224,
+   "mean": 0.0135,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.7412,
-   "over25pct": 1
+   "max": 0.2118,
+   "over25pct": 0
   },
   "written": true,
   "id": "ems023_00"
@@ -1597,13 +1723,14 @@
   "file": "ems025_00.glb",
   "primitives": 2,
   "seamGroupsDisagreeing": 46,
-  "verticesRewritten": 48,
+  "verticesRewritten": 46,
+  "leftAloneTooDifferent": 2,
   "influenceShift": {
-   "mean": 0.0319,
-   "median": 0.0118,
+   "mean": 0.0203,
+   "median": 0.0098,
    "p90": 0.0314,
-   "max": 0.298,
-   "over25pct": 2
+   "max": 0.2471,
+   "over25pct": 0
   },
   "written": true,
   "id": "ems025_00"
@@ -1613,6 +1740,7 @@
   "primitives": 6,
   "seamGroupsDisagreeing": 24,
   "verticesRewritten": 40,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0078,
    "median": 0.0078,
@@ -1627,13 +1755,14 @@
   "file": "ems027_00.glb",
   "primitives": 6,
   "seamGroupsDisagreeing": 15,
-  "verticesRewritten": 16,
+  "verticesRewritten": 10,
+  "leftAloneTooDifferent": 6,
   "influenceShift": {
-   "mean": 0.3071,
+   "mean": 0.0224,
    "median": 0.0078,
-   "p90": 0.8961,
-   "max": 1.0,
-   "over25pct": 6
+   "p90": 0.0224,
+   "max": 0.1529,
+   "over25pct": 0
   },
   "written": true,
   "id": "ems027_00"
@@ -1643,6 +1772,7 @@
   "primitives": 3,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "ems034_00"
  },
  {
@@ -1650,6 +1780,7 @@
   "primitives": 16,
   "seamGroupsDisagreeing": 32,
   "verticesRewritten": 53,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0107,
    "median": 0.0078,
@@ -1665,19 +1796,21 @@
   "primitives": 3,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "ems039_00"
  },
  {
   "file": "ems040_00.glb",
   "primitives": 3,
   "seamGroupsDisagreeing": 72,
-  "verticesRewritten": 72,
+  "verticesRewritten": 71,
+  "leftAloneTooDifferent": 1,
   "influenceShift": {
-   "mean": 0.0126,
+   "mean": 0.0091,
    "median": 0.0078,
    "p90": 0.0118,
-   "max": 0.2588,
-   "over25pct": 1
+   "max": 0.0588,
+   "over25pct": 0
   },
   "written": true,
   "id": "ems040_00"
@@ -1687,6 +1820,7 @@
   "primitives": 3,
   "seamGroupsDisagreeing": 13,
   "verticesRewritten": 13,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0078,
    "median": 0.0078,
@@ -1701,13 +1835,14 @@
   "file": "ems042_00.glb",
   "primitives": 3,
   "seamGroupsDisagreeing": 10,
-  "verticesRewritten": 10,
+  "verticesRewritten": 9,
+  "leftAloneTooDifferent": 1,
   "influenceShift": {
-   "mean": 0.0525,
+   "mean": 0.0092,
    "median": 0.0078,
-   "p90": 0.0549,
-   "max": 0.4431,
-   "over25pct": 1
+   "p90": 0.0118,
+   "max": 0.0118,
+   "over25pct": 0
   },
   "written": true,
   "id": "ems042_00"
@@ -1716,13 +1851,14 @@
   "file": "ems044_00.glb",
   "primitives": 10,
   "seamGroupsDisagreeing": 18,
-  "verticesRewritten": 24,
+  "verticesRewritten": 22,
+  "leftAloneTooDifferent": 2,
   "influenceShift": {
-   "mean": 0.0284,
+   "mean": 0.0078,
    "median": 0.0078,
    "p90": 0.0078,
-   "max": 0.2549,
-   "over25pct": 2
+   "max": 0.0078,
+   "over25pct": 0
   },
   "written": true,
   "id": "ems044_00"
@@ -1732,6 +1868,7 @@
   "primitives": 7,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "ems045_00"
  },
  {
@@ -1739,6 +1876,7 @@
   "primitives": 7,
   "seamGroupsDisagreeing": 17,
   "verticesRewritten": 31,
+  "leftAloneTooDifferent": 0,
   "influenceShift": {
    "mean": 0.0078,
    "median": 0.0078,
@@ -1754,6 +1892,7 @@
   "primitives": 4,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "ems047_00"
  },
  {
@@ -1761,6 +1900,7 @@
   "primitives": 8,
   "seamGroupsDisagreeing": 0,
   "verticesRewritten": 0,
+  "leftAloneTooDifferent": 0,
   "id": "ems048_00"
  }
 ]

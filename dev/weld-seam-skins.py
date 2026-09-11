@@ -72,7 +72,7 @@ def read(raw, js, binoff, ai):
                      for k in range(n)])
 
 
-def weld(path, quant=10000.0, apply_it=False, report=False, backup=True):
+def weld(path, quant=10000.0, apply_it=False, report=False, backup=True, max_shift=0.25):
     raw, js, binoff = load(path)
     prims = []
     for mi, mesh in enumerate(js.get('meshes', [])):
@@ -108,6 +108,7 @@ def weld(path, quant=10000.0, apply_it=False, report=False, backup=True):
         return tuple(sorted((int(j[t]), int(w[t])) for t in range(len(j)) if w[t] > 0))
 
     groups = 0
+    skipped_big = 0       # copies left alone because they bind to a different bone entirely
     changes = []          # (pi_, k, joints, weights)
     for hits in idx.values():
         if len(set(h[0] for h in hits)) < 2:
@@ -129,10 +130,41 @@ def weld(path, quant=10000.0, apply_it=False, report=False, backup=True):
         for h in hits:
             if binding(*h) == binding(*win):
                 continue
+            # DO NOT WELD A COPY THAT DISAGREES BY MORE THAN max_shift.
+            #
+            # A hairline seam is two copies that agree on where the vertex goes to within a percent
+            # or so; forcing them equal closes the gap and moves nothing anyone can see. A copy bound
+            # to a DIFFERENT BONE is not that -- it is two pieces of the model that happen to share a
+            # position, and dragging one onto the other's binding MOVES GEOMETRY.
+            #
+            # Raven, 2026-09-11: "Kecha Wacha's ears meshes are combining into each other." em065_00
+            # is where it showed: Group[5]#0 is a 68-vertex ear and the weld had rewritten 4 of them,
+            # TWO with the whole influence replaced. On a mesh that small that is a visible tear.
+            # The first run reported these and I shipped them anyway -- 376 of 33,094 vertices, 1.1%,
+            # across 46 models -- on the reasoning that they were already the worst broken so
+            # continuous-and-wrong beat torn. That was my call to make and it was the wrong one: a
+            # seam that splits is a hairline nobody had complained about, and a vertex yanked to
+            # another limb is a hole in the silhouette.
+            #
+            # So the 98.9% that are hairlines still weld, and the 1.1% are left exactly as the ROM
+            # has them.
+            oj, ow = prims[h[0]]['j'][h[1]], prims[h[0]]['w'][h[1]]
+            a, b = collections.Counter(), collections.Counter()
+            for t in range(len(oj)):
+                if ow[t] > 0:
+                    a[int(oj[t])] += int(ow[t])
+            for t in range(len(wj)):
+                if ww[t] > 0:
+                    b[int(wj[t])] += int(ww[t])
+            keys = set(a) | set(b)
+            if sum(abs(a.get(x, 0) - b.get(x, 0)) for x in keys) / 2.0 / 255.0 > max_shift:
+                skipped_big += 1
+                continue
             changes.append((h[0], h[1], wj.copy(), ww.copy()))
 
     out = {'file': os.path.basename(path), 'primitives': len(prims),
-           'seamGroupsDisagreeing': groups, 'verticesRewritten': len(changes)}
+           'seamGroupsDisagreeing': groups, 'verticesRewritten': len(changes),
+           'leftAloneTooDifferent': skipped_big}
 
     if report and changes:
         # how far do the CHANGED vertices move, against their own original binding, under a pose?
@@ -190,6 +222,9 @@ def main():
     ap.add_argument('--apply', action='store_true')
     ap.add_argument('--report', action='store_true', default=True)
     ap.add_argument('--json', default=None)
+    ap.add_argument('--max-shift', type=float, default=0.25,
+                    help='do not weld a copy whose influence differs by more than this;'
+                         ' above it the two copies are different bones, not one seam')
     args = ap.parse_args()
     mdir = os.path.abspath(os.path.join(args.docs, 'models', 'monsters'))
     if not args.only and not args.all:
@@ -203,7 +238,7 @@ def main():
     rows, skipped = [], []
     for f in files:
         r = weld(os.path.join(mdir, f), apply_it=args.apply, report=args.report,
-                 backup=not args.no_backup)
+                 backup=not args.no_backup, max_shift=args.max_shift)
         if r is None:
             skipped.append(f[:-4])
             continue
