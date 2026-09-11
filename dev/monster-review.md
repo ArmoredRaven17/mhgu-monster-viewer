@@ -563,13 +563,17 @@ The objects are cached at spawn (0x1011570-0x1011608) by the material number in
 
 Dispatcher A, read in full, with the `.mpm` groups each case applies:
 
-| state | setVisibleGroup | parts drawn | material clip |
+| state | setVisibleGroup | parts turned ON | material clip |
 |---|---|---|---|
-| 0 | g3 / g4 | 20 / 30 | `clearAllSlots` - **off** |
-| 1 | g5 / g6 | 20,31,40 / 30,31,51 | `clearAllSlots` - **off** |
-| 2 | g7 / g8 | 20,41,50 / 30,41,101 | **clip 0 - green** |
-| 3 | g33 / g34 | 20,31,40,41,50 / 30,51,101 | **clip 0 - green** |
-| 4 | g7 / g8 | 20,41,50 / 30,41,101 | **clip 1 - cyan** |
+| 0 | g3 / g4 | 10,101 / 20 | `clearAllSlots` - **off** |
+| 1 | g5 / g6 | 10,30,31,101 / 20,30,50 | `clearAllSlots` - **off** |
+| 2 | g7 / g8 | 10,40,41,101 / 20,40,51 | **clip 0 - green** |
+| 3 | g33 / g34 | 10,30,31,40,41 / 20,50,51 | **clip 0 - green** |
+| 4 | g7 / g8 | 10,40,41,101 / 20,40,51 | **clip 1 - cyan** |
+
+(Corrected 2026-09-11: the first version of this table came from a .mpm.xml parse that paired each
+part id with the previous pair's visible flag -- see the Savage Deviljho entry. The colour finding
+is unaffected; it came from the .mrl and the disassembly.)
 
 The `cmp r5,r6 / movwls` inside each case picks between the two group variants on a break level, so
 every charge stage has an intact and a broken form. Green is the lower charge and cyan the full one.
@@ -594,7 +598,7 @@ per material, not mine to guess library-wide". **That is no longer a guess for t
 ROM names the index per charge state.
 
 Worth knowing alongside it: `part-rest.json` gives em081_04 no rest `sets` and `defaultSet 2`, and
-g2 is `on [52] / off [1, 2]` -- it touches nothing in the taiden family. Since the engine starts
+g2 touches nothing in the taiden family. Since the engine starts
 with every group drawn, Boltreaver currently draws EVERY charge-effect mesh at once (10, 20, 30,
 31, 40, 41, 50, 51, 101), all on the static white. Fixing the colour without the groups would make
 all of them green rather than one stage.
@@ -706,6 +710,166 @@ monster has no `Angry_Repeat` or `Gekikou_Repeat` to sustain them. That is consi
 2026-09-06 note that "the small eye patch was showing and the large layer over it was not".
 Whether all three should be lit at once, and in what order, is authored - same standing as the
 enrage toggle.
+#### 2026-09-11 - re-reported, and the old diagnosis above is RETRACTED
+
+> Raven: "Savage Deviljho's Effects are either not rendered (there should be like three meshes for
+> this missing effect) and the one that does render is blobby, it should be sharper."
+
+**The three meshes are parts 6, 9 and 12**, found by traversal rather than inference. Six meshes
+carry the three effect materials:
+
+| mesh | part | material | calm | enraged |
+|---|---|---|---|---|
+| `Group0_7` 1106v | 0 | `XfBA0__m03_body_a` | drawn | drawn |
+| `Group3_1` 32v, `Group3_2` 483v | 3 | `XfB__m02_body_k` | drawn | drawn |
+| `Group6` 40v | 6 | `XfB__m02_body_k` | **off** | **off** |
+| `Group9` 59v | 9 | `XfB__m02_body_k` | **off** | **ON** |
+| `Group12` 306v | 12 | `XfBA_IW_1__m00` | **off** | **ON** |
+
+**Two of the three already render - on the Enraged toggle - and that is the ROM's own gating.**
+`uEm043_00` (em043_05 shares the class) refreshes part visibility in two functions, each with a
+top-level branch on rage:
+
+    00e807e0  cmp r5,#0 / cmpeq r7,#0 / bne 0xe808cc    ; r7 = 2 when enraged AND r6==5, else isEnraged
+              calm  -> setVisibleGroup(0)   g0  on [0,100]     off [3,12]
+              else  -> setVisibleGroup(9)   g9  on [0,3,100]   off [12]
+
+    00e80bd4  bl 0x81670 / mov r1,#1 / cmp r0,#0 / movwne r1,#2
+    00e80be4  cmp r5,#5 / movne r1,r0
+    00e80bf0  cmp r1,#2 / movne r1,#9 / moveq r1,#0xd
+              g13 on [0,3,12,100] off []  <- ONLY when enraged AND r5==5; g9 otherwise
+
+So **part 12 requires enrage**, and it is the 306-vertex `XfBA_IW_1__m00` layer whose clip is the
+auto-play `effect`. Part 9 comes on in the effect branch through the break query:
+
+    00e808d8  ldr r2,[r0,#0x370] / blx r2 / cmp r0,#1   ; "is part 1 broken?"
+              movne r1,#0xa  -> g10  on [9,101] off [8]      not broken
+              moveq r1,#0xc  -> g12  on [8]     off [9,101]  broken
+
+and the calm branch runs the same query against g4 / g8 instead, where g4 is `on [101] off [8,9]`.
+
+**Part 6 is a BREAK state, not an effect state**, which is why it stays off in both:
+
+    00e80cd0  cmp r5, r0        ; cmp LEVEL, THRESHOLD  -- the `cmp level,thr` form
+    00e80cd4  bhs 0xe80ce8      ; level >= thr -> g11  on [5,6] off [4]   BROKEN
+              else              ;              -> g3   on [4]   off [5,6] undamaged
+
+So part 6 appears once part 0 is broken. Nothing is missing from the data: the effect is gated
+behind Enraged, and the third mesh behind a part break.
+
+#### A parse bug of mine, corrected
+
+My first reading of these .mpm group tables was WRONG and the earlier Boltreaver entry carries it.
+Each group's MtArray opens with its own `<bool name="mAutoDelete">` BEFORE the per-part classrefs,
+so harvesting every `<s32>` and every `<bool>` separately and zipping them pairs each id with the
+PREVIOUS pair's flag - inverting most rows without looking wrong. The correct parse takes one id
+and one flag from inside each `<classref type="0x176B8C8B">`. Checked against the app's own shipped
+group table, which agrees row for row. **The Boltreaver "parts drawn" column above is affected; the
+colour finding there is not - that came from the .mrl and the disassembly, neither of which uses
+this parse.**
+
+#### The blob: the diagnosis above is STALE, and the cause is NOT established
+
+The entry above blames `uCutSolid` from 51a71d0. That no longer applies. `installCutoutSolid` is
+gated `lit && mat.alphaTest && blend === 'opaque'` (rom/material.js:341), and after the cause-J fix
+`alphaTest` is 0 on every monster material except the three in `AUTHORED_CUTOUT` - none of which are
+Savage's. So the line is not installed on any of these three materials and cannot be the blob.
+
+Ruled out as well: **texture resolution is not lost in our pipeline.** The ROM's own .tex files are
+
+    em043_05_02_BM          512x512    -> XfB__m02_body_k
+    em043_05_03_BM          256x256    -> XfBA0__m03_body_a
+    em043_05_04_BM_NOMIP    128x128    -> XfBA_IW_1__m00
+
+and the shipped webp for each is exactly those dimensions. The effect textures really are small;
+we are not downsampling them.
+
+**What the cause IS remains unread.** The most likely place is what `FTransparencyAlphaConstant`
+(mfx record 1910) actually does - two of the three materials select it, and this viewer has never
+decoded it, it only knows that it is not the Alpha blend source and not a clip. That is the same
+unread switch as the alpha-cutout question. Saying so rather than reaching for the next plausible
+knob.
+#### PATCHED 2026-09-11 - the ROM's own mip count, honoured
+
+> Raven: "I see more coverage, keep going until we have it more closely replicated"
+
+**An MT `.tex` header carries its own mipmap level count**, and across all 514 monster textures
+exactly FIVE ship a single level. All five say so in the ROM's own filename:
+
+    em027_00_eft1_nomip     64x128     em027_00_eft3_nomip    256x256
+    em027_00_eft2_nomip    128x128     em086_00_add_nomip     256x256
+    em043_05_04_bm_nomip   128x128  -> Savage's XfBA_IW_1__m00, the neck glow (part 12)
+
+Every other monster texture carries a full 7..11-level chain, so a single level is an authored
+decision per texture, not an artefact of the extraction. `getTexture` generated a chain on all of
+them and sampled it `LinearMipmapLinear`, so under minification these five drew a blur the game
+does not have -- and Savage's is a 128x128 map whose clip runs `fUVTransform` u 0 -> 1 across a
+mesh whose UVs already span -0.613..1.469, i.e. scrolling and tiled, the worst case for it.
+
+`render/assets.js` now sets `generateMipmaps = false` and `LinearFilter` on exactly those five.
+Anisotropy is untouched: it needs no mips.
+
+**Verified in the running app, with three controls:**
+
+| material | texture | generateMipmaps | minFilter |
+|---|---|---|---|
+| `XfBA_IW_1__m00` (the NOMIP one) | 128x128 | **false** | **Linear** |
+| `XfBA0__m03_body_a` control | 256x256 | true | LinearMipmapLinear |
+| `XfB__m02_body_k` control | 512x512 | true | LinearMipmapLinear |
+| `XfB_N__E_m01_body` control | 1024x1024 | true | LinearMipmapLinear |
+
+This is the neck glow only. It does NOT claim to explain softness on the two layers that draw in
+the base state -- those keep their ROM mip chains, correctly.
+
+#### The material-clip driver, read in full
+
+`uEm043_00` caches three materials at spawn by the number in `material+0x18 >> 22`, which is the
+`mNN` in the name (0xe729dc-0xe72a6c):
+
+| slot | matnum | material | driven with |
+|---|---|---|---|
+| `enemy+0x8c` | 1 | `XfB_N__E_m01_body` | `Gekikou_Start` / `Gekikou_End` |
+| `enemy+0x90` | 2 | `XfB__m02_body_k` | `Angry_Start` / `Angry_End` |
+| `enemy+0x94` | 3 | `XfBA0__m03_body_a` | `Gekikou_Start` / `Gekikou_End` |
+
+At spawn, **when the variant byte is 5 -- the Savage deviant -- it plays `Angry_Start` on matnum 2
+immediately** (0xe72a2c `cmp r0,#5`), slot 0, time zeroed. That is exactly what `ROM_SPAWN_CLIP`
+already encodes, now confirmed against its own site rather than inferred.
+
+The rage driver (0xe806a0, 0xe80ae8) runs a 4-state latch at `[enemy+0xcac0 + 0x98]`:
+`Angry_Start` on entering rage (latch 0->1), then `Gekikou_Start` on BOTH matnum 1 and matnum 3
+(latch 1->2), and the mirrored `*_End` pair on the way out. So **the body material itself is part
+of the rage look**: `XfB_N__E_m01_body`'s `Gekikou_Start` ramps `fAlbedoColor` 1,1,1 -> 1,0.8,0.8
+over 60 frames. `XfBA_IW_1__m00` is not driven at all -- its single clip carries the auto bit.
+
+#### The flipped rage pair: RE-READ, and the answer is that it IS flipped
+
+`docs/part-review.json`'s em043_05 note says "The ROM site re-read is on the board and covers all
+four monsters." Done, here:
+
+    00e80bd4  bl 0x81670            ; isEnraged -> r0
+    00e80bd8  mov r1,#1 / cmp r0,#0 / movwne r1,#2
+    00e80be4  cmp r5,#5 / movne r1,r0
+    00e80bf0  cmp r1,#2 / movne r1,#9 / moveq r1,#0xd
+
+`r1 == 2` requires enraged AND `r5 == 5`, so **g13 is the ENRAGED set and g9 the calm one**. The
+same shape at 0xe807e0 gives em043_00 **g0 calm, g9 otherwise**. `ROM_RAGE_SET` is `[calm, rage]`
+(confirmed rows: Gypceros `[[6,2]]` = "rage 2 / calm 6"), so both entries --
+`em043_00: [[9, 0]]` and `em043_05: [[13, 9]]` -- are indeed the wrong way round.
+
+**NOT CHANGED.** The parts agent has a live workaround keyed to the table AS IT STANDS (a per-state
+review key `0,3,100|0,3,12,100`), so flipping it underneath them would compound and invert the
+result. This is the citation they were waiting for; the edit is theirs to sequence.
+
+#### Part 6 has no route in the viewer
+
+`clusterGroups` reads cluster `4,5,6` with THREE members -- g3 `on [4]`, g6 `on [5]`, g11
+`on [5,6]` -- and the ROM picks g11 when part 0's break level reaches its .dtp threshold
+(0xe80cd0 `cmp r5,r0 / bhs`). The panel's Face row offers only Intact=g3 and Broken=g6, so **g11,
+the only member that draws part 6, cannot be selected in any state**. Cluster `8,9,101` has four
+members and shows two the same way; parts 9 and 12 escape it only because rage reaches g10/g13
+through `defaultGroupsOn`. Reported, not touched -- the rows are the parts agent's.
+
 ### Brachydios (em063_00) and Raging Brachydios (em063_05)
 > "Brachydios renders poorly, likely due to a) it has a shiny carapace that needs to be handled
 > better b) the slime effects c) enrage changes. Raging also has issues."

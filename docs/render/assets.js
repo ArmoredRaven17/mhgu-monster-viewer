@@ -18,6 +18,38 @@ export function initAssets(renderer){
   maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
 }
 
+// TEXTURES THE ROM SHIPS WITH NO MIPMAP CHAIN, by their pooled md5 name.
+//
+// An MT .tex header carries its own level count (`buildlib._tex_header` -> `mips`). Across all 514
+// monster textures exactly FIVE ship a single level, and all five say so in the ROM's own filename:
+//
+//     em027_00_eft1_nomip     64x128     em027_00_eft3_nomip    256x256
+//     em027_00_eft2_nomip    128x128     em086_00_add_nomip     256x256
+//     em043_05_04_bm_nomip   128x128  -> Savage Deviljho's XfBA_IW_1__m00, the neck glow
+//
+// Every other monster texture carries a full 7..11-level chain, so this is an authored decision
+// per texture and not an artefact of the extraction.
+//
+// It matters because three.js generates a chain anyway and samples it trilinear. These five are
+// small effect maps drawn on scrolling, tiled UVs -- Savage's is 128x128 under a clip that runs
+// fUVTransform u 0 -> 1 on a mesh whose UVs already span -0.613..1.469 -- and under minification a
+// generated mip is exactly the blur the game does not have. Raven, 2026-09-11: "the one that does
+// render is blobby, it should be sharper."
+//
+// The ROM's answer is its own level count, so honour it: no chain, and magnify/minify linearly
+// from level 0. Anisotropy is left alone; it needs no mips and only helps at glancing angles.
+const ROM_NO_MIPMAP = new Set([
+  'tex/2b36024aca3a39b3.webp',   // em027_00 eft1
+  'tex/5ad539cbc824f934.webp',   // em027_00 eft2
+  'tex/865f4666b4cc1b3f.webp',   // em027_00 eft3
+  'tex/35689af189393fd5.webp',   // em043_05 Savage Deviljho, neck glow
+  'tex/9f7dea74f29c830b.webp',   // em086_00 add
+]);
+function romNoMipmap(file){
+  const i = String(file).indexOf('tex/');
+  return i >= 0 && ROM_NO_MIPMAP.has(String(file).slice(i));
+}
+
 // `opt.linear`: a data map (a monster's normal map) that must not be read as sRGB colour;
 // cached apart from the colour reading of the same file
 export async function getTexture(file, opt){
@@ -31,6 +63,11 @@ export async function getTexture(file, opt){
   // magnified rather than repeated.
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.anisotropy = maxAnisotropy;
+  if (romNoMipmap(file)){
+    t.generateMipmaps = false;
+    t.minFilter = THREE.LinearFilter;
+    t.magFilter = THREE.LinearFilter;
+  }
   texCache.set(key, t); return t;
 }
 
