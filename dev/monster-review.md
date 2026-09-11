@@ -1245,6 +1245,47 @@ reverted model and still saw it); parts 1 and 10 (15.1% left/right imbalance wit
 15.0% with them on -- 14-vertex pieces, far too small); a stale conversion (byte-identical
 regeneration); the root binding (1.2% weight, zero bind displacement).
 
+#### 2026-09-11 - compared to the ROM: nothing touched Crimson's data
+
+> Raven: "Did anything touch Crimson's data somehow? Compare to the ROM. I find it odd other
+> Fatalis don't have this issue as well."
+
+**The extraction is faithful.** Decompressing the rModel entry straight out of each .arc and
+comparing bytes:
+
+    em013_00   ROM 243592 B  sha ab01a2c63c0aae69   disk identical
+    em013_01   ROM 242844 B  sha e4e0569ae08b735a   disk identical
+    em013_02   ROM 305404 B  sha 68148820a5b057cc   disk identical
+
+**And the two .mods agree.** The disputed 14-vertex meshes -- Crimson 14/15, Fatalis 18/19, both
+format 14d40022 stride 28 -- are byte-for-byte the same except the joint-index lane, and those
+indices resolve to the SAME BONE through each model's own table:
+
+    Crimson  .mod index 22  ->  gid 3   (the head)
+    Fatalis  .mod index 11  ->  gid 3   (the head)
+
+The 59 gids are identical between the two models; only their ORDER differs, which is why the raw
+index does. Positions, normals and UVs are identical bytes.
+
+**So the divergence is the CONVERTER, and it is one specific thing.** MT pads a vertex's unused
+joint slots by REPEATING an earlier joint rather than zeroing them (established earlier in this
+project, mod-skin-lanes). Crimson's .mod pads `22, 28, 22, 0` -- slot 2 repeats slot 0 -- and
+Fatalis's pads `11, 11, 11, 0`. Their weights are identical:
+
+    Crimson GLB v0   gids 3, 242,  0, 0   weights 0.9137, 0.0784, 0.0078, 0
+    Fatalis GLB v1   gids 3, 242, 13, 0   weights 0.9137, 0.0784, 0.0078, 0
+
+**The converter writes gid 0 where the .mod repeated gid 3.** On Fatalis the repeats carry ZERO
+weight so nothing is lost; on Crimson slot 2 carries 0.0078, and that 0.78% of the head's weight is
+handed to the ROOT instead. That is why one Fatalis has the fault and the others do not -- not
+different data, different padding, meeting the same converter defect.
+
+**Scale, honestly: it is small.** 18 vertices, 0.78% each, and ZERO displacement at bind pose --
+measured, removing the root influence moves them by 0.0 -- because every skin matrix is identity
+there. Posed, those 18 lag the head by 0.78% of its motion. Real, fixable, cause-D family, and
+almost certainly NOT the visible shift Raven reported. Recorded rather than fixed tonight: the
+repair belongs in the converter's slot handling, not in a per-monster patch.
+
 **STILL TO CHECK, and it post-dates the report:** `XfBAN__E0__m01_body_alpha` is opaque +
 FTransparencyAlpha, one of the 133 the cutout rule now covers, and a hard-edged plate over the
 snout is exactly what that material looks like drawn without its discard. The screenshot predates
