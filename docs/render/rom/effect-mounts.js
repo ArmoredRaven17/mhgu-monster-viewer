@@ -34,8 +34,20 @@ import { gidBonesOf } from '../skeleton.js';
 let table = null;                 // the whole effect-mounts.json
 let mats = null;                  // the whole effect-materials.json
 let enabled = false;
+let rageOn = false;
 const live = [];                  // { obj, bone, model, joint, array, index }
 const cache = new Map();          // model name -> the loaded glb scene, cloned per use
+
+// A MONSTER WHOSE EFFECT IS DRIVEN BY THE RAGE TOGGLE instead of the inspection switch.
+// Raven, 2026-09-11: "Just add the effect to Savage's Enrage state". Listed in
+// effect-mounts.json's `_autoOnRage`, so a monster opts in by data rather than by code, and
+// Felyne -- whose 19 rows are per-action proof effects that the game fires individually -- keeps
+// the old behaviour of showing nothing until asked.
+function autoOnRage(id){
+  return !!(table && Array.isArray(table._autoOnRage) && table._autoOnRage.indexOf(id) >= 0);
+}
+export function effectAutoOnRage(id){ return autoOnRage(id); }
+export function setEffectRage(on){ rageOn = !!on; }
 
 export async function loadEffectMounts(url){
   if (table) return table;
@@ -97,7 +109,8 @@ async function glbFor(model){
 // Attach every joint-bound record for this monster. `root` is the mounted monster group.
 export async function attachEffectMounts(root, monsterId, only){
   detachEffectMounts();
-  if (!enabled || !root) return live.length;
+  // Either the inspection switch, or this monster's own rage-driven mount.
+  if ((!enabled && !(rageOn && autoOnRage(monsterId))) || !root) return live.length;
   // `joint: -1` normally means an UNBOUND .pel record and is skipped. A row that also carries
   // `root: true` is different: it is an effect whose attachment point is not decoded yet -- the
   // EFL names its models in plain text but its emitter placement is unread -- and it is mounted on
