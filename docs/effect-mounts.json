@@ -145,34 +145,31 @@
    "index": 48
   }
  ],
- "_about_em043_05": "Savage Deviljho, 2026-09-11. His two own effect definitions effect/em/em043/em043_05_000 and em043_05_002_s name these models in PLAIN TEXT; the EFL's emitter placement, timing and colour are NOT decoded, so every row is root:true with a table scale rather than a joint. cm090_009 is in the same list but is an .ean (72 bytes), an effect animation, not geometry. Use __view.effects.scale() to retune.",
+ "_about_em043_05": "Savage Deviljho, 2026-09-11. His two own effect definitions effect/em/em043/em043_05_000 and em043_05_002_s name these models in PLAIN TEXT, so which models are his is DECODED. SCALE IS NOT A GUESS: mounted on a bone with an identity local transform the models come out at world 3.8x3.9x4.0 (cm150_000) and 0.9x3.0x0.9 (cm202_042) against a monster of 3.7x7.9x20.5 -- the bone's own scale chain already converts effect units to world units, which is what the module header means by 'whatever the bone's own space is, it inherits'. The raw model coords span 272..562 only because they are pre-chain; root-mounting skips it and needs a fudge, which is why these are bone-mounted. WHAT IS STILL A TABLE VALUE: the BONE. The EFL's emitter placement is unread, so `joint` was chosen against the skeleton -- the spine reads 11_s(1) 22_s(2) 3100_s(100) 4101_s(101) 5102_s(102) 6103_s(103) 73_s(3=head), so 100/101 is the torso, and cm202_042 sits on the upper back because its own bbox is y -17..233, a tall vertical plume. cm090_009 is in the same list but is a 72-byte .ean, an effect animation, not geometry. __view.effects(true) mounts them, __view.effects(true, N) one at a time.",
  "em043_05": [
   {
    "model": "cm202_042",
-   "joint": -1,
-   "root": true,
-   "scale": 0.02,
+   "joint": 101,
+   "scale": 1,
+   "note": "tall plume, y -17..233",
    "from": "em043_05_000, em043_05_002_s"
   },
   {
    "model": "cm150_000",
-   "joint": -1,
-   "root": true,
-   "scale": 0.02,
+   "joint": 100,
+   "scale": 1,
    "from": "em043_05_000, em043_05_002_s"
   },
   {
    "model": "cm100_000",
-   "joint": -1,
-   "root": true,
-   "scale": 0.02,
+   "joint": 100,
+   "scale": 1,
    "from": "em043_05_000"
   },
   {
    "model": "em024_00_001",
-   "joint": -1,
-   "root": true,
-   "scale": 0.02,
+   "joint": 100,
+   "scale": 1,
    "from": "em043_05_002_s"
   }
  ]
