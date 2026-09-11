@@ -293,7 +293,10 @@ export function createRomMaterial(spec){
   // with the Armor Viewer and the monster app does not edit it; its path is the pre-rewrite A/B
   // baseline and is reached only with the ROM core switched off.
   if (lit && gl && gl.emission && (gl.emission[0] + gl.emission[1] + gl.emission[2]) > 0){
-    mat.emissive.setRGB(gl.emission[0], gl.emission[1], gl.emission[2]);
+    // sRGB, for the reason spelled out at material.js's fEmissionColor case: a bare setRGB writes
+    // three.js's LINEAR working space while every map here is decoded sRGB, so the same 0.2 means
+    // six times more as a constant than as a texel -- and emission is added, not multiplied.
+    mat.emissive.setRGB(gl.emission[0], gl.emission[1], gl.emission[2], THREE.SRGBColorSpace);
     // emissiveFromMap IS A DEFINE CARRIER, NOT A MULTIPLICAND, and I removed it earlier today on
     // exactly that misreading. applyTint REPLACES `#include <emissivemap_fragment>` with
     //

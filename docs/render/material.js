@@ -891,7 +891,24 @@ function applyTrack(m, tr, f){
     // Mizutsune, Grimclaw Tigrex and Ahtal-Ka lost the part of their rage that is emission.
     case 'fEmissionColor': {
       const g = v[1] === undefined ? v[0] : v[1], bl = v[2] === undefined ? v[0] : v[2];
-      if (m.emissive){ m.emissive.setRGB(v[0], g, bl); break; }
+      // THE ROM'S COLOUR CONSTANTS ARE IN THE SAME SPACE AS ITS TEXTURES, and this one is ADDED,
+      // so the space is the whole difference. three.js 0.169 has colour management on: a bare
+      // setRGB writes the WORKING space, Linear-sRGB, while every map here is decoded with
+      // SRGBColorSpace. So a texel of 0.2 becomes ~0.033 linear and a CONSTANT of 0.2 stays 0.2 --
+      // six times brighter, added flat on top of the lighting.
+      //
+      // Crimson Fatalis is where it shows worst. Its `Angry` clip sets fEmissionColor to a flat
+      // grey 0.2, which lifted the dark ground of a red/orange lava texture to a mid grey and
+      // washed the whole monster out. Raven, 2026-09-11: "Crimson Fatalis enraged effect is whited
+      // out", and "I know we had it looking correct at one point" -- correct being before this case
+      // existed at all, when the emission was dropped rather than added in the wrong space.
+      //
+      // Reading it as sRGB is not a new decode; it is treating a constant the same way the pipeline
+      // already treats a texel from the same art. FEmissionConstant is genuinely a flat constant --
+      // FEmissionMap is a separate variant carrying the 0x04 "uses a map" bit in its mfx record and
+      // NO monster material selects it -- so the term really is added unmodulated; only its
+      // magnitude was wrong.
+      if (m.emissive){ m.emissive.setRGB(v[0], g, bl, THREE.SRGBColorSpace); break; }
       // AN ADDITIVE MATERIAL HAS NO .emissive -- it is a MeshBasicMaterial, and 40 of the 101
       // fEmissionColor tracks land on one, where they were silently dropped. Those are the rage
       // glows. The ROM's emission is a term ADDED to the material's output, and an additive pass is
