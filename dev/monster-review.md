@@ -1094,6 +1094,27 @@ rEffectList and cParticleGenerator live at 0x211xxxx, past the end of .data, so 
 runtime and carry no static property table to read names from.
 
 **NEXT:** map column 2's tag to a block layout, which gives the emitter fields by type.
+#### 2026-09-11, end of day - em065_00 REVERTED TO PRE-WELD, and my diagnosis was wrong
+
+> Raven: "I still see the welded Ears on Kecha Wacha"
+
+Earlier today I blamed the merged ears on `weld-seam-skins.py` moving two of the 68 ear vertices,
+capped the weld at `--max-shift 0.25`, re-ran it, and measured em065_00 down to 0 vertices over the
+cap (`Group[5]#0` 2 rewritten, max shift 0.102). **He still sees it, so that diagnosis does not
+hold.** The cap was not the fix, which means the merge is either a smaller weld shift than 0.25
+still being too much, or not the weld at all.
+
+`docs/models/monsters/em065_00.glb` is now restored to `56a1dcd`, the PRE-WELD file, byte-identical
+(sha 161e3afa9aa0). That is the state it shipped in before any of today's welding, so tomorrow's
+first look answers the question outright:
+
+* ears still merged on the pre-weld file -> the weld was never the cause, and the real cause is
+  still unfound. My whole 2026-09-11 ear entry above needs rewriting, not amending.
+* ears correct -> the weld causes it even under the cap, and the ear parts (5, 103, 12, 13) want
+  excluding from welding on this monster rather than capping.
+
+The OTHER 105 models still carry the capped weld and are untouched by this revert; em065_00 alone is
+back. Nothing here is committed -- the model files have been uncommitted all day.
 ### Brachydios (em063_00) and Raging Brachydios (em063_05)
 > "Brachydios renders poorly, likely due to a) it has a shiny carapace that needs to be handled
 > better b) the slime effects c) enrage changes. Raging also has issues."
