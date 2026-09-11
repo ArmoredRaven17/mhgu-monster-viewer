@@ -29,6 +29,9 @@ game and are shown for reference only.
   `itemData_eng.gmd`), cross-checked against the **MHGU Monster Info** project's verified
   name table, which is also where the names of the monsters whose carves name nothing come
   from. Part names do not exist anywhere in the game's files.
+- **Reviewed part and option names** (`docs/part-review.json`) are this project's own: authored
+  by hand against the render, monster by monster. They are neither the game's data nor the
+  community's, and where one contradicts a community part name it is deliberate.
 - Monster **icons** are the sibling MHGU fan apps' shared set.
 - Everything else — models, textures, materials, animations, part-visibility groups, size
   multipliers — is read out of the game's own files.

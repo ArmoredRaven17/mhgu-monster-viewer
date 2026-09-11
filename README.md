@@ -24,6 +24,8 @@ No build step. Serve `docs/` with any static file server:
     docs/index.html        the app: markup, styles and logic
     docs/monsters.json     per monster: model, parts, visibility groups, motion lists, size
     docs/materials.json    what the game's own material files say about every material
+    docs/part-review.json  HAND-AUTHORED: the name each parts row carries, the name each
+                           dropdown item carries, and which item the row opens on
     docs/models/monsters/  one glb per model (the monster, and its severed parts)
     docs/poses/monsters/   one glb per motion list, animations only
     docs/tex/              textures, deduplicated by content hash
@@ -40,6 +42,12 @@ Viewer. `render/monster.js` is this app's own and is never synced.
 `C:\MHGU-Extract\harvest-monsters.py` reads the game's `arc\enemy\*.arc` archives and writes
 everything under `docs/`; `build-materials.py --monsters-only --repo MHGU-Monster-Viewer --fmt webp` builds the material database.
 Neither the extract nor the game's files are part of this repository.
+
+**One exception: `docs/part-review.json` is written by nothing.** Part names are not in the
+game's files at all, so which part a row covers and what its options mean is settled by a person
+looking at the render, monster by monster. Every other JSON under `docs/` is generated and would
+overwrite anything typed into it; this one is hand-authored, and `buildlib.write_json_atomic`
+refuses the name so a future script cannot take it by accident.
 
 ## Credits
 

@@ -160,18 +160,18 @@ export function clusterGroups(groups){
 // DEFAULT_PARTS_ON was emptied 2026-09-07: its one entry, em043_05 part 6, was believed to be
 // Savage Deviljho's eye effect and is not -- part 6 is the eye glow shared byte-for-byte with
 // ordinary Deviljho. It comes back 2026-09-09 for the Rathian and Rathalos lines, on Raven's call.
+//
+// A ROW DEFAULT CANNOT REPLACE THIS TABLE, which is why it stays even though it is now empty.
+// docs/part-review.json speaks in the units the Parts panel offers -- one choice per RENDERED row
+// -- and the panel drops two kinds of row: inert single-member ones (groupIsInert) and ladder rows
+// that collapse to a single choice. A part living in one of those is reachable from here and from
+// nowhere else. The same goes for DEFAULT_PARTS_ON's {calm, rage} form, which also feeds
+// stateParts() and the test deciding whether the Enraged checkbox appears at all.
 export const DEFAULT_PARTS_OFF = {
-  // Raven's own call, 2026-09-05: "Congalala, turn off parts 12-18 by default". Re-checked
-  // 2026-09-07 against the ROM-derived sets and it is STILL load-bearing: all seven parts draw
-  // without it.
-  em021_00: [12, 13, 14, 15, 16, 17, 18],   // Congalala
-  // Khezu's two wound overlays. Raven, 2026-09-09: "Khezu, turn off both parts by default", and
-  // earlier "I also suspect the wounds are also in the wrong order since I see areas around the
-  // wound marks that normally are not seen" -- they are XfBAN__E0__m02_body_d, state 2, bias -384,
-  // so they draw LAST over everything. This IS a deviation from the decoded data and belongs here
-  // for that reason: part-rest.json gives em003_00 rest sets [3, 4], which are the two "on"
-  // alternatives, so the ROM's own resting state draws both. Same shape as the Congalala entry.
-  em003_00: [1, 2],                        // Khezu -- neck and body wounds
+  // CONGALALA em021_00 [12..18] and KHEZU em003_00 [1, 2] MOVED to docs/part-review.json
+  // 2026-09-10, with Raven's words carried over as each entry's `note`. Every part either named
+  // was its own two-item row (on N / all off), so "none" says it exactly and in the units the
+  // panel shows. Congalala's row 19 was never in the entry and is still untouched.
   // THE THREE FATALIS ENTRIES WERE REMOVED 2026-09-07. They turned parts 1 and 10 off by hand; the
   // ROM's own spawn default and resting sets now do it, and the drawn part map is IDENTICAL with
   // and without them on all three (em013_00 Fatalis, em013_01 Crimson, em013_02 Old). An exception
@@ -183,20 +183,21 @@ export const DEFAULT_PARTS_OFF = {
 // building. Applied by applyForcedOn, which switches the cluster owning the part to whichever of
 // its alternatives DRAWS it, and runs after applyForcedOff so an explicit "on" wins a collision.
 //
-// 2026-09-09: "for Rathian line, have part 101 on by default" / "Same for Rahtalos". Part 101 is
-// clustered with part 8 in all six: groups 11 (101 on / 8 off) and 12 (8 on / 101 off) for the
-// four 13-group models, and 11, 12 (both 101 on) against 13 (101 off) for the two 14-group ones.
-// The ROM's own resting sets are [3,5,7,9] with defaultSet 2 -- none of them name a 101 group, so
-// without this the cluster falls through to its last member and 101 draws off.
+// THE SIX RATH ENTRIES MOVED to docs/part-review.json 2026-09-10 along with Diablos, for the same
+// reason and with Raven's words carried over. Worth keeping here: on the two 14-group models
+// (Dreadqueen, Dreadking) the row offers 11,101 / 12,101 / 8 rather than a clean pair, so the
+// review file has to name one exactly -- a bare "101" is ambiguous there and is refused, where
+// applyForcedOn used to take the first silently.
 export const DEFAULT_PARTS_ON = {
-  // Raven, 2026-09-09, with a screenshot of the panel he wants: "For Diablos, this is the default I
-  // want for parts" -- on 5 / off 1, on 102 / off 2, on 103 / off 3, on 101 / off 4, and then
-  // 2026-09-09: "Update Diablos to use on Part 104", flipping the Back cluster from 6 to 104.
-  // Four of the five differ from what the ROM's own sets and the highest-index fallback produce:
-  // part-rest.json gives em007_00 sets [7, 8, 10, 12, 14], of which 12 and 14 are past the end of an
-  // 11-group table, 7 and 8 are the same cluster so the later one wins (6 on), and 10 draws 4 over
-  // 101. The three head clusters no set names at all, so they fell to the highest member.
-  em007_00: [5, 102, 103, 104, 101],   // Diablos
+  // DIABLOS em007_00 MOVED to docs/part-review.json 2026-09-10, which is now where a per-row
+  // default belongs. Its five parts were [5, 102, 103, 104, 101] and every one is a two-option
+  // row, so the review file says the same thing in the units the panel actually offers -- and
+  // says it beside the name Raven gives the row, instead of a part id list in a code file.
+  // Raven's words are carried over as that entry's `note`. The reasoning that made it necessary
+  // is still worth having: part-rest.json gives em007_00 sets [7, 8, 10, 12, 14], of which 12 and
+  // 14 are past the end of an 11-group table, 7 and 8 are the same cluster so the later one wins
+  // (6 on), and 10 draws 4 over 101; the three head clusters no set names at all, so they fell to
+  // the highest member.
   // Raven, 2026-09-09, screenshot: "Bloodbath Diablos, those are the parts I want on by default" --
   // on 0, 100 / off 30; on 5 / off 1; on 102 / off 2, 32; on 103 / off 3, 33; on 104 / off 6;
   // on 101 / off 4; on 105 / off 7; on 106 / off 8.
@@ -340,12 +341,6 @@ export const DEFAULT_PARTS_ON = {
   // which is drawn in every state, so no choice of parts can hide them. See the sweep entry in
   // dev/monster-review.md.
   em082_00: [0, 100, 1, 2, 101, 102, 3, 104, 4, 105, 5, 6, 103, 8],   // g0 g1 g7 g9 g11 g15 g18
-  em001_00: [101],   // Rathian
-  em001_02: [101],   // Gold Rathian
-  em001_04: [101],   // Dreadqueen Rathian
-  em002_00: [101],   // Rathalos
-  em002_02: [101],   // Silver Rathalos
-  em002_04: [101],   // Dreadking Rathalos
 };
 // THE PARTS THE ROM ITSELF SWITCHES ON RAGE, read from ROM_RAGE_SET rather than hand-listed.
 // Raven, 2026-09-10: "Ideally, if we can let the ROM tell us how to handle enraged states, that is
@@ -1289,7 +1284,39 @@ const STATE_NAMES = {
 // is what makes the veins read as black -- and m04__taiden is BSAddAlpha with authored emission
 // 2.0. One darkens, one glows, and the game picks between them by swapping the material.
 export const STATE_MATERIAL_SWAP = {
-  em003_00: { charged: { 'XfBA_A0__m03_blood': '#833258c1' } },   // Khezu -- XfBA_A0__m04__taiden
+  // KHEZU'S CHARGE DOES NOT SWAP THE VEIN LAYER, and the entry that said it did is gone.
+  //
+  // Raven, 2026-09-10: "The veins remain red during the charging state attacks." He is right, and
+  // the ROM agrees once you read far enough. Khezu has THREE Taiden entry paths, not one, and they
+  // differ in exactly one call:
+  //
+  //     0xd1ec1c   Body_Taiden_Repeat + Alpha_Taiden_Repeat, setMaterialAt (0x88db20), Taiden_start
+  //     0xd1ed30   Body_Taiden_Repeat + Alpha_Taiden_Repeat, NO setMaterialAt, no Taiden_start
+  //     0xd1ee48   Body_Taiden_Repeat + Alpha_Taiden_Repeat, setMaterialAt, Taiden_start
+  //
+  // The middle one electrifies the BODY and leaves the vein layer alone, so m03_blood keeps drawing
+  // and the veins stay red. That is the state he is describing, and this viewer had implemented the
+  // other one.
+  //
+  // Why the swapped state cannot be what he sees, which is what forced the re-read: m03_blood and
+  // XfBA_A0__m04__taiden are the SAME material twice over -- identical flag word 91950000, identical
+  // features, identical CBMaterial, and both bind em003_00_03_BM as the albedo and em003_00_02_BM as
+  // the blend map (checked in the .mrl itself, not inferred). They differ in two things only: the
+  // blend equation, and fEmissionColor 0 against 2. And BSRevSubAlpha is literally BSAddAlpha with
+  // one more bit set -- 0x04020802 against 0x00020802, the same SRC_ALPHA/ONE factors and only the
+  // equation changed. The blend map is teal with ZERO red-dominant texels, peaking at (19,146,147).
+  // Reverse-subtracting teal is what MAKES the veins red; adding the same teal can only make them
+  // cyan. Measured in the viewer: calm the layer contributes (-6, -25, -23) and reads red at
+  // (102, 84, 76); charged it contributed (+16, +57, +53) and read cyan at (110, 137, 125).
+  //
+  // So no rendering fix could ever have produced red here. The state was wrong, not the shading.
+  // The body clips still run -- Body_Taiden_Repeat drives fAlbedoColor to (0.28, 0.322, 0.42) and
+  // fEmissionColor to (0.16, 0.184, 0.24), both blue -- so the charge still reads electric, on the
+  // body, which is where the ROM puts it.
+  //
+  // Paths A and C remain undecoded as states: they DO swap, so something in Khezu's repertoire shows
+  // cyan veins. Nothing here selects them, and inventing a second toggle for a state whose trigger
+  // has not been read would be guessing.
 };
 // Hang the swap materials for `state` on the meshes that carry the originals, or put the originals
 // back when the state has none. The ROM's own mechanism is different -- it replaces the entry in

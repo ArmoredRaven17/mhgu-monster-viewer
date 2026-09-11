@@ -346,6 +346,14 @@ header #bar .btn.tiny{margin-right:0}
 .row.gap{gap:8px}
 .field{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--text-dim)}
 .field .row.gap > select{flex:1;min-width:0}
+/* The Parts panel is a stack of label-over-dropdown pairs, and once a reviewed row drops its
+   "Parts 1, 9" subline the stack runs together -- a label sits as close to the select ABOVE it as
+   to its own (Raven, 2026-09-10: "can we get a little bit of space between the drop downs and the
+   labels"). The ambiguity has two halves and so does the fix: pull each label nearer its own
+   control, and push the rows apart from each other. Scoped to #monGroups, because every other
+   panel in the app is a form where the tighter rhythm is right. */
+#monGroups .field{gap:5px}
+#monGroups .field + .field{margin-top:13px}
 .hexbtn{flex:1;min-width:0;background:transparent;border:1px solid transparent;
   color:var(--text-hint);font-family:inherit;font-size:12px;letter-spacing:.02em;
   text-align:left;padding:3px 5px;border-radius:5px;cursor:text}
@@ -1087,6 +1095,82 @@ const HITZONES = await loadJson('hitzones.json').catch(() => ({ monsters: {} }))
 // ships: found within 200 bytes, struct-field names dropped. It is shown as a hint, never as a name
 // the ROM gives the state.
 const PARTSTATES = await loadJson('part-states.json').catch(() => ({ groups: {} }));
+// THE ONE HAND-AUTHORED FILE. Every other JSON under docs/ is generated and would destroy anything
+// typed into it on the next build; this one is written by nothing, which is the whole point --
+// part names are not in the ROM (searched all 11,229 GMD files) and the community join lands 54 of
+// its 199 names on two rows of the same monster, so the last word has to be a person looking at the
+// render. An entry here means exactly that: someone looked at this row.
+// Optional like the rest: a deploy without it falls back to partnames.json and the ROM's own order.
+const PARTREVIEW = await loadJson('part-review.json').catch(() => ({}));
+const reviewFor = id => (id && PARTREVIEW[id]) || null;
+const reviewRows = id => (reviewFor(id) || {}).rows || {};
+// An option's key is its ON-SET -- the ids printed after "on" in the label, with the rage ladder's
+// own parts stripped exactly as groupLabelWithout strips them. Group indices are deliberately not
+// usable as keys: they are invisible in the UI, and a ladder choice's `rep` is only its first
+// member, an ordering artefact of clusterChoices.
+function optionKey(g, skipParts){
+  const lp = new Set(skipParts || []);
+  const on = (g || []).filter(e => e[1] && !lp.has(e[0])).map(e => e[0]).sort((a, b) => a - b);
+  return on.length ? on.join(',') : 'none';
+}
+// EXACT MATCH FIRST, then a UNIQUE containment fallback, then nothing at all with a warning.
+// Exact-first is load-bearing rather than tidy: Dreadqueen Rathian's 8,11,12,101 row offers
+// 11,101 / 12,101 / 8, so the bare key "101" names two options and has to be REFUSED -- the old
+// applyForcedOn silently took the first. Akantor's 7,8,9 row offers 7 / 8 / 8,9, where exact-first
+// is what keeps "8" and "8,9" meaning different things.
+function resolveOptionKey(opts, key, where){
+  if (key === undefined || key === null) return null;
+  let raw = String(key).trim().toLowerCase();
+  // A "calm|rage" key resolves to the half this state is using, wherever it appears -- an option
+  // name, a `default`, an `order` entry. Handled here so every site agrees: the options loop below
+  // has already split its own, and passes a single half, so this is a no-op for it.
+  if (raw.indexOf('|') >= 0){
+    const halves = raw.split('|').map(x => x.trim());
+    raw = (state.rage ? halves[1] : halves[0]) || halves[0];
+  }
+  const want = (raw === '' || raw === 'none' || raw === 'off')
+    ? 'none'
+    : raw.split(',').map(s => parseInt(s, 10)).filter(Number.isFinite).sort((a, b) => a - b).join(',');
+  if (!want) return null;
+  const exact = opts.filter(o => o.key === want);
+  if (exact.length === 1) return exact[0];
+  if (!exact.length && want !== 'none'){
+    // the written ids all appear in the option's ON-set: "101" reaching "11,101"
+    const wantIds = want.split(',').map(Number);
+    const held = opts.filter(o => o.key !== 'none' &&
+      wantIds.every(p => o.key.split(',').map(Number).indexOf(p) >= 0));
+    if (held.length === 1) return held[0];
+    if (held.length > 1){
+      console.warn('part-review: ' + where + ' key "' + key + '" is AMBIGUOUS -- it matches ' +
+                   held.length + ' options (' + held.map(o => o.key).join(' | ') +
+                   '). Name one of them exactly. Valid keys: ' + opts.map(o => o.key).join(' | '));
+      return null;
+    }
+  }
+  console.warn('part-review: ' + where + ' key "' + key + '" matches no option; valid keys are ' +
+               opts.map(o => o.key).join(' | '));
+  return null;
+}
+// A HAND-EDITED FILE NEEDS A TRIPWIRE. A row key typed "5,1" instead of "1,5", or an em id off by
+// a variant, is otherwise silently inert -- the row simply keeps its old name and default, which
+// looks exactly like the plumbing not working. Checked once at boot against the real clusters.
+// Option keys need the rage ladder's parts and so cannot be checked here; they warn per row.
+{
+  const byId = new Map((MON.monsters || []).map(m => [m.id, m]));
+  for (const [id, rec] of Object.entries(PARTREVIEW)){
+    if (id === '_about') continue;
+    const m = byId.get(id);
+    if (!m){ console.warn('part-review: "' + id + '" is not a monster in monsters.json'); continue; }
+    const keys = new Set(clusterGroups(m.groups || []).map(c => c.parts));
+    for (const k of Object.keys((rec && rec.rows) || {})){
+      // a '+' key is a merged row and names several real ones; every half still has to exist
+      const bad = k.split('+').filter(s => !keys.has(s));
+      if (bad.length)
+        console.warn('part-review: ' + id + ' has no row "' + bad.join('", "') + '"; its rows are ' +
+                     [...keys].join(' | '));
+    }
+  }
+}
 // The ROM's undamaged part sets, applied on top of PartsDisp all-on so part BREAKS are not drawn
 // alongside the intact parts they replace. See ROM_REST_SETS in render/monster.js.
 setRestSets(await loadJson('part-rest.json').catch(() => ({ sets: {}, defaultSet: {} })));
@@ -1832,6 +1916,10 @@ let effectOnly = null;      // which proof-effect record to mount, null = all
 // Clusters Raven has picked by hand this session, keyed by cluster, so rebuilding the panel does
 // not drag them back to the highest index. Cleared on a monster change.
 let partsPicked = {};
+// A dev scene may state its whole groups array (dev/scenes.json's rathian-parts-alt does, for
+// em001_00). That is a FIXED before/after render, so part-review.json's defaults must stand aside
+// for it -- otherwise reviewing Rathian would silently change what the scene shoots.
+let groupsExplicit = false;
 const pose = new PoseDriver({ frame: world, onError: msg => noteError(msg) });
 const monSel = document.getElementById('monSel'), monFilter = document.getElementById('monFilter'),
       monListSel = document.getElementById('monList'), monClipSel = document.getElementById('monClip'),
@@ -1999,6 +2087,161 @@ function stateSuffix(groupIndex){
   const st = partStateFor(e && e.id, groupIndex);
   return st ? '  — switched by ' + st.label : '';
 }
+// THE PARTS A REVIEWED ROW'S OPTIONS ARE ABOUT, read out of its own option keys. Naming a part
+// there is a statement that choosing it is the USER'S, which is what lets a reviewed row escape
+// the state-parts stripping below.
+function reviewedParts(rv){
+  const out = new Set();
+  for (const k of Object.keys((rv && rv.options) || {}))
+    for (const n of String(k).split(/[+,]/)){ const v = parseInt(n, 10); if (Number.isFinite(v)) out.add(v); }
+  return out;
+}
+// A ROW THE REVIEW FILE NAMES OWNS ITS OWN PARTS. stateParts() lists what the Rage control decides,
+// and a cluster whose members differ only in those offers no choice, so it is normally folded away
+// -- correct for a rage aura, wrong when the ROM's rage pair happens to name a part that is really
+// a break state. TIGREX IS THE CASE: parts 8 and 10 are the right front leg, intact at 57v and
+// broken at 15v, mirroring 7 and 9 at 76v and 16v on the other side to within a few vertices. But
+// ROM_RAGE_SET decodes em032_00 as [[1,0],[10,9]], so 8 and 10 come back from romRageParts() as
+// enrage parts, both members strip to nothing, the cluster collapses to one choice and the row
+// disappears -- while its mirror image two rows up shows a normal Intact/Broken select. Raven,
+// 2026-09-10: "(Missing currently) Right Front Leg".
+//
+// This does NOT overrule the ROM about what rage does. The rage sets still apply; what changes is
+// only whether the panel offers the row, and DEFAULT_PARTS_ON already had part 8 on in BOTH of
+// Tigrex's states, so the entanglement was already decided against.
+function reviewedSp(sp, keep){
+  if (!keep || !keep.size) return sp;
+  return (sp || []).filter(p => !keep.has(p));
+}
+// ONE DERIVATION OF A CLUSTER'S OPTIONS, used by the ordinary row branch and by the merged one.
+// It was inline in buildGroups until merged rows needed the same thing; two copies of this would
+// drift, and the thing they would drift on is the option KEY, which is what part-review.json is
+// written against.
+//   - a ladder cluster offers CHOICES, not members: clusterChoices folds together the variants that
+//     differ only in the rung's own parts, because whether those draw is the Rage control's call.
+//   - IDENTICAL GROUPS ARE ONE CHOICE. Grimclaw's g2 and g3 are both [[1,true],[3,false]] -- the
+//     same row twice, where Tigrex's equivalent slot holds its part-2 head. Grimclaw has no part 2
+//     at all, so this is a real duplicate in the data rather than something lost, and offering it
+//     twice says nothing.
+//   - the key is the ON-set with the ladder's parts stripped, i.e. exactly the ids the label prints.
+function clusterOptions(c, groups, sp, keep){
+  sp = reviewedSp(sp, keep);
+  const isLadder = clusterIsLadder(c);
+  let opts = isLadder
+    ? clusterChoices(groups, c.members, sp).map(ms => ({ rep: ms[0], members: ms }))
+    : c.members.map(k => ({ rep: k, members: [k] }));
+  const seenKey = new Map(), merged = [];
+  for (const o of opts){
+    const k = (groups[o.rep] || []).map(e => e[0] + ':' + (e[1] ? 1 : 0)).sort().join(',');
+    if (seenKey.has(k)){ seenKey.get(k).members.push(...o.members); continue; }
+    seenKey.set(k, o); merged.push(o);
+  }
+  for (const o of merged) o.key = optionKey(groups[o.rep], isLadder ? sp : []);
+  return merged;
+}
+// WHICH VARIANT OF A CHOICE APPLIES is the state's business, not the user's. Match the owned parts
+// against what defaultGroupsOn already picked for the state we are in -- that works for a ladder
+// rung (parts on) and for a plain toggle alike, where Tigrex wants part 2 ON and part 1 OFF when
+// enraged and the reverse when calm, which "all owned parts on" cannot say.
+function variantPicker(c, groups, sp, stateDefault, keep){
+  sp = reviewedSp(sp, keep);
+  const isLadder = clusterIsLadder(c);
+  const ownedKey = i => (groups[i] || []).filter(x => sp.indexOf(x[0]) >= 0)
+                                         .map(x => x[0] + ':' + (x[1] ? 1 : 0)).sort().join(',');
+  return o => {
+    if (!isLadder) return o.rep;
+    const def = c.members.find(k => stateDefault[k]);
+    if (def === undefined) return o.members[0];
+    const want = ownedKey(def);
+    return o.members.find(k => ownedKey(k) === want) || o.members[0];
+  };
+}
+// One row standing for several clusters. Kept separate from buildGroups' main branch on purpose:
+// that branch carries the rage ladder, clusterChoices and variantOf, none of which apply here --
+// a merged row is refused outright if any source is a ladder. What is left is simple enough to
+// read in one screen: each option names one member per source cluster, and picking it applies
+// every source at once.
+function buildMergedRow(c, groups, rv, e, sp, stateDefault){
+  const where = (e && e.id) + ' merged row ' + c.parts;
+  // Each source's own options, derived by the SAME function the ordinary rows use -- so a ladder
+  // source contributes choices rather than raw members, and its key has the rung's parts stripped.
+  // Bloodbath's horn rows are exactly this: parts 2,32,102 and 3,33,103, where 32 and 33 carry the
+  // Deviant rage effect. Merging them is safe because the rung's decision is not the user's option
+  // here either -- it stays with variantOf below, which resolves each source independently.
+  const keep = reviewedParts(rv);
+  const perSrc = c.merged.map(src => clusterOptions(src, groups, sp, keep));
+  const pickVariant = c.merged.map(src => variantPicker(src, groups, sp, stateDefault, keep));
+  const combos = [];
+  for (const [k, v] of Object.entries((rv && rv.options) || {})){
+    const partKeys = String(k).split('+');
+    if (partKeys.length !== perSrc.length){
+      console.warn('part-review: ' + where + ' option "' + k + '" names ' + partKeys.length +
+                   ' of ' + perSrc.length + ' rows; expected one per row joined by "+"');
+      continue;
+    }
+    const picks = partKeys.map((pk, i) => resolveOptionKey(perSrc[i], pk, where + ' [' + c.merged[i].parts + ']'));
+    if (picks.some(x => !x)) continue;
+    combos.push({ key: picks.map(x => x.key).join('+'), name: String(v), picks });
+  }
+  if (!combos.length){
+    console.warn('part-review: ' + where + ' resolved no options; the row is not shown and its ' +
+                 'clusters are left to the ROM. Give it an `options` map keyed like "8+10".');
+    return;
+  }
+  if (Array.isArray(rv.order)){
+    const rank = new Map(); rv.order.forEach((k, i) => { if (!rank.has(String(k))) rank.set(String(k), i); });
+    const pos = new Map(combos.map((o, i) => [o, i]));
+    const at = o => rank.has(o.key) ? rank.get(o.key) : rv.order.length + pos.get(o);
+    combos.sort((a, b) => at(a) - at(b));
+  }
+  const row = document.createElement('div'); row.className = 'field';
+  row.dataset.row = c.parts;
+  const lab = document.createElement('label');
+  lab.textContent = (rv && rv.name) || c.parts;
+  lab.title = ((rv && rv.name) || c.parts) + ' — one control over ' + c.merged.length + ' part rows (' +
+              c.merged.map(s => 'Parts ' + s.parts.split(',').join(', ')).join('; ') +
+              '), reviewed against the render';
+  const sel = document.createElement('select');
+  for (const o of combos){
+    const opt = document.createElement('option');
+    opt.value = o.key; opt.textContent = o.name; opt.dataset.key = o.key;
+    opt.title = o.picks.map((x, i) => 'Parts ' + groupLabel(groups[x.rep])).join('  ·  ');
+    sel.appendChild(opt);
+  }
+  // Applying is per source: exactly one member of each source cluster on, which is what the
+  // separate rows did between them. Nothing here can leave a cluster unapplied. The member kept is
+  // the VARIANT the current rage state wants, resolved per source -- so on a ladder source the
+  // Rage control still decides whether the rung's own parts draw, and this row only decides which
+  // choice they hang off.
+  const apply = o => c.merged.forEach((src, i) => {
+    const keep = pickVariant[i](o.picks[i]);
+    src.members.forEach(k => { state.groups[k] = (k === keep); });
+  });
+  const picked = partsPicked[c.members.join(',')];
+  const reviewOpt = combos.find(o => o.key === resolveMergedDefault(combos, rv, state.rage));
+  const cur = combos.find(o => o.key === picked)
+           || (groupsExplicit ? null : reviewOpt)
+           // no appliedOpt tier: the ROM has no opinion about a COMBINATION, only about each
+           // cluster separately, and a pair the review file does not list is not offerable here
+           || combos.find(o => o.picks.every((x, i) => x.members.some(k => state.groups[k])))
+           || combos[0];
+  apply(cur); sel.value = cur.key;
+  sel.onchange = () => {
+    const o = combos.find(x => x.key === sel.value) || combos[0];
+    partsPicked[c.members.join(',')] = o.key;
+    apply(o); applyPartState(); saveState();
+  };
+  row.appendChild(lab); row.appendChild(sel); monGroupsEl.appendChild(row);
+}
+function resolveMergedDefault(combos, rv, rage){
+  const want = (rage && rv && rv.rage !== undefined) ? rv.rage : (rv && rv.default);
+  if (want === undefined || want === null) return null;
+  const norm = String(want).trim();
+  const hit = combos.find(o => o.key === norm) || combos.find(o => o.name.toLowerCase() === norm.toLowerCase());
+  if (!hit) console.warn('part-review: merged default "' + want + '" matches no option; valid keys are ' +
+                         combos.map(o => o.key).join(' | '));
+  return hit ? hit.key : null;
+}
 function buildGroups(){
   const e = entry();
   const groups = (e && e.groups) || [];
@@ -2015,27 +2258,119 @@ function buildGroups(){
                                        DEFAULT_PARTS_OFF[e && e.id], forcedOn(e && e.id));
   const pn = (PARTNAMES.monsters && PARTNAMES.monsters[e && e.id]) || {};
   const pnParts = pn.parts || {};
-  for (const c of clusterGroups(groups)){
+  const rvRows = reviewRows(e && e.id);
+  // TWO CLUSTERS, ONE CHOICE. Gravios' belly is authored as two adjacent swaps -- parts 8/9 and
+  // 10/11 -- but a player does not experience two controls there, they experience one belly going
+  // intact -> cracked -> broken. Raven, 2026-09-10: "the next two drop downs can be combined ...
+  // For Belly: In, Cr (Cracked), Br".
+  //
+  // A review row whose KEY joins source cluster keys with '+' replaces those clusters with a single
+  // row, and each of its options names one member per source, again joined by '+':
+  //   "8,9+10,11": { name: "Belly", default: "8+10", options: { "8+10": "Intact", ... } }
+  // Nothing about the ROM changes -- both clusters are still applied, one member each, exactly as
+  // two separate rows would. This is presentation, and it is the only thing in the file that is.
+  let clusterList = clusterGroups(groups);
+  {
+    const byKey = new Map(clusterList.map(c => [c.parts, c]));
+    for (const k of Object.keys(rvRows)){
+      if (k.indexOf('+') < 0) continue;
+      const srcKeys = k.split('+');
+      const src = srcKeys.map(s => byKey.get(s));
+      const missing = srcKeys.filter((s, i) => !src[i]);
+      if (missing.length){
+        console.warn('part-review: ' + (e && e.id) + ' merged row "' + k + '" names no such row: ' +
+                     missing.join(', ') + '; rows are ' + clusterList.map(c => c.parts).join(' | '));
+        continue;
+      }
+      // A rage-ladder source is fine, and Bloodbath's horns are the case: parts 2,32,102 and
+      // 3,33,103, where 32 and 33 carry the Deviant rage effect. The rung's decision is not taken
+      // away, because a ladder source contributes CHOICES (clusterChoices has already folded its
+      // variants) and applying one still runs that source's own variantOf. A ladder row that
+      // collapses to nothing but effect geometry is dropped by the main loop and cannot be a
+      // source, so check that here rather than letting it vanish silently.
+      const mergedKeep = reviewedParts(rvRows[k]);
+      const empty = mergedKeep.size ? []
+        : src.filter(c => clusterIsLadder(c) && ladderRowIsEmpty(groups, c));
+      if (empty.length){
+        console.warn('part-review: ' + (e && e.id) + ' merged row "' + k + '" names a row that is ' +
+                     'not shown -- ' + empty.map(c => c.parts).join(', ') + ' is a rage-ladder row ' +
+                     'holding only effect geometry; not merged');
+        continue;
+      }
+      const at = Math.min(...src.map(c => clusterList.indexOf(c)));
+      clusterList = clusterList.filter(c => src.indexOf(c) < 0);
+      clusterList.splice(at, 0, { parts: k, merged: src,
+                                  members: src.reduce((a, c) => a.concat(c.members), []) });
+    }
+  }
+  // ROW ORDER AS REVIEWED. The panel otherwise follows the ROM's cluster order, which is the order
+  // the parts table happens to be authored in and puts Ukanlos' eyes at the bottom under its tail.
+  // Raven, 2026-09-10: "Eyes: Op, Cl (Move to top)". `rowOrder` lists row keys; anything it does not
+  // name keeps its cluster position after the ones it does. Same shape as a row's own `order`.
+  {
+    const ro = (reviewFor(e && e.id) || {}).rowOrder;
+    if (Array.isArray(ro)){
+      const known = new Set(clusterList.map(c => c.parts));
+      const bad = ro.filter(k => !known.has(k));
+      if (bad.length)
+        console.warn('part-review: ' + (e && e.id) + ' rowOrder names no such row: ' + bad.join(', ') +
+                     '; rows are ' + [...known].join(' | '));
+      const rank = new Map(); ro.forEach((k, i) => { if (!rank.has(k)) rank.set(k, i); });
+      const pos = new Map(clusterList.map((c, i) => [c, i]));
+      const at = c => rank.has(c.parts) ? rank.get(c.parts) : ro.length + pos.get(c);
+      clusterList = clusterList.slice().sort((a, b) => at(a) - at(b));
+    }
+  }
+  for (const c of clusterList){
+    if (c.merged){ buildMergedRow(c, groups, rvRows[c.parts], e, stateParts(), stateDefault); continue; }
     const isLadder = clusterIsLadder(c);
-    if (isLadder && ladderRowIsEmpty(groups, c)) continue;   // nothing left but the effect geometry
+    // A REVIEWED ROW IS ALWAYS SHOWN. The empty-ladder test folds away a cluster whose members
+    // differ only in what the Rage control decides -- right for a rage aura, wrong for Tigrex's
+    // right front leg, which the ROM's rage pair happens to name (see reviewedSp). A person having
+    // named the row and written out its options is a stronger statement than the heuristic.
+    const rvKeep = reviewedParts(rvRows[c.parts]);
+    if (isLadder && !rvKeep.size && ladderRowIsEmpty(groups, c)) continue;
     const row = document.createElement('div'); row.className = 'field';
+    // The row's part-id set, for __view.review() to read back. It used to parse the visible
+    // "Parts 1, 9" subline, which stops existing the moment a row is reviewed -- see below.
+    row.dataset.row = c.parts;
     const lab = document.createElement('label');
     const ids = 'Parts ' + c.parts.split(',').join(', ');
     // The name leads and the ids stay, because the ids are what the ROM actually says and the
     // name is inferred. A flag is shown as a suffix rather than hidden in a tooltip: this is a
     // TEST build and the doubtful ones are exactly what Raven is reviewing.
     const nm = pnParts[c.parts];
-    if (nm){
-      lab.textContent = nm.name;
-      const sub = document.createElement('span');
-      sub.className = 'part-ids';
-      const fl = nm.flags || [];
-      sub.textContent = ids + (fl.length ? '  ·  ' + fl.join(', ') : '');
-      if (fl.indexOf('ambiguous') >= 0) sub.classList.add('warn');
-      lab.title = nm.name + ' — hit-zone slot ' + nm.slot + ', ' +
-                  Math.round(nm.share * 100) + '% of this row’s vertices, community name';
-      lab.appendChild(document.createElement('br'));
-      lab.appendChild(sub);
+    // A REVIEWED ROW IS FINISHED, AND SHOWS ITS NAME ALONE. Raven, 2026-09-10: "Be sure to remove
+    // things like 'Parts 1, 9 - shared' that won't make any sense to the users." He is right --
+    // the id line and the low / ambiguous / shared flags are REVIEWER SCAFFOLDING. The flags
+    // describe the community hit-zone join: how much of the row's geometry that name covers, and
+    // whether it landed on another row too. Once a person has looked at the render and typed a
+    // name, none of that is true of the name on screen, and a part id says nothing to anyone
+    // playing the game.
+    //
+    // An UNREVIEWED row keeps both, because there they are all there is: the id line is the only
+    // thing distinguishing three rows that all read "Head", and the orange flag is what says which
+    // rows are worth the review time. They disappear as the sweep reaches each monster.
+    // The ids are still on the label's tooltip either way.
+    const rv = rvRows[c.parts] || null;
+    const reviewed = !!(rv && rv.name);
+    const shown = (rv && rv.name) || (nm && nm.name) || null;
+    if (shown){
+      lab.textContent = shown;
+      lab.title = reviewed
+        ? shown + ' — ' + ids + ', reviewed against the render' +
+          (nm ? ' (community name: ' + nm.name + ')' : '')
+        : nm.name + ' — hit-zone slot ' + nm.slot + ', ' +
+          Math.round(nm.share * 100) + '% of this row’s vertices, community name';
+      if (!reviewed){
+        const sub = document.createElement('span');
+        sub.className = 'part-ids';
+        const fl = (nm && nm.flags) || [];
+        sub.textContent = ids + (fl.length ? '  ·  ' + fl.join(', ') : '');
+        if (fl.indexOf('ambiguous') >= 0) sub.classList.add('warn');
+        lab.appendChild(document.createElement('br'));
+        lab.appendChild(sub);
+      }
     } else {
       lab.textContent = ids;
     }
@@ -2060,16 +2395,18 @@ function buildGroups(){
       // dropped for having nothing to choose ("Remove any parts that are always on, people won't
       // need to know about this", 2026-09-05).
       //
-      // With the option gone there is nothing to pick, so this renders as a plain label rather
-      // than a one-entry dropdown: the row still says which group and which parts it covers, and
-      // the group is applied. Multi-member clusters keep their select, because there a choice
-      // genuinely exists.
-      const k = c.members[0];
-      state.groups[k] = true;
-      const only = document.createElement('span');
-      only.className = 'part-only';
-      only.textContent = groupLabel(groups[k]) + stateSuffix(k);
-      row.appendChild(lab); row.appendChild(only); monGroupsEl.appendChild(row);
+      // With the option gone there is nothing to pick, and NOW THE ROW GOES TOO. It used to render
+      // as a plain label saying which parts it covered -- Raven, 2026-09-10, looking at the one
+      // instance of it in the whole library: "Remove the Legs text". That is the third time the
+      // same instruction has landed (the inert rows above, then the all-on placeholders), and the
+      // rule behind all three is one rule: A ROW WITH NOTHING TO PICK IS NOT A CONTROL, so it does
+      // not belong in a panel of controls. Multi-member clusters keep their select, because there
+      // a choice genuinely exists.
+      //
+      // The flag is still set, exactly as in the inert branch: dropping the row is a display
+      // change and must not be a render change. Basarios' 0, 4, 5, 100 row is the only one in the
+      // library that reaches here.
+      state.groups[c.members[0]] = true;
       continue;
     }
     {
@@ -2095,40 +2432,91 @@ function buildGroups(){
       // in the rung's own parts are the same choice to a user -- Bloodbath's Horn 2/32/102 offers
       // "on 102 / off 2" and "on 2 / off 102", and whether 32 draws is the Rage select's business.
       // Raven, 2026-09-10: "if the option has multiple choices, we will want to keep the drop down".
+      // The choices, their folding and their keys all come from clusterOptions -- the same function
+      // the merged-row branch calls, so an option key means one thing everywhere. The key is what
+      // the label already shows: "on 102 / off 2, 32" is keyed "102", which is what Raven reads off
+      // the screen and what DEFAULT_PARTS_ON already spoke in. Verified unique per row across all
+      // 540 multi-member rows in the library.
       const sp = stateParts();
-      let opts = isLadder
-        ? clusterChoices(groups, c.members, sp).map(ms => ({ rep: ms[0], members: ms }))
-        : c.members.map(k => ({ rep: k, members: [k] }));
-      // IDENTICAL GROUPS ARE ONE CHOICE. Grimclaw's g2 and g3 are both [[1,true],[3,false]] -- the
-      // same row twice, where Tigrex's equivalent slot holds its part-2 head. Grimclaw has no part
-      // 2 at all (its partIds run 0 1 3 5 6 7 8 9 10 15 20 28 30 31 38 101), so this is a real
-      // duplicate in the data rather than something lost, and offering it twice says nothing.
-      {
-        const seenKey = new Map();
-        const merged = [];
-        for (const o of opts){
-          const k = (groups[o.rep] || []).map(e => e[0] + ':' + (e[1] ? 1 : 0)).sort().join(',');
-          if (seenKey.has(k)){ seenKey.get(k).members.push(...o.members); continue; }
-          seenKey.set(k, o); merged.push(o);
+      let opts = clusterOptions(c, groups, sp, rvKeep);
+      // THE HIGHEST-GROUP-INDEX FALLBACK, captured BEFORE any reordering below, because that is
+      // what it means -- the last member of the cluster in the ROM's own order, not whatever a
+      // review file happens to list last.
+      const lastByGroup = opts[opts.length - 1];
+      // ORDER AS DICTATED. The ROM's member order puts Rathian's eye row at "Closed / Open", which
+      // is not how Raven read it out (2026-09-10: "Eyes: Open, Closed") and not how a person picks
+      // -- the healthy state belongs first. `order` is an explicit array because the `options`
+      // object CANNOT carry it: JS iterates integer-like keys ascending, so {"9":..,"1":..} comes
+      // back 1 then 9. Unlisted options keep their ROM position at the end. An unreviewed row, and
+      // a reviewed one with no `order`, is untouched.
+      if (rv && Array.isArray(rv.order)){
+        const rank = new Map();
+        rv.order.forEach((k, i) => {
+          const hit = resolveOptionKey(opts, k, (e && e.id) + ' row ' + c.parts + ' order');
+          if (hit && !rank.has(hit)) rank.set(hit, i);
+        });
+        if (rank.size){
+          const romPos = new Map(opts.map((o, i) => [o, i]));
+          const at = o => rank.has(o) ? rank.get(o) : rv.order.length + romPos.get(o);
+          opts = opts.slice().sort((a, b) => at(a) - at(b));
         }
-        opts = merged;
       }
-      const labelOf = o => (isLadder ? groupLabelWithout(groups[o.rep], sp)
-                                     : groupLabel(groups[o.rep])) + stateSuffix(o.rep);
-      // WHICH VARIANT OF A CHOICE APPLIES is the state's business, not the user's. Match the owned
-      // parts against what defaultGroupsOn already picked for the state we are in -- that works for
-      // a ladder rung (parts on) and for a plain toggle alike, where Tigrex wants part 2 ON and
-      // part 1 OFF when enraged and the reverse when calm, which "all owned parts on" cannot say.
-      const ownedKey = i => (groups[i] || []).filter(x => sp.indexOf(x[0]) >= 0)
-                                             .map(x => x[0] + ':' + (x[1] ? 1 : 0)).sort().join(',');
-      const variantOf = o => {
-        if (!isLadder) return o.rep;
-        const def = c.members.find(k => stateDefault[k]);
-        if (def === undefined) return o.members[0];
-        const want = ownedKey(def);
-        return o.members.find(k => ownedKey(k) === want) || o.members[0];
-      };
-      sel.innerHTML = opts.map(o => '<option value="' + o.rep + '">' + labelOf(o) + '</option>').join('');
+      // ONE ITEM, TWO FORMS -- "calm key | rage key". Akantor's back row offers 7, 8 and 8,9, but
+      // those are two states not three: 8 is the broken back and 8,9 the same break with part 9,
+      // XfB__m05_body_add01, the layer its enraged form adds. Raven, 2026-09-10: "Back: In, Br
+      // (On 8)" then "(For Back On 8, 9 should be Br when Enraged is toggled on)". So the item is
+      // written "8|8,9" and resolves to whichever half the current state wants; the other half is
+      // REMOVED from the list, because offering it would be offering the enraged back as a third
+      // thing to pick. buildGroups re-runs on every rage change, so the swap happens on the toggle.
+      //
+      // This is not the same as the row-level `rage` key, which chooses a different DEFAULT. Here
+      // the choice does not move -- Broken stays Broken -- and only what it draws changes.
+      const rvOpts = (rv && rv.options) || null;
+      const named = new Map();
+      const dropped = new Set();
+      if (rvOpts) for (const [k, v] of Object.entries(rvOpts)){
+        const halves = String(k).split('|').map(x => x.trim());
+        const want = halves.length > 1 ? (halves[state.rage ? 1 : 0] || halves[0]) : halves[0];
+        const hit = resolveOptionKey(opts, want, (e && e.id) + ' row ' + c.parts);
+        if (!hit) continue;
+        named.set(hit, String(v));
+        // the halves this state is not using are not separate choices
+        for (const h of halves){
+          if (h === want) continue;
+          const other = resolveOptionKey(opts, h, (e && e.id) + ' row ' + c.parts);
+          if (other && other !== hit){ dropped.add(other); hit.altReps = (hit.altReps || []).concat(other.rep); }
+        }
+      }
+      if (dropped.size) opts = opts.filter(o => !dropped.has(o));
+      // A HALF-NAMED ROW is what a dictated edit gets wrong, and it is invisible otherwise: the
+      // named items read "Intact", "Broken" and the one that was missed reads "on 33, 103 / off 3".
+      if (named.size && named.size !== opts.length)
+        console.warn('part-review: ' + (e && e.id) + ' row ' + c.parts + ' names ' + named.size +
+                     ' of ' + opts.length + ' options; unnamed: ' +
+                     opts.filter(o => !named.has(o)).map(o => o.key).join(' | '));
+      const genLabel = o => (isLadder ? groupLabelWithout(groups[o.rep], sp)
+                                      : groupLabel(groups[o.rep])) + stateSuffix(o.rep);
+      // Named: the typed name ALONE. Raven, 2026-09-10, on simplifying the items -- the part ids
+      // and the "switched by" evidence are still true and still worth having, so they move to the
+      // item's tooltip rather than being deleted. An item with no name keeps today's text verbatim,
+      // which is what lets a row be reviewed one item at a time.
+      const labelOf = o => named.get(o) || genLabel(o);
+      const titleOf = o => named.has(o) ? 'Parts ' + genLabel(o) : '';
+      const variantOf = variantPicker(c, groups, sp, stateDefault, rvKeep);
+      // BUILT, NOT INTERPOLATED. The generated text is "on 1 / off 9" and safe in innerHTML; a
+      // reviewed name is typed by hand and "Wing & Claw" is a perfectly reasonable thing to type.
+      // dataset.key is what __view.review() reads back, so the key Raven is told is the key the
+      // resolver will look for -- there is no second derivation to drift.
+      sel.textContent = '';
+      for (const o of opts){
+        const opt = document.createElement('option');
+        opt.value = String(o.rep);
+        opt.textContent = labelOf(o);
+        opt.dataset.key = o.key;
+        const t = titleOf(o);
+        if (t) opt.title = t;
+        sel.appendChild(opt);
+      }
       // THE ROM'S OWN CHOICE FIRST, then the highest index. Raven asked on 2026-09-09 for every
       // toggle moved to its highest index; that was tried (5366bb2) and REVERTED here the same day
       // because on this data "highest" is frequently the ALL-OFF variant:
@@ -2145,11 +2533,29 @@ function buildGroups(){
       // geometry. The highest index remains the fallback when nothing is applied, which is what
       // covers clusters the rest sets do not reach, such as Nibelsnarf's part 9.
       // The all-on placeholder stays gone, and every member stays selectable by hand.
+      //
+      // AND ABOVE ALL OF THAT, THE REVIEW. part-review.json is a person's answer to exactly the
+      // question appliedOpt is guessing at, so it sits directly above it -- and below partsPicked,
+      // because a hand-pick made this session is a deliberate act and must still win.
+      // It is deliberately NOT applied at the defaultGroupsOn layer: the options only exist here,
+      // after clusterChoices and the merge, and reproducing that outside buildGroups would be a
+      // second copy of the option model to keep in step for no gain.
       const appliedOpt = opts.find(o => o.members.some(k => state.groups[k]));
+      // A hand-pick survives a rage toggle even when the item it named changed form: altReps holds
+      // the halves of a "calm|rage" item that this state is not using.
       const picked = partsPicked[c.members.join(',')];
-      let cur = opts.find(o => o.rep === picked)
+      const pickedOpt = opts.find(o => o.rep === picked || (o.altReps || []).indexOf(picked) >= 0);
+      const reviewOpt = rv
+        ? resolveOptionKey(opts, (state.rage && rv.rage !== undefined) ? rv.rage : rv.default,
+                           (e && e.id) + ' row ' + c.parts + ' default')
+        : null;
+      let cur = pickedOpt
+             // a fixed dev scene states its own groups array and must keep saying what it says
+             || (groupsExplicit ? null : reviewOpt)
              || appliedOpt
-             || opts[opts.length - 1];
+             // lastByGroup was captured before a "calm|rage" item removed the half this state is
+             // not using, so it can name an option that is no longer in the list
+             || (opts.indexOf(lastByGroup) >= 0 ? lastByGroup : opts[opts.length - 1]);
       const apply = o => {
         const keep = variantOf(o);
         c.members.forEach(k => { state.groups[k] = (k === keep); });
@@ -2163,7 +2569,12 @@ function buildGroups(){
         applyPartState(); saveState();
       };
     }
-    row.appendChild(lab); row.appendChild(sel); monGroupsEl.appendChild(row);
+    // A ROW MAY BE APPLIED WITHOUT BEING OFFERED. Raven, 2026-09-10, on Gypceros' third row -- a
+    // second XfBA0__m03_eye_add mesh: "The last effect should turn on with Enraged toggle". That is
+    // not a choice anyone makes, it is a consequence of the rage state, so `hidden` keeps the row's
+    // default (and its per-state `rage` default) applying while leaving it out of the panel.
+    // Everything above still ran, so the parts are set exactly as a visible row would set them.
+    if (!(rv && rv.hidden)) { row.appendChild(lab); row.appendChild(sel); monGroupsEl.appendChild(row); }
   }
   // The quest-objective nouns used to be printed here as evidence to check the inferred names
   // against. Removed 2026-09-05 (Raven: "Remove the text at the bottom, it's out of place and
@@ -2852,8 +3263,25 @@ function applyRage(){
   lvRow.hidden = !ladder.length;
   if (ladder.length){
     if (state.rageLevel > ladder.length) state.rageLevel = ladder.length;
-    lvSel.innerHTML = '<option value="0">No Rage</option>' +
-      ladder.map((l, i) => '<option value="' + (i + 1) + '">' + l.label + '</option>').join('');
+    // THE RUNG NAMES ARE REVIEWABLE TOO. rageLadder() reads them off the clip names, which gives
+    // "Level 1" / "Max" -- true to the ROM and meaningless to a player. Raven, 2026-09-10, on
+    // Bloodbath: "Rage: Calm, Building, Full". part-review.json carries a `rage` map keyed by the
+    // select's own value, 0 being No Rage and 1..n the rungs in order; anything it does not name
+    // keeps the generated label, so a partly-named ladder still reads correctly.
+    const rvRage = (reviewFor(state.id) || {}).rage || null;
+    const rungName = (i, fallback) => (rvRage && rvRage[String(i)] !== undefined)
+      ? String(rvRage[String(i)]) : fallback;
+    if (rvRage){
+      const extra = Object.keys(rvRage).map(Number).filter(n => !(n >= 0 && n <= ladder.length));
+      if (extra.length)
+        console.warn('part-review: ' + state.id + ' rage names level(s) ' + extra.join(', ') +
+                     ' but this monster has 0..' + ladder.length);
+    }
+    lvSel.textContent = '';
+    [{ v: 0, t: rungName(0, 'No Rage') }]
+      .concat(ladder.map((l, i) => ({ v: i + 1, t: rungName(i + 1, l.label) })))
+      .forEach(r => { const o = document.createElement('option');
+                      o.value = String(r.v); o.textContent = r.t; lvSel.appendChild(o); });
     lvSel.value = String(state.rageLevel || 0);
     state.rage = state.rageLevel > 0;
   } else {
@@ -3327,7 +3755,7 @@ async function runScene(name){
   const sc = Object.assign({}, doc.defaults, doc.scenes[name]);
   Object.assign(state, { id: sc.monster || state.id, list: String(sc.list === undefined ? '' : sc.list),
                          clip: sc.clip === undefined ? '' : sc.clip,
-                         groups: Array.isArray(sc.groups) ? sc.groups.map(Boolean) : null,
+                         groups: (groupsExplicit = Array.isArray(sc.groups)) ? sc.groups.map(Boolean) : null,
                          tail: !!sc.tail,
                          anchor: sc.anchor !== false, ground: sc.ground !== false,
                          normalFlip: !!sc.normalFlip, undef: !!sc.undef, extend: !!sc.extend,
@@ -3347,6 +3775,33 @@ async function runScene(name){
 }
 window.__view = { camera, controls, scene, world, renderer, frameAll, pose, state, MON, mounted,
                   monsterMats, runScene, capture: captureHarness };
+// THE DICTATION HELPER for the per-monster review pass. Reads the panel as rendered and prints a
+// part-review.json stub for the monster on screen: every row that has a control, its key, the name
+// it currently shows and where that name came from, and every item's exact key and current text.
+// Read straight off the panel rather than recomputed, so the key printed is the key the resolver
+// will look for -- there is no second derivation to drift out of step.
+//   __view.review()      the stub, ready to paste
+//   __view.review(true)  the same, plus what each row is showing now
+window.__view.review = function(verbose){
+  const rows = {};
+  const seen = [];
+  for (const f of document.querySelectorAll('#monGroups .field')){
+    const lab = f.querySelector('label');
+    const sel = f.querySelector('select');
+    const key = f.dataset.row;                       // not the visible ids: a reviewed row has none
+    const name = lab ? (lab.firstChild ? lab.firstChild.textContent : '').trim() : '';
+    const opts = sel ? [...sel.options].map(o => ({ key: o.dataset.key, text: o.text })) : null;
+    if (!sel) continue;                              // a label-only row has nothing to default
+    rows[key] = { name, default: sel.options[sel.selectedIndex].dataset.key,
+                  options: Object.fromEntries(opts.map(o => [o.key, o.text])) };
+    seen.push({ row: key, showing: name, selected: sel.options[sel.selectedIndex].dataset.key,
+                items: opts.map(o => o.key + ' = ' + o.text).join('   |   ') });
+  }
+  const stub = { [state.id]: { reviewed: new Date().toISOString().slice(0, 10), rows } };
+  if (verbose) console.table(seen);
+  console.log(JSON.stringify(stub, null, 1));
+  return stub;
+};
 // Proof-effect model mounts (Felyne only on shipped data -- see the module header).
 //   __view.effects(true)      mount every joint-bound record
 //   __view.effects(true, 3)   mount only record 3
