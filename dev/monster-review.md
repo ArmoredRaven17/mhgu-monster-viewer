@@ -976,6 +976,39 @@ should read their MRLs unchanged.
 **STILL TO DO:** staging the models and textures into `docs/`, the EFL's own structure (emitter
 placement, timing, colour), the `.psl` motion -> effect binding that Raven wants for attack
 animations, and a runtime to mount and play them.
+#### 2026-09-11 - the effect base models are PARTICLE TEMPLATES, and that is the remaining gap
+
+> Raven, with a screenshot: "I see some things, but not a lot" ... "So, it hardly looks different"
+
+The staged models ARE mounting -- the small white wisps on his flank are `cm150_000`. The reason
+there is so little of it is structural, and visible in the source art:
+
+| texture | what it actually is |
+|---|---|
+| `em043 m02_body_k` p3 | the red glowing cracks on the hide -- correct in his shot |
+| `em043 m03_body_a` p0 | a dark subtle wash |
+| `em043 XfBA_IW_1__m00` p12 | a RED/DARK FLAME BAND -- this is the "red shards", and it is an ON-BODY layer, not the vortex |
+| `cm202_042` | LIGHTNING BOLTS, four of them side by side |
+| `cm150_000` | a 4x4 ATLAS OF SMOKE PUFFS |
+| `cm100_000` | a cloud/noise field |
+
+And the UVs settle it. Every one of `cm150_000`'s 15 primitives has TEXCOORD_0 inside
+**u 0.00-0.25, v 0.00-0.25** -- exactly ONE CELL of its 4x4 atlas. `cm202_042`'s four primitives sit
+in **u 0.00-0.25, v 0.00-1.00** -- one COLUMN of its four bolts.
+
+So a base model is authored against cell (0,0) and the EFL chooses the cell per particle by moving
+the UV offset, on top of choosing how many to spawn, where, with what velocity, lifetime, size and
+colour ramp. Mounting the base model once draws ONE STATIC INSTANCE of each. A dark vortex is not
+one smoke puff; it is a few hundred of them over time.
+
+**So the vortex needs the EFL's emitter block, and nothing short of that will look right.** What is
+known of the format so far: a 48-byte header (`+8` = filesize-48, `+12` = 60.0, `+16`/`+18` counts,
+`+18` matching a 16-byte table at 0x30); resource blocks with a 64-byte path field, 16-aligned, a
+texture reference sitting exactly 193 bytes before its model, and `@` marking a texture; and after a
+path field a run of (value, 0) pairs -- 120, -2, 60, -1, 1 on cm202_042 -- which look like timing
+rather than a transform. The emitter block itself is unread.
+
+Not a tweak away. Stated so the current mount is not mistaken for a near miss.
 ### Brachydios (em063_00) and Raging Brachydios (em063_05)
 > "Brachydios renders poorly, likely due to a) it has a shiny carapace that needs to be handled
 > better b) the slime effects c) enrage changes. Raging also has issues."
