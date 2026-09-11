@@ -870,6 +870,52 @@ the only member that draws part 6, cannot be selected in any state**. Cluster `8
 members and shows two the same way; parts 9 and 12 escape it only because rage reaches g10/g13
 through `defaultGroupsOn`. Reported, not touched -- the rows are the parts agent's.
 
+#### 2026-09-11 - WE WERE LOOKING IN THE WRONG PLACE. The vortex is not a part at all.
+
+> Raven: "Hmmm, it seems we are way off" [two screenshots] ... "the effect in game is akin to a dark
+> vortex that envelops the torso" ... "Is it possible we have been looking in the wrong locations?"
+
+Yes. His screenshots settle it: the game draws a DARK WISPY VORTEX around the torso and shoulders;
+the viewer draws hard-edged translucent RED POLYGON SHARDS. That is not a soft-vs-sharp problem and
+no amount of work on part visibility or mip levels reaches it.
+
+**The monster's .arc holds 589 files. The extraction keeps 45.** Everything under `effect\` -- 189
+files, **17.7 MB, more than twice the 7.2 MB of the monster's own model data** -- has never been
+extracted, for this or any other monster.
+
+| group | files | size | type hashes |
+|---|---|---|---|
+| `sound\` | 219 | 4.1 MB | |
+| **`effect\`** | **189** | **17.7 MB** | 241f5deb (.tex) 2749c8a8 (.mod) 58a15856 (.mrl) 4e397417 6d5ae854 5a525c16 254309c9 |
+| `shell\` | 145 | 0.03 MB | |
+| `enemy\` | 35 | 7.2 MB | the 45 we take |
+
+Inside `effect\`:
+
+* **`effect\em\em043\`** -- em043's OWN effect definitions, type `6d5ae854`. Nine of them, and
+  **two are Savage-specific**: `em043_05_000` (4832 B) and `em043_05_002_s` (5488 B).
+* **`effectase\`** -- 144 files, 17.4 MB: **53 distinct effect MODELS**, each with its own
+  `.mod` (2749c8a8), `.mrl` (58a15856) and `.tex` (241f5deb, mostly `*_HQ_NOMIP`). This is where a
+  vortex mesh and its texture live.
+* **`effect\psl\enemy\em043\em043_00\mot\em043_00_{0,2,3,4}`** -- the PER-MOTION effect script,
+  type `254309c9`. This is what binds an effect to an animation, which is how a rage vortex gets
+  attached to a rage motion.
+* **`effect\pel\em\em043_00c` and `em043_05u`** -- the effect lists; `em043_05u` is Savage's own.
+* **`effect\cm\`** -- 29 shared/common effect definitions.
+
+**The viewer has no monster-effect pipeline at all.** `harvest-effect-models.py` handles only WEAPON
+proof effects (the Bow's nocked arrow) out of `arc/shell/pl/wNN.arc`; `effect-mounts.json` has
+exactly ONE entry, `ems007_00`; `docs/effects/` does not exist.
+
+**So the three "effect" meshes in the .mpm -- parts 3, 6, 9 (`XfB__m02_body_k`), 0
+(`XfBA0__m03_body_a`) and 12 (`XfBA_IW_1__m00`) -- are the ON-BODY glow layers, not the vortex.**
+Everything established about them above still holds and is still worth having, but it was never
+going to produce what his first screenshot shows. The red shards are presumably one of those body
+layers drawn without the vortex that should surround it, and judging their colour is pointless
+until the missing 17.7 MB is on screen beside them.
+
+**NOTHING DONE.** Harvesting `effect\` is a new pipeline -- a second model/material/texture source,
+a per-motion binding format, and an effect runtime -- not a patch. Raven's call.
 ### Brachydios (em063_00) and Raging Brachydios (em063_05)
 > "Brachydios renders poorly, likely due to a) it has a shiny carapace that needs to be handled
 > better b) the slime effects c) enrage changes. Raging also has issues."
