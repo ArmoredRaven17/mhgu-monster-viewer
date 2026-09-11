@@ -1115,6 +1115,58 @@ first look answers the question outright:
 
 The OTHER 105 models still carry the capped weld and are untouched by this revert; em065_00 alone is
 back. Nothing here is committed -- the model files have been uncommitted all day.
+#### 2026-09-11 - the cutout rule, from the ROM: OPAQUE + FTransparencyAlpha
+
+> Raven [screenshot of white fur drawn as solid quads]: "I still notice some furs still draw meshes"
+> ... "things like Old Fatty or Kirin are pretty bad looking"
+
+**`AUTHORED_CUTOUT` may not need to be a hand list.** Cause J's census stands -- no MHGU material
+selects `FTransparencyAlphaClip` -- but it stopped one step short. A material whose blend state is
+**BSSolid** and whose feature word is **FTransparencyAlpha** is saying the albedo alpha IS the
+transparency, on a material that does not blend. With no blend for it to be the SRC_ALPHA factor of,
+a discard is the only thing that alpha can mean. That is the missing half of cause J.
+
+Census over all 570 monster material records:
+
+| blend | transp | count |
+|---|---|---|
+| opaque | False | 264 |
+| **opaque** | **Alpha** | **133** |
+| opaque | AlphaConstant | 62 |
+| add | Alpha | 39 |
+| add | AlphaConstant | 30 |
+| blend | Alpha | 25 |
+
+The 133 are 77 distinct names on 67 monster entries, and **all three of the current
+AUTHORED_CUTOUT entries match the rule** -- it was derived without looking at them.
+
+The names corroborate it independently, in the artists' own words: `_nuki` (nuki, cut-out) on
+em050_00 and em086_00, `_ke` (ke, hair) on em035_00, `_hire` (hire, fin) on em010_00 and em049_00,
+`_far` (faa, fur) on em065_00 and both Mizutsune, `_koke` (moss) on em055_00, plus the obvious
+`_wing`, `_hair`, `_fur`, `_fin`, `_body_alpha`.
+
+And the exclusions come out right without special-casing:
+
+* Zinogre's `XfB_N__E_m00_body` -- the hide that must NOT be clipped -- is opaque + **False**, so it
+  is out. Its 62% alpha-0 coverage is irrelevant because the ROM never calls that alpha transparency.
+* Kirin's `XfBAN__E0__m02_hairalpha` is **blend** + Alpha: genuinely blended, not clipped.
+
+Raven's screenshot is Zinogre's `XfBAN__E0__m05_hair` (em057_00 and em057_04), opaque + Alpha,
+matching the rule and not in the list.
+
+**THE ARGUMENT AGAINST SWITCHING IT ON WHOLESALE, and it is a strong one.** `m05_hair` is the exact
+material cause J took the clip OFF, and that removal is what fixed **4,596 pixels of Thunderlord
+Zinogre that were showing BACKGROUND -- holes straight through the silhouette**. Turning the rule on
+puts the clip back on that material. Either the threshold is wrong (`gl.clip` is 0.0 everywhere and
+the viewer adds 1/512, which removed 37.5% of m05_hair's texels) or something else differs between
+a fur card that should fray and one that should not. **Not changed. This is the decode; whether it
+ships, and at what threshold, is Raven's call against his own screenshots.**
+
+Also measured and NOT usable: `dev/cutout-coverage.py`, which reports the alpha-0 UV coverage the
+existing AUTHORED_CUTOUT comments cite. With controls it does not separate the cases -- Nargacuga's
+fur (in the list) is 9.7..22.7% while Zinogre's body hide (must stay out) is 17.8..62.2%. The
+coverage number is evidence about a single material, not a discriminator. Kept because the existing
+comments quote it and it should be reproducible.
 ### Brachydios (em063_00) and Raging Brachydios (em063_05)
 > "Brachydios renders poorly, likely due to a) it has a shiny carapace that needs to be handled
 > better b) the slime effects c) enrage changes. Raging also has issues."
