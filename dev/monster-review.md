@@ -3310,3 +3310,66 @@ Two live findings worth keeping:
 **Status: not reproduced.** Everything measurable says Crimson's animated geometry matches
 Fatalis's. The real defect this search turned up is the discarded bone scale above, which is
 general rather than Crimson-specific.
+
+## Crimson Fatalis, the snout: FOUND (2026-09-11, L0 Motion[3])
+
+Raven named the clip: **list 0, Motion[3]**. His 179-frame capture is 30 fps with the motion over
+frames 41-104 = 2.1 s, matching Motion[3]'s 2.28 s, so his frame 80 is **t = 1.41 s**.
+
+Measured in the running app at exactly that frame, with ONE fixed world camera used for both
+monsters (they share the skeleton and the clip, so their heads coincide in world space):
+
+    silhouette   both 168,655 px | CRIMSON-only 9,329 | fatalis-only 2,279   (93.6% overlap)
+
+A 4x asymmetry, and hiding one mesh at a time says what it is made of:
+
+    prim22  Group102_2  part 102   4,962 px   53%
+    prim11  Group4      part   4   1,771 px   19%
+    prim3   Group0_4    part   0   1,548 px   17%
+
+**Parts 102 and 4 are 72% of it.** Both are bound **100% to `22:3_s`** -- one rigid bone, the head
+-- while the face around them deforms on 3/4/105/243. So they cannot follow the snout: they ride
+the head as a solid block and the face slides out from under them. On the earlier frame `Group4`
+was fully buried (hiding it changed **0 px**); at t=1.41 it contributes 1,771 px. That is exactly
+"bind position looks correct, it varies with animations, it shifts mid animation".
+
+They protrude on Crimson and not on Fatalis because Crimson's sit twice as far off the head
+surface to begin with -- distance from the part mesh to the nearest head-mesh vertex, at bind:
+
+    Group[4]#0     crimson 2.052   fatalis 0.992
+    Group[102]#1   crimson 0.920   fatalis 0.868
+    Group[7]#0     crimson 0.235   fatalis 0.203     <- the alternate, and it never separates
+
+Under animation `Group[4]#0` grows to 2.757 on Crimson; `Group[7]#0` grows to 0.235, i.e. **not at
+all** (growth x1.0).
+
+### Why they are on: the head cluster has NO ROM default
+
+`defaultGroupsOn('em013_01')` returns group[2] alone. The head cluster -- parts `2,3,4,5,7,102`,
+members `[3,4,5,6]` -- gets **nothing**, because **no Fatalis has an entry in any of the parts
+tables**: `ROM_DEFAULT_BY_MON`, `ROM_REST_SETS`, `ROM_RAGE_SET`, `ROM_RAGE_ADD`, `ROM_DEFAULT_SET`
+and `part-rest.json` are all empty for em013_00 / _01 / _02. With nothing on, the cluster falls
+through to its FIRST member, group[3] = parts 3, 4, 102 -- and the UI labels that "Intact".
+
+Switching the head cluster, same frame, same camera:
+
+    Intact        parts 0,3,4,8,102   crimson-only 9,329
+    Horn Cracked  parts 0,3,5,8,102   crimson-only 8,100
+    Horn Broken   parts 0,3,7,8       crimson-only 2,537   -73%
+    Face Broken   parts 0,2,7,8       crimson-only 2,371   -75%
+
+So the opening state is a **fallback, not a decode**, and the state it picks is the one that draws
+the two proud overlay meshes. Parts 4/5 + 102 are geometry laid ON the surface and 7 is the flush
+alternate -- the same shape as Plesioth's "the wound mesh is on the surface level". Which of these
+is actually undamaged is NOT established here (mesh size and bounding box never say that, and
+damage often ADDS geometry); what IS established is that nothing in the ROM tables chose group[3].
+
+**The fix is a decode, not a label**: em013's rest/default set has to come out of the ROM, which is
+the `build-partrest.py` break-arm polarity item already on the board (80 of 182 sites inverted).
+Editing the default is the parts agent's area.
+
+Ruled out along the way, by measurement: the retarget (0 of 83 tracks on a wrong bone), the
+skeleton (identical rest on all 101 bones), the weights (no root, no repeated slots, sums 1), the
+material texture swap (the Angry albedo is the same UV layout, just lava-glow -- so the rage swap
+is correct), and the geometry itself (in the head bone's own local frame Crimson tracks Fatalis to
+4.009 vs 3.988).
