@@ -1009,6 +1009,47 @@ path field a run of (value, 0) pairs -- 120, -2, 60, -1, 1 on cm202_042 -- which
 rather than a transform. The emitter block itself is unread.
 
 Not a tweak away. Stated so the current mount is not mistaken for a near miss.
+#### 2026-09-11 - the EFL is `rEffectList`, and the ROM carries its whole class tree
+
+> Raven: "Yes, whatever we need for the effect to render proper"
+
+The archive type hashes are `(crc32(name) ^ 0xFFFFFFFF) & 0x7FFFFFFF` -- the MT hash, masked to 31
+bits. Confirmed against three knowns before using it (rModel -> 58a15856, rTexture -> 241f5deb,
+rMaterial -> 2749c8a8), then run over dti.json's class names, which names every type the effect
+harvest turned up:
+
+| hash | class | file |
+|---|---|---|
+| `6d5ae854` | **rEffectList** | .efl |
+| `4e397417` | **rEffectAnim** | .ean |
+| `20ed9750` | rProofEffectParamScript | .pep |
+| `1eb12c38` | rShellEffectParam | shell XFS |
+| `79c47b59` | rSoundSourceADPCM | sound |
+
+`rEffectList` has a full DTI record -- `size 152`, `mtVtable 0x178d014`, `createInstance 0xb59a94`
+-- so its parser is locatable the same way every other decode this session was. The ROM also ships
+the entire particle hierarchy: 96 effect classes including `cParticleGenerator` and its subclasses
+`Billboard`, `LiteBillboard`, `MassBillboard`, `Model`, `Polygon`, `PolygonStrip`, `Polyline`,
+`Line`, `Light`, `LightShaft`, `LensFlare`, `Force`, `Filter`, `Hit`, `Adhesion`, `AxisPolygon`,
+`ClothPolygon`, `Custom` -- each with its own DTI size, so the emitter block's shape is readable
+from the class rather than guessed from the bytes.
+
+The toolset cannot help: `bin_to_xml` reports "Undetected file" on an .efl -- it is not an XFS
+MtObject like the .mpm was, which is why that route gave named XML for parts and gives nothing here.
+
+WHAT THE BYTES ALREADY SHOW, as a cross-check for whatever the parser says. In cm200_001 (816 B,
+one emitter):
+
+    0x158  ff36b3fd x2      an RGBA pair, fd b3 36 ff -- a warm orange, start/end or min/max
+    0x1a4  0.9, 0.2 x2      a value/variance pair, twice
+    0x1e0  -3.1416, 6.2832  THREE TIMES -- min and range, i.e. a full-sphere angular spread on
+                            X, Y and Z. This is the giveaway that it is an emitter.
+    0x270  0.997            a per-frame damping
+    0x2a0  4                and the atlas is 4x4
+
+**NOT YET DONE.** Reading the parser, mapping the emitter fields, and writing a particle runtime is
+the remaining work, and it is the only thing that makes the vortex look right -- see the entry above
+on why one static instance of a sprite-atlas template cannot.
 ### Brachydios (em063_00) and Raging Brachydios (em063_05)
 > "Brachydios renders poorly, likely due to a) it has a shiny carapace that needs to be handled
 > better b) the slime effects c) enrage changes. Raging also has issues."
