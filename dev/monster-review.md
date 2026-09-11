@@ -1050,6 +1050,50 @@ one emitter):
 **NOT YET DONE.** Reading the parser, mapping the emitter fields, and writing a particle runtime is
 the remaining work, and it is the only thing that makes the vortex look right -- see the entry above
 on why one static instance of a sprite-atlas template cannot.
+#### 2026-09-11 - the EFL container, verified across all 1,115 files
+
+> Raven: "we keep going until we have Savages effect since this will help us figure out more
+> effects like it"
+
+**Header, 48 bytes.** `+0` 'EFL '; `+4` version 06 03 12 20; `+8` = fileSize - 48 (holds on every
+file); `+12` f32 60.0; `+16` u16 a; `+18` u16 b; `+20` 0x100.
+
+**Index table at 0x30: `b` rows of 16 bytes, four u32 each, and every u32 is `(offset << 8) | tag`.**
+That is not a reading I liked the look of -- it is the only one that survives the library. Six
+candidate decodings were run over all 1,115 .efl files:
+
+    v >> 8            in range on 1115 files, out of range on    0
+    v & 0xFFFFFF      in range on    0,                       1115
+    v >> 4            in range on    0,                       1115
+    (v >> 8) * 4      in range on    0,                       1115
+    (v & 0xFFFFFF) * 4in range on    0,                       1115
+    (v >> 8) * 16     in range on    0,                       1115
+
+**The four columns have distinct roles**, over 5,081 rows:
+
+| col | tags | what the offset points at |
+|---|---|---|
+| 0 | an INDEX, 0,1,2,3... 28 values, frequency falling with value | f32 1.0 in 3,731 of 5,081 -- a transform/scale block |
+| 1 | 5 (x3782), then 0, 1, 25, 2 | zeros, 1.0, or **-3.14159** (459) -- the angular-spread block |
+| 2 | **18 (x2920), 17 (x1605), 34, 33, 81, 82** -- families, not an index | zeros, 1.0, -pi |
+| 3 | 2 (x3237), 0 (x1479), 1, 5, 16, 18 | mostly zeros |
+
+Column 2's tag behaves like a TYPE code, which is where the `cParticleGenerator` subclass will be --
+the ROM ships 29 of them and none of their DTI hashes appears anywhere in any .efl (checked, all
+1,115), so the type is a small enum, not a hash.
+
+Corroborating content already identified in cm200_001 (816 B, one emitter): an RGBA pair at 0x158
+(fd b3 36 ff, warm orange); a value/variance pair 0.9/0.2 twice at 0x1a4; **(-3.1416, 6.2832) three
+times at 0x1e0**, a full-sphere angular spread on X/Y/Z; 0.997 damping at 0x270; and 4 at 0x2a0
+against a 4x4 atlas.
+
+Dead ends, recorded so they are not retried: the toolset's `bin_to_xml` does not know .efl (it is
+not an XFS MtObject like the .mpm); the 'EFL ' magic appears nowhere in the executable as a
+literal or a movw/movt pair, so the loader dispatches on the type hash; the DTI objects for
+rEffectList and cParticleGenerator live at 0x211xxxx, past the end of .data, so they are built at
+runtime and carry no static property table to read names from.
+
+**NEXT:** map column 2's tag to a block layout, which gives the emitter fields by type.
 ### Brachydios (em063_00) and Raging Brachydios (em063_05)
 > "Brachydios renders poorly, likely due to a) it has a shiny carapace that needs to be handled
 > better b) the slime effects c) enrage changes. Raging also has issues."
