@@ -18,7 +18,7 @@
   "mergedOptionKeys": "A merged row's option key names ONLY the source rows that are ON -- \"11,13,15\" style, written '+'-joined as \"11+13+15\" -- and every source it does not name falls to that source's own all-off option. Each half is matched by its ON-SET, which is unique to one source, so the older positional form (\"8+10\", \"102+103\", \"2+3\") resolves identically. Written this way because Congalala's Item row merges NINE clusters and a positional key would be eight ninths 'none'.",
   "hideOption": "A row may carry a `hide` array of option keys to drop from the list. For an option the row really has but which cannot be offered yet -- Blangonga's second eye mesh, where two parts both carry XfB_0__m00_eye and what reaches the second is unread. Distinct from a 'calm|rage' half, which is hidden because the other state owns it; this is hidden because nobody knows what it is. Deleting the key restores it.",
   "view": "A monster entry may carry \"view\": {\"list\": \"0\", \"clip\": \"Motion[2]_loop\"} -- the motion list and clip the viewer opens that monster on, where the ROM's first list and first clip are not the one worth landing on. Moved here from a DEFAULT_VIEW constant in index.html 2026-09-11: these are Raven's calls made while reviewing a monster, the same kind of judgement as a part name, so one monster is one entry in one file. The clip is only honoured when its list is the one showing, so a mismatched pair cannot drop the monster onto a clip from the wrong list.",
-  "stateAxis": "A row may carry \"state\": \"charged\" or \"heated\" to make its \"off|on\" option keys split on that control instead of Rage; its per-state default key is then `charged` or `heated`. Charged is mutually exclusive with Rage (see matState()); HEATED is independent of both, being an armour state rather than an AI one, and defaults ON. The Heated control exists ONLY where a review row asks for it -- nothing in the ROM marks the state, only the lava materials on the meshes, and reading 'has a lav* material' as 'has a heated state' would be an inference. Lagiacrus' Shocker is the charged case, Agnaktor the heated one. A MERGED row's option key may also be per-state, split on '|' before '+' -- \"calmHalves|enragedHalves\" -- so the whole combination swaps. Najarala's back needs that: calm draws crest 103 alone, enraged draws 103 with its alpha layer 113 AND the body's own 8, 9 from the other source row. Declaring \"state\": \"rage\" on a row also OFFERS the Enraged control, the same way \"charged\" and \"heated\" do, for a monster the ROM gives no other sign of having one. A row may also carry \"state\": \"level\", which splits on the monster's LEVEL AXIS instead of a boolean: the axis value is the rung index, so a key carries one half per rung. And it may carry \"state\": {\"on\": \"<part ids>\"} to split on ANOTHER ROW -- true whenever every part named is currently drawn. Nargacuga's eyes use that: Closed is \"5,6|5\", both lids normally and one lid when the broken-head mesh (part 2) is on. Keyed on the PART rather than the watched row's option so it cannot depend on panel order -- state.groups is written before any row is built -- and so it survives the watched row being renamed, reordered or merged. A pick on a monster with a watcher rebuilds the whole panel.",
+  "stateAxis": "A row may carry \"state\": \"charged\" or \"heated\" to make its \"off|on\" option keys split on that control instead of Rage; its per-state default key is then `charged` or `heated`. Charged is mutually exclusive with Rage (see matState()); HEATED is independent of both, being an armour state rather than an AI one, and defaults ON. The Heated control exists ONLY where a review row asks for it -- nothing in the ROM marks the state, only the lava materials on the meshes, and reading 'has a lav* material' as 'has a heated state' would be an inference. Lagiacrus' Shocker is the charged case, Agnaktor the heated one. A MERGED row's option key may also be per-state, split on '|' before '+' -- \"calmHalves|enragedHalves\" -- so the whole combination swaps. Najarala's back needs that: calm draws crest 103 alone, enraged draws 103 with its alpha layer 113 AND the body's own 8, 9 from the other source row. Declaring \"state\": \"rage\" on a row also OFFERS the Enraged control, the same way \"charged\" and \"heated\" do, for a monster the ROM gives no other sign of having one. A row may also carry \"state\": \"level\", which splits on the monster's LEVEL AXIS instead of a boolean: the axis value is the rung index, so a key carries one half per rung. And it may carry \"state\": {\"on\": \"<part ids>\"} to split on ANOTHER ROW -- true whenever every part named is currently drawn. Nargacuga's eyes use that: Closed is \"5,6|5\", both lids normally and one lid when the broken-head mesh (part 2) is on. Keyed on the PART rather than the watched row's option so it cannot depend on panel order -- state.groups is written before any row is built -- and so it survives the watched row being renamed, reordered or merged. A pick on a monster with a watcher rebuilds the whole panel. **`state` may also be an ARRAY of axes**, combined into an index with the first entry as the low bit, so [\"rage\", {\"on\": \"5\"}] numbers calm/intact 0, rage/intact 1, calm/broken 2 and rage/broken 3, and the key carries one half per combination. Kecha Wacha needs it: its enrage layer is authored twice, once to fit each ear state. Each entry is evaluated as a single axis would be, so an array entry can say anything a lone axis can.",
   "levels": "A monster entry may carry \"levels\": {\"name\": \"Charge\", \"rungs\": [...]} -- a control with MORE THAN TWO values, which none of the three checkboxes can express. The rungs are named BY HAND because nothing in the ROM names them: Astalos' two charge materials carry one clip called 'Animation' and one with no name at all, which is why rageLadder() -- which reads rungs off level tokens in clip names -- finds nothing and that monster had no state control of any kind. The control appears only where some row says \"state\": \"level\", the same way Heated appears only where a row asks for it. Rung 0 is the default. A key on a level row carries one half per rung and is CLAMPED to its last half when short, so a two-step axis on a three-rung control is written \"a|b\" -- or spelled out, as Astalos' eyes are: \"2|2|52\", part 2 through Uncharged and Charging and part 52 at Fully Charged.",
   "variants": "A monster entry may carry \"variants\": {\"name\": \"Gender\", \"options\": [{\"name\": \"Female\", \"off\": \"4,5,6\"}, ...]} -- a control picking between WHOLE ALTERNATIVE BODIES that share one part table. Each option's `off` names the parts to force off, applied AFTER partsDrawn builds the map, because no option and no DEFAULT_PARTS_OFF entry can reach them: every member of the cluster draws the body, and leaving a cluster with no member on makes applyParts draw all of it. A row may say \"variant\": N to belong to one option alone, and is then offered only while that body is on screen. **THIS IS A VIEWER CONSTRUCT, not a decode.** Kelbi is the case -- two complete Kelbis in one model, 966 and 992 vertices, drawn on top of each other because it has no defaultSet and no rest sets at all. The game certainly picks one and this project has not read where; the part table holds no notion of gender. Names come from the render."
  },
@@ -4289,6 +4289,334 @@
     "options": {
      "none": "Open",
      "1": "Closed"
+    }
+   }
+  }
+ },
+ "em065_00": {
+  "reviewed": "2026-09-11",
+  "note": "Reviewed by Raven: six rows plus a hidden enrage layer, and **the enrage layer is the first row in the file that depends on TWO axes at once.** He described it exactly: 'The last drop down is enrage states for the ears, no need for the drop down -- Enraged (In Ears), Calm, Enraged (Br Ears). Add Enraged toggle. If Ears are broken, use the matching enrage state ear.' The ROM agrees part for part: cluster 12,13 has three members, g16 drawing part 12, g17 drawing nothing and g18 drawing part 13, and **12 and 13 are the only XfB__m02_add meshes on the monster** -- the additive effect material -- with IDENTICAL bounding boxes, 4471x2448x2675 at z28159, sitting right on the ears. So the same effect is authored twice, once to fit each ear state. `state` now accepts an ARRAY of axes combined into an index, [\"rage\", {\"on\": \"5\"}], numbering calm/intact 0, rage/intact 1, calm/broken 2 and rage/broken 3; the key none|12|none|13 then says the whole thing. Part 5 is the broken ear, so the watcher keys on the mesh rather than on the Ears row's option, the same way Nargacuga's eyes watch its head. EYES is a three-way and the materials read it cleanly: part 14 is XfB__m01_eye ALONE (Open), part 1 is body material alone (Closed, the lid covering it), and part 15 carries BOTH body and eye (Half Open, lid partly across). Raven's reorder to Open, Half, Closed is a ladder from most to least open. WING FLAPS is 2 tucked, 4,102 partial and 3,102 full -- part 3 (6449x7539x14748) against part 4 (7777x7727x12043), the fuller spread being longer in z where the partial is wider in x -- and his reorder makes it Tucked, Partial, Full. EARS is 103 (5604x3787x5534) against 5 (4628x3343x3646), intact the larger. CLAWS measured against a midline of x4661: 6,9 means x8016 and 7,8 means x1123, **left higher x as everywhere else**, matching his dictated order. **I OVERRODE HIS TAIL ORDER ON A SIZE ARGUMENT AND HE CORRECTED ME; THE ROM ORDER STANDS.** I read part 11 (6178x3482x5134) as intact against part 10 (2959x1567x3392) because it is twice the size in every dimension. Raven, 2026-09-11: 'When you break the tail, it goes from looking well kempt to looking messy and damaged. Not all part breaks result in a complete loss or chunk of the part. This is a situation where your visual verification is not reliable.' **A frayed tuft occupies MORE space than a neat one**, so the larger mesh is the BROKEN one: Intact = 10, Broken = 11, which is ROM member order and the order he dictated. Both are XfBAN__E0__m00_far, the fur material, and nothing about the material distinguishes them -- **geometry could not answer this and I should not have let it.** Same failure as the vertex-count rule already recorded against Basarios, Rathalos, Congalala, Stonefist and both Kushala wings: damage ADDS surface. Bounding box is no better than vertex count, and neither is evidence of a break. **part-rest.json IS UNRELIABLE ON THIS MONSTER and was not used for any default.** Its sets are [12, 13, 14, 15, 18], which as group indices name g12 = part 5 (the BROKEN ear), g13 = part 9 and g14 = part 8 (the smaller claw of each pair) and g18 = part 13 (an ENRAGE EFFECT switched on) -- a 'resting' state that is damaged on three rows and enraged on a fourth. It names g15 = part 11 for the tail, which happens to agree with the geometry, but a table wrong three times over is not evidence the fourth time. Tenth monster in the sweep where the rest sets name damaged members. Its defaultSet of 1 is right, naming g1 = part 14, eyes open. Kecha Wacha had NO state control before this entry: no ROM_RAGE_SET row, no per-state DEFAULT_PARTS_ON, so the toggle comes from the row declaring the axis, as Najarala's and Seregios' do.",
+  "rows": {
+   "1,14,15": {
+    "name": "Eyes",
+    "default": "14",
+    "order": [
+     "14",
+     "15",
+     "1"
+    ],
+    "options": {
+     "14": "Open",
+     "15": "Half Open",
+     "1": "Closed"
+    }
+   },
+   "2,3,4,102": {
+    "name": "Wing Flaps",
+    "default": "2",
+    "order": [
+     "2",
+     "4,102",
+     "3,102"
+    ],
+    "options": {
+     "2": "Tucked",
+     "4,102": "Partial",
+     "3,102": "Full"
+    }
+   },
+   "5,103": {
+    "name": "Ears",
+    "default": "103",
+    "order": [
+     "103",
+     "5"
+    ],
+    "options": {
+     "103": "Intact",
+     "5": "Broken"
+    }
+   },
+   "6,9": {
+    "name": "Left Claw",
+    "default": "6",
+    "options": {
+     "6": "Intact",
+     "9": "Broken"
+    }
+   },
+   "7,8": {
+    "name": "Right Claw",
+    "default": "7",
+    "options": {
+     "7": "Intact",
+     "8": "Broken"
+    }
+   },
+   "10,11": {
+    "name": "Tail",
+    "default": "10",
+    "order": [
+     "10",
+     "11"
+    ],
+    "options": {
+     "10": "Intact",
+     "11": "Broken"
+    }
+   },
+   "12,13": {
+    "name": "Enraged Effect",
+    "state": [
+     "rage",
+     {
+      "on": "5"
+     }
+    ],
+    "hidden": true,
+    "default": "none|12|none|13",
+    "options": {
+     "none|12|none|13": "Ear Effect"
+    }
+   }
+  }
+ },
+ "em080_00": {
+  "reviewed": "2026-09-11",
+  "note": "Reviewed by Raven: seven rows, and **the materials name every axis on this monster, so almost nothing here is inference.** Three families do the work. XfB__A1__m01_angry is on parts 20, 21, 22, 23, 24, 31, 33 and 34 and nothing else -- the ENRAGE layer, and it appears in exactly the options Raven marked '(Enraged)'. XfBA1__m04_tail is on 40, 45, 46, 47, 55, 56 and 57 -- the HEAT layer, appearing in exactly the options he marked '(Heated)'. And part 60 is XfBA1_m06_nodo_r, **nodo being throat**, which is the row he called Throat without seeing the name. **THE ENRAGE LAYER IS SPLIT ACROSS FOUR ROWS AND THAT IS WHY THE FIRST ROW EXISTS.** Part 20 is its bulk at 642 vertices and sits alone in cluster 0,20,100; parts 21/22 ride the head's intact and cracked forms, 31 its cracked and broken ones, 23 the neck, 33 the broken neck, 24 the back and 34 the broken back. So enraging this monster lights eight meshes spread over four clusters, and the ROM has no single group that says so. Raven: 'First Drop Down: Should be tired to Enrage Toggle (Calm, Enrage)' -- written as a hidden row with the per-state key 0,100|0,20,100, while Head, Neck/Arms and Back each carry their own per-state keys so their layers follow the same toggle. **THE TAIL DELIBERATELY DOES NOT.** Raven: 'The tail can be heated on its own, so keep the tail parts together in the same drop down. No toggle needed.' Its cluster holds all six forms -- intact, cracked and severed, each with and without the heat layer -- and they stay six plain items, because heat is not enrage and a Glavenus sharpens its tail whenever it likes. EYES is the lid pattern with the ROM agreeing: part 9 is a 16-vertex XfB_N__E0_m00_body strip, the eyes themselves are XfB_0__m00_eyes baked into part 0 and always drawn, and **part-rest's defaultSet is 3, which is the group drawing NOTHING** -- lid off, eyes open. Eleventh monster in the sweep with no eye part of its own. THROAT is the same shape: `none` is Normal and part 60 is the glow, ordered as he dictated. HEAD is a three-step break, 1,2 intact against 2,11 cracked against 11,12 broken, each picking up its own angry meshes when enraged; NECK/ARMS and BACK are two-step. **HIS RENDERING FLAG, RECORDED AND NOT INVESTIGATED: 'Glavenus Heated Tail Mesh is not aligned correctly.'** The heat layer is seven separate meshes (40 is the largest at 274 vertices, then 45, 47, 57, 55, 56 and 46 at eleven), and they are drawn ALONGSIDE the tail rather than replacing it -- the heated intact tail is 5, 6 plus 40, 45, 47, where the plain one is 5, 6 alone. A layer that has to sit on top of another mesh is exactly the kind that shows a misalignment, and part 40 is shared by all three heated forms, so if one is out of place all three will be. Not decoded further.",
+  "rows": {
+   "0,20,100": {
+    "name": "Enraged Effect",
+    "state": "rage",
+    "hidden": true,
+    "default": "0,100|0,20,100",
+    "options": {
+     "0,100|0,20,100": "Body Glow"
+    }
+   },
+   "9": {
+    "name": "Eyes",
+    "default": "none",
+    "order": [
+     "none",
+     "9"
+    ],
+    "options": {
+     "none": "Open",
+     "9": "Closed"
+    }
+   },
+   "60": {
+    "name": "Throat",
+    "default": "none",
+    "order": [
+     "none",
+     "60"
+    ],
+    "options": {
+     "none": "Normal",
+     "60": "Heated"
+    }
+   },
+   "1,2,11,12,21,22,31": {
+    "name": "Head",
+    "state": "rage",
+    "default": "1,2|1,2,21,22",
+    "order": [
+     "1,2|1,2,21,22",
+     "2,11|2,11,22,31",
+     "11,12|11,12,31"
+    ],
+    "options": {
+     "1,2|1,2,21,22": "Intact",
+     "2,11|2,11,22,31": "Cracked",
+     "11,12|11,12,31": "Broken"
+    }
+   },
+   "3,13,23,33": {
+    "name": "Neck/Arms",
+    "state": "rage",
+    "default": "3|3,23",
+    "order": [
+     "3|3,23",
+     "13|13,33"
+    ],
+    "options": {
+     "3|3,23": "Intact",
+     "13|13,33": "Broken"
+    }
+   },
+   "4,14,24,34,104": {
+    "name": "Back",
+    "state": "rage",
+    "default": "4,104|4,24,104",
+    "order": [
+     "4,104|4,24,104",
+     "14|14,34"
+    ],
+    "options": {
+     "4,104|4,24,104": "Intact",
+     "14|14,34": "Broken"
+    }
+   },
+   "5,6,15,16,17,40,45,46,47,55,56,57,107": {
+    "name": "Tail",
+    "default": "5,6,107",
+    "order": [
+     "5,6,107",
+     "6,15,16,107",
+     "15,17",
+     "5,6,40,45,47,107",
+     "6,15,16,40,46,47,55,56,107",
+     "15,17,40,55,57"
+    ],
+    "options": {
+     "5,6,107": "Intact",
+     "6,15,16,107": "Cracked",
+     "15,17": "Severed",
+     "5,6,40,45,47,107": "Intact, Heated",
+     "6,15,16,40,46,47,55,56,107": "Cracked, Heated",
+     "15,17,40,55,57": "Severed, Heated"
+    }
+   }
+  }
+ },
+ "em010_00": {
+  "reviewed": "2026-09-11",
+  "note": "Reviewed by Raven: five rows, his order with the eyes moved to the top. **THE FIN ROW IS NAMED BY THE ROM AND IT SETTLES THE BREAK DIRECTION WITHOUT ANY GUESSING.** Part 4 carries XfBAN__E0__m52_hire in addition to the body material and **part 5 does not** -- *hire* is fin -- so the intact fin is the one that still has fin material on it. The geometry says the same without being asked to: part 4 is 382 wide by 6429 tall by 6858 deep, a thin sheet standing on the midline at x12415, which is a dorsal fin; part 5 is a 1389x1455x4276 stub beside it. **EYES is the ray effect, not a lid.** Part 1 is the monster's only XfB__m02_ray mesh, 1382x1125x1698 at z31148, the furthest-forward thing on the model -- same material family as Barioth's m01_ray eye effect. So Dim is 'none' and Bright is the mesh, and Raven's move to the top puts the only non-break row first. WINGS measured against a midline of x12415: the 6,7 row means x20053 and the 8,9 row means x4598, **left higher x as everywhere else**, matching his dictated order. HEAD is 2 against 3, **and nothing but his order distinguishes them** -- both carry body AND hire, both sit at the front (z28400 and z30165), and after the Kecha Wacha correction size is not evidence of a break. Recorded as resting on his reading alone. **part-rest.json IS WRONG ON EVERY ROW HERE, AND THE FIN PROVES IT.** Its sets are [5, 6, 9, 10], which as group indices name g5 = part 3, g6 = part 5, g9 = part 7 and g10 = part 9 -- **the second member of all four break rows, which is the BROKEN one in each case.** For three of them that is Raven's reading against the table's; for the fin it is a fact, because g6 names the part with no fin material on it. A table that calls a finless fin the resting state is not describing rest. Eleventh monster in the sweep where the rest sets name damaged members, and the most clear-cut: there is no defaultSet at all to weigh against it, so every default in this entry comes from Raven's order and nothing was taken from part-rest.",
+  "view": {
+   "list": "2",
+   "clip": "Motion[2]"
+  },
+  "rowOrder": [
+   "1",
+   "2,3",
+   "4,5",
+   "6,7",
+   "8,9"
+  ],
+  "rows": {
+   "1": {
+    "name": "Eyes",
+    "default": "none",
+    "order": [
+     "none",
+     "1"
+    ],
+    "options": {
+     "none": "Dim",
+     "1": "Bright"
+    }
+   },
+   "2,3": {
+    "name": "Head",
+    "default": "2",
+    "options": {
+     "2": "Intact",
+     "3": "Broken"
+    }
+   },
+   "4,5": {
+    "name": "Fin",
+    "default": "4",
+    "options": {
+     "4": "Intact",
+     "5": "Broken"
+    }
+   },
+   "6,7": {
+    "name": "Left Wing",
+    "default": "6",
+    "options": {
+     "6": "Intact",
+     "7": "Broken"
+    }
+   },
+   "8,9": {
+    "name": "Right Wing",
+    "default": "8",
+    "options": {
+     "8": "Intact",
+     "9": "Broken"
+    }
+   }
+  }
+ },
+ "em070_00": {
+  "reviewed": "2026-09-11",
+  "note": "Reviewed by Raven: five named rows, one merge, and **two findings that are not about naming at all.** FIRST, HIS BLANK '1st DD' IS A ROW WITH NO GEOMETRY. Part 50 is in the group table and has **no mesh anywhere in the model** -- verified against the GLB, where every other part in the table has geometry -- so the row switches nothing and there is nothing to highlight. Raven: 'Part 50 I don't see, I might need it highlighted potentially.' It cannot be; it does not exist. Third instance in the sweep after Astalos' parts 56 and 57, and like those it is left in place rather than hidden, because a phantom in the ROM's table is worth seeing. SECOND, **THE ENRAGE PAIR IS BACKWARDS AND THIS ONE IS MARKED CONFIRMED**, which the Deviljho pair was not. Raven: 'Enraged is also flipped, it shows Calm when checked, Enraged when [unchecked].' ROM_RAGE_SET holds em070_00: [[2, 1]] with the comment 'confirmed at 0xf9bd30', and the header records that read as rage 1 / calm 2. Group 2 draws parts 1 and 12, **the monster's only XfB__m01_add meshes** -- 1 is 1148x601x661 at mid-body and 12 is 3633x1560x6839 at the abdomen -- and group 1 draws neither. So the confirmed reading has the additive layer lit when CALM and dark when enraged, which is what he is seeing and calls flipped. **NOT corrected in monster.js.** The Deviljho fix was safe because its comment already said 'site not re-read'; this comment says the opposite, and overwriting a citation that claims a site read is exactly the failure this project watches for. Worth noting what the confirmation actually establishes: the header says the four confirmed rows were matched **by set numbers**, which fixes WHICH two groups pair up and is a different claim from which of them is the calm one. The patch here is the Nargacuga remedy -- the row is named with the per-state key none|1,12 so the review layer drives it correctly -- and it is retirable the moment the polarity question is settled either way. THE BACK IS A MERGE, and Raven gave the mapping outright: 'on 6, 8 for Int, on 7, 8 for Cr, on 9 for Br. 6,7 controls the top of the back break, 8,9 controls the bottom.' The clusters agree -- 6,7 has a none member the other lacks, which is why Broken names only 9 -- and the geometry supports top-against-bottom: part 6 centres at y6989 and part 8 at y4289, on a body whose centre is y2604. Part 6 is also the only mesh besides 8 carrying XfB__E__m00_poison. LEGS measured against a midline of x15803: the 2,3 row means x22999 and the 4,5 row means x9021, **left higher x as everywhere else**, matching his dictated order. **THE WEB ROW IS THE ONE HE IS UNSURE OF AND IT IS LEFT AS HE ORDERED IT.** His words: 'Web: on, off (I am not sure when this is used entirely, it says pre_angry, so it might be used in Calm).' The label he saw is the panel's own evidence line: part 13's option reads 'switched by angry_pre', and the claws' intact option reads the same. angry_pre is a windup clip name -- **pre-anger, the telegraph before enraging** -- so his guess that it might belong to calm is a real possibility and is NOT resolved here. Defaulted On because that is the option he listed first, which is the convention every other entry follows; one word changes it. part-rest.json is RIGHT on this monster for once: its sets [9, 14] name g9 = part 6 and g14 = part 10, the intact back top and the intact claws, and it has no defaultSet to argue with. **THE PHANTOM ROW IS HIDDEN at his word** -- 'Then hide it' -- once it was established that part 50 has no geometry to highlight. Both of its options are named 'Nothing' because that is literally what each draws, and the row is kept in the file rather than deleted so the phantom stays recorded: deleting one key puts it back on screen. **This is the first row hidden for having nothing to show at all**, as against Seregios' Snout, which had something to show but nothing to choose. Opening view set at his word: 'Default Animation: L 0, M 2.' **UPDATED: the Web now rides the Enraged toggle, and this is a JUDGEMENT CALL rather than a decode.** Raven: 'For now, have Web turn on with Enraged. Monsters tend to get effects when enraged.' That is a heuristic from the rest of the sweep -- Deviljho, Savage, Glavenus, Najarala, Kecha Wacha and Seregios all light something on rage -- and it is a good one. **I TOLD HIM THE angry_pre LABEL WAS EVIDENCE AGAINST THIS AND I WAS WRONG.** He pushed back on the right thing: 'Claws Intact being a pre-enraged seems off since that would imply they repair themselves.' Quite so, and the reason is that **the label does not mean what its wording suggests**. part-states.json describes itself: 'INFERRED, not read: the nearest string reference in that function ... this row is switched by that bit of AI, not a name the ROM gives the state.' It is a PROXIMITY heuristic -- the setVisibleGroup call site for that group sits within 200 bytes of that string in the executable. On this monster the distances are 40 to 192 bytes: g14 (claws intact) is 80 bytes from angry_pre and g16 (the web) is 56. So it never said enraging repairs a claw; it said the code switching that group sits near that string. **A label the source file disclaims is not evidence against a reviewer's reading**, and Raven's heuristic stands on firmer ground than I gave it. **AND THE SAME TABLE SAYS SOMETHING ODDER ABOUT THE ENRAGE PAIR:** groups 1 and 2 -- the additive layer, the very pair ROM_RAGE_SET uses -- are labelled em070_00RevivalMove at 40 bytes, not anything angry. Two different attributions of the same two groups, and worth weighing whenever the polarity question above is settled. Note that the claws' intact option carries the SAME angry_pre label and has NOT been touched, so if angry_pre turns out to mean something specific, both rows want revisiting together. **FINAL ON THE WEB, AND IT IS OFF THE RAGE AXIS AGAIN: ON ALWAYS, ROW HIDDEN.** Raven, after trying it on the toggle: 'Hide the Web Drop Down. I also found it needs to be left on for some animations to work. So, for now leave it on by default until we visit animations to see if we can have them dynamically turn parts on and off.' That is a harder fact than either of the readings that came before it -- **the mesh is load-bearing for animation, so anything that switches it off breaks something visible** -- and it outranks both the angry_pre proximity label and the enrage-effect heuristic. Written as a plain default with no `state` at all, because tying it to a control would let the control break those animations. **THIS IS EXPLICITLY A STOPGAP and the real answer is named in his own words:** animations that turn parts on and off dynamically. Until that exists, the row is pinned on and out of sight. Both options are kept and the row is only hidden, so deleting one key brings the choice back the moment the animation work makes it safe.",
+  "view": {
+   "list": "0",
+   "clip": "Motion[2]"
+  },
+  "rows": {
+   "50": {
+    "name": "Part 50",
+    "hidden": true,
+    "default": "none",
+    "options": {
+     "none": "Nothing",
+     "50": "Nothing"
+    }
+   },
+   "1,12": {
+    "name": "Enraged Effect",
+    "state": "rage",
+    "hidden": true,
+    "default": "none|1,12",
+    "options": {
+     "none|1,12": "Additive Layer"
+    }
+   },
+   "2,3": {
+    "name": "Left Legs",
+    "default": "2",
+    "options": {
+     "2": "Intact",
+     "3": "Broken"
+    }
+   },
+   "4,5": {
+    "name": "Right Legs",
+    "default": "4",
+    "options": {
+     "4": "Intact",
+     "5": "Broken"
+    }
+   },
+   "6,7+8,9": {
+    "name": "Back",
+    "default": "6+8",
+    "order": [
+     "6+8",
+     "7+8",
+     "9"
+    ],
+    "options": {
+     "6+8": "Intact",
+     "7+8": "Cracked",
+     "9": "Broken"
+    }
+   },
+   "10,11": {
+    "name": "Claws",
+    "default": "10",
+    "options": {
+     "10": "Intact",
+     "11": "Broken"
+    }
+   },
+   "13": {
+    "name": "Web",
+    "hidden": true,
+    "default": "13",
+    "order": [
+     "13",
+     "none"
+    ],
+    "options": {
+     "13": "On",
+     "none": "Off"
     }
    }
   }

@@ -2144,6 +2144,19 @@ function reviewedParts(rv){
 // none of which change which mesh means "broken".
 function rowStateOn(rv){
   const st = rv && rv.state;
+  // TWO AXES AT ONCE. Kecha Wacha's enrage layer depends on the Enraged toggle AND on whether its
+  // EARS are broken -- the ROM gives it three groups, none / an intact-ear effect / a broken-ear
+  // one. Raven, 2026-09-11: "The last drop down is enrage states for the ears, no need for the drop
+  // down ... Add Enraged toggle. If Ears are broken, use the matching enrage state ear."
+  // `state` may therefore be an ARRAY of boolean axes, combined into an index, first entry the low
+  // bit -- so ["rage", {"on": "5"}] numbers calm/intact 0, rage/intact 1, calm/broken 2, rage/broken
+  // 3, and the key is written with one half per combination. Each entry is evaluated by this same
+  // function, so anything a single axis can say an array entry can say too.
+  if (Array.isArray(st)){
+    let i = 0;
+    st.forEach((s, bit) => { if (rowStateOn({ state: s })) i |= (1 << bit); });
+    return i;
+  }
   if (st && typeof st === 'object'){
     const e = entry();
     const want = String(st.on === undefined ? '' : st.on)
@@ -3475,7 +3488,10 @@ function applyRage(){
   // ROM_RAGE_SET has no row, and its DEFAULT_PARTS_ON entry is not per-state, so nothing offered the
   // control. Raven, 2026-09-11: "Create Enraged toggle, then ensure drop downs switch to using the
   // enraged versions."
-  const reviewRages = Object.values(reviewRows(state.id)).some(r => r && r.state === 'rage');
+  // A row asks for the toggle by saying "rage" -- on its own, or as one axis of a combination, which
+  // is how Kecha Wacha's ear-dependent enrage layer asks for it.
+  const wantsRage = s => s === 'rage' || (Array.isArray(s) && s.some(wantsRage));
+  const reviewRages = Object.values(reviewRows(state.id)).some(r => r && wantsRage(r.state));
   const has = reviewRages || (main ? (enrageParts(main).size > 0 || !!ROM_RAGE_SET[state.id] || perStateParts) : false);
   // A LEVELLED MONSTER GETS A DROPDOWN INSTEAD OF THE TOGGLE. Raven, 2026-09-10: "Just have a drop
   // down that ranges from No Rage to the max level". Bloodbath has two stages and Gore Magala four,
