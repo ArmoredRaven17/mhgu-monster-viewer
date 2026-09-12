@@ -15,7 +15,11 @@ export function bonesByGid(root, joints){
       const info = joints && joints[i];
       if (!info || info.gid === null) return;
       const node = info.leaf ? bone.parent : bone;
-      if (node && !map.has(info.gid)) map.set(info.gid, node);
+      // The LEAF is carried alongside, because it is the bone the VERTICES bind to while `node`
+      // is the one a pose drives. Everything that moves the skeleton works through `node`; only
+      // SCALE has to reach the leaf as well, since MT authors a joint's scale on the leaf and
+      // scaling the parent would drag the whole chain below it instead of just this joint's mesh.
+      if (node && !map.has(info.gid)) map.set(info.gid, { node, leaf: info.leaf ? bone : null });
     });
   });
   // Sorted PARENT-FIRST. Poses are applied as world matrices expressed in each node's
@@ -23,7 +27,7 @@ export function bonesByGid(root, joints){
   // descendant is computed against it.
   const depth = n => { let d = 0; for (let p = n; p; p = p.parent) d++; return d; };
   return [...map.entries()]
-    .map(([gid, node]) => ({ gid, node, d: depth(node) }))
+    .map(([gid, e]) => ({ gid, node: e.node, leaf: e.leaf, d: depth(e.node) }))
     .sort((a, b) => a.d - b.d);
 }
 
