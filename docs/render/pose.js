@@ -8,7 +8,7 @@
 //   9-12  clavicle>hand, the -X arm = the RIGHT
 //   14-16 / 17-19 hip>foot, the same sides by the same x sign     20-22 back attachment
 import * as THREE from 'three';
-import { loader, loadGlb, poseCache } from './assets.js';
+import { loader, loadGlb, poseCache, bust } from './assets.js';
 import { bonesByGid, gidBonesOf, skeletonClone } from './skeleton.js';
 
 export const POSES = {
@@ -127,7 +127,7 @@ export class PoseDriver {
         poseCache.set('proxy:' + entry.model, proxy);
       }
       let anim = poseCache.get('anim:' + entry.file);
-      if (!anim) { anim = await loader.loadAsync(entry.file); poseCache.set('anim:' + entry.file, anim); }
+      if (!anim) { anim = await loader.loadAsync(bust(entry.file)); poseCache.set('anim:' + entry.file, anim); }
       gltf = { scene: proxy.scene, animations: anim.animations, userData: proxy.userData };
     }
     if (!gltf) {

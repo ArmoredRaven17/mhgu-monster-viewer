@@ -13,7 +13,7 @@
 //   parts        the mesh table's draw mask (bit 0) marks the LOD / proxy layer, listed per
 //                model as `hide` [part, verts]; rMonsterPartsManager's groups switch the rest
 import * as THREE from 'three';
-import { loadGlb, getTexture, loader, poseCache } from './assets.js';
+import { loadGlb, getTexture, loader, poseCache, bust } from './assets.js';
 import { skeletonClone, meshGroupId } from './skeleton.js';
 import { createMaterial, setSpecTexture, setEnvTexture, applyRomUv, allMats,
          MAT_FPS, stepMaterialAnim } from './material.js';
@@ -737,7 +737,7 @@ export function groupIsInert(groups, index, partIds){
 // all (Iodrome has no 80 or 90). The game ignores those tracks; so does this.
 export async function clipFor(list, clipName, modelUrl){
   let anim = poseCache.get('anim:' + list.file);
-  if (!anim){ anim = await loader.loadAsync(list.file); poseCache.set('anim:' + list.file, anim); }
+  if (!anim){ anim = await loader.loadAsync(bust(list.file)); poseCache.set('anim:' + list.file, anim); }
   const src = THREE.AnimationClip.findByName(anim.animations, clipName);
   if (!src) return null;
   const remap = list.remap;
