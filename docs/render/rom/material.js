@@ -292,11 +292,29 @@ export function createRomMaterial(spec){
   // The legacy createMaterial path in ../material.js sets the same flag. That module is shared
   // with the Armor Viewer and the monster app does not edit it; its path is the pre-rewrite A/B
   // baseline and is reached only with the ROM core switched off.
-  if (lit && gl && gl.emission && (gl.emission[0] + gl.emission[1] + gl.emission[2]) > 0){
+  //
+  // THE GUARD ALSO HAS TO COVER EMISSION THAT ARRIVES ONLY FROM AN ANIMATION. It used to test the
+  // static constant alone, so a material whose fEmissionColor is 0 in the .mrl and non-zero only
+  // inside a CLIP never got the flag: USE_EMISSIVEMAP stayed undefined, the `*= gBase` above never
+  // ran, and the clip's emission was added FLAT to every pixel -- including the pure black ones.
+  // That is Crimson Fatalis exactly. Its static emission is (0,0,0) and its `Angry` clip holds
+  // fEmissionColor at a uniform 0.2, which this file converts to 0.0331 linear and three.js then
+  // writes back out at sRGB ~0.2 -- so every black texel on the body rendered as 20% grey the
+  // moment it enraged. Measured live before the change: emissive 0.0331 on all three channels with
+  // emissiveMap unset. Raven, 2026-09-12: "I want the black of the enraged mode to be true black."
+  // Scaled by the albedo instead, a black texel emits nothing and the lava cracks keep the glow,
+  // which is the same combine Khezu's white (2,2,2) already established.
+  const staticEmission = !!(gl && gl.emission
+                            && (gl.emission[0] + gl.emission[1] + gl.emission[2]) > 0);
+  // the clips hang off the DB record, which createRomMaterial receives as spec.rom -- not off spec
+  const animEmission = !!(rom && rom.anim && rom.anim.some(
+    c => (c.tracks || []).some(t => t && t.target === 'fEmissionColor')));
+  if (lit && (staticEmission || animEmission)){
     // sRGB, for the reason spelled out at material.js's fEmissionColor case: a bare setRGB writes
     // three.js's LINEAR working space while every map here is decoded sRGB, so the same 0.2 means
     // six times more as a constant than as a texel -- and emission is added, not multiplied.
-    mat.emissive.setRGB(gl.emission[0], gl.emission[1], gl.emission[2], THREE.SRGBColorSpace);
+    if (staticEmission)
+      mat.emissive.setRGB(gl.emission[0], gl.emission[1], gl.emission[2], THREE.SRGBColorSpace);
     // emissiveFromMap IS A DEFINE CARRIER, NOT A MULTIPLICAND, and I removed it earlier today on
     // exactly that misreading. applyTint REPLACES `#include <emissivemap_fragment>` with
     //
