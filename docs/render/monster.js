@@ -754,8 +754,21 @@ export async function clipFor(list, clipName, modelUrl){
     const dot = t.name.lastIndexOf('.');
     const node = t.name.slice(0, dot), prop = t.name.slice(dot);
     if (have.has(node)){ keep.push(t); continue; }
-    const want = remap[node];
-    if (want){ t.name = want + prop; moved++; keep.push(t); }
+    let want = remap[node];
+    // THE "_s" TWINS. harvest builds `remap` from the base bones only, so the 18 tracks the owner
+    // writes on "<n>:<gid>_s" leaves matched nothing and fell into `lost` -- silently, since
+    // nothing reports it and the list's own `dropped` field stays null. The leaf follows its base
+    // bone's local-index change exactly, so the mapping is the base's with the suffix put back.
+    // This was measured as harmless once and it no longer is: every one of those tracks is a
+    // SCALE track, and scale used to be discarded on the way to the mesh. Now that it is applied,
+    // dropping them moves Crimson's jaw by up to 0.451 units against the Fatalis that owns the
+    // list (worst: Motion[17], list 3). Same skeleton, same rest, same parents -- only the local
+    // numbering differs -- so a borrower has no reason to animate differently from its owner.
+    if (!want && node.endsWith('_s')){
+      const base = remap[node.slice(0, -2)];
+      if (base) want = base + '_s';
+    }
+    if (want && have.has(want)){ t.name = want + prop; moved++; keep.push(t); }
     else lost++;
   }
   out.tracks = keep;
