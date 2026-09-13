@@ -49,6 +49,8 @@
 //      both from FFinalCombiner and FChannelSpecularMap (rom/specular.js). DEFAULT OFF.
 //   6. The BRDF CLASS itself: MeshPhongMaterial, which is FBRDF's Lambert + Blinn-Phong, with the
 //      ROM's fShininess as the exponent (`enableRomPhong`). DEFAULT OFF.
+//   7. The ALPHA TEST: NVN colour state, enable / function / reference unpacked from the MRL feature
+//      word by the rMaterial setup (`enableRomAlphaTest`, see the section at the end). DEFAULT OFF.
 //
 // 4, 5 and 6 are off by default. Each either overlaps something the SHARED material.js/stage.js
 // already do -- so switching one on alone double-counts rather than corrects -- or changes every
@@ -183,6 +185,11 @@ export function createRomMaterial(spec){
     mat.opacity = cb.transparency;
     mat.transparent = true;
   }
+  // SUPERSEDED IN PART, 2026-09-13: the census below stands -- no material selects a clip FEATURE --
+  // but the conclusion drawn from it, that nothing is alpha-tested, does not. MHGU's alpha test is NVN
+  // colour state packed into the MRL feature word, not a shader feature; 190 monster materials enable
+  // it. See THE ALPHA TEST at the end of this file. The rules below remain the path with it off.
+  //
   // THE ALPHA CLIP IS ITS OWN FEATURE, AND MHGU NEVER SELECTS IT. Measured 2026-09-10, from
   // AppShaderPackage.mfx: the FTransparency family lists the clip as separate records from the
   // blend source --
@@ -438,6 +445,10 @@ export function createRomMaterial(spec){
   //    Refract. Each carries the ROM's own description at its site in rom/shader.js.
   injectFeatures(mat, rom, lit);
 
+  // THE ALPHA TEST, installed LAST so its discard lands directly after <alphatest_fragment> and
+  // ahead of installCutoutSolid's coverage rewrite, which has to see the test's result, not precede it.
+  installRomAlphaTest(mat, romAlphaTestOf(rom));
+
   // 4. THE AMBIENT. FAmbientSH is selected by all 570 monster materials and is
   //    `getSHdiffuse(MC.normal) * MC.ambient_occlusion` -- an L2 spherical-harmonic evaluation,
   //    where the viewer's stock rig uses a HemisphereLight, which is a two-colour lerp along Y and
@@ -585,3 +596,99 @@ function installCutoutSolid(mat){
 }
 const cutMisses = [];
 export function cutoutAnchorMisses(){ return cutMisses.slice(); }
+
+
+// THE ALPHA TEST -- NVN colour state, read from the ROM 2026-09-13. DEFAULT OFF.
+//
+// The FTransparency census in createRomMaterial is right that no monster material SELECTS a clip
+// feature, and was wrong to conclude that nothing is alpha-tested. MHGU's alpha test is not a shader
+// feature at all. It is NVN render state, packed into the MRL record's feature word (materials.json
+// `fb`, specFor's `rom.fb`) and unpacked by the rMaterial setup onto nDraw::Material+0x14:
+//
+//     00b42ed4..00b42f0c   +0x14 bit  8      <- fb bit 20        the enable
+//                          +0x14 bits 9..11  <- fb bits 21..23   the function; forced to 7 when disabled
+//                          +0x14 bits 14..21 <- fb bits 8..15    the reference byte
+//
+// nDraw::BlendState's constructor builds EIGHT nvnColorStates and calls
+// nvnColorStateSetAlphaTest(state[i], i + 1) on each from a table it fills with 1..8
+// (00afdd20..00afddb4). The draw binder binds state[function] and, when the reference changes, calls
+// nvnCommandBufferSetAlphaRef(cmd, byte / 255.0f) (00bbf2f4..00bbf328); a disabled test binds state 7.
+// A disabled test must pass everything, so 7 + 1 = 8 is ALWAYS, which fixes the order as the depth
+// compare's own: NEVER LESS EQUAL LEQUAL GREATER NOTEQUAL GEQUAL ALWAYS. The game drives the same bits
+// itself -- 0xf768c0 reads the reference out of bits 14..21, lowers it over time and writes it back
+// with bit 8 set: a dissolve, which only works because these bits ARE the test.
+//
+// 190 of the 570 monster materials enable it, every one of them GREATER, at references from 0 to 192.
+// Amatsu's fins, XfBA_E1__m50_fin, are GREATER 128: the game discards every texel at or below half
+// alpha, so none of them writes depth. This viewer wrote depth through them, and a fin drawn earlier
+// hid whichever fins sat behind its transparent texels. Raven, 2026-09-12: "The see through portions
+// don't render the fins nearby, but they render effect layers and surfaces like the arms".
+//
+// WHAT CHANGES WHEN IT IS ON. Every material that carries an alpha test here takes the ROM's answer
+// instead: its own function and reference where the ROM enables one, and NONE where it does not -- so
+// the 1/512 solidAlpha rule and AUTHORED_CUTOUT stop applying, and blended, additive and reverse-
+// subtractive materials are tested for the first time. The value tested is the fragment's output
+// alpha, diffuseColor.a after the albedo and transparency terms. On the 4 opaque materials whose word
+// enables a test but whose feature set has no transparency term, this viewer's alpha is 1.0 and the
+// test cannot fire; what the ROM outputs as alpha on those is not read.
+//
+// Off by default because it moves the cut on 190 materials across the library at once. Switch it from
+// the console with __romAlphaTest(true); __romAlphaTest() reads the state back.
+export const ROM_ALPHA_FUNC = ['NEVER', 'LESS', 'EQUAL', 'LEQUAL', 'GREATER', 'NOTEQUAL', 'GEQUAL', 'ALWAYS'];
+const ALPHA_GLSL = ['false', 'a < r', 'a == r', 'a <= r', 'a > r', 'a != r', 'a >= r', 'true'];
+export function romAlphaTestOf(rom){
+  const fb = (rom && typeof rom.fb === 'number') ? (rom.fb >>> 0) : 0;
+  const on = (fb & 0x00100000) !== 0;
+  return { on, func: on ? ((fb >>> 21) & 7) : 7, ref: (fb >>> 8) & 0xff };
+}
+let romAlphaTest = false;
+const alphaMats = new Set();
+export function romAlphaTestEnabled(){ return romAlphaTest; }
+export function enableRomAlphaTest(on){
+  romAlphaTest = !!on;
+  let tested = 0, untested = 0;
+  for (const m of alphaMats){
+    const h = m.userData.romAlphaUniforms;
+    if (h) h.uRomAT.value = romAlphaTest ? 1 : 0;
+    // three.js keeps its own `alphaTest` discard, the rule used with this off; it has to go when the
+    // ROM's replaces it, or a material the ROM does not test would still lose its zero texels.
+    const want = romAlphaTest ? 0 : m.userData.legacyAlphaTest;
+    if (m.alphaTest !== want){ m.alphaTest = want; m.needsUpdate = true; }
+    if (h) tested++; else untested++;
+  }
+  return { on: romAlphaTest, romTested: tested, legacyCutoutsWithNoRomTest: untested };
+}
+// Uniforms live on their own holder, NOT on userData.u: the shared material.js treats any userData.u
+// as applyTint's full block, and an unlit material has none.
+function installRomAlphaTest(mat, at){
+  const live = at.on && at.func !== 7;
+  mat.userData.legacyAlphaTest = mat.alphaTest || 0;
+  if (!live && !mat.userData.legacyAlphaTest) return;
+  alphaMats.add(mat);
+  mat.addEventListener('dispose', () => alphaMats.delete(mat));
+  if (romAlphaTest) mat.alphaTest = 0;
+  if (!live) return;
+  const h = mat.userData.romAlphaUniforms = { uRomAT: { value: romAlphaTest ? 1 : 0 }, uRomATRef: { value: at.ref / 255 } };
+  mat.userData.romAlphaTest = { func: ROM_ALPHA_FUNC[at.func], ref: at.ref };
+  const tags = (mat.userData.progTags || '') + '|romAlphaTest' + at.func;
+  mat.userData.progTags = tags;
+  mat.customProgramCacheKey = () => tags;
+  const prev = mat.onBeforeCompile;
+  mat.onBeforeCompile = (sh, r) => {
+    if (prev) prev(sh, r);
+    const A = '#include <alphatest_fragment>';
+    if (sh.fragmentShader.indexOf(A) < 0){ alphaTestMisses.push(mat.name || '?'); return; }
+    Object.assign(sh.uniforms, h);
+    sh.fragmentShader = 'uniform float uRomAT;' + String.fromCharCode(10) + 'uniform float uRomATRef;' +
+      String.fromCharCode(10) + sh.fragmentShader.replace(A, A + String.fromCharCode(10) +
+      '\tif ( uRomAT > 0.5 ) { float a = diffuseColor.a; float r = uRomATRef; if ( !( ' + ALPHA_GLSL[at.func] + ' ) ) discard; }');
+  };
+  mat.needsUpdate = true;
+}
+const alphaTestMisses = [];
+export function alphaTestAnchorMisses(){ return alphaTestMisses.slice(); }
+if (typeof window !== 'undefined'){
+  window.__romAlphaTest = on => (on === undefined
+    ? { on: romAlphaTest, materials: alphaMats.size, anchorMisses: alphaTestMisses.slice() }
+    : enableRomAlphaTest(on));
+}
