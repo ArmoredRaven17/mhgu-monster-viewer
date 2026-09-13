@@ -2,7 +2,10 @@
 // from the parameter block (+0x1b0) placed through a per-particle basis.
 //
 // Translated from MHGU and checked against call vectors from the game's own run of Savage's effects
-// (dev/effect-check.mjs). Arithmetic is transcribed register by register.
+// (dev/effect-check.mjs). Arithmetic is transcribed register by register. The particle spawn, update and
+// frame, the shape init/update dispatch and the basis are LIFTED (lifted-polyline.js, bridge.js): em043_05_000
+// takes shape types 0 and 6, colour and width paths the hand translation had refused, and lifting the
+// routines whole covers every path any em043 vector reached.
 //
 // LitePolyline particle fields past the common header (motion.js):
 //   +0x40 / +0x44 uniform scale, two buffers       +0x48 its rate
@@ -14,30 +17,18 @@
 // The polyline block sits at particle + generator +0xd4 (u16): the point buffers first (count * 16 each,
 // two buffers), then at + count * 32: +0x00 motion direction, +0x10 random vector, +0x20 angular vector,
 // +0x30 / +0x40 size (two buffers), +0x50 size velocity. (+0x00 / +0x10 are the rotation, two buffers.)
-import { Unverified, F, f32bits, bitsf32 } from './mem.js';
-import { baseFrame, Scratch } from './motion.js';
-import { killParticle } from './life.js';
-import { spawnBase, unitScale, baseColour, scaleInit, lastPass, eulerMatrix } from './spawn.js';
-import { texAnimStep, animConfig } from './billboard.js';
+import { liftedCall } from './bridge.js';
+import './lifted-polyline.js';
+import { Unverified, F } from './mem.js';
+import { Scratch } from './motion.js';
 
-const GOT_FLOAT_RNG = 0x183b9f8, GOT_ZERO3 = 0x1831a78, GOT_IDENTITY = 0x1832afc, GOT_ROW3 = 0x1832148;
+const GOT_FLOAT_RNG = 0x183b9f8, GOT_ZERO3 = 0x1831a78;
 
 function toS32(v){
   if (Number.isNaN(v)) return 0;
   if (v >= 2147483647) return 2147483647;
   if (v <= -2147483648) return -2147483648;
   return Math.trunc(v);
-}
-function envColour(col, mode, e){
-  if (mode > 8) return col;
-  if (0xaa & (1 << mode)) return ((col & 0x00ffffff) | (((Math.imul(col >>> 24, e) >>> 8) & 0xff) << 24)) >>> 0;
-  if (0x154 & (1 << mode)){
-    const g = (Math.imul((col >>> 8) & 0xff, e) & 0xff00) | (col & 0xffff0000);
-    const r = (Math.imul(col & 0xff, e) >>> 8) & 0xff;
-    const b = (col >>> 16) & 0xff;
-    return (((g | r) & 0xff00ffff) | (((Math.imul(b, e) >>> 8) & 0xff) << 16)) >>> 0;
-  }
-  return col;
 }
 
 // 0x29d00: dst = a * b for 4x4 matrices. Every input is read before the first write, so dst may be a or b.
@@ -110,23 +101,7 @@ export function matMul(m, a, b){ matMulTo(m, a, a, b); }
 // generator +0xea), then by the generator transform (+0x100); translation from the ROM row at
 // 0x1917600. `dir` is not read on the recorded path.
 export function polyBasis(m, out, gen, flags, rot, dir, size){
-  const id = m.u32(GOT_IDENTITY);
-  for (let k = 0; k < 16; k++) m.w32(out + 4 * k, m.u32(id + 4 * k));
-  if (m.u32(gen + 0xec) & 0x2000) throw new Unverified('0xa69c3c generator +0xed bit 5');
-  const sc = new Scratch(m);
-  const S = sc.alloc(64), E = sc.alloc(64);
-  for (let k = 0; k < 16; k++) m.w32(S + 4 * k, 0);
-  m.w32(S, m.u32(size)); m.w32(S + 0x14, m.u32(size + 4)); m.w32(S + 0x28, m.u32(size + 8)); m.wf32(S + 0x3c, 1.0);
-  matMul(m, out, S);
-  eulerMatrix(m, E, rot, m.u16(gen + 0xea) & 0xf);
-  matMul(m, out, E);
-  if (m.u8(gen + 0x52) & 2) throw new Unverified('0xa69d58 generator +0x52 bit 1');
-  if (flags & 0x80) throw new Unverified('0xa69cd4 polyline flag 0x80');
-  matMul(m, out, gen + 0x100);
-  const row = m.u32(GOT_ROW3);
-  m.w32(out + 0x30, m.u32(row)); m.w32(out + 0x34, m.u32(row + 4));
-  m.w32(out + 0x38, m.u32(row + 8)); m.w32(out + 0x3c, m.u32(row + 0xc));
-  sc.free();
+  liftedCall(m, 0xa69af0, [out, gen, flags, rot], [dir, size]);
 }
 
 // the template points through a basis's 3x3 part into a point buffer (the loops at 0xa651c8 / 0xa65434)
@@ -244,9 +219,7 @@ export function polyShapeInit1(m, gen, p, shape){
 
 // 0xa6b06c: shape init by type (particle +0x7c low byte).
 export function polyShapeInit(m, gen, p, shape, info){
-  const type = m.u32(p + 0x7c) & 0xff;
-  if (type === 1) return polyShapeInit1(m, gen, p, shape);   // 0xa6b1f0
-  throw new Unverified('0xa6b0a4 polyline shape type ' + type);
+  liftedCall(m, 0xa6b06c, [gen, p, shape, info]);
 }
 
 // 0xa6ecc4: shape type 1 per frame -- size += velocity, then the points (both buffers when the node
@@ -270,9 +243,7 @@ export function polyShapeUpdate1(m, gen, p, shape){
 
 // 0xa6ea50: per-frame shape update by type.
 export function polyShapeUpdate(m, gen, p, shape){
-  const type = m.u32(p + 0x7c) & 0xff;
-  if (type === 1){ polyShapeUpdate1(m, gen, p, shape); return 1; }   // 0xa6eac8
-  throw new Unverified('0xa6ea7c polyline shape type ' + type);
+  return liftedCall(m, 0xa6ea50, [gen, p, shape]).r[0];
 }
 
 // 0xcaa710: bind the animation into the particle's +0x80 block. Returns 0 when bound.
@@ -311,148 +282,15 @@ export function baseColour2(m, out, gen){
 
 // 0xab4710 (slot 23): spawn one LitePolyline particle. Returns particle +0x0c bit 26.
 export function spawnLPL(m, gen, p, info){
-  if (spawnBase(m, gen, p, info) !== 1) return 0;
-  const param = m.u32(gen + 0x34);
-  let d = m.u32(p + 0x7c);
-  const w78 = m.u32(p + 0x78);
-  const w170 = m.u32(param + 0x170);
-  d = ((d & ~0xff) | (w170 & 0xff)) >>> 0;
-  m.w32(p + 0x7c, d); m.w32(p + 0x78, w78);
-  d = ((d & ~0xff00) | ((m.u32(param + 0x170) >>> 8 & 0xff) << 8)) >>> 0;
-  m.w32(p + 0x7c, d); m.w32(p + 0x78, w78);
-  d = ((d & ~0xff0000) | ((m.u16(param + 0x172) & 0xff) << 16)) >>> 0;
-  m.w32(p + 0x7c, d); m.w32(p + 0x78, w78);
-  d = ((d & ~0x0f000000) | ((m.u32(param + 0x174) & 0xf) << 24)) >>> 0;
-  m.w32(p + 0x7c, d); m.w32(p + 0x78, w78);
-  let e = ((m.u32(p + 0x9c) & ~0xff) | m.u8(param + 0x173)) >>> 0;
-  m.w32(p + 0x9c, e);
-  e = ((e & ~0xf00) | ((((m.u32(param + 0x174) >>> 4) & 0xffffff) & 0xf) << 8)) >>> 0;
-  m.w32(p + 0x9c, e);
-  d = ((d & 0x0fffffff) | ((m.u32(param + 0x174) << 20) & 0xf0000000)) >>> 0;
-  m.w32(p + 0x7c, d); m.w32(p + 0x78, w78);
-  const sc = new Scratch(m);
-  const cfg = sc.alloc(0x14), cbuf = sc.alloc(4);
-  animConfig(m, gen, p, cfg);
-  if (animBindLPL(m, p, m.u32(m.u32(gen + 0x28) + 0x14), cfg) === 1) throw new Unverified('0xab4800 unbound polyline animation');
-  const f4 = m.u32(gen + 0xf4), fl = m.u32(cfg), w0 = m.u32(param);
-  m.w32(p + 0x1c, f4);
-  const w18 = ((((((fl >>> 8) & 3) | ((fl >>> 10) & 4)) << 26) >>> 0 | (w0 >>> 19)) & 0x1c001fe0) >>> 0;
-  m.w32(p + 0x18, w18); m.w32(p + 0x18, w18);
-  unitScale(m, gen, p);
-  if (m.u32(param + 0x40) >>> 16) throw new Unverified('0xab4908 colour curve at spawn');
-  baseColour(m, cbuf, gen);
-  let col = m.u32(cbuf);
-  m.w32(p + 0x70, col);
-  const mode = (m.u32(gen + 0x40) >>> 12) & 0xf;
-  m.u32(gen + 0x44);
-  if (mode !== 0) col = envColour(col, mode, toS32(F(m.f32(info + 0x20) * 256.0)));   // 256.0 at 0xab49c8
-  m.w32(p + 0x68, col); m.w32(p + 0x60, col);
-  if (!(m.u8(p + 0x7f) & 0xf)) throw new Unverified('0xab4b04 polyline without a second colour');
-  if (m.u16(param + 0x1a8) !== 0) throw new Unverified('0xab4a90 param +0x1a8 colour curve');
-  baseColour2(m, cbuf, gen);
-  let col2 = m.u32(cbuf);
-  m.w32(p + 0x74, col2);
-  const mode2 = (m.u32(gen + 0x40) >>> 12) & 0xf;
-  m.u32(gen + 0x44);
-  if (mode2 !== 0) col2 = envColour(col2, mode2, toS32(F(m.f32(info + 0x20) * 256.0)));   // 256.0 at 0xab4b54
-  m.w32(p + 0x6c, col2); m.w32(p + 0x64, col2);
-  const scale = scaleInit(m, gen, p, 0.0);                   // 0.0 at 0xab4bec; its s0 on return
-  const s20 = F(scale * m.f32(gen + 0xfc));
-  if (m.u32(param + 0x1a8) >>> 16) throw new Unverified('0xab4c24 param +0x1aa width curve');
-  const tbl = m.u32(GOT_FLOAT_RNG);
-  let c0 = m.u32(gen + 0x4c);
-  m.w32(gen + 0x4c, (c0 + 1) >>> 0);
-  const q1 = m.f32(tbl + 4 * ((c0 + 1) & 0xfff));
-  m.w32(gen + 0x4c, (c0 + 2) >>> 0);
-  const q2 = m.f32(tbl + 4 * ((c0 + 2) & 0xfff));
-  const w1 = F(m.f32(param + 0x180) + F(q1 * m.f32(param + 0x184)));
-  const r1 = F(m.f32(param + 0x188) + F(q2 * m.f32(param + 0x18c)));
-  if (!(r1 === 0)) throw new Unverified('0xab4d08 width rate');
-  const sw1 = F(s20 * w1);
-  m.wf32(p + 0xb4, w1); m.wf32(p + 0xb8, r1); m.wf32(p + 0xa8, sw1); m.wf32(p + 0xa4, sw1);
-  if (!(m.u8(p + 0x9d) & 0xf)) throw new Unverified('0xab4e38 polyline without a second width');
-  if (m.u16(param + 0x1ac) !== 0) throw new Unverified('0xab4d44 param +0x1ac width curve');
-  c0 = m.u32(gen + 0x4c);
-  const tbl2 = m.u32(GOT_FLOAT_RNG);
-  m.w32(gen + 0x4c, (c0 + 1) >>> 0);
-  const q3 = m.f32(tbl2 + 4 * ((c0 + 1) & 0xfff));
-  m.w32(gen + 0x4c, (c0 + 2) >>> 0);
-  const q4 = m.f32(tbl2 + 4 * ((c0 + 2) & 0xfff));
-  const w2 = F(m.f32(param + 0x190) + F(q3 * m.f32(param + 0x194)));
-  const r2 = F(m.f32(param + 0x198) + F(q4 * m.f32(param + 0x19c)));
-  if (!(r2 === 0)) throw new Unverified('0xab4e2c second width rate');
-  const sw2 = F(s20 * w2);
-  m.wf32(p + 0xbc, w2); m.wf32(p + 0xc0, r2); m.wf32(p + 0xb0, sw2); m.wf32(p + 0xac, sw2);
-  polyShapeInit(m, gen, p, param + 0x1b0, info);
-  if (m.u32(gen + 0xcc) !== 0) throw new Unverified('0xab4e6c generator +0xcc');
-  if (m.u8(gen + 0x43) & 0xf) throw new Unverified('0xab4ea0 generator +0x43 low nibble');
-  lastPass(m, gen, p);
-  sc.free();
-  return (m.u32(p + 0xc) >>> 26) & 1;
+  return liftedCall(m, 0xab4710, [gen, p, info]).r[0];
 }
 
 // 0xab5090: one LitePolyline particle, one frame. Returns 0 to free it.
 export function updateLPLParticle(m, gen, p){
-  m.u32(p + 8);
-  const r7 = m.u32(p + 0xc);
-  if (!(r7 & 0x8000000)) throw new Unverified('0xab50bc polyline without animation');
-  if (texAnimStep(m, gen, p, p + 0x80, m.f32(p + 0x98)) !== 1) return 0;
-  m.w32(p + 0x90 + ((m.u8(p + 0xf) & 1) << 2), m.u32(p + 0x88));
-  const f10 = m.u32(p + 0x10);
-  if (f10 & 0x20000) throw new Unverified('0xab513c colour curve');
-  if (f10 & 0x40000) throw new Unverified('0xab518c second colour curve');
-  if (!(r7 & 0x40)) throw new Unverified('0xab51d4 unchanged envelope');
-  const g40 = m.u32(gen + 0x40), pool = m.u32(gen + 0x24);
-  m.u32(gen + 0x44);
-  const lo = m.u32(gen + 0xc4), lsz = m.u16(gen + 0xd8);
-  const w8 = m.u32(p + 8), wc = m.u32(p + 0xc);
-  const mode = (g40 >>> 12) & 0xf;
-  const base1 = m.u32(p + 0x70);
-  if (mode === 0) throw new Unverified('0xab52cc colour mode 0');
-  const env = m.f32((pool + lo + lsz * (w8 & 0xffff)) >>> 0);
-  const e = toS32(F(env * 256.0));                           // 256.0 at 0xab523c
-  const bit = (wc >>> 24) & 1;
-  m.w32(p + 0x60 + (bit << 3), envColour(base1, mode, e));
-  let c2;
-  if (m.u8(p + 0x7f) & 0xf){
-    m.u32(gen + 0x40); m.u32(gen + 0x44);
-    const base2 = m.u32(p + 0x74);
-    c2 = envColour(base2, (m.u32(gen + 0x40) >>> 12) & 0xf, toS32(F(env * 256.0)));   // 256.0 at 0xab52fc
-  } else throw new Unverified('0xab52e0 polyline without a second colour');
-  m.w32(p + 0x64 + (bit << 3), c2);
-  const f10b = m.u32(p + 0x10);
-  if (f10b & 0x100100) throw new Unverified('0xab53a4 polyline scale step');
-  const s16 = m.f32(gen + 0xfc);
-  if (f10b & 0x1000000) throw new Unverified('0xab5414 particle +0x10 bit 24');
-  const s18 = m.f32(p + 0x40 + (bit << 2));
-  let s0 = m.f32(p + 0xb4);
-  if (f10b & 1) throw new Unverified('0xab53f8 width rate');
-  const sc = F(s18 * s16);
-  m.wf32(p + 0xa4 + (bit << 2), F(sc * s0));
-  if (!(m.u8(p + 0x9d) & 0xf)) throw new Unverified('0xab54fc polyline without a second width');
-  const f10c = m.u32(p + 0x10);
-  if (f10c & 0x2000000) throw new Unverified('0xab54b0 particle +0x10 bit 25');
-  s0 = m.f32(p + 0xbc);
-  if (f10c & 2) throw new Unverified('0xab5494 second width rate');
-  m.wf32(p + 0xac + (bit << 2), F(sc * s0));
-  return polyShapeUpdate(m, gen, p, m.u32(gen + 0x34) + 0x1b0);
+  return liftedCall(m, 0xab5090, [gen, p]).r[0];
 }
 
 // 0xab4f64 (slot 24): the LitePolyline particle pass.
 export function polylineFrame(m, gen){
-  if (baseFrame(m, gen) !== 1) return 0;
-  let p = m.u32(gen + 0xb0);
-  while (p){
-    if (updateLPLParticle(m, gen, p) === 1) p = m.u32(p + 4);
-    else p = killParticle(m, gen, p);
-    const d0 = m.u32(gen + 0xd0), d4 = m.u32(gen + 0xd4);
-    const rest = [];
-    for (let i = 0; i < 6; i++) rest.push(m.u32(gen + 0xd8 + 4 * i));
-    m.w32(gen + 0xd0, ((d0 & 0xffff) | (((d0 + 0x10000) >>> 0) & 0xffff0000)) >>> 0);
-    m.w32(gen + 0xd4, d4);
-    for (let i = 0; i < 6; i++) m.w32(gen + 0xd8 + 4 * i, rest[i]);
-  }
-  if (m.u8(gen + 0x43) & 0xf) throw new Unverified('0xab5018 generator +0x43 low nibble');
-  if (m.u32(gen + 0xcc) !== 0 && m.u32(gen + 0xb0) !== 0) throw new Unverified('0xab507c generator +0xcc');
-  return 1;
+  return liftedCall(m, 0xab4f64, [gen]).r[0];
 }

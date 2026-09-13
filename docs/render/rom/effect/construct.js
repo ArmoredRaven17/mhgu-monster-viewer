@@ -6,6 +6,7 @@
 //   alloc(size, align) -> address        a fresh zeroed block from the heap the effect is built on
 //   nextId(manager) -> id                 the effect manager's unique-id counter (0xb8f4b8)
 // Everything else is the ROM's own logic over the game's own struct layouts.
+import { liftedCall } from './bridge.js';
 import { Unverified, F } from './mem.js';
 import { Scratch } from './motion.js';
 import { eulerMatrix, matToQuat } from './spawn.js';
@@ -297,11 +298,7 @@ function generatorSizes(m, g, size, extra){
 
 // 0xa585dc: the LitePolyline point block size.
 function polylineBlock(m, g, count, kind, sub){
-  if (count === 0) throw new Unverified('0xa58668 polyline with no points');
-  const k = (kind - 1) >>> 0;
-  if (k > 5) throw new Unverified('0xa58680 polyline kind ' + kind);
-  if (k !== 0) throw new Unverified('0xa585fc polyline kind ' + kind);
-  return (((0x6f + (count << 5)) >>> 0) & ~0x1f) >>> 0;
+  return liftedCall(m, 0xa585dc, [g, count, kind, sub]).r[0];
 }
 
 // Vtable slot 6 per type: the base init, then the particle size.
@@ -320,12 +317,7 @@ function initLiteBillboard(m, g, owner, row, index){           // 0xa7814c
   return generatorSizes(m, g, 0xb0, 0);
 }
 function initLitePolyline(m, g, owner, row, index){            // 0xaae244
-  if (generatorInit(m, g, owner, row, index) !== 1) throw new Unverified('0xaae29c init failed');
-  const par = m.u32(g + 0x34);
-  const w170 = m.u32(par + 0x170), w174 = m.u32(par + 0x174);
-  let extra = polylineBlock(m, g, (w170 >>> 8) & 0xff, w170 & 0xff, (w174 >>> 8) & 0xf);
-  if (m.u16(par + 0x1ae) !== 0) extra = (extra + 0x20) >>> 0;
-  return generatorSizes(m, g, 0xd0, extra);
+  return liftedCall(m, 0xaae244, [g, owner, row, index]).r[0];
 }
 
 // 0xa56174 (slot 7): link the particle pool into the free list.
@@ -575,44 +567,7 @@ function startLiteBillboard(m, g){                             // 0xa78178
   m.w32(g + 0x180, (par + 0x48) >>> 0);
 }
 function startLitePolyline(m, g){                              // 0xaae2a4
-  generatorStart(m, g);
-  const par = m.u32(g + 0x34);
-  const w170 = m.u32(par + 0x170);
-  if ((w170 & 0xff) !== 1) throw new Unverified('0xaae438 LitePolyline kind ' + (w170 & 0xff));
-  const w = []; for (let i = 0; i < 8; i++) w.push(m.u32(g + 0xd0 + 4 * i));
-  const w210 = m.u32(par + 0x210);
-  let e8 = ((w[6] & 0xfff0ffff) | (0xf0000 & (w210 << 12))) >>> 0;
-  for (let i = 0; i < 6; i++) m.w32(g + 0xd0 + 4 * i, w[i]);
-  m.w32(g + 0xe8, e8); m.w32(g + 0xec, w[7]);
-  e8 = ((e8 & 0xff0fffff) | ((m.u32(par + 0x210) & 0xf) << 20)) >>> 0;
-  const e8b = (e8 & 0xf0ffffff) >>> 0;
-  for (let i = 0; i < 5; i++) m.w32(g + 0xd0 + 4 * i, w[i]);
-  m.w32(g + 0xe4, w[5]); m.w32(g + 0xe8, e8); m.w32(g + 0xec, w[7]);
-  const mode = (m.u32(par + 0x210) >>> 8) & 0xf;
-  const e8c = (e8b | (mode << 24)) >>> 0;
-  if (mode === 6) throw new Unverified('0xaae420 LitePolyline mode 6');
-  m.w32(g + 0xd0, w[0]); m.w32(g + 0xd4, w[1]); m.w32(g + 0xd8, w[2]); m.w32(g + 0xdc, (w[3] | 0x40000000) >>> 0);   // 0xaae3dc
-  m.w32(g + 0xe0, w[4]); m.w32(g + 0xe4, w[5]); m.w32(g + 0xe8, e8c); m.w32(g + 0xec, w[7]);
-  const type = m.u8(g + 0x40);
-  const entry = m.u32(g + 0x28);
-  const model = m.u32(entry + 0x14);
-  const flag = paramBit16(m, g);
-  if (type !== 1) throw new Unverified('0xaae614 LitePolyline generator type ' + type);
-  if (model === 0) throw new Unverified('0xaae7c4 LitePolyline without a resource');
-  const low = m.u32(m.u32(g + 0x34) + 0x18) & 0xf0;
-  let r2 = 1, r1 = 0x1a;
-  if (low){ r1 = 0x30; r2 = 0x18; }
-  if (flag !== 0) r2 = r1;
-  m.w8(g + 0x46, r2);
-  const p = m.u32(g + 0x34);
-  const w174 = m.u32(par + 0x174);
-  m.w8(g + 0x194, m.u32(p + 0x40));
-  m.w32(g + 0x170, m.u32(p + 0x48)); m.w32(g + 0x174, m.u32(p + 0x4c));
-  m.w32(g + 0x180, (p + 0x48) >>> 0);
-  if (w174 & 0xf){
-    m.w32(g + 0x178, m.u32(par + 0x178)); m.w32(g + 0x17c, m.u32(par + 0x17c));
-    m.w32(g + 0x184, (par + 0x178) >>> 0);
-  }
+  liftedCall(m, 0xaae2a4, [g]);
 }
 
 // 0xa56960 (slot 9): RNG counters from the seed; curve switches.
@@ -706,23 +661,7 @@ function transformLiteBillboard(m, g){                         // 0xa783a8
   return 1;
 }
 function transformLitePolyline(m, g){                          // 0xaaea38
-  const par = m.u32(g + 0x34);
-  const rows = (m.u32(par + 0x174) >>> 12) & 0xf;
-  const count = (m.u32(par + 0x170) >>> 8) & 0xff;
-  if (rows === 0) throw new Unverified('0xaaea74 LitePolyline without rows');
-  const s16 = (v) => ((v & 0xffff) << 16) >> 16;
-  const r7 = (count + Math.imul(s16(count - 1), s16(rows))) >>> 0;
-  if (m.u8(par + 0x18) & 0xf0) throw new Unverified('0xaaea88 LitePolyline parameters +0x18 high nibble');
-  const need = ((count << 4) + (r7 << 6)) >>> 0;
-  const owner = m.u32(g + 8);                                              // 0x9ba878
-  let most = m.u32(owner + 0x1c0);
-  if (most < need){ m.w32(owner + 0x1c0, need); most = need; }
-  if (most > m.u32(mgrOf(m) + 0x154)) throw new Unverified('0x9ba8a4 polyline work area too small');
-  const mode = (m.u32(par + 0x174) >>> 8) & 0xf;
-  if (count !== 0 && mode !== 4) throw new Unverified('0xaaeb08 LitePolyline mode ' + mode);
-  if (generatorTransform(m, g, 0) !== 1) throw new Unverified('0xaaeb60 transform failed');
-  m.w32(g + 0x1c0, 0);                                                     // 0xa5891c with no extra
-  return 1;
+  return liftedCall(m, 0xaaea38, [g]).r[0];
 }
 
 // 0xae9df4: the generator's random seed (node block +0x10, negative: draw one).

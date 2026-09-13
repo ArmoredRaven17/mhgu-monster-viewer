@@ -11,18 +11,7 @@
 // vertex buffer (0x8a2e58), which a viewer reads back after the draw.
 import { registerNative, invoke, clobber } from './cpu.js';
 import './lifted-draw.js';
-import { matMul } from './polyline.js';
-import { eulerMatrix } from './spawn.js';
-import { internals as C } from './construct.js';
-
-registerNative(0x1ebe8, (m, c) => { matMul(m, c.r[0], c.r[1]); clobber(c); });
-registerNative(0x320ed4, (m, c) => { eulerMatrix(m, c.r[0], c.r[1], c.r[2]); clobber(c); });
-registerNative(0xb8ef7c, (m, c) => { const r0 = C.workArea(m, c.r[0], c.r[1], c.r[2]) >>> 0; clobber(c); c.r[0] = r0; });
-registerNative(0x13ecc68, (m, c) => {                                     // __aeabi_memcpy
-  const d = c.r[0], s = c.r[1], n = c.r[2];
-  for (let i = 0; i < n; i++) m.w8(d + i, m.u8(s + i));
-  clobber(c);
-});
+import './bridge.js';                  // matMul, eulerMatrix, the work area and memcpy as natives
 
 // The renderer's view of a call: r0..r3, the first n stack words and the CPU (0xc8d208 also takes s0,
 // the reflect scale -- see modeldraw.js). The words are looked at, not read by game code, so they
