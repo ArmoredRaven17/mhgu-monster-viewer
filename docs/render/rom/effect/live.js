@@ -2,7 +2,8 @@
 //
 // docs/effects/<monster>.json names the effect files and the joints their nodes bind to
 // (C:\MHGU-Extract\efx\export_effects.py). For each, the host (host.js) loads the list with the game's
-// loader, starts it hung from a PARENT UNIT whose joint matrices are the monster's bones, and every
+// loader and starts it hung from a PARENT UNIT whose joint matrices are the monster's bones -- an effect
+// with a record the way the monster's request starts it (proof.js: root joint, row masks) -- and every
 // 1/60 s -- the rate the .efl header declares, and the step the emulator harness verified -- moves it.
 // Every rendered frame draws it: the effect draw and the engine's primitive draw run on the host, and
 // each primitive GPU draw they produce becomes a mesh here, with the ROM's own vertices, index strips,
@@ -135,19 +136,24 @@ export class LiveEffects {
     host.initDraw({ position: [0, 0, 0], view: [...I, 0, 0, 0, 1], world: [...I, 0, 0, 0, 1] });
     this.root = root;
     const bones = gidBonesOf(root);
-    this.effects = def.effects.map(e => {
-      const owner = host.createEffect(files[e.efl]);
-      let parent = null, joints = [];
-      if (e.joints.length){
-        parent = host.createParent(e.joints);
-        joints = e.joints.map(j => ({ j, bone: (bones.find(b => b.gid === j) || {}).node || null }));
-        host.attach(owner, parent);
-      }
-      return { owner, parent, joints, def: e };
-    });
+    const hex = h => Uint8Array.from(h.match(/../g), b => parseInt(b, 16));
+    // One parent for every effect, as in the game: they all hang from the monster (the request's parent is
+    // the enemy itself), whose bones answer every joint any of their nodes names.
+    const joints = [...new Set(def.effects.flatMap(e => e.joints))];
+    this.effects = def.effects.map(e => ({ owner: host.createEffect(files[e.efl]), def: e }));
+    const parent = this.parent = joints.length ? host.createParent(joints) : null;
+    this.joints = joints.map(j => ({ j, bone: (bones.find(b => b.gid === j) || {}).node || null }));
     root.updateMatrixWorld(true);
     this.writeJoints();
-    for (const e of this.effects) host.start(e.owner);
+    for (const e of this.effects){
+      // a record: started as the monster's request starts it (proof.js), which starts it; otherwise hung
+      // from the parent and started
+      if (e.def.record) host.proofStart(e.owner, parent, hex(e.def.record.payload));
+      else {
+        if (e.def.joints.length) host.attach(e.owner, parent);
+        host.start(e.owner);
+      }
+    }
     // the frame driver: an empty mesh that is always in the render list
     const anchor = this.anchor = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }));
     anchor.frustumCulled = false;
@@ -160,8 +166,8 @@ export class LiveEffects {
 
   writeJoints(){
     const m = new THREE.Matrix4();
-    for (const e of this.effects){
-      for (const { j, bone } of e.joints){
+    if (this.parent){
+      for (const { j, bone } of this.joints){
         if (!bone) continue;
         m.copy(bone.matrixWorld);
         const el = m.elements;
@@ -170,7 +176,7 @@ export class LiveEffects {
         // scale as they are, so an offset the effect gives in game units lands scaled like the body
         el[12] /= MT_TO_VIEW; el[13] /= MT_TO_VIEW; el[14] /= MT_TO_VIEW;
         // three.js stores columns; the game's rows in memory order are exactly that array
-        this.host.setJointMatrix(e.parent, j, Array.from(el));
+        this.host.setJointMatrix(this.parent, j, Array.from(el));
       }
     }
   }

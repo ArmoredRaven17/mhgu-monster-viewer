@@ -1,5 +1,5 @@
 {
- "_about": "Built by C:\\MHGU-Extract\\efx\\export_effects.py. The effects run on the ROM-translated runtime (docs/render/rom/effect/host.js); `joints` are the joint numbers the effect's nodes bind to (the parent unit supplies those joints' matrices), `trigger` is the viewer state that shows them.",
+ "_about": "Built by C:\\MHGU-Extract\\efx\\export_effects.py. The effects run on the ROM-translated runtime (docs/render/rom/effect/host.js); `joints` are the joint numbers the effect's nodes bind to (the parent unit supplies those joints' matrices), `trigger` is the viewer state that shows them. An effect with a `record` is started the way the monster's request starts it (docs/render/rom/effect/proof.js): `record.payload` is its rProofEffectList record's 160 fixed bytes (E:/offline/decode/notes/effects-firing.md).",
  "monster": "em043_05",
  "trigger": "rage",
  "effects": [
@@ -8,7 +8,26 @@
    "joints": [
     103,
     3
-   ]
+   ],
+   "record": {
+    "pel": "em043_05u",
+    "key": 30,
+    "index": 9,
+    "payload": "00000000000000000000000000000000000000000000000000000000000000000000803f0000803f0000803f000000001e006700010000040000010003000600000000000000000001000000ffffffff00000000000000000000614400000000000000ff000000000000003f0000000000030000000000ff0000803f0000803f000000000000000000000000ffffffffffffffffffffffffffffffff0000803f"
+   }
+  },
+  {
+   "efl": "files/em043_05_000.efl",
+   "joints": [
+    103,
+    3
+   ],
+   "record": {
+    "pel": "em043_05u",
+    "key": 31,
+    "index": 10,
+    "payload": "00000000000000000000000000000000000000000000000000000000000000000000803f0000803f0000803f000000001f000300010000040000010003000600000000000000000002000000ffffffff00000000000000000000614400000000000000ff000000000000003f0000000000030000000000ff0000803f0000803f000000000000000000000000ffffffffffffffffffffffffffffffff0000803f"
+   }
   }
  ],
  "resources": {

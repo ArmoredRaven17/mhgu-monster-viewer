@@ -50,25 +50,25 @@ host.m.page = a => { const k = Math.floor(a / 4096); if (imageKeys.has(k)) touch
 
 const T = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0];
 host.initDraw({ position: [0, 0, 1000], view: [...T, 0, 0, -1000, 1], world: [...T, 0, 0, 1000, 1] });
-const owners = [];
-for (const e of def.effects){
-  const owner = host.createEffect(new Uint8Array(readFileSync(join(docs, e.efl))));
-  if (e.joints.length){
-    const parent = host.createParent(e.joints);
-    e.joints.forEach((j, i) => host.setJointMatrix(parent, j, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 10 * i, 100, 0, 1]));
-    host.attach(owner, parent);
-    e.parent = parent;
+// as live.js builds them: every effect, then one parent for all of them, then each started -- a record
+// through the monster's request (proof.js), otherwise attached and started
+const owners = def.effects.map(e => host.createEffect(new Uint8Array(readFileSync(join(docs, e.efl)))));
+const joints = [...new Set(def.effects.flatMap(e => e.joints))];
+const parent = joints.length ? host.createParent(joints) : null;
+joints.forEach((j, i) => host.setJointMatrix(parent, j, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 10 * i, 100, 0, 1]));
+def.effects.forEach((e, i) => {
+  if (e.record) host.proofStart(owners[i], parent, hex(e.record.payload));
+  else {
+    if (e.joints.length) host.attach(owners[i], parent);
+    host.start(owners[i]);
   }
-  host.start(owner);
-  owners.push(owner);
-}
+});
 let prims = 0, models = 0;
 for (let f = 0; f < +frames; f++){
-  def.effects.forEach((e, i) => {
-    if (!e.parent) return;
-    const a = (f < 100 ? 0 : f < 300 ? 0.02 * (f - 100) : 4) + i;      // at rest, turning, at rest again
-    e.joints.forEach((j, k) => host.setJointMatrix(e.parent, j, [Math.cos(a), 0, -Math.sin(a), 0, 0, 1, 0, 0, Math.sin(a), 0, Math.cos(a), 0, 20 * k, 150, -25, 1]));
-  });
+  if (parent){
+    const a = f < 100 ? 0 : f < 300 ? 0.02 * (f - 100) : 4;            // at rest, turning, at rest again
+    joints.forEach((j, k) => host.setJointMatrix(parent, j, [Math.cos(a), 0, -Math.sin(a), 0, 0, 1, 0, 0, Math.sin(a), 0, Math.cos(a), 0, 20 * k, 150, -25, 1]));
+  }
   for (const o of owners) host.move(o);
   const d = host.drawFrame(owners);
   prims += d.prims.length; models += d.models.length;
