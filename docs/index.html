@@ -181,6 +181,8 @@ dl.info dd{margin:0;color:var(--text);font-variant-numeric:tabular-nums;
 .zchart thead th{cursor:pointer}
 .zchart thead th:hover{color:var(--text)}
 .zchart tbody th,.pchart tbody th{text-align:left;font-weight:400;color:var(--text)}
+/* A zone the ROM defines that the heat map never paints -- see zoneSlots(). Listed, but marked. */
+.zchart tbody th.unpainted,.pchart tbody th.unpainted{font-style:italic;color:var(--text-hint)}
 .zchart tbody th{position:sticky;left:0;background:var(--bg2)}
 /* Selecting a type lights the WHOLE COLUMN, not each cell in it. Ported from the Zenny Gauntlet's
    crosshair, whose comment records why: every single-cell marker there "read as off", while a lit
@@ -3567,6 +3569,27 @@ function applyUndef(){
 // colour is a rank, not a reading, so the chart gives the numbers and the model gives the shape
 // (Raven, 2026-09-05: "the idea will be to display the Hitzone chart along with the Heatmaps").
 // Clicking a column header selects that damage type, so the chart IS the heat-map control.
+// AN ATTACHED BODY HAS NO HIT ZONES YET, SO IT GOES DARK GRAY. Nakarkos' tentacles carry their own
+// rBodyData -- em084_00_arm_left_bodydata.bdd and _arm_right, 16 capsules each on the body's Back /
+// Shell / Head rows -- but build-hitzones.py reads only <em>_bodydata.bdd and bakes only the body
+// model, so the tentacles have no slots at all. Painting them with the BODY's zone map was worse than
+// nothing: their prim numbers index a different model, so most prims were left in full colour beside
+// a heat-mapped body. Raven, 2026-09-13: "If we don't have hit zones for tentacles, make them a dark
+// gray when heat mapping the main body." Painted through applyHeatmap itself, with every vertex on a
+// dummy slot, so clearHeatmap restores them exactly as it restores everything else.
+const NO_ZONE_RGB = [0.22, 0.22, 0.24];
+function heatEach(e, paint){
+  for (const [name, g] of Object.entries(mounted)){
+    if (name !== 'main' && attachedBodyOf(e && e.id, name)){
+      const zones = {};
+      g.traverse(o => {
+        if ((o.isMesh || o.isSkinnedMesh) && o.userData.prim !== undefined)
+          zones[o.userData.prim] = new Uint8Array(o.geometry.attributes.position.count).fill(255);
+      });
+      applyHeatmap(g, zones, null, 1, THREE, { 255: NO_ZONE_RGB });
+    } else paint(g);
+  }
+}
 async function applyHeat(){
   const e = entry();
   const rec = e && HITZONES.monsters && HITZONES.monsters[e.id];
@@ -3621,7 +3644,7 @@ async function applyHeat(){
     (rec.parts || []).forEach((p, i) => { if (p && p.extract) byPart[i] = EXTRACT_RGB[p.extract]; });
     const map = zoneCache.zones.parts;
     if (!map) { for (const g of Object.values(mounted)) clearHeatmap(g); }
-    else for (const g of Object.values(mounted)) applyHeatmap(g, map, null, 1, THREE, byPart);
+    else heatEach(e, g => applyHeatmap(g, map, null, 1, THREE, byPart));
   } else if (state.heat === 'hardness-cut' || state.heat === 'hardness-impact'){
     // Painted the sharpness colour you have to bring to reach the SELECTED RUNG, so the model reads
     // as "green here, white there" for that tier. A slot no sharpness carries to the rung is left
@@ -3635,9 +3658,9 @@ async function applyHeat(){
       const lv = hardnessLevel(row[type], t, tier);
       if (lv !== null) bySlot[slot] = SHARP_RGB[lv];
     });
-    for (const g of Object.values(mounted)) applyHeatmap(g, zoneCache.zones.slots, null, 1, THREE, bySlot);
+    heatEach(e, g => applyHeatmap(g, zoneCache.zones.slots, null, 1, THREE, bySlot));
   } else if (state.heat){
-    for (const g of Object.values(mounted)) applyHeatmap(g, zoneCache.zones.slots, value, HEATSCALE, THREE);
+    heatEach(e, g => applyHeatmap(g, zoneCache.zones.slots, value, HEATSCALE, THREE));
   } else {
     for (const g of Object.values(mounted)) clearHeatmap(g);
   }
@@ -3654,9 +3677,25 @@ const ZONE_GROUPS = [
 ];
 // Parts down, the group's types across, on the same ramp the model uses. A column header both
 // selects the type and paints it, so the chart and the heat map stay one control.
+// THE ZONES TO LIST: every slot the ROM defines, not only the ones the heat map managed to paint.
+// Raven, 2026-09-13: "I don't see the hitzone on the hitzone table" -- Nakarkos' Weakpoint, the
+// rainbow spot. The charts read `slotsUsed` -- the slots some vertex was painted with -- so a zone the
+// bake never painted was dropped from the TABLE too, though its damage row is right there in the ROM.
+// `slotsDefined` is every slot an rBodyData capsule points at (placeholder rows excluded). The bake has
+// since been changed to paint nested zones (same-bone capsule first, then smallest containing, see
+// build-hitzones.py), which painted six of the seven: Nakarkos 6, Shogun and Rustrazor Ceanataur 1
+// and 6, Volvidon 4, Zamtrios 7, Ahtal-Ka 3. Nerscylla's slot 7 still paints nowhere. An unpainted row
+// is listed and marked, not hidden.
+function zoneSlots(rec){ return rec.slotsDefined || rec.slotsUsed || []; }
+function markUnpainted(th, rec, sl){
+  if (rec.slotsDefined && (rec.slotsUsed || []).indexOf(sl) < 0){
+    th.classList.add('unpainted');
+    th.title = 'A hit zone the ROM defines that the heat map does not paint on this model.';
+  }
+}
 function buildTypeChart(el, types, rec, table){
   const named = rec.names || {};
-  const slots = rec.slotsUsed || [];
+  const slots = zoneSlots(rec);
   el.textContent = '';
   if (!slots.length) return;
   const head = el.createTHead().insertRow();
@@ -3677,6 +3716,7 @@ function buildTypeChart(el, types, rec, table){
     const tr = body.insertRow();
     const th = document.createElement('th');
     th.textContent = named[sl] || 'Slot ' + sl;
+    markUnpainted(th, rec, sl);
     tr.appendChild(th);
     for (const t of types){
       const td = tr.insertCell();
@@ -3750,7 +3790,7 @@ for (const b of document.querySelectorAll('#zoneTabs .ztab')){
 function buildHardnessChart(rec, table){
   const chart = document.getElementById('monHardChart');
   const named = rec.names || {};
-  const slots = rec.slotsUsed || [];
+  const slots = zoneSlots(rec);
   const t = DEFLECT_T[state.deflectT] || DEFLECT_T.normal;
   const tier = +state.deflectTier || 2;
   chart.textContent = '';
@@ -3773,6 +3813,7 @@ function buildHardnessChart(rec, table){
     const tr = body.insertRow();
     const th = document.createElement('th');
     th.textContent = named[sl] || 'Slot ' + sl;
+    markUnpainted(th, rec, sl);
     tr.appendChild(th);
     for (const key of ['cut', 'impact']){
       const td = tr.insertCell();
