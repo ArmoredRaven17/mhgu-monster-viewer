@@ -160,6 +160,14 @@ export class ProofRequest {
 export function pruneUnits(m, state){
   state.units = state.units.filter(([u]) => (m.u32(u + 0xc) & 7) !== 3);
 }
+// A STOP REQUEST, the way a monster's own code ends a running effect -- Teostra's aura when its switch goes
+// off (0xe1108c): 0x329c40(core, 0), which asks the core to stop (vtable +0x9c, 7) unless it is already
+// stopping. The effect runs on to its own end (32 frames for the aura) and the core then dies as a
+// one-shot does, so the request stays in the passes until finished().
+export function stopRequest(m, request){
+  liftedCall(m, 0x329c40, [request.core, 0]);
+  request.stopped = true;
+}
 export function releaseRequest(state, request){
   const gone = new Set([request.core, ...request.effects()]);
   state.units = state.units.filter(([u]) => !gone.has(u));

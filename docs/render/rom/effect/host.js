@@ -32,7 +32,7 @@ import { drawEffect } from './draw.js';
 import { invoke } from './cpu.js';
 import * as modeldraw from './modeldraw.js';
 import './prim.js';
-import { proofStart, installRequests, ProofRequest, unitFrame, pruneUnits, releaseRequest } from './proof.js';
+import { proofStart, installRequests, ProofRequest, unitFrame, pruneUnits, releaseRequest, stopRequest } from './proof.js';
 import { PARENT_GETDTI, PARENT_ADD_EFFECT, RESMGR_RELEASE } from './bridge.js';
 
 const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
@@ -179,6 +179,7 @@ export class EffectHost {
   // units the passes no longer act on (state 3) off the list; a request off the passes altogether (proof.js)
   pruneUnits(){ if (this.requests) pruneUnits(this.m, this.requests); }
   releaseRequest(request){ releaseRequest(this.requests, request); }
+  stopRequest(request){ stopRequest(this.m, request); }
 
   // A parent unit for joint-bound nodes: 0x939278 at vtable +0x54, a live unit's +0xc, the joint
   // number -> index table at +0x498 and the joint array at +0x494 (0xa0 bytes each, the world matrix
@@ -258,8 +259,11 @@ export class EffectHost {
     m.w32(LIST + 0x74, RECS); m.w32(LIST + 0x78, ENTS); m.w32(LIST + 0x7c, 4096); m.w32(LIST + 0x64, 1);
     const VB = this.VB = obj(0x40), VBDATA = this.VBDATA = obj(0x100000);
     m.w32(PRIM + 8, VB); m.w32(VB + 8, 0x100000); m.w32(VB + 0x14, VBDATA);
+    // the texture sets (efx/efx_draw.py build): entry 0 of the draw system's registry is no texture set
+    // (ctor 0xc935a4, frame begin 0xbab2c4, read at 0xbb1e40), and a worker's ranges run on from index 1
+    // (0xa26ae4)
     const TEXSETS = this.TEXSETS = obj(20 * 256);
-    m.w32(PRIM + 0x248 + 4, TEXSETS); m.w32(PRIM + 0x248 + 0xc, 256);
+    m.w32(PRIM + 0x248 + 4, TEXSETS + 20); m.w32(PRIM + 0x248 + 0xc, 255); m.w32(PRIM + 0x248 + 0x10, 1);
     m.w32(VIEW + 0x14, BUF); m.w32(VIEW + 0x18, BUF + 0x100000);
     // the package: one object per record, so a slot's value names its record
     const n = recs.length;
@@ -280,7 +284,7 @@ export class EffectHost {
       const r = recs[i];
       if (r && (r[1] === 4 || r[1] === 5 || r[1] === 6)) m.w32(VIEW + 0x204 + 8 * i, FAKE + 0x40 * i);
     }
-    // the draw system's texture-set registry shares the worker's (one worker, base index 0)
+    // the draw system's texture-set registry shares the worker's array (one worker, from index 1)
     const REG = this.malloc(0x10);
     m.w32(REG + 4, TEXSETS); m.w32(REG + 8, 256);
     m.w32(SYS + 0x54, 1); m.w32(SYS + 0x58, REG);

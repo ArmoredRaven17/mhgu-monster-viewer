@@ -2,18 +2,22 @@
 //
 // Each effect in docs/effects/<monster>.json carries `when` (C:\MHGU-Extract\efx\export_effects.py), the
 // state in which the monster's code starts it (E:\offline\decode\notes\effects-firing.md):
-//   'always'     from the moment the monster is shown. Teostra's fire aura (em027_00_011 key 0) runs while
-//                a byte its own code sets and clears is on (0xe10f7c); the cases that set and clear it
-//                (its hook, 0xe107ac) are not read as states the viewer has, so it is shown throughout.
-//   'rage'       while enraged (Savage Deviljho's aura and eyes, em043_05_000 keys 30 / 31)
+//   'always'     from the moment the monster is shown
+//   'rage'       while enraged (Savage Deviljho's aura and eyes, em043_05_000 keys 30 / 31; Teostra's fire
+//                aura, em027_00_011 key 0 -- Teostra's own switch for it is a byte its hook sets and clears,
+//                0xe107ac, which the viewer ties to Enraged on Raven's word: "does not turn off with Enraged")
 //   'rageStart'  once, as rage turns on (Teostra's burst, em027_00_019 key 2)
-//   'rageEnd'    once, as rage turns off (em027_00_019 key 3)
+//   'rageEnd'    once, as rage turns off (em027_00_019 key 3; Teostra's aura end, em027_00_018 key 1)
 // An entry without `when` is a 'rage' effect, as the viewer showed every effect before it had the field.
 //
+// LEAVING THE STATE. An entry with `stop: 'request'` is ended the way its monster's code ends it -- Teostra's
+// aura goes out through a stop request (0x329c40(core, 0) at 0xe1108c) and fades over its own frames; the
+// core it kept is forgotten there, so the next rage starts a new aura beside the fading one (0xe111d8 has
+// nothing to kill). Any other 'rage' effect comes off at once: how the game ends Savage's is not read.
+//
 // A request that has run its course (proof.js finished()) is dropped, and units the passes no longer act
-// on come off the list (pruneUnits). Leaving rage takes a 'rage' effect off at once: how the game ends a
-// running effect is not read. Every start builds the request anew -- the heap is a bump allocator, so each
-// costs its objects for good; a start allocates once, its frames do not.
+// on come off the list (pruneUnits). Every start builds the request anew -- the heap is a bump allocator, so
+// each costs its objects for good; a start allocates once, its frames do not.
 //
 // The same class runs in the viewer (live.js) and headless (dev/effect-export-rom.mjs), so what the pages
 // export and the soak exercise is what the viewer does.
@@ -49,6 +53,7 @@ export class EffectSchedule {
       if (!e.def.record) continue;
       if (e.when === 'rage'){
         if (on) this.start(e);
+        else if (e.def.stop === 'request'){ for (const q of e.requests) if (!q.stopped) this.host.stopRequest(q); }
         else { for (const q of e.requests) this.host.releaseRequest(q); e.requests.length = 0; }
       } else if (e.when === (on ? 'rageStart' : 'rageEnd')) this.start(e);
     }

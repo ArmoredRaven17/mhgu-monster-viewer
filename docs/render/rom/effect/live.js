@@ -25,6 +25,7 @@
 //     view-projection is empty, so those two buffers are never taken from a draw (cameraMatrices below)
 //   * the scene depth both programs' soft edges read (sceneDepth below)
 //   * textures sampled as stored: the effect textures are MT format 7, NVN RGBA8 UNORM (0xb07e48), no decode
+//   * a GROUND to draw against (groundPlane below): the game's effects meet its terrain, the viewer has none
 //   * the colour written as the programs return it (primshader.js, OUTPUT: RGBA8 UNORM targets)
 // Interfaces the draws never select (FFogVTF, FAlphaTest, ...) run their own bodies (no fog, no alpha test).
 import * as THREE from 'three';
@@ -117,6 +118,7 @@ export class LiveEffects {
     this.last = null;
     this.acc = 0;
     this.stats = { frames: 0, steps: 0, prims: 0, models: 0 };
+    this.groundOn = groundDefault;
   }
 
   // rage: the viewer's Enraged state as the effects start (setRage follows it from then on)
@@ -169,7 +171,29 @@ export class LiveEffects {
     anchor.onBeforeRender = (renderer, scene, camera) => this.frame(renderer, scene, camera);
     this.group.add(anchor);
     root.add(this.group);
+    this.groundPlane();
     return this;
+  }
+
+  // THE GROUND. The game draws its effects against its terrain: their depth test (DSZTest) hides what lies
+  // under the ground, and both programs' soft edges read the terrain's depth (tPrimDepthMap / tDepthMap).
+  // The viewer has no terrain, so what an effect puts below the monster's feet drew in the open under the
+  // body -- Teostra's aura is centred on the unit, which is where it stands, and much of its fire is below
+  // it. Raven, 2026-09-13: "Flame effect sits directly below Teostra". A plane at the unit's height stands in
+  // for the ground: it writes depth and no colour, in front of the effect meshes and into the scene depth,
+  // and faces up, so from under it nothing is hidden. Only while a clip plays: in the bind pose the skeleton
+  // hangs below the root, which is then all the unit there is, and a ground there would cut the body's
+  // effects in half. It is the viewer's stand-in, not a ROM value: __view.effectGround(false) takes it away.
+  groundPlane(){
+    const geometry = new THREE.PlaneGeometry(2000, 2000);
+    geometry.rotateX(-Math.PI / 2);
+    const material = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: true, depthTest: true, side: THREE.FrontSide });
+    const make = () => { const p = new THREE.Mesh(geometry, material); p.frustumCulled = false; p.renderOrder = -1e9; return p; };
+    this.ground = make();
+    this.scene.add(this.ground);
+    this.groundScene = new THREE.Scene();
+    this.groundDepth = make();
+    this.groundScene.add(this.groundDepth);
   }
 
   writeJoints(){
@@ -183,6 +207,7 @@ export class LiveEffects {
       // (0x31f788, 0x8a4b88).
       const p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3();
       this.unitMatrix(m).decompose(p, q, s);
+      if (this.ground){ this.ground.position.copy(p); this.groundDepth.position.copy(p); }
       this.host.setParentPose(this.parent, { position: [p.x / MT_TO_VIEW, p.y / MT_TO_VIEW, p.z / MT_TO_VIEW],
                                              quaternion: [q.x, q.y, q.z, q.w], scale: s.x });
       for (const { j, bone } of this.joints){
@@ -215,6 +240,7 @@ export class LiveEffects {
   unitMatrix(out){
     const pose = typeof window !== 'undefined' && window.__view && window.__view.pose;
     const scn = pose && pose.mixer && pose.proxyBones && pose.frame ? pose.mixer.getRoot() : null;
+    this.unitOnGround = !!scn;
     if (!scn) return out.copy(this.root.matrixWorld);
     const ref = scn.getObjectByName('reference') || scn;
     pose.frame.updateWorldMatrix(true, false);
@@ -261,6 +287,8 @@ export class LiveEffects {
     this.host.setCamera({ position: cam.position.toArray(), view: Array.from(cam.view.elements), world: Array.from(cam.viewI.elements) });
     const { prims, models } = this.host.drawFrame(effects);
     this.stats.frames++; this.stats.prims = prims.length; this.stats.models = models.length;
+    const ground = !!(this.groundOn && this.unitOnGround);
+    if (this.ground) this.ground.visible = ground;
     this.depth = this.sceneDepth(renderer, scene, camera);
     this.syncModels(models, renderer, cam);
     this.sync(prims, renderer, cam);
@@ -301,6 +329,12 @@ export class LiveEffects {
       renderer.state.buffers.depth.setMask(true);
       if (!renderer.autoClear) renderer.clear();
       renderer.render(scene, camera);
+      if (this.groundScene && this.groundOn && this.unitOnGround){
+        const autoClear = renderer.autoClear;
+        renderer.autoClear = false;
+        try { renderer.render(this.groundScene, camera); }
+        finally { renderer.autoClear = autoClear; }
+      }
     } finally {
       renderer.setRenderTarget(target);
       renderer.xr.enabled = xr;
@@ -542,5 +576,9 @@ export class LiveEffects {
     this.meshes.length = 0;
     this.modelMeshes.length = 0;
     if (this.depthTarget){ this.depthTarget.depthTexture.dispose(); this.depthTarget.dispose(); this.depthTarget = null; }
+    if (this.ground){ this.ground.geometry.dispose(); this.ground.material.dispose(); this.scene.remove(this.ground); this.ground = null; }
   }
 }
+// the ground stand-in's switch, for every runtime from now on (__view.effectGround)
+let groundDefault = true;
+export function setEffectGround(on){ groundDefault = !!on; }

@@ -30,7 +30,7 @@
 import * as THREE from 'three';
 import { loader, loadJson, getTexture } from '../assets.js';
 import { gidBonesOf } from '../skeleton.js';
-import { LiveEffects, liveEffectsFor } from './effect/live.js';
+import { LiveEffects, liveEffectsFor, setEffectGround } from './effect/live.js';
 
 // THE ROM'S OWN EFFECTS, WHERE THEY EXIST. A monster with docs/effects/<id>.json runs its effect
 // files on the translated runtime (effect/live.js) -- placed by the joints its nodes bind to, animated
@@ -56,6 +56,13 @@ function installConsoleHook(){
       setEffectRuntime(on);
       if (lastAttach) await attachEffectMounts(...lastAttach);
       return { runtime: runtimeOn, stats: effectRuntimeStats(), mounted: effectMountsLive().length };
+    };
+    // __view.effectGround(false) takes away the ground the effects draw against (live.js groundPlane); (true)
+    // puts it back. Returns the setting and whether a runtime took it.
+    window.__view.effectGround = on => {
+      setEffectGround(on !== false);
+      if (runtime) runtime.groundOn = on !== false;
+      return { ground: on !== false, runtime: !!runtime };
     };
   };
   install();
