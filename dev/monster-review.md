@@ -941,7 +941,7 @@ writes each shared `effect\cm\` and `effectase\` resource once.
 TWO LABELS I HAD BACKWARDS in the previous entry, corrected from `build/frag/resource-ids.json`
 (65,565 records) rather than from the folder names: **`58a15856` is rModel and `2749c8a8` is
 rMaterial**, not the other way round. `6d5ae854` and `4e397417` are in no id table at all; their
-magics are `EFL ` and `EAN `.
+magics are `EFL\0` and `EAN\0`.
 
 This also refutes `harvest-monster-effect-models.py`'s premise. That script says "of the 605 rModel
 records in the whole image ... exactly 24 are in enemy archives and all 24 are in ems007_00.arc",
@@ -1055,7 +1055,7 @@ on why one static instance of a sprite-atlas template cannot.
 > Raven: "we keep going until we have Savages effect since this will help us figure out more
 > effects like it"
 
-**Header, 48 bytes.** `+0` 'EFL '; `+4` version 06 03 12 20; `+8` = fileSize - 48 (holds on every
+**Header, 48 bytes.** `+0` 'EFL\0'; `+4` version 06 03 12 20; `+8` = fileSize - 48 (holds on every
 file); `+12` f32 60.0; `+16` u16 a; `+18` u16 b; `+20` 0x100.
 
 **Index table at 0x30: `b` rows of 16 bytes, four u32 each, and every u32 is `(offset << 8) | tag`.**
@@ -1088,7 +1088,7 @@ times at 0x1e0**, a full-sphere angular spread on X/Y/Z; 0.997 damping at 0x270;
 against a 4x4 atlas.
 
 Dead ends, recorded so they are not retried: the toolset's `bin_to_xml` does not know .efl (it is
-not an XFS MtObject like the .mpm); the 'EFL ' magic appears nowhere in the executable as a
+not an XFS MtObject like the .mpm); the 'EFL\0' magic appears nowhere in the executable as a
 literal or a movw/movt pair, so the loader dispatches on the type hash; the DTI objects for
 rEffectList and cParticleGenerator live at 0x211xxxx, past the end of .data, so they are built at
 runtime and carry no static property table to read names from.
@@ -3419,3 +3419,126 @@ outside the surface on both, but Crimson's sit 2.4x further out and reach 634 un
 side -- so the identical mistake breaks the silhouette on Crimson and stays buried on Fatalis.
 That is also why it is only the snout: those are the only meshes rigidly bound to `3_s` that sit
 outside the skin at all.
+
+#### 2026-09-12 - EFL generator types DECODED: col1 is the `cParticleGenerator` subclass
+
+> Raven: "Switch to looking into Savage's Effects again since that may help resolve things like
+> Valstrax and Teostra's issues"
+
+He was right, and the census below is the proof. First the decode, all of it read from `main`.
+
+**The resource class.** `rEffectList`: `(crc32 ^ 0xFFFFFFFF) & 0x7FFFFFFF` of the name is
+`0x6d5ae854`, the EFL's type hash. Registered at `0xb5a1f8`.
+
+**The loader, `rEffectList::load` at `0xb59604`.** Reads the whole file, then:
+
+    [+0x00] == 45 46 4C 00    'EFL' + NUL, built by movw/movt at 0xb59684
+    [+0x04] == 0x20120306     the VERSION -- a date stamp, not a count
+    [+0x0c] -> this+0x64      the 60.0
+    [+0x10] u16               row count -> this+0x74
+    [+0x20..+0x2c]            -> this+0x84..+0x90
+    body = file[+0x30:]       copied, then 0xb598b0 builds the entries
+
+**A CORRECTION to the 2026-09-11 entry's "column 2".** `0xb598b0` builds one 0x44-byte entry per
+16-byte row and reads three of its four words, each as `(offset << 8) | tag`:
+
+| word | read as | handler |
+|---|---|---|
+| col0 `+0` | pointer only | `0xb58ae8` |
+| **col1 `+4`** | pointer + **8-bit tag** (`uxtb`) | **`0xb58c24`** |
+| col2 `+8` | **not read at load** | -- |
+| col3 `+0xc` | pointer + 4-bit tag (`& 0xf`) | `0xb592c0` |
+
+The 17 / 18 / 33 / 34 / 81 / 82 values that entry called "column 2" are **col2**, which the load
+pass never touches -- a runtime value, not the generator type. The type is **col1**: 0, 1 and 5 on
+Savage's two definitions. col0 counts 0, 1, 2 ... down the rows.
+
+**The factory, `0x9badd4`.** `cmp r1, #0x1a` -> a 27-way table at `0x9badec`; every case allocates
+`0x1d0` -- all 27 classes are 464 bytes, so size tells them apart not at all -- and constructs.
+
+**Tag -> class, resolved without proximity.** Each class is registered by `bl 0x7abef0`
+(`MtDTI(r0 = DTI, r1 = name, r2 = parent, r3 = size)`), which names its DTI object. Entry [2] of that
+DTI's vtable is `newInstance`, and it installs the class's INSTANCE vtable; the factory case's
+constructor installs the same one. Matching on that vtable:
+
+| tag | class |
+|---|---|
+| 0 | LiteBillboard |
+| 1 | LitePolyline |
+| 2 | LitePolygon |
+| 3 | Texline |
+| 4 | Line |
+| 5 | Model |
+| 6 | PrimModel |
+| 7 | LensFlare |
+| 8 | MassBillboard |
+| 9 | Filter |
+| 10 | Light |
+| 11 | Hit |
+| 12 | Polyline |
+| 13 | Texline |
+| 14 | Line |
+| 15 | PolygonStrip |
+| 16 | Custom |
+| 17 | ClothPolygon |
+| 18 | Adhesion |
+| 19 | BillboardStrip |
+| 20 | SizeBillboard |
+| 21 | LightShaft |
+| 22 | Point |
+| 23 | AxisPolygon |
+| 24 | Force |
+| 25 | special-cased before the switch, unread |
+| 26 | Trail |
+
+**Do not shortcut this by proximity.** For 13 single-class registrations the constructor sits exactly
+`0xbc` after the name, which is tempting -- and that rule labels tag 5 MassBillboard. It is Model. My
+first register-tracking pass also paired every DTI with its NEIGHBOUR's vtable, because the
+registration code stores class K's vtable after loading class K+1's name; `newInstance` is
+self-describing (it loads its own DTI), and it is what the table above rests on.
+
+**An independent control, from the loader's own table.** `0xb58c24` is also 0..26 and groups tags by
+what the block references:
+
+* tags 4, 14, 22 -> the case that loads **nothing** -- **Line, Line, Point**, the untextured ones;
+* tag 5 -> its own case, a path at block `+0x50` loaded through **`rModel`** (DTI `0x211e1c8`);
+* the two textured cases (polylines, polygons, trails, billboards) load through **`rEffectAnim`**
+  (DTI `0x2122a64`) from block `+0x130`, then `+0x70`, `+0xb0`, `+0xf0` via `0xb59178` -- not
+  `rTexture`. So the 72-byte `.ean` found yesterday is what those generators animate with, and the
+  likeliest carrier of the atlas cell choice.
+
+**The census, over all 1,115 `.efl` (0 bad headers).** Only EIGHT of the 27 classes occur:
+
+| generator | rows | Savage | Teostra | Valstrax |
+|---|---|---|---|---|
+| **Model** | 7,194 | 7 | 111 | 536 |
+| **LiteBillboard** | 1,746 | 2 | 32 | 26 |
+| LitePolyline | 421 | 3 | | 9 |
+| LitePolygon | 234 | | | 1 |
+| tag 25 | 192 | | 1 | 13 |
+| Filter | 18 | | 1 | 2 |
+| SizeBillboard | 8 | | | |
+| PolygonStrip | 5 | | | |
+
+**Model + LiteBillboard are 91% of every generator row in the game, and they carry all three
+monsters.** A runtime for Savage's vortex is a runtime for Teostra and Valstrax.
+
+**Tag 25 is special-cased BEFORE the switch** (`0x9bada0` `teq r1, #0x19` plus a flag test,
+allocating `0x250` instead) -- unread.
+
+**Two leads closed on the way:**
+
+* **No material swap.** `setMaterialAt` (`0x88db20`) has 18 call sites in the whole binary, in four
+  clusters: Khezu (`0xd1ea90`, `0xd1eca8`, `0xd1eedc`), a stealth cluster in the Kushala Daora /
+  Chameleos range (`0xe0150c`..`0xe017d4`, beside `XfB_N__E0__m03_stealth01`), an unnamed one
+  (`0xfbfb44`..`0xfbfc24`), and a second stealth cluster (`0xff1ca4`..`0xff20a8`). **Savage has
+  none**, which answers the board's "check for a swap site before anything else is tried": no.
+* **`fDiffuseColor`'s fourth float is not a weight.** 173 of its 174 tracks sit on materials whose
+  own `FDiffuse` feature is off, and they carry four floats per key -- but `build-matanim.py`'s
+  reading of the vector writer `0xb0f844` shows a 3-column track never writes the fourth, so the
+  viewer ignoring it is correct.
+
+**NEXT:** the Model and LiteBillboard FIELD layouts -- spawn count and rate, lifetime, velocity,
+size, colour ramp, atlas cell. The loader touches only a few (block `+0x68` / `+0x6a` u16 frames
+divided by 60.0 into seconds, `+0x6c`); the rest is read by each class's own update code, reachable
+from the instance vtables in the table above.
