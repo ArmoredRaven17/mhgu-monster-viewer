@@ -2942,6 +2942,89 @@
    }
   }
  },
+ "em084_00": {
+  "reviewed": "2026-09-13",
+  "view": {
+   "list": "0",
+   "clip": "Motion[41]"
+  },
+  "note": "Reviewed by Raven. **TWO KINDS OF ROW: the body's own part table, and a tentacle form row per tentacle.** The tentacles are a second body (`ROM_ATTACHED_BODY`, decoded by the render agent 2026-09-13): each of em084_00_left and em084_00_right has its own six-group part table, picked in the ROM by a form byte, and the form dropdown for each is already built. This entry only NAMES them, through the `attached` map that code reads -- Base Form, Exposed, Uragaan Form, Brachydios Form, Glavenus Form, Ivory Lagiacrus Form, in the dropdown's group order g0..g5, which is how he read it. That order is consistent with the ROM decode, which puts the rest form on g0 and the body-part-state-3 form (the exposed core) on g1; the four skull forms sit on parts 20, 30, 40 and 50, whose materials are generic (`XfB_N__E0_1`, `m11_eyes`), so WHICH skull is which monster rests on his eyes alone. The same six names go on both tentacles. **FACE PLATE RIDES ENRAGED**, per *'Enraged form uses Face Plate Charging Forms'*: its charging half adds parts 20 and 24 (`XfBA_A1_shell`), so Intact `3,4,113,114|3,4,20,24,113,114`, Cracked `4,13,114|4,13,20,24,114`, Broken `13,14|13,14,20`, with `state: \"rage\"` declared. **LEFT/RIGHT MEASURED** against the midline x~13300: blowhole 5/15/25 at x~20900 is LEFT, 6/16/26 at x~5600 RIGHT, matching his order. Face `1,2` / `2,11` / `11,12` and Back Plates `7,8` / `8,17` / `17,18,28` are In/Cr/Br in ROM order. No `sheds`: the two shipped pieces are the tentacles, which are attached bodies, not severed parts.",
+  "rows": {
+   "1,2,11,12": {
+    "name": "Face",
+    "default": "1,2",
+    "options": {
+     "1,2": "Intact",
+     "2,11": "Cracked",
+     "11,12": "Broken"
+    }
+   },
+   "3,4,13,14,20,24,113,114": {
+    "name": "Face Plate",
+    "state": "rage",
+    "default": "3,4,113,114|3,4,20,24,113,114",
+    "order": [
+     "3,4,113,114|3,4,20,24,113,114",
+     "4,13,114|4,13,20,24,114",
+     "13,14|13,14,20"
+    ],
+    "options": {
+     "3,4,113,114|3,4,20,24,113,114": "Intact",
+     "4,13,114|4,13,20,24,114": "Cracked",
+     "13,14|13,14,20": "Broken"
+    }
+   },
+   "5,15,25": {
+    "name": "Left Blowhole",
+    "default": "5",
+    "options": {
+     "5": "Intact",
+     "15,25": "Broken"
+    }
+   },
+   "6,16,26": {
+    "name": "Right Blowhole",
+    "default": "6",
+    "options": {
+     "6": "Intact",
+     "16,26": "Broken"
+    }
+   },
+   "7,8,17,18,28": {
+    "name": "Back Plates",
+    "default": "7,8",
+    "options": {
+     "7,8": "Intact",
+     "8,17": "Cracked",
+     "17,18,28": "Broken"
+    }
+   }
+  },
+  "attached": {
+   "em084_00_left": {
+    "name": "Tentacles (Left)",
+    "options": {
+     "g0": "Base Form",
+     "g1": "Exposed",
+     "g2": "Uragaan Form",
+     "g3": "Brachydios Form",
+     "g4": "Glavenus Form",
+     "g5": "Ivory Lagiacrus Form"
+    }
+   },
+   "em084_00_right": {
+    "name": "Tentacles (Right)",
+    "options": {
+     "g0": "Base Form",
+     "g1": "Exposed",
+     "g2": "Uragaan Form",
+     "g3": "Brachydios Form",
+     "g4": "Glavenus Form",
+     "g5": "Ivory Lagiacrus Form"
+    }
+   }
+  }
+ },
  "em085_00": {
   "reviewed": "2026-09-11",
   "note": "Reviewed by Raven: three rows. Head and Tail defaults were BOTH ALREADY CORRECT -- second monster after Velocidrome where nothing had to move. Head is the crest, parts 1 and 11 at 190v and 171v of XfBAN__E1__m00_hair; Tail is 2 at 166v against 12 at 44v. THE EYES ROW: Raven read the items as 'Cl, Op' and asked to switch so Open is first. THE ORDER WAS ALREADY OPEN-FIRST and the names are attached the other way round from his reading, so the request is satisfied without a switch -- but the mapping is worth recording because the two readings disagree. MEASURED: part 3 is a 22v mesh whose centre is (98, 295, 941) to the unit, EXACTLY that of part 0's 18v XfB_0__m00_eye sub-mesh, and it is slightly larger in all three dimensions (51x15x17 against 49x12x13). A slightly larger shell at an identical centre covers what is under it, so drawing part 3 CLOSES the eye and 'none' is Open. That also matches the four other monsters of this shape -- Tigrex, Akantor, Ukanlos, Barroth -- where the body patch over the eye is Closed. LIKELY CAUSE OF THE DISAGREEMENT: a single-part row renders as 'off 3' / 'on 3', and 'off 3' reads naturally as eyes-off. Flagged to Raven; one word swaps it if he toggled it and saw otherwise. Fifth monster with no eye PART -- XfB_0__m00_eye is a sub-mesh of part 0, always drawn.",
