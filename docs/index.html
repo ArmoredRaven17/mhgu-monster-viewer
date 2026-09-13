@@ -4269,7 +4269,21 @@ function applyRage(){
 // The one place that turns the two checkboxes into the state name the clip table and the material
 // swap are keyed by. Charged wins a collision: it is the state that replaces the vein material, so
 // showing it half-applied under a rage clip would be neither state.
-function matState(){ return state.charged ? 'charged' : (state.rage ? 'enraged' : 'calm'); }
+function matState(){
+  if (state.charged) return 'charged';
+  const lm = levelMatState();
+  if (lm) return lm;
+  return state.rage ? 'enraged' : 'calm';
+}
+// A STATE RUNG MAY NAME A MATERIAL STATE THE TWO CHECKBOXES CANNOT SAY. `levels.mat` is a per-rung array
+// beside `levels.rage`; today it names only "tired" -- both Mizutsune's Exhausted, whose overlay material
+// the ROM recolours with tired_Change / tired_End (see STATE_NAMES in render/monster.js). Any other entry
+// leaves the rung to `rage`.
+function levelMatState(){
+  const lv = (reviewFor(state.id) || {}).levels;
+  if (!lv || !Array.isArray(lv.mat)) return null;
+  return lv.mat[state.level | 0] === 'tired' ? 'tired' : null;
+}
 // The clip the chosen rung names, or null for No Rage / a monster with no ladder.
 function levelClip(){
   // A LEVEL AXIS THE ROM COLOURS BY ITS OWN CASE comes first: Boltreaver's Charge State rung is the
@@ -4518,8 +4532,10 @@ document.getElementById('monLevel').onchange = e => {
   if (ownsRage){
     state.rage = !!lv.rage[state.level];
     if (state.rage) state.charged = false;
-    markStateChange();
   }
+  // a rung that names a material state (levels.mat) is a state change even when rage does not move:
+  // Exhausted -> Normal is rage false both sides, and tired_End still has to run
+  if (ownsRage || (lv && Array.isArray(lv.mat))) markStateChange();
   buildGroups(); applyPartState();
   if (ownsRage) applyRage();
   saveState();

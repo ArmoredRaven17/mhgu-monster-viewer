@@ -1488,6 +1488,19 @@ const STATE_NAMES = {
   charged: { start: ['Taiden_start'],
              steady: ['Body_Taiden_Repeat', 'Alpha_Taiden_Repeat', 'Taiden_Repeat'],
              end: ['Body_Taiden_End', 'Alpha_Taiden_End', 'Taiden_End'] },
+  // EXHAUSTED (the ROM's "tired"). Both Mizutsune share class uEm082_00; its init (0x1035228) caches
+  // tired_Change / tired_End beside angry_Change / angry_End on the overlay material, and the base
+  // clip setter (0x1037bb8) plays them on the tired predicate 0x81614 -- status +0x505 is 2 or 3 --
+  // clearing every slot first, as it does for angry on 0x81670. Neither clip loops and there is no
+  // steady clip, so the start is HELD on its last frame (blue 0.2/0.52/1.0, emission 0.3) and the end
+  // runs on the way out. Raven, 2026-09-13: "Can you look into Soulseer and Mizu Enraged and
+  // Exhausted rendering?"
+  //
+  // `only` KEEPS IT ON THE CLASS IT WAS READ FROM. Valstrax's breathe material carries its own
+  // tired_start / tired_Loop / tired_end under a driver nobody has read, and `tired_end` matches
+  // tired_End without case -- offered to every monster, that material "took part" in a state and its
+  // Enraged pick went from tired_Loop over Loop to Loop alone.
+  tired:   { start: ['tired_Change'], steady: [], end: ['tired_End'], only: ['em082_00', 'em082_04'] },
   calm:    { rest: ['Nomal_Repeat', 'Normal'] },
 };
 // WHICH MATERIAL A STATE REPLACES, per monster. Keyed by material NAME; the ROM keys by the array
@@ -1841,10 +1854,16 @@ export function enrageParts(root){
 // material-animation chain the ROM does NOT hand us: the game reaches a clip through setClip from
 // an AI state, keyed by hash, so a viewer has to choose. Keeping it in one place means the ROM core
 // and the old path cannot drift on it.
-const STATES = ['enraged', 'charged'];
+const STATES = ['enraged', 'charged', 'tired'];
+// The state's clip table on this monster, or null where the state is scoped to another class.
+const stateNames = (st, monId) => {
+  const t = STATE_NAMES[st];
+  return t && (!t.only || t.only.includes(monId)) ? t : null;
+};
 function clipPicker(state, monId, tState, prev, levelClip){
   const pin = (monId && ROM_SPAWN_CLIP[monId]) || null;
   const timed = typeof tState === 'number';
+  const states = STATES.filter(st => stateNames(st, monId));
   return (clips, rom, tSec) => {
     // A SUPPRESSED clip keeps its slot and loses only its NAME, so every name-matched route below
     // skips it while `auto`, the index ladder and stepMaterialAnim's own indexing are untouched.
@@ -1883,7 +1902,7 @@ function clipPicker(state, monId, tState, prev, levelClip){
     // the clips the state names; everything it does not decide falls through to the general rules,
     // which is why monsters with no entry -- Bloodbath's rage ladder, Agnaktor's cool_Loop -- are
     // untouched by it.
-    if (ci < 0 && timed && STATE_NAMES[state]){
+    if (ci < 0 && timed && stateNames(state, monId)){
       const byName = list => {
         for (const nm of list || []){
           const i = clips.findIndex(c => sameClip(c.name, nm));
@@ -1918,12 +1937,12 @@ function clipPicker(state, monId, tState, prev, levelClip){
       // monster: Khezu's Angry branch (0xd1e8d4) sets clips on enemy+0x38 -- the vein layer -- and
       // NOTHING on +0x30 or +0x34, which are only ever driven by the Taiden branch (0xd1ec1c).
       const takesPart = st => {
-        const t = STATE_NAMES[st];
+        const t = stateNames(st, monId);
         return !!t && (byName(t.start) >= 0 || byName(t.steady) >= 0 || byName(t.end) >= 0);
       };
       const held = i => (i >= 0 && !clips[i].loop && clips[i].frames
                          ? (tSec - tState) * MAT_FPS < clips[i].frames : false);
-      const tbl = STATE_NAMES[state];
+      const tbl = stateNames(state, monId);
       if (state !== 'calm'){
         const start = byName(tbl.start), steady = byName(tbl.steady);
         if (start >= 0 && steady >= 0){
@@ -1947,7 +1966,7 @@ function clipPicker(state, monId, tState, prev, levelClip){
         // Taiden strobe on the rage toggle (Raven: "the enraged effect is also super bright").
         // Only skipped for a material that takes part in some OTHER state; one that takes part in
         // none is the Bloodbath case the fallback exists for, and it still gets it.
-        if (!STATES.some(takesPart)) { /* fall through to the general rules */ }
+        if (!states.some(takesPart)) { /* fall through to the general rules */ }
         else {
           const r = restIdx();
           return r >= 0 ? r : -1;      // -1 is the material's OWN authored values
@@ -1955,7 +1974,7 @@ function clipPicker(state, monId, tState, prev, levelClip){
       } else {
         // Leaving a state runs THAT state's end clip, alone in slot 0 -- 0xd1e698 and 0xd1e7a0
         // both call clearAllSlots first -- and only for as long as the clip lasts.
-        const prevTbl = STATE_NAMES[prev];
+        const prevTbl = stateNames(prev, monId);
         const end = prevTbl ? byName(prevTbl.end) : -1;
         if (end >= 0 && held(end)) return [[end, tState]];
         const rest = restIdx();
@@ -1968,7 +1987,7 @@ function clipPicker(state, monId, tState, prev, levelClip){
         // Body_Taiden_End's fReflectiveColor -- twice m01_body's shipped 0.105/0.195/0.195 -- on
         // a Khezu that had never charged.
         if (end >= 0) return end;
-        if (STATES.some(takesPart)) return -1;
+        if (states.some(takesPart)) return -1;
       }
     }
     if (ci < 0 && state){
@@ -2075,6 +2094,7 @@ export function stepMatAnim(root, tSec, state, monId, tState, prev, levelClip){
   // to be MeshBasicMaterial, because those are MeshStandardMaterial now.
   const n = stepMaterialAnim(root, tSec, pick);
   stepSpecularColour(root, tSec, pick);
+  stepAlbedoColour(root, tSec, pick);
   stepArmSlime(root, monId, state);
   return n;
 }
@@ -2207,6 +2227,72 @@ function stepSpecularColour(root, tSec, pick){
 export function setSpecularRGB(on){ specRGBOn = !!on; return specRGBOn; }
 if (typeof window !== 'undefined'){
   window.__specRGB = (on) => on === undefined ? specRGBOn : setSpecularRGB(on);
+}
+
+// AN ANIMATED fAlbedoColor IS THE ALBEDO, AND THE ALBEDO COLOURS THE EMISSION TOO. Raven, 2026-09-13:
+// "Can you look into Soulseer and Mizu Enraged and Exhausted rendering?" Both Mizutsune recolour their
+// overlay (XfBA1__m01_angry) with angry_Change -> fAlbedoColor (1, 0, 0) and tired_Change -> (0.2, 0.52,
+// 1.0), and neither colour reached the screen. Two gaps in the shared evaluator, both read live on
+// that material:
+//
+//  * ORDER. material.js writes fAlbedoColor and fDiffuseColor into the same material.color, so the
+//    later track wins. Every Mizutsune clip lists fAlbedoColor first and fDiffuseColor (1, 1, 1) last,
+//    so the overlay stayed white in both states.
+//  * EMISSION. The same clips raise fEmissionColor to 0.5 and 0.3, which reached the screen as
+//    texel x emission -- a grey glow on what should be a red or blue layer.
+//
+// The ROM's combine, read from AppShaderPackage.mfx with efx/shader/mfxprog.py:
+//
+//     PS_MaterialStd     mc = FAlbedo(mc) ... mc = FDiffuse(mc) ... mc.diffuse += FEmission(mc)
+//                        return FFinalCombiner(mc)
+//     FAlbedoMap         mc.albedo  = b.xyz * $Globals.fAlbedoColor
+//     FDiffuse           mc.diffuse = ((mc.diffuse + FAmbient(mc)) * CBMaterial.fDiffuseColor) * mc.occlusion
+//     FEmissionConstant  return $Globals.fEmissionColor
+//     FFinalCombiner     color.rgb = mc.albedo * mc.diffuse + mc.specular * mc.fresnel
+//
+// so rgb = texel * fAlbedoColor * (lighting * fDiffuseColor + fEmissionColor) + specular. On a three.js
+// material that is color = fAlbedoColor * fDiffuseColor -- the fold createRomMaterial already makes for
+// the shipped values -- and the emission, which the shader already scales by the texel (gBase), times
+// fAlbedoColor. Each constant is the playing slot's value where one writes it and the shipped value
+// otherwise, a later slot winning; restoreBase puts both back every frame, so nothing accumulates.
+//
+// SCOPE: lit materials that carry an fAlbedoColor track, under an albedo variant whose body reads it.
+// FAlbedoMapColorOnly (b.xyz * fAlbedoColor) and FAlbedoTypeExtendModulate (a0.xyz *= fAlbedoColor)
+// read it as FAlbedoMap does; FAlbedoMapConstant never reads fAlbedoColor, so it keeps the shared
+// result. 22 materials qualify. What moves, from the tracks:
+//
+//   colour and glow  Mizutsune and Soulseer's overlay; Glavenus and Hellblade Glavenus' tail (heat
+//                    albedo 0.76/0.664/0.64 where the shipped 0.92/0.92/0.68 drew); Alatreon's
+//                    m03_add, which drew black because its shipped albedo is 0
+//   glow only        Khezu's body and alpha layer on Taiden; Gore Magala's kasan at LV2; both
+//                    Glavenus' nodo_r; Valstrax's breathe; Ahtal-Ka's eye (orange, 1/0.6/0)
+//   unchanged        Congalala's nose, Tigrex's Virus, Savage Deviljho's body, Hellblade's
+//                    overheat_nodo, Altaroth -- none of them emits where its albedo moves, and
+//                    nothing else writes their colour
+//
+// __albedoRGB(false) restores the shared evaluator's result for comparison; __albedoRGB() reads it back.
+let albedoRGBOn = true;
+const ALBEDO_READS_COLOUR = new Set(['Map', 'MapColorOnly', 'TypeExtendModulate']);
+function stepAlbedoColour(root, tSec, pick){
+  if (!root || !albedoRGBOn) return;
+  root.traverse(o => {
+    const m = o.material;
+    const rom = m && m.userData && m.userData.rom;
+    const clips = rom && rom.anim;
+    if (!clips || !clips.length || !m.color || !m.emissive) return;
+    const gl = rom.glob;
+    if (!rom.feat || !ALBEDO_READS_COLOUR.has(rom.feat.albedo) || !gl || !gl.albedo) return;
+    if (!clips.some(c => (c.tracks || []).some(t => t.target === 'fAlbedoColor'))) return;
+    const a = sampleColourTrack(clips, rom, tSec, pick, 'fAlbedoColor') || gl.albedo;
+    const d = sampleColourTrack(clips, rom, tSec, pick, 'fDiffuseColor')
+           || (rom.cbm && rom.cbm.diffuse) || [1, 1, 1];
+    m.color.setRGB(a[0] * d[0], a[1] * d[1], a[2] * d[2]);
+    m.emissive.setRGB(m.emissive.r * a[0], m.emissive.g * a[1], m.emissive.b * a[2]);
+  });
+}
+export function setAlbedoRGB(on){ albedoRGBOn = !!on; return albedoRGBOn; }
+if (typeof window !== 'undefined'){
+  window.__albedoRGB = (on) => on === undefined ? albedoRGBOn : setAlbedoRGB(on);
 }
 
 // BRACHYDIOS'S ARM SLIME, read from its part driver 2026-09-13. Not a clip: the driver writes the
