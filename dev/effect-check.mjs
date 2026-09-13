@@ -18,6 +18,7 @@ import * as billboard from '../docs/render/rom/effect/billboard.js';
 import * as polyline from '../docs/render/rom/effect/polyline.js';
 import * as owner from '../docs/render/rom/effect/owner.js';
 import { newEffect, startEffect, managerRandom, random, internals as C } from '../docs/render/rom/effect/construct.js';
+import { loadEffectList, loadEffectAnim, internals as L } from '../docs/render/rom/effect/load.js';
 import { Scratch } from '../docs/render/rom/effect/motion.js';
 
 // address -> [translation, arguments from the vector, what to compare on return]
@@ -131,6 +132,16 @@ const TABLE = {
   '0xaaebb0': [owner.polylinePostPass, v => [v.args[0]], null],
   '0x9b6130': [owner.move, v => [v.args[0]], null],
   '0x9b5cc8': [newEffect, v => [], 'r0'],
+  '0xb59604': [loadEffectList, v => [v.args[0], v.args[1]], 'r0'],
+  '0xce14a4': [loadEffectAnim, v => [v.args[0], v.args[1]], 'r0'],
+  '0xb597a8': [L.listAllocate, v => [v.args[0], v.args[1]], 'r0'],
+  '0xb5a060': [L.listRelease, v => [v.args[0]], null],
+  '0xb598b0': [L.listResources, v => [v.args[0]], null],
+  '0xb589b4': [L.entryReset, v => [v.args[0]], null],
+  '0xb58ae8': [L.nodeResources, v => [v.args[0], v.args[1]], null],
+  '0xb592c0': [L.col3Resources, v => [v.args[0], v.args[1], v.args[2]], null],
+  '0xb58c24': [L.generatorResources, v => [v.args[0], v.args[1], v.args[2]], null],
+  '0xb59178': [L.textureSlot, v => [v.args[0], v.args[1], v.args[2]], null],
   '0x9baa9c': [startEffect, v => [v.args[0]], 'r0'],
   '0x9baa70': [C.resetFrame, v => [v.args[0]], null],
   '0x9baca0': [C.factory, v => [v.args[0]], 'r0'],
@@ -208,7 +219,7 @@ function hexBytes(h){
 }
 
 // The outside world a call reached (allocator, unique ids), replayed in the order the game called it.
-function servicesFor(v, problems){
+function servicesFor(v, problems, m){
   const queue = (v.services || []).slice();
   const next = kind => {
     const s = queue.shift();
@@ -223,6 +234,23 @@ function servicesFor(v, problems){
       return s[2];
     },
     nextId(){ return next('next_id')[2]; },
+    free(){},                                        // the harness's free is a no-op and unrecorded
+    streamSize(stream){
+      const s = next('stream_size');
+      if (s[1][0] !== stream) problems.push('stream size of 0x' + stream.toString(16) + ', game 0x' + s[1][0].toString(16));
+      return s[2];
+    },
+    streamRead(stream, buf, n){
+      const s = next('stream_read');
+      if (s[1][0] !== stream || s[1][1] !== buf || s[1][2] !== n) problems.push('stream read (0x' + buf.toString(16) + ', ' + n + '), game (0x' + s[1][1].toString(16) + ', ' + s[1][2] + ')');
+      m.load(buf, hexBytes(s[2][1]));
+      return s[2][0];
+    },
+    loadResource(dti, path, flags){
+      const s = next('res_load');
+      if (s[1][1] !== dti || s[1][2] !== path || s[1][3] !== flags) problems.push('resource (0x' + dti.toString(16) + ', 0x' + path.toString(16) + ', ' + flags + '), game (0x' + s[1][1].toString(16) + ', 0x' + s[1][2].toString(16) + ', ' + s[1][3] + ')');
+      return s[2][0];
+    },
   };
 }
 
@@ -242,7 +270,7 @@ function check(fnName, v){
   }
   const wrote = new Map();
   const problems = [];
-  m.svc = servicesFor(v, problems);
+  m.svc = servicesFor(v, problems, m);
   m.onRead = (a, n) => {
     for (let i = 0; i < n; i++){
       if (!given.has(a + i) && !wrote.has(a + i) && !inScratch(a + i)){ problems.push('read outside inputs at 0x' + (a + i).toString(16)); break; }
