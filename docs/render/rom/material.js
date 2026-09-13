@@ -443,7 +443,7 @@ export function createRomMaterial(spec){
 
   // 3. THE FEATURE WORD on top: the alpha rules the ROM states in words, the second albedo map and
   //    Refract. Each carries the ROM's own description at its site in rom/shader.js.
-  injectFeatures(mat, rom, lit);
+  injectFeatures(mat, rom, lit, spec && spec.ref);
 
   // THE ALPHA TEST, installed LAST so its discard lands directly after <alphatest_fragment> and
   // ahead of installCutoutSolid's coverage rewrite, which has to see the test's result, not precede it.

@@ -1039,7 +1039,7 @@ export async function loadMonster(rec, opt, ctx){
     // that tests blend first. Off by default: the switch changes every pixel and Raven reviews
     // renders, so it lands as an A/B against dev/shots/pre-rewrite rather than silently.
     const mat = romCoreEnabled()
-      ? createRomMaterial({ srcName, rom, wire: !!(ctx && ctx.wire) })
+      ? createRomMaterial({ srcName, rom, wire: !!(ctx && ctx.wire), ref })
       : createMaterial({ srcName, rom, alphaCut: 0, noTint: true,
                                  unlit: !!(rom && rom.cls && rom.cls !== 'Std'),
                                  wire: !!(ctx && ctx.wire) });

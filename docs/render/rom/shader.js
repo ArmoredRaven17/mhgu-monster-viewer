@@ -50,7 +50,50 @@ function tagProgram(mat, tag){
 const extMisses = [];
 export function extendMapMisses(){ return extMisses.slice(); }
 
-export function injectFeatures(mat, rom, lit){
+// THE MapConstant ALPHA, AS THE FUNCTION BODY COMPUTES IT -- a switch, DEFAULT OFF.
+//
+// The rule below ("alpha fixed" -> the constant's alpha alone) was read from FAlbedoMapConstant's
+// DESCRIPTION string and labelled a reading. The function BODY, read as source from the shader package
+// (C:\MHGU-Extract\efx\shader\mfxprog.py FAlbedoMapConstant), says otherwise:
+//
+//     float4 c = sample(tAlbedoMap, SSAlbedoMap, mc.uv_primary);
+//     float4 v = FConstantColor(mc);                 // FConstantColorNoVertexColor: float4(1,1,1,1)
+//     v.xyz *= $Globals.fConstantColor.xyz;
+//     v.xyz = FConstantOutput(mc, v.xyz);            // Lite: pass-through
+//     mc.albedo = c.xyz * v.xyz;
+//     mc.transparency = (c.w * v.w) * $Globals.fConstantColor.w;
+//
+// so the TEXTURE's alpha reaches the output, times the constant's. Raven, 2026-09-13, on Nakarkos'
+// XfBA1__m01_light (BSBlendAlpha, alpha test GREATER 50): "The blue glow effects are overdrawn, they
+// likely need to be moved to a layer or alpha'd out." Its map's alpha averages 65/255 and 52% of it is
+// at or below 50, so drawn at the constant's 1.0 every strip covers its whole mesh.
+//
+// Off by default because it moves 39 non-opaque MapConstant materials on 30 models at once -- Brachydios'
+// slime, Boltreaver's taiden layers, Zinogre's lights among them, looks already reviewed. Savage
+// Deviljho (em043_05) is left out even when it is on: it is another agent's test case (Raven,
+// 2026-09-13, "Ignore anything Savage related").
+//   __romMapConstantAlpha(true) / (false) / () -- readback: { on, materials, excluded }
+const MAPCONST_EXCLUDE = new Set(['em/043_05']);
+const mapConstMats = new Set();              // { u: uniform holder, ref }
+let mapConstAlpha = false;
+export function mapConstantAlphaOn(){ return mapConstAlpha; }
+export function enableMapConstantAlpha(on){
+  mapConstAlpha = !!on;
+  let n = 0, excluded = 0;
+  for (const e of mapConstMats){
+    const skip = MAPCONST_EXCLUDE.has(e.ref);
+    e.u.value = (mapConstAlpha && !skip) ? 1 : 0;
+    if (skip) excluded++; else n++;
+  }
+  return { on: mapConstAlpha, materials: n, excluded };
+}
+if (typeof window !== 'undefined'){
+  window.__romMapConstantAlpha = on => (on === undefined
+    ? { on: mapConstAlpha, materials: [...mapConstMats].filter(e => !MAPCONST_EXCLUDE.has(e.ref)).length }
+    : enableMapConstantAlpha(on));
+}
+
+export function injectFeatures(mat, rom, lit, ref){
   const feat = rom && rom.feat;
   if (!feat) return mat;
 
@@ -69,15 +112,36 @@ export function injectFeatures(mat, rom, lit){
   const albedo = String(feat.albedo || '');
   const alphaFixed = (albedo === 'MapColorOnly' || albedo === 'MapConstant');
   if (alphaFixed){
+    const mapConst = (albedo === 'MapConstant');
     if (lit && mat.userData.u && mat.userData.u.uAlphaCut){
       mat.userData.u.uAlphaCut.value = 0;          // the texel's alpha stops here
-    } else if (!lit){
+      // ...unless the MapConstant switch is on, which lets it back in (see above)
+      if (mapConst){
+        const u = mat.userData.u.uAlphaCut;
+        mapConstMats.add({ u, ref });
+        u.value = (mapConstAlpha && !MAPCONST_EXCLUDE.has(ref)) ? 1 : 0;
+      }
+    } else if (!lit && !mapConst){
       // the unlit class has no such uniform: drop the sampled alpha in the stock chunk instead
       tagProgram(mat, 'alphaOpaque');
       chain(mat, sh => {
         sh.fragmentShader = sh.fragmentShader.replace(
           '#include <map_fragment>',
           '#include <map_fragment>\n\tdiffuseColor.a = opacity;');
+      });
+    } else if (!lit){
+      // MapConstant, unlit: the constant's alpha alone with the switch off (the old reading), the
+      // texel's alpha times it with the switch on (the function body). map_fragment has already
+      // multiplied the texel into diffuseColor, so the two ends of the mix are exactly those.
+      const u = { value: (mapConstAlpha && !MAPCONST_EXCLUDE.has(ref)) ? 1 : 0 };
+      mapConstMats.add({ u, ref });
+      mat.addEventListener('dispose', () => { for (const e of mapConstMats) if (e.u === u) mapConstMats.delete(e); });
+      tagProgram(mat, 'alphaMapConst');
+      chain(mat, sh => {
+        sh.uniforms.uMapConstAlpha = u;
+        sh.fragmentShader = 'uniform float uMapConstAlpha;\n' + sh.fragmentShader.replace(
+          '#include <map_fragment>',
+          '#include <map_fragment>\n\tdiffuseColor.a = mix( opacity, diffuseColor.a, uMapConstAlpha );');
       });
     }
     // FAlbedoMapConstant fixes it to the CONSTANT's alpha. That is the mechanism behind the three
