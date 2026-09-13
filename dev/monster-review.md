@@ -3863,3 +3863,32 @@ two glow sprites at (+-20, 12, 60) in head space -- each within 1 unit of the ey
 harness nor the JS host filled them, so every uv was 0 (the texture's empty corner), and the byte-exact
 checks agreed with each other on the gap. Both now set them (commit 6954d2e); prim e2e 0 differ on every
 Savage run. Hard refresh to see them.
+
+#### 2026-09-13 (night) - Teostra: the effects its own code starts, live
+
+> Raven: "We have some monsters with effect issues. Can we start with Teostra?"
+
+**What Teostra's code starts** (uEm027_00's frame, `0xe10f7c`): its **fire aura** (`em027_00_011` key
+0) whenever the aura byte its actions set is on -- that is **not tied to rage**: the actions switch it
+(`0xe11dbc`), a part break turns it off for good (and plays `em027_00_018`) -- and, on the **edges of
+rage** (its copy of isEnraged, `0xe10eb4`), a **burst as rage starts** (`em027_00_019` key 2, 209
+frames) and **another as it ends** (key 3, 99 frames). The viewer now runs all three on the ROM runtime:
+the aura from the moment Teostra is shown, the bursts when Enraged is ticked and unticked; the runtime
+stays across the toggles (`effect/schedule.js`, `when` in `docs/effects/em027_00.json`).
+
+**The aura hangs from the monster, not a bone.** It reads the unit's own position, rotation (as angles
+in the order word at +0x38) and size -- fields the stand-in never carried (Savage's aura reads only
+joints). They now hold what the monster's constructor leaves and what the ROM composes from them, in the
+emulator's stand-in and the viewer's host alike, and every run on the stand-in was re-recorded. In the
+viewer the unit is where the pose driver puts the clip's `reference` node: with a clip playing, the
+skeleton is shifted by the ground lock and XZ anchor, and the unit moves with it.
+
+**Checked**: e2e and draw checks match the emulator as before; runs with several requests at once (the
+aura with both bursts over it) are recorded and lifted; a 7200-frame soak on the shipped pages takes
+both monsters through two rage cycles. Teostra's effect textures re-staged lossless. Commit 2db25d5.
+
+**Not done**: the aura's own end (`em027_00_018`) and the actions that turn the aura on and off (the
+viewer shows it throughout); `0x329c40(core, 0)`, how the game ends a running aura; the rage puff
+(`em027_00_020`) and the attack effects (`0xe17ce8`). Teostra's glowing **material** overlays
+(`m01_effect01`, `m02_effect02`, the report above) are the render side, untouched here.
+Notes: `effects-firing.md` section 5.
