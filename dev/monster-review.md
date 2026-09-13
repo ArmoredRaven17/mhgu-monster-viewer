@@ -3620,7 +3620,7 @@ burst at start; gens 2 and 3 every 5 frames; gen 4 every 13; gen 5 every 6.
 **NEXT:** colour and alpha (the col3 curves are read only by base-class code, and some of it runs
 inside slot 18), the node instance's world transform (the attach joint -- the node block's `102`),
 and the draw pass (slot 21) that turns this into geometry.
-\n
+
 #### 2026-09-13 - EFFECT RUNTIME: the ROM's particle code, translated and checked byte for byte
 
 > Raven chose "1": a live JS particle runtime in the viewer, verified against the emulator as oracle.
