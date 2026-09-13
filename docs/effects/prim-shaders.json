@@ -1,5 +1,1027 @@
 {
  "source": "AppShaderPackage.mfx, translated by efx/shader/glsl.py",
+ "states": {
+  "BSDefault": [
+   4,
+   512,
+   1
+  ],
+  "BSSolid": [
+   4,
+   512,
+   1
+  ],
+  "BSSolidEx": [
+   4,
+   514,
+   0
+  ],
+  "BSBlendAlpha": [
+   4,
+   657410,
+   1
+  ],
+  "BSComposite": [
+   4,
+   655874,
+   1
+  ],
+  "BSInvComposite": [
+   4,
+   524802,
+   1
+  ],
+  "BSBlendInvAlpha": [
+   4,
+   526850,
+   1
+  ],
+  "BSAdd": [
+   4,
+   131586,
+   1
+  ],
+  "BSMul": [
+   4,
+   262146,
+   1
+  ],
+  "BSAddAlpha": [
+   4,
+   133122,
+   1
+  ],
+  "BSAddInvAlpha": [
+   4,
+   133634,
+   1
+  ],
+  "BSBlendFactor": [
+   4,
+   5634,
+   1
+  ],
+  "BSBlendFactorAlpha": [
+   4,
+   1578498,
+   1
+  ],
+  "BSMax": [
+   4,
+   134349314,
+   262401
+  ],
+  "BSNoWrite": [
+   4,
+   512,
+   1
+  ],
+  "BSAZero": [
+   4,
+   514,
+   0
+  ],
+  "BSAAdd": [
+   4,
+   514,
+   257
+  ],
+  "BSASub": [
+   4,
+   514,
+   131329
+  ],
+  "BSAInvert": [
+   4,
+   514,
+   7
+  ],
+  "BSRGBWrite": [
+   4,
+   512,
+   1
+  ],
+  "BSRWrite": [
+   4,
+   512,
+   1
+  ],
+  "BSGWrite": [
+   4,
+   512,
+   1
+  ],
+  "BSBWrite": [
+   4,
+   512,
+   1
+  ],
+  "BSAWrite": [
+   4,
+   512,
+   1
+  ],
+  "BSAddColor": [
+   4,
+   132098,
+   1
+  ],
+  "BSBlendColor": [
+   4,
+   656386,
+   1
+  ],
+  "BSRevSubAlpha": [
+   4,
+   67241986,
+   1
+  ],
+  "BSRevSubInvAlpha": [
+   4,
+   67242498,
+   1
+  ],
+  "BSRevSubBlendAlpha": [
+   4,
+   67766274,
+   1
+  ],
+  "BSRevSubColor": [
+   4,
+   67240962,
+   1
+  ],
+  "BSRevSubBlendColor": [
+   4,
+   67765250,
+   1
+  ],
+  "BSRevSub": [
+   4,
+   67240450,
+   1
+  ],
+  "BSAddAlphaRGB": [
+   4,
+   133122,
+   1
+  ],
+  "BSBlendAlphaRGB": [
+   4,
+   657410,
+   1
+  ],
+  "BSAddColorRGB": [
+   4,
+   132098,
+   1
+  ],
+  "BSBlendColorRGB": [
+   4,
+   656386,
+   1
+  ],
+  "BSAddRGB": [
+   4,
+   131586,
+   1
+  ],
+  "BSRevSubAlphaRGB": [
+   4,
+   67241986,
+   1
+  ],
+  "BSRevSubBlendAlphaRGB": [
+   4,
+   67766274,
+   1
+  ],
+  "BSRevSubColorRGB": [
+   4,
+   67240962,
+   1
+  ],
+  "BSRevSubBlendColorRGB": [
+   4,
+   67765250,
+   1
+  ],
+  "BSRevSubRGB": [
+   4,
+   67240450,
+   1
+  ],
+  "BSMinAlpha": [
+   4,
+   100796418,
+   1
+  ],
+  "BSMaxAlpha": [
+   4,
+   134350850,
+   1
+  ],
+  "BSMinAlphaRGB": [
+   4,
+   100796418,
+   1
+  ],
+  "BSMaxAlphaRGB": [
+   4,
+   134350850,
+   1
+  ],
+  "BSBlendAlphaEx": [
+   4,
+   657410,
+   1280
+  ],
+  "BSAddAlphaEx": [
+   4,
+   133122,
+   256
+  ],
+  "BSBlendColorEx": [
+   4,
+   656386,
+   1280
+  ],
+  "BSAddColorEx": [
+   4,
+   132098,
+   256
+  ],
+  "BSAccumulateColorAlpha": [
+   4,
+   131586,
+   257
+  ],
+  "DSDefault": [
+   5,
+   8388508,
+   7340144
+  ],
+  "DSZTestWrite": [
+   5,
+   8388495,
+   7340144
+  ],
+  "DSZTestWriteGT": [
+   5,
+   8388499,
+   7340144
+  ],
+  "DSZTest": [
+   5,
+   8388493,
+   7340144
+  ],
+  "DSZWrite": [
+   5,
+   8388511,
+   7340144
+  ],
+  "DSZWriteStencilWrite": [
+   5,
+   8355935,
+   7471218
+  ],
+  "DSZTestWriteStencilWrite": [
+   5,
+   8355919,
+   7471218
+  ],
+  "DSZTestStencilWrite": [
+   5,
+   8355917,
+   7471218
+  ],
+  "DSStencilWrite": [
+   5,
+   8355910,
+   7471218
+  ],
+  "RSDefault": [
+   6,
+   129,
+   0
+  ],
+  "RSMesh": [
+   6,
+   657,
+   0
+  ],
+  "RSMeshBias1": [
+   6,
+   657,
+   4294967264
+  ],
+  "RSMeshBias2": [
+   6,
+   657,
+   4294967232
+  ],
+  "RSMeshBias3": [
+   6,
+   657,
+   4294967200
+  ],
+  "RSMeshBias4": [
+   6,
+   657,
+   4294967168
+  ],
+  "RSMeshBias5": [
+   6,
+   657,
+   4294967136
+  ],
+  "RSMeshBias6": [
+   6,
+   657,
+   4294967104
+  ],
+  "RSMeshBias7": [
+   6,
+   657,
+   4294967072
+  ],
+  "RSMeshBias8": [
+   6,
+   657,
+   4294967040
+  ],
+  "RSMeshBias9": [
+   6,
+   657,
+   4294966976
+  ],
+  "RSMeshBias10": [
+   6,
+   657,
+   4294966912
+  ],
+  "RSMeshBias11": [
+   6,
+   657,
+   4294966848
+  ],
+  "RSMeshBias12": [
+   6,
+   657,
+   4294966784
+  ],
+  "RSMeshCF": [
+   6,
+   649,
+   0
+  ],
+  "RSMeshCN": [
+   6,
+   641,
+   0
+  ],
+  "RSPrim": [
+   6,
+   641,
+   0
+  ],
+  "RSPrimBias1": [
+   6,
+   641,
+   4294967264
+  ],
+  "RSScissorMesh": [
+   6,
+   913,
+   0
+  ],
+  "RSScissorPrim": [
+   6,
+   897,
+   0
+  ],
+  "RSWireFrame": [
+   6,
+   128,
+   0
+  ],
+  "BSMRTWrite0001": [
+   4,
+   512,
+   1
+  ],
+  "BSMRTWrite0010": [
+   4,
+   512,
+   1
+  ],
+  "BSMRTWrite0011": [
+   4,
+   512,
+   1
+  ],
+  "BSMRTWrite0100": [
+   4,
+   512,
+   1
+  ],
+  "BSMRTWrite0101": [
+   4,
+   512,
+   1
+  ],
+  "BSMRTWrite0110": [
+   4,
+   512,
+   1
+  ],
+  "BSMRTWrite0111": [
+   4,
+   512,
+   1
+  ],
+  "BSMRTWrite1000": [
+   4,
+   512,
+   1
+  ],
+  "BSMRTWrite1001": [
+   4,
+   512,
+   1
+  ],
+  "BSMRTWrite1010": [
+   4,
+   512,
+   1
+  ],
+  "BSMRTWrite1011": [
+   4,
+   512,
+   1
+  ],
+  "BSMRTWrite1100": [
+   4,
+   512,
+   1
+  ],
+  "BSMRTWrite1101": [
+   4,
+   512,
+   1
+  ],
+  "BSMRTWrite1110": [
+   4,
+   512,
+   1
+  ],
+  "DSFilterStencilEqual": [
+   5,
+   8388572,
+   2097184
+  ],
+  "BSBlendAddAlpha": [
+   4,
+   133122,
+   260
+  ],
+  "BSBlendBlendAlpha": [
+   4,
+   657410,
+   1284
+  ],
+  "BSBlendAddColor": [
+   4,
+   132098,
+   260
+  ],
+  "BSBlendBlendColor": [
+   4,
+   656386,
+   1284
+  ],
+  "BSBlendAdd": [
+   4,
+   131586,
+   257
+  ],
+  "BSBlendRevSubAlpha": [
+   4,
+   67241986,
+   131332
+  ],
+  "BSBlendRevSubBlendAlpha": [
+   4,
+   67766274,
+   132356
+  ],
+  "BSBlendRevSubColor": [
+   4,
+   67240962,
+   131332
+  ],
+  "BSBlendRevSubBlendColor": [
+   4,
+   67765250,
+   132356
+  ],
+  "BSBlendRevSub": [
+   4,
+   67240450,
+   131329
+  ],
+  "BSBlendMinAlpha": [
+   4,
+   100796418,
+   196868
+  ],
+  "BSBlendMaxAlpha": [
+   4,
+   134350850,
+   262404
+  ],
+  "BSBlendNoBlend": [
+   4,
+   512,
+   1
+  ],
+  "BSBlendAddAlphaRGB": [
+   4,
+   133122,
+   260
+  ],
+  "BSBlendBlendAlphaRGB": [
+   4,
+   657410,
+   1284
+  ],
+  "BSBlendAddColorRGB": [
+   4,
+   132098,
+   260
+  ],
+  "BSBlendBlendColorRGB": [
+   4,
+   656386,
+   1284
+  ],
+  "BSBlendAddRGB": [
+   4,
+   131586,
+   257
+  ],
+  "BSBlendRevSubAlphaRGB": [
+   4,
+   67241986,
+   131332
+  ],
+  "BSBlendRevSubBlendAlphaRGB": [
+   4,
+   67766274,
+   132356
+  ],
+  "BSBlendRevSubColorRGB": [
+   4,
+   67240962,
+   131332
+  ],
+  "BSBlendRevSubBlendColorRGB": [
+   4,
+   67765250,
+   132356
+  ],
+  "BSBlendRevSubRGB": [
+   4,
+   67240450,
+   131329
+  ],
+  "BSBlendMinAlphaRGB": [
+   4,
+   100796418,
+   196868
+  ],
+  "BSBlendMaxAlphaRGB": [
+   4,
+   134350850,
+   262404
+  ],
+  "BSBlendAddDestColor": [
+   4,
+   135170,
+   262
+  ],
+  "BSBlendBlendAddDestColor": [
+   4,
+   659458,
+   1286
+  ],
+  "BSBlendBlendAddDestAlpha": [
+   4,
+   659458,
+   262
+  ],
+  "BSBlendAddDestColorRGB": [
+   4,
+   135170,
+   262
+  ],
+  "BSBlendBlendAddDestColorRGB": [
+   4,
+   659458,
+   1286
+  ],
+  "BSBlendBlendAddDestAlphaRGB": [
+   4,
+   659458,
+   262
+  ],
+  "BSBlendNoBlendRGB": [
+   4,
+   512,
+   1
+  ],
+  "BSFogBlend": [
+   4,
+   524802,
+   1
+  ],
+  "BSOutlineModulate": [
+   4,
+   655362,
+   1
+  ],
+  "BSOutlineBlend": [
+   4,
+   655874,
+   1
+  ],
+  "DSOutlineZTestStencilTest": [
+   5,
+   32717,
+   5242960
+  ],
+  "DSOutlineZTestWriteStencilTest": [
+   5,
+   32719,
+   5242960
+  ],
+  "BSShadowRecvSolidGroup0": [
+   4,
+   512,
+   1
+  ],
+  "BSShadowRecvSolidGroup1": [
+   4,
+   512,
+   1
+  ],
+  "BSShadowRecvTransparentGroup0": [
+   4,
+   134349312,
+   1
+  ],
+  "BSShadowRecvTransparentGroup1": [
+   4,
+   134349312,
+   1
+  ],
+  "BSShadowRecvMultiSolidGroup0": [
+   4,
+   134349314,
+   262401
+  ],
+  "BSShadowRecvMultiSolidGroup1": [
+   4,
+   134349314,
+   262401
+  ],
+  "BSShadowRecvMultiTransparentGroup0": [
+   4,
+   134349314,
+   262401
+  ],
+  "BSShadowRecvMultiTransparentGroup1": [
+   4,
+   134349314,
+   262401
+  ],
+  "BSShadowRecvZPass": [
+   4,
+   512,
+   1
+  ],
+  "DSDeferredLightingZWriteStencilTestRouted": [
+   5,
+   32719,
+   2097184
+  ],
+  "DSDeferredLightingZTestStencilWriteDepthFail": [
+   5,
+   276824013,
+   7348336
+  ],
+  "DSDeferredLightingZTestStencilWriteDepthPass": [
+   5,
+   8388557,
+   7471218
+  ],
+  "DSDeferredLightingZTestStencilTest": [
+   5,
+   32717,
+   1048592
+  ],
+  "DSDeferredLightingStencilTest": [
+   5,
+   32716,
+   1048592
+  ],
+  "BSAccumulateColorAlphaMRT2": [
+   4,
+   131590,
+   257
+  ],
+  "BSMultiplyColorAlpha": [
+   4,
+   4098,
+   6
+  ],
+  "BSMultiplyColorAlphaMRT2": [
+   4,
+   4102,
+   6
+  ],
+  "BSAmbientMaskGroup0": [
+   4,
+   134349314,
+   262401
+  ],
+  "BSAmbientMaskGroup1": [
+   4,
+   134349314,
+   262401
+  ],
+  "BSAmbientMaskGroup2": [
+   4,
+   134349314,
+   262401
+  ],
+  "BSAmbientMaskGroup3": [
+   4,
+   134349314,
+   262401
+  ],
+  "BSAmbientMaskAlphaGroup0": [
+   4,
+   657410,
+   257
+  ],
+  "BSAmbientMaskAlphaGroup1": [
+   4,
+   657410,
+   257
+  ],
+  "BSAmbientMaskAlphaGroup2": [
+   4,
+   657410,
+   257
+  ],
+  "DSPrimStencilTestEQ": [
+   5,
+   32710,
+   2097184
+  ],
+  "DSPrimStencilTestNEQ": [
+   5,
+   32710,
+   5242960
+  ],
+  "DSPrimZTestStencilTestEQ": [
+   5,
+   32717,
+   2097184
+  ],
+  "DSPrimZTestStencilTestNEQ": [
+   5,
+   32717,
+   5242960
+  ],
+  "DSPrimZWriteStencilTestEQ": [
+   5,
+   32735,
+   2097184
+  ],
+  "DSPrimZWriteStencilTestNEQ": [
+   5,
+   32735,
+   5242960
+  ],
+  "DSPrimZTestWriteStencilTestEQ": [
+   5,
+   32719,
+   2097184
+  ],
+  "DSPrimZTestWriteStencilTestNEQ": [
+   5,
+   32719,
+   5242960
+  ],
+  "BSSSAO": [
+   4,
+   655874,
+   1
+  ],
+  "BSGodRays": [
+   4,
+   655874,
+   1
+  ],
+  "RSGUIScissorEnable": [
+   6,
+   385,
+   0
+  ],
+  "BSGUIAddColorRGB": [
+   4,
+   131586,
+   1
+  ],
+  "BSGUIAddInvColor": [
+   4,
+   133122,
+   1
+  ],
+  "BSGUIColorBlendAlphaAdd": [
+   4,
+   657410,
+   260
+  ],
+  "BSGUIAlphaMaskWrite": [
+   4,
+   514,
+   1
+  ],
+  "BSGUIAlphaMaskUpdate": [
+   4,
+   524290,
+   1024
+  ],
+  "BSGUIAlphaMaskAdd": [
+   4,
+   131586,
+   257
+  ],
+  "DSGUIStencilWrite": [
+   5,
+   8388572,
+   7471218
+  ],
+  "DSGUIStencilApply": [
+   5,
+   8388572,
+   3145776
+  ],
+  "DSGUIStencilApplyReverse": [
+   5,
+   8388572,
+   4194368
+  ],
+  "DSGUIStencilUpdate": [
+   5,
+   8388572,
+   2490406
+  ],
+  "DSGUIZTestStencilApply": [
+   5,
+   8388557,
+   3145776
+  ],
+  "DSGUIZTestStencilApplyReverse": [
+   5,
+   8388557,
+   4194368
+  ],
+  "DSGUIZTestStencilUpdate": [
+   5,
+   8388557,
+   2490406
+  ],
+  "DSGUIZWriteStencilApply": [
+   5,
+   8388575,
+   3145776
+  ],
+  "DSGUIZWriteStencilApplyReverse": [
+   5,
+   8388575,
+   4194368
+  ],
+  "DSGUIZWriteStencilUpdate": [
+   5,
+   8388575,
+   2490406
+  ],
+  "DSGUIZTestWriteStencilApply": [
+   5,
+   8388559,
+   3145776
+  ],
+  "DSGUIZTestWriteStencilApplyReverse": [
+   5,
+   8388559,
+   4194368
+  ],
+  "DSGUIZTestWriteStencilUpdate": [
+   5,
+   8388559,
+   2490406
+  ],
+  "BSAddRWrite": [
+   4,
+   131586,
+   1
+  ],
+  "BSAddGWrite": [
+   4,
+   131586,
+   1
+  ],
+  "BSAddBWrite": [
+   4,
+   131586,
+   1
+  ],
+  "BSAddAWrite": [
+   4,
+   131586,
+   1
+  ],
+  "BSSubRWrite": [
+   4,
+   67240450,
+   1
+  ],
+  "BSSubGWrite": [
+   4,
+   67240450,
+   1
+  ],
+  "BSSubBWrite": [
+   4,
+   67240450,
+   1
+  ],
+  "BSSubAWrite": [
+   4,
+   67240450,
+   1
+  ],
+  "BSAlphaToCoverage": [
+   4,
+   513,
+   1
+  ],
+  "BSRGWrite": [
+   4,
+   512,
+   1
+  ],
+  "BSBAWrite": [
+   4,
+   512,
+   1
+  ],
+  "DSZTestWriteBack": [
+   5,
+   8388507,
+   7340144
+  ],
+  "DSAmbientShadow": [
+   5,
+   8388505,
+   7340144
+  ],
+  "BSAddMRT": [
+   4,
+   131590,
+   257
+  ],
+  "BSLayoutWriteAlphaMask": [
+   4,
+   131074,
+   1
+  ],
+  "BSLayoutBlendAlphaMask": [
+   4,
+   131074,
+   6
+  ],
+  "BSLayoutBlendDstAlpha": [
+   4,
+   920578,
+   256
+  ]
+ },
  "layouts": {
   "IAPrimitiveCloudBillboard": {
    "index": 70,
@@ -501,6 +1523,27 @@
   ]
  },
  "structs": {
+  "PRIM_EYE_OUT": {
+   "glsl": "struct PRIM_EYE_OUT {\n  vec3 e_vector;\n  vec3 direction;\n  float distance;\n};\nPRIM_EYE_OUT zero_PRIM_EYE_OUT() { PRIM_EYE_OUT z; z.e_vector = vec3(0.0); z.direction = vec3(0.0); z.distance = 0.0; return z; }\n",
+   "members": [
+    [
+     "e_vector",
+     "vec3",
+     ""
+    ],
+    [
+     "direction",
+     "vec3",
+     ""
+    ],
+    [
+     "distance",
+     "float",
+     ""
+    ]
+   ],
+   "uses": []
+  },
   "FOG_OUT": {
    "glsl": "struct FOG_OUT {\n  vec3 addfactor;\n  vec3 mulfactor;\n  float effect;\n};\nFOG_OUT zero_FOG_OUT() { FOG_OUT z; z.addfactor = vec3(0.0); z.mulfactor = vec3(0.0); z.effect = 0.0; return z; }\n",
    "members": [
@@ -522,26 +1565,152 @@
    ],
    "uses": []
   },
-  "PRIM_EYE_OUT": {
-   "glsl": "struct PRIM_EYE_OUT {\n  vec3 e_vector;\n  vec3 direction;\n  float distance;\n};\nPRIM_EYE_OUT zero_PRIM_EYE_OUT() { PRIM_EYE_OUT z; z.e_vector = vec3(0.0); z.direction = vec3(0.0); z.distance = 0.0; return z; }\n",
+  "PRIM_NTB_OUT": {
+   "glsl": "struct PRIM_NTB_OUT {\n  vec3 normal;\n  vec3 tangent;\n  vec3 binormal;\n};\nPRIM_NTB_OUT zero_PRIM_NTB_OUT() { PRIM_NTB_OUT z; z.normal = vec3(0.0); z.tangent = vec3(0.0); z.binormal = vec3(0.0); return z; }\n",
    "members": [
     [
-     "e_vector",
+     "normal",
      "vec3",
      ""
     ],
     [
-     "direction",
+     "tangent",
      "vec3",
      ""
     ],
     [
-     "distance",
-     "float",
+     "binormal",
+     "vec3",
      ""
     ]
    ],
    "uses": []
+  },
+  "PRIM_FOG_OUT": {
+   "glsl": "struct PRIM_FOG_OUT {\n  vec4 color;\n  FOG_OUT fog;\n};\nPRIM_FOG_OUT zero_PRIM_FOG_OUT() { PRIM_FOG_OUT z; z.color = vec4(0.0); z.fog = zero_FOG_OUT(); return z; }\n",
+   "members": [
+    [
+     "color",
+     "vec4",
+     ""
+    ],
+    [
+     "fog",
+     "FOG_OUT",
+     ""
+    ]
+   ],
+   "uses": [
+    "FOG_OUT"
+   ]
+  },
+  "PRIMITIVE_VS_OUTPUT": {
+   "glsl": "struct PRIMITIVE_VS_OUTPUT {\n  vec4 position;\n  vec4 color;\n  vec2 tex_coord;\n  float intensity;\n  float fresnel;\n  float depth_vol;\n  vec3 tangent;\n  vec3 binormal;\n  vec3 normal;\n  vec3 w_pos;\n  vec3 s_pos;\n  float parallax_scale;\n  vec2 ouv;\n  vec2 ouvx;\n  vec2 ouvy;\n  vec2 od;\n  float oz;\n  vec3 cac;\n  vec3 cdc;\n  FOG_OUT fog;\n};\nPRIMITIVE_VS_OUTPUT zero_PRIMITIVE_VS_OUTPUT() { PRIMITIVE_VS_OUTPUT z; z.position = vec4(0.0); z.color = vec4(0.0); z.tex_coord = vec2(0.0); z.intensity = 0.0; z.fresnel = 0.0; z.depth_vol = 0.0; z.tangent = vec3(0.0); z.binormal = vec3(0.0); z.normal = vec3(0.0); z.w_pos = vec3(0.0); z.s_pos = vec3(0.0); z.parallax_scale = 0.0; z.ouv = vec2(0.0); z.ouvx = vec2(0.0); z.ouvy = vec2(0.0); z.od = vec2(0.0); z.oz = 0.0; z.cac = vec3(0.0); z.cdc = vec3(0.0); z.fog = zero_FOG_OUT(); return z; }\n",
+   "members": [
+    [
+     "position",
+     "vec4",
+     "SV_POSITION"
+    ],
+    [
+     "color",
+     "vec4",
+     "VertexColor"
+    ],
+    [
+     "tex_coord",
+     "vec2",
+     "UV_BASEMAP"
+    ],
+    [
+     "intensity",
+     "float",
+     "Intensity"
+    ],
+    [
+     "fresnel",
+     "float",
+     "Fresnel"
+    ],
+    [
+     "depth_vol",
+     "float",
+     "DepthVol"
+    ],
+    [
+     "tangent",
+     "vec3",
+     "Tangent"
+    ],
+    [
+     "binormal",
+     "vec3",
+     "Binormal"
+    ],
+    [
+     "normal",
+     "vec3",
+     "Normal"
+    ],
+    [
+     "w_pos",
+     "vec3",
+     "WrlPosition"
+    ],
+    [
+     "s_pos",
+     "vec3",
+     "ScrPosition"
+    ],
+    [
+     "parallax_scale",
+     "float",
+     "ParaScale"
+    ],
+    [
+     "ouv",
+     "vec2",
+     "OccUV"
+    ],
+    [
+     "ouvx",
+     "vec2",
+     "OccUVX"
+    ],
+    [
+     "ouvy",
+     "vec2",
+     "OccUVY"
+    ],
+    [
+     "od",
+     "vec2",
+     "OccDist"
+    ],
+    [
+     "oz",
+     "float",
+     "OccZ"
+    ],
+    [
+     "cac",
+     "vec3",
+     "CldAmb"
+    ],
+    [
+     "cdc",
+     "vec3",
+     "CldDir"
+    ],
+    [
+     "fog",
+     "FOG_OUT",
+     "Fog"
+    ]
+   ],
+   "uses": [
+    "FOG_OUT"
+   ]
   },
   "PRIMITIVE_VS_INPUT": {
    "glsl": "struct PRIMITIVE_VS_INPUT {\n  vec3 position;\n  vec4 color;\n  vec2 tex_coord;\n  float zoffset;\n  float intensity;\n  float spr_scale;\n  float spr_rot;\n  float spr_w;\n  float spr_h;\n  float spr_ratio;\n  float spr_volume;\n  float nt_rot;\n  vec2 nt_size;\n  float nt_volume;\n  float pln_w;\n  vec3 pln_tangent;\n  float pln_volume;\n  vec3 ply_normal;\n  float ply_binormal;\n  vec3 ply_tangent;\n  float ply_volume;\n  float prim_rot;\n  float prim_vol;\n  float prim_prscale;\n  float cloud_aspect;\n  float cloud_alpha;\n  float cloud_size;\n  float cloud_scale;\n  vec3 cloud_pos;\n};\nPRIMITIVE_VS_INPUT zero_PRIMITIVE_VS_INPUT() { PRIMITIVE_VS_INPUT z; z.position = vec3(0.0); z.color = vec4(0.0); z.tex_coord = vec2(0.0); z.zoffset = 0.0; z.intensity = 0.0; z.spr_scale = 0.0; z.spr_rot = 0.0; z.spr_w = 0.0; z.spr_h = 0.0; z.spr_ratio = 0.0; z.spr_volume = 0.0; z.nt_rot = 0.0; z.nt_size = vec2(0.0); z.nt_volume = 0.0; z.pln_w = 0.0; z.pln_tangent = vec3(0.0); z.pln_volume = 0.0; z.ply_normal = vec3(0.0); z.ply_binormal = 0.0; z.ply_tangent = vec3(0.0); z.ply_volume = 0.0; z.prim_rot = 0.0; z.prim_vol = 0.0; z.prim_prscale = 0.0; z.cloud_aspect = 0.0; z.cloud_alpha = 0.0; z.cloud_size = 0.0; z.cloud_scale = 0.0; z.cloud_pos = vec3(0.0); return z; }\n",
@@ -693,153 +1862,6 @@
     ]
    ],
    "uses": []
-  },
-  "PRIM_NTB_OUT": {
-   "glsl": "struct PRIM_NTB_OUT {\n  vec3 normal;\n  vec3 tangent;\n  vec3 binormal;\n};\nPRIM_NTB_OUT zero_PRIM_NTB_OUT() { PRIM_NTB_OUT z; z.normal = vec3(0.0); z.tangent = vec3(0.0); z.binormal = vec3(0.0); return z; }\n",
-   "members": [
-    [
-     "normal",
-     "vec3",
-     ""
-    ],
-    [
-     "tangent",
-     "vec3",
-     ""
-    ],
-    [
-     "binormal",
-     "vec3",
-     ""
-    ]
-   ],
-   "uses": []
-  },
-  "PRIM_FOG_OUT": {
-   "glsl": "struct PRIM_FOG_OUT {\n  vec4 color;\n  FOG_OUT fog;\n};\nPRIM_FOG_OUT zero_PRIM_FOG_OUT() { PRIM_FOG_OUT z; z.color = vec4(0.0); z.fog = zero_FOG_OUT(); return z; }\n",
-   "members": [
-    [
-     "color",
-     "vec4",
-     ""
-    ],
-    [
-     "fog",
-     "FOG_OUT",
-     ""
-    ]
-   ],
-   "uses": [
-    "FOG_OUT"
-   ]
-  },
-  "PRIMITIVE_VS_OUTPUT": {
-   "glsl": "struct PRIMITIVE_VS_OUTPUT {\n  vec4 position;\n  vec4 color;\n  vec2 tex_coord;\n  float intensity;\n  float fresnel;\n  float depth_vol;\n  vec3 tangent;\n  vec3 binormal;\n  vec3 normal;\n  vec3 w_pos;\n  vec3 s_pos;\n  float parallax_scale;\n  vec2 ouv;\n  vec2 ouvx;\n  vec2 ouvy;\n  vec2 od;\n  float oz;\n  vec3 cac;\n  vec3 cdc;\n  FOG_OUT fog;\n};\nPRIMITIVE_VS_OUTPUT zero_PRIMITIVE_VS_OUTPUT() { PRIMITIVE_VS_OUTPUT z; z.position = vec4(0.0); z.color = vec4(0.0); z.tex_coord = vec2(0.0); z.intensity = 0.0; z.fresnel = 0.0; z.depth_vol = 0.0; z.tangent = vec3(0.0); z.binormal = vec3(0.0); z.normal = vec3(0.0); z.w_pos = vec3(0.0); z.s_pos = vec3(0.0); z.parallax_scale = 0.0; z.ouv = vec2(0.0); z.ouvx = vec2(0.0); z.ouvy = vec2(0.0); z.od = vec2(0.0); z.oz = 0.0; z.cac = vec3(0.0); z.cdc = vec3(0.0); z.fog = zero_FOG_OUT(); return z; }\n",
-   "members": [
-    [
-     "position",
-     "vec4",
-     "SV_POSITION"
-    ],
-    [
-     "color",
-     "vec4",
-     "VertexColor"
-    ],
-    [
-     "tex_coord",
-     "vec2",
-     "UV_BASEMAP"
-    ],
-    [
-     "intensity",
-     "float",
-     "Intensity"
-    ],
-    [
-     "fresnel",
-     "float",
-     "Fresnel"
-    ],
-    [
-     "depth_vol",
-     "float",
-     "DepthVol"
-    ],
-    [
-     "tangent",
-     "vec3",
-     "Tangent"
-    ],
-    [
-     "binormal",
-     "vec3",
-     "Binormal"
-    ],
-    [
-     "normal",
-     "vec3",
-     "Normal"
-    ],
-    [
-     "w_pos",
-     "vec3",
-     "WrlPosition"
-    ],
-    [
-     "s_pos",
-     "vec3",
-     "ScrPosition"
-    ],
-    [
-     "parallax_scale",
-     "float",
-     "ParaScale"
-    ],
-    [
-     "ouv",
-     "vec2",
-     "OccUV"
-    ],
-    [
-     "ouvx",
-     "vec2",
-     "OccUVX"
-    ],
-    [
-     "ouvy",
-     "vec2",
-     "OccUVY"
-    ],
-    [
-     "od",
-     "vec2",
-     "OccDist"
-    ],
-    [
-     "oz",
-     "float",
-     "OccZ"
-    ],
-    [
-     "cac",
-     "vec3",
-     "CldAmb"
-    ],
-    [
-     "cdc",
-     "vec3",
-     "CldDir"
-    ],
-    [
-     "fog",
-     "FOG_OUT",
-     "Fog"
-    ]
-   ],
-   "uses": [
-    "FOG_OUT"
-   ]
   }
  },
  "cbs": {

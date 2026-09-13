@@ -30,6 +30,36 @@
 import * as THREE from 'three';
 import { loader, loadJson, getTexture } from '../assets.js';
 import { gidBonesOf } from '../skeleton.js';
+import { LiveEffects, liveEffectsFor } from './effect/live.js';
+
+// THE ROM'S OWN EFFECTS, WHERE THEY EXIST. A monster with docs/effects/<id>.json runs its effect
+// files on the translated runtime (effect/live.js) -- placed by the joints its nodes bind to, animated
+// and drawn by the game's own code -- in place of the table-mounted models below, which remain for
+// every other monster and behind __view.effectRuntime(false). What the live path does not draw yet
+// (Model particles) is stated in live.js.
+let runtimeOn = true;
+let runtime = null;
+let attachToken = 0;
+let lastAttach = null;            // [root, monsterId, only] of the last attach, to re-run it on a switch
+export function setEffectRuntime(on){ runtimeOn = !!on; }
+export function effectRuntimeStats(){ return runtime ? Object.assign({}, runtime.stats) : null; }
+export function effectRuntimeInstance(){ return runtime; }
+// __view.effectRuntime()        what the ROM runtime drew in its last frame (null when it is not running)
+// __view.effectRuntime(false)   back to the table-mounted models; (true) the ROM runtime again
+function installConsoleHook(){
+  if (typeof window === 'undefined') return;
+  const install = () => {
+    if (!window.__view){ setTimeout(install, 500); return; }
+    if (window.__view.effectRuntime) return;
+    window.__view.effectRuntime = async on => {
+      if (on === undefined) return effectRuntimeStats();
+      setEffectRuntime(on);
+      if (lastAttach) await attachEffectMounts(...lastAttach);
+      return { runtime: runtimeOn, stats: effectRuntimeStats(), mounted: effectMountsLive().length };
+    };
+  };
+  install();
+}
 
 let table = null;                 // the whole effect-mounts.json
 let mats = null;                  // the whole effect-materials.json
@@ -109,8 +139,22 @@ async function glbFor(model){
 // Attach every joint-bound record for this monster. `root` is the mounted monster group.
 export async function attachEffectMounts(root, monsterId, only){
   detachEffectMounts();
+  const token = ++attachToken;
+  lastAttach = [root, monsterId, only];
+  installConsoleHook();
   // Either the inspection switch, or this monster's own rage-driven mount.
   if ((!enabled && !(rageOn && autoOnRage(monsterId))) || !root) return live.length;
+  if (runtimeOn){
+    const def = await liveEffectsFor(monsterId).catch(() => null);
+    if (token !== attachToken) return 0;                 // detached or re-attached meanwhile
+    if (def){
+      const fx = new LiveEffects(def);
+      await fx.attach(root);
+      if (token !== attachToken){ fx.detach(); return 0; }
+      runtime = fx;
+      return 1;
+    }
+  }
   // `joint: -1` normally means an UNBOUND .pel record and is skipped. A row that also carries
   // `root: true` is different: it is an effect whose attachment point is not decoded yet -- the
   // EFL names its models in plain text but its emitter placement is unread -- and it is mounted on
@@ -152,6 +196,8 @@ export function setEffectScale(s){
 }
 
 export function detachEffectMounts(){
+  attachToken++;
+  if (runtime){ runtime.detach(); runtime = null; }
   for (const m of live) if (m.obj.parent) m.obj.parent.remove(m.obj);
   live.length = 0;
 }

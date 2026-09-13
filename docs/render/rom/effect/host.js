@@ -38,9 +38,24 @@ export class EffectHost {
   // heap: the first free address; records: docs/effects/mfx-records.json .records;
   // drawSystem: docs/effects/draw-system.json's bytes; resources: { meshTable(name) -> { count, table },
   //        textureSize(name) -> [w, h], anim(name) -> .ean bytes, material(name, index) -> modeldraw's answers }
-  constructor({ pages, heap, records, drawSystem, resources, allocator = 0x600f0000 }){
+  // strict: an image page the pages do not carry is refused instead of read as zeros -- the viewer ships
+  // only the pages the checks touched (docs/effects/rom-pages.bin), and a branch reaching another one
+  // must be exported, not guessed at
+  constructor({ pages, heap, records, drawSystem, resources, allocator = 0x600f0000, strict = false }){
     const m = this.m = new Mem();
     for (const [a, bytes] of pages) m.load(a, bytes);
+    if (strict){
+      const known = new Set(m.pages.keys());
+      const page = m.page.bind(m);
+      const imageLo = 0x13ef000 / 4096, imageHi = 0x2140000 / 4096, heapLo = 0x50400000 / 4096, heapHi = Math.floor(heap / 4096);
+      m.page = a => {
+        const k = Math.floor(a / 4096);
+        if (!known.has(k) && ((k >= imageLo && k < imageHi) || (k >= heapLo && k < heapHi)) && !m.pages.has(k)){
+          throw new Error('effect host: image page 0x' + (k * 4096).toString(16) + ' is not exported (dev/effect-export-rom.mjs)');
+        }
+        return page(a);
+      };
+    }
     this.heap = heap >>> 0;
     this.records = records;
     this.drawSystem = drawSystem;

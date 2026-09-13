@@ -1,0 +1,123 @@
+{
+ "_about": "Built by C:\\MHGU-Extract\\efx\\export_effects.py. The effects run on the ROM-translated runtime (docs/render/rom/effect/host.js); `joints` are the joint numbers the effect's nodes bind to (the parent unit supplies those joints' matrices), `trigger` is the viewer state that shows them.",
+ "monster": "em043_05",
+ "trigger": "rage",
+ "effects": [
+  {
+   "efl": "files/em043_05_000.efl",
+   "joints": [
+    103,
+    3
+   ]
+  }
+ ],
+ "resources": {
+  "effect\\base\\cm202_042": {
+   "ean": "files/cm202_042.ean",
+   "mesh": "files/cm202_042.mesh",
+   "meshCount": 4,
+   "materials": [
+    {
+     "emission": 1539057130,
+     "diffuse": 3558372800,
+     "cbm": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      10.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0
+     ]
+    }
+   ]
+  },
+  "effect\\base\\cm202_042_HQ_NOMIP": {
+   "size": [
+    512,
+    512
+   ],
+   "file": "tex/422e2220e2a73618.webp"
+  },
+  "effect\\base\\cm150_000": {
+   "mesh": "files/cm150_000.mesh",
+   "meshCount": 15,
+   "materials": [
+    {
+     "emission": 1539057130,
+     "diffuse": 605726143,
+     "cbm": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      10.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "ean": "files/cm150_000.ean"
+  },
+  "effect\\base\\cm100_000": {
+   "ean": "files/cm100_000.ean"
+  },
+  "effect\\base\\cm100_000_GSM_HQ_NOMIP": {
+   "size": [
+    128,
+    128
+   ],
+   "file": "tex/83b44f3e236c1717.webp"
+  }
+ }
+}

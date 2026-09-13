@@ -146,9 +146,14 @@ export function linkPrimitive(shaders, layoutName, features){
     varying.map(([t, v]) => 'in ' + t + ' ' + v + ';').join('\n'),
     'out highp vec4 fragColor;',
     fsFunctions,
+    // the viewer's canvas is sRGB-encoded at output (renderer.outputColorSpace, render/stage.js) and a
+    // raw shader is not given three.js's encode, so it is applied here: the same transfer every other
+    // material in the viewer gets, not a step of the ROM's program
+    'vec3 viewerOutputEncode(vec3 c) { return mix(pow(c, vec3(0.41666)) * 1.055 - vec3(0.055), c * 12.92, vec3(lessThanEqual(c, vec3(0.0031308)))); }',
     'void main() {',
     prelude.join('\n'),
-    '  fragColor = PS_Primitive(' + args.join(', ') + ');',
+    '  vec4 c = PS_Primitive(' + args.join(', ') + ');',
+    '  fragColor = vec4(viewerOutputEncode(max(c.rgb, vec3(0.0))), c.a);',
     '}',
   ].join('\n');
   return { vertexShader, fragmentShader, attributes, stride: layout.stride };
