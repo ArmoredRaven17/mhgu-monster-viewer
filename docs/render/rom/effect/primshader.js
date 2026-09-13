@@ -16,7 +16,8 @@
 //             (nvnDeviceSetDepthMode(dev, 1) at 0x866a48, see ../state.js): clip z spans 0..w there and
 //             -w..w in GL, and the window depth comes out the same
 //   fragment  PS_Primitive's parameters are bound to PRIMITIVE_VS_OUTPUT's members by semantic;
-//             SV_POSITION is gl_FragCoord (window coordinates; only used to sample screen textures,
+//             SV_POSITION is gl_FragCoord with its w back to the clip w a pixel shader's SV_POSITION carries
+//             (GLSL's is 1/w) (window coordinates; used to sample screen textures,
 //             which the viewer renders in GL's orientation)
 //
 // A variant the JSON does not carry throws: export it (glsl.py over a dump that selects it) rather than
@@ -137,7 +138,7 @@ export function linkPrimitive(shaders, layoutName, features){
   const args = [];
   const prelude = [];
   for (const [type, name, semantic] of params){
-    if (semantic === 'SV_POSITION'){ args.push('gl_FragCoord'); continue; }
+    if (semantic === 'SV_POSITION'){ args.push('vec4(gl_FragCoord.xyz, 1.0 / gl_FragCoord.w)'); continue; }
     const member = output.find(m => m[2] === semantic);
     if (!member) throw new Error('primshader: no vertex output for ' + semantic);
     const st = shaders.structs[type];

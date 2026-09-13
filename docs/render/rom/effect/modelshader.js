@@ -110,7 +110,7 @@ export function linkMaterial(shaders, layoutName, features, attributes){
     'vec3 viewerOutputEncode(vec3 c) { return mix(pow(c, vec3(0.41666)) * 1.055 - vec3(0.055), c * 12.92, vec3(lessThanEqual(c, vec3(0.0031308)))); }',
     'void main() {',
     '  MATERIAL_OUTPUT I = zero_MATERIAL_OUTPUT();',
-    '  I.position = gl_FragCoord;',
+    '  I.position = vec4(gl_FragCoord.xyz, 1.0 / gl_FragCoord.w);',        // SV_Position: .w is the clip w (FPrimitiveTransparencyVolume's depth)
     varying.map(([, v, n]) => '  I.' + n + ' = ' + v + ';').join('\n'),
     '  vec4 c = PS_MaterialStd(I, gl_FrontFacing);',
     '  fragColor = vec4(viewerOutputEncode(max(c.rgb, vec3(0.0))), c.a);',

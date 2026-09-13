@@ -332,10 +332,18 @@ export class LiveEffects {
     };
   }
 
+  // The game's camera lives in game units. Its view space must be too: every effect routine that takes an
+  // axis or a distance off the camera -- the camera block's matrices the CPU draw reads, fViewI that turns a
+  // sprite's corner offsets into world space (FPrimitiveCalcPosParticle), calcZOffset's camera Z -- expects
+  // unit-length axes and game-unit translations. So the view is S^-1 V S (a pure rotation and a translation
+  // in game units) and the projection takes game-unit view space, T P S; their product is still T P V S.
+  // (Folding S into the view alone left fViewI's axes 100 long: sprites and camera-facing model particles
+  // came out a hundred times their size.)
   cameraMatrices(camera){
     const S = new THREE.Matrix4().makeScale(MT_TO_VIEW, MT_TO_VIEW, MT_TO_VIEW);
-    const view = new THREE.Matrix4().multiplyMatrices(camera.matrixWorldInverse, S);
-    const proj = new THREE.Matrix4().multiplyMatrices(T_NEAR_IS_ZERO, camera.projectionMatrix);
+    const Sinv = new THREE.Matrix4().makeScale(1 / MT_TO_VIEW, 1 / MT_TO_VIEW, 1 / MT_TO_VIEW);
+    const view = new THREE.Matrix4().multiplyMatrices(Sinv, camera.matrixWorldInverse).multiply(S);
+    const proj = new THREE.Matrix4().multiplyMatrices(T_NEAR_IS_ZERO, camera.projectionMatrix).multiply(S);
     const viewProj = new THREE.Matrix4().multiplyMatrices(proj, view);
     return { view, proj, viewProj, viewI: view.clone().invert(),
              position: new THREE.Vector3().setFromMatrixPosition(camera.matrixWorld).multiplyScalar(1 / MT_TO_VIEW) };
