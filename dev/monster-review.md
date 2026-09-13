@@ -3795,10 +3795,13 @@ what the runtime drew in its last frame.
 strips, blend / depth / cull state and a shader program TRANSLATED from the shader package for exactly
 the variants each draw selects (sprites: camera-facing quads rotated by their own angle; polyline: a
 ribbon widened across the view).
-**NOT drawn yet:** the Model particles (cm150_000, cm202_042 meshes). The runtime runs them and the
-engine's model draw is computed for them, but their shading is the effect model's own material program
-(PS_MaterialStd with the effect overrides), which is not translated yet. So what is on screen is the
-trail and sprites of the effect, not all of it.
+**Also drawn (later the same evening): the Model particles** (cm150_000, cm202_042 meshes), with the
+effect model's own material program -- TMaterialStd's forward pass, translated from the shader package
+the same way -- under the engine's model draw (world matrix, colour, transparency, blend by the
+generator's mode). For Savage's effect models that program comes out as *map x fAlbedoColor x
+(diffuse + fEmissionColor) x the particle colour*. Supplied by the viewer, NOT read, and stated in
+`modelshader.js`: vertex colour / alpha that the mesh format does not carry (1), an empty specular slot
+(black), no scene lights, and a stand-in normal that only reaches terms those zero.
 **Not bound, stated:** the scene depth the soft edge fades against (the fade never engages), and the
 engine's fog (the effect's fog interface runs its own no-fog body).
 
