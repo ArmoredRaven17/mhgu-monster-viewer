@@ -3848,3 +3848,18 @@ The generic rage puff is off for Savage (`0xe72b18`). Notes: `effects-firing.md`
 lacks (1 here), dynamic scene lights and post passes, the order the command list walks model draws
 against primitive batches, the rage-end fade, and what `0x81bb0`'s states are in play (the viewer shows
 both halves). Notes: `effects-draw.md`, "Compositing".
+
+#### 2026-09-13 (later still) - Savage's eye effect, found and placed
+
+> Raven: "see if there is an eye effect or not. I think 3U had one, not sure about GU" ... "Place the eye effects"
+
+**GU has one, and it is part of the rage aura.** Key 31 (`em043_05_000` rows 4-5, head joint 3) puts
+two glow sprites at (+-20, 12, 60) in head space -- each within 1 unit of the eye mesh (`XfB__m00_eye`)
+-- and a light trail from between them. Enraged only; withheld while `0x81bb0`'s states hold.
+
+**They had drawn fully transparent.** The sprite samples its texture in texel coordinates scaled by
+`CBPrimitiveCoord.fPrimInvTextureSize`, which the primitive draw copies from the texture resource's
++0xd4 / +0xd8 -- 1/width and 1/height, set by rTexture's own loader (`0xb4e49c`). Neither the emulator
+harness nor the JS host filled them, so every uv was 0 (the texture's empty corner), and the byte-exact
+checks agreed with each other on the gap. Both now set them (commit 6954d2e); prim e2e 0 differ on every
+Savage run. Hard refresh to see them.
