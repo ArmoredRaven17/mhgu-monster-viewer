@@ -74,4 +74,12 @@ native(0xa6ecc4, (m, ...a) => polyline.polyShapeUpdate1(m, ...a), A3, null);
 native(0xa71870, (m, ...a) => spawn.lastPass(m, ...a), A2, null);
 native(0xcaa710, (m, ...a) => polyline.animBindLPL(m, ...a), A3, 'r0');
 native(0xa742c0, (m, ...a) => spawn.velDir(m, ...a), ['r0', 'r1', 'r2', 'r3', 'st0'], null);
+// The heap the engine allocates from (0x189f148 +0x20 -> an allocator object): vtable +0x1c alloc(size,
+// align), +0x34 free(pointer). The emulator harness (efx_emu.py, efx_load.py) points them at its stub
+// entries 0x7e000000 and 0x7e000104, so those are the addresses lifted code calls through; a host lays
+// its allocator object out the same way.
+native(0x7e000000, (m, self, size, align) => m.svc.alloc(size, align), A3, 'r0');
+native(0x7e000104, (m, self, p) => { m.svc.free(p); return 0; }, A2, 'r0');
 native(0x13ecc68, (m, d, s, n) => { for (let i = 0; i < n; i++) m.w8(d + i, m.u8(s + i)); }, A3, null);   // __aeabi_memcpy
+native(0x13ecc08, (m, d, s, n) => { for (let i = 0; i < n; i++) m.w8(d + i, m.u8(s + i)); }, A3, null);   // __aeabi_memcpy4
+native(0x13ece30, (m, d, s, n) => { for (let i = 0; i < n; i++) m.w8(d + i, m.u8(s + i)); }, A3, null);   // __aeabi_memcpy8

@@ -22,6 +22,7 @@ import { loadEffectList, loadEffectAnim, internals as L } from '../docs/render/r
 import { Scratch } from '../docs/render/rom/effect/motion.js';
 import { Cpu, call, lifted, POISON } from '../docs/render/rom/effect/cpu.js';
 import '../docs/render/rom/effect/draw.js';
+import '../docs/render/rom/effect/prim.js';
 
 // address -> [translation, arguments from the vector, what to compare on return]
 const TABLE = {
@@ -279,6 +280,23 @@ function servicesFor(v, problems, m, known = () => true){
     // s0 in s16 at entry (0xc8da08) and scales CBMaterial.fReflectiveColor by it (0xc8ff74). Both return 0.
     beginModel(args, stack, c){ drawService('begin_model', args, stack, c, 4, { pos: [args[3], 12], lod: [stack[3], 12] }, false); },
     drawMesh(args, stack, c){ drawService('draw_mesh', args, stack, c, 5, { matrix: [args[3], 64], st0: [stack[0], 16], st2: [stack[2], 16] }, true); },
+    // the draw context's submission under the engine's primitive draw (vecprim.py SERVICES). 0x881584
+    // stores the index pointer through its second stack word before returning the vertex pointer; the
+    // stand-in's writes are its own, so they are replayed without the memory hooks.
+    primDraw(args, stack, c){
+      const s = next('prim_draw');
+      for (let k = 0; k < 4; k++) if ((args[k] >>> 0) !== s[1][k]) problems.push('prim_draw r' + k + ' 0x' + (args[k] >>> 0).toString(16) + ', game 0x' + s[1][k].toString(16));
+      for (let k = 0; k < 2; k++) if ((stack[k] >>> 0) !== s[2][0][k]) problems.push('prim_draw stack ' + k + ' 0x' + (stack[k] >>> 0).toString(16) + ', game 0x' + s[2][0][k].toString(16));
+      const ip = parseInt(s[2][2].index_pointer, 16) >>> 0;
+      m.load(stack[1] >>> 0, new Uint8Array([ip & 255, (ip >>> 8) & 255, (ip >>> 16) & 255, ip >>> 24]));
+      return s[3];
+    },
+    drawBegin(ctx){ const s = next('draw_begin'); if ((ctx >>> 0) !== s[1][0]) problems.push('draw_begin on 0x' + (ctx >>> 0).toString(16) + ', game 0x' + s[1][0].toString(16)); },
+    drawEnd(ctx){ const s = next('draw_end'); if ((ctx >>> 0) !== s[1][0]) problems.push('draw_end on 0x' + (ctx >>> 0).toString(16) + ', game 0x' + s[1][0].toString(16)); },
+    renderSetup(args){
+      const s = next('render_setup');
+      for (let k = 0; k < 3; k++) if ((args[k] >>> 0) !== s[1][k]) problems.push('render_setup r' + k + ' 0x' + (args[k] >>> 0).toString(16) + ', game 0x' + s[1][k].toString(16));
+    },
     loadResource(dti, path, flags){
       const s = next('res_load');
       if (s[1][1] !== dti || s[1][2] !== path || s[1][3] !== flags) problems.push('resource (0x' + dti.toString(16) + ', 0x' + path.toString(16) + ', ' + flags + '), game (0x' + s[1][1].toString(16) + ', 0x' + s[1][2].toString(16) + ', ' + s[1][3] + ')');

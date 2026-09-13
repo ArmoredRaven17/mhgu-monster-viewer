@@ -16,7 +16,7 @@ import './bridge.js';                  // matMul, eulerMatrix, the work area and
 // The renderer's view of a call: r0..r3, the first n stack words and the CPU (0xc8d208 also takes s0,
 // the reflect scale -- see modeldraw.js). The words are looked at, not read by game code, so they
 // bypass the memory hooks the checker uses.
-function stackWords(m, c, n){
+export function stackWords(m, c, n){
   const w = [];
   for (let k = 0; k < n; k++){
     const a = (c.r[13] + 4 * k) >>> 0;
