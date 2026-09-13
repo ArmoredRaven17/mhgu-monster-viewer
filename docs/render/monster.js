@@ -524,10 +524,20 @@ export const ROM_RAGE_SET = {
 // the names in its own table at 0x017d9750 -- 0 Yellow, 1 Yellow_to_Red, 2 Red, 3 Red_to_Yellow --
 // and a request of 0 against state 4 becomes 3: setClip(slot 0, "Red_to_Yellow"), time zeroed, and
 // when its 15 frames run out the state settles at 0 with the clip left in the slot, HOLDING alpha 0.
-// Nothing in that loop reads the enrage predicate, so the toggle does not move it. What asks for
-// Red later is NOT READ. Outside the loop itself, a scan of the class's code for immediate-offset
-// writes finds the requests set only by the spawn setup and by 0xf46c20, a vtable method copying all
-// four slot records at once -- so whatever requests Red writes through a computed address.
+// Nothing in that loop reads the enrage predicate, so the toggle does not move it.
+//   RED IS THE ERUPTION, NOT ENRAGE -- keep it off the Enraged toggle. Raven, 2026-09-13: "Ensure you
+// are not using the 'on hit' effect Brachy has, the slime flashes red then erupts." The ROM agrees,
+// read the same day. A slot in state 2 (Red) is where the eruption starts: 0xf36984 starts effect
+// 0x3e9 + slot through the monster's own vtable +0x1d0 (the tail slot goes through 0xf36c74) and
+// arms a 30-tick fuse at [+0xcacc]+0xb0+4k; 0xf36100 burns the fuse down and 0xf46234 posts the
+// explosion. Getting there: 0xf36100 (Raging only, variant gate 0xf360dc) also runs a 2700-tick
+// countdown per slot at +0x50+8k that flips Yellow and Red when it runs out, a byte at +0x70+k asks
+// for Red at once, and all four are sent back to Yellow while vtable +0x3f4 holds (0x7fed4, true in
+// action categories 0xb and 0xe among others). Move action 6
+// (dispatcher 0xf380d0 case 6 -> 0xf37b64) turns all four red at frame 158 of motion 0xF. Nothing on
+// the colour path reads the enrage predicate; the explosion does, only to post the enraged variant of
+// its event (0xf46234: ids 0x17..0x26, +1 when enraged). So the viewer shows the spawn colour in every
+// state and offers no Red -- the eruption is boarded as an effect to build later.
 export const ROM_SPAWN_CLIP = {
   em043_05: { XfB__m02_body_k: 'Angry_Start' },   // Savage Deviljho: eyes and body glow, always lit
   em063_05: { XfB__m01_nenkin_arm_l: 'Red_to_Yellow', XfB__m02_nenkin_arm_r: 'Red_to_Yellow',
