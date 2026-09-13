@@ -50,6 +50,7 @@ function native(address, fn, argSpec, result){
 const A1 = ['r0'], A2 = ['r0', 'r1'], A3 = ['r0', 'r1', 'r2'], A4 = ['r0', 'r1', 'r2', 'r3'];
 
 native(0x1ebe8, (m, ...a) => polyline.matMul(m, ...a), A2, null);
+native(0x29d00, (m, ...a) => polyline.matMulTo(m, ...a), A3, null);
 native(0x320ed4, (m, ...a) => spawn.eulerMatrix(m, ...a), A3, null);
 native(0xb8ef7c, (m, ...a) => C.workArea(m, ...a), A3, 'r0');
 native(0xa55fe0, (m, ...a) => C.generatorInit(m, ...a), A4, 'r0');
