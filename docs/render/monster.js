@@ -511,8 +511,27 @@ export const ROM_RAGE_SET = {
 // vertices: THE EYES. Selecting Angry_End for it whenever the viewer is "calm", which a name list
 // does, switched Savage's eye glow off permanently. Raven, 2026-09-07: "Still missing the eye
 // effect."
+//
+// RAGING BRACHYDIOS'S SLIME RESTS YELLOW, and only because its spawn says so. Raven, 2026-09-13:
+// "Raging on the other hand looks very odd". Its four slime materials are MapBlend -- lerp(albedo,
+// blend map, fAlbedoBlendColor.a) -- over one texture whose left column is yellow and right column
+// red, the blend map reading the right one through fUVTransform2's 0.5 U offset. The MRL ships
+// fAlbedoBlendColor (1,1,1,1) on all of them (read from em063_05.mrl, $Globals float 4..7), so a
+// material nothing has touched draws the RED column, and that is what the viewer drew.
+//   The game touches it at once. The spawn setup (00f35318..00f353bc, variant 5 only) caches the
+// materials with MRL ids 51..54 -- arm_l, arm_r, body, tail -- as slots 0..3 and starts every slot at
+// state 4 with a request of 0. The part driver's slot loop (00f36588..00f36734) walks the states by
+// the names in its own table at 0x017d9750 -- 0 Yellow, 1 Yellow_to_Red, 2 Red, 3 Red_to_Yellow --
+// and a request of 0 against state 4 becomes 3: setClip(slot 0, "Red_to_Yellow"), time zeroed, and
+// when its 15 frames run out the state settles at 0 with the clip left in the slot, HOLDING alpha 0.
+// Nothing in that loop reads the enrage predicate, so the toggle does not move it. What asks for
+// Red later is NOT READ. Outside the loop itself, a scan of the class's code for immediate-offset
+// writes finds the requests set only by the spawn setup and by 0xf46c20, a vtable method copying all
+// four slot records at once -- so whatever requests Red writes through a computed address.
 export const ROM_SPAWN_CLIP = {
   em043_05: { XfB__m02_body_k: 'Angry_Start' },   // Savage Deviljho: eyes and body glow, always lit
+  em063_05: { XfB__m01_nenkin_arm_l: 'Red_to_Yellow', XfB__m02_nenkin_arm_r: 'Red_to_Yellow',
+              XfB__m03_nenkin_body: 'Red_to_Yellow', XfB__m04_nenkin_tail: 'Red_to_Yellow' },
 };
 // CLIPS SUPPRESSED FOR THE VIEWER. An AUTHORED deviation from the ROM, and the only one in the
 // clip path, so it is named rather than hidden inside a rule.
