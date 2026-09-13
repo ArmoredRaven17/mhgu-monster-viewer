@@ -22,6 +22,17 @@
 //
 // A variant the JSON does not carry throws: export it (glsl.py over a dump that selects it) rather than
 // fall back to anything.
+//
+// OUTPUT: the fragment colour is the program's return value, unencoded. The game renders into RGBA8 UNORM
+// colour targets: sRender's mSRGBEnable (+0x29) is !(ctor flags bit 9) (0xbb9dfc, its only store), the game
+// builds its sRender with flags 0x133f (0x3d7f6c -> 0x3ddc9c; the game's own sRender newInstance 0x3ddb64
+// passes the same), so it is 0, and the colour targets chosen by it are MT format 7 where they would be 9
+// (0xbb9110, 0xbc26a4, 0xb021a8) -- format 7 is NVN RGBA8, 9 is RGBA8_SRGB (the format table, 0xb07e48).
+// Nothing converts the colour on the way into the target, blending runs on the stored values, and at the
+// game's default brightness (24: sRender Gamma = 0.4 + 0.025 x 24 = 1.0, 0x520a48 / 0x520984) the display
+// shows them. A raw shader's output on the viewer's canvas is exactly that; the sRGB encode three.js applies
+// to its own materials is not a step of this path. Textures are the same story: the effect textures are
+// format 7 (RGBA8 UNORM), sampled without a decode (live.js loads them linear).
 
 // The layout's element formats (chunk5-shaders Part 18; NVN attribute formats from 0xbd93d4):
 // 1 F32, 3 S16, 4 U16, 7 S8 -- integer values reaching the shader as floats, unnormalised --
@@ -148,19 +159,15 @@ export function linkPrimitive(shaders, layoutName, features){
     } else args.push('v_' + member[0]);
   }
   const fragmentShader = [
-    'precision highp float;', 'precision highp int;',
+    'precision highp float;', 'precision highp int;', 'precision highp sampler2D;',
     structs, uniforms(fsFunctions),
     varying.map(([t, v]) => 'in ' + t + ' ' + v + ';').join('\n'),
     'out highp vec4 fragColor;',
     fsFunctions,
-    // the viewer's canvas is sRGB-encoded at output (renderer.outputColorSpace, render/stage.js) and a
-    // raw shader is not given three.js's encode, so it is applied here: the same transfer every other
-    // material in the viewer gets, not a step of the ROM's program
-    'vec3 viewerOutputEncode(vec3 c) { return mix(pow(c, vec3(0.41666)) * 1.055 - vec3(0.055), c * 12.92, vec3(lessThanEqual(c, vec3(0.0031308)))); }',
     'void main() {',
     prelude.join('\n'),
-    '  vec4 c = PS_Primitive(' + args.join(', ') + ');',
-    '  fragColor = vec4(viewerOutputEncode(max(c.rgb, vec3(0.0))), c.a);',
+    // stored as the program returns it (OUTPUT above)
+    '  fragColor = PS_Primitive(' + args.join(', ') + ');',
     '}',
   ].join('\n');
   return { vertexShader, fragmentShader, attributes, stride: layout.stride };

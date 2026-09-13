@@ -18,10 +18,14 @@
 // viewer units: a bone's world matrix with its translation scaled by 100 is the joint's matrix in the
 // game's space, and the shaders' view-projection carries that 0.01 back.
 //
-// SCENE INPUTS THE PRIMITIVE PATH READS BUT THE VIEWER DOES NOT HAVE: tPrimDepthMap (the scene depth
-// for the soft edge, FPrimitiveCalcVolumeBlendPSVolume) is bound to a 1x1 far-plane depth, so that fade
-// never engages; interfaces the primitive path never selects (FFogVTF, FAlphaTest, ...) run their own
-// bodies (no fog, no alpha test).
+// WHAT THE RENDERER SUPPLIES, as the game's does around the effect draw:
+//   * the view's constant buffers (CBViewProjection, CBScreen) from this render's camera -- in the game the
+//     renderer fills them per view; the draws the host records carry the harness's camera block, whose
+//     view-projection is empty, so those two buffers are never taken from a draw (cameraMatrices below)
+//   * the scene depth both programs' soft edges read (sceneDepth below)
+//   * textures sampled as stored: the effect textures are MT format 7, NVN RGBA8 UNORM (0xb07e48), no decode
+//   * the colour written as the programs return it (primshader.js, OUTPUT: RGBA8 UNORM targets)
+// Interfaces the draws never select (FFogVTF, FAlphaTest, ...) run their own bodies (no fog, no alpha test).
 import * as THREE from 'three';
 import { EffectHost } from './host.js';
 import { linkPrimitive, cbUniforms, FORMATS } from './primshader.js';
@@ -95,12 +99,14 @@ function stripsToTriangles(indices){
 }
 
 const T_NEAR_IS_ZERO = new THREE.Matrix4().set(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
+const VIEW_BUFFER = /^(CBViewProjection|CBScreen)_/;
 
 export class LiveEffects {
   constructor(def){
     this.def = def;
-    this.group = new THREE.Group();
+    this.group = new THREE.Group();              // in the viewer's scene: the frame driver
     this.group.name = 'live-effects';
+    this.scene = new THREE.Scene();              // the effect meshes, rendered by the frame driver
     this.meshes = [];
     this.modelMeshes = [];
     this.glbs = new Map();
@@ -156,11 +162,16 @@ export class LiveEffects {
         host.start(e.owner);
       }
     }
-    // the frame driver: an empty mesh that is always in the render list
-    const anchor = this.anchor = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }));
+    // The frame driver: an empty mesh at the end of the viewer's render list (transparent, last). Its hook
+    // steps the effects, draws them on the host and renders their meshes right there, into the target the
+    // viewer's render is drawing into, over everything it has drawn. They are rendered by a render of their
+    // own because three.js uploads a mesh's vertex buffers while it builds the render list: vertices written
+    // in a hook of the same render draw from buffers that were never uploaded -- the primitives never drew.
+    const anchor = this.anchor = new THREE.Mesh(new THREE.BufferGeometry(),
+      new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, depthTest: false, transparent: true }));
     anchor.frustumCulled = false;
-    anchor.renderOrder = -1e9;
-    anchor.onBeforeRender = (renderer, scene, camera) => this.frame(renderer, camera);
+    anchor.renderOrder = 1e9;
+    anchor.onBeforeRender = (renderer, scene, camera) => this.frame(renderer, scene, camera);
     this.group.add(anchor);
     root.add(this.group);
     return this;
@@ -190,9 +201,9 @@ export class LiveEffects {
 
   // A refusal (a branch of the ROM's code no recorded run reached: Unverified) or any other fault stops
   // this effect and says where, once; the viewer's render loop must not die with it.
-  frame(renderer, camera){
+  frame(renderer, scene, camera){
     if (this.failed) return;
-    try { this.frameUnsafe(renderer, camera); }
+    try { this.frameUnsafe(renderer, scene, camera); }
     catch (e){
       this.failed = String(e && e.message || e);
       this.stats.failed = this.failed;
@@ -202,7 +213,7 @@ export class LiveEffects {
     }
   }
 
-  frameUnsafe(renderer, camera){
+  frameUnsafe(renderer, scene, camera){
     const now = performance.now() / 1000;
     if (this.last === null) this.last = now;
     this.acc = Math.min(this.acc + (now - this.last), MAX_STEPS * STEP);
@@ -220,8 +231,53 @@ export class LiveEffects {
     this.host.setCamera({ position: cam.position.toArray(), view: Array.from(cam.view.elements), world: Array.from(cam.viewI.elements) });
     const { prims, models } = this.host.drawFrame(this.effects.flatMap(e => e.request ? e.request.effects() : [e.owner]));
     this.stats.frames++; this.stats.prims = prims.length; this.stats.models = models.length;
+    this.depth = this.sceneDepth(renderer, scene, camera);
     this.syncModels(models, renderer, cam);
     this.sync(prims, renderer, cam);
+    // into the same target, over what is there: no clear
+    const autoClear = renderer.autoClear;
+    renderer.autoClear = false;
+    try { renderer.render(this.scene, camera); }
+    finally { renderer.autoClear = autoClear; }
+  }
+
+  // THE SCENE DEPTH. Both programs fade a draw where it nears what is behind it: a primitive by
+  // FPrimitiveCalcVolumeBlendPSVolume (tPrimDepthMap), a model particle by FPrimitiveTransparencyVolume
+  // (tDepthMap), each turning the depth value at the pixel back into a view distance. The game binds the
+  // same texture to both slots, [[context +0x1e0] +0x280] (0xbab65c for the primitive batch, 0xc8f7e0 for
+  // the model draw): a render surface set's depth-stencil texture -- MT format 15, D24S8, made at 0xb02680
+  // into +0x270 and copied to +0x274 and then +0x280 (0xb03374) when the set is built with flag 0x10. It is
+  // the depth buffer the effects are drawn against, read while they test it without writing (DSZTest).
+  // WebGL cannot sample the buffer it is drawing into, so each frame the scene is drawn once more, without
+  // the effects, into a depth texture from this render's camera: the depth what the scene wrote leaves for
+  // the effects to read. (The game's buffer at that moment also holds its terrain and whatever else wrote
+  // depth before the effect layer; the viewer's scene is the monster.)
+  sceneDepth(renderer, scene, camera){
+    const size = renderer.getDrawingBufferSize(new THREE.Vector2());
+    let t = this.depthTarget;
+    if (!t || t.width !== size.x || t.height !== size.y){
+      if (t) t.dispose();
+      t = this.depthTarget = new THREE.WebGLRenderTarget(size.x, size.y, {
+        depthBuffer: true, stencilBuffer: false, depthTexture: new THREE.DepthTexture(size.x, size.y, THREE.FloatType) });
+    }
+    // a render inside a render, as three.js's Reflector does it: this group (the frame driver) hidden, the
+    // render target swapped and put back
+    const target = renderer.getRenderTarget(), xr = renderer.xr.enabled, shadows = renderer.shadowMap.autoUpdate;
+    this.group.visible = false;
+    renderer.xr.enabled = false;
+    renderer.shadowMap.autoUpdate = false;
+    try {
+      renderer.setRenderTarget(t);
+      renderer.state.buffers.depth.setMask(true);
+      if (!renderer.autoClear) renderer.clear();
+      renderer.render(scene, camera);
+    } finally {
+      renderer.setRenderTarget(target);
+      renderer.xr.enabled = xr;
+      renderer.shadowMap.autoUpdate = shadows;
+      this.group.visible = true;
+    }
+    return t.depthTexture;
   }
 
   // ---- Model particles -----------------------------------------------------------------------------
@@ -282,7 +338,7 @@ export class LiveEffects {
         mesh = new THREE.Mesh(src.geometry, null);
         mesh.frustumCulled = false;
         this.modelMeshes[k] = mesh;
-        this.group.add(mesh);
+        this.scene.add(mesh);
       }
       mesh.geometry = src.geometry;
       if (!mesh.material || mesh.userData.programKey !== p){
@@ -313,7 +369,7 @@ export class LiveEffects {
       const tex = material.textures || {};
       u.tAlbedoMap = { value: tex.tAlbedoMap ? this.fileTexture(tex.tAlbedoMap) : this.black };
       u.tSpecularMap = { value: tex.tSpecularMap ? this.fileTexture(tex.tSpecularMap) : this.black };
-      u.tDepthMap = { value: this.farDepth };
+      u.tDepthMap = { value: this.depth };
       u.tGlobalEnvMap = { value: this.envCube };
       u.tSpotLightTextures = { value: this.black };
       u.tPointLightTextures = { value: this.blackCube };
@@ -327,17 +383,13 @@ export class LiveEffects {
 
   fileTexture(file){
     let t = this.textures.get(file);
-    if (!t){ t = { value: null }; getTexture(file).then(tex => { t.value = tex; }); this.textures.set(file, t); }
+    if (!t){ t = { value: null }; getTexture(file, { linear: true }).then(tex => { t.value = tex; }); this.textures.set(file, t); }
     return t.value;
   }
 
   commonUniforms(renderer, cam){
     const { view, proj, viewProj, viewI } = cam;
     const size = renderer.getDrawingBufferSize(new THREE.Vector2());
-    if (!this.farDepth){
-      this.farDepth = new THREE.DataTexture(new Float32Array([1, 1, 1, 1]), 1, 1, THREE.RGBAFormat, THREE.FloatType);
-      this.farDepth.needsUpdate = true;
-    }
     return {
       CBViewProjection_fViewProj: viewProj, CBViewProjection_fView: view, CBViewProjection_fViewI: viewI,
       CBViewProjection_fProj: proj, CBViewProjection_fProjI: proj.clone().invert(), CBViewProjection_fViewProjI: viewProj.clone().invert(),
@@ -353,11 +405,16 @@ export class LiveEffects {
   // in game units) and the projection takes game-unit view space, T P S; their product is still T P V S.
   // (Folding S into the view alone left fViewI's axes 100 long: sprites and camera-facing model particles
   // came out a hundred times their size.)
+  // The projection is that times 100, a homogeneous scale: the same window position and depth, but clip w is
+  // the view distance in game units, as the game's is. The programs depend on it: calcScreenZtoViewDepth,
+  // calcScreenUVtoViewDepth and calcViewDepth turn a window depth z back into a distance as
+  // fProj[3][2] / (z + fProj[2][2]), which is the distance only for a projection whose w is -z_view exactly,
+  // and FPrimitiveTransparencyVolume compares that with SV_Position.w.
   cameraMatrices(camera){
     const S = new THREE.Matrix4().makeScale(MT_TO_VIEW, MT_TO_VIEW, MT_TO_VIEW);
     const Sinv = new THREE.Matrix4().makeScale(1 / MT_TO_VIEW, 1 / MT_TO_VIEW, 1 / MT_TO_VIEW);
     const view = new THREE.Matrix4().multiplyMatrices(Sinv, camera.matrixWorldInverse).multiply(S);
-    const proj = new THREE.Matrix4().multiplyMatrices(T_NEAR_IS_ZERO, camera.projectionMatrix).multiply(S);
+    const proj = new THREE.Matrix4().multiplyMatrices(T_NEAR_IS_ZERO, camera.projectionMatrix).multiply(S).multiplyScalar(1 / MT_TO_VIEW);
     const viewProj = new THREE.Matrix4().multiplyMatrices(proj, view);
     return { view, proj, viewProj, viewI: view.clone().invert(),
              position: new THREE.Vector3().setFromMatrixPosition(camera.matrixWorld).multiplyScalar(1 / MT_TO_VIEW) };
@@ -376,7 +433,7 @@ export class LiveEffects {
     if (!t){
       const r = this.def.resources[name];
       t = { value: null };
-      if (r && r.file) getTexture(r.file).then(tex => { t.value = tex; });
+      if (r && r.file) getTexture(r.file, { linear: true }).then(tex => { t.value = tex; });
       this.textures.set(name, t);
     }
     return t.value;
@@ -392,21 +449,39 @@ export class LiveEffects {
         mesh = new THREE.Mesh(new THREE.BufferGeometry(), null);
         mesh.frustumCulled = false;
         this.meshes[k] = mesh;
-        this.group.add(mesh);
+        this.scene.add(mesh);
       }
-      // vertices: each layout element as its own attribute over the draw's bytes
-      const g = mesh.geometry;
+      // vertices: each layout element as its own attribute over the draw's bytes. The buffers are kept and
+      // rewritten in place, and grow by replacing the whole geometry: an attribute replaced on its own keeps
+      // its GPU buffer until the geometry is disposed.
       const n = d.vertices;
+      const triangles = stripsToTriangles(d.indexList);
+      let g = mesh.geometry;
+      const fits = mesh.userData.layoutKey === p && g.index && g.index.count >= triangles.length &&
+                   p.attributes.every(a => { const at = g.getAttribute(a.name); return at && at.count >= n; });
+      if (!fits){
+        g.dispose();
+        g = mesh.geometry = new THREE.BufferGeometry();
+        const capacity = c => Math.max(64, 2 ** Math.ceil(Math.log2(Math.max(c, 1))));
+        for (const a of p.attributes){
+          const f = FORMATS[a.format];
+          g.setAttribute(a.name, new THREE.BufferAttribute(new f.array(capacity(n) * a.count), a.count, f.normalized).setUsage(THREE.DynamicDrawUsage));
+        }
+        g.setIndex(new THREE.BufferAttribute(new Uint32Array(capacity(triangles.length)), 1).setUsage(THREE.DynamicDrawUsage));
+        mesh.userData.layoutKey = p;
+      }
       for (const a of p.attributes){
         const f = FORMATS[a.format];
         const width = f.size * a.count;
+        const at = g.getAttribute(a.name);
+        const out = new Uint8Array(at.array.buffer, at.array.byteOffset, n * width);
         const src = d.vertexBytes;
-        const bytesOut = new Uint8Array(n * width);
-        for (let v = 0; v < n; v++) bytesOut.set(src.subarray(v * d.stride + a.offset, v * d.stride + a.offset + width), v * width);
-        g.setAttribute(a.name, new THREE.BufferAttribute(new f.array(bytesOut.buffer), a.count, f.normalized));
+        for (let v = 0; v < n; v++) out.set(src.subarray(v * d.stride + a.offset, v * d.stride + a.offset + width), v * width);
+        at.needsUpdate = true;
       }
-      g.setIndex(stripsToTriangles(d.indexList));
-      g.setDrawRange(0, Infinity);
+      g.index.array.set(triangles);
+      g.index.needsUpdate = true;
+      g.setDrawRange(0, triangles.length);
       // material: one per program and draw slot; uniforms are this draw's
       if (!mesh.material || mesh.userData.programKey !== p){
         mesh.material = new THREE.RawShaderMaterial({ glslVersion: THREE.GLSL3, vertexShader: p.vertexShader, fragmentShader: p.fragmentShader, uniforms: {} });
@@ -414,14 +489,15 @@ export class LiveEffects {
       }
       const mat = mesh.material;
       const u = mat.uniforms;
-      for (const [name, value] of Object.entries(common)) u[name] = { value };
       for (const [name, { type, value }] of Object.entries(cbUniforms(this.shaders, d.cb))){
+        if (VIEW_BUFFER.test(name)) continue;                      // the renderer's (the header)
         const v = type === 'float' ? value[0] : type === 'vec2' ? new THREE.Vector2(...value) : type === 'vec3' ? new THREE.Vector3(...value)
                 : type === 'vec4' ? new THREE.Vector4(...value) : type === 'mat4' ? new THREE.Matrix4().fromArray(value) : null;
         if (v !== null) u[name] = { value: v };
       }
+      for (const [name, value] of Object.entries(common)) u[name] = { value };
       u.tBaseMap = { value: this.texture(d.textures.tBaseMap) };
-      u.tPrimDepthMap = { value: this.farDepth };
+      u.tPrimDepthMap = { value: this.depth };
       applyState(mat, this.shaders, d.blend, d.depth, d.raster);
       mesh.renderOrder = 1000 + k;                     // the order the ROM's sorted primitive layer drew in
       mesh.visible = !!(u.tBaseMap.value || !/BaseMap/.test(d.features.FPrimitiveSample || ''));
@@ -431,9 +507,10 @@ export class LiveEffects {
 
   detach(){
     if (this.group.parent) this.group.parent.remove(this.group);
-    for (const mesh of this.meshes){ mesh.geometry.dispose(); if (mesh.material) mesh.material.dispose(); }
-    for (const mesh of this.modelMeshes) if (mesh.material) mesh.material.dispose();   // the geometry is the glb's
+    for (const mesh of this.meshes){ mesh.geometry.dispose(); if (mesh.material) mesh.material.dispose(); this.scene.remove(mesh); }
+    for (const mesh of this.modelMeshes){ if (mesh.material) mesh.material.dispose(); this.scene.remove(mesh); }   // the geometry is the glb's
     this.meshes.length = 0;
     this.modelMeshes.length = 0;
+    if (this.depthTarget){ this.depthTarget.depthTexture.dispose(); this.depthTarget.dispose(); this.depthTarget = null; }
   }
 }
