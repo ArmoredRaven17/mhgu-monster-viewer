@@ -234,7 +234,7 @@ export class EffectHost {
   // 0x881584: room for the batch. The context is read here -- every slot the draw leaves selected.
   primDraw(args, stack){
     const m = this.m, ctx = args[0] >>> 0, recs = this.records;
-    const features = {}, textures = {}, samplers = {}, cb = {};
+    const features = {}, textures = {}, samplers = {}, cb = {}, other = {};
     for (let i = 0; i < recs.length; i++){
       const r = recs[i];
       if (!r) continue;
@@ -244,6 +244,7 @@ export class EffectHost {
       if (r[1] === 2) features[r[0]] = this.recordName(v >>> 0);
       else if (r[1] === 1){ const h = this.handles.get(v >>> 0); textures[r[0]] = h ? h.name : '0x' + (v >>> 0).toString(16); }
       else if (r[1] === 3) samplers[r[0]] = this.recordName(v >>> 0);
+      else if (r[1] === 9 || r[1] === 7 || r[1] === 8) (other[r[0]] = this.recordName(v >>> 0) || '0x' + (v >>> 0).toString(16));
       else if (r[1] === 0 && r[2]){
         const words = [];
         for (let k = 0; k < (r[2] & 0xffff); k++) words.push(m.u32((v >>> 0) + 4 * k));
@@ -251,9 +252,10 @@ export class EffectHost {
       }
     }
     m.load(stack[1] >>> 0, u32bytes(this.IBUF));
-    this.pending = { vertices: args[2] >>> 0, indices: args[3] >>> 0, stride: stack[0] >>> 0, features, textures, samplers, cb,
+    this.pending = { vertices: args[2] >>> 0, indices: args[3] >>> 0, stride: stack[0] >>> 0, features, textures, samplers, cb, other,
                      blend: this.recordName(m.u32(ctx + 0x118)), depth: this.recordName(m.u32(ctx + 0x11c)),
-                     raster: this.recordName(m.u32(ctx + 0x120)), layout: m.u32(ctx + 0x154) };
+                     raster: this.recordName(m.u32(ctx + 0x120)), layout: m.u32(ctx + 0x154),
+                     inputLayout: (this.records[m.u32(ctx + 0x1c8) & 0xfff] || [])[0] };   // ctx+0x1c8: the layout record's key
     return this.VBUF;
   }
   primDrawEnd(){
