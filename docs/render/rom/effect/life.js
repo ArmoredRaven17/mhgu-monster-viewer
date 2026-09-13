@@ -109,9 +109,13 @@ export function unlinkToFree(m, gen, p, where){
   if (prev !== 0) throw new Unverified(where + ' freeing a particle that is not the list head');
   m.w32(gen + 0xb0, next);
   if (next !== 0) m.w32(next, 0); else m.w32(gen + 0xb4, 0);
-  if (m.u32(gen + 0xb8) !== 0) throw new Unverified(where + ' appending to a non-empty free list');
-  m.w32(p, 0);
-  m.w32(gen + 0xb8, p);
+  if (m.u32(gen + 0xb8) !== 0){                             // behind the free list's tail
+    m.w32(p, m.u32(gen + 0xbc));
+    m.w32(m.u32(gen + 0xbc) + 4, p);
+  } else {
+    m.w32(p, 0);
+    m.w32(gen + 0xb8, p);
+  }
   m.w32(gen + 0xbc, p);
   const ret = m.u32(p + 4);
   m.w32(p + 4, 0);

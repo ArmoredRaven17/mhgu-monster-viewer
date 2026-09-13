@@ -138,7 +138,19 @@ export function spawnPlace(m, gen, p, upd, info){
   }
   const e4b = m.u32(gen + 0xe4), e8 = m.u32(gen + 0xe8);
   if (e8 & 0xff) throw new Unverified('0xa59d70 generator +0xe8 low byte');
-  if (e4b & 0xff000000) throw new Unverified('0xa59e14 generator +0xe7');
+  let dirMode = 0, dx = zx, dy = zy, dz = zz;
+  if (e4b & 0xff000000){                                     // 0xa59e14: launch direction from the shape
+    const mode = e4b >>> 24;
+    if (mode !== 1) throw new Unverified('0xa59e1c spawn direction mode ' + mode);
+    const x = bitsf32(lx), y = bitsf32(ly), z = bitsf32(lz);
+    let l2 = F(y * y); l2 = F(l2 + F(x * x)); l2 = F(l2 + F(z * z));
+    const len = F(Math.sqrt(l2));
+    if (Number.isNaN(len)) throw new Unverified('0xa59e50 sqrtf fallback');
+    if (!(len >= 1.1920928955078125e-07)) throw new Unverified('0xa59e80 zero-length launch direction');
+    const inv = F(1.0 / len);                                // 0xa59f84
+    dy = f32bits(F(inv * y)); dx = f32bits(F(inv * x)); dz = f32bits(F(inv * z));
+    dirMode = 1;
+  }
   if (m.u32(m.u32(gen + 0x28) + 0x1c) !== 0) throw new Unverified('0xa59fc4 list entry +0x1c transform');
   const inst = m.u32(gen + 0x18);
   if (haveShape !== 1) throw new Unverified('0xa5a224 spawn without an emitter shape');
@@ -159,9 +171,14 @@ export function spawnPlace(m, gen, p, upd, info){
   m.w32(info, lx); m.w32(info + 4, ly); m.w32(info + 8, lz); m.w32(info + 0xc, 0);
   m.wf32(p + 0x20, wx); m.wf32(p + 0x24, wy); m.wf32(p + 0x28, wz); m.w32(p + 0x2c, 0);
   m.wf32(p + 0x30, wx); m.wf32(p + 0x34, wy); m.wf32(p + 0x38, wz); m.w32(p + 0x3c, 0);
-  m.w32(upd, zx); m.w32(upd + 4, zy); m.w32(upd + 8, zz); m.w32(upd + 0xc, 0);
-  m.u32(p + 8); m.u32(p + 0xc);
-  m.w16(p + 0xc, m.u16(gen + 0xde));
+  m.w32(upd, dx); m.w32(upd + 4, dy); m.w32(upd + 8, dz); m.w32(upd + 0xc, 0);
+  const w8 = m.u32(p + 8), wc = m.u32(p + 0xc);
+  const de = m.u16(gen + 0xde);
+  m.w16(p + 0xc, de);
+  if (dirMode === 1){                                        // 0xa5a530: a launched particle
+    m.w32(p + 8, w8);
+    m.w32(p + 0xc, ((wc & 0xffff0000) | de | 0x80) >>> 0);
+  }
   sc.free();
   return 1;
 }
@@ -282,7 +299,15 @@ export function velDir(m, out, gen, v, upd, flags){
   const c1 = m.u8(gen + 0xc1), ec = m.u32(gen + 0xec);
   if (c1 & 0x40) throw new Unverified('0xa7431c generator +0xc1 bit 6');
   axisDir(m, out, ang, ec & 0xf, (ec >>> 4) & 0xf);
-  if (flags & 0x200) throw new Unverified('0xa74474 launch flag 0x200');
+  if (flags & 0x200){                                        // 0xa74474: scaled by the node, not rotated
+    if (flags & 0x80) throw new Unverified('0xa7447c launch flags 0x280');
+    const inst = m.u32(gen + 0x18);
+    m.wf32(out, F(m.f32(inst + 0xe0) * m.f32(out)));
+    m.wf32(out + 4, F(m.f32(inst + 0xe4) * m.f32(out + 4)));
+    m.wf32(out + 8, F(m.f32(inst + 0xe8) * m.f32(out + 8)));
+    sc.free();
+    return;
+  }
   if (flags & 0x80) throw new Unverified('0xa743ac launch flag 0x80');
   const inst = m.u32(gen + 0x18);
   let s0 = F(m.f32(inst + 0xe0) * m.f32(out)); m.wf32(out, s0);
@@ -397,17 +422,76 @@ function spawnMotionVelocity(m, gen, p, upd, info){
   sc.free();
 }
 
+// 0xa5d194: spawn motion kind 2. Random launch angles give a direction; then random speed, damping
+// and gravity, as for kind 10 but drawn after the direction.
+function spawnMotionKind2(m, gen, p, upd, info){
+  const pc = m.u16(p + 0xc);
+  const col3 = m.u32(gen + 0x3c);
+  const sc = new Scratch(m);
+  const updCopy = sc.alloc(16), ang = sc.alloc(16), dir = sc.alloc(16);
+  m.w32(updCopy, m.u32(upd)); m.w32(updCopy + 4, m.u32(upd + 4)); m.w32(updCopy + 8, m.u32(upd + 8)); m.w32(updCopy + 12, 0);
+  m.w32(upd + 0x44, (m.u32(upd + 0x44) & 0xffff0000) >>> 0);
+  if ((m.u32(m.u32(gen + 0x18) + 0x110) & 0x80) || (m.u8(gen + 0x43) & 0x20)) throw new Unverified('0xa5d208 tracking node');
+  if (m.u16(col3 + 0x38) !== 0) throw new Unverified('0xa5d2c0 col3 +0x38 curve');
+  if (m.u32(info + 0x28) !== 0) throw new Unverified('0xa5d338 spawn mode');
+  m.wf32(ang, drawF(m, gen, 0x48, m.f32(col3 + 0x10), m.f32(col3 + 0x14)));
+  m.wf32(ang + 4, drawF(m, gen, 0x48, m.f32(col3 + 0x18), m.f32(col3 + 0x1c)));
+  m.wf32(ang + 8, drawF(m, gen, 0x48, m.f32(col3 + 0x20), m.f32(col3 + 0x24)));
+  velDir(m, dir, gen, ang, updCopy, pc);
+  const s16 = m.f32(dir), s18 = m.f32(dir + 4), s20 = m.f32(dir + 8);
+  if (m.u32(info + 0x28) !== 0) throw new Unverified('0xa5d65c spawn mode');
+  const c0 = m.u32(gen + 0x48);
+  const tbl = m.u32(GOT_FLOAT_RNG);
+  m.w32(gen + 0x48, (c0 + 1) >>> 0);
+  const r0 = m.f32(tbl + 4 * ((c0 + 1) & 0xfff));
+  m.w32(gen + 0x48, (c0 + 2) >>> 0);
+  const r1 = m.f32(tbl + 4 * ((c0 + 2) & 0xfff));
+  m.w32(gen + 0x48, (c0 + 3) >>> 0);
+  const r2 = m.f32(m.u32(GOT_FLOAT_RNG) + 4 * ((c0 + 3) & 0xfff));
+  if (m.u32(col3 + 0x38) >>> 16) throw new Unverified('0xa5d718 col3 +0x3a curve');
+  m.wf32(upd + 0x20, F(m.f32(col3 + 0x28) + F(r0 * m.f32(col3 + 0x2c))));
+  m.wf32(upd + 0x24, F(m.f32(col3 + 0x40) + F(r1 * m.f32(col3 + 0x44))));
+  const owner = m.u32(gen + 8);
+  let g = F(F(m.f32(col3 + 0x30) + F(r2 * m.f32(col3 + 0x34))) * m.f32(owner + 0x1bc));
+  m.wf32(upd + 0x28, g);
+  if (m.u8(upd + 0x10) & 4){
+    g = F(g * m.f32(m.u32(gen + 0x18) + 0xe4));
+    m.wf32(upd + 0x28, g);
+  }
+  if (m.u16(col3 + 0x3c) !== 0) throw new Unverified('0xa5d7c8 col3 +0x3c curve');
+  m.w32(upd + 0x2c, 0);
+  const speed = m.f32(upd + 0x20);                           // 0xa5d85c
+  m.w32(upd + 0x5c, 0);
+  m.wf32(upd + 0x50, F(s16 * speed)); m.wf32(upd + 0x54, F(s18 * speed)); m.wf32(upd + 0x58, F(s20 * speed));
+  m.w16(p + 0xc, (m.u32(p + 0xc) | 0x180) & 0xffff);
+  m.wf32(upd, s16); m.wf32(upd + 4, s18); m.wf32(upd + 8, s20); m.w32(upd + 0xc, 0);
+  sc.free();
+}
+
 // 0xa5a570: spawn motion by kind (generator +0x40 bits 20..23).
 export function spawnMotion(m, gen, p, upd, info){
   initUpdSlot(m, gen, upd, info);
   const kind = (m.u32(gen + 0x40) >>> 20) & 0xf;
   if (kind === 0){                                           // 0xa5a5e4
     for (let k = 0; k < 8; k++) m.w32(upd + 0x20 + 4 * k, m.u32(info + 4 * k));
-    if (m.u32(p + 0xc) & 0x180) throw new Unverified('0xa5a608 static particle flags');
+    const pc = m.u32(p + 0xc);
+    if (pc & 0x180){                                         // 0xa5a608: a launched static particle
+      const node = m.u32(gen + 0x30);
+      if (m.u32(info + 0x28) !== 0) throw new Unverified('0xa5a618 spawn mode');
+      const speed = drawF(m, gen, 0x48, m.f32(node + 0x80), m.f32(node + 0x84));
+      m.wf32(upd, F(m.f32(upd) * speed));
+      m.wf32(upd + 4, F(speed * m.f32(upd + 4)));
+      m.wf32(upd + 8, F(speed * m.f32(upd + 8)));
+      const w30 = m.u32(upd + 0x30), w34 = m.u32(upd + 0x34);
+      m.w32(upd + 0x34, w34);
+      m.w32(upd + 0x30, ((w30 & ~0x3000000) | ((((pc >>> 7) & 0xff) & 3) << 24)) >>> 0);
+      return;
+    }
     const w30 = m.u32(upd + 0x30), w34 = m.u32(upd + 0x34);
     m.w32(upd + 0x30, (w30 & ~0x3000000) >>> 0); m.w32(upd + 0x34, w34);
     return;
   }
+  if (kind === 2) return spawnMotionKind2(m, gen, p, upd, info);
   if (kind === 5) return spawnMotionCurve(m, gen, p, upd, info);
   if (kind === 10) return spawnMotionVelocity(m, gen, p, upd, info);
   if (kind > 11) return;
@@ -453,7 +537,15 @@ export function spawnLife(m, gen, p, slot){
     m.w32(slot + 4, A); m.w32(slot + 8, B & 0xffff);
     env = F(1.0 / F(((A & 0xffff) + 1) | 0));
   } else {
-    if (A & 0xffff0000) throw new Unverified('0xaea490 spawn into the hold');
+    if (A & 0xffff0000){                                     // 0xaea490: straight into the hold
+      C1 = ((C1 & 0xff00ffff) | 0x20000) >>> 0;
+      m.w32(slot + 4, A); m.w32(slot + 8, B);
+      m.w32(slot + 0xc, C1);
+      m.w32(slot + 4, A); m.w32(slot + 8, ((B & 0xffff) | (A & 0xffff0000)) >>> 0);
+      m.w32(slot + 0xc, C1);
+      m.wf32(slot, 1.0);
+      return;
+    }
     C1 = ((C1 & 0xff00ffff) | 0x30000) >>> 0;                // straight to the fade-out
     m.w32(slot + 4, A);
     m.w32(slot + 8, ((((B & 0xffff) << 16) & 0xffff0000) | (B & 0xffff)) >>> 0);
@@ -546,8 +638,12 @@ export function meshAnimInit(m, gen, p){
     if (sbOff !== 0 && (r0 & 0x100000)) throw new Unverified('0xa96af4 animation by channel');
     m.w32(gen + 0x4c, (c + 1) >>> 0);
     const r2 = m.u32(rec + 0x44);
-    if (r2 >>> 16) throw new Unverified('0xa96b78 random animation start');
-    s0 = F(r2 & 0xffff); s16 = 0.0;
+    let start = r2 & 0xffff;
+    if (r2 >>> 16){                                          // 0xa96b78: base + u32 random % (range + 1)
+      const r = m.u32(m.u32(GOT_INT_RNG) + 4 * ((c + 1) & 0xfff));
+      start = (start + (r % ((r2 >>> 16) + 1))) >>> 0;
+    }
+    s0 = F(start); s16 = 0.0;
     s2 = m.f32(rec + 0x48);
     flags = recFlags;
     m.w32(gen + 0x4c, (m.u32(gen + 0x4c) + 1) >>> 0);
@@ -563,8 +659,11 @@ export function meshAnimInit(m, gen, p){
   if (sbOff !== 0) throw new Unverified('0xa96d34 param +0x44 channel');
   m.w32(gen + 0x4c, (m.u32(gen + 0x4c) + 1) >>> 0);
   const w100 = m.u32(param + 0x100);
-  if (w100 >>> 22) throw new Unverified('0xa96d60 random mesh part');
-  const part = (w100 >>> 12) & 0x3ff;
+  let part = (w100 >>> 12) & 0x3ff;
+  if (w100 >>> 22){                                          // 0xa96d60: base + u32 random % (range + 1)
+    const r = m.u32(m.u32(GOT_INT_RNG) + 4 * (m.u32(gen + 0x4c) & 0xfff));
+    part = (part + (r % ((w100 >>> 22) + 1))) >>> 0;
+  }
   if (w10c & 1) throw new Unverified('0xa96eb0 mesh cycling');
   const s18 = F(part);
   const mesh = meshByPart(m, m.u32(m.u32(gen + 0x28) + 0x18), toU32(s18));
@@ -613,7 +712,28 @@ export function scaleInit(m, gen, p, floor){
 
 // 0xa685d4: per-axis scale and its velocity (six base/range draws).
 export function axisInit(m, gen, p, outScale, outVel, base, vel, mode){
-  if (mode !== 0) throw new Unverified('0xa6860c axis-scale mode');
+  if (mode !== 0){                                           // 0xa6860c: per-axis scale from a curve
+    const param = m.u32(gen + 0x34);
+    const curve = param + mode;
+    const c0 = m.u32(gen + 0x4c);
+    const tbl = m.u32(GOT_FLOAT_RNG);
+    m.w32(gen + 0x4c, (c0 + 1) >>> 0);
+    const a = m.u32(tbl + 4 * ((c0 + 1) & 0xfff));
+    m.w32(gen + 0x4c, (c0 + 2) >>> 0);
+    const b = m.u32(tbl + 4 * ((c0 + 2) & 0xfff));
+    m.w32(gen + 0x4c, (c0 + 3) >>> 0);
+    const c = m.u32(tbl + 4 * ((c0 + 3) & 0xfff));
+    const sc = new Scratch(m);
+    const rnd = sc.alloc(12), out = sc.alloc(16);
+    m.w32(rnd, a); m.w32(rnd + 4, b); m.w32(rnd + 8, c);
+    evalCurve3(m, out, curve, curveTime(m, gen, curve, p), rnd, 0);
+    if ((m.u32(curve) | 0) < 0) throw new Unverified('0xa687a8 fixed axis-scale curve');
+    m.w32(p + 0x10, (m.u32(p + 0x10) | 0x800000) >>> 0);
+    m.w32(outScale, m.u32(out)); m.w32(outScale + 4, m.u32(out + 4)); m.w32(outScale + 8, m.u32(out + 8)); m.w32(outScale + 0xc, 0);
+    m.w32(outVel, a); m.w32(outVel + 4, b); m.w32(outVel + 8, c); m.w32(outVel + 0xc, 0);
+    sc.free();
+    return;
+  }
   const tbl = m.u32(GOT_FLOAT_RNG);
   const c0 = m.u32(gen + 0x4c);
   const r = [];
@@ -654,11 +774,81 @@ export function rotationInit(m, gen, p, base, vel, mode){
     ax = f32bits(F(1.0 * vx)); ay = f32bits(F(1.0 * vy)); az = f32bits(F(1.0 * vz));
   }
   if (m.u8(gen + 0x52) & 8) throw new Unverified('0xa68154 generator +0x52 bit 3');
-  if (m.u8(gen + 0xed) & 8) throw new Unverified('0xa68190 generator +0xed bit 3');
+  let ox = rx, oy = ry, oz = rz;
+  if (m.u8(gen + 0xed) & 8){                                 // 0xa68190: plus the node's orientation
+    const sc = new Scratch(m);
+    const e = sc.alloc(16);
+    nodeEuler(m, e, gen, p);
+    ox = F(rx + m.f32(e)); oy = F(ry + m.f32(e + 4)); oz = F(rz + m.f32(e + 8));
+    sc.free();
+  }
   if (m.u8(gen + 0xc1) & 0x40) throw new Unverified('0xa681d4 generator +0xc1 bit 6');
-  m.wf32(p + 0x70, rx); m.wf32(p + 0x74, ry); m.wf32(p + 0x78, rz); m.w32(p + 0x7c, 0);
-  m.wf32(p + 0x60, rx); m.wf32(p + 0x64, ry); m.wf32(p + 0x68, rz); m.w32(p + 0x6c, 0);
+  m.wf32(p + 0x70, ox); m.wf32(p + 0x74, oy); m.wf32(p + 0x78, oz); m.w32(p + 0x7c, 0);
+  m.wf32(p + 0x60, ox); m.wf32(p + 0x64, oy); m.wf32(p + 0x68, oz); m.w32(p + 0x6c, 0);
   m.w32(p + 0xa0, ax); m.w32(p + 0xa4, ay); m.w32(p + 0xa8, az); m.w32(p + 0xac, 0);
+}
+
+// 0x72dec: rotation matrix to quaternion (x, y, z, w). Positive-trace case recorded.
+export function matToQuat(m, out, mat){
+  const m00 = m.f32(mat), m11 = m.f32(mat + 0x14), m22 = m.f32(mat + 0x28);
+  let tr = F(m00 + m11); tr = F(tr + m22);
+  if (!(tr > 0)) throw new Unverified('0x72e90 quaternion from a non-positive trace');
+  const r = F(Math.sqrt(F(tr + 1.0)));
+  if (Number.isNaN(r)) throw new Unverified('0x72e34 sqrtf fallback');
+  const s = F(0.5 / r);
+  m.wf32(out + 0xc, F(r * 0.5));
+  m.wf32(out, F(s * F(m.f32(mat + 0x18) - m.f32(mat + 0x24))));
+  m.wf32(out + 4, F(s * F(m.f32(mat + 0x20) - m.f32(mat + 8))));
+  m.wf32(out + 8, F(s * F(m.f32(mat + 4) - m.f32(mat + 0x10))));
+}
+
+// 0x7c3a38: rotation matrix to euler angles (order 4). The gimbal cases (|m21| >= 1) are unrecorded.
+export function matToEuler(m, out, mat){
+  m.w32(out + 0xc, 0);
+  const m21 = m.f32(mat + 0x24);
+  if (!(m21 < 1.0)) throw new Unverified('0x7c3ab4 euler at +90');
+  if (!(m21 > -1.0)) throw new Unverified('0x7c3ad8 euler at -90');
+  m.wf32(out + 8, F(-F(Math.atan2(F(-m.f32(mat + 4)), m.f32(mat + 0x14)))));
+  m.wf32(out, F(-F(Math.asin(m.f32(mat + 0x24)))));
+  m.wf32(out + 4, F(-F(Math.atan2(F(-m.f32(mat + 0x20)), m.f32(mat + 0x28)))));
+}
+
+// 0xa6aee0: quaternion to matrix, then to euler angles in the given order (4 recorded).
+export function quatToEuler(m, out, q, order){
+  const s0q = m.f32(q), s2q = m.f32(q + 4), s4q = m.f32(q + 8), s6 = m.f32(q + 0xc);
+  const sc = new Scratch(m);
+  const M = sc.alloc(64);
+  const s8 = F(s4q + s4q), s10a = F(s2q + s2q);
+  const s12 = F(s2q * s10a), s4 = F(s4q * s8);
+  const s5 = F(s0q * s10a), s7 = F(s0q * s8), s3a = F(s8 * s6), s10 = F(s10a * s6), s2 = F(s2q * s8);
+  let s1 = F(s12 + s4);
+  const s9 = F(s5 + s3a), s11 = F(s7 - s10), s3 = F(s5 - s3a);
+  s1 = F(1.0 - s1);
+  m.wf32(M, s1);
+  const x2 = F(s0q + s0q);
+  m.wf32(M + 4, s9); m.wf32(M + 8, s11); m.w32(M + 0xc, 0); m.wf32(M + 0x10, s3);
+  const xx = F(s0q * x2), xw = F(x2 * s6);
+  let t4 = F(xx + s4), t0 = F(xx + s12);
+  const t8 = F(s2 + xw), t2 = F(s2 - xw);
+  t4 = F(1.0 - t4); t0 = F(1.0 - t0);
+  m.wf32(M + 0x14, t4);
+  const t4b = F(s7 + s10);
+  m.wf32(M + 0x18, t8); m.w32(M + 0x1c, 0); m.wf32(M + 0x20, t4b); m.wf32(M + 0x24, t2); m.wf32(M + 0x28, t0);
+  m.w32(M + 0x2c, 0); m.w32(M + 0x30, 0); m.w32(M + 0x34, 0); m.w32(M + 0x38, 0); m.wf32(M + 0x3c, 1.0);
+  if (order !== 4) throw new Unverified('0xa6afc0 euler order ' + order);
+  matToEuler(m, out, M);                                     // 0xa6b048
+  sc.free();
+}
+
+// 0xa67988: the node instance's orientation as euler angles (generator +0xe8 top nibble 6).
+export function nodeEuler(m, out, gen, p){
+  const e8 = m.u32(gen + 0xe8);
+  if ((e8 & 0xf000000) !== 0x6000000) throw new Unverified('0xa679c0 orientation source ' + ((e8 >>> 24) & 0xf));
+  const sc = new Scratch(m);
+  const q = sc.alloc(16);
+  matToQuat(m, q, m.u32(gen + 0x18));
+  quatToEuler(m, out, q, m.u16(gen + 0xea) & 0xf);
+  sc.free();
 }
 
 // 0xa6885c: a scalar channel (value, velocity, damping) from its record.

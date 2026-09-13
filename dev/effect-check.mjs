@@ -74,6 +74,12 @@ const TABLE = {
   '0xa71870': [spawn.lastPass, v => [v.args[0], v.args[1]], null],
   '0xa965c4': [spawn.spawnModel, v => [v.args[0], v.args[1], v.args[2]], 'r0'],
   '0xaf63c4': [curve.evalColour, v => [v.args[0], v.args[1], v.args[2], v.args[3]], null],
+  '0xa6243c': [motion.motionKind2, v => [v.args[0], v.args[1], v.args[2], v.args[3]], 'r0'],
+  '0xa60234': [motion.tickKind2, v => [v.args[0]], null],
+  '0x72dec': [spawn.matToQuat, v => [v.args[0], v.args[1]], null],
+  '0x7c3a38': [spawn.matToEuler, v => [v.args[0], v.args[1]], null],
+  '0xa6aee0': [spawn.quatToEuler, v => [v.args[0], v.args[1], v.args[2]], null],
+  '0xa67988': [spawn.nodeEuler, v => [v.args[0], v.args[1], v.args[2]], null],
   '0xa574c4': [runtime.generatorUpdate, v => [v.args[0]], 'r0', v => translatedType(v)],
 };
 // the translation's own stand-in for stack locals: never an input, never compared

@@ -169,6 +169,10 @@ export function emitPeriodic(m, gen){
     m.w32(gen + 0x88, (m.u32(gen + 0x88) + 1) >>> 0);
     return 0;
   }
+  if (state === 5){                                          // 0xa57f3c: finished
+    m.w32(gen + 0x88, (m.u32(gen + 0x88) + 1) >>> 0);
+    return 0;
+  }
   throw new Unverified('0xa57c38 mode B state ' + state);
 }
 
@@ -186,7 +190,16 @@ function spawnWave(m, gen){
   const c = setCountdown(m, gen, (countdown(m, gen) + 0xffff) & 0xffff);
   if (c === 0){
     if (loadPeriod(m, gen) === 1) m.w8(gen + 0x47, 4);
-    else throw new Unverified('0xa58120 zero period');
+    else {                                                   // 0xa58120: no period -- wave again
+      const w = m.u32(gen + 0x1a8);
+      if ((w >>> 16) === 0) m.w8(gen + 0x47, 2);
+      else {                                                 // 0xa58130: a counted number of waves
+        const left = ((w >>> 16) + 0xffff) & 0xffff;
+        m.w32(gen + 0x1a8, ((w & 0xffff) | (left << 16)) >>> 0);
+        if (left !== 0) m.w8(gen + 0x47, 2);
+        else endEmission(m, gen, 0);                         // 0xa58184
+      }
+    }
   }
   m.w32(gen + 0x88, (m.u32(gen + 0x88) + 1) >>> 0);
   return count;
