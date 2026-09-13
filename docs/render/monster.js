@@ -1973,8 +1973,10 @@ function stepArmSlime(root, monId, state){
     if (tex.offset.x !== u || tex.offset.y !== v) tex.offset.set(u, v);
   }
 }
-// Until the Arms rows can drive it: __armSlime(level) sets both arms, __armSlime(level, 0|1) one arm,
-// __armSlime() reads the levels back. Levels 0 / 1 / 2 -- see ROM_ARM_SLIME for what each shows.
+// The arm rows drive it through S. Part 1 / S. Part 2 (armSlimeOptions in index.html). From the console,
+// __armSlime(level) sets both arms, __armSlime(level, 0|1) one arm, __armSlime() reads the levels back.
+// Levels 0 / 1 / 2 -- see ROM_ARM_SLIME for what each shows. A rebuild of the parts panel puts an arm
+// back on a level its row offers.
 if (typeof window !== 'undefined'){
   window.__armSlime = (level, arm) => {
     const root = window.__view && window.__view.mounted && window.__view.mounted.main;

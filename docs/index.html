@@ -1084,6 +1084,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS,
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts,
+         ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels,
          monsterMats,
          enableRomAmbient, enableRomSpecular, enableRomPhong,
          setSHAmount, setRomSpecularAmount, anchorMisses } from './render/monster.js';
@@ -1151,6 +1152,9 @@ function optionKey(g, skipParts){
   const on = (g || []).filter(e => e[1] && !lp.has(e[0])).map(e => e[0]).sort((a, b) => a - b);
   return on.length ? on.join(',') : 'none';
 }
+// The key as a review file writes it: the ON-set, plus ",S<n>" on the item that has a part we added
+// switched on (armSlimeOptions).
+function optKeyText(o){ return o.sOn ? o.key + ',S' + o.sPart : o.key; }
 // EXACT MATCH FIRST, then a UNIQUE containment fallback, then nothing at all with a warning.
 // Exact-first is load-bearing rather than tidy: Dreadqueen Rathian's 8,11,12,101 row offers
 // 11,101 / 12,101 / 8, so the bare key "101" names two options and has to be REFUSED -- the old
@@ -1178,27 +1182,37 @@ function resolveOptionKey(opts, key, where, stateOn){
     const on = (stateOn === undefined) ? state.rage : stateOn;
     raw = pickHalf(raw.split('|').map(x => x.trim()), on);
   }
+  // A PART WE ADDED MAY BE NAMED IN THE KEY -- "4,15,S1", or "4,15,S. Part 1" -- and it is part of
+  // the match: it is the only thing telling the item armSlimeOptions adds from the ROM item with the
+  // same ON-set. It has to be taken out BEFORE the ids are parsed, because parseInt drops "s1" and
+  // the key would otherwise land silently on the ROM item. A key that does not name it never
+  // reaches the item that has it on.
+  const sTok = t => /^s\.?\s*(?:part\s*)?(\d+)$/.exec(t.trim());
+  const sHit = raw.split(',').map(sTok).find(Boolean);
+  const sPart = sHit ? (sHit[1] | 0) : undefined;
+  if (sHit) raw = raw.split(',').filter(t => !sTok(t)).join(',').trim();
+  const sOf = o => o.sOn ? o.sPart : undefined;
   const want = (raw === '' || raw === 'none' || raw === 'off')
     ? 'none'
     : raw.split(',').map(s => parseInt(s, 10)).filter(Number.isFinite).sort((a, b) => a - b).join(',');
   if (!want) return null;
-  const exact = opts.filter(o => o.key === want);
+  const exact = opts.filter(o => o.key === want && sOf(o) === sPart);
   if (exact.length === 1) return exact[0];
   if (!exact.length && want !== 'none'){
     // the written ids all appear in the option's ON-set: "101" reaching "11,101"
     const wantIds = want.split(',').map(Number);
-    const held = opts.filter(o => o.key !== 'none' &&
+    const held = opts.filter(o => o.key !== 'none' && sOf(o) === sPart &&
       wantIds.every(p => o.key.split(',').map(Number).indexOf(p) >= 0));
     if (held.length === 1) return held[0];
     if (held.length > 1){
       console.warn('part-review: ' + where + ' key "' + key + '" is AMBIGUOUS -- it matches ' +
-                   held.length + ' options (' + held.map(o => o.key).join(' | ') +
-                   '). Name one of them exactly. Valid keys: ' + opts.map(o => o.key).join(' | '));
+                   held.length + ' options (' + held.map(optKeyText).join(' | ') +
+                   '). Name one of them exactly. Valid keys: ' + opts.map(optKeyText).join(' | '));
       return null;
     }
   }
   console.warn('part-review: ' + where + ' key "' + key + '" matches no option; valid keys are ' +
-               opts.map(o => o.key).join(' | '));
+               opts.map(optKeyText).join(' | '));
   return null;
 }
 // A HAND-EDITED FILE NEEDS A TRIPWIRE. A row key typed "5,1" instead of "1,5", or an em id off by
@@ -2238,6 +2252,55 @@ function clusterOptions(c, groups, sp, keep){
   for (const o of merged) o.key = optionKey(groups[o.rep], isLadder ? sp : []);
   return merged;
 }
+// A PART WE ADD: BRACHYDIOS'S PRIMED ARM SLIME. Raven, 2026-09-13: "Brachy's arms also have a
+// 'primed' and 'diminished' state ... For normal Brachy, they go from dimmer green to brighter green",
+// then "Just add the third arms as a part" and "For parts we add we can call them S. Part N".
+//
+// No ROM part draws it. Both states draw the SAME meshes -- 4,15 on the left arm -- and what differs
+// is the level the part driver feeds that arm's material (ROM_ARM_SLIME in render/monster.js,
+// 00f370b0). So the row gains a part of our own, S. Part N, standing for that level: ON is level 1,
+// the atlas's brightest row; OFF is the spawn level, 2 (00f352f4), the dimmer green every arm starts
+// on. The intact item is offered with it off (the ROM's own item, key unchanged) and with it on (key
+// "4,15,S1"); every other item has it off. Level 0, the near-black row, is a real ROM state that is
+// not offered.
+//
+// WHICH ARM is read off the model, not written down: the slot whose material the row's meshes carry
+// (parts 15 and 16 carry XfB__m01_nenkin_arm_l, slot 0; 17 and 18 m02_nenkin_arm_r, slot 1), and N is
+// that slot + 1. WHICH ITEM is the one the ROM's rest sets apply, the undamaged arm. The broken item
+// shows the spawn level; a broken arm can also be primed in the game -- the break at 0xf35e2c only caps
+// the level at 2, or 3 past its rank test -- and that combination is not offered.
+const S_PART_SLIME_LEVEL = 1;
+// The arm slot a row's meshes paint, or -1 -- none, or both, as part 0's are.
+function armSlimeSlot(c){
+  const t = ROM_ARM_SLIME[state.id];
+  const root = mounted.main;
+  if (!t || !root) return -1;
+  const parts = new Set(String(c.parts).split(',').map(Number));
+  const slots = new Set();
+  root.traverse(o => {
+    if (!o.isMesh || !o.userData || !parts.has(o.userData.part)) return;
+    const m = o.userData.matOrig || o.material;
+    const s = t.mats.indexOf(m && m.name);
+    if (s >= 0) slots.add(s);
+  });
+  return slots.size === 1 ? [...slots][0] : -1;
+}
+function armSlimeOptions(opts, c, stateDefault){
+  const slot = armSlimeSlot(c);
+  if (slot < 0) return opts;
+  const t = ROM_ARM_SLIME[state.id];
+  const intact = opts.find(o => o.members.some(k => stateDefault[k]));
+  if (!intact) return opts;
+  const off = o => Object.assign({}, o, { slimeArm: slot, slime: t.spawnLevel, sPart: slot + 1, sOn: false });
+  // The added item leads its ROM twin. Raven dictated "In (Primed), In (Diminished), Br", and Primed
+  // as the BRIGHTER green is a reading -- his words say which two greens, not which is which.
+  const out = [];
+  for (const o of opts){
+    if (o === intact) out.push(Object.assign(off(o), { slime: S_PART_SLIME_LEVEL, sOn: true }));
+    out.push(off(o));
+  }
+  return out;
+}
 // WHICH VARIANT OF A CHOICE APPLIES is the state's business, not the user's. Match the owned parts
 // against what defaultGroupsOn already picked for the state we are in -- that works for a ladder
 // rung (parts on) and for a plain toggle alike, where Tigrex wants part 2 ON and part 1 OFF when
@@ -2492,7 +2555,8 @@ function buildGroups(){
     // "Parts 1, 9" subline, which stops existing the moment a row is reviewed -- see below.
     row.dataset.row = c.parts;
     const lab = document.createElement('label');
-    const ids = 'Parts ' + c.parts.split(',').join(', ');
+    const sSlot = armSlimeSlot(c);
+    const ids = 'Parts ' + c.parts.split(',').join(', ') + (sSlot >= 0 ? ', S. Part ' + (sSlot + 1) : '');
     // The name leads and the ids stay, because the ids are what the ROM actually says and the
     // name is inferred. A flag is shown as a suffix rather than hidden in a tooltip: this is a
     // TEST build and the doubtful ones are exactly what Raven is reviewing.
@@ -2604,7 +2668,14 @@ function buildGroups(){
       // mutually exclusive -- see matState()).
       const stOn = rowStateOn(rv);
       const sp = stateParts();
-      let opts = clusterOptions(c, groups, sp, rvKeep);
+      let opts = armSlimeOptions(clusterOptions(c, groups, sp, rvKeep), c, stateDefault);
+      // The item with a part we added on shares its rep with its ROM twin, so the select's value
+      // names the added part too, and a rebuild picks between the twins by the arm's CURRENT slime
+      // level -- a rage toggle must not put a primed arm back to its spawn level. Rows with no added
+      // part are exactly as before: every item's value is its rep and the first match wins.
+      const optValue = o => o.sOn ? o.rep + ',S' + o.sPart : String(o.rep);
+      const byLevel = list => list.find(o => o.slime === undefined ||
+                                             o.slime === (armSlimeLevels(mounted.main) || [])[o.slimeArm]) || list[0];
       // THE HIGHEST-GROUP-INDEX FALLBACK, captured BEFORE any reordering below, because that is
       // what it means -- the last member of the cluster in the ROM's own order, not whatever a
       // review file happens to list last.
@@ -2679,10 +2750,12 @@ function buildGroups(){
         if (shownNamed && shownNamed !== opts.length)
           console.warn('part-review: ' + (e && e.id) + ' row ' + c.parts + ' names ' + shownNamed +
                        ' of ' + opts.length + ' options; unnamed: ' +
-                       opts.filter(o => !named.has(o)).map(o => o.key).join(' | '));
+                       opts.filter(o => !named.has(o)).map(optKeyText).join(' | '));
       }
-      const genLabel = o => (isLadder ? groupLabelWithout(groups[o.rep], sp)
-                                      : groupLabel(groups[o.rep])) + stateSuffix(o.rep);
+      // a part we added is listed with the ROM's, on or off, under the name Raven gave those
+      const withS = (g, o) => o.sPart === undefined ? g : (g || []).concat([['S. Part ' + o.sPart, !!o.sOn]]);
+      const genLabel = o => (isLadder ? groupLabelWithout(withS(groups[o.rep], o), sp)
+                                      : groupLabel(withS(groups[o.rep], o))) + stateSuffix(o.rep);
       // Named: the typed name ALONE. Raven, 2026-09-10, on simplifying the items -- the part ids
       // and the "switched by" evidence are still true and still worth having, so they move to the
       // item's tooltip rather than being deleted. An item with no name keeps today's text verbatim,
@@ -2698,9 +2771,9 @@ function buildGroups(){
       sel.textContent = '';
       for (const o of opts){
         const opt = document.createElement('option');
-        opt.value = String(o.rep);
+        opt.value = optValue(o);
         opt.textContent = labelOf(o);
-        opt.dataset.key = o.key;
+        opt.dataset.key = optKeyText(o);
         const t = titleOf(o);
         if (t) opt.title = t;
         sel.appendChild(opt);
@@ -2728,11 +2801,11 @@ function buildGroups(){
       // It is deliberately NOT applied at the defaultGroupsOn layer: the options only exist here,
       // after clusterChoices and the merge, and reproducing that outside buildGroups would be a
       // second copy of the option model to keep in step for no gain.
-      const appliedOpt = opts.find(o => o.members.some(k => state.groups[k]));
+      const appliedOpt = byLevel(opts.filter(o => o.members.some(k => state.groups[k])));
       // A hand-pick survives a rage toggle even when the item it named changed form: altReps holds
       // the halves of a "calm|rage" item that this state is not using.
       const picked = partsPicked[c.members.join(',')];
-      const pickedOpt = opts.find(o => o.rep === picked || (o.altReps || []).indexOf(picked) >= 0);
+      const pickedOpt = byLevel(opts.filter(o => o.rep === picked || (o.altReps || []).indexOf(picked) >= 0));
       // the per-state default follows the same axis: `rage` for a rage row, `charged` for a charged one
       // A row switched by another row takes its alternate default from `alt`, the axis-neutral name
       // for what `rage`/`charged`/`heated` are on the three global axes.
@@ -2754,11 +2827,12 @@ function buildGroups(){
       const apply = o => {
         const keep = variantOf(o);
         c.members.forEach(k => { state.groups[k] = (k === keep); });
+        if (o.slime !== undefined) setArmSlimeLevel(mounted.main, o.slimeArm, o.slime);
       };
       apply(cur);
-      sel.value = String(cur.rep);
+      sel.value = optValue(cur);
       sel.onchange = () => {
-        const o = opts.find(x => String(x.rep) === sel.value) || opts[0];
+        const o = opts.find(x => optValue(x) === sel.value) || opts[0];
         partsPicked[c.members.join(',')] = o.rep;
         apply(o);
         // A ROW WATCHING ANOTHER ROW HAS TO BE RE-DERIVED WHEN THAT ROW MOVES. Picking Broken on
