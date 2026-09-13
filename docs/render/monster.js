@@ -1944,8 +1944,120 @@ export function stepMatAnim(root, tSec, state, monId, tState, prev, levelClip){
   // they always have. fEmissionColor now reaches the 47 lit-technique additive materials that used
   // to be MeshBasicMaterial, because those are MeshStandardMaterial now.
   const n = stepMaterialAnim(root, tSec, pick);
+  stepSpecularColour(root, tSec, pick);
   stepArmSlime(root, monId, state);
   return n;
+}
+
+// AN ANIMATED fSpecularColor IS A COLOUR, as its static value already is. Raven, 2026-09-13, on
+// Boltreaver: "Membrane doesn't change color", then "Fix the specular colour".
+//
+// The shipped fSpecularColor ($Globals float3 @44) lands in uSpecRGB, which multiplies both specular
+// accumulators -- the ROM's `MC.specular * fSpecularColor` (FSpecularMap). But the shared material.js
+// hands an ANIMATED one to uSpecTint as its luminance, a scalar on the gloss, and never touches
+// uSpecRGB -- so a clip could brighten or dim the specular and never change its hue, and the value it
+// scaled was still the SHIPPED colour. Boltreaver's membrane (XfBAN__E1_wing_taiden) ships a
+// yellow-green (0.42, 0.6, 0) and its two charge clips write (0.28, 0.4, 0) and (0, 0.4, 0.4); what
+// reached the shader was that yellow-green at 0.32 and at 0.28.
+//
+// So after the shared evaluator has run, the same clips are sampled again for fSpecularColor alone
+// and written where the static value lives: uSpecRGB takes the colour, uSpecTint goes back to 1 so it
+// is not applied twice. When no playing clip writes it, uSpecRGB goes back to the shipped colour.
+// material.js is not changed -- it is a synced copy, and the fix for its own case belongs upstream.
+//
+// The slot rules are the shared evaluator's: up to four slots in order, a later slot winning, a
+// `[index, t0]` pair running on its own clock, loops wrapping and one-shots holding frameCount. The
+// sampler below is a copy of material.js's sampleTrack, which is not exported; keep the two in step.
+// The ROM writes `cols` floats and every fSpecularColor track in the library is 3-column, so nothing
+// reaches fShininess (@47).
+//
+// 32 tracks carry it: Khezu's Body/Alpha Taiden clips, Rajang's Normal/PumpUp hair and body,
+// Glavenus' tail, Boltreaver's membrane, and Chameleos' and Nightcloak Malfestio's stealth materials
+// (which match no mesh here). __specRGB(false) restores the luminance-only behaviour for comparison;
+// __specRGB() reads the setting back.
+let specRGBOn = true;
+const specBase = new WeakMap();
+function sampleKeysLikeMaterialJs(tr, f){
+  const k = tr.keys;
+  if (!k || !k.length) return null;
+  if (k.length === 1 || f <= k[0][0]) return k[0].slice(1);
+  const last = k[k.length - 1];
+  if (f >= last[0]) return last.slice(1);
+  let i = 0;
+  while (i < k.length - 1 && k[i + 1][0] <= f) i++;
+  const a = k[i], b = k[i + 1];
+  if (tr.interp === 0) return a.slice(1);
+  if (tr.kind === 2 || tr.kind === 3 || tr.kind === 5) return a.slice(1);
+  const span = b[0] - a[0];
+  const t = span > 0 ? (f - a[0]) / span : 0;
+  const n = Math.min(a.length, b.length);
+  if ((tr.interp === 2 || tr.interp === 4) && span > 0){
+    const p = k[i - 1] || a, c2 = k[i + 2] || b;
+    const rPA = (a[0] - p[0]) > 0 ? span / (a[0] - p[0]) : 0;
+    const rBC = (c2[0] - b[0]) > 0 ? span / (c2[0] - b[0]) : 0;
+    const u2 = t * t, u3 = u2 * t;
+    const out = [];
+    for (let c = 1; c < n; c++){
+      const A = a[c], B = b[c];
+      const P = (p[c] === undefined) ? A : p[c];
+      const C = (c2[c] === undefined) ? B : c2[c];
+      const mA = 0.5 * ((B - A) + (A - P) * rPA);
+      const mB = 0.5 * ((C - B) * rBC + (B - A));
+      out.push(A + mA * t + (3 * B - 3 * A - 2 * mA - mB) * u2 + (2 * A - 2 * B + mA + mB) * u3);
+    }
+    return out;
+  }
+  const out = [];
+  for (let c = 1; c < n; c++) out.push(a[c] + (b[c] - a[c]) * t);
+  return out;
+}
+function stepSpecularColour(root, tSec, pick){
+  if (!root) return;
+  root.traverse(o => {
+    const m = o.material;
+    const u = m && m.userData && m.userData.u;
+    const rom = m && m.userData && m.userData.rom;
+    const clips = rom && rom.anim;
+    if (!u || !u.uSpecRGB || !clips || !clips.length) return;
+    if (!clips.some(c => (c.tracks || []).some(t => t.target === 'fSpecularColor'))) return;
+    let base = specBase.get(m);
+    if (!base){
+      const gl = rom.glob;
+      base = (gl && gl.specular) ? gl.specular.slice(0, 3) : u.uSpecRGB.value.toArray();
+      specBase.set(m, base);
+    }
+    let rgb = null;
+    if (specRGBOn){
+      const raw = pick(clips, rom, tSec);
+      const list = Array.isArray(raw) ? raw : [raw];
+      let slots = 0;
+      for (const e of list){
+        const ci = Array.isArray(e) ? e[0] : e;
+        if (!(ci >= 0)) continue;
+        if (++slots > 4) break;
+        const t0 = Array.isArray(e) && typeof e[1] === 'number' ? e[1] : 0;
+        const clip = clips[ci];
+        if (!clip || !clip.frames || !clip.tracks) continue;
+        const fr = Math.max(0, tSec - t0) * MAT_FPS;
+        const f = clip.loop ? fr % clip.frames : Math.min(fr, clip.frames);
+        for (const tr of clip.tracks){
+          if (tr.target !== 'fSpecularColor' || tr.unsupported) continue;
+          const v = sampleKeysLikeMaterialJs(tr, f);
+          if (v) rgb = [v[0], v[1] === undefined ? v[0] : v[1], v[2] === undefined ? v[0] : v[2]];
+        }
+      }
+    }
+    if (rgb){
+      u.uSpecRGB.value.set(rgb[0], rgb[1], rgb[2]);
+      if (u.uSpecTint) u.uSpecTint.value = 1;
+    } else {
+      u.uSpecRGB.value.set(base[0], base[1], base[2]);
+    }
+  });
+}
+export function setSpecularRGB(on){ specRGBOn = !!on; return specRGBOn; }
+if (typeof window !== 'undefined'){
+  window.__specRGB = (on) => on === undefined ? specRGBOn : setSpecularRGB(on);
 }
 
 // BRACHYDIOS'S ARM SLIME, read from its part driver 2026-09-13. Not a clip: the driver writes the
