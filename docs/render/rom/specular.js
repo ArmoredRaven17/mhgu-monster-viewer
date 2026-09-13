@@ -66,17 +66,59 @@ function tagProgram(mat, tag){
 }
 
 
-export function installRomSpecular(mat){
+// ---- FReflectGlobalCubeMap: the reflection the ROM adds INSIDE the specular term ----------------
+// Raven, 2026-09-13: "Fix the reflection. The goal is to get as close to in-game as possible" --
+// Boltreaver's charged membrane has a black albedo and draws 80% see-through, and its charge colour
+// is this term: fReflectiveColor goes to (0.65, 0.875, 0.125) and (0.125, 0.875, 0.875), shown
+// through the bright pattern of its specular map. 391 monster materials select it.
+//
+// THE MATHS, from the feature bodies (build/notes monster-shader-model.md):
+//     FReflectGlobalCubeMap = sample( tGlobalEnvMap, MC.reflect_dir ).rgb * CBMaterial.fReflectiveColor
+//                             * lerp( 1, 1 - max(light_mask.x, light_mask.y), CBAmbient.fEnvMapMask )
+//     FSpecularMap          MC.specular = ( MC.specular * fSpecularColor + FReflect() ) * specMap * occlusion
+//     FFinalCombiner        out += MC.specular * MC.fresnel
+// so the reflection is added beside the lights' specular AFTER fSpecularColor and BEFORE the map and
+// the fresnel. Here that is indirectSpecular += reflection * specMask, inside material.js's block and
+// ahead of this module's romMul (fresnel * RGB map), which then scales it exactly as it scales the
+// lights' term. The light-mask factor is taken as 1 (no monster material carries a light mask to make
+// it anything else -- a READING, like occlusion at 1).
+//
+// THE TEXTURE. tGlobalEnvMap is the stage's; with no stage there is the engine's own default,
+// system\texture\DefaultCube_CM, which the executable loads in the renderer's system-texture setup
+// (0xbc99ec, beside sysfont) and as the default environment texture of the cube-map light class
+// (constructor 0x920bbc). Decoded from the ROM: TEX type 6, 64x64, 7 mips, format 32 (BC3), faces in
+// the standard +X -X +Y -Y +Z -Z order, sky blue up and brown ground down. Hunting areas ship their
+// own (92 *_CM textures in the stage archives), so in a hunt the reflection is that area's; this is
+// the engine default. Only the top mip is used and the GPU builds the rest.
+//
+// The reflection vector is MC.reflect_dir, the eye direction reflected about the normal, in world
+// space, looked up with the same numbers the ROM uses (no axis flip: the model data is right-handed,
+// arm_l sits at +X on a monster facing +Z). Whether the face images mirror X is not verified; on this
+// sky/ground map it would swap left and right horizon detail only.
+const GLOBAL_ENV = { value: null };
+const GLOBAL_REFL_ON = { value: 1 };
+export function setGlobalEnvCube(tex){ GLOBAL_ENV.value = tex; }
+export function setGlobalReflection(on){ GLOBAL_REFL_ON.value = on ? 1 : 0; return !!GLOBAL_REFL_ON.value; }
+export function globalReflectionOn(){ return !!GLOBAL_REFL_ON.value; }
+
+export function installRomSpecular(mat, rom){
   if (!enabled) return mat;
   if (!mat || !mat.isMeshStandardMaterial) return mat;
   const u = mat.userData.u;
   if (!u || !u.uF0) return mat;                 // needs material.js's uniforms to be present
   u.uRomSpecAmount = u.uRomSpecAmount || { value: 1 };
+  const globalRefl = !!(rom && rom.feat && rom.feat.reflect === 'GlobalCubeMap');
+  if (globalRefl){
+    const cr = rom.cbm && rom.cbm.reflective;
+    u.uReflRGB = u.uReflRGB || { value: new THREE.Vector3(cr ? cr[0] : 0, cr ? cr[1] : 0, cr ? cr[2] : 0) };
+  }
 
-  tagProgram(mat, 'romSpec');
+  tagProgram(mat, globalRefl ? 'romSpec|globalRefl' : 'romSpec');
   chain(mat, sh => {
     Object.assign(sh.uniforms, { uRomSpecAmount: u.uRomSpecAmount });
+    if (globalRefl) Object.assign(sh.uniforms, { uGlobalEnv: GLOBAL_ENV, uGlobalReflOn: GLOBAL_REFL_ON, uReflRGB: u.uReflRGB });
     let f = sh.fragmentShader;
+    if (globalRefl) f = 'uniform samplerCube uGlobalEnv;\nuniform float uGlobalReflOn;\nuniform vec3 uReflRGB;\n' + f;
 
     // DECLARE the uniform, by PREPENDING rather than by replacing an anchor. Adding it to
     // sh.uniforms alone does not put it in the GLSL, and the omission is silent in JS: the
@@ -112,6 +154,13 @@ export function installRomSpecular(mat){
     //     the ROM's Fresnel over both specular accumulators.
     if (f.indexOf(A_SPEC_END) >= 0){
       f = f.replace(A_SPEC_END, A_SPEC_END + '\n' +
+        // FReflectGlobalCubeMap, added beside the lights' specular before the map and the fresnel
+        (globalRefl
+          ? '             if ( uGlobalReflOn > 0.5 ) {\n' +
+            '               vec3 romRv = inverseTransformDirection( reflect( -normalize( vViewPosition ), normalize( normal ) ), viewMatrix );\n' +
+            '               reflectedLight.indirectSpecular += textureCube( uGlobalEnv, romRv ).rgb * uReflRGB * specMask;\n' +
+            '             }\n'
+          : '') +
         '             {\n' +
         '               vec3 romN = normalize( normal );\n' +
         // eye_dir is camera->surface in the ROM; vViewPosition is surface->camera, so the ROM's

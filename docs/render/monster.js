@@ -23,6 +23,20 @@ import { createRomMaterial, enableRomCore, romCoreEnabled,
          enableRomSpecular, romSpecularEnabled, setRomSpecularAmount, anchorMisses,
          enableRomPhong, romPhongEnabled,
          setCutoutSolid, cutoutSolidCount, cutoutAnchorMisses } from './rom/material.js';
+import { setGlobalEnvCube, setGlobalReflection, globalReflectionOn } from './rom/specular.js';
+
+// THE GLOBAL ENVIRONMENT CUBE, the engine's own default (system\texture\DefaultCube_CM) -- see
+// FReflectGlobalCubeMap in rom/specular.js for where it comes from and what samples it. The faces are
+// the ROM texture's top mip decoded to PNG, in +X -X +Y -Y +Z -Z order; the colours are sRGB like every
+// other map here. Loaded once for every monster. __globalRefl(false) switches the reflection term off
+// for comparison; __globalRefl() reads it back.
+if (typeof window !== 'undefined'){
+  const cube = new THREE.CubeTextureLoader().setPath('env/DefaultCube_CM/')
+    .load(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png']);
+  cube.colorSpace = THREE.SRGBColorSpace;
+  setGlobalEnvCube(cube);
+  window.__globalRefl = (on) => on === undefined ? globalReflectionOn() : setGlobalReflection(on);
+}
 import { setBiasUnitsPerStep as setRomBiasUnitsPerStep, releaseBiased } from './rom/state.js';
 import { extendMapMisses } from './rom/shader.js';
 export { extendMapMisses };
@@ -2011,6 +2025,33 @@ function sampleKeysLikeMaterialJs(tr, f){
   for (let c = 1; c < n; c++) out.push(a[c] + (b[c] - a[c]) * t);
   return out;
 }
+// fReflectiveColor gets the same treatment, for the same reason: its shipped value (CBMaterial float3
+// @4) is the colour FReflectGlobalCubeMap multiplies (uReflRGB, rom/specular.js), while material.js
+// reduces an animated one to an average that only its sphere-map path reads. Boltreaver's charge
+// clips write it as (0.65, 0.875, 0.125) and (0.125, 0.875, 0.875) on the membrane.
+const reflBase = new WeakMap();
+function sampleColourTrack(clips, rom, tSec, pick, target){
+  let rgb = null;
+  const raw = pick(clips, rom, tSec);
+  const list = Array.isArray(raw) ? raw : [raw];
+  let slots = 0;
+  for (const e of list){
+    const ci = Array.isArray(e) ? e[0] : e;
+    if (!(ci >= 0)) continue;
+    if (++slots > 4) break;
+    const t0 = Array.isArray(e) && typeof e[1] === 'number' ? e[1] : 0;
+    const clip = clips[ci];
+    if (!clip || !clip.frames || !clip.tracks) continue;
+    const fr = Math.max(0, tSec - t0) * MAT_FPS;
+    const f = clip.loop ? fr % clip.frames : Math.min(fr, clip.frames);
+    for (const tr of clip.tracks){
+      if (tr.target !== target || tr.unsupported) continue;
+      const v = sampleKeysLikeMaterialJs(tr, f);
+      if (v) rgb = [v[0], v[1] === undefined ? v[0] : v[1], v[2] === undefined ? v[0] : v[2]];
+    }
+  }
+  return rgb;
+}
 function stepSpecularColour(root, tSec, pick){
   if (!root) return;
   root.traverse(o => {
@@ -2018,40 +2059,32 @@ function stepSpecularColour(root, tSec, pick){
     const u = m && m.userData && m.userData.u;
     const rom = m && m.userData && m.userData.rom;
     const clips = rom && rom.anim;
-    if (!u || !u.uSpecRGB || !clips || !clips.length) return;
-    if (!clips.some(c => (c.tracks || []).some(t => t.target === 'fSpecularColor'))) return;
-    let base = specBase.get(m);
-    if (!base){
-      const gl = rom.glob;
-      base = (gl && gl.specular) ? gl.specular.slice(0, 3) : u.uSpecRGB.value.toArray();
-      specBase.set(m, base);
-    }
-    let rgb = null;
-    if (specRGBOn){
-      const raw = pick(clips, rom, tSec);
-      const list = Array.isArray(raw) ? raw : [raw];
-      let slots = 0;
-      for (const e of list){
-        const ci = Array.isArray(e) ? e[0] : e;
-        if (!(ci >= 0)) continue;
-        if (++slots > 4) break;
-        const t0 = Array.isArray(e) && typeof e[1] === 'number' ? e[1] : 0;
-        const clip = clips[ci];
-        if (!clip || !clip.frames || !clip.tracks) continue;
-        const fr = Math.max(0, tSec - t0) * MAT_FPS;
-        const f = clip.loop ? fr % clip.frames : Math.min(fr, clip.frames);
-        for (const tr of clip.tracks){
-          if (tr.target !== 'fSpecularColor' || tr.unsupported) continue;
-          const v = sampleKeysLikeMaterialJs(tr, f);
-          if (v) rgb = [v[0], v[1] === undefined ? v[0] : v[1], v[2] === undefined ? v[0] : v[2]];
-        }
+    if (!u || !clips || !clips.length) return;
+    if (u.uSpecRGB && clips.some(c => (c.tracks || []).some(t => t.target === 'fSpecularColor'))){
+      let base = specBase.get(m);
+      if (!base){
+        const gl = rom.glob;
+        base = (gl && gl.specular) ? gl.specular.slice(0, 3) : u.uSpecRGB.value.toArray();
+        specBase.set(m, base);
+      }
+      const rgb = specRGBOn ? sampleColourTrack(clips, rom, tSec, pick, 'fSpecularColor') : null;
+      if (rgb){
+        u.uSpecRGB.value.set(rgb[0], rgb[1], rgb[2]);
+        if (u.uSpecTint) u.uSpecTint.value = 1;
+      } else {
+        u.uSpecRGB.value.set(base[0], base[1], base[2]);
       }
     }
-    if (rgb){
-      u.uSpecRGB.value.set(rgb[0], rgb[1], rgb[2]);
-      if (u.uSpecTint) u.uSpecTint.value = 1;
-    } else {
-      u.uSpecRGB.value.set(base[0], base[1], base[2]);
+    if (u.uReflRGB && clips.some(c => (c.tracks || []).some(t => t.target === 'fReflectiveColor'))){
+      let base = reflBase.get(m);
+      if (!base){
+        const cr = rom.cbm && rom.cbm.reflective;
+        base = cr ? cr.slice(0, 3) : u.uReflRGB.value.toArray();
+        reflBase.set(m, base);
+      }
+      const rgb = sampleColourTrack(clips, rom, tSec, pick, 'fReflectiveColor');
+      if (rgb) u.uReflRGB.value.set(rgb[0], rgb[1], rgb[2]);
+      else u.uReflRGB.value.set(base[0], base[1], base[2]);
     }
   });
 }

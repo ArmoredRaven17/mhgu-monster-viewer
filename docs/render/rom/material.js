@@ -463,7 +463,7 @@ export function createRomMaterial(spec){
   //    material.js takes its luminance. rom/specular.js corrects both. Also DEFAULT OFF: it
   //    rewrites text the SHARED material.js emits, and it changes the brightness of every material
   //    binding a specular map.
-  if (lit) { installRomSpecular(mat); trackRomSpecular(mat); }
+  if (lit) { installRomSpecular(mat, rom); trackRomSpecular(mat); }
 
   mat.userData.rom = rom || null;
   mat.userData.cls = cls;
