@@ -3099,7 +3099,9 @@ function buildGroups(){
   // The quest-objective nouns used to be printed here as evidence to check the inferred names
   // against. Removed 2026-09-05 (Raven: "Remove the text at the bottom, it's out of place and
   // makes no sense to explain"). The data is still in partnames.json and build/notes/monsters.md.
-  monTailRow.hidden = !(e && e.parts.length);
+  buildAttachedRows(e);
+  // the severed-pieces debug switch has nothing to show when every piece is an attached second body
+  monTailRow.hidden = !(e && e.parts.some(p => !attachedBodyOf(e.id, p.name)));
   monTail.checked = state.tail;
 }
 // A VARIANT IS A WHOLE ALTERNATIVE MODEL SHARING ONE PART TABLE, AND THE PART GROUPS CANNOT SAY SO.
@@ -3231,12 +3233,13 @@ function applyPartState(){
   // that shows every piece at once, and goes when that panel does.
   const shed = shedKinds();
   for (const [k, g] of Object.entries(mounted)) if (k !== 'main'){
-    // AN ATTACHED SECOND BODY IS NOT A SHED PIECE: it is always there, in the form the ROM starts it
-    // in -- its own .mpm group, from ROM_ATTACHED_BODY -- until a control exists to change it.
+    // AN ATTACHED SECOND BODY IS NOT A SHED PIECE: it is always there, in the form its own row picks
+    // (buildAttachedRows) -- one of its own .mpm groups -- or the one the ROM starts it in until then.
     const a = attached.get(k);
     if (a){
       g.visible = true;
-      const on = a.spec.groups.map((_, i) => i === a.spec.restGroup);
+      const form = attachedFormOf(e, k);
+      const on = a.spec.groups.map((_, i) => i === form);
       applyParts(g, partsDrawn(a.spec.groups, on));
       continue;
     }
@@ -3268,6 +3271,50 @@ function clearAttached(){
   attached.clear();
 }
 function isAttached(name){ return attached.has(name); }
+// THE FORM EACH ATTACHED BODY IS SHOWING -- a choice, kept per monster and piece so a panel rebuild (an
+// Enraged toggle, a watcher) cannot reset it. Unset means the form the ROM starts it in.
+const attachedForms = {};
+function attachedFormOf(e, name){
+  const spec = e && attachedBodyOf(e.id, name);
+  const v = attachedForms[(e && e.id) + ':' + name];
+  return (spec && v !== undefined && v >= 0 && v < spec.groups.length) ? v : (spec ? spec.restGroup : 0);
+}
+// ONE ROW PER ATTACHED BODY, offering its own .mpm groups. Raven, 2026-09-13: "did we find the part ids
+// for the two tentacles so we can change them with the drop downs". Unreviewed, so each item says what
+// the ROM says about it -- which value of the arm's form byte picks that group in 0x107e25c, and the
+// parts it draws beyond the tentacle itself (0 and 10, drawn in every group) -- until Raven names them.
+const ATTACHED_FORM_NOTE = ['no form (0xff)', 'body part state 3', 'form 0', 'form 3', 'form 1', 'form 2'];
+function buildAttachedRows(e){
+  if (!e) return;
+  for (const p of e.parts || []){
+    const spec = attachedBodyOf(e.id, p.name);
+    if (!spec) continue;
+    const row = document.createElement('div'); row.className = 'field';
+    row.dataset.row = 'attached:' + p.name;
+    const lab = document.createElement('label');
+    lab.textContent = 'Tentacle (' + (p.kind || p.name) + ')';
+    const sub = document.createElement('span');
+    sub.className = 'part-ids';
+    sub.textContent = p.name + '  ·  its own part table, joint ' + spec.joint;
+    lab.appendChild(document.createElement('br'));
+    lab.appendChild(sub);
+    const sel = document.createElement('select');
+    spec.groups.forEach((g, i) => {
+      const extra = g.filter(([pid, on]) => on && pid !== 0 && pid !== 10 && pid < 100).map(([pid]) => pid);
+      const o = document.createElement('option');
+      o.value = String(i); o.dataset.key = 'g' + i;
+      o.textContent = 'g' + i + ' · ' + (ATTACHED_FORM_NOTE[i] || 'group ' + i) + ' — parts ' + extra.join(', ');
+      sel.appendChild(o);
+    });
+    sel.value = String(attachedFormOf(e, p.name));
+    sel.onchange = () => {
+      attachedForms[e.id + ':' + p.name] = +sel.value;
+      applyPartState();
+    };
+    row.appendChild(lab); row.appendChild(sel);
+    monGroupsEl.appendChild(row);
+  }
+}
 function setupAttached(){
   clearAttached();
   const e = entry();
