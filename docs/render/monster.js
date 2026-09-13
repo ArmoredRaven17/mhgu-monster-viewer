@@ -449,7 +449,8 @@ export const ROM_RAGE_SET = {
   // Gypceros (0xd5e504, rage 2 / calm 6), Nargacuga (0xe48884, rage 5 / calm 7) and Nerscylla
   // (0xf9bd30, rage 1 / calm 2). The Deviljho, Savage and Brachydios rows are flipped on the same
   // reasoning but their sites use a different selection shape and were NOT re-read; they are the
-  // ones to check first if a monster looks inverted.
+  // ones to check first if a monster looks inverted. (Both Brachydios rows have since been re-read and
+  // were wrong -- see the note on em063 below. Deviljho and Savage were corrected by part ID.)
   em009_00: [[6, 2]],                                  // Gypceros -- confirmed at 0xd5e504
   em032_00: [[0, 1], [9, 10]],                         // Tigrex -- confirmed at 0xe22400
   em032_04: [[0, 1], [9, 10]],                         // Grimclaw
@@ -468,8 +469,32 @@ export const ROM_RAGE_SET = {
   // effect, which is not a thing an enrage pair does. So both are the other way round.
   em043_00: [[0, 9]],                                  // Deviljho -- was [[9, 0]]; effect is g9
   em043_05: [[9, 13]],                                 // Savage -- was [[13, 9]]; neck is g13
-  em063_00: [[12, 11]],                                // Brachydios -- flipped, site not re-read
-  em063_05: [[12, 11]],                                // Raging Brachydios -- flipped, site not re-read
+  // RE-READ 2026-09-13, AND THE FLIP ABOVE WAS WRONG FOR BOTH. "The polarity is a property of the
+  // code shape" holds only while the compare constant does: Tigrex's site is `cmp r0,#0 / movne
+  // <rage>`, and Raging Brachydios's is `cmp r0,#1 / movne <calm>` -- the same movne, the opposite
+  // meaning. Raven, 2026-09-13: "The slime doesn't turn off though, which it should be tied to enrage
+  // state." One class serves both Brachydios, and 0xf36e18 splits them on the variant byte
+  // (enemy+0xb5f5 == 5 tail-calls 0xf36328), so the two drivers are read separately:
+  //
+  //   Raging Brachydios, 0xf36328 -- the select form:
+  //     00f368a0  bl 0x81670 / cmp r0,#1 / movne r1,#0xb / moveq r1,#0xc / bl 0x72c78
+  //     calm set 11 [9 off], enraged set 12 [9 on] -- part 9 is XfB__m05_add, the enrage glow, which
+  //     the same function drives through Normal / Angry_Start / Angry_Repeat / Angry_End.
+  //
+  //   Brachydios, 0xf36dfc -- NOT the predicate directly. A gauge at [enemy+0xcacc]+0x84 climbs while
+  //   enraged and drains while calm, clamped 0..40 (0xf36e54..0xf36f50), and the part block compares
+  //   it with 10.0 (0xf373b8):
+  //     below  set 0  [12 off]      + head pair lo 2 [9, 10 on; 13, 14 off]
+  //     at/over set 11 [12 on]      + head pair lo 12 [9, 10 off; 13, 14 on]
+  //   Part 12 is the 867-vertex body slime and 9/10/13/14 the head slime, all XfB__m03_nenkin_body.
+  //   As pairs that is [0, 11] and [2, 12]: the calm block applies 0 and 2, the enraged block 11 and
+  //   12, and never both. The gauge's delay on the way in and out is not modelled -- the toggle shows
+  //   the two steady states.
+  //
+  // build-partrest.py now splits the same two drivers for the resting sets; before that, both
+  // monsters carried the union [3, 4, 5, 7, 9, 12], which put Brachydios's enraged head at rest.
+  em063_00: [[0, 11], [2, 12]],                        // Brachydios -- gauge block, 0xf373b8
+  em063_05: [[11, 12]],                                // Raging Brachydios -- 0xf368a0
   em070_00: [[2, 1]],                                  // Nerscylla -- confirmed at 0xf9bd30
 };
 // Materials driven at SPAWN rather than by rage, which then hold that clip's end state for the
