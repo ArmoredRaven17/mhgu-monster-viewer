@@ -3912,3 +3912,11 @@ all along. Every primitive draw is textured now and still matches the emulator. 
 Enraged and goes out the way Teostra's code ends it (a stop request, then its end effect `em027_00_018`).
 And the viewer had no ground for the aura's fire under Teostra's feet: an invisible ground at its feet now
 hides it, as terrain does in the game (`__view.effectGround(false)` to compare). Commit 3f5f1f9.
+
+**The aura raised, on request.** Raven: *"The persistent aura is still below Teostra; no change there"* and
+*"If you could move the Flame Aura up so it is more inside of Teostra, try that."* The effects hang from the
+unit, which the viewer puts at the clip's reference node under the feet; `live.js` now lifts Teostra's unit
+by 400 of its own units -- its root bone's height above that reference in the idle clip -- so the fire sits in
+the torso. This is a viewer adjustment, not a ROM value, and the rage bursts move with it.
+`__view.effectLift(units)` tries other heights. Why the ROM's own placement reads that low is not found.
+Commit 1126eac.
