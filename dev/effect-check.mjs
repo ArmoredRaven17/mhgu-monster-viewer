@@ -11,6 +11,8 @@ import * as life from '../docs/render/rom/effect/life.js';
 import * as curve from '../docs/render/rom/effect/curve.js';
 import * as motion from '../docs/render/rom/effect/motion.js';
 import * as model from '../docs/render/rom/effect/model.js';
+import * as emit from '../docs/render/rom/effect/emit.js';
+import * as spawn from '../docs/render/rom/effect/spawn.js';
 
 // address -> [translation, arguments from the vector, what to compare on return]
 const TABLE = {
@@ -38,6 +40,38 @@ const TABLE = {
   '0xa97dd8': [model.channelPass, v => [v.args[0], v.args[1]], null],
   '0xa972b8': [model.updateModelParticle, v => [v.args[0], v.args[1]], 'r0'],
   '0xa9718c': [model.modelFrame, v => [v.args[0]], 'r0'],
+  '0xa5949c': [emit.loadInterval, v => [v.args[0]], null],
+  '0xa59814': [emit.loadPeriod, v => [v.args[0]], 'r0'],
+  '0xa596e8': [emit.thinCount, v => [v.args[0], v.args[1]], 'r0'],
+  '0xae9e88': [emit.emissionStart, v => [v.args[0]], null],
+  '0xa56bac': [emit.endEmission, v => [v.args[0], v.args[1]], null],
+  '0xa57938': [emit.emitOnce, v => [v.args[0]], 'r0'],
+  '0xa57bfc': [emit.emitPeriodic, v => [v.args[0]], 'r0'],
+  '0xaebda8': [emit.visibilityState, v => [v.args[0]], 'r0'],
+  '0xaebc68': [emit.colourCurve, v => [v.args[0]], null],
+  '0x9bd170': [() => {}, v => [], null],
+  '0xa570fc': [emit.preUpdate, v => [v.args[0]], null],
+  '0xa5b488': [spawn.sampleShape, v => [v.args[0], v.args[1], v.args[2], v.args[3], stackArg(v, 0), stackArg(v, 1), stackArg(v, 2)], null],
+  '0xa59c1c': [spawn.spawnPlace, v => [v.args[0], v.args[1], v.args[2], v.args[3]], 'r0'],
+  '0xa5c7b4': [spawn.initUpdSlot, v => [v.args[0], v.args[1], v.args[2]], null],
+  '0x320ed4': [spawn.eulerMatrix, v => [v.args[0], v.args[1], v.args[2]], null],
+  '0x9ba918': [spawn.axisDir, v => [v.args[0], v.args[1], v.args[2], v.args[3]], null],
+  '0xa742c0': [spawn.velDir, v => [v.args[0], v.args[1], v.args[2], v.args[3], stackArg(v, 0)], null],
+  '0xa5a570': [spawn.spawnMotion, v => [v.args[0], v.args[1], v.args[2], v.args[3]], null],
+  '0xaea108': [spawn.spawnLife, v => [v.args[0], v.args[1], v.args[2]], null],
+  '0xa59a5c': [spawn.spawnBase, v => [v.args[0], v.args[1], v.args[2]], 'r0'],
+  '0xb460c8': [spawn.meshByPart, v => [v.args[0], v.args[1]], 'r0'],
+  '0xcabf10': [spawn.animSetup, v => [v.args[0], v.args[1], v.args[2], v.args[3]], 'r0'],
+  '0xa96a70': [spawn.meshAnimInit, v => [v.args[0], v.args[1]], null],
+  '0xa672dc': [spawn.unitScale, v => [v.args[0], v.args[1]], null],
+  '0xa67308': [spawn.scaleInit, v => [v.args[0], v.args[1], s0(v)], null],
+  '0xa685d4': [spawn.axisInit, v => [v.args[0], v.args[1], v.args[2], v.args[3], stackArg(v, 0), stackArg(v, 1), stackArg(v, 2)], null],
+  '0xa67de4': [spawn.rotationInit, v => [v.args[0], v.args[1], v.args[2], v.args[3], stackArg(v, 0)], null],
+  '0xa6885c': [spawn.channelSetup, v => [v.args[0], v.args[1], v.args[2], v.args[3]], 'r0'],
+  '0xa96f78': [spawn.channelInit, v => [v.args[0], v.args[1]], null],
+  '0xa68e78': [spawn.baseColour, v => [v.args[0], v.args[1]], null],
+  '0xa71870': [spawn.lastPass, v => [v.args[0], v.args[1]], null],
+  '0xa965c4': [spawn.spawnModel, v => [v.args[0], v.args[1], v.args[2]], 'r0'],
 };
 // the translation's own stand-in for stack locals: never an input, never compared
 const inScratch = a => a >= motion.SCRATCH_BASE && a < motion.SCRATCH_BASE + 0x100000;
