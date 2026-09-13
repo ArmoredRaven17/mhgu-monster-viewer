@@ -319,9 +319,15 @@ export function createRomMaterial(spec){
   //   Gore Magala    kasan prim 7   125 verts   uv 0.015..0.999 / 0.013..0.626   real
   //   Chaotic Gore   kasan prim 11   67 verts   uv 0.000..0.000 / 0.000..0.000   ZEROED
   //
-  // Gore Magala's mesh samples the sparse glow pattern (only 6.3% of that texture is above luma
-  // 60) and the multiply SHAPES it, which is exactly right. Chaotic Gore's samples texel (0,0),
-  // so the same multiply all but erases it.
+  // I ALSO CALLED GORE'S TEXTURE A "sparse glow pattern (6.3% above luma 60)". Measured, it is
+  // neither sparse nor a glow: luma 16..83 mean 32, only 0.79% above luma 60, and alpha 107..255
+  // mean 146 -- a mostly-OPAQUE dark membrane. Chaotic Gore's is the sparse one, and its pattern
+  // is in the ALPHA: luma 20..129 with 4.91% above 60, alpha 0..221 but mean 36.
+  //
+  // So the gap is a product of both channels, and it is 12x. Gore's mesh samples across its sheet
+  // at roughly 0.09 linear x 0.57 alpha = 0.051. Chaotic's samples texel (0,0) -- luma 51, alpha
+  // 33 -- at 0.033 x 0.13 = 0.0043. That, not a pattern being "shaped", is why the same multiply
+  // reads as correct on one and as nothing on the other.
   //
   // I WROTE HERE THAT THOSE UVs WERE A CONVERTER DEFECT -- that format 77d87024 keeps the real
   // coordinates at bytes 24..27 and we read the zeros at 20..23. THAT WAS WRONG, and the full lane
