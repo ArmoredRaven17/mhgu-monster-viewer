@@ -1,4 +1,16 @@
-"""Zero the weight our conversion leaks into MT's PADDING joint slots, and renormalise.
+"""SUPERSEDED -- DO NOT RUN. Kept for the reasoning below; the fix now lives in the build.
+
+C:\\MHGU-Extract\\fix-skin-weights.py replaces this, and buildlib.mod_to_gltf runs it, so the
+crumb cannot come back on a rebuild. That script reads the weights MT actually stored -- w0 from
+the u16 at byte 6, w1/w2 from the half2 after the UV -- instead of recognising the leak by its
+SIZE, so it repairs every format and every monster rather than the three Fatalis, and it leaves
+a slot at zero because the ROM says zero rather than because the number was small.
+
+This script is also mildly harmful now: it renormalised in floating point and requantised, which
+left 123 of em013_00's 5,944 weight rows summing to 254 or 256 instead of 255. fix-skin-weights
+repaired those.
+
+Zero the weight our conversion leaks into MT's PADDING joint slots, and renormalise.
 
 Raven, 2026-09-12, on Crimson Fatalis: "Something is shifting Crimson's neck over", "it is likely
 shifting only part of the head", and from two tabs at the same pose, "Crimson feels shifted to the
