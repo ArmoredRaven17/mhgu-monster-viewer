@@ -40,8 +40,9 @@ function envColour(col, mode, e){
   return col;
 }
 
-// 0x1ebe8: a = a * b for 4x4 matrices (MtMatrix::operator*=).
-export function matMul(m, a, b){
+// 0x29d00: dst = a * b for 4x4 matrices. Every input is read before the first write, so dst may be a or b.
+// 0x1ebe8 (MtMatrix::operator*=) is the same instructions writing through a: matMul below.
+export function matMulTo(m, dst, a, b){
   let s0 = m.f32(b + 0xc), s10 = m.f32(b + 0x10), s23 = m.f32(a + 4), s21 = m.f32(a), s14 = m.f32(b);
   let s25 = m.f32(a + 8), s27 = m.f32(a + 0xc), s20 = m.f32(b + 4), s4 = m.f32(b + 8);
   const sp4 = s0;
@@ -53,11 +54,11 @@ export function matMul(m, a, b){
   s0 = m.f32(a + 0x14);
   let s12 = m.f32(b + 0x3c), s5 = m.f32(b + 0x2c), s24 = m.f32(b + 0x1c), s7 = m.f32(b + 0x38);
   let s13 = m.f32(b + 0x28), s28 = m.f32(b + 0x18), s15 = m.f32(b + 0x34);
-  s29 = F(s29 + F(s25 * s3)); s29 = F(s29 + F(s27 * s8)); m.wf32(a, s29);
-  s29 = F(s23 * s30); s29 = F(s29 + F(s21 * s20)); s29 = F(s29 + F(s25 * s26)); s29 = F(s29 + F(s27 * s15)); m.wf32(a + 4, s29);
+  s29 = F(s29 + F(s25 * s3)); s29 = F(s29 + F(s27 * s8)); m.wf32(dst, s29);
+  s29 = F(s23 * s30); s29 = F(s29 + F(s21 * s20)); s29 = F(s29 + F(s25 * s26)); s29 = F(s29 + F(s27 * s15)); m.wf32(dst + 4, s29);
   s29 = F(s23 * s28); s29 = F(s29 + F(s21 * s4)); s29 = F(s29 + F(s25 * s13)); s29 = F(s29 + F(s27 * s7));
   s23 = F(s23 * s24);
-  m.wf32(a + 8, s29);
+  m.wf32(dst + 8, s29);
   s29 = sp4;
   s23 = F(s23 + F(s21 * s29));
   s21 = F(s10 * s0); s21 = F(s21 + F(s14 * s31));
@@ -65,27 +66,27 @@ export function matMul(m, a, b){
   s21 = F(s21 + F(s3 * s19));
   s23 = F(s23 + F(s27 * s12));
   s21 = F(s21 + F(s8 * s17));
-  m.wf32(a + 0xc, s23); m.wf32(a + 0x10, s21);
-  s21 = F(s30 * s0); s21 = F(s21 + F(s20 * s31)); s21 = F(s21 + F(s26 * s19)); s21 = F(s21 + F(s15 * s17)); m.wf32(a + 0x14, s21);
+  m.wf32(dst + 0xc, s23); m.wf32(dst + 0x10, s21);
+  s21 = F(s30 * s0); s21 = F(s21 + F(s20 * s31)); s21 = F(s21 + F(s26 * s19)); s21 = F(s21 + F(s15 * s17)); m.wf32(dst + 0x14, s21);
   s21 = F(s28 * s0); s21 = F(s21 + F(s4 * s31));
   s0 = F(s24 * s0); s0 = F(s0 + F(s29 * s31));
   s21 = F(s21 + F(s13 * s19));
   s0 = F(s0 + F(s5 * s19));
   s21 = F(s21 + F(s7 * s17));
   s0 = F(s0 + F(s12 * s17));
-  m.wf32(a + 0x18, s21); m.wf32(a + 0x1c, s0);
+  m.wf32(dst + 0x18, s21); m.wf32(dst + 0x1c, s0);
   s0 = F(s10 * s22); s0 = F(s0 + F(s14 * s18)); s0 = F(s0 + F(s3 * s16)); s0 = F(s0 + F(s8 * s11));
   s10 = F(s10 * s9); s10 = F(s10 + F(s14 * s1));
   s14 = F(s24 * s9); s14 = F(s14 + F(s29 * s1));
   s10 = F(s10 + F(s3 * s6));
-  m.wf32(a + 0x20, s0);
+  m.wf32(dst + 0x20, s0);
   s0 = F(s30 * s22); s0 = F(s0 + F(s20 * s18));
   s14 = F(s14 + F(s5 * s6));
   s10 = F(s10 + F(s8 * s2));
   s0 = F(s0 + F(s26 * s16));
   s14 = F(s14 + F(s12 * s2));
   s0 = F(s0 + F(s15 * s11));
-  m.wf32(a + 0x24, s0);
+  m.wf32(dst + 0x24, s0);
   s0 = F(s30 * s9); s0 = F(s0 + F(s20 * s1));
   s20 = F(s28 * s9);
   s28 = F(s28 * s22); s28 = F(s28 + F(s4 * s18));
@@ -99,9 +100,11 @@ export function matMul(m, a, b){
   s28 = F(s28 + F(s7 * s11));
   s20 = F(s20 + F(s7 * s2));
   s22 = F(s22 + F(s12 * s11));
-  m.wf32(a + 0x28, s28); m.wf32(a + 0x2c, s22); m.wf32(a + 0x30, s10); m.wf32(a + 0x34, s0);
-  m.wf32(a + 0x38, s20); m.wf32(a + 0x3c, s14);
+  m.wf32(dst + 0x28, s28); m.wf32(dst + 0x2c, s22); m.wf32(dst + 0x30, s10); m.wf32(dst + 0x34, s0);
+  m.wf32(dst + 0x38, s20); m.wf32(dst + 0x3c, s14);
 }
+// 0x1ebe8: a = a * b.
+export function matMul(m, a, b){ matMulTo(m, a, a, b); }
 
 // 0xa69af0: the polyline basis: identity, scaled by `size`, rotated by the euler vector `rot` (order
 // generator +0xea), then by the generator transform (+0x100); translation from the ROM row at

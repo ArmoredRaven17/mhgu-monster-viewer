@@ -16,6 +16,8 @@ import * as spawn from '../docs/render/rom/effect/spawn.js';
 import * as runtime from '../docs/render/rom/effect/runtime.js';
 import * as billboard from '../docs/render/rom/effect/billboard.js';
 import * as polyline from '../docs/render/rom/effect/polyline.js';
+import * as owner from '../docs/render/rom/effect/owner.js';
+import { Scratch } from '../docs/render/rom/effect/motion.js';
 
 // address -> [translation, arguments from the vector, what to compare on return]
 const TABLE = {
@@ -103,6 +105,30 @@ const TABLE = {
   '0xab5090': [polyline.updateLPLParticle, v => [v.args[0], v.args[1]], 'r0'],
   '0xab4f64': [polyline.polylineFrame, v => [v.args[0]], 'r0'],
   '0xa574c4': [runtime.generatorUpdate, v => [v.args[0]], 'r0', v => translatedType(v)],
+  '0x29d00': [polyline.matMulTo, v => [v.args[0], v.args[1], v.args[2]], null],
+  '0x44d08': [owner.isPaused, v => [v.args[0]], 'r0'],
+  '0x44d30': [owner.flagF0bit4, v => [v.args[0]], 'r0'],
+  '0x9b228c': [owner.ownerMatrix, v => [v.args[0]], null],
+  '0x9b418c': [owner.ownerState, v => [v.args[0]], 'r0'],
+  '0xb8efa4': [owner.frameDelta, v => [v.args[0]], 's0'],
+  '0x9b4140': [owner.updateDelta, v => [v.args[0]], null],
+  '0xae9b68': [owner.copyFraction, v => [v.args[0]], null],
+  '0xa56c10': [owner.generatorFramePrep, v => [v.args[0]], null],
+  '0x9bd168': [() => {}, v => [], null],
+  '0x9bb9d0': [owner.framePrep, v => [v.args[0]], null],
+  '0xae8ac0': [owner.nodeIntegrate, v => [v.args[0]], null],
+  '0xae8b74': [owner.nodeLocal, v => [v.args[0], v.args[1], v.args[2]], null],
+  '0xae8d18': [owner.nodeLocalLerp, v => [v.args[0], v.args[1], v.args[2], s0(v)], null],
+  '0x9bd058': [owner.attachMatrix, v => [v.args[0], v.args[1], v.args[2]], 'r0'],
+  '0x9bba54': [owner.nodeUpdate, v => [v.args[0], v.args[1]], null],
+  '0xae9340': [owner.nodeDelay, v => [v.args[0]], null],
+  '0x9b66a0': [owner.moveNodes, v => [v.args[0]], null],
+  '0x9b6794': [owner.countNodes, v => [v.args[0]], null],
+  '0xa91c48': [owner.modelPostPass, v => [v.args[0]], null],
+  '0x9ba8c4': [(m, h) => h, v => [s0(v)], 's0'],
+  '0xa77fb4': [() => {}, v => [], null],
+  '0xaaebb0': [owner.polylinePostPass, v => [v.args[0]], null],
+  '0x9b6130': [owner.move, v => [v.args[0]], null],
 };
 // the translation's own stand-in for stack locals: never an input, never compared
 const inScratch = a => a >= motion.SCRATCH_BASE && a < motion.SCRATCH_BASE + 0x100000;
@@ -158,6 +184,7 @@ function check(fnName, v){
   };
   m.onWrite = (a, n, b) => { for (let i = 0; i < n; i++) wrote.set(a + i, b[i]); };
   let ret;
+  Scratch.depth = 0;                    // a refused call never freed its scratch frames
   try { ret = fn(m, ...argsOf(v)); }
   catch (e){ return [(e instanceof Unverified ? 'UNVERIFIED ' : 'THREW ') + e.message]; }
   for (const [a, b] of want){
