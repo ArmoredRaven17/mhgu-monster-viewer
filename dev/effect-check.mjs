@@ -331,8 +331,10 @@ function runLifted(m, v, address){
   return c;
 }
 
+const PREFER_LIFTED = process.argv.includes('--lifted');
 function check(fnName, v){
-  const [fn, argsOf, retKind] = TABLE[fnName] || [null, null, 'cpu'];
+  const hand = TABLE[fnName] && !(PREFER_LIFTED && lifted(Number(fnName)));
+  const [fn, argsOf, retKind] = hand ? TABLE[fnName] : [null, null, 'cpu'];
   const m = new Mem();
   const given = new Map();
   for (const [start, hx] of v.reads){
@@ -375,7 +377,7 @@ function check(fnName, v){
   return problems;
 }
 
-const [file, ...only] = process.argv.slice(2);
+const [file, ...only] = process.argv.slice(2).filter(a => a !== '--lifted');
 const files = statSync(file).isDirectory() ? readdirSync(file).filter(f => f.endsWith('.json')).map(f => join(file, f)) : [file];
 const functions = {};
 for (const f of files) Object.assign(functions, JSON.parse(readFileSync(f, 'utf8')).functions);
@@ -386,7 +388,7 @@ for (const [fnName, rec] of Object.entries(functions)){
   if (!TABLE[fnName] && !lifted(Number(fnName))){ pending.push(fnName); continue; }
   let ok = 0, skipped = 0;
   for (const v of rec.vectors){
-    if (TABLE[fnName] && TABLE[fnName][3] && !TABLE[fnName][3](v)){ skipped++; continue; }
+    if (TABLE[fnName] && TABLE[fnName][3] && !(PREFER_LIFTED && lifted(Number(fnName))) && !TABLE[fnName][3](v)){ skipped++; continue; }
     const p = check(fnName, v);
     if (p.length && p[0].startsWith('UNVERIFIED ')){
       const key = p[0].replace('UNVERIFIED unverified path: ', '');

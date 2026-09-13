@@ -6720,7 +6720,8 @@
    "FLightMask"
   ],
   "FColorModifier": [
-   "FPrimiteveColorModifier"
+   "FPrimiteveColorModifier",
+   "FPrimiteveColorModifierEmu"
   ],
   "FWorldCoordinate": [
    "FWorldCoordinate"
@@ -6735,6 +6736,7 @@
    "FPrimitiveModelSmoothAlpha"
   ],
   "FPrimitiveTransparency": [
+   "FPrimitiveTransparency",
    "FPrimitiveTransparencyVolume"
   ],
   "FPrimitiveLevelCorrection": [
@@ -7088,13 +7090,109 @@
    ],
    "uses": []
   },
-  "PROJECTION_INPUT": {
-   "glsl": "struct PROJECTION_INPUT {\n  vec2 proj_idx;\n};\nPROJECTION_INPUT zero_PROJECTION_INPUT() { PROJECTION_INPUT z; z.proj_idx = vec2(0.0); return z; }\n",
+  "LATTICE_DEFORM_INPUT": {
+   "glsl": "struct LATTICE_DEFORM_INPUT {\n  vec2 vtx0;\n  vec2 vtx1;\n  vec2 vtx2;\n  vec2 vtx3;\n  vec2 vtx4;\n  vec2 vtx5;\n  vec2 vtx6;\n  vec2 vtx7;\n};\nLATTICE_DEFORM_INPUT zero_LATTICE_DEFORM_INPUT() { LATTICE_DEFORM_INPUT z; z.vtx0 = vec2(0.0); z.vtx1 = vec2(0.0); z.vtx2 = vec2(0.0); z.vtx3 = vec2(0.0); z.vtx4 = vec2(0.0); z.vtx5 = vec2(0.0); z.vtx6 = vec2(0.0); z.vtx7 = vec2(0.0); return z; }\n",
    "members": [
     [
-     "proj_idx",
+     "vtx0",
      "vec2",
-     "PROJECTION_INDEX"
+     "LdVtx"
+    ],
+    [
+     "vtx1",
+     "vec2",
+     "LdVtx"
+    ],
+    [
+     "vtx2",
+     "vec2",
+     "LdVtx"
+    ],
+    [
+     "vtx3",
+     "vec2",
+     "LdVtx"
+    ],
+    [
+     "vtx4",
+     "vec2",
+     "LdVtx"
+    ],
+    [
+     "vtx5",
+     "vec2",
+     "LdVtx"
+    ],
+    [
+     "vtx6",
+     "vec2",
+     "LdVtx"
+    ],
+    [
+     "vtx7",
+     "vec2",
+     "LdVtx"
+    ]
+   ],
+   "uses": []
+  },
+  "SOFTBODY_INPUT": {
+   "glsl": "struct SOFTBODY_INPUT {\n  vec2 texcoord0;\n  vec2 texcoord1;\n  vec2 texcoord2;\n  vec3 pos0;\n  vec3 pos1;\n  vec3 pos2;\n  vec4 quat0;\n  vec4 quat1;\n  vec4 quat2;\n  vec3 weight;\n  vec3 offset;\n};\nSOFTBODY_INPUT zero_SOFTBODY_INPUT() { SOFTBODY_INPUT z; z.texcoord0 = vec2(0.0); z.texcoord1 = vec2(0.0); z.texcoord2 = vec2(0.0); z.pos0 = vec3(0.0); z.pos1 = vec3(0.0); z.pos2 = vec3(0.0); z.quat0 = vec4(0.0); z.quat1 = vec4(0.0); z.quat2 = vec4(0.0); z.weight = vec3(0.0); z.offset = vec3(0.0); return z; }\n",
+   "members": [
+    [
+     "texcoord0",
+     "vec2",
+     "SbTexCoord"
+    ],
+    [
+     "texcoord1",
+     "vec2",
+     "SbTexCoord"
+    ],
+    [
+     "texcoord2",
+     "vec2",
+     "SbTexCoord"
+    ],
+    [
+     "pos0",
+     "vec3",
+     "SbPos"
+    ],
+    [
+     "pos1",
+     "vec3",
+     "SbPos"
+    ],
+    [
+     "pos2",
+     "vec3",
+     "SbPos"
+    ],
+    [
+     "quat0",
+     "vec4",
+     "SbQuat"
+    ],
+    [
+     "quat1",
+     "vec4",
+     "SbQuat"
+    ],
+    [
+     "quat2",
+     "vec4",
+     "SbQuat"
+    ],
+    [
+     "weight",
+     "vec3",
+     "SbWeight"
+    ],
+    [
+     "offset",
+     "vec3",
+     "SbOffset"
     ]
    ],
    "uses": []
@@ -7141,6 +7239,48 @@
      "morphn3",
      "vec3",
      "MorphNormal"
+    ]
+   ],
+   "uses": []
+  },
+  "INSTANCING_INPUT": {
+   "glsl": "struct INSTANCING_INPUT {\n  mat3x4 instance_wmat;\n  vec4 instance_color;\n};\nINSTANCING_INPUT zero_INSTANCING_INPUT() { INSTANCING_INPUT z; z.instance_wmat = mat3x4(0.0); z.instance_color = vec4(0.0); return z; }\n",
+   "members": [
+    [
+     "instance_wmat",
+     "mat3x4",
+     "INSTANCE_MATRIX"
+    ],
+    [
+     "instance_color",
+     "vec4",
+     "INSTANCE_COLOR"
+    ]
+   ],
+   "uses": []
+  },
+  "SWING_INPUT": {
+   "glsl": "struct SWING_INPUT {\n  float weight;\n  vec3 origin;\n  float weight2;\n  vec3 origin2;\n};\nSWING_INPUT zero_SWING_INPUT() { SWING_INPUT z; z.weight = 0.0; z.origin = vec3(0.0); z.weight2 = 0.0; z.origin2 = vec3(0.0); return z; }\n",
+   "members": [
+    [
+     "weight",
+     "float",
+     "SWING_WEIGHT"
+    ],
+    [
+     "origin",
+     "vec3",
+     "SWING_ORIGIN"
+    ],
+    [
+     "weight2",
+     "float",
+     "SWING_WEIGHT"
+    ],
+    [
+     "origin2",
+     "vec3",
+     "SWING_ORIGIN"
     ]
    ],
    "uses": []
@@ -7211,151 +7351,13 @@
    ],
    "uses": []
   },
-  "LATTICE_DEFORM_INPUT": {
-   "glsl": "struct LATTICE_DEFORM_INPUT {\n  vec2 vtx0;\n  vec2 vtx1;\n  vec2 vtx2;\n  vec2 vtx3;\n  vec2 vtx4;\n  vec2 vtx5;\n  vec2 vtx6;\n  vec2 vtx7;\n};\nLATTICE_DEFORM_INPUT zero_LATTICE_DEFORM_INPUT() { LATTICE_DEFORM_INPUT z; z.vtx0 = vec2(0.0); z.vtx1 = vec2(0.0); z.vtx2 = vec2(0.0); z.vtx3 = vec2(0.0); z.vtx4 = vec2(0.0); z.vtx5 = vec2(0.0); z.vtx6 = vec2(0.0); z.vtx7 = vec2(0.0); return z; }\n",
+  "PROJECTION_INPUT": {
+   "glsl": "struct PROJECTION_INPUT {\n  vec2 proj_idx;\n};\nPROJECTION_INPUT zero_PROJECTION_INPUT() { PROJECTION_INPUT z; z.proj_idx = vec2(0.0); return z; }\n",
    "members": [
     [
-     "vtx0",
+     "proj_idx",
      "vec2",
-     "LdVtx"
-    ],
-    [
-     "vtx1",
-     "vec2",
-     "LdVtx"
-    ],
-    [
-     "vtx2",
-     "vec2",
-     "LdVtx"
-    ],
-    [
-     "vtx3",
-     "vec2",
-     "LdVtx"
-    ],
-    [
-     "vtx4",
-     "vec2",
-     "LdVtx"
-    ],
-    [
-     "vtx5",
-     "vec2",
-     "LdVtx"
-    ],
-    [
-     "vtx6",
-     "vec2",
-     "LdVtx"
-    ],
-    [
-     "vtx7",
-     "vec2",
-     "LdVtx"
-    ]
-   ],
-   "uses": []
-  },
-  "SWING_INPUT": {
-   "glsl": "struct SWING_INPUT {\n  float weight;\n  vec3 origin;\n  float weight2;\n  vec3 origin2;\n};\nSWING_INPUT zero_SWING_INPUT() { SWING_INPUT z; z.weight = 0.0; z.origin = vec3(0.0); z.weight2 = 0.0; z.origin2 = vec3(0.0); return z; }\n",
-   "members": [
-    [
-     "weight",
-     "float",
-     "SWING_WEIGHT"
-    ],
-    [
-     "origin",
-     "vec3",
-     "SWING_ORIGIN"
-    ],
-    [
-     "weight2",
-     "float",
-     "SWING_WEIGHT"
-    ],
-    [
-     "origin2",
-     "vec3",
-     "SWING_ORIGIN"
-    ]
-   ],
-   "uses": []
-  },
-  "SOFTBODY_INPUT": {
-   "glsl": "struct SOFTBODY_INPUT {\n  vec2 texcoord0;\n  vec2 texcoord1;\n  vec2 texcoord2;\n  vec3 pos0;\n  vec3 pos1;\n  vec3 pos2;\n  vec4 quat0;\n  vec4 quat1;\n  vec4 quat2;\n  vec3 weight;\n  vec3 offset;\n};\nSOFTBODY_INPUT zero_SOFTBODY_INPUT() { SOFTBODY_INPUT z; z.texcoord0 = vec2(0.0); z.texcoord1 = vec2(0.0); z.texcoord2 = vec2(0.0); z.pos0 = vec3(0.0); z.pos1 = vec3(0.0); z.pos2 = vec3(0.0); z.quat0 = vec4(0.0); z.quat1 = vec4(0.0); z.quat2 = vec4(0.0); z.weight = vec3(0.0); z.offset = vec3(0.0); return z; }\n",
-   "members": [
-    [
-     "texcoord0",
-     "vec2",
-     "SbTexCoord"
-    ],
-    [
-     "texcoord1",
-     "vec2",
-     "SbTexCoord"
-    ],
-    [
-     "texcoord2",
-     "vec2",
-     "SbTexCoord"
-    ],
-    [
-     "pos0",
-     "vec3",
-     "SbPos"
-    ],
-    [
-     "pos1",
-     "vec3",
-     "SbPos"
-    ],
-    [
-     "pos2",
-     "vec3",
-     "SbPos"
-    ],
-    [
-     "quat0",
-     "vec4",
-     "SbQuat"
-    ],
-    [
-     "quat1",
-     "vec4",
-     "SbQuat"
-    ],
-    [
-     "quat2",
-     "vec4",
-     "SbQuat"
-    ],
-    [
-     "weight",
-     "vec3",
-     "SbWeight"
-    ],
-    [
-     "offset",
-     "vec3",
-     "SbOffset"
-    ]
-   ],
-   "uses": []
-  },
-  "INSTANCING_INPUT": {
-   "glsl": "struct INSTANCING_INPUT {\n  mat3x4 instance_wmat;\n  vec4 instance_color;\n};\nINSTANCING_INPUT zero_INSTANCING_INPUT() { INSTANCING_INPUT z; z.instance_wmat = mat3x4(0.0); z.instance_color = vec4(0.0); return z; }\n",
-   "members": [
-    [
-     "instance_wmat",
-     "mat3x4",
-     "INSTANCE_MATRIX"
-    ],
-    [
-     "instance_color",
-     "vec4",
-     "INSTANCE_COLOR"
+     "PROJECTION_INDEX"
     ]
    ],
    "uses": []
@@ -7497,43 +7499,6 @@
     0
    ]
   ],
-  "CBScreen": [
-   [
-    "fScreenOffset",
-    "vec2",
-    0,
-    2,
-    0
-   ],
-   [
-    "fScreenScale",
-    "vec2",
-    2,
-    2,
-    0
-   ],
-   [
-    "fScreenSize",
-    "vec2",
-    4,
-    2,
-    0
-   ],
-   [
-    "fScreenInverseSize",
-    "vec2",
-    6,
-    2,
-    0
-   ],
-   [
-    "fScreenHalfPixelOffset",
-    "vec2",
-    8,
-    2,
-    0
-   ]
-  ],
   "CBMaterial": [
    [
     "fDiffuseColor",
@@ -7582,6 +7547,43 @@
     "mat2x4",
     24,
     8,
+    0
+   ]
+  ],
+  "CBScreen": [
+   [
+    "fScreenOffset",
+    "vec2",
+    0,
+    2,
+    0
+   ],
+   [
+    "fScreenScale",
+    "vec2",
+    2,
+    2,
+    0
+   ],
+   [
+    "fScreenSize",
+    "vec2",
+    4,
+    2,
+    0
+   ],
+   [
+    "fScreenInverseSize",
+    "vec2",
+    6,
+    2,
+    0
+   ],
+   [
+    "fScreenHalfPixelOffset",
+    "vec2",
+    8,
+    2,
     0
    ]
   ],
@@ -8146,14 +8148,10 @@
     ]
    ]
   },
-  "FPrimiteveColorModifier": {
-   "glsl": "vec4 FPrimiteveColorModifier(MATERIAL_CONTEXT mc, vec4 color) {\n  color = FPrimitiveModelSceneSampler(color, mc);\n  color.w = FPrimitiveModelSmoothAlpha(color.w, mc);\n  color.w *= FPrimitiveTransparency(mc);\n  color = FPrimitiveLevelCorrection(color);\n  return FPrimitiveModifierEmu(color);\n}\n",
+  "FPrimiteveColorModifierEmu": {
+   "glsl": "vec4 FPrimiteveColorModifierEmu(MATERIAL_CONTEXT mc, vec4 color) {\n  return FPrimitiveModifierEmu(color);\n}\n",
    "calls": [
-    "FPrimitiveLevelCorrection",
-    "FPrimitiveModelSceneSampler",
-    "FPrimitiveModelSmoothAlpha",
-    "FPrimitiveModifierEmu",
-    "FPrimitiveTransparency"
+    "FPrimitiveModifierEmu"
    ],
    "ret": "vec4",
    "params": [
@@ -8189,6 +8187,31 @@
    "calls": [],
    "ret": "vec4",
    "params": [
+    [
+     "vec4",
+     "color",
+     "",
+     ""
+    ]
+   ]
+  },
+  "FPrimiteveColorModifier": {
+   "glsl": "vec4 FPrimiteveColorModifier(MATERIAL_CONTEXT mc, vec4 color) {\n  color = FPrimitiveModelSceneSampler(color, mc);\n  color.w = FPrimitiveModelSmoothAlpha(color.w, mc);\n  color.w *= FPrimitiveTransparency(mc);\n  color = FPrimitiveLevelCorrection(color);\n  return FPrimitiveModifierEmu(color);\n}\n",
+   "calls": [
+    "FPrimitiveLevelCorrection",
+    "FPrimitiveModelSceneSampler",
+    "FPrimitiveModelSmoothAlpha",
+    "FPrimitiveModifierEmu",
+    "FPrimitiveTransparency"
+   ],
+   "ret": "vec4",
+   "params": [
+    [
+     "MATERIAL_CONTEXT",
+     "mc",
+     "",
+     ""
+    ],
     [
      "vec4",
      "color",

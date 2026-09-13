@@ -56,25 +56,13 @@ native(0x320ed4, (m, ...a) => spawn.eulerMatrix(m, ...a), A3, null);
 native(0xb8ef7c, (m, ...a) => C.workArea(m, ...a), A3, 'r0');
 native(0xa55fe0, (m, ...a) => C.generatorInit(m, ...a), A4, 'r0');
 native(0xa562a0, (m, ...a) => C.generatorStart(m, ...a), A1, null);
-native(0xa56d1c, (m, ...a) => C.generatorTransform(m, ...a), A2, 'r0');
-native(0xa5825c, (m, ...a) => life.killParticle(m, ...a), A2, 'r0');
 native(0xa58690, (m, ...a) => C.generatorSizes(m, ...a), A3, 'r0');
 native(0xa588b8, (m, ...a) => C.paramBit16(m, ...a), A1, 'r0');
-native(0xa59a5c, (m, ...a) => spawn.spawnBase(m, ...a), A3, 'r0');
-native(0xa5fdf0, (m, ...a) => motion.baseFrame(m, ...a), A1, 'r0');
-native(0xa65014, (m, ...a) => polyline.polyPoints(m, ...a), A4, null);
-native(0xa66d38, (m, ...a) => billboard.animConfig(m, ...a), A3, null);
-native(0xa6703c, (m, ...a) => billboard.texAnimStep(m, ...a), ['r0', 'r1', 'r2', 's0'], 'r0');
-native(0xa672dc, (m, ...a) => spawn.unitScale(m, ...a), A2, null);
-native(0xa67304, () => {}, [], null);
-native(0xa67308, (m, ...a) => spawn.scaleInit(m, ...a), ['r0', 'r1', 's0'], 's0');   // the scale stays in s0 (0xa7aab4, 0xab4c14 read it)
-native(0xa67540, (m, ...a) => polyline.polyRandomVec(m, ...a), ['r0', 'r1', 'r2', 'r3', 'st0', 'st1', 'st2'], null);
-native(0xa68e78, (m, ...a) => spawn.baseColour(m, ...a), A2, null);
-native(0xa6908c, (m, ...a) => polyline.baseColour2(m, ...a), A2, null);
-native(0xa6ecc4, (m, ...a) => polyline.polyShapeUpdate1(m, ...a), A3, null);
-native(0xa71870, (m, ...a) => spawn.lastPass(m, ...a), A2, null);
-native(0xcaa710, (m, ...a) => polyline.animBindLPL(m, ...a), A3, 'r0');
-native(0xa742c0, (m, ...a) => spawn.velDir(m, ...a), ['r0', 'r1', 'r2', 'r3', 'st0'], null);
+// The effect's move (0x9b6130) and everything it runs -- nodes, a generator's update, spawn, particle frames,
+// emitter shapes, curves ... -- are LIFTED
+// (lifted-particles.js, from every recorded run: Savage's, Deviljho's and Teostra's); the hand translations
+// they replaced -- spawnBase, baseFrame, scaleInit, velDir, the colour and scale inits, the billboard and
+// polyline helpers, killParticle, generatorTransform -- stay for the checker, and no longer answer calls.
 // The heap the engine allocates from (0x189f148 +0x20 -> an allocator object): vtable +0x1c alloc(size,
 // align), +0x34 free(pointer). The emulator harness (efx_emu.py, efx_load.py) points them at its stub
 // entries 0x7e000000 and 0x7e000104, so those are the addresses lifted code calls through; a host lays
@@ -107,9 +95,7 @@ native(PARENT_GETDTI, () => parentClass, [], 'r0');
 
 // ---- a monster's effect request, whole (proof.js ProofRequest; efx/proofunit.py) -------------------------
 // uMHProofEffect's move (0x327188) ends in uEffect's own move, and its owner matrix (vtable +0x50, 0x3273e8)
-// is a branch to uEffect's: both are the hand translations.
-native(0x9b6130, (m, o) => owner.move(m, o), A1, null);
-native(0x9b228c, (m, o) => owner.ownerMatrix(m, o), A1, null);
+// is a branch to uEffect's: both are lifted now (lifted-particles.js).
 native(0x939278, (m, model, joint) => owner.jointMatrix(m, model, joint), A2, 'r0');   // uModel's joint matrix
 native(0x9b4184, () => 1, [], 'r0');                   // uEffect vtable +0x88: mov r0, #1
 // the constructors the request's objects start from, translated by hand (construct.js): cUnit's and uEffect's base
@@ -145,6 +131,9 @@ libm(0x13ecc20, a => Math.sin(a));                     // sinf
 libm(0x13ecfc8, a => (a < -1 || a > 1) ? NaN : Math.asin(a));   // asinf (math.asin raises -> nan)
 native(0x13ecd34, (m, d, n, v) => { for (let i = 0; i < n; i++) m.w8(d + i, v & 0xff); return d; }, A3, 'r0');   // __aeabi_memset4(dest, n, c)
 native(0x13ecbb4, (m, d, n) => { for (let i = 0; i < n; i++) m.w8(d + i, 0); return d; }, A2, 'r0');          // __aeabi_memclr4(dest, n)
+native(0x13ecbe4, (m, d, n) => { for (let i = 0; i < n; i++) m.w8(d + i, 0); return d; }, A2, 'r0');          // __aeabi_memclr(dest, n)
+// 0x9bd170, uEffect vtable +0xfc: bx lr (the generator's preUpdate calls it) -- touches no register
+registerNative(0x9bd170, () => {});
 // nn::os::InitializeMutex (a singleton's constructor): the emulator's import does nothing and answers 0
 native(0x13ecde8, () => 0, [], 'r0');
 // the effect manager's unique id (0xb8f4b8: lock, ++[mgr +0x22c], unlock), the harness's next_id service

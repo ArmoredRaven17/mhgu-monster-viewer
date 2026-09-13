@@ -25,7 +25,8 @@ import { Unverified, F } from './mem.js';
 import { Scratch } from './motion.js';
 import { eulerMatrix } from './spawn.js';
 import { matMulTo } from './polyline.js';
-import { generatorUpdate } from './runtime.js';
+import { liftedCall } from './bridge.js';
+import './lifted-particles.js';
 
 const GOT_EFFECT_MANAGER = 0x183b9ec;        // -> 0x211f554, the manager singleton
 const GOT_SYSTEM = 0x1831cb0;                // -> 0x211f764, whose +0x38 is the frame delta
@@ -496,7 +497,12 @@ export function polylinePostPass(m, gen){
 }
 
 // 0x9b6130: uEffect::move, once per game frame.
-export function move(m, owner){
+// The move as the viewer runs it: the LIFTED routine (lifted-particles.js, from every recorded run), which
+// covers every path those runs took. moveHand below is the hand translation it replaced -- checked against
+// the same vectors, and refusing more of them.
+export function move(m, owner){ liftedCall(m, 0x9b6130, [owner]); }
+
+export function moveHand(m, owner){
   if (!(m.u32(owner + 0x118) & 0x1000000)) throw new Unverified('0x9b6144 effect not started');
   if (m.u32(owner + 0x11c) !== 0) throw new Unverified('0x9b616c effect +0x11c');
   if (m.u32(owner + 0x1d0) !== 0) throw new Unverified('0x9b618c effect +0x1d0');
@@ -576,6 +582,6 @@ const CODE = new Map([
   [0x9ba8c4, (m, owner, gen, pos, h) => h],                  // vtable +0x90: bx lr, s0 back unchanged
   [0x9b4184, () => 1],                                        // vtable +0x88: mov r0, #1
   [0x939278, (m, model, joint) => jointMatrix(m, model, joint)],
-  [0xa56c10, generatorFramePrep], [0xa574c4, (m, gen) => generatorUpdate(m, gen)],
+  [0xa56c10, generatorFramePrep], [0xa574c4, (m, gen) => liftedCall(m, 0xa574c4, [gen]).r[0]],   // lifted-particles.js
   [0xa91c48, modelPostPass], [0xa77fb4, nothing], [0xaaebb0, polylinePostPass],
 ]);

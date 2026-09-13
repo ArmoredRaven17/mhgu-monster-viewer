@@ -7,6 +7,7 @@
 //   nextId(manager) -> id                 the effect manager's unique-id counter (0xb8f4b8)
 // Everything else is the ROM's own logic over the game's own struct layouts.
 import { liftedCall } from './bridge.js';
+import './lifted-particles.js';
 import { Unverified, F } from './mem.js';
 import { Scratch } from './motion.js';
 import { eulerMatrix, matToQuat } from './spawn.js';
@@ -647,7 +648,7 @@ function transformModel(m, g){                                 // 0xa91b80
     const model = m.u32(m.u32(g + 0x28) + 0x18);
     if (m.u32(model + 0x84) !== 0) throw new Unverified('0xa91ba8 Model resource +0x84');
   }
-  return generatorTransform(m, g, 0);
+  return liftedCall(m, 0xa56d1c, [g, 0]).r[0];                 // lifted-particles.js
 }
 function transformLiteBillboard(m, g){                         // 0xa783a8
   const par = m.u32(g + 0x34);
@@ -655,7 +656,7 @@ function transformLiteBillboard(m, g){                         // 0xa783a8
   const b18 = m.u8(par + 0x18);
   const big = f4 & 0x800000;
   if (b18 & 0xf0) throw new Unverified('0xa783d0 LiteBillboard parameters +0x18 high nibble');
-  if (generatorTransform(m, g, big ? 0x30 : 0) !== 1) throw new Unverified('0xa78408 transform failed');
+  if (liftedCall(m, 0xa56d1c, [g, big ? 0x30 : 0]).r[0] !== 1) throw new Unverified('0xa78408 transform failed');
   if (big) throw new Unverified('0xa78414 LiteBillboard +0xf4 bit 23');
   m.w32(g + 0x1bc, 0);
   return 1;
@@ -796,7 +797,13 @@ function nodeInit(m, inst){
     eulerMatrix(m, mat, ang, (m.u32(inst + 0x10c) >>> 8) & 0xf);
     matToQuat(m, inst + 0x90, mat);
     sc.free();
-    if (m.f32(inst + 0x9c) < 0) throw new Unverified('0xae86d0 node quaternion with negative w');
+    if (m.f32(inst + 0x9c) < 0){                                           // 0xae86d0: a negative w negates it
+      const w = F(-m.f32(inst + 0x9c));
+      m.wf32(inst + 0x90, F(-m.f32(inst + 0x90)));
+      m.wf32(inst + 0x94, F(-m.f32(inst + 0x94)));
+      m.wf32(inst + 0x98, F(-m.f32(inst + 0x98)));
+      m.wf32(inst + 0x9c, w);
+    }
     ip = m.u32(inst + 0x108); lr = m.u32(inst + 0x10c); r5 = m.u32(inst + 0x110);
   }
   const p = m.u32(inst + 0x104);                                           // 0xae8730
