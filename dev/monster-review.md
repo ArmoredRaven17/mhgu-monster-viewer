@@ -3542,3 +3542,81 @@ allocating `0x250` instead) -- unread.
 size, colour ramp, atlas cell. The loader touches only a few (block `+0x68` / `+0x6a` u16 frames
 divided by 60.0 into seconds, `+0x6c`); the rest is read by each class's own update code, reachable
 from the instance vtables in the table above.
+
+#### 2026-09-12 - THE GAME'S OWN PARTICLE SIMULATION RUNS, on Savage's real data
+
+> Raven: "Keep going, Savage is our test case for doing effects for monsters that use them."
+
+Rather than read dozens of field layouts out of disassembly, the effect is now EXECUTED: Unicorn runs
+MHGU's own code on `em043_05_002_s.efl`, and every particle below was spawned, aged and grown by the
+game. Harness: `C:\MHGU-Extract\efx\` (`efx_emu.py`, `efx_load.py`, `effect_frames.py`,
+`partdiff.py`, `annot.py`). It rests on `build/arm/emu.py`, which needed two fixes: its dead exefs
+path, and the ARM EABI helpers (`__aeabi_memcpy`, `__aeabi_memset*`, `__aeabi_memclr*`) that it did
+not implement -- every one was a silent no-op, so `rEffectList::load` copied a ZERO body and every
+row read null. Note `__aeabi_memset(dest, n, c)` takes its arguments in a different order from
+`memset`.
+
+**The construction chain, all of it the game's code:**
+
+| step | address | what it does |
+|---|---|---|
+| `uEffect::newInstance` | `0x9b5cc8` | the owner, `0x210` bytes, vtable `0x1786558` |
+| `rEffectList::load` | `0xb59604` | parses the file, loads its resources, builds one `0x44` entry per row |
+| factory | `0x9baca0` | one generator per row, linked at `uEffect+0x1f0` (next at `gen+0xc`), init by slot 6 |
+| pool setup | `0x9bb358` | node instances at `uEffect+0x1f4` (`0x130` each), particle slices, slot 7 |
+| `uEffect::move` | `0x9b6130` = vtable slot 10 | per frame: node update, then slot 18/19/20 on each generator |
+
+**Generator fields, confirmed by execution:** `+0x08` owner, `+0x18` node instance
+(= `uEffect+0x1f4` + index * `0x130`), `+0x1c` node index, `+0x28` its rEffectList entry,
+`+0x30` node block (col0), `+0x34` parameter block (col1), `+0x38` col2, `+0x3c` col3,
+`+0xb0/+0xb4` active list head/tail, `+0xb8` free list, `+0xd0` lo16 capacity, `+0xd6` stride.
+
+**The loader's own resource requests** for `em043_05_002_s`, exactly: rModel + rEffectAnim
+`cm150_000` (twice), rModel `em024_00_001`, rModel + rEffectAnim `cm202_042`, rEffectAnim
+`cm090_009` + texture `cm090_009_GSM_HQ_NOMIP`, texture `cm202_042_HQ_NOMIP`, and a chained list
+`effect\em\em043\em043_00_900`. Entry `+0x18` holds the rModel; a Model generator then picks a
+mesh PER PARTICLE by part id through `rModel+0x74` (the `.mod`'s 48-byte mesh table) and `+0x78`,
+at `0xb460c8`. `cm202_042` has four meshes, parts 0-3 -- one per lightning bolt.
+
+**What the owner supplies, and the traps in it.** A stub owner of zeros looks like DATA, not a
+harness fault: every generator emitted one particle with a one-frame life. The real defaults matter:
+`uEffect+0x1b0` time scale 1.0, `+0x1fc` count scale 1.0, `+0x180..+0x19c` per-view scales 1.0.
+The frame delta is `uEffect::updateDelta` (`0x9b4140`):
+`+0xfc = +0x1c * +0x100 * +0xf8 / [timer+0x38]`, where `+0xf8` is the timer's frame period
+CAPTURED AT CONSTRUCTION, so the timer (`*0x211f764`) must exist before the owner is built -- built
+after, `+0xf8` captured an instruction word and the delta was -inf. `move` accumulates
+`+0x104 += +0xfc` and runs `floor(+0x104)` sub-steps. Its body runs only with bit 24 of `+0x118`
+set; the constructor/reset (`0x9b1f7c`) leaves it clear, so an unstarted effect idles on
+`vfn +0xd8` (`0x9bb884`), which only checks its attach targets at `+0x30` and `+0x11c`.
+
+Null pointers do not fault in this harness, because `.text` is mapped at address 0. A 196-frame
+start delay on every row turned out to be built from code bytes read through a null `gen+0x18`
+before the node instances existed. Log reads below `0x2000` whenever a result looks too uniform.
+
+**Stand-ins, and only these:** the allocator; the resource manager (answering rModel with the real
+`.mod` mesh table); the effect manager's work arena (`+0x150/+0x154`, used by `0xb8ef7c`) and its
+disable mask (`+0x228` = 0); the timer's period (1/60, the rate the `.efl` header declares -- only
+the ratio enters the delta); the unique-id allocator `0xb8f4b8`; and **the start bit**, bit 24 of
+`uEffect+0x118`, pending the spawn path that sets it in the game.
+
+**Particle state, read back frame by frame.** Common header: `+0x04` next, `+0x0c` flags (bit 24
+flips every frame -- a two-buffer swap), **`+0x14` age in frames**, `+0x40/+0x44` a uniform scale
+(buffer A/B), `+0x48` its rate. Model particles are 288 or 320 bytes, LiteBillboard 176.
+
+| generator | life | scale | other |
+|---|---|---|---|
+| 0 Model `cm150_000` (smoke) | ~17 f | 0.80 -> 1.40, rate 0.048 decaying ~4%/frame | per-axis (1, 1.2, 1); rotation pi/2; mesh 12 of 15 |
+| 3 Model `cm202_042` (bolt) | 9 f | 9, fixed | per-axis (1, 1.48, 1); random orientation, no spin |
+| 4 LiteBillboard | 23 f | 0.75 -> 1.90, +0.05/frame, linear | 2D size (1.22, 1) |
+
+All three carry a counter at `+0xb8` rising 0.5 per frame (double-buffered at `+0xc0/+0xc4`) --
+the likeliest atlas frame. **No position field changes** on any of them: each particle sits at its
+node and grows in place, so placement is the node's job. Colour and alpha are not in particle state
+at all, which suggests they are evaluated from age at draw time -- unconfirmed.
+
+Emission over 300 frames: gen 0 a puff every ~17 frames, two overlapping; gen 1 a single 20-frame
+burst at start; gens 2 and 3 every 5 frames; gen 4 every 13; gen 5 every 6.
+
+**NEXT:** colour and alpha (the col3 curves are read only by base-class code, and some of it runs
+inside slot 18), the node instance's world transform (the attach joint -- the node block's `102`),
+and the draw pass (slot 21) that turns this into geometry.
