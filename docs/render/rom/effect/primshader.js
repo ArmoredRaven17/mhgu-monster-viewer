@@ -48,35 +48,41 @@ function orderStructs(structs){
   return out;
 }
 
-export function linkPrimitive(shaders, layoutName, features){
-  const layout = shaders.layouts[layoutName];
-  if (!layout) throw new Error('primshader: no input layout ' + layoutName);
+// The functions reachable from an entry point, callees first, each interface call sent to the variant
+// the selection names (or left on the interface's own body).
+export function linkFunctions(shaders, entry, features){
   const resolve = name => {
     const v = features[name];
-    if (v && !shaders.functions[v]) throw new Error('primshader: variant ' + v + ' of ' + name + ' is not exported');
+    if (v && !shaders.functions[v]) throw new Error('shader link: variant ' + v + ' of ' + name + ' is not exported');
     return v || name;
   };
-  // functions reachable from an entry, callees first, with interface calls sent to the selection
   const emitted = new Set();
   const order = [];
   const visit = name => {
     if (emitted.has(name)) return;
     emitted.add(name);
     const fn = shaders.functions[name];
-    if (!fn) throw new Error('primshader: function ' + name + ' is not exported');
+    if (!fn) throw new Error('shader link: function ' + name + ' is not exported');
     let text = fn.glsl;
     for (const callee of fn.calls){
       const target = resolve(callee);
       visit(target);
-      if (target !== callee) text = text.replace(new RegExp('\\b' + callee + '\\(', 'g'), target + '(');
+      if (target !== callee) text = text.replace(new RegExp('\\b' + callee.replace('$', '\\$') + '\\(', 'g'), target + '(');
     }
     order.push(text);
   };
-  const body = entry => { emitted.clear(); order.length = 0; visit(entry); return order.join('\n'); };
-  const vsFunctions = body('VS_Primitive');
-  const fsFunctions = body('PS_Primitive');
+  visit(entry);
+  return order.join('\n');
+}
+export function structBlock(shaders){ return orderStructs(shaders.structs).map(n => shaders.structs[n].glsl).join('\n'); }
 
-  const structs = orderStructs(shaders.structs).map(n => shaders.structs[n].glsl).join('\n');
+export function linkPrimitive(shaders, layoutName, features){
+  const layout = shaders.layouts[layoutName];
+  if (!layout) throw new Error('primshader: no input layout ' + layoutName);
+  const vsFunctions = linkFunctions(shaders, 'VS_Primitive', features);
+  const fsFunctions = linkFunctions(shaders, 'PS_Primitive', features);
+
+  const structs = structBlock(shaders);
   const uniforms = text => {
     const lines = [];
     for (const [cb, members] of Object.entries(shaders.cbs)){

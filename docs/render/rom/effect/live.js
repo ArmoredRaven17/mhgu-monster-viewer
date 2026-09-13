@@ -8,9 +8,10 @@
 // each primitive GPU draw they produce becomes a mesh here, with the ROM's own vertices, index strips,
 // shader program (primshader.js), constant buffers, textures and blend / depth / rasterizer state.
 //
-// WHAT IS NOT DRAWN YET, stated: Model particles. The runtime runs them and modeldraw.js computes their
-// draws (host.drawFrame().models), but their shading is the effect model's own material technique,
-// which is not translated -- so they are counted, not rendered.
+// MODEL PARTICLES are drawn with the effect model's own material program (TMaterialStd, translated the
+// same way: modelshader.js, whose header lists what the viewer supplies that the ROM's build did) under
+// the engine's model draw (modeldraw.js: world matrix, CBMaterial, fPrimColor, global transparency,
+// blend by the generator's mode, depth by its flags).
 //
 // UNITS: the viewer's world is game units / 100 (build-hitzones.py), and a monster's skeleton is posed in
 // viewer units: a bone's world matrix with its translation scaled by 100 is the joint's matrix in the
@@ -23,7 +24,8 @@
 import * as THREE from 'three';
 import { EffectHost } from './host.js';
 import { linkPrimitive, cbUniforms, FORMATS } from './primshader.js';
-import { loadJson, getTexture } from '../../assets.js';
+import { linkMaterial } from './modelshader.js';
+import { loadJson, getTexture, loadGlb } from '../../assets.js';
 import { gidBonesOf } from '../../skeleton.js';
 
 const MT_TO_VIEW = 0.01;
@@ -39,11 +41,11 @@ function pages(b){
 }
 async function loadShared(){
   if (shared) return shared;
-  const [rom, records, drawSystem, shaders, romPages] = await Promise.all([
+  const [rom, records, drawSystem, shaders, modelShaders, romPages] = await Promise.all([
     loadJson('effects/rom.json'), loadJson('effects/mfx-records.json'), loadJson('effects/draw-system.json'),
-    loadJson('effects/prim-shaders.json'), bytes('effects/rom-pages.bin')]);
+    loadJson('effects/prim-shaders.json'), loadJson('effects/model-shaders.json'), bytes('effects/rom-pages.bin')]);
   shared = { rom, records: records.records, drawSystem: Uint8Array.from(drawSystem.bytes.match(/../g), h => parseInt(h, 16)),
-             shaders, romPages: pages(romPages) };
+             shaders, modelShaders, romPages: pages(romPages) };
   return shared;
 }
 
@@ -99,6 +101,8 @@ export class LiveEffects {
     this.group = new THREE.Group();
     this.group.name = 'live-effects';
     this.meshes = [];
+    this.modelMeshes = [];
+    this.glbs = new Map();
     this.programs = new Map();
     this.textures = new Map();
     this.last = null;
@@ -116,6 +120,8 @@ export class LiveEffects {
       if (r.mesh) files[r.mesh] = await bytes('effects/' + r.mesh);
     }
     this.shaders = s.shaders;
+    this.modelShaders = s.modelShaders;
+    this.files = files;
     const host = this.host = new EffectHost({
       pages: s.romPages, heap: s.rom.heap, records: s.records, drawSystem: s.drawSystem, strict: true,
       resources: {
@@ -178,6 +184,7 @@ export class LiveEffects {
       this.failed = String(e && e.message || e);
       this.stats.failed = this.failed;
       for (const mesh of this.meshes) mesh.visible = false;
+      for (const mesh of this.modelMeshes) mesh.visible = false;
       console.warn('live effects stopped: ' + this.failed);
     }
   }
@@ -199,7 +206,130 @@ export class LiveEffects {
     this.host.setCamera({ position: cam.position.toArray(), view: Array.from(cam.view.elements), world: Array.from(cam.viewI.elements) });
     const { prims, models } = this.host.drawFrame(this.effects.map(e => e.owner));
     this.stats.frames++; this.stats.prims = prims.length; this.stats.models = models.length;
+    this.syncModels(models, renderer, cam);
     this.sync(prims, renderer, cam);
+  }
+
+  // ---- Model particles -----------------------------------------------------------------------------
+  // The effect model's mesh (docs/models/effects/<model>.glb: node Group[k] is the .mod's mesh k, its
+  // positions in game units under the node's 0.01) drawn with the program modelshader.js links for the
+  // material's selection under the model draw's, and modeldraw.js's constant buffers and states.
+  glb(model){
+    let g = this.glbs.get(model);
+    if (!g){
+      g = { scene: null };
+      loadGlb('models/effects/' + model + '.glb', 'effect:' + model).then(gltf => { g.scene = gltf.scene; }).catch(() => { g.failed = true; });
+      this.glbs.set(model, g);
+    }
+    return g.scene;
+  }
+
+  layoutOf(model, meshIndex){
+    const r = this.def.resources[model];
+    const table = this.files[r.mesh];
+    const ia = table[48 * meshIndex + 0x14];                     // mesh +0x14: (hash24 << 8) | layout record
+    const shaders = this.modelShaders;
+    return Object.keys(shaders.layouts).find(n => shaders.layouts[n].index === ia);
+  }
+
+  standIns(){
+    if (this.black) return;
+    this.black = new THREE.DataTexture(new Uint8Array([0, 0, 0, 255]), 1, 1); this.black.needsUpdate = true;
+    const face = () => { const c = document.createElement('canvas'); c.width = c.height = 1; const g = c.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, 1, 1); return c; };
+    this.blackCube = new THREE.CubeTexture([face(), face(), face(), face(), face(), face()]);
+    this.blackCube.needsUpdate = true;
+    // the engine's default environment cube, as the monster materials sample it (render/monster.js)
+    this.envCube = new THREE.CubeTextureLoader().setPath('env/DefaultCube_CM/').load(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png']);
+    this.envCube.colorSpace = THREE.SRGBColorSpace;
+  }
+
+  syncModels(models, renderer, cam){
+    this.standIns();
+    const shaders = this.modelShaders;
+    const common = this.commonUniforms(renderer, cam);
+    let k = 0;
+    for (const d of models){
+      const short = String(d.model).split('\\').pop();
+      const scene = this.glb(short);
+      if (!scene) continue;
+      const node = scene.getObjectByName('Group' + d.meshIndex);
+      const src = node && (node.isMesh ? node : node.children.find(c => c.isMesh));
+      if (!src) continue;
+      const res = this.def.resources[d.model];
+      const material = res.materials[d.material];
+      const features = Object.assign({}, material.features, d.features);
+      const layout = this.layoutOf(d.model, d.meshIndex);
+      const attrs = Object.keys(src.geometry.attributes);
+      const key = 'model|' + layout + '|' + attrs.join(',') + '|' + Object.keys(features).sort().map(f => features[f]).join(',');
+      let p = this.programs.get(key);
+      if (!p){ p = linkMaterial(shaders, layout, features, attrs); this.programs.set(key, p); }
+      let mesh = this.modelMeshes[k];
+      if (!mesh){
+        mesh = new THREE.Mesh(src.geometry, null);
+        mesh.frustumCulled = false;
+        this.modelMeshes[k] = mesh;
+        this.group.add(mesh);
+      }
+      mesh.geometry = src.geometry;
+      if (!mesh.material || mesh.userData.programKey !== p){
+        mesh.material = new THREE.RawShaderMaterial({ glslVersion: THREE.GLSL3, vertexShader: p.vertexShader, fragmentShader: p.fragmentShader, uniforms: {} });
+        mesh.userData.programKey = p;
+      }
+      const u = mesh.material.uniforms;
+      for (const [name, value] of Object.entries(common)) u[name] = { value };
+      // CBWorld: the three stored rows of the particle's matrix (modeldraw's `world`)
+      for (let r = 0; r < 3; r++) u['CBWorld_fWorld_r' + r] = { value: new THREE.Vector4(...d.world.slice(4 * r, 4 * r + 4)) };
+      const put = (id, members, floats) => {
+        for (const [name, type, offset, count] of members){
+          const v = floats.slice(offset, offset + count);
+          const mm = /^mat(\d)x(\d)$/.exec(type);
+          if (mm) for (let r = 0; r < +mm[1]; r++) u[id + '_' + name + '_r' + r] = { value: new THREE.Vector4(...v.slice(r * 4, r * 4 + 4)) };
+          else if (type === 'float') u[id + '_' + name] = { value: v[0] };
+          else if (type === 'vec2') u[id + '_' + name] = { value: new THREE.Vector2(...v) };
+          else if (type === 'vec3') u[id + '_' + name] = { value: new THREE.Vector3(...v) };
+          else if (type === 'vec4') u[id + '_' + name] = { value: new THREE.Vector4(...v) };
+          else if (type === 'mat4') u[id + '_' + name] = { value: new THREE.Matrix4().fromArray(v) };
+        }
+      };
+      put('CBMaterial', shaders.cbs.CBMaterial, Array.from(d.cbMaterial));
+      put('Globals', shaders.cbs.$Globals, material.cbs.$Globals || []);
+      u.CBROPTest_fGlobalTransparency = { value: d.globalTransparency };
+      u.CBPrimEflEmu_fPrimColor = { value: new THREE.Vector4(...(d.primColor || [1, 1, 1, 1])) };
+      u.CBAmbient_fEnvMapMask = { value: 0 };                 // scene ambient: not bound (see the header)
+      const tex = material.textures || {};
+      u.tAlbedoMap = { value: tex.tAlbedoMap ? this.fileTexture(tex.tAlbedoMap) : this.black };
+      u.tSpecularMap = { value: tex.tSpecularMap ? this.fileTexture(tex.tSpecularMap) : this.black };
+      u.tDepthMap = { value: this.farDepth };
+      u.tGlobalEnvMap = { value: this.envCube };
+      u.tSpotLightTextures = { value: this.black };
+      u.tPointLightTextures = { value: this.blackCube };
+      applyState(mesh.material, shaders, d.blend, d.depth, material.state[2]);
+      mesh.renderOrder = 900 + k;
+      mesh.visible = !!u.tAlbedoMap.value;
+      k++;
+    }
+    for (let i = k; i < this.modelMeshes.length; i++) this.modelMeshes[i].visible = false;
+  }
+
+  fileTexture(file){
+    let t = this.textures.get(file);
+    if (!t){ t = { value: null }; getTexture(file).then(tex => { t.value = tex; }); this.textures.set(file, t); }
+    return t.value;
+  }
+
+  commonUniforms(renderer, cam){
+    const { view, proj, viewProj, viewI } = cam;
+    const size = renderer.getDrawingBufferSize(new THREE.Vector2());
+    if (!this.farDepth){
+      this.farDepth = new THREE.DataTexture(new Float32Array([1, 1, 1, 1]), 1, 1, THREE.RGBAFormat, THREE.FloatType);
+      this.farDepth.needsUpdate = true;
+    }
+    return {
+      CBViewProjection_fViewProj: viewProj, CBViewProjection_fView: view, CBViewProjection_fViewI: viewI,
+      CBViewProjection_fProj: proj, CBViewProjection_fProjI: proj.clone().invert(), CBViewProjection_fViewProjI: viewProj.clone().invert(),
+      CBViewProjection_fCameraPos: cam.position,
+      CBScreen_fScreenSize: new THREE.Vector2(size.x, size.y), CBScreen_fScreenInverseSize: new THREE.Vector2(1 / size.x, 1 / size.y),
+    };
   }
 
   cameraMatrices(camera){
@@ -231,18 +361,7 @@ export class LiveEffects {
   }
 
   sync(prims, renderer, cam){
-    const { view, proj, viewProj, viewI } = cam, camPos = cam.position;
-    const size = renderer.getDrawingBufferSize(new THREE.Vector2());
-    const common = {
-      CBViewProjection_fViewProj: viewProj, CBViewProjection_fView: view, CBViewProjection_fViewI: viewI,
-      CBViewProjection_fProj: proj, CBViewProjection_fProjI: proj.clone().invert(), CBViewProjection_fViewProjI: viewProj.clone().invert(),
-      CBViewProjection_fCameraPos: camPos,
-      CBScreen_fScreenSize: new THREE.Vector2(size.x, size.y), CBScreen_fScreenInverseSize: new THREE.Vector2(1 / size.x, 1 / size.y),
-    };
-    if (!this.farDepth){
-      this.farDepth = new THREE.DataTexture(new Float32Array([1, 1, 1, 1]), 1, 1, THREE.RGBAFormat, THREE.FloatType);
-      this.farDepth.needsUpdate = true;
-    }
+    const common = this.commonUniforms(renderer, cam);
     for (let k = 0; k < prims.length; k++){
       const d = prims[k];
       const p = this.program(d.inputLayout, d.features);
@@ -291,6 +410,8 @@ export class LiveEffects {
   detach(){
     if (this.group.parent) this.group.parent.remove(this.group);
     for (const mesh of this.meshes){ mesh.geometry.dispose(); if (mesh.material) mesh.material.dispose(); }
+    for (const mesh of this.modelMeshes) if (mesh.material) mesh.material.dispose();   // the geometry is the glb's
     this.meshes.length = 0;
+    this.modelMeshes.length = 0;
   }
 }
