@@ -3816,3 +3816,35 @@ warning naming the address, rather than drawing something invented.
 
 Found on the way, and board-worthy for the MONSTER shaders too (chunk5-shaders Part 18): MFX operator
 129 is `*=` and 131 is `+=`, not stores, and the six comparison operators were inverted in the notes.
+
+#### 2026-09-13 (later) - the rage aura as the game starts it, runs it, and composites it
+
+> Raven: "Focus on the effects that are related to the enrage state for now." ... "What about the Bright
+> Red aura we have currently? Was that a mistake?" ... "Ensure the bright red aura is accurate"
+
+**The aura is not a mistake; it is two effects.** Savage's rage controller (`0xe80500`, run while the
+variant byte is 5) starts `em043_05_000` twice from his own effect list: key 30 on joint 103 (rows
+0-3) whenever he is enraged, and key 31 on joint 3 (rows 4-5) while neither `0x81bb0` test holds. They
+now run the way the game runs a request -- the effect core, the uMHProofEffect it makes, the unit
+passes -- every routine lifted and byte-identical to the emulator; the effect's scale follows his size.
+The generic rage puff is off for Savage (`0xe72b18`). Notes: `effects-firing.md` sections 3 and 4.
+
+**What the viewer had wrong, all read from the ROM and fixed (commit 7b1914e):**
+
+* **The trails and sprites never drew.** Only the model pieces were ever on screen. Two causes: each
+  primitive draw carried the harness's camera block (an empty view-projection) over the viewer's camera,
+  and its vertices were written in a render hook after three.js had uploaded that render's buffers.
+* **An sRGB encode the game does not do.** MHGU's colour targets are RGBA8 UNORM (sRender's
+  mSRGBEnable is 0: the game builds sRender with flags 0x133f). Every effect colour was being encoded
+  on the way out, so a dark red 0.08 showed as 0.31 and the saturation washed out.
+* **A texture decode the game does not do.** The effect textures are format 7, plain RGBA8. The two
+  model textures were also lossy (RGB off by up to 9/255) and are re-staged lossless.
+* **The soft edges were off.** Both effect programs fade a draw near the surface behind it, reading the
+  scene's depth-stencil buffer (bound at `0xbab65c` / `0xc8f7e0`). The viewer now renders the scene's
+  depth each frame and binds it, and its projection keeps clip w in game units, which the programs'
+  depth-to-distance formula needs (checked against raycasts on the body: within a pixel's depth).
+
+**Still not read, stated:** what the compiled model program uses for the vertex alpha its mesh format
+lacks (1 here), dynamic scene lights and post passes, the order the command list walks model draws
+against primitive batches, the rage-end fade, and what `0x81bb0`'s states are in play (the viewer shows
+both halves). Notes: `effects-draw.md`, "Compositing".
