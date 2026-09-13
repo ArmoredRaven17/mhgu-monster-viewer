@@ -3607,46 +3607,43 @@
  },
  "em081_04": {
   "reviewed": "2026-09-11",
-  "note": "Reviewed by Raven: seven rows, Astalos' entry carried across onto a FOUR-rung axis. He called it before the data was opened -- 'Boltreaver is similar with an added charge state' -- and he called the trouble too: 'I believe there is a part or two that may not cleanly update.' **HE IS RIGHT ON BOTH COUNTS AND IT IS EXACTLY TWO ROWS.** The part ids and the cluster shapes are Astalos' to the number, and the ROM appends a fourth tier as a block of extra groups (g33-g42) that draw the tikuden AND taiden layers AT ONCE rather than one replacing the other. Five rows take it cleanly: the tail is a full 4x2 (g41 intact, g42 broken, g42 being the exact union 29 + 38,58 + 48,59), and both wings are four intact forms against ONE broken form, because **part 26 and part 27 repeat unchanged at every rung** -- four identical groups each, folded by the panel into one option. **PARTS 56 AND 57 ARE GONE FROM THIS MONSTER ENTIRELY**, not merely meshless as they are on Astalos: they are absent from the cluster and absent from the table, and nothing else in Boltreaver's table lacks geometry. That retroactively confirms they were vestigial on the base monster rather than something the viewer was failing to load. **THE TWO THAT DO NOT FIT:** (1) the HEAD's broken side has FIVE groups for four rungs. Broken tier 2 is 20,30,50 and tier 3 is 20,40,51, so the union would be 20,30,40,50,51 -- and NEITHER candidate is it. g34 is 20,50,51 (the two tier-specific meshes, neither shared one) and g44 is 20,30,40,50 (both shared, one specific, missing 51). g34 is taken as rung 4 **on POSITION, which is the stronger argument**: the appended block runs row by row, each contributing its tier-4 intact then its tier-4 broken, and g34 sits immediately after g33 exactly where the tail's g41/g42 pair and both wings' pairs sit. g44 is tacked on AFTER the whole block, after even the eye duplicate g43, which is the signature of a late addition rather than a ladder rung. It is named 'Broken, Mixed Charge' and left visible at every rung. (2) the WING MEMBRANE has five groups and no break axis at all. g35 (3,32,42,45) is taken as rung 4 over g36 (3,4,32,42,45) for a geometric reason as well as position: **part 42 is XfBAN__E1_wing_taiden + wingbone_taiden -- it CONTAINS the wingbone -- so g36, which draws 4 and 42 together, double-draws the wingbone where g35 does not.** g36 is named 'All Layers' and left visible. Both are guesses in the sense that the ROM authored two groups where a ladder wants one; both alternates are one key-swap away and NEITHER is hidden, because this is precisely the kind of call the render has to settle. **THE FOURTH RUNG'S NAME IS MINE, NOT RAVEN'S.** He named three -- 'U = Uncharged, C = Charging, F = Fully Charged' -- and has not named a fourth; 'Overcharged' is a placeholder chosen because the tier draws both charge layers simultaneously, and it should be replaced with whatever he calls it on the render. **MATERIALS: Boltreaver SPLITS the taiden family three ways where Astalos had one flat XfBA2_taiden** -- taiden_head on 40, 41, 51, taiden_crow on 45, 46, 47 and taiden_tale on 48, 49. 'tale' is tail and 'crow' is almost certainly claw (kuro-), matching where those parts sit, **but that is a reading of a name and is recorded as one.** One part disagrees with its own row: **part 59 lives in the TAIL cluster and carries XfBA2_taiden_head**, where its siblings 48 and 49 carry taiden_tale. On Astalos 59 was plain XfBA2_taiden along with everything else, so the mismatch appears only once the family is split. It may be nothing -- a small part legitimately sampling the head atlas -- and it is flagged rather than judged. Sides re-measured on this model rather than assumed: midline x14719 off the symmetric eye parts, left row means x24720 and right x4202, left higher x as everywhere else. The eye default is Open for the same ROM-sourced reason as Astalos: part-rest's defaultSet is 2 = g2 = part 2. The eyes are a two-step axis written out across four rungs as 2|2|52|52. **THE TWO CONTROLS ARE RENAMED AND THE LADDER'S ZERO RUNG IS GONE, at Raven's word:** 'Update Rage to Charge, Update Charge to Charge State, For Boltreaver' and 'Remove the No Rage option'. This monster shows TWO state controls and neither was named right. rageLadder() finds a ladder wherever a material carries level-tokened clips and calls it Rage because that is what a ladder usually is -- but Boltreaver's rungs come out **GREEN and CYAN**, which are its charge colours and not a temper, so that control is the Charge and the part-level axis built for Astalos is the Charge State. Removing the zero rung says the monster is never uncoloured, the same call he made on Najarala's enrage layer; it is written `\"0\": null` because the map already keys rungs by index, so dropping one is the same gesture as renaming it, and it leaves state.rage permanently true here. **THE RUNG NAMES Green AND Cyan ARE THE ROM'S OWN**, read off the clip names by rageLadder() and not typed by anyone -- unlike every other name in this entry. The WING MEMBRANE row is hidden at his word as Astalos' is. **NOTE THAT HIDING IT TAKES 'All Layers' WITH IT:** on Astalos that row held one item, here it held two, and g36 -- the off-ladder group that double-draws the wingbone -- is now unreachable. Deleting the one `hidden` key brings both back, and the g35-against-g36 question is still open.",
+  "note": "Reviewed by Raven: seven rows, Astalos' entry carried across onto a FOUR-rung axis. He called it before the data was opened -- 'Boltreaver is similar with an added charge state' -- and he called the trouble too: 'I believe there is a part or two that may not cleanly update.' **HE IS RIGHT ON BOTH COUNTS AND IT IS EXACTLY TWO ROWS.** The part ids and the cluster shapes are Astalos' to the number, and the ROM appends a fourth tier as a block of extra groups (g33-g42) that draw the tikuden AND taiden layers AT ONCE rather than one replacing the other. Five rows take it cleanly: the tail is a full 4x2 (g41 intact, g42 broken, g42 being the exact union 29 + 38,58 + 48,59), and both wings are four intact forms against ONE broken form, because **part 26 and part 27 repeat unchanged at every rung** -- four identical groups each, folded by the panel into one option. **PARTS 56 AND 57 ARE GONE FROM THIS MONSTER ENTIRELY**, not merely meshless as they are on Astalos: they are absent from the cluster and absent from the table, and nothing else in Boltreaver's table lacks geometry. That retroactively confirms they were vestigial on the base monster rather than something the viewer was failing to load. **THE TWO THAT DO NOT FIT:** (1) the HEAD's broken side has FIVE groups for four rungs. Broken tier 2 is 20,30,50 and tier 3 is 20,40,51, so the union would be 20,30,40,50,51 -- and NEITHER candidate is it. g34 is 20,50,51 (the two tier-specific meshes, neither shared one) and g44 is 20,30,40,50 (both shared, one specific, missing 51). g34 is taken as rung 4 **on POSITION, which is the stronger argument**: the appended block runs row by row, each contributing its tier-4 intact then its tier-4 broken, and g34 sits immediately after g33 exactly where the tail's g41/g42 pair and both wings' pairs sit. g44 is tacked on AFTER the whole block, after even the eye duplicate g43, which is the signature of a late addition rather than a ladder rung. It is named 'Broken, Mixed Charge' and left visible at every rung. (2) the WING MEMBRANE has five groups and no break axis at all. g35 (3,32,42,45) is taken as rung 4 over g36 (3,4,32,42,45) for a geometric reason as well as position: **part 42 is XfBAN__E1_wing_taiden + wingbone_taiden -- it CONTAINS the wingbone -- so g36, which draws 4 and 42 together, double-draws the wingbone where g35 does not.** g36 is named 'All Layers' and left visible. Both are guesses in the sense that the ROM authored two groups where a ladder wants one; both alternates are one key-swap away and NEITHER is hidden, because this is precisely the kind of call the render has to settle. **THE FOURTH RUNG'S NAME IS MINE, NOT RAVEN'S.** He named three -- 'U = Uncharged, C = Charging, F = Fully Charged' -- and has not named a fourth; 'Overcharged' is a placeholder chosen because the tier draws both charge layers simultaneously, and it should be replaced with whatever he calls it on the render. **MATERIALS: Boltreaver SPLITS the taiden family three ways where Astalos had one flat XfBA2_taiden** -- taiden_head on 40, 41, 51, taiden_crow on 45, 46, 47 and taiden_tale on 48, 49. 'tale' is tail and 'crow' is almost certainly claw (kuro-), matching where those parts sit, **but that is a reading of a name and is recorded as one.** One part disagrees with its own row: **part 59 lives in the TAIL cluster and carries XfBA2_taiden_head**, where its siblings 48 and 49 carry taiden_tale. On Astalos 59 was plain XfBA2_taiden along with everything else, so the mismatch appears only once the family is split. It may be nothing -- a small part legitimately sampling the head atlas -- and it is flagged rather than judged. Sides re-measured on this model rather than assumed: midline x14719 off the symmetric eye parts, left row means x24720 and right x4202, left higher x as everywhere else. The eye default is Open for the same ROM-sourced reason as Astalos: part-rest's defaultSet is 2 = g2 = part 2. The eyes are a two-step axis written out across four rungs as 2|2|52|52. **THE TWO CONTROLS ARE RENAMED AND THE LADDER'S ZERO RUNG IS GONE, at Raven's word:** 'Update Rage to Charge, Update Charge to Charge State, For Boltreaver' and 'Remove the No Rage option'. This monster shows TWO state controls and neither was named right. rageLadder() finds a ladder wherever a material carries level-tokened clips and calls it Rage because that is what a ladder usually is -- but Boltreaver's rungs come out **GREEN and CYAN**, which are its charge colours and not a temper, so that control is the Charge and the part-level axis built for Astalos is the Charge State. Removing the zero rung says the monster is never uncoloured, the same call he made on Najarala's enrage layer; it is written `\"0\": null` because the map already keys rungs by index, so dropping one is the same gesture as renaming it, and it leaves state.rage permanently true here. **THE RUNG NAMES Green AND Cyan ARE THE ROM'S OWN**, read off the clip names by rageLadder() and not typed by anyone -- unlike every other name in this entry. The WING MEMBRANE row is hidden at his word as Astalos' is. **NOTE THAT HIDING IT TAKES 'All Layers' WITH IT:** on Astalos that row held one item, here it held two, and g36 -- the off-ladder group that double-draws the wingbone -- is now unreachable. Deleting the one `hidden` key brings both back, and the g35-against-g36 question is still open. **FIVE CHARGE STATES, 2026-09-13.** Raven: 'Uncharged -> Charging -> Charged -> Overcharging -> Overcharged', then 'Go ahead and use that five-state schema for Boltreaver'. Read from the part driver 0x10190a0 (variant gate 0x1018da0): each region switches its parts AND its colour on one charge byte, cases 0..4. 0 Uncharged and 1 Charging clear the clips; 2 Charged draws g7/8, g13, g18/19, g24/25, g30/31 in clip 0, green; 3 Overcharging draws the mixed-layer block g33/34, g35, g37..g40, g41/42, also green; 4 Overcharged draws case 2's parts again in clip 1, cyan. So the old fourth rung 'Overcharged' was case 3 and is now Overcharging, 'Fully Charged' is Charged, every level key gains a fifth half equal to its Charged half, and the separate Charge dropdown -- the `rage` map that named the clips Green and Cyan -- is removed: the rung picks the clip (ROM_CLIP_LADDER.byLevel in render/monster.js). NO CALL IN THE CLASS SETS g32/g43 (part 52, the eye glow the Eyes row shows from Charged up), g36 (All Layers) or g44 (Broken, Mixed Charge); all three are kept as they were.",
   "levels": {
    "name": "Charge State",
    "rungs": [
     "Uncharged",
     "Charging",
-    "Fully Charged",
+    "Charged",
+    "Overcharging",
     "Overcharged"
    ]
-  },
-  "rage": {
-   "name": "Charge",
-   "0": null
   },
   "rows": {
    "1,2,52": {
     "name": "Eyes",
     "state": "level",
-    "default": "2|2|52|52",
+    "default": "2|2|52|52|52",
     "order": [
      "1",
-     "2|2|52|52"
+     "2|2|52|52|52"
     ],
     "options": {
      "1": "Closed",
-     "2|2|52|52": "Open"
+     "2|2|52|52|52": "Open"
     }
    },
    "10,20,30,31,40,41,50,51,101": {
     "name": "Head",
     "state": "level",
-    "default": "10,101|10,30,31,101|10,40,41,101|10,30,31,40,41",
+    "default": "10,101|10,30,31,101|10,40,41,101|10,30,31,40,41|10,40,41,101",
     "order": [
-     "10,101|10,30,31,101|10,40,41,101|10,30,31,40,41",
-     "20|20,30,50|20,40,51|20,50,51",
+     "10,101|10,30,31,101|10,40,41,101|10,30,31,40,41|10,40,41,101",
+     "20|20,30,50|20,40,51|20,50,51|20,40,51",
      "20,30,40,50"
     ],
     "options": {
-     "10,101|10,30,31,101|10,40,41,101|10,30,31,40,41": "Intact",
-     "20|20,30,50|20,40,51|20,50,51": "Broken",
+     "10,101|10,30,31,101|10,40,41,101|10,30,31,40,41|10,40,41,101": "Intact",
+     "20|20,30,50|20,40,51|20,50,51|20,40,51": "Broken",
      "20,30,40,50": "Broken, Mixed Charge"
     }
    },
@@ -3662,53 +3659,53 @@
     "name": "Wing Membrane",
     "state": "level",
     "hidden": true,
-    "default": "3,4|3,4,32|42,45|3,32,42,45",
+    "default": "3,4|3,4,32|42,45|3,32,42,45|42,45",
     "order": [
-     "3,4|3,4,32|42,45|3,32,42,45",
+     "3,4|3,4,32|42,45|3,32,42,45|42,45",
      "3,4,32,42,45"
     ],
     "options": {
-     "3,4|3,4,32|42,45|3,32,42,45": "Intact",
+     "3,4|3,4,32|42,45|3,32,42,45|42,45": "Intact",
      "3,4,32,42,45": "All Layers"
     }
    },
    "13,16,26,33,43,46,106": {
     "name": "Left Wing",
     "state": "level",
-    "default": "13,16,106|13,16,33,106|16,43,46,106|13,16,33,43,46",
+    "default": "13,16,106|13,16,33,106|16,43,46,106|13,16,33,43,46|16,43,46,106",
     "order": [
-     "13,16,106|13,16,33,106|16,43,46,106|13,16,33,43,46",
+     "13,16,106|13,16,33,106|16,43,46,106|13,16,33,43,46|16,43,46,106",
      "26"
     ],
     "options": {
-     "13,16,106|13,16,33,106|16,43,46,106|13,16,33,43,46": "Intact",
+     "13,16,106|13,16,33,106|16,43,46,106|13,16,33,43,46|16,43,46,106": "Intact",
      "26": "Broken"
     }
    },
    "14,17,27,34,44,47,107": {
     "name": "Right Wing",
     "state": "level",
-    "default": "14,17,107|14,17,34,107|17,44,47,107|14,17,34,44,47",
+    "default": "14,17,107|14,17,34,107|17,44,47,107|14,17,34,44,47|17,44,47,107",
     "order": [
-     "14,17,107|14,17,34,107|17,44,47,107|14,17,34,44,47",
+     "14,17,107|14,17,34,107|17,44,47,107|14,17,34,44,47|17,44,47,107",
      "27"
     ],
     "options": {
-     "14,17,107|14,17,34,107|17,44,47,107|14,17,34,44,47": "Intact",
+     "14,17,107|14,17,34,107|17,44,47,107|14,17,34,44,47|17,44,47,107": "Intact",
      "27": "Broken"
     }
    },
    "19,29,38,39,48,49,58,59,109": {
     "name": "Tail",
     "state": "level",
-    "default": "19,109|19,38,39,109|19,48,49,109|19,38,39,48,49",
+    "default": "19,109|19,38,39,109|19,48,49,109|19,38,39,48,49|19,48,49,109",
     "order": [
-     "19,109|19,38,39,109|19,48,49,109|19,38,39,48,49",
-     "29|29,38,58|29,48,59|29,38,48,58,59"
+     "19,109|19,38,39,109|19,48,49,109|19,38,39,48,49|19,48,49,109",
+     "29|29,38,58|29,48,59|29,38,48,58,59|29,48,59"
     ],
     "options": {
-     "19,109|19,38,39,109|19,48,49,109|19,38,39,48,49": "Intact",
-     "29|29,38,58|29,48,59|29,38,48,58,59": "Broken"
+     "19,109|19,38,39,109|19,48,49,109|19,38,39,48,49|19,48,49,109": "Intact",
+     "29|29,38,58|29,48,59|29,38,48,58,59|29,48,59": "Broken"
     }
    }
   }

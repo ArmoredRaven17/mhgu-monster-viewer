@@ -1600,19 +1600,36 @@ function levelsOf(name){
 //     case 2, 3   clip 0            green  -- the two cases differ only in which parts light
 //     case 4      clip 1            cyan
 //
-// Three stages, so rung 0 (No Rage) is the ROM's clearAllSlots: no clip selected, the material's
-// own authored values, which is what Boltreaver shows today. Cases 2 and 3 collapse into one rung
-// because they are the same colour and differ only in part visibility, which this table does not
-// touch -- the parts half of the charge states is a separate, unmade change.
+// THE CHARGE STATE IS THAT BYTE, SO THE COLOUR RIDES THE CHARGE STATE. Read in full 2026-09-13
+// (Boltreaver's driver is 0x10190a0, entered from the variant gate at 0x1018da0): each of the three
+// regions (+0xcb01 head, +0xcb02 wings, +0xcb03 tail) switches its part sets AND its clip on the same
+// case --
 //
-// THE LABELS ARE THE DATA, not an invented game term: each rung is named for the colour its clip
-// writes. part-review.json's `rage` map renames them if different words are wanted.
+//     case 0   Uncharged      sets 3/4, 11, 14/15 20/21, 26/27    clearAllSlots
+//     case 1   Charging       sets 5/6, 12, 16/17 22/23, 28/29    clearAllSlots
+//     case 2   Charged        sets 7/8, 13, 18/19 24/25, 30/31    clip 0  green
+//     case 3   Overcharging   sets 33/34, 35, 37/38 39/40, 41/42  clip 0  green
+//     case 4   Overcharged    sets 7/8, 13, 18/19 24/25, 30/31    clip 1  cyan   (case 2's parts)
+//
+// the mats being cached at spawn by MRL id (0x1011460, variant 4 only): 30 taiden_head, 33 taiden_crow,
+// 36 E1_wing_taiden, 32 taiden_tale. Raven, 2026-09-13: "Uncharged -> Charging -> Charged ->
+// Overcharging -> Overcharged", then "Go ahead and use that five-state schema for Boltreaver" -- so
+// the separate Green/Cyan dropdown is gone and part-review.json's `levels` carries those five rungs,
+// rung N being case N. `byLevel` is the clip per rung; '#none' is clearAllSlots, the material's own
+// authored values.
 export const ROM_CLIP_LADDER = {
   em081_04: {                                    // Boltreaver Astalos
     mats: ['XfBA2_taiden_head', 'XfBA2_taiden_crow', 'XfBA2_taiden_tale', 'XfBAN__E1_wing_taiden'],
-    rungs: [{ label: 'Green', clip: '#0' }, { label: 'Cyan', clip: '#1' }],
+    byLevel: ['#none', '#none', '#0', '#0', '#1'],
   },
 };
+// The clip a monster's LEVEL rung names, or undefined where no table says (the caller then falls back
+// to the Rage ladder). A rung past the table's end takes its last entry.
+export function levelClipFor(monId, level){
+  const t = monId && ROM_CLIP_LADDER[monId];
+  if (!t || !Array.isArray(t.byLevel) || !t.byLevel.length) return undefined;
+  return t.byLevel[Math.max(0, Math.min(t.byLevel.length - 1, level | 0))];
+}
 // `#N` as a rung's clip means "the clip at INDEX N" -- the way the ROM addresses these. The clip
 // array here is the material's `rom.anim`, which build-matanim.py fills in .mrl file order, so N
 // is the same N the ROM passes to setMatClip.
@@ -1644,7 +1661,8 @@ export function rageLadder(root){
   // when the names yielded nothing, so a name-derived ladder can never be displaced by the table.
   const monId = root && root.userData && root.userData.monId;
   const tbl = (monId && ROM_CLIP_LADDER[monId]) || null;
-  if (tbl && !out.length)
+  // a table keyed by the LEVEL axis is not a Rage ladder, and offers no rungs here
+  if (tbl && Array.isArray(tbl.rungs) && !out.length)
     return tbl.rungs.map((r, i) => ({ rank: i, label: r.label, clip: r.clip }));
   return out;
 }
@@ -1712,6 +1730,12 @@ function clipPicker(state, monId, tState, prev, levelClip){
     // one by name. Materials that do not carry it fall through and behave as the state says, which
     // is what keeps the rest of the monster in step with the level.
     if (ci < 0 && levelClip){
+      // '#none' is the ROM's clearAllSlots (0xb09a3c) on the table's materials: nothing plays and the
+      // material shows its own authored values. Returned outright, because the fallbacks below would
+      // otherwise hand these materials their first looping clip -- green at Uncharged.
+      if (levelClip === '#none'){
+        if (ladderIndexMat(monId, rom.name)) return -1;
+      }
       const byIdx = INDEX_CLIP.exec(levelClip);
       if (byIdx){
         // ROM_CLIP_LADDER: the rung names a clip INDEX. Applied ONLY to the materials that table

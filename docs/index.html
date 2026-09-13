@@ -1084,7 +1084,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS,
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts,
-         ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels,
+         ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels, levelClipFor,
          monsterMats,
          enableRomAmbient, enableRomSpecular, enableRomPhong,
          setSHAmount, setRomSpecularAmount, anchorMisses } from './render/monster.js';
@@ -3807,6 +3807,10 @@ function applyRage(){
 function matState(){ return state.charged ? 'charged' : (state.rage ? 'enraged' : 'calm'); }
 // The clip the chosen rung names, or null for No Rage / a monster with no ladder.
 function levelClip(){
+  // A LEVEL AXIS THE ROM COLOURS BY ITS OWN CASE comes first: Boltreaver's Charge State rung is the
+  // charge byte its part driver switches on, and the same case picks the clip (ROM_CLIP_LADDER).
+  const byLevel = levelClipFor(state.id, state.level);
+  if (byLevel !== undefined) return byLevel;
   const i = (state.rageLevel | 0) - 1;
   return (i >= 0 && ladder[i]) ? ladder[i].clip : null;
 }
@@ -4028,8 +4032,9 @@ document.getElementById('monRageLevel').onchange = e => {
   applyRage(); saveState();
 };
 // The level axis changes which HALF of a "a|b|c" key each row is using, so the rows have to be
-// rebuilt -- exactly as the Charged and Heated checkboxes do. It touches no material and no ROM
-// state, so unlike the rage controls there is nothing else to re-apply.
+// rebuilt -- exactly as the Charged and Heated checkboxes do. Where a rung also picks a clip
+// (levelClip, Boltreaver's charge colours) the render loop reads it every frame, so there is nothing
+// else to re-apply.
 document.getElementById('monLevel').onchange = e => {
   state.level = +e.target.value | 0;
   buildGroups(); applyPartState(); saveState();
