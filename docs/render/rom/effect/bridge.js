@@ -19,6 +19,7 @@ import * as spawn from './spawn.js';
 import * as billboard from './billboard.js';
 import * as polyline from './polyline.js';
 import { internals as C } from './construct.js';
+import * as owner from './owner.js';
 
 export function liftedCall(m, address, args = [], stack = [], singles = []){
   const sc = new Scratch(m);
@@ -103,3 +104,48 @@ export const PARENT_GETDTI = 0x7e001000;
 let parentClass = 0x184a218;
 export function setParentClass(dti){ parentClass = dti >>> 0; }
 native(PARENT_GETDTI, () => parentClass, [], 'r0');
+
+// ---- a monster's effect request, whole (proof.js ProofRequest; efx/proofunit.py) -------------------------
+// uMHProofEffect's move (0x327188) ends in uEffect's own move, and its owner matrix (vtable +0x50, 0x3273e8)
+// is a branch to uEffect's: both are the hand translations.
+native(0x9b6130, (m, o) => owner.move(m, o), A1, null);
+native(0x9b228c, (m, o) => owner.ownerMatrix(m, o), A1, null);
+native(0x939278, (m, model, joint) => owner.jointMatrix(m, model, joint), A2, 'r0');   // uModel's joint matrix
+native(0x9b4184, () => 1, [], 'r0');                   // uEffect vtable +0x88: mov r0, #1
+// the constructors the request's objects start from, translated by hand (construct.js): cUnit's and uEffect's base
+native(0x884990, (m, p) => { C.unitCtor(m, p); return p; }, A1, 'r0');
+native(0x9b1f1c, (m, p) => { C.effectBaseCtor(m, p); return p; }, A1, 'r0');
+// cUnit's empty virtual (vtable +0x2c of both the core and the effect): bx lr.
+registerNative(0x1eba8, () => {});
+// The unit manager's add (0xc03670: sUnit, line, unit, ...): the harness hooks it to return at once with the
+// registers as they were, keeping the unit for its passes; so does this, into m.svc.registerUnit.
+registerNative(0xc03670, (m, c) => { m.svc.registerUnit(c.r[0] >>> 0, c.r[1] >>> 0, c.r[2] >>> 0, c.r[3] >>> 0); });
+// The enemy's parent handle (enemy +0xfd0) as the harness stands it in (proofunit.py): vtable +0 valid,
+// +4 the unit.
+export const HANDLE_VALID = 0x7e001004, HANDLE_GET = 0x7e001008;
+// the parent unit's +0x10c: a proof effect's first frame hands itself to its parent (0x43cac); the harness's
+// stand-in keeps nothing and answers 0 (efx/parent.py ADD_EFFECT)
+export const PARENT_ADD_EFFECT = 0x7e001010;
+native(PARENT_ADD_EFFECT, () => 0, [], 'r0');
+native(HANDLE_VALID, (m) => m.svc.handleValid(), [], 'r0');
+native(HANDLE_GET, (m) => m.svc.handleUnit(), [], 'r0');
+// The resource manager's load (vtable +0x30) a request's state machine calls for its record's path
+// (0x323b40): the host answers with the list it loaded (m.svc.requestLoad).
+export const REQUEST_LOAD = 0x7e00100c;
+native(REQUEST_LOAD, (m, self, dti, path, flags) => m.svc.requestLoad(dti, path, flags), A4, 'r0');
+// libm, as the emulator's imports compute it (build/arm/emu.py _on_plt): the float32 argument, the double
+// result rounded to float32, in s0.
+const f32 = Math.fround;
+function libm(address, fn){
+  registerNative(address, (m, c) => { const a = c.sf[0], b = c.sf[1]; const r = fn(a, b); clobber(c, true); c.sf[0] = f32(r); });
+}
+libm(0x13ecba8, (a, b) => Math.atan2(a, b));           // atan2f
+libm(0x13ecc2c, a => Math.cos(a));                     // cosf
+libm(0x13ecc20, a => Math.sin(a));                     // sinf
+libm(0x13ecfc8, a => (a < -1 || a > 1) ? NaN : Math.asin(a));   // asinf (math.asin raises -> nan)
+native(0x13ecd34, (m, d, n, v) => { for (let i = 0; i < n; i++) m.w8(d + i, v & 0xff); return d; }, A3, 'r0');   // __aeabi_memset4(dest, n, c)
+native(0x13ecbb4, (m, d, n) => { for (let i = 0; i < n; i++) m.w8(d + i, 0); return d; }, A2, 'r0');          // __aeabi_memclr4(dest, n)
+// nn::os::InitializeMutex (a singleton's constructor): the emulator's import does nothing and answers 0
+native(0x13ecde8, () => 0, [], 'r0');
+// the effect manager's unique id (0xb8f4b8: lock, ++[mgr +0x22c], unlock), the harness's next_id service
+native(0xb8f4b8, (m, mgr) => m.svc.nextId(mgr), A1, 'r0');

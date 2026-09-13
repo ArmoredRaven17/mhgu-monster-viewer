@@ -298,6 +298,20 @@ function servicesFor(v, problems, m, known = () => true){
       const s = next('render_setup');
       for (let k = 0; k < 3; k++) if ((args[k] >>> 0) !== s[1][k]) problems.push('render_setup r' + k + ' 0x' + (args[k] >>> 0).toString(16) + ', game 0x' + s[1][k].toString(16));
     },
+    // a monster's effect request (efx/proofunit.py services): the unit manager's add, the parent handle, the
+    // resource manager's load of the record's path
+    registerUnit(...args){
+      const s = next('unit_register');
+      // sUnit, line, unit: r3 is not an argument (the harness logs whatever it held)
+      for (let k = 0; k < 3; k++) if ((args[k] >>> 0) !== s[1][k]) problems.push('unit_register r' + k + ' 0x' + (args[k] >>> 0).toString(16) + ', game 0x' + s[1][k].toString(16));
+    },
+    handleValid(){ return next('handle_valid')[3]; },
+    handleUnit(){ return next('handle_get')[3]; },
+    requestLoad(dti, path, flags){
+      const s = next('request_load');
+      if (s[1][1] !== dti || s[1][2] !== path) problems.push('request_load (0x' + dti.toString(16) + ', 0x' + path.toString(16) + '), game (0x' + s[1][1].toString(16) + ', 0x' + s[1][2].toString(16) + ')');
+      return s[3];
+    },
     loadResource(dti, path, flags){
       const s = next('res_load');
       if (s[1][1] !== dti || s[1][2] !== path || s[1][3] !== flags) problems.push('resource (0x' + dti.toString(16) + ', 0x' + path.toString(16) + ', ' + flags + '), game (0x' + s[1][1].toString(16) + ', 0x' + s[1][2].toString(16) + ', ' + s[1][3] + ')');

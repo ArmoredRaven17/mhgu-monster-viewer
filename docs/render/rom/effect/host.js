@@ -30,8 +30,8 @@ import { drawEffect } from './draw.js';
 import { invoke } from './cpu.js';
 import * as modeldraw from './modeldraw.js';
 import './prim.js';
-import { proofStart } from './proof.js';
-import { PARENT_GETDTI, RESMGR_RELEASE } from './bridge.js';
+import { proofStart, installRequests, ProofRequest, unitFrame } from './proof.js';
+import { PARENT_GETDTI, PARENT_ADD_EFFECT, RESMGR_RELEASE } from './bridge.js';
 
 const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 const u32bytes = v => new Uint8Array(new Uint32Array([v >>> 0]).buffer);
@@ -134,6 +134,7 @@ export class EffectHost {
       // lifted code calls through vtable +0x1c (alloc) and +0x34 (free)
       m.w32(this.allocator, this.allocator + 0x1000);
       m.w32(this.allocator + 0x1000 + 0x1c, 0x7e000000);
+      m.w32(this.allocator + 0x1000 + 0x20, 0x7e000000);    // +0x20: the same alloc (a DTI's newInstance)
       m.w32(this.allocator + 0x1000 + 0x34, 0x7e000104);
       m.load(0x189f168, u32bytes(this.allocator));        // heap table +0x20 -> the allocator object
       const resmgr = this.malloc(0x100), resmgrVt = this.malloc(0x400);
@@ -158,6 +159,14 @@ export class EffectHost {
     return proofStart(this.m, owner, this.m.u32(owner + 0xf4), parent.object, payload, n => this.malloc(n));
   }
   move(owner){ move(this.m, owner); }
+  // A monster's effect request, whole (proof.js ProofRequest): the core and the uMHProofEffect it makes, from
+  // the record ({ index, key, path, payload }) whose list createEffect loaded (owner +0xf4), hung from
+  // parent. The first request builds the boot objects. Every frame: unitFrame(), then draw request.effects().
+  requestEffect(owner, parent, record, area = 1){
+    if (!this.requests) this.requests = installRequests(this.m, n => this.malloc(n));
+    return new ProofRequest(this.m, this.requests, { list: this.m.u32(owner + 0xf4), parent: parent.object, record, area });
+  }
+  unitFrame(){ if (this.requests) unitFrame(this.m, this.requests); }
 
   // A parent unit for joint-bound nodes: 0x939278 at vtable +0x54, a live unit's +0xc, the joint
   // number -> index table at +0x498 and the joint array at +0x494 (0xa0 bytes each, the world matrix
@@ -168,6 +177,7 @@ export class EffectHost {
     const ARRAY = this.malloc(0xa0 * jointNumbers.length);
     m.w32(VT + 0x54, 0x939278);
     m.w32(VT + 0x14, PARENT_GETDTI);
+    m.w32(VT + 0x10c, PARENT_ADD_EFFECT);                  // a request's effect hands itself to its parent (0x43cac)
     m.w32(P, VT);
     m.w32(P + 0xc, 0xf4ff9);
     m.load(TABLE, new Uint8Array(0x100).fill(0xff));
@@ -176,6 +186,8 @@ export class EffectHost {
     this.writeMatrix(P + 0xb0, IDENTITY);
     return { object: P, vtable: VT, table: TABLE, array: ARRAY, joints: jointNumbers.slice() };
   }
+  // the parent unit's own scale (uCoord +0x60..+0x68): a monster's size, which a request's effect takes
+  setParentScale(parent, s){ this.writeMatrix(parent.object + 0x60, [s, s, s]); }
   setJointMatrix(parent, jointNumber, rows16){
     this.writeMatrix(parent.array + 0xa0 * parent.joints.indexOf(jointNumber) + 0x10, rows16);
   }

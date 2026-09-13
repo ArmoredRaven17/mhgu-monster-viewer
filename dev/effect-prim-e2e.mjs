@@ -60,7 +60,8 @@ const owner = host.createEffect(new Uint8Array(efl));
 let parent = null;
 if (info.parent){
   parent = host.createParent(info.parent.joints);
-  if (!info.proof) host.attach(owner, parent);
+  if (!info.proof && !info.request) host.attach(owner, parent);
+  if (info.request) host.setParentScale(parent, info.request.scale);
 }
 const setJoints = f => {
   const bytes = hex(info.parent.frames[f]);
@@ -72,8 +73,12 @@ const setJoints = f => {
   });
 };
 if (parent) setJoints(0);
+let request = null;
 if (info.proof) host.proofStart(owner, parent, hex(info.proof.payload));   // it starts the effect itself
-else host.start(owner);
+else if (info.request){
+  const q = info.request;
+  request = host.requestEffect(owner, parent, { index: q.index, key: q.key, path: q.path, payload: hex(q.payload) });
+} else host.start(owner);
 const T = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0];
 host.initDraw({ position: [0, 0, 1000], view: [...T, 0, 0, -1000, 1], world: [...T, 0, 0, 1000, 1] });
 
@@ -85,8 +90,8 @@ const records = JSON.parse(readFileSync('docs/effects/mfx-records.json', 'utf8')
 const members = Object.fromEntries(records.filter(r => r && r[1] === 0).map(r => [r[0], r[3]]));
 for (let f = 0; f < info.frames && k < want.length; f++){
   if (parent) setJoints(f);
-  host.move(owner);
-  const { prims } = host.drawFrame([owner]);
+  if (request) host.unitFrame(); else host.move(owner);
+  const { prims } = host.drawFrame(request ? request.effects() : [owner]);
   // A constant buffer lives in the frame's buffer: one the path did not write THIS frame is a slot still
   // pointing at an earlier frame's allocation, whose bytes no draw reads. And only member words count:
   // the padding between members is whatever the buffer held.

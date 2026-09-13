@@ -21,6 +21,11 @@
 import { Unverified } from './mem.js';
 import { liftedCall } from './bridge.js';
 import './lifted-proof.js';
+import './lifted-request.js';
+import { registerCode, ownerMatrix } from './owner.js';
+
+// uMHProofEffect's owner matrix (vtable +0x50, 0x3273e8) is a branch to uEffect's.
+registerCode(0x3273e8, (m, o) => ownerMatrix(m, o));
 
 const QUAT_GOT = 0x1832ad8;          // 0x32a300: the quaternion the start passes (identity)
 
@@ -59,4 +64,106 @@ export function proofStart(m, owner, list, parent, payload, scratch){
   const k = m.u8(block + 0x4b);
   if (k <= 2) m.w32(owner + 0x118, ((m.u32(owner + 0x118) & ~0xf) | [0, 1, 3][k]) >>> 0);
   return { state, mask1, mask2, joint };
+}
+
+// ---- a monster's effect request, whole (C:\MHGU-Extract\efx\proofunit.py) -----------------------------------
+//
+// In the game the effect a request makes is not a plain uEffect: a uMHEffectCore (0x350 bytes) makes a
+// uMHProofEffect (0x500), whose own update (0x43d5c) and move (0x43da0 -> 0x327188) recompose it from the
+// monster every frame -- its root at the joint, its scale the record's times the monster's (uCoord +0x60) --
+// before uEffect's move. This builds the same objects the harness builds, in the same order, and runs them
+// with the same unit passes; every routine is lifted (lifted-request.js) from efx/vecproofunit.py's vectors.
+// The stand-ins are the harness's (proofunit.py's header lists them), answered by bridge.js at its fixed
+// addresses through m.svc: registerUnit, handleValid, handleUnit, requestLoad.
+import { ALLOCATOR, REQUEST_LOAD, HANDLE_VALID, HANDLE_GET } from './bridge.js';
+
+const RECORD_VT_GOT = 0x32288c + 0x1512d40;          // 0x322884: the record object's vtable
+const DT = 1.0;                                      // the frame delta a pass writes to a unit's +0x1c
+
+// The boot objects, once per memory: the default heap and MtString's allocator on the host's allocator, the
+// session singleton (mode 0) and the MH effect manager. Returns the request state the services read.
+export function installRequests(m, malloc){
+  const state = { units: [], lists: new Map(), handleParent: 0, malloc };
+  m.svc.registerUnit = (sunit, line, unit) => { state.units.push([unit >>> 0, line >>> 0]); };
+  m.svc.handleValid = () => 1;
+  m.svc.handleUnit = () => state.handleParent;
+  m.svc.requestLoad = (dti, path) => {
+    let name = ''; for (let a = path, c; (c = m.u8(a)) !== 0; a++) name += String.fromCharCode(c);
+    const list = state.lists.get(name);
+    if (list === undefined) throw new Unverified('request load of ' + name + ': no list');
+    return list;
+  };
+  m.w32(0x189f148 + 4, ALLOCATOR);
+  m.w32(0x177feb0, ALLOCATOR);
+  state.session = liftedCall(m, 0x3f6be8).r[0];
+  state.manager = liftedCall(m, 0x4111c).r[0];
+  if (!state.manager) throw new Unverified('MH effect manager: none');
+  state.units.length = 0;
+  return state;
+}
+
+const vslot = (m, obj, slot) => m.u32((m.u32(obj) + slot) >>> 0);
+
+// record: { index, key, path, payload (Uint8Array) }; list: the loaded rEffectList handle for record.path;
+// parent: the parent unit (host.createParent's object).
+export class ProofRequest {
+  constructor(m, state, { list, parent, record, area = 1 }){
+    const malloc = state.malloc;
+    this.m = m; this.state = state;
+    m.w32(list + 0x50, (m.u32(list + 0x50) | 1) >>> 0);
+    state.lists.set(record.path, list);
+    m.w32(m.u32(m.u32(0x211fa64)) + 0x30, REQUEST_LOAD);
+    state.handleParent = parent;
+    const H = this.handle = malloc(0x40), HVT = malloc(0x40);
+    m.w32(H, HVT); m.w32(HVT, HANDLE_VALID); m.w32(HVT + 4, HANDLE_GET);
+    const idx = record.index;
+    const L = this.list = malloc(0x100), recs = malloc(4 * (idx + 1));
+    m.w32(L + 0x90, idx + 1); m.w32(L + 0x9c, recs);
+    const R = this.record = malloc(0xc0);
+    m.w32(R, (m.u32(RECORD_VT_GOT) + 8) >>> 0);
+    liftedCall(m, 0x323724, [R]);
+    const s = Array.from(record.path, ch => ch.charCodeAt(0));
+    const string = malloc(s.length + 0xc);
+    m.w32(string, 1); m.w32(string + 4, s.length);
+    m.load(string + 8, new Uint8Array([...s, 0]));
+    m.w32(R + 0x14, string);
+    m.load(R + 0x20, record.payload);
+    const kind = record.payload[0x3d];
+    m.w32(R + 8, kind === 0 ? 1 : kind === 1 ? 2 : 3);
+    m.w32(recs + 4 * idx, R);
+    const Q = this.requester = malloc(0xe0);
+    liftedCall(m, 0x40a54, [Q]);
+    m.w8(Q + 0xc, area);
+    m.w32(Q + 0xd0, H); m.w32(Q + 0x1c, (m.u32(Q + 0x1c) | 2) >>> 0);
+    const C = this.core = malloc(0x350);
+    liftedCall(m, 0x41e54, [C]);
+    liftedCall(m, 0x328b48, [C, L, 2, idx], [Q + 0x10]);
+    liftedCall(m, vslot(m, C, 0xb8), [C, m.u32(Q + 4)]);
+    liftedCall(m, vslot(m, C, 0xc0), [C, m.u8(Q + 0xc)]);
+    liftedCall(m, vslot(m, C, 0xc8), [C, m.u32(Q + 8)]);
+    m.w32(C + 0x1b4, record.key);
+    liftedCall(m, 0x42e4c, [C, 0, 2]);
+    state.units.unshift([C, 0]);
+  }
+  // the uMHProofEffects the core has made (+0x150, +0x15c count)
+  effects(){ const m = this.m; return Array.from({ length: m.u32(this.core + 0x15c) }, (_, i) => m.u32(this.core + 0x150 + 4 * i)); }
+}
+
+// One frame of the unit passes over every unit the requests registered (proofunit.py unit_frame).
+export function unitFrame(m, state){
+  for (const [u] of state.units.slice()){                                   // update pass
+    m.wf32(u + 0x1c, DT);
+    const w = m.u32(u + 0xc);
+    if ((w & 7) === 1){ m.w32(u + 0xc, ((w & ~7) | 2) >>> 0); liftedCall(m, vslot(m, u, 0x18), [u]); }
+    if ((m.u32(u + 0xc) & 0x407) === 0x402) liftedCall(m, vslot(m, u, 0x24), [u]);
+  }
+  for (const [u] of state.units.slice()){                                   // move pass
+    const w = m.u32(u + 0xc);
+    if ((w & 7) === 1){
+      m.w32(u + 0xc, ((w & ~7) | 2) >>> 0);
+      liftedCall(m, vslot(m, u, 0x18), [u]);
+      if ((m.u32(u + 0xc) & 0x407) === 0x402){ liftedCall(m, vslot(m, u, 0x24), [u]); liftedCall(m, vslot(m, u, 0x2c), [u]); }
+    }
+    if ((m.u32(u + 0xc) & 0x407) === 0x402) liftedCall(m, vslot(m, u, 0x28), [u]);
+  }
 }

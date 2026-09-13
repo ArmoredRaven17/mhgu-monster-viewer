@@ -146,10 +146,12 @@ export class LiveEffects {
     root.updateMatrixWorld(true);
     this.writeJoints();
     for (const e of this.effects){
-      // a record: started as the monster's request starts it (proof.js), which starts it; otherwise hung
-      // from the parent and started
-      if (e.def.record) host.proofStart(e.owner, parent, hex(e.def.record.payload));
-      else {
+      if (e.def.record){
+        // a record: the monster's request, whole (proof.js ProofRequest) -- the core makes the effect the game
+        // draws, a uMHProofEffect, which the unit passes run every frame
+        const r = e.def.record;
+        e.request = host.requestEffect(e.owner, parent, { index: r.index, key: r.key, path: r.path, payload: hex(r.payload) });
+      } else {
         if (e.def.joints.length) host.attach(e.owner, parent);
         host.start(e.owner);
       }
@@ -167,6 +169,11 @@ export class LiveEffects {
   writeJoints(){
     const m = new THREE.Matrix4();
     if (this.parent){
+      // the parent unit's own scale (uCoord +0x60), which a request's effect multiplies its record's scale by
+      // (0x31d16c): the monster's size -- the scale the root carries into its bones' world matrices (the
+      // viewer scales the world group by the game's size multiplier, index.html sizeScale), so the unit's
+      // scale and its joints' linear parts agree as they do in the game
+      this.host.setParentScale(this.parent, new THREE.Vector3().setFromMatrixScale(this.root.matrixWorld).x);
       for (const { j, bone } of this.joints){
         if (!bone) continue;
         m.copy(bone.matrixWorld);
@@ -202,7 +209,8 @@ export class LiveEffects {
     this.last = now;
     if (this.acc >= STEP) this.writeJoints();
     while (this.acc >= STEP){
-      for (const e of this.effects) this.host.move(e.owner);
+      this.host.unitFrame();                                   // every request's core and effect
+      for (const e of this.effects) if (!e.request) this.host.move(e.owner);
       this.acc -= STEP;
       this.stats.steps++;
     }
@@ -210,7 +218,7 @@ export class LiveEffects {
     // in the game's units, into the camera block (+0x40 position, +0x70 view, +0xb0 its inverse)
     const cam = this.cameraMatrices(camera);
     this.host.setCamera({ position: cam.position.toArray(), view: Array.from(cam.view.elements), world: Array.from(cam.viewI.elements) });
-    const { prims, models } = this.host.drawFrame(this.effects.map(e => e.owner));
+    const { prims, models } = this.host.drawFrame(this.effects.flatMap(e => e.request ? e.request.effects() : [e.owner]));
     this.stats.frames++; this.stats.prims = prims.length; this.stats.models = models.length;
     this.syncModels(models, renderer, cam);
     this.sync(prims, renderer, cam);
