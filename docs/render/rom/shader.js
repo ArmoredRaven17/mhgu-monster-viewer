@@ -164,9 +164,16 @@ export function injectFeatures(mat, rom, lit, ref){
     // FLAGGED: the description says "alpha fixed" without saying fixed to WHAT. The constant's own
     // alpha is the reading consistent with those three, and it is labelled as a reading.
     const gl = rom.glob;
+    // ...but only a material that BLENDS can be transparent. BSSolid has no blend for any alpha to
+    // feed -- the ROM draws it opaque, and only an alpha test could cut it -- so the 62 opaque
+    // MapConstant materials (the eyes) were sitting in three.js's transparent queue, re-sorted every
+    // frame against the effect layers. With the texture's alpha now reaching them (Nakarkos) that
+    // sort decided what showed through: Raven, 2026-09-13, "Eyes on mainbody oscillate when zoomed
+    // out". Savage Deviljho is left on the old path (another agent's test case).
+    const blends = !(rom.state && rom.state.blend === 'opaque');
     if (albedo === 'MapConstant' && gl && gl.constant && gl.constant.length > 3){
       mat.opacity = gl.constant[3];
-      mat.transparent = true;
+      if (blends || MAPCONST_EXCLUDE.has(ref)) mat.transparent = true;
     }
   }
 
