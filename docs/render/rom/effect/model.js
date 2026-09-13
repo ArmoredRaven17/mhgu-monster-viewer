@@ -15,6 +15,8 @@
 import { Unverified, F } from './mem.js';
 import { baseFrame } from './motion.js';
 import { killParticle } from './life.js';
+import { curveTime, evalColour, evalCurve3 } from './curve.js';
+import { Scratch } from './motion.js';
 
 // VFP float -> signed int (vcvt.s32.f32): toward zero, saturating, NaN to 0.
 function toS32(v){
@@ -141,7 +143,19 @@ export function updateModelParticle(m, gen, p){
   const r7 = m.u32(p + 0xc);
   if (r7 & 0x8000000){ if (animStep(m, gen, p) !== 1) return 0; }
   let r6 = m.u32(p + 0x10);                                  // 0xa67304 is an empty function
-  if (r6 & 0x20000) throw new Unverified('0xa97314 colour curve');
+  if (r6 & 0x20000){                                         // 0xa97314: colour from the curve
+    const param = m.u32(gen + 0x34);
+    const off = m.u32(param + 0x40) >>> 16;
+    const curve = off ? param + off : 0;
+    const t = curveTime(m, gen, curve, p);
+    const sc = new Scratch(m);
+    const out = sc.alloc(4);
+    evalColour(m, out, curve, t, m.u16(p + 0x102));
+    m.w32(p + 0x104, m.u32(out));
+    r6 = (m.u32(p + 0x10) | 2) >>> 0;
+    m.w32(p + 0x10, r6);
+    sc.free();
+  }
   if (!(r7 & 0x40)){                                         // envelope unchanged: base colour
     m.w32(p + 0xf0 + ((m.u8(p + 0xf) & 1) << 2), m.u32(p + 0x104));
   } else {                                                   // 0xa97388
@@ -174,19 +188,35 @@ export function updateModelParticle(m, gen, p){
     if (scaleStep(m, gen, p, 0.0) !== 1) return 0;           // literal 0xa976ec
     r6 = m.u32(p + 0x10);
   }
-  if (r6 & 0x800000) throw new Unverified('0xa9753c axis-scale curve');
-  let w8 = m.u32(p + 8);
-  const wc = m.u32(p + 0xc);
-  const v0 = m.f32(p + 0x110), v1 = m.f32(p + 0x114), v2 = m.f32(p + 0x118);
-  const prev = p + 0xd0 + ((wc >>> 21) & 0x10), cur = p + 0xd0 + ((wc >>> 20) & 0x10);
-  const a0 = m.f32(prev), a1 = m.f32(prev + 4), a2 = m.f32(prev + 8);
-  m.w32(cur + 0xc, 0);
-  m.wf32(cur, F(a0 + v0)); m.wf32(cur + 4, F(a1 + v1)); m.wf32(cur + 8, F(a2 + v2));
-  if (r6 & 0x8000){
+  let w8;
+  if (r6 & 0x800000){                                        // 0xa9753c: per-axis scale from a curve
     const param = m.u32(gen + 0x34);
-    m.wf32(p + 0x110, F(m.f32(param + 0xc0) * m.f32(p + 0x110)));
-    m.wf32(p + 0x114, F(m.f32(param + 0xc4) * m.f32(p + 0x114)));
-    m.wf32(p + 0x118, F(m.f32(param + 0xc8) * m.f32(p + 0x118)));
+    const w130 = m.u32(param + 0x130);
+    const curve = (w130 >>> 16) ? param + (w130 >>> 16) : 0;
+    const t = curveTime(m, gen, curve, p);
+    const sc = new Scratch(m);
+    const rnd = sc.alloc(12), out = sc.alloc(16);
+    m.w32(rnd, m.u32(p + 0x110)); m.w32(rnd + 4, m.u32(p + 0x114)); m.w32(rnd + 8, m.u32(p + 0x118));
+    evalCurve3(m, out, curve, t, rnd, 0);
+    const c = p + 0xd0 + ((m.u8(p + 0xf) & 1) << 4);
+    w8 = m.u32(p + 8);
+    m.w32(c, m.u32(out)); m.w32(c + 4, m.u32(out + 4)); m.w32(c + 8, m.u32(out + 8)); m.w32(c + 0xc, 0);
+    r6 = m.u32(p + 0x10);
+    sc.free();
+  } else {
+    w8 = m.u32(p + 8);
+    const wc = m.u32(p + 0xc);
+    const v0 = m.f32(p + 0x110), v1 = m.f32(p + 0x114), v2 = m.f32(p + 0x118);
+    const prev = p + 0xd0 + ((wc >>> 21) & 0x10), cur = p + 0xd0 + ((wc >>> 20) & 0x10);
+    const a0 = m.f32(prev), a1 = m.f32(prev + 4), a2 = m.f32(prev + 8);
+    m.w32(cur + 0xc, 0);
+    m.wf32(cur, F(a0 + v0)); m.wf32(cur + 4, F(a1 + v1)); m.wf32(cur + 8, F(a2 + v2));
+    if (r6 & 0x8000){
+      const param = m.u32(gen + 0x34);
+      m.wf32(p + 0x110, F(m.f32(param + 0xc0) * m.f32(p + 0x110)));
+      m.wf32(p + 0x114, F(m.f32(param + 0xc4) * m.f32(p + 0x114)));
+      m.wf32(p + 0x118, F(m.f32(param + 0xc8) * m.f32(p + 0x118)));
+    }
   }
   if (r6 & 0x200400){                                        // 0xa975b8
     const param = m.u32(gen + 0x34);

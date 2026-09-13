@@ -3620,3 +3620,63 @@ burst at start; gens 2 and 3 every 5 frames; gen 4 every 13; gen 5 every 6.
 **NEXT:** colour and alpha (the col3 curves are read only by base-class code, and some of it runs
 inside slot 18), the node instance's world transform (the attach joint -- the node block's `102`),
 and the draw pass (slot 21) that turns this into geometry.
+\n
+#### 2026-09-13 - EFFECT RUNTIME: the ROM's particle code, translated and checked byte for byte
+
+> Raven chose "1": a live JS particle runtime in the viewer, verified against the emulator as oracle.
+
+**Corrections to the 2026-09-12 entry above. Three of its statements came from a harness that was
+not running the game faithfully, and are wrong:**
+
+| said | actually | the harness fault |
+|---|---|---|
+| the start is "the bit-24 stand-in" | the start is the effect's own routine `0x9baa9c`: factory, pool setup, `0x9bb69c`, per-generator `0xae9df4` and vtable slots 8/9/15, node-instance flags, THEN bit 24 | the stand-in skipped slot 15, leaving `gen+0x1b8` null; every per-particle vector was scaled by code bytes |
+| the life envelope is linear (matched 1032/1032) | it is SQUARED for every Savage row: `0xa60f68` squares the value when generator `+0x40` bit 30 is set, and `0xae99f8` sets that bit from node block `+0x08` bit 27 (otherwise from the effect manager's `+0x230` bit 0) | `0xae9938` (slot 8) never ran, so bit 30 was never set |
+| emission every 5/13/17/6 frames | right, but only by accident: see below | the effect manager was a zeroed stand-in |
+
+**Particle volume.** uEffect's reflected property `mParticleVolume` (`0x9b8a98`) is its `+0x118`
+bits 8..11. The constructor takes it from the effect manager's `+0x15c`, clamped to 2; the setter
+`0x9b3758` clamps to the same cap except for 3. The manager's own constructor (`0xb8c858`, the
+0x350-byte singleton made at boot by `0x3d8228`) sets that cap to **2** (`0xb8ca5c`), and nothing else
+in the image writes it. Generators copy the volume into `+0x50` bits 28..31 (`0xae9918`), and
+`0xa596e8` thins spawn counts by it: volume 2 or 3 passes every spawn, volume 0 keeps 1 in 3, which is
+exactly the tripled periods a zeroed manager produced. The old numbers were right only because a null
+read happened to clamp to 2.
+
+**The harness, now:** the 2334 static initialisers run first (MtMatrix identity rows at `0x1917640`,
+MtVector3 statics, the sine table at `0x190f568` were all zeros before); the real effect manager
+constructor runs; the effect starts through `0x9baa9c`; `__aeabi_uldivmod`/`ldivmod` and `log10f`
+are implemented; a null-read guard refuses any trace that read below `0x2000`.
+
+**The runtime** (`docs/render/rom/effect/`): MHGU's particle routines translated to JS, keeping the
+game's own struct layouts in flat memory, each commented with its ROM address. `dev/effect-check.mjs`
+replays call vectors recorded from the emulator (`C:\MHGU-Extract\efx\vectors.py`: every byte a
+call read, every byte it wrote, its arguments and return): a translation passes when it reads nothing
+else and writes exactly the same bytes. A branch no recorded call reached throws `Unverified` instead
+of guessing. Arithmetic is transcribed register by register with `Math.fround` after every operation
+(one missed round on a division passed every per-path vector and failed on 54 of 192 full calls, so
+arithmetic routines are checked on EVERY call). JavaScript's `Math.sin`/`cos` matched the emulator on
+all 393 euler matrices of Savage's run.
+
+Translated, all checks passing on Savage's `em043_05_002_s` (every call over 60-120 frames):
+
+| layer | routines |
+|---|---|
+| life | envelope `0xaeae40`, squared/linear pass `0xa60f68`, release `0xcaa624`, kill `0xa5825c` |
+| curves | vec3 curve `0xaf82f4` (linear, cubic `0xaf7bc8`, step), colour curve `0xaf63c4`, curve time `0xaea784`/`0xaec7e0`, particle-to-world `0xa76cc8` |
+| motion | kinds 0 `0xa61a3c`, 5 `0xa637c8`, 10 `0xa646f4`, their ticks, base frame `0xa5fdf0` |
+| Model | particle pass `0xa9718c`, particle update `0xa972b8` (colour from envelope or curve, per-axis scale velocity or curve, facing), animation `0xa97838`, scale `0xa6746c`, rotation `0xa683f8`, channel `0xa68c44` |
+| emission | mode A `0xa57938`, mode B `0xa57bfc`, interval/period/thinning, pre-update `0xa570fc` |
+| spawn | base `0xa59a5c` (shape `0xa5b488` through the ROM sine table, placement, motion kinds 0/5/10, life), Model `0xa965c4` (mesh by part id, animation binding, colour, scale, per-axis scale, rotation, channel) |
+| generator | update `0xa574c4` for Model generators: all 480 Model generator-frames byte-exact |
+
+Across the other ten Deviljho and Savage effect files not one byte mismatched; every failure is a
+refused branch. Savage's second file `em043_05_000` still refuses: motion kind 2 (spawn `0xa5d194`,
+per frame `0xa6243c`), orientation from direction (`0xa67988`), spawn direction modes (generator
+`+0xe7`), zero period, random animation start, launch flag 0x200, spawn into the hold, and a few list
+cases.
+
+**Not done yet:** LiteBillboard and LitePolyline (one generator each in `em043_05_002_s`, two
+LitePolylines in `em043_05_000`); construction (`rEffectList::load`, the factory, pool setup, start
+slots); node and owner per-frame (`0x9b6130`, the node transform that will take Savage's joint); the
+draw passes (slot 21) that turn particle state into geometry. Nothing is wired into the viewer yet.

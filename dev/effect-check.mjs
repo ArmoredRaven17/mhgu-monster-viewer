@@ -73,6 +73,7 @@ const TABLE = {
   '0xa68e78': [spawn.baseColour, v => [v.args[0], v.args[1]], null],
   '0xa71870': [spawn.lastPass, v => [v.args[0], v.args[1]], null],
   '0xa965c4': [spawn.spawnModel, v => [v.args[0], v.args[1], v.args[2]], 'r0'],
+  '0xaf63c4': [curve.evalColour, v => [v.args[0], v.args[1], v.args[2], v.args[3]], null],
   '0xa574c4': [runtime.generatorUpdate, v => [v.args[0]], 'r0', v => translatedType(v)],
 };
 // the translation's own stand-in for stack locals: never an input, never compared
@@ -85,7 +86,7 @@ function stackArg(v, k){
     const off = a - start;
     if (off >= 0 && off + 4 <= hx.length / 2) return parseInt(hx.substr(2 * off + 6, 2) + hx.substr(2 * off + 4, 2) + hx.substr(2 * off + 2, 2) + hx.substr(2 * off, 2), 16) >>> 0;
   }
-  throw new Error('stack argument ' + k + ' not among the recorded reads');
+  return undefined;                     // never read on this path, so the translation must not use it
 }
 // a u32 among the vector's recorded reads
 function readU32(v, a){
@@ -145,6 +146,7 @@ const files = statSync(file).isDirectory() ? readdirSync(file).filter(f => f.end
 const functions = {};
 for (const f of files) Object.assign(functions, JSON.parse(readFileSync(f, 'utf8')).functions);
 let fail = 0, pending = [];
+const refused = new Map();              // unverified branch -> [vectors, functions]
 for (const [fnName, rec] of Object.entries(functions)){
   if (only.length && !only.includes(fnName)) continue;
   if (!TABLE[fnName]){ pending.push(fnName); continue; }
@@ -152,12 +154,21 @@ for (const [fnName, rec] of Object.entries(functions)){
   for (const v of rec.vectors){
     if (TABLE[fnName][3] && !TABLE[fnName][3](v)){ skipped++; continue; }
     const p = check(fnName, v);
-    if (p.length){
+    if (p.length && p[0].startsWith('UNVERIFIED ')){
+      const key = p[0].replace('UNVERIFIED unverified path: ', '');
+      const r = refused.get(key) || [0, new Set()];
+      r[0]++; r[1].add(fnName); refused.set(key, r);
       fail++;
-      if (fail <= 12) console.log(fnName + ' path ' + v.path + ' frame ' + v.frame + ': ' + p.slice(0, 6).join('; '));
+    } else if (p.length){
+      fail++;
+      console.log('MISMATCH ' + fnName + ' path ' + v.path + ' frame ' + v.frame + ': ' + p.slice(0, 6).join('; '));
     } else ok++;
   }
   console.log(fnName + ': ' + ok + '/' + (rec.vectors.length - skipped) + ' vectors pass (' + rec.calls + ' calls in the run' + (skipped ? ', ' + skipped + ' for untranslated generator types skipped' : '') + ')');
+}
+if (refused.size){
+  console.log('refused (unverified branches), by vectors that reached them:');
+  for (const [k, [n, fns]] of [...refused].sort((a, b) => b[1][0] - a[1][0])) console.log('  ' + n + '  ' + k + '   (' + [...fns].join(' ') + ')');
 }
 if (pending.length) console.log('not translated yet: ' + pending.join(' '));
 process.exit(fail ? 1 : 0);

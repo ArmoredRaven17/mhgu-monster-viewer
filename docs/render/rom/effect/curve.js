@@ -230,3 +230,55 @@ export function toWorld(m, gen, upd, v, out){
   m.w32(out + 0xc, 0);
   return 0;
 }
+
+// 0xaf63c4: an RGBA colour curve at integer time t. Keys are 12 bytes {u32 time, u32 RGBA, u32}; the
+// header is as for vec3 curves (low byte count, bit 30 loop, bits 27..29 interpolation) plus bit 9
+// (fixed colours). Linear interpolation is 8-bit fixed point per channel. out receives the colour.
+export function evalColour(m, out, curve, t, pick){
+  t >>>= 0;
+  const h = m.u32(curve);
+  const keys = curve + 4;
+  const n = h & 0xff;
+  const key = i => {
+    if (!(h & 0x200)) throw new Unverified('0xaf6400 colour curve without bit 9');
+    m.w32(out, m.u32(keys + 12 * i + 4));
+  };
+  if (n < 2) return key(0);
+  const last = n - 1;
+  const loop = h & 0x40000000;
+  const tl = m.u32(keys + 12 * last), t0 = m.u32(keys);
+  if (loop) throw new Unverified('0xaf64b4 looping colour curve');
+  if (t0 >= t) return key(0);
+  if (!(tl > t)) return key(last);
+  let r7 = 1, r5;
+  for (let k = curve + 0x10;; k += 12){
+    r5 = m.u32(k);
+    if (t === r5) return key(r7);
+    if (t < r5) break;
+    throw new Unverified('0xaf6514 colour curve search past key 1');
+  }
+  const lr = r7 - 1;
+  const ts = m.u32(keys + 12 * lr);
+  const frac = Math.floor((((t - ts) << 8) >>> 0) / ((r5 - ts) >>> 0)) >>> 0;
+  if (!(h & 0x200)) throw new Unverified('0xaf654c colour curve without bit 9');
+  const type = (h << 2) >> 29;
+  if (type < 0 || (type & 7) !== 0) throw new Unverified('0xaf65b0 colour interpolation ' + type);
+  let r6 = r7;                                               // 0xaf65c4 linear
+  if (r7 === last) r6 = 0;
+  if (!loop) r6 = r7;
+  const c0 = m.u32(keys + 12 * lr + 4), c1 = m.u32(keys + 12 * r6 + 4);
+  let r3 = ((c1 & 0xff) - (c0 & 0xff)) | 0;
+  let r7b = ((((c1 >>> 8) & 0xff)) - ((c0 >>> 8) & 0xff)) | 0;
+  r3 = Math.imul(r3, frac) >>> 0;
+  r7b = Math.imul(r7b, frac) >>> 0;
+  r3 = (c0 + (r3 >>> 8)) >>> 0;
+  r7b = (r7b + (((c0 >>> 8) << 8) >>> 0)) >>> 0;
+  r3 = ((r7b & 0xff00) | (r3 & 0xff)) >>> 0;
+  let a = ((c1 >>> 24) - (c0 >>> 24)) | 0;
+  a = ((Math.imul(a, frac) >>> 8) + (c0 >>> 24)) >>> 0;
+  r3 = (r3 | ((a << 24) >>> 0)) >>> 0;
+  let b = (((c1 >>> 16) & 0xff) - ((c0 >>> 16) & 0xff)) | 0;
+  b = ((Math.imul(b, frac) >>> 8) + (c0 >>> 16)) >>> 0;
+  const r1 = ((b << 16) >>> 0) & 0x00ff00ff;
+  m.w32(out, (r3 | r1) >>> 0);
+}

@@ -14,7 +14,7 @@
 // The spawn info block the generator update passes down (+0x00 local offset out, +0x20 envelope out,
 // +0x24 spawn fraction, +0x28 mode) is the ROM's stack struct at 0xa57708.
 import { Unverified, F, f32bits, bitsf32 } from './mem.js';
-import { curveTime, evalCurve3, toWorld } from './curve.js';
+import { curveTime, evalCurve3, toWorld, evalColour } from './curve.js';
 import { Scratch } from './motion.js';
 
 const GOT_FLOAT_RNG = 0x183b9f8, GOT_INT_RNG = 0x183b9f4, GOT_SINE = 0x18321b8;
@@ -249,9 +249,16 @@ export function axisDir(m, out, ang, order, axis){
   const sc = new Scratch(m);
   const mat = sc.alloc(64);
   eulerMatrix(m, mat, ang, order);
-  if (axis !== 4 && axis !== 6) throw new Unverified('0x9ba958 direction axis ' + axis);
-  const v = m.u32(GOT_AXIS_Z);
-  const s2 = m.f32(v), s4i = m.f32(v + 4), s0 = m.f32(v + 8);
+  let s2, s4i, s0;
+  if (axis === 4 || axis === 6){                             // 0x9ba978: the ROM's Z axis
+    const v = m.u32(GOT_AXIS_Z);
+    s2 = m.f32(v); s4i = m.f32(v + 4); s0 = m.f32(v + 8);
+  } else if (axis === 2){                                    // 0x9ba99c: the ROM's Y axis
+    const v = m.u32(0x1832130);
+    s2 = m.f32(v); s4i = m.f32(v + 4); s0 = m.f32(v + 8);
+  } else if (axis === 5){                                    // 0x9baa24: -Z
+    s4i = 0.0; s0 = -1.0; s2 = s4i;
+  } else throw new Unverified('0x9ba958 direction axis ' + axis);
   let s12 = m.f32(mat + 0x10), s14 = m.f32(mat + 0x14);
   const s6 = m.f32(mat), s8 = m.f32(mat + 4), s10 = m.f32(mat + 8), s1 = m.f32(mat + 0x18);
   const s3 = m.f32(mat + 0x20), s5 = m.f32(mat + 0x24), s6b = m.f32(mat + 0x28);
@@ -725,10 +732,21 @@ export function spawnModel(m, gen, p, info){
   m.w32(p + 0xfc, fc);
   m.w32(p + 0xf8, m.u32(param + 0x114));
   unitScale(m, gen, p);
-  if (m.u32(param + 0x40) >>> 16) throw new Unverified('0xa96678 colour curve at spawn');
   const sc = new Scratch(m);
   const cbuf = sc.alloc(4);
-  baseColour(m, cbuf, gen);
+  const cOff = m.u32(param + 0x40) >>> 16;
+  if (cOff !== 0){                                           // 0xa96678: colour from the curve
+    const curve = param + cOff;
+    const c = (m.u32(gen + 0x4c) + 1) >>> 0;
+    m.w32(gen + 0x4c, c);
+    const sl = m.u32(m.u32(GOT_INT_RNG) + 4 * (c & 0xfff));
+    const t = curveTime(m, gen, curve, p);
+    let pick = sl & 0xff;
+    if (pick === 0) pick = sl & 0x100;
+    evalColour(m, cbuf, curve, t, pick);
+    if ((m.u32(curve) | 0) >= 0) m.w32(p + 0x10, (m.u32(p + 0x10) | 0x20000) >>> 0);
+    m.w16(p + 0x102, pick);
+  } else baseColour(m, cbuf, gen);
   let col = m.u32(cbuf);
   m.w32(p + 0x104, col);
   const mode = (m.u32(gen + 0x40) >>> 12) & 0xf;

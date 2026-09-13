@@ -128,7 +128,14 @@ export function killParticle(m, gen, p){
 // bit 30 set -- node block +0x08 bit 27, see 0xae99f8 -- the stored value is squared.
 export function lifePass(m, gen){
   let p = m.u32(gen + 0xb0);
-  if (!(m.u8(gen + 0x43) & 0x40)) throw new Unverified('0xa60f80 linear envelope pass');
+  if (!(m.u8(gen + 0x43) & 0x40)){                           // 0xa60f80: the value as it is
+    while (p){
+      const slot = (m.u32(gen + 0x24) + m.u32(gen + 0xc4) + m.u16(gen + 0xd8) * m.u16(p + 8)) >>> 0;
+      if (updateLife(m, gen, p, slot) !== 1) throw new Unverified('0xa60fcc linear pass frees a particle');
+      p = m.u32(p + 4);
+    }
+    return;
+  }
   while (p){
     const slotOf = () => (m.u32(gen + 0x24) + m.u32(gen + 0xc4) + m.u16(gen + 0xd8) * m.u16(p + 8)) >>> 0;
     if (updateLife(m, gen, p, slotOf()) === 1){

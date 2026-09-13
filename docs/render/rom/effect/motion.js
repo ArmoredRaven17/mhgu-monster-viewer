@@ -119,7 +119,7 @@ export const tickVelocity = (m, gen) => tickWith(m, gen, integrateVelocity, '0xa
 // offset (scaled by node +0xe0); both position buffers get the point.
 export function placeStatic(m, gen, p, upd, mode){
   const fl = m.u32(p + 0xc);
-  m.u32(p + 8);
+  const w8 = m.u32(p + 8);
   const cur = p + ((fl >>> 20) & 0x10);
   m.u32(cur + 0x20); m.u32(cur + 0x24); m.u32(cur + 0x28);
   if (m.u32(m.u32(gen + 0x28) + 0x1c) !== 0) throw new Unverified('0xa61ab0 list entry +0x1c transform');
@@ -142,7 +142,9 @@ export function placeStatic(m, gen, p, upd, mode){
   s0 = F(s2 + s6);
   s4 = F(s14 + s10);
   s2 = F(s12 + s8);
-  if (m.u8(upd + 0x33) & 1) throw new Unverified('0xa61bb0 update slot +0x33 bit 0');
+  if (m.u8(upd + 0x33) & 1){                                 // 0xa61bb0
+    m.w32(p + 8, w8); m.w32(p + 0xc, (fl | 0x80) >>> 0);
+  }
   m.wf32(p + 0x20, s0); m.wf32(p + 0x24, s2); m.wf32(p + 0x28, s4); m.w32(p + 0x2c, 0);
   m.wf32(p + 0x30, s0); m.wf32(p + 0x34, s2); m.wf32(p + 0x38, s4); m.w32(p + 0x3c, 0);
   if (mode !== 0) throw new Unverified('0xa61ccc spawn-time static placement');
