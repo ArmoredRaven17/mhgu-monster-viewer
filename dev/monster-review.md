@@ -3891,5 +3891,14 @@ both monsters through two rage cycles. Teostra's effect textures re-staged lossl
 **Not done**: the aura's own end (`em027_00_018`) and the actions that turn the aura on and off (the
 viewer shows it throughout); `0x329c40(core, 0)`, how the game ends a running aura; the rage puff
 (`em027_00_020`) and the attack effects (`0xe17ce8`). Teostra's glowing **material** overlays
-(`m01_effect01`, `m02_effect02`, the report above) are the render side, untouched here.
+(`m01_effect01`, `m02_effect02`, the report above) are the render side, untouched here -- see below.
 Notes: `effects-firing.md` section 5.
+
+**Later the same night: the striped layers.** Raven: *"The stripped areas are effects that are not
+modeled"*, then *"Make both fixes for Teostra"*. The stripes were the textures -- `em027_00_eft1/2/3_nomip`
+are MT format 7 and the pool still held the striped DDS decode from before the format-7 fix; they are now
+the ROM's texels (orange ember and spark masks, a painted flame sheet). And the layers lit at rest because
+nothing modelled when Teostra shows them: its machine `0xe1a604` keeps effect01, effect02 and Bombmode dark
+until it enrages, fades them in (`Effect_Start`), loops them (`Effect_Loop`) and fades them out
+(`Effect_End`) on calm. `render/monster.js` ROM_STAGE_CLIPS runs that machine, and Teostra now offers the
+Enraged control it lacked. Commit 6ae6226. Valstrax's `add` texture has the same stale stripes; not touched.
