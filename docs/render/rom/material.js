@@ -307,7 +307,22 @@ export function createRomMaterial(spec){
   const staticEmission = !!(gl && gl.emission
                             && (gl.emission[0] + gl.emission[1] + gl.emission[2]) > 0);
   // the clips hang off the DB record, which createRomMaterial receives as spec.rom -- not off spec
-  const animEmission = !!(rom && rom.anim && rom.anim.some(
+  //
+  // ...and ONLY ON AN OPAQUE SURFACE. Scaling the emission by the albedo is right when the mesh is
+  // the monster's skin: the albedo carries the detail, and a flat add lifts the blacks off the
+  // floor, which is what it was doing to enraged Crimson. It is WRONG when the mesh exists only to
+  // ADD LIGHT. Chaotic Gore's XfB_W__m01_kasan is the case that proved it -- an `add` layer whose
+  // albedo is a near-black glow mask (mean 11.4 of 255), so multiplying by it erased the frenzy
+  // glow completely: measured on the live page, the wing went from 1,260 changed pixels at Max to
+  // ZERO, with the material still holding emissive 3.87.
+  //
+  // Of the ten materials this guard newly reaches, six are opaque (Khezu x2, Crimson x4) and four
+  // are overlays -- `add` on both Magalas' kasan, `blend` on both Mizutsune's m01_angry. Splitting
+  // on the ROM's own blend state keeps the six that were verified right and restores the four.
+  // Materials with a STATIC emission are untouched either way, so Khezu's additive m04__taiden,
+  // whose white (2,2,2) is meant to be tinted by its albedo, keeps the behaviour it always had.
+  const overlay = !!(st && st.blend && st.blend !== 'opaque');
+  const animEmission = !overlay && !!(rom && rom.anim && rom.anim.some(
     c => (c.tracks || []).some(t => t && t.target === 'fEmissionColor')));
   if (lit && (staticEmission || animEmission)){
     // sRGB, for the reason spelled out at material.js's fEmissionColor case: a bare setRGB writes
