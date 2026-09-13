@@ -71,6 +71,8 @@ export function releaseMonster(root){
     releaseBiased(m);
     m.dispose();
   }
+  // the per-arm texture copies stepArmSlime makes are this monster's own, unlike the cached originals
+  for (const tex of root.userData.armSlimeMaps || []) if (tex) tex.dispose();
   // the refract pass's scene copy is a full-size render target and outlived the monster that
   // needed it -- 10 materials on 6 monsters use it, so it is null on most of the library
   if (!refractMats.length) releaseRefractTarget();
@@ -1888,7 +1890,96 @@ export function stepMatAnim(root, tSec, state, monId, tState, prev, levelClip){
   // decides which class, not the blend state -- so the shared evaluator's writes land exactly as
   // they always have. fEmissionColor now reaches the 47 lit-technique additive materials that used
   // to be MeshBasicMaterial, because those are MeshStandardMaterial now.
-  return stepMaterialAnim(root, tSec, pick);
+  const n = stepMaterialAnim(root, tSec, pick);
+  stepArmSlime(root, monId, state);
+  return n;
+}
+
+// BRACHYDIOS'S ARM SLIME, read from its part driver 2026-09-13. Not a clip: the driver writes the
+// two arm materials' constants itself every tick, so no clip table can reach it.
+//
+// WHICH MATERIALS. The spawn setup caches a material per slot by its MRL id byte (word 6 bits 21..28,
+// loaded onto nDraw::Material+0x18 bits 22..29): slot = id - 51 (00f35420..00f3544c). Brachydios's
+// XfB__m01_nenkin_arm_l carries 51 and XfB__m02_nenkin_arm_r 52, so slots 0 and 1 are the arms, and
+// the loop at 00f370b0 walks exactly those two.
+//
+// WHAT IT WRITES, per arm (00f370b0..00f373b0):
+//   fUVTransform V offset (CBMaterial +0x3c, via 0xb0eff8 / 0xb0f130) from the arm's slime level, a
+//     short at [enemy+0xcacc]+0x24 (left) / +0x30 (right): level >= 2 -> -0.66, 1 -> -0.33, 0 -> 0.
+//   fUVTransform U offset (+0x2c): 0.5 while bit 0 of [enemy+0x1428]+0x5cfc is set, which the gauge
+//     block sets at 00f36fd8 once the enrage gauge reaches 10 -- the same switch as the body slime.
+//   fTransparency, the float4's fourth float (CBMaterial +0x0c, via 0xb0aac0): a per-state curve,
+//     dipping to 0.3..0.5 and recovering over 20..35 frames when the level changes. NOT MODELLED --
+//     the viewer shows the settled states, and the row switch happens inside that dip.
+// The offset is ADDED: FUVTransformOffset takes dot(float4(uv, c, 1), fUVTransform[row]), so float 3 of
+// each row is the translation, which is exactly what the game's setter writes. The texture is a 2x3
+// atlas and the arm UVs sit in its top-left cell, so with the sampler repeating:
+//   level 0 -> the top row (near black)   level 1 -> the bottom row (brightest)   level 2 -> the middle
+// Both arms SPAWN at level 2 (00f352f4 mov r3,#2 -> 00f3533c / 00f35364); breaking an arm caps it
+// (0xf35e2c); the attack AI moves it in between, which no viewer state reproduces.
+//
+// Raven, 2026-09-13, on normal Brachydios's arms: "they go from dimmer green to brighter green", then
+// "Have Arms use In (Primed), In (Diminished), Br". Which LEVEL is Primed and which Diminished is a
+// reading, not in the ROM: Primed = 1 (the brightest row), Diminished = 2 (the dimmer green, and the
+// spawn level). Level 0, near black, is not offered.
+export const ROM_ARM_SLIME = {
+  em063_00: {
+    mats: ['XfB__m01_nenkin_arm_l', 'XfB__m02_nenkin_arm_r'],   // slot 0, slot 1
+    spawnLevel: 2,
+    offsetV: [0, -0.33, -0.66],                                 // by level, >= 2 takes the last
+    enragedU: 0.5,
+  },
+};
+// The level each arm is showing, per mounted root: [left, right]. Absent = the ROM's spawn level.
+export function setArmSlimeLevel(root, arm, level){
+  if (!root) return null;
+  const monId = root.userData && root.userData.monId;
+  const t = monId && ROM_ARM_SLIME[monId];
+  if (!t) return null;
+  const lv = root.userData.armSlime || (root.userData.armSlime = [t.spawnLevel, t.spawnLevel]);
+  const set = (i) => { lv[i] = Math.max(0, Math.min(t.offsetV.length - 1, level | 0)); };
+  if (arm === undefined || arm === null) { set(0); set(1); } else set(arm ? 1 : 0);
+  return lv.slice();
+}
+export function armSlimeLevels(root){
+  const monId = root && root.userData && root.userData.monId;
+  const t = monId && ROM_ARM_SLIME[monId];
+  if (!t) return null;
+  return (root.userData.armSlime || [t.spawnLevel, t.spawnLevel]).slice();
+}
+function stepArmSlime(root, monId, state){
+  const t = monId && ROM_ARM_SLIME[monId];
+  if (!t || !root) return;
+  const lv = root.userData.armSlime || [t.spawnLevel, t.spawnLevel];
+  const u = state === 'enraged' ? t.enragedU : 0;
+  // The two arms bind the SAME texture file, and a three.js texture carries its own offset, so each
+  // arm gets ONE private copy, shared by every mesh of that arm -- otherwise the right arm's level
+  // would move the left's. releaseMonster disposes the copies; the cached original is untouched.
+  const maps = root.userData.armSlimeMaps || (root.userData.armSlimeMaps = []);
+  root.traverse(o => {
+    const m = o.material;
+    // ROM-built materials only (romMap is set when the albedo binds): the heat and flat views swap
+    // in materials of their own that must not be handed the arm texture.
+    if (!m || !m.map || !m.userData || !m.userData.romMap) return;
+    const slot = t.mats.indexOf(m.name);
+    if (slot < 0) return;
+    if (!maps[slot]){ maps[slot] = m.userData.romMap.clone(); maps[slot].needsUpdate = true; }
+    if (m.map !== maps[slot]){ m.map = maps[slot]; m.needsUpdate = true; }
+  });
+  for (let slot = 0; slot < maps.length; slot++){
+    const tex = maps[slot];
+    if (!tex) continue;
+    const v = t.offsetV[Math.min(lv[slot], t.offsetV.length - 1)];
+    if (tex.offset.x !== u || tex.offset.y !== v) tex.offset.set(u, v);
+  }
+}
+// Until the Arms rows can drive it: __armSlime(level) sets both arms, __armSlime(level, 0|1) one arm,
+// __armSlime() reads the levels back. Levels 0 / 1 / 2 -- see ROM_ARM_SLIME for what each shows.
+if (typeof window !== 'undefined'){
+  window.__armSlime = (level, arm) => {
+    const root = window.__view && window.__view.mounted && window.__view.mounted.main;
+    return level === undefined ? armSlimeLevels(root) : setArmSlimeLevel(root, arm, level);
+  };
 }
 
 // THE SCENE CAPTURE that feeds Refract. The ROM samples the scene colour buffer; here the scene is
