@@ -231,10 +231,11 @@ export function injectFeatures(mat, rom, lit){
     tagProgram(mat, 'refract');
     chain(mat, sh => {
       Object.assign(sh.uniforms, { uSceneMap: u.uSceneMap, uDistFac: u.uDistFac,
-                                   uDistBlend: u.uDistBlend });
+                                   uDistBlend: u.uDistBlend, uRefractRom: REFRACT_ROM_ORDER });
       sh.fragmentShader = sh.fragmentShader
         .replace('void main() {',
           'uniform sampler2D uSceneMap;\nuniform float uDistFac;\nuniform float uDistBlend;\n' +
+          'uniform float uRefractRom;\n' +
           'void main() {')
         .replace('#include <opaque_fragment>',
           '#include <opaque_fragment>\n' +
@@ -244,9 +245,54 @@ export function injectFeatures(mat, rom, lit){
           // the factor is in PIXELS -- the shipped values are 10 and 20, which as UV offsets would
           // be ten screen-widths -- so it is divided by the target size.
           '\t  vec2 suv = ( gl_FragCoord.xy + rvec.xy * uDistFac ) / res;\n' +
-          '\t  gl_FragColor.rgb = mix( gl_FragColor.rgb, texture2D( uSceneMap, suv ).rgb, uDistBlend );\n' +
+          '\t  vec3 romScene = texture2D( uSceneMap, suv ).rgb;\n' +
+          // WHAT THE SCENE IS MIXED INTO -- see REFRACT_ROM_ORDER. STANDARD is the only program here
+          // that declares totalDiffuse / totalSpecular / totalEmissiveRadiance, so any other class
+          // keeps the old whole-colour mix rather than failing to compile.
+          '#ifdef STANDARD\n' +
+          '\t  gl_FragColor.rgb = uRefractRom > 0.5\n' +
+          '\t    ? mix( totalDiffuse + totalEmissiveRadiance, romScene, uDistBlend ) + totalSpecular\n' +
+          '\t    : mix( gl_FragColor.rgb, romScene, uDistBlend );\n' +
+          '#else\n' +
+          '\t  gl_FragColor.rgb = mix( gl_FragColor.rgb, romScene, uDistBlend );\n' +
+          '#endif\n' +
           '\t}');
     });
   }
   return mat;
+}
+
+// THE ORDER THE SCENE IS MIXED IN, read from the feature body 2026-09-13. Raven: "Check why part 42
+// shows no colour on Astalos." Astalos' charged membrane (XfBAN__E1_wing_taiden, parts 42-44) ships
+// fDistortionBlend 0.8, and this path used to mix the captured scene over the WHOLE final colour --
+// so its pale green emission (0.75, 0.925, 0.575) and its yellow-green specular (0.42, 0.6, 0) both
+// reached the screen at a fifth of their strength, under 80% of whatever sat behind the wing.
+//
+// The ROM does not mix the whole colour. PS_MaterialStd runs FEmission (which ADDS into MC.diffuse)
+// and then FDistortion before FFinalCombiner (albedo*diffuse + specular*fresnel), and
+// FDistortionRefract's body (build/notes monster-shader-model.md) is:
+//
+//     tmp3       = MC.albedo * MC.diffuse                                  -- lit, emissive colour
+//     MC.albedo  = lerp( tmp3, sample(tDistortionMap, MC.uv_screen + offset), fDistortionBlend )
+//     MC.diffuse = float3( <three literals> )
+//
+// so the final colour is lerp(albedo * (lighting + emission), scene, blend) * those literals, PLUS
+// specular*fresnel, which never passes through the lerp. The three literals are not decoded (the
+// operand reader prints them as a type-322 reference, not values); taking them as 1.0 is a READING,
+// forced by Chameleos' stealth: at blend 1.0 anything else would draw his body black or tinted
+// instead of the refracted scene. Here that is mix(totalDiffuse + totalEmissiveRadiance, scene,
+// blend) + totalSpecular -- three.js's diffuse already carries the albedo, and the emission has been
+// scaled by it (gBase), which is albedo * emission.
+//
+// NOT changed: the offset. The ROM takes refract() of the view-space normal with
+// CBDistortionRefract.fDistortionRefract and scales it by view depth and fScreenScale; this still
+// offsets by the view normal times the factor. Astalos ships factor 0, so it is untouched either way.
+//
+// 10 materials carry Refract: Chameleos and Nightcloak Malfestio's stealth, Hellblade Glavenus'
+// tail, Astalos' and Boltreaver's wings. On all of them the specular now survives the mix.
+// __refractRom(false) restores the old whole-colour mix for comparison; __refractRom() reads it back.
+const REFRACT_ROM_ORDER = { value: 1 };
+export function setRefractRomOrder(on){ REFRACT_ROM_ORDER.value = on ? 1 : 0; return !!REFRACT_ROM_ORDER.value; }
+if (typeof window !== 'undefined'){
+  window.__refractRom = (on) => on === undefined ? !!REFRACT_ROM_ORDER.value : setRefractRomOrder(on);
 }
