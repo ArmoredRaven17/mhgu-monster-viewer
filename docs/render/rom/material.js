@@ -308,21 +308,25 @@ export function createRomMaterial(spec){
                             && (gl.emission[0] + gl.emission[1] + gl.emission[2]) > 0);
   // the clips hang off the DB record, which createRomMaterial receives as spec.rom -- not off spec
   //
-  // ...and ONLY ON AN OPAQUE SURFACE. Scaling the emission by the albedo is right when the mesh is
-  // the monster's skin: the albedo carries the detail, and a flat add lifts the blacks off the
-  // floor, which is what it was doing to enraged Crimson. It is WRONG when the mesh exists only to
-  // ADD LIGHT. Chaotic Gore's XfB_W__m01_kasan is the case that proved it -- an `add` layer whose
-  // albedo is a near-black glow mask (mean 11.4 of 255), so multiplying by it erased the frenzy
-  // glow completely: measured on the live page, the wing went from 1,260 changed pixels at Max to
-  // ZERO, with the material still holding emissive 3.87.
+  // I BRIEFLY GATED THIS ON `opaque` AND IT WAS WRONG -- see below, kept because the reasoning is
+  // the trap. Chaotic Gore's kasan glow rendered nothing with the multiply on, so I split on the
+  // ROM's blend state: opaque keeps the multiply, `add`/`blend` overlays do not. That restored
+  // Chaotic Gore and BROKE Gore Magala, whose wing had been correct (Raven: "Well, it was correct.
+  // It is now back to being not correct").
   //
-  // Of the ten materials this guard newly reaches, six are opaque (Khezu x2, Crimson x4) and four
-  // are overlays -- `add` on both Magalas' kasan, `blend` on both Mizutsune's m01_angry. Splitting
-  // on the ROM's own blend state keeps the six that were verified right and restores the four.
-  // Materials with a STATIC emission are untouched either way, so Khezu's additive m04__taiden,
-  // whose white (2,2,2) is meant to be tinted by its albedo, keeps the behaviour it always had.
-  const overlay = !!(st && st.blend && st.blend !== 'opaque');
-  const animEmission = !overlay && !!(rom && rom.anim && rom.anim.some(
+  // The blend state was never the discriminator. The UVs are:
+  //
+  //   Gore Magala    kasan prim 7   125 verts   uv 0.015..0.999 / 0.013..0.626   real
+  //   Chaotic Gore   kasan prim 11   67 verts   uv 0.000..0.000 / 0.000..0.000   ZEROED
+  //
+  // Gore Magala's mesh samples the sparse glow pattern (only 6.3% of that texture is above luma
+  // 60) and the multiply SHAPES it, which is exactly right. Chaotic Gore's samples texel (0,0),
+  // which is black, so the same multiply erases it. Its UVs are missing because the converter
+  // reads the wrong lane of vertex format 77d87024 -- bytes 20..23 are zero on every vertex while
+  // 24..27 carry the real coordinates -- and every kasan mesh carrying a COLOR_0 attribute has the
+  // same hole. That is a conversion defect to fix in the model, not a reason to change the shader
+  // rule for every monster that shares it.
+  const animEmission = !!(rom && rom.anim && rom.anim.some(
     c => (c.tracks || []).some(t => t && t.target === 'fEmissionColor')));
   if (lit && (staticEmission || animEmission)){
     // sRGB, for the reason spelled out at material.js's fEmissionColor case: a bare setRGB writes
