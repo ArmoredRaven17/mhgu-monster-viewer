@@ -1,6 +1,17 @@
 """Dev server for the viewer: serves docs/ with caching off, and accepts screenshots.
 
-    python dev/serve.py            # http://localhost:5584/
+    python dev/serve.py            # port from $PORT (launch.json "autoPort": true), else 5584
+    python dev/serve.py 5591       # an explicit port still works
+
+`python -m http.server <port>` takes the port as a positional argument, so a launch.json entry
+using it has to hardcode one -- and then the preview refuses to start whenever that port is
+already taken (which it is, every time a server is already running from an earlier session).
+PORT from the environment comes first for that reason.
+
+THREADED, and it has to be. A single-threaded socketserver.TCPServer serves one connection at a
+time with a listen backlog of 5, and the viewer opens dozens of module/texture requests at once:
+on Windows the overflow is refused outright (net::ERR_CONNECTION_REFUSED on render/*.js), so the
+page never mounted.
 
 POST /shot?run=<run>&name=<scene> with a PNG data URL (or raw base64) as the body writes
 dev/shots/<run>/<scene>.png. The page's ?scene= harness (index.html) uses it so before/after
@@ -18,7 +29,7 @@ import urllib.parse
 HERE = os.path.dirname(os.path.abspath(__file__))
 DOCS = os.path.normpath(os.path.join(HERE, "..", "docs"))
 SHOTS = os.path.join(HERE, "shots")
-PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 5584
+PORT = int(os.environ.get("PORT") or (sys.argv[1] if len(sys.argv) > 1 else 5584))
 SAFE = re.compile(r"^[A-Za-z0-9_.-]{1,64}$")
 
 
@@ -27,9 +38,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         super().__init__(*a, directory=DOCS, **k)
 
     def end_headers(self):
-        # revalidate rather than refetch: the browser sends If-Modified-Since and gets a 304
-        # for the multi-megabyte pose and model files, while an edited index.html still lands
-        self.send_header("Cache-Control", "no-cache")
+        # the viewer is edited live and reloaded constantly; a cached ES module is the difference
+        # between testing the change and testing the previous one
+        self.send_header("Cache-Control", "no-store, must-revalidate")
         super().end_headers()
 
     def do_POST(self):
@@ -71,6 +82,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 if __name__ == "__main__":
     os.makedirs(SHOTS, exist_ok=True)
+    http.server.ThreadingHTTPServer.allow_reuse_address = True
     srv = http.server.ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
     print("serving %s on http://localhost:%d/  (shots -> %s)" % (DOCS, PORT, SHOTS), flush=True)
     try:
