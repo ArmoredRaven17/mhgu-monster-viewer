@@ -234,10 +234,11 @@ function servicesFor(v, problems, m, known = () => true){
   // What the game handed the renderer, compared where the call's own reads and writes make the bytes
   // known: a stack word or a pointed-at byte the effect code never touched is whatever memory held
   // before (the recorder saw it, the vector does not carry it).
-  function drawService(kind, args, stack, c, nstack, captures){
+  function drawService(kind, args, stack, c, nstack, captures, withS0){
     const s = next(kind);
-    const [gst, , gcap] = s[2];
+    const [gst, gd0, gcap] = s[2];
     for (let k = 0; k < 4; k++) if ((args[k] >>> 0) !== s[1][k]) problems.push(kind + ' r' + k + ' 0x' + (args[k] >>> 0).toString(16) + ', game 0x' + s[1][k].toString(16));
+    if (withS0 && c.sb[0] !== gd0[0]) problems.push(kind + ' s0 0x' + c.sb[0].toString(16) + ', game 0x' + gd0[0].toString(16));
     for (let k = 0; k < nstack; k++){
       const a = (c.r[13] + 4 * k) >>> 0;
       if (known(a) && known(a + 1) && known(a + 2) && known(a + 3) && (stack[k] >>> 0) !== gst[k]) problems.push(kind + ' stack ' + k + ' 0x' + (stack[k] >>> 0).toString(16) + ', game 0x' + gst[k].toString(16));
@@ -273,9 +274,10 @@ function servicesFor(v, problems, m, known = () => true){
       return s[2][0];
     },
     // the engine's model draw (vecdraw.py SERVICES): r0..r3, stack words, d0 and the memory it was handed
-    // 0xc8cf1c reads stack words 0, 2 and 3; 0xc8d208 forwards words 0..4 to 0xc8d9d8. Both return 0.
-    beginModel(args, stack, c){ drawService('begin_model', args, stack, c, 4, { pos: [args[3], 12], lod: [stack[3], 12] }); },
-    drawMesh(args, stack, c){ drawService('draw_mesh', args, stack, c, 5, { matrix: [args[3], 64], st0: [stack[0], 16], st2: [stack[2], 16] }); },
+    // 0xc8cf1c reads stack words 0, 2 and 3; 0xc8d208 forwards words 0..4 and s0 to 0xc8d9d8, which keeps
+    // s0 in s16 at entry (0xc8da08) and scales CBMaterial.fReflectiveColor by it (0xc8ff74). Both return 0.
+    beginModel(args, stack, c){ drawService('begin_model', args, stack, c, 4, { pos: [args[3], 12], lod: [stack[3], 12] }, false); },
+    drawMesh(args, stack, c){ drawService('draw_mesh', args, stack, c, 5, { matrix: [args[3], 64], st0: [stack[0], 16], st2: [stack[2], 16] }, true); },
     loadResource(dti, path, flags){
       const s = next('res_load');
       if (s[1][1] !== dti || s[1][2] !== path || s[1][3] !== flags) problems.push('resource (0x' + dti.toString(16) + ', 0x' + path.toString(16) + ', ' + flags + '), game (0x' + s[1][1].toString(16) + ', 0x' + s[1][2].toString(16) + ', ' + s[1][3] + ')');

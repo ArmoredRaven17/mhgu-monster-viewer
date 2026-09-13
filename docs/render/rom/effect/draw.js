@@ -24,9 +24,9 @@ registerNative(0x13ecc68, (m, c) => {                                     // __a
   clobber(c);
 });
 
-// The renderer's view of a call: r0..r3, the first n stack words and the CPU (for d0 and anything
-// else a decoded service needs). The words are looked at, not read by game code, so they bypass the
-// memory hooks the checker uses.
+// The renderer's view of a call: r0..r3, the first n stack words and the CPU (0xc8d208 also takes s0,
+// the reflect scale -- see modeldraw.js). The words are looked at, not read by game code, so they
+// bypass the memory hooks the checker uses.
 function stackWords(m, c, n){
   const w = [];
   for (let k = 0; k < n; k++){
