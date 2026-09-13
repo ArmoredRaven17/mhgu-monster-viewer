@@ -3780,3 +3780,36 @@ LiteBillboard / LitePolyline RENDERING (the records and vertices are produced an
 primitive draw that turns them into pixels runs through a second engine consumer, `0xbad790` ->
 `0xbab58c` -> `0xbb1e10`, not yet probed); the MFX literal operands (`t4`) in the shader bodies.
 **(3) Viewer wiring** has not started. Decode notes: `E:\offline\decode\notes\effects-draw.md`.
+
+#### 2026-09-13 (evening) - EFFECT RUNTIME in the viewer: Savage's Enrage effect runs on the ROM's code
+
+> Raven: "Proceed with 1-3" -- continued. Drawing (primitives), viewer wiring.
+
+**What you see on Savage (em043_05) with Enraged ticked** is no longer the four table-mounted models.
+It is `em043_05_000` running live: loaded by the game's own loader, its nodes hung from joints 103 and
+3 (his bones), moved every 1/60 s by the translated runtime, drawn every frame by the game's own draw
+code. `__view.effectRuntime(false)` puts the old table mounts back; `__view.effectRuntime()` reports
+what the runtime drew in its last frame.
+
+**Drawn:** the LiteBillboard sprites and the LitePolyline trail -- with the ROM's vertices, index
+strips, blend / depth / cull state and a shader program TRANSLATED from the shader package for exactly
+the variants each draw selects (sprites: camera-facing quads rotated by their own angle; polyline: a
+ribbon widened across the view).
+**NOT drawn yet:** the Model particles (cm150_000, cm202_042 meshes). The runtime runs them and the
+engine's model draw is computed for them, but their shading is the effect model's own material program
+(PS_MaterialStd with the effect overrides), which is not translated yet. So what is on screen is the
+trail and sprites of the effect, not all of it.
+**Not bound, stated:** the scene depth the soft edge fades against (the fade never engages), and the
+engine's fog (the effect's fog interface runs its own no-fog body).
+
+How it was checked before it reached the viewer: the engine's primitive draw (draw system `0xbad790`
+and everything under it) is LIFTED and passes every recorded call; a JS host runs Savage's effect and
+every primitive draw it makes matches the emulator's -- vertices, indices, selected shader records,
+textures, states, constant buffers: **em043_05_000 hung from a moving body, 296 draws, 0 differ; with the
+body pausing, 371 draws, 0 differ; em043_05_002_s 112 draws, 0 differ.** A body at rest made the trail
+compact its points (`0xa71cb4`), a branch no recorded run had taken -- it was recorded and lifted
+before shipping. A branch the viewer reaches that no run recorded stops the effect with a console
+warning naming the address, rather than drawing something invented.
+
+Found on the way, and board-worthy for the MONSTER shaders too (chunk5-shaders Part 18): MFX operator
+129 is `*=` and 131 is `+=`, not stores, and the six comparison operators were inverted in the notes.
