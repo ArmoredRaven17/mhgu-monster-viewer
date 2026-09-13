@@ -40,7 +40,7 @@ function toS32(v){
 }
 
 // A virtual call: the object's vtable slot, dispatched on the code address the ROM would jump to.
-function vcall(m, obj, slot, ...args){
+export function vcall(m, obj, slot, ...args){
   const code = m.u32((m.u32(obj) + slot) >>> 0);
   const fn = CODE.get(code);
   if (!fn) throw new Unverified('virtual +0x' + slot.toString(16) + ' -> 0x' + code.toString(16) + ' not translated');
@@ -298,24 +298,28 @@ export function nodeUpdate(m, owner, inst){
   if (mode === 3) throw new Unverified('0x9bbb4c node transform mode 3');
   const M = vcall(m, owner, 0xec, m.u32(inst + 0x8c), (f110 & 0x100) ? 1 : 0);
   for (let k = 0; k < 0x40; k += 4) m.w32(attach + k, m.u32(M + k));
-  if (m.u32(inst + 0x10c) & 0xf00000) throw new Unverified('0x9bbe14 node scale mode');
-  const len0 = normaliseRow(m, attach, '0x9bbc54');
-  const len1 = normaliseRow(m, attach + 0x10, '0x9bbcd4');
-  const len2 = normaliseRow(m, attach + 0x20, '0x9bbd50');
-  // 0x9bbdcc
-  const sx = F(len0 * m.f32(inst + 0xe0)), sy = F(len1 * m.f32(inst + 0xe4)), sz = F(len2 * m.f32(inst + 0xe8));
-  m.wf32(inst + 0xe0, sx); m.wf32(inst + 0xe4, sy); m.wf32(inst + 0xe8, sz); m.w32(inst + 0xec, 0);
-  let mx = sx > sy ? sx : sy;
-  mx = sz > mx ? sz : mx;
-  m.wf32(inst + 0xfc, mx);
-  if (!(m.u32(inst + 0x110) & 0x800)) throw new Unverified('0x9bbe20 node +0x110 bit 11 clear');
-  // 0x9bbe30: the local translation row is the position scaled
-  let px = F(m.f32(inst + 0xe0) * m.f32(pos));
-  m.wf32(pos, px);
-  const py = F(m.f32(inst + 0xe4) * m.f32(pos + 4));
-  m.wf32(pos + 4, py);
-  const pz = F(m.f32(inst + 0xe8) * m.f32(pos + 8));
-  m.wf32(pos + 8, pz);
+  if (!(m.u32(inst + 0x10c) & 0xf00000)){                                  // else 0x9bbe14: keep the parent's scale
+    const len0 = normaliseRow(m, attach, '0x9bbc54');
+    const len1 = normaliseRow(m, attach + 0x10, '0x9bbcd4');
+    const len2 = normaliseRow(m, attach + 0x20, '0x9bbd50');
+    // 0x9bbdcc
+    const sx = F(len0 * m.f32(inst + 0xe0)), sy = F(len1 * m.f32(inst + 0xe4)), sz = F(len2 * m.f32(inst + 0xe8));
+    m.wf32(inst + 0xe0, sx); m.wf32(inst + 0xe4, sy); m.wf32(inst + 0xe8, sz); m.w32(inst + 0xec, 0);
+    let mx = sx > sy ? sx : sy;
+    mx = sz > mx ? sz : mx;
+    m.wf32(inst + 0xfc, mx);
+  }
+  let px, py, pz;
+  if (m.u32(inst + 0x110) & 0x800){                                        // 0x9bbe30: the position scaled
+    px = F(m.f32(inst + 0xe0) * m.f32(pos));
+    m.wf32(pos, px);
+    py = F(m.f32(inst + 0xe4) * m.f32(pos + 4));
+    m.wf32(pos + 4, py);
+    pz = F(m.f32(inst + 0xe8) * m.f32(pos + 8));
+    m.wf32(pos + 8, pz);
+  } else {                                                                 // 0x9bbe20: as it is
+    px = m.f32(pos); pz = m.f32(pos + 8); py = m.f32(pos + 4);
+  }
   px = F(s20 * px);
   m.wf32(local + 0x30, px); m.wf32(local + 0x34, py); m.wf32(local + 0x38, pz);
   m.wf32(pos, px);
@@ -372,7 +376,7 @@ export function moveNodes(m, owner){
   let count = m.u32(owner + 0x1e4);
   for (let i = 0, off = 0; i < (count & 0xffff); i++, off += 0x130){
     const inst = (m.u32(owner + 0x1f4) + off) >>> 0;
-    if (!(m.u32(inst + 0x10c) & 1)) throw new Unverified('0x9b6778 node instance without +0x10c bit 0');
+    if (!(m.u32(inst + 0x10c) & 1)) continue;                             // 0x9b6778: a stopped node
     nodeIntegrate(m, inst);
     const ox = m.f32(inst + 0x30), oy = m.f32(inst + 0x34), oz = m.f32(inst + 0x38);
     if (m.u32(owner + 0x118) & 0x2000000) throw new Unverified('0x9b6750 effect +0x118 bit 25');
@@ -395,16 +399,17 @@ export function countNodes(m, owner){
   m.w32(owner + 0x1e4, r5);
   for (let i = 0; i < (r5 & 0xffff); i++){
     const inst = (m.u32(owner + 0x1f4) + Math.imul(i, 0x130)) >>> 0;
-    m.u32(inst + 0x108);
-    if (!(m.u32(inst + 0x10c) & 1)) throw new Unverified('0x9b687c node instance without +0x10c bit 0');
+    const w108 = m.u32(inst + 0x108), w10c = m.u32(inst + 0x10c);
+    if (!(w10c & 1)) continue;                                              // 0x9b687c: a stopped node
     const x = m.u32(inst + 0x30), y = m.u32(inst + 0x34), z = m.u32(inst + 0x38);
-    m.u32(inst + 0x110);
+    const w110 = m.u32(inst + 0x110);
     m.w32(inst + 0xc0, x); m.w32(inst + 0xc4, y); m.w32(inst + 0xc8, z); m.w32(inst + 0xcc, 0);
     let g = m.u32(owner + 0x1f0);
-    if (g === 0) throw new Unverified('0x9b6818 effect without generators');
-    while (!((m.u8(g + 0x10) & 7) && m.u16(g + 0x1c) === i)){
-      g = m.u32(g + 0xc);
-      if (g === 0) throw new Unverified('0x9b686c node with no live generator');
+    while (g !== 0 && !((m.u8(g + 0x10) & 7) && m.u16(g + 0x1c) === i)) g = m.u32(g + 0xc);
+    if (g === 0){                                                           // 0x9b686c: no live generator uses it
+      m.w32(inst + 0x108, w108); m.w32(inst + 0x10c, (w10c & ~1) >>> 0); m.w32(inst + 0x110, w110);
+      r5 = m.u32(owner + 0x1e4);
+      continue;
     }
     const w0 = m.u32(owner + 0x1d8), w1 = m.u32(owner + 0x1dc), w2 = m.u32(owner + 0x1e0), w3 = m.u32(owner + 0x1e4);
     r5 = (((w3 & 0xffff0000) + 0x10000) | (w3 & 0xffff)) >>> 0;
@@ -516,6 +521,9 @@ export function move(m, owner){
   m.w32(owner + 0x10c, (m.u32(owner + 0x10c) + (w110 & 0xffff)) >>> 0);
   if ((m.u32(owner + 0x204) & 0xf000) === 0x3000) throw new Unverified('0x9b6648 effect +0x204 mode 3');
 }
+
+// Other layers (construction) add the routines their vtable slots reach.
+export function registerCode(addr, fn){ CODE.set(addr, fn); }
 
 const nothing = () => {};
 const CODE = new Map([

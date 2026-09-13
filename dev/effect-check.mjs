@@ -17,6 +17,7 @@ import * as runtime from '../docs/render/rom/effect/runtime.js';
 import * as billboard from '../docs/render/rom/effect/billboard.js';
 import * as polyline from '../docs/render/rom/effect/polyline.js';
 import * as owner from '../docs/render/rom/effect/owner.js';
+import { newEffect, startEffect, managerRandom, random, internals as C } from '../docs/render/rom/effect/construct.js';
 import { Scratch } from '../docs/render/rom/effect/motion.js';
 
 // address -> [translation, arguments from the vector, what to compare on return]
@@ -129,6 +130,51 @@ const TABLE = {
   '0xa77fb4': [() => {}, v => [], null],
   '0xaaebb0': [owner.polylinePostPass, v => [v.args[0]], null],
   '0x9b6130': [owner.move, v => [v.args[0]], null],
+  '0x9b5cc8': [newEffect, v => [], 'r0'],
+  '0x9baa9c': [startEffect, v => [v.args[0]], 'r0'],
+  '0x9baa70': [C.resetFrame, v => [v.args[0]], null],
+  '0x9baca0': [C.factory, v => [v.args[0]], 'r0'],
+  '0x9bb8fc': [C.rowEnabled, v => [v.args[0], v.args[1]], 'r0'],
+  '0xa91944': [C.allocGenerator, v => [v.args[0], v.args[1]], 'r0'],
+  '0xa780bc': [C.allocGenerator, v => [v.args[0], v.args[1]], 'r0'],
+  '0xaae1b4': [C.allocGenerator, v => [v.args[0], v.args[1]], 'r0'],
+  '0xa91980': [C.ctorModel, v => [v.args[0]], 'r0'],
+  '0xa780f8': [C.ctorLiteBillboard, v => [v.args[0]], 'r0'],
+  '0xaae1f0': [C.ctorLitePolyline, v => [v.args[0]], 'r0'],
+  '0xa55db4': [C.generatorCtor, v => [v.args[0]], null],
+  '0xae957c': [C.generatorBaseCtor, v => [v.args[0]], null],
+  '0xa919d4': [C.initModel, v => [v.args[0], v.args[1], v.args[2], v.args[3]], 'r0'],
+  '0xa7814c': [C.initLiteBillboard, v => [v.args[0], v.args[1], v.args[2], v.args[3]], 'r0'],
+  '0xaae244': [C.initLitePolyline, v => [v.args[0], v.args[1], v.args[2], v.args[3]], 'r0'],
+  '0xa55fe0': [C.generatorInit, v => [v.args[0], v.args[1], v.args[2], v.args[3]], 'r0'],
+  '0xae989c': [C.generatorBind, v => [v.args[0], v.args[1], v.args[2], v.args[3]], 'r0'],
+  '0xb594a8': [C.entryIsPlain, v => [v.args[0]], 'r0'],
+  '0xa585dc': [C.polylineBlock, v => [v.args[0], v.args[1], v.args[2], v.args[3]], 'r0'],
+  '0xa58690': [C.generatorSizes, v => [v.args[0], v.args[1], v.args[2]], 'r0'],
+  '0xaea0e8': [C.headerSize, v => [v.args[0]], 'r0'],
+  '0xb5a03c': [(m, t) => C.typeHasBit(t), v => [v.args[0]], 'r0'],
+  '0x9bb358': [C.poolSetup, v => [v.args[0]], 'r0'],
+  '0xa56174': [C.linkPool, v => [v.args[0], v.args[1]], 'r0'],
+  '0xae81f4': [C.nodeBind, v => [v.args[0], v.args[1], v.args[2], v.args[3]], null],
+  '0xb8ef7c': [C.workArea, v => [v.args[0], v.args[1], v.args[2]], 'r0'],
+  '0x9bb69c': [C.nodeSetup, v => [v.args[0]], 'r0'],
+  '0xae8268': [C.nodeBlocks, v => [v.args[0]], 'r0'],
+  '0xae83c8': [C.nodeInit, v => [v.args[0]], null],
+  '0xb8eea0': [managerRandom, v => [v.args[0], v.args[1]], 'r0'],
+  '0xae9424': [C.nodeSeed, v => [v.args[0]], null],
+  '0xae9df4': [C.generatorSeed, v => [v.args[0]], null],
+  '0xa56960': [C.generatorSeedStart, v => [v.args[0]], null],
+  '0xa91a30': [C.startModel, v => [v.args[0]], null],
+  '0xa78178': [C.startLiteBillboard, v => [v.args[0]], null],
+  '0xaae2a4': [C.startLitePolyline, v => [v.args[0]], null],
+  '0xa562a0': [C.generatorStart, v => [v.args[0]], null],
+  '0x9b38dc': [C.drawFlags, v => [v.args[0], v.args[1]], 'r0'],
+  '0xae9938': [C.generatorFlags, v => [v.args[0]], null],
+  '0xa588b8': [C.paramBit16, v => [v.args[0]], 'r0'],
+  '0xa91b80': [C.transformModel, v => [v.args[0]], 'r0'],
+  '0xa783a8': [C.transformLiteBillboard, v => [v.args[0]], 'r0'],
+  '0xaaea38': [C.transformLitePolyline, v => [v.args[0]], 'r0'],
+  '0xa56d1c': [C.generatorTransform, v => [v.args[0], v.args[1]], 'r0'],
 };
 // the translation's own stand-in for stack locals: never an input, never compared
 const inScratch = a => a >= motion.SCRATCH_BASE && a < motion.SCRATCH_BASE + 0x100000;
@@ -161,6 +207,25 @@ function hexBytes(h){
   return b;
 }
 
+// The outside world a call reached (allocator, unique ids), replayed in the order the game called it.
+function servicesFor(v, problems){
+  const queue = (v.services || []).slice();
+  const next = kind => {
+    const s = queue.shift();
+    if (!s || s[0] !== kind){ problems.push('called ' + kind + ' where the game called ' + (s ? s[0] : 'nothing')); throw new Error('service order'); }
+    return s;
+  };
+  return {
+    queue,
+    alloc(size, align){
+      const s = next('alloc');
+      if (s[1][1] !== (size >>> 0) || s[1][2] !== align) problems.push('alloc(0x' + (size >>> 0).toString(16) + ', ' + align + '), game alloc(0x' + s[1][1].toString(16) + ', ' + s[1][2] + ')');
+      return s[2];
+    },
+    nextId(){ return next('next_id')[2]; },
+  };
+}
+
 function check(fnName, v){
   const [fn, argsOf, retKind] = TABLE[fnName];
   const m = new Mem();
@@ -177,6 +242,7 @@ function check(fnName, v){
   }
   const wrote = new Map();
   const problems = [];
+  m.svc = servicesFor(v, problems);
   m.onRead = (a, n) => {
     for (let i = 0; i < n; i++){
       if (!given.has(a + i) && !wrote.has(a + i) && !inScratch(a + i)){ problems.push('read outside inputs at 0x' + (a + i).toString(16)); break; }
@@ -186,7 +252,8 @@ function check(fnName, v){
   let ret;
   Scratch.depth = 0;                    // a refused call never freed its scratch frames
   try { ret = fn(m, ...argsOf(v)); }
-  catch (e){ return [(e instanceof Unverified ? 'UNVERIFIED ' : 'THREW ') + e.message]; }
+  catch (e){ return problems.length ? problems : [(e instanceof Unverified ? 'UNVERIFIED ' : 'THREW ') + e.message]; }
+  if (m.svc.queue.length) problems.push('the game made ' + m.svc.queue.length + ' more service calls, next ' + m.svc.queue[0][0]);
   for (const [a, b] of want){
     if (wrote.get(a) !== b) problems.push('byte 0x' + a.toString(16) + ': game ' + b.toString(16) + ', js ' + (wrote.has(a) ? wrote.get(a).toString(16) : 'unwritten'));
   }
