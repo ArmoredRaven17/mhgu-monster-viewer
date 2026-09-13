@@ -2948,7 +2948,20 @@
    "list": "0",
    "clip": "Motion[41]"
   },
-  "note": "Reviewed by Raven. **TWO KINDS OF ROW: the body's own part table, and a tentacle form row per tentacle.** The tentacles are a second body (`ROM_ATTACHED_BODY`, decoded by the render agent 2026-09-13): each of em084_00_left and em084_00_right has its own six-group part table, picked in the ROM by a form byte, and the form dropdown for each is already built. This entry only NAMES them, through the `attached` map that code reads -- Base Form, Exposed, Uragaan Form, Brachydios Form, Glavenus Form, Ivory Lagiacrus Form, in the dropdown's group order g0..g5, which is how he read it. That order is consistent with the ROM decode, which puts the rest form on g0 and the body-part-state-3 form (the exposed core) on g1; the four skull forms sit on parts 20, 30, 40 and 50, whose materials are generic (`XfB_N__E0_1`, `m11_eyes`), so WHICH skull is which monster rests on his eyes alone. The same six names go on both tentacles. **FACE PLATE RIDES ENRAGED**, per *'Enraged form uses Face Plate Charging Forms'*: its charging half adds parts 20 and 24 (`XfBA_A1_shell`), so Intact `3,4,113,114|3,4,20,24,113,114`, Cracked `4,13,114|4,13,20,24,114`, Broken `13,14|13,14,20`, with `state: \"rage\"` declared. **LEFT/RIGHT MEASURED** against the midline x~13300: blowhole 5/15/25 at x~20900 is LEFT, 6/16/26 at x~5600 RIGHT, matching his order. Face `1,2` / `2,11` / `11,12` and Back Plates `7,8` / `8,17` / `17,18,28` are In/Cr/Br in ROM order. No `sheds`: the two shipped pieces are the tentacles, which are attached bodies, not severed parts.",
+  "levels": {
+   "name": "State",
+   "rungs": [
+    "Calm",
+    "Charging",
+    "Enraged"
+   ],
+   "rage": [
+    false,
+    false,
+    true
+   ]
+  },
+  "note": "Reviewed by Raven. **TWO KINDS OF ROW: the body's own part table, and a tentacle form row per tentacle.** The tentacles are a second body (`ROM_ATTACHED_BODY`, decoded by the render agent 2026-09-13): each of em084_00_left and em084_00_right has its own six-group part table, picked in the ROM by a form byte, and the form dropdown for each is already built. This entry only NAMES them, through the `attached` map that code reads -- Base Form, Exposed, Uragaan Form, Brachydios Form, Glavenus Form, Ivory Lagiacrus Form, in the dropdown's group order g0..g5, which is how he read it. That order is consistent with the ROM decode, which puts the rest form on g0 and the body-part-state-3 form (the exposed core) on g1; the four skull forms sit on parts 20, 30, 40 and 50, whose materials are generic (`XfB_N__E0_1`, `m11_eyes`), so WHICH skull is which monster rests on his eyes alone. The same six names go on both tentacles. **FACE PLATE RIDES A CHARGING CONTROL, NOT ENRAGED -- corrected 2026-09-13.** First written on the rage axis from *'Enraged form uses Face Plate Charging Forms'*; Raven then clarified: *'Nakarkos will need a Charging state ... His Charging state is shared by Calm and Enraged states to show the charge. Calm, rainbow effect. Enraged, it is red.'* So charging is its own 2-rung `levels` axis (Charging: Off / On) and Enraged stays independent -- NOT the app's Charged checkbox, which is mutually exclusive with Enraged and could never show the red charge. The charging half adds parts 20 and 24 (`XfBA_A1_shell`): Intact `3,4,113,114|3,4,20,24,113,114`, Cracked `4,13,114|4,13,20,24,114`, Broken `13,14|13,14,20`. **THE COLOUR IS THE SHELL'S OWN CHARGE LADDER** (**波動砲 hadouhou**, wave-motion cannon): hadouhou1_Loop blue (its auto), 2_Loop green, 3_Loop yellow, MAX_Start white->red, MAX_Loop red, _Fire red fading -- his calm 'rainbow' is the 1/2/3 stages and his enraged red is MAX. The viewer already lands Enraged on MAX_Loop via the clip picker's last-looping-clip fallback; whether calm cycles as a rainbow rather than holding stage 1 is the render side's. The Enraged toggle does not depend on this row: `XfBA1__m01_light` carries angry_Change / angry_Loop, which the enrage detector finds on its own. **LEFT/RIGHT MEASURED** against the midline x~13300: blowhole 5/15/25 at x~20900 is LEFT, 6/16/26 at x~5600 RIGHT, matching his order. Face `1,2` / `2,11` / `11,12` and Back Plates `7,8` / `8,17` / `17,18,28` are In/Cr/Br in ROM order. No `sheds`: the two shipped pieces are the tentacles, which are attached bodies, not severed parts. **ONE STATE CONTROL, AT HIS CALL** (*'I'd prefer a single state toggle for Calm, Charging, Enraged'*): `levels` State = Calm / Charging / Enraged with `levels.rage` = [false, false, true], which also hides the Enraged checkbox. Face Plate keys carry three halves -- Calm draws no charge parts, Charging and Enraged both draw 20 and 24 -- so Charging is the charge under the calm material (the hadouhou 1/2/3 'rainbow') and Enraged is the charge under the enraged material (MAX, red), matching both his descriptions: *'Enraged form uses Face Plate Charging Forms'* and *'Calm, rainbow effect. Enraged, it is red.'* Replaces the brief two-control version (Charging: Off/On beside the Enraged checkbox).",
   "rows": {
    "1,2,11,12": {
     "name": "Face",
@@ -2961,17 +2974,17 @@
    },
    "3,4,13,14,20,24,113,114": {
     "name": "Face Plate",
-    "state": "rage",
-    "default": "3,4,113,114|3,4,20,24,113,114",
+    "state": "level",
+    "default": "3,4,113,114|3,4,20,24,113,114|3,4,20,24,113,114",
     "order": [
-     "3,4,113,114|3,4,20,24,113,114",
-     "4,13,114|4,13,20,24,114",
-     "13,14|13,14,20"
+     "3,4,113,114|3,4,20,24,113,114|3,4,20,24,113,114",
+     "4,13,114|4,13,20,24,114|4,13,20,24,114",
+     "13,14|13,14,20|13,14,20"
     ],
     "options": {
-     "3,4,113,114|3,4,20,24,113,114": "Intact",
-     "4,13,114|4,13,20,24,114": "Cracked",
-     "13,14|13,14,20": "Broken"
+     "3,4,113,114|3,4,20,24,113,114|3,4,20,24,113,114": "Intact",
+     "4,13,114|4,13,20,24,114|4,13,20,24,114": "Cracked",
+     "13,14|13,14,20|13,14,20": "Broken"
     }
    },
    "5,15,25": {
