@@ -3680,3 +3680,46 @@ cases.
 LitePolylines in `em043_05_000`); construction (`rEffectList::load`, the factory, pool setup, start
 slots); node and owner per-frame (`0x9b6130`, the node transform that will take Savage's joint); the
 draw passes (slot 21) that turn particle state into geometry. Nothing is wired into the viewer yet.
+
+#### 2026-09-13 (later) - EFFECT RUNTIME, continued: the whole effect, from file bytes to frames
+
+> Continuing Raven's "Keep going, Savage is our test case for doing effects for monsters that use them."
+
+The "Not done yet" list in the entry above is now mostly done. Translated and checked the same way
+(call vectors from the emulator, every byte read and written, unexercised branches refused):
+
+| layer | routines | checked on |
+|---|---|---|
+| LiteBillboard, LitePolyline (shape type 1) | pre-update, spawn, per-particle update and frame passes | both Savage files; em043_05_000's two LitePolylines use shape types 6 and 0, still refused |
+| the effect's own frame | `uEffect::move` `0x9b6130` (frame step, substeps), effect matrix `0x9b228c`, frame preparation `0x9bb9d0` / `0xa56c10`, node integration `0xae8ac0`, node local transforms `0xae8b74` (quaternion) / `0xae8d18` (blended euler), node world transform `0x9bba54`, node start delay `0xae9340`, node counting `0x9b6794`, generator post passes `0xa91c48` / `0xaaebb0` | all 120 frames of em043_05_002_s, and every call of the arithmetic ones (726 node transforms) |
+| construction | `uEffect::newInstance` `0x9b5cc8` and its base constructors; the start routine `0x9baa9c`: factory `0x9baca0` with the per-type constructors and slot-6 inits, node-instance and particle-pool allocation `0x9bb358`, node setup `0x9bb69c`, per-generator seeds and slots 8, 9, 15; the manager's MtRandom `0x7c9234` | all eleven em043 effects (only em043_05_000's LitePolyline shape kinds 6 and 0 refused) |
+| loading | `rEffectList::load` `0xb59604` (entries, body, per-row texture / animation / mesh requests, the child list) and `rEffectAnim::load` `0xce14a4` | all eleven |
+
+**End to end.** `dev/effect-e2e.mjs` runs the JS alone: starting from the emulator's memory just
+before `newInstance` (the game's static initialisers and effect manager, run by the game's code), it
+loads the .efl and its .ean/.mod resources, builds and starts the effect and moves it once per frame,
+then compares every non-zero page of the data sections and heap with the emulator's after the same
+run. **Savage's em043_05_002_s and Deviljho's em043_00_004_s: 120 frames, about 5.5 MB compared,
+0 bytes differ.** One frame short gives 345 differing bytes, so the comparison bites. The other nine
+em043 effects stop at branches not yet translated.
+
+Harness faults found on the way, both of which had silently shortened what the vectors saw: the
+emulator's libc stubs (`memclr`/`memset`/`memcpy`) wrote with calls no memory hook sees, so the
+construction vectors lacked those bytes (re-recorded; per-frame vectors were unaffected); and the
+allocator, id counter, resource manager and file streams are now recorded as services and replayed.
+
+**What the effect is attached to.** Every recorded run is a free effect: uEffect `+0x30` (the parent
+model) is null, so node transforms hang from the effect's own matrix (`0x9bd058` returns `+0x120`).
+The parent path -- `0x9bd058` calling the parent's vtable `+0x54` with the node's joint number
+(node instance `+0x8c`), and `0x9b228c`'s parent branch -- is refused until a run with a parent
+exists. That is the seam where Savage's joint goes in.
+
+**Harness stand-ins still in the resources:** the rModel handle carries only the .mod mesh table at
+`+0x74`/`+0x78` (the Model generator's slot 15 reads `+0x84` of it, zero here; a real rModel may not
+be zero there), texture handles are empty objects, and the child list em043_05_002_s names is an
+empty object. None of them is read by the recorded simulation paths beyond what is stated.
+
+**Not done yet:** LitePolyline shape types 6 and 0; the branches the other Deviljho effects reach
+(spawn without an emitter shape, scale curves, repeat counts, colour sources, ...); attaching to a
+parent joint; the draw passes (slot 21) that turn particle state into geometry; the viewer wiring
+(ROM data blob, harvested effect files, the renderer). Nothing is wired into the viewer yet.
