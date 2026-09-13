@@ -43,8 +43,9 @@ const host = new EffectHost({
       return { count, table: new Uint8Array(mod.subarray(off, off + 48 * count)) };
     },
     textureSize(name){
-      const w2 = readFileSync(ext(name, '.tex')).readUInt32LE(8);
-      return [(w2 >>> 6) & 0x1fff, w2 >>> 19];
+      const t = readFileSync(ext(name, '.tex'));
+      const w1 = t.readUInt32LE(4), w2 = t.readUInt32LE(8), w3 = t.readUInt32LE(12), shift = (w1 >>> 24) & 0xf;
+      return [((w2 >>> 6) & 0x1fff) << shift, (w2 >>> 19) << shift, ((w3 >>> 16) & 0x1fff) << shift];
     },
     anim: name => new Uint8Array(readFileSync(ext(name, '.ean'))),
     material(name, index){

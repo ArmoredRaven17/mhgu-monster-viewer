@@ -231,7 +231,8 @@
   "effect\\base\\cm202_042_HQ_NOMIP": {
    "size": [
     512,
-    512
+    512,
+    1
    ],
    "file": "tex/422e2220e2a73618.webp"
   },
@@ -436,7 +437,8 @@
   "effect\\base\\cm100_000_GSM_HQ_NOMIP": {
    "size": [
     128,
-    128
+    128,
+    1
    ],
    "file": "tex/83b44f3e236c1717.webp"
   }

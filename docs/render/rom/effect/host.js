@@ -41,7 +41,9 @@ export class EffectHost {
   //        initialisers and the effect manager, as the emulator leaves them)
   // heap: the first free address; records: docs/effects/mfx-records.json .records;
   // drawSystem: docs/effects/draw-system.json's bytes; resources: { meshTable(name) -> { count, table },
-  //        textureSize(name) -> [w, h], anim(name) -> .ean bytes, material(name, index) -> modeldraw's answers }
+  //        textureSize(name) -> [w, h, depth] as the loader reads the .tex header (0xb4e49c: word 2 bits 6..18
+  //        and 19..31, word 3 bits 16..28, each shifted left by word 1 bits 24..27), anim(name) -> .ean bytes,
+  //        material(name, index) -> modeldraw's answers }
   // strict: an image page the pages do not carry is refused instead of read as zeros -- the viewer ships
   // only the pages the checks touched (docs/effects/rom-pages.bin), and a branch reaching another one
   // must be exported, not guessed at
@@ -102,7 +104,10 @@ export class EffectHost {
   // The resource manager's load (vtable +0x30). A handle is a blank object except for what the
   // effect code and the draws read of it: rModel +0x74 / +0x78 the .mod's 48-byte mesh table and count
   // (0xb460c8), rTexture +0xd0 a texture object with the .tex size at +0x1e / +0x20 (nDraw::Texture);
-  // an rEffectAnim is loaded from its .ean after the list (load.js).
+  // an rEffectAnim is loaded from its .ean after the list (load.js). An rTexture also carries what its own
+  // loader (rTexture vtable +0x2c, 0xb4e49c) leaves: the size at +0xdc / +0xe0 / +0xe4 and 1/width,
+  // 1/height at +0xd4 / +0xd8, which the primitive draw copies into CBPrimitiveCoord (0xbb2194) -- a
+  // texel-coordinate sprite's uv is its texel coordinate times them.
   loadResource(dti, path){
     const m = this.m, name = this.cstr(path);
     const handle = this.malloc(0x200);
@@ -115,10 +120,12 @@ export class EffectHost {
       m.load(handle + 0x74, new Uint8Array(new Uint32Array([t, count]).buffer));
     }
     if (dti === DTI.rTexture){
-      const [w, h] = this.resources.textureSize(name);
+      const [w, h, d = 1] = this.resources.textureSize(name);
       const tex = this.malloc(0x100);
       m.load(tex + 0x1e, new Uint8Array(new Uint16Array([w, h]).buffer));
       m.load(handle + 0xd0, u32bytes(tex));
+      m.load(handle + 0xd4, new Uint8Array(new Float32Array([1 / w, 1 / h]).buffer));
+      m.load(handle + 0xdc, new Uint8Array(new Uint32Array([w, h, d]).buffer));
       this.handles.set(tex, { dti, name, texture: true });
     }
     return handle;
