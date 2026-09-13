@@ -15,6 +15,7 @@ import * as emit from '../docs/render/rom/effect/emit.js';
 import * as spawn from '../docs/render/rom/effect/spawn.js';
 import * as runtime from '../docs/render/rom/effect/runtime.js';
 import * as billboard from '../docs/render/rom/effect/billboard.js';
+import * as polyline from '../docs/render/rom/effect/polyline.js';
 
 // address -> [translation, arguments from the vector, what to compare on return]
 const TABLE = {
@@ -88,6 +89,19 @@ const TABLE = {
   '0xa6703c': [billboard.texAnimStep, v => [v.args[0], v.args[1], v.args[2], s0(v)], 'r0'],
   '0xa7aecc': [billboard.updateLBParticle, v => [v.args[0], v.args[1]], 'r0'],
   '0xa7adac': [billboard.billboardFrame, v => [v.args[0]], 'r0'],
+  '0x1ebe8': [polyline.matMul, v => [v.args[0], v.args[1]], null],
+  '0xa69af0': [polyline.polyBasis, v => [v.args[0], v.args[1], v.args[2], v.args[3], stackArg(v, 0), stackArg(v, 1)], null],
+  '0xa65014': [polyline.polyPoints, v => [v.args[0], v.args[1], v.args[2], v.args[3]], null],
+  '0xa67540': [polyline.polyRandomVec, v => [v.args[0], v.args[1], v.args[2], v.args[3], stackArg(v, 0), stackArg(v, 1), stackArg(v, 2)], null],
+  '0xa6b2f4': [polyline.polyShapeInit1, v => [v.args[0], v.args[1], v.args[2]], null],
+  '0xa6b06c': [polyline.polyShapeInit, v => [v.args[0], v.args[1], v.args[2], v.args[3]], null],
+  '0xa6ecc4': [polyline.polyShapeUpdate1, v => [v.args[0], v.args[1], v.args[2]], null],
+  '0xa6ea50': [polyline.polyShapeUpdate, v => [v.args[0], v.args[1], v.args[2]], 'r0'],
+  '0xcaa710': [polyline.animBindLPL, v => [v.args[0], v.args[1], v.args[2]], 'r0'],
+  '0xa6908c': [polyline.baseColour2, v => [v.args[0], v.args[1]], null],
+  '0xab4710': [polyline.spawnLPL, v => [v.args[0], v.args[1], v.args[2]], 'r0'],
+  '0xab5090': [polyline.updateLPLParticle, v => [v.args[0], v.args[1]], 'r0'],
+  '0xab4f64': [polyline.polylineFrame, v => [v.args[0]], 'r0'],
   '0xa574c4': [runtime.generatorUpdate, v => [v.args[0]], 'r0', v => translatedType(v)],
 };
 // the translation's own stand-in for stack locals: never an input, never compared
@@ -111,7 +125,7 @@ function readU32(v, a){
   return null;
 }
 // generator-level vectors only count for the generator types the runtime has translated
-const translatedType = v => [runtime.VTABLE.Model, runtime.VTABLE.LiteBillboard].includes(readU32(v, v.args[0]));
+const translatedType = v => Object.values(runtime.VTABLE).includes(readU32(v, v.args[0]));
 // s0 at entry (the low half of d0)
 function s0(v){ return bitsf32(v.d[0][0]); }
 
