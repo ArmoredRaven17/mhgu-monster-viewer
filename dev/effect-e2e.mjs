@@ -78,8 +78,24 @@ if (owner !== info.owner || list !== info.list) throw new Error('allocation orde
 if (loadEffectList(m, list, s0) !== 1) throw new Error('load failed');
 for (const [h, p] of pendingAnims) if (loadEffectAnim(m, h, stream(readFileSync(p))) !== 1) throw new Error('anim load failed: ' + p);
 m.load(owner + 0xf4, new Uint8Array(new Uint32Array([list]).buffer));
+// a parent unit (efx/parent.py), allocated where the harness allocated it, its joints moving every frame
+const par = info.parent;
+let parentArray = 0;
+if (par){
+  const hex = h => Uint8Array.from(h.match(/../g), b => parseInt(b, 16));
+  const P = malloc(0x1000), VT = malloc(0x400), TABLE = malloc(0x100);
+  parentArray = malloc(0xa0 * par.joints.length);
+  if (P !== par.object || VT !== par.vtable || TABLE !== par.table || parentArray !== par.array) throw new Error('parent allocation diverged');
+  m.load(P, hex(par.bytes.object)); m.load(VT, hex(par.bytes.vtable)); m.load(TABLE, hex(par.bytes.table));
+  m.load(parentArray, hex(par.frames[0]));
+  m.load(owner + 0x30, new Uint8Array(new Uint32Array([P]).buffer));
+  par.hex = hex;
+}
 if (startEffect(m, owner) !== 1) throw new Error('start failed');
-for (let f = 0; f < info.frames; f++) move(m, owner);
+for (let f = 0; f < info.frames; f++){
+  if (par) m.load(parentArray, par.hex(par.frames[f]));
+  move(m, owner);
+}
 if (heap !== info.heapAtEnd) console.log('heap end 0x' + heap.toString(16) + ', emulator 0x' + info.heapAtEnd.toString(16));
 
 const skip = a => info.skip.some(([s, n]) => a >= s && a < s + n);

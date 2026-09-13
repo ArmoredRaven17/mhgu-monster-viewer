@@ -72,4 +72,5 @@ native(0xa6908c, (m, ...a) => polyline.baseColour2(m, ...a), A2, null);
 native(0xa6ecc4, (m, ...a) => polyline.polyShapeUpdate1(m, ...a), A3, null);
 native(0xa71870, (m, ...a) => spawn.lastPass(m, ...a), A2, null);
 native(0xcaa710, (m, ...a) => polyline.animBindLPL(m, ...a), A3, 'r0');
+native(0xa742c0, (m, ...a) => spawn.velDir(m, ...a), ['r0', 'r1', 'r2', 'r3', 'st0'], null);
 native(0x13ecc68, (m, d, s, n) => { for (let i = 0; i < n; i++) m.w8(d + i, m.u8(s + i)); }, A3, null);   // __aeabi_memcpy

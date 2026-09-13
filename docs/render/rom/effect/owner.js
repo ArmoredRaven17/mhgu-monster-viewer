@@ -85,13 +85,33 @@ function quatRows(m, q, out){
   m.wf32(out + 0x28, s0); m.w32(out + 0x2c, 0);
 }
 
-// 0x9b228c (vtable +0x50): the effect's world matrix from its position, quaternion and scale.
+// 0x9b228c (vtable +0x50): the effect's world matrix from its position, quaternion and scale -- with a
+// parent (+0x30), from its quaternion and its position relative to the parent (+0x160), times the
+// parent's world matrix (+0xb0), the result's translation becoming the effect's position (+0x40).
 export function ownerMatrix(m, owner){
-  if (m.u32(owner + 0x30) !== 0) throw new Unverified('0x9b22ac effect attached to a parent');
-  quatRows(m, owner + 0x50, owner + 0x120);
-  const x = m.u32(owner + 0x40), y = m.u32(owner + 0x44), z = m.u32(owner + 0x48);
-  m.w32(owner + 0x150, x); m.w32(owner + 0x154, y); m.w32(owner + 0x158, z);
-  m.w32(owner + 0x15c, 0x3f800000);
+  const parent = m.u32(owner + 0x30);
+  if (parent !== 0){
+    if ((((m.u32(parent + 0xc) & 7) - 1) >>> 0) > 1) throw new Unverified('0x9b24a0 parent no longer a live unit');
+    const sc = new Scratch(m);
+    const local = sc.alloc(0x40), world = sc.alloc(0x40);
+    quatRows(m, owner + 0x50, local);                                        // 0x9b22c0: the same rows, on the stack
+    m.w32(local + 0x30, m.u32(owner + 0x160)); m.w32(local + 0x34, m.u32(owner + 0x164));
+    m.w32(local + 0x38, m.u32(owner + 0x168)); m.w32(local + 0x3c, 0x3f800000);
+    if ((m.u32(owner + 0x114) >>> 28) === 3) throw new Unverified('0x9b2394 effect in parent mode 3');
+    if ((m.u32(owner + 0x34) | 0) >= 0) throw new Unverified('0x9b2514 effect root on a parent joint');
+    matMulTo(m, world, local, parent + 0xb0);                                // 0x9b2558
+    for (let k = 0; k < 0x40; k += 4) m.w32(owner + 0x120 + k, m.u32(world + k));
+    m.w32(owner + 0x40, m.u32(world + 0x30)); m.w32(owner + 0x44, m.u32(world + 0x34));
+    m.w32(owner + 0x48, m.u32(world + 0x38)); m.w32(owner + 0x4c, 0);
+    sc.free();
+    if (((m.u32(owner + 0x114) >>> 28) & 0xf) === 2) throw new Unverified('0x9b2604 effect in parent mode 2');
+    if (vcall(m, owner, 0x88) === 0) throw new Unverified('0x9b2684 effect +0x88 refusing the parent');
+  } else {
+    quatRows(m, owner + 0x50, owner + 0x120);
+    const x = m.u32(owner + 0x40), y = m.u32(owner + 0x44), z = m.u32(owner + 0x48);
+    m.w32(owner + 0x150, x); m.w32(owner + 0x154, y); m.w32(owner + 0x158, z);
+    m.w32(owner + 0x15c, 0x3f800000);
+  }
   for (const [k, row, dst] of [[0x60, 0x120, 0xb0], [0x64, 0x130, 0xc0], [0x68, 0x140, 0xd0]]){   // 0x9b26d0
     const s0 = m.f32(owner + k);
     const a = m.f32(owner + row), b = m.f32(owner + row + 4), c = m.f32(owner + row + 8), d = m.f32(owner + row + 0xc);
@@ -249,11 +269,25 @@ export function nodeLocalLerp(m, inst, mat, vec, t){
   sc.free();
 }
 
-// 0x9bd058 (vtable +0xec): the matrix a node hangs from. A free effect's own rotation matrix; with a
-// parent (+0x30) and a joint, the parent's vtable +0x54 (the joint matrix) -- not reached yet.
+// 0x9bd058 (vtable +0xec): the matrix a node hangs from. A free effect's (or an unbound node's) own
+// rotation matrix; with a parent (+0x30) and a joint number, the parent's vtable +0x54 -- for a monster,
+// uModel's joint matrix 0x939278.
 export function attachMatrix(m, owner, joint, flag){
-  if (m.u32(owner + 0x30) !== 0) throw new Unverified('0x9bd068 effect attached to a parent joint');
-  return owner + 0x120;
+  const parent = m.u32(owner + 0x30);
+  if (parent === 0 || (joint | 0) < 0) return owner + 0x120;
+  if ((m.u32(owner + 0x118) & 0x4000000) && (m.u32(owner + 0xf0) & 0x800000)) throw new Unverified('0x9bd098 attach through the parent table directly');
+  return vcall(m, parent, 0x54, joint, flag);
+}
+
+// 0x939278 (uModel vtable +0x54): a joint's world matrix by joint number -- +0x498 maps the number to a
+// joint index (0xff: none), +0x494 is the joint array (0xa0 bytes each, the matrix at +0x10); a number
+// the model does not map, or a negative one, gives the model's own world matrix (+0xb0). Not effect code:
+// the parent the effect hangs from.
+export function jointMatrix(m, model, joint){
+  if ((joint | 0) < 0) return model + 0xb0;
+  const index = m.u8((m.u32(model + 0x498) + (joint & 0xff)) >>> 0);
+  if (index === 0xff) return model + 0xb0;
+  return (m.u32(model + 0x494) + index * 0xa0 + 0x10) >>> 0;
 }
 
 // |row| as the ROM sums it: ((x1 * x1 + x0 * x0) + x2 * x2) + x3 * x3.
@@ -530,6 +564,8 @@ const CODE = new Map([
   [0x9b228c, ownerMatrix], [0x44d08, isPaused], [0x44d30, flagF0bit4], [0x9b4140, updateDelta],
   [0x9bb9d0, framePrep], [0x9bba54, nodeUpdate], [0x9bd058, attachMatrix], [0x9bd168, nothing],
   [0x9ba8c4, (m, owner, gen, pos, h) => h],                  // vtable +0x90: bx lr, s0 back unchanged
+  [0x9b4184, () => 1],                                        // vtable +0x88: mov r0, #1
+  [0x939278, (m, model, joint) => jointMatrix(m, model, joint)],
   [0xa56c10, generatorFramePrep], [0xa574c4, (m, gen) => generatorUpdate(m, gen)],
   [0xa91c48, modelPostPass], [0xa77fb4, nothing], [0xaaebb0, polylinePostPass],
 ]);

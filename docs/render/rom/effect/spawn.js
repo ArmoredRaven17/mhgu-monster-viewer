@@ -16,6 +16,7 @@
 import { Unverified, F, f32bits, bitsf32 } from './mem.js';
 import { curveTime, evalCurve3, toWorld, evalColour } from './curve.js';
 import { Scratch } from './motion.js';
+import { liftedCall } from './bridge.js';
 
 const GOT_FLOAT_RNG = 0x183b9f8, GOT_INT_RNG = 0x183b9f4, GOT_SINE = 0x18321b8;
 const GOT_ZERO3 = 0x1831a78, GOT_AXIS_Z = 0x1832184, GOT_ZERO2 = 0x1838eb0;
@@ -449,49 +450,10 @@ function spawnMotionVelocity(m, gen, p, upd, info){
 }
 
 // 0xa5d194: spawn motion kind 2. Random launch angles give a direction; then random speed, damping
-// and gravity, as for kind 10 but drawn after the direction.
+// and gravity, as for kind 10 but drawn after the direction. LIFTED (lifted-motion.js): from a node that
+// tracks a parent joint it also sets the update's tracking flags (+0x44), which only a parented run reaches.
 function spawnMotionKind2(m, gen, p, upd, info){
-  const pc = m.u16(p + 0xc);
-  const col3 = m.u32(gen + 0x3c);
-  const sc = new Scratch(m);
-  const updCopy = sc.alloc(16), ang = sc.alloc(16), dir = sc.alloc(16);
-  m.w32(updCopy, m.u32(upd)); m.w32(updCopy + 4, m.u32(upd + 4)); m.w32(updCopy + 8, m.u32(upd + 8)); m.w32(updCopy + 12, 0);
-  m.w32(upd + 0x44, (m.u32(upd + 0x44) & 0xffff0000) >>> 0);
-  if ((m.u32(m.u32(gen + 0x18) + 0x110) & 0x80) || (m.u8(gen + 0x43) & 0x20)) throw new Unverified('0xa5d208 tracking node');
-  if (m.u16(col3 + 0x38) !== 0) throw new Unverified('0xa5d2c0 col3 +0x38 curve');
-  if (m.u32(info + 0x28) !== 0) throw new Unverified('0xa5d338 spawn mode');
-  m.wf32(ang, drawF(m, gen, 0x48, m.f32(col3 + 0x10), m.f32(col3 + 0x14)));
-  m.wf32(ang + 4, drawF(m, gen, 0x48, m.f32(col3 + 0x18), m.f32(col3 + 0x1c)));
-  m.wf32(ang + 8, drawF(m, gen, 0x48, m.f32(col3 + 0x20), m.f32(col3 + 0x24)));
-  velDir(m, dir, gen, ang, updCopy, pc);
-  const s16 = m.f32(dir), s18 = m.f32(dir + 4), s20 = m.f32(dir + 8);
-  if (m.u32(info + 0x28) !== 0) throw new Unverified('0xa5d65c spawn mode');
-  const c0 = m.u32(gen + 0x48);
-  const tbl = m.u32(GOT_FLOAT_RNG);
-  m.w32(gen + 0x48, (c0 + 1) >>> 0);
-  const r0 = m.f32(tbl + 4 * ((c0 + 1) & 0xfff));
-  m.w32(gen + 0x48, (c0 + 2) >>> 0);
-  const r1 = m.f32(tbl + 4 * ((c0 + 2) & 0xfff));
-  m.w32(gen + 0x48, (c0 + 3) >>> 0);
-  const r2 = m.f32(m.u32(GOT_FLOAT_RNG) + 4 * ((c0 + 3) & 0xfff));
-  if (m.u32(col3 + 0x38) >>> 16) throw new Unverified('0xa5d718 col3 +0x3a curve');
-  m.wf32(upd + 0x20, F(m.f32(col3 + 0x28) + F(r0 * m.f32(col3 + 0x2c))));
-  m.wf32(upd + 0x24, F(m.f32(col3 + 0x40) + F(r1 * m.f32(col3 + 0x44))));
-  const owner = m.u32(gen + 8);
-  let g = F(F(m.f32(col3 + 0x30) + F(r2 * m.f32(col3 + 0x34))) * m.f32(owner + 0x1bc));
-  m.wf32(upd + 0x28, g);
-  if (m.u8(upd + 0x10) & 4){
-    g = F(g * m.f32(m.u32(gen + 0x18) + 0xe4));
-    m.wf32(upd + 0x28, g);
-  }
-  if (m.u16(col3 + 0x3c) !== 0) throw new Unverified('0xa5d7c8 col3 +0x3c curve');
-  m.w32(upd + 0x2c, 0);
-  const speed = m.f32(upd + 0x20);                           // 0xa5d85c
-  m.w32(upd + 0x5c, 0);
-  m.wf32(upd + 0x50, F(s16 * speed)); m.wf32(upd + 0x54, F(s18 * speed)); m.wf32(upd + 0x58, F(s20 * speed));
-  m.w16(p + 0xc, (m.u32(p + 0xc) | 0x180) & 0xffff);
-  m.wf32(upd, s16); m.wf32(upd + 4, s18); m.wf32(upd + 8, s20); m.w32(upd + 0xc, 0);
-  sc.free();
+  liftedCall(m, 0xa5d194, [gen, p, upd, info]);
 }
 
 // 0xa5a570: spawn motion by kind (generator +0x40 bits 20..23).
@@ -819,7 +781,25 @@ export function rotationInit(m, gen, p, base, vel, mode){
 export function matToQuat(m, out, mat){
   const m00 = m.f32(mat), m11 = m.f32(mat + 0x14), m22 = m.f32(mat + 0x28);
   let tr = F(m00 + m11); tr = F(tr + m22);
-  if (!(tr > 0)) throw new Unverified('0x72e90 quaternion from a non-positive trace');
+  if (!(tr > 0)){                                            // 0x72e90: from the largest diagonal element
+    const NEXT = [1, 2, 0];                                  // the ROM's table at 0x159c504
+    const at = (r, c) => mat + 16 * r + 4 * c;
+    let i = m11 > m00 ? 1 : 0;
+    if (m22 > m.f32(at(i, i))) i = 2;
+    const j = NEXT[i], k = NEXT[j];
+    let d = F(m.f32(at(i, i)) - m.f32(at(j, j)));
+    d = F(d - m.f32(at(k, k)));
+    const t = F(d + 1.0);
+    const r = F(Math.sqrt(t));
+    if (Number.isNaN(r)) throw new Unverified('0x72f0c sqrtf fallback');
+    const half = F(r * 0.5), s = F(0.5 / r);
+    const q = [out, out + 4, out + 8];
+    m.wf32(q[i], half);
+    m.wf32(out + 0xc, F(s * F(m.f32(at(j, k)) - m.f32(at(k, j)))));
+    m.wf32(q[j], F(s * F(m.f32(at(i, j)) + m.f32(at(j, i)))));
+    m.wf32(q[k], F(s * F(m.f32(at(i, k)) + m.f32(at(k, i)))));
+    return;
+  }
   const r = F(Math.sqrt(F(tr + 1.0)));
   if (Number.isNaN(r)) throw new Unverified('0x72e34 sqrtf fallback');
   const s = F(0.5 / r);

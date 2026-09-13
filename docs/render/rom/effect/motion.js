@@ -13,6 +13,8 @@
 import { Unverified, F } from './mem.js';
 import { curveTime, curveTimeFromHeader, evalCurve3, toWorld } from './curve.js';
 import { lifePass } from './life.js';
+import { liftedCall } from './bridge.js';
+import './lifted-motion.js';
 
 // 0xa637c8: place a particle on its generator's position curve (col3 +0x70), in world space.
 // `mode` is 1 for the spawn-time call and 0 per frame. Returns 1 to keep the particle.
@@ -116,51 +118,11 @@ export const tickStatic = (m, gen) => tickWith(m, gen, placeStatic, '0xa60070');
 export const tickVelocity = (m, gen) => tickWith(m, gen, integrateVelocity, '0xa60a84');   // 0xa609c8
 export const tickKind2 = (m, gen) => tickWith(m, gen, (mm, g, p, upd) => motionKind2(mm, g, p, upd, 1), '0xa602f4');   // 0xa60234
 
-// 0xa6243c: motion kind 2 -- velocity with gravity like kind 10, with more options (none of which the
-// recorded effects use). `mode` is 1 from the tick.
+// 0xa6243c: motion kind 2 -- velocity with gravity like kind 10, with more options. LIFTED
+// (lifted-motion.js): a particle spawned from a node that tracks a parent joint (update +0x44 bits 0x400,
+// 0x100, 0x200) follows it here, which only a run with a parent reaches. `mode` is 1 from the tick.
 export function motionKind2(m, gen, p, upd, mode){
-  const w10 = m.u32(upd + 0x10);
-  const k = w10 & 3;
-  if (k === 0) return 1;
-  if (k === 3) throw new Unverified('0xa62474 motion kind 2, mode 3');
-  const cur = p + 0x20 + ((m.u8(p + 0xf) & 1) << 4);
-  let s8 = m.f32(cur), s6 = m.f32(cur + 4), s2 = m.f32(cur + 8);
-  const vxBits = m.u32(upd + 0x50), vzBits = m.u32(upd + 0x58);
-  const s4 = m.f32(upd + 0x50);
-  let s0 = m.f32(upd + 0x54);
-  s0 = F(s0 - m.f32(upd + 0x2c));
-  const w44 = m.u32(upd + 0x44);
-  if (w44 & 0x400) throw new Unverified('0xa624fc motion flag 0x400');
-  let s10 = F(s0 * s0);
-  s10 = F(s10 + F(s4 * s4));
-  const s12 = m.f32(upd + 0x58);
-  s8 = F(s4 + s8); s6 = F(s0 + s6); s2 = F(s12 + s2);
-  s10 = F(s10 + F(s12 * s12));
-  if (s10 > 1.1920928955078125e-07){                         // literal 0xa62934
-    m.w32(upd, vxBits); m.wf32(upd + 4, s0); m.w32(upd + 8, vzBits); m.w32(upd + 0xc, 0);
-  }
-  if ((w10 >>> 24) !== 0) throw new Unverified('0xa62584 update slot +0x13');
-  m.u32(gen + 0x3c);
-  if (w44 & 0x10) throw new Unverified('0xa62650 motion flag 0x10');
-  if (w44 & 0x40) throw new Unverified('0xa625c8 motion flag 0x40');
-  if (w44 & 0x80) throw new Unverified('0xa627d0 motion flag 0x80');
-  const acc = m.f32(upd + 0x2c);                             // 0xa6280c
-  const damp = m.f32(upd + 0x24);
-  m.wf32(upd + 0x20, F(damp * m.f32(upd + 0x20)));
-  m.wf32(upd + 0x50, F(damp * m.f32(upd + 0x50)));
-  m.wf32(upd + 0x54, F(damp * m.f32(upd + 0x54)));
-  m.wf32(upd + 0x58, F(damp * m.f32(upd + 0x58)));
-  m.wf32(upd + 0x2c, F(m.f32(upd + 0x28) + acc));
-  if (mode === 1 && (m.u32(upd + 0x10) & 3) === 1) throw new Unverified('0xa62868 motion kind 2 submode 1');
-  const w8 = m.u32(p + 8), wc = m.u32(p + 0xc);              // 0xa629ac
-  const dst = p + 0x20 + ((wc >>> 20) & 0x10);
-  m.wf32(dst, s8); m.wf32(dst + 4, s6); m.wf32(dst + 8, s2); m.w32(dst + 0xc, 0);
-  const w44b = m.u32(upd + 0x44);
-  if (w44b & 0x100) throw new Unverified('0xa62a60 motion flag 0x100');
-  if (w44b & 0x200) throw new Unverified('0xa629f4 motion flag 0x200');
-  m.w32(p + 8, w8);
-  m.w32(p + 0xc, (((wc | 0x180) & 0xffff) | (wc & 0xffff0000)) >>> 0);
-  return 1;
+  return liftedCall(m, 0xa6243c, [gen, p, upd, mode]).r[0];
 }
 
 // 0xa61a3c: motion kind 0. The particle sits at the node's matrix applied to its update slot's +0x20

@@ -124,6 +124,7 @@ const TABLE = {
   '0xae8b74': [owner.nodeLocal, v => [v.args[0], v.args[1], v.args[2]], null],
   '0xae8d18': [owner.nodeLocalLerp, v => [v.args[0], v.args[1], v.args[2], s0(v)], null],
   '0x9bd058': [owner.attachMatrix, v => [v.args[0], v.args[1], v.args[2]], 'r0'],
+  '0x939278': [owner.jointMatrix, v => [v.args[0], v.args[1]], 'r0'],
   '0x9bba54': [owner.nodeUpdate, v => [v.args[0], v.args[1]], null],
   '0xae9340': [owner.nodeDelay, v => [v.args[0]], null],
   '0x9b66a0': [owner.moveNodes, v => [v.args[0]], null],
