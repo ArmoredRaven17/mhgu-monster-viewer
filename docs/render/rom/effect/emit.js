@@ -14,6 +14,7 @@
 // a u16 base with a u16 random range above it; +0x58 / +0x5c curve switches for the interval/period.
 // Node instance +0x11c: the start delay, multiplied by the owner's count scale (+0x1fc).
 import { Unverified, F } from './mem.js';
+import { Scratch } from './motion.js';
 
 export const RNG_TABLE = 0x1777eb0;          // 4096 u32 in .data, reached through GOT 0x183b9f4
 
@@ -243,4 +244,92 @@ export function preUpdate(m, gen){
   colourCurve(m, gen);
   if (m.u32(m.u32(owner) + 0xfc) !== 0x9bd170) throw new Unverified('0xa5739c owner vtable +0xfc');
   m.w32(gen + 0x10, (m.u32(gen + 0x10) | 0x20000) >>> 0);
+}
+
+// ---- the generator update (vtable slot 18, 0xa574c4) --------------------------------------------
+// Per-type vtable slots, by the generator's vtable address. Types not translated yet refuse.
+const TYPES = new Map();
+export function registerType(vtable, slots){ TYPES.set(vtable, slots); }
+function slotsOf(m, gen){
+  const vt = m.u32(gen);
+  const s = TYPES.get(vt);
+  if (!s) throw new Unverified('generator vtable 0x' + vt.toString(16) + ' not translated');
+  return s;
+}
+
+// 0xa574c4: one generator, one frame -- pre-update (slot 16), emission, spawns (slot 23) and the
+// particle pass (slot 24). Returns 1.
+export function generatorUpdate(m, gen){
+  const w = [];
+  for (let i = 0; i < 8; i++) w.push(m.u32(gen + 0xd0 + 4 * i));
+  w[7] = (w[7] ^ 0x300) >>> 0;                               // +0xec bits 8 and 9 flip every frame
+  for (let i = 1; i < 8; i++) m.w32(gen + 0xd0 + 4 * i, w[i]);
+  m.w32(gen + 0xd0, w[0]);
+  const T = slotsOf(m, gen);
+  T.preUpdate(m, gen);
+  const count = ((m.u32(gen + 0x40) & 0xf00) === 0x100) ? emitOnce(m, gen) : emitPeriodic(m, gen);
+  if (m.u32(gen + 0x1b8) !== 0){
+    const r0 = (m.u16(gen + 0x42) | (m.u32(gen + 0x44) << 16)) >>> 0;
+    const sel = r0 & 0xf;
+    if (m.u8(gen + 0xed) & 0x40){
+      if (sel === 4 || sel === 3) throw new Unverified('0xa57590 generator +0x42 mode ' + sel);
+    } else {
+      if (sel === 4 || sel === 3) throw new Unverified('0xa575b8 generator +0x42 mode ' + sel);
+      const v = [];
+      for (let i = 0; i < 8; i++) v.push(m.u32(gen + 0xd0 + 4 * i));
+      v[7] = (v[7] | 0x4000) >>> 0;
+      for (let i = 0; i < 8; i++) m.w32(gen + 0xd0 + 4 * i, v[i]);
+    }
+  }
+  if (count !== 0){
+    const inv = F(1.0 / F(count >>> 0));
+    const sc = new Scratch(m);
+    const info = sc.alloc(0x2c);
+    for (let i = 0; i < count; i++){
+      const ctr = (m.u8(gen + 0x197) & 2) ? gen + 0x19c : gen + 0x198;
+      const p = m.u32(gen + 0xb8);
+      if (p === 0) continue;
+      const next = m.u32(p + 4);
+      const cval = m.u32(ctr);
+      m.w32(gen + 0xb8, next);
+      if (next !== 0) m.w32(m.u32(gen + 0xbc), 0);
+      else m.w32(gen + 0xbc, 0);
+      if (m.u32(gen + 0xb0) !== 0){
+        m.w32(p, m.u32(gen + 0xb4));
+        m.w32(m.u32(gen + 0xb4) + 4, p);
+      } else {
+        m.w32(p, 0);
+        m.w32(gen + 0xb0, p);
+      }
+      m.w32(gen + 0xb4, p);
+      m.w32(p + 4, 0);
+      const c0 = m.u32(gen + 0xc0), idx = m.u16(p + 8), wc = m.u32(p + 0xc);
+      m.w32(p + 0x14, 0);
+      m.w32(p + 0x10, c0);
+      m.w32(p + 0x4c, 0);
+      m.w32(p + 0xc, ((wc & ~0x0fff0000) | (0x600 << 16)) >>> 0);
+      m.w32(p + 8, (idx | (cval << 16)) >>> 0);
+      const zero = m.u32(0x1831a78);
+      m.w32(info, m.u32(zero)); m.w32(info + 4, m.u32(zero + 4)); m.w32(info + 8, m.u32(zero + 8));
+      for (let k = 0xc; k <= 0x1c; k += 4) m.w32(info + k, 0);
+      m.wf32(info + 0x20, 1.0);
+      m.wf32(info + 0x24, F(inv * F(i >>> 0)));
+      m.w32(info + 0x28, 0);
+      if (T.spawn(m, gen, p, info) !== 1) throw new Unverified('0xa57780 spawn refused a particle');
+      m.w32(gen + 0x198, (m.u32(gen + 0x198) + 1) >>> 0);
+    }
+    m.w32(gen + 0x19c, (m.u32(gen + 0x19c) + 1) >>> 0);
+    sc.free();
+  }
+  if (m.u32(gen + 0x1b4) !== 0) throw new Unverified('0xa5781c generator +0x1b4 transform');
+  T.particles(m, gen);
+  for (let p = m.u32(gen + 0xb0); p; p = m.u32(p + 4)){         // 0xa578b4: +0x1c bit 13 from +0x1c4
+    const v = m.u32(p + 0x1c);
+    m.w32(p + 0x1c, m.u8(gen + 0x1c4) ? (v | 0x2000) >>> 0 : (v & ~0x2000) >>> 0);
+  }
+  const f10 = m.u32(gen + 0x10);
+  m.w32(gen + 0x10, (f10 & ~0x60000000) >>> 0);
+  if ((m.u32(gen + 0xd0) & 0xffff0000) === 0 && (f10 & 0x80000004) === 0x80000004)
+    throw new Unverified('0xa5790c generator finished');
+  return 1;
 }

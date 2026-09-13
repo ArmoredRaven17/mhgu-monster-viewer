@@ -13,6 +13,7 @@ import * as motion from '../docs/render/rom/effect/motion.js';
 import * as model from '../docs/render/rom/effect/model.js';
 import * as emit from '../docs/render/rom/effect/emit.js';
 import * as spawn from '../docs/render/rom/effect/spawn.js';
+import * as runtime from '../docs/render/rom/effect/runtime.js';
 
 // address -> [translation, arguments from the vector, what to compare on return]
 const TABLE = {
@@ -72,6 +73,7 @@ const TABLE = {
   '0xa68e78': [spawn.baseColour, v => [v.args[0], v.args[1]], null],
   '0xa71870': [spawn.lastPass, v => [v.args[0], v.args[1]], null],
   '0xa965c4': [spawn.spawnModel, v => [v.args[0], v.args[1], v.args[2]], 'r0'],
+  '0xa574c4': [runtime.generatorUpdate, v => [v.args[0]], 'r0', v => translatedType(v)],
 };
 // the translation's own stand-in for stack locals: never an input, never compared
 const inScratch = a => a >= motion.SCRATCH_BASE && a < motion.SCRATCH_BASE + 0x100000;
@@ -85,6 +87,16 @@ function stackArg(v, k){
   }
   throw new Error('stack argument ' + k + ' not among the recorded reads');
 }
+// a u32 among the vector's recorded reads
+function readU32(v, a){
+  for (const [start, hx] of v.reads){
+    const off = a - start;
+    if (off >= 0 && off + 4 <= hx.length / 2) return parseInt(hx.substr(2 * off + 6, 2) + hx.substr(2 * off + 4, 2) + hx.substr(2 * off + 2, 2) + hx.substr(2 * off, 2), 16) >>> 0;
+  }
+  return null;
+}
+// generator-level vectors only count for the generator types the runtime has translated
+const translatedType = v => readU32(v, v.args[0]) === runtime.VTABLE.Model;
 // s0 at entry (the low half of d0)
 function s0(v){ return bitsf32(v.d[0][0]); }
 
@@ -136,15 +148,16 @@ let fail = 0, pending = [];
 for (const [fnName, rec] of Object.entries(functions)){
   if (only.length && !only.includes(fnName)) continue;
   if (!TABLE[fnName]){ pending.push(fnName); continue; }
-  let ok = 0;
+  let ok = 0, skipped = 0;
   for (const v of rec.vectors){
+    if (TABLE[fnName][3] && !TABLE[fnName][3](v)){ skipped++; continue; }
     const p = check(fnName, v);
     if (p.length){
       fail++;
       if (fail <= 12) console.log(fnName + ' path ' + v.path + ' frame ' + v.frame + ': ' + p.slice(0, 6).join('; '));
     } else ok++;
   }
-  console.log(fnName + ': ' + ok + '/' + rec.vectors.length + ' vectors pass (' + rec.calls + ' calls in the run)');
+  console.log(fnName + ': ' + ok + '/' + (rec.vectors.length - skipped) + ' vectors pass (' + rec.calls + ' calls in the run' + (skipped ? ', ' + skipped + ' for untranslated generator types skipped' : '') + ')');
 }
 if (pending.length) console.log('not translated yet: ' + pending.join(' '));
 process.exit(fail ? 1 : 0);
