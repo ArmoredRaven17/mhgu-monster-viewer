@@ -3869,9 +3869,10 @@ Savage run. Hard refresh to see them.
 > Raven: "We have some monsters with effect issues. Can we start with Teostra?"
 
 **What Teostra's code starts** (uEm027_00's frame, `0xe10f7c`): its **fire aura** (`em027_00_011` key
-0) whenever the aura byte its actions set is on -- that is **not tied to rage**: the actions switch it
-(`0xe11dbc`), a part break turns it off for good (and plays `em027_00_018`) -- and, on the **edges of
-rage** (its copy of isEnraged, `0xe10eb4`), a **burst as rage starts** (`em027_00_019` key 2, 209
+0) whenever an aura byte of its own is on, playing `em027_00_018` when it goes off -- the per-frame check
+does not look at rage; the byte is set in one case of Teostra's hook and cleared in another, the clear
+only while it is calm, and which in-game moments reach those cases is not decoded -- and, on the **edges
+of rage** (its copy of isEnraged, `0xe10eb4`), a **burst as rage starts** (`em027_00_019` key 2, 209
 frames) and **another as it ends** (key 3, 99 frames). The viewer now runs all three on the ROM runtime:
 the aura from the moment Teostra is shown, the bursts when Enraged is ticked and unticked; the runtime
 stays across the toggles (`effect/schedule.js`, `when` in `docs/effects/em027_00.json`).

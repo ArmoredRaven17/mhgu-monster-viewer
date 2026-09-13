@@ -2,9 +2,9 @@
 //
 // Each effect in docs/effects/<monster>.json carries `when` (C:\MHGU-Extract\efx\export_effects.py), the
 // state in which the monster's code starts it (E:\offline\decode\notes\effects-firing.md):
-//   'always'     from the moment the monster is shown: an effect its code does not tie to rage. Teostra's
-//                fire aura (em027_00_011 key 0) is switched on by its actions (0xe11dbc) and off for good
-//                by a part break, neither of which the viewer has; it is shown throughout.
+//   'always'     from the moment the monster is shown. Teostra's fire aura (em027_00_011 key 0) runs while
+//                a byte its own code sets and clears is on (0xe10f7c); the cases that set and clear it
+//                (its hook, 0xe107ac) are not read as states the viewer has, so it is shown throughout.
 //   'rage'       while enraged (Savage Deviljho's aura and eyes, em043_05_000 keys 30 / 31)
 //   'rageStart'  once, as rage turns on (Teostra's burst, em027_00_019 key 2)
 //   'rageEnd'    once, as rage turns off (em027_00_019 key 3)
