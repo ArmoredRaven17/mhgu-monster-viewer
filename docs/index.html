@@ -1083,7 +1083,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          setEffectRage, effectAutoOnRage,
          SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS,
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
-         setProxyVisible, proxyCount, enrageParts,
+         setProxyVisible, proxyCount, enrageParts, ROM_SPAWN_CLIP,
          ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels, levelClipFor, setClipFor,
          monsterMats,
          enableRomAmbient, enableRomSpecular, enableRomPhong,
@@ -1565,7 +1565,7 @@ paintCamMode();
 // what a saved file is called: the monster on screen and the day
 function captureName(ext){
   const e = MON.monsters.find(m => m.id === state.id);
-  const who = (e && (e.name || e.id)) || 'Monster';
+  const who = (e && (monName(e) || e.id)) || 'Monster';
   return 'MHGU ' + who + ' ' + new Date().toISOString().slice(0, 10) + '.' + ext;
 }
 function saveBlob(blob, name){
@@ -1980,6 +1980,8 @@ let effectOnly = null;      // which proof-effect record to mount, null = all
 // Clusters Raven has picked by hand this session, keyed by cluster, so rebuilding the panel does
 // not drag them back to the highest index. Cleared on a monster change.
 let partsPicked = {};
+// Synthetic options picked by hand this session, keyed by cluster, index into the row's `synth`.
+let synthPicked = {};
 // A dev scene may state its whole groups array (dev/scenes.json's rathian-parts-alt does, for
 // em001_00). That is a FIXED before/after render, so part-review.json's defaults must stand aside
 // for it -- otherwise reviewing Rathian would silently change what the scene shoots.
@@ -1993,7 +1995,15 @@ const monSel = document.getElementById('monSel'), monFilter = document.getElemen
 function entry(){ return MON.monsters.find(e => e.id === state.id) || null; }
 function listOf(e){ return (e && e.lists.find(l => l.id === state.list)) || null; }
 function clipOf(l){ return (l && (l.clips || []).find(c => c.clip === state.clip)) || null; }
-const label = e => (e.name || e.id) + (e.name ? '' : ' (unnamed)');
+// A NAME THE ROM DOES NOT GIVE. monsters.json is generated and its `name` comes from the game's
+// monster-name GMD, which has no entry for em087_00 at all -- it is Ahtal-Neset, the siege machine
+// Ahtal-Ka builds, and not a monster the name table lists. Raven, 2026-09-12: "em087_00. Name it
+// Athal-Neset, then list it under Athal-Ka." A hand-authored name therefore lives where every other
+// human name for a ROM identity lives: a monster-level `name` in part-review.json, read here ahead
+// of the generated one. Read straight off PARTREVIEW rather than through reviewFor(), because the
+// Raw Parts debug switch is about part rows and must not strip a monster of its name.
+const monName = e => (e && PARTREVIEW[e.id] && PARTREVIEW[e.id].name) || (e && e.name) || null;
+const label = e => (monName(e) || e.id) + (monName(e) ? '' : ' (unnamed)');
 
 function buildMonsterList(){
   const f = (monFilter.value || '').trim().toLowerCase();
@@ -2021,6 +2031,24 @@ function buildMonsterList(){
       const kk = key(!!e.small, k);
       if (!bucket.has(kk)) bucket.set(kk, []);
       bucket.get(kk).push(e);
+    }
+    // LISTED UNDER ANOTHER MONSTER, WHATEVER ITS CLASS SAYS. Ahtal-Neset is filed Unclassified by
+    // build-monster-classes.py, and correctly -- it is a siege machine, not a monster, and has no
+    // species -- so the class data stays honest and only the PICKER moves it. Raven, 2026-09-12:
+    // "list it under Athal-Ka". A part-review `listAfter` names the monster to sit directly below;
+    // it wins over the bucket the class put it in. Where the target is filtered out of the list the
+    // monster simply stays in its own bucket.
+    for (const e of MON.monsters){
+      const after = PARTREVIEW[e.id] && PARTREVIEW[e.id].listAfter;
+      if (!after || !hit(e)) continue;
+      let from = null, to = null;
+      for (const list of bucket.values()){
+        if (list.includes(e)) from = list;
+        if (list.some(x => x.id === after)) to = list;
+      }
+      if (!from || !to) continue;
+      from.splice(from.indexOf(e), 1);
+      to.splice(to.findIndex(x => x.id === after) + 1, 0, e);
     }
     for (const small of [false, true])
       for (const k of order){
@@ -2107,7 +2135,7 @@ function paintAbout(){
   // meant to reflect which theme is selected"). The Armor Viewer sets .title-icon in exactly one
   // place, its theme block, and this app now matches.
   const icon = document.getElementById('monIcon');
-  if (e.icon){ icon.src = e.icon; icon.hidden = false; icon.alt = e.name || e.id; }
+  if (e.icon){ icon.src = e.icon; icon.hidden = false; icon.alt = monName(e) || e.id; }
   else { icon.hidden = true; }
   const nclips = e.lists.reduce((n, l) => n + (l.clips || []).length, 0);
   // The id leads and it is LABELLED: on its own "em001_00" read as an unexplained code
@@ -2122,7 +2150,8 @@ function paintAbout(){
     ['Clips', nclips],
     ['Size', (e.sizeBase || 1) + '\u00d7'],
     ['Materials', monsterMats.length],
-    ['Name from', e.nameSource || 'nothing'],
+    // a hand-authored name says so, rather than claiming the ROM or the database gave it
+    ['Name from', (PARTREVIEW[e.id] && PARTREVIEW[e.id].name) ? 'review (hand-authored)' : (e.nameSource || 'nothing')],
   ];
   if (e.nameRom && e.name !== e.nameRom) rows.push(['Carves say', e.nameRom]);
   if (e.sharesModelOf) rows.push(['Model shared with', e.sharesModelOf]);
@@ -2176,6 +2205,87 @@ function reviewedParts(rv){
 // already written by the time any row is built, so this cannot depend on panel order -- the eyes
 // are built BEFORE the head here. It also survives the head row being renamed, reordered or merged,
 // none of which change which mesh means "broken".
+// AN OPTION MAY BRING ITS OWN ANIMATION. Raven, 2026-09-12, on Zamtrios: "When selecting Blob Form,
+// change the animation to L4, M2". Its blob geometry is a whole second body -- part 10 is the only
+// `XfB__E0__m01_fatbig` mesh on the model -- and the normal clips were authored for the normal
+// silhouette, which is his older complaint that the blob "looks broken if using animations not meant
+// for it". So a row may carry `views`, an option key -> {list, clip} map.
+//
+// DELIBERATELY NOT A NEW CONTROL, and deliberately not `variants`. The monster-level `view` already
+// says "open this monster here"; this says "and this OPTION is worth watching there", which is the
+// same kind of judgement one scope down. `variants` picks geometry and cannot reach the transport.
+//
+// Picking an option that has no `views` entry, on a row that HAS some, goes back to the monster's
+// own opening view where it has one -- so leaving Blob Form does not strand you on a blob clip.
+// A monster with no `view` is left where it is rather than being thrown to list 0.
+//
+// Fires only on a USER pick, not while buildGroups is applying defaults: the opening state is the
+// monster's `view` by definition, and re-running this during a rebuild would fight the transport
+// every time the Enraged toggle moved.
+// Move the transport to {list, clip}. `want` null means "back to where the monster opens": its own
+// `view` where it has one, otherwise the list and clip a fresh mount lands on, which is what
+// buildLists/buildClips pick -- the first list in DISPLAY order and its first clip. Doing nothing
+// instead left Zamtrios on the blob clip after leaving Blob Form, since it has no `view` of its own:
+// the row could reach the transport but never hand it back.
+function setView(want, where){
+  const e = entry();
+  const lists = (e && e.lists || []).slice().sort(listOrder);
+  if (!want) want = (reviewFor(e && e.id) || {}).view;
+  if (!want && lists[0] && (lists[0].clips || [])[0])
+    want = { list: lists[0].id, clip: lists[0].clips[0].clip };
+  if (!want) return;
+  const list = lists.find(l => String(l.id) === String(want.list));
+  if (!list){
+    console.warn('part-review: ' + (e && e.id) + ' ' + where + ' names list "' + want.list +
+                 '", which this monster does not have; lists are ' + lists.map(l => l.id).join(', '));
+    return;
+  }
+  const clip = (list.clips || []).find(c => c.clip === want.clip);
+  if (!clip){
+    console.warn('part-review: ' + (e && e.id) + ' ' + where + ' names clip "' + want.clip +
+                 '" in list ' + want.list + ', which holds ' +
+                 (list.clips || []).map(c => c.clip).join(', '));
+    return;
+  }
+  if (state.list === list.id && state.clip === clip.clip) return;
+  state.list = list.id; state.clip = clip.clip;
+  buildClips();
+  monListSel.value = state.list;
+  monClipSel.value = state.clip;
+  play(); saveState();
+}
+function optionView(rv, o){
+  const vs = rv && rv.views;
+  if (!vs || !o) return;
+  const e = entry();
+  let want = vs[o.key];
+  if (!want) for (const [k, v] of Object.entries(vs)){
+    if (resolveOptionKey([o], k, (e && e.id) + ' row views', rowStateOn(rv))) { want = v; break; }
+  }
+  setView(want, 'row views');
+}
+// THE SAME THING ONE SCOPE UP: a FORM may bring its own animation. Zamtrios' blob is a whole second
+// body -- part 10 is the only `XfB__E0__m01_fatbig` mesh on the model -- and its normal clips were
+// authored for the normal silhouette, which is Raven's older complaint that the blob "looks broken
+// if using animations not meant for it". He asked for the switch while the blob was still a row
+// option ("When selecting Blob Form, change the animation to L4, M2"); making Form a rung moved the
+// pick off the row, so `levels` takes a `views` map keyed by RUNG INDEX and the level control
+// applies it. A rung with no entry hands the transport back, exactly as a row option does.
+// ONLY A RUNG THAT BRINGS AN ANIMATION MOVES THE TRANSPORT. Raven, 2026-09-13: "When changing charge
+// state, keep the animation the same." Calling setView(null) on every rung change sent Astalos,
+// Boltreaver, Zinogre and Soulseer back to their opening clip whenever the state moved, because none
+// of their rungs names a view and null means "go home". So the transport moves only when the rung
+// being ENTERED has a view (go there) or the rung being LEFT had one (hand it back, as leaving Blob
+// Form must); between two rungs with no view -- every charge state -- the animation is left alone.
+function levelView(prev){
+  const lv = (reviewFor(state.id) || {}).levels;
+  const vs = lv && lv.views;
+  if (!vs) return;
+  const want = vs[String(state.level | 0)] || null;
+  const had = (prev !== undefined && prev !== null) ? vs[String(prev | 0)] : null;
+  if (!want && !had) return;
+  setView(want, 'levels views');
+}
 function rowStateOn(rv){
   const st = rv && rv.state;
   // TWO AXES AT ONCE. Kecha Wacha's enrage layer depends on the Enraged toggle AND on whether its
@@ -2193,14 +2303,34 @@ function rowStateOn(rv){
   }
   if (st && typeof st === 'object'){
     const e = entry();
-    const want = String(st.on === undefined ? '' : st.on)
+    const ids = v => String(v === undefined ? '' : v)
       .split(',').map(s => parseInt(s, 10)).filter(Number.isFinite);
-    if (!want.length){
-      console.warn('part-review: ' + (e && e.id) + ' has a state object with no `on` part list');
+    const want = ids(st.on), nope = ids(st.off);
+    if (!want.length && !nope.length){
+      console.warn('part-review: ' + (e && e.id) + ' has a state object with no `on` or `off` part list');
       return false;
     }
     const drawn = partsDrawn((e && e.groups) || [], state.groups);
-    return want.every(p => drawn.get(p) === true);
+    // `off` IS NOT `!on`, AND THE ASYMMETRY IS applyParts'. A part the table does not mention is
+    // DRAWN (`v === undefined` -> visible), so "not switched on" and "switched off" are different
+    // claims and only the second one means the mesh is gone. Hence `=== false`, not `!== true`.
+    //
+    // WHY A NEGATIVE AXIS EXISTS AT ALL. Gore Magala's head has to follow its FEELERS -- Raven,
+    // 2026-09-12: "1: Uses Feelers Intact or Break / 2: Uses Feelers Intact or Break / 3: Uses
+    // Feelers Out / 4: Uses Feelers Out ... We need to switch the head depending if Feelers are
+    // tucked in or out." TUCKED IS TWO OPTIONS (102 intact, 7 broken) AND OUT IS THE THIRD, which
+    // draws neither -- so the fact that separates them is a negative one, and `off` says it
+    // directly where `on` can only say it by naming what the out state happens to draw.
+    //
+    // The positive form {on:"1,10"} would in fact also work today, and an earlier version of this
+    // comment claimed otherwise -- that a rung forces 1 and 10 on globally and would fire it with
+    // the feelers tucked. MEASURED, THAT IS FALSE: stateParts() is the set that gets STRIPPED from
+    // option keys, not forced on; forcing is forcedOn() -> defaultGroupsOn(), and on em071_00 that
+    // adds only group 0 at a rung ([1,2,4,5,6,10,12,13,14] at No Rage against
+    // [0,1,2,4,5,6,10,12,13,14] at a rung), leaving the Feelers cluster where the row put it.
+    // Stepped every rung with the feelers tucked and broken: the drawn set never moved. `off` is
+    // kept because it states the actual condition, not because the alternative is broken.
+    return want.every(p => drawn.get(p) === true) && nope.every(p => drawn.get(p) === false);
   }
   if (st === 'charged') return !!state.charged;
   if (st === 'heated')  return !!state.heated;
@@ -2460,6 +2590,68 @@ function buildMergedRow(c, groups, rv, e, sp, stateDefault){
   };
   row.appendChild(lab); row.appendChild(sel); monGroupsEl.appendChild(row);
 }
+// OPTIONS THE ROM DOES NOT HAVE, FOR VIEWING. Raven, 2026-09-13, on Seltas' wings: "Alright this is
+// going to need some tweaking. I want to see an option for Away: on none / Out: on 1 / Flapping: on
+// 2, 3, 4", then "I am making a change to help Seltas be more viewable ... So, the ROM not having
+// these changes is expected." The ROM's wing cluster offers exactly 1 / 4 / 1,2,3,4 -- no empty set
+// and no 2,3,4 -- so these cannot be picked from the table and are NOT a decode. A row may carry
+// `synth`, an ordered list of {name, draw}: the panel offers those in place of the ROM's items, the
+// ROM table applies nothing to the cluster, and applyPartState draws each of the row's parts exactly
+// when the chosen item names it. Everything else on the monster stays ROM-driven. The Raw Parts debug
+// switch drops the review, so it shows the ROM's own three items again.
+// AN ITEM MAY ALSO PIN A MATERIAL'S CLIP. Hellblade Glavenus' tail has three looks on two part sets:
+// Cooled draws no heat parts, while Heated and Blasted draw the SAME heat parts and differ only in
+// which clip XfBA1__m04_tail plays -- heat_Loop (its auto, the ROM default) or overheat_Loop. Raven,
+// 2026-09-13: "what stops us from using In, Cr, Br for Blasted using the Heated parts with the loop
+// as three options", and "it makes more sense for the user to simply select the tail option instead
+// of needing to know to turn on an animation". So a synth item may carry `clip: {material: clipName}`.
+//
+// It is written into ROM_SPAWN_CLIP for the mounted monster, because that is the one pin the clip
+// picker already honours on a single material and "ignores the rage state entirely" -- which is also
+// what stops the Enraged toggle's last-looping-clip fallback turning the Heated tail Blasted. Scoped
+// to the MATERIAL on purpose: the throat's XfBA1_m06_nodo_r carries heat_Loop and overheat_Loop too,
+// so a monster-wide clip would have changed the throat. THE TABLE IS THE ROM'S: the review pins are
+// written at runtime only, never into the source, and a ROM spawn pin for the same material wins.
+const SPAWN_CLIP_ROM = {};
+function setReviewClipPins(id, pins){
+  if (!id) return;
+  if (!(id in SPAWN_CLIP_ROM)) SPAWN_CLIP_ROM[id] = ROM_SPAWN_CLIP[id] ? { ...ROM_SPAWN_CLIP[id] } : null;
+  const merged = Object.assign({}, pins, SPAWN_CLIP_ROM[id] || {});
+  if (Object.keys(merged).length) ROM_SPAWN_CLIP[id] = merged;
+  else delete ROM_SPAWN_CLIP[id];
+}
+function synthIds(v){
+  return String(v === undefined ? '' : v).split(',').map(s => parseInt(s, 10)).filter(Number.isFinite);
+}
+function synthIndex(key, rv){
+  const list = (rv && rv.synth) || [];
+  const p = synthPicked[key];
+  if (p !== undefined && list[p]) return p;
+  const d = list.findIndex(s => s && s.name === rv.default);
+  return d >= 0 ? d : 0;
+}
+function buildSynthRow(c, rv){
+  const list = rv.synth;
+  if (!list.length) return;
+  c.members.forEach(k => { state.groups[k] = false; });     // the ROM table applies nothing here
+  const row = document.createElement('div'); row.className = 'field';
+  row.dataset.row = c.parts;
+  const lab = document.createElement('label');
+  lab.textContent = rv.name || ('Parts ' + c.parts.split(',').join(', '));
+  lab.title = lab.textContent + ' -- viewing options, not ROM groups (parts ' + c.parts + ')';
+  const sel = document.createElement('select');
+  list.forEach((s, i) => {
+    const o = document.createElement('option');
+    o.value = String(i);
+    o.textContent = String((s && s.name) || ('Option ' + i));
+    o.title = 'draws ' + (synthIds(s && s.draw).join(', ') || 'none') + ' -- not a ROM group';
+    o.dataset.key = 'synth:' + o.textContent;
+    sel.appendChild(o);
+  });
+  sel.value = String(synthIndex(c.parts, rv));
+  sel.onchange = () => { synthPicked[c.parts] = +sel.value | 0; applyPartState(); saveState(); };
+  if (!rv.hidden){ row.appendChild(lab); row.appendChild(sel); monGroupsEl.appendChild(row); }
+}
 function buildGroups(){
   const e = entry();
   const groups = (e && e.groups) || [];
@@ -2541,8 +2733,35 @@ function buildGroups(){
       clusterList = clusterList.slice().sort((a, b) => at(a) - at(b));
     }
   }
+  // SETTLE THE HAND-PICKS BEFORE ANY WATCHER READS THEM.
+  //
+  // A watching row keys on `state.groups`, on the stated ground that every row has already written
+  // it by the time any row is built -- which is true while state.groups survives from the last
+  // pass, and FALSE the moment something rebuilds it from scratch. Both rage controls do exactly
+  // that: `state.groups = defaultGroupsOn(...)` and then buildGroups(). So a watcher built EARLY in
+  // clusterList reads the ROM's defaults for a row built LATE, and that late row then restores its
+  // own pick -- too late to be seen.
+  //
+  // MEASURED on Gore Magala, whose Head watches its Feelers and is built first: set Feelers to
+  // Feelers Out (head correctly moves to 3,15), then touch the Rage rung, and the head snaps back
+  // to the tucked 2,13 while the feelers stay out -- and stays wrong at No Rage too, because the
+  // head's own pick has by then been recorded as the tucked option. Nargacuga and Kecha Wacha have
+  // the same latent fault for the same reason; it simply needs the Enraged toggle to be touched
+  // after a pick rather than before.
+  //
+  // Re-applying `partsPicked` here fixes it at the source. This is REP-LEVEL, not variant-level:
+  // the loop below re-applies each cluster properly through variantOf() a moment later, so all this
+  // decides is what a watcher SEES, which is the whole bug. Only monsters that declare a watcher
+  // pay for it.
+  if (watchers) for (const c of clusterList){
+    if (c.merged) continue;
+    const rep = partsPicked[c.members.join(',')];
+    if (rep === undefined || c.members.indexOf(rep) < 0) continue;
+    c.members.forEach(k => { state.groups[k] = (k === rep); });
+  }
   for (const c of clusterList){
     if (c.merged){ buildMergedRow(c, groups, rvRows[c.parts], e, stateParts(), stateDefault); continue; }
+    if (rvRows[c.parts] && Array.isArray(rvRows[c.parts].synth)){ buildSynthRow(c, rvRows[c.parts]); continue; }
     const isLadder = clusterIsLadder(c);
     // A REVIEWED ROW IS ALWAYS SHOWN. The empty-ladder test folds away a cluster whose members
     // differ only in what the Rage control decides -- right for a rage aura, wrong for Tigrex's
@@ -2842,6 +3061,7 @@ function buildGroups(){
         // half swap exactly as it does for the Enraged toggle.
         if (watchers) buildGroups();
         applyPartState(); saveState();
+        optionView(rv, o);
       };
     }
     // A ROW MAY BE APPLIED WITHOUT BEING OFFERED. Raven, 2026-09-10, on Gypceros' third row -- a
@@ -2911,6 +3131,14 @@ function shedKinds(){
   const rv = reviewRows(e.id);
   const byKey = new Map(clusterGroups(groups).map(c => [c.parts, c]));
   for (const [rk, row] of Object.entries(rv)){
+    // a synthetic row names the shed piece on the ITEM, since its items are not ROM options
+    if (row && Array.isArray(row.synth)){
+      const it = row.synth[synthIndex(rk, row)];
+      const kind = it && it.sheds;
+      if (typeof kind === 'string') out.add(kind);
+      else if (kind === true && e.parts.length === 1) out.add(e.parts[0].kind);
+      continue;
+    }
     if (!row || row.sheds === undefined || row.sheds === null) continue;
     // A MERGED ROW IS SEVERAL CLUSTERS, so its option key is several ON-sets joined by '+' and every
     // one of them has to match. Bloodbath Diablos needs this: its horns are the merged row
@@ -2974,6 +3202,17 @@ function applyPartState(){
     const drawn = partsDrawn(e.groups || [], state.groups);
     const off = variantOff();
     if (off) for (const p of off) drawn.set(p, false);
+    // a synthetic row draws its parts itself -- see buildSynthRow. Every part in the row's key is
+    // written explicitly, because a part the table no longer mentions would otherwise default ON.
+    const pins = {};
+    for (const [k, rv] of Object.entries(reviewRows(e.id))){
+      if (!rv || !Array.isArray(rv.synth) || !rv.synth.length) continue;
+      const it = rv.synth[synthIndex(k, rv)] || {};
+      const on = new Set(synthIds(it.draw));
+      for (const p of synthIds(k)) drawn.set(p, on.has(p));
+      if (it.clip && typeof it.clip === 'object') Object.assign(pins, it.clip);
+    }
+    setReviewClipPins(e.id, pins);
     applyParts(mounted.main, drawn);
   }
   // A shed piece shows when its own option is selected; the Debug checkbox is a blunt override
@@ -3046,6 +3285,7 @@ async function mount(){
       return;
     }
     partsPicked = {};            // a new monster: nothing has been picked by hand yet
+    synthPicked = {};
     clearMounts();
     world.add(main); mounted.main = main;
     for (const [name, g] of extra){ world.add(g); mounted[name] = g; }
@@ -3785,6 +4025,17 @@ function applyRage(){
                                 o.value = String(i); o.textContent = String(t); sel.appendChild(o); });
       sel.value = String(state.level | 0);
     }
+    // A LEVEL AXIS MAY OWN RAGE. Raven, 2026-09-13, on Soulseer Mizutsune: "We will need an Normal,
+    // Enraged, Exhausted toggle". Three states is not a checkbox, but one of them IS the enrage the
+    // checkbox already drives -- the material's angry clip -- so leaving both controls up would let
+    // State say Normal while Enraged is ticked. `levels.rage` is a per-rung boolean array; where it
+    // is declared the rung sets state.rage and the checkbox is hidden, so there is one control.
+    if (show && lv && Array.isArray(lv.rage)){
+      state.rage = !!lv.rage[state.level | 0];
+      if (state.rage) state.charged = false;
+      document.getElementById('monRageRow').hidden = true;
+      document.getElementById('monRage').checked = !!state.rage;
+    }
   }
   if (!canCharge && state.charged) state.charged = false;
   document.getElementById('monChargeRow').hidden = !canCharge;
@@ -3984,7 +4235,7 @@ document.getElementById('monUndef').onchange = e => { state.undef = e.target.che
 // against a reviewed row's options means nothing once those options are the raw ones.
 document.getElementById('monRawParts').onchange = e => {
   rawParts = e.target.checked; state.rawParts = rawParts;
-  partsPicked = {};
+  partsPicked = {}; synthPicked = {};
   const en = entry();
   if (en) state.groups = defaultGroupsOn(en.groups || [], en.em, en.id, state.rage,
                                          DEFAULT_PARTS_OFF[en.id], forcedOn(en.id));
@@ -4040,8 +4291,20 @@ document.getElementById('monRageLevel').onchange = e => {
 // (levelClip, Boltreaver's charge colours) the render loop reads it every frame, so there is nothing
 // else to re-apply.
 document.getElementById('monLevel').onchange = e => {
+  const prevLevel = state.level | 0;
   state.level = +e.target.value | 0;
-  buildGroups(); applyPartState(); saveState();
+  // a level axis that owns rage moves the material state with the rung -- see applyRage()
+  const lv = (reviewFor(state.id) || {}).levels;
+  const ownsRage = !!(lv && Array.isArray(lv.rage));
+  if (ownsRage){
+    state.rage = !!lv.rage[state.level];
+    if (state.rage) state.charged = false;
+    markStateChange();
+  }
+  buildGroups(); applyPartState();
+  if (ownsRage) applyRage();
+  saveState();
+  levelView(prevLevel);
 };
 // Changing variant changes which rows exist as well as which parts draw, so both are rebuilt.
 document.getElementById('monVariant').onchange = e => {
