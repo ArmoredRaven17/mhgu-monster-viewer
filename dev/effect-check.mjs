@@ -20,6 +20,8 @@ import * as owner from '../docs/render/rom/effect/owner.js';
 import { newEffect, startEffect, managerRandom, random, internals as C } from '../docs/render/rom/effect/construct.js';
 import { loadEffectList, loadEffectAnim, internals as L } from '../docs/render/rom/effect/load.js';
 import { Scratch } from '../docs/render/rom/effect/motion.js';
+import { Cpu, call, lifted, POISON } from '../docs/render/rom/effect/cpu.js';
+import '../docs/render/rom/effect/draw.js';
 
 // address -> [translation, arguments from the vector, what to compare on return]
 const TABLE = {
@@ -189,6 +191,9 @@ const TABLE = {
 };
 // the translation's own stand-in for stack locals: never an input, never compared
 const inScratch = a => a >= motion.SCRATCH_BASE && a < motion.SCRATCH_BASE + 0x100000;
+// a call's own stack frame (below its entry sp): the recorder drops those writes, lifted code makes them
+const STACK_LO = 0x7ff00000;
+const ownFrame = (v, a) => a >= STACK_LO && a < v.sp;
 
 // the k-th stack-passed argument: the u32 the callee found at entry sp + 4k
 function stackArg(v, k){
@@ -219,13 +224,34 @@ function hexBytes(h){
 }
 
 // The outside world a call reached (allocator, unique ids), replayed in the order the game called it.
-function servicesFor(v, problems, m){
+function servicesFor(v, problems, m, known = () => true){
   const queue = (v.services || []).slice();
   const next = kind => {
     const s = queue.shift();
     if (!s || s[0] !== kind){ problems.push('called ' + kind + ' where the game called ' + (s ? s[0] : 'nothing')); throw new Error('service order'); }
     return s;
   };
+  // What the game handed the renderer, compared where the call's own reads and writes make the bytes
+  // known: a stack word or a pointed-at byte the effect code never touched is whatever memory held
+  // before (the recorder saw it, the vector does not carry it).
+  function drawService(kind, args, stack, c, nstack, captures){
+    const s = next(kind);
+    const [gst, , gcap] = s[2];
+    for (let k = 0; k < 4; k++) if ((args[k] >>> 0) !== s[1][k]) problems.push(kind + ' r' + k + ' 0x' + (args[k] >>> 0).toString(16) + ', game 0x' + s[1][k].toString(16));
+    for (let k = 0; k < nstack; k++){
+      const a = (c.r[13] + 4 * k) >>> 0;
+      if (known(a) && known(a + 1) && known(a + 2) && known(a + 3) && (stack[k] >>> 0) !== gst[k]) problems.push(kind + ' stack ' + k + ' 0x' + (stack[k] >>> 0).toString(16) + ', game 0x' + gst[k].toString(16));
+    }
+    for (const [label, [a, n]] of Object.entries(captures)){
+      const g = gcap[label] || '';
+      if (!a || !g){ if (!a !== !g) problems.push(kind + ' ' + label + ' pointer differs'); continue; }
+      for (let i = 0; i < n; i++){
+        if (!known(a + i)) continue;
+        const gb = parseInt(g.substr(2 * i, 2), 16);
+        if (m.rawByte(a + i) !== gb){ problems.push(kind + ' ' + label + ' byte ' + i + ': game ' + gb.toString(16) + ', js ' + m.rawByte(a + i).toString(16)); break; }
+      }
+    }
+  }
   return {
     queue,
     alloc(size, align){
@@ -246,6 +272,10 @@ function servicesFor(v, problems, m){
       m.load(buf, hexBytes(s[2][1]));
       return s[2][0];
     },
+    // the engine's model draw (vecdraw.py SERVICES): r0..r3, stack words, d0 and the memory it was handed
+    // 0xc8cf1c reads stack words 0, 2 and 3; 0xc8d208 forwards words 0..4 to 0xc8d9d8. Both return 0.
+    beginModel(args, stack, c){ drawService('begin_model', args, stack, c, 4, { pos: [args[3], 12], lod: [stack[3], 12] }); },
+    drawMesh(args, stack, c){ drawService('draw_mesh', args, stack, c, 5, { matrix: [args[3], 64], st0: [stack[0], 16], st2: [stack[2], 16] }); },
     loadResource(dti, path, flags){
       const s = next('res_load');
       if (s[1][1] !== dti || s[1][2] !== path || s[1][3] !== flags) problems.push('resource (0x' + dti.toString(16) + ', 0x' + path.toString(16) + ', ' + flags + '), game (0x' + s[1][1].toString(16) + ', 0x' + s[1][2].toString(16) + ', ' + s[1][3] + ')');
@@ -254,8 +284,19 @@ function servicesFor(v, problems, m){
   };
 }
 
+// A lifted routine runs on a CPU set up as the game's was at the call: r0..r3, sp, d0..d7.
+function runLifted(m, v, address){
+  const c = new Cpu();
+  for (let k = 0; k < 4; k++) c.r[k] = v.args[k];
+  c.r[13] = v.sp;
+  c.r[14] = 0x7f000000;                  // the harness's return sentinel
+  for (let k = 0; k < 8; k++){ c.sb[2 * k] = v.d[k][0]; c.sb[2 * k + 1] = v.d[k][1]; }
+  call(m, c, address);
+  return c;
+}
+
 function check(fnName, v){
-  const [fn, argsOf, retKind] = TABLE[fnName];
+  const [fn, argsOf, retKind] = TABLE[fnName] || [null, null, 'cpu'];
   const m = new Mem();
   const given = new Map();
   for (const [start, hx] of v.reads){
@@ -270,7 +311,7 @@ function check(fnName, v){
   }
   const wrote = new Map();
   const problems = [];
-  m.svc = servicesFor(v, problems, m);
+  m.svc = servicesFor(v, problems, m, a => given.has(a) || wrote.has(a));
   m.onRead = (a, n) => {
     for (let i = 0; i < n; i++){
       if (!given.has(a + i) && !wrote.has(a + i) && !inScratch(a + i)){ problems.push('read outside inputs at 0x' + (a + i).toString(16)); break; }
@@ -279,13 +320,20 @@ function check(fnName, v){
   m.onWrite = (a, n, b) => { for (let i = 0; i < n; i++) wrote.set(a + i, b[i]); };
   let ret;
   Scratch.depth = 0;                    // a refused call never freed its scratch frames
-  try { ret = fn(m, ...argsOf(v)); }
+  try { ret = fn ? fn(m, ...argsOf(v)) : runLifted(m, v, Number(fnName)); }
   catch (e){ return problems.length ? problems : [(e instanceof Unverified ? 'UNVERIFIED ' : 'THREW ') + e.message]; }
   if (m.svc.queue.length) problems.push('the game made ' + m.svc.queue.length + ' more service calls, next ' + m.svc.queue[0][0]);
   for (const [a, b] of want){
     if (wrote.get(a) !== b) problems.push('byte 0x' + a.toString(16) + ': game ' + b.toString(16) + ', js ' + (wrote.has(a) ? wrote.get(a).toString(16) : 'unwritten'));
   }
-  for (const [a] of wrote) if (!want.has(a) && !inScratch(a)) problems.push('js wrote 0x' + a.toString(16) + ' which the game did not');
+  for (const [a] of wrote) if (!want.has(a) && !inScratch(a) && !ownFrame(v, a)) problems.push('js wrote 0x' + a.toString(16) + ' which the game did not');
+  if (retKind === 'cpu'){                // a register still holding a callee's poison is no result
+    if (ret.r[0] !== POISON && ret.r[0] !== v.ret.r0) problems.push('r0 0x' + ret.r[0].toString(16) + ', game 0x' + v.ret.r0.toString(16));
+    if (ret.r[1] !== POISON && ret.r[1] !== v.ret.r1) problems.push('r1 0x' + ret.r[1].toString(16) + ', game 0x' + v.ret.r1.toString(16));
+    if (ret.sb[0] !== POISON && ret.sb[0] !== v.ret.d0[0]) problems.push('s0 differs');
+    if (ret.sb[1] !== POISON && ret.sb[1] !== v.ret.d0[1]) problems.push('s1 differs');
+    if (ret.r[13] !== v.sp) problems.push('sp not restored');
+  }
   if (retKind === 'r0' && (ret >>> 0) !== v.ret.r0) problems.push('returned ' + ret + ', game ' + v.ret.r0);
   if (retKind === 's0' && Math.fround(ret) !== bitsf32(v.ret.d0[0])) problems.push('returned ' + ret + ', game ' + bitsf32(v.ret.d0[0]));
   return problems;
@@ -299,10 +347,10 @@ let fail = 0, pending = [];
 const refused = new Map();              // unverified branch -> [vectors, functions]
 for (const [fnName, rec] of Object.entries(functions)){
   if (only.length && !only.includes(fnName)) continue;
-  if (!TABLE[fnName]){ pending.push(fnName); continue; }
+  if (!TABLE[fnName] && !lifted(Number(fnName))){ pending.push(fnName); continue; }
   let ok = 0, skipped = 0;
   for (const v of rec.vectors){
-    if (TABLE[fnName][3] && !TABLE[fnName][3](v)){ skipped++; continue; }
+    if (TABLE[fnName] && TABLE[fnName][3] && !TABLE[fnName][3](v)){ skipped++; continue; }
     const p = check(fnName, v);
     if (p.length && p[0].startsWith('UNVERIFIED ')){
       const key = p[0].replace('UNVERIFIED unverified path: ', '');

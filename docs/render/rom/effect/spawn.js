@@ -201,7 +201,7 @@ export function initUpdSlot(m, gen, upd, info){
   m.wf32(upd + 0x14, drawF(m, gen, 0x48, m.f32(col3 + 8), m.f32(col3 + 0xc)));
 }
 
-// 0x320ed4: rotation matrix from euler angles. Orders 2 and 4 recorded.
+// 0x320ed4: rotation matrix from euler angles. Orders 2, 3 and 4 recorded.
 export function eulerMatrix(m, out, ang, order){
   const sx = F(Math.sin(m.f32(ang))), sy = F(Math.sin(m.f32(ang + 4))), sz = F(Math.sin(m.f32(ang + 8)));
   const cx = F(Math.cos(m.f32(ang))), cy = F(Math.cos(m.f32(ang + 4))), cz = F(Math.cos(m.f32(ang + 8)));
@@ -256,6 +256,32 @@ export function eulerMatrix(m, out, ang, order){
     s0 = F(s22 * s24);
     m.wf32(out + 0x24, s2);
     m.wf32(out + 0x28, s0);
+  } else if (order === 3){                                   // 0x3211ac
+    let s28 = F(s22 * s24);
+    s2 = F(s24 * s0);
+    s4 = F(s18 * s22);
+    s6 = F(s20 * s24);
+    let s8 = s26;
+    s8 = F(s8 + F(s20 * s28));
+    s28 = F(s28 + F(s26 * s20));
+    m.wf32(out, s2);
+    s2 = F(s20 * s4);
+    s4 = F(-s4 + F(s16 * s6));
+    s2 = F(s2 - F(s16 * s24));
+    s6 = F(s22 * s0);
+    m.wf32(out + 4, s8);
+    m.wf32(out + 8, s4);
+    s4 = F(-s20);
+    m.w32(out + 0xc, 0);
+    m.wf32(out + 0x10, s4);
+    s4 = F(s16 * s0);
+    s0 = F(s18 * s0);
+    m.wf32(out + 0x14, s6);
+    m.wf32(out + 0x18, s4);
+    m.w32(out + 0x1c, 0);
+    m.wf32(out + 0x20, s0);
+    m.wf32(out + 0x24, s2);
+    m.wf32(out + 0x28, s28);
   } else throw new Unverified('0x320ef8 euler order ' + order);
   m.w32(out + 0x2c, 0); m.w32(out + 0x30, 0); m.w32(out + 0x34, 0); m.w32(out + 0x38, 0);
   m.wf32(out + 0x3c, 1.0);
