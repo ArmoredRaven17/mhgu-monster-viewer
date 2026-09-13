@@ -2095,9 +2095,19 @@ function listOrder(a, b){
   if (na !== nb) return na ? -1 : 1;            // numbered first, named after
   return String(a.id).localeCompare(String(b.id));
 }
+// AN ATTACHED SECOND BODY'S LISTS ARE NOT THE BODY'S TO PLAY. Nakarkos' l_N / r_N are the tentacles'
+// own motion lists; the harvest filed them beside the body's, so picking one played tentacle motion on
+// the body. The tentacles play them themselves, in step with the body's clip (playAttached). Raven,
+// 2026-09-13: "we might be able to simply hide the tentacle animation lists, it seems like Nakarkos is
+// 'calling them'" -- "Since each tentacle is moving as expected".
+function attachedListIds(e){
+  const pre = (e && e.parts || []).map(p => attachedBodyOf(e.id, p.name)).filter(Boolean).map(a => a.listPrefix);
+  return new Set(((e && e.lists) || []).filter(l => pre.some(x => String(l.id).startsWith(x))).map(l => l.id));
+}
 function buildLists(){
   const e = entry();
-  const lists = ((e && e.lists) || []).slice().sort(listOrder);
+  const hideIds = attachedListIds(e);
+  const lists = ((e && e.lists) || []).filter(l => !hideIds.has(l.id)).slice().sort(listOrder);
   monListSel.innerHTML = lists.map(l =>
     '<option value="' + l.id + '">List ' + l.id + ' &mdash; ' + (l.clips || []).length + ' clips' +
     (l.shared ? ' (shared)' : '') + '</option>').join('');
