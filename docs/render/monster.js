@@ -1766,6 +1766,66 @@ export function setClipFor(monId, groups){
   if (!t || !Array.isArray(groups)) return undefined;
   return groups[t.set] ? t.on : t.off;
 }
+// A MONSTER'S OWN STAGE MACHINE OVER ITS EFFECT LAYERS, run here the way the ROM runs it, where a
+// picker over "the state and when it last changed" cannot say what the game does.
+//
+// TEOSTRA (uEm027_00). At spawn it caches the materials numbered 1..3 (`material+0x18 >> 22`, 0xe10444)
+// -- XfBAN_W_0__m01_effect01, XfBAN_W_0__m02_effect02, XfB__m03_Bombmode -- into [enemy+0xcac0] +0x14,
+// +0x18 and +0x1c, and clears their slots (0xb09a3c): all three sit on their authored values, which draw
+// nothing (fTransparency 0 on the two Alpha layers, $Globals constant alpha 0 on Bombmode). Its virtual
+// 0xe1a604 (vtable +0x374) then walks a stage byte, [enemy+0xcac0]+0x20, putting one clip into SLOT 1 of
+// all three and zeroing that slot's time (0xe1012c, the names at 0x17b6a44):
+//
+//     stage 0   isEnraged (0x81670)                          -> Effect_Start, stage 1
+//     stage 1   slot 1's time reaches that clip's frames      -> Effect_Loop,  stage 2   (0xe102c4)
+//     stage 2   no longer enraged                            -> Effect_End,   stage 3
+//     stage 3   slot 1's time reaches that clip's frames      -> stage 0, Effect_End held on its last frame
+//
+// Rage is read only in stages 0 and 2, so a toggle during either one-second transition waits for it to
+// finish -- which is why this keeps its own stage and clock instead of reading tState.
+// Raven, 2026-09-13, over a screenshot of the layers striped and lit at rest: "The stripped areas are
+// effects that are not modeled", then "Make both fixes for Teostra".
+export const ROM_STAGE_CLIPS = {
+  em027_00: { mats: ['XfBAN_W_0__m01_effect01', 'XfBAN_W_0__m02_effect02', 'XfB__m03_Bombmode'],
+              clips: ['Effect_Start', 'Effect_Loop', 'Effect_End'] },
+};
+// One step of the machine for this root: `{ mats, clip, t0 }` -- the clip in slot 1 (null until the first
+// rage, as the spawn clear leaves it) and the wall second its time was zeroed -- or null where the monster
+// has no table. It advances only when the clock moves forward: the review shot and the fallback console
+// toggle call the stepper on clocks of their own, and those must not move the game's stage -- they are
+// shown the slot as it stood at the machine's last step, its origin moved onto their clock.
+function stepStageMachine(root, tSec, state, monId){
+  const tbl = monId && ROM_STAGE_CLIPS[monId];
+  if (!tbl || !root || !root.userData) return null;
+  let s = root.userData.romStage;
+  if (!s || s.monId !== monId){
+    s = root.userData.romStage = { monId, mats: tbl.mats, stage: 0, clip: null, t0: 0, tLast: -Infinity, frames: {} };
+    // each clip's frame count, off the first cached material carrying it (0xe102c4 tries +0x14, +0x18, +0x1c)
+    for (const nm of tbl.clips){
+      for (const mat of tbl.mats){
+        let f = 0;
+        root.traverse(o => {
+          for (const m of matsOfMesh(o)){
+            if (f || !m || m.name !== mat) continue;
+            const c = ((m.userData && m.userData.rom && m.userData.rom.anim) || []).find(x => sameClip(x.name, nm));
+            if (c) f = c.frames;
+          }
+        });
+        if (f){ s.frames[nm] = f; break; }
+      }
+    }
+  }
+  if (!(tSec >= s.tLast)) return { mats: s.mats, clip: s.clip, t0: tSec - (s.tLast - s.t0) };
+  s.tLast = tSec;
+  const ran = () => (tSec - s.t0) * MAT_FPS >= (s.frames[s.clip] || 0);
+  const set = (i, stage) => { s.clip = tbl.clips[i]; s.t0 = tSec; s.stage = stage; };
+  const enraged = state === 'enraged';
+  if (s.stage === 0){ if (enraged) set(0, 1); }
+  else if (s.stage === 1){ if (ran()) set(1, 2); }
+  else if (s.stage === 2){ if (!enraged) set(2, 3); }
+  else if (ran()) s.stage = 0;
+  return s;
+}
 // The clip a monster's LEVEL rung names, or undefined where no table says (the caller then falls back
 // to the Rage ladder). A rung past the table's end takes its last entry.
 export function levelClipFor(monId, level){
@@ -1829,8 +1889,14 @@ export function rageLadderParts(root){
   });
   return [...out];
 }
-// Materials that carry an enraged clip -- the layers the game lights when a monster rages.
-export function enrageMaterials(root){ return materialsWithClip(root, ENRAGE_CLIPS); }
+// Materials that carry an enraged clip -- the layers the game lights when a monster rages -- and the ones
+// a monster's own stage machine lights on rage (ROM_STAGE_CLIPS), whose clips carry no enrage name.
+export function enrageMaterials(root){
+  const out = materialsWithClip(root, ENRAGE_CLIPS);
+  const tbl = root && root.userData && ROM_STAGE_CLIPS[root.userData.monId];
+  if (tbl) root.traverse(o => { for (const m of matsOfMesh(o)) if (m && tbl.mats.indexOf(m.name) >= 0) out.add(m.name); });
+  return out;
+}
 // Materials that carry a CHARGE clip -- Khezu's Taiden family. Gates the Charged checkbox, which
 // is offered only on monsters that have somewhere to put it.
 export function chargeMaterials(root){ return materialsWithClip(root, CHARGE_CLIPS); }
@@ -1860,7 +1926,7 @@ const stateNames = (st, monId) => {
   const t = STATE_NAMES[st];
   return t && (!t.only || t.only.includes(monId)) ? t : null;
 };
-function clipPicker(state, monId, tState, prev, levelClip){
+function clipPicker(state, monId, tState, prev, levelClip, stage){
   const pin = (monId && ROM_SPAWN_CLIP[monId]) || null;
   const timed = typeof tState === 'number';
   const states = STATES.filter(st => stateNames(st, monId));
@@ -1871,6 +1937,14 @@ function clipPicker(state, monId, tState, prev, levelClip){
     if (ban) clips = clips.map(c =>
       (c && typeof c.name === 'string' && ban.has(c.name.toLowerCase())) ? { ...c, name: null } : c);
     let ci = -1;
+    // A MATERIAL THE MONSTER'S OWN STAGE MACHINE DRIVES answers from that machine alone -- see
+    // ROM_STAGE_CLIPS: its one clip in slot 1 on the machine's clock, or before the first rage nothing,
+    // the material's authored values.
+    if (stage && rom && stage.mats.indexOf(rom.name) >= 0){
+      if (!stage.clip) return -1;
+      const i = clips.findIndex(c => sameClip(c.name, stage.clip));
+      return i >= 0 ? [[i, stage.t0]] : -1;
+    }
     // A SPAWN-PINNED material ignores the rage state entirely -- see ROM_SPAWN_CLIP.
     if (pin && rom.name && pin[rom.name])
       ci = clips.findIndex(c => sameClip(c.name, pin[rom.name]));
@@ -2087,7 +2161,7 @@ function clipPicker(state, monId, tState, prev, levelClip){
 }
 
 export function stepMatAnim(root, tSec, state, monId, tState, prev, levelClip){
-  const pick = clipPicker(state, monId, tState, prev, levelClip);
+  const pick = clipPicker(state, monId, tState, prev, levelClip, stepStageMachine(root, tSec, state, monId));
   // ONE evaluator for both paths. A ROM-core material is a stock three.js material -- the technique
   // decides which class, not the blend state -- so the shared evaluator's writes land exactly as
   // they always have. fEmissionColor now reaches the 47 lit-technique additive materials that used
