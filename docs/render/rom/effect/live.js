@@ -37,6 +37,14 @@ import { loadJson, getTexture, loadGlb } from '../../assets.js';
 import { gidBonesOf } from '../../skeleton.js';
 
 const MT_TO_VIEW = 0.01;
+// A LIFT ON THE UNIT, per monster, in the monster's own game units (scaled by its size like everything the
+// unit carries). NOT A ROM VALUE. Teostra's aura hangs from the unit (joint -1), which the viewer puts where
+// the clip's reference node is -- the ground under its feet -- and there the fire sat under the body. Raven,
+// 2026-09-13: "If you could move the Flame Aura up so it is more inside of Teostra, try that". The value is
+// the height of Teostra's root bone above that reference in its idle clip (4.00 = 400). It lifts every effect
+// placed at the unit, the rage bursts too; the joints and the ground stay where they are.
+// __view.effectLift(units) tries another; __view.effectLift() reads it back.
+const UNIT_LIFT = { em027_00: 400 };
 const STEP = 1 / 60;
 const MAX_STEPS = 4;
 
@@ -208,6 +216,7 @@ export class LiveEffects {
       const p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3();
       this.unitMatrix(m).decompose(p, q, s);
       if (this.ground){ this.ground.position.copy(p); this.groundDepth.position.copy(p); }
+      p.y += this.lift() * s.y * MT_TO_VIEW;
       this.host.setParentPose(this.parent, { position: [p.x / MT_TO_VIEW, p.y / MT_TO_VIEW, p.z / MT_TO_VIEW],
                                              quaternion: [q.x, q.y, q.z, q.w], scale: s.x });
       for (const { j, bone } of this.joints){
@@ -230,6 +239,9 @@ export class LiveEffects {
     try { this.schedule.setRage(on); }
     catch (e){ this.fail(e); }
   }
+
+  // the unit lift in effect (UNIT_LIFT), or the one __view.effectLift set on this runtime
+  lift(){ return typeof this.unitLift === 'number' ? this.unitLift : (UNIT_LIFT[this.monsterId] || 0); }
 
   // WHERE THE UNIT IS. A monster's joints hang under its clip's `reference` node, the travel the game adds to
   // the unit's position (render/pose.js), and the pose driver moves that whole skeleton inside the frame it
