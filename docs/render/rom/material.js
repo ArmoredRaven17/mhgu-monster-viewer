@@ -50,7 +50,8 @@
 //   6. The BRDF CLASS itself: MeshPhongMaterial, which is FBRDF's Lambert + Blinn-Phong, with the
 //      ROM's fShininess as the exponent (`enableRomPhong`). DEFAULT OFF.
 //   7. The ALPHA TEST: NVN colour state, enable / function / reference unpacked from the MRL feature
-//      word by the rMaterial setup (`enableRomAlphaTest`, see the section at the end). DEFAULT OFF.
+//      word by the rMaterial setup (`enableRomAlphaTest`, see the section at the end). DEFAULT OFF,
+//      except on ALPHA_ROM_DEFAULT_REFS (Nakarkos, 2026-09-13).
 //
 // 4, 5 and 6 are off by default. Each either overlaps something the SHARED material.js/stage.js
 // already do -- so switching one on alone double-counts rather than corrects -- or changes every
@@ -59,7 +60,7 @@
 import * as THREE from 'three';
 import { applyTint } from '../material.js';
 import { applyRomState } from './state.js';
-import { injectFeatures } from './shader.js';
+import { injectFeatures, ALPHA_ROM_DEFAULT_REFS } from './shader.js';
 import { installRomAmbient, trackRomAmbient, enableRomAmbient, romAmbientEnabled,
          setSHCoef, getSHCoef, setSHAmount } from './ambient.js';
 import { installRomSpecular, trackRomSpecular, enableRomSpecular, romSpecularEnabled,
@@ -447,7 +448,7 @@ export function createRomMaterial(spec){
 
   // THE ALPHA TEST, installed LAST so its discard lands directly after <alphatest_fragment> and
   // ahead of installCutoutSolid's coverage rewrite, which has to see the test's result, not precede it.
-  installRomAlphaTest(mat, romAlphaTestOf(rom));
+  installRomAlphaTest(mat, romAlphaTestOf(rom), spec && spec.ref);
 
   // 4. THE AMBIENT. FAmbientSH is selected by all 570 monster materials and is
   //    `getSHdiffuse(MC.normal) * MC.ambient_occlusion` -- an L2 spherical-harmonic evaluation,
@@ -641,34 +642,42 @@ export function romAlphaTestOf(rom){
   const on = (fb & 0x00100000) !== 0;
   return { on, func: on ? ((fb >>> 21) & 7) : 7, ref: (fb >>> 8) & 0xff };
 }
-let romAlphaTest = false;
+// null: per-monster defaults (ALPHA_ROM_DEFAULT_REFS in rom/shader.js -- Nakarkos, at Raven's word);
+// true / false: every material. `__romAlphaTest('default')` returns to the defaults.
+let romAlphaTest = null;
 const alphaMats = new Set();
 export function romAlphaTestEnabled(){ return romAlphaTest; }
+function romAlphaTestFor(ref){ return romAlphaTest === null ? ALPHA_ROM_DEFAULT_REFS.has(ref) : romAlphaTest; }
 export function enableRomAlphaTest(on){
-  romAlphaTest = !!on;
-  let tested = 0, untested = 0;
+  romAlphaTest = (on === 'default' || on === null) ? null : !!on;
+  let tested = 0, untested = 0, active = 0;
   for (const m of alphaMats){
+    const onHere = romAlphaTestFor(m.userData.romRef);
     const h = m.userData.romAlphaUniforms;
-    if (h) h.uRomAT.value = romAlphaTest ? 1 : 0;
+    if (h) h.uRomAT.value = onHere ? 1 : 0;
     // three.js keeps its own `alphaTest` discard, the rule used with this off; it has to go when the
     // ROM's replaces it, or a material the ROM does not test would still lose its zero texels.
-    const want = romAlphaTest ? 0 : m.userData.legacyAlphaTest;
+    const want = onHere ? 0 : m.userData.legacyAlphaTest;
     if (m.alphaTest !== want){ m.alphaTest = want; m.needsUpdate = true; }
     if (h) tested++; else untested++;
+    if (h && onHere) active++;
   }
-  return { on: romAlphaTest, romTested: tested, legacyCutoutsWithNoRomTest: untested };
+  return { on: romAlphaTest === null ? 'default' : romAlphaTest, romTested: tested, testing: active,
+           legacyCutoutsWithNoRomTest: untested };
 }
 // Uniforms live on their own holder, NOT on userData.u: the shared material.js treats any userData.u
 // as applyTint's full block, and an unlit material has none.
-function installRomAlphaTest(mat, at){
+function installRomAlphaTest(mat, at, ref){
   const live = at.on && at.func !== 7;
   mat.userData.legacyAlphaTest = mat.alphaTest || 0;
+  mat.userData.romRef = ref;
   if (!live && !mat.userData.legacyAlphaTest) return;
   alphaMats.add(mat);
   mat.addEventListener('dispose', () => alphaMats.delete(mat));
-  if (romAlphaTest) mat.alphaTest = 0;
+  const onHere = romAlphaTestFor(ref);
+  if (onHere) mat.alphaTest = 0;
   if (!live) return;
-  const h = mat.userData.romAlphaUniforms = { uRomAT: { value: romAlphaTest ? 1 : 0 }, uRomATRef: { value: at.ref / 255 } };
+  const h = mat.userData.romAlphaUniforms = { uRomAT: { value: onHere ? 1 : 0 }, uRomATRef: { value: at.ref / 255 } };
   mat.userData.romAlphaTest = { func: ROM_ALPHA_FUNC[at.func], ref: at.ref };
   const tags = (mat.userData.progTags || '') + '|romAlphaTest' + at.func;
   mat.userData.progTags = tags;
@@ -689,6 +698,8 @@ const alphaTestMisses = [];
 export function alphaTestAnchorMisses(){ return alphaTestMisses.slice(); }
 if (typeof window !== 'undefined'){
   window.__romAlphaTest = on => (on === undefined
-    ? { on: romAlphaTest, materials: alphaMats.size, anchorMisses: alphaTestMisses.slice() }
+    ? { on: romAlphaTest === null ? 'default' : romAlphaTest, materials: alphaMats.size,
+        testing: [...alphaMats].filter(m => m.userData.romAlphaUniforms && m.userData.romAlphaUniforms.uRomAT.value).length,
+        anchorMisses: alphaTestMisses.slice() }
     : enableRomAlphaTest(on));
 }

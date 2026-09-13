@@ -68,28 +68,42 @@ export function extendMapMisses(){ return extMisses.slice(); }
 // likely need to be moved to a layer or alpha'd out." Its map's alpha averages 65/255 and 52% of it is
 // at or below 50, so drawn at the constant's 1.0 every strip covers its whole mesh.
 //
-// Off by default because it moves 39 non-opaque MapConstant materials on 30 models at once -- Brachydios'
-// slime, Boltreaver's taiden layers, Zinogre's lights among them, looks already reviewed. Savage
+// Off by default -- except on ALPHA_ROM_DEFAULT_REFS (Nakarkos), below -- because it moves 39 non-opaque
+// MapConstant materials on 30 models at once: Brachydios' slime, Boltreaver's taiden layers, Zinogre's
+// lights among them, looks already reviewed. Savage
 // Deviljho (em043_05) is left out even when it is on: it is another agent's test case (Raven,
 // 2026-09-13, "Ignore anything Savage related").
 //   __romMapConstantAlpha(true) / (false) / () -- readback: { on, materials, excluded }
 const MAPCONST_EXCLUDE = new Set(['em/043_05']);
+// MONSTERS WHERE THE ROM'S ALPHA IS ALREADY THE DEFAULT -- this switch and the alpha test in
+// rom/material.js both read it. Raven, 2026-09-13, after trying both on Nakarkos: "The two tests look
+// better", then "we can apply the two alpha treatments for Nakarkos". Keyed by materials.json entry, so
+// the two tentacle models come with the body. Everything else keeps its old rule until reviewed.
+export const ALPHA_ROM_DEFAULT_REFS = new Set(['em/084_00', 'em/084_00/left', 'em/084_00/right']);
 const mapConstMats = new Set();              // { u: uniform holder, ref }
-let mapConstAlpha = false;
+let mapConstAlpha = null;                    // null: per-monster defaults; true / false: every material
 export function mapConstantAlphaOn(){ return mapConstAlpha; }
+function mapConstFor(ref){
+  if (MAPCONST_EXCLUDE.has(ref)) return false;
+  return mapConstAlpha === null ? ALPHA_ROM_DEFAULT_REFS.has(ref) : mapConstAlpha;
+}
 export function enableMapConstantAlpha(on){
-  mapConstAlpha = !!on;
-  let n = 0, excluded = 0;
+  mapConstAlpha = (on === 'default' || on === null) ? null : !!on;
+  let n = 0, lit = 0, excluded = 0;
   for (const e of mapConstMats){
-    const skip = MAPCONST_EXCLUDE.has(e.ref);
-    e.u.value = (mapConstAlpha && !skip) ? 1 : 0;
-    if (skip) excluded++; else n++;
+    e.u.value = mapConstFor(e.ref) ? 1 : 0;
+    if (MAPCONST_EXCLUDE.has(e.ref)) excluded++; else { n++; if (e.u.value) lit++; }
   }
-  return { on: mapConstAlpha, materials: n, excluded };
+  return { on: mapConstAlpha === null ? 'default' : mapConstAlpha, materials: n, usingTextureAlpha: lit, excluded };
 }
 if (typeof window !== 'undefined'){
+  //   __romMapConstantAlpha()           readback
+  //   __romMapConstantAlpha(true/false) every MapConstant material (Savage excepted)
+  //   __romMapConstantAlpha('default')  back to per-monster defaults (Nakarkos on)
   window.__romMapConstantAlpha = on => (on === undefined
-    ? { on: mapConstAlpha, materials: [...mapConstMats].filter(e => !MAPCONST_EXCLUDE.has(e.ref)).length }
+    ? { on: mapConstAlpha === null ? 'default' : mapConstAlpha,
+        materials: [...mapConstMats].filter(e => !MAPCONST_EXCLUDE.has(e.ref)).length,
+        usingTextureAlpha: [...mapConstMats].filter(e => e.u.value).length }
     : enableMapConstantAlpha(on));
 }
 
@@ -119,7 +133,7 @@ export function injectFeatures(mat, rom, lit, ref){
       if (mapConst){
         const u = mat.userData.u.uAlphaCut;
         mapConstMats.add({ u, ref });
-        u.value = (mapConstAlpha && !MAPCONST_EXCLUDE.has(ref)) ? 1 : 0;
+        u.value = mapConstFor(ref) ? 1 : 0;
       }
     } else if (!lit && !mapConst){
       // the unlit class has no such uniform: drop the sampled alpha in the stock chunk instead
@@ -133,7 +147,7 @@ export function injectFeatures(mat, rom, lit, ref){
       // MapConstant, unlit: the constant's alpha alone with the switch off (the old reading), the
       // texel's alpha times it with the switch on (the function body). map_fragment has already
       // multiplied the texel into diffuseColor, so the two ends of the mix are exactly those.
-      const u = { value: (mapConstAlpha && !MAPCONST_EXCLUDE.has(ref)) ? 1 : 0 };
+      const u = { value: mapConstFor(ref) ? 1 : 0 };
       mapConstMats.add({ u, ref });
       mat.addEventListener('dispose', () => { for (const e of mapConstMats) if (e.u === u) mapConstMats.delete(e); });
       tagProgram(mat, 'alphaMapConst');
