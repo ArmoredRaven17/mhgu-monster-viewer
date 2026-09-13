@@ -147,6 +147,22 @@ export class ProofRequest {
   }
   // the uMHProofEffects the core has made (+0x150, +0x15c count)
   effects(){ const m = this.m; return Array.from({ length: m.u32(this.core + 0x15c) }, (_, i) => m.u32(this.core + 0x150 + 4 * i)); }
+  // A one-shot's end, as efx lifecycle runs show it (Teostra's rage burst: its effect's unit goes to state 3
+  // at frame 209 and leaves the core's array, the core goes to state 3 three frames later): the core in
+  // state 3 with no effect left.
+  finished(){ return (this.m.u32(this.core + 0xc) & 7) === 3 && this.m.u32(this.core + 0x15c) === 0; }
+}
+
+// THE UNIT MANAGER'S SIDE OF A UNIT'S END, which the harness's runs never needed. A unit in state 3 gets
+// nothing from either pass below, so taking it off the list changes nothing a pass does; the game's manager
+// deletes it. release() takes a request off the passes altogether -- its core and the effects it has made --
+// for an effect the viewer stops: how the game ends a running effect (a fade, a kill) is not read.
+export function pruneUnits(m, state){
+  state.units = state.units.filter(([u]) => (m.u32(u + 0xc) & 7) !== 3);
+}
+export function releaseRequest(state, request){
+  const gone = new Set([request.core, ...request.effects()]);
+  state.units = state.units.filter(([u]) => !gone.has(u));
 }
 
 // One frame of the unit passes over every unit the requests registered (proofunit.py unit_frame).

@@ -2,9 +2,10 @@
 //
 // docs/effects/<monster>.json names the effect files and the joints their nodes bind to
 // (C:\MHGU-Extract\efx\export_effects.py). For each, the host (host.js) loads the list with the game's
-// loader and starts it hung from a PARENT UNIT whose joint matrices are the monster's bones -- an effect
-// with a record the way the monster's request starts it (proof.js: root joint, row masks) -- and every
-// 1/60 s -- the rate the .efl header declares, and the step the emulator harness verified -- moves it.
+// loader; every effect hangs from one PARENT UNIT whose joint matrices are the monster's bones, and is
+// started the way the monster's request starts it (proof.js) in the state its `when` names (schedule.js:
+// always, while enraged, or once as rage turns on or off) -- and every 1/60 s -- the rate the .efl header
+// declares, and the step the emulator harness verified -- moves it.
 // Every rendered frame draws it: the effect draw and the engine's primitive draw run on the host, and
 // each primitive GPU draw they produce becomes a mesh here, with the ROM's own vertices, index strips,
 // shader program (primshader.js), constant buffers, textures and blend / depth / rasterizer state.
@@ -30,6 +31,7 @@ import * as THREE from 'three';
 import { EffectHost } from './host.js';
 import { linkPrimitive, cbUniforms, FORMATS } from './primshader.js';
 import { linkMaterial } from './modelshader.js';
+import { EffectSchedule } from './schedule.js';
 import { loadJson, getTexture, loadGlb } from '../../assets.js';
 import { gidBonesOf } from '../../skeleton.js';
 
@@ -117,7 +119,8 @@ export class LiveEffects {
     this.stats = { frames: 0, steps: 0, prims: 0, models: 0 };
   }
 
-  async attach(root){
+  // rage: the viewer's Enraged state as the effects start (setRage follows it from then on)
+  async attach(root, { rage = false } = {}){
     const s = await loadShared();
     const def = this.def, res = def.resources;
     const files = {};
@@ -142,26 +145,18 @@ export class LiveEffects {
     host.initDraw({ position: [0, 0, 0], view: [...I, 0, 0, 0, 1], world: [...I, 0, 0, 0, 1] });
     this.root = root;
     const bones = gidBonesOf(root);
-    const hex = h => Uint8Array.from(h.match(/../g), b => parseInt(b, 16));
     // One parent for every effect, as in the game: they all hang from the monster (the request's parent is
-    // the enemy itself), whose bones answer every joint any of their nodes names.
+    // the enemy itself), whose bones answer every joint any of their nodes names, and whose own placement a
+    // request placed at the unit reads (writeJoints).
     const joints = [...new Set(def.effects.flatMap(e => e.joints))];
     this.effects = def.effects.map(e => ({ owner: host.createEffect(files[e.efl]), def: e }));
-    const parent = this.parent = joints.length ? host.createParent(joints) : null;
+    const parent = this.parent = (joints.length || def.effects.some(e => e.record)) ? host.createParent(joints) : null;
     this.joints = joints.map(j => ({ j, bone: (bones.find(b => b.gid === j) || {}).node || null }));
     root.updateMatrixWorld(true);
     this.writeJoints();
-    for (const e of this.effects){
-      if (e.def.record){
-        // a record: the monster's request, whole (proof.js ProofRequest) -- the core makes the effect the game
-        // draws, a uMHProofEffect, which the unit passes run every frame
-        const r = e.def.record;
-        e.request = host.requestEffect(e.owner, parent, { index: r.index, key: r.key, path: r.path, payload: hex(r.payload) });
-      } else {
-        if (e.def.joints.length) host.attach(e.owner, parent);
-        host.start(e.owner);
-      }
-    }
+    // a record: the monster's request, whole (proof.js ProofRequest) -- the core makes the effect the game
+    // draws, a uMHProofEffect, which the unit passes run every frame -- made when schedule.js says
+    this.schedule = new EffectSchedule(host, parent, this.effects, rage);
     // The frame driver: an empty mesh at the end of the viewer's render list (transparent, last). Its hook
     // steps the effects, draws them on the host and renders their meshes right there, into the target the
     // viewer's render is drawing into, over everything it has drawn. They are rendered by a render of their
@@ -180,11 +175,16 @@ export class LiveEffects {
   writeJoints(){
     const m = new THREE.Matrix4();
     if (this.parent){
-      // the parent unit's own scale (uCoord +0x60), which a request's effect multiplies its record's scale by
-      // (0x31d16c): the monster's size -- the scale the root carries into its bones' world matrices (the
-      // viewer scales the world group by the game's size multiplier, index.html sizeScale), so the unit's
-      // scale and its joints' linear parts agree as they do in the game
-      this.host.setParentScale(this.parent, new THREE.Vector3().setFromMatrixScale(this.root.matrixWorld).x);
+      // THE PARENT UNIT'S OWN PLACEMENT (uCoord +0x40 position, +0x50 quaternion, +0x60 scale), its translation
+      // in game units. Its scale is the monster's size (the viewer scales the world group by the game's size
+      // multiplier, index.html sizeScale), which a request's effect multiplies its record's scale by
+      // (0x31d16c), so the unit's scale and its joints' linear parts agree as they do in the game. A request
+      // placed at the unit (joint -1: Teostra's aura) takes the position and the quaternion's angles
+      // (0x31f788, 0x8a4b88).
+      const p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3();
+      this.unitMatrix(m).decompose(p, q, s);
+      this.host.setParentPose(this.parent, { position: [p.x / MT_TO_VIEW, p.y / MT_TO_VIEW, p.z / MT_TO_VIEW],
+                                             quaternion: [q.x, q.y, q.z, q.w], scale: s.x });
       for (const { j, bone } of this.joints){
         if (!bone) continue;
         m.copy(bone.matrixWorld);
@@ -199,18 +199,41 @@ export class LiveEffects {
     }
   }
 
+  // The viewer's Enraged state: the effects that start or stop with it (schedule.js).
+  setRage(on){
+    if (this.failed || !this.schedule) return;
+    try { this.schedule.setRage(on); }
+    catch (e){ this.fail(e); }
+  }
+
+  // WHERE THE UNIT IS. A monster's joints hang under its clip's `reference` node, the travel the game adds to
+  // the unit's position (render/pose.js), and the pose driver moves that whole skeleton inside the frame it
+  // poses the bones in -- the XZ anchor and the ground lock shift it, the reference carries the clip's
+  // travel -- so the unit is the reference node of the clip being played, in that frame. The driver is the
+  // viewer's body driver (index.html's __view.pose); with no clip playing the bones are at bind under the
+  // root, and the unit is the root.
+  unitMatrix(out){
+    const pose = typeof window !== 'undefined' && window.__view && window.__view.pose;
+    const scn = pose && pose.mixer && pose.proxyBones && pose.frame ? pose.mixer.getRoot() : null;
+    if (!scn) return out.copy(this.root.matrixWorld);
+    const ref = scn.getObjectByName('reference') || scn;
+    pose.frame.updateWorldMatrix(true, false);
+    return out.multiplyMatrices(pose.frame.matrixWorld, ref.matrixWorld);
+  }
+
   // A refusal (a branch of the ROM's code no recorded run reached: Unverified) or any other fault stops
   // this effect and says where, once; the viewer's render loop must not die with it.
   frame(renderer, scene, camera){
     if (this.failed) return;
     try { this.frameUnsafe(renderer, scene, camera); }
-    catch (e){
-      this.failed = String(e && e.message || e);
-      this.stats.failed = this.failed;
-      for (const mesh of this.meshes) mesh.visible = false;
-      for (const mesh of this.modelMeshes) mesh.visible = false;
-      console.warn('live effects stopped: ' + this.failed);
-    }
+    catch (e){ this.fail(e); }
+  }
+  fail(e){
+    this.failed = String(e && e.message || e);
+    this.stats.failed = this.failed;
+    for (const mesh of this.meshes) mesh.visible = false;
+    for (const mesh of this.modelMeshes) mesh.visible = false;
+    console.warn('live effects stopped: ' + this.failed);
   }
 
   frameUnsafe(renderer, scene, camera){
@@ -220,16 +243,23 @@ export class LiveEffects {
     this.last = now;
     if (this.acc >= STEP) this.writeJoints();
     while (this.acc >= STEP){
-      this.host.unitFrame();                                   // every request's core and effect
-      for (const e of this.effects) if (!e.request) this.host.move(e.owner);
+      this.schedule.step();                                    // every request's core and effect
       this.acc -= STEP;
       this.stats.steps++;
+    }
+    const effects = this.schedule.effects();
+    this.stats.running = this.schedule.running;
+    if (!effects.length){                                      // nothing running: no draw, no depth pass
+      for (const mesh of this.meshes) mesh.visible = false;
+      for (const mesh of this.modelMeshes) mesh.visible = false;
+      this.stats.prims = this.stats.models = 0;
+      return;
     }
     // the camera the effect draw sorts by (and the model draw's sort key reads): this render's camera,
     // in the game's units, into the camera block (+0x40 position, +0x70 view, +0xb0 its inverse)
     const cam = this.cameraMatrices(camera);
     this.host.setCamera({ position: cam.position.toArray(), view: Array.from(cam.view.elements), world: Array.from(cam.viewI.elements) });
-    const { prims, models } = this.host.drawFrame(this.effects.flatMap(e => e.request ? e.request.effects() : [e.owner]));
+    const { prims, models } = this.host.drawFrame(effects);
     this.stats.frames++; this.stats.prims = prims.length; this.stats.models = models.length;
     this.depth = this.sceneDepth(renderer, scene, camera);
     this.syncModels(models, renderer, cam);

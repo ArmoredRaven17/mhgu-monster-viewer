@@ -63,6 +63,15 @@ if (info.parent){
   parent = host.createParent(info.parent.joints);
   if (!info.proof && !info.request) host.attach(owner, parent);
   if (info.request) host.setParentScale(parent, info.request.scale);
+  // the unit's coordinates (+0xc, +0x30..+0xf0) must be the harness's, word for word (efx/parent.py)
+  const obj = hex(info.parent.bytes.object), dv = new DataView(obj.buffer);
+  for (let o = 0xc; o < 0xf4; o += 4){
+    if (o > 0xc && o < 0x30) continue;
+    if (host.m.u32(parent.object + o) !== dv.getUint32(o, true)){
+      console.log('parent unit +0x' + o.toString(16) + ': js 0x' + host.m.u32(parent.object + o).toString(16) + ', harness 0x' + dv.getUint32(o, true).toString(16));
+      process.exit(1);
+    }
+  }
 }
 const setJoints = f => {
   const bytes = hex(info.parent.frames[f]);

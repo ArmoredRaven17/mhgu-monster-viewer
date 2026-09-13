@@ -68,11 +68,13 @@ let rageOn = false;
 const live = [];                  // { obj, bone, model, joint, array, index }
 const cache = new Map();          // model name -> the loaded glb scene, cloned per use
 
-// A MONSTER WHOSE EFFECT IS DRIVEN BY THE RAGE TOGGLE instead of the inspection switch.
+// A MONSTER WHOSE EFFECTS ARE DRIVEN BY THE RAGE TOGGLE instead of the inspection switch.
 // Raven, 2026-09-11: "Just add the effect to Savage's Enrage state". Listed in
 // effect-mounts.json's `_autoOnRage`, so a monster opts in by data rather than by code, and
 // Felyne -- whose 19 rows are per-action proof effects that the game fires individually -- keeps
-// the old behaviour of showing nothing until asked.
+// the old behaviour of showing nothing until asked. Which of a listed monster's effects run in which
+// state is each effect's `when` (effect/schedule.js): Savage's run while enraged; Teostra's aura runs
+// throughout and its bursts play as rage turns on and off.
 function autoOnRage(id){
   return !!(table && Array.isArray(table._autoOnRage) && table._autoOnRage.indexOf(id) >= 0);
 }
@@ -138,23 +140,38 @@ async function glbFor(model){
 
 // Attach every joint-bound record for this monster. `root` is the mounted monster group.
 export async function attachEffectMounts(root, monsterId, only){
+  installConsoleHook();
+  // THE SAME MONSTER ON THE SAME ROOT keeps its running effects and hands them the rage state: schedule.js
+  // starts and stops what depends on it. Rebuilding them on every toggle would restart the aura and could
+  // never play the burst rage starts with.
+  if (runtimeOn && runtime && root && runtime.root === root && runtime.monsterId === monsterId && runtime.keepAcrossRage){
+    lastAttach = [root, monsterId, only];
+    runtime.setRage(rageOn);
+    return 1;
+  }
   detachEffectMounts();
   const token = ++attachToken;
   lastAttach = [root, monsterId, only];
-  installConsoleHook();
-  // Either the inspection switch, or this monster's own rage-driven mount.
-  if ((!enabled && !(rageOn && autoOnRage(monsterId))) || !root) return live.length;
+  // Either the inspection switch, or this monster's own rage-driven effects.
+  if ((!enabled && !autoOnRage(monsterId)) || !root) return live.length;
   if (runtimeOn){
     const def = await liveEffectsFor(monsterId).catch(() => null);
     if (token !== attachToken) return 0;                 // detached or re-attached meanwhile
     if (def){
+      // Effects that all run only while enraged (Savage's) are built on rage and dropped with it, as they
+      // always were; a monster with any other `when` keeps its runtime from the moment it is shown.
+      const rageOnly = def.effects.every(e => (e.when || 'rage') === 'rage');
+      if (!enabled && rageOnly && !rageOn) return 0;
       const fx = new LiveEffects(def);
-      await fx.attach(root);
+      fx.monsterId = monsterId;
+      fx.keepAcrossRage = !rageOnly;
+      await fx.attach(root, { rage: rageOn });
       if (token !== attachToken){ fx.detach(); return 0; }
       runtime = fx;
       return 1;
     }
   }
+  if (!enabled && !rageOn) return live.length;         // the table mounts: the inspection switch, or rage
   // `joint: -1` normally means an UNBOUND .pel record and is skipped. A row that also carries
   // `root: true` is different: it is an effect whose attachment point is not decoded yet -- the
   // EFL names its models in plain text but its emitter placement is unread -- and it is mounted on

@@ -11,7 +11,9 @@
 //                         (bridge.js natives at 0x7e000000 / 0x7e000104, the harness's stub entries)
 //   resources             rEffectList / rEffectAnim / rModel / rTexture handles for the loader
 //   a parent unit         +0x54 uModel's joint matrix 0x939278 over +0x494 joints / +0x498 table,
-//                         +0x14 its class (bridge.js PARENT_GETDTI) for a start on a parent
+//                         +0x14 its class (bridge.js PARENT_GETDTI) for a start on a parent, and its own
+//                         coordinates (+0x38 order, +0x40 position, +0x50 quaternion, +0x60 scale, +0x70 /
+//                         +0xb0 the matrices composed from them), which a request placed at the unit reads
 //   a proof start         a monster's effect request built from its record (proof.js)
 //   the draw context      VIEW: the package table (one object per shader record), the constant
 //                         buffer descriptors, a per-frame buffer, the camera block
@@ -30,7 +32,7 @@ import { drawEffect } from './draw.js';
 import { invoke } from './cpu.js';
 import * as modeldraw from './modeldraw.js';
 import './prim.js';
-import { proofStart, installRequests, ProofRequest, unitFrame } from './proof.js';
+import { proofStart, installRequests, ProofRequest, unitFrame, pruneUnits, releaseRequest } from './proof.js';
 import { PARENT_GETDTI, PARENT_ADD_EFFECT, RESMGR_RELEASE } from './bridge.js';
 
 const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
@@ -174,10 +176,18 @@ export class EffectHost {
     return new ProofRequest(this.m, this.requests, { list: this.m.u32(owner + 0xf4), parent: parent.object, record, area });
   }
   unitFrame(){ if (this.requests) unitFrame(this.m, this.requests); }
+  // units the passes no longer act on (state 3) off the list; a request off the passes altogether (proof.js)
+  pruneUnits(){ if (this.requests) pruneUnits(this.m, this.requests); }
+  releaseRequest(request){ releaseRequest(this.requests, request); }
 
   // A parent unit for joint-bound nodes: 0x939278 at vtable +0x54, a live unit's +0xc, the joint
   // number -> index table at +0x498 and the joint array at +0x494 (0xa0 bytes each, the world matrix
-  // at +0x10, row-major with the translation in the last row), the unit's own matrix at +0xb0.
+  // at +0x10, row-major with the translation in the last row), and the unit's own coordinates as the
+  // monster's constructor leaves them (uEm027_00's 0xe0f988; uCoord's part 0x8a46a0): no parent (+0x30 0,
+  // +0x34 -1), the order word +0x38 0x30004 (a request turns the quaternion into angles in order 4:
+  // 0x8a4b88 -> 0x7c3a38), position zero, identity quaternion, unit scale, the matrices composed from
+  // those. +0xf0 stays 0 as the constructor leaves it: a request's placement then takes the position,
+  // not the world matrix (0x31f6b4). efx/parent.py builds the same object.
   createParent(jointNumbers){
     const m = this.m;
     const P = this.malloc(0x1000), VT = this.malloc(0x400), TABLE = this.malloc(0x100);
@@ -190,11 +200,39 @@ export class EffectHost {
     m.load(TABLE, new Uint8Array(0x100).fill(0xff));
     jointNumbers.forEach((j, i) => m.w8(TABLE + j, i));
     m.w32(P + 0x494, ARRAY); m.w32(P + 0x498, TABLE);
-    this.writeMatrix(P + 0xb0, IDENTITY);
-    return { object: P, vtable: VT, table: TABLE, array: ARRAY, joints: jointNumbers.slice() };
+    m.w32(P + 0x30, 0); m.w32(P + 0x34, 0xffffffff); m.w32(P + 0x38, 0x30004);
+    const parent = { object: P, vtable: VT, table: TABLE, array: ARRAY, joints: jointNumbers.slice(),
+                     position: [0, 0, 0], quaternion: [0, 0, 0, 1], scale: 1 };
+    this.composeParent(parent);
+    return parent;
   }
   // the parent unit's own scale (uCoord +0x60..+0x68): a monster's size, which a request's effect takes
-  setParentScale(parent, s){ this.writeMatrix(parent.object + 0x60, [s, s, s]); }
+  setParentScale(parent, s){ parent.scale = s; this.composeParent(parent); }
+  // the parent unit's placement: position [x, y, z] in game units, quaternion [x, y, z, w], a uniform scale
+  setParentPose(parent, { position, quaternion, scale }){
+    parent.position = position.slice(); parent.quaternion = quaternion.slice(); parent.scale = scale;
+    this.composeParent(parent);
+  }
+  // Position +0x40, quaternion +0x50, scale +0x60 and the matrices the ROM composes from them, in its own
+  // single-precision operations: the local matrix +0x70 (0x8a53bc: the quaternion's rotation, the position
+  // in the last row) and, for a unit with no parent, the world matrix +0xb0 (0x8a5480: the local matrix
+  // with rows 0..2 times the scale).
+  composeParent(parent){
+    const F = Math.fround, P = parent.object;
+    const [px, py, pz] = parent.position.map(F), [x, y, z, w] = parent.quaternion.map(F), s = F(parent.scale);
+    const z2 = F(z + z), y2 = F(y + y);
+    const yy = F(y * y2), zz = F(z * z2), xy = F(x * y2), xz = F(x * z2), zw = F(z2 * w), yw = F(y2 * w), yz = F(y * z2);
+    const x2 = F(x + x), xx = F(x * x2), xw = F(x2 * w);
+    const local = [F(1 - F(yy + zz)), F(xy + zw), F(xz - yw), 0,
+                   F(xy - zw), F(1 - F(xx + zz)), F(yz + xw), 0,
+                   F(xz + yw), F(yz - xw), F(1 - F(xx + yy)), 0,
+                   px, py, pz, 1];
+    this.writeMatrix(P + 0x40, [px, py, pz, 0]);
+    this.writeMatrix(P + 0x50, [x, y, z, w]);
+    this.writeMatrix(P + 0x60, [s, s, s, 0]);
+    this.writeMatrix(P + 0x70, local);
+    this.writeMatrix(P + 0xb0, local.map((v, i) => i < 12 ? F(s * v) : v));
+  }
   setJointMatrix(parent, jointNumber, rows16){
     this.writeMatrix(parent.array + 0xa0 * parent.joints.indexOf(jointNumber) + 0x10, rows16);
   }

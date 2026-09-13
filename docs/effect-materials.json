@@ -326,5 +326,209 @@
     }
    }
   }
+ },
+ "cm151_001": {
+  "tex": [
+   "tex/d8f499a4c4d57ea7.webp"
+  ],
+  "mats": {
+   "XfBA1__cm102_100": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm150_002": {
+  "tex": [
+   "tex/6d410e818204a2b3.webp"
+  ],
+  "mats": {
+   "XfBA1__cm100_009": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm150_003": {
+  "tex": [
+   "tex/ae8847080ad45636.webp",
+   "tex/6f6a3fc9077e8c85.webp",
+   "tex/6685fa9e86e39f9d.webp",
+   "tex/21df5c43d5b73dd7.webp",
+   "tex/254f305bfb34763d.webp",
+   "tex/67fbecd6c4ec5651.webp"
+  ],
+  "mats": {
+   "XfBAW_cm150_004v": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   },
+   "XfBA1__cm150_005": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 2
+    }
+   },
+   "XfBA1__cm100_001": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 3
+    }
+   },
+   "XfBA1__cm150_002": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 4
+    }
+   },
+   "XfBA1__cm100_100": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 5
+    }
+   },
+   "XfBAW_cm150_006bv": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMesh",
+     "bias": 0,
+     "cull": "back",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 6
+    }
+   }
+  }
+ },
+ "cm120_008": {
+  "tex": [
+   "tex/bca812a4cf899214.webp"
+  ],
+  "mats": {
+   "XfBAW_cm120_006v": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm101_000": {
+  "tex": [
+   "tex/67aa3e363afa73c2.webp"
+  ],
+  "mats": {
+   "XfBAW_cm101_000v": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm101_002": {
+  "tex": [
+   "tex/618aa3c5a4480e14.webp",
+   "tex/f93079c29cc254a2.webp"
+  ],
+  "mats": {
+   "XfBAW_cm101_002v": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   },
+   "XfBAW_cm100_003vb": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 2
+    }
+   }
+  }
  }
 }
