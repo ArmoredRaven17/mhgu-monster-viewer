@@ -10,6 +10,7 @@ import { Mem, Unverified, bitsf32 } from '../docs/render/rom/effect/mem.js';
 import * as life from '../docs/render/rom/effect/life.js';
 import * as curve from '../docs/render/rom/effect/curve.js';
 import * as motion from '../docs/render/rom/effect/motion.js';
+import * as model from '../docs/render/rom/effect/model.js';
 
 // address -> [translation, arguments from the vector, what to compare on return]
 const TABLE = {
@@ -29,6 +30,14 @@ const TABLE = {
   '0xa60f68': [life.lifePass, v => [v.args[0]], null],
   '0xcaa624': [life.releaseParticle, v => [v.args[0]], null],
   '0xa5825c': [life.killParticle, v => [v.args[0], v.args[1]], 'r0'],
+  '0xa67304': [() => {}, v => [], null],
+  '0xa97838': [model.animStep, v => [v.args[0], v.args[1]], 'r0'],
+  '0xa6746c': [model.scaleStep, v => [v.args[0], v.args[1], s0(v)], 'r0'],
+  '0xa683f8': [model.rotStep, v => [v.args[0], v.args[1], v.args[2], s0(v)], null],
+  '0xa68c44': [model.channelStep, v => [v.args[0], v.args[1], v.args[2], v.args[3]], null],
+  '0xa97dd8': [model.channelPass, v => [v.args[0], v.args[1]], null],
+  '0xa972b8': [model.updateModelParticle, v => [v.args[0], v.args[1]], 'r0'],
+  '0xa9718c': [model.modelFrame, v => [v.args[0]], 'r0'],
 };
 // the translation's own stand-in for stack locals: never an input, never compared
 const inScratch = a => a >= motion.SCRATCH_BASE && a < motion.SCRATCH_BASE + 0x100000;
@@ -43,7 +52,7 @@ function stackArg(v, k){
   throw new Error('stack argument ' + k + ' not among the recorded reads');
 }
 // s0 at entry (the low half of d0)
-function s0(v){ return bitsf32(Number(BigInt(v.d[0]) & 0xffffffffn)); }
+function s0(v){ return bitsf32(v.d[0][0]); }
 
 function hexBytes(h){
   const b = new Uint8Array(h.length / 2);
@@ -81,7 +90,7 @@ function check(fnName, v){
   }
   for (const [a] of wrote) if (!want.has(a) && !inScratch(a)) problems.push('js wrote 0x' + a.toString(16) + ' which the game did not');
   if (retKind === 'r0' && (ret >>> 0) !== v.ret.r0) problems.push('returned ' + ret + ', game ' + v.ret.r0);
-  if (retKind === 's0' && Math.fround(ret) !== bitsf32(Number(BigInt(v.ret.d0) & 0xffffffffn))) problems.push('returned ' + ret);
+  if (retKind === 's0' && Math.fround(ret) !== bitsf32(v.ret.d0[0])) problems.push('returned ' + ret + ', game ' + bitsf32(v.ret.d0[0]));
   return problems;
 }
 
