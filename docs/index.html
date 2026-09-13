@@ -1068,6 +1068,7 @@ import { createStage } from './render/stage.js';
 import { initAssets, loadJson } from './render/assets.js';
 import { allMats, setWire, setBiasUnitsPerStep } from './render/material.js';
 import { PoseDriver } from './render/pose.js';
+import { gidBonesOf } from './render/skeleton.js';
 import { loadMaterialsDb } from './render/materials-db.js';
 import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
          partVerts, partsDrawn, applyParts, groupLabel, groupIsInert, setNormalOpt,
@@ -1085,6 +1086,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts, ROM_SPAWN_CLIP,
          ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels, levelClipFor, setClipFor,
+         attachedBodyOf, attachedClipFor,
          monsterMats,
          enableRomAmbient, enableRomSpecular, enableRomPhong,
          setSHAmount, setRomSpecularAmount, anchorMisses } from './render/monster.js';
@@ -3219,6 +3221,15 @@ function applyPartState(){
   // that shows every piece at once, and goes when that panel does.
   const shed = shedKinds();
   for (const [k, g] of Object.entries(mounted)) if (k !== 'main'){
+    // AN ATTACHED SECOND BODY IS NOT A SHED PIECE: it is always there, in the form the ROM starts it
+    // in -- its own .mpm group, from ROM_ATTACHED_BODY -- until a control exists to change it.
+    const a = attached.get(k);
+    if (a){
+      g.visible = true;
+      const on = a.spec.groups.map((_, i) => i === a.spec.restGroup);
+      applyParts(g, partsDrawn(a.spec.groups, on));
+      continue;
+    }
     const pc = (e.parts || []).find(x => x.name === k);
     g.visible = !!state.tail || !!(pc && shed.has(pc.kind));
   }
@@ -3227,9 +3238,87 @@ function applyPartState(){
   for (const g of Object.values(mounted)) setExtendVisible(g, state.extend);
 }
 function clearMounts(){
+  clearAttached();
   // give the materials and geometry back: a sweep steps through every monster in the game
   for (const k of Object.keys(mounted)){
     world.remove(mounted[k]); releaseMonster(mounted[k]); delete mounted[k];
+  }
+}
+// ---- attached second bodies (Nakarkos' tentacles) ------------------------------------------------
+// A mounted piece the ROM PARENTS to a body joint rather than leaves as a severed prop -- see
+// ROM_ATTACHED_BODY in render/monster.js for the reads. Each gets its own pose driver, playing its
+// own motion list (the body list's `l_` / `r_` twin) in time with the body, with the driver's frame
+// set every frame from the body joint the ROM attaches it to. The body's driver no longer touches
+// it: that driver moves every root it is handed by global bone id, and handing it a tentacle is what
+// folded both tentacles into the body.
+const attached = new Map();                  // piece name -> { driver, frame, joint, restInv, spec }
+let tentacleAttach = 'joint';                // 'joint' | 'rest' -- see ROM_ATTACHED_BODY's NOT READ
+function clearAttached(){
+  for (const a of attached.values()) a.driver.stop();
+  attached.clear();
+}
+function isAttached(name){ return attached.has(name); }
+function setupAttached(){
+  clearAttached();
+  const e = entry();
+  if (!e || !mounted.main) return;
+  for (const p of e.parts || []){
+    const spec = attachedBodyOf(e.id, p.name);
+    if (!spec || !mounted[p.name]) continue;
+    // the body joint, found through the body's own gid table
+    let jointNode = null;
+    for (const b of gidBonesOf(mounted.main)) if (b.gid === spec.joint){ jointNode = b.node; break; }
+    if (!jointNode){ noteError('attached body ' + p.name + ': body joint ' + spec.joint + ' not found'); continue; }
+    // its REST world matrix, taken now while the freshly loaded body still sits in its bind pose
+    world.updateMatrixWorld(true);
+    const restInv = jointNode.matrixWorld.clone().invert();
+    const frame = new THREE.Object3D();
+    frame.matrixAutoUpdate = false;           // step() reads matrixWorld; this object has no parent
+    const driver = new PoseDriver({ frame, onError: msg => noteError(msg) });
+    attached.set(p.name, { driver, frame, jointNode, restInv, spec, part: p });
+    mounted[p.name].position.set(0, 0, 0);
+  }
+}
+// The frame each tentacle driver maps its proxy through: the body joint's world matrix ('joint'), or
+// that joint's motion away from its rest pose carried on the world group ('rest').
+function attachFrame(a){
+  a.jointNode.updateWorldMatrix(true, false);
+  if (tentacleAttach === 'rest'){
+    world.updateWorldMatrix(true, false);
+    a.frame.matrix.multiplyMatrices(a.jointNode.matrixWorld, a.restInv).multiply(world.matrixWorld);
+  } else a.frame.matrix.copy(a.jointNode.matrixWorld);
+  a.frame.matrixWorld.copy(a.frame.matrix);
+}
+async function playAttached(l, c){
+  const e = entry();
+  for (const [name, a] of attached){
+    const root = mounted[name];
+    const twin = l && c && (e.lists || []).find(x => x.id === a.spec.listPrefix + l.id);
+    const clip3 = twin ? await attachedClipFor(twin.file, c.clip, a.part.glb) : null;
+    if (!attached.has(name) || attached.get(name) !== a) continue;     // remounted while loading
+    if (!clip3){ a.driver.stop(); restoreBind(root); continue; }
+    a.driver.loopMode = pose.loopMode;
+    await a.driver.play({ file: twin.file, clip: c.clip, model: a.part.glb, clip3 },
+                        { figure: 'monster', joints: a.part.joints || [], anchorXZ: false, groundLock: false });
+  }
+}
+// Called right after the body's own step, every time: the frame follows the body joint as drawn
+// NOW, and the tentacle clip is held at the body clip's time rather than on a clock of its own.
+function stepAttached(){
+  for (const [name, a] of attached){
+    const root = mounted[name];
+    if (!root) continue;
+    attachFrame(a);
+    if (a.driver.action && pose.action){
+      a.driver.action.paused = pose.action.paused;
+      a.driver.action.time = Math.min(pose.action.time, Math.max(0, a.driver.action.getClip().duration - 1e-3));
+    }
+    a.driver.clock.getDelta();                 // its own clock adds nothing on top of that time
+    if (a.driver.action) a.driver.step([root]);
+    else {
+      // no twin clip for this motion: bind pose, carried on the frame
+      root.updateMatrixWorld(true);
+    }
   }
 }
 // The Loading overlay is a SCREEN, not a caption. Showing the text on its own left the
@@ -3290,6 +3379,9 @@ async function mount(){
     world.add(main); mounted.main = main;
     for (const [name, g] of extra){ world.add(g); mounted[name] = g; }
     applySize();
+    // after applySize (the rest matrix it takes carries the world group's scale), before
+    // applyPartState (which reads the registry)
+    setupAttached();
     readLadder();                              // before buildGroups: it decides which clusters show
     buildGroups(); applyPartState(); paintAbout(); applyUndef(); applyExtend(); applyProxy(); applyRage();
     // A fresh mount is a state change: a monster restored with Charged already ticked has to start
@@ -3313,7 +3405,8 @@ async function mount(){
 // The body's own bounding box is useless here -- a skinned mesh keeps its T-pose bounds -- so
 // this takes the pose driver's bounds where it has them, exactly as frameAll() does.
 function placeParts(){
-  const names = Object.keys(mounted).filter(k => k !== 'main');
+  // an attached second body is placed by its joint, never fanned out on the ground
+  const names = Object.keys(mounted).filter(k => k !== 'main' && !isAttached(k));
   if (!names.length || !mounted.main) return;
   // Measure the body from its POSED BONES, not from pose.bounds. The driver computes those
   // bounds before step() applies the ground-lock shift, so they disagree with what is actually
@@ -4128,6 +4221,7 @@ async function play(){
     // "Bind pose". Stopping the driver leaves the bones wherever the last clip left them,
     // so the model has to be put back explicitly.
     pose.stop();
+    for (const a of attached.values()) a.driver.stop();
     for (const g of Object.values(mounted)) restoreBind(g);
     return;
   }
@@ -4140,9 +4234,12 @@ async function play(){
   await pose.play({ file: l.file, clip: c.clip, model: e.glb, clip3 },
                   { figure: 'monster', joints: e.joints || [],
                     anchorXZ: state.anchor, groundLock: state.ground });
-  if (mine !== playSeq) pose.stop();     // ...or won while the clip was being prepared
+  if (mine !== playSeq){ pose.stop(); return; }   // ...or won while the clip was being prepared
+  await playAttached(l, c);
+  stepAttached();
 }
-function poseRoots(){ return Object.values(mounted); }
+// the roots the BODY's driver moves -- never an attached second body, which has a driver of its own
+function poseRoots(){ return Object.entries(mounted).filter(([k]) => !isAttached(k)).map(([, g]) => g); }
 
 // ---- animation transport ------------------------------------------------------------------
 // The motions run at 60 frames a second, so a frame step is 1/60 s. The transport drives the
@@ -4173,6 +4270,7 @@ function seekTo(t){
   act.paused = true; act.enabled = true;
   act.time = Math.max(0, Math.min(t, clipDur(act)));
   pose.step(poseRoots());
+  stepAttached();
 }
 animScrub.oninput = () => seekTo(+animScrub.value * FRAME);
 document.getElementById('animFirst').onclick = () => seekTo(0);
@@ -4539,6 +4637,7 @@ renderer.setAnimationLoop(() => {
   // Loading overlay reads as a screen rather than a caption over the outgoing monster
   if (!booted || loadHold > 0) return;
   pose.step(poseRoots());
+  stepAttached();
   updateDepthBias();
   // the ROM's own material animation: scrolling UVs, pulsing alpha, tinted glows
   if (state.matAnim !== false){
@@ -4704,6 +4803,26 @@ window.__view.cutSolid = on => { setCutoutSolid(on); renderer.render(scene, came
 // The clips live on the SHARED materials-db spec (m.userData.rom.anim), so they are stashed per
 // material and put back rather than deleted, or the next monster to use that record would lose
 // them too.
+// How an attached second body (Nakarkos' tentacles) composes its body joint -- the one thing about
+// the attachment the ROM read has not settled (see ROM_ATTACHED_BODY in render/monster.js):
+//   __view.tentacleAttach()         report: the mode, and where each tentacle's first joint is drawn
+//   __view.tentacleAttach('joint')  the tentacle's origin on the joint's world matrix (default)
+//   __view.tentacleAttach('rest')   only the joint's motion from rest: exactly where the models are authored
+window.__view.tentacleAttach = mode => {
+  if (mode === 'joint' || mode === 'rest') tentacleAttach = mode;
+  stepAttached();
+  renderer.render(scene, camera);
+  const out = { mode: tentacleAttach, attached: {} };
+  for (const [name, a] of attached){
+    const b1 = gidBonesOf(mounted[name]).find(b => b.gid === 1);
+    const j = new THREE.Vector3().setFromMatrixPosition(a.jointNode.matrixWorld);
+    const t = b1 ? new THREE.Vector3().setFromMatrixPosition(b1.node.matrixWorld) : null;
+    out.attached[name] = { bodyJoint: a.spec.joint, bodyJointAt: j.toArray().map(v => +v.toFixed(2)),
+                           tentacleJoint1At: t && t.toArray().map(v => +v.toFixed(2)),
+                           clip: a.driver.action ? a.driver.action.getClip().name : '(bind pose)' };
+  }
+  return out;
+};
 window.__view.matAnim = on => {
   let touched = 0;
   for (const root of Object.values(mounted)) root.traverse(o => {
@@ -4737,6 +4856,7 @@ window.__view.shot = async function(run, nameArg, atArg){
     act.time = (typeof atArg === 'number') ? Math.min(Math.max(0, atArg), Math.max(0, clip.duration - 1e-3))
              : (act.loop === THREE.LoopOnce ? Math.max(0, clip.duration - 1e-3) : 0);
     pose.step(poseRoots());
+    stepAttached();
   }
   // THE HARNESS HAS TO TICK THE MATERIAL ANIMATION TOO, or it cannot see one change.
   // Found 2026-09-07: this function drove pose.step() and then rendered directly, bypassing the

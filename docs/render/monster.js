@@ -847,6 +847,100 @@ export async function clipFor(list, clipName, modelUrl){
   return out;
 }
 
+// ---- attached second bodies ------------------------------------------------------------------
+// NAKARKOS' TENTACLES ARE A SECOND BODY, NOT SEVERED PIECES. Raven, 2026-09-13: "They are a second
+// body that Nakarkos uses to do attacks with." In the viewer they were a severed prop, and worse: the
+// body's pose driver drove every mounted root by global bone id, so each tentacle's joints 0..13 took
+// the BODY's joints 0..13 and both folded into a bunch inside the body.
+//
+// What the ROM does with them:
+//   * They are objects of their own class, uEmOstgaloaArm (Ostgaloa is Nakarkos' Japanese name),
+//     two of them built inside uEm084_00's constructor (0x1064af8, 0x1064b04; arm ctor 0x107b29c).
+//   * The arm's setup (vtable+0x18, 0x107b3a4) calls vtable+0x48 -- uCoord::setParent, 0x457c8,
+//     which stores the parent at +0x30 and the joint number at +0x34 -- with the body and joint
+//     200 when its side byte (+0xcae0) is 1, else joint 203. The same routine sets the arm's own
+//     scale to 1.1 (+0x60..+0x68) and does not write its position.
+//   * The body model's joints 200 / 203 sit at (+2,0,0) / (-2,0,0) under its root and no body clip
+//     animates them. em084_00_left's joint 1 sits at (+2,0,0) and em084_00_right's at (-2,0,0):
+//     that is how each model is matched to its joint here (measured, not the side byte).
+//   * Their motion lists are em084_00_l_N / em084_00_r_N beside the body's em084_00_N. The clips
+//     animate exactly the tentacle's gids 0..13 but are named against the BODY's joint table
+//     ("3:2" where the tentacle has "2:2"), so attachedClipFor binds them by gid.
+//   * FORM: the arm's part driver (vtable+0x210, 0x107ec80) runs 0x107e25c, which applies g1 when
+//     that side's body part state is 3, else picks by the form byte +0xcb30: 0xff -> g0, 0 -> g2,
+//     1 -> g4, 2 -> g5, 3 -> g3. The constructor starts the byte at 0xff (0x107b2e4), so the form a
+//     tentacle rests in is g0. The groups are the two models' own .mpm files, decoded with
+//     harvest-monsters.py's mpm_groups; the right one differs only in part 100 (the proxy layer).
+// NOT READ: how uCoord composes a parent JOINT into the child's world matrix. The default below takes
+// the tentacle's origin to the joint's world matrix, which is what setParent(body, 200) says with a
+// zero local position; `__view.tentacleAttach('rest')` instead follows only the joint's motion from
+// its rest pose, which puts the tentacles exactly where the models are authored. They differ by the
+// joint's 2-unit offset.
+const MPM_ARM = (p100) => [
+  [[0,1],[1,1],[2,1],[3,1],[10,1],[11,1],[12,0],[13,0],[20,0],[30,0],[40,0],[50,0],[100,1]],
+  [[0,1],[1,0],[2,0],[3,1],[10,1],[11,0],[12,1],[13,1],[20,0],[30,0],[40,0],[50,0],[100,1]],
+  [[0,1],[1,0],[2,1],[3,0],[10,1],[11,0],[12,0],[13,0],[20,1],[30,0],[40,0],[50,0],[100,1]],
+  [[0,1],[1,0],[2,1],[3,0],[10,1],[11,0],[12,0],[13,0],[20,0],[30,1],[40,0],[50,0],[100,p100]],
+  [[0,1],[1,0],[2,1],[3,1],[10,1],[11,0],[12,0],[13,0],[20,0],[30,0],[40,1],[50,0],[100,p100]],
+  [[0,1],[1,0],[2,1],[3,0],[10,1],[11,0],[12,0],[13,0],[20,0],[30,0],[40,0],[50,1],[100,p100]],
+].map(g => g.map(([p, v]) => [p, !!v]));
+export const ROM_ATTACHED_BODY = {
+  em084_00: {
+    em084_00_left:  { joint: 200, listPrefix: 'l_', groups: MPM_ARM(1), restGroup: 0 },
+    em084_00_right: { joint: 203, listPrefix: 'r_', groups: MPM_ARM(0), restGroup: 0 },
+  },
+};
+export function attachedBodyOf(monId, pieceName){
+  const t = monId && ROM_ATTACHED_BODY[monId];
+  return (t && pieceName && t[pieceName]) || null;
+}
+
+// A second body's clip, retargeted onto its OWN skeleton by global bone id. Unlike clipFor this
+// cannot use a harvest `remap` (monsters.json ships none for these lists), so the ids are read from
+// the glTF JSON the loader keeps -- the only place the "<local>:<gid>" names still have their colon.
+// A sanitised name two pose nodes share is ambiguous and dropped rather than guessed.
+export async function attachedClipFor(file, clipName, modelUrl){
+  let anim = poseCache.get('anim:' + file);
+  if (!anim){
+    try { anim = await loader.loadAsync(bust(file)); } catch (err){ return null; }
+    poseCache.set('anim:' + file, anim);
+  }
+  const src = THREE.AnimationClip.findByName(anim.animations, clipName);
+  if (!src) return null;
+  const key = 'attached:' + modelUrl + ':' + file + ':' + clipName;
+  const cached = poseCache.get(key);
+  if (cached) return cached;
+  const model = await loadGlb(modelUrl, modelUrl);
+  const san = THREE.PropertyBinding.sanitizeNodeName;
+  const gidOf = name => { const m = /^\d+:(\d+)(_s)?$/.exec(name || ''); return m ? m[1] + (m[2] || '') : null; };
+  const fromPose = new Map(), ambiguous = new Set();
+  for (const n of (anim.parser && anim.parser.json.nodes) || []){
+    const g = gidOf(n.name), s = san(n.name || '');
+    if (g === null) continue;
+    if (fromPose.has(s) && fromPose.get(s) !== g) ambiguous.add(s);
+    fromPose.set(s, g);
+  }
+  const toModel = new Map();
+  for (const n of (model.parser && model.parser.json.nodes) || []){
+    const g = gidOf(n.name);
+    if (g !== null && !toModel.has(g)) toModel.set(g, san(n.name));
+  }
+  const out = src.clone(), keep = [];
+  let moved = 0, lost = 0;
+  for (const t of out.tracks){
+    const dot = t.name.lastIndexOf('.');
+    const node = t.name.slice(0, dot), prop = t.name.slice(dot);
+    const g = ambiguous.has(node) ? undefined : fromPose.get(node);
+    const want = (g === undefined) ? undefined : toModel.get(g);
+    if (want){ t.name = want + prop; moved++; keep.push(t); }
+    else lost++;
+  }
+  out.tracks = keep;
+  out.userData = { retargeted: moved, unresolved: lost };
+  poseCache.set(key, out);
+  return out;
+}
+
 // ---- the model ------------------------------------------------------------------------------
 // rec: a model record of monsters.json (the monster itself, or one of its `parts`); opt.tex is
 // the monster's staged textures by name, the fallback when materials.json has no entry.
