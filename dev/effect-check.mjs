@@ -14,6 +14,7 @@ import * as model from '../docs/render/rom/effect/model.js';
 import * as emit from '../docs/render/rom/effect/emit.js';
 import * as spawn from '../docs/render/rom/effect/spawn.js';
 import * as runtime from '../docs/render/rom/effect/runtime.js';
+import * as billboard from '../docs/render/rom/effect/billboard.js';
 
 // address -> [translation, arguments from the vector, what to compare on return]
 const TABLE = {
@@ -80,6 +81,13 @@ const TABLE = {
   '0x7c3a38': [spawn.matToEuler, v => [v.args[0], v.args[1]], null],
   '0xa6aee0': [spawn.quatToEuler, v => [v.args[0], v.args[1], v.args[2]], null],
   '0xa67988': [spawn.nodeEuler, v => [v.args[0], v.args[1], v.args[2]], null],
+  '0xa78464': [billboard.preUpdateLB, v => [v.args[0]], null],
+  '0xa66d38': [billboard.animConfig, v => [v.args[0], v.args[1], v.args[2]], null],
+  '0xcaa674': [billboard.animBindLB, v => [v.args[0], v.args[1], v.args[2]], null],
+  '0xa7a8a8': [billboard.spawnLB, v => [v.args[0], v.args[1], v.args[2]], 'r0'],
+  '0xa6703c': [billboard.texAnimStep, v => [v.args[0], v.args[1], v.args[2], s0(v)], 'r0'],
+  '0xa7aecc': [billboard.updateLBParticle, v => [v.args[0], v.args[1]], 'r0'],
+  '0xa7adac': [billboard.billboardFrame, v => [v.args[0]], 'r0'],
   '0xa574c4': [runtime.generatorUpdate, v => [v.args[0]], 'r0', v => translatedType(v)],
 };
 // the translation's own stand-in for stack locals: never an input, never compared
@@ -103,7 +111,7 @@ function readU32(v, a){
   return null;
 }
 // generator-level vectors only count for the generator types the runtime has translated
-const translatedType = v => readU32(v, v.args[0]) === runtime.VTABLE.Model;
+const translatedType = v => [runtime.VTABLE.Model, runtime.VTABLE.LiteBillboard].includes(readU32(v, v.args[0]));
 // s0 at entry (the low half of d0)
 function s0(v){ return bitsf32(v.d[0][0]); }
 

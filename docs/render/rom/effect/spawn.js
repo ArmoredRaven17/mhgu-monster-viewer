@@ -708,6 +708,7 @@ export function scaleInit(m, gen, p, floor){
   s0 = (floor > s0) ? floor : s0;
   if (!(s16 === 0)) m.w32(p + 0x10, (m.u32(p + 0x10) | 0x100) >>> 0);
   m.wf32(p + 0x40, s0); m.wf32(p + 0x44, s0); m.wf32(p + 0x48, s16);
+  return s0;                  // left in s0: the LiteBillboard spawn 0xa7aab4 reads it after the call
 }
 
 // 0xa685d4: per-axis scale and its velocity (six base/range draws).
