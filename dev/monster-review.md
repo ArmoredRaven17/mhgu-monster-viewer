@@ -3902,3 +3902,13 @@ nothing modelled when Teostra shows them: its machine `0xe1a604` keeps effect01,
 until it enrages, fades them in (`Effect_Start`), loops them (`Effect_Loop`) and fades them out
 (`Effect_End`) on calm. `render/monster.js` ROM_STAGE_CLIPS runs that machine, and Teostra now offers the
 Enraged control it lacked. Commit 6ae6226. Valstrax's `add` texture has the same stale stripes; not touched.
+
+**Then: the square, the aura's switch, and the ground.** Raven: *"Flame effect sits directly below Teostra and
+does not turn off with Enraged. Also, the burst effect displays a big square at one point."* The square was a
+harness bug under every effect: the draw system keeps texture set 0 as "no texture" and a worker's sets start
+at 1, but the harness and the viewer's host started at 0, so the first texture set of each frame drew
+untextured -- the burst's sprite became a solid orange square, and Savage's aura trail had drawn untextured
+all along. Every primitive draw is textured now and still matches the emulator. The aura now runs while
+Enraged and goes out the way Teostra's code ends it (a stop request, then its end effect `em027_00_018`).
+And the viewer had no ground for the aura's fire under Teostra's feet: an invisible ground at its feet now
+hides it, as terrain does in the game (`__view.effectGround(false)` to compare). Commit 3f5f1f9.
