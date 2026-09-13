@@ -1084,7 +1084,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS,
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts,
-         ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels, levelClipFor,
+         ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels, levelClipFor, setClipFor,
          monsterMats,
          enableRomAmbient, enableRomSpecular, enableRomPhong,
          setSHAmount, setRomSpecularAmount, anchorMisses } from './render/monster.js';
@@ -3811,6 +3811,10 @@ function levelClip(){
   // charge byte its part driver switches on, and the same case picks the clip (ROM_CLIP_LADDER).
   const byLevel = levelClipFor(state.id, state.level);
   if (byLevel !== undefined) return byLevel;
+  // A PART SET THE ROM SWITCHES ON THE SAME FLAG AS A CLIP: Thunderlord's third charge option (group 19)
+  // is its yellow state, so the effect clip follows that row (ROM_SET_CLIP).
+  const bySet = setClipFor(state.id, state.groups);
+  if (bySet !== undefined) return bySet;
   const i = (state.rageLevel | 0) - 1;
   return (i >= 0 && ladder[i]) ? ladder[i].clip : null;
 }

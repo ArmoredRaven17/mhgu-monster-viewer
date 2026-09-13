@@ -1637,6 +1637,28 @@ export const ROM_CLIP_LADDER = {
     byLevel: ['#none', '#none', '#0', '#0', '#1'],
   },
 };
+// A PART SET THAT IS ALSO A MATERIAL STATE. Raven, 2026-09-13: "Thunderlord is supposed to have a
+// Yellow state, it currently only has green effects ... The third option has the parts meant to
+// display the overcharged state, the yellow effect instead of green."
+//
+// The ROM drives both from ONE flag, the charge byte at [[enemy+0x1428]+0x5df3] (read by 0x816d4):
+//   parts   0xef0370 (Thunderlord, variant 4, via 0xef009c): flag set -> setVisibleGroup 19, else 0
+//   clips   0xef009c: flag set -> slot 0 of each cached material gets its CHARGE clip, else normal_Loop
+//           (and Death on the light while dead). The spawn setup 0xeeb95c caches the materials by MRL
+//           id -- 52 XfB__m02_light, 3 XfB__I0__m03_effect -- and picks the charge clip by variant:
+//           tyoutaiden_Loop for Zinogre, shintaiden_Loop for variant 4 (0xeebc50 / 0xeebcb0).
+// shintaiden_Loop is the yellow: on m03_effect it writes fEmissionColor (0.78,0.78,0.2)..(0.99,0.79,0.5)
+// where normal_Loop writes (0.2,0.8,0.5), and on m02_light it moves the atlas column (U 0 against
+// 0.333). With no flag in the viewer, the part row IS the flag -- group 19 drawn means the flag is set --
+// so the clip follows the row. Keyed by the set index, which is the ROM's.
+export const ROM_SET_CLIP = {
+  em057_04: { set: 19, on: 'shintaiden_Loop', off: 'normal_Loop' },   // Thunderlord Zinogre
+};
+export function setClipFor(monId, groups){
+  const t = monId && ROM_SET_CLIP[monId];
+  if (!t || !Array.isArray(groups)) return undefined;
+  return groups[t.set] ? t.on : t.off;
+}
 // The clip a monster's LEVEL rung names, or undefined where no table says (the caller then falls back
 // to the Rage ladder). A rung past the table's end takes its last entry.
 export function levelClipFor(monId, level){
