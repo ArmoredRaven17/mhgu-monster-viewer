@@ -3723,3 +3723,60 @@ empty object. None of them is read by the recorded simulation paths beyond what 
 (spawn without an emitter shape, scale curves, repeat counts, colour sources, ...); attaching to a
 parent joint; the draw passes (slot 21) that turn particle state into geometry; the viewer wiring
 (ROM data blob, harvested effect files, the renderer). Nothing is wired into the viewer yet.
+
+#### 2026-09-13 (later still) - EFFECT RUNTIME: drawing, and what the effect hangs from
+
+> Raven: "Proceed with 1-3" -- (1) drawing, (2) attaching to Savage's joint, (3) viewer wiring.
+
+**(1) Drawing.** uEffect's draw (`0x9b75e8`) and everything under it -- the per-generator drawable check,
+Model particles, LiteBillboard, LitePolyline -- is 32 routines of mostly long VFP arithmetic. They are
+LIFTED rather than hand-translated: `efx/lift.py` turns the instructions the recorded calls executed
+into JS over an explicit CPU (`cpu.js`: 16 registers, VFP singles through a Float32Array, NZCV/FPSCR),
+and the lifted code (`lifted-draw.js`) is checked against the same vectors as hand code. A branch into
+anything unrecorded throws. What it calls outside itself is supplied by `draw.js` / `bridge.js`: the
+hand translations (called with arguments read out of the registers, the scratch registers poisoned
+after -- which caught a real dependency, `0xa67308` leaving the scale in s0), memcpy, and the engine's
+model draw as two services.
+
+The engine's model draw (`0xc8cf1c`, `0xc8d208` -> `0xc8d9d8`) is not effect code, but it decides how a
+Model particle looks. Instead of reading 12 KB of state plumbing, `efx/engdraw.py` RUNS it under the
+emulator with the engine internals stubbed by name and the material answered from its .mrl, and
+snapshots the draw context at the GPU draw. `modeldraw.js` translates the parts a particle reaches and
+`dev/effect-modeldraw-check.mjs` replays every snapshot: 1,763 draws across three files, identical.
+
+| decided by the ROM for a Model particle | from |
+|---|---|
+| world matrix (CBWorld) | the particle's matrix |
+| alpha: CBROPTest.fGlobalTransparency = a / 255 | its RGBA8 colour |
+| colour: CBPrimEflEmu.fPrimColor = material diffuse x intensity/256 x rgb/255 (FEmissionConstantEflEmu materials; others write CBMaterial.fDiffuseColor) | colour, intensity |
+| uv offsets, fTransparencyVolume (soft depth fade), fReflectiveColor x s0 | the uv struct, the volume word, s0 |
+| **blend state: a 34-entry ROM table (0x169b2c8) indexed by the generator's mode** | the flags object +0 |
+| depth state: DSZTest / DSZTestWrite / DSZWrite / DSDefault | the flags object +4 |
+| sort key from the camera depth; feature choices (FPrimitiveModifierEflEmu, FPrimiteveColorModifier, FPrimitiveTransparencyVolume, FBlendFog ...) | |
+
+**The blend is not the material's.** Savage's cm150_000 and em024_00_001 particles draw with
+`BSBlendRevSubBlendAlpha` -- reverse subtract, the colour taken away from what is behind -- and
+cm202_042 with `BSBlendBlendAlpha`, whatever their .mrl says (the .mrl says BSBlendAlpha).
+
+**(2) What the effect hangs from.** A node with a joint number hangs from the effect's parent
+(uEffect `+0x30`) through the parent's vtable `+0x54`; for a monster that is uModel `0x939278`, which
+maps the number through `+0x498` to a joint and returns that joint's world matrix. Translated, with the
+owner matrix's parent branch; `efx/parent.py` gives the emulator a stand-in unit whose joints turn
+every frame, and **em043_05_000 hung from it runs end to end in JS: 120 frames, 0 bytes differ.**
+
+The two Savage effects are different kinds of thing:
+
+| | PEL record | nodes | what places it |
+|---|---|---|---|
+| **em043_05_000** | UNIQUE eff 30 joint 103, eff 31 joint 3, mode 0 | joints 103, 103, 103, 3, 3 | the parent's joints, every frame |
+| em043_05_002_s | UNIQUE eff 70 joint 3, (0,-60,0), mode 3, sub 2 | all unbound (-1) | a base position latched at start + the record's offset; the compose never reads the joint |
+
+So the effect the ROM hangs from Savage's body is em043_05_000. Making it run needed its LitePolyline
+paths (shape types 0 and 6, one-colour and width-rate polylines), lifted whole (`lifted-polyline.js`),
+and the tracking paths a joint-bound node gives its particles (`lifted-motion.js`).
+
+**Still unread:** who spawns a proof effect and sets its parent and base (the requester); the
+LiteBillboard / LitePolyline RENDERING (the records and vertices are produced and checked, but the
+primitive draw that turns them into pixels runs through a second engine consumer, `0xbad790` ->
+`0xbab58c` -> `0xbb1e10`, not yet probed); the MFX literal operands (`t4`) in the shader bodies.
+**(3) Viewer wiring** has not started. Decode notes: `E:\offline\decode\notes\effects-draw.md`.
