@@ -321,11 +321,28 @@ export function createRomMaterial(spec){
   //
   // Gore Magala's mesh samples the sparse glow pattern (only 6.3% of that texture is above luma
   // 60) and the multiply SHAPES it, which is exactly right. Chaotic Gore's samples texel (0,0),
-  // which is black, so the same multiply erases it. Its UVs are missing because the converter
-  // reads the wrong lane of vertex format 77d87024 -- bytes 20..23 are zero on every vertex while
-  // 24..27 carry the real coordinates -- and every kasan mesh carrying a COLOR_0 attribute has the
-  // same hole. That is a conversion defect to fix in the model, not a reason to change the shader
-  // rule for every monster that shares it.
+  // so the same multiply all but erases it.
+  //
+  // I WROTE HERE THAT THOSE UVs WERE A CONVERTER DEFECT -- that format 77d87024 keeps the real
+  // coordinates at bytes 24..27 and we read the zeros at 20..23. THAT WAS WRONG, and the full lane
+  // table (2026-09-12, fix-skin-weights.py) is what disproves it: bytes 24..27 are the WEIGHT
+  // lane, and across 129 models the converter reads the correct UV lane on essentially every mesh
+  // of every format. Chaotic Gore's kasan meshes hold uv (0,0) because THE ROM HOLDS uv (0,0).
+  // Nor is COLOR_0 the tell -- Gore Magala's own kasan meshes carry COLOR_0 and have real UVs.
+  //
+  // So there is nothing to fix in the model, and the two materials are otherwise IDENTICAL in
+  // every decoded field: state 6 (BSAddAlpha, additive), feature set 9 (albedo Map at UVPrimary,
+  // transparency Alpha, emission Constant, no diffuse), cbm 0, glob 12. They differ only in the
+  // texture bound, the clip values, those UVs, and bit 20 of the +28 feature word (Gore 918c0000,
+  // Chaotic 919c0000) -- which build-materials.py stores raw and nothing here decodes.
+  //
+  // WHICH LEAVES THE COMBINE, and it is the thing this file already says is unread. With the
+  // multiply, Chaotic's layer at LVMAX is emission 1.8 sRGB (~3.9 linear) x texel 0.033 x alpha
+  // 0.13 = 0.017, i.e. invisible -- Raven, 2026-09-12: "Choatic Gore still not showing effect on
+  // wing". Added flat instead it is 0.51, a uniform magenta wash, which is his earlier "the effect
+  // layer is covering the whole wing". Neither is right, and the blend state cannot tell the two
+  // monsters apart because BOTH are additive -- that is exactly what 3f2f40e got wrong. Do not
+  // split this on a property that merely happens to differ; decode the .mfx feature body first.
   const animEmission = !!(rom && rom.anim && rom.anim.some(
     c => (c.tracks || []).some(t => t && t.target === 'fEmissionColor')));
   if (lit && (staticEmission || animEmission)){
