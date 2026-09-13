@@ -83,3 +83,23 @@ native(0x7e000104, (m, self, p) => { m.svc.free(p); return 0; }, A2, 'r0');
 native(0x13ecc68, (m, d, s, n) => { for (let i = 0; i < n; i++) m.w8(d + i, m.u8(s + i)); }, A3, null);   // __aeabi_memcpy
 native(0x13ecc08, (m, d, s, n) => { for (let i = 0; i < n; i++) m.w8(d + i, m.u8(s + i)); }, A3, null);   // __aeabi_memcpy4
 native(0x13ece30, (m, d, s, n) => { for (let i = 0; i < n; i++) m.w8(d + i, m.u8(s + i)); }, A3, null);   // __aeabi_memcpy8
+// The allocator an engine object is made with: 0x7a75a0 picks one per DTI from a table; the emulator harness
+// hooks it to answer every DTI with its allocator object (efx_emu.py ALLOC_OBJ), which a host lays out the
+// same way (vtable +0x1c / +0x34 above).
+export const ALLOCATOR = 0x600f0000;
+native(0x7a75a0, () => ALLOCATOR, [], 'r0');
+// The resource manager's release (its vtable +0x3c, reached through 0x884698): the harness's is a stub at
+// 0x7e000144 (efx_load.py resmgr_vt15) that frees nothing and returns 0; a host points its resource
+// manager's vtable +0x3c there.
+export const RESMGR_RELEASE = 0x7e000144;
+native(RESMGR_RELEASE, () => 0, [], 'r0');
+// 0x9baa9c (uEffect vtable +0xd0): the start, which setting an effect's list calls (0x9ba238, lifted-proof.js)
+native(0x9baa9c, (m, ...a) => C.startEffect(m, ...a), A1, 'r0');
+// A parent unit's getDTI (vtable +0x14), which a start on a parent asks (0x9ba080 walks the chain for
+// uModel). The emulator's stand-in parent (efx/parent.py GETDTI) answers from this address with its
+// monster's class: uEm043_00's DTI 0x184a218 (its getDTI thunk 0xe812ac, GOT 0x18325fc). A host whose
+// parent is another monster sets that monster's class.
+export const PARENT_GETDTI = 0x7e001000;
+let parentClass = 0x184a218;
+export function setParentClass(dti){ parentClass = dti >>> 0; }
+native(PARENT_GETDTI, () => parentClass, [], 'r0');

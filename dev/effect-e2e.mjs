@@ -15,6 +15,8 @@ import { Mem } from '../docs/render/rom/effect/mem.js';
 import { newEffect, startEffect } from '../docs/render/rom/effect/construct.js';
 import { loadEffectList, loadEffectAnim, DTI } from '../docs/render/rom/effect/load.js';
 import { move } from '../docs/render/rom/effect/owner.js';
+import { proofStart } from '../docs/render/rom/effect/proof.js';
+import { RESMGR_RELEASE } from '../docs/render/rom/effect/bridge.js';
 
 const dir = process.argv[2];
 const info = JSON.parse(readFileSync(join(dir, 'e2e.json'), 'utf8'));
@@ -68,8 +70,12 @@ function stream(bytes){ const s = malloc(0x40); streams.set(s, bytes); return s;
 
 const owner = newEffect(m);
 m.load(0x189f168, new Uint8Array(new Uint32Array([0x600f0000]).buffer));  // heap table +0x20 -> the allocator object
-const resmgr = malloc(0x100); malloc(0x400);                             // resource manager and its vtable
+// the allocator object as the harness lays it out (efx_emu.py ALLOC_OBJ, vtable at +0x1000: +0x1c alloc,
+// +0x34 free), for lifted code that frees through it (a proof start's reset)
+m.w32(0x600f0000, 0x600f1000); m.w32(0x600f101c, 0x7e000000); m.w32(0x600f1034, 0x7e000104);
+const resmgr = malloc(0x100), resmgrVt = malloc(0x400);                   // resource manager and its vtable
 m.load(0x211fa64, new Uint8Array(new Uint32Array([resmgr]).buffer));
+m.w32(resmgr, resmgrVt); m.w32(resmgrVt + 0x3c, RESMGR_RELEASE);          // its release, which a proof start's reset reaches
 malloc(0x400);                                                           // the streams' vtable
 const efl = readFileSync(join(info.extract, 'effect', 'em', info.file.slice(0, 5), info.file));
 const s0 = stream(efl);
@@ -88,10 +94,15 @@ if (par){
   if (P !== par.object || VT !== par.vtable || TABLE !== par.table || parentArray !== par.array) throw new Error('parent allocation diverged');
   m.load(P, hex(par.bytes.object)); m.load(VT, hex(par.bytes.vtable)); m.load(TABLE, hex(par.bytes.table));
   m.load(parentArray, hex(par.frames[0]));
-  m.load(owner + 0x30, new Uint8Array(new Uint32Array([P]).buffer));
+  if (!info.proof) m.load(owner + 0x30, new Uint8Array(new Uint32Array([P]).buffer));
   par.hex = hex;
 }
-if (startEffect(m, owner) !== 1) throw new Error('start failed');
+// a proof start (efx/proof.py): the record's block, the start on the parent, which starts the effect itself
+if (info.proof){
+  const payload = Uint8Array.from(info.proof.payload.match(/../g), b => parseInt(b, 16));
+  const r = proofStart(m, owner, list, par.object, payload, malloc);
+  if (r.mask1 !== info.proof.mask1 || r.joint !== info.proof.joint) throw new Error('proof block differs: ' + JSON.stringify(r));
+} else if (startEffect(m, owner) !== 1) throw new Error('start failed');
 for (let f = 0; f < info.frames; f++){
   if (par) m.load(parentArray, par.hex(par.frames[f]));
   move(m, owner);

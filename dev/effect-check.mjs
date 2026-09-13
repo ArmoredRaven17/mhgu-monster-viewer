@@ -23,6 +23,7 @@ import { Scratch } from '../docs/render/rom/effect/motion.js';
 import { Cpu, call, lifted, POISON } from '../docs/render/rom/effect/cpu.js';
 import '../docs/render/rom/effect/draw.js';
 import '../docs/render/rom/effect/prim.js';
+import '../docs/render/rom/effect/proof.js';
 
 // address -> [translation, arguments from the vector, what to compare on return]
 const TABLE = {

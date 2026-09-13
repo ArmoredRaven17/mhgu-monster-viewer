@@ -10,7 +10,9 @@
 //   the heap              0x189f148 +0x20 -> an allocator object; vtable +0x1c alloc, +0x34 free
 //                         (bridge.js natives at 0x7e000000 / 0x7e000104, the harness's stub entries)
 //   resources             rEffectList / rEffectAnim / rModel / rTexture handles for the loader
-//   a parent unit         +0x54 uModel's joint matrix 0x939278 over +0x494 joints / +0x498 table
+//   a parent unit         +0x54 uModel's joint matrix 0x939278 over +0x494 joints / +0x498 table,
+//                         +0x14 its class (bridge.js PARENT_GETDTI) for a start on a parent
+//   a proof start         a monster's effect request built from its record (proof.js)
 //   the draw context      VIEW: the package table (one object per shader record), the constant
 //                         buffer descriptors, a per-frame buffer, the camera block
 //   the draw system       *0x211f8b4: its constructor's fields (docs/effects/draw-system.json),
@@ -28,6 +30,8 @@ import { drawEffect } from './draw.js';
 import { invoke } from './cpu.js';
 import * as modeldraw from './modeldraw.js';
 import './prim.js';
+import { proofStart } from './proof.js';
+import { PARENT_GETDTI, RESMGR_RELEASE } from './bridge.js';
 
 const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 const u32bytes = v => new Uint8Array(new Uint32Array([v >>> 0]).buffer);
@@ -132,8 +136,9 @@ export class EffectHost {
       m.w32(this.allocator + 0x1000 + 0x1c, 0x7e000000);
       m.w32(this.allocator + 0x1000 + 0x34, 0x7e000104);
       m.load(0x189f168, u32bytes(this.allocator));        // heap table +0x20 -> the allocator object
-      const resmgr = this.malloc(0x100); this.malloc(0x400);
+      const resmgr = this.malloc(0x100), resmgrVt = this.malloc(0x400);
       m.load(0x211fa64, u32bytes(resmgr));
+      m.w32(resmgr, resmgrVt); m.w32(resmgrVt + 0x3c, RESMGR_RELEASE);   // release: a proof start's reset reaches it
       this.malloc(0x400);                                  // the streams' vtable
       this.setupDone = true;
     }
@@ -146,6 +151,12 @@ export class EffectHost {
     return owner;
   }
   start(owner){ if (startEffect(this.m, owner) !== 1) throw new Error('effect start failed'); }
+  // An effect started the way a monster's request starts it, from its record's 160 payload bytes, hung
+  // from parent (placement states 0..2): parent mode 3, root joint, row masks, the list set -- which starts
+  // it, so start() must not follow. Returns { state, mask1, mask2, joint }.
+  proofStart(owner, parent, payload){
+    return proofStart(this.m, owner, this.m.u32(owner + 0xf4), parent.object, payload, n => this.malloc(n));
+  }
   move(owner){ move(this.m, owner); }
 
   // A parent unit for joint-bound nodes: 0x939278 at vtable +0x54, a live unit's +0xc, the joint
@@ -156,6 +167,7 @@ export class EffectHost {
     const P = this.malloc(0x1000), VT = this.malloc(0x400), TABLE = this.malloc(0x100);
     const ARRAY = this.malloc(0xa0 * jointNumbers.length);
     m.w32(VT + 0x54, 0x939278);
+    m.w32(VT + 0x14, PARENT_GETDTI);
     m.w32(P, VT);
     m.w32(P + 0xc, 0xf4ff9);
     m.load(TABLE, new Uint8Array(0x100).fill(0xff));

@@ -97,15 +97,25 @@ export function ownerMatrix(m, owner){
     quatRows(m, owner + 0x50, local);                                        // 0x9b22c0: the same rows, on the stack
     m.w32(local + 0x30, m.u32(owner + 0x160)); m.w32(local + 0x34, m.u32(owner + 0x164));
     m.w32(local + 0x38, m.u32(owner + 0x168)); m.w32(local + 0x3c, 0x3f800000);
-    if ((m.u32(owner + 0x114) >>> 28) === 3) throw new Unverified('0x9b2394 effect in parent mode 3');
-    if ((m.u32(owner + 0x34) | 0) >= 0) throw new Unverified('0x9b2514 effect root on a parent joint');
-    matMulTo(m, world, local, parent + 0xb0);                                // 0x9b2558
-    for (let k = 0; k < 0x40; k += 4) m.w32(owner + 0x120 + k, m.u32(world + k));
-    m.w32(owner + 0x40, m.u32(world + 0x30)); m.w32(owner + 0x44, m.u32(world + 0x34));
-    m.w32(owner + 0x48, m.u32(world + 0x38)); m.w32(owner + 0x4c, 0);
-    sc.free();
-    if (((m.u32(owner + 0x114) >>> 28) & 0xf) === 2) throw new Unverified('0x9b2604 effect in parent mode 2');
-    if (vcall(m, owner, 0x88) === 0) throw new Unverified('0x9b2684 effect +0x88 refusing the parent');
+    if ((m.u32(owner + 0x114) >>> 28) === 3){
+      // 0x9b2394: parent mode 3 (what a monster's effect request sets, 0x32a2c4) -- the effect's own
+      // matrix is its rotation alone at its own position (+0x40); the parent is not applied at the root.
+      // Nodes bound to joints still hang from the parent's joints (0x9bd058).
+      for (let k = 0; k < 0x30; k += 4) m.w32(owner + 0x120 + k, m.u32(local + k));
+      m.w32(owner + 0x150, m.u32(owner + 0x40)); m.w32(owner + 0x154, m.u32(owner + 0x44));
+      m.w32(owner + 0x158, m.u32(owner + 0x48)); m.w32(owner + 0x15c, 0x3f800000);    // 0x9b2664
+      sc.free();
+      if (vcall(m, owner, 0x88) === 0) throw new Unverified('0x9b2684 effect +0x88 refusing the parent');
+    } else {
+      if ((m.u32(owner + 0x34) | 0) >= 0) throw new Unverified('0x9b2514 effect root on a parent joint');
+      matMulTo(m, world, local, parent + 0xb0);                              // 0x9b2558
+      for (let k = 0; k < 0x40; k += 4) m.w32(owner + 0x120 + k, m.u32(world + k));
+      m.w32(owner + 0x40, m.u32(world + 0x30)); m.w32(owner + 0x44, m.u32(world + 0x34));
+      m.w32(owner + 0x48, m.u32(world + 0x38)); m.w32(owner + 0x4c, 0);
+      sc.free();
+      if (((m.u32(owner + 0x114) >>> 28) & 0xf) === 2) throw new Unverified('0x9b2604 effect in parent mode 2');
+      if (vcall(m, owner, 0x88) === 0) throw new Unverified('0x9b2684 effect +0x88 refusing the parent');
+    }
   } else {
     quatRows(m, owner + 0x50, owner + 0x120);
     const x = m.u32(owner + 0x40), y = m.u32(owner + 0x44), z = m.u32(owner + 0x48);

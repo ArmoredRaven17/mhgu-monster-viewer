@@ -60,7 +60,7 @@ const owner = host.createEffect(new Uint8Array(efl));
 let parent = null;
 if (info.parent){
   parent = host.createParent(info.parent.joints);
-  host.attach(owner, parent);
+  if (!info.proof) host.attach(owner, parent);
 }
 const setJoints = f => {
   const bytes = hex(info.parent.frames[f]);
@@ -72,7 +72,8 @@ const setJoints = f => {
   });
 };
 if (parent) setJoints(0);
-host.start(owner);
+if (info.proof) host.proofStart(owner, parent, hex(info.proof.payload));   // it starts the effect itself
+else host.start(owner);
 const T = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0];
 host.initDraw({ position: [0, 0, 1000], view: [...T, 0, 0, -1000, 1], world: [...T, 0, 0, 1000, 1] });
 

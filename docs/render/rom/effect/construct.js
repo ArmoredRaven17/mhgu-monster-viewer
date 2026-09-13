@@ -863,7 +863,7 @@ function rowEnabled(m, owner, row){
   const c0 = m.u32(m.u32(rl + 0x68) + (row << 4));
   if ((c0 >>> 8) === 0 || ((m.u32(rl + 0x68) + (c0 >>> 8)) >>> 0) === 0) throw new Unverified('0x9bb984 row without a node block');
   const nb = (m.u32(rl + 0x68) + (c0 >>> 8)) >>> 0;
-  if ((m.u32(nb) & m.u32(owner + 0x1c8)) === 0) throw new Unverified('0x9bb980 row outside the effect mask');
+  if ((m.u32(nb) & m.u32(owner + 0x1c8)) === 0) return 0;                  // 0x9bb980: outside the effect's row mask
   return (m.u32(nb + 4) & m.u32(owner + 0x1cc)) !== 0 ? 1 : 0;
 }
 
@@ -1057,4 +1057,5 @@ export const internals = {
   generatorSeed, nodeBind, nodeBlocks, nodeSeed, nodeInit, rowEnabled, factory, poolSetup, nodeSetup, resetFrame,
   initModel, initLiteBillboard, initLitePolyline, startModel, startLiteBillboard, startLitePolyline,
   transformModel, transformLiteBillboard, transformLitePolyline, workArea, headerSize, polylineBlock,
+  startEffect,
 };
