@@ -639,7 +639,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
               <option value="4">Tier 4 &mdash; 0.66</option>
             </select>
           </div>
-          <label class="chk" id="monZoneShowRow"><input type="checkbox" id="monZoneShow" checked>Show the Chart over the Render</label>
+          <label class="chk" id="monZoneShowRow"><input type="checkbox" id="monZoneShow">Show the Chart over the Render</label>
           <p class="hint" id="monZoneNote" hidden></p>
         </div>
       </section>
@@ -2614,7 +2614,7 @@ const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: fals
                 // both OFF by default: see applyUndef and applyExtend
                 undef: false, extend: false, gap: false, proxy: false, ...STATE_DEFAULTS, axes: {}, rawParts: false, heat: '', heatTable: 0, deflectT: 'f25', deflectTier: 2,
                 zoneTab: 'raw',
-                zoneShow: true, zonePos: null,
+                zoneShow: false, zonePos: null,
                 // the additive effect meshes as a class; the ROM's part table already keeps
                 // them off at rest, so this is a way to look at them, not a correction
                 effects: true };
@@ -5637,6 +5637,11 @@ function currentSet(){
     postfx: effectsState(), ...lightingSaveState() });
 }
 if (SAVED){ applySet(SAVED); resetHiddenDebug(); }
+// THE HIT-ZONE CHART STARTS HIDDEN ON EVERY LOAD. Raven, 2026-09-14: "the hit zone table appears on load
+// in, hide it until the hit zone panel to show it is enabled". A view saved while it showed -- which was
+// every view, while it defaulted on -- would otherwise bring it straight back. Show the Chart over the
+// Render, in the Hit Zones panel, turns it on; Open still restores a file's own setting.
+state.zoneShow = false;
 buildMonsterList(); buildLists(); paintNormal(); paintOrbitLock(); paintSpin(); paintWire(); paintCursor();
 document.getElementById('monAnchor').checked = state.anchor;
 document.getElementById('monGround').checked = state.groundLock;
