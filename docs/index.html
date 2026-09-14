@@ -373,6 +373,11 @@ header #bar .btn.tiny{margin-right:0}
    panel in the app is a form where the tighter rhythm is right. */
 #monGroups .field{gap:5px}
 #monGroups .field + .field{margin-top:13px}
+/* THE STATE DROPDOWNS TAKE THE SAME RHYTHM. Raven, 2026-09-13: "can we have form drop downs styled
+   like the other drop downs" -- Rage, the level axis (Zamtrios' Form, Astalos' Charge State) and the
+   variant (Kelbi's Gender) were bare selects beside their labels. They are .field rows now, below the
+   part rows: the panel body's own 6px gap plus 7 is the 13 between two part rows. */
+#monRageLevelRow,#monLevelRow,#monVariantRow{gap:5px;margin-top:7px}
 .hexbtn{flex:1;min-width:0;background:transparent;border:1px solid transparent;
   color:var(--text-hint);font-family:inherit;font-size:12px;letter-spacing:.02em;
   text-align:left;padding:3px 5px;border-radius:5px;cursor:text}
@@ -555,19 +560,19 @@ input[type=range]{width:100%;accent-color:var(--accent)}
                its part rows offers the same break twice, once with its XfB_0__m0N_lavNN meshes and
                once without. Offered only where a review row asks for it. -->
           <label class="chk switch" id="monHeatedRow" hidden><input type="checkbox" id="monHeated"><span class="toggle"></span>Heated</label>
-          <div id="monRageLevelRow" hidden><label for="monRageLevel">Rage</label>
+          <div class="field" id="monRageLevelRow" hidden><label for="monRageLevel">Rage</label>
             <select id="monRageLevel"></select></div>
           <!-- A LEVEL AXIS WITH MORE THAN TWO VALUES, declared per monster in part-review.json's
                `levels` and consumed by rows saying `"state": "level"`. Astalos is why it exists: its
                charge is three states, not two, so no checkbox expresses it and its Rage ladder is
                not the right name for it. Raven, 2026-09-11: "U = Uncharged, C = Charging, F = Fully
                Charged ... And we will want a toggle for the charge states." -->
-          <div id="monLevelRow" hidden><label for="monLevel" id="monLevelLab">Level</label>
+          <div class="field" id="monLevelRow" hidden><label for="monLevel" id="monLevelLab">Level</label>
             <select id="monLevel"></select></div>
           <!-- A VARIANT picks between whole alternative bodies sharing one part table -- see
                variantOff(). Kelbi is why it exists: two complete Kelbis in one model, drawn on top
                of each other, with no group that can turn either off. -->
-          <div id="monVariantRow" hidden><label for="monVariant" id="monVariantLab">Variant</label>
+          <div class="field" id="monVariantRow" hidden><label for="monVariant" id="monVariantLab">Variant</label>
             <select id="monVariant"></select></div>
         </div>
       </section>
