@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MHGU Monster Viewer TEST</title>
+<title>MHGU Monster Viewer</title>
 <link rel="icon" href="assets/MH4G-Binoculars_Icon_White.png?v=1">
 <style>
 /* MHFU game font, as the sibling MHGU apps use */
@@ -511,9 +511,10 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 <div id="app">
   <header class="titlebar titlebar-header">
     <img class="title-icon" src="assets/MonsterIcons/MHGU-Question_Mark_Icon.webp" alt="">
-    <!-- TEST while the app is under review: Raven, 2026-09-04, deploying with known issues
-         outstanding. Drop the word when it stops being a test build. -->
-    <h1>MHGU Monster Viewer TEST</h1>
+    <!-- Named TEST from 2026-09-04, while the app was deployed for review with known issues. The word
+         came off 2026-09-14, Raven: "Update the app name from MHGU Monster Viewer TEST to just MHGU
+         Monster Viewer". -->
+    <h1>MHGU Monster Viewer</h1>
     <button id="barBtn" class="btn tiny on" title="Show or hide the camera controls">Camera Controls</button>
     <button id="saveBtn"   class="btn tiny" title="Save the current view">Save</button>
     <button id="saveAsBtn" class="btn tiny" title="Save the current view to a new file">Save As&hellip;</button>
@@ -733,7 +734,10 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         </div>
       </section>
 
-      <section class="panel" data-open="false">
+      <!-- HIDDEN, NOT REMOVED. Raven, 2026-09-14: "Hide the Debug panel", the end-of-project step he set
+           out 2026-09-12 ("the Debug Panel will no longer be needed (or hidden)"). Every control in it
+           still exists and still applies its setting; delete `hidden` to bring the panel back. -->
+      <section class="panel" data-open="false" hidden>
         <button class="panel-head">Debug <span class="chev">&#9662;</span></button>
         <div class="panel-body">
           <label class="chk"><input type="checkbox" id="monAnchor" checked>Hold Monster In Place</label>
