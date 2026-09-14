@@ -3920,3 +3920,13 @@ by 400 of its own units -- its root bone's height above that reference in the id
 the torso. This is a viewer adjustment, not a ROM value, and the rage bursts move with it.
 `__view.effectLift(units)` tries other heights. Why the ROM's own placement reads that low is not found.
 Commit 1126eac.
+
+
+**Found, and the manual lift dropped.** Raven: *"I would rather not make manual adjustments, the game handles
+it so we know the code is there."* Right -- joint -1 (the aura's nodes, and a request's effect root) resolves
+through the parent's joint getter `0x939278`: a mapped bone, else the model's own world matrix (`+0xb0`). The
+aura is joint -1, so it hangs from the model's world matrix -- `this.root` in the viewer, the monster's own
+frame. It had been hung from the clip's `reference` node, which the pose driver's ground lock pushes below the
+feet, and that is what put the aura under Teostra. Anchoring to the model's world matrix lands the particles
+on the chest (measured) with no hand-picked number, so `UNIT_LIFT` / `__view.effectLift` are gone. Commit
+752b354.
