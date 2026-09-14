@@ -5456,13 +5456,23 @@ document.getElementById('zoneClose').onclick = () => {
   // simply close as the user is actively looking at the heat maps. Outside of the hit zone panel, have
   // it turn off heat mapping." In that panel the Heat Map dropdown and the chart's own toggle are both
   // on screen, so the map is one pick from off and the chart one tick from back.
-  if (document.getElementById('hitZonesPanel').dataset.open !== 'true'){
-    state.heat = '';
-    document.getElementById('monHeat').value = '';
-    applyHeat().then(applyGap).catch(noteError);
-  }
+  if (document.getElementById('hitZonesPanel').dataset.open !== 'true') heatOff();
   paintZonePanel(); saveState();
 };
+function heatOff(){
+  state.heat = '';
+  document.getElementById('monHeat').value = '';
+  applyHeat().then(applyGap).catch(noteError);
+}
+// LEAVING THE HIT ZONES PANEL WITH THE CHART CLOSED TURNS THE MAP OFF. Raven, 2026-09-14: "Leaving the
+// panel should turn the heat map off" -- the case the X above leaves open: close the chart in the panel,
+// keep the map, go to another panel, and the monster stayed painted with nothing on screen to read the
+// colours or undo them. With the chart still showing the map stays, because the chart reads it and its X
+// turns it off. `panelclose` comes from the accordion below.
+document.getElementById('hitZonesPanel').addEventListener('panelclose', () => {
+  if (state.zoneShow || !state.heat) return;
+  heatOff(); paintZonePanel(); saveState();
+});
 normScaleEl.oninput = e => { state.normalScale = +e.target.value; paintNormal(); saveState(); };
 document.getElementById('resetBtn').onclick = async () => {
   const first = MON.monsters.find(e => !e.small) || MON.monsters[0];
@@ -5568,11 +5578,15 @@ document.getElementById('importFile').addEventListener('change', function(){
 
 // panels: one open at a time, clicking the open one closes it. A data-keep-open panel (Monster)
 // is not in the accordion, so it is neither toggled nor closed when another panel opens.
+// A panel that goes from open to closed gets a `panelclose` event, for code that has to act when the
+// user leaves it (the Hit Zones panel's heat map).
 document.querySelectorAll('.panel:not([data-keep-open]) > .panel-head').forEach(h => {
   h.onclick = () => {
     const p = h.parentElement, wasOpen = p.dataset.open === 'true';
+    const open = [...document.querySelectorAll('.panel:not([data-keep-open])')].filter(o => o.dataset.open === 'true');
     document.querySelectorAll('.panel:not([data-keep-open])').forEach(o => o.dataset.open = 'false');
     p.dataset.open = wasOpen ? 'false' : 'true';
+    for (const o of open) if (o.dataset.open !== 'true') o.dispatchEvent(new Event('panelclose'));
   };
 });
 
