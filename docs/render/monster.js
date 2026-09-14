@@ -14,7 +14,7 @@
 //                model as `hide` [part, verts]; rMonsterPartsManager's groups switch the rest
 import * as THREE from 'three';
 import { loadGlb, getTexture, loader, poseCache, bust } from './assets.js';
-import { skeletonClone, meshGroupId } from './skeleton.js';
+import { skeletonClone, meshGroupId, gidBonesOf } from './skeleton.js';
 import { createMaterial, setSpecTexture, setEnvTexture, applyRomUv, allMats,
          MAT_FPS, stepMaterialAnim } from './material.js';
 import { specFor, refForGlb } from './materials-db.js';
@@ -1868,6 +1868,76 @@ function stepOneStage(s, tSec, state){
   else if (s.stage === 2){ if (!enraged) set(2, 3); }
   else if (ran()) s.stage = 0;
   return s;
+}
+
+// KECHA WACHA FOLDS ITS EARS WHILE ENRAGED, AND NO CLIP OR MESH DOES IT -- its class writes the ear joints
+// over whatever clip is playing. Raven, 2026-09-13: "Can you look at Kecha Wacha L2, M66 ... I want to see if
+// we can somehow replicate the enraged ear folding." Every motion list is full-body and L2 Motion[66] ends
+// with the ears back at rest; there is no folded-ear part either. What folds them is uEm065_00's virtual
+// +0x2a0 (0xf559b4). It keeps a weight at [enemy+0xcac0]+0x20 -- set to 1.0 while the enrage predicate
+// 0x81670 holds, otherwise falling by 0.08 x the frame delta ([enemy+0x1c]) to 0 -- and while the weight is
+// above 0 calls 0xf55a88, which reads each ear root through vtable +0xd8, blends it and writes it back
+// through 0x7237c, after the pose:
+//
+//     joint 132   local = lerp(clip, fold, w)   fold = a +90 deg turn about X, translation x +38.4 with the
+//                                               clip's own y and z (0xf55b78..0xf55de8)
+//     joint 134   the same with x -38.4 (0xf55e9c..0xf560b8) -- a turn about X is unchanged by the mirror
+//     both        scale (joint +0x70) = (1, 1, 1) + w x (0.2, 0.1, 0.1); +0x70 is the slot the joint reset
+//                 at 0x94b120 fills with MtVector3 one, so the base is 1
+//
+// The lerp is the ROM's own, element by element over the 4x4, so at w = 1 the fold replaces the clip's ear
+// roots outright and the tips (133, 135) ride on them. At rest those roots sit about 100 deg about +-Y, over
+// the face; the fold is 133 deg from that. The scale goes on the "_s" leaf, where MT's joint scale reaches
+// the mesh without passing to the tips (see pose.js).
+// THE DIRECTION IS THE GAME'S OWN POSE: Kecha Wacha's L0 Motion[19] carries joint 132 through a +90 deg turn
+// about X to within 0.4 deg (its key 60), and no clip in any list comes within 40 deg of the -90 deg turn.
+// NOT MODELLED: while the value at [enemy+0x4b4] (0xb0944) is 0x13, 0x28 or 0x50f the weight is left where
+// it is instead of being set to 1. Read as a motion number, list x 256 + index, those are L0 Motion[19] --
+// the clip above, which folds the ears itself -- L0 Motion[40], which ships no clip, and L5 Motion[15]; that
+// reading fits but is not confirmed, so the viewer's clip is not tied to it. The frame delta is taken at the
+// viewer's 60 frames a second; the ROM's unit for [enemy+0x1c] is not read, so the 0.08 release (about 12
+// frames) is the one approximate number here. __earFold(false) turns it off for comparison.
+export const ROM_EAR_FOLD = {
+  em065_00: { joints: [{ gid: 132, x: 0.384 }, { gid: 134, x: -0.384 }], scale: [0.2, 0.1, 0.1], decay: 0.08 },
+};
+const EAR_FOLD_FPS = 60;
+let earFoldOn = true;
+const _ef = { cur: new THREE.Matrix4(), fold: new THREE.Matrix4(), p: new THREE.Vector3(),
+              one: new THREE.Vector3(1, 1, 1),
+              q: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2) };
+// Call right after the pose driver has written the frame. Returns the number of joints it wrote.
+export function stepEarFold(roots, monId, enraged, tSec){
+  const t = monId && ROM_EAR_FOLD[monId];
+  if (!t) return 0;
+  let n = 0;
+  for (const root of roots || []){
+    if (!root || !root.userData) continue;
+    let st = root.userData.earFold;
+    if (!st || st.monId !== monId) st = root.userData.earFold = { monId, w: 0, tLast: tSec };
+    const frames = Math.max(0, (tSec - st.tLast) * EAR_FOLD_FPS);
+    st.tLast = tSec;
+    if (enraged) st.w = 1;
+    else if (st.w > 0) st.w = Math.max(0, st.w - t.decay * frames);
+    if (!earFoldOn || !(st.w > 0)) continue;
+    const w = Math.min(st.w, 1);
+    for (const b of gidBonesOf(root)){
+      const j = t.joints.find(x => x.gid === b.gid);
+      if (!j) continue;
+      const node = b.node;
+      _ef.cur.compose(node.position, node.quaternion, node.scale);
+      _ef.fold.compose(_ef.p.set(j.x, node.position.y, node.position.z), _ef.q, _ef.one);
+      const ce = _ef.cur.elements, fe = _ef.fold.elements;
+      for (let i = 0; i < 16; i++) ce[i] = fe[i] * w + ce[i] * (1 - w);
+      _ef.cur.decompose(node.position, node.quaternion, node.scale);
+      if (b.leaf) b.leaf.scale.set(1 + t.scale[0] * w, 1 + t.scale[1] * w, 1 + t.scale[2] * w);
+      n++;
+    }
+  }
+  return n;
+}
+export function setEarFold(on){ earFoldOn = !!on; return earFoldOn; }
+if (typeof window !== 'undefined'){
+  window.__earFold = (on) => on === undefined ? earFoldOn : setEarFold(on);
 }
 // The clip a monster's LEVEL rung names, or undefined where no table says (the caller then falls back
 // to the Rage ladder). A rung past the table's end takes its last entry.
