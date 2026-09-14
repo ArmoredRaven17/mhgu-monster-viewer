@@ -4196,13 +4196,14 @@ async function setPartner(e, on){
 // WHICH CLIP THE PARTNER PLAYS. Not a ROM read -- the ROM pairs the two monsters' motions in their action machines,
 // which is left for the animation review. Raven, 2026-09-14: "I suspect List 4 of Seltas and Queen animations are the
 // combined, we can try simply paring the animation lists", then "have the queen's list select selta's list for a
-// single selection". So the body's list picks the partner's list of the same id, and in it the clip of the same name,
-// else the same motion number (a _start / _loop split need not match). With neither, the combine's own loop
-// (ROM_PARTNER_BODY's list 4 Motion[35]). Measured 2026-09-14: the two list 4s share 28 motion numbers, and 5 of those
-// (5, 8, 9, 16, 73) are the same length on both.
+// single selection", and then "I only wanted animation list 4 to be the paired animation list. The others don't need
+// to be paired at this time." So on list 4 -- the list the combine's own loop is in, ROM_PARTNER_BODY's `list` -- the
+// body's clip picks the partner's clip of the same name, else the same motion number (a _start / _loop split need not
+// match). On any other list, or with no match, the partner plays the combine's loop (list 4 Motion[35]). Measured
+// 2026-09-14: the two list 4s share 28 motion numbers, and 5 of those (5, 8, 9, 16, 73) are the same length on both.
 function partnerClipOf(a, l, c){
   const lists = (a.part && a.part.lists) || [];
-  const pl = l && lists.find(x => x.id === l.id);
+  const pl = l && l.id === a.spec.list && lists.find(x => x.id === l.id);
   if (pl && c){
     const clips = pl.clips || [];
     let hit = clips.find(x => x.clip === c.clip);
