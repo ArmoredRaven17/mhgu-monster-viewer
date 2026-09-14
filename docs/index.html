@@ -327,6 +327,9 @@ header #bar .btn.tiny{margin-right:0}
   background-size:auto 100%;background-position:left center;background-repeat:repeat;
 }
 .panel-head:hover{background-color:#ffffff0d}
+/* a kept-open panel has nothing to toggle, so its head does not light up or take a pointer */
+.panel[data-keep-open] .panel-head{cursor:default}
+.panel[data-keep-open] .panel-head:hover{background-color:transparent}
 /* The panel chevrons are hidden -- the accordion only ever has one panel open, so the
    open one is obvious from the panel body and the arrows were just noise. The spans stay
    in the markup so the heads keep their layout. */
@@ -491,8 +494,10 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <aside class="sidebar">
       <div id="paneMonster">
 
-      <section class="panel" data-open="true">
-        <button class="panel-head">Monster <span class="chev">&#9662;</span></button>
+      <!-- KEPT OPEN. Raven, 2026-09-13: "I want this to be kept open". It sits outside the
+           accordion: opening another panel leaves it open, and its head is a plain label, not a button. -->
+      <section class="panel" data-open="true" data-keep-open>
+        <div class="panel-head">Monster <span class="chev">&#9662;</span></div>
         <div class="panel-body">
           <div class="field"><input type="text" id="monFilter" placeholder="Filter by name&hellip;"></div>
           <div class="field"><label for="monSel">Monster</label><select id="monSel"></select></div>
@@ -4693,11 +4698,12 @@ document.getElementById('importFile').addEventListener('change', function(){
   reader.readAsText(file);
 });
 
-// panels: one open at a time, clicking the open one closes it
-document.querySelectorAll('.panel-head').forEach(h => {
+// panels: one open at a time, clicking the open one closes it. A data-keep-open panel (Monster)
+// is not in the accordion, so it is neither toggled nor closed when another panel opens.
+document.querySelectorAll('.panel:not([data-keep-open]) > .panel-head').forEach(h => {
   h.onclick = () => {
     const p = h.parentElement, wasOpen = p.dataset.open === 'true';
-    document.querySelectorAll('.panel').forEach(o => o.dataset.open = 'false');
+    document.querySelectorAll('.panel:not([data-keep-open])').forEach(o => o.dataset.open = 'false');
     p.dataset.open = wasOpen ? 'false' : 'true';
   };
 });
