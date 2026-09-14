@@ -4411,6 +4411,12 @@ function heatEach(e, paint){
     } else paint(g);
   }
 }
+// THE HEAT MAP AND THE CHART ARE ONLY ON SCREEN WHILE THE HIT ZONES PANEL IS OPEN. Raven, 2026-09-14:
+// "Make it so the Heat Maps and Table can only be viewed when viewing the Hit Zone panel." applyHeat
+// paints the model from this and paintZonePanel shows the chart from it; everything else -- the pick in
+// state.heat, the dropdown, the chart's selected column, zoneShow -- is left as it is, so reopening the
+// panel brings the same map and chart back.
+function hitZonesOpen(){ return document.getElementById('hitZonesPanel').dataset.open === 'true'; }
 async function applyHeat(){
   const e = entry();
   const rec = e && HITZONES.monsters && HITZONES.monsters[e.id];
@@ -4455,7 +4461,9 @@ async function applyHeat(){
   table.forEach((row, slot) => { value[slot] = heatShape(state.heat, row[state.heat]); });
   // Every mount, not just the body: with the severed parts shown, painting only mounted.main
   // left a full-colour tail beside a heat-mapped monster.
-  if (state.heat === 'extract'){
+  // Drawn only inside Hit Zones -- see hitZonesOpen(). Outside it the model takes the clearing branch.
+  const shownHeat = hitZonesOpen() ? state.heat : '';
+  if (shownHeat === 'extract'){
     // Painted through the PART map, not the damage slots. The .bdd names both for every capsule
     // (its u16 at record+6 is the damage row, at +8 the .dtt part-record index), and the bake now
     // assigns each vertex against both. Going damage -> part instead would be ambiguous: 203 of
@@ -4466,12 +4474,12 @@ async function applyHeat(){
     const map = zoneCache.zones.parts;
     if (!map) { for (const g of Object.values(mounted)) clearHeatmap(g); }
     else heatEach(e, g => applyHeatmap(g, map, null, 1, THREE, byPart));
-  } else if (state.heat === 'hardness-cut' || state.heat === 'hardness-impact'){
+  } else if (shownHeat === 'hardness-cut' || shownHeat === 'hardness-impact'){
     // Painted the sharpness colour you have to bring to reach the SELECTED RUNG, so the model reads
     // as "green here, white there" for that tier. A slot no sharpness carries to the rung is left
     // the default dark, which is the honest answer -- and switching rung repaints the whole model,
     // which is the ladder doing the work rather than describing itself.
-    const type = state.heat === 'hardness-cut' ? 'cut' : 'impact';
+    const type = shownHeat === 'hardness-cut' ? 'cut' : 'impact';
     const t = DEFLECT_T[state.deflectT] || DEFLECT_T.normal;
     const tier = +state.deflectTier || 2;
     const bySlot = {};
@@ -4480,7 +4488,7 @@ async function applyHeat(){
       if (lv !== null) bySlot[slot] = SHARP_RGB[lv];
     });
     heatEach(e, g => applyHeatmap(g, zoneCache.zones.slots, null, 1, THREE, bySlot));
-  } else if (state.heat){
+  } else if (shownHeat){
     heatEach(e, g => applyHeatmap(g, zoneCache.zones.slots, value, HEATSCALE, THREE));
   } else {
     for (const g of Object.values(mounted)) clearHeatmap(g);
@@ -4769,7 +4777,7 @@ function paintZonePanel(){
   // any pane with rows counts: a monster can have a damage table but no part record, or the reverse
   const has = [...document.querySelectorAll('#monZoneWrap table')]
     .some(t => t.tBodies[0] && t.tBodies[0].rows.length);
-  const shown = state.zoneShow && has;
+  const shown = state.zoneShow && has && hitZonesOpen();
   document.getElementById('zonePanel').hidden = !shown;
   document.getElementById('monZoneShow').checked = state.zoneShow;
   document.getElementById('monZoneShowRow').hidden = !has;
@@ -5449,30 +5457,20 @@ document.getElementById('monGap').onchange = e => {
 };
 document.getElementById('monZoneShow').onchange = e => { state.zoneShow = e.target.checked; paintZonePanel(); saveState(); };
 document.getElementById('zoneClose').onclick = () => {
+  // Closes the chart and nothing else. It used to turn the map off as well (Raven, 2026-09-05), so a
+  // painted monster was never left without its chart to read it, and then only outside the Hit Zones
+  // panel. Both are only ever on screen inside that panel now (see hitZonesOpen), beside the Heat Map
+  // dropdown and the chart's own toggle, so there is nothing left for the X to guard.
   state.zoneShow = false; document.getElementById('monZoneShow').checked = false;
-  // Closing the window turns the map off too (Raven, 2026-09-05). Leaving the monster painted with
-  // its chart gone gave no way to read the colours and no obvious way to undo it.
-  // EXCEPT WHILE THE HIT ZONES PANEL IS OPEN. Raven, 2026-09-14: "While on the Hit Zones panel, have it
-  // simply close as the user is actively looking at the heat maps. Outside of the hit zone panel, have
-  // it turn off heat mapping." In that panel the Heat Map dropdown and the chart's own toggle are both
-  // on screen, so the map is one pick from off and the chart one tick from back.
-  if (document.getElementById('hitZonesPanel').dataset.open !== 'true') heatOff();
   paintZonePanel(); saveState();
 };
-function heatOff(){
-  state.heat = '';
-  document.getElementById('monHeat').value = '';
-  applyHeat().then(applyGap).catch(noteError);
-}
-// LEAVING THE HIT ZONES PANEL WITH THE CHART CLOSED TURNS THE MAP OFF. Raven, 2026-09-14: "Leaving the
-// panel should turn the heat map off" -- the case the X above leaves open: close the chart in the panel,
-// keep the map, go to another panel, and the monster stayed painted with nothing on screen to read the
-// colours or undo them. With the chart still showing the map stays, because the chart reads it and its X
-// turns it off. `panelclose` comes from the accordion below.
-document.getElementById('hitZonesPanel').addEventListener('panelclose', () => {
-  if (state.zoneShow || !state.heat) return;
-  heatOff(); paintZonePanel(); saveState();
-});
+// ENTERING OR LEAVING HIT ZONES REPAINTS THE MAP AND THE CHART, which are only drawn while it is open.
+// The pick in state.heat is kept, so the panel shows the same map again on the way back in.
+// `panelopen` / `panelclose` come from the accordion below.
+for (const ev of ['panelopen', 'panelclose'])
+  document.getElementById('hitZonesPanel').addEventListener(ev, () => {
+    applyHeat().then(applyGap).catch(noteError); paintZonePanel();
+  });
 // HIT ZONES IS READ UNDER THE DEFAULT LIGHTING WITH NO EFFECTS. Raven, 2026-09-14: "we may need to have
 // Hit Zones revert the lighting and effects to default, then change them back once the panel is left". A
 // rig or a grade of the user's own changes the colours the heat map is read by, so opening the panel sets
