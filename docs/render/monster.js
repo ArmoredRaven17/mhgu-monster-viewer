@@ -1888,9 +1888,32 @@ export function setClipFor(monId, groups){
 // frames and back over end's, and a layer left by calm holds end's last frame rather than jumping back to
 // Loop. Not here: m04_breathe (see ROM_SPAWN_CLIP) and m06_heat, whose record at +0xcba8 runs on bit 1
 // of the flag word at +0x5c0 (0x10a1554), not on rage.
+//
+// AGNAKTOR (uEm049_00) runs one machine PER LAVA SLOT, and its "on" is heat, not rage. Raven, 2026-09-11: "lava
+// effect isn't quite right ... needs to either be non-translucent or brighter to cover the cooled lava parts";
+// 2026-09-14, "Look at Lagiacrus Shocker, it felt dull, may help us solve Agnaktor's issue". With Heated on the
+// viewer showed every lava material at opacity 0.04 -- cool_Loop's fTransparency (0 / 0.1 / 0) -- because the
+// maguma_* clips are in no state list. 0xec22c8 keeps a u16 state per slot at [enemy+0xcac0 + slot x 2] and puts
+// one clip in slot 0 of that slot's lava material, with a timer at [enemy+0xcad0 + slot x 4] += delta x 0.5:
+//
+//     0 cooled     cool_Loop                                                    (0xec2310)
+//     3 heating    maguma_Change -- or maguma_Loop if Loop or End is already in  (0xec2328)   -> 2 past 60
+//     2 molten     maguma_Loop                                                  (0xec231c)   -> 1 past 30 x 0x6f62c
+//     1 cooling    maguma_End                                                   (0xec2374)   -> 0 past 180
+//
+// 60 and 180 on a half-rate timer are exactly maguma_Change's 120 frames and maguma_End's 360, so "the clip has
+// run" is the ROM's own test. The part groups follow the same state (0xec1cec: a slot's state 0 draws its cooled
+// group, anything else its heated one), so the viewer's stand-in for "this slot is heated" is the lava part drawn
+// -- `on: 'drawn'` -- which the Heated control already decides. Not modelled: the molten state cooling on its own
+// timer (the viewer holds it while Heated is on), and the parts following the 360-frame cool-down (they go with
+// the toggle, as Valstrax's do).
 export const ROM_STAGE_CLIPS = {
   em027_00: { mats: ['XfBAN_W_0__m01_effect01', 'XfBAN_W_0__m02_effect02', 'XfB__m03_Bombmode'],
               clips: ['Effect_Start', 'Effect_Loop', 'Effect_End'] },
+  em049_00: ['XfB_0__m01_lav01', 'XfB_0__m02_lav02', 'XfB_0__m03_lav03', 'XfB_0__m04_lav04', 'XfB_0__m05_lav05',
+             'XfB_0__m06_lav06']
+    .map(mat => ({ mats: [mat], clips: ['maguma_Change', 'maguma_Loop', 'maguma_End'], rest: 'cool_Loop',
+                   on: 'drawn', settle: 'rest', reheat: 'loop' })),
   em086_00: ['XfBA_E1__m01_black', 'XfB_W_0__m02_angry', 'XfB_N__EW_0__m03_eff', 'XfB_0__m05_eye']
     .map(mat => ({ mats: [mat], clips: ['start', 'Loop', 'end'], rest: 'auto' })),
 };
@@ -1910,7 +1933,22 @@ function stepStageMachine(root, tSec, state, monId){
   let all = root.userData.romStage;
   if (!all || all.monId !== monId)
     all = root.userData.romStage = { monId, list: tbls.map(tbl => newStageMachine(root, tbl)) };
-  return all.list.map(s => stepOneStage(s, tSec, state));
+  return all.list.map(s => stepOneStage(s, tSec, state, root));
+}
+// `on: 'drawn'`: the machine's materials are on a part the part table draws (a part it does not mention is drawn).
+// The parts carrying them are found once per machine.
+function matsDrawn(root, s){
+  if (!s.parts){
+    s.parts = new Set();
+    root.traverse(o => {
+      if (!(o.isMesh || o.isSkinnedMesh) || o.userData.proxy) return;
+      if (matsOfMesh(o).some(m => m && s.mats.indexOf(m.name) >= 0)) s.parts.add(o.userData.part);
+    });
+  }
+  const drawn = root.userData && root.userData.partsDrawn;
+  if (!drawn) return s.parts.size > 0;
+  for (const p of s.parts) if (drawn.get(p) !== false) return true;
+  return false;
 }
 function newStageMachine(root, tbl){
   const s = { tbl, mats: tbl.mats, rest: tbl.rest || null, stage: 0, clip: null, t0: 0, tLast: -Infinity, frames: {} };
@@ -1930,16 +1968,22 @@ function newStageMachine(root, tbl){
   }
   return s;
 }
-function stepOneStage(s, tSec, state){
+function stepOneStage(s, tSec, state, root){
   if (!(tSec >= s.tLast)) return { mats: s.mats, rest: s.rest, clip: s.clip, t0: tSec - (s.tLast - s.t0) };
   s.tLast = tSec;
   const ran = () => (tSec - s.t0) * MAT_FPS >= (s.frames[s.clip] || 0);
   const set = (i, stage) => { s.clip = s.tbl.clips[i]; s.t0 = tSec; s.stage = stage; };
-  const enraged = state === 'enraged';
-  if (s.stage === 0){ if (enraged) set(0, 1); }
+  const on = s.tbl.on === 'drawn' ? matsDrawn(root, s) : state === 'enraged';
+  if (s.stage === 0){ if (on) set(0, 1); }
   else if (s.stage === 1){ if (ran()) set(1, 2); }
-  else if (s.stage === 2){ if (!enraged) set(2, 3); }
-  else if (ran()) s.stage = 0;
+  else if (s.stage === 2){ if (!on) set(2, 3); }
+  // back on while the end runs: Agnaktor goes straight to the loop (`reheat: 'loop'`, 0xec2328)
+  else if (on && s.tbl.reheat === 'loop') set(1, 2);
+  else if (ran()){
+    s.stage = 0;
+    // the end's last frame is held (Teostra, Valstrax), or the rest clip takes the slot (`settle: 'rest'`)
+    if (s.tbl.settle === 'rest') s.clip = null;
+  }
   return s;
 }
 
@@ -2217,8 +2261,10 @@ export function rageLadderParts(root){
 // a monster's own stage machine lights on rage (ROM_STAGE_CLIPS), whose clips carry no enrage name.
 export function enrageMaterials(root){
   const out = materialsWithClip(root, ENRAGE_CLIPS);
-  for (const tbl of stageTables(root && root.userData && root.userData.monId))
+  for (const tbl of stageTables(root && root.userData && root.userData.monId)){
+    if (tbl.on) continue;                        // a machine on something other than rage (Agnaktor's heat)
     root.traverse(o => { for (const m of matsOfMesh(o)) if (m && tbl.mats.indexOf(m.name) >= 0) out.add(m.name); });
+  }
   return out;
 }
 // Materials that carry a CHARGE clip -- Khezu's Taiden family. Gates the Charged checkbox, which
@@ -2267,7 +2313,11 @@ function clipPicker(state, monId, tState, prev, levelClip, stage){
     // clip (`rest: 'auto'`, Valstrax clears none).
     const machine = stage && rom && stage.find(s => s.mats.indexOf(rom.name) >= 0);
     if (machine){
-      if (!machine.clip) return machine.rest === 'auto' ? clips.findIndex(c => c.auto) : -1;
+      if (!machine.clip){
+        if (machine.rest === 'auto') return clips.findIndex(c => c.auto);
+        // a NAMED rest clip -- Agnaktor's cool_Loop, the ROM's state 0
+        return typeof machine.rest === 'string' ? clips.findIndex(c => sameClip(c.name, machine.rest)) : -1;
+      }
       const i = clips.findIndex(c => sameClip(c.name, machine.clip));
       return i >= 0 ? [[i, machine.t0]] : -1;
     }
