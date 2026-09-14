@@ -4193,6 +4193,26 @@ async function setPartner(e, on){
     stepAttached();
   } finally { setLoading(false); }
 }
+// WHICH CLIP THE PARTNER PLAYS. Not a ROM read -- the ROM pairs the two monsters' motions in their action machines,
+// which is left for the animation review. Raven, 2026-09-14: "I suspect List 4 of Seltas and Queen animations are the
+// combined, we can try simply paring the animation lists", then "have the queen's list select selta's list for a
+// single selection". So the body's list picks the partner's list of the same id, and in it the clip of the same name,
+// else the same motion number (a _start / _loop split need not match). With neither, the combine's own loop
+// (ROM_PARTNER_BODY's list 4 Motion[35]). Measured 2026-09-14: the two list 4s share 28 motion numbers, and 5 of those
+// (5, 8, 9, 16, 73) are the same length on both.
+function partnerClipOf(a, l, c){
+  const lists = (a.part && a.part.lists) || [];
+  const pl = l && lists.find(x => x.id === l.id);
+  if (pl && c){
+    const clips = pl.clips || [];
+    let hit = clips.find(x => x.clip === c.clip);
+    const mm = !hit && /^Motion\[(\d+)\]/.exec(c.clip);
+    if (mm) hit = clips.find(x => x.clip.startsWith('Motion[' + mm[1] + ']'));
+    if (hit) return { list: pl, clip: hit.clip, paired: true };
+  }
+  const fl = lists.find(x => x.id === a.spec.list);
+  return fl ? { list: fl, clip: a.spec.clip, paired: false } : null;
+}
 const _pp = new THREE.Vector3(), _pq = new THREE.Quaternion(), _ps = new THREE.Vector3(), _pm = new THREE.Matrix4();
 // no clip playing: the partner's root itself goes onto the frame, carrying its bind pose
 function placeOnFrame(root, frame){
@@ -4225,13 +4245,13 @@ async function playAttached(l, c){
   for (const [name, a] of attached){
     const root = mounted[name];
     if (a.partner){
-      // its own clip from its own list, whatever the body is playing
-      const pl = ((a.part && a.part.lists) || []).find(x => x.id === a.spec.list);
-      const pclip = pl ? await clipFor(pl, a.spec.clip, a.part.glb) : null;
+      const pick = partnerClipOf(a, l, c);
+      const pclip = pick ? await clipFor(pick.list, pick.clip, a.part.glb) : null;
       if (!attached.has(name) || attached.get(name) !== a) continue;
-      if (!pclip){ a.driver.stop(); restoreBind(root); continue; }
-      a.driver.loopMode = () => 'repeat';
-      await a.driver.play({ file: pl.file, clip: a.spec.clip, model: a.part.glb, clip3: pclip },
+      if (!pclip){ a.driver.stop(); a.pick = null; restoreBind(root); continue; }
+      a.pick = pick;
+      a.driver.loopMode = pick.paired ? pose.loopMode : () => 'repeat';
+      await a.driver.play({ file: pick.list.file, clip: pick.clip, model: a.part.glb, clip3: pclip },
                           { figure: 'monster', joints: a.part.joints || [], anchorXZ: false, groundLock: false });
       continue;
     }
@@ -4252,10 +4272,12 @@ function stepAttached(){
     if (!root) continue;
     attachFrame(a);
     if (a.partner){
-      // its own loop, held to the body clip's time so a shot is repeatable
+      // held to the body clip's time so a shot is repeatable: a paired clip stops where the body's does, the
+      // combine's own loop wraps
       if (a.driver.action && pose.action){
+        const dur = Math.max(1e-3, a.driver.action.getClip().duration);
         a.driver.action.paused = pose.action.paused;
-        a.driver.action.time = pose.action.time % Math.max(1e-3, a.driver.action.getClip().duration);
+        a.driver.action.time = (a.pick && a.pick.paired) ? Math.min(pose.action.time, dur - 1e-3) : pose.action.time % dur;
       }
       a.driver.clock.getDelta();
       if (a.driver.action) a.driver.step([root]);
@@ -6078,6 +6100,8 @@ window.__view.partner = async on => {
   return { partner: spec.monster, on: !!partnerOn[e.id], mounted: true, bodyJoint: spec.joint,
            bodyJointAt: at(a.jointNode), partnerJoint0At: b0 ? at(b0.node) : null, frameScale: +s.x.toFixed(3),
            worldScale: +world.scale.x.toFixed(3), clip: a.driver.action ? a.driver.action.getClip().name : '(bind pose)',
+           list: a.driver.action && a.pick ? a.pick.list.id : null, paired: !!(a.driver.action && a.pick && a.pick.paired),
+           bodyList: state.list, bodyClip: state.clip,
            drawnParts: [...parts].sort((x, y) => x - y), eyeEmissive: eye };
 };
 window.__view.matAnim = on => {
