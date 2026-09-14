@@ -175,15 +175,13 @@ export class LiveEffects {
     return this;
   }
 
-  // THE GROUND. The game draws its effects against its terrain: their depth test (DSZTest) hides what lies
-  // under the ground, and both programs' soft edges read the terrain's depth (tPrimDepthMap / tDepthMap).
-  // The viewer has no terrain, so what an effect puts below the monster's feet drew in the open under the
-  // body -- Teostra's aura is centred on the unit, which is where it stands, and much of its fire is below
-  // it. Raven, 2026-09-13: "Flame effect sits directly below Teostra". A plane at the unit's height stands in
-  // for the ground: it writes depth and no colour, in front of the effect meshes and into the scene depth,
-  // and faces up, so from under it nothing is hidden. Only while a clip plays: in the bind pose the skeleton
-  // hangs below the root, which is then all the unit there is, and a ground there would cut the body's
-  // effects in half. It is the viewer's stand-in, not a ROM value: __view.effectGround(false) takes it away.
+  // THE GROUND, OFF BY DEFAULT -- a debug/terrain-test stand-in, not a ROM value. The game draws its effects
+  // against its terrain (their DSZTest hides what lies under it), which the viewer has none of. It was added
+  // when the aura hung from the clip's reference node, below the feet, and half its fire drew under the body;
+  // anchoring to the model's world matrix (unitMatrix) fixed that placement, so with nothing below the feet
+  // to hide the ground occludes nothing. Kept behind __view.effectGround(true) to test terrain occlusion for
+  // an effect that does reach below the feet. A depth-only plane at the lowest bone (groundY): it writes
+  // depth and no colour, in front of the effect meshes and into the scene depth, and faces up.
   groundPlane(){
     const geometry = new THREE.PlaneGeometry(2000, 2000);
     geometry.rotateX(-Math.PI / 2);
@@ -583,5 +581,5 @@ export class LiveEffects {
   }
 }
 // the ground stand-in's switch, for every runtime from now on (__view.effectGround)
-let groundDefault = true;
+let groundDefault = false;
 export function setEffectGround(on){ groundDefault = !!on; }
