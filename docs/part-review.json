@@ -3583,7 +3583,7 @@
  },
  "em046_00": {
   "reviewed": "2026-09-11",
-  "note": "Reviewed by Raven: six rows, Eyes moved to the top. FIRST ROW DRIVEN BY THE CHARGED TOGGLE RATHER THAN RAGE. 'Shocker: In, In (Charged), Br, Br (Charged)' and 'Have charged toggle, then have the Shocker parts switch with the toggle'. The row's four options collapse to two items with per-state keys -- Intact is \"7|7,9,10\" and Broken \"8|8,9,11\" -- and the row carries \"state\": \"charged\" so the split follows Charged, not Rage. THE MATERIAL CONFIRMS WHICH HALVES ARE CHARGED: parts 9, 10 and 11 are the only meshes on this monster in XfB__m02_thornray, and they appear in exactly the two options Raven marked (Charged). TWO CODE CHANGES WERE NEEDED. (1) a per-row state axis, because \"|\" had only ever split on rage. (2) the Charged checkbox now REBUILDS the part rows, which it never did -- it only swapped materials, which was enough while nothing switched parts on charge. EYES HAVE A BRIGHT STATE: part 3 is 34v of XfB__m03_eye, part 23 is 66v of XfB__m01_ray, and 3,23 draws both -- so Bright is the eye plus its ray, Open the eye alone, Closed the 18v body patch (part 4). Raven's three names map to the ROM's three options in order. RAVEN'S FLAGS, both unresolved and neither investigated here: 'Shocker rendering could be better' and 'chest needs seams welded'. The second has a known instrument -- dev/weld-seam-skins.py and the seam-skin-check/magnitude/sweep scripts are in the repo for exactly that. **EYES REORDERED 2026-09-14** at his word: *'Change the ordering of the Eyes drop down to Eyes: Op, Bright, Cl'* -- `order` is now Open (3), Bright (3,23), Closed (4). Order only: the default is still Bright.",
+  "note": "Reviewed by Raven: six rows, Eyes moved to the top. FIRST ROW DRIVEN BY THE CHARGED TOGGLE RATHER THAN RAGE. 'Shocker: In, In (Charged), Br, Br (Charged)' and 'Have charged toggle, then have the Shocker parts switch with the toggle'. The row's four options collapse to two items with per-state keys -- Intact is \"7|7,9,10\" and Broken \"8|8,9,11\" -- and the row carries \"state\": \"charged\" so the split follows Charged, not Rage. THE MATERIAL CONFIRMS WHICH HALVES ARE CHARGED: parts 9, 10 and 11 are the only meshes on this monster in XfB__m02_thornray, and they appear in exactly the two options Raven marked (Charged). TWO CODE CHANGES WERE NEEDED. (1) a per-row state axis, because \"|\" had only ever split on rage. (2) the Charged checkbox now REBUILDS the part rows, which it never did -- it only swapped materials, which was enough while nothing switched parts on charge. EYES HAVE A BRIGHT STATE: part 3 is 34v of XfB__m03_eye, part 23 is 66v of XfB__m01_ray, and 3,23 draws both -- so Bright is the eye plus its ray, Open the eye alone, Closed the 18v body patch (part 4). Raven's three names map to the ROM's three options in order. RAVEN'S FLAGS, both unresolved and neither investigated here: 'Shocker rendering could be better' and 'chest needs seams welded'. The second has a known instrument -- dev/weld-seam-skins.py and the seam-skin-check/magnitude/sweep scripts are in the repo for exactly that. **EYES REORDERED 2026-09-14** at his word: *'Change the ordering of the Eyes drop down to Eyes: Op, Bright, Cl'* -- `order` is now Open (3), Bright (3,23), Closed (4). Then *'Default to Open'*: the row opens on 3, the eye without its ray.",
   "rowOrder": [
    "3,4,23",
    "1,2",
@@ -3595,7 +3595,7 @@
   "rows": {
    "3,4,23": {
     "name": "Eyes",
-    "default": "3,23",
+    "default": "3",
     "order": [
      "3",
      "3,23",
