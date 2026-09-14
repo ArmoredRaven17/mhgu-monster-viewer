@@ -3940,3 +3940,12 @@ draw recorder (`efx/vecdrawsched.py`, the viewer's `drawFrame` over a schedule) 
 the de-enrage now runs as a fiery nova. The effect ground stand-in is off by default now -- the model-matrix
 anchor leaves nothing below the feet for it to hide; `__view.effectGround(true)` keeps it for terrain tests.
 Commit 2401065.
+
+**The brown squares were the aura-end, dropped.** Raven: *"Still seeing some brown squares on de-enrage."*
+Not the crash and not a draw bug: they are the aura-end effect `em027_00_018`, whose cm150_003 particles carry
+the ROM's own brown `fPrimColor` (0.188, 0.118, 0.078) on a hard-topped fade texture, drawn byte-identically
+to the emulator (modeldraw passes). The model-matrix anchor brought them up into the body where they show.
+`018`'s trigger is a gap -- the game plays it when the aura status byte at `+0x1bb` clears, which the viewer
+approximated as de-enrage by tying the aura to rage -- so firing it every de-enrage was an approximation, not
+decoded, and it reads as brown squares. Dropped from de-enrage: leaving rage now fades the aura (the ROM stop
+request) and plays the rage-end burst. Commit 20ec2e8.
