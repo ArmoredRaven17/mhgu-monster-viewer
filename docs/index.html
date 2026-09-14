@@ -1234,7 +1234,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts, ROM_SPAWN_CLIP,
          ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels, levelClipFor, setClipFor,
-         attachedBodyOf, attachedClipFor, stepEarFold, romFormsOf,
+         attachedBodyOf, attachedClipFor, stepEarFold, stepTailSwell, romFormsOf,
          monsterMats,
          enableRomAmbient, enableRomSpecular, enableRomPhong,
          setSHAmount, setRomSpecularAmount, anchorMisses } from './render/monster.js';
@@ -4152,8 +4152,10 @@ function stepAttached(){
     }
   }
   // Every caller runs this straight after the body's pose, so the joints a monster's own class writes over
-  // the clip go here too: Kecha Wacha's enraged ear fold (render/monster.js ROM_EAR_FOLD).
+  // the clip go here too: Kecha Wacha's enraged ear fold (render/monster.js ROM_EAR_FOLD) and Tetsucabra's
+  // swollen tail (ROM_TAIL_SWELL, driven by the Tail row's part state).
   stepEarFold(poseRoots(), state.id, !!state.rage, performance.now() / 1000);
+  stepTailSwell(poseRoots(), state.id, performance.now() / 1000);
 }
 // The Loading overlay is a SCREEN, not a caption. Showing the text on its own left the
 // outgoing monster rendering underneath it (Raven, 2026-09-04: "The loading... doesn't bring up

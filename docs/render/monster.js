@@ -729,6 +729,8 @@ export function applyParts(root, drawn){
     const v = drawn.get(o.userData.part);
     o.visible = (v === undefined) ? true : v;
   });
+  // the part table's decision, kept for the per-frame joint writes a part state drives (stepTailSwell)
+  root.userData.partsDrawn = drawn;
   applyBreakAlpha(root, drawn);
 }
 
@@ -2064,6 +2066,87 @@ export function stepEarFold(roots, monId, enraged, tSec){
 export function setEarFold(on){ earFoldOn = !!on; return earFoldOn; }
 if (typeof window !== 'undefined'){
   window.__earFold = (on) => on === undefined ? earFoldOn : setEarFold(on);
+}
+
+// TETSUCABRA'S TAIL SWELLS ON TWO JOINTS, AND THE PART SWITCH IS ONLY HALF OF IT. Raven, 2026-09-14: "The part
+// change functions, but we also need to scale it up to cover the spikey parts of the normal tail state", then
+// "How it is handled in game is in the ROM", "Check enrage state code for Tetsu".
+//
+// The swollen state is status bit 1 of [enemy+0x1428]+0x1bb. The frame 0xf636a4 turns it into the part switch
+// (clear: group 12, the dark m01_tail plates; set: group 13, plates off). The same action handler that sets the
+// bit (0xf57f8c, at the start of the actions that swell, with a 60.0 or 1.0 timer at record+4) also sets a swell
+// state at record+8 of [enemy+0xcac0] to 1 (0xf58cfc), and clearing the bit steps a state of 1 on to 2 (0xf58d50).
+// uEm066_00's post-pose virtual +0x2a0 (0xf639f4 -- the slot Kecha Wacha folds its ears in) runs that state on
+// joints 203 and 202, found by NUMBER through the joint map ([enemy+0x498] bytes +0xcb / +0xca), and writes each
+// one's scale (+0x70) through 0x94a834. Per frame-delta unit ([enemy+0x1c]):
+//
+//     0 rest        203 = 202 = (1, 1, 1), the engine's one vector (the joint reset at 0x94b120 uses it too)
+//     1 swell       203: x + 0.12 up to 1.6, y and z + 0.08 up to 1.4      202: each axis - 0.14 down to 0.3
+//     2 deflate     203: x - 0.06, y and z - 0.04, down to 1               202: each axis + 0.09 up to 1.2
+//                   -> 3 once all six have arrived
+//     3 settle      202: each axis - 0.04 down to 1                         -> 0 once all three have arrived
+//
+// What those joints carry, from the model: 203 binds the pale spotted skin (.mod mesh 21, 80v, lying exactly under
+// the plates, mesh 31) and the spikes' roots; 202 binds only the spike tips (19 vertices out to radius 0.90 against
+// the skin's 0.66). So the skin inflates to 1.6 x 1.4 x 1.4 while the tips pull in to 0.3 -- the spikes vanish into
+// the swollen tail -- and on the way down the tips spring out to 1.2 before settling. Drilltusk runs the same class
+// (only uEm066_00 registers) on a model with the same joint numbers, so it takes the same machine.
+//
+// The viewer has no status bit, so the Tail row's own part decision stands for it: part 2 (the plates) off is the
+// bit set. Frame units are taken at 60 a second, as the ear fold's are; the ROM's unit for [enemy+0x1c] is not
+// read, so the ramp's speed is the one approximate number here. __tailSwell(false) leaves both joints at 1.
+export const ROM_TAIL_SWELL = { em066_00: { plates: 2 }, em066_04: { plates: 2 } };
+const TAIL_SWELL_FPS = 60;
+let tailSwellOn = true;
+// Call right after the pose driver has written the frame, like stepEarFold. Returns the joints it wrote.
+export function stepTailSwell(roots, monId, tSec){
+  const t = monId && ROM_TAIL_SWELL[monId];
+  if (!t) return 0;
+  let n = 0;
+  for (const root of roots || []){
+    if (!root || !root.userData) continue;
+    let s = root.userData.tailSwell;
+    if (!s || s.monId !== monId)
+      s = root.userData.tailSwell = { monId, state: 0, skin: [1, 1, 1], tips: [1, 1, 1], swollen: false, tLast: tSec };
+    const drawn = root.userData.partsDrawn;
+    const swollen = !!(tailSwellOn && drawn && drawn.get(t.plates) === false);
+    if (swollen && !s.swollen) s.state = 1;
+    else if (!swollen && s.swollen && s.state === 1) s.state = 2;
+    s.swollen = swollen;
+    const f = Math.max(0, (tSec - s.tLast) * TAIL_SWELL_FPS);
+    s.tLast = tSec;
+    const a = s.skin, b = s.tips;
+    if (!tailSwellOn){ s.state = 0; a.fill(1); b.fill(1); }
+    if (s.state === 0){ a.fill(1); b.fill(1); }
+    else if (s.state === 1){
+      a[0] = Math.min(a[0] + 0.12 * f, 1.6); a[1] = Math.min(a[1] + 0.08 * f, 1.4); a[2] = Math.min(a[2] + 0.08 * f, 1.4);
+      for (let i = 0; i < 3; i++) b[i] = Math.max(b[i] - 0.14 * f, 0.3);
+    } else if (s.state === 2){
+      a[0] = Math.max(a[0] - 0.06 * f, 1); a[1] = Math.max(a[1] - 0.04 * f, 1); a[2] = Math.max(a[2] - 0.04 * f, 1);
+      for (let i = 0; i < 3; i++) b[i] = Math.min(b[i] + 0.09 * f, 1.2);
+      if (a.every(v => v === 1) && b.every(v => v === 1.2)) s.state = 3;
+    } else if (s.state === 3){
+      for (let i = 0; i < 3; i++) b[i] = Math.max(b[i] - 0.04 * f, 1);
+      if (b.every(v => v === 1)) s.state = 0;
+    }
+    for (const bone of gidBonesOf(root)){
+      const v = bone.gid === 203 ? a : bone.gid === 202 ? b : null;
+      if (!v) continue;
+      (bone.leaf || bone.node).scale.set(v[0], v[1], v[2]);
+      n++;
+    }
+  }
+  return n;
+}
+export function setTailSwell(on){ tailSwellOn = !!on; return tailSwellOn; }
+if (typeof window !== 'undefined'){
+  // readback: { on, state, skin: joint 203's scale, tips: joint 202's scale } for the mounted monster
+  window.__tailSwell = (on) => {
+    if (on !== undefined) setTailSwell(on);
+    const root = window.__view && window.__view.mounted && window.__view.mounted.main;
+    const s = root && root.userData && root.userData.tailSwell;
+    return { on: tailSwellOn, state: s ? s.state : null, skin: s ? s.skin.slice() : null, tips: s ? s.tips.slice() : null };
+  };
 }
 // The clip a monster's LEVEL rung names, or undefined where no table says (the caller then falls back
 // to the Rage ladder). A rung past the table's end takes its last entry.
