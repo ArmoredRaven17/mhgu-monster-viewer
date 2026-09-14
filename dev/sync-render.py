@@ -3,6 +3,7 @@
     python dev/sync-render.py --check     # exit 1 if a copy was edited here, or is behind
     python dev/sync-render.py --pull      # copy from the Armor Viewer and record the hashes
     python dev/sync-render.py --pull --force   # ...even over a local edit (it is discarded)
+    python dev/sync-render.py --pull --only fx.js,lens.js   # just these; the rest are left alone
 
 Both apps load ES modules straight out of `docs/`, with no bundler and no build step, so at
 RUNTIME these files have to be plain copies whatever the sharing scheme is. The manifest is what
@@ -32,7 +33,11 @@ MANIFEST = os.path.join(DEST, "SOURCE.json")
 # Everything the monster viewer mounts a model with. Not taken: mount.js, mount-rom.js,
 # weapon.js, weapons-index.js (the hunter's weapon rig), piece.js (only if the scale hunter
 # lands -- add it here then, do not copy it by hand).
-SHARED = ["stage.js", "assets.js", "skeleton.js", "material.js", "materials-db.js", "pose.js"]
+# fx.js and lens.js came 2026-09-13 with the Armor Viewer's Camera and Effects panels (Raven: "add
+# in the Armor Viewer camera, lighting, effects to the Monster Viewer"). They were pulled with
+# --only, because four of the files above carry edits made here and a full --pull refuses.
+SHARED = ["stage.js", "assets.js", "skeleton.js", "material.js", "materials-db.js", "pose.js",
+          "fx.js", "lens.js"]
 
 
 def sha(path):
@@ -85,21 +90,31 @@ def check(quiet=False):
     return 1 if (missing or edited) else 0
 
 
-def pull(force=False):
+def pull(force=False, only=None):
+    """only: a list of names. Pulls just those and keeps every other manifest entry as it was, so a
+    file added upstream can be taken while an unrelated local edit still blocks a full pull. Each
+    such file's commit is recorded in `fileCommits`, since `commit` names the last full pull."""
     if not os.path.isdir(SRC):
         print("no Armor Viewer render folder at " + SRC)
         return 1
     man = load()
+    names = SHARED
+    if only:
+        unknown = [n for n in only if n not in SHARED]
+        if unknown:
+            print("not in SHARED: %s (add it there first)" % ", ".join(unknown))
+            return 1
+        names = only
     if not force:
-        for name in SHARED:
+        for name in names:
             dst = os.path.join(DEST, name)
             rec = man["files"].get(name)
             if os.path.isfile(dst) and rec and sha(dst) != rec:
                 print("refusing to overwrite a local edit: %s (push it upstream, or --force)" % name)
                 return 1
     os.makedirs(DEST, exist_ok=True)
-    files = {}
-    for name in SHARED:
+    files = dict(man.get("files") or {}) if only else {}
+    for name in names:
         src = os.path.join(SRC, name)
         if not os.path.isfile(src):
             print("MISSING upstream: " + name)
@@ -107,10 +122,15 @@ def pull(force=False):
         shutil.copy2(src, os.path.join(DEST, name))
         files[name] = sha(src)
         print("  %-18s %s" % (name, files[name][:12]))
-    out = {"source": "../../MHGU-Armor-Viewer/docs/render", "commit": upstream_commit(), "files": files}
+    commit = upstream_commit()
+    if only:
+        out = dict(man, files=files)
+        out["fileCommits"] = dict(man.get("fileCommits") or {}, **{n: commit for n in names})
+    else:
+        out = {"source": "../../MHGU-Armor-Viewer/docs/render", "commit": commit, "files": files}
     with open(MANIFEST, "w", encoding="utf-8") as f:
         json.dump(out, f, indent=1)
-    print("recorded %d files from %s" % (len(files), (out["commit"] or "?")[:8]))
+    print("recorded %d files from %s" % (len(names), (commit or "?")[:8]))
     return 0
 
 
@@ -119,5 +139,7 @@ if __name__ == "__main__":
     ap.add_argument("--pull", action="store_true")
     ap.add_argument("--check", action="store_true")
     ap.add_argument("--force", action="store_true")
+    ap.add_argument("--only", help="with --pull: comma-separated file names to take, nothing else")
     a = ap.parse_args()
-    sys.exit(pull(a.force) if a.pull else check())
+    only = [n.strip() for n in a.only.split(",") if n.strip()] if a.only else None
+    sys.exit(pull(a.force, only) if a.pull else check())

@@ -388,6 +388,12 @@ header #bar .btn.tiny{margin-right:0}
    variant (Kelbi's Gender) were bare selects beside their labels. They are .field rows now, below the
    part rows: the panel body's own 6px gap plus 7 is the 13 between two part rows. */
 #monRageLevelRow,#monLevelRow,#monVariantRow,#monSizeRow{gap:5px;margin-top:7px}
+/* THE ARMOR VIEWER'S LIGHTING, CAMERA AND EFFECTS PANELS, 2026-09-13: a row of preset buttons, and
+   the small heads between an effects panel's groups. Its rules, verbatim. */
+.light-row{display:flex;gap:4px;flex-wrap:wrap}
+.light-row .btn{flex:1 1 30%}
+.light-row .btn.on{border-color:var(--accent-hover);background:#ffffff26}
+.fx-head{margin:8px 0 2px;font-size:11px;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em}
 .hexbtn{flex:1;min-width:0;background:transparent;border:1px solid transparent;
   color:var(--text-hint);font-family:inherit;font-size:12px;letter-spacing:.02em;
   text-align:left;padding:3px 5px;border-radius:5px;cursor:text}
@@ -634,6 +640,68 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           </div>
           <label class="chk" id="monZoneShowRow"><input type="checkbox" id="monZoneShow" checked>Show the Chart over the Render</label>
           <p class="hint" id="monZoneNote" hidden></p>
+        </div>
+      </section>
+
+      <!-- CAMERA AND EFFECTS, the Armor Viewer's panels. Raven, 2026-09-13: "add in the Armor Viewer
+           camera, lighting, effects to the Monster Viewer". Its markup, with the hunter's words made the
+           monster's. Tracking aims at the monster's centre: the hunter's head and chest are player bones,
+           and no head is mapped per monster. -->
+      <section class="panel" id="camPanel" data-open="false">
+        <button class="panel-head">Camera <span class="chev">&#9662;</span></button>
+        <div class="panel-body">
+          <div class="field" id="camModeField"><label for="camMode">Camera</label><select id="camMode" title="Orbit: dragging turns the monster. First person: fly through the scene with WASD and the mouse"><option value="orbit">Orbit</option><option value="fly">First person</option></select></div>
+          <div class="field"><label for="camLens">Lens</label><select id="camLens" title="Standard is the plain lens. Fisheye is a true curved wide angle. Orthographic has no perspective at all (orbit only; the focal length then makes no difference). Anamorphic is the widescreen squeeze with oval bokeh and streak flares. Tilt-shift keeps a band sharp and blurs above and below it"><option value="standard">Standard</option><option value="fisheye">Fisheye</option><option value="ortho">Orthographic</option><option value="anamorphic">Anamorphic</option><option value="tiltshift">Tilt-shift</option></select></div>
+          <div class="field" id="lensP1Field" hidden><label for="lensP1"><span id="lensP1Label"></span> <span class="hx" id="lensP1Val"></span></label><input id="lensP1" type="range" min="0" max="1000" step="1"></div>
+          <div class="field" id="lensP2Field" hidden><label for="lensP2"><span id="lensP2Label"></span> <span class="hx" id="lensP2Val"></span></label><input id="lensP2" type="range" min="0" max="1000" step="1"></div>
+          <p class="hint" id="camFlyHint" hidden>Click the view to look around; Esc frees the mouse. W/S move where you look, A/D strafe, Q/E (or C/Space) go down and up, Shift is three times faster and the wheel changes the speed. With Face the monster on, every key orbits: A/D round, E/Q up and down, W/S closer and farther, and the wheel zooms. The lens zooms like a scope here: the camera stays put.</p>
+          <div class="field"><label for="camFocal">Focal length <span class="hx" id="camFocalVal"></span></label><input id="camFocal" type="range" min="0" max="1000" step="1" title="5 mm is a fisheye-wide view with the deepest perspective, 300 mm a long lens that has flattened it; 35 mm is the default"></div>
+          <div class="field" id="camSpeedField" hidden><label for="camSpeed">Move speed <span class="hx" id="camSpeedVal"></span></label><input id="camSpeed" type="range" min="0" max="1000" step="1" title="How fast the keys move the camera; the wheel changes it too while the mouse is locked"></div>
+          <div class="field" id="camTrackField">
+            <label>Monster tracking <span class="hx">(aims at its centre)</span></label>
+            <label class="chk" title="First person only. The camera keeps facing the monster and every key orbits: A/D round, E/Q up and down, W/S closer and farther, the wheel zooms. L toggles it while the mouse is captured"><input type="checkbox" id="camFace">Face the monster (first person)</label>
+            <label class="chk" title="With depth of field on (Effects), the focus follows the monster as the camera moves"><input type="checkbox" id="camFollow">Keep the monster in focus (depth of field)</label>
+          </div>
+          <div class="field"><label for="camSpin">Turntable <span class="hx" id="camSpinVal"></span></label><input id="camSpin" type="range" min="0" max="10" step="1" title="The turntable speed, the same steps the Rotate button cycles through"></div>
+          <div class="row gap" style="flex-direction:column;align-items:flex-start">
+            <label class="chk" title="Turn the other way"><input type="checkbox" id="camSpinRev">Turn clockwise</label>
+            <label class="chk" title="Orbit and pan glide to a stop instead of stopping dead"><input type="checkbox" id="camDamp">Smooth orbit</label>
+            <label class="chk" title="The wheel zooms toward the pointer instead of the centre of the view"><input type="checkbox" id="camZoomCursor">Zoom toward the pointer</label>
+          </div>
+          <div class="row"><button id="camReset" class="btn tiny" title="Camera settings back to their defaults: Orbit, Standard lens, 35 mm, turntable off, smooth orbit on, zoom at the centre, no face lock. The view itself stays where it is (Fit to View frames it)">Reset camera settings</button></div>
+        </div>
+      </section>
+      <section class="panel" id="fxPanel" data-open="false">
+        <button class="panel-head">Effects <span class="chev">&#9662;</span></button>
+        <div class="panel-body">
+          <div class="row light-row" id="fxRow">
+            <button class="btn tiny" data-fx="off" title="No effects: the plain render">Off</button>
+            <button class="btn tiny" data-fx="photo" title="A light touch: a little glow, a soft vignette, a hint of grain">Photo</button>
+            <button class="btn tiny" data-fx="cinematic" title="Glow, vignette, aberration and grain under a film tone map">Cinematic</button>
+            <button class="btn tiny" data-fx="glow" title="Strong bloom for the glowing parts: enraged veins, charge, fire">Glow</button>
+            <button class="btn tiny" data-fx="noir" title="Black and white, high contrast, heavy vignette and grain">Noir</button>
+          </div>
+          <div class="fx-head">Bloom</div>
+          <label class="chk" title="Light that spills from the bright parts"><input type="checkbox" id="fxBloomOn">Bloom</label>
+          <div class="field"><label for="fxBloomStr">Strength <span class="hx" id="fxBloomStrVal"></span></label><input id="fxBloomStr" type="range" min="0" max="2" step="0.05"></div>
+          <div class="field"><label for="fxBloomThr">Threshold</label><input id="fxBloomThr" type="range" min="0" max="1.5" step="0.05" title="How bright a pixel must be to glow"></div>
+          <div class="field"><label for="fxBloomRad">Radius</label><input id="fxBloomRad" type="range" min="0" max="1" step="0.05" title="How far the glow spreads"></div>
+          <div id="fxDofGroup">
+            <div class="fx-head">Depth of field</div>
+            <label class="chk"><input type="checkbox" id="fxDofOn">Depth of field</label>
+            <div class="field"><label for="fxDofFocus">Focus distance <span class="hx" id="fxDofFocusVal"></span></label><input id="fxDofFocus" type="range" min="0" max="1000" step="1"></div>
+            <div class="field"><label for="fxDofAper">Aperture</label><input id="fxDofAper" type="range" min="0" max="10" step="0.1"></div>
+            <div class="field"><label for="fxDofBlur">Blur</label><input id="fxDofBlur" type="range" min="0" max="0.05" step="0.0025" title="The largest blur, as a share of the view's height"></div>
+          </div>
+          <div class="fx-head">Lens character</div>
+          <div class="field"><label for="fxVig">Vignette</label><input id="fxVig" type="range" min="0" max="1" step="0.05"></div>
+          <div class="field"><label for="fxAber">Chromatic aberration</label><input id="fxAber" type="range" min="0" max="1" step="0.05"></div>
+          <div class="field"><label for="fxGrain">Grain</label><input id="fxGrain" type="range" min="0" max="1" step="0.05"></div>
+          <div class="fx-head">Colour</div>
+          <div class="field"><label for="fxExp">Exposure <span class="hx" id="fxExpVal"></span></label><input id="fxExp" type="range" min="0.25" max="4" step="0.05"></div>
+          <div class="field"><label for="fxCon">Contrast</label><input id="fxCon" type="range" min="0.5" max="2" step="0.05"></div>
+          <div class="field"><label for="fxSat">Saturation</label><input id="fxSat" type="range" min="0" max="2" step="0.05"></div>
+          <div class="field"><label for="fxTone">Tone map</label><select id="fxTone"><option value="none">None</option><option value="aces">ACES</option><option value="reinhard">Reinhard</option><option value="neutral">Neutral</option></select></div>
         </div>
       </section>
 
@@ -1111,6 +1179,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 //   models/monsters  one glb per model      poses/monsters  one glb per motion list
 import * as THREE from 'three';
 import { createStage } from './render/stage.js';
+import { createFx } from './render/fx.js';
+import { renderCameraFor, LENS_DEFAULT, LENS_TYPES, SQUEEZES } from './render/lens.js';
 import { initAssets, loadJson } from './render/assets.js';
 import { allMats, setWire, setBiasUnitsPerStep } from './render/material.js';
 import { PoseDriver } from './render/pose.js';
@@ -1325,6 +1395,10 @@ const viewport = document.getElementById('viewport');
 const stage = createStage(viewport, { margin: MARGIN, fixedSize: SCENE ? [1280, 800] : null });
 const { renderer, scene, camera, controls, world } = stage;
 const head = stage.lights.head;
+// post-processing (render/fx.js, the Armor Viewer's), switched in only when an effect is on: with
+// every effect off the frame is the plain renderer.render this app has always drawn. The renderer's
+// tone mapping stays NoToneMapping for it -- the grade pass is the one place that tone-maps.
+const fx = createFx(renderer, scene);
 
 // ---- THE ROM-DERIVED LIGHTING CORRECTIONS ---------------------------------------------------
 // Five differences between what the ROM's own shader program does and what this viewer drew,
@@ -1424,12 +1498,18 @@ const SPIN_STEPS = [{ label: 'Rotate', speed: 0 }].concat(
   SPIN_SPEEDS.map((v, i) => ({ label: i === SPIN_SPEEDS.length - 1 ? 'Turbo' : 'Rotate', speed: v })));
 let spinStep = 0;
 const spinBtn = document.getElementById('spinBtn');
+// the direction, from the Camera panel (the Armor Viewer's)
+let spinRev = false;
 function paintSpin(){
   const st = SPIN_STEPS[spinStep];
   setLabel(spinBtn, st.label, 'Cycle the turntable speed');
   spinBtn.classList.toggle('on', st.speed > 0);
   controls.autoRotate = camMode === 'orbit' && st.speed > 0;
-  controls.autoRotateSpeed = st.speed || 3;
+  controls.autoRotateSpeed = (st.speed || 3) * (spinRev ? -1 : 1);
+  const sl = document.getElementById('camSpin');
+  if (document.activeElement !== sl) sl.value = String(spinStep);
+  document.getElementById('camSpinVal').textContent = st.speed ? st.speed + ' deg/s' : 'off';
+  document.getElementById('camSpinRev').checked = spinRev;
 }
 spinBtn.onclick = () => { spinStep = (spinStep + 1) % SPIN_STEPS.length; paintSpin(); saveState(); };
 
@@ -1446,10 +1526,10 @@ function paintCursor(){
 cursorBtn.onclick = () => { hideCursor = !hideCursor; paintCursor(); saveState(); };
 
 // ---- the first-person camera -----------------------------------------------------------
-// The Armor Viewer's, TRIMMED to what this app can support. Its face lock, speed slider and
-// mode select live in a Camera panel this app does not have, and its ortho guard belongs to a
-// lens system it does not have either; paintCamMode() and paintFlySpeed() write to about
-// eighteen #cam* ids and would throw here. What is kept is the flight itself: W/S move where
+// The Armor Viewer's. It came over TRIMMED on 2026-09-05, because its face lock, speed slider,
+// mode select and ortho guard live in a Camera panel and a lens system this app did not have.
+// Both came over on 2026-09-13 with the panel, and those pieces with them; the face lock aims at
+// the monster's centre (aimPoint). The flight itself is as it was: W/S move where
 // you look, A/D strafe level, Q/C down, E/Space up, Shift three times faster, the wheel
 // changes the speed. The keys act ONLY while the pointer is locked, so they can never land in
 // the sidebar's controls; Esc frees the mouse, by way of the browser's own pointerlockchange.
@@ -1464,7 +1544,8 @@ const FLY_KEYS = { KeyW: 'f', KeyS: 'b', KeyA: 'l', KeyD: 'r', KeyE: 'u', Space:
 const fly = { yaw: 0, pitch: 0, speed: FLY_SPEED, vel: new THREE.Vector3(), keys: new Set(), prev: 0, moved: false, skip: 0 };
 let flyAnchor = null;                 // the monster's centre when no pose supplies one
 const _fwd = new THREE.Vector3(), _right = new THREE.Vector3(), _fc = new THREE.Vector3(),
-      _want = new THREE.Vector3(), _eul = new THREE.Euler();
+      _want = new THREE.Vector3(), _eul = new THREE.Euler(), _q = new THREE.Quaternion(),
+      _aim = new THREE.Vector3(), _off = new THREE.Vector3();
 const flyEl = renderer.domElement, flyBtn = document.getElementById('flyBtn');
 const flyHint = document.getElementById('flyHint');
 const FLY_TIP_OFF = 'Fly the camera: WASD moves, the mouse looks. Click the view to look around, Esc frees the mouse';
@@ -1485,6 +1566,56 @@ function flyTurn(dyaw, dpitch){
 function monsterCenter(out){
   if (pose.center) return out.copy(pose.center).multiplyScalar(world.scale.x || 1);
   return out.copy(flyAnchor || controls.target);
+}
+// THE AIM POINT, shared by the depth of field's focus follow and the first-person face lock. The
+// Armor Viewer aims at the hunter's head or chest bone; no head is mapped per monster, so this aims
+// at the monster's centre. fxState.dof.aim keeps the Armor Viewer's shape and says 'center'.
+function aimPoint(out){ return monsterCenter(out); }
+// The focus goes to the SURFACE the aim point is seen through, not to the point itself, which sits
+// inside the body: a ray from the camera to the aim point finds the first visible surface. A skinned
+// mesh makes a cast cost milliseconds, so it runs every few frames (fewer when it is slow) and the
+// last answer is kept between; a shot asks for a fresh one. The Armor Viewer's, as it stands.
+const _ray = new THREE.Raycaster();
+const aimHit = { depth: 0, at: -1, every: 6, cost: 0, hit: false };
+let frameNo = 0;
+function aimSurfaceDepth(force){
+  aimPoint(_aim); camera.getWorldDirection(_fwd);
+  const jointDepth = _off.copy(_aim).sub(camera.position).dot(_fwd);
+  if (force || aimHit.at < 0 || frameNo - aimHit.at >= aimHit.every){
+    const t0 = performance.now();
+    _off.copy(_aim).sub(camera.position); const len = _off.length();
+    let depth = -1;
+    if (len > 1e-4){
+      _ray.set(camera.position, _off.multiplyScalar(1 / len)); _ray.near = 0; _ray.far = len * 1.5;
+      // the raycaster ignores a hidden PARENT, so the chain is checked
+      const shown = o => { for (let p = o; p; p = p.parent) if (p.visible === false) return false; return !(o.material && o.material.visible === false); };
+      for (const h of _ray.intersectObjects(world.children, true)){
+        if (!shown(h.object)) continue;
+        depth = h.point.sub(camera.position).dot(_fwd); break;
+      }
+    }
+    aimHit.hit = depth > 0;
+    aimHit.depth = aimHit.hit ? depth : jointDepth;
+    aimHit.at = frameNo; aimHit.cost = performance.now() - t0;
+    aimHit.every = aimHit.cost > 4 ? 30 : 6;
+  }
+  return aimHit.depth;
+}
+function focusDistance(force){ return Math.max(camera.near * 2, aimSurfaceDepth(force)); }
+// the face lock: in first person the camera keeps facing the aim point while the keys move it, a
+// game's lock-on; the mouse rests while it is on, and L toggles it
+let faceLock = false;
+function setFaceLock(on){
+  faceLock = !!on;
+  const cb = document.getElementById('camFace'); if (cb) cb.checked = faceLock;
+  if (faceLock && camMode === 'fly'){ camera.lookAt(aimPoint(_fc)); flyFromCamera(); }
+  if (typeof paintCamMode === 'function' && flyBtn) paintCamMode();
+}
+// what the lenses measure: the orbit target's distance, or in fly the monster's, floored so passing
+// through it never collapses to nothing
+function viewDistance(){
+  if (camMode !== 'fly') return camera.position.distanceTo(controls.target);
+  return Math.max(0.2, camera.position.distanceTo(monsterCenter(_fc)));
 }
 function flyWant(out){
   let f = 0, r = 0, u = 0, fast = false;
@@ -1510,7 +1641,25 @@ function stepFly(dtArg){
   }
   if (dt > 0) fly.vel.lerp(flyWant(_want), 1 - Math.exp(-dt / FLY_TAU));   // an 80 ms approach and glide
   if (dt > 0 && fly.vel.lengthSq() <= 1e-8) fly.vel.set(0, 0, 0);
-  if (dt > 0 && fly.vel.lengthSq() > 0){
+  if (faceLock){                       // every frame: a playing pose moves the aim point too
+    // A lock-on moves in ORBIT terms around the aim point, as the Armor Viewer's does: A and D turn
+    // the azimuth on a level circle, E and Q (Space and C) climb and dip, W and S move closer and
+    // farther, as does the wheel, and the camera is placed from those each frame.
+    aimPoint(_aim);
+    if (dt > 0 && fly.vel.lengthSq() > 0){
+      _off.copy(camera.position).sub(_aim);
+      let d = Math.max(0.05, _off.length());
+      let theta = Math.atan2(_off.x, _off.z), phi = Math.asin(Math.min(1, Math.max(-1, _off.y / d)));
+      theta += fly.vel.x * dt / (d * Math.max(0.05, Math.cos(phi)));
+      phi = Math.min(FLY_PITCH_MAX, Math.max(-FLY_PITCH_MAX, phi + fly.vel.y * dt / d));
+      d = Math.max(0.05, d - fly.vel.z * dt);
+      camera.position.set(_aim.x + d * Math.cos(phi) * Math.sin(theta), _aim.y + d * Math.sin(phi), _aim.z + d * Math.cos(phi) * Math.cos(theta));
+      fly.moved = true;
+    }
+    _q.copy(camera.quaternion);
+    camera.lookAt(_aim); flyFromCamera();
+    if (_q.angleTo(camera.quaternion) > 1e-4) fly.moved = true;
+  } else if (dt > 0 && fly.vel.lengthSq() > 0){
     camera.getWorldDirection(_fwd); _right.set(1, 0, 0).applyQuaternion(camera.quaternion);
     camera.position.addScaledVector(_right, fly.vel.x * dt).addScaledVector(_fwd, fly.vel.z * dt);
     camera.position.y += fly.vel.y * dt;
@@ -1530,9 +1679,17 @@ function paintCamMode(){
   flyBtn.classList.toggle('on', on);
   setIcon(flyBtn, 'eye'); setLabel(flyBtn, 'First person', on ? FLY_TIP_ON : FLY_TIP_OFF);
   spinBtn.disabled = on; orbitLockBtn.disabled = on;
+  // the Camera panel's side of the mode, as the Armor Viewer paints it
+  for (const id of ['camSpin', 'camSpinRev']) document.getElementById(id).disabled = on;
+  const sel = document.getElementById('camMode'); if (document.activeElement !== sel) sel.value = camMode;
+  document.getElementById('camFlyHint').hidden = !on;
+  document.getElementById('camSpeedField').hidden = !on;
+  document.getElementById('camFace').disabled = !on;          // the lock is a first-person thing
+  const oo = document.querySelector('#camLens option[value=ortho]'); if (oo) oo.disabled = on;
   flyHint.hidden = !on;
   flyHint.textContent = flyLocked()
-    ? 'WASD move · Q/E up and down · Shift fast · the wheel changes speed · Esc frees the mouse'
+    ? (faceLock ? 'Locked on the monster · A/D round · E/Q up and down · W/S closer and farther · L releases'
+                : 'WASD move · Q/E up and down · Shift fast · the wheel changes speed · L locks on the monster · Esc frees the mouse')
     : 'Click to look around · WASD move · Q/E up/down · Shift fast · Esc frees the mouse';
   viewport.classList.toggle('fly', on);
   paintSpin();                          // the turntable is off while flying
@@ -1544,6 +1701,7 @@ function flyRelease(){
 function enterFly(opt){
   opt = opt || {};
   if (camMode === 'fly') return;
+  if (lensState.type === 'ortho') applyLens({ type: 'standard' });   // a parallel view has nothing to fly through
   if (opt.drain !== false){          // apply any glide the orbit still owed, now, not on return
     const d = controls.enableDamping; controls.enableDamping = false; controls.update(); controls.enableDamping = d;
   }
@@ -1568,7 +1726,15 @@ function leaveFly(opt){
   controls.update();
 }
 function setCamMode(m){ if (m === 'fly') enterFly(); else leaveFly(); }
-function setFlySpeed(v){ fly.speed = Math.min(FLY_SPEED_MAX, Math.max(FLY_SPEED_MIN, +v || FLY_SPEED)); }
+// the Camera panel's speed slider is logarithmic over the same range the wheel moves through
+const speedOfSlider = v => FLY_SPEED_MIN * Math.pow(FLY_SPEED_MAX / FLY_SPEED_MIN, v / 1000);
+const sliderOfSpeed = v => 1000 * Math.log(v / FLY_SPEED_MIN) / Math.log(FLY_SPEED_MAX / FLY_SPEED_MIN);
+function setFlySpeed(v){ fly.speed = Math.min(FLY_SPEED_MAX, Math.max(FLY_SPEED_MIN, +v || FLY_SPEED)); paintFlySpeed(); }
+function paintFlySpeed(){
+  const sl = document.getElementById('camSpeed');
+  if (document.activeElement !== sl) sl.value = String(Math.round(sliderOfSpeed(fly.speed)));
+  document.getElementById('camSpeedVal').textContent = (fly.speed < 1 ? fly.speed.toFixed(2) : fly.speed.toFixed(1)) + ' / s';
+}
 // The mouse is captured on a click in the view; #bar and the overlays are siblings of
 // #viewport, so a click on the toolbar never asks for it. The request is refused when it comes
 // too soon after Esc: the mode stays on, the prompt stays up, and the next click asks again.
@@ -1585,21 +1751,30 @@ viewport.addEventListener('click', e => {
 document.addEventListener('mousemove', e => {
   if (camMode !== 'fly' || !flyLocked()) return;
   if (fly.skip > 0){ fly.skip--; return; }         // Chrome's spurious first movement after a lock
+  if (faceLock) return;                            // the lock owns the view
   const dx = Math.max(-300, Math.min(300, e.movementX || 0)), dy = Math.max(-300, Math.min(300, e.movementY || 0));
   flyTurn(-dx * FLY_SENS, -dy * FLY_SENS);
 });
 document.addEventListener('keydown', e => {
+  if (camMode === 'fly' && flyLocked() && e.code === 'KeyL'){ setFaceLock(!faceLock); saveState(); e.preventDefault(); return; }
   if (camMode !== 'fly' || !flyLocked() || !FLY_KEYS[e.code]) return;
   fly.keys.add(e.code); e.preventDefault();
 });
 document.addEventListener('keyup', e => { fly.keys.delete(e.code); });
 addEventListener('blur', () => { fly.keys.clear(); fly.vel.set(0, 0, 0); });
 document.addEventListener('visibilitychange', () => { if (document.hidden){ fly.keys.clear(); fly.vel.set(0, 0, 0); } });
+// with the face lock on, a notch of the wheel moves a tenth closer or farther
+function flyZoom(n){
+  aimPoint(_aim); _off.copy(camera.position).sub(_aim);
+  const d = Math.max(0.05, _off.length() * Math.pow(0.9, n));
+  if (_off.lengthSq() > 1e-10) camera.position.copy(_aim).addScaledVector(_off.normalize(), d);
+  fly.moved = true;
+}
 viewport.addEventListener('wheel', e => {
   if (camMode !== 'fly' || !flyLocked()) return;
   e.preventDefault();
   const n = Math.max(-1, Math.min(1, -e.deltaY / 100));   // one notch a step, whatever the device
-  setFlySpeed(fly.speed * Math.pow(1.15, n));
+  if (faceLock) flyZoom(n); else setFlySpeed(fly.speed * Math.pow(1.15, n));
   queueCameraSave();
 }, { passive: false });
 viewport.addEventListener('contextmenu', e => { if (camMode === 'fly') e.preventDefault(); });
@@ -1608,6 +1783,250 @@ flyBtn.onclick = () => { setCamMode(camMode === 'fly' ? 'orbit' : 'fly'); saveSt
 if (!('requestPointerLock' in document.body)) flyBtn.hidden = true;
 paintSpin();
 paintCamMode();
+
+// ---- Effects: the Armor Viewer's panel, 2026-09-13 ---------------------------------------------
+// Raven: "add in the Armor Viewer camera, lighting, effects to the Monster Viewer". Bloom, depth of
+// field, lens character and colour grading through render/fx.js. A preset fills the controls and lights
+// its button, touching a control makes it "custom", and one readable object serves the session save
+// and a view file. Off by default, which is the plain render byte for byte.
+//
+// ONE CHANGE FROM THE ARMOR VIEWER: the focus range. Its 0.1 to 50 is metres around a hunter; a
+// monster is framed tens to hundreds of units away, so the slider runs 0.1 to 1000 on the same log
+// curve. dof.aim stays in the shape and is always 'center' -- see aimPoint.
+const FX_NEUTRAL = {
+  bloom: { on: false, strength: 0.6, threshold: 0.8, radius: 0.5 },
+  dof:   { on: false, follow: true, aim: 'center', focus: 25, aperture: 3, maxBlur: 0.02 },
+  lens:  { vignette: 0, aberration: 0, grain: 0 },
+  grade: { exposure: 1, contrast: 1, saturation: 1, toneMap: 'none' }
+};
+const FX_PRESETS = {
+  off:       {},
+  photo:     { bloom: { on: true, strength: 0.25, threshold: 0.9, radius: 0.5 }, lens: { vignette: 0.25, grain: 0.05 }, grade: { contrast: 1.05, saturation: 1.05 } },
+  cinematic: { bloom: { on: true, strength: 0.4, threshold: 0.75, radius: 0.7 }, dof: { on: true, aperture: 4, maxBlur: 0.025 },
+               lens: { vignette: 0.45, aberration: 0.3, grain: 0.12 }, grade: { contrast: 1.1, saturation: 0.9, toneMap: 'aces' } },
+  glow:      { bloom: { on: true, strength: 1.2, threshold: 0.5, radius: 0.8 }, lens: { vignette: 0.2 }, grade: { toneMap: 'reinhard' } },
+  noir:      { bloom: { on: true, strength: 0.3, threshold: 0.8, radius: 0.6 }, lens: { vignette: 0.6, grain: 0.25 }, grade: { contrast: 1.3, saturation: 0, toneMap: 'neutral' } }
+};
+function fxMerge(base, over){ const o = {}; for (const k in base) o[k] = Object.assign({}, base[k], (over && over[k]) || {}); return o; }
+let fxName = 'off', fxState = fxMerge(FX_NEUTRAL, {});
+// dof.follow is the Camera panel's tracking control; it stays in the effects state, since the focus is
+// the depth of field's
+const FX_IDS = { 'bloom.on': 'fxBloomOn', 'bloom.strength': 'fxBloomStr', 'bloom.threshold': 'fxBloomThr', 'bloom.radius': 'fxBloomRad',
+  'dof.on': 'fxDofOn', 'dof.aperture': 'fxDofAper', 'dof.maxBlur': 'fxDofBlur',
+  'lens.vignette': 'fxVig', 'lens.aberration': 'fxAber', 'lens.grain': 'fxGrain',
+  'grade.exposure': 'fxExp', 'grade.contrast': 'fxCon', 'grade.saturation': 'fxSat', 'grade.toneMap': 'fxTone' };
+const FX_FOCUS_MIN = 0.1, FX_FOCUS_MAX = 1000;
+const focusOfSlider = v => FX_FOCUS_MIN * Math.pow(FX_FOCUS_MAX / FX_FOCUS_MIN, v / 1000);
+const sliderOfFocus = m => 1000 * Math.log(m / FX_FOCUS_MIN) / Math.log(FX_FOCUS_MAX / FX_FOCUS_MIN);
+let fxFocusLive = 0, fxFocusTick = 0;
+function fxApply(){ fx.setState(fxState); }
+function paintFocusLive(){
+  const m = fxState.dof.follow ? fxFocusLive : fxState.dof.focus;
+  document.getElementById('fxDofFocusVal').textContent = (m < 1 ? m.toFixed(2) : m.toFixed(1)) + (fxState.dof.follow ? ' (following the monster, see Camera)' : '');
+}
+function paintFx(){
+  document.querySelectorAll('#fxRow .btn').forEach(b => b.classList.toggle('on', b.dataset.fx === fxName));
+  for (const path in FX_IDS){
+    const e = document.getElementById(FX_IDS[path]); if (!e) continue;
+    const [g, k] = path.split('.'); const v = fxState[g][k];
+    if (e.type === 'checkbox') e.checked = !!v;
+    else if (document.activeElement !== e) e.value = String(v);
+  }
+  document.getElementById('camFollow').checked = !!fxState.dof.follow;
+  const fs = document.getElementById('fxDofFocus');
+  if (document.activeElement !== fs) fs.value = String(Math.round(sliderOfFocus(fxState.dof.focus)));
+  fs.disabled = fxState.dof.follow;
+  paintFocusLive();
+  document.getElementById('fxBloomStrVal').textContent = fxState.bloom.strength.toFixed(2);
+  document.getElementById('fxExpVal').textContent = fxState.grade.exposure.toFixed(2);
+}
+function applyFxPreset(name){
+  fxName = FX_PRESETS[name] ? name : 'off';
+  fxState = fxMerge(FX_NEUTRAL, FX_PRESETS[fxName]);
+  fxApply(); paintFx();
+}
+function fxEdit(){
+  fxName = 'custom';
+  for (const path in FX_IDS){
+    const e = document.getElementById(FX_IDS[path]); if (!e) continue;
+    const [g, k] = path.split('.');
+    fxState[g][k] = e.type === 'checkbox' ? e.checked : (e.tagName === 'SELECT' ? e.value : +e.value);
+  }
+  fxState.dof.focus = focusOfSlider(+document.getElementById('fxDofFocus').value);
+  fxApply(); paintFx();
+}
+// one readable shape for the session save and a view file
+function effectsState(){ return Object.assign({ preset: fxName }, fxMerge(fxState, {})); }
+function restoreEffects(e){
+  if (!e || typeof e !== 'object') return;
+  const num = (v, d, lo, hi) => Number.isFinite(+v) && v !== null && v !== '' ? Math.min(hi, Math.max(lo, +v)) : d;
+  const oneOf = (v, list, d) => list.includes(v) ? v : d;
+  const base = fxMerge(FX_NEUTRAL, FX_PRESETS[e.preset] || {});
+  const b = e.bloom || {}, d = e.dof || {}, l = e.lens || {}, g = e.grade || {};
+  fxState = {
+    bloom: { on: b.on === true || (b.on === undefined && base.bloom.on), strength: num(b.strength, base.bloom.strength, 0, 2),
+             threshold: num(b.threshold, base.bloom.threshold, 0, 1.5), radius: num(b.radius, base.bloom.radius, 0, 1) },
+    dof:   { on: d.on === true || (d.on === undefined && base.dof.on), follow: d.follow !== false, aim: 'center',
+             focus: num(d.focus, base.dof.focus, FX_FOCUS_MIN, FX_FOCUS_MAX), aperture: num(d.aperture, base.dof.aperture, 0, 10), maxBlur: num(d.maxBlur, base.dof.maxBlur, 0, 0.05) },
+    lens:  { vignette: num(l.vignette, base.lens.vignette, 0, 1), aberration: num(l.aberration, base.lens.aberration, 0, 1), grain: num(l.grain, base.lens.grain, 0, 1) },
+    grade: { exposure: num(g.exposure, base.grade.exposure, 0.25, 4), contrast: num(g.contrast, base.grade.contrast, 0.5, 2),
+             saturation: num(g.saturation, base.grade.saturation, 0, 2), toneMap: oneOf(g.toneMap, ['none', 'aces', 'reinhard', 'neutral'], base.grade.toneMap) }
+  };
+  fxName = FX_PRESETS[e.preset] ? e.preset : 'custom';
+  fxApply(); paintFx();
+}
+document.querySelectorAll('#fxRow .btn').forEach(b => b.onclick = () => { applyFxPreset(b.dataset.fx); saveState(); });
+for (const path in FX_IDS){
+  const e = document.getElementById(FX_IDS[path]); if (!e) continue;
+  if (e.type === 'checkbox' || e.tagName === 'SELECT') e.onchange = () => { fxEdit(); saveState(); };
+  else { e.oninput = fxEdit; e.onchange = () => { fxEdit(); saveState(); }; }
+}
+{ const fs = document.getElementById('fxDofFocus'); fs.oninput = fxEdit; fs.onchange = () => { fxEdit(); saveState(); }; }
+applyFxPreset('off');
+
+// ---- the lens: the Armor Viewer's Camera panel, 2026-09-13 --------------------------------------
+// A 35 mm-equivalent focal length: the stage's vertical field of view, 38 degrees, is a 35 mm lens on
+// a 24 mm-high frame (f = 12 / tan(fov / 2)), so the default reads as the lens it is. In orbit a change
+// keeps the FRAMING -- the camera steps along its line of sight so the target stays the same size and
+// only the depth of the perspective changes; in first person the lens zooms like a scope. 5 mm to
+// 300 mm on a logarithmic slider. Saved with the camera, so a view file keeps its lens.
+const FOV_DEFAULT = 38;
+const FOCAL_MIN = 5, FOCAL_MAX = 300;
+const fovOfFocal = mm => THREE.MathUtils.radToDeg(2 * Math.atan(12 / mm));
+const focalOfFov = fov => 12 / Math.tan(THREE.MathUtils.degToRad(fov) / 2);
+const focalOfSlider = v => FOCAL_MIN * Math.pow(FOCAL_MAX / FOCAL_MIN, v / 1000);
+const sliderOfFocal = mm => 1000 * Math.log(mm / FOCAL_MIN) / Math.log(FOCAL_MAX / FOCAL_MIN);
+function paintFocal(){
+  const sl = document.getElementById('camFocal'), mmExact = focalOfFov(camera.fov);
+  const mm = mmExact < 10 ? +mmExact.toFixed(1) : Math.round(mmExact);
+  if (document.activeElement !== sl) sl.value = String(Math.round(sliderOfFocal(Math.min(FOCAL_MAX, Math.max(FOCAL_MIN, mmExact)))));
+  document.getElementById('camFocalVal').textContent = mm + ' mm · ' + (camera.fov < 10 ? camera.fov.toFixed(1) : camera.fov.toFixed(0)) + '°';
+}
+function setFov(fov, keepFraming){
+  fov = Math.min(150, Math.max(1, fov));
+  if (keepFraming && camMode !== 'fly'){        // in first person the lens zooms like a scope
+    const dir = camera.position.clone().sub(controls.target);
+    const k = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) / Math.tan(THREE.MathUtils.degToRad(fov) / 2);
+    camera.position.copy(controls.target).add(dir.multiplyScalar(k));
+  }
+  camera.fov = fov; camera.updateProjectionMatrix();
+  updateDepthBias();                            // the clip planes follow the new distance
+  paintFocal();
+}
+function setFocal(mm, keepFraming){ setFov(fovOfFocal(Math.min(FOCAL_MAX, Math.max(FOCAL_MIN, +mm || 35))), keepFraming !== false); }
+// Lens types through render/lens.js (the camera a frame renders through) and render/fx.js (the
+// passes a lens needs). Part of the view: it rides in the camera state, and a view saved without one
+// is Standard. Orthographic is orbit-only.
+let lensState = Object.assign({}, LENS_DEFAULT);
+function lensFileState(){
+  const l = { type: lensState.type };
+  if (l.type === 'fisheye') l.view = lensState.view;
+  if (l.type === 'anamorphic') l.squeeze = lensState.squeeze;
+  if (l.type === 'tiltshift'){ l.band = lensState.band; l.bandY = lensState.bandY; }
+  return l;
+}
+function applyLens(spec){
+  spec = spec || {};
+  const num = (v, d, lo, hi) => Number.isFinite(+v) && v !== null && v !== '' ? Math.min(hi, Math.max(lo, +v)) : d;
+  let type = LENS_TYPES.includes(spec.type) ? spec.type : 'standard';
+  if (type === 'ortho' && camMode === 'fly') type = 'standard';
+  const sq = num(spec.squeeze, lensState.squeeze, 1, 3);
+  lensState = { type, view: num(spec.view, lensState.view, 90, 160),
+                squeeze: SQUEEZES.reduce((a, b) => Math.abs(b - sq) < Math.abs(a - sq) ? b : a, SQUEEZES[0]),
+                band: num(spec.band, lensState.band, 0.05, 0.9), bandY: num(spec.bandY, lensState.bandY, 0, 1) };
+  fx.setLens(lensState);
+  fitRenderer();
+  paintLens();
+}
+function lensCamera(){ return renderCameraFor(camera, lensState, viewDistance(), camera.aspect); }
+const LENS_P = {
+  fisheye:    [{ key: 'view', label: 'View angle', min: 90, max: 160, fmt: v => Math.round(v) + '°' }],
+  anamorphic: [{ key: 'squeeze', label: 'Squeeze', min: 1.33, max: 2, fmt: v => v.toFixed(2) + 'x' }],
+  tiltshift:  [{ key: 'band', label: 'Sharp band', min: 0.05, max: 0.9, fmt: v => Math.round(v * 100) + '%' },
+               { key: 'bandY', label: 'Band position', min: 0, max: 1, fmt: v => Math.round(v * 100) + '% up' }]
+};
+function paintLens(){
+  const sel = document.getElementById('camLens'); if (document.activeElement !== sel) sel.value = lensState.type;
+  const ps = LENS_P[lensState.type] || [];
+  for (let i = 0; i < 2; i++){
+    const f = document.getElementById('lensP' + (i + 1) + 'Field'), p = ps[i];
+    f.hidden = !p; if (!p) continue;
+    document.getElementById('lensP' + (i + 1) + 'Label').textContent = p.label;
+    const sl = document.getElementById('lensP' + (i + 1));
+    if (document.activeElement !== sl) sl.value = String(Math.round(1000 * (lensState[p.key] - p.min) / (p.max - p.min)));
+    document.getElementById('lensP' + (i + 1) + 'Val').textContent = p.fmt(lensState[p.key]);
+  }
+}
+function lensEdit(){
+  const ps = LENS_P[lensState.type] || []; const spec = { type: lensState.type };
+  ps.forEach((p, i) => { spec[p.key] = p.min + (p.max - p.min) * (+document.getElementById('lensP' + (i + 1)).value / 1000); });
+  applyLens(spec);
+}
+// the canvas and the composer are sized together: the lens decides the composer's own size
+function fitRenderer(){
+  stage.fit();
+  const sz = renderer.getSize(new THREE.Vector2());
+  fx.setSize(sz.x, sz.y, renderer.getPixelRatio(), lensState);
+}
+// THE ONE RENDER ENTRY for the loop, the Screenshot button and __view.shot: the composer when an
+// effect is on, the plain render through the lens's camera otherwise. The Armor Viewer's, with one
+// change: the focus ray is cast only while a depth of field is actually drawing and following, since
+// a skinned monster makes each cast costly and nothing else reads it.
+const _aniso = new THREE.Vector2(1, 1);
+function renderFrame(t){
+  frameNo++;
+  const cam = lensCamera();
+  const following = fx.active && fxState.dof.on && fxState.dof.follow;
+  const focus = following ? focusDistance(t !== undefined) : fxState.dof.focus;
+  fxFocusLive = focus;
+  _aniso.set(lensState.type === 'anamorphic' ? 1 / lensState.squeeze : 1, 1);
+  fx.feed({ time: t === undefined ? performance.now() / 1000 : t,
+            mask: document.documentElement.classList.contains('chroma'), aspect: camera.aspect,
+            focus, near: cam.near, far: cam.far, ortho: !!cam.isOrthographicCamera, aniso: _aniso });
+  if (following && ((++fxFocusTick) % 15) === 0) paintFocusLive();
+  if (fx.active) fx.render(cam); else renderer.render(scene, cam);
+}
+// the Camera panel's controls: the lens, the turntable (the bar's steps, with a direction), the mode,
+// the fly speed, the tracking and two orbit behaviours of the controls themselves
+{
+  const focal = document.getElementById('camFocal');
+  focal.oninput = () => setFocal(focalOfSlider(+focal.value));
+  focal.onchange = () => { setFocal(focalOfSlider(+focal.value)); saveState(); };
+  const spin = document.getElementById('camSpin');
+  spin.oninput = () => { spinStep = Math.min(SPIN_STEPS.length - 1, Math.max(0, +spin.value)); paintSpin(); };
+  spin.onchange = () => { spin.oninput(); saveState(); };
+  document.getElementById('camSpinRev').onchange = e => { spinRev = e.target.checked; paintSpin(); saveState(); };
+  const damp = document.getElementById('camDamp'), zoomCur = document.getElementById('camZoomCursor');
+  damp.checked = controls.enableDamping; zoomCur.checked = !!controls.zoomToCursor;
+  damp.onchange = () => { controls.enableDamping = damp.checked; saveState(); };
+  zoomCur.onchange = () => { controls.zoomToCursor = zoomCur.checked; saveState(); };
+  const mode = document.getElementById('camMode');
+  mode.onchange = () => { setCamMode(mode.value); saveState(); };
+  if (flyBtn.hidden) mode.querySelector('option[value=fly]').disabled = true;   // no pointer lock here
+  const speed = document.getElementById('camSpeed');
+  speed.oninput = () => setFlySpeed(speedOfSlider(+speed.value));
+  speed.onchange = () => { speed.oninput(); saveState(); };
+  const face = document.getElementById('camFace');
+  face.onchange = () => { setFaceLock(face.checked); saveState(); };
+  const follow = document.getElementById('camFollow');
+  follow.onchange = () => { fxState.dof.follow = follow.checked; fxApply(); paintFx(); saveState(); };
+  // every setting in the panel back to its default; the view is left alone, Fit to View is for that
+  document.getElementById('camReset').onclick = () => {
+    setCamMode('orbit'); setFaceLock(false);
+    fxState.dof.follow = true; fxApply(); paintFx();
+    applyLens({ type: 'standard' });
+    setFocal(35);
+    spinStep = 0; spinRev = false; paintSpin();
+    controls.enableDamping = true; damp.checked = true;
+    controls.zoomToCursor = false; zoomCur.checked = false;
+    setFlySpeed(FLY_SPEED);
+    paintCamMode(); saveState();
+  };
+  const lensSel = document.getElementById('camLens');
+  lensSel.onchange = () => { applyLens({ type: lensSel.value }); saveState(); };
+  for (const id of ['lensP1', 'lensP2']){ const e = document.getElementById(id); e.oninput = lensEdit; e.onchange = () => { lensEdit(); saveState(); }; }
+}
+paintFocal(); paintLens(); paintFlySpeed();
 
 // ---- screenshot and clip ---------------------------------------------------------------
 // what a saved file is called: the monster on screen and the day
@@ -1712,16 +2131,18 @@ const SHOT_TIP = 'Save a PNG of the render area';
 document.getElementById('shotBtn').onclick = () => {
   const btn = document.getElementById('shotBtn'), el = renderer.domElement;
   const prev = renderer.getPixelRatio();
-  const cap = 4096 / Math.max(el.clientWidth, el.clientHeight, 1);
+  // the effects chain reallocates its targets at the bumped size, so it is capped a little lower
+  const cap = (fx.active ? 3072 : 4096) / Math.max(el.clientWidth, el.clientHeight, 1);
   const ratio = Math.max(prev, Math.min(prev * 2, cap));
+  const sz = renderer.getSize(new THREE.Vector2());
   let url;
   try {
-    if (ratio !== prev) renderer.setPixelRatio(ratio);
+    if (ratio !== prev){ renderer.setPixelRatio(ratio); fx.setSize(sz.x, sz.y, ratio, lensState); }
     head.position.copy(camera.position);
-    renderer.render(scene, camera);
+    renderFrame();
     url = (capture.shotBg ? flatten(el) : el).toDataURL('image/png');
   } finally {
-    if (ratio !== prev) renderer.setPixelRatio(prev);
+    if (ratio !== prev){ renderer.setPixelRatio(prev); fx.setSize(sz.x, sz.y, prev, lensState); }
   }
   const bin = atob(url.slice(url.indexOf(',') + 1));
   const buf = new Uint8Array(bin.length);
@@ -1986,7 +2407,9 @@ function updateDepthBias(){
       camera.near = near; camera.far = far; camera.updateProjectionMatrix();
     }
   }
-  const lsb = dist * dist / camera.near / 16777216;
+  let lsb = dist * dist / camera.near / 16777216;
+  // an orthographic lens has a LINEAR depth buffer over its own planes (the Armor Viewer's case)
+  if (lensState.type === 'ortho'){ const rc = lensCamera(); lsb = (rc.far - rc.near) / 16777216; }
   // both material paths keep their own registry of biased materials
   if (lsb > 0){ setBiasUnitsPerStep(BIAS_STEP_M / lsb); setRomBiasUnitsPerStep(BIAS_STEP_M / lsb); }
 }
@@ -2005,8 +2428,10 @@ function cameraState(){
     const t = camMode === 'fly'
       ? camera.getWorldDirection(new THREE.Vector3()).add(camera.position) : controls.target;
     const c = { p: camera.position.toArray().map(n => +n.toFixed(4)),
-                t: t.toArray().map(n => +n.toFixed(4)) };
+                t: t.toArray().map(n => +n.toFixed(4)),
+                fov: +camera.fov.toFixed(2) };
     if (camMode === 'fly') c.mode = 'fly';
+    if (lensState.type !== 'standard') c.lens = lensFileState();
     return c;
   } catch (_) { return null; }
 }
@@ -2016,9 +2441,12 @@ function applyCameraState(c){
   const wantFly = c.mode === 'fly';              // absent or anything else: the orbit camera
   if (!wantFly && camMode === 'fly') leaveFly({ keepTarget: true });
   camera.position.fromArray(c.p); controls.target.fromArray(c.t);
+  // the lens the view was saved with; a view saved before the Camera panel has the default
+  setFov(Number.isFinite(c.fov) ? c.fov : FOV_DEFAULT);
   camera.lookAt(controls.target);
   if (wantFly){ if (camMode === 'fly') flyFromCamera(); else enterFly({ drain: false }); }
   else controls.update();
+  applyLens(c.lens && typeof c.lens === 'object' ? c.lens : { type: 'standard' });   // a view without one is Standard
   return true;
 }
 // The Parts panel's state controls as a monster opens on them: Enraged, Charged, Heated, the Rage
@@ -4816,6 +5244,7 @@ document.getElementById('resetBtn').onclick = async () => {
                          tail: false, anchor: true, groundLock: false,
                          normalFlip: false, normalScale: 1 });
   resetMonsterState();
+  applyFxPreset('off');                    // Reset names Off, as the Armor Viewer's does
   monFilter.value = '';
   buildMonsterList(); buildLists(); paintNormal();
   document.getElementById('monAnchor').checked = true;
@@ -4962,13 +5391,22 @@ function applySet(o){
   if (typeof o.wireOn === 'boolean') wireOn = o.wireOn;
   if (typeof o.hideCursor === 'boolean') hideCursor = o.hideCursor;
   if (Number.isFinite(o.flySpeed)) setFlySpeed(o.flySpeed);
+  // the Camera and Effects panels (2026-09-13). The effects ride as `postfx`, not `effects`: this app's
+  // state already carries an `effects` boolean from the retired effect-mesh toggle.
+  if (typeof o.spinRev === 'boolean') spinRev = o.spinRev;
+  if (typeof o.camDamp === 'boolean'){ controls.enableDamping = o.camDamp; document.getElementById('camDamp').checked = o.camDamp; }
+  if (typeof o.camZoomCursor === 'boolean'){ controls.zoomToCursor = o.camZoomCursor; document.getElementById('camZoomCursor').checked = o.camZoomCursor; }
+  if (typeof o.camFace === 'boolean') setFaceLock(o.camFace);
+  if (o.postfx && typeof o.postfx === 'object') restoreEffects(o.postfx);
   // the window's corner; a hand-edited or off-screen one is re-clamped by placeZonePanel()
   if (o.zonePos && Number.isFinite(o.zonePos.x) && Number.isFinite(o.zonePos.y))
     state.zonePos = { x: o.zonePos.x, y: o.zonePos.y };
 }
 function currentSet(){
   return Object.assign({}, state, {
-    camera: cameraState(), orbitLocked, spinStep, wireOn, hideCursor, flySpeed: fly.speed });
+    camera: cameraState(), orbitLocked, spinStep, wireOn, hideCursor, flySpeed: fly.speed,
+    spinRev, camDamp: controls.enableDamping, camZoomCursor: !!controls.zoomToCursor, camFace: faceLock,
+    postfx: effectsState() });
 }
 if (SAVED) applySet(SAVED);
 buildMonsterList(); buildLists(); paintNormal(); paintOrbitLock(); paintSpin(); paintWire(); paintCursor();
@@ -4983,9 +5421,10 @@ await play();
 if (!applyCameraState(SAVED && SAVED.camera)) frameAll();
 restoring = false;
 
-new ResizeObserver(stage.fit).observe(viewport);
-addEventListener('resize', stage.fit);
-stage.fit();
+// the canvas and the effects composer resize together (fitRenderer)
+new ResizeObserver(fitRenderer).observe(viewport);
+addEventListener('resize', fitRenderer);
+fitRenderer();
 // Nothing is drawn until the start-up camera is in place, so the first frames never show the
 // model through the default camera and then jump.
 let booted = true;
@@ -5011,13 +5450,14 @@ renderer.setAnimationLoop(() => {
     for (const g of Object.values(mounted)) stepMatAnim(g, t, st, mid, tStateChanged, prevMatState, levelClip());
     // Refract samples the scene colour, so the capture has to happen AFTER the animation has set
     // fDistortionFactor / fDistortionBlend for this frame and BEFORE the visible render.
-    stepRefract(renderer, scene, camera, THREE);
+    // through the lens's own camera, so what refracts is the scene as this frame will frame it
+    stepRefract(renderer, scene, lensCamera(), THREE);
   }
   paintAnim();
   // update() would look at the target, which fly does not have
   if (camMode === 'fly') stepFly(); else controls.update();
   head.position.copy(camera.position);
-  renderer.render(scene, camera);
+  renderFrame();
   recFrame();
 });
 
@@ -5050,6 +5490,34 @@ async function runScene(name){
 }
 window.__view = { camera, controls, scene, world, renderer, frameAll, pose, state, MON, mounted,
                   monsterMats, runScene, capture: captureHarness };
+// The Camera and Effects panels' hooks, in the Armor Viewer's shape, so a test can drive them the same
+// way in both apps: __view.lens.set('fisheye', 140), __view.fx.preset('glow'), __view.fx.render() ...
+Object.assign(window.__view, {
+  setFocal, setFov, currentSet, applySet,
+  face: { set: on => setFaceLock(on), get: () => faceLock }, aimPoint: () => aimPoint(new THREE.Vector3()).toArray(),
+  aimSurface: () => ({ depth: aimSurfaceDepth(true), hit: aimHit.hit, cost: +aimHit.cost.toFixed(2), every: aimHit.every }),
+  lens: {
+    set: (type, p1, p2) => { const sp = { type }; const ps = LENS_P[type] || []; if (ps[0] && p1 !== undefined) sp[ps[0].key] = p1; if (ps[1] && p2 !== undefined) sp[ps[1].key] = p2; applyLens(sp); },
+    state: () => { const rc = lensCamera(), st = fx.stats(); return { type: lensState.type, params: lensFileState(), composer: { w: st.w, h: st.h }, canvas: st.canvas,
+      ortho: rc.isOrthographicCamera ? { halfHeight: rc.top, near: rc.near, far: rc.far } : null, active: fx.active, passes: st.passes }; }
+  },
+  fx: {
+    preset: applyFxPreset,
+    set: (path, v) => { const [g, k] = path.split('.'); fxState[g][k] = v; fxName = 'custom'; fxApply(); paintFx(); },
+    state: () => Object.assign({ name: fxName, active: fx.active, focusLive: fxFocusLive }, effectsState()),
+    render: () => { if (camMode !== 'fly') controls.update(); head.position.copy(camera.position); updateDepthBias(); renderFrame(0.5); },
+    force: on => fx.force(on),
+    stats: () => fx.stats()
+  },
+  fly: {
+    enter: () => setCamMode('fly'), leave: () => setCamMode('orbit'), mode: () => camMode,
+    keys: list => { fly.keys.clear(); for (const k of list || []) if (FLY_KEYS[k]) fly.keys.add(k); },
+    step: dt => stepFly(Math.min(Math.max(0, +dt || 0), 0.1)),
+    setSpeed: v => setFlySpeed(v), zoom: n => flyZoom(n),
+    state: () => ({ mode: camMode, locked: flyLocked(), yaw: fly.yaw, pitch: fly.pitch, speed: fly.speed, face: faceLock,
+                    p: camera.position.toArray(), center: monsterCenter(new THREE.Vector3()).toArray(), target: controls.target.toArray() })
+  }
+});
 // THE DICTATION HELPER for the per-monster review pass. Reads the panel as rendered and prints a
 // part-review.json stub for the monster on screen: every row that has a control, its key, the name
 // it currently shows and where that name came from, and every item's exact key and current text.
@@ -5230,10 +5698,12 @@ window.__view.shot = async function(run, nameArg, atArg){
     const midMat = (entry() || {}).id;
     stepReviewCycle(midMat, tMat);
     for (const g of Object.values(mounted)) stepMatAnim(g, tMat, stMat, midMat, 0, prevMatState, levelClip());
-    stepRefract(renderer, scene, camera, THREE);
+    stepRefract(renderer, scene, lensCamera(), THREE);
   }
   controls.update(); head.position.copy(camera.position);
-  renderer.render(scene, camera);
+  // the loop's own entry, on a fixed clock so an effect's grain is the same in every shot; with every
+  // effect off (a scene run loads no saved state) it is the plain render the gate has always taken
+  renderFrame(0.5);
   const url = renderer.domElement.toDataURL('image/png');
   const res = await fetch('/shot?run=' + encodeURIComponent(run) + '&name=' + encodeURIComponent(name),
                           { method: 'POST', body: url });
