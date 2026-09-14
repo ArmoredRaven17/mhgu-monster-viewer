@@ -1166,10 +1166,38 @@ export function attachedBodyOf(monId, pieceName){
 //     Away, parts 1..4 off, as its Wings row opens. The claws are the massive model -- Raven: "the claws will
 //     likely need to be unhidden for the combined form", "Seltas as a solo monster does not use the massive claw
 //     model" -- group 11, part 103, the ROM's full-grown stage; the combine action itself does not set that.
+//
+// THE PAIRED SEQUENCE TEST CASE: Queen list 4 Motion[76]..[79]. Raven, 2026-09-14: "Use 76 through 79 as the test
+// case" -- for the animation pass to copy. `pairs` names, per Queen clip on the partner list, the Seltas clip the
+// ROM runs under it and how its time goes: `wrap` loops it on the Queen clip's time, `holdAfter` freezes it where
+// its loop stood when the named Queen clip ended. How each entry was read, one exchange per Queen action (each
+// side waits for the other, testing the partner's action with 0x6fe88 on [+0xcac0]):
+//   * Queen 1:0x21 (0xf8f754) plays Motion[76] (loop from frame 26); she waits in its loop for Seltas' 1:0x1f
+//     (0xfc9678), which plays his Motion[35] loop, wings folded ([+0xcac0]+0x49 = 0).
+//   * Queen 1:0x22 (0xf8f8b0) plays Motion[77]: joint 200 leaves her back and stays 2.2..2.7 from her tail
+//     pincers (joints 160 / 161). Seeing her in 1:0x22, his 1:0x1f goes to 1:0x20 (0xfc97c4): his Motion[79], a
+//     61-frame loop from frame 0, blend 4 (not modelled).
+//   * Queen 1:0x23 (0xf8f9a8) plays Motion[78] (a loop, attacks at 84 and 156) once she sees him in 1:0x20 at the
+//     end of Motion[77]. Seeing her in 1:0x23 he goes to 1:0x21 (0xfc9920), whose first step calls 0xb07b4(0.0):
+//     status +0x398, the factor 0xb07b4 multiplies into both motion layers' speed (0x5393d0 / 0x53942c), is 0,
+//     so his pose freezes where the loop stood -- 187 frames into a 61-frame loop, frame 4 (one frame either
+//     way with the two units' update order, unread).
+//   * Queen 1:0x24 (0xf8fbf4) plays Motion[79] once she sees him in 1:0x21: joint 200 stays in her tail to about
+//     frame 132 and is back on her back by 156. He stays frozen -- only a new motion (0xafce8 sets +0x398 back
+//     to 1.0) or his 1200-frame timer ending (then 1:0x22, 0xfc9ab4: unlink, the combined bit cleared, his
+//     Motion[77] falling, list 3 Motion[11] on landing) moves him on, and that timer outlasts her clips.
+// Where he is comes from joint 200 itself (attachFrame), which her tracks carry; the table only picks his pose.
 export const ROM_PARTNER_BODY = {
   em069_00: { monster: 'em076_00', joint: 200, list: '4', clip: 'Motion[35]_loop',
               groups: [3, 8, 11], partsOff: [1, 2, 3, 4],
-              matClip: { mat: 'XfB__m01_eye', clip: 'ride_on' } },
+              matClip: { mat: 'XfB__m01_eye', clip: 'ride_on' },
+              pairs: {
+                'Motion[76]_start': { clip: 'Motion[35]_loop', wrap: true },
+                'Motion[76]_loop':  { clip: 'Motion[35]_loop', wrap: true },
+                'Motion[77]':       { clip: 'Motion[79]_loop', wrap: true },
+                'Motion[78]_loop':  { clip: 'Motion[79]_loop', holdAfter: 'Motion[77]' },
+                'Motion[79]':       { clip: 'Motion[79]_loop', holdAfter: 'Motion[77]' },
+              } },
 };
 export function partnerBodyOf(monId){ return (monId && ROM_PARTNER_BODY[monId]) || null; }
 

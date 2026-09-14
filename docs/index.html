@@ -4202,11 +4202,22 @@ async function setPartner(e, on){
 // body's clip picks the partner's clip of the same name, else the same motion number (a _start / _loop split need not
 // match). On any other list, or with no match, the partner plays the combine's loop (list 4 Motion[35]). Measured
 // 2026-09-14: the two list 4s share 28 motion numbers, and 5 of those (5, 8, 9, 16, 73) are the same length on both.
+// A clip the ROM pair table names (ROM_PARTNER_BODY `pairs`, the Motion[76]..[79] test case) takes its entry first:
+// `wrap` loops the partner clip on the body clip's time, `holdAfter` freezes it at (that body clip's length) modulo
+// (its own length) -- where its loop stood when the body finished that clip.
 function partnerClipOf(a, l, c){
   const lists = (a.part && a.part.lists) || [];
   const pl = l && l.id === a.spec.list && lists.find(x => x.id === l.id);
   if (pl && c){
     const clips = pl.clips || [];
+    const rp = a.spec.pairs && a.spec.pairs[c.clip];
+    const rhit = rp && clips.find(x => x.clip === rp.clip);
+    if (rhit){
+      const after = rp.holdAfter && (l.clips || []).find(x => x.clip === rp.holdAfter);
+      if (rp.holdAfter && !after) noteError('partner pair ' + c.clip + ': holdAfter clip ' + rp.holdAfter + ' not found');
+      const hold = (after && rhit.dur > 0) ? after.dur % rhit.dur : null;
+      return { list: pl, clip: rhit.clip, paired: false, rom: true, hold };
+    }
     let hit = clips.find(x => x.clip === c.clip);
     const mm = !hit && /^Motion\[(\d+)\]/.exec(c.clip);
     if (mm) hit = clips.find(x => x.clip.startsWith('Motion[' + mm[1] + ']'));
@@ -4275,11 +4286,13 @@ function stepAttached(){
     attachFrame(a);
     if (a.partner){
       // held to the body clip's time so a shot is repeatable: a paired clip stops where the body's does, the
-      // combine's own loop wraps
+      // combine's own loop wraps, and a ROM hold (partnerClipOf) stays on its one frame
       if (a.driver.action && pose.action){
         const dur = Math.max(1e-3, a.driver.action.getClip().duration);
+        const hold = a.pick ? a.pick.hold : null;
         a.driver.action.paused = pose.action.paused;
-        a.driver.action.time = (a.pick && a.pick.paired) ? Math.min(pose.action.time, dur - 1e-3) : pose.action.time % dur;
+        a.driver.action.time = (typeof hold === 'number') ? Math.min(hold, dur - 1e-3)
+          : (a.pick && a.pick.paired) ? Math.min(pose.action.time, dur - 1e-3) : pose.action.time % dur;
       }
       a.driver.clock.getDelta();
       if (a.driver.action) a.driver.step([root]);
@@ -6103,6 +6116,8 @@ window.__view.partner = async on => {
            bodyJointAt: at(a.jointNode), partnerJoint0At: b0 ? at(b0.node) : null, frameScale: +s.x.toFixed(3),
            worldScale: +world.scale.x.toFixed(3), clip: a.driver.action ? a.driver.action.getClip().name : '(bind pose)',
            list: a.driver.action && a.pick ? a.pick.list.id : null, paired: !!(a.driver.action && a.pick && a.pick.paired),
+           romPair: !!(a.driver.action && a.pick && a.pick.rom), hold: a.pick && typeof a.pick.hold === 'number' ? +a.pick.hold.toFixed(4) : null,
+           clipTime: a.driver.action ? +a.driver.action.time.toFixed(4) : null,
            bodyList: state.list, bodyClip: state.clip,
            drawnParts: [...parts].sort((x, y) => x - y), eyeEmissive: eye };
 };
