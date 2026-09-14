@@ -4194,8 +4194,9 @@ async function setPartner(e, on){
   } finally { setLoading(false); }
 }
 // WHICH CLIP THE PARTNER PLAYS. Not a ROM read -- the ROM pairs the two monsters' motions in their action machines,
-// which is left for the animation review. Raven, 2026-09-14: "I suspect List 4 of Seltas and Queen animations are the
-// combined, we can try simply paring the animation lists", then "have the queen's list select selta's list for a
+// which is left for the animation review (the pairs read so far are in render/monster.js above ROM_PARTNER_BODY).
+// Raven, 2026-09-14: "I suspect List 4 of Seltas and Queen animations are the combined, we can try simply paring the
+// animation lists", then "have the queen's list select selta's list for a
 // single selection", and then "I only wanted animation list 4 to be the paired animation list. The others don't need
 // to be paired at this time." So on list 4 -- the list the combine's own loop is in, ROM_PARTNER_BODY's `list` -- the
 // body's clip picks the partner's clip of the same name, else the same motion number (a _start / _loop split need not

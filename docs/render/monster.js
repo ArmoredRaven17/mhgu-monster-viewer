@@ -1142,8 +1142,16 @@ export function attachedBodyOf(monId, pieceName){
 //     (0, 120, 180) x (Queen - Seltas) of status +0x1b0, the size MODIFIER (the size is +0x1ac x +0x1b0,
 //     0xbdf54), which is 1.0 unless an action changes it: zero here. So Seltas stands on the joint, turned
 //     with it, at its own size (0.4 against her 0.9).
-//   * Queen joint 200 is a mount joint straight under her root. (Combined attacks move the link to her tail
-//     tip, joint 144, and her root, 0xfd5e38 / 0xfd6c1c -- not modelled.)
+//   * Queen joint 200 is a mount joint straight under her root. Nothing in MHGU moves the link off it: the only
+//     other joint stores (tail tip 144 and her root, 0xfd5e38 / 0xfd6c1c) follow Queen actions whose motions are
+//     the variant-1 ids ([enemy+0xb5f5] != 0, e.g. 0x477), and the ROM's monster id table (0x50aa8) lists em069
+//     only as 0x045, so they never run. Her tail carries Seltas instead through joint 200's own tracks.
+//   * The paired combined motions share motion numbers on the two list 4s (checked 2026-09-14). Queen action 1:0x1e
+//     plays Motion[27] while Seltas' 1:0x1a plays his Motion[27]. When she enters 1:0x1f (0xf8f3b0), which plays
+//     Motion[28] and carries joint 200 in her tail pincers, 0xfc901c puts Seltas into 1:0x1b (0xfc932c): his
+//     Motion[28] from frame 0, then Motion[43] when it ends. The two also request Motion[3], [5], [9], [35], [77]
+//     and [79]. Queen Motion[46] / [47] (actions 7:0x0b / 7:0x0c, 0xf93dfc) have no Seltas side; his own
+//     Motion[46] / [47] are his action 1:0x13 (0xfc8cbc).
 //   * Seltas' part frame (vtable +0x210, 0xfc6318) draws group 8 while +0x1bb bit 0 is set (0xfc6468; part 9,
 //     XfB__m02_add) and group 0 otherwise; the horn by break 0 (group 3 intact); the claws by the value at
 //     [+0xcac0]+0x38 (below 4 group 4 part 10, to 8 group 9 part 11, below 12 group 10 part 12, from 12 group
