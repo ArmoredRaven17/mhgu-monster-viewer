@@ -2873,7 +2873,7 @@
  },
  "em082_04": {
   "reviewed": "2026-09-13",
-  "note": "Reviewed by Raven. **STATE IS A 3-RUNG AXIS -- Normal / Enraged / Exhausted -- AND IT OWNS RAGE.** Raven: *'We will need an Normal, Enraged, Exhausted toggle; no need from Ungroomed/Groomed.'* The ROM carries ONE alternate part set, the `XfBA1__m01_angry` meshes (parts 20, 21, 23), so Enraged and Exhausted draw the same parts -- which is his own earlier reading of the Mizutsune line: *'I suspect they share the same parts but recolored to display the states.'* `levels.rage` = [false, true, false] makes the rung drive the material state too, and hides the Enraged checkbox so there is one control. **Exhausted will look like Normal for now**: its recolour would be the `tired_*` clips, which are already on the board as unreachable. **HEAD AND BODY are the rows on the State axis**, because they are the rows holding angry parts: Head adds part 20 (`2,11,12` -> `2,11,12,20`), Body adds 21 and 23 (`5` -> `5,21,23`). Head's first option he marked U -- *'U = Unsure, may need to hide or rendering issue potentially'* -- and it is named **Unsure** rather than hidden, so it stays findable; it is part 2 alone, the head without 11 and 12. **THE LEGS ARE NOT ENRAGED/EXHAUSTED -- THEY ARE GROOMED, AND HIS OWN ARM FUR READING SAYS SO.** He dictated each front leg as four options *'then the next four are the same but for (Enraged/Exhausted)'*. What separates the two fours is parts 140, 142, 150, 152, 154, 156 (right leg 141..157), and **every one of them is `XfBAN__EW_1__m54_dry_arm_L`** -- the same material as part 90, which he himself read as the UNGROOMED arm fur (*'Arm Fur: Ungroomed, Groomed'*, `80,90` against `80`). And no leg cluster contains a single `m01_angry` part, so the legs have no enraged variant at all. Wiring them to the State toggle would have made choosing Enraged un-groom the legs, which is a visible wrong behaviour, not a wrong label -- so **they are labelled by grooming and kept OFF the State axis**, eight plain options each. His ROM order is kept exactly; only the parenthetical changed. One key set to revert if he disagrees. The Tail agrees with this too: its Groomed options drop `m03_dry2` / `m53_dry` parts, the same 'dry' family. **TAIL** is six plain options in his order, In/Cr/Br then the three Groomed. **No `sheds`**: `em082_04_tail` ships, but he called the third state Broken, not Severed. Defaults: every row opens on its first non-Unsure option, ungroomed, at Normal -- **both legs had opened on a Broken option**.",
+  "note": "Reviewed by Raven. **STATE IS A 3-RUNG AXIS -- Normal / Enraged / Exhausted -- AND IT OWNS RAGE.** Raven: *'We will need an Normal, Enraged, Exhausted toggle; no need from Ungroomed/Groomed.'* The ROM carries ONE alternate part set, the `XfBA1__m01_angry` meshes (parts 20, 21, 23), so Enraged and Exhausted draw the same parts -- which is his own earlier reading of the Mizutsune line: *'I suspect they share the same parts but recolored to display the states.'* `levels.rage` = [false, true, false] makes the rung drive the material state too, and hides the Enraged checkbox so there is one control. **Exhausted will look like Normal for now**: its recolour would be the `tired_*` clips, which are already on the board as unreachable. **HEAD AND BODY are the rows on the State axis**, because they are the rows holding angry parts: Head adds part 20 (`2,11,12` -> `2,11,12,20`), Body adds 21 and 23 (`5` -> `5,21,23`). Head's first option he marked U -- *'U = Unsure, may need to hide or rendering issue potentially'* -- and it is named **Unsure** rather than hidden, so it stays findable; it is part 2 alone, the head without 11 and 12. **THE LEGS ARE NOT ENRAGED/EXHAUSTED -- THEY ARE GROOMED, AND HIS OWN ARM FUR READING SAYS SO.** He dictated each front leg as four options *'then the next four are the same but for (Enraged/Exhausted)'*. What separates the two fours is parts 140, 142, 150, 152, 154, 156 (right leg 141..157), and **every one of them is `XfBAN__EW_1__m54_dry_arm_L`** -- the same material as part 90, which he himself read as the UNGROOMED arm fur (*'Arm Fur: Ungroomed, Groomed'*, `80,90` against `80`). And no leg cluster contains a single `m01_angry` part, so the legs have no enraged variant at all. Wiring them to the State toggle would have made choosing Enraged un-groom the legs, which is a visible wrong behaviour, not a wrong label -- so **they are labelled by grooming and kept OFF the State axis**, eight plain options each. His ROM order is kept exactly; only the parenthetical changed. One key set to revert if he disagrees. The Tail agrees with this too: its Groomed options drop `m03_dry2` / `m53_dry` parts, the same 'dry' family. **TAIL** is six plain options in his order, In/Cr/Br then the three Groomed. **No `sheds`**: `em082_04_tail` ships, but he called the third state Broken, not Severed. Defaults: every row opens on its first non-Unsure option, ungroomed, at Normal -- **both legs had opened on a Broken option**. **2026-09-14, FOUR CHANGES AT HIS WORD, superseding the Unsure and eight-option passages above.** *'Head: Remove unsure'* -- the Unsure option (part 2 alone) is in the row's `hide` rather than deleted, so removing that one key restores it. *'Update Left Front Leg to Left Front Claw; do the same for Right'* -- renamed, keys untouched. *'Also, tie the Groomed options to the Arm Fur state'* -- both claws and the Tail carry `state: {off: \"90\"}`, which is true exactly when Arm Fur is Groomed (part 90 is the ungroomed arm fur, drawn only by Ungroomed), and every Groomed option became the second half of its ungroomed twin: `3,40,42,110,140,142,154,156|3,40,42,110` and so on. The claws now offer four options and the Tail three, and the Arm Fur row decides which half they draw; the labels are the ungroomed ones, since a label no longer changes with the fur. *'Hide Parts drop down'* -- that row is the part table's EMPTY cluster (no parts, one blank item, row key `\"\"`), the same artefact as Elderfrost Gammoth's; it is `hidden` and still draws nothing.",
   "levels": {
    "name": "State",
    "rungs": [
@@ -2897,6 +2897,9 @@
     "name": "Head",
     "state": "level",
     "default": "2,11,12|2,11,12,20|2,11,12,20",
+    "hide": [
+     "2|2,20|2,20"
+    ],
     "options": {
      "2|2,20|2,20": "Unsure",
      "2,11,12|2,11,12,20|2,11,12,20": "Intact",
@@ -2904,31 +2907,29 @@
     }
    },
    "3,14,40,42,50,52,60,70,110,112,140,142,150,152,154,156": {
-    "name": "Left Front Leg",
-    "default": "3,40,42,110,140,142,154,156",
+    "name": "Left Front Claw",
+    "state": {
+     "off": "90"
+    },
+    "default": "3,40,42,110,140,142,154,156|3,40,42,110",
     "options": {
-     "3,40,42,110,140,142,154,156": "Intact (Claw Up)",
-     "14,40,60,142,154": "Broken (Claw Up)",
-     "3,50,52,70,150,152,154,156": "Intact (Claw Down)",
-     "14,50,70,152,154": "Broken (Claw Down)",
-     "3,40,42,110": "Intact (Claw Up, Groomed)",
-     "14,40,60": "Broken (Claw Up, Groomed)",
-     "3,50,52,70": "Intact (Claw Down, Groomed)",
-     "14,50,70": "Broken (Claw Down, Groomed)"
+     "3,40,42,110,140,142,154,156|3,40,42,110": "Intact (Claw Up)",
+     "14,40,60,142,154|14,40,60": "Broken (Claw Up)",
+     "3,50,52,70,150,152,154,156|3,50,52,70": "Intact (Claw Down)",
+     "14,50,70,152,154|14,50,70": "Broken (Claw Down)"
     }
    },
    "4,15,41,43,51,53,61,71,111,113,141,143,151,153,155,157": {
-    "name": "Right Front Leg",
-    "default": "4,41,43,111,141,143,155,157",
+    "name": "Right Front Claw",
+    "state": {
+     "off": "90"
+    },
+    "default": "4,41,43,111,141,143,155,157|4,41,43,111",
     "options": {
-     "4,41,43,111,141,143,155,157": "Intact (Claw Up)",
-     "15,41,61,143,155": "Broken (Claw Up)",
-     "4,51,53,71,151,153,155,157": "Intact (Claw Down)",
-     "15,51,71,153,155": "Broken (Claw Down)",
-     "4,41,43,111": "Intact (Claw Up, Groomed)",
-     "15,41,61": "Broken (Claw Up, Groomed)",
-     "4,51,53,71": "Intact (Claw Down, Groomed)",
-     "15,51,71": "Broken (Claw Down, Groomed)"
+     "4,41,43,111,141,143,155,157|4,41,43,111": "Intact (Claw Up)",
+     "15,41,61,143,155|15,41,61": "Broken (Claw Up)",
+     "4,51,53,71,151,153,155,157|4,51,53,71": "Intact (Claw Down)",
+     "15,51,71,153,155|15,51,71": "Broken (Claw Down)"
     }
    },
    "5,16,21,23": {
@@ -2942,14 +2943,14 @@
    },
    "6,9,17,18,19,103,200,203,206,218,219": {
     "name": "Tail",
-    "default": "6,9,103,200,203,206",
+    "state": {
+     "off": "90"
+    },
+    "default": "6,9,103,200,203,206|6,9,103",
     "options": {
-     "6,9,103,200,203,206": "Intact",
-     "17,19,103,200,203,219": "Cracked",
-     "17,18,200,218": "Broken",
-     "6,9,103": "Intact (Groomed)",
-     "17,19,103": "Cracked (Groomed)",
-     "17,18": "Broken (Groomed)"
+     "6,9,103,200,203,206|6,9,103": "Intact",
+     "17,19,103,200,203,219|17,19,103": "Cracked",
+     "17,18,200,218|17,18": "Broken"
     }
    },
    "80,90": {
@@ -2959,6 +2960,9 @@
      "80,90": "Ungroomed",
      "80": "Groomed"
     }
+   },
+   "": {
+    "hidden": true
    }
   }
  },
