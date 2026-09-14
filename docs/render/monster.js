@@ -1884,9 +1884,10 @@ function stepOneStage(s, tSec, state){
 // It spawns red: red_Loop is the material's auto clip and nothing clears it. The status byte is read nowhere
 // else on this path and no part group changes with it, so the form is the glow's colour alone. A transition
 // once begun runs to its end before the byte is looked at again, which the machine below keeps. The rung names
-// are placeholders from the clip names, for Raven to name (part-review `levels.rungs` wins where given).
+// are Raven's, 2026-09-13: "Form: Fire/Dragon, Thunder/Ice" -- red is Fire/Dragon, blue is Thunder/Ice
+// (part-review `levels.rungs` wins where given).
 export const ROM_FORM_CLIPS = {
-  em050_00: { name: 'Form', rungs: ['Red', 'Blue'], mats: ['XfB__m03_add'],
+  em050_00: { name: 'Form', rungs: ['Fire/Dragon', 'Thunder/Ice'], mats: ['XfB__m03_add'],
               forms: [{ start: 'red_Change', loop: 'red_Loop', end: 'red_End' },
                       { start: 'blue_Change', loop: 'blue_Loop', end: 'blue_End' }] },
 };
