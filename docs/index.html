@@ -5473,6 +5473,25 @@ document.getElementById('hitZonesPanel').addEventListener('panelclose', () => {
   if (state.zoneShow || !state.heat) return;
   heatOff(); paintZonePanel(); saveState();
 });
+// HIT ZONES IS READ UNDER THE DEFAULT LIGHTING WITH NO EFFECTS. Raven, 2026-09-14: "we may need to have
+// Hit Zones revert the lighting and effects to default, then change them back once the panel is left". A
+// rig or a grade of the user's own changes the colours the heat map is read by, so opening the panel sets
+// the Default rig and effects Off, and leaving it restores what was there, custom slider values included.
+// While the panel holds the defaults, currentSet saves the user's settings rather than the stand-ins, and
+// Open hands a file's settings to the hold (see loadSet), so neither a reload nor a view file keeps them.
+let hzLook = null;
+function holdHitZonesLook(){
+  if (hzLook) return;
+  hzLook = { light: lightingSaveState(), fx: effectsState() };
+  applyLighting('default'); applyFxPreset('off');
+}
+function releaseHitZonesLook(){
+  if (!hzLook) return;
+  const was = hzLook; hzLook = null;
+  restoreLighting(was.light); restoreEffects(was.fx);
+}
+document.getElementById('hitZonesPanel').addEventListener('panelopen', holdHitZonesLook);
+document.getElementById('hitZonesPanel').addEventListener('panelclose', releaseHitZonesLook);
 normScaleEl.oninput = e => { state.normalScale = +e.target.value; paintNormal(); saveState(); };
 document.getElementById('resetBtn').onclick = async () => {
   const first = MON.monsters.find(e => !e.small) || MON.monsters[0];
@@ -5546,6 +5565,13 @@ async function loadSet(text, btn){
     flash(btn, 'Bad file'); return;
   }
   applySet(o); resetHiddenDebug();
+  // opened inside Hit Zones: the file's lighting and effects are what leaving the panel gives back, and
+  // the panel keeps its defaults meanwhile (the same tests applySet uses to decide it restored them)
+  if (hzLook){
+    if ((o.lightRig && typeof o.lightRig === 'object') || typeof o.lighting === 'string') hzLook.light = lightingSaveState();
+    if (o.postfx && typeof o.postfx === 'object') hzLook.fx = effectsState();
+    applyLighting('default'); applyFxPreset('off');
+  }
   monFilter.value = '';
   buildMonsterList(); buildLists(); paintNormal(); paintSpin(); paintOrbitLock(); paintWire(); paintCursor();
   document.getElementById('monAnchor').checked = state.anchor;
@@ -5578,8 +5604,9 @@ document.getElementById('importFile').addEventListener('change', function(){
 
 // panels: one open at a time, clicking the open one closes it. A data-keep-open panel (Monster)
 // is not in the accordion, so it is neither toggled nor closed when another panel opens.
-// A panel that goes from open to closed gets a `panelclose` event, for code that has to act when the
-// user leaves it (the Hit Zones panel's heat map).
+// A panel that goes from open to closed gets a `panelclose` event and the one that opens a `panelopen`,
+// closes first, for code that acts when the user leaves or enters a panel (Hit Zones' heat map, lighting
+// and effects).
 document.querySelectorAll('.panel:not([data-keep-open]) > .panel-head').forEach(h => {
   h.onclick = () => {
     const p = h.parentElement, wasOpen = p.dataset.open === 'true';
@@ -5587,6 +5614,7 @@ document.querySelectorAll('.panel:not([data-keep-open]) > .panel-head').forEach(
     document.querySelectorAll('.panel:not([data-keep-open])').forEach(o => o.dataset.open = 'false');
     p.dataset.open = wasOpen ? 'false' : 'true';
     for (const o of open) if (o.dataset.open !== 'true') o.dispatchEvent(new Event('panelclose'));
+    if (!wasOpen) p.dispatchEvent(new Event('panelopen'));
   };
 });
 
@@ -5654,7 +5682,8 @@ function currentSet(){
   return Object.assign({}, state, {
     camera: cameraState(), orbitLocked, spinStep, wireOn, hideCursor, flySpeed: fly.speed,
     spinRev, camDamp: controls.enableDamping, camZoomCursor: !!controls.zoomToCursor, camFace: faceLock,
-    postfx: effectsState(), ...lightingSaveState() });
+    // inside Hit Zones the lights and effects on screen are stand-ins; the user's own are the ones to keep
+    postfx: hzLook ? hzLook.fx : effectsState(), ...(hzLook ? hzLook.light : lightingSaveState()) });
 }
 if (SAVED){ applySet(SAVED); resetHiddenDebug(); }
 buildMonsterList(); buildLists(); paintNormal(); paintOrbitLock(); paintSpin(); paintWire(); paintCursor();
