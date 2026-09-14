@@ -346,6 +346,20 @@ header #bar .btn.tiny{margin-right:0}
 .chk{display:flex;align-items:center;gap:8px;padding:3px 0;cursor:pointer;line-height:1.3}
 .chk input{accent-color:var(--accent);width:16px;height:16px;cursor:pointer;flex-shrink:0}
 .chk:hover{color:var(--accent-hover)}
+/* THE STATE TOGGLES. Raven, 2026-09-13: "Can we make all Enrage Check Boxes into Toggles?" -- Enraged,
+   Charged and Heated. The track and knob are the family's .toggle, as the Collection Tracker, Charm
+   Farm, Equipment Box and Set Builder draw it (38x21, a 15px knob, accent-hover when on). The real
+   checkbox stays in the row, out of sight, the way the Hunting Log does its switches: every .checked
+   read and write and every onchange handler is untouched, and :checked drives the look. */
+.chk.switch input{position:absolute;opacity:0;width:0;height:0;margin:0}
+.toggle{flex-shrink:0;width:38px;height:21px;position:relative;border:1px solid var(--line);
+  border-radius:11px;background:#ffffff14;transition:background .18s,border-color .18s}
+.toggle::after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;
+  background:#b9b9b9;transition:transform .18s,background .18s}
+.chk.switch input:checked + .toggle{background:var(--accent-hover);border-color:var(--accent-hover)}
+.chk.switch input:checked + .toggle::after{transform:translateX(17px);background:#fff}
+.chk.switch:hover .toggle{filter:brightness(1.15)}
+.chk.switch input:focus-visible + .toggle{outline:2px solid var(--accent-hover);outline-offset:1px}
 .hint{color:var(--text-hint);font-size:12px;margin:2px 0}
 .row{display:flex;align-items:center}
 .row.gap{gap:8px}
@@ -534,13 +548,13 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <button class="panel-head">Parts <span class="chev">&#9662;</span></button>
         <div class="panel-body">
           <div id="monGroups"></div>
-          <label class="chk" id="monRageRow" hidden><input type="checkbox" id="monRage">Enraged</label>
-          <label class="chk" id="monChargeRow" hidden><input type="checkbox" id="monCharge">Charged</label>
+          <label class="chk switch" id="monRageRow" hidden><input type="checkbox" id="monRage"><span class="toggle"></span>Enraged</label>
+          <label class="chk switch" id="monChargeRow" hidden><input type="checkbox" id="monCharge"><span class="toggle"></span>Charged</label>
           <!-- HEATED is an ARMOUR state, not an AI one, so it is independent of Enraged and Charged
                rather than exclusive with them. Agnaktor wears molten armour that cools: every one of
                its part rows offers the same break twice, once with its XfB_0__m0N_lavNN meshes and
                once without. Offered only where a review row asks for it. -->
-          <label class="chk" id="monHeatedRow" hidden><input type="checkbox" id="monHeated">Heated</label>
+          <label class="chk switch" id="monHeatedRow" hidden><input type="checkbox" id="monHeated"><span class="toggle"></span>Heated</label>
           <div id="monRageLevelRow" hidden><label for="monRageLevel">Rage</label>
             <select id="monRageLevel"></select></div>
           <!-- A LEVEL AXIS WITH MORE THAN TWO VALUES, declared per monster in part-review.json's
@@ -1982,10 +1996,13 @@ function applyCameraState(c){
   else controls.update();
   return true;
 }
+// The Parts panel's state controls as a monster opens on them: Enraged, Charged, Heated, the Rage
+// ladder, the level axis and the variant. resetMonsterState() puts them back on a monster change.
+const STATE_DEFAULTS = { rage: false, charged: false, heated: true, rageLevel: 0, level: 0, variant: 0 };
 const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: false,
                 anchor: true, ground: true, normalFlip: false, normalScale: 1,
                 // both OFF by default: see applyUndef and applyExtend
-                undef: false, extend: false, gap: false, proxy: false, rage: false, charged: false, heated: true, rageLevel: 0, level: 0, variant: 0, rawParts: false, heat: '', heatTable: 0, deflectT: 'f25', deflectTier: 2,
+                undef: false, extend: false, gap: false, proxy: false, ...STATE_DEFAULTS, rawParts: false, heat: '', heatTable: 0, deflectT: 'f25', deflectTier: 2,
                 zoneTab: 'raw',
                 zoneShow: true, zonePos: null,
                 // the additive effect meshes as a class; the ROM's part table already keeps
@@ -4315,6 +4332,16 @@ function markStateChange(force){
   curMatState = next;
   tStateChanged = performance.now() / 1000;
 }
+// A MONSTER CHANGE STARTS CLEAN. Raven, 2026-09-13: "reset the selection when moving to a new
+// monster". The state controls go back to STATE_DEFAULTS and applyRage() settles them for the new
+// monster exactly as on a first load (Boltreaver still lands on its lowest Charge rung). The clock
+// forgets the last monster's state too: left at 'enraged', the new monster would open on its
+// calm-down end clip for a rage it never had -- clipPicker's end-clip branch, which HOLDS that clip
+// where no rest clip follows. Opening a saved view or running a scene sets its own state instead.
+function resetMonsterState(){
+  Object.assign(state, STATE_DEFAULTS);
+  prevMatState = curMatState = 'calm';
+}
 function applyProxy(){
   let n = 0;
   for (const g of Object.values(mounted)) n += proxyCount(g);
@@ -4445,6 +4472,7 @@ document.getElementById('animReplay').onclick = () => play();
 monFilter.oninput = () => { buildMonsterList(); };
 monSel.onchange = async () => {
   state.id = monSel.value; state.groups = null; state.list = ''; state.clip = '';
+  resetMonsterState();
   buildLists();
   await remount(); saveState();
 };
@@ -4604,6 +4632,7 @@ document.getElementById('resetBtn').onclick = async () => {
   Object.assign(state, { id: first ? first.id : '', list: '', clip: '', groups: null, loop: true,
                          tail: false, anchor: true, ground: true,
                          normalFlip: false, normalScale: 1 });
+  resetMonsterState();
   monFilter.value = '';
   buildMonsterList(); buildLists(); paintNormal();
   document.getElementById('monAnchor').checked = true;
