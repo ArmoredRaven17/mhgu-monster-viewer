@@ -148,19 +148,17 @@ dl.info dd{margin:0;color:var(--text);font-variant-numeric:tabular-nums;
    selected in the drop down" and "this window can be resize with the table, no need to keep the
    element the same size". The panel has no width of its own, so with a single table showing it
    shrink-wraps whichever one that is. */
-/* The strip sets the window's MINIMUM width, and wraps below it. Measured both ways: taking the
-   tabs out of the intrinsic width (width:0 + min-width:100%) does let the window track each table
-   -- 184 to 280px -- but the five tabs then wrap to three rows and the window grows TALLER than it
-   saved in width, reflowing on every switch. One row of tabs is the better trade, so the window
-   floors at the strip's width and only wraps when the render area is genuinely narrower than that
-   (it was clipping the last tabs before the wrap was added). Height still tracks the table. */
-#zoneTabs{display:flex;flex-wrap:wrap;gap:2px;padding:4px 6px 0;border-bottom:1px solid var(--line)}
-.ztab{background:none;border:none;border-bottom:2px solid transparent;color:var(--text-hint);
-  cursor:pointer;font:inherit;font-size:11px;padding:3px 9px 4px;border-radius:4px 4px 0 0;
-  white-space:nowrap}
-.ztab:hover:not(:disabled){color:var(--text);background:#ffffff0f}
-.ztab[aria-selected="true"]{color:var(--cta);border-bottom-color:var(--cta)}
-.ztab:disabled{opacity:.35;cursor:default}
+/* A DROPDOWN PICKS THE TABLE, NOT A STRIP OF TABS. Raven, 2026-09-13: "I would like to have a drop
+   down menu to help keep it compact". The five tabs needed 352px on one row, so the window was 354px
+   whichever table it showed -- measured on Khezu at 1280x800, where the tables themselves run from
+   127px (Stun/Exhaust) to 239px (Elemental). One select is narrower than the title row, so the window
+   now shrink-wraps the title and the table. Styled as the sidebar's dropdowns, at the window's 11px:
+   those read as a lighter box on a darker panel, and this window IS --bg2, so the fill is lifted a
+   step. Opaque on purpose -- Chrome draws the open list in the select's own background colour. */
+#zoneTabRow{padding:3px 6px;border-bottom:1px solid var(--line)}
+#zoneTabSel{background:color-mix(in srgb,var(--bg2) 90%,#fff);color:var(--text);
+  border:1px solid var(--line);border-radius:5px;font-size:11px;line-height:1.4;padding:2px 6px;
+  max-width:100%}
 #monZoneWrap > table{display:none}
 #monZoneWrap > table.shown{display:table}
 #monZoneWrap{overflow:auto;max-width:100%}
@@ -202,6 +200,18 @@ dl.info dd{margin:0;color:var(--text);font-variant-numeric:tabular-nums;
 .zchart tbody tr:last-child td.sel,.pchart tbody tr:last-child td.sel{
   border-bottom:2px solid var(--cta);
   box-shadow:inset 1px -1px rgba(0,0,0,.55), inset -1px 0 rgba(0,0,0,.55)}
+/* ROOM FOR THE BAND. Raven, 2026-09-13: "when selecting a column, the table expands, it would be best
+   to have the spacing accomendate the selection highlight". The band's 2px edges used to be ADDED on
+   selection, growing the table 4px each way (Khezu's Raw table 151x94 -> 155x98) and shoving every
+   column to its right. Every cell a band can land on now carries those edges already, transparent, so
+   selecting recolours them and moves nothing. `inset` is deliberate: a collapsed border goes to the
+   wider edge, then to the higher-priority style, and inset is the lowest -- so where a reserved edge
+   meets a band edge, the band's `solid` shows on both sides. With the same style the tie would go to
+   the cell on the left, and the band would lose its left edge. */
+.zchart td,.pchart td,.zchart thead th + th,.pchart thead th + th{
+  border-left:2px inset transparent;border-right:2px inset transparent}
+.zchart thead th + th,.pchart thead th + th{border-top:2px inset transparent}
+.zchart tbody tr:last-child td,.pchart tbody tr:last-child td{border-bottom:2px inset transparent}
 /* Floating toolbar over the render area, matching the Weapon Tree's #bar.
    width:max-content is load-bearing: with left:50% the default shrink-to-fit only
    counts the space from the centre to the right edge, so the bar would cap at half
@@ -665,13 +675,13 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <!-- Ten damage columns in one grid was more than the eye groups on its own. Raven,
              2026-09-06: "break it up into Raw Hit Zones (3 types), Elemental (5), Stun/Exhaust (2),
              Extracts (but show Stagger and Break still) and update Bounce to be Hardness". -->
-        <div id="zoneTabs" role="tablist">
-          <button class="ztab" data-tab="raw"      role="tab">Raw</button>
-          <button class="ztab" data-tab="elem"     role="tab">Elemental</button>
-          <button class="ztab" data-tab="status"   role="tab">Stun/Exhaust</button>
-          <button class="ztab" data-tab="extracts" role="tab">Extracts</button>
-          <button class="ztab" data-tab="hardness" role="tab">Hardness</button>
-        </div>
+        <div id="zoneTabRow"><select id="zoneTabSel" aria-label="Hit zone table">
+          <option value="raw">Raw</option>
+          <option value="elem">Elemental</option>
+          <option value="status">Stun/Exhaust</option>
+          <option value="extracts">Extracts</option>
+          <option value="hardness">Hardness</option>
+        </select></div>
         <div id="monZoneWrap"><table id="monRawChart"    class="zchart" data-pane="raw"></table>
           <table id="monElemChart"   class="zchart" data-pane="elem"></table>
           <table id="monStatusChart" class="zchart" data-pane="status"></table>
@@ -3816,8 +3826,8 @@ function tabForHeat(h){
   const g = ZONE_GROUPS.find(x => x.types.indexOf(h) >= 0);
   return g ? g.pane : null;
 }
-// Empty tables are disabled rather than hidden: the set of tabs stays put between monsters, so the
-// strip does not reshuffle under the pointer when you switch.
+// Empty tables are disabled rather than removed: the dropdown keeps the same five entries between
+// monsters, so its list does not reshuffle under the pointer when you switch.
 function paintZoneTabs(){
   const wrap = document.getElementById('monZoneWrap');
   let sel = state.zoneTab || 'zones';
@@ -3828,19 +3838,15 @@ function paintZoneTabs(){
   }
   if (!has[sel]) sel = ['raw', 'elem', 'status', 'extracts', 'hardness'].find(t => has[t]) || 'raw';
   state.zoneTab = sel;
-  for (const b of document.querySelectorAll('#zoneTabs .ztab')){
-    const t = b.dataset.tab;
-    b.disabled = !has[t];
-    b.setAttribute('aria-selected', String(t === sel));
-  }
+  const pick = document.getElementById('zoneTabSel');
+  for (const o of pick.options) o.disabled = !has[o.value];
+  pick.value = sel;
   for (const tbl of wrap.querySelectorAll('table'))
     tbl.classList.toggle('shown', tbl.dataset.pane === sel);
   // the panel shrink-wraps the visible table, so a stale scroll offset would strand it
   wrap.scrollLeft = 0; wrap.scrollTop = 0;
 }
-for (const b of document.querySelectorAll('#zoneTabs .ztab')){
-  b.onclick = () => { state.zoneTab = b.dataset.tab; paintZoneTabs(); saveState(); };
-}
+document.getElementById('zoneTabSel').onchange = e => { state.zoneTab = e.target.value; paintZoneTabs(); saveState(); };
 // The lowest sharpness that does NOT bounce off each zone, worked from the ROM's own multiplier
 // table (.rodata 0x0161e37c) against the deflect threshold at 0x00177ed4. Cut and impact are worked
 // separately because the deflect uses the ATTACK's cut/impact split, so a cutting attack is judged
