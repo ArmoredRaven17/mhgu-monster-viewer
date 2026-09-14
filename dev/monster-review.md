@@ -3930,3 +3930,13 @@ frame. It had been hung from the clip's `reference` node, which the pose driver'
 feet, and that is what put the aura under Teostra. Anchoring to the model's world matrix lands the particles
 on the chest (measured) with no hand-picked number, so `UNIT_LIFT` / `__view.effectLift` are gone. Commit
 752b354.
+
+**De-enrage brown squares, and the ground toggle.** Raven: *"Teostra is now showing brown squares on the
+de-enrage effects"* and *"Review if we need to Ground Lowest Bone."* The squares were the runtime failing out:
+a quick de-enrage leaves the rage-start burst (019 key 2) still drawing its cm090 sprite trail when the
+rage-end burst (key 3) starts, and both use the same texture set, so the second registration reuses the first
+(`0x889004` -> `0x889054`) -- a branch no single-effect recording reached. Recorded with a new multi-effect
+draw recorder (`efx/vecdrawsched.py`, the viewer's `drawFrame` over a schedule) and re-lifted, byte-exact;
+the de-enrage now runs as a fiery nova. The effect ground stand-in is off by default now -- the model-matrix
+anchor leaves nothing below the feet for it to hide; `__view.effectGround(true)` keeps it for terrain tests.
+Commit 2401065.
