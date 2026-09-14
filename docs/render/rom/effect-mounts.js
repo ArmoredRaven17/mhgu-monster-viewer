@@ -57,13 +57,6 @@ function installConsoleHook(){
       if (lastAttach) await attachEffectMounts(...lastAttach);
       return { runtime: runtimeOn, stats: effectRuntimeStats(), mounted: effectMountsLive().length };
     };
-    // __view.effectLift(units) raises the unit the effects hang from by that many of the monster's game
-    // units (live.js UNIT_LIFT); __view.effectLift() reads back the lift in use.
-    window.__view.effectLift = units => {
-      if (!runtime) return { lift: null, runtime: false };
-      if (typeof units === 'number' && isFinite(units)) runtime.unitLift = units;
-      return { lift: runtime.lift(), runtime: true };
-    };
     // __view.effectGround(false) takes away the ground the effects draw against (live.js groundPlane); (true)
     // puts it back. Returns the setting and whether a runtime took it.
     window.__view.effectGround = on => {

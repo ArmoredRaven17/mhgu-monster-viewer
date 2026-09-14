@@ -37,14 +37,6 @@ import { loadJson, getTexture, loadGlb } from '../../assets.js';
 import { gidBonesOf } from '../../skeleton.js';
 
 const MT_TO_VIEW = 0.01;
-// A LIFT ON THE UNIT, per monster, in the monster's own game units (scaled by its size like everything the
-// unit carries). NOT A ROM VALUE. Teostra's aura hangs from the unit (joint -1), which the viewer puts where
-// the clip's reference node is -- the ground under its feet -- and there the fire sat under the body. Raven,
-// 2026-09-13: "If you could move the Flame Aura up so it is more inside of Teostra, try that". The value is
-// the height of Teostra's root bone above that reference in its idle clip (4.00 = 400). It lifts every effect
-// placed at the unit, the rage bursts too; the joints and the ground stay where they are.
-// __view.effectLift(units) tries another; __view.effectLift() reads it back.
-const UNIT_LIFT = { em027_00: 400 };
 const STEP = 1 / 60;
 const MAX_STEPS = 4;
 
@@ -215,10 +207,9 @@ export class LiveEffects {
       // (0x31f788, 0x8a4b88).
       const p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3();
       this.unitMatrix(m).decompose(p, q, s);
-      if (this.ground){ this.ground.position.copy(p); this.groundDepth.position.copy(p); }
-      p.y += this.lift() * s.y * MT_TO_VIEW;
       this.host.setParentPose(this.parent, { position: [p.x / MT_TO_VIEW, p.y / MT_TO_VIEW, p.z / MT_TO_VIEW],
                                              quaternion: [q.x, q.y, q.z, q.w], scale: s.x });
+      if (this.ground){ const g = this.groundY(p); this.ground.position.set(p.x, g, p.z); this.groundDepth.position.set(p.x, g, p.z); }
       for (const { j, bone } of this.joints){
         if (!bone) continue;
         m.copy(bone.matrixWorld);
@@ -240,23 +231,23 @@ export class LiveEffects {
     catch (e){ this.fail(e); }
   }
 
-  // the unit lift in effect (UNIT_LIFT), or the one __view.effectLift set on this runtime
-  lift(){ return typeof this.unitLift === 'number' ? this.unitLift : (UNIT_LIFT[this.monsterId] || 0); }
-
-  // WHERE THE UNIT IS. A monster's joints hang under its clip's `reference` node, the travel the game adds to
-  // the unit's position (render/pose.js), and the pose driver moves that whole skeleton inside the frame it
-  // poses the bones in -- the XZ anchor and the ground lock shift it, the reference carries the clip's
-  // travel -- so the unit is the reference node of the clip being played, in that frame. The driver is the
-  // viewer's body driver (index.html's __view.pose); with no clip playing the bones are at bind under the
-  // root, and the unit is the root.
-  unitMatrix(out){
-    const pose = typeof window !== 'undefined' && window.__view && window.__view.pose;
-    const scn = pose && pose.mixer && pose.proxyBones && pose.frame ? pose.mixer.getRoot() : null;
-    this.unitOnGround = !!scn;
-    if (!scn) return out.copy(this.root.matrixWorld);
-    const ref = scn.getObjectByName('reference') || scn;
-    pose.frame.updateWorldMatrix(true, false);
-    return out.multiplyMatrices(pose.frame.matrixWorld, ref.matrixWorld);
+  // WHERE THE UNIT IS. Joint -1 -- the root of a request's effect, and the aura's nodes -- resolves through
+  // the parent's joint getter (0x939278): a bone the table maps, else the MODEL'S OWN WORLD MATRIX (+0xb0).
+  // The aura is joint -1, so it hangs from the model's world matrix, which here is the mounted monster's own
+  // (this.root). The monster's nodes are authored around that origin (the aura's node 0 is +400 up, at the
+  // chest); the viewer's ground lock drops the drawn skeleton to the floor but not this origin, so the origin
+  // sits up in the body, where the game's does. An earlier version hung the unit from the clip's `reference`
+  // node instead, which the ground lock pushes below the feet -- that is what left the aura under Teostra
+  // (Raven, 2026-09-13). The joints below still come from the drawn bones, so a joint-bound node (the rage
+  // burst's node 1, joint 1) still tracks its bone.
+  unitMatrix(out){ this.unitOnGround = true; return out.copy(this.root.matrixWorld); }
+  // the floor the ground stand-in sits on: the lowest drawn bone (the monster's feet), in the unit's frame
+  groundY(unitPos){
+    let lo = unitPos.y;
+    for (const { bone } of this.joints || []) if (bone) lo = Math.min(lo, bone.matrixWorld.elements[13]);
+    const bones = this.root && this.root.children ? this.root : null;
+    if (this.root) this.root.traverse(o => { if (o.isBone) lo = Math.min(lo, o.matrixWorld.elements[13]); });
+    return lo;
   }
 
   // A refusal (a branch of the ROM's code no recorded run reached: Unverified) or any other fault stops
