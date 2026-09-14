@@ -647,6 +647,34 @@ input[type=range]{width:100%;accent-color:var(--accent)}
            camera, lighting, effects to the Monster Viewer". Its markup, with the hunter's words made the
            monster's. Tracking aims at the monster's centre: the hunter's head and chest are player bones,
            and no head is mapped per monster. -->
+      <!-- LIGHTING, the Armor Viewer's panel. Raven, 2026-09-13: "Keep current lighting default, lights
+           turn with camera". Default is this app's own rig; the rest are the Armor Viewer's presets. The
+           Ambient slider scales the game's ambient term (render/rom/ambient.js), which replaces the
+           hemisphere and ambient lights here. -->
+      <section class="panel" id="lightPanel" data-open="false">
+        <button class="panel-head">Lighting <span class="chev">&#9662;</span></button>
+        <div class="panel-body">
+          <div class="row light-row" id="lightRow">
+            <button class="btn tiny" data-light="default" title="This viewer's own rig: a white key, a blue rim, a soft fill, the headlight on, and the game's ambient at full">Default</button>
+            <button class="btn tiny" data-light="studio" title="The Armor Viewer's default: a cool key, blue rim, soft fill">Studio</button>
+            <button class="btn tiny" data-light="warm" title="Amber key and rim, warm fill">Warm</button>
+            <button class="btn tiny" data-light="cool" title="Blue-white key, strong blue rim">Cool</button>
+            <button class="btn tiny" data-light="even" title="Flat, near-shadowless light on purpose: for checking colours">Even</button>
+            <button class="btn tiny" data-light="rim" title="Dark, with a strong rim: for silhouettes">Rim</button>
+            <button class="btn tiny" data-light="dusk" title="A low amber sun with a blue sky fill">Dusk</button>
+          </div>
+          <div class="field"><label for="lKeyAz">Key light angle</label><input id="lKeyAz" type="range" min="0" max="360" step="1" title="Where the key light comes from, around the monster as you see it: 0 from your side, 90 from the right, 180 from behind it"></div>
+          <div class="field"><label for="lKeyEl">Key light height</label><input id="lKeyEl" type="range" min="-30" max="89" step="1" title="How high the key light sits, from below the monster to overhead"></div>
+          <div class="field"><label for="lKey">Key</label><div class="row gap"><input id="lKey" type="range" min="0" max="4" step="0.05" title="Key light strength"><input id="lKeyCol" type="color" class="rgb-input" title="Key light colour"></div></div>
+          <div class="field"><label for="lRim">Rim</label><input id="lRim" type="range" min="0" max="3" step="0.05" title="Rim light strength"></div>
+          <div class="field"><label for="lFill">Fill</label><input id="lFill" type="range" min="0" max="2" step="0.05" title="Fill light strength"></div>
+          <div class="field"><label for="lAmb">Ambient</label><input id="lAmb" type="range" min="0" max="2" step="0.01" title="The game's ambient term (its spherical-harmonic sky), scaled: 1 is full strength"></div>
+          <div class="row gap" style="flex-direction:column;align-items:flex-start">
+            <label class="chk" title="A light on the camera: lights whatever faces you, from any angle"><input type="checkbox" id="lHead">Headlight</label>
+            <label class="chk" title="Turns the key light slowly around the monster"><input type="checkbox" id="lSpin">Orbit the key light</label>
+          </div>
+        </div>
+      </section>
       <section class="panel" id="camPanel" data-open="false">
         <button class="panel-head">Camera <span class="chev">&#9662;</span></button>
         <div class="panel-body">
@@ -1784,6 +1812,125 @@ if (!('requestPointerLock' in document.body)) flyBtn.hidden = true;
 paintSpin();
 paintCamMode();
 
+// ---- Lighting: the Armor Viewer's panel, 2026-09-13 --------------------------------------------
+// Raven: "Keep current lighting default, lights turn with camera". Each preset is the rig the panel
+// edits: the key, rim and fill (colour, intensity and position), the ambient, and the headlight's
+// intensity for when the headlight is on. A preset fills the rig in and lights its button; touching a
+// slider makes it "custom". The rim and fill keep the preset's colours and positions; only the key
+// moves. Saved with the session and in a view file.
+//
+// TWO THINGS DIFFER FROM THE ARMOR VIEWER, both because this app's ambient is not a light:
+//   * the HemisphereLight and AmbientLight stay at zero (see THE ROM-DERIVED LIGHTING CORRECTIONS), and
+//     "Ambient" scales the game's own SH ambient term instead -- setSHAmount, 1 at full;
+//   * so a preset's ambient is an SH amount. DEFAULT is this app's rig as stage.js builds it, with the
+//     SH term at 1 and the headlight on. The Armor Viewer's presets take their key, rim, fill and
+//     headlight numbers verbatim, and their SH amount is their hemisphere + ambient intensity over
+//     stage.js's 1.4 + 0.55, the pair that SH term replaced: Studio (0.8 + 0.25) / 1.95 = 0.54, and so
+//     on. Their sky and ground colours have no place to go and are dropped.
+const LIGHT_PRESETS = {
+  default: { key: [0xffffff, 2.3, [3, 5, 4]], rim: [0x88aaff, 1.1, [-4, 2, -5]], fill: [0xffffff, 0.55, [0, -3, 2]], sh: 1, head: 0.9, headOn: true },
+  studio:  { key: [0xffffff, 3.0, [3, 5, 4]], rim: [0x88aaff, 0.9, [-4, 3, -5]], fill: [0xffffff, 0.35, [0, -3, 2]], sh: 0.54, head: 0.9 },
+  warm:    { key: [0xffd9a8, 3.1, [4, 4, 3]], rim: [0xff9a5a, 0.8, [-4, 3, -5]], fill: [0xffe9d0, 0.3, [0, -3, 2]], sh: 0.49, head: 0.8 },
+  cool:    { key: [0xdbe8ff, 2.9, [3, 5, 4]], rim: [0x9ec6ff, 1.2, [-5, 3, -4]], fill: [0xd8e6ff, 0.3, [0, -3, 2]], sh: 0.54, head: 0.9 },
+  even:    { key: [0xffffff, 1.2, [0, 5, 5]], rim: [0xffffff, 0.8, [0, 3, -5]], fill: [0xffffff, 0.8, [0, -3, 2]], sh: 1.23, head: 0.6 },
+  rim:     { key: [0xffffff, 0.8, [3, 5, 4]], rim: [0xbfd8ff, 2.6, [-4, 3, -5]], fill: [0xffffff, 0.15, [0, -3, 2]], sh: 0.28, head: 0.3 },
+  dusk:    { key: [0xffb070, 2.6, [5, 2, 2]], rim: [0x6f8cff, 0.9, [-4, 2, -5]], fill: [0xffc9a0, 0.25, [0, -3, 2]], sh: 0.44, head: 0.6 }
+};
+const KEY_RADIUS = 7;
+// THE RIG TURNS WITH THE VIEW, as the Armor Viewer's does: the key, rim and fill live in a group whose
+// yaw follows the camera's, so the lights stay where they are around the viewer and orbiting turns the
+// monster through them. Seen from the front (the camera looking down -Z) the yaw is zero, which is
+// exactly where stage.js put these lights in the world. The headlight rides the camera as before.
+const lightRigGroup = new THREE.Group(); lightRigGroup.name = 'lightRig';
+scene.add(lightRigGroup);
+lightRigGroup.add(stage.lights.key, stage.lights.rim, stage.lights.fill);
+function trackLights(){
+  camera.getWorldDirection(_fwd);
+  lightRigGroup.rotation.y = Math.atan2(-_fwd.x, -_fwd.z);
+}
+let lightingName = 'default';
+let lightRig = null;
+let lightSpinAt = 0;
+function rigFromPreset(P){
+  const [x, y, z] = P.key[2], len = Math.hypot(x, y, z) || 1;
+  return { preset: P, az: (THREE.MathUtils.radToDeg(Math.atan2(x, z)) + 360) % 360,
+           el: THREE.MathUtils.radToDeg(Math.asin(y / len)),
+           key: P.key[1], keyColor: '#' + P.key[0].toString(16).padStart(6, '0'),
+           rim: P.rim[1], fill: P.fill[1], ambient: P.sh, head: !!P.headOn, spin: false };
+}
+function keyPosition(){
+  const az = THREE.MathUtils.degToRad(lightRig.az + lightSpinAt), el = THREE.MathUtils.degToRad(lightRig.el);
+  stage.lights.key.position.set(KEY_RADIUS * Math.cos(el) * Math.sin(az), KEY_RADIUS * Math.sin(el), KEY_RADIUS * Math.cos(el) * Math.cos(az));
+}
+function applyRig(){
+  const P = lightRig.preset, L = stage.lights;
+  for (const k of ['rim', 'fill']){ L[k].color.setHex(P[k][0]); L[k].position.set(P[k][2][0], P[k][2][1], P[k][2][2]); }
+  L.key.color.set(lightRig.keyColor); L.key.intensity = lightRig.key;
+  L.rim.intensity = lightRig.rim; L.fill.intensity = lightRig.fill;
+  L.head.intensity = lightRig.head ? P.head : 0;
+  setSHAmount(lightRig.ambient);           // the ambient is the game's SH term, on every mounted material
+  keyPosition();
+  document.querySelectorAll('#lightRow .btn').forEach(b => b.classList.toggle('on', b.dataset.light === lightingName));
+  const set = (id, v) => { const e = document.getElementById(id); if (e && document.activeElement !== e) e.value = v; };
+  set('lKeyAz', Math.round(lightRig.az)); set('lKeyEl', Math.round(lightRig.el)); set('lKey', lightRig.key); set('lKeyCol', lightRig.keyColor);
+  set('lRim', lightRig.rim); set('lFill', lightRig.fill); set('lAmb', lightRig.ambient);
+  document.getElementById('lHead').checked = lightRig.head; document.getElementById('lSpin').checked = lightRig.spin;
+}
+function applyLighting(name){
+  lightingName = LIGHT_PRESETS[name] ? name : 'default';
+  lightRig = rigFromPreset(LIGHT_PRESETS[lightingName]);
+  lightSpinAt = 0;
+  applyRig();
+}
+// a slider edit keeps the preset's colours and positions but the rig is now the user's
+function rigEdit(){
+  lightingName = 'custom';
+  lightRig.az = +document.getElementById('lKeyAz').value; lightRig.el = +document.getElementById('lKeyEl').value;
+  lightRig.key = +document.getElementById('lKey').value; lightRig.keyColor = document.getElementById('lKeyCol').value;
+  lightRig.rim = +document.getElementById('lRim').value; lightRig.fill = +document.getElementById('lFill').value;
+  lightRig.ambient = +document.getElementById('lAmb').value;
+  lightRig.head = document.getElementById('lHead').checked; lightRig.spin = document.getElementById('lSpin').checked;
+  applyRig();
+}
+// the orbit: a slow turn of the key light around the monster, one lap in 12 s, on its own clock so a
+// stalled frame (a hidden tab) cannot fling it round
+let lightPrev = 0;
+function stepLighting(){
+  const now = performance.now();
+  const dt = lightPrev ? Math.min((now - lightPrev) / 1000, 0.1) : 0;
+  lightPrev = now;
+  if (!lightRig || !lightRig.spin) return;
+  lightSpinAt = (lightSpinAt + dt * 30) % 360;
+  keyPosition();
+}
+// what the save keeps, and what a restored save gives back
+function presetNameOf(P){ for (const k in LIGHT_PRESETS) if (LIGHT_PRESETS[k] === P) return k; return 'default'; }
+function lightingSaveState(){
+  if (!lightRig) return {};
+  const r = Object.assign({}, lightRig); delete r.preset;
+  return { lighting: lightingName, lightRig: Object.assign(r, { base: presetNameOf(lightRig.preset) }) };
+}
+function restoreLighting(saved){
+  if (saved && saved.lightRig && typeof saved.lightRig === 'object'){
+    const r = saved.lightRig, base = LIGHT_PRESETS[r.base] || LIGHT_PRESETS.default;
+    const b = rigFromPreset(base);
+    lightRig = Object.assign(b, {
+      az: +r.az || 0, el: Number.isFinite(+r.el) ? +r.el : 45, key: Number.isFinite(+r.key) ? +r.key : b.key,
+      keyColor: /^#[0-9a-f]{6}$/i.test(r.keyColor) ? r.keyColor : b.keyColor,
+      rim: Number.isFinite(+r.rim) ? +r.rim : b.rim, fill: Number.isFinite(+r.fill) ? +r.fill : b.fill,
+      ambient: Number.isFinite(+r.ambient) ? Math.min(2, Math.max(0, +r.ambient)) : b.ambient,
+      head: typeof r.head === 'boolean' ? r.head : b.head, spin: !!r.spin });
+    lightingName = LIGHT_PRESETS[saved.lighting] ? saved.lighting : 'custom';
+    applyRig();
+  } else applyLighting(saved && saved.lighting);
+}
+document.querySelectorAll('#lightRow .btn').forEach(b => b.onclick = () => { applyLighting(b.dataset.light); saveState(); });
+for (const id of ['lKeyAz', 'lKeyEl', 'lKey', 'lKeyCol', 'lRim', 'lFill', 'lAmb']){
+  const e = document.getElementById(id); e.oninput = rigEdit; e.onchange = () => { rigEdit(); saveState(); };
+}
+for (const id of ['lHead', 'lSpin']) document.getElementById(id).onchange = () => { rigEdit(); saveState(); };
+applyLighting('default');
+
 // ---- Effects: the Armor Viewer's panel, 2026-09-13 ---------------------------------------------
 // Raven: "add in the Armor Viewer camera, lighting, effects to the Monster Viewer". Bloom, depth of
 // field, lens character and colour grading through render/fx.js. A preset fills the controls and lights
@@ -2138,7 +2285,7 @@ document.getElementById('shotBtn').onclick = () => {
   let url;
   try {
     if (ratio !== prev){ renderer.setPixelRatio(ratio); fx.setSize(sz.x, sz.y, ratio, lensState); }
-    head.position.copy(camera.position);
+    trackLights(); head.position.copy(camera.position);
     renderFrame();
     url = (capture.shotBg ? flatten(el) : el).toDataURL('image/png');
   } finally {
@@ -4003,6 +4150,8 @@ async function mount(){
     setupAttached();
     readLadder();                              // before buildGroups: it decides which clusters show
     buildGroups(); applyPartState(); paintAbout(); applyUndef(); applyExtend(); applyProxy(); applyRage();
+    // the Lighting panel's Ambient: setSHAmount reaches only materials that exist, and these are new
+    if (lightRig) setSHAmount(lightRig.ambient);
     // A fresh mount is a state change: a monster restored with Charged already ticked has to start
     // its Taiden_start ramp now, not at whatever time the previous monster's toggle was flipped.
     // AFTER applyRage, which is where a Charged that this monster cannot do gets cleared -- marking
@@ -5245,6 +5394,7 @@ document.getElementById('resetBtn').onclick = async () => {
                          normalFlip: false, normalScale: 1 });
   resetMonsterState();
   applyFxPreset('off');                    // Reset names Off, as the Armor Viewer's does
+  applyLighting('default');
   monFilter.value = '';
   buildMonsterList(); buildLists(); paintNormal();
   document.getElementById('monAnchor').checked = true;
@@ -5398,6 +5548,9 @@ function applySet(o){
   if (typeof o.camZoomCursor === 'boolean'){ controls.zoomToCursor = o.camZoomCursor; document.getElementById('camZoomCursor').checked = o.camZoomCursor; }
   if (typeof o.camFace === 'boolean') setFaceLock(o.camFace);
   if (o.postfx && typeof o.postfx === 'object') restoreEffects(o.postfx);
+  // a set without a rig keeps the one on screen, as the Armor Viewer's files do; the boot path starts
+  // from Default in any case (applyLighting at load)
+  if ((o.lightRig && typeof o.lightRig === 'object') || typeof o.lighting === 'string') restoreLighting(o);
   // the window's corner; a hand-edited or off-screen one is re-clamped by placeZonePanel()
   if (o.zonePos && Number.isFinite(o.zonePos.x) && Number.isFinite(o.zonePos.y))
     state.zonePos = { x: o.zonePos.x, y: o.zonePos.y };
@@ -5406,7 +5559,7 @@ function currentSet(){
   return Object.assign({}, state, {
     camera: cameraState(), orbitLocked, spinStep, wireOn, hideCursor, flySpeed: fly.speed,
     spinRev, camDamp: controls.enableDamping, camZoomCursor: !!controls.zoomToCursor, camFace: faceLock,
-    postfx: effectsState() });
+    postfx: effectsState(), ...lightingSaveState() });
 }
 if (SAVED) applySet(SAVED);
 buildMonsterList(); buildLists(); paintNormal(); paintOrbitLock(); paintSpin(); paintWire(); paintCursor();
@@ -5456,6 +5609,7 @@ renderer.setAnimationLoop(() => {
   paintAnim();
   // update() would look at the target, which fly does not have
   if (camMode === 'fly') stepFly(); else controls.update();
+  stepLighting(); trackLights();           // the key's orbit, and the rig turned to the view
   head.position.copy(camera.position);
   renderFrame();
   recFrame();
@@ -5505,7 +5659,7 @@ Object.assign(window.__view, {
     preset: applyFxPreset,
     set: (path, v) => { const [g, k] = path.split('.'); fxState[g][k] = v; fxName = 'custom'; fxApply(); paintFx(); },
     state: () => Object.assign({ name: fxName, active: fx.active, focusLive: fxFocusLive }, effectsState()),
-    render: () => { if (camMode !== 'fly') controls.update(); head.position.copy(camera.position); updateDepthBias(); renderFrame(0.5); },
+    render: () => { if (camMode !== 'fly') controls.update(); trackLights(); head.position.copy(camera.position); updateDepthBias(); renderFrame(0.5); },
     force: on => fx.force(on),
     stats: () => fx.stats()
   },
@@ -5700,7 +5854,7 @@ window.__view.shot = async function(run, nameArg, atArg){
     for (const g of Object.values(mounted)) stepMatAnim(g, tMat, stMat, midMat, 0, prevMatState, levelClip());
     stepRefract(renderer, scene, lensCamera(), THREE);
   }
-  controls.update(); head.position.copy(camera.position);
+  controls.update(); trackLights(); head.position.copy(camera.position);
   // the loop's own entry, on a fixed clock so an effect's grain is the same in every shot; with every
   // effect off (a scene run loads no saved state) it is the plain render the gate has always taken
   renderFrame(0.5);
