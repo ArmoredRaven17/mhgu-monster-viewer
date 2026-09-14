@@ -2608,7 +2608,7 @@ const STATE_DEFAULTS = { rage: false, charged: false, heated: true, rageLevel: 0
 const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: false,
                 anchor: true, groundLock: false, normalFlip: false, normalScale: 1,
                 // both OFF by default: see applyUndef and applyExtend
-                undef: false, extend: false, gap: false, proxy: false, ...STATE_DEFAULTS, rawParts: false, heat: '', heatTable: 0, deflectT: 'f25', deflectTier: 2,
+                undef: false, extend: false, gap: false, proxy: false, ...STATE_DEFAULTS, axes: {}, rawParts: false, heat: '', heatTable: 0, deflectT: 'f25', deflectTier: 2,
                 zoneTab: 'raw',
                 zoneShow: true, zonePos: null,
                 // the additive effect meshes as a class; the ROM's part table already keeps
@@ -2953,6 +2953,52 @@ function levelView(prev){
   if (!want && !had) return;
   setView(want, 'levels views');
 }
+// AN AXIS OF ITS OWN, NAMED BY HAND. Raven, 2026-09-14, on Soulseer Mizutsune: "Tail Fur can be groomed
+// or ungroomed on its own" and "Add a Tail Fur drop down for the tail ungroomed or groomed states". The
+// ROM has no tail-fur cluster to put a row on -- the tail's six members are its three breaks, each once
+// with the dry fur (parts 200..219) and once without -- so the second choice needs a control that is not
+// a cluster. A monster's `axes` in part-review.json declares one: {name, options: [...], after: the row
+// key it sits under}. A row says `"state": {"axis": "<key>"}` and splits its "a|b" keys on the option
+// index, exactly as a level row splits on the rung. Picks live in state.axes, are saved with a view, and
+// start over on a monster change like the other state controls.
+function axisOptions(id, key){
+  const a = ((reviewFor(id) || {}).axes || {})[key];
+  return (a && Array.isArray(a.options)) ? a.options : [];
+}
+function axisIndex(id, key){
+  const n = axisOptions(id, key).length;
+  return n ? Math.max(0, Math.min((state.axes || {})[key] | 0, n - 1)) : 0;
+}
+function buildAxisRows(e){
+  const axes = (reviewFor(e && e.id) || {}).axes;
+  if (!axes || typeof axes !== 'object') return;
+  for (const [key, a] of Object.entries(axes)){
+    const opts = axisOptions(e.id, key);
+    if (opts.length < 2){
+      console.warn('part-review: ' + e.id + ' axis "' + key + '" needs at least two options');
+      continue;
+    }
+    const row = document.createElement('div'); row.className = 'field';
+    row.dataset.axis = key;
+    const lab = document.createElement('label');
+    lab.textContent = String((a && a.name) || key);
+    const sel = document.createElement('select');
+    opts.forEach((t, i) => { const o = document.createElement('option');
+                             o.value = String(i); o.textContent = String(t); sel.appendChild(o); });
+    sel.value = String(axisIndex(e.id, key));
+    sel.onchange = () => {
+      state.axes = Object.assign({}, state.axes, { [key]: +sel.value | 0 });
+      buildGroups(); applyPartState(); saveState();
+    };
+    row.appendChild(lab); row.appendChild(sel);
+    const after = a && a.after;
+    const under = (after === undefined) ? null
+      : [...monGroupsEl.children].find(r => r.dataset.row === String(after));
+    if (after !== undefined && !under)
+      console.warn('part-review: ' + e.id + ' axis "' + key + '" sits after "' + after + '", which is not a row on screen');
+    if (under) under.after(row); else monGroupsEl.appendChild(row);
+  }
+}
 function rowStateOn(rv){
   const st = rv && rv.state;
   // TWO AXES AT ONCE. Kecha Wacha's enrage layer depends on the Enraged toggle AND on whether its
@@ -2970,6 +3016,8 @@ function rowStateOn(rv){
   }
   if (st && typeof st === 'object'){
     const e = entry();
+    // a hand-named axis answers with its option index -- see axisIndex()
+    if (st.axis !== undefined) return axisIndex(e && e.id, String(st.axis));
     const ids = v => String(v === undefined ? '' : v)
       .split(',').map(s => parseInt(s, 10)).filter(Number.isFinite);
     const want = ids(st.on), nope = ids(st.off);
@@ -3796,6 +3844,7 @@ function buildGroups(){
   // The quest-objective nouns used to be printed here as evidence to check the inferred names
   // against. Removed 2026-09-05 (Raven: "Remove the text at the bottom, it's out of place and
   // makes no sense to explain"). The data is still in partnames.json and build/notes/monsters.md.
+  buildAxisRows(e);
   buildAttachedRows(e);
   // the severed-pieces debug switch has nothing to show when every piece is an attached second body
   monTailRow.hidden = !(e && e.parts.some(p => !attachedBodyOf(e.id, p.name)));
@@ -5070,6 +5119,7 @@ function markStateChange(force){
 // where no rest clip follows. Opening a saved view or running a scene sets its own state instead.
 function resetMonsterState(){
   Object.assign(state, STATE_DEFAULTS);
+  state.axes = {};        // an object, so not in STATE_DEFAULTS, where Object.assign would share one
   prevMatState = curMatState = 'calm';
 }
 function applyProxy(){
@@ -5526,6 +5576,10 @@ function applySet(o){
   if (typeof o.level === 'number') state.level = Math.max(0, o.level | 0);
   if (typeof o.variant === 'number') state.variant = Math.max(0, o.variant | 0);
   if (typeof o.size === 'number') state.size = Math.max(0, o.size | 0);
+  if (o.axes && typeof o.axes === 'object' && !Array.isArray(o.axes)){
+    state.axes = {};
+    for (const [k, v] of Object.entries(o.axes)) if (typeof v === 'number') state.axes[k] = Math.max(0, v | 0);
+  }
   if (typeof o.rawParts === 'boolean'){ state.rawParts = o.rawParts; rawParts = o.rawParts; }
   const TABMAP = { zones: 'raw', parts: 'extracts', bounce: 'hardness' };
   const tab = TABMAP[o.zoneTab] || o.zoneTab;
@@ -5683,6 +5737,7 @@ window.__view.review = function(verbose){
   const rows = {};
   const seen = [];
   for (const f of document.querySelectorAll('#monGroups .field')){
+    if (f.dataset.axis) continue;                    // a hand-named axis is declared under `axes`, not `rows`
     const lab = f.querySelector('label');
     const sel = f.querySelector('select');
     const key = f.dataset.row;                       // not the visible ids: a reviewed row has none
