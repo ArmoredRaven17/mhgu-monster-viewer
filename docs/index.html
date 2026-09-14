@@ -605,7 +605,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <!-- Hit zones is its own panel (Raven, 2026-09-05: "Hitzones, this will be a new panel",
            "the idea will be to display the Hitzone chart along with the Heatmaps"). The chart and
            the heat map are one control: a column header both selects the type and paints it. -->
-      <section class="panel" data-open="false">
+      <section class="panel" id="hitZonesPanel" data-open="false">
         <button class="panel-head">Hit Zones <span class="chev">&#9662;</span></button>
         <div class="panel-body">
           <div class="field" id="monHeatRow" hidden>
@@ -639,7 +639,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
               <option value="4">Tier 4 &mdash; 0.66</option>
             </select>
           </div>
-          <label class="chk" id="monZoneShowRow"><input type="checkbox" id="monZoneShow">Show the Chart over the Render</label>
+          <label class="chk" id="monZoneShowRow"><input type="checkbox" id="monZoneShow" checked>Show the Chart over the Render</label>
           <p class="hint" id="monZoneNote" hidden></p>
         </div>
       </section>
@@ -2614,7 +2614,7 @@ const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: fals
                 // both OFF by default: see applyUndef and applyExtend
                 undef: false, extend: false, gap: false, proxy: false, ...STATE_DEFAULTS, axes: {}, rawParts: false, heat: '', heatTable: 0, deflectT: 'f25', deflectTier: 2,
                 zoneTab: 'raw',
-                zoneShow: false, zonePos: null,
+                zoneShow: true, zonePos: null,
                 // the additive effect meshes as a class; the ROM's part table already keeps
                 // them off at rest, so this is a way to look at them, not a correction
                 effects: true };
@@ -5449,12 +5449,18 @@ document.getElementById('monGap').onchange = e => {
 };
 document.getElementById('monZoneShow').onchange = e => { state.zoneShow = e.target.checked; paintZonePanel(); saveState(); };
 document.getElementById('zoneClose').onclick = () => {
+  state.zoneShow = false; document.getElementById('monZoneShow').checked = false;
   // Closing the window turns the map off too (Raven, 2026-09-05). Leaving the monster painted with
   // its chart gone gave no way to read the colours and no obvious way to undo it.
-  state.zoneShow = false; document.getElementById('monZoneShow').checked = false;
-  state.heat = '';
-  document.getElementById('monHeat').value = '';
-  applyHeat().then(applyGap).catch(noteError);
+  // EXCEPT WHILE THE HIT ZONES PANEL IS OPEN. Raven, 2026-09-14: "While on the Hit Zones panel, have it
+  // simply close as the user is actively looking at the heat maps. Outside of the hit zone panel, have
+  // it turn off heat mapping." In that panel the Heat Map dropdown and the chart's own toggle are both
+  // on screen, so the map is one pick from off and the chart one tick from back.
+  if (document.getElementById('hitZonesPanel').dataset.open !== 'true'){
+    state.heat = '';
+    document.getElementById('monHeat').value = '';
+    applyHeat().then(applyGap).catch(noteError);
+  }
   paintZonePanel(); saveState();
 };
 normScaleEl.oninput = e => { state.normalScale = +e.target.value; paintNormal(); saveState(); };
@@ -5637,11 +5643,6 @@ function currentSet(){
     postfx: effectsState(), ...lightingSaveState() });
 }
 if (SAVED){ applySet(SAVED); resetHiddenDebug(); }
-// THE HIT-ZONE CHART STARTS HIDDEN ON EVERY LOAD. Raven, 2026-09-14: "the hit zone table appears on load
-// in, hide it until the hit zone panel to show it is enabled". A view saved while it showed -- which was
-// every view, while it defaulted on -- would otherwise bring it straight back. Show the Chart over the
-// Render, in the Hit Zones panel, turns it on; Open still restores a file's own setting.
-state.zoneShow = false;
 buildMonsterList(); buildLists(); paintNormal(); paintOrbitLock(); paintSpin(); paintWire(); paintCursor();
 document.getElementById('monAnchor').checked = state.anchor;
 document.getElementById('monGround').checked = state.groundLock;
