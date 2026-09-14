@@ -22,7 +22,7 @@ import { createRomMaterial, enableRomCore, romCoreEnabled,
          enableRomAmbient, romAmbientEnabled, setSHAmount,
          enableRomSpecular, romSpecularEnabled, setRomSpecularAmount, anchorMisses,
          enableRomPhong, romPhongEnabled,
-         setCutoutSolid, cutoutSolidCount, cutoutAnchorMisses } from './rom/material.js';
+         setCutoutSolid, cutoutSolidCount, cutoutAnchorMisses, setRomAlphaRef } from './rom/material.js';
 import { setGlobalEnvCube, setGlobalReflection, globalReflectionOn } from './rom/specular.js';
 
 // THE GLOBAL ENVIRONMENT CUBE, the engine's own default (system\texture\DefaultCube_CM) -- see
@@ -729,6 +729,77 @@ export function applyParts(root, drawn){
     const v = drawn.get(o.userData.part);
     o.visible = (v === undefined) ? true : v;
   });
+  applyBreakAlpha(root, drawn);
+}
+
+// A BREAK THAT TEARS A MEMBRANE IS AN ALPHA-TEST REFERENCE, NOT A MESH. Raven, 2026-09-13, on Alatreon:
+// "Review the parts again, it feels really odd that the 'break' isn't more noticeable ... Especially on a
+// monster of this size and one that stays in the air a lot; you'd want to communicate the break clearly".
+//
+// The part swap alone cannot show it: parts 11/21 (and 12/22) are one glow mesh on the two halves of the
+// m03_add sheet, and inside the mesh's UVs those halves differ by a mean of 2 levels in 255. The tear is in
+// the MEMBRANE's own albedo alpha: m50_wing_l / m51_wing_r carry grey streaks and holes (3,434 texels at
+// alpha 101-150 inside the membrane's UVs) that the MRL's GREATER 20 keeps. uEm050_00's frame 0xecd5fc
+// raises the reference when the wing breaks, on the same break count and threshold that pick the glow group:
+//
+//     0xecda90  material MRL id 50 (0x72c08)   break index 4, threshold bytes +9 / +10   groups 7 / 16
+//     0xecdc14  material MRL id 51             break index 3, threshold bytes +13 / +14  groups 8 / 17
+//     (the second byte of each pair where 0x3a8430 returns above 4, as in the group switch at 0xecdf04)
+//     count >= threshold, latch clear:  +0x14 = (+0x14 & 0xffc03eff) | 0x258100   ref 150, latch set
+//     count <  threshold, latch set:    +0x14 = (+0x14 & 0xffc03eff) | 0x050100   ref 20, latch clear
+//     then 0x88bcf8, which drops the model's cached draw keys so the new state is bound
+//
+// (latches [enemy+0xcb08] / [enemy+0xcb09]; group 16 draws part 21 and 17 draws 22, rMonsterPartsManager.)
+// Ref 20 is the MRL's own value, so taking the write back is the same as restoring the MRL. Side by
+// measurement, not by name alone: m50_wing_l spans x 13964..25126 on joints 22-24, parts 11/21 x 13290..25126
+// on joints 22/23. The viewer has no break count, so the part the row DRAWS stands for it: the broken part
+// drawn is the count past its threshold. __breakAlpha(false) leaves every reference at the MRL's.
+export const ROM_BREAK_ALPHA = {
+  em050_00: [{ part: 21, mat: 'XfBAN__E0__m50_wing_l', ref: 150 },
+             { part: 22, mat: 'XfBAN__E0__m51_wing_r', ref: 150 }],
+};
+let breakAlphaOn = true;
+const breakAlphaRoots = new Set();
+function applyBreakAlpha(root, drawn){
+  const monId = root && root.userData && root.userData.monId;
+  const rows = monId && ROM_BREAK_ALPHA[monId];
+  if (!rows) return 0;
+  root.userData.breakAlphaDrawn = drawn;
+  // an unmounted model leaves the scene; drop it here so the set never holds a released monster
+  for (const r of breakAlphaRoots) if (r !== root && !r.parent) breakAlphaRoots.delete(r);
+  breakAlphaRoots.add(root);
+  let n = 0;
+  for (const r of rows){
+    const v = drawn ? drawn.get(r.part) : undefined;
+    const broken = breakAlphaOn && (v === undefined ? true : !!v);
+    root.traverse(o => {
+      if (!(o.isMesh || o.isSkinnedMesh)) return;
+      for (const m of matsOfMesh(o)) if (m && m.name === r.mat && setRomAlphaRef(m, broken ? r.ref : null)) n++;
+    });
+  }
+  return n;
+}
+export function setBreakAlpha(on){
+  breakAlphaOn = !!on;
+  for (const root of [...breakAlphaRoots]) applyBreakAlpha(root, root.userData.breakAlphaDrawn);
+  return breakAlphaOn;
+}
+if (typeof window !== 'undefined'){
+  // readback: { on, materials: [{ name, ref }] } -- ref null is the MRL's own
+  window.__breakAlpha = (on) => {
+    if (on !== undefined) setBreakAlpha(on);
+    const mats = [];
+    for (const root of breakAlphaRoots) if (root.parent) root.traverse(o => {
+      if (!(o.isMesh || o.isSkinnedMesh)) return;
+      for (const m of matsOfMesh(o)){
+        const rows = ROM_BREAK_ALPHA[root.userData.monId] || [];
+        if (m && rows.some(r => r.mat === m.name) && !mats.some(x => x.name === m.name))
+          mats.push({ name: m.name, ref: m.userData.romRefOverride === undefined ? null : m.userData.romRefOverride,
+                      testing: !!(m.userData.romAlphaUniforms && m.userData.romAlphaUniforms.uRomAT.value) });
+      }
+    });
+    return { on: breakAlphaOn, materials: mats };
+  };
 }
 // A cluster the rage ladder partly owns still holds real user choices -- the horn-break variants
 // sit in the same clusters as the effect geometry on Bloodbath. Raven, 2026-09-10: "You removed the

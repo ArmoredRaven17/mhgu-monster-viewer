@@ -652,7 +652,7 @@ export function enableRomAlphaTest(on){
   romAlphaTest = (on === 'default' || on === null) ? null : !!on;
   let tested = 0, untested = 0, active = 0;
   for (const m of alphaMats){
-    const onHere = romAlphaTestFor(m.userData.romRef);
+    const onHere = romAlphaTestLive(m);
     const h = m.userData.romAlphaUniforms;
     if (h) h.uRomAT.value = onHere ? 1 : 0;
     // three.js keeps its own `alphaTest` discard, the rule used with this off; it has to go when the
@@ -664,6 +664,30 @@ export function enableRomAlphaTest(on){
   }
   return { on: romAlphaTest === null ? 'default' : romAlphaTest, romTested: tested, testing: active,
            legacyCutoutsWithNoRomTest: untested };
+}
+// A reference the GAME WRITES AT RUN TIME holds its test on whatever the switch above says: the ROM's
+// write sets the enable bit with the new byte, so the test is on by the game's own hand, not by review.
+function romAlphaTestLive(m){
+  return (m.userData.romRefOverride !== undefined) || romAlphaTestFor(m.userData.romRef);
+}
+// Set the reference a monster's class writes into nDraw::Material+0x14 bits 14..21 at run time -- the
+// write is `(word & 0xffc03eff) | 0x100 | ref << 14`, which keeps the function bits (9..13) and sets the
+// enable (bit 8). `null` takes the write back: the material returns to its MRL reference and to the
+// switch above. Only a material whose MRL already carries a live test has the uniforms for it; any other
+// returns false and is left alone (no such write is read yet). render/monster.js ROM_BREAK_ALPHA calls it.
+export function setRomAlphaRef(mat, ref){
+  const h = mat && mat.userData && mat.userData.romAlphaUniforms;
+  const at = mat && mat.userData && mat.userData.romAlphaTest;
+  if (!h || !at) return false;
+  if (ref === null || ref === undefined) delete mat.userData.romRefOverride;
+  else mat.userData.romRefOverride = Math.max(0, Math.min(255, ref | 0));
+  const byte = (mat.userData.romRefOverride !== undefined) ? mat.userData.romRefOverride : at.ref;
+  h.uRomATRef.value = byte / 255;
+  const onHere = romAlphaTestLive(mat);
+  h.uRomAT.value = onHere ? 1 : 0;
+  const want = onHere ? 0 : mat.userData.legacyAlphaTest;
+  if (mat.alphaTest !== want){ mat.alphaTest = want; mat.needsUpdate = true; }
+  return true;
 }
 // Uniforms live on their own holder, NOT on userData.u: the shared material.js treats any userData.u
 // as applyTint's full block, and an unlit material has none.
@@ -700,6 +724,8 @@ if (typeof window !== 'undefined'){
   window.__romAlphaTest = on => (on === undefined
     ? { on: romAlphaTest === null ? 'default' : romAlphaTest, materials: alphaMats.size,
         testing: [...alphaMats].filter(m => m.userData.romAlphaUniforms && m.userData.romAlphaUniforms.uRomAT.value).length,
+        runtimeRefs: [...alphaMats].filter(m => m.userData.romRefOverride !== undefined)
+                                   .map(m => ({ name: m.name, ref: m.userData.romRefOverride })),
         anchorMisses: alphaTestMisses.slice() }
     : enableRomAlphaTest(on));
 }
