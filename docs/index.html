@@ -1235,6 +1235,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          setProxyVisible, proxyCount, enrageParts, ROM_SPAWN_CLIP,
          ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels, levelClipFor, setClipFor,
          attachedBodyOf, attachedClipFor, partnerBodyOf, composeClip, sequenceClipFor, seqFrames,
+         FULL_ANIM_LIST, romAnimationsOf,
          stepEarFold, stepTailSwell, romFormsOf,
          monsterMats,
          enableRomAmbient, enableRomSpecular, enableRomPhong,
@@ -1257,17 +1258,26 @@ if (CLEAN){ document.querySelector('.sidebar').style.display = 'none';
             document.querySelector('.titlebar').style.display = 'none'; }
 
 const MON = await loadJson('monsters.json');
-// A SEQUENCE IS OFFERED AS ONE MORE CLIP on its list, after the ROM's own (render/monster.js ROM_PARTNER_BODY
-// `sequences`, composeClip). Raven, 2026-09-14: "See if we can make a complete animation using multiple clips".
+// FULL ANIMATIONS ON ONE LIST (render/monster.js ROM_ANIMATIONS, composeClip). Raven, 2026-09-14: "The end goal is
+// to combine clips into full animations, then name the animation, have a single list for the end user". Each
+// monster that has any gets one more list, FULL_ANIM_LIST, after the ROM's own; each entry is a clip-shaped
+// { clip: name, dur, pieces: [{ list, clip }] }. The list's `file` is its first piece's, which the pose driver
+// needs to build its proxy; the joined clip itself is handed over ready-made (play()).
 for (const m of MON.monsters){
-  const spec = partnerBodyOf(m.id);
-  for (const s of (spec && spec.sequences) || []){
-    const l = (m.lists || []).find(x => x.id === s.list);
-    const parts = l ? s.clips.map(n => (l.clips || []).find(c => c.clip === n)) : [];
-    if (!l || parts.some(p => !p)){ noteError('sequence ' + s.name + ': a clip is missing from list ' + s.list); continue; }
-    if (!l.clips.some(c => c.clip === s.name))
-      l.clips.push({ clip: s.name, dur: parts.reduce((t, p) => t + p.dur, 0), seq: s.clips.slice() });
+  const anims = romAnimationsOf(m.id);
+  if (!anims.length) continue;
+  const clips = [];
+  for (const an of anims){
+    const pieces = an.pieces.map(([lid, cn]) => {
+      const l = (m.lists || []).find(x => String(x.id) === String(lid));
+      const c = l && (l.clips || []).find(x => x.clip === cn);
+      return c ? { list: l, clip: cn, dur: c.dur } : null;
+    });
+    if (pieces.some(p => !p)){ noteError('full animation ' + an.name + ': a piece is missing from ' + m.id); continue; }
+    clips.push({ clip: an.name, dur: pieces.reduce((t, p) => t + p.dur, 0), pieces });
   }
+  if (clips.length && !(m.lists || []).some(l => l.id === FULL_ANIM_LIST.id))
+    m.lists.push({ id: FULL_ANIM_LIST.id, label: FULL_ANIM_LIST.label, file: clips[0].pieces[0].list.file, clips, full: true });
 }
 // Part NAMES, built by build-part-names.py. Optional: an older deploy without the file still
 // runs, the rows just read as part ids. See that script for where the names come from -- the
@@ -2785,7 +2795,7 @@ function buildLists(){
   const hideIds = attachedListIds(e);
   const lists = ((e && e.lists) || []).filter(l => !hideIds.has(l.id)).slice().sort(listOrder);
   monListSel.innerHTML = lists.map(l =>
-    '<option value="' + l.id + '">List ' + l.id + ' &mdash; ' + (l.clips || []).length + ' clips' +
+    '<option value="' + l.id + '">' + (l.label || ('List ' + l.id)) + ' &mdash; ' + (l.clips || []).length + ' clips' +
     (l.shared ? ' (shared)' : '') + '</option>').join('');
   if (!lists.some(l => l.id === state.list)){
     // the monster's own opening list where one is set, else the first the ROM gives
@@ -4218,22 +4228,33 @@ async function setPartner(e, on){
 // A clip the ROM pair table names (ROM_PARTNER_BODY `pairs`, the Motion[76]..[79] test case) takes its entry first:
 // `wrap` loops the partner clip on the body clip's time, `holdAfter` freezes it at (that body clip's length) modulo
 // (its own length) -- where its loop stood when the body finished that clip.
-// A SEQUENCE (c.seq) pairs piece by piece through the same table, on one joined timeline (partnerSequenceClip).
+// A FULL ANIMATION (c.pieces) pairs piece by piece by the same rules -- the ROM table, else the same name or
+// number on the partner list, else the combine's loop -- on one joined timeline (partnerSequenceClip).
+function partnerPieceOf(a, listId, clipName){
+  const lists = (a.part && a.part.lists) || [];
+  const pl = lists.find(x => x.id === a.spec.list);
+  if (!pl) return null;
+  const clips = pl.clips || [];
+  if (String(listId) === String(a.spec.list)){
+    const rp = a.spec.pairs && a.spec.pairs[clipName];
+    if (rp && clips.some(x => x.clip === rp.clip)) return { list: pl, clip: rp.clip, mode: rp.holdAfter ? 'hold' : 'wrap' };
+    let hit = clips.find(x => x.clip === clipName);
+    const mm = !hit && /^Motion\[(\d+)\]/.exec(clipName);
+    if (mm) hit = clips.find(x => x.clip.startsWith('Motion[' + mm[1] + ']'));
+    if (hit) return { list: pl, clip: hit.clip, mode: 'play' };
+  }
+  return { list: pl, clip: a.spec.clip, mode: 'wrap' };
+}
 function partnerClipOf(a, l, c){
   const lists = (a.part && a.part.lists) || [];
-  const pl = l && l.id === a.spec.list && lists.find(x => x.id === l.id);
-  if (pl && c && c.seq){
-    const segs = [];
-    for (const n of c.seq){
-      const rp = a.spec.pairs && a.spec.pairs[n];
-      if (!rp || !(pl.clips || []).some(x => x.clip === rp.clip)){
-        noteError('partner sequence ' + c.clip + ': no ROM pair for ' + n);
-        segs.length = 0; break;
-      }
-      segs.push({ body: n, clip: rp.clip, hold: !!rp.holdAfter });
-    }
-    if (segs.length) return { list: pl, clip: c.clip, paired: true, rom: true, hold: null, seq: segs };
+  if (c && c.pieces){
+    const segs = c.pieces.map(p => ({ bodyList: p.list, body: p.clip, pick: partnerPieceOf(a, p.list.id, p.clip) }));
+    const pl = lists.find(x => x.id === a.spec.list);
+    if (pl && segs.every(s => s.pick))
+      return { list: pl, clip: c.clip, paired: true, rom: true, hold: null,
+               seq: segs.map(s => ({ bodyList: s.bodyList, body: s.body, clip: s.pick.clip, mode: s.pick.mode })) };
   }
+  const pl = l && l.id === a.spec.list && lists.find(x => x.id === l.id);
   if (pl && c){
     const clips = pl.clips || [];
     const rp = a.spec.pairs && a.spec.pairs[c.clip];
@@ -4285,17 +4306,19 @@ function attachFrame(a){
 // the body's own frame counts so the two timelines line up frame for frame. The partner's clock runs on through
 // pieces that keep the same clip -- a wrap continues its loop, a hold stays where that loop stood -- and a new
 // clip starts from its frame 0.
-async function partnerSequenceClip(a, pick, l, e){
+async function partnerSequenceClip(a, pick, e){
   const pieces = [];
   let prev = null, clock = 0;
   for (const s of pick.seq){
-    const bclip = await clipFor(l, s.body, e.glb);
+    const bclip = await clipFor(s.bodyList, s.body, e.glb);
     const pclip = await clipFor(pick.list, s.clip, a.part.glb);
     if (!bclip || !pclip) return null;
     const frames = seqFrames(bclip);
-    if (!prev || prev.clip !== s.clip) clock = 0;
-    pieces.push({ clip: pclip, frames, mode: s.hold ? 'hold' : 'wrap', start: clock });
-    if (!s.hold && pclip.duration > 0) clock = (clock + frames / 60) % pclip.duration;
+    // a new clip, or a same-number pair ('play', which runs with the body's piece), starts from its frame 0
+    if (!prev || prev.clip !== s.clip || s.mode === 'play') clock = 0;
+    pieces.push({ clip: pclip, frames, mode: s.mode, start: clock });
+    if (s.mode === 'wrap' && pclip.duration > 0) clock = (clock + frames / 60) % pclip.duration;
+    if (s.mode === 'play') clock = Math.min(frames / 60, pclip.duration);
     prev = s;
   }
   return composeClip(pick.clip, pieces, a.part.glb);
@@ -4306,7 +4329,7 @@ async function playAttached(l, c){
     const root = mounted[name];
     if (a.partner){
       const pick = partnerClipOf(a, l, c);
-      const pclip = !pick ? null : pick.seq ? await partnerSequenceClip(a, pick, l, e)
+      const pclip = !pick ? null : pick.seq ? await partnerSequenceClip(a, pick, e)
                                              : await clipFor(pick.list, pick.clip, a.part.glb);
       if (!attached.has(name) || attached.get(name) !== a) continue;
       if (!pclip){ a.driver.stop(); a.pick = null; restoreBind(root); continue; }
@@ -5419,8 +5442,8 @@ async function play(){
   // 18 monsters play another monster's motion list (Rathalos uses Rathian's, Genprey uses
   // Velociprey's). Those files name their tracks after the OWNER's bones, so the clip is
   // retargeted onto this model by global bone id first -- see clipFor.
-  // a sequence (c.seq) is its clips joined into one -- see composeClip in render/monster.js
-  const clip3 = c.seq ? await sequenceClipFor(l, c, e.glb) : await clipFor(l, c.clip, e.glb);
+  // a full animation (c.pieces) is its clips joined into one -- see composeClip in render/monster.js
+  const clip3 = c.pieces ? await sequenceClipFor(c, e.glb) : await clipFor(l, c.clip, e.glb);
   if (mine !== playSeq) return;          // a later selection won while this one was loading
   await pose.play({ file: l.file, clip: c.clip, model: e.glb, clip3 },
                   { figure: 'monster', joints: e.joints || [],

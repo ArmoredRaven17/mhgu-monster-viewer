@@ -1187,13 +1187,6 @@ export function attachedBodyOf(monId, pieceName){
 //     to 1.0) or his 1200-frame timer ending (then 1:0x22, 0xfc9ab4: unlink, the combined bit cleared, his
 //     Motion[77] falling, list 3 Motion[11] on landing) moves him on, and that timer outlasts her clips.
 // Where he is comes from joint 200 itself (attachFrame), which her tracks carry; the table only picks his pose.
-//
-// `sequences` chains those clips into ONE animation (composeClip below), in the order her actions hand over:
-// 1:0x21 moves on when Motion[76] first reaches its end -- the start and one pass of its loop -- if Seltas is
-// already in 1:0x1f (else she keeps looping it, up to a 600-frame timer: taken here as ready); 1:0x22 at the end
-// of Motion[77]; 1:0x23 after one pass of the Motion[78] loop (its attacks at 84 and 156 fall inside it); 1:0x24
-// ends with Motion[79]. Seltas' side is built from `pairs` on the same timeline, his clock running on through
-// pieces that keep the same clip, so the hold lands where his loop actually stood.
 export const ROM_PARTNER_BODY = {
   em069_00: { monster: 'em076_00', joint: 200, list: '4', clip: 'Motion[35]_loop',
               groups: [3, 8, 11], partsOff: [1, 2, 3, 4],
@@ -1204,18 +1197,33 @@ export const ROM_PARTNER_BODY = {
                 'Motion[77]':       { clip: 'Motion[79]_loop', wrap: true },
                 'Motion[78]_loop':  { clip: 'Motion[79]_loop', holdAfter: 'Motion[77]' },
                 'Motion[79]':       { clip: 'Motion[79]_loop', holdAfter: 'Motion[77]' },
-              },
-              sequences: [
-                { name: 'S. Motion[76]-[79]', list: '4',
-                  clips: ['Motion[76]_start', 'Motion[76]_loop', 'Motion[77]', 'Motion[78]_loop', 'Motion[79]'] },
-              ] },
+              } },
 };
 export function partnerBodyOf(monId){ return (monId && ROM_PARTNER_BODY[monId]) || null; }
 
-// ---- clips played back to back ------------------------------------------------------------------
-// Raven, 2026-09-14: "See if we can make a complete animation using multiple clips". A sequence (ROM_PARTNER_BODY
-// `sequences`) is offered on its list as one more clip, built here as ONE AnimationClip so the transport, the
-// scrubber and the loop treat it like any other. Every piece is resampled at the motions' own 60 frames a second
+// ---- full animations: clips played back to back, on one list ------------------------------------------
+// Raven, 2026-09-14: "See if we can make a complete animation using multiple clips", then "The end goal is to
+// combine clips into full animations, then name the animation, have a single list for the end user" (and, for
+// where they go meanwhile, "make a List Special"). A full animation is the chain of clips one of the monster's
+// action sequences plays, each piece a (list, clip) so a chain may cross lists; index.html offers every one on a
+// single extra list, FULL_ANIM_LIST, beside the ROM's own lists (which stay until the animation review).
+// `name` is what the user sees -- a placeholder in the S. convention until Raven names it.
+//   em069_00 'S. Motion[76]-[79]' -- her 1:0x21..0x24 (see `pairs` above for each action): 1:0x21 moves on
+//     when Motion[76] first reaches its end -- the start and one pass of its loop -- if Seltas is already in
+//     1:0x1f (else she keeps looping it, up to a 600-frame timer: taken here as ready); 1:0x22 at the end of
+//     Motion[77]; 1:0x23 after one pass of the Motion[78] loop (its attacks at 84 and 156 fall inside it); 1:0x24
+//     ends with Motion[79]. Seltas' side is built from `pairs` on the same timeline.
+export const FULL_ANIM_LIST = { id: 'Special', label: 'Special' };
+export const ROM_ANIMATIONS = {
+  em069_00: [
+    { name: 'S. Motion[76]-[79]',
+      pieces: [['4', 'Motion[76]_start'], ['4', 'Motion[76]_loop'], ['4', 'Motion[77]'], ['4', 'Motion[78]_loop'],
+               ['4', 'Motion[79]']] },
+  ],
+};
+export function romAnimationsOf(monId){ return (monId && ROM_ANIMATIONS[monId]) || []; }
+// A full animation is built as ONE AnimationClip so the transport, the scrubber and the loop treat it like any
+// other clip. Every piece is resampled at the motions' own 60 frames a second
 // onto the joined timeline: `play` runs the piece from `start`, `wrap` loops it from `start`, `hold` stays on
 // `start`. A track a piece does not carry takes the model's bind value for that stretch -- what the driver shows
 // when it plays that piece alone (PoseDriver.play resets every node to bind first). Cuts between pieces are hard:
@@ -1255,14 +1263,15 @@ export async function composeClip(name, pieces, modelUrl){
   }
   return new THREE.AnimationClip(name, total / SEQ_FPS, tracks);
 }
-// A sequence's own clip on its own model: its pieces played through, each from frame 0.
-export async function sequenceClipFor(list, entry, modelUrl){
-  const key = 'seq:' + modelUrl + ':' + list.file + ':' + entry.clip;
+// A full animation's own clip on its own model: its pieces ({ list, clip }, the list objects resolved by the
+// caller) played through, each from frame 0.
+export async function sequenceClipFor(entry, modelUrl){
+  const key = 'seq:' + modelUrl + ':' + entry.pieces.map(p => p.list.file + '#' + p.clip).join('|');
   const cached = poseCache.get(key);
   if (cached) return cached;
   const pieces = [];
-  for (const n of entry.seq){
-    const clip = await clipFor(list, n, modelUrl);
+  for (const p of entry.pieces){
+    const clip = await clipFor(p.list, p.clip, modelUrl);
     if (!clip) return null;
     pieces.push({ clip, frames: seqFrames(clip), mode: 'play', start: 0 });
   }
