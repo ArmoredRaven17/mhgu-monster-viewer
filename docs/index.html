@@ -1234,7 +1234,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts, ROM_SPAWN_CLIP,
          ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels, levelClipFor, setClipFor,
-         attachedBodyOf, attachedClipFor, stepEarFold, stepTailSwell, romFormsOf,
+         attachedBodyOf, attachedClipFor, partnerBodyOf, stepEarFold, stepTailSwell, romFormsOf,
          monsterMats,
          enableRomAmbient, enableRomSpecular, enableRomPhong,
          setSHAmount, setRomSpecularAmount, anchorMisses } from './render/monster.js';
@@ -3865,6 +3865,7 @@ function buildGroups(){
   // makes no sense to explain"). The data is still in partnames.json and build/notes/monsters.md.
   buildAxisRows(e);
   buildAttachedRows(e);
+  buildPartnerRow(e);
   // the severed-pieces debug switch has nothing to show when every piece is an attached second body
   monTailRow.hidden = !(e && e.parts.some(p => !attachedBodyOf(e.id, p.name)));
   monTail.checked = state.tail;
@@ -4001,6 +4002,15 @@ function applyPartState(){
     // AN ATTACHED SECOND BODY IS NOT A SHED PIECE: it is always there, in the form its own row picks
     // (buildAttachedRows) -- one of its own .mpm groups -- or the one the ROM starts it in until then.
     const a = attached.get(k);
+    if (a && a.partner){
+      // A COMBINED PARTNER draws the combined result ROM_PARTNER_BODY names, on its own part table
+      g.visible = true;
+      const groups = (a.part && a.part.groups) || [];
+      const drawn = partsDrawn(groups, groups.map((_, i) => a.spec.groups.includes(i)));
+      for (const p of a.spec.partsOff || []) drawn.set(p, false);
+      applyParts(g, drawn);
+      continue;
+    }
     if (a){
       g.visible = true;
       const form = attachedFormOf(e, k);
@@ -4109,11 +4119,101 @@ function setupAttached(){
     attached.set(p.name, { driver, frame, jointNode, restInv, spec, part: p });
     mounted[p.name].position.set(0, 0, 0);
   }
+  setupPartner(e);
+}
+// ---- a combined partner (Seltas on the Seltas Queen) ---------------------------------------------------
+// ROM_PARTNER_BODY in render/monster.js for the reads. The partner is another monster's own model, mounted
+// beside the body and kept in `attached`, so the body's driver never moves it and the prop fan leaves it
+// alone. It plays its own clip on its own pose driver, held to the body clip's time, through a frame that
+// is the body joint's position and rotation at the partner's own size. Raven, 2026-09-14: "For now, we only
+// need the result of the combine."
+const partnerOn = {};                        // monster id -> the Combined row is on
+function buildPartnerRow(e){
+  const spec = e && partnerBodyOf(e.id);
+  const prec = spec && MON.monsters.find(m => m.id === spec.monster);
+  if (!prec) return;
+  const row = document.createElement('div'); row.className = 'field';
+  row.dataset.row = 'partner:' + spec.monster;
+  const lab = document.createElement('label');
+  lab.textContent = prec.name;
+  lab.title = prec.name + ' (' + spec.monster + '), combined on body joint ' + spec.joint;
+  const sel = document.createElement('select');
+  for (const [v, t] of [['0', 'Off'], ['1', 'Combined']]){
+    const o = document.createElement('option'); o.value = v; o.textContent = t; sel.appendChild(o);
+  }
+  sel.value = partnerOn[e.id] ? '1' : '0';
+  sel.onchange = () => { setPartner(e, sel.value === '1'); };
+  row.appendChild(lab); row.appendChild(sel);
+  monGroupsEl.appendChild(row);
+}
+function loadPartnerModel(spec){
+  const prec = MON.monsters.find(m => m.id === spec.monster);
+  return prec ? loadMonster(prec, {}, { wire: wireOn }) : Promise.resolve(null);
+}
+function setupPartner(e){
+  const spec = e && partnerBodyOf(e.id);
+  if (!spec || !mounted[spec.monster] || !mounted.main) return;
+  let jointNode = null;
+  for (const b of gidBonesOf(mounted.main)) if (b.gid === spec.joint){ jointNode = b.node; break; }
+  if (!jointNode){ noteError('partner ' + spec.monster + ': body joint ' + spec.joint + ' not found'); return; }
+  const frame = new THREE.Object3D();
+  frame.matrixAutoUpdate = false;
+  const driver = new PoseDriver({ frame, onError: msg => noteError(msg) });
+  const part = MON.monsters.find(m => m.id === spec.monster);
+  attached.set(spec.monster, { driver, frame, jointNode, restInv: null, spec, part, partner: true });
+  const g = mounted[spec.monster];
+  g.position.set(0, 0, 0);
+  g.userData.partnerClip = spec.matClip || null;
+}
+function dropPartner(spec){
+  const a = attached.get(spec.monster);
+  if (a){ a.driver.stop(); attached.delete(spec.monster); }
+  const g = mounted[spec.monster];
+  if (g){ world.remove(g); releaseMonster(g); delete mounted[spec.monster]; }
+}
+// The row's change: mount or drop the partner alone, so the body keeps its parts, clip and camera.
+async function setPartner(e, on){
+  const spec = partnerBodyOf(e.id);
+  if (!spec) return;
+  partnerOn[e.id] = !!on;
+  if (!on){ dropPartner(spec); applyPartState(); return; }
+  if (mounted[spec.monster]) return;
+  const mine = seq;
+  setLoading(true);
+  try {
+    const g = await loadPartnerModel(spec);
+    if (!g) return;
+    if (mine !== seq || entry() !== e || !partnerOn[e.id] || mounted[spec.monster]){ releaseMonster(g); return; }
+    world.add(g); mounted[spec.monster] = g;
+    setupPartner(e);
+    applyPartState(); applyUndef(); applyExtend(); applyProxy();
+    if (lightRig) setSHAmount(lightRig.ambient);
+    const l = listOf(e), c = clipOf(l);
+    if (c) await playAttached(l, c);
+    stepAttached();
+  } finally { setLoading(false); }
+}
+const _pp = new THREE.Vector3(), _pq = new THREE.Quaternion(), _ps = new THREE.Vector3(), _pm = new THREE.Matrix4();
+// no clip playing: the partner's root itself goes onto the frame, carrying its bind pose
+function placeOnFrame(root, frame){
+  root.parent.updateWorldMatrix(true, false);
+  _pm.copy(root.parent.matrixWorld).invert().multiply(frame.matrix);
+  _pm.decompose(root.position, root.quaternion, root.scale);
+  root.updateMatrixWorld(true);
 }
 // The frame each tentacle driver maps its proxy through: the body joint's world matrix ('joint'), or
 // that joint's motion away from its rest pose carried on the world group ('rest').
 function attachFrame(a){
   a.jointNode.updateWorldMatrix(true, false);
+  if (a.partner){
+    // the ROM's link mode 3: the joint's position and rotation with its scale dropped, at the partner's own
+    // size -- its dtbase multiplier, as a monster shown alone is scaled (sizeScale)
+    a.jointNode.matrixWorld.decompose(_pp, _pq, _ps);
+    const s = (a.part && a.part.sizeBase) || 1;
+    a.frame.matrix.compose(_pp, _pq, _ps.set(s, s, s));
+    a.frame.matrixWorld.copy(a.frame.matrix);
+    return;
+  }
   if (tentacleAttach === 'rest'){
     world.updateWorldMatrix(true, false);
     a.frame.matrix.multiplyMatrices(a.jointNode.matrixWorld, a.restInv).multiply(world.matrixWorld);
@@ -4124,6 +4224,17 @@ async function playAttached(l, c){
   const e = entry();
   for (const [name, a] of attached){
     const root = mounted[name];
+    if (a.partner){
+      // its own clip from its own list, whatever the body is playing
+      const pl = ((a.part && a.part.lists) || []).find(x => x.id === a.spec.list);
+      const pclip = pl ? await clipFor(pl, a.spec.clip, a.part.glb) : null;
+      if (!attached.has(name) || attached.get(name) !== a) continue;
+      if (!pclip){ a.driver.stop(); restoreBind(root); continue; }
+      a.driver.loopMode = () => 'repeat';
+      await a.driver.play({ file: pl.file, clip: a.spec.clip, model: a.part.glb, clip3: pclip },
+                          { figure: 'monster', joints: a.part.joints || [], anchorXZ: false, groundLock: false });
+      continue;
+    }
     const twin = l && c && (e.lists || []).find(x => x.id === a.spec.listPrefix + l.id);
     const clip3 = twin ? await attachedClipFor(twin.file, c.clip, a.part.glb) : null;
     if (!attached.has(name) || attached.get(name) !== a) continue;     // remounted while loading
@@ -4140,6 +4251,17 @@ function stepAttached(){
     const root = mounted[name];
     if (!root) continue;
     attachFrame(a);
+    if (a.partner){
+      // its own loop, held to the body clip's time so a shot is repeatable
+      if (a.driver.action && pose.action){
+        a.driver.action.paused = pose.action.paused;
+        a.driver.action.time = pose.action.time % Math.max(1e-3, a.driver.action.getClip().duration);
+      }
+      a.driver.clock.getDelta();
+      if (a.driver.action) a.driver.step([root]);
+      else placeOnFrame(root, a.frame);
+      continue;
+    }
     if (a.driver.action && pose.action){
       a.driver.action.paused = pose.action.paused;
       a.driver.action.time = Math.min(pose.action.time, Math.max(0, a.driver.action.getClip().duration - 1e-3));
@@ -4202,6 +4324,12 @@ async function mount(){
     // monster instead of inside of the main model"). placeParts() fans them around it.
     const extra = [];
     for (const p of e.parts) extra.push([p.name, await loadMonster(p, {}, { wire: wireOn })]);
+    // a combined partner the row has switched on (ROM_PARTNER_BODY); setupAttached puts it on its joint
+    const pspec = partnerBodyOf(e.id);
+    if (pspec && partnerOn[e.id]){
+      const pg = await loadPartnerModel(pspec);
+      if (pg) extra.push([pspec.monster, pg]);
+    }
     if (mine !== seq){
       // Superseded while loading. Hand back what was built, or its materials sit in the
       // registries for the rest of the session and every later toggle walks them.
@@ -4401,7 +4529,7 @@ function applyUndef(){
 const NO_ZONE_RGB = [0.22, 0.22, 0.24];
 function heatEach(e, paint){
   for (const [name, g] of Object.entries(mounted)){
-    if (name !== 'main' && attachedBodyOf(e && e.id, name)){
+    if (name !== 'main' && (attachedBodyOf(e && e.id, name) || (attached.get(name) || {}).partner)){
       const zones = {};
       g.traverse(o => {
         if ((o.isMesh || o.isSkinnedMesh) && o.userData.prim !== undefined)
@@ -5926,6 +6054,31 @@ window.__view.tentacleAttach = mode => {
                            clip: a.driver.action ? a.driver.action.getClip().name : '(bind pose)' };
   }
   return out;
+};
+// A combined partner (ROM_PARTNER_BODY), read back: __view.partner() reports; __view.partner(true / false)
+// switches it the way the row does and reports once it is mounted or dropped.
+window.__view.partner = async on => {
+  const e = entry(), spec = e && partnerBodyOf(e.id);
+  if (!spec) return { partner: null };
+  if (on !== undefined){
+    await setPartner(e, !!on);
+    const sel = document.querySelector('#monGroups .field[data-row="partner:' + spec.monster + '"] select');
+    if (sel) sel.value = partnerOn[e.id] ? '1' : '0';
+  }
+  const a = attached.get(spec.monster), g = mounted[spec.monster];
+  if (!a || !g) return { partner: spec.monster, on: !!partnerOn[e.id], mounted: false };
+  stepAttached();
+  const at = o => new THREE.Vector3().setFromMatrixPosition(o.matrixWorld).toArray().map(v => +v.toFixed(3));
+  const s = new THREE.Vector3(); a.frame.matrix.decompose(new THREE.Vector3(), new THREE.Quaternion(), s);
+  const b0 = gidBonesOf(g).find(b => b.gid === 0);
+  const parts = new Set();
+  g.traverse(o => { if ((o.isMesh || o.isSkinnedMesh) && !o.userData.proxy && o.visible) parts.add(o.userData.part); });
+  let eye = null;
+  g.traverse(o => { if (!eye && o.material && o.material.name === (spec.matClip || {}).mat && o.material.emissive) eye = o.material.emissive.toArray().map(v => +v.toFixed(3)); });
+  return { partner: spec.monster, on: !!partnerOn[e.id], mounted: true, bodyJoint: spec.joint,
+           bodyJointAt: at(a.jointNode), partnerJoint0At: b0 ? at(b0.node) : null, frameScale: +s.x.toFixed(3),
+           worldScale: +world.scale.x.toFixed(3), clip: a.driver.action ? a.driver.action.getClip().name : '(bind pose)',
+           drawnParts: [...parts].sort((x, y) => x - y), eyeEmissive: eye };
 };
 window.__view.matAnim = on => {
   let touched = 0;

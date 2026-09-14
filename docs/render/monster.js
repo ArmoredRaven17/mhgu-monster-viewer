@@ -1124,6 +1124,43 @@ export function attachedBodyOf(monId, pieceName){
   return (t && pieceName && t[pieceName]) || null;
 }
 
+// A PARTNER MONSTER THAT COMBINES WITH THIS ONE: Seltas on the Seltas Queen. Raven, 2026-09-14: "Can you look
+// into Seltas Queen code to see how Seltas combines with her to make their duo form", then "For now, we only need
+// the result of the combine" -- the combined form, not the jump onto her or the paired attacks ("We will likely
+// need to pair some animations, but that will be for when I review animations").
+//
+// What the ROM does (uEm076_00 is Seltas, uEm069_00 the Queen):
+//   * Each finds the other by scanning the enemy manager (0x5cdf8, ten slots) for its monster id at +0xb5f4;
+//     the Queen hands herself to Seltas (her vtable +0x1dc, 0xf8a978 -> 0xfc4190).
+//   * Seltas' combine action, step 0 (0xfd7cec): motion 0x423 -- list 4, Motion[35], a 301-frame loop -- then
+//     0xc2044(seltas, queen, joint 200, offset, mode 3, 1.0), the enemy base class's LINK: mode +0x5c2f, target
+//     +0x5c30, joint +0x5c34, offset +0x5c40, scale +0x5c50 in the status block. It sets status +0x1bb bit 0 (the
+//     Queen copies it into hers every frame) and snaps once through 0xfd7e9c.
+//   * The base update 0xae370 applies any link every frame: target vtable +0xd0 (0x539db0) is the joint's world
+//     matrix by joint NUMBER; mode 3 normalises its axes -- the joint's scale is dropped -- composes it with the
+//     unit's own local matrix and writes the rotation back as a quaternion (0x72dec). The offset is
+//     (0, 120, 180) x (Queen - Seltas) of status +0x1b0, the size MODIFIER (the size is +0x1ac x +0x1b0,
+//     0xbdf54), which is 1.0 unless an action changes it: zero here. So Seltas stands on the joint, turned
+//     with it, at its own size (0.4 against her 0.9).
+//   * Queen joint 200 is a mount joint straight under her root. (Combined attacks move the link to her tail
+//     tip, joint 144, and her root, 0xfd5e38 / 0xfd6c1c -- not modelled.)
+//   * Seltas' part frame (vtable +0x210, 0xfc6318) draws group 8 while +0x1bb bit 0 is set (0xfc6468; part 9,
+//     XfB__m02_add) and group 0 otherwise; the horn by break 0 (group 3 intact); the claws by the value at
+//     [+0xcac0]+0x38 (below 4 group 4 part 10, to 8 group 9 part 11, below 12 group 10 part 12, from 12 group
+//     11 part 103), grown and shrunk by attack actions through the state at +0x35 (0xfc5ec0); the wings by
+//     +0x49. When the combined bit changes it plays `ride_on` (or `separates`) on material 1, XfB__m01_eye:
+//     fEmissionColor 0.6 -> 2.0 over 60 frames (0xfc6378), held here at its end.
+//   * Seltas' own viewer rules carry over (Raven: "it will likely need to follow similar rules"): the wings are
+//     Away, parts 1..4 off, as its Wings row opens. The claws are the massive model -- Raven: "the claws will
+//     likely need to be unhidden for the combined form", "Seltas as a solo monster does not use the massive claw
+//     model" -- group 11, part 103, the ROM's full-grown stage; the combine action itself does not set that.
+export const ROM_PARTNER_BODY = {
+  em069_00: { monster: 'em076_00', joint: 200, list: '4', clip: 'Motion[35]_loop',
+              groups: [3, 8, 11], partsOff: [1, 2, 3, 4],
+              matClip: { mat: 'XfB__m01_eye', clip: 'ride_on' } },
+};
+export function partnerBodyOf(monId){ return (monId && ROM_PARTNER_BODY[monId]) || null; }
+
 // A second body's clip, retargeted onto its OWN skeleton by global bone id. Unlike clipFor this
 // cannot use a harvest `remap` (monsters.json ships none for these lists), so the ids are read from
 // the glTF JSON the loader keeps -- the only place the "<local>:<gid>" names still have their colon.
@@ -2715,6 +2752,9 @@ export function stepMatAnim(root, tSec, state, monId, tState, prev, levelClip){
   const formState = form ? stepFormMachine(root, tSec, +form[1], monId) : null;
   if (formState) stages.push(formState);
   for (const b of stepBreakClips(root, tSec, monId)) stages.push(b);
+  // a mounted partner's combine clip, held at its last frame -- the result of the combine (ROM_PARTNER_BODY)
+  const pc = root && root.userData && root.userData.partnerClip;
+  if (pc) stages.push({ mats: [pc.mat], rest: null, clip: pc.clip, t0: -1e9 });
   const pick = clipPicker(state, monId, tState, prev, levelClip, stages.length ? stages : null);
   // ONE evaluator for both paths. A ROM-core material is a stock three.js material -- the technique
   // decides which class, not the blend state -- so the shared evaluator's writes land exactly as
