@@ -552,10 +552,26 @@ export const ROM_RAGE_SET = {
 // the colour path reads the enrage predicate; the explosion does, only to post the enraged variant of
 // its event (0xf46234: ids 0x17..0x26, +1 when enraged). So the viewer shows the spawn colour in every
 // state and offers no Red -- the eruption is boarded as an effect to build later.
+//
+// VALSTRAX'S BREATHE LAYER IS NOT A RAGE LAYER. Raven, 2026-09-13: "Valstrax has effects issue, but I
+// see some rendering issues you may be able to take care of." uEm086_00's init (0x109e6a0) caches its
+// materials by MRL id -- m01..m06 carry ids 1..6 -- and its frame (0x10a1240) runs each one's
+// start/Loop/end set through the machine 0x10a1984 (see ROM_STAGE_CLIPS). XfB__I0__m04_breathe (id 4)
+// is the exception: it holds TWO sets, start/Loop/end at +0xcb78 and tired_start/tired_Loop/tired_end
+// at +0xcbc0, picked by the byte at +0xcaf5 (0x10a12e0) and run by the action ids at +0x73e0/+0x73e1 and
+// a flag word at +0x5c0 -- the enrage predicate 0x81670 is never read on that path. It is the one mesh
+// of part 11, the row Raven named "Chest Effect" (Off / On): with no actions in the viewer, the ROW is
+// the action, as ROM_SET_CLIP's row is Thunderlord's flag. So the material shows the glow LIT, which is
+// `start` on its last frame -- fTransparency 1.0, fAlbedoColor (0.875, 0.125, 0.125) -- because the lit
+// state has no clip of its own: `start` ramps 0 -> 1 over 80 frames, the machine then sets `Loop`, which
+// writes no fTransparency, and `end` ramps 1 -> 0. The auto `Loop` at load leaves the shipped 0, which
+// drew nothing when the row was On; the enraged fallback's [Loop, tired_Loop] drew the exhausted set's
+// dim flicker on Enraged.
 export const ROM_SPAWN_CLIP = {
   em043_05: { XfB__m02_body_k: 'Angry_Start' },   // Savage Deviljho: eyes and body glow, always lit
   em063_05: { XfB__m01_nenkin_arm_l: 'Red_to_Yellow', XfB__m02_nenkin_arm_r: 'Red_to_Yellow',
               XfB__m03_nenkin_body: 'Red_to_Yellow', XfB__m04_nenkin_tail: 'Red_to_Yellow' },
+  em086_00: { XfB__I0__m04_breathe: 'start' },    // Valstrax: the Chest Effect row, lit -- see above
 };
 // CLIPS SUPPRESSED FOR THE VIEWER. An AUTHORED deviation from the ROM, and the only one in the
 // clip path, so it is named rather than hidden inside a rule.
@@ -1785,40 +1801,67 @@ export function setClipFor(monId, groups){
 // finish -- which is why this keeps its own stage and clock instead of reading tState.
 // Raven, 2026-09-13, over a screenshot of the layers striped and lit at rest: "The stripped areas are
 // effects that are not modeled", then "Make both fixes for Teostra".
+//
+// VALSTRAX (uEm086_00) runs the same four stages ONE MACHINE PER MATERIAL, which is why a monster's entry
+// may be a list. Its init (0x109e6a0) gives each of m01_black, m02_angry, m03_eff and m05_eye (MRL ids 1,
+// 2, 3, 5) a 0x18-byte record -- material, start, Loop, end, stage, frames -- at +0xcb30, +0xcb48, +0xcb60
+// and +0xcb90, and its frame calls 0x10a1984 on each with the enrage predicate 0x81670 (0x10a1270,
+// 0x10a128c, 0x10a12a8, 0x10a12c4). 0x10a1984 is the Teostra machine on that record's own clock: start
+// on rage from stage 0, Loop once start's frames pass, end on calm from stage 2, then stage 0 with end
+// held. Two differences, both read: the clips go into SLOT 0 (setMatClip r1 = 0), and the init clears no
+// slots -- so before the first rage each material keeps its load-time AUTO clip (`rest: 'auto'`): Loop
+// on the three layers, and nothing on the eye, which carries no auto clip and sits on its shipped
+// constant. What the viewer gains is the ROM's transitions: the eye fades to black over start's 16
+// frames and back over end's, and a layer left by calm holds end's last frame rather than jumping back to
+// Loop. Not here: m04_breathe (see ROM_SPAWN_CLIP) and m06_heat, whose record at +0xcba8 runs on bit 1
+// of the flag word at +0x5c0 (0x10a1554), not on rage.
 export const ROM_STAGE_CLIPS = {
   em027_00: { mats: ['XfBAN_W_0__m01_effect01', 'XfBAN_W_0__m02_effect02', 'XfB__m03_Bombmode'],
               clips: ['Effect_Start', 'Effect_Loop', 'Effect_End'] },
+  em086_00: ['XfBA_E1__m01_black', 'XfB_W_0__m02_angry', 'XfB_N__EW_0__m03_eff', 'XfB_0__m05_eye']
+    .map(mat => ({ mats: [mat], clips: ['start', 'Loop', 'end'], rest: 'auto' })),
 };
-// One step of the machine for this root: `{ mats, clip, t0 }` -- the clip in slot 1 (null until the first
-// rage, as the spawn clear leaves it) and the wall second its time was zeroed -- or null where the monster
-// has no table. It advances only when the clock moves forward: the review shot and the fallback console
-// toggle call the stepper on clocks of their own, and those must not move the game's stage -- they are
-// shown the slot as it stood at the machine's last step, its origin moved onto their clock.
+const stageTables = monId => {
+  const t = monId && ROM_STAGE_CLIPS[monId];
+  return !t ? [] : Array.isArray(t) ? t : [t];
+};
+// One step of each of the monster's machines for this root: `[{ mats, clip, t0, rest }]` -- the clip in
+// the machine's slot (null until the first rage) and the wall second its time was zeroed -- or null where
+// the monster has no table. A machine advances only when the clock moves forward: the review shot and the
+// fallback console toggle call the stepper on clocks of their own, and those must not move the game's
+// stage -- they are shown the slot as it stood at the machine's last step, its origin moved onto their
+// clock.
 function stepStageMachine(root, tSec, state, monId){
-  const tbl = monId && ROM_STAGE_CLIPS[monId];
-  if (!tbl || !root || !root.userData) return null;
-  let s = root.userData.romStage;
-  if (!s || s.monId !== monId){
-    s = root.userData.romStage = { monId, mats: tbl.mats, stage: 0, clip: null, t0: 0, tLast: -Infinity, frames: {} };
-    // each clip's frame count, off the first cached material carrying it (0xe102c4 tries +0x14, +0x18, +0x1c)
-    for (const nm of tbl.clips){
-      for (const mat of tbl.mats){
-        let f = 0;
-        root.traverse(o => {
-          for (const m of matsOfMesh(o)){
-            if (f || !m || m.name !== mat) continue;
-            const c = ((m.userData && m.userData.rom && m.userData.rom.anim) || []).find(x => sameClip(x.name, nm));
-            if (c) f = c.frames;
-          }
-        });
-        if (f){ s.frames[nm] = f; break; }
-      }
+  const tbls = stageTables(monId);
+  if (!tbls.length || !root || !root.userData) return null;
+  let all = root.userData.romStage;
+  if (!all || all.monId !== monId)
+    all = root.userData.romStage = { monId, list: tbls.map(tbl => newStageMachine(root, tbl)) };
+  return all.list.map(s => stepOneStage(s, tSec, state));
+}
+function newStageMachine(root, tbl){
+  const s = { tbl, mats: tbl.mats, rest: tbl.rest || null, stage: 0, clip: null, t0: 0, tLast: -Infinity, frames: {} };
+  // each clip's frame count, off the first cached material carrying it (0xe102c4 tries +0x14, +0x18, +0x1c)
+  for (const nm of tbl.clips){
+    for (const mat of tbl.mats){
+      let f = 0;
+      root.traverse(o => {
+        for (const m of matsOfMesh(o)){
+          if (f || !m || m.name !== mat) continue;
+          const c = ((m.userData && m.userData.rom && m.userData.rom.anim) || []).find(x => sameClip(x.name, nm));
+          if (c) f = c.frames;
+        }
+      });
+      if (f){ s.frames[nm] = f; break; }
     }
   }
-  if (!(tSec >= s.tLast)) return { mats: s.mats, clip: s.clip, t0: tSec - (s.tLast - s.t0) };
+  return s;
+}
+function stepOneStage(s, tSec, state){
+  if (!(tSec >= s.tLast)) return { mats: s.mats, rest: s.rest, clip: s.clip, t0: tSec - (s.tLast - s.t0) };
   s.tLast = tSec;
   const ran = () => (tSec - s.t0) * MAT_FPS >= (s.frames[s.clip] || 0);
-  const set = (i, stage) => { s.clip = tbl.clips[i]; s.t0 = tSec; s.stage = stage; };
+  const set = (i, stage) => { s.clip = s.tbl.clips[i]; s.t0 = tSec; s.stage = stage; };
   const enraged = state === 'enraged';
   if (s.stage === 0){ if (enraged) set(0, 1); }
   else if (s.stage === 1){ if (ran()) set(1, 2); }
@@ -1893,8 +1936,8 @@ export function rageLadderParts(root){
 // a monster's own stage machine lights on rage (ROM_STAGE_CLIPS), whose clips carry no enrage name.
 export function enrageMaterials(root){
   const out = materialsWithClip(root, ENRAGE_CLIPS);
-  const tbl = root && root.userData && ROM_STAGE_CLIPS[root.userData.monId];
-  if (tbl) root.traverse(o => { for (const m of matsOfMesh(o)) if (m && tbl.mats.indexOf(m.name) >= 0) out.add(m.name); });
+  for (const tbl of stageTables(root && root.userData && root.userData.monId))
+    root.traverse(o => { for (const m of matsOfMesh(o)) if (m && tbl.mats.indexOf(m.name) >= 0) out.add(m.name); });
   return out;
 }
 // Materials that carry a CHARGE clip -- Khezu's Taiden family. Gates the Charged checkbox, which
@@ -1938,12 +1981,14 @@ function clipPicker(state, monId, tState, prev, levelClip, stage){
       (c && typeof c.name === 'string' && ban.has(c.name.toLowerCase())) ? { ...c, name: null } : c);
     let ci = -1;
     // A MATERIAL THE MONSTER'S OWN STAGE MACHINE DRIVES answers from that machine alone -- see
-    // ROM_STAGE_CLIPS: its one clip in slot 1 on the machine's clock, or before the first rage nothing,
-    // the material's authored values.
-    if (stage && rom && stage.mats.indexOf(rom.name) >= 0){
-      if (!stage.clip) return -1;
-      const i = clips.findIndex(c => sameClip(c.name, stage.clip));
-      return i >= 0 ? [[i, stage.t0]] : -1;
+    // ROM_STAGE_CLIPS: its one clip on the machine's clock, or before the first rage what the spawn left
+    // there -- nothing, the material's authored values (Teostra clears its slots), or the load-time auto
+    // clip (`rest: 'auto'`, Valstrax clears none).
+    const machine = stage && rom && stage.find(s => s.mats.indexOf(rom.name) >= 0);
+    if (machine){
+      if (!machine.clip) return machine.rest === 'auto' ? clips.findIndex(c => c.auto) : -1;
+      const i = clips.findIndex(c => sameClip(c.name, machine.clip));
+      return i >= 0 ? [[i, machine.t0]] : -1;
     }
     // A SPAWN-PINNED material ignores the rage state entirely -- see ROM_SPAWN_CLIP.
     if (pin && rom.name && pin[rom.name])
