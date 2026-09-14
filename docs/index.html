@@ -626,7 +626,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <button class="panel-head">Debug <span class="chev">&#9662;</span></button>
         <div class="panel-body">
           <label class="chk"><input type="checkbox" id="monAnchor" checked>Hold Monster In Place</label>
-          <label class="chk"><input type="checkbox" id="monGround" checked>Ground Lowest Bone</label>
+          <label class="chk"><input type="checkbox" id="monGround">Ground Lowest Bone</label>
           <label class="chk"><input type="checkbox" id="monNormalFlip">Flip Green Channel</label>
           <label class="chk"><input type="checkbox" id="monUndef">Draw Undefined Meshes</label>
           <!-- MOVED HERE FROM THE PARTS PANEL, 2026-09-12. Raven: "move the severed parts toggle
@@ -2009,8 +2009,14 @@ function applyCameraState(c){
 // The Parts panel's state controls as a monster opens on them: Enraged, Charged, Heated, the Rage
 // ladder, the level axis and the variant. resetMonsterState() puts them back on a monster change.
 const STATE_DEFAULTS = { rage: false, charged: false, heated: true, rageLevel: 0, level: 0, variant: 0 };
+// GROUND LOWEST BONE IS OFF for monsters, and saved as `groundLock` so a view saved while it defaulted on
+// opens with it off. Raven, 2026-09-13: "We may not need to 'ground lowest bone' any more", then "keep the
+// checkbox in Debug for now". It pins the lowest bone to the BIND pose's lowest bone every frame -- a fix
+// for the hunter's lobby clips -- while a monster's clips already stand on their own floor (lowest bone
+// +0.12..+0.19 on Rathian and Valstrax, +0.18 on Teostra): the lock dropped them 4.0 / 4.7 / 5.5 units and
+// bobbed Rathian's flying clips by up to 3.6 within a clip.
 const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: false,
-                anchor: true, ground: true, normalFlip: false, normalScale: 1,
+                anchor: true, groundLock: false, normalFlip: false, normalScale: 1,
                 // both OFF by default: see applyUndef and applyExtend
                 undef: false, extend: false, gap: false, proxy: false, ...STATE_DEFAULTS, rawParts: false, heat: '', heatTable: 0, deflectT: 'f25', deflectTier: 2,
                 zoneTab: 'raw',
@@ -3564,9 +3570,20 @@ function placeParts(){
   const widest = Math.max(...parts.map(p => Math.hypot(p.size.x, p.size.z)));
   const gap = Math.max(bodySize.x, bodySize.z) * 0.15;
   const radius = Math.max(bodySize.x, bodySize.z) * 0.5 + widest * 0.5 + gap;
-  // The GROUND is the body's own floor, not y = 0: the driver's bounds sit wherever the clip
-  // puts them (Rathian's span -3.99 to -0.2), so grounding at zero left the tail in mid-air.
-  const floor = box.min.y;
+  // THE GROUND IS THE CLIP'S OWN FLOOR, not the body's lowest bone: y = 0 in the motion's space, where the
+  // unit stands, moved by whatever the driver shifts the whole clip by (the Ground Lowest Bone lock, 0 with
+  // it off). A cut tail is a rigid prop the game drops on the ground, so it stays there whatever the body
+  // does. Measured off the bones instead, it rose with a flying clip and was never measured again when the
+  // lock or the clip changed -- 4 to 5.5 units off. Raven, 2026-09-13: "I have noticed this impacts things
+  // like severed models". The old "Rathian's span -3.99 to -0.2" was the lock's drop, not the clip's floor.
+  // A FLYING LIST HAS NO FLOOR UNDER IT: the game lifts the unit into the air, so its clips hang the body
+  // below y = 0 (Rathian's list 1: lowest bone -7.34 .. -3.75). There the piece goes under the body's lowest
+  // reach over the whole loop (the driver's bounds), so a hovering monster does not have its tail floating
+  // above it. On a ground clip that reach is the floor itself, give or take the bounds' 0.12 margin.
+  // In the bind pose there is no clip to stand on, and the bones decide as before.
+  const clipRoot = pose.mixer ? pose.mixer.getRoot() : null;
+  const reach = (pose.bounds && !pose.bounds.isEmpty()) ? pose.bounds.min.y : Infinity;
+  const floor = clipRoot ? Math.min(clipRoot.position.y, reach) : box.min.y;
   // an arc across the back and sides: +Z is toward the camera, so this spans away from it
   const span = Math.PI * 1.1, start = -Math.PI / 2 - span / 2;
   parts.forEach((p, i) => {
@@ -4409,6 +4426,7 @@ async function play(){
     pose.stop();
     for (const a of attached.values()) a.driver.stop();
     for (const g of Object.values(mounted)) restoreBind(g);
+    placeParts();
     return;
   }
   pose.loopMode = () => (state.loop ? 'repeat' : 'once');
@@ -4419,10 +4437,12 @@ async function play(){
   if (mine !== playSeq) return;          // a later selection won while this one was loading
   await pose.play({ file: l.file, clip: c.clip, model: e.glb, clip3 },
                   { figure: 'monster', joints: e.joints || [],
-                    anchorXZ: state.anchor, groundLock: state.ground });
+                    anchorXZ: state.anchor, groundLock: state.groundLock });
   if (mine !== playSeq){ pose.stop(); return; }   // ...or won while the clip was being prepared
   await playAttached(l, c);
   stepAttached();
+  // every clip, list and lock change comes through here, and the severed pieces stand on the new floor
+  placeParts();
 }
 // the roots the BODY's driver moves -- never an attached second body, which has a driver of its own
 function poseRoots(){ return Object.entries(mounted).filter(([k]) => !isAttached(k)).map(([, g]) => g); }
@@ -4504,7 +4524,7 @@ monClipSel.onchange = async () => { state.clip = monClipSel.value; await play();
 // the parts are measured against whatever the body is doing right now
 monTail.onchange = () => { state.tail = monTail.checked; applyPartState(); if (state.tail) placeParts(); saveState(); };
 document.getElementById('monAnchor').onchange = async e => { state.anchor = e.target.checked; await play(); saveState(); };
-document.getElementById('monGround').onchange = async e => { state.ground = e.target.checked; await play(); saveState(); };
+document.getElementById('monGround').onchange = async e => { state.groundLock = e.target.checked; await play(); saveState(); };
 const normScaleEl = document.getElementById('monNormalScale'), normScaleVal = document.getElementById('monNormalScaleVal');
 function paintNormal(){
   document.getElementById('monNormalFlip').checked = state.normalFlip;
@@ -4649,13 +4669,13 @@ normScaleEl.oninput = e => { state.normalScale = +e.target.value; paintNormal();
 document.getElementById('resetBtn').onclick = async () => {
   const first = MON.monsters.find(e => !e.small) || MON.monsters[0];
   Object.assign(state, { id: first ? first.id : '', list: '', clip: '', groups: null, loop: true,
-                         tail: false, anchor: true, ground: true,
+                         tail: false, anchor: true, groundLock: false,
                          normalFlip: false, normalScale: 1 });
   resetMonsterState();
   monFilter.value = '';
   buildMonsterList(); buildLists(); paintNormal();
   document.getElementById('monAnchor').checked = true;
-  document.getElementById('monGround').checked = true;
+  document.getElementById('monGround').checked = false;
   animLoopBtn.classList.toggle('on', true);
   await remount(); saveState();
 };
@@ -4719,7 +4739,7 @@ async function loadSet(text, btn){
   monFilter.value = '';
   buildMonsterList(); buildLists(); paintNormal(); paintSpin(); paintOrbitLock(); paintWire(); paintCursor();
   document.getElementById('monAnchor').checked = state.anchor;
-  document.getElementById('monGround').checked = state.ground;
+  document.getElementById('monGround').checked = state.groundLock;
   document.getElementById('monUndef').checked = state.undef;
 document.getElementById('monGap').checked = state.gap;
   document.getElementById('monNormalFlip').checked = state.normalFlip;
@@ -4763,7 +4783,8 @@ document.querySelectorAll('.panel:not([data-keep-open]) > .panel-head').forEach(
 function applySet(o){
   if (!o || typeof o !== 'object') return;
   for (const k of ['id', 'list', 'clip']) if (typeof o[k] === 'string') state[k] = o[k];
-  for (const k of ['loop', 'tail', 'anchor', 'ground', 'normalFlip', 'undef', 'effects', 'extend', 'zoneShow', 'gap', 'heated'])
+  // `groundLock`, not the old `ground`: a view saved while the lock defaulted on must not turn it back on
+  for (const k of ['loop', 'tail', 'anchor', 'groundLock', 'normalFlip', 'undef', 'effects', 'extend', 'zoneShow', 'gap', 'heated'])
     if (typeof o[k] === 'boolean') state[k] = o[k];
   // the heat map is a damage-type NAME and a table index, not booleans
   if (typeof o.heat === 'string') state.heat = o.heat;
@@ -4807,7 +4828,7 @@ function currentSet(){
 if (SAVED) applySet(SAVED);
 buildMonsterList(); buildLists(); paintNormal(); paintOrbitLock(); paintSpin(); paintWire(); paintCursor();
 document.getElementById('monAnchor').checked = state.anchor;
-document.getElementById('monGround').checked = state.ground;
+document.getElementById('monGround').checked = state.groundLock;
 document.getElementById('monUndef').checked = state.undef;
 document.getElementById('monRawParts').checked = !!state.rawParts;
 document.getElementById('monExtend').checked = state.extend;
@@ -4865,7 +4886,7 @@ async function runScene(name){
                          clip: sc.clip === undefined ? '' : sc.clip,
                          groups: (groupsExplicit = Array.isArray(sc.groups)) ? sc.groups.map(Boolean) : null,
                          tail: !!sc.tail,
-                         anchor: sc.anchor !== false, ground: sc.ground !== false,
+                         anchor: sc.anchor !== false, groundLock: sc.ground === true,
                          normalFlip: !!sc.normalFlip, undef: !!sc.undef, extend: !!sc.extend,
                          effects: sc.effects !== false });
   buildMonsterList(); buildLists(); paintNormal();
