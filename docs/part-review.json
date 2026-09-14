@@ -1495,7 +1495,7 @@
  },
  "em050_00": {
   "reviewed": "2026-09-12",
-  "note": "Reviewed by Raven. **HEAD IS A MERGED ROW over clusters 2,24,101 and 5,25,104**, his call: *'Head will need to combine the first two drop downs.'* The ROM authors the head as two sides, each carrying its own `XfB__m04_eye` and `XfB__m03_add` -- 101 is 204v body + 30v eye + 34v add at x13399, 104 is 149v + 36v + 39v at x12844 -- and a player experiences one head breaking twice. His keys map straight across once the first cluster's options are read in full: he wrote *'Cr (on 2, 104)'* where that cluster's option is `2,24`, so Cracked is `2,24+104`, Intact is `101+104` and Broken is `24+5,25`, using all three options of one source and both of the other. **TAIL 13 IS A TEXTBOOK STUMP**: 12v, 1175x1730x**79** thick at z5020, a cross-section cap, against 103's full tail (111v, 1175x3011x5060 at z2530). `sheds` names 13. **EYES: part 6 is a 16v lid**, 647x96x148 at [13290, 8275, 30510]; drawing it CLOSES, so Open is `none` -- 24th monster in this file keying Open as the empty set -- and the ROM already lists it first, so his Op, Cl order needs no reordering. **LEFT AND RIGHT MEASURED against a midline of x13290** (parts 6, 13 and 103 all sit there): front legs 7,8 at x14495 and 9,10 at x12113, so 7,8 is LEFT and is the row the panel builds first, matching his order. **THE WINGS: HE LEFT THE SIDE AS 'Left(?)' AND 'Right(?)' AND GAVE NO OPTION NAMES, so the options are NOT named here** -- they keep their generated labels and stay steppable. The SIDE is answered by measurement: 11 and 21 sit at x19208 (left), 12 and 22 at x7372 (right), matching the panel's own order. **AND THE REASON THEY SHOW NO CHANGE IS IN THE PART TABLE, NOT THE RENDERER**, which is worth knowing before anyone chases it as a shading bug: parts 11 and 21 are the SAME MESH -- 94v, 11836x1765x9513, identical centre, both `XfB__m03_add` -- and 12 and 22 likewise at 97v, 11837x1765x9590. Each wing row therefore offers two options that draw geometrically identical meshes, so toggling can only change something a vertex dump cannot see. **Four defaults were wrong before this entry** -- both head sources opened on their damaged member and both front legs on Broken -- and the wings opened on 21 and 22, the second of each identical pair.",
+  "note": "Reviewed by Raven. **HEAD IS A MERGED ROW over clusters 2,24,101 and 5,25,104**, his call: *'Head will need to combine the first two drop downs.'* The ROM authors the head as two sides, each carrying its own `XfB__m04_eye` and `XfB__m03_add` -- 101 is 204v body + 30v eye + 34v add at x13399, 104 is 149v + 36v + 39v at x12844 -- and a player experiences one head breaking twice. His keys map straight across once the first cluster's options are read in full: he wrote *'Cr (on 2, 104)'* where that cluster's option is `2,24`, so Cracked is `2,24+104`, Intact is `101+104` and Broken is `24+5,25`, using all three options of one source and both of the other. **TAIL 13 IS A TEXTBOOK STUMP**: 12v, 1175x1730x**79** thick at z5020, a cross-section cap, against 103's full tail (111v, 1175x3011x5060 at z2530). `sheds` names 13. **EYES: part 6 is a 16v lid**, 647x96x148 at [13290, 8275, 30510]; drawing it CLOSES, so Open is `none` -- 24th monster in this file keying Open as the empty set -- and the ROM already lists it first, so his Op, Cl order needs no reordering. **LEFT AND RIGHT MEASURED against a midline of x13290** (parts 6, 13 and 103 all sit there): front legs 7,8 at x14495 and 9,10 at x12113, so 7,8 is LEFT and is the row the panel builds first, matching his order. **THE WINGS: HE LEFT THE SIDE AS 'Left(?)' AND 'Right(?)' AND GAVE NO OPTION NAMES, so the options are NOT named here** -- they keep their generated labels and stay steppable. The SIDE is answered by measurement: 11 and 21 sit at x19208 (left), 12 and 22 at x7372 (right), matching the panel's own order. **AND THE REASON THEY SHOW NO CHANGE IS IN THE PART TABLE, NOT THE RENDERER**, which is worth knowing before anyone chases it as a shading bug: parts 11 and 21 are the SAME MESH -- 94v, 11836x1765x9513, identical centre, both `XfB__m03_add` -- and 12 and 22 likewise at 97v, 11837x1765x9590. Each wing row therefore offers two options that draw geometrically identical meshes, so toggling can only change something a vertex dump cannot see. **Four defaults were wrong before this entry** -- both head sources opened on their damaged member and both front legs on Broken -- and the wings opened on 21 and 22, the second of each identical pair. **WINGS NAMED 2026-09-13**, Raven: *'Left Wing: In, Br / Right Wing: In, Br'* -- 11 and 12 Intact (the default), 21 and 22 Broken, in the order the panel lists them. The ROM agrees on which is which: uEm050_00's frame draws 11 / 12 while a wing's break count is under its threshold (groups 7 / 8, the spawn) and 21 / 22 past it (groups 16 / 17). **The 'identical meshes' reading above is superseded** (render agent): 21 / 22 sample the other half of the glow sheet, and the break shows through the MEMBRANE -- on that same check the class raises m50_wing_l / m51_wing_r's alpha-test reference from 20 to 150, which cuts the tears out of the membrane's albedo alpha (render/monster.js ROM_BREAK_ALPHA, commit 873a4ec).",
   "rows": {
    "2,24,101+5,25,104": {
     "name": "Head",
@@ -1540,10 +1540,20 @@
     }
    },
    "11,21": {
-    "name": "Left Wing"
+    "name": "Left Wing",
+    "default": "11",
+    "options": {
+     "11": "Intact",
+     "21": "Broken"
+    }
    },
    "12,22": {
-    "name": "Right Wing"
+    "name": "Right Wing",
+    "default": "12",
+    "options": {
+     "12": "Intact",
+     "22": "Broken"
+    }
    }
   }
  },
