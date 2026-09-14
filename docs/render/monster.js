@@ -1870,6 +1870,60 @@ function stepOneStage(s, tSec, state){
   return s;
 }
 
+// ALATREON'S FORMS ARE ITS GLOW LAYER'S CLIPS, run by its own machine. Raven, 2026-09-13: "we also don't have
+// Dragon and Ice Forms (Thunder Form?)". uEm050_00's 0xecd5fc walks a stage byte at [enemy+0xcaf8] over the
+// material it fetches by MRL id 0x35 -- XfB__m03_add, the only animated material on the monster -- in slot 0:
+//
+//     0   red, steady      the status byte [[enemy+0x1428]+0x1bb] reaches 2   -> red_End
+//     2   waits out red_End's frames                                          -> 4: blue_Change
+//     5   waits out blue_Change                                               -> blue_Loop, 6
+//     6   blue, steady     the status byte leaves 2                           -> blue_End
+//     8   waits out blue_End                                                  -> 10: red_Change
+//     11  waits out red_Change                                                -> red_Loop, 0
+//
+// It spawns red: red_Loop is the material's auto clip and nothing clears it. The status byte is read nowhere
+// else on this path and no part group changes with it, so the form is the glow's colour alone. A transition
+// once begun runs to its end before the byte is looked at again, which the machine below keeps. The rung names
+// are placeholders from the clip names, for Raven to name (part-review `levels.rungs` wins where given).
+export const ROM_FORM_CLIPS = {
+  em050_00: { name: 'Form', rungs: ['Red', 'Blue'], mats: ['XfB__m03_add'],
+              forms: [{ start: 'red_Change', loop: 'red_Loop', end: 'red_End' },
+                      { start: 'blue_Change', loop: 'blue_Loop', end: 'blue_End' }] },
+};
+export function romFormsOf(monId){ return (monId && ROM_FORM_CLIPS[monId]) || null; }
+const FORM_CLIP = /^#form(\d+)$/;
+// One step of the form machine for this root, in the same `{ mats, clip, t0, rest }` shape as a stage machine
+// so the picker reads it the same way; `clip` null is the spawn, where the auto clip (red_Loop) plays.
+function stepFormMachine(root, tSec, want, monId){
+  const tbl = monId && ROM_FORM_CLIPS[monId];
+  if (!tbl || !root || !root.userData) return null;
+  let s = root.userData.romForm;
+  if (!s || s.monId !== monId){
+    const frames = {};
+    for (const f of tbl.forms) for (const nm of [f.start, f.loop, f.end]){
+      root.traverse(o => {
+        for (const m of matsOfMesh(o)){
+          if (frames[nm] || !m || tbl.mats.indexOf(m.name) < 0) continue;
+          const c = ((m.userData && m.userData.rom && m.userData.rom.anim) || []).find(x => sameClip(x.name, nm));
+          if (c) frames[nm] = c.frames;
+        }
+      });
+    }
+    s = root.userData.romForm = { monId, mats: tbl.mats, rest: 'auto', form: 0, target: 0, phase: 'loop',
+                                  clip: null, t0: 0, tLast: -Infinity, frames };
+  }
+  if (!(tSec >= s.tLast)) return { mats: s.mats, rest: s.rest, clip: s.clip, t0: tSec - (s.tLast - s.t0) };
+  s.tLast = tSec;
+  const f = tbl.forms;
+  const wanted = Math.max(0, Math.min(f.length - 1, want | 0));
+  const ran = () => (tSec - s.t0) * MAT_FPS >= (s.frames[s.clip] || 0);
+  const set = (clip, phase) => { s.clip = clip; s.t0 = tSec; s.phase = phase; };
+  if (s.phase === 'loop'){ if (wanted !== s.form){ s.target = wanted; set(f[s.form].end, 'end'); } }
+  else if (s.phase === 'end'){ if (ran()){ s.form = s.target; set(f[s.form].start, 'start'); } }
+  else if (s.phase === 'start'){ if (ran()) set(f[s.form].loop, 'loop'); }
+  return s;
+}
+
 // KECHA WACHA FOLDS ITS EARS WHILE ENRAGED, AND NO CLIP OR MESH DOES IT -- its class writes the ear joints
 // over whatever clip is playing. Raven, 2026-09-13: "Can you look at Kecha Wacha L2, M66 ... I want to see if
 // we can somehow replicate the enraged ear folding." Every motion list is full-body and L2 Motion[66] ends
@@ -1942,6 +1996,8 @@ if (typeof window !== 'undefined'){
 // The clip a monster's LEVEL rung names, or undefined where no table says (the caller then falls back
 // to the Rage ladder). A rung past the table's end takes its last entry.
 export function levelClipFor(monId, level){
+  // a monster whose rungs are its FORMS hands the rung to the form machine (ROM_FORM_CLIPS)
+  if (monId && ROM_FORM_CLIPS[monId]) return '#form' + Math.max(0, level | 0);
   const t = monId && ROM_CLIP_LADDER[monId];
   if (!t || !Array.isArray(t.byLevel) || !t.byLevel.length) return undefined;
   return t.byLevel[Math.max(0, Math.min(t.byLevel.length - 1, level | 0))];
@@ -2276,7 +2332,11 @@ function clipPicker(state, monId, tState, prev, levelClip, stage){
 }
 
 export function stepMatAnim(root, tSec, state, monId, tState, prev, levelClip){
-  const pick = clipPicker(state, monId, tState, prev, levelClip, stepStageMachine(root, tSec, state, monId));
+  const stages = stepStageMachine(root, tSec, state, monId) || [];
+  const form = FORM_CLIP.exec(typeof levelClip === 'string' ? levelClip : '');
+  const formState = form ? stepFormMachine(root, tSec, +form[1], monId) : null;
+  if (formState) stages.push(formState);
+  const pick = clipPicker(state, monId, tState, prev, levelClip, stages.length ? stages : null);
   // ONE evaluator for both paths. A ROM-core material is a stock three.js material -- the technique
   // decides which class, not the blend state -- so the shared evaluator's writes land exactly as
   // they always have. fEmissionColor now reaches the 47 lit-technique additive materials that used

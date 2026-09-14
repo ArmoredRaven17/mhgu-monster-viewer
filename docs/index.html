@@ -1132,7 +1132,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts, ROM_SPAWN_CLIP,
          ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels, levelClipFor, setClipFor,
-         attachedBodyOf, attachedClipFor, stepEarFold,
+         attachedBodyOf, attachedClipFor, stepEarFold, romFormsOf,
          monsterMats,
          enableRomAmbient, enableRomSpecular, enableRomPhong,
          setSHAmount, setRomSpecularAmount, anchorMisses } from './render/monster.js';
@@ -4391,16 +4391,20 @@ function applyRage(){
   paintSize();
   {
     const lv = (reviewFor(state.id) || {}).levels || null;
-    const uses = Object.values(reviewRows(state.id)).some(r => r && r.state === 'level');
+    // A MONSTER WHOSE FORMS ARE A ROM MACHINE gets the axis without a part row on it -- Alatreon's forms
+    // change no part, only its glow (render/monster.js ROM_FORM_CLIPS). Its placeholder rung names give way
+    // to part-review's `levels` wherever that names them.
+    const forms = romFormsOf(state.id);
+    const uses = Object.values(reviewRows(state.id)).some(r => r && r.state === 'level') || !!forms;
     const row = document.getElementById('monLevelRow');
     const sel = document.getElementById('monLevel');
-    const rungs = (lv && Array.isArray(lv.rungs)) ? lv.rungs : [];
+    const rungs = (lv && Array.isArray(lv.rungs)) ? lv.rungs : (forms ? forms.rungs : []);
     const show = !!(uses && rungs.length > 1);
     if (uses && rungs.length < 2)
       console.warn('part-review: ' + state.id + ' has rows on the level axis but `levels.rungs` ' +
                    'names ' + rungs.length + ' rung(s); the control needs at least two');
     row.hidden = !show;
-    document.getElementById('monLevelLab').textContent = (lv && lv.name) || 'Level';
+    document.getElementById('monLevelLab').textContent = (lv && lv.name) || (forms && forms.name) || 'Level';
     if (!show) state.level = 0;
     else {
       if (state.level > rungs.length - 1) state.level = rungs.length - 1;
