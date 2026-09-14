@@ -279,8 +279,8 @@ header #bar .btn.tiny{margin-right:0}
 /* the monster's own icon, from the set the sibling apps share */
 .mon-icon{width:34px;height:34px;flex:0 0 auto;object-fit:contain;
   image-rendering:auto;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
-/* the dropdown's row keeps the icon's height when a monster has none (the Fatalis trio, Alatreon),
-   so the dropdown does not jump 4px on the way to or from one */
+/* the dropdown's row keeps the icon's height when a monster has none, so the dropdown does not jump
+   4px on the way to or from one */
 #monPick{min-height:34px}
 #viewport canvas{display:block;width:100%;height:100%}
 #viewport.fly canvas{cursor:crosshair}   /* the first-person camera; Hide Cursor below still wins */
@@ -2183,6 +2183,14 @@ function buildClips(){
   }
   monClipSel.value = state.clip;
 }
+// ICONS PICKED BY HAND, keyed by id, and they win over the harvest's. Raven, 2026-09-13: "Fatalis line,
+// Alatreon use the Forbidden icon" -- the Forbidden theme's question mark -- and "Ahtal-Neset, should
+// have an icon in the save editor files". Its file was already here (byte-identical to mhgu-editor's
+// src/assets/monster_icons copy); the harvest's icon_for() looks icons up by NAME, and em087_00's name
+// is hand-authored in part-review.json, so the harvest never had one to look up.
+const FORBIDDEN_ICON = 'assets/MonsterIcons/MHGU-Question_Mark_Icon.webp';
+const ICON_BY_ID = { em013_00: FORBIDDEN_ICON, em013_01: FORBIDDEN_ICON, em013_02: FORBIDDEN_ICON,
+                     em050_00: FORBIDDEN_ICON, em087_00: 'assets/MonsterIcons/MHGU-Ahtal-Neset_Icon.webp' };
 function paintAbout(){
   const e = entry();
   if (!e) { monAbout.textContent = ''; return; }
@@ -2195,7 +2203,8 @@ function paintAbout(){
   // meant to reflect which theme is selected"). The Armor Viewer sets .title-icon in exactly one
   // place, its theme block, and this app now matches.
   const icon = document.getElementById('monIcon');
-  if (e.icon){ icon.src = e.icon; icon.hidden = false; icon.alt = monName(e) || e.id; }
+  const iconSrc = ICON_BY_ID[e.id] || e.icon;
+  if (iconSrc){ icon.src = iconSrc; icon.hidden = false; icon.alt = monName(e) || e.id; }
   else { icon.hidden = true; }
   const nclips = e.lists.reduce((n, l) => n + (l.clips || []).length, 0);
   // The id leads and it is LABELLED: on its own "em001_00" read as an unexplained code
