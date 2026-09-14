@@ -387,7 +387,7 @@ header #bar .btn.tiny{margin-right:0}
    like the other drop downs" -- Rage, the level axis (Zamtrios' Form, Astalos' Charge State) and the
    variant (Kelbi's Gender) were bare selects beside their labels. They are .field rows now, below the
    part rows: the panel body's own 6px gap plus 7 is the 13 between two part rows. */
-#monRageLevelRow,#monLevelRow,#monVariantRow{gap:5px;margin-top:7px}
+#monRageLevelRow,#monLevelRow,#monVariantRow,#monSizeRow{gap:5px;margin-top:7px}
 .hexbtn{flex:1;min-width:0;background:transparent;border:1px solid transparent;
   color:var(--text-hint);font-family:inherit;font-size:12px;letter-spacing:.02em;
   text-align:left;padding:3px 5px;border-radius:5px;cursor:text}
@@ -587,6 +587,11 @@ input[type=range]{width:100%;accent-color:var(--accent)}
                of each other, with no group that can turn either off. -->
           <div class="field" id="monVariantRow" hidden><label for="monVariant" id="monVariantLab">Variant</label>
             <select id="monVariant"></select></div>
+          <!-- SIZE: the sizes a small monster spawns in, declared per monster in part-review.json's
+               `sizes` -- see sizeOptions(). Popo is why it exists: its spawn entries carry a size type
+               that halves a child and gives it the small tusks. -->
+          <div class="field" id="monSizeRow" hidden><label for="monSize" id="monSizeLab">Size</label>
+            <select id="monSize"></select></div>
         </div>
       </section>
 
@@ -2018,7 +2023,7 @@ function applyCameraState(c){
 }
 // The Parts panel's state controls as a monster opens on them: Enraged, Charged, Heated, the Rage
 // ladder, the level axis and the variant. resetMonsterState() puts them back on a monster change.
-const STATE_DEFAULTS = { rage: false, charged: false, heated: true, rageLevel: 0, level: 0, variant: 0 };
+const STATE_DEFAULTS = { rage: false, charged: false, heated: true, rageLevel: 0, level: 0, variant: 0, size: 0 };
 // GROUND LOWEST BONE IS OFF for monsters, and saved as `groundLock` so a view saved while it defaulted on
 // opens with it off. Raven, 2026-09-13: "We may not need to 'ground lowest bone' any more", then "keep the
 // checkbox in Debug for now". It pins the lowest bone to the BIND pose's lowest bone every frame -- a fix
@@ -2233,7 +2238,9 @@ function paintAbout(){
     ['Vertices', e.verts.toLocaleString()],
     ['Motion lists', e.lists.length],
     ['Clips', nclips],
-    ['Size', (e.sizeBase || 1) + '\u00d7'],
+    // the size it is drawn at; where a spawn size replaced dtbase's multiplier, that is said too
+    ['Size', (+sizeScale().toFixed(4)) + '\u00d7' +
+             (Math.abs(sizeScale() - (e.sizeBase || 1)) > 1e-6 ? ' (base ' + (e.sizeBase || 1) + '\u00d7)' : '')],
     ['Materials', monsterMats.length],
     // a hand-authored name says so, rather than claiming the ROM or the database gave it
     ['Name from', (PARTREVIEW[e.id] && PARTREVIEW[e.id].name) ? 'review (hand-authored)' : (e.nameSource || 'nothing')],
@@ -2422,6 +2429,8 @@ function rowStateOn(rv){
   // A LEVEL AXIS RETURNS THE RUNG INDEX, not a flag, and every site that consumes this passes it
   // straight to pickHalf. The monster declares the rungs in `levels`; a row says `"state": "level"`.
   if (st === 'level')   return state.level | 0;
+  // THE SIZE AXIS, the same shape: the option index in `sizes`. Popo's tusks follow it.
+  if (st === 'size')    return Math.max(0, sizeIndex(state.id));
   return !!state.rage;
 }
 // A ROW THE REVIEW FILE NAMES OWNS ITS OWN PARTS. stateParts() lists what the Rage control decides,
@@ -2698,13 +2707,53 @@ function buildMergedRow(c, groups, rv, e, sp, stateDefault){
 // so a monster-wide clip would have changed the throat. THE TABLE IS THE ROM'S: the review pins are
 // written at runtime only, never into the source, and a ROM spawn pin for the same material wins.
 const SPAWN_CLIP_ROM = {};
-function setReviewClipPins(id, pins){
+const reviewPins = {};
+const cycleLive = {};
+function setReviewClipPins(id, pins, drawn){
   if (!id) return;
+  reviewPins[id] = pins || {};
+  // An entry may carry `on` / `off` part lists, read exactly as a row's state object reads them: it
+  // applies only while every `on` part is drawn and every `off` part is switched off. A material may
+  // list SEVERAL entries and the first that applies drives it, so one item can cycle while another
+  // holds a single clip. Settled here against the parts as finally drawn, so the per-frame writer
+  // only has to look the answer up.
+  const live = cycleLive[id] = {};
+  for (const [mat, v] of Object.entries(reviewCycle(id) || {})){
+    for (const c of (Array.isArray(v) ? v : [v])){
+      if (!c || !Array.isArray(c.clips) || !c.clips.length) continue;
+      const want = synthIds(c.on), nope = synthIds(c.off);
+      if ((want.length || nope.length) && !drawn) continue;
+      if (want.some(p => drawn.get(p) !== true) || nope.some(p => drawn.get(p) !== false)) continue;
+      live[mat] = c;
+      break;
+    }
+  }
+  writeClipPins(id, performance.now() / 1000);
+}
+// A MATERIAL MAY CYCLE THROUGH ITS CLIPS. Raven, 2026-09-13, on Altaroth's abdomen: "It's not how it
+// works in game, but can we have it cycle through the different colors?" SO THIS IS AUTHORED, NOT THE
+// ROM. The game shows one colour at a time -- see Altaroth's note in part-review.json for what picks
+// it. A monster's `cycle` in part-review.json maps a material to {clips, seconds}, or to a list of
+// them: each clip in turn, holding for `seconds`, and a single clip simply holds. The clip for time t
+// goes into ROM_SPAWN_CLIP under the synth pins, and both sit under a ROM spawn pin. It runs on the
+// same clock stepMatAnim gets, so a shot at a given time always shows the same colour. Raw Parts turns
+// it off with the rest of the review.
+function reviewCycle(id){
+  const c = (reviewFor(id) || {}).cycle;
+  return (c && typeof c === 'object' && Object.keys(c).length) ? c : null;
+}
+function writeClipPins(id, t){
   if (!(id in SPAWN_CLIP_ROM)) SPAWN_CLIP_ROM[id] = ROM_SPAWN_CLIP[id] ? { ...ROM_SPAWN_CLIP[id] } : null;
-  const merged = Object.assign({}, pins, SPAWN_CLIP_ROM[id] || {});
+  const cyc = {};
+  for (const [mat, c] of Object.entries(cycleLive[id] || {})){
+    const sec = c.seconds > 0 ? c.seconds : 2;
+    cyc[mat] = c.clips[Math.floor(Math.max(0, t) / sec) % c.clips.length];
+  }
+  const merged = Object.assign(cyc, reviewPins[id] || {}, SPAWN_CLIP_ROM[id] || {});
   if (Object.keys(merged).length) ROM_SPAWN_CLIP[id] = merged;
   else delete ROM_SPAWN_CLIP[id];
 }
+function stepReviewCycle(id, t){ if (id && reviewCycle(id)) writeClipPins(id, t); }
 function synthIds(v){
   return String(v === undefined ? '' : v).split(',').map(s => parseInt(s, 10)).filter(Number.isFinite);
 }
@@ -3299,7 +3348,7 @@ function applyPartState(){
       for (const p of synthIds(k)) drawn.set(p, on.has(p));
       if (it.clip && typeof it.clip === 'object') Object.assign(pins, it.clip);
     }
-    setReviewClipPins(e.id, pins);
+    setReviewClipPins(e.id, pins, drawn);
     applyParts(mounted.main, drawn);
   }
   // A shed piece shows when its own option is selected; the Debug checkbox is a blunt override
@@ -3619,7 +3668,61 @@ function placeParts(){
 function sizeScale(){
   // Always the game's own multiplier now -- the toggle is gone (Raven, 2026-09-05: "True Size,
   // always use; I don't see a reason not to"). It is what makes two monsters comparable.
-  return (entry() && entry().sizeBase) || 1;
+  const e = entry();
+  const o = sizeOptions(e && e.id)[sizeIndex(e && e.id)];
+  return (o && o.scale > 0) ? o.scale : ((e && e.sizeBase) || 1);
+}
+// THE SIZES A SMALL MONSTER SPAWNS IN. Raven, 2026-09-13: "Any monster that uses sizes, add a drop
+// down for the different scales they come in." dtbase's multiplier is only where a monster STARTS.
+// Each spawn entry carries a size-type byte (entry +7, stored at em+0x5cb6 by 0x6fb68), and on eleven
+// monsters the class's own setup, vtable slot 0x1d8, turns that type into the scale it actually
+// spawns at (em+0x1ac, the game's mEmScale). Popo, for one, multiplies its 1.1 by 0.8 or 0.5.
+// Other classes set an absolute scale instead: Hornetaur's type 0 is 0.8 whatever dtbase says. So
+// part-review.json's `sizes` lists the finished scale per option, one per value the spawn lists
+// really use. The addresses and spawn counts are in each monster's note. An option may name the
+// `variant` its size belongs to: Kelbi's type picks the gender, so its Gender control sets the size.
+// `sizes.hidden` keeps the size applying while offering no control of its own -- Raven, 2026-09-13,
+// on Kelbi: "If Size determines gender, then we don't need to display size for Kelbi".
+function sizeOptions(id){
+  const s = (reviewFor(id) || {}).sizes;
+  return (s && Array.isArray(s.options)) ? s.options : [];
+}
+// The option in force. Clamped to the list, and moved onto the option that belongs to the current
+// variant where the chosen one belongs to another -- the variant is the control a person set last
+// or the one a saved view restored, and a size that contradicts it is never what the ROM spawns.
+function sizeIndex(id){
+  const opts = sizeOptions(id);
+  if (!opts.length) return -1;
+  let i = Math.max(0, Math.min(state.size | 0, opts.length - 1));
+  const v = state.variant | 0, cur = opts[i];
+  if (cur && typeof cur.variant === 'number' && cur.variant !== v){
+    const j = opts.findIndex(o => o && o.variant === v);
+    if (j >= 0) i = j;
+  }
+  return i;
+}
+// The Size control, rebuilt from the monster's list. Called where the other state controls are
+// built, and again whenever the variant moves the size under it.
+function paintSize(){
+  const s = (reviewFor(state.id) || {}).sizes || null;
+  const opts = sizeOptions(state.id);
+  const row = document.getElementById('monSizeRow');
+  const sel = document.getElementById('monSize');
+  const show = opts.length > 1 && !(s && s.hidden);
+  row.hidden = !show;
+  document.getElementById('monSizeLab').textContent = (s && s.name) || 'Size';
+  // a hidden list still decides the size, so the index is kept either way
+  state.size = opts.length ? sizeIndex(state.id) : 0;
+  sel.textContent = '';
+  if (!show) return;
+  opts.forEach((o, i) => {
+    const el = document.createElement('option');
+    el.value = String(i);
+    el.textContent = String((o && o.name) || ((o && o.scale) + '×'));
+    if (o && o.title) el.title = String(o.title);
+    sel.appendChild(el);
+  });
+  sel.value = String(state.size);
 }
 // The meshes whose material the game's OWN material file does not define: the model names
 // the material "Scene_Material" and the .mrl carries no entry for it, so there is nothing to
@@ -4285,6 +4388,7 @@ function applyRage(){
       sel.value = String(state.variant | 0);
     }
   }
+  paintSize();
   {
     const lv = (reviewFor(state.id) || {}).levels || null;
     const uses = Object.values(reviewRows(state.id)).some(r => r && r.state === 'level');
@@ -4554,6 +4658,8 @@ document.getElementById('monRawParts').onchange = e => {
   if (en) state.groups = defaultGroupsOn(en.groups || [], en.em, en.id, state.rage,
                                          DEFAULT_PARTS_OFF[en.id], forcedOn(en.id));
   buildGroups(); applyPartState(); applyRage(); saveState();
+  // the spawn sizes live in the review file too, so the size goes back to dtbase's with it
+  if (Math.abs(world.scale.x - sizeScale()) > 1e-6) resize();
 };
 document.getElementById('monExtend').onchange = e => { state.extend = e.target.checked; applyPartState(); applyExtend(); applyProxy(); applyRage(); saveState(); };
 document.getElementById('monHeat').onchange = async e => { state.heat = e.target.value; await applyHeat(); applyGap(); saveState(); };
@@ -4623,10 +4729,35 @@ document.getElementById('monLevel').onchange = e => {
   levelView(prevLevel);
 };
 // Changing variant changes which rows exist as well as which parts draw, so both are rebuilt.
-document.getElementById('monVariant').onchange = e => {
+// A size that belongs to a variant moves with it -- see sizeIndex().
+document.getElementById('monVariant').onchange = async e => {
   state.variant = +e.target.value | 0;
+  paintSize();
   buildGroups(); applyPartState(); saveState();
+  // against the scale actually on the world group: sizeScale() already follows the new variant
+  if (Math.abs(world.scale.x - sizeScale()) > 1e-6) await resize();
 };
+// Choosing a size rescales the monster, and rebuilds the rows because a row may follow the size axis
+// (Popo's tusks). A size that belongs to a variant takes the variant with it.
+document.getElementById('monSize').onchange = async e => {
+  state.size = +e.target.value | 0;
+  const o = sizeOptions(state.id)[state.size];
+  if (o && typeof o.variant === 'number' && o.variant !== (state.variant | 0)){
+    state.variant = o.variant;
+    document.getElementById('monVariant').value = String(state.variant);
+  }
+  buildGroups(); applyPartState(); saveState();
+  await resize();
+};
+// The world group carries the size, and the pose driver's ground lock was measured at the old one,
+// so the clip is replayed exactly as the Ground and Anchor switches replay it. The camera is left
+// where it is: re-framing would undo the very difference the control exists to show.
+async function resize(){
+  applySize();
+  paintAbout();
+  await play();
+  placeParts();
+}
 document.getElementById('monCharge').onchange = e => {
   state.charged = e.target.checked;
   if (state.charged) state.rage = false;      // see the note on monRage: one state byte, one value
@@ -4811,6 +4942,7 @@ function applySet(o){
   // clamped against the monster's own rung count when the control is built, as rageLevel is
   if (typeof o.level === 'number') state.level = Math.max(0, o.level | 0);
   if (typeof o.variant === 'number') state.variant = Math.max(0, o.variant | 0);
+  if (typeof o.size === 'number') state.size = Math.max(0, o.size | 0);
   if (typeof o.rawParts === 'boolean'){ state.rawParts = o.rawParts; rawParts = o.rawParts; }
   const TABMAP = { zones: 'raw', parts: 'extracts', bounce: 'hardness' };
   const tab = TABMAP[o.zoneTab] || o.zoneTab;
@@ -4871,6 +5003,7 @@ renderer.setAnimationLoop(() => {
     // Gekikou_End on the way out of rage (0xe80b34 vs 0xe80b54), which is what CALM_CLIPS asks for.
     const st = matState();
     const mid = (entry() || {}).id;
+    stepReviewCycle(mid, t);
     for (const g of Object.values(mounted)) stepMatAnim(g, t, st, mid, tStateChanged, prevMatState, levelClip());
     // Refract samples the scene colour, so the capture has to happen AFTER the animation has set
     // fDistortionFactor / fDistortionBlend for this frame and BEFORE the visible render.
@@ -4959,6 +5092,7 @@ window.__view.effectsAvailable = () => effectMountsFor(state.id);
 window.__view.clipFallback = on => {
   setClipFallback(on);
   const st = matState();
+  stepReviewCycle(state.id, 0);
   for (const g of Object.values(mounted)) stepMatAnim(g, 0, st, state.id, 0, prevMatState, levelClip());
   renderer.render(scene, camera);
   return { on: clipFallbackOn() };
@@ -5090,6 +5224,7 @@ window.__view.shot = async function(run, nameArg, atArg){
     const tMat = (typeof atArg === 'number') ? atArg : 0;
     const stMat = matState();
     const midMat = (entry() || {}).id;
+    stepReviewCycle(midMat, tMat);
     for (const g of Object.values(mounted)) stepMatAnim(g, tMat, stMat, midMat, 0, prevMatState, levelClip());
     stepRefract(renderer, scene, camera, THREE);
   }

@@ -5649,7 +5649,25 @@
  },
  "ems003_00": {
   "reviewed": "2026-09-11",
-  "note": "Reviewed by Raven: two rows, and **the first monster in the sweep the part-group model cannot express.** He read it straight off the render: 'The top drop down is female horns, small and big. The bottom drop down is male horns, small and big. I also see both blue and green body meshes. This tells me we need a Gender Toggle.' The data agrees exactly. Kelbi has **no part 0** -- no shared body at all -- just two clusters, and **parts 1 and 4 are COMPLETE BODIES**, 966 and 992 vertices, with the male half again as wide (11015 against 6516, on heights of 16741 and 16643). Parts 2/3 and 5/6 are that body's small and large horns, and the male pair is much the taller (6 is 9135 high against 3's 2841), which is the size difference he saw. Every cluster always has exactly one member on, so **the panel drew 1, 3, 4 and 6 -- both bodies and both sets of large horns, one inside the other.** 101 and 104 are proxy-only and never drew. **NOTHING THAT EXISTED COULD FIX IT:** an option can only choose a member and every member of the male cluster draws part 4; DEFAULT_PARTS_OFF gives up by its own rule that a cluster with no alternative turning the part off is left alone; and leaving a cluster with NO member on is worse, because partsDrawn only lists parts an on-group mentions and applyParts draws anything it does not hear about. So a new capability was added -- a per-monster `variants` control that forces parts off AFTER the drawn map is built, plus a per-row `variant` key so a row is offered only while its body is on screen. **THE ROM PICKS A GENDER SOMEWHERE AND WE HAVE NOT DECODED IT, and that is why this control is honest only as a viewer construct.** Kelbi has NO defaultSet and NO rest sets whatever -- part-rest.json holds nothing for ems003_00 -- so the panel fell to the highest index in each cluster and drew both. The part table contains no notion of gender; it holds two clusters the viewer happened to draw together. 'Gender', 'Female' and 'Male' are read off the render by Raven and off the geometry by me, NOT off the ROM, and the selection the game really makes is still unread. Horn names are small/large in ROM member order, which is the order he read them in. **NO EYE PARTS, AND NONE ARE HIDDEN.** Raven: 'I don't see the eye parts, they may be turned off.' They are not -- **the whole model is 8 meshes carrying ONE material, XfBA1__m00_body**, so there is no eye geometry to turn off and nothing the Gender control could be suppressing. Kelbi's eyes are painted into the body texture. Checked across the small monsters and **this is the normal case, not a Kelbi defect: only 3 of 24 sampled have an eye material at all** -- Felyne and Melynx (XfB_0__m01_eye plus a second XfB_0__m02_eye_yoi) and Conga (XfB_0__m00_eye). Every other small monster checked, Aptonoth, Bullfango and Anteka included, has none. The 1xx parts are not candidates either: 101 and 104 are proxy-only and measure 6420x17927x30042 and 10696x20605x32693, body-sized cut-solid shells for bodies 1 and 4 rather than anything facial.",
+  "note": "Reviewed by Raven: two rows, and **the first monster in the sweep the part-group model cannot express.** He read it straight off the render: 'The top drop down is female horns, small and big. The bottom drop down is male horns, small and big. I also see both blue and green body meshes. This tells me we need a Gender Toggle.' The data agrees exactly. Kelbi has **no part 0** -- no shared body at all -- just two clusters, and **parts 1 and 4 are COMPLETE BODIES**, 966 and 992 vertices, with the male half again as wide (11015 against 6516, on heights of 16741 and 16643). Parts 2/3 and 5/6 are that body's small and large horns, and the male pair is much the taller (6 is 9135 high against 3's 2841), which is the size difference he saw. Every cluster always has exactly one member on, so **the panel drew 1, 3, 4 and 6 -- both bodies and both sets of large horns, one inside the other.** 101 and 104 are proxy-only and never drew. **NOTHING THAT EXISTED COULD FIX IT:** an option can only choose a member and every member of the male cluster draws part 4; DEFAULT_PARTS_OFF gives up by its own rule that a cluster with no alternative turning the part off is left alone; and leaving a cluster with NO member on is worse, because partsDrawn only lists parts an on-group mentions and applyParts draws anything it does not hear about. So a new capability was added -- a per-monster `variants` control that forces parts off AFTER the drawn map is built, plus a per-row `variant` key so a row is offered only while its body is on screen. **THE ROM PICKS A GENDER SOMEWHERE AND WE HAVE NOT DECODED IT, and that is why this control is honest only as a viewer construct.** Kelbi has NO defaultSet and NO rest sets whatever -- part-rest.json holds nothing for ems003_00 -- so the panel fell to the highest index in each cluster and drew both. The part table contains no notion of gender; it holds two clusters the viewer happened to draw together. 'Gender', 'Female' and 'Male' are read off the render by Raven and off the geometry by me, NOT off the ROM, and the selection the game really makes is still unread. **DECODED 2026-09-13, while adding sizes:** the selection is the spawn's size-type byte (see `sizes.note`). Type 0 draws group 2, the 4-body with small horns, at 1.0; type 1 draws group 0, the 1-body with small horns, at 0.85; the large-horn groups belong to types 2 and 3, which no spawn uses. The ROM still has no word for gender, so which body is male stays Raven's reading. Horn names are small/large in ROM member order, which is the order he read them in. **NO EYE PARTS, AND NONE ARE HIDDEN.** Raven: 'I don't see the eye parts, they may be turned off.' They are not -- **the whole model is 8 meshes carrying ONE material, XfBA1__m00_body**, so there is no eye geometry to turn off and nothing the Gender control could be suppressing. Kelbi's eyes are painted into the body texture. Checked across the small monsters and **this is the normal case, not a Kelbi defect: only 3 of 24 sampled have an eye material at all** -- Felyne and Melynx (XfB_0__m01_eye plus a second XfB_0__m02_eye_yoi) and Conga (XfB_0__m00_eye). Every other small monster checked, Aptonoth, Bullfango and Anteka included, has none. The 1xx parts are not candidates either: 101 and 104 are proxy-only and measure 6420x17927x30042 and 10696x20605x32693, body-sized cut-solid shells for bodies 1 and 4 rather than anything facial.",
+  "sizes": {
+   "note": "Kelbi, class uEms003_00, slot 0x1d8 0x10cc078: types 1..3 multiply by the table at 0x16a3b48, 0.85 / 1.3 / 1.1; type 0 unchanged, on dtbase's 1.0. **THE SAME TYPE PICKS THE GENDER AND THE HORNS**: slot 0x210 (0x10cf44c) applies group 2 for type 0 (4,5,104: male, small horns), group 0 for type 1 (1,2,101: female, small horns), group 3 for type 2 (male, large horns) and group 1 for type 3 (female, large horns). The spawn lists use only types 0 and 1, so the 1.3 male and 1.1 female with large horns exist in code and never spawn. Each option therefore names its `variant`, and the Gender control sets the size. **THE SIZE CONTROL IS HIDDEN** (`hidden`), at Raven's call: *'Kelbi will need three controls. Unlike the Moofahs, the horns change style and size, the body also changes with gender'*, then *'If Size determines gender, then we don't need to display size for Kelbi'*. So Kelbi shows Gender and Horns, and Female draws at 0.85 and Male at 1.0. Quest spawn lists: every rEmSetList in loc\\arc\\quest and arc\\quest, 1362 distinct files. Each 36-byte spawn entry carries a size-type byte at +7, stored at em+0x5cb6 (0x6fb68); the class's vtable slot 0x1d8 turns it into mEmScale, em+0x1ac, after dtbase's multiplier was loaded there (0xb94d0).",
+   "hidden": true,
+   "options": [
+    {
+     "name": "1.0×",
+     "scale": 1.0,
+     "title": "Spawn size type 0: 1088 of 1556 spawns, male with small horns",
+     "variant": 1
+    },
+    {
+     "name": "0.85×",
+     "scale": 0.85,
+     "title": "Spawn size type 1: 468 of 1556 spawns, female with small horns",
+     "variant": 0
+    }
+   ]
+  },
   "variants": {
    "name": "Gender",
    "options": [
@@ -5839,6 +5857,21 @@
  "ems041_00": {
   "reviewed": "2026-09-11",
   "note": "Reviewed by Raven, batched with the other small monsters. Eyes, and **the ROM's own spawn default is what settles it rather than any reading of mine.** The row is one cluster whose only difference is a single small part, and part-rest.json's defaultSet for this monster names the group that leaves that part OFF -- a monster does not spawn with its eyes shut, so the part is the LID and drawing it is Closed. The geometry agrees: it is a wide, thin, flat strip at the head end, far forward of the body centre, in the same body material as everything else. Same signature as Barioth's part 1 (905x156x215) and Kushala's 20-vertex lid. **Small monsters have no eye GEOMETRY at all** -- checked across 24 of them and only Felyne, Melynx and Conga carry an eye material; every other one paints the eyes into the body texture, so the lid is the whole of the eye control. Raven, 2026-09-11: 'A lot of them have eye effects or they change a feature like tusk size.' The lid here is part 100 at 12 vertices.",
+  "sizes": {
+   "note": "Slagtoth, class uEms001_00, slot 0x1d8 0x10c5678, Slagtoth's branch 0x10c58bc: types 1 and 3 x0.8 (type | 2 == 3), everything else unchanged, on dtbase's 1.0. Quest spawn lists: every rEmSetList in loc\\arc\\quest and arc\\quest, 1362 distinct files. Each 36-byte spawn entry carries a size-type byte at +7, stored at em+0x5cb6 (0x6fb68); the class's vtable slot 0x1d8 turns it into mEmScale, em+0x1ac, after dtbase's multiplier was loaded there (0xb94d0).",
+   "options": [
+    {
+     "name": "1.0×",
+     "scale": 1.0,
+     "title": "Spawn size types 0, 2: 240 of 243 spawns"
+    },
+    {
+     "name": "0.8×",
+     "scale": 0.8,
+     "title": "Spawn size type 1: 3 of 243 spawns"
+    }
+   ]
+  },
   "rows": {
    "0,1,100": {
     "name": "Eyes",
@@ -5893,6 +5926,21 @@
  "ems047_00": {
   "reviewed": "2026-09-11",
   "note": "Reviewed by Raven, batched with the other small monsters. Eyes, and **the ROM's own spawn default is what settles it rather than any reading of mine.** The row is one cluster whose only difference is a single small part, and part-rest.json's defaultSet for this monster names the group that leaves that part OFF -- a monster does not spawn with its eyes shut, so the part is the LID and drawing it is Closed. The geometry agrees: it is a wide, thin, flat strip at the head end, far forward of the body centre, in the same body material as everything else. Same signature as Barioth's part 1 (905x156x215) and Kushala's 20-vertex lid. **Small monsters have no eye GEOMETRY at all** -- checked across 24 of them and only Felyne, Melynx and Conga carry an eye material; every other one paints the eyes into the body texture, so the lid is the whole of the eye control. Raven, 2026-09-11: 'A lot of them have eye effects or they change a feature like tusk size.' The lid here is part 1 at 10 vertices. Larinoth has a SECOND 10-vertex strip, part 2, the same size as part 1 and at the same z31568; it lives in the monster's other cluster and is always drawn, so part 1 closes over it. That is the only one of these twelve where the open eye is its own mesh rather than texture.",
+  "sizes": {
+   "note": "Larinoth, class uEms047_00, slot 0x1d8 0x11178a0: type 0 DOUBLES the scale (0x1117a50..0x1117a58), type 1 leaves it and calls 0xc03e4 with 80, on dtbase's 1.0. So the common Larinoth is 2.0, twice what this viewer drew before, and the type-1 one is 1.0. Quest spawn lists: every rEmSetList in loc\\arc\\quest and arc\\quest, 1362 distinct files. Each 36-byte spawn entry carries a size-type byte at +7, stored at em+0x5cb6 (0x6fb68); the class's vtable slot 0x1d8 turns it into mEmScale, em+0x1ac, after dtbase's multiplier was loaded there (0xb94d0).",
+   "options": [
+    {
+     "name": "2.0×",
+     "scale": 2.0,
+     "title": "Spawn size type 0: 260 of 413 spawns"
+    },
+    {
+     "name": "1.0×",
+     "scale": 1.0,
+     "title": "Spawn size type 1: 153 of 413 spawns"
+    }
+   ]
+  },
   "rows": {
    "1": {
     "name": "Eyes",
@@ -6236,6 +6284,256 @@
      "5,6,40,45,47,107": "Intact, Heated",
      "6,15,16,40,46,47,55,56,107": "Cracked, Heated",
      "15,17,40,55,57": "Severed, Heated"
+    }
+   }
+  }
+ },
+ "ems007_00": {
+  "reviewed": "2026-09-13",
+  "note": "Reviewed by Raven: *'Felyne, Melynx, hide their part for now. I don't recall seeing them use it in game.'* The one row is a WHOLE-FACE swap -- head 1 with eye 3 (`m01_eye`) against head 2 with eye 7 (`m02_eye_yoi`) -- identical on both Lynians. **Hidden, opening on the plain `m01_eye` face**, so the `_yoi` face is not shown; before this entry the row opened on `_yoi`, the last option. Nothing is removed from the ROM data -- the Raw Parts debug switch still shows both faces.",
+  "rows": {
+   "0,1,2,3,7,11,100,111": {
+    "name": "Face",
+    "hidden": true,
+    "default": "0,1,3,11,100,111"
+   }
+  }
+ },
+ "ems008_00": {
+  "reviewed": "2026-09-13",
+  "note": "Reviewed by Raven: *'Felyne, Melynx, hide their part for now. I don't recall seeing them use it in game.'* The one row is a WHOLE-FACE swap -- head 1 with eye 3 (`m01_eye`) against head 2 with eye 7 (`m02_eye_yoi`) -- identical on both Lynians. **Hidden, opening on the plain `m01_eye` face**, so the `_yoi` face is not shown; before this entry the row opened on `_yoi`, the last option. Nothing is removed from the ROM data -- the Raw Parts debug switch still shows both faces.",
+  "rows": {
+   "0,1,2,3,7,11,100,111": {
+    "name": "Face",
+    "hidden": true,
+    "default": "0,1,3,11,100,111"
+   }
+  }
+ },
+ "ems027_00": {
+  "reviewed": "2026-09-13",
+  "note": "Reviewed by Raven: *'Abdomen: Empty, Full, Colored Full (See if more colors are findable)'*, then relabelled as he saw it: *'Colored Full must be Full (Honey). Update Full to Full (Various Foods)'* and, from his own reading, *'Alatroths have a small chance to be Gold ... update it to say Full (Golden)'*. The ROM's member order already matched. Part 1 is the empty abdomen, part 2 the full one (its second prim on `XfB__E0__m01_hip02_l02`), part 3 an additive layer over it, `XfB_0__m02_hip03_r_add` (Constant, BSAddAlpha, no clips).\n\n**THE FIVE COLOURS, READ FROM THE MRL BYTES** (ems027_00.mrl; the ten clips are there by name hash at +0xa48..+0xcf4, their fAlbedoColor keys at +0xa64..+0xd24). `hara_<colour>01` ramps from gray over 4 frames and `hara_<colour>02` loops holding it: gray (0.65, 0.65, 0.65), blue (0.135, 0.387, 0.765), green (0.225, 0.675, 0.225), orange (0.81, 0.45, 0.09), yellow (0.9, 0.9, 0.0).\n\n**WHAT PICKS ONE, read from uEms027_00 2026-09-13** after Raven: *'Actually double check the colors. I've seen mixed sources. I also have not seen anything list Orange.'* Setup (0x10f59c4, the clip part at 0x10f5a78..0x10f5c84) finds the material with MRL id 1 and looks all ten clips up by name, handles at enemy+0xcac8..+0xcaec. It EATS FROM GATHERING POINTS, and the area searches that pick one accept only six kinds: 1, 5 and 11 (mask 0x822, at 0x10f5e04 and 0x10f5fe4), and 6, 2 and 12 (0x10f69b0, preferring 6, then 2, then 12). The eat handler (0x10f5cec, message 1/2) turns the kind into a colour state at [enemy+0xcac0]+0x10: kind 6 -> 1, kind 2 -> 2, kind 12 -> 3, kinds 1/5/11 -> 5 (anything else 0). Then **a roll makes it GOLD**: the 16-bit random from 0x3f76d8 (xorshift at 0x7c9234) mod 100 below 2, about 2%, sets state 4 (0x10f5f48..0x10f5f80). The colour (0x10f6214) plays hara index = state, with 5 read as 0: **0 gray, 1 blue, 2 green, 3 orange, 4 yellow**. The parts (0x10f6440): not full -> group 0 (Empty); full and state 4 -> group 2, part 3 on; full otherwise -> group 1. **So Golden is the yellow tint WITH the additive layer, and nothing else draws part 3; an ordinary full abdomen is gray, blue, green or orange.**\n\n**ORANGE IS REAL AND RARE.** The point kind is byte +0x1f of each 36-byte point in a stage's rItemPopSet, section 0 (the loader reads it at 0x319ea0 into cPop+0x68 through 0x318a18). Over all 34 sets in loc/arc/stage/map_com, kind 12 occurs three times, all in stage m01, area 4: once in m01d, once in m01d_easy, once in m01d_tuto. In m01d that area also holds a kind-6 point, which the search takes first, so an Altaroth there turns orange only when that point is not available. Kind 6 (blue) is in 6 sets, kind 2 (green) in 5, kinds 1/5/11 (gray) in most. Which map m01 is, which quests use the easy and tutorial sets, and whether Altaroth spawn there are not read.\n\n**THE VIEWER CYCLES, AND THAT IS AUTHORED.** Raven: *'It's not how it works in game, but can we have it cycle through the different colors?'*, then *'have the color cycle disabled on Full (Honey)'*. So `cycle` on `m01_hip02_l02` has two entries: while part 3 is off, Full (Various Foods) steps through the four ordinary colours, gray, blue, green, orange, 2 seconds each; while part 3 is on, Full (Golden) holds `hara_yellow02`, its ROM colour. Before the code was read the list also held yellow, and Golden sat on gray. The `01` ramps are left out: a pinned clip runs on the shared material clock, so a 4-frame one-shot would only ever show its last frame. Raw Parts turns the cycle off with the rest of the review. No part-rest entry, so the row still opens on its last ROM option, Full (Golden).",
+  "sizes": {
+   "note": "Altaroth, class uEms027_00, slot 0x1d8 0x10f59c4: type 1 writes an absolute 1.25 (0x10f5a5c) and calls 0xc03e4 with 75; any other type keeps dtbase's 0.85. Quest spawn lists: every rEmSetList in loc\\arc\\quest and arc\\quest, 1362 distinct files. Each 36-byte spawn entry carries a size-type byte at +7, stored at em+0x5cb6 (0x6fb68); the class's vtable slot 0x1d8 turns it into mEmScale, em+0x1ac, after dtbase's multiplier was loaded there (0xb94d0).",
+   "options": [
+    {
+     "name": "0.85×",
+     "scale": 0.85,
+     "title": "Spawn size type 0: 1081 of 1248 spawns"
+    },
+    {
+     "name": "1.25×",
+     "scale": 1.25,
+     "title": "Spawn size type 1: 167 of 1248 spawns"
+    }
+   ]
+  },
+  "cycle": {
+   "XfB__E0__m01_hip02_l02": [
+    {"clips": ["hara_gray02", "hara_blue02", "hara_green02", "hara_orange02"], "seconds": 2, "off": "3"},
+    {"clips": ["hara_yellow02"], "on": "3"}
+   ]
+  },
+  "rows": {
+   "0,1,2,3,100": {
+    "name": "Abdomen",
+    "options": {
+     "0,1,100": "Empty",
+     "0,2,100": "Full (Various Foods)",
+     "0,2,3,100": "Full (Golden)"
+    }
+   }
+  }
+ },
+ "ems045_00": {
+  "reviewed": "2026-09-13",
+  "note": "Reviewed by Raven: *'Pose: Rolled Up, Unrolled (Switch these so it is Unrolled, Rolled)'*. As shown, `0,2,3,100,102` was first (Rolled Up) and `1,101` second (Unrolled). Switched whole, label and part together, so Unrolled `1,101` now leads. Opens on Unrolled as before: the fallback is the last option in ROM order, taken before any reorder.",
+  "sizes": {
+   "note": "Konchu, class uEms045_00, slot 0x1d8 0x110d5b8: type 100 writes an absolute 2.0 (0x110d684); types 1..3 change something else, not the size (type 0 is replaced by one of them there, from a virtual call). Dtbase says 1.0. Quest spawn lists: every rEmSetList in loc\\arc\\quest and arc\\quest, 1362 distinct files. Each 36-byte spawn entry carries a size-type byte at +7, stored at em+0x5cb6 (0x6fb68); the class's vtable slot 0x1d8 turns it into mEmScale, em+0x1ac, after dtbase's multiplier was loaded there (0xb94d0).",
+   "options": [
+    {
+     "name": "1.0×",
+     "scale": 1.0,
+     "title": "Spawn size types 0, 1, 2, 3: 522 of 526 spawns"
+    },
+    {
+     "name": "2.0×",
+     "scale": 2.0,
+     "title": "Spawn size type 100: 4 of 526 spawns"
+    }
+   ]
+  },
+  "rows": {
+   "0,1,2,3,100,101,102": {
+    "name": "Pose",
+    "order": ["1,101", "0,2,3,100,102"],
+    "options": {
+     "1,101": "Unrolled",
+     "0,2,3,100,102": "Rolled Up"
+    }
+   }
+  }
+ },
+ "ems048_00": {
+  "reviewed": "2026-09-13",
+  "note": "Reviewed by Raven: *'Gender: Male, Female'*. ROM member order already matches: `1,101` Male, `2,102` Female. Names only. Opens on Female as before, the last ROM option.",
+  "rows": {
+   "1,2,101,102": {
+    "name": "Gender",
+    "options": {
+     "1,101": "Male",
+     "2,102": "Female"
+    }
+   }
+  }
+ },
+ "ems001_00": {
+  "note": "Not part-reviewed. Only `sizes` is here, added at Raven's request (2026-09-13): *'Any monster that uses sizes, add a drop down for the different scales they come in'*. See `sizes.note`.",
+  "sizes": {
+   "note": "Aptonoth, class uEms001_00 (shared with Popo and Slagtoth), slot 0x1d8 0x10c5678, Aptonoth's branch 0x10c5874: type 1 x0.8 (0x10c5920), type 2 x0.5 (0x10c58ac), type 3 x1.5 (0x10c5940), type 0 unchanged, on dtbase's 1.0. Type 3 is never spawned. Quest spawn lists: every rEmSetList in loc\\arc\\quest and arc\\quest, 1362 distinct files. Each 36-byte spawn entry carries a size-type byte at +7, stored at em+0x5cb6 (0x6fb68); the class's vtable slot 0x1d8 turns it into mEmScale, em+0x1ac, after dtbase's multiplier was loaded there (0xb94d0).",
+   "options": [
+    {
+     "name": "1.0×",
+     "scale": 1.0,
+     "title": "Spawn size type 0: 303 of 906 spawns"
+    },
+    {
+     "name": "0.8×",
+     "scale": 0.8,
+     "title": "Spawn size type 1: 303 of 906 spawns"
+    },
+    {
+     "name": "0.5×",
+     "scale": 0.5,
+     "title": "Spawn size type 2: 300 of 906 spawns"
+    }
+   ]
+  }
+ },
+ "ems014_00": {
+  "reviewed": "2026-09-13",
+  "note": "Raven, 2026-09-13: *'The smaller tusks are meant for the children. Would it be possible to find the different size scales for Popos?'*, then *'Any monster that uses sizes, add a drop down for the different scales they come in'*. The ROM ties the two together (see `sizes.note`), so the one row follows the Size axis: `0,1,100,101` (big tusks) at 1.1 and 0.88, `0,100` (small tusks) at 0.55. **THE TUSKS ROW IS HIDDEN**, at Raven's call: *'Do Popo tusk change with size? If so, tie the tusk type to the size and only have the size drop down'*. They do, in the ROM, so the row stays tied to Size and only Size is offered. Named Tusks for this file only; nothing on screen shows the name.",
+  "sizes": {
+   "note": "Popo, class uEms001_00, slot 0x1d8 0x10c5678, Popo's branch 0x10c58e8: type 1 x0.8 (0x10c5920, literal 0x3f4ccccd), type 2 x0.5 (0x10c5950), type 3 x1.5 (0x10c5960), type 0 unchanged, on dtbase's 1.1. Type 3 (1.65) is never spawned. Slot 0x210 (0x10c95c4, Popo only) applies part group 1 when the type is 2 and group 0 otherwise, so the 0.55 Popo is the one with the small tusks. A Popo group in the spawn lists is a 1.1, a 0.88 and a 0.55 (112 groups) or just the first two (22). Quest spawn lists: every rEmSetList in loc\\arc\\quest and arc\\quest, 1362 distinct files. Each 36-byte spawn entry carries a size-type byte at +7, stored at em+0x5cb6 (0x6fb68); the class's vtable slot 0x1d8 turns it into mEmScale, em+0x1ac, after dtbase's multiplier was loaded there (0xb94d0).",
+   "options": [
+    {
+     "name": "1.1×",
+     "scale": 1.1,
+     "title": "Spawn size type 0: 134 of 380 spawns"
+    },
+    {
+     "name": "0.88×",
+     "scale": 0.88,
+     "title": "Spawn size type 1: 134 of 380 spawns"
+    },
+    {
+     "name": "0.55×",
+     "scale": 0.55,
+     "title": "Spawn size type 2: 112 of 380 spawns, with the small tusks"
+    }
+   ]
+  },
+  "rows": {
+   "0,1,100,101": {
+    "name": "Tusks",
+    "hidden": true,
+    "state": "size",
+    "default": "0,1,100,101|0,1,100,101|0,100"
+   }
+  }
+ },
+ "ems005_00": {
+  "note": "Not part-reviewed. Only `sizes` is here, added at Raven's request (2026-09-13): *'Any monster that uses sizes, add a drop down for the different scales they come in'*. See `sizes.note`.",
+  "sizes": {
+   "note": "Hornetaur, class uEms005_00, slot 0x1d8 0x10d1790: an ABSOLUTE scale, not a multiplier -- type 0 writes 0.8 (0x10d17b4), type 1 writes 1.2 (0x10d17c4), anything else leaves dtbase's 1.0. So the ordinary Hornetaur is 0.8, not the 1.0 this viewer drew before. Quest spawn lists: every rEmSetList in loc\\arc\\quest and arc\\quest, 1362 distinct files. Each 36-byte spawn entry carries a size-type byte at +7, stored at em+0x5cb6 (0x6fb68); the class's vtable slot 0x1d8 turns it into mEmScale, em+0x1ac, after dtbase's multiplier was loaded there (0xb94d0).",
+   "options": [
+    {
+     "name": "0.8×",
+     "scale": 0.8,
+     "title": "Spawn size type 0: 353 of 377 spawns"
+    },
+    {
+     "name": "1.2×",
+     "scale": 1.2,
+     "title": "Spawn size type 1: 24 of 377 spawns"
+    }
+   ]
+  }
+ },
+ "ems006_00": {
+  "note": "Not part-reviewed. Only `sizes` is here, added at Raven's request (2026-09-13): *'Any monster that uses sizes, add a drop down for the different scales they come in'*. See `sizes.note`.",
+  "sizes": {
+   "note": "Vespoid, class uEms006_00, slot 0x1d8 0x10d3328: absolute scales -- a type with bit 0 set writes 1.0 (0x10d342c), bit 1 writes 0.6 (0x10d3460), type 100 writes 4.0 and anything else 0.6 (0x10d3410). Dtbase says 0.6. Type 100 is never spawned. Quest spawn lists: every rEmSetList in loc\\arc\\quest and arc\\quest, 1362 distinct files. Each 36-byte spawn entry carries a size-type byte at +7, stored at em+0x5cb6 (0x6fb68); the class's vtable slot 0x1d8 turns it into mEmScale, em+0x1ac, after dtbase's multiplier was loaded there (0xb94d0).",
+   "options": [
+    {
+     "name": "0.6×",
+     "scale": 0.6,
+     "title": "Spawn size type 0: 840 of 995 spawns"
+    },
+    {
+     "name": "1.0×",
+     "scale": 1.0,
+     "title": "Spawn size type 1: 155 of 995 spawns"
+    }
+   ]
+  }
+ },
+ "ems016_00": {
+  "note": "Not part-reviewed. Only `sizes` is here, added at Raven's request (2026-09-13): *'Any monster that uses sizes, add a drop down for the different scales they come in'*. See `sizes.note`.",
+  "sizes": {
+   "note": "Anteka, class uEms016_00, slot 0x1d8 0x10e1a8c: types 1..3 multiply by the table at 0x16a3d70, 0.85 / 1.3 / 1.1; type 0 unchanged, on dtbase's 1.0. Types 2 and 3 are never spawned. Quest spawn lists: every rEmSetList in loc\\arc\\quest and arc\\quest, 1362 distinct files. Each 36-byte spawn entry carries a size-type byte at +7, stored at em+0x5cb6 (0x6fb68); the class's vtable slot 0x1d8 turns it into mEmScale, em+0x1ac, after dtbase's multiplier was loaded there (0xb94d0).",
+   "options": [
+    {
+     "name": "1.0×",
+     "scale": 1.0,
+     "title": "Spawn size type 0: 238 of 275 spawns"
+    },
+    {
+     "name": "0.85×",
+     "scale": 0.85,
+     "title": "Spawn size type 1: 37 of 275 spawns"
+    }
+   ]
+  }
+ },
+ "ems026_00": {
+  "reviewed": "2026-09-13",
+  "note": "Reviewed by Raven: *'Wing: Flapping, Open, Closed'*. ROM member order already matches: `1,3,4` is Flapping, `2` is Open and `3` is Closed. Names only. Opens on Closed as before, the last ROM option. The `sizes` list was added first, at his request (2026-09-13): *'Any monster that uses sizes, add a drop down for the different scales they come in'*. See `sizes.note`.",
+  "sizes": {
+   "note": "Bnahabra, class uEms026_00, slot 0x1d8 0x10f1788: absolute scales -- types 2, 5, 8 and 11 write 1.0 (0x10f18e4), every other type 0.6 (0x10f18c8, 0x10f1918). Dtbase says 0.6. The types come in threes and the first of each three also sets other parameters, so they encode more than size; only the size is offered here. Quest spawn lists: every rEmSetList in loc\\arc\\quest and arc\\quest, 1362 distinct files. Each 36-byte spawn entry carries a size-type byte at +7, stored at em+0x5cb6 (0x6fb68); the class's vtable slot 0x1d8 turns it into mEmScale, em+0x1ac, after dtbase's multiplier was loaded there (0xb94d0).",
+   "options": [
+    {
+     "name": "0.6×",
+     "scale": 0.6,
+     "title": "Spawn size types 0, 3, 6, 7, 9: 1486 of 1938 spawns"
+    },
+    {
+     "name": "1.0×",
+     "scale": 1.0,
+     "title": "Spawn size types 2, 5, 8, 11: 452 of 1938 spawns"
+    }
+   ]
+  },
+  "rows": {
+   "1,2,3,4": {
+    "name": "Wing",
+    "options": {
+     "1,3,4": "Flapping",
+     "2": "Open",
+     "3": "Closed"
+    }
+   }
+  }
+ },
+ "ems044_00": {
+  "reviewed": "2026-09-13",
+  "note": "Reviewed by Raven: *'Rear Legs: Off, On'*. ROM member order already matches: `0,100,101,102` (group 0) is Off and `0,100,103,104` (group 1) is On. Names only. Opens on On as before, the last ROM option. The game's own choice is a state flag, not the spawn size type: slot 0x210 (0x110cca0) applies group 1 while [em+0x5cfc] & 3 is set and group 0 otherwise. What sets that flag is not read.",
+  "rows": {
+   "0,100,101,102,103,104": {
+    "name": "Rear Legs",
+    "options": {
+     "0,100,101,102": "Off",
+     "0,100,103,104": "On"
     }
    }
   }
