@@ -737,7 +737,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <!-- HIDDEN, NOT REMOVED. Raven, 2026-09-14: "Hide the Debug panel", the end-of-project step he set
            out 2026-09-12 ("the Debug Panel will no longer be needed (or hidden)"). Every control in it
            still exists and still applies its setting; delete `hidden` to bring the panel back. -->
-      <section class="panel" data-open="false" hidden>
+      <section class="panel" id="debugPanel" data-open="false" hidden>
         <button class="panel-head">Debug <span class="chev">&#9662;</span></button>
         <div class="panel-body">
           <label class="chk"><input type="checkbox" id="monAnchor" checked>Hold Monster In Place</label>
@@ -2618,6 +2618,21 @@ const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: fals
                 // the additive effect meshes as a class; the ROM's part table already keeps
                 // them off at rest, so this is a way to look at them, not a correction
                 effects: true };
+// WHAT THE DEBUG PANEL SETS, AT THE VALUES THE APP OPENS WITH -- read off `state` before anything is
+// restored, so there is no second copy of the defaults to keep in step. See resetHiddenDebug().
+const DEBUG_DEFAULTS = Object.fromEntries(['anchor', 'groundLock', 'normalFlip', 'normalScale', 'undef', 'tail',
+                                           'rawParts', 'gap', 'proxy', 'extend'].map(k => [k, state[k]]));
+// A HIDDEN PANEL CANNOT BE LEFT HOLDING A SETTING. Raven, 2026-09-14, once the Debug panel was hidden:
+// "Yes, reset the debug settings to defaults". A view saved while one was on -- Ignore the Review File,
+// Show the Severed Parts, Draw Undefined Meshes -- would otherwise keep applying it with no switch on
+// screen to turn it off. Run after the boot restore and after Open, NOT inside applySet, so a dev scene
+// (runScene sets state itself) and a test calling __view.applySet still get what they ask for. Tied to
+// the panel's own `hidden`: unhide it and saved debug settings come back into force.
+function resetHiddenDebug(){
+  if (!document.getElementById('debugPanel').hidden) return;
+  Object.assign(state, DEBUG_DEFAULTS);
+  rawParts = state.rawParts;
+}
 function saveState(){
   if (restoring || SCENE) return;
   try { localStorage.setItem(LS_KEY, JSON.stringify(currentSet())); } catch (_) {}
@@ -5512,7 +5527,7 @@ async function loadSet(text, btn){
   if (!o || typeof o !== 'object' || !MON.monsters.some(m => m.id === o.id)){
     flash(btn, 'Bad file'); return;
   }
-  applySet(o);
+  applySet(o); resetHiddenDebug();
   monFilter.value = '';
   buildMonsterList(); buildLists(); paintNormal(); paintSpin(); paintOrbitLock(); paintWire(); paintCursor();
   document.getElementById('monAnchor').checked = state.anchor;
@@ -5619,7 +5634,7 @@ function currentSet(){
     spinRev, camDamp: controls.enableDamping, camZoomCursor: !!controls.zoomToCursor, camFace: faceLock,
     postfx: effectsState(), ...lightingSaveState() });
 }
-if (SAVED) applySet(SAVED);
+if (SAVED){ applySet(SAVED); resetHiddenDebug(); }
 buildMonsterList(); buildLists(); paintNormal(); paintOrbitLock(); paintSpin(); paintWire(); paintCursor();
 document.getElementById('monAnchor').checked = state.anchor;
 document.getElementById('monGround').checked = state.groundLock;
