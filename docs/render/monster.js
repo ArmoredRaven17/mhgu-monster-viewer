@@ -732,6 +732,7 @@ export function applyParts(root, drawn){
   // the part table's decision, kept for the per-frame joint writes a part state drives (stepTailSwell)
   root.userData.partsDrawn = drawn;
   applyBreakAlpha(root, drawn);
+  applyBreakSwap(root);
 }
 
 // A BREAK THAT TEARS A MEMBRANE IS AN ALPHA-TEST REFERENCE, NOT A MESH. Raven, 2026-09-13, on Alatreon:
@@ -756,9 +757,45 @@ export function applyParts(root, drawn){
 // measurement, not by name alone: m50_wing_l spans x 13964..25126 on joints 22-24, parts 11/21 x 13290..25126
 // on joints 22/23. The viewer has no break count, so the part the row DRAWS stands for it: the broken part
 // drawn is the count past its threshold. __breakAlpha(false) leaves every reference at the MRL's.
+//
+// THE SAME WRITE IN FIVE MORE CLASSES. Raven, 2026-09-14: "Look into the wing tear code." Each is the class's
+// per-frame virtual at vtable +0x210, like 0xecd5fc, on the break count and threshold bytes of the group switch
+// that draws the broken wing, with its own latch; below the threshold it writes the MRL's reference back:
+//
+//     class      frame      material (MRL id byte, 0x72c08 / +0x18 bits 22..29)  break  bytes     groups   broken  intact
+//     uEm001_00  0xcf253c   XfBAN__E0__m50_wing_l (50)                           1      +5 / +6   5 / 6    127     20
+//                           XfBAN__E0__m51_wing_r (51)                           2      +9 / +10  7 / 8    127     20
+//     uEm010_00  0xd6ad44   XfBAN__E0__m50_wing_l (50)                           3      +9 / +10  3 / 9    150     20
+//                           XfBAN__E0__m51_wing_r (51)                           4      +9 / +10  4 / 10   150     20
+//     uEm025_00  0xe00eb4   XfBAN__E1__m50_wing (50, cached at +0x44, 0xdff434)  7      +5 / +6   5 / 6    105     50
+//     uEm071_00  0xfbf97c   XfB_W__m01_kasan (61, cached at +0x94, 0xfad8d0)     2      +9 / +10  see below 150    0
+//     uEm013_00  0xd8a780   every material with id 50 (m50_wing)                 7      +17 / +18 NONE     190     64
+//
+// uEm001_00 and uEm025_00 mask with 0xffc020ff and put bits 9..12 back from the word they read, which keeps the
+// function as the others do. uEm001_00 runs all six of the Rath line (em001_00/02/04 and em002_00/02/04 -- the
+// ROM's AI host map; no uEm002_00 vtable exists), and every one of their models carries both membranes at MRL
+// GREATER 20 on parts 4/5 and 6/7. uEm071_00's write is in its Gore-line branch ([enemy+0xb5f4] 0x47), and its
+// groups are Gore Magala 11 / 12 and Chaotic Gore 13 / 14 -- part 12 on both. On Gore Magala's kasan it cannot
+// discard anything: that MRL has no test, and the material setup forces a disabled test's function to ALWAYS
+// (0xb42f00: 0xe00 unless fb bit 20), which the write keeps; Chaotic Gore's kasan is GREATER 0. uEm013_00 is not a
+// row: no group follows its break 7, so no part here can stand for the break (m50_wing is on part 0). The one other
+// class that writes these bits, uEm067_00 (0xf768c0), is not a break: it runs Zamtrios' ice armour reference
+// (XfBA_E1__m04_ice, id 54) down from 250 over an action and sets it to 0 or 255 on others.
+// Measured inside each membrane's own UVs, the share of texels the broken reference removes over the intact one:
+// Alatreon 6.5%, Rathian 7.8%, Rathalos 6.8%, Plesioth 32.8%, Chameleos 13.5% (Fatalis would be 7.5%; the kasan
+// footprint on Chaotic Gore 0%).
+const RATH_TEARS = [{ part: 5, mat: 'XfBAN__E0__m50_wing_l', ref: 127 },
+                    { part: 7, mat: 'XfBAN__E0__m51_wing_r', ref: 127 }];
+const GORE_TEARS = [{ part: 12, mat: 'XfB_W__m01_kasan', ref: 150 }];
 export const ROM_BREAK_ALPHA = {
+  em001_00: RATH_TEARS, em001_02: RATH_TEARS, em001_04: RATH_TEARS,
+  em002_00: RATH_TEARS, em002_02: RATH_TEARS, em002_04: RATH_TEARS,
+  em010_00: [{ part: 7, mat: 'XfBAN__E0__m50_wing_l', ref: 150 },
+             { part: 9, mat: 'XfBAN__E0__m51_wing_r', ref: 150 }],
+  em025_00: [{ part: 8, mat: 'XfBAN__E1__m50_wing', ref: 105 }],
   em050_00: [{ part: 21, mat: 'XfBAN__E0__m50_wing_l', ref: 150 },
              { part: 22, mat: 'XfBAN__E0__m51_wing_r', ref: 150 }],
+  em071_00: GORE_TEARS, em071_05: GORE_TEARS,
 };
 let breakAlphaOn = true;
 const breakAlphaRoots = new Set();
@@ -801,6 +838,109 @@ if (typeof window !== 'undefined'){
       }
     });
     return { on: breakAlphaOn, materials: mats };
+  };
+}
+
+// A BREAK THAT SWAPS A TEXTURE. uEm071_00's 0xfbf97c, in the same Gore-line branch as the kasan write above: when
+// break 2 first reaches its threshold it also puts `Wing_damage` into slot 0 of the material cached at +0x9c -- MRL
+// id 52, XfBAN__E0__m52_wing_l, the membrane on part 0 -- and zeroes the slot's time (0xfbfb6c..0xfbfb94; the clip
+// index is found by name at spawn, 0xfad960..0xfad980). The clip is one frame of kind-3 texture keys, Gore Magala
+// tAlbedoMap and tSpecularMap 7 -> 8, Chaotic Gore tAlbedoMap 4 -> 5: the torn membrane in both. The branch that
+// runs below the threshold writes nothing to that material -- a break never mends in game -- so Intact here holds
+// the clip at frame 0, whose key is the MRL's own binding (7 / 4). The part the Wings row draws stands for the
+// count, as in ROM_BREAK_ALPHA. __breakClip(false) holds every one at frame 0.
+export const ROM_BREAK_CLIP = {
+  em071_00: [{ part: 12, mat: 'XfBAN__E0__m52_wing_l', clip: 'Wing_damage' }],
+  em071_05: [{ part: 12, mat: 'XfBAN__E0__m52_wing_l', clip: 'Wing_damage' }],
+};
+let breakClipOn = true;
+const breakClipRoots = new Set();
+// One step for this root: `[{ mats, clip, t0, rest }]` for clipPicker's machine path. Like the stage machines, the
+// state only moves on a clock that moves forward; the review shot's own clock is shown the clip as it last stood.
+function stepBreakClips(root, tSec, monId){
+  const rows = monId && ROM_BREAK_CLIP[monId];
+  if (!rows || !root || !root.userData) return [];
+  let st = root.userData.breakClip;
+  if (!st || st.monId !== monId)
+    st = root.userData.breakClip = { monId, tLast: -Infinity, list: rows.map(r => ({ r, broken: false, t0: 0 })) };
+  for (const r of breakClipRoots) if (r !== root && !r.parent) breakClipRoots.delete(r);
+  breakClipRoots.add(root);
+  const drawn = root.userData.partsDrawn;
+  const fwd = tSec >= st.tLast;
+  const out = st.list.map(s => {
+    if (fwd){
+      const v = drawn ? drawn.get(s.r.part) : undefined;
+      const broken = breakClipOn && !!drawn && (v === undefined || !!v);
+      if (broken && !s.broken) s.t0 = tSec;
+      s.broken = broken;
+    }
+    const t0 = !s.broken ? tSec : fwd ? s.t0 : tSec - (st.tLast - s.t0);
+    return { mats: [s.r.mat], rest: null, clip: s.r.clip, t0 };
+  });
+  if (fwd) st.tLast = tSec;
+  return out;
+}
+export function setBreakClip(on){ breakClipOn = !!on; return breakClipOn; }
+if (typeof window !== 'undefined'){
+  // readback: { on, materials: [{ name, broken, texture: 'first key' | 'last key' | 'other' }] }
+  window.__breakClip = (on) => {
+    if (on !== undefined) setBreakClip(on);
+    const out = [];
+    for (const root of breakClipRoots) if (root.parent) root.traverse(o => {
+      if (!(o.isMesh || o.isSkinnedMesh)) return;
+      for (const m of matsOfMesh(o)){
+        const s = m && root.userData.breakClip && root.userData.breakClip.list.find(x => x.r.mat === m.name);
+        if (!s || out.some(x => x.name === m.name)) continue;
+        const clip = ((m.userData.rom && m.userData.rom.anim) || []).find(c => sameClip(c.name, s.r.clip));
+        const keys = clip && clip.tracks && clip.tracks[0] && clip.tracks[0].keys;
+        const swap = m.userData.texSwap || [];
+        const at = k => keys && swap[keys[k][1] - 1] === m.map;
+        out.push({ name: m.name, broken: s.broken,
+                   texture: at(0) ? 'first key' : (keys && at(keys.length - 1)) ? 'last key' : 'other' });
+      }
+    });
+    return { on: breakClipOn, materials: out };
+  };
+}
+
+// A BREAK THAT SWAPS THE MATERIAL. uEm071_00's same frame, Shagaru branch ([enemy+0xb5f4] 0x48): when break 2
+// reaches its threshold (bytes +9 / +10, groups 4 / 9 -- part 12) it puts MRL id 54 into the model's material slot 4
+// and id 53 into slot 0 through 0x88db20; below it, id 52 back into slot 4 and id 51 into slot 0 (0xfbfaf8..0xfbfc24,
+// latch [enemy+0xcac0]+0xc1). The four are cached at spawn by id from the model's own MRL -- 51 +0x9c, 52 +0x94,
+// 53 +0xa0, 54 +0x98 (0xfad9c4..0xfada68). Slot 0 is XfBA_EW_1__m51_wing_Alpha (id 51) and slot 4
+// XfBA_EW_1__m52_wing2 (id 52), the ids the intact branch hands back, and 53 / 54 are the two materials no mesh
+// names, #55921053 and #33b5c3c3: both bind the torn membrane e7850cce9a69991b where the originals bind
+// cbde49ef3b02d685. Hung on the meshes the way applyMaterialSwap hangs a state's swap. __breakSwap(false) puts the
+// originals back.
+export const ROM_BREAK_SWAP = {
+  em072_00: [{ part: 12, from: 'XfBA_EW_1__m51_wing_Alpha', to: '#55921053' },
+             { part: 12, from: 'XfBA_EW_1__m52_wing2', to: '#33b5c3c3' }],
+};
+let breakSwapOn = true;
+const breakSwapRoots = new Set();
+function applyBreakSwap(root){
+  const ud = root && root.userData;
+  if (!ud || !ud.breakSwap || !ud.breakSwap.length) return 0;
+  for (const r of breakSwapRoots) if (r !== root && !r.parent) breakSwapRoots.delete(r);
+  breakSwapRoots.add(root);
+  return retargetMaterials(root);
+}
+export function setBreakSwap(on){
+  breakSwapOn = !!on;
+  for (const root of [...breakSwapRoots]) retargetMaterials(root);
+  return breakSwapOn;
+}
+if (typeof window !== 'undefined'){
+  // readback: { on, meshes: [{ part, from, drawing }] } -- drawing is the material each swapped mesh draws now
+  window.__breakSwap = (on) => {
+    if (on !== undefined) setBreakSwap(on);
+    const meshes = [];
+    for (const root of breakSwapRoots) if (root.parent) root.traverse(o => {
+      const orig = o.userData && o.userData.matOrig;
+      if (!orig || !(root.userData.breakSwap || []).some(r => r.from === orig.name)) return;
+      meshes.push({ part: o.userData.part, from: orig.name, drawing: o.material && o.material.name });
+    });
+    return { on: breakSwapOn, meshes };
   };
 }
 // A cluster the rage ladder partly owns still holds real user choices -- the horn-break variants
@@ -1385,6 +1525,23 @@ export async function loadMonster(rec, opt, ctx){
     }
   }
   root.userData.matSwap = swaps;
+  // ROM_BREAK_SWAP's swap-ins, built the same way and hung by retargetMaterials while the break's part is drawn
+  const breakRows = (rec.id && ROM_BREAK_SWAP[rec.id]) || null;
+  const breakSwap = [];
+  if (breakRows){
+    let geom = null;
+    root.traverse(o => { if (!geom && (o.isMesh || o.isSkinnedMesh)) geom = o.geometry; });
+    const built = new Map();
+    if (geom) for (const r of breakRows){
+      if (!built.has(r.to)){
+        const probe = new THREE.Mesh(geom, new THREE.MeshBasicMaterial({ name: r.to }));
+        buildMesh(probe);
+        built.set(r.to, (probe.material.userData && probe.material.userData.rom) ? probe.material : null);
+      }
+      if (built.get(r.to)) breakSwap.push({ part: r.part, from: r.from, to: built.get(r.to) });
+    }
+  }
+  root.userData.breakSwap = breakSwap;
   await Promise.all(jobs);
   root.userData.joints = rec.joints || [];
   root.userData.mats = mats;
@@ -1653,7 +1810,17 @@ export const STATE_MATERIAL_SWAP = {
 export function applyMaterialSwap(root, state){
   const table = root && root.userData && root.userData.matSwap;
   if (!table) return 0;
-  const want = (state && table[state]) || null;
+  root.userData.matSwapState = state || null;
+  return retargetMaterials(root);
+}
+// The material each mesh draws: the state's swap (applyMaterialSwap), else a break's (ROM_BREAK_SWAP, while its part
+// is drawn), else the original. One resolver for both, so neither caller can undo the other's swap.
+function retargetMaterials(root){
+  const ud = root.userData;
+  const table = ud.matSwap;
+  const want = (ud.matSwapState && table && table[ud.matSwapState]) || null;
+  const brk = (breakSwapOn && ud.breakSwap && ud.breakSwap.length) ? ud.breakSwap : null;
+  const drawn = ud.partsDrawn;
   let n = 0;
   root.traverse(o => {
     if (!(o.isMesh || o.isSkinnedMesh) || !o.material) return;
@@ -1662,7 +1829,13 @@ export function applyMaterialSwap(root, state){
       o.userData.orderOrig = o.renderOrder || 0;
     }
     const orig = o.userData.matOrig;
-    const next = (want && orig && want[orig.name]) || orig;
+    let next = (want && orig && want[orig.name]) || null;
+    if (!next && brk && drawn && orig) for (const r of brk){
+      if (r.from !== orig.name) continue;
+      const v = drawn.get(r.part);
+      if (v === undefined || v){ next = r.to; break; }
+    }
+    next = next || orig;
     if (o.material === next) return;
     o.material = next;
     o.renderOrder = (next.userData && next.userData.renderOrder) || o.userData.orderOrig || 0;
@@ -2541,6 +2714,7 @@ export function stepMatAnim(root, tSec, state, monId, tState, prev, levelClip){
   const form = FORM_CLIP.exec(typeof levelClip === 'string' ? levelClip : '');
   const formState = form ? stepFormMachine(root, tSec, +form[1], monId) : null;
   if (formState) stages.push(formState);
+  for (const b of stepBreakClips(root, tSec, monId)) stages.push(b);
   const pick = clipPicker(state, monId, tState, prev, levelClip, stages.length ? stages : null);
   // ONE evaluator for both paths. A ROM-core material is a stock three.js material -- the technique
   // decides which class, not the blend state -- so the shared evaluator's writes land exactly as
