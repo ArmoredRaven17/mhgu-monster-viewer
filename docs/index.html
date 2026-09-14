@@ -279,9 +279,9 @@ header #bar .btn.tiny{margin-right:0}
 /* the monster's own icon, from the set the sibling apps share */
 .mon-icon{width:34px;height:34px;flex:0 0 auto;object-fit:contain;
   image-rendering:auto;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
-/* the icon sits against the first row of the info list, not centred down its whole height */
-#monHead{align-items:flex-start}
-#monHead .hint{margin:0}
+/* the dropdown's row keeps the icon's height when a monster has none (the Fatalis trio, Alatreon),
+   so the dropdown does not jump 4px on the way to or from one */
+#monPick{min-height:34px}
 #viewport canvas{display:block;width:100%;height:100%}
 #viewport.fly canvas{cursor:crosshair}   /* the first-person camera; Hide Cursor below still wins */
 /* Scoped to the render area on purpose: #bar and the overlays are SIBLINGS of #viewport,
@@ -519,8 +519,11 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <div class="panel-head">Monster <span class="chev">&#9662;</span></div>
         <div class="panel-body">
           <div class="field"><input type="text" id="monFilter" placeholder="Filter by name&hellip;"></div>
-          <div class="field"><label for="monSel">Monster</label><select id="monSel"></select></div>
-          <div class="row gap" id="monHead"><img id="monIcon" class="mon-icon" alt="" hidden><dl id="monAbout" class="info"></dl></div>
+          <!-- THE ICON BESIDE THE DROPDOWN, THE READOUT IN DEBUG. Raven, 2026-09-13: "Move all the text
+               to be displayed in the Debug Panel. Move the Icon Next to the drop down". The icon takes
+               the place the Armor Viewer gives a colour swatch: right of its select, in a .row.gap. -->
+          <div class="field"><label for="monSel">Monster</label>
+            <div class="row gap" id="monPick"><select id="monSel"></select><img id="monIcon" class="mon-icon" alt="" hidden></div></div>
         </div>
       </section>
 
@@ -641,6 +644,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           <label class="chk" id="monExtendRow" hidden><input type="checkbox" id="monExtend"><span id="monExtendText">Draw the Overlays Whose Albedo Needs a Second Map</span></label>
           <div class="field"><label for="monNormalScale">Normal Strength <span id="monNormalScaleVal" class="hint"></span></label>
             <input type="range" id="monNormalScale" min="0" max="2" step="0.05" value="1"></div>
+          <!-- the monster's readout (ID, Type, Bones ...), moved here from the Monster panel -->
+          <dl id="monAbout" class="info"></dl>
         </div>
       </section>
 
@@ -2181,7 +2186,7 @@ function buildClips(){
 function paintAbout(){
   const e = entry();
   if (!e) { monAbout.textContent = ''; return; }
-  // The monster's own icon, beside the readout. Not every monster has one (the set covers the
+  // The monster's own icon, beside the Monster dropdown. Not every monster has one (the set covers the
   // named ones), so it hides rather than showing a broken image.
   //
   // It does NOT go in the title bar. That icon belongs to the THEME across these apps -- the
