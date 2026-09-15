@@ -397,6 +397,9 @@ header #bar .btn.tiny{margin-right:0}
    variant (Kelbi's Gender) were bare selects beside their labels. They are .field rows now, below the
    part rows: the panel body's own 6px gap plus 7 is the 13 between two part rows. */
 #monRageLevelRow,#monLevelRow,#monVariantRow,#monSizeRow{gap:5px;margin-top:7px}
+/* The Hit Zones panel's Broken Parts: a caption the size and colour of a .field label, over the state switches' rows. */
+#monZoneBreakRow{display:flex;flex-direction:column;gap:2px}
+#monZoneBreakRow > span{font-size:12px;color:var(--text-dim)}
 /* THE ARMOR VIEWER'S LIGHTING, CAMERA AND EFFECTS PANELS, 2026-09-13: a row of preset buttons, and
    the small heads between an effects panel's groups. Its rules, verbatim. */
 .light-row{display:flex;gap:4px;flex-wrap:wrap}
@@ -634,6 +637,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           <div class="field" id="monHeatTableRow" hidden>
             <label for="monHeatTable">Damage Table</label>
             <select id="monHeatTable"></select>
+          </div>
+          <!-- THE BREAKS A HIT ZONE DEPENDS ON: one switch per part whose break the monster's own rules test, each
+               the same choice as its row in the Parts panel. See paintZoneBreaks(). -->
+          <div id="monZoneBreakRow" hidden>
+            <span>Broken Parts</span>
+            <div id="monZoneBreaks"></div>
           </div>
           <div class="field" id="monBounceTRow" hidden>
             <label for="monBounceT" title="The floor a hit must clear to avoid bouncing. The ROM holds two, 0.25 and 0.27, and picks between them with a signed byte read at 0x3a8430 that is NOT identified -- so both are offered here and neither is presented as the monster's. It is not a per-monster value: the deflect site reads it from a global.">Threshold</label>
@@ -4711,6 +4720,65 @@ function zoneTable(e, rec){
   return { rows: rec.tables[ti], from: null, names: rec.tables.map((_, i) => 'Table ' + i), index: ti,
            label: rec.tables.length > 1 ? 'Table ' + ti : '' };
 }
+// BROKEN PARTS, SWITCHED WHERE THE ZONES ARE READ. Raven, 2026-09-15: "If we are going to have dynamic hit zones for
+// part breaks, it would help to allow the user to toggle breakable parts", then "we could list the break-able parts
+// that result in hit zone differences in the Hit Zones panel". Listed: only the parts a rule of the monster's own
+// tests (ROM_MEAT_SWITCH `broken`), so the list is the ROM's and not a copy of the Parts panel. Each switch IS its
+// Parts row -- named by it, lit from the groups it applied -- and flipping one picks that row's Broken or Intact
+// option through the row's own onchange, so the model, the Parts panel and the table stay one state (the row
+// repaints this through applyPartState). A part without a plain dropdown on screen is left out, not written
+// behind the Parts panel's back.
+function zoneBreakParts(e){
+  const sw = meatSwitchOf(e && e.id);
+  if (!sw || !sw.broken) return [];
+  const tested = new Set(sw.rules.map(r => r[3]).filter(Boolean).map(p => String(p).replace(/^!/, '')));
+  const clusters = clusterGroups(e.groups || []);
+  const out = [];
+  for (const [key, groups] of Object.entries(sw.broken)){
+    if (!tested.has(key)) continue;
+    const c = clusters.find(x => groups.some(g => x.members.indexOf(g) >= 0));
+    const f = c && [...document.querySelectorAll('#monGroups .field')].find(x => x.dataset.row === c.parts);
+    const sel = f && f.querySelector('select');
+    if (!sel){ console.warn('hit zones: ' + e.id + ' break "' + key + '" has no dropdown in the Parts panel'); continue; }
+    const rv = reviewRows(e.id)[c.parts];
+    const lab = f.querySelector('label');
+    out.push({ key, row: c.parts, groups,
+               name: (rv && rv.name) || (lab && lab.firstChild ? lab.firstChild.textContent.trim() : c.parts),
+               broken: groups.some(g => !!(state.groups && state.groups[g])) });
+  }
+  return out;
+}
+function paintZoneBreaks(e, zt){
+  const parts = zt && zt.from ? zoneBreakParts(e) : [];
+  document.getElementById('monZoneBreakRow').hidden = !parts.length;
+  const box = document.getElementById('monZoneBreaks');
+  box.textContent = '';
+  for (const p of parts){
+    const lab = document.createElement('label');
+    lab.className = 'chk switch';
+    lab.title = 'The same choice as the ' + p.name + ' row in the Parts panel';
+    const inp = document.createElement('input');
+    inp.type = 'checkbox';
+    inp.checked = p.broken;
+    inp.onchange = () => setPartBroken(p, inp.checked);
+    const tog = document.createElement('span');
+    tog.className = 'toggle';
+    lab.append(inp, tog, document.createTextNode(p.name));
+    box.appendChild(lab);
+  }
+}
+// The row is looked up again at the flip: a rung change rebuilds the Parts panel, and a held dropdown would be gone.
+// Broken is the option drawing one of the part's broken groups; Intact the first that draws none.
+function setPartBroken(p, on){
+  const f = [...document.querySelectorAll('#monGroups .field')].find(x => x.dataset.row === p.row);
+  const sel = f && f.querySelector('select');
+  if (!sel) return;
+  const isBroken = o => p.groups.indexOf(parseInt(o.value, 10)) >= 0;
+  const o = [...sel.options].find(x => on ? isBroken(x) : !isBroken(x));
+  if (!o || sel.value === o.value) return;
+  sel.value = o.value;
+  sel.onchange();
+}
 async function applyHeat(){
   const e = entry();
   const rec = e && HITZONES.monsters && HITZONES.monsters[e.id];
@@ -4722,6 +4790,7 @@ async function applyHeat(){
     // Two monsters ship no damage table (em087_00 and ems017_00). The panel says so rather than
     // emptying itself out, which read as the app having lost the feature.
     for (const g of Object.values(mounted)) clearHeatmap(g);
+    paintZoneBreaks(e, null);
     // all three panes, or a stale table from the previous monster stays on its tab
     for (const g of ZONE_GROUPS) document.getElementById(g.id).textContent = '';
     document.getElementById('monPartsChart').textContent = '';
@@ -4752,6 +4821,7 @@ async function applyHeat(){
     tsel.dataset.names = names;
   }
   tsel.value = String(zt.index);
+  paintZoneBreaks(e, zt);
   document.getElementById('monHeat').value = state.heat;
   document.getElementById('monBounceT').value = state.deflectT || 'f25';
   document.getElementById('monTier').value = String(+state.deflectTier || 2);
@@ -6418,6 +6488,7 @@ window.__view.zoneTable = () => {
   const zt = zoneTable(e, rec), named = zoneNames(rec);
   return { id: e.id, states: !!zt.from, names: zt.names, index: zt.index, label: zt.label,
            dropdown: document.getElementById('monHeatTable').value, title: document.getElementById('zoneTitle').textContent,
+           breaks: [...document.querySelectorAll('#monZoneBreaks label')].map(l => l.textContent + (l.querySelector('input').checked ? ': on' : ': off')),
            slots: zoneSlots(rec).map(sl => ({ slot: sl, name: named[sl] || null, from: zt.from ? zt.from[sl] : [zt.index, sl],
                                               row: zt.rows[sl] })) };
 };
