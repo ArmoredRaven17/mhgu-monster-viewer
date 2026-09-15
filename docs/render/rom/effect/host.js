@@ -100,6 +100,13 @@ export class EffectHost {
     this.m.load(a, new Uint8Array(Math.max(n, 4)));
     return a;
   }
+  // The bump heap never frees (the ROM's allocator does, and a proof start resets its resmgr, host.js head);
+  // so every effect start leaks its objects for good. A looping clip re-starts each loop and the heap climbs
+  // ~40 KB a loop until a start runs out and the effects stop (Raven, 2026-09-15). When NOTHING is running,
+  // nothing references anything above the mount baseline -- the request boot objects and every request's own
+  // allocations are all above it -- so the heap can be rewound to the baseline and the request manager rebuilt
+  // on the next start. Only ever called with running == 0 (live.js), so this frees no live allocation.
+  heapReset(mark){ this.heap = mark >>> 0; this.requests = null; }
   cstr(a){ let s = ''; for (let c; (c = this.m.rawByte(a)) !== 0; a++) s += String.fromCharCode(c); return s; }
   stream(bytes){ const s = this.malloc(0x40); this.streams.set(s, bytes); return s; }
 

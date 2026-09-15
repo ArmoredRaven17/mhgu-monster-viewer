@@ -165,6 +165,9 @@ export class LiveEffects {
     // a record: the monster's request, whole (proof.js ProofRequest) -- the core makes the effect the game
     // draws, a uMHProofEffect, which the unit passes run every frame -- made when schedule.js says
     this.schedule = new EffectSchedule(host, parent, this.effects, rage);
+    // the heap after the mount's own allocations (draw system, effects, parent, any auto-started effect): the
+    // floor frame() rewinds the bump heap to when nothing is running, freeing what looping clip starts leak
+    this.heapBase = host.heap;
     // The frame driver: an empty mesh at the end of the viewer's render list (transparent, last). Its hook
     // steps the effects, draws them on the host and renders their meshes right there, into the target the
     // viewer's render is drawing into, over everything it has drawn. They are rendered by a render of their
@@ -288,6 +291,10 @@ export class LiveEffects {
     const effects = this.schedule.effects();
     this.stats.running = this.schedule.running;
     if (!effects.length){                                      // nothing running: no draw, no depth pass
+      // reclaim the bump heap the finished requests leaked. Nothing is running, so nothing references anything
+      // above the mount baseline (host.js heapReset); without this a looping clip re-starts every loop and the
+      // heap grows ~40 KB a loop until a start runs out and the effects stop until a refresh (Raven, 2026-09-15).
+      if (this.schedule.running === 0 && this.host.heap > this.heapBase) this.host.heapReset(this.heapBase);
       for (const mesh of this.meshes) mesh.visible = false;
       for (const mesh of this.modelMeshes) mesh.visible = false;
       this.stats.prims = this.stats.models = 0;
