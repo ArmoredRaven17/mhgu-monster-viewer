@@ -122,7 +122,7 @@
  },
  "em081_00": {
   "reviewed": "2026-09-15",
-  "note": "Named from the render. Left Wing (slot 3) is the higher-x side, as on Gravios; Pincers (slot 6) is the tail end on joint 138.",
+  "note": "Named from the render. Left Wing (slot 3) is the higher-x side, as on Gravios; Pincers (slot 6) is the tail end on joint 138. Raven, on the wings: \"One wing is a 25 Ice zone, normally wings are symetrical\". Verified from the raw em081_00_dttune.dtt (tables at 0x8e, every row ending in its stun/exhaust pair, the community parse agreeing): table 0 gives both wings 25/25/20 5/5/5; table 1 gives Left Wing 25/25/25 6/10/15 and Right Wing 55/55/45 10/20/25. Table 1 also puts Stun 100 on slot 1 (Body), and its slots 6-7 equal Boltreaver's table 1 slots 6-7 exactly. What selects table 1 in the game is not established.",
   "slots": {
    "0": "Head",
    "1": "Body",
