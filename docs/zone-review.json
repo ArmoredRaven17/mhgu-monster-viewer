@@ -95,6 +95,20 @@
    "6": "Tail"
   }
  },
+ "em077_00": {
+  "reviewed": "2026-09-15",
+  "note": "Named from the render, the full eight in slot order (an earlier seven-name list was not applied).",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Back",
+   "3": "Belly",
+   "4": "Tail",
+   "5": "Wing Arms",
+   "6": "Legs",
+   "7": "Wings"
+  }
+ },
  "em043_00": {
   "reviewed": "2026-09-15",
   "note": "Named from the render. Chest is slot 1's single sphere under the front of the body (joint 2); Torso is the spine capsules.",
