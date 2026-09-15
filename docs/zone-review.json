@@ -120,6 +120,20 @@
    "5": "Tail"
   }
  },
+ "em081_00": {
+  "reviewed": "2026-09-15",
+  "note": "Named from the render. Left Wing (slot 3) is the higher-x side, as on Gravios; Pincers (slot 6) is the tail end on joint 138.",
+  "slots": {
+   "0": "Head",
+   "1": "Body",
+   "2": "Neck",
+   "3": "Left Wing",
+   "4": "Legs",
+   "5": "Tail",
+   "6": "Pincers",
+   "7": "Right Wing"
+  }
+ },
  "em002_04": {
   "reviewed": "2026-09-15",
   "note": "Raven: \"Dreadking, same as Silver\". Split a little differently on the same joints: Tail is joints 141-143, Tail Tip a sphere and a capsule on 144, and Wings carries two more spheres (joints 8 and 12).",
