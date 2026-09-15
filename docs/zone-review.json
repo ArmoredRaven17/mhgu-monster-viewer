@@ -122,6 +122,7 @@
  },
  "em081_00": {
   "reviewed": "2026-09-15",
+  "unsure": "Raven, 2026-09-15: \"I am not confident with Astalos hit zone table or capsule slots\", \"their hit zone values normally reflect each other\". Measured over the library: 14 slot pairs have capsules that mirror left/right (11 exactly, 3 near), and 13 of them have identical rows in table 1. Astalos' wings (slots 3/7) are the one exception, and their capsules are only a near mirror: 5 of 7 match, while the two wing-membrane capsules (records 14 on joint 60 and 19 on joint 70) differ in shape. The only other asymmetric pair is Stonefist Hermitaur slots 3/7 (table 0, Thunder 15/20). Held for the review pass.",
   "note": "Named from the render. Left Wing (slot 3) is the higher-x side, as on Gravios; Pincers (slot 6) is the tail end on joint 138. Raven, on the wings: \"One wing is a 25 Ice zone, normally wings are symetrical\". Verified from the raw em081_00_dttune.dtt (tables at 0x8e, every row ending in its stun/exhaust pair, the community parse agreeing): table 0 gives both wings 25/25/20 5/5/5; table 1 gives Left Wing 25/25/25 6/10/15 and Right Wing 55/55/45 10/20/25. Table 1 also puts Stun 100 on slot 1 (Body), and its slots 6-7 equal Boltreaver's table 1 slots 6-7 exactly. What selects table 1 in the game is not established.",
   "slots": {
    "0": "Head",
