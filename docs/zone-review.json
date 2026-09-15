@@ -135,6 +135,19 @@
    "7": "Right Wing"
   }
  },
+ "em081_04": {
+  "reviewed": "2026-09-15",
+  "note": "Named from the render. Same slots on the same joints as Astalos except the wings: slot 3 carries both (Astalos keeps the second wing in slot 7), and there is no slot 7.",
+  "slots": {
+   "0": "Head",
+   "1": "Body",
+   "2": "Neck",
+   "3": "Wings",
+   "4": "Legs",
+   "5": "Tail",
+   "6": "Pincers"
+  }
+ },
  "em002_04": {
   "reviewed": "2026-09-15",
   "note": "Raven: \"Dreadking, same as Silver\". Split a little differently on the same joints: Tail is joints 141-143, Tail Tip a sphere and a capsule on 144, and Wings carries two more spheres (joints 8 and 12).",
