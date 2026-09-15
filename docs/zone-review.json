@@ -108,6 +108,18 @@
    "7": "Wings"
   }
  },
+ "em043_00": {
+  "reviewed": "2026-09-15",
+  "note": "Named from the render. Chest is slot 1's single sphere under the front of the body (joint 2); Torso is the spine capsules.",
+  "slots": {
+   "0": "Head",
+   "1": "Chest",
+   "2": "Torso",
+   "3": "Arms",
+   "4": "Legs",
+   "5": "Tail"
+  }
+ },
  "em002_04": {
   "reviewed": "2026-09-15",
   "note": "Raven: \"Dreadking, same as Silver\". Split a little differently on the same joints: Tail is joints 141-143, Tail Tip a sphere and a capsule on 144, and Wings carries two more spheres (joints 8 and 12).",
