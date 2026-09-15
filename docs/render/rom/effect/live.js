@@ -104,9 +104,17 @@ function stripsToTriangles(indices){
 const T_NEAR_IS_ZERO = new THREE.Matrix4().set(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
 const VIEW_BUFFER = /^(CBViewProjection|CBScreen)_/;
 
+// TEMPORARY flash suppression (2026-09-15). cm100_000 is Khezu's discharge flash: a ROM-faithful but
+// screen-filling burst -- its ±190 model mesh drawn at the ROM's own CBWorld scale 60->120 (confirmed
+// with efx/engdraw.py), which we cannot yet shade as the soft burst the game shows. Hide it for Khezu
+// only until the flash material path lands. Keyed by monster so Teostra (em027) and Savage (em043),
+// which also use cm100_000, are left untouched. See memory effect-model-particles-no-node-scale.
+const HIDE_MODELS = { em003_00: new Set(['cm100_000']) };
+
 export class LiveEffects {
   constructor(def){
     this.def = def;
+    this.hideModels = HIDE_MODELS[def.monster] || null;   // per-monster flash suppression (see HIDE_MODELS)
     this.group = new THREE.Group();              // in the viewer's scene: the frame driver
     this.group.name = 'live-effects';
     this.scene = new THREE.Scene();              // the effect meshes, rendered by the frame driver
@@ -403,6 +411,7 @@ export class LiveEffects {
     let k = 0;
     for (const d of models){
       const short = String(d.model).split('\\').pop();
+      if (this.hideModels && this.hideModels.has(short)) continue;   // TEMPORARY: hide Khezu's flash (HIDE_MODELS)
       const scene = this.glb(short);
       if (!scene) continue;
       const node = scene.getObjectByName('Group' + d.meshIndex);

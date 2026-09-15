@@ -23,6 +23,10 @@
 // export and the soak exercise is what the viewer does.
 const hex = h => Uint8Array.from(h.match(/../g) || [], b => parseInt(b, 16));
 
+// How long a stopped clip effect keeps stepping (undrawn) so its particles die and free their pool slots
+// before it is taken off the passes. Its emitters are already off, so this bounds the fade, not the leak.
+const STOP_FRAMES = 90;
+
 export class EffectSchedule {
   // host: the EffectHost; parent: its parent unit; entries: [{ owner, def }] (def: one of the json's effects)
   constructor(host, parent, entries, rage = false){
@@ -61,10 +65,20 @@ export class EffectSchedule {
 
   // one 1/60 s step: the unit passes over every request, then the plain effects' moves
   step(){
+    this.frame = (this.frame || 0) + 1;
     this.host.unitFrame();
     for (const e of this.entries) if (!e.def.record) this.host.move(e.owner);
     this.host.pruneUnits();
-    for (const e of this.entries) if (e.requests.length) e.requests = e.requests.filter(q => !q.finished());
+    for (const e of this.entries){
+      if (e.requests.length) e.requests = e.requests.filter(q => !q.finished());
+      // A stopped clip effect dies out here: its emitters are off (stopClip) so its live particles age and
+      // die over the next frames, freeing their pool slots. Keep stepping it (unitFrame walks state.units)
+      // until it finishes, or STOP_FRAMES pass -- then take it off the passes. Not drawn while it dies.
+      if (e.dying && e.dying.length) e.dying = e.dying.filter(q => {
+        if (q.finished() || this.frame >= q.dieBy){ this.host.releaseRequest(q); return false; }
+        return true;
+      });
+    }
   }
 
   // CLIP-DRIVEN effects (when: 'clip'): an attack animation's PSL effects, started and stopped by the clip's
@@ -75,16 +89,21 @@ export class EffectSchedule {
     for (const e of this.entries)
       if (e.when === 'clip' && e.def.record && (e.def.efl || '').endsWith(efl) && !e.requests.length) this.start(e);
   }
+  // Stop a clip effect the ROM's way: stopRequest (0x329c40) turns its emitters off so its live particles
+  // age out and DIE, freeing their pool slots -- then it is taken off the passes once dead (step). Releasing
+  // it outright (as before) orphaned those particles: their slots (L_4187c's +0x74 mask) stayed set, so after
+  // ~15 loops a slot group filled (0xffffffff) and the request builder walked into unrecorded code (0x418d4),
+  // which stopped every effect until a page refresh (Raven, 2026-09-15). The dying request is not drawn.
   stopClip(efl){
     for (const e of this.entries)
       if (e.when === 'clip' && (e.def.efl || '').endsWith(efl)){
-        for (const q of e.requests) this.host.releaseRequest(q);
+        for (const q of e.requests){ if (!q.stopped) this.host.stopRequest(q); q.dieBy = (this.frame || 0) + STOP_FRAMES; (e.dying || (e.dying = [])).push(q); }
         e.requests.length = 0;
       }
   }
 
-  // the effects to draw this frame
+  // the effects to draw this frame (a dying, stopped request is stepped to free its slots but not drawn)
   effects(){ return this.entries.flatMap(e => e.def.record ? e.requests.flatMap(q => q.effects()) : [e.owner]); }
-  // requests and plain effects running
-  get running(){ return this.entries.reduce((n, e) => n + (e.def.record ? e.requests.length : 1), 0); }
+  // requests and plain effects running (a dying one still holds memory and pool slots, so it counts)
+  get running(){ return this.entries.reduce((n, e) => n + (e.def.record ? e.requests.length + (e.dying ? e.dying.length : 0) : 1), 0); }
 }

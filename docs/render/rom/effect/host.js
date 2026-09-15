@@ -65,6 +65,8 @@ export class EffectHost {
       };
     }
     this.heap = heap >>> 0;
+    this.freeBlocks = new Map();               // rounded size -> [freed addresses], for allocator reuse
+    this.allocSizes = new Map();               // live allocation address -> its rounded size
     this.records = records;
     this.drawSystem = drawSystem;
     this.resources = resources;
@@ -77,7 +79,7 @@ export class EffectHost {
     const host = this;
     m.svc = {
       alloc: (size) => host.malloc(size),
-      free(){},
+      free: (p) => host.free(p),
       nextId: () => ++host.ids,
       streamSize: s => host.streams.get(s).length,
       streamRead(s, buf, n){ const d = host.streams.get(s); m.load(buf, d.subarray(0, n)); return Math.min(n, d.length); },
@@ -95,18 +97,37 @@ export class EffectHost {
   }
 
   malloc(n){
-    const a = this.heap;
-    this.heap = (this.heap + ((Math.max(n, 4) + 31) & ~31)) >>> 0;
-    this.m.load(a, new Uint8Array(Math.max(n, 4)));
+    const size = (Math.max(n, 4) + 31) & ~31;
+    let a;
+    const bucket = this.freeBlocks.get(size);
+    if (bucket && bucket.length) a = bucket.pop();           // reuse a freed block of the same rounded size
+    else { a = this.heap; this.heap = (this.heap + size) >>> 0; }
+    this.allocSizes.set(a, size);
+    this.m.load(a, new Uint8Array(size));                    // hand back zeroed memory, reused or fresh
     return a;
   }
-  // The bump heap never frees (the ROM's allocator does, and a proof start resets its resmgr, host.js head);
-  // so every effect start leaks its objects for good. A looping clip re-starts each loop and the heap climbs
-  // ~40 KB a loop until a start runs out and the effects stop (Raven, 2026-09-15). When NOTHING is running,
-  // nothing references anything above the mount baseline -- the request boot objects and every request's own
-  // allocations are all above it -- so the heap can be rewound to the baseline and the request manager rebuilt
-  // on the next start. Only ever called with running == 0 (live.js), so this frees no live allocation.
-  heapReset(mark){ this.heap = mark >>> 0; this.requests = null; }
+  // The ROM's allocator FREES through its free vtable +0x34 -- the 0x7e000104 native, which reaches here
+  // with the exact pointer alloc returned (bridge.js). free() used to be a no-op, so the bump heap only
+  // ever climbed; a long-running effect frees its per-frame scratch constantly, so the heap grew without
+  // bound. Return each freed block to a size-bucketed free list and the next same-size alloc reuses it,
+  // holding the heap flat in steady state. A pointer we did not hand out (or already freed) is ignored.
+  free(p){
+    p = p >>> 0;
+    const size = this.allocSizes.get(p);
+    if (size === undefined) return;
+    this.allocSizes.delete(p);
+    let bucket = this.freeBlocks.get(size);
+    if (!bucket){ bucket = []; this.freeBlocks.set(size, bucket); }
+    bucket.push(p);
+  }
+  // A belt-and-suspenders rewind for when NOTHING is running (live.js): everything above the mount baseline
+  // is unreferenced, so drop it and the reuse bookkeeping for it. The free list above keeps the heap bounded
+  // during a continuous loop, where running never reaches 0 and this never fires.
+  heapReset(mark){
+    this.heap = mark >>> 0; this.requests = null;
+    this.freeBlocks.clear();
+    for (const a of this.allocSizes.keys()) if (a >= this.heap) this.allocSizes.delete(a);
+  }
   cstr(a){ let s = ''; for (let c; (c = this.m.rawByte(a)) !== 0; a++) s += String.fromCharCode(c); return s; }
   stream(bytes){ const s = this.malloc(0x40); this.streams.set(s, bytes); return s; }
 
@@ -185,6 +206,9 @@ export class EffectHost {
   unitFrame(){ if (this.requests) unitFrame(this.m, this.requests); }
   // units the passes no longer act on (state 3) off the list; a request off the passes altogether (proof.js)
   pruneUnits(){ if (this.requests) pruneUnits(this.m, this.requests); }
+  // Take a request off the unit passes (proof.js). Called on a request that has already been stopped and
+  // stepped to death (schedule.js), so its particles are gone and their pool slots freed -- releasing it
+  // outright while still emitting is what filled the slot pool and hit 0x418d4 (see stopClip).
   releaseRequest(request){ releaseRequest(this.requests, request); }
   stopRequest(request){ stopRequest(this.m, request); }
 
