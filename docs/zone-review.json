@@ -54,6 +54,20 @@
    "7": "Tail Tip"
   }
  },
+ "em005_00": {
+  "reviewed": "2026-09-15",
+  "note": "Named from the render. Same skeleton as Basarios, laid out differently: slot 1 holds both the neck and the tail capsules, and wings and legs take a slot per side (4 and 6 on the higher-x side).",
+  "slots": {
+   "0": "Head",
+   "1": "Neck/Tail",
+   "2": "Back",
+   "3": "Belly",
+   "4": "Left Wing",
+   "5": "Right Wing",
+   "6": "Left Leg",
+   "7": "Right Leg"
+  }
+ },
  "em002_04": {
   "reviewed": "2026-09-15",
   "note": "Raven: \"Dreadking, same as Silver\". Split a little differently on the same joints: Tail is joints 141-143, Tail Tip a sphere and a capsule on 144, and Wings carries two more spheres (joints 8 and 12).",
