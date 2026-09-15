@@ -860,7 +860,7 @@
  },
  "em023_05": {
   "reviewed": "2026-09-13",
-  "note": "Reviewed by Raven as a copy of Rajang: *'Update Furious Rajang to match Rajang, but remove Calm option.'* **Same model, same table** -- em023_05 carries `sharesModelOf: em023_00` and its groups are byte-identical, so every key is Rajang's with the Calm half dropped. **STATE is two rungs, Enraged / Armor Mode**, both with rage on (`levels.rage` = [true, true]), so the angry material always runs and the Enraged checkbox stays hidden. Body `3|3`, Body 2 `11|11`, Arms `12|13`, all hidden as on Rajang; Tail Intact `7,101|7,101` and Broken `8,10|8,10`. **Removing Calm leaves the calm-fur ROM items unnamed, and on a VISIBLE row an unnamed item still shows** -- so the Tail's `hide` now takes the calm tail `6,101` and calm broken tail `8,9` as well as Rajang's unknown `6,7,101`, or they would appear as extra choices. The hidden rows hide their calm items too (Body `2` and `2,3`, Body 2 `none`) purely to keep the row-naming check quiet. Eyes and the merged Head are Rajang's verbatim.",
+  "note": "Reviewed by Raven as a copy of Rajang: *'Update Furious Rajang to match Rajang, but remove Calm option.'* **Same model, same table** -- em023_05 carries `sharesModelOf: em023_00` and its groups are byte-identical, so every key is Rajang's with the Calm half dropped. **STATE is two rungs, Enraged / Armor Mode**, both with rage on (`levels.rage` = [true, true]), so the angry material always runs and the Enraged checkbox stays hidden. Body `3|3`, Body 2 `11|11`, Arms `12|13`, all hidden as on Rajang; Tail Intact `7,101|7,101` and Broken `8,10|8,10`. **Removing Calm leaves the calm-fur ROM items unnamed, and on a VISIBLE row an unnamed item still shows** -- so the Tail's `hide` now takes the calm tail `6,101` and calm broken tail `8,9` as well as Rajang's unknown `6,7,101`, or they would appear as extra choices. The hidden rows hide their calm items too (Body `2` and `2,3`, Body 2 `none`) purely to keep the row-naming check quiet. Eyes and the merged Head are Rajang's verbatim. **THE TAIL OPENS ON BROKEN AND ITS DROPDOWN IS HIDDEN** (2026-09-15, at Raven's word: *'Update Furious Rajang Tail Default to Broken, then hide the drop down.'*). `default` is `8,10|8,10` and `hidden` keeps it applying at both rungs with no control on screen. Intact, `order` and `hide` are left as they were, so deleting `hidden` brings the dropdown back with both items, opening on Broken. This is his call, not a decode: part-rest.json has no break set for em023, so which tail the ROM spawns Furious Rajang with is unread here.",
   "levels": {
    "name": "State",
    "rungs": [
@@ -906,7 +906,8 @@
    "6,7,8,9,10,101": {
     "name": "Tail",
     "state": "level",
-    "default": "7,101|7,101",
+    "hidden": true,
+    "default": "8,10|8,10",
     "order": [
      "7,101|7,101",
      "8,10|8,10"
