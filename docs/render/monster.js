@@ -1683,6 +1683,9 @@ export async function loadMonster(rec, opt, ctx){
     }
   }
   root.userData.matSwap = swaps;
+  // clips whose name the harvest did not know, named from their ROM hash (ROM_CLIP_NAMES)
+  root.traverse(o => { if (o.material) nameClipsByHash(o.material); });
+  for (const st of Object.keys(swaps)) for (const mat of Object.values(swaps[st])) nameClipsByHash(mat);
   // ROM_BREAK_SWAP's swap-ins, built the same way and hung by retargetMaterials while the break's part is drawn
   const breakRows = (rec.id && ROM_BREAK_SWAP[rec.id]) || null;
   const breakSwap = [];
@@ -1962,6 +1965,25 @@ export const STATE_MATERIAL_SWAP = {
   // (110, 137, 125). '#833258c1' is m04__taiden's record: crc32("XfBA_A0__m04__taiden") ^ 0xFFFFFFFF.
   em003_00: { charged: { 'XfBA_A0__m03_blood': '#833258c1' } },
 };
+// CLIP NAMES THE HARVEST DID NOT KNOW, from the ROM's own name hash -- crc32(name) ^ 0xFFFFFFFF, the word
+// build-matanim.py keeps as `hash` beside a null `name`.
+//   0x61eb3023 'Taiden_Repeat'  XfBA_A0__m04__taiden's third clip: 120 frames, looping, one track -- fUVTransform2
+//     from -0.5 to 0.5, the vein texture scrolling, the same scroll Nomal_Repeat runs on m03_blood. Unnamed, the
+//     charged state could only hold Taiden_start's last frame, and the veins stopped moving. Raven, 2026-09-15:
+//     "I don't see the veins that move throughout the body when discharge is on", "I see they turn cyan, but they
+//     stop playing once discharge is enabled". Named, the state plays Taiden_start and hands on to it (clipPicker's
+//     start-then-steady rule, as enraged does). UNREAD: what starts Taiden_Repeat in the game -- Khezu's material
+//     driver (0xd1e52c) only ever sets Taiden_start and Taiden_End on this layer, the string "Taiden_Repeat" is not
+//     in the executable, its hash is not a constant in the code, and its load-time auto bit (clip +4 bit 1, read by
+//     0xb09a3c) is clear.
+const ROM_CLIP_NAMES = { 0x61eb3023: 'Taiden_Repeat' };
+function nameClipsByHash(mat){
+  const clips = mat && mat.userData && mat.userData.rom && mat.userData.rom.anim;
+  if (!clips) return;
+  for (const c of clips){
+    if (c && !c.name && typeof c.hash === 'number' && ROM_CLIP_NAMES[c.hash >>> 0]) c.name = ROM_CLIP_NAMES[c.hash >>> 0];
+  }
+}
 // A SWAP THAT OUTLASTS ITS STATE: the leaving clip whose length the ROM waits out before putting the
 // original back. Khezu's discharge keeps m04__taiden on the vein layer until Body_Taiden_End has run its
 // frame count (state 7, 0xd1ea0c), so its Taiden_End plays on the cyan layer and only then do the red
