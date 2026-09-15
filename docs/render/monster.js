@@ -3426,6 +3426,73 @@ export function deflectLadder(hz, floor){
 export function hardnessLevel(hz, t, tier){
   return deflectLadder(hz, t)[tier || 2];
 }
+// A DAMAGE TABLE IS BUILT PER STATE, NOT PICKED. Raven, 2026-09-15, on Astalos: "Table 0 looks correct to me,
+// but Table 1 looks off", then "If we have tables that are for different states, instead of simply Table 0 and
+// Table 1, we could do a full table for each state."
+//
+// The .dtt's second block is a POOL OF ROWS, not a second per-slot table. The loader (rEnemyDtTune 0x57684)
+// reads it straight after the first, 80 bytes, when header byte 0x12 is 0. The enemy keeps one row pointer
+// per damage slot ([enemy+0x1428]+0x418..0x434): 0xbab38 points slot i at table-0 row i, 0xbaacc(slot) puts one
+// slot back on table 0, and 0xbaafc(slot, row) points a slot at table-1 row `row` -- the row is its own
+// argument, so slot 7 need not read row 7. The monster's own code decides which slot takes which row, and
+// when. A state's table is therefore table 0 with the rows that state's rules switch in.
+//
+// A rule is [slot, table-1 row, rungs (null = any), part]: `part` names a key of `broken` that must be broken,
+// or '!key' for intact. The first rule that holds for a slot wins, in the order the code tests them. A rung is
+// the case of the charge byte each region's driver switches on (+0xcb01 head, +0xcb02 wings, +0xcb03 tail),
+// which is the level axis' rung index (part-review `levels`); the viewer's one Charge control moves all three
+// regions together, as it already does for the parts.
+export const ROM_MEAT_SWITCH = {
+  // ASTALOS, uEm081_00 variant 0: 0x101a71c, entered from 0x1018558 when [enemy+0xb5f5] is 0. A break is the
+  // parts driver's own test (0x1018db8: the part's counter 0x9d36c against its rank-picked threshold, and bit
+  // 0 of [[enemy+0x1428]+0x3b4] for the tail), so `broken` lists the broken set of each pair that driver draws.
+  em081_00: {
+    broken: { head: [4, 6, 8], back: [10], leftWing: [15, 17, 19], rightWing: [21, 23, 25], tail: [27, 29, 31] },
+    rules: [
+      [0, 1, [2]],          [0, 0, [0, 1], 'head'],
+      [2, 2, null, 'back'],
+      [3, 4, [2]],          [3, 3, [0, 1], 'leftWing'],
+      [7, 4, [2]],          [7, 3, [0, 1], 'rightWing'],
+      [6, 7, [2]],          [6, 6, [0, 1], 'tail'],
+      // Fully Charged with the tail whole takes slot 5 as well. Nothing in this class puts slot 5 back on
+      // table 0 afterwards -- only the whole reset 0xbab38, whose caller 0xa4b90 is not traced -- so in the
+      // game it may keep this row after a full charge ends. A per-state table cannot show that history.
+      [5, 7, [2], '!tail'],
+    ],
+    // row 5 is never switched in
+  },
+  // BOLTREAVER ASTALOS, the same class at variant 4: 0x101a9c4. Charge only, no break rules. Charged and
+  // Overcharging (cases 2 and 3) are table 0; rows 6 and 7 are never switched in.
+  em081_04: {
+    rules: [
+      [0, 3, [0, 1]], [0, 0, [4]],
+      [3, 4, [0, 1]], [3, 1, [4]],
+      [7, 4, [0, 1]], [7, 1, [4]],
+      [6, 5, [0, 1]], [6, 2, [4]],
+    ],
+  },
+};
+export function meatSwitchOf(monId){ return (monId && ROM_MEAT_SWITCH[monId]) || null; }
+// The full table for one state: { rows, from } with `from[slot]` = [table, row]. `groups` is the part
+// visibility the Parts panel applied, which is where a break is read. null without rules or a second block.
+export function meatTableFor(monId, tables, rung, groups){
+  const sw = meatSwitchOf(monId);
+  if (!sw || !Array.isArray(tables) || tables.length < 2) return null;
+  const broken = k => ((sw.broken || {})[k] || []).some(g => !!(groups && groups[g]));
+  const rows = tables[0].slice();
+  const from = rows.map((_, i) => [0, i]);
+  const done = new Set();
+  for (const [slot, row, rungs, part] of sw.rules){
+    if (done.has(slot) || !tables[1][row]) continue;
+    if (rungs && rungs.indexOf(rung) < 0) continue;
+    if (part){
+      const want = part.charAt(0) !== '!';
+      if (broken(want ? part : part.slice(1)) !== want) continue;
+    }
+    rows[slot] = tables[1][row]; from[slot] = [1, row]; done.add(slot);
+  }
+  return { rows, from };
+}
 // value: slot -> number, scaled by max through the ramp. colorBySlot: slot -> [r,g,b], used
 // literally and taking precedence. A slot in neither comes out at the ramp's floor.
 export function applyHeatmap(root, zones, value, max, THREE, colorBySlot){

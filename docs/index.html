@@ -1253,7 +1253,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          enableEffectMounts, effectMountsEnabled, effectMountsFor, effectMountsLive,
          setEffectRage, effectAutoOnRage, effectRuntimeInstance,
          clipEffectsFor, clipEffectMonsters, setClipEffectMonsters,
-         SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS,
+         SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS, meatSwitchOf, meatTableFor,
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts, ROM_SPAWN_CLIP,
          ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels, levelClipFor, setClipFor,
@@ -4076,6 +4076,11 @@ function applyPartState(){
   // applyParts writes o.visible from the part table, so the class toggles run after it
   for (const g of Object.values(mounted)) setUndefinedMaterialVisible(g, state.undef);
   for (const g of Object.values(mounted)) setExtendVisible(g, state.extend);
+  // A STATE TABLE FOLLOWS THE PARTS: a Charge rung or a Broken row changes which rows the game uses (zoneTable).
+  // Deferred to a microtask so it paints after whatever the caller does next (applyRage swaps materials), and
+  // only once this monster's zones are loaded -- a fresh mount repaints them itself.
+  if (meatSwitchOf(e.id) && zoneCache && zoneCache.id === e.id)
+    Promise.resolve().then(() => applyHeat()).then(applyGap).catch(noteError);
 }
 function clearMounts(){
   clearAttached();
@@ -4682,6 +4687,30 @@ function heatEach(e, paint){
 // state.heat, the dropdown, the chart's selected column, zoneShow -- is left as it is, so reopening the
 // panel brings the same map and chart back.
 function hitZonesOpen(){ return document.getElementById('hitZonesPanel').dataset.open === 'true'; }
+// A FULL TABLE FOR EACH STATE. Raven, 2026-09-15: "If we have tables that are for different states, instead of
+// simply Table 0 and Table 1, we could do a full table for each state." The file's second block is a pool of rows
+// the monster's own code switches onto single slots (ROM_MEAT_SWITCH in render/monster.js), so where those rules
+// are decoded the Damage Table lists the monster's states, named by its level axis, and each is the whole table
+// the game uses in it. The state IS the Parts panel's rung -- in the game one charge byte drives the parts and
+// these rows both -- and a break is read off the groups the Parts panel applied. Every other monster keeps the
+// file's blocks as "Table 0 / Table 1", and so does "Ignore the Review File", which has no rung names to offer.
+function zoneStates(e, rec){
+  const lv = (reviewFor(e && e.id) || {}).levels;
+  if (!rec || rec.tables.length < 2 || !meatSwitchOf(e.id)) return null;
+  if (!lv || !Array.isArray(lv.rungs) || lv.rungs.length < 2 || document.getElementById('monLevelRow').hidden) return null;
+  return lv.rungs.map(String);
+}
+function zoneTable(e, rec){
+  const names = zoneStates(e, rec);
+  if (names){
+    const i = Math.max(0, Math.min(names.length - 1, state.level | 0));
+    const t = meatTableFor(e.id, rec.tables, i, state.groups);
+    if (t) return { rows: t.rows, from: t.from, names, index: i, label: names[i] };
+  }
+  const ti = Math.min(rec.tables.length - 1, Math.max(0, state.heatTable | 0));
+  return { rows: rec.tables[ti], from: null, names: rec.tables.map((_, i) => 'Table ' + i), index: ti,
+           label: rec.tables.length > 1 ? 'Table ' + ti : '' };
+}
 async function applyHeat(){
   const e = entry();
   const rec = e && HITZONES.monsters && HITZONES.monsters[e.id];
@@ -4709,18 +4738,26 @@ async function applyHeat(){
     if (!res.ok) throw new Error('hit zones missing: ' + rec.bin + ' (' + res.status + ')');
     zoneCache = { id: e.id, zones: parseZones(await res.arrayBuffer(), rec.prims) };
   }
+  const zt = zoneTable(e, rec);
   const tsel = document.getElementById('monHeatTable');
-  if (tsel.options.length !== rec.tables.length){
-    tsel.innerHTML = rec.tables.map((_, i) => '<option value="' + i + '">Table ' + i + '</option>').join('');
+  // rebuilt on the NAMES, not the count: two monsters can both have two entries and name them differently
+  const names = zt.names.join('\n');
+  if (tsel.dataset.names !== names){
+    tsel.textContent = '';
+    zt.names.forEach((n, i) => {
+      const o = document.createElement('option');
+      o.value = String(i); o.textContent = n;
+      tsel.appendChild(o);
+    });
+    tsel.dataset.names = names;
   }
-  const ti = Math.min(rec.tables.length - 1, Math.max(0, state.heatTable | 0));
-  tsel.value = String(ti);
+  tsel.value = String(zt.index);
   document.getElementById('monHeat').value = state.heat;
   document.getElementById('monBounceT').value = state.deflectT || 'f25';
   document.getElementById('monTier').value = String(+state.deflectTier || 2);
   const wantTab = tabForHeat(state.heat);
   if (wantTab) state.zoneTab = wantTab;
-  const table = rec.tables[ti];
+  const table = zt.rows;
   const value = {};
   // shaped, so the model and the chart read on the same ramp
   table.forEach((row, slot) => { value[slot] = heatShape(state.heat, row[state.heat]); });
@@ -4758,7 +4795,7 @@ async function applyHeat(){
   } else {
     for (const g of Object.values(mounted)) clearHeatmap(g);
   }
-  buildZoneChart(rec, table, ti);
+  buildZoneChart(rec, table, zt);
 }
 // Parts down, damage types across, on the same colour ramp the model uses. Ten numeric columns
 // do not fit a 300px sidebar, so #monZoneWrap scrolls sideways rather than the page.
@@ -4795,7 +4832,8 @@ function markUnpainted(th, rec, sl){
     th.title = 'A hit zone the ROM defines that the heat map does not paint on this model.';
   }
 }
-function buildTypeChart(el, types, rec, table){
+// `from`, on a state table, says which of the file's rows each slot reads (zoneTable), shown on the name's tooltip.
+function buildTypeChart(el, types, rec, table, from){
   const named = zoneNames(rec);
   const slots = zoneSlots(rec);
   el.textContent = '';
@@ -4819,6 +4857,7 @@ function buildTypeChart(el, types, rec, table){
     const th = document.createElement('th');
     th.textContent = named[sl] || 'Slot ' + sl;
     markUnpainted(th, rec, sl);
+    if (from && from[sl]) th.title = (th.title ? th.title + ' ' : '') + 'Table ' + from[sl][0] + ', row ' + from[sl][1] + '.';
     zoneRow(tr, th, 'slot', sl);
     tr.appendChild(th);
     for (const t of types){
@@ -4842,14 +4881,13 @@ function buildTypeChart(el, types, rec, table){
 // merges neck and torso that the damage table keeps apart (Raven, 2026-09-05, spotting it: "I have
 // noticed things in the Stagger Extract tables have differing positions"). Putting them on the
 // damage rows attached every value to the wrong part, so they keep their own pane.
-function buildZoneChart(rec, table, ti){
+function buildZoneChart(rec, table, zt){
   for (const g of ZONE_GROUPS)
-    buildTypeChart(document.getElementById(g.id), g.types, rec, table);
+    buildTypeChart(document.getElementById(g.id), g.types, rec, table, zt.from);
   buildPartsChart(rec);
   buildHardnessChart(rec, table);
   paintZoneTabs();
-  document.getElementById('zoneTitle').textContent =
-    'Hit Zones' + (rec.tables.length > 1 ? ' — Table ' + ti : '');
+  document.getElementById('zoneTitle').textContent = 'Hit Zones' + (zt.label ? ' — ' + zt.label : '');
   paintZonePanel();
 }
 // ---- a picked zone: its row lit, and the zone drawn on the monster as the ROM defines it -------------
@@ -5703,7 +5741,17 @@ document.getElementById('monRawParts').onchange = e => {
 };
 document.getElementById('monExtend').onchange = e => { state.extend = e.target.checked; applyPartState(); applyExtend(); applyProxy(); applyRage(); saveState(); };
 document.getElementById('monHeat').onchange = async e => { state.heat = e.target.value; await applyHeat(); applyGap(); saveState(); };
-document.getElementById('monHeatTable').onchange = async e => { state.heatTable = +e.target.value; await applyHeat(); applyGap(); saveState(); };
+document.getElementById('monHeatTable').onchange = async e => {
+  // a STATE, not a block of the file: move the Parts panel's own rung, which switches the parts and repaints this
+  const en = entry(), rec = en && HITZONES.monsters && HITZONES.monsters[en.id];
+  if (zoneStates(en, rec)){
+    const lvSel = document.getElementById('monLevel');
+    lvSel.value = e.target.value;
+    lvSel.onchange({ target: lvSel });
+    return;
+  }
+  state.heatTable = +e.target.value; await applyHeat(); applyGap(); saveState();
+};
 document.getElementById('monBounceT').onchange = async e => { state.deflectT = e.target.value; await applyHeat(); applyGap(); saveState(); };
 document.getElementById('monTier').onchange = async e => { state.deflectTier = +e.target.value; await applyHeat(); applyGap(); saveState(); };
 document.getElementById('monRage').onchange = e => {
@@ -6361,6 +6409,17 @@ window.__view.zones = (kind, index) => {
   const drawn = zoneShape ? { placed: zoneShape.userData.placed, skipped: zoneShape.userData.skipped,
                               capsules: zoneShape.userData.readback() } : null;
   return { pick: zonePick, lit, drawn };
+};
+// The damage table on screen, read back (zoneTable): the state it is for, and per listed slot the name, which of
+// the file's rows it reads, and the ten values. Reads only; picks nothing.
+window.__view.zoneTable = () => {
+  const e = entry(), rec = e && HITZONES.monsters && HITZONES.monsters[e.id];
+  if (!rec) return { id: e && e.id, table: null };
+  const zt = zoneTable(e, rec), named = zoneNames(rec);
+  return { id: e.id, states: !!zt.from, names: zt.names, index: zt.index, label: zt.label,
+           dropdown: document.getElementById('monHeatTable').value, title: document.getElementById('zoneTitle').textContent,
+           slots: zoneSlots(rec).map(sl => ({ slot: sl, name: named[sl] || null, from: zt.from ? zt.from[sl] : [zt.index, sl],
+                                              row: zt.rows[sl] })) };
 };
 window.__view.matAxes = (ahead = 0) => {
   if (!chargeAxis) return { chargeAxis: false, state: matState() };
