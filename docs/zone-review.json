@@ -121,6 +121,18 @@
    "5": "Tail"
   }
  },
+ "em043_05": {
+  "reviewed": "2026-09-15",
+  "note": "Named from the render, handed to the render agent directly (Savage is otherwise another agent's test case; this file is read only by the hit-zone chart). Same joints and slots as Deviljho, whose slots 1 and 2 are named Chest and Torso -- the same capsules as Belly and Back here.",
+  "slots": {
+   "0": "Head",
+   "1": "Belly",
+   "2": "Back",
+   "3": "Arms",
+   "4": "Legs",
+   "5": "Tail"
+  }
+ },
  "em081_00": {
   "reviewed": "2026-09-15",
   "unsure": "Raven, 2026-09-15: \"I am not confident with Astalos hit zone table or capsule slots\", \"their hit zone values normally reflect each other\". Measured over the library: 14 slot pairs have capsules that mirror left/right (11 exactly, 3 near), and 13 of them have identical rows in table 1. Astalos' wings (slots 3/7) are the one exception, and their capsules are only a near mirror: 5 of 7 match, while the two wing-membrane capsules (records 14 on joint 60 and 19 on joint 70) differ in shape. The only other asymmetric pair is Stonefist Hermitaur slots 3/7 (table 0, Thunder 15/20). Held for the review pass.",
