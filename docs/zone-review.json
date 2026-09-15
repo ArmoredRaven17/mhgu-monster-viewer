@@ -1,0 +1,71 @@
+{
+ "_about": "Hit zone slot NAMES, dictated by Raven on review -- one monster at a time, reading each row's capsules on the render (a row's name draws its rBodyData shapes, see pickZone in index.html). The ROM ships no zone-name table, so a person saying what a slot is is the only source there is. Keyed by monster id, then by damage-table slot (the row index hitzones.json's tables and capsules use). A name here is shown over hitzones.json's community names; a slot not named here keeps whatever it had. `reviewed` is the date the names were given.",
+ "em001_02": {
+  "reviewed": "2026-09-15",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Back",
+   "3": "Belly",
+   "4": "Tail",
+   "5": "Wings",
+   "6": "Legs",
+   "7": "Tail Tip"
+  }
+ },
+ "em001_04": {
+  "reviewed": "2026-09-15",
+  "note": "Raven: \"Dreadqueen is the same as Gold\". Same eight slots on the same joints as em001_02 (slot 5 carries two more wing spheres, on joints 8 and 12).",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Back",
+   "3": "Belly",
+   "4": "Tail",
+   "5": "Wings",
+   "6": "Legs",
+   "7": "Tail Tip"
+  }
+ },
+ "em002_00": {
+  "reviewed": "2026-09-15",
+  "note": "Raven named Silver Rathalos \"Same as Rathalos\", which keeps these seven, the community names hitzones.json already carried.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Back",
+   "3": "Belly",
+   "4": "Tail",
+   "5": "Wings",
+   "6": "Legs"
+  }
+ },
+ "em002_02": {
+  "reviewed": "2026-09-15",
+  "note": "Raven: \"Same as Rathalos\", \"Last Slot: Tail Tip\". Slots 0-6 sit on Rathalos' joints; slot 7 is the capsule on the tail's last joint (144) that Rathalos keeps in its Tail row.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Back",
+   "3": "Belly",
+   "4": "Tail",
+   "5": "Wings",
+   "6": "Legs",
+   "7": "Tail Tip"
+  }
+ },
+ "em002_04": {
+  "reviewed": "2026-09-15",
+  "note": "Raven: \"Dreadking, same as Silver\". Split a little differently on the same joints: Tail is joints 141-143, Tail Tip a sphere and a capsule on 144, and Wings carries two more spheres (joints 8 and 12).",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Back",
+   "3": "Belly",
+   "4": "Tail",
+   "5": "Wings",
+   "6": "Legs",
+   "7": "Tail Tip"
+  }
+ }
+}

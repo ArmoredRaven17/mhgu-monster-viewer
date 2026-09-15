@@ -1298,6 +1298,9 @@ const PARTNAMES = await loadJson('partnames.json').catch(() => ({ monsters: {} }
 // rBodyData capsule, and that slot indexes the ROM's dt_tune damage table. Optional, like the
 // part names -- an older deploy without it simply has no heat map.
 const HITZONES = await loadJson('hitzones.json').catch(() => ({ monsters: {} }));
+// Hit zone slot names Raven gives on review, per monster and slot (zone-review.json). Shown over the community
+// names hitzones.json carries; see zoneNames().
+const ZONE_REVIEW = await loadJson('zone-review.json').catch(() => ({}));
 // Which part-visibility group the GAME switches, and where in its AI it does it: the call sites of
 // rMonsterPartsManager::setVisibleGroup (0x00072c78) read out of the executable by
 // build-partstates.py. Raven, 2026-09-06: "Keep in mind part ids don't tell me what part is which"
@@ -4765,6 +4768,14 @@ const ZONE_GROUPS = [
 // and 6, Volvidon 4, Zamtrios 7, Ahtal-Ka 3. Nerscylla's slot 7 still paints nowhere. An unpainted row
 // is listed and marked, not hidden.
 function zoneSlots(rec){ return rec.slotsDefined || rec.slotsUsed || []; }
+// A slot's name: Raven's from zone-review.json where given, else the community name, else the chart says "Slot N".
+// Raven, 2026-09-15: "we're going to update all the slots in the hitzone tables. I will manually go over
+// everything."
+function zoneNames(rec){
+  const e = entry();
+  const rv = e && ZONE_REVIEW[e.id];
+  return Object.assign({}, rec.names || {}, (rv && rv.slots) || {});
+}
 function markUnpainted(th, rec, sl){
   if (rec.slotsDefined && (rec.slotsUsed || []).indexOf(sl) < 0){
     th.classList.add('unpainted');
@@ -4772,7 +4783,7 @@ function markUnpainted(th, rec, sl){
   }
 }
 function buildTypeChart(el, types, rec, table){
-  const named = rec.names || {};
+  const named = zoneNames(rec);
   const slots = zoneSlots(rec);
   el.textContent = '';
   if (!slots.length) return;
@@ -4926,7 +4937,7 @@ document.getElementById('zoneTabSel').onchange = e => { state.zoneTab = e.target
 // on the cut zone alone. A dash means no sharpness in the game clears it.
 function buildHardnessChart(rec, table){
   const chart = document.getElementById('monHardChart');
-  const named = rec.names || {};
+  const named = zoneNames(rec);
   const slots = zoneSlots(rec);
   const t = DEFLECT_T[state.deflectT] || DEFLECT_T.normal;
   const tier = +state.deflectTier || 2;
