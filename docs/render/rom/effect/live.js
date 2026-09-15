@@ -417,26 +417,14 @@ export class LiveEffects {
         this.scene.add(mesh);
       }
       mesh.geometry = src.geometry;
-      src.updateWorldMatrix(true, false);          // the glb node's own transform (its 0.01), current
       if (!mesh.material || mesh.userData.programKey !== p){
         mesh.material = new THREE.RawShaderMaterial({ glslVersion: THREE.GLSL3, vertexShader: p.vertexShader, fragmentShader: p.fragmentShader, uniforms: {} });
         mesh.userData.programKey = p;
       }
       const u = mesh.material.uniforms;
       for (const [name, value] of Object.entries(common)) u[name] = { value };
-      // CBWorld: the particle's matrix (modeldraw's `world`) composed with the glb node's own transform. The
-      // draw uses the RAW node geometry (mesh.geometry = src.geometry, added to this.scene at identity), but the
-      // .mod's mesh k sits under the node's 0.01 -- its positions are game units only after that scale (the class
-      // header). `world` is the game-unit particle transform, so the node matrix must be folded in here, or every
-      // model particle draws 1/0.01 = 100x its size (em003_00_001's mesh 27, raw +-190, x world-scale 60, filled
-      // the screen from -11800 to +11900 game units -- a near-plane-straddling wall).
-      const W = new THREE.Matrix4().set(
-        d.world[0], d.world[1], d.world[2], d.world[3],
-        d.world[4], d.world[5], d.world[6], d.world[7],
-        d.world[8], d.world[9], d.world[10], d.world[11],
-        0, 0, 0, 1).multiply(src.matrixWorld);
-      const we = W.elements;                        // column-major: row r is (we[r], we[4+r], we[8+r], we[12+r])
-      for (let r = 0; r < 3; r++) u['CBWorld_fWorld_r' + r] = { value: new THREE.Vector4(we[r], we[4 + r], we[8 + r], we[12 + r]) };
+      // CBWorld: the three stored rows of the particle's matrix (modeldraw's `world`)
+      for (let r = 0; r < 3; r++) u['CBWorld_fWorld_r' + r] = { value: new THREE.Vector4(...d.world.slice(4 * r, 4 * r + 4)) };
       const put = (id, members, floats) => {
         for (const [name, type, offset, count] of members){
           const v = floats.slice(offset, offset + count);
