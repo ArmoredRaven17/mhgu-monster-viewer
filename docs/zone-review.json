@@ -95,6 +95,19 @@
    "6": "Tail"
   }
  },
+ "em077_00": {
+  "reviewed": "2026-09-15",
+  "note": "Named from the render. Raven gave seven names for eight slots; they sit on slots 0-2 and 4-7 by where the capsules are (Tail is the capsules along the tail, slot 4). Slot 3 -- one capsule under the body between joints 2 and 140, radius 110 -- was not named and waits for Raven.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Back",
+   "4": "Tail",
+   "5": "Wing Arms",
+   "6": "Legs",
+   "7": "Wings"
+  }
+ },
  "em002_04": {
   "reviewed": "2026-09-15",
   "note": "Raven: \"Dreadking, same as Silver\". Split a little differently on the same joints: Tail is joints 141-143, Tail Tip a sphere and a capsule on 144, and Wings carries two more spheres (joints 8 and 12).",
