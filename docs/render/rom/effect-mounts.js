@@ -41,6 +41,12 @@ let runtimeOn = true;
 let runtime = null;
 let attachToken = 0;
 let lastAttach = null;            // [root, monsterId, only] of the last attach, to re-run it on a switch
+// Monsters with ATTACK-ANIMATION (clip-driven) effects (render/monster.js CLIP_EFFECTS): their runtime is
+// mounted whenever they are shown -- so an attack clip's effects (when: 'clip') can be started by the clip's
+// frame -- even without the inspection switch or rage. index.html registers the ids at load.
+let clipEffectIds = new Set();
+export function setClipEffectMonsters(ids){ clipEffectIds = new Set(ids || []); }
+function hasClipEffects(id){ return clipEffectIds.has(id); }
 export function setEffectRuntime(on){ runtimeOn = !!on; }
 export function effectRuntimeStats(){ return runtime ? Object.assign({}, runtime.stats) : null; }
 export function effectRuntimeInstance(){ return runtime; }
@@ -159,8 +165,8 @@ export async function attachEffectMounts(root, monsterId, only){
   detachEffectMounts();
   const token = ++attachToken;
   lastAttach = [root, monsterId, only];
-  // Either the inspection switch, or this monster's own rage-driven effects.
-  if ((!enabled && !autoOnRage(monsterId)) || !root) return live.length;
+  // Either the inspection switch, this monster's own rage-driven effects, or its attack-clip effects.
+  if ((!enabled && !autoOnRage(monsterId) && !hasClipEffects(monsterId)) || !root) return live.length;
   if (runtimeOn){
     const def = await liveEffectsFor(monsterId).catch(() => null);
     if (token !== attachToken) return 0;                 // detached or re-attached meanwhile

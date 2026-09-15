@@ -370,11 +370,15 @@ export function nodeUpdate(m, owner, inst){
   m.wf32(pos, px);
   m.w32(local + 0x3c, 0x3f800000);
   matMulTo(m, world, local, attach);
-  if (mode === 2) throw new Unverified('0x9bbebc node transform mode 2');
-  // 0x9bbf00
-  normaliseRow(m, world, '0x9bbf24');
-  normaliseRow(m, world + 0x10, '0x9bbfec');
-  normaliseRow(m, world + 0x20, '0x9bc090');
+  // 0x9bbebc: node transform MODE 2 keeps the RAW world rows; the other modes normalise them (0x9bbf00). Both
+  // then write the same matrix to the node (the common tail 0x9bc154). em003_00_006's nodes use mode 2, and the
+  // recording's thin stand-in parent never reached it, so this is transcribed straight from the ROM branch.
+  if (mode !== 2){
+    // 0x9bbf00
+    normaliseRow(m, world, '0x9bbf24');
+    normaliseRow(m, world + 0x10, '0x9bbfec');
+    normaliseRow(m, world + 0x20, '0x9bc090');
+  }
   const f110b = m.u32(inst + 0x110);
   for (let k = 0; k < 0x40; k += 4) m.w32(inst + k, m.u32(world + k));
   if (f110b & 0x40) throw new Unverified('0x9bc1d0 node +0x110 bit 6');

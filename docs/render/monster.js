@@ -42,9 +42,11 @@ import { extendMapMisses } from './rom/shader.js';
 export { extendMapMisses };
 import { loadEffectMounts, attachEffectMounts, detachEffectMounts, enableEffectMounts,
          effectMountsEnabled, effectMountsFor, effectMountsLive,
-         setEffectScale, setEffectRage, effectAutoOnRage } from './rom/effect-mounts.js';
+         setEffectScale, setEffectRage, effectAutoOnRage,
+         effectRuntimeInstance, setClipEffectMonsters } from './rom/effect-mounts.js';
 // The proof-effect models a monster hangs on a joint. Felyne only on shipped data; the module
 // header says why, and why it is off by default.
+export { effectRuntimeInstance, setClipEffectMonsters };
 export { loadEffectMounts, attachEffectMounts, detachEffectMounts, enableEffectMounts,
          effectMountsEnabled, effectMountsFor, effectMountsLive,
          // the undecoded mount scale, so it can be judged by eye without a reload
@@ -1220,8 +1222,41 @@ export const ROM_ANIMATIONS = {
       pieces: [['4', 'Motion[76]_start'], ['4', 'Motion[76]_loop'], ['4', 'Motion[77]'], ['4', 'Motion[78]_loop'],
                ['4', 'Motion[79]']] },
   ],
+  // Khezu L2/Motion[3] attack copied to the Special list to flesh out its effects without touching List 2
+  // (Raven, 2026-09-14: "Copy the animation into a List - Special, Motion 3"). Joining _start + _loop rebuilds the
+  // full 337-frame LMT motion = the PSL em003_00_2 slot-3 timeline, so the effect frame windows map directly onto
+  // it: em003_00_004 sustained f50-176, em003_00_006 burst at f170 (effects-efl-psl.md / u.pel SEQUENCE keys).
+  em003_00: [
+    { name: 'Motion 3', pieces: [['2', 'Motion[3]_start'], ['2', 'Motion[3]_loop']] },
+    // Khezu L2/Motion[28] (PSL em003_00_2 slot 28, 275 frames): em003_00_000 f0-131 then em003_00_001 f132-273.
+    // Copied to the Special list to test which attack this is -- replicated straight from the ROM (Raven's note).
+    { name: 'Motion 28', pieces: [['2', 'Motion[28]_start'], ['2', 'Motion[28]_loop']] },
+  ],
 };
 export function romAnimationsOf(monId){ return (monId && ROM_ANIMATIONS[monId]) || []; }
+// ATTACK-ANIMATION EFFECTS, from the monster's PSL (rProofEffectMotSequenceList: the motion->effect binding,
+// effects-efl-psl.md). Keyed by (monster, the clip's name on any list): each effect is `{ efl, from, to? }`.
+// `from` is the frame the PSL bit RISES (60 fps) -- index.html enqueues the effect once there and lets it play
+// its own lifetime, exactly as the game enqueues on the rising edge. `to` is OPTIONAL: set it only for a
+// SUSTAINED effect that must stop when its PSL bit FALLS; omit it for a burst so the effect runs to completion.
+// em003_00 Motion[3] (PSL em003_00_2 slot 3): em003_00_004 sustained f50-176, em003_00_006 discharge fired at
+// f170 (plays out). The efls + records are docs/effects/<monster>.json (`when: 'clip'`).
+export const CLIP_EFFECTS = {
+  em003_00: {
+    'Motion 3': [
+      { efl: 'em003_00_004.efl', from: 50, to: 176 },
+      { efl: 'em003_00_006.efl', from: 170 },
+    ],
+    // Motion[28] (PSL slot 28): em003_00_000 active f0-131, em003_00_001 active f132-273 -- both sustained bit
+    // windows, so both are windowed [from, to). Straight from the ROM, no interpretation.
+    'Motion 28': [
+      { efl: 'em003_00_000.efl', from: 0, to: 132 },
+      { efl: 'em003_00_001.efl', from: 132, to: 274 },
+    ],
+  },
+};
+export function clipEffectsFor(monId, clipName){ return ((monId && CLIP_EFFECTS[monId]) || {})[clipName] || []; }
+export function clipEffectMonsters(){ return Object.keys(CLIP_EFFECTS); }
 // A full animation is built as ONE AnimationClip so the transport, the scrubber and the loop treat it like any
 // other clip. Every piece is resampled at the motions' own 60 frames a second
 // onto the joined timeline: `play` runs the piece from `start`, `wrap` loops it from `start`, `hold` stays on

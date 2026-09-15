@@ -67,6 +67,22 @@ export class EffectSchedule {
     for (const e of this.entries) if (e.requests.length) e.requests = e.requests.filter(q => !q.finished());
   }
 
+  // CLIP-DRIVEN effects (when: 'clip'): an attack animation's PSL effects, started and stopped by the clip's
+  // own frame (render/monster.js CLIP_EFFECTS, driven from index.html's render loop by pose.action.time), not by
+  // a monster state. A 'clip' effect is never auto-started (the constructor only starts 'always'/'rage'); these
+  // are the only way it runs. Idempotent: startClip does nothing if it is already running.
+  startClip(efl){
+    for (const e of this.entries)
+      if (e.when === 'clip' && e.def.record && (e.def.efl || '').endsWith(efl) && !e.requests.length) this.start(e);
+  }
+  stopClip(efl){
+    for (const e of this.entries)
+      if (e.when === 'clip' && (e.def.efl || '').endsWith(efl)){
+        for (const q of e.requests) this.host.releaseRequest(q);
+        e.requests.length = 0;
+      }
+  }
+
   // the effects to draw this frame
   effects(){ return this.entries.flatMap(e => e.def.record ? e.requests.flatMap(q => q.effects()) : [e.owner]); }
   // requests and plain effects running

@@ -123,8 +123,14 @@ export function drawMesh(m, prim, view, meshIndex, matrix, stack, s0, materialOf
     if (eflEmu) out.features.FColorModifier = 'FPrimiteveColorModifierEmu';
   } else out.features.FColorModifier = 'FPrimiteveColorModifier';
 
-  if (volume === 0 && col >= 0xff000000 && (W & 0x1200001) === 0 && (m.u32(view + 0x164) & 0x1f) !== 0x11
-      && ((W & 0x62000000) | lod) === 0) throw new Unverified('0xc8ef98 opaque model draw');
+  // OPAQUE MODEL DRAW (0xc8ea68 -> 0xc8ef98 -> 0xc8f2a4): an opaque-colour mesh (col alpha 0xff, no volume,
+  // no LOD, W bits clear, not pass 0x11) is emitted into the OPAQUE pass instead of the sorted transparent
+  // list. That path SKIPS the depth sort (0xc8ea78) and the material blend/depth (0xafd834 / 0xc8eb10): it
+  // takes the pass's own draw state -- no blend, depth test+write -- and a bias-only order (prim+0x8c, no
+  // depth key). The material's shader features (computed below) still describe the mesh. So the descriptor is
+  // built as normal and then overridden to the opaque-pass state at the end (see `opaqueModel`).
+  const opaqueModel = (volume === 0 && col >= 0xff000000 && (W & 0x1200001) === 0
+      && (m.u32(view + 0x164) & 0x1f) !== 0x11 && ((W & 0x62000000) | lod) === 0);
 
   // the sort key, from the depth of the world translation in the camera's view matrix (0xc8ea78)
   const vm = (m.u32(view + 0xd7c) & ~0xf) + 0x70;                            // 0x88283c
@@ -174,6 +180,18 @@ export function drawMesh(m, prim, view, meshIndex, matrix, stack, s0, materialOf
   out.features.FWorldCoordinate = 'FWorldCoordinate';
   out.cbMaterial = cbm;
   out.range = [m.u32(mesh + 0x1c), m.u32(mesh + 0x18), m.u32(mesh + 0x20)];    // 0x890ce0's r1, r2, r3 (0xc90758)
+  if (opaqueModel){
+    // the opaque pass's own state: no blend, depth test+write (the ROM emits into it, not the material's
+    // blend/depth), and a bias-only order (0xc8f2a4: first non-zero 12-bit field of prim+0x8c, << 5; no depth
+    // sort). The exact pass state records are the engine's opaque defaults; the effect-draw harness leaves the
+    // pass fields (view+0x164/+0x168/+0x16c) zero, so they are named here from the opaque-pass meaning.
+    out.blend = 'BSBlendNoBlend';
+    out.depth = DEPTH[0x1b9];                                                  // DSZTestWrite
+    const b8c = m.u32(prim + 0x8c);
+    let bias = (b8c >>> 4) & 0xfff; if (!bias) bias = (b8c >>> 8) & 0xfff; if (!bias) bias = (b8c >>> 12) & 0xfff;
+    out.sortKey = 0; out.order = (bias << 5) >>> 0;
+    out.opaque = true;
+  }
   return out;
 }
 

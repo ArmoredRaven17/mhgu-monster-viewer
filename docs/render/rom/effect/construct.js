@@ -417,13 +417,20 @@ function drawFlags(m, owner, par){
   if ((r3 | 0) < 0) r2 = (r2 | 4) >>> 0;
   if (b2 & 2) throw new Unverified('0x9b3988 draw flags, parameters +2 bit 1');
   if (r3 & 0x60000010) throw new Unverified('0x9b3970 draw flags 0x60000010');
-  if (r3 & 0x4000) throw new Unverified('0x9b3a50 draw flags 0x4000');
-  if (r3 & 0x1000000) throw new Unverified('0x9b3a74 draw flags 0x1000000');
-  if (r3 & 0x2000000) throw new Unverified('0x9b3a94 draw flags 0x2000000');
-  if (r3 & 0x10000000) throw new Unverified('0x9b3ab8 draw flags 0x10000000');
   const p14 = m.u32(par + 0x14);
+  // the game's "is the +0x14 high-byte pair live" test (0x9b39cc / 0x9b3a5c): (p14>>16)&0xff vs -(p14>>24).
+  const p14Dead = ((p14 >>> 16) & 0xff) === ((0 - (p14 >>> 24)) >>> 0);
   let out;
-  if ((f0 & 0x100) || ((p14 >>> 16) & 0xff) === ((0 - (p14 >>> 24)) >>> 0)) out = r2;   // 0x9b3ac4
+  if (r3 & 0x4000){                                                                   // 0x9b3a50
+    // node kind 0x4000: OR the 0x200000 draw bit. With the +0x14 pair live and the effect (+0xf0) missing
+    // 0x100, also OR 0x200 (0x9b3a64). `ip` in the ROM was reloaded with owner+0xf0 at 0x9b3934, so the
+    // 0x9b3a68 test is f0 & 0x100, not the flag word. Decoded + e2e-verified for Kushala's barrier.
+    out = (!p14Dead && !(f0 & 0x100)) ? (r2 | 0x200 | 0x200000) >>> 0 : (r2 | 0x200000) >>> 0;
+  }
+  else if (r3 & 0x1000000) throw new Unverified('0x9b3a74 draw flags 0x1000000');
+  else if (r3 & 0x2000000) throw new Unverified('0x9b3a94 draw flags 0x2000000');
+  else if (r3 & 0x10000000) throw new Unverified('0x9b3ab8 draw flags 0x10000000');
+  else if ((f0 & 0x100) || p14Dead) out = r2;                                         // 0x9b3ac4
   else {
     if (r3 & 0x400) throw new Unverified('0x9b3acc draw flags 0x400');
     if (r3 & 0x800) throw new Unverified('0x9b3ad4 draw flags 0x800');

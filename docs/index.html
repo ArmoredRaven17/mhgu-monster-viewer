@@ -1229,7 +1229,8 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          setClipFallback, clipFallbackOn,
          loadEffectMounts, attachEffectMounts, detachEffectMounts,
          enableEffectMounts, effectMountsEnabled, effectMountsFor, effectMountsLive,
-         setEffectRage, effectAutoOnRage,
+         setEffectRage, effectAutoOnRage, effectRuntimeInstance,
+         clipEffectsFor, clipEffectMonsters, setClipEffectMonsters,
          SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS,
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts, ROM_SPAWN_CLIP,
@@ -1412,6 +1413,9 @@ function resolveOptionKey(opts, key, where, stateOn){
 // alongside the intact parts they replace. See ROM_REST_SETS in render/monster.js.
 setRestSets(await loadJson('part-rest.json').catch(() => ({ sets: {}, defaultSet: {} })));
   await loadEffectMounts('effect-mounts.json');
+// Monsters whose attack CLIPS carry effects (CLIP_EFFECTS): their runtime mounts whenever they are shown, so
+// driveClipEffects() can start those effects from the clip's frame.
+setClipEffectMonsters(clipEffectMonsters());
 function partStateFor(id, groupIndex){
   const base = String(id || '').split('_')[0];
   const g = PARTSTATES.groups && PARTSTATES.groups[base];
@@ -5971,6 +5975,40 @@ await play();
 if (!applyCameraState(SAVED && SAVED.camera)) frameAll();
 restoring = false;
 
+// ATTACK-CLIP EFFECTS. An attack animation's PSL effects (render/monster.js CLIP_EFFECTS) played from the clip's
+// own frame: the runtime is mounted for the monster (effect-mounts hasClipEffects) and each effect is `when: 'clip'`
+// (never auto-started); here -- every frame, right after pose.step advances the clip -- each is started on entering
+// its [from, to) frame window and stopped on leaving. A clip loop (frame wraps to 0) restarts them naturally.
+// CLIP-DRIVEN effects, matched to the animation the way the game's PSL does: an effect is ENQUEUED once on
+// the RISING EDGE of its frame (when playback crosses `fx.from`) and then plays its OWN lifetime -- a burst
+// like the discharge runs to completion on its own, so it must NOT be force-stopped mid-play. `fx.to` is
+// optional: when set, the effect is force-stopped at that frame (a sustained effect whose PSL bit falls);
+// when absent, it self-terminates. On a LOOP (playback wraps back) every started effect is cleared and the
+// edges re-fire, so the effects repeat with the clip.
+let clipFxOn = new Set(), clipFxKey = null, clipFxPrev = -1;
+function driveClipEffects(){
+  const rt = effectRuntimeInstance();
+  const act = pose.action;
+  if (!rt || !rt.schedule || !act){ return; }
+  const clipName = act.getClip ? act.getClip().name : null;
+  const list = clipName ? clipEffectsFor(state.id, clipName) : [];
+  const key = state.id + '|' + clipName;
+  const frame = act.time * 60;
+  // clip changed, or the clip looped (frame jumped backwards): drop every running clip effect and re-arm
+  if (key !== clipFxKey || frame < clipFxPrev - 0.5){
+    for (const efl of clipFxOn) rt.schedule.stopClip(efl);
+    clipFxOn.clear(); clipFxKey = key; clipFxPrev = frame - 1;   // -1 so a from:0 effect fires on the first frame
+  }
+  for (const fx of list){
+    if (clipFxPrev < fx.from && frame >= fx.from && !clipFxOn.has(fx.efl)){   // rising edge -> enqueue once
+      rt.schedule.startClip(fx.efl); clipFxOn.add(fx.efl);
+    } else if (fx.to != null && frame >= fx.to && clipFxOn.has(fx.efl)){       // optional windowed stop
+      rt.schedule.stopClip(fx.efl); clipFxOn.delete(fx.efl);
+    }
+  }
+  clipFxPrev = frame;
+}
+
 // the canvas and the effects composer resize together (fitRenderer)
 new ResizeObserver(fitRenderer).observe(viewport);
 addEventListener('resize', fitRenderer);
@@ -5983,6 +6021,7 @@ renderer.setAnimationLoop(() => {
   // Loading overlay reads as a screen rather than a caption over the outgoing monster
   if (!booted || loadHold > 0) return;
   pose.step(poseRoots());
+  driveClipEffects();
   stepAttached();
   updateDepthBias();
   // the ROM's own material animation: scrolling UVs, pulsing alpha, tinted glows

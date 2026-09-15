@@ -191,7 +191,7 @@ export class EffectHost {
   // not the world matrix (0x31f6b4). efx/parent.py builds the same object.
   createParent(jointNumbers){
     const m = this.m;
-    const P = this.malloc(0x1000), VT = this.malloc(0x400), TABLE = this.malloc(0x100);
+    const P = this.malloc(0x32b4), VT = this.malloc(0x400), TABLE = this.malloc(0x100);   // P: the real cUnit size
     const ARRAY = this.malloc(0xa0 * jointNumbers.length);
     m.w32(VT + 0x54, 0x939278);
     m.w32(VT + 0x14, PARENT_GETDTI);
@@ -202,6 +202,11 @@ export class EffectHost {
     jointNumbers.forEach((j, i) => m.w8(TABLE + j, i));
     m.w32(P + 0x494, ARRAY); m.w32(P + 0x498, TABLE);
     m.w32(P + 0x30, 0); m.w32(P + 0x34, 0xffffffff); m.w32(P + 0x38, 0x30004);
+    // cUnit's LOD/draw sub-block at +0x1050 (base ctor 0x43a78c, monster-agnostic): effects read +0x1052 /
+    // +0x1054 / +0x1068 (flags) / +0x1074 / +0x1078 / +0x10f0 from the unit. The rest of the 0x32b4 object is
+    // zero, so +0x1068 = 0 and the draw setup (0x41c74) takes the real 0x41cac path, not the float path the
+    // old too-small (0x1000) stand-in forced by letting these reads fall into the vtable. See efx/parent.py.
+    m.w32(P + 0x1050, 0xff08ff00); m.w32(P + 0x1054, 0x000000ff);
     const parent = { object: P, vtable: VT, table: TABLE, array: ARRAY, joints: jointNumbers.slice(),
                      position: [0, 0, 0], quaternion: [0, 0, 0, 1], scale: 1 };
     this.composeParent(parent);

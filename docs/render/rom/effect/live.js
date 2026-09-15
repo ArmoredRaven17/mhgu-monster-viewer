@@ -154,6 +154,12 @@ export class LiveEffects {
     this.effects = def.effects.map(e => ({ owner: host.createEffect(files[e.efl]), def: e }));
     const parent = this.parent = (joints.length || def.effects.some(e => e.record)) ? host.createParent(joints) : null;
     this.joints = joints.map(j => ({ j, bone: (bones.find(b => b.gid === j) || {}).node || null }));
+    // ANCHOR (joint -1 = model+0xb0, the model's world-matrix ORIGIN, per the joint getter 0x939278). The
+    // mounted group's origin sits on the FLOOR, but the ROM places the model's world matrix at the model's
+    // authored root = the skeleton root bone (gid 0). The aura's own nodes are authored well BELOW that
+    // origin (mass ~130 units under it, measured from the ROM effect data), so anchoring at the floor drops
+    // the fire underground; the model root (gid 0) is where the ROM origin is, and lands it on the body.
+    this.originBone = (bones.find(b => b.gid === 0) || {}).node || null;
     root.updateMatrixWorld(true);
     this.writeJoints();
     // a record: the monster's request, whole (proof.js ProofRequest) -- the core makes the effect the game
@@ -231,19 +237,24 @@ export class LiveEffects {
 
   // WHERE THE UNIT IS. Joint -1 -- the root of a request's effect, and the aura's nodes -- resolves through
   // the parent's joint getter (0x939278): a bone the table maps, else the MODEL'S OWN WORLD MATRIX (+0xb0).
-  // The aura is joint -1, so it hangs from the model's world matrix, which here is the mounted monster's own
-  // (this.root). The monster's nodes are authored around that origin (the aura's node 0 is +400 up, at the
-  // chest); the viewer's ground lock drops the drawn skeleton to the floor but not this origin, so the origin
-  // sits up in the body, where the game's does. An earlier version hung the unit from the clip's `reference`
-  // node instead, which the ground lock pushes below the feet -- that is what left the aura under Teostra
-  // (Raven, 2026-09-13). The joints below still come from the drawn bones, so a joint-bound node (the rage
-  // burst's node 1, joint 1) still tracks its bone.
-  unitMatrix(out){ this.unitOnGround = true; return out.copy(this.root.matrixWorld); }
+  // We use this.root.matrixWorld as that model matrix. UNRESOLVED (Raven, 2026-09-13): with the hollow stand-in
+  // this origin is the model's placement (feet-level in the viewer), and the aura drew low there. The correct
+  // in-body position must come from the ROM -- the effect's authored node transforms and where the ENEMY builds
+  // its +0xb0 origin -- not from picking a bone by eye. Being decoded; do not re-guess.
+  unitMatrix(out){
+    this.unitOnGround = true;
+    out.copy(this.root.matrixWorld);
+    if (this.originBone){                                   // position from the model root (gid 0); rotation/scale stay the unit's
+      this.originBone.updateWorldMatrix(true, false);
+      const e = this.originBone.matrixWorld.elements, o = out.elements;
+      o[12] = e[12]; o[13] = e[13]; o[14] = e[14];
+    }
+    return out;
+  }
   // the floor the ground stand-in sits on: the lowest drawn bone (the monster's feet), in the unit's frame
   groundY(unitPos){
     let lo = unitPos.y;
     for (const { bone } of this.joints || []) if (bone) lo = Math.min(lo, bone.matrixWorld.elements[13]);
-    const bones = this.root && this.root.children ? this.root : null;
     if (this.root) this.root.traverse(o => { if (o.isBone) lo = Math.min(lo, o.matrixWorld.elements[13]); });
     return lo;
   }
@@ -406,14 +417,26 @@ export class LiveEffects {
         this.scene.add(mesh);
       }
       mesh.geometry = src.geometry;
+      src.updateWorldMatrix(true, false);          // the glb node's own transform (its 0.01), current
       if (!mesh.material || mesh.userData.programKey !== p){
         mesh.material = new THREE.RawShaderMaterial({ glslVersion: THREE.GLSL3, vertexShader: p.vertexShader, fragmentShader: p.fragmentShader, uniforms: {} });
         mesh.userData.programKey = p;
       }
       const u = mesh.material.uniforms;
       for (const [name, value] of Object.entries(common)) u[name] = { value };
-      // CBWorld: the three stored rows of the particle's matrix (modeldraw's `world`)
-      for (let r = 0; r < 3; r++) u['CBWorld_fWorld_r' + r] = { value: new THREE.Vector4(...d.world.slice(4 * r, 4 * r + 4)) };
+      // CBWorld: the particle's matrix (modeldraw's `world`) composed with the glb node's own transform. The
+      // draw uses the RAW node geometry (mesh.geometry = src.geometry, added to this.scene at identity), but the
+      // .mod's mesh k sits under the node's 0.01 -- its positions are game units only after that scale (the class
+      // header). `world` is the game-unit particle transform, so the node matrix must be folded in here, or every
+      // model particle draws 1/0.01 = 100x its size (em003_00_001's mesh 27, raw +-190, x world-scale 60, filled
+      // the screen from -11800 to +11900 game units -- a near-plane-straddling wall).
+      const W = new THREE.Matrix4().set(
+        d.world[0], d.world[1], d.world[2], d.world[3],
+        d.world[4], d.world[5], d.world[6], d.world[7],
+        d.world[8], d.world[9], d.world[10], d.world[11],
+        0, 0, 0, 1).multiply(src.matrixWorld);
+      const we = W.elements;                        // column-major: row r is (we[r], we[4+r], we[8+r], we[12+r])
+      for (let r = 0; r < 3; r++) u['CBWorld_fWorld_r' + r] = { value: new THREE.Vector4(we[r], we[4 + r], we[8 + r], we[12 + r]) };
       const put = (id, members, floats) => {
         for (const [name, type, offset, count] of members){
           const v = floats.slice(offset, offset + count);

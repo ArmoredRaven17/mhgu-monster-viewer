@@ -1,5 +1,5 @@
 {
- "source": "AppShaderPackage.mfx, translated by efx/shader/glsl.py",
+ "source": "AppShaderPackage.mfx, translated by efx/shader/glsl.py + em024_00 barrier variants (efx/shader/glsl.py over engprim-em024_00_006-k160.json)",
  "states": {
   "BSDefault": [
    4,
@@ -1429,16 +1429,19 @@
    "FPrimitiveColTexInfluenceDefault"
   ],
   "FPrimitiveCalcColorInt": [
+   "FPrimitiveCalcColorInt",
    "FPrimitiveCalcColorIntDefault"
   ],
   "FPrimitiveCalcIntensity": [
-   "FPrimitiveCalcIntensity"
+   "FPrimitiveCalcIntensity",
+   "FPrimitiveCalcIntensityDefault"
   ],
   "FPrimitiveCalcFresnel": [
    "FPrimitiveCalcFresnel"
   ],
   "FPrimitiveSceneSampler": [
-   "FPrimitiveSceneSampler"
+   "FPrimitiveSceneSampler",
+   "FPrimitiveSceneSamplerBlur"
   ],
   "FPrimitiveToneMap": [
    "FPrimitiveToneMap"
@@ -2061,11 +2064,42 @@
     4,
     0
    ]
+  ],
+  "CBPrimitiveView": [
+   [
+    "fPrimInvViewportSize",
+    "vec4",
+    0,
+    4,
+    0
+   ],
+   [
+    "fPrimSceneUVClamp",
+    "vec4",
+    4,
+    4,
+    0
+   ],
+   [
+    "fPrimSceneClampRange",
+    "float",
+    8,
+    1,
+    0
+   ],
+   [
+    "fPrimInvVScreen",
+    "vec4",
+    12,
+    4,
+    0
+   ]
   ]
  },
  "textures": [
   "tBaseMap",
-  "tPrimDepthMap"
+  "tPrimDepthMap",
+  "tPrimSceneMap"
  ],
  "cubes": [],
  "functions": {
@@ -3395,6 +3429,84 @@
      "oz",
      "",
      "inout"
+    ]
+   ]
+  },
+  "FPrimitiveSceneSamplerBlur": {
+   "glsl": "vec4 FPrimitiveSceneSamplerBlur(vec4 color, vec4 tex, float intensity, vec2 ddxy, vec3 zz) {\n  vec4 ret = tex;\n  vec2 ouv = (ret.xy - vec2(0.5, 0.5));\n  ouv *= intensity;\n  ret.xyz = texture(tPrimSceneMap, FClampSceneUV((ddxy + (ouv * (0.0 / 7.0))))).xyz;\n  ret.xyz += texture(tPrimSceneMap, FClampSceneUV((ddxy + (ouv * (1.0 / 7.0))))).xyz;\n  ret.xyz += texture(tPrimSceneMap, FClampSceneUV((ddxy + (ouv * (2.0 / 7.0))))).xyz;\n  ret.xyz += texture(tPrimSceneMap, FClampSceneUV((ddxy + (ouv * (3.0 / 7.0))))).xyz;\n  ret.xyz += texture(tPrimSceneMap, FClampSceneUV((ddxy + (ouv * (4.0 / 7.0))))).xyz;\n  ret.xyz += texture(tPrimSceneMap, FClampSceneUV((ddxy + (ouv * (5.0 / 7.0))))).xyz;\n  ret.xyz += texture(tPrimSceneMap, FClampSceneUV((ddxy + (ouv * (6.0 / 7.0))))).xyz;\n  ret.xyz += texture(tPrimSceneMap, FClampSceneUV((ddxy + (ouv * (7.0 / 7.0))))).xyz;\n  ret.xyz /= 8.0;\n  return ret;\n}\n",
+   "calls": [
+    "FClampSceneUV"
+   ],
+   "ret": "vec4",
+   "params": [
+    [
+     "vec4",
+     "color",
+     "",
+     ""
+    ],
+    [
+     "vec4",
+     "tex",
+     "",
+     ""
+    ],
+    [
+     "float",
+     "intensity",
+     "",
+     ""
+    ],
+    [
+     "vec2",
+     "ddxy",
+     "",
+     ""
+    ],
+    [
+     "vec3",
+     "zz",
+     "",
+     ""
+    ]
+   ]
+  },
+  "FClampSceneUVClip": {
+   "glsl": "vec2 FClampSceneUVClip(vec2 uv) {\n  vec2 min_uv = CBPrimitiveView_fPrimSceneUVClamp.xy;\n  vec2 max_uv = CBPrimitiveView_fPrimSceneUVClamp.zw;\n  vec2 clamp_uv = clamp(uv, min_uv, max_uv);\n  return clamp_uv;\n}\n",
+   "calls": [],
+   "ret": "vec2",
+   "params": [
+    [
+     "vec2",
+     "uv",
+     "",
+     ""
+    ]
+   ]
+  },
+  "FClampSceneUV": {
+   "glsl": "vec2 FClampSceneUV(vec2 uv) {\n  return uv;\n}\n",
+   "calls": [],
+   "ret": "vec2",
+   "params": [
+    [
+     "vec2",
+     "uv",
+     "",
+     ""
+    ]
+   ]
+  },
+  "FPrimitiveCalcIntensityDefault": {
+   "glsl": "float FPrimitiveCalcIntensityDefault(PRIMITIVE_VS_INPUT I) {\n  float intensity = (I.intensity / 256.0);\n  return ((intensity * 0.009999999776482582) * CBPrimitiveEx_fPrimIntensityScale);\n}\n",
+   "calls": [],
+   "ret": "float",
+   "params": [
+    [
+     "PRIMITIVE_VS_INPUT",
+     "I",
+     "",
+     ""
     ]
    ]
   }

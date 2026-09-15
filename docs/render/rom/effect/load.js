@@ -123,6 +123,17 @@ function generatorResources(m, entry, blk, type){
     if (a === 0) throw new Unverified('0xb590b8 Model animation request failed');
     return;
   }
+  if (type === 25){                                                         // 0xb59004: an effect
+    // animation at +0x60 (into entry +0x14, the same slot the ANIM cases and Model use) and then a
+    // texture at +0xa0 into slot 0. Kushala's wind barrier (em024_00_100 / _101) is the first to use it.
+    if (m.u8(blk + 0x60) !== 0){                                            // 0xb59008
+      const h = m.svc.loadResource(DTI.rEffectAnim, (blk + 0x60) >>> 0, 1);
+      m.w32(entry + 0x14, h);
+      if (h === 0) throw new Unverified('0xb59044 type 25 animation request failed');
+    }
+    textureSlot(m, entry, (blk + 0xa0) >>> 0, 0);                           // 0xb590e8 -> 0xb59178
+    return;
+  }
   throw new Unverified('0xb58c4c generator resources, type ' + type);
 }
 

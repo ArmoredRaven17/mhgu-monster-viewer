@@ -63,8 +63,15 @@ export function animConfig(m, gen, p, out){
   if (m.u16(param + 0x44) !== 0) throw new Unverified('0xa66e18 param +0x44 channel');
   let c = (m.u32(gen + 0x4c) + 1) >>> 0; m.w32(gen + 0x4c, c);
   const w54 = m.u32(param + 0x54);
-  if (w54 >>> 16) throw new Unverified('0xa66ea8 random animation start');
-  const start = F(w54 & 0xffff);
+  // 0xa66ea8: the high 16 bits of param +0x54 are a random RANGE for the start frame (0 = fixed). When set,
+  // start = (w54 & 0xffff) + rng % (range + 1), the int RNG indexed by the counter just bumped above (c),
+  // exactly like the flag bits. Khezu em003_00_006 is the first effect to use it.
+  const range = w54 >>> 16;
+  let start = F(w54 & 0xffff);
+  if (range){
+    const rnd = (m.u32((m.u32(GOT_INT_RNG) + 4 * (c & 0xfff)) >>> 0) % ((range + 1) >>> 0)) >>> 0;
+    start = F(((w54 & 0xffff) + rnd) >>> 0);
+  }
   const speed = m.f32(param + 0x58);
   m.w32(out, flags);
   c = (m.u32(gen + 0x4c) + 1) >>> 0; m.w32(gen + 0x4c, c);
