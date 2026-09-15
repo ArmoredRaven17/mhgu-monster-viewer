@@ -111,11 +111,11 @@
  },
  "em043_00": {
   "reviewed": "2026-09-15",
-  "note": "Named from the render. Chest is slot 1's single sphere under the front of the body (joint 2); Torso is the spine capsules.",
+  "note": "Named from the render, then given Savage Deviljho's terms (Raven: \"Apply Savage's terms to Deviljho\"; same joints and slots): Belly is slot 1's single sphere under the front of the body (joint 2), Back the spine capsules. First named Chest and Torso.",
   "slots": {
    "0": "Head",
-   "1": "Chest",
-   "2": "Torso",
+   "1": "Belly",
+   "2": "Back",
    "3": "Arms",
    "4": "Legs",
    "5": "Tail"
@@ -123,7 +123,7 @@
  },
  "em043_05": {
   "reviewed": "2026-09-15",
-  "note": "Named from the render, handed to the render agent directly (Savage is otherwise another agent's test case; this file is read only by the hit-zone chart). Same joints and slots as Deviljho, whose slots 1 and 2 are named Chest and Torso -- the same capsules as Belly and Back here.",
+  "note": "Named from the render, handed to the render agent directly (Savage is otherwise another agent's test case; this file is read only by the hit-zone chart). Same joints and slots as Deviljho, which now carries these same terms.",
   "slots": {
    "0": "Head",
    "1": "Belly",
