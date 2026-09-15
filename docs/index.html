@@ -5051,7 +5051,19 @@ function paintZoneTabs(){
   // the panel shrink-wraps the visible table, so a stale scroll offset would strand it
   wrap.scrollLeft = 0; wrap.scrollTop = 0;
 }
-document.getElementById('zoneTabSel').onchange = e => { state.zoneTab = e.target.value; paintZoneTabs(); saveState(); };
+// A SELECTED COLUMN BELONGS TO ITS TABLE. applyHeat brings the heat map's table to the front on every repaint, so a
+// column left selected while another table was picked dragged the chart back the next time anything repainted -- a
+// Broken Parts switch, a Charge change. Raven, 2026-09-15: "When toggling a part, it switches tables based on the
+// selected column", "If a user switches tables via the drop down, we need to remove the previously selected column.
+// Then it should keep the table the same." So picking a table drops a column that is not on it, and its heat map.
+document.getElementById('zoneTabSel').onchange = e => {
+  state.zoneTab = e.target.value;
+  if (state.heat && tabForHeat(state.heat) !== state.zoneTab){
+    state.heat = '';
+    applyHeat().then(applyGap).catch(noteError);
+  }
+  paintZoneTabs(); saveState();
+};
 // The lowest sharpness that does NOT bounce off each zone, worked from the ROM's own multiplier
 // table (.rodata 0x0161e37c) against the deflect threshold at 0x00177ed4. Cut and impact are worked
 // separately because the deflect uses the ATTACK's cut/impact split, so a cutting attack is judged
