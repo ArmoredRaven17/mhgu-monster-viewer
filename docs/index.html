@@ -212,6 +212,15 @@ dl.info dd{margin:0;color:var(--text);font-variant-numeric:tabular-nums;
   border-left:2px inset transparent;border-right:2px inset transparent}
 .zchart thead th + th,.pchart thead th + th{border-top:2px inset transparent}
 .zchart tbody tr:last-child td,.pchart tbody tr:last-child td{border-bottom:2px inset transparent}
+/* A PICKED ZONE lights its row, the column band turned on its side (see pickZone). Drawn with inset
+   shadows rather than borders so picking moves nothing, and with the same dark hairline inside the accent
+   so the edge reads against any heat colour. Where the row crosses a lit column the cell keeps both. */
+.zchart tbody th,.pchart tbody th{cursor:pointer}
+.zchart tbody tr.zpick > *,.pchart tbody tr.zpick > *{
+  box-shadow:inset 0 2px var(--cta),inset 0 3px rgba(0,0,0,.55),inset 0 -2px var(--cta),inset 0 -3px rgba(0,0,0,.55)}
+.zchart tbody tr.zpick > th,.pchart tbody tr.zpick > th{color:var(--cta)}
+.zchart tbody tr.zpick > td.sel,.pchart tbody tr.zpick > td.sel{
+  box-shadow:inset 0 2px var(--cta),inset 0 -2px var(--cta),inset 1px 0 rgba(0,0,0,.55),inset -1px 0 rgba(0,0,0,.55)}
 /* Floating toolbar over the render area, matching the Weapon Tree's #bar.
    width:max-content is load-bearing: with left:50% the default shrink-to-fit only
    counts the space from the centre to the right edge, so the bar would cap at half
@@ -1224,7 +1233,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          hasChargeState, applyMaterialSwap, stateHoldSeconds, chargeFreezesRage, rageLadder, rageLadderParts,
          clusterChoices, ladderVariant, groupLabelWithout, romRageParts,
          setUndefinedMaterialVisible, setExtendVisible, extendCount,
-         applyHeatmap, clearHeatmap, applyFlat, parseZones, heatColor, EXTRACT_RGB,
+         applyHeatmap, clearHeatmap, applyFlat, parseZones, heatColor, EXTRACT_RGB, zoneCapsules,
          setCutoutSolid, cutoutSolidCount, cutoutAnchorMisses,
          setClipFallback, clipFallbackOn,
          loadEffectMounts, attachEffectMounts, detachEffectMounts,
@@ -4786,6 +4795,7 @@ function buildTypeChart(el, types, rec, table){
     const th = document.createElement('th');
     th.textContent = named[sl] || 'Slot ' + sl;
     markUnpainted(th, rec, sl);
+    zoneRow(tr, th, 'slot', sl);
     tr.appendChild(th);
     for (const t of types){
       const td = tr.insertCell();
@@ -4818,6 +4828,68 @@ function buildZoneChart(rec, table, ti){
     'Hit Zones' + (rec.tables.length > 1 ? ' — Table ' + ti : '');
   paintZonePanel();
 }
+// ---- a picked zone: its row lit, and the zone drawn on the monster as the ROM defines it -------------
+// Raven, 2026-09-15: "I would like to be able to highlight different slots of the hit zone table. By this I
+// mean not only the table, but the part of the monster. The high light of the monster however I want to be
+// based on the defined zone, not the heatmapping." A row's name picks its zone and picking it again lets it go.
+// The damage grids (Raw, Elemental, Stun / Exhaust, Hardness) have one row per damage slot, so a pick there
+// lights that row on every one of them and draws each rBodyData capsule that reports that slot. The Extracts
+// table lists the .dtt's PART records, a different list, so its rows draw the capsules carrying that part
+// record. The shapes are the records themselves (zoneCapsules in render/monster.js), not the heat map's
+// per-vertex bake, so they show a zone no vertex won and do not depend on the heat map being on.
+// Drawn only while the chart is on screen (paintZonePanel), and not saved: slot numbers mean nothing on the
+// next monster, so a pick belongs to the monster it was made on.
+let zonePick = null;       // { id, kind: 'slot' | 'part', index }
+let zoneShape = null;      // the capsules drawn for it, under the scene
+function zoneRow(tr, th, kind, index){
+  tr.dataset.zkind = kind;
+  tr.dataset.zindex = String(index);
+  th.title = (th.title ? th.title + ' ' : '') + 'Click to show this zone on the monster.';
+  th.onclick = () => pickZone(kind, index);
+}
+function pickZone(kind, index){
+  const id = (entry() || {}).id;
+  const same = zonePick && zonePick.id === id && zonePick.kind === kind && zonePick.index === index;
+  zonePick = same ? null : { id, kind, index };
+  paintZonePick();
+}
+function paintZonePick(){
+  const e = entry();
+  const rec = e && HITZONES.monsters && HITZONES.monsters[e.id];
+  const pick = zonePick && e && zonePick.id === e.id ? zonePick : null;
+  for (const tr of document.querySelectorAll('#monZoneWrap tbody tr'))
+    tr.classList.toggle('zpick', !!pick && tr.dataset.zkind === pick.kind && +tr.dataset.zindex === pick.index);
+  const shown = !!(pick && rec && rec.capsules && mounted.main && !document.getElementById('zonePanel').hidden);
+  const key = shown ? pick.kind + ':' + pick.index : null;
+  if (zoneShape && (zoneShape.userData.key !== key || zoneShape.userData.root !== mounted.main)){
+    scene.remove(zoneShape); zoneShape.userData.dispose(); zoneShape = null;
+  }
+  if (shown && !zoneShape){
+    const col = pick.kind === 'slot' ? 0 : 1;          // a capsule row's slot, or its part record
+    zoneShape = zoneCapsules(mounted.main, rec.capsules.filter(c => c[col] === pick.index),
+                             { color: cssRgb('--cta') });
+    zoneShape.userData.key = key;
+    zoneShape.userData.root = mounted.main;
+    scene.add(zoneShape);
+  }
+}
+// a CSS colour variable as 0..1 RGB, so the drawn zone is the lit row's colour. A theme writes --cta as rgb(),
+// the stylesheet's own default as hex; both are read.
+function cssRgb(name){
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const hex = /^#?([0-9a-f]{6})$/i.exec(v);
+  if (hex){
+    const n = parseInt(hex[1], 16);
+    return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+  }
+  const m = /rgba?\(([^)]+)\)/.exec(v);
+  if (!m) return null;
+  const p = m[1].split(',').map(Number);
+  return [p[0] / 255, p[1] / 255, p[2] / 255];
+}
+// a theme change recolours the lit row through CSS; the drawn zone follows it
+new MutationObserver(() => { if (zoneShape) zoneShape.userData.setColor(cssRgb('--cta')); })
+  .observe(document.documentElement, { attributes: true, attributeFilter: ['style', 'class'] });
 // Which pane a heat-map selection belongs to, so picking a type in the dropdown brings its table
 // to the front instead of leaving the reader on the wrong tab.
 function tabForHeat(h){
@@ -4879,6 +4951,7 @@ function buildHardnessChart(rec, table){
     const th = document.createElement('th');
     th.textContent = named[sl] || 'Slot ' + sl;
     markUnpainted(th, rec, sl);
+    zoneRow(tr, th, 'slot', sl);
     tr.appendChild(th);
     for (const key of ['cut', 'impact']){
       const td = tr.insertCell();
@@ -4945,7 +5018,7 @@ function buildPartsChart(rec){
   const body = chart.createTBody();
   for (const [i, p] of live){
     const tr = body.insertRow();
-    const th = document.createElement('th'); th.textContent = 'Part ' + i; tr.appendChild(th);
+    const th = document.createElement('th'); th.textContent = 'Part ' + i; zoneRow(tr, th, 'part', i); tr.appendChild(th);
     tr.insertCell().textContent = p.stagger || '—';
     // null is the ROM's 0xffff: cannot be broken at all, which is not the same as 0
     tr.insertCell().textContent = (p.break === null || p.break === undefined) ? '—' : p.break;
@@ -5022,6 +5095,7 @@ function paintZonePanel(){
   document.getElementById('monZoneShow').checked = state.zoneShow;
   document.getElementById('monZoneShowRow').hidden = !has;
   if (shown) placeZonePanel();     // its size changes with the monster, so re-clamp on every paint
+  paintZonePick();                 // a picked zone is drawn only while its chart is
 }
 // ---- the hit-zone window is movable -----------------------------------------------------
 // Dragged by its title bar, kept inside the render area, and its corner remembered with the
@@ -6253,6 +6327,17 @@ window.__view.tentacleAttach = mode => {
 // switches it the way the row does and reports once it is mounted or dropped.
 // Rage and charge as the material step sees them (matAxes), `ahead` seconds from now, and what each swappable
 // mesh is drawing -- for checking the two rows together without frames running.
+// The picked hit zone (pickZone): which rows are lit and every capsule drawn for it, placed on the joints as
+// they are now. __view.zones() reads it; __view.zones('slot', 2) / ('part', 3) picks the way a row's name does.
+window.__view.zones = (kind, index) => {
+  if (kind !== undefined) pickZone(kind, index);
+  const lit = [...document.querySelectorAll('#monZoneWrap tbody tr.zpick')]
+    .map(tr => tr.closest('table').dataset.pane + ': ' + tr.cells[0].textContent);
+  if (zoneShape) mounted.main.updateMatrixWorld(true);
+  const drawn = zoneShape ? { placed: zoneShape.userData.placed, skipped: zoneShape.userData.skipped,
+                              capsules: zoneShape.userData.readback() } : null;
+  return { pick: zonePick, lit, drawn };
+};
 window.__view.matAxes = (ahead = 0) => {
   if (!chargeAxis) return { chargeAxis: false, state: matState() };
   const ax = matAxes(performance.now() / 1000 + ahead);

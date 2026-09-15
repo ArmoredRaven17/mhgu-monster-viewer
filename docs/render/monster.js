@@ -3483,3 +3483,112 @@ export function parseZones(buf, prims){
   }
   return hasParts ? { slots, parts } : { slots, parts: null };
 }
+
+// ---- a hit zone as the ROM defines it ----------------------------------------------------------------
+// Raven, 2026-09-15: "I would like to be able to highlight different slots of the hit zone table. By this I
+// mean not only the table, but the part of the monster. The high light of the monster however I want to be
+// based on the defined zone, not the heatmapping." The heat map is a BAKE. build-hitzones.py gives every vertex
+// ONE capsule by a rule the viewer chose (same bone first, then smallest containing, else nearest -- the game's
+// own overlap rule is not decoded), so it can show a zone only as the share of the SURFACE it won, and nothing
+// of a zone no vertex won. What the game defines is the rBodyData record: a sphere or a capsule hung off one or
+// two joints, carrying the damage-table row it reports (record+6) and the .dtt part record (+8). hitzones.json's
+// `capsules` are those records, unbaked, and this draws them.
+//
+// Placement is the bake's, derived and proved there in bind pose: a point is its joint's world matrix applied to
+// point / 100, and the radius is radius / 100 in glb units --
+//     shape 0  a sphere at A on boneA        shape 1  A..B, both in boneA's space
+//     shape 2  A in boneA's space, B in boneB's
+// Here the joint matrices are the POSED ones, so a capsule rides its joints through a clip, as its record
+// attaches it. Bone 255 (not bone-attached, 72 records in the library) and shape 6 (2 records) cannot be
+// placed; they are counted and left out, not guessed. Not read: whether a joint's own scale reaches a radius
+// in the game -- the radius here takes only the model's scale.
+//
+// Each capsule is drawn twice off one set of placement uniforms: a faint pass that ignores depth, so a zone
+// inside the body still shows, and a stronger depth-tested pass, so where it breaks the surface reads as
+// nearer. The shape is made in the vertex shader from a unit CapsuleGeometry -- the top cap's vertices go to
+// B, the bottom cap's to A -- so a capsule spanning two joints stretches with them and nothing is rebuilt per
+// frame.
+const ZONE_VS = `
+uniform vec3 uA;
+uniform vec3 uB;
+uniform float uR;
+uniform mat3 uBasis;
+varying vec3 vN;
+varying vec3 vV;
+void main(){
+  bool top = position.y > 0.0;
+  vec3 local = position - vec3(0.0, top ? 0.5 : -0.5, 0.0);
+  vec3 world = (top ? uB : uA) + uBasis * (local * uR);
+  vec4 mv = viewMatrix * vec4(world, 1.0);
+  vN = normalize(mat3(viewMatrix) * (uBasis * normal));
+  vV = projectionMatrix[3][3] == 1.0 ? vec3(0.0, 0.0, 1.0) : -mv.xyz;
+  gl_Position = projectionMatrix * mv;
+}`;
+const ZONE_FS = `
+uniform vec3 uColor;
+uniform float uAlpha;
+varying vec3 vN;
+varying vec3 vV;
+void main(){
+  float edge = 1.0 - abs(dot(normalize(vN), normalize(vV)));
+  gl_FragColor = vec4(min(uColor * (0.8 + 0.6 * edge), vec3(1.0)), uAlpha * (0.35 + 0.65 * edge * edge));
+}`;
+// records: hitzones.json capsule rows [slot, part, shape, boneA, boneB, radius, ax, ay, az, bx, by, bz].
+// opts.color: [r, g, b] 0..1, written as given. Returns a Group for the scene (not the monster, so no
+// traversal of the model meets it), with userData.placed / skipped, readback() and dispose().
+export function zoneCapsules(root, records, opts = {}){
+  const group = new THREE.Group();
+  group.name = 'zone-capsules';
+  const bones = new Map();
+  for (const b of gidBonesOf(root)) bones.set(b.gid, b.leaf || b.node);
+  const geo = new THREE.CapsuleGeometry(1, 1, 6, 24);
+  const rgb = opts.color || [0.1, 0.88, 0.82];
+  const color = { value: new THREE.Vector3(rgb[0], rgb[1], rgb[2]) };
+  const mats = [], live = [];
+  const s = new THREE.Vector3(), y = new THREE.Vector3(), x = new THREE.Vector3(), z = new THREE.Vector3();
+  let skipped = 0;
+  for (const c of records || []){
+    const [slot, part, shape, a, b, r, ax, ay, az, bx, by, bz] = c;
+    const ja = bones.get(a), jb = shape === 2 ? bones.get(b) : ja;
+    if (!(shape === 0 || shape === 1 || shape === 2) || !ja || !jb){ skipped++; continue; }
+    const u = { uA: { value: new THREE.Vector3() }, uB: { value: new THREE.Vector3() }, uR: { value: 0 },
+                uBasis: { value: new THREE.Matrix3() }, uColor: color };
+    const la = new THREE.Vector3(ax, ay, az).multiplyScalar(0.01);
+    const lb = new THREE.Vector3(bx, by, bz).multiplyScalar(0.01);
+    const place = () => {
+      u.uA.value.copy(la).applyMatrix4(ja.matrixWorld);
+      if (shape === 0) u.uB.value.copy(u.uA.value);
+      else u.uB.value.copy(lb).applyMatrix4(jb.matrixWorld);
+      u.uR.value = r * 0.01 * s.setFromMatrixColumn(root.matrixWorld, 0).length();
+      y.subVectors(u.uB.value, u.uA.value);
+      const len = y.length();
+      if (len < 1e-6) y.set(0, 1, 0); else y.divideScalar(len);
+      x.set(Math.abs(y.y) < 0.99 ? 0 : 1, Math.abs(y.y) < 0.99 ? 1 : 0, 0).cross(y).normalize();
+      z.crossVectors(x, y);
+      u.uBasis.value.set(x.x, y.x, z.x, x.y, y.y, z.y, x.z, y.z, z.z);
+    };
+    // the faint pass through the body first, then the surface pass over it
+    for (const [through, alpha, order] of [[true, 0.2, 9000], [false, 0.5, 9001]]){
+      const m = new THREE.ShaderMaterial({ vertexShader: ZONE_VS, fragmentShader: ZONE_FS,
+        uniforms: Object.assign({ uAlpha: { value: alpha } }, u),
+        transparent: true, depthWrite: false, depthTest: !through, side: THREE.FrontSide });
+      const mesh = new THREE.Mesh(geo, m);
+      mesh.frustumCulled = false;             // the vertex shader places it; the geometry's bounds are the unit capsule
+      mesh.renderOrder = order;
+      // placed as the renderer reaches it, after the frame's world matrices -- the posed joints -- are current
+      if (through) mesh.onBeforeRender = place;
+      mats.push(m);
+      group.add(mesh);
+    }
+    live.push({ slot, part, shape, a, b, u, place });
+  }
+  group.userData.placed = live.length;
+  group.userData.skipped = skipped;
+  // placed afresh from the joints' current world matrices, so it answers with nothing being rendered
+  group.userData.readback = () => live.map(l => (l.place(), { slot: l.slot, part: l.part, shape: l.shape, a: l.a, b: l.b,
+    A: l.u.uA.value.toArray().map(v => +v.toFixed(3)), B: l.u.uB.value.toArray().map(v => +v.toFixed(3)),
+    r: +l.u.uR.value.toFixed(3) }));
+  group.userData.setColor = c => { if (c) color.value.set(c[0], c[1], c[2]); };
+  group.userData.dispose = () => { geo.dispose(); for (const m of mats) m.dispose(); };
+  return group;
+}
