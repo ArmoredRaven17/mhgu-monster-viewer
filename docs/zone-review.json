@@ -145,6 +145,20 @@
    "5": "Tail"
   }
  },
+ "em045_00": {
+  "reviewed": "2026-09-15",
+  "note": "Named from the render.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Back",
+   "3": "Belly",
+   "4": "Arms",
+   "5": "Legs",
+   "6": "Tail",
+   "7": "Tail Tip"
+  }
+ },
  "em081_00": {
   "reviewed": "2026-09-15",
   "unsure": "Raven, 2026-09-15: \"I am not confident with Astalos hit zone table or capsule slots\", \"their hit zone values normally reflect each other\". Measured over the library: 14 slot pairs have capsules that mirror left/right (11 exactly, 3 near), and 13 of them have identical rows in table 1. Astalos' wings (slots 3/7) are the one exception, and their capsules are only a near mirror: 5 of 7 match, while the two wing-membrane capsules (records 14 on joint 60 and 19 on joint 70) differ in shape. The only other asymmetric pair is Stonefist Hermitaur slots 3/7 (table 0, Thunder 15/20). Held for the review pass.",
