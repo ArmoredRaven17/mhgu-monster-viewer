@@ -1927,40 +1927,69 @@ const STATE_NAMES = {
 // is what makes the veins read as black -- and m04__taiden is BSAddAlpha with authored emission
 // 2.0. One darkens, one glows, and the game picks between them by swapping the material.
 export const STATE_MATERIAL_SWAP = {
-  // KHEZU'S CHARGE DOES NOT SWAP THE VEIN LAYER, and the entry that said it did is gone.
+  // KHEZU'S CHARGE FROM CALM SWAPS THE VEIN LAYER -- cyan veins. Raven, 2026-09-15: "Khezu's veins should
+  // turn cyan during his charged state", then, of his 2026-09-10 "The veins remain red during the charging
+  // state attacks": "I thought it was an error, but I was looking at footage and saw I was mistaken". Both
+  // are the ROM; which one shows depends on the state he charges FROM.
   //
-  // Raven, 2026-09-10: "The veins remain red during the charging state attacks." He is right, and
-  // the ROM agrees once you read far enough. Khezu has THREE Taiden entry paths, not one, and they
-  // differ in exactly one call:
+  // Khezu's material driver 0xd1e52c works out a wanted state every frame -- 11 when vtable +0x3f4 says so
+  // (Death), else 1 on the angry predicate 0x81670 or 3 if [+0xcac0]+0x20 (the charge flag) is also set,
+  // else 2 on the charge flag alone, else 0 -- and switches on the state it is in, [+0xcac0]+0x48:
   //
-  //     0xd1ec1c   Body_Taiden_Repeat + Alpha_Taiden_Repeat, setMaterialAt (0x88db20), Taiden_start
-  //     0xd1ed30   Body_Taiden_Repeat + Alpha_Taiden_Repeat, NO setMaterialAt, no Taiden_start
-  //     0xd1ee48   Body_Taiden_Repeat + Alpha_Taiden_Repeat, setMaterialAt, Taiden_start
+  //     in 0 (calm)   wants 2   0xd1ec1c  clearAllSlots on the vein layer, Body_Taiden_Repeat on +0x30 and
+  //                                       Alpha_Taiden_Repeat on +0x34, setMaterialAt(model, [+0x44], 0) --
+  //                                       XfBA_A0__m04__taiden into slot 0 -- +0x38 := that material,
+  //                                       Taiden_start on it; state 2
+  //     in 1 (angry)  wants 3   0xd1ed40  Body_Taiden_Repeat and Alpha_Taiden_Repeat only, NO swap -- the
+  //                                       vein layer keeps m03_blood and its Angry clip, red; state 3
+  //     in 4          wants 2   0xd1ee50  the same swap as from calm
+  //     in 2          wants 0 / 1 / 11   Body / Alpha / Taiden_End (Virus_ ones under +0x49) on the three
+  //                                       layers -- the vein layer is still the swapped one; state 7
+  //     in 7                    0xd1ea0c  once Body_Taiden_End's time reaches its frame count: clearAllSlots,
+  //                                       setMaterialAt(model, [+0x40] m03_blood, 0), Nomal_Repeat; state 0
   //
-  // The middle one electrifies the BODY and leaves the vein layer alone, so m03_blood keeps drawing
-  // and the veins stay red. That is the state he is describing, and this viewer had implemented the
-  // other one.
+  // In 2 the driver ignores wanting 3 and in 3 ignores wanting 2: whichever came first holds until the
+  // charge ends. The viewer's Enraged and Discharge rows may both be on (Raven, 2026-09-15), and the swap
+  // follows Discharge alone -- Raven: "Ensure the cyan veins are kept while discharge is toggled on". What keeps
+  // the game's veins cyan when the charge begins while angry is UNREAD: the 0xd1ed40 path read so far sets no
+  // swap. index.html's matAxes runs the two rows side by side (ROM_CHARGE_FREEZES_RAGE for the rage layer's
+  // timing) and STATE_SWAP_HOLD keeps the swap through the discharge.
   //
-  // Why the swapped state cannot be what he sees, which is what forced the re-read: m03_blood and
-  // XfBA_A0__m04__taiden are the SAME material twice over -- identical flag word 91950000, identical
-  // features, identical CBMaterial, and both bind em003_00_03_BM as the albedo and em003_00_02_BM as
-  // the blend map (checked in the .mrl itself, not inferred). They differ in two things only: the
-  // blend equation, and fEmissionColor 0 against 2. And BSRevSubAlpha is literally BSAddAlpha with
-  // one more bit set -- 0x04020802 against 0x00020802, the same SRC_ALPHA/ONE factors and only the
-  // equation changed. The blend map is teal with ZERO red-dominant texels, peaking at (19,146,147).
-  // Reverse-subtracting teal is what MAKES the veins red; adding the same teal can only make them
-  // cyan. Measured in the viewer: calm the layer contributes (-6, -25, -23) and reads red at
-  // (102, 84, 76); charged it contributed (+16, +57, +53) and read cyan at (110, 137, 125).
-  //
-  // So no rendering fix could ever have produced red here. The state was wrong, not the shading.
-  // The body clips still run -- Body_Taiden_Repeat drives fAlbedoColor to (0.28, 0.322, 0.42) and
-  // fEmissionColor to (0.16, 0.184, 0.24), both blue -- so the charge still reads electric, on the
-  // body, which is where the ROM puts it.
-  //
-  // Paths A and C remain undecoded as states: they DO swap, so something in Khezu's repertoire shows
-  // cyan veins. Nothing here selects them, and inventing a second toggle for a state whose trigger
-  // has not been read would be guessing.
+  // What the swap does to the colour (measured 2026-09-10): m03_blood and m04__taiden are the same material
+  // but for the blend -- BSRevSubAlpha against BSAddAlpha, 0x04020802 against 0x00020802 -- and
+  // fEmissionColor 0 against 2. The blend map is teal, so subtracting it reads red and adding it reads cyan:
+  // calm the layer contributed (-6, -25, -23), red at (102, 84, 76); swapped (+16, +57, +53), cyan at
+  // (110, 137, 125). '#833258c1' is m04__taiden's record: crc32("XfBA_A0__m04__taiden") ^ 0xFFFFFFFF.
+  em003_00: { charged: { 'XfBA_A0__m03_blood': '#833258c1' } },
 };
+// A SWAP THAT OUTLASTS ITS STATE: the leaving clip whose length the ROM waits out before putting the
+// original back. Khezu's discharge keeps m04__taiden on the vein layer until Body_Taiden_End has run its
+// frame count (state 7, 0xd1ea0c), so its Taiden_End plays on the cyan layer and only then do the red
+// veins return with Nomal_Repeat.
+export const STATE_SWAP_HOLD = {
+  em003_00: { charged: 'Body_Taiden_End' },
+};
+// How long leaving `st` holds its swap, in seconds: the STATE_SWAP_HOLD clip's frame count on this model, or 0.
+export function stateHoldSeconds(root, monId, st){
+  const hold = root && monId && STATE_SWAP_HOLD[monId] && STATE_SWAP_HOLD[monId][st];
+  if (!hold) return 0;
+  let frames = 0;
+  root.traverse(o => {
+    const clips = o.material && o.material.userData && o.material.userData.rom && o.material.userData.rom.anim;
+    if (!clips || frames) return;
+    const c = clips.find(x => x && typeof x.name === 'string' && x.name.toLowerCase() === hold.toLowerCase());
+    if (c && c.frames) frames = c.frames;
+  });
+  return frames / MAT_FPS;
+}
+// A CHARGE THAT FREEZES THE RAGE LAYER. Raven, 2026-09-15: "we can have Enraged and Discharge states at the same
+// time". Khezu's driver can: its state 3 is angry and charged at once. Its rage is set when the charge begins
+// (see STATE_MATERIAL_SWAP): a rage that starts while charged is ignored (state 2), one that ends while charged
+// is ignored too (state 3). Either way the rage-driven layer holds what it had until the discharge's end clip has
+// run (states 7 / 8), and only then catches up -- Angry_Start from 7 if he is angry by then, Angry_End from 8's
+// hand-back to state 1 if he is not. (The swap itself follows the Discharge row: see STATE_MATERIAL_SWAP.)
+export const ROM_CHARGE_FREEZES_RAGE = { em003_00: true };
+export function chargeFreezesRage(monId){ return !!(monId && ROM_CHARGE_FREEZES_RAGE[monId]); }
 // Hang the swap materials for `state` on the meshes that carry the originals, or put the originals
 // back when the state has none. The ROM's own mechanism is different -- it replaces the entry in
 // the model's material array and refreshes the mesh list (0x88db20) -- and this reaches the same
@@ -2867,7 +2896,25 @@ function clipPicker(state, monId, tState, prev, levelClip, stage){
   };
 }
 
-export function stepMatAnim(root, tSec, state, monId, tState, prev, levelClip){
+// RAGE AND CHARGE SIDE BY SIDE. `axes` is { enraged: { state, t, prev }, charged: { state, t, prev } }, each with
+// its own clock and the state it left; every material answers to the state whose clips it carries -- Khezu's vein
+// layer to rage, its body, alpha layer and swapped-in Taiden layer to the charge -- the way his driver sets clips
+// on +0x38 for Angry and on +0x30 / +0x34 / the swapped +0x38 for Taiden. A material in neither follows rage.
+function axisPicker(axes, monId, levelClip, stage){
+  const r = axes.enraged || { state: 'calm', t: 0, prev: 'calm' };
+  const c = axes.charged || null;
+  const rage = clipPicker(r.state, monId, r.t, r.prev, levelClip, stage);
+  const charge = c ? clipPicker(c.state, monId, c.t, c.prev, levelClip, stage) : null;
+  const tbl = stateNames('charged', monId);
+  const names = tbl ? [].concat(tbl.start || [], tbl.steady || [], tbl.end || []) : [];
+  return (clips, rom, tSec) => {
+    const carries = names.length && clips.some(k => k && names.some(n => sameClip(k.name, n)));
+    return (charge && carries) ? charge(clips, rom, tSec) : rage(clips, rom, tSec);
+  };
+}
+export function stepMatAnim(root, tSec, stateIn, monId, tState, prev, levelClip){
+  const axes = stateIn && typeof stateIn === 'object' ? stateIn : null;
+  const state = axes ? ((axes.enraged && axes.enraged.state) || 'calm') : stateIn;
   const stages = stepStageMachine(root, tSec, state, monId) || [];
   const form = FORM_CLIP.exec(typeof levelClip === 'string' ? levelClip : '');
   const formState = form ? stepFormMachine(root, tSec, +form[1], monId) : null;
@@ -2876,7 +2923,8 @@ export function stepMatAnim(root, tSec, state, monId, tState, prev, levelClip){
   // a mounted partner's combine clip, held at its last frame -- the result of the combine (ROM_PARTNER_BODY)
   const pc = root && root.userData && root.userData.partnerClip;
   if (pc) stages.push({ mats: [pc.mat], rest: null, clip: pc.clip, t0: -1e9 });
-  const pick = clipPicker(state, monId, tState, prev, levelClip, stages.length ? stages : null);
+  const pick = axes ? axisPicker(axes, monId, levelClip, stages.length ? stages : null)
+                    : clipPicker(state, monId, tState, prev, levelClip, stages.length ? stages : null);
   // ONE evaluator for both paths. A ROM-core material is a stock three.js material -- the technique
   // decides which class, not the blend state -- so the shared evaluator's writes land exactly as
   // they always have. fEmissionColor now reaches the 47 lit-technique additive materials that used

@@ -574,7 +574,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <div class="panel-body">
           <div id="monGroups"></div>
           <label class="chk switch" id="monRageRow" hidden><input type="checkbox" id="monRage"><span class="toggle"></span>Enraged</label>
-          <label class="chk switch" id="monChargeRow" hidden><input type="checkbox" id="monCharge"><span class="toggle"></span>Charged</label>
+          <label class="chk switch" id="monChargeRow" hidden><input type="checkbox" id="monCharge"><span class="toggle"></span>Discharge</label>
           <!-- HEATED is an ARMOUR state, not an AI one, so it is independent of Enraged and Charged
                rather than exclusive with them. Agnaktor wears molten armour that cools: every one of
                its part rows offers the same break twice, once with its XfB_0__m0N_lavNN meshes and
@@ -1221,7 +1221,7 @@ import { loadMaterialsDb } from './render/materials-db.js';
 import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
          partVerts, partsDrawn, applyParts, groupLabel, groupIsInert, setNormalOpt,
          DEFAULT_PARTS_OFF, DEFAULT_PARTS_ON, defaultPartsOn, ROM_RAGE_SET, setRestSets, stepRefract,
-         hasChargeState, applyMaterialSwap, rageLadder, rageLadderParts,
+         hasChargeState, applyMaterialSwap, stateHoldSeconds, chargeFreezesRage, rageLadder, rageLadderParts,
          clusterChoices, ladderVariant, groupLabelWithout, romRageParts,
          setUndefinedMaterialVisible, setExtendVisible, extendCount,
          applyHeatmap, clearHeatmap, applyFlat, parseZones, heatColor, EXTRACT_RGB,
@@ -5312,7 +5312,6 @@ function applyRage(){
     // is declared the rung sets state.rage and the checkbox is hidden, so there is one control.
     if (show && lv && Array.isArray(lv.rage)){
       state.rage = !!lv.rage[state.level | 0];
-      if (state.rage) state.charged = false;
       document.getElementById('monRageRow').hidden = true;
       document.getElementById('monRage').checked = !!state.rage;
     }
@@ -5320,8 +5319,11 @@ function applyRage(){
   if (!canCharge && state.charged) state.charged = false;
   document.getElementById('monChargeRow').hidden = !canCharge;
   document.getElementById('monCharge').checked = !!state.charged;
+  chargeAxis = canCharge;
   const st = matState();
-  for (const g of Object.values(mounted)) applyMaterialSwap(g, st);
+  // a monster that can charge runs rage and charge side by side (matAxes), and its swap comes from there
+  const swapSt = chargeAxis ? matAxes(performance.now() / 1000).swap : st;
+  for (const g of Object.values(mounted)) applyMaterialSwap(g, swapSt);
   // THE EFFECT MODELS RIDE THIS TOGGLE for a monster that opts in. Raven, 2026-09-11: "Just add
   // the effect to Savage's Enrage state". Only the monsters listed in effect-mounts.json's
   // `_autoOnRage` -- Savage today -- so Felyne's 19 per-action proof effects keep showing nothing
@@ -5332,9 +5334,8 @@ function applyRage(){
     attachEffectMounts(main, state.id, null);
   }
 }
-// The one place that turns the two checkboxes into the state name the clip table and the material
-// swap are keyed by. Charged wins a collision: it is the state that replaces the vein material, so
-// showing it half-applied under a rage clip would be neither state.
+// The one place that turns the two checkboxes into ONE state name, for a monster that cannot charge (and the
+// part rows' state keys). A monster that can charge runs matAxes instead, where both may be on at once.
 function matState(){
   if (state.charged) return 'charged';
   const lm = levelMatState();
@@ -5386,6 +5387,46 @@ function resetMonsterState(){
   Object.assign(state, STATE_DEFAULTS);
   state.axes = {};        // an object, so not in STATE_DEFAULTS, where Object.assign would share one
   prevMatState = curMatState = 'calm';
+  axisClock.id = null;
+}
+// RAGE AND CHARGE SIDE BY SIDE, for a monster that can charge. Raven, 2026-09-15: "we can have Enraged and
+// Discharge states at the same time" -- and Khezu's driver has a state for it (render/monster.js
+// ROM_CHARGE_FREEZES_RAGE). Each axis keeps its own clock and the value it left, so a start or end clip runs on
+// the layer that axis drives and nowhere else. Where the charge freezes the rage layer, that layer keeps the rage
+// the charge began with until the discharge's end clip has run, then catches up. The swap follows the Discharge
+// row (and its end clip) alone. A fresh monster or a restored view starts with both axes settled.
+let chargeAxis = false;
+const axisClock = { id: null, rage: { eff: false, t: -1e9, prev: false }, charge: { on: false, t: -1e9, prev: false },
+                    fromRage: false, until: 0 };
+function noteChargeToggle(now){
+  if (axisClock.id !== state.id) return;          // matAxes seeds it settled
+  const c = axisClock.charge;
+  if (!!state.charged === c.on) return;
+  c.prev = c.on; c.on = !!state.charged; c.t = now;
+  if (c.on) axisClock.fromRage = axisClock.rage.eff;
+  else axisClock.until = now + stateHoldSeconds(mounted.main, state.id, 'charged');
+}
+function matAxes(now){
+  if (axisClock.id !== state.id){
+    axisClock.id = state.id;
+    axisClock.rage = { eff: !!state.rage, t: -1e9, prev: !!state.rage };
+    axisClock.charge = { on: !!state.charged, t: -1e9, prev: !!state.charged };
+    axisClock.fromRage = !!state.rage; axisClock.until = 0;
+  }
+  const freeze = chargeFreezesRage(state.id);
+  const c = axisClock.charge, r = axisClock.rage;
+  const discharging = !c.on && now < axisClock.until;
+  const wantRage = (freeze && (c.on || discharging)) ? axisClock.fromRage : !!state.rage;
+  if (wantRage !== r.eff){ r.prev = r.eff; r.eff = wantRage; r.t = now; }
+  // THE CYAN VEINS FOLLOW THE DISCHARGE ROW ALONE. Raven, 2026-09-15: "Ensure the cyan veins are kept while
+  // discharge is toggled on" -- whether or not Enraged came first. (The charge-while-angry path read so far,
+  // 0xd1ed40, sets no swap; what keeps the game's veins cyan there is unread.)
+  const swapped = c.on || discharging;
+  return {
+    enraged: { state: r.eff ? 'enraged' : 'calm', t: r.t, prev: r.prev ? 'enraged' : 'calm' },
+    charged: { state: c.on ? 'charged' : 'calm', t: c.t, prev: c.prev ? 'charged' : 'calm' },
+    swap: swapped ? 'charged' : null,
+  };
 }
 function applyProxy(){
   let n = 0;
@@ -5565,11 +5606,10 @@ document.getElementById('monBounceT').onchange = async e => { state.deflectT = e
 document.getElementById('monTier').onchange = async e => { state.deflectTier = +e.target.value; await applyHeat(); applyGap(); saveState(); };
 document.getElementById('monRage').onchange = e => {
   state.rage = e.target.checked;
-  // ONE STATE AT A TIME, because the ROM has one state to be in: Khezu's Angry and Taiden branches
-  // are two values of a single byte at enemy+0x48, dispatched through a jump table (0xd1e5ec,
-  // 0xd1e64c, 0xd1e8a8). Both boxes ticked used to leave Enraged silently inert -- matState picks
-  // charged -- which reads as a checkbox that does nothing.
-  if (state.rage) state.charged = false;
+  // BOTH MAY BE ON. They used to be one state at a time on the reading that Khezu's Angry and Taiden branches
+  // are two values of one byte at enemy+0x48 -- but that byte has a value for both, 3, reached by charging
+  // while angry (0xd1ed40). Raven, 2026-09-15: "we can have Enraged and Discharge states at the same time".
+  // How the pair looks depends on which came first; see matAxes.
   markStateChange();
   // Rage switches PARTS as well as materials -- the driver applies a group set chosen straight from
   // the rage state (Savage Deviljho 9 calm / 13 enraged, ordinary Deviljho 0 / 9). So the toggle
@@ -5591,7 +5631,6 @@ document.getElementById('monRage').onchange = e => {
 document.getElementById('monRageLevel').onchange = e => {
   state.rageLevel = +e.target.value | 0;
   state.rage = state.rageLevel > 0;
-  if (state.rage) state.charged = false;      // one state at a time, as with the checkbox
   markStateChange();
   // ALWAYS recompute, not only where ROM_RAGE_SET has an entry: the rung owns the effect's parts
   // whether or not the ROM switches anything else on rage, and Bloodbath has no ROM_RAGE_SET row.
@@ -5615,7 +5654,6 @@ document.getElementById('monLevel').onchange = e => {
   const ownsRage = !!(lv && Array.isArray(lv.rage));
   if (ownsRage){
     state.rage = !!lv.rage[state.level];
-    if (state.rage) state.charged = false;
   }
   // a rung that names a material state (levels.mat) is a state change even when rage does not move:
   // Exhausted -> Normal is rage false both sides, and tired_End still has to run
@@ -5657,13 +5695,13 @@ async function resize(){
 }
 document.getElementById('monCharge').onchange = e => {
   state.charged = e.target.checked;
-  if (state.charged) state.rage = false;      // see the note on monRage: one state byte, one value
+  noteChargeToggle(performance.now() / 1000);   // Enraged stays as it is: see the note on monRage and matAxes
   markStateChange();
   // REBUILD THE ROWS, as the two rage controls do. Charge used to swap materials only, which was
   // enough while nothing switched PARTS on it. Raven, 2026-09-11: "Have charged toggle, then have
   // the Shocker parts switch with the toggle" -- Lagiacrus' shocker draws its XfB__m02_thornray
   // meshes only when charged, and a review row with `"state": "charged"` needs rebuilding to see
-  // the flag change. defaultGroupsOn is re-run with state.rage, which charging has just cleared.
+  // the flag change. defaultGroupsOn is re-run with state.rage as it stands -- charging no longer clears it.
   const en = entry();
   if (en){
     state.groups = defaultGroupsOn(en.groups || [], en.em, en.id, state.rage,
@@ -5959,7 +5997,15 @@ renderer.setAnimationLoop(() => {
     const st = matState();
     const mid = (entry() || {}).id;
     stepReviewCycle(mid, t);
-    for (const g of Object.values(mounted)) stepMatAnim(g, t, st, mid, tStateChanged, prevMatState, levelClip());
+    if (chargeAxis){
+      // rage and charge side by side; the swap follows them, re-hung only when it changes
+      const ax = matAxes(t);
+      for (const g of Object.values(mounted))
+        if (g.userData.matSwap && (g.userData.matSwapState || null) !== ax.swap) applyMaterialSwap(g, ax.swap);
+      for (const g of Object.values(mounted)) stepMatAnim(g, t, ax, mid, 0, null, levelClip());
+    } else {
+      for (const g of Object.values(mounted)) stepMatAnim(g, t, st, mid, tStateChanged, prevMatState, levelClip());
+    }
     // Refract samples the scene colour, so the capture has to happen AFTER the animation has set
     // fDistortionFactor / fDistortionBlend for this frame and BEFORE the visible render.
     // through the lens's own camera, so what refracts is the scene as this frame will frame it
@@ -6166,6 +6212,18 @@ window.__view.tentacleAttach = mode => {
 };
 // A combined partner (ROM_PARTNER_BODY), read back: __view.partner() reports; __view.partner(true / false)
 // switches it the way the row does and reports once it is mounted or dropped.
+// Rage and charge as the material step sees them (matAxes), `ahead` seconds from now, and what each swappable
+// mesh is drawing -- for checking the two rows together without frames running.
+window.__view.matAxes = (ahead = 0) => {
+  if (!chargeAxis) return { chargeAxis: false, state: matState() };
+  const ax = matAxes(performance.now() / 1000 + ahead);
+  const draws = [];
+  for (const g of Object.values(mounted)) g.traverse(o => {
+    if ((o.isMesh || o.isSkinnedMesh) && o.userData.matOrig && o.userData.matOrig !== o.material) draws.push(o.userData.matOrig.name + ' -> ' + o.material.name);
+  });
+  return { chargeAxis: true, rage: ax.enraged, charge: ax.charged, swap: ax.swap, fromRage: axisClock.fromRage,
+           dischargeLeft: +Math.max(0, axisClock.until - performance.now() / 1000).toFixed(3), swappedMeshes: [...new Set(draws)] };
+};
 window.__view.partner = async on => {
   const e = entry(), spec = e && partnerBodyOf(e.id);
   if (!spec) return { partner: null };
@@ -6237,7 +6295,11 @@ window.__view.shot = async function(run, nameArg, atArg){
   // otherwise wall time, which is also why scrubbing the transport never scrubbed it.
   if (state.matAnim !== false){
     const tMat = (typeof atArg === 'number') ? atArg : 0;
-    const stMat = matState();
+    // a monster that can charge: both axes as they are now, settled (a shot is not the moment of a change)
+    const ax = chargeAxis ? matAxes(performance.now() / 1000) : null;
+    const stMat = ax ? { enraged: { state: ax.enraged.state, t: -1e9, prev: ax.enraged.state },
+                         charged: { state: ax.charged.state, t: -1e9, prev: ax.charged.state }, swap: ax.swap }
+                     : matState();
     const midMat = (entry() || {}).id;
     stepReviewCycle(midMat, tMat);
     for (const g of Object.values(mounted)) stepMatAnim(g, tMat, stMat, midMat, 0, prevMatState, levelClip());
