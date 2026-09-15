@@ -4997,13 +4997,45 @@ function paintZonePick(){
     scene.remove(zoneShape); zoneShape.userData.dispose(); zoneShape = null;
   }
   if (shown && !zoneShape){
-    const col = pick.kind === 'slot' ? 0 : 1;          // a capsule row's slot, or its part record
-    zoneShape = zoneCapsules(mounted.main, rec.capsules.filter(c => c[col] === pick.index),
-                             { color: cssRgb('--cta') });
+    const picked = zoneShapesFor(rec, pick);
+    zoneShape = zoneCapsules(mounted.main, picked.rows, { color: cssRgb('--cta') });
     zoneShape.userData.key = key;
     zoneShape.userData.root = mounted.main;
+    zoneShape.userData.copies = picked.copies;
     scene.add(zoneShape);
   }
+}
+// A SHAPE LISTED UNDER TWO SLOTS IS LEFT OUT OF BOTH. A few monsters file the same shape -- same kind, same joints,
+// same radius, same points -- under more than one damage slot, and drawing it under both makes the model read as
+// though two zones sit on one spot. Raven, 2026-09-15: "The duplicate zones while ROM accurate may lead to some
+// confusion", "we can hide the copied capsules for now to keep the models easy to understand". The whole library is
+// Congalala's four joint-160 spheres (slots 0 and 3) and Nerscylla's 142->143 capsule (slots 1 and 3); both rows
+// keep their other shapes. Gore Magala's two pairs sit in ONE slot under two part records, so nothing is dropped
+// there: an exact twin inside the picked row is simply drawn once rather than twice.
+// This does not choose a state. A shape goes only for being listed twice, never for the gates the ROM checks when a
+// hit lands -- the group mask, the attack type, the conditional bit, and the first-match order that settles which
+// copy the game takes. Those are decoded in build-notes/hitzone-capsules.md and are the table's to tell.
+// A PART-record pick keeps everything: Gore Magala's part rows 7 and 0 hold nothing but copies.
+function zoneShapesFor(rec, pick){
+  const shapeKey = c => c.slice(2).join(',');
+  const slotsOf = new Map();
+  for (const c of rec.capsules){
+    const k = shapeKey(c);
+    if (!slotsOf.has(k)) slotsOf.set(k, new Set());
+    slotsOf.get(k).add(c[0]);
+  }
+  const col = pick.kind === 'slot' ? 0 : 1;            // a capsule row's slot, or its part record
+  const rows = [], seen = new Set();
+  let copies = 0;
+  for (const c of rec.capsules){
+    if (c[col] !== pick.index) continue;
+    const k = shapeKey(c);
+    if (pick.kind === 'slot' && slotsOf.get(k).size > 1){ copies++; continue; }
+    if (seen.has(k)) continue;
+    seen.add(k);
+    rows.push(c);
+  }
+  return { rows, copies };
 }
 // a CSS colour variable as 0..1 RGB, so the drawn zone is the lit row's colour. A theme writes --cta as rgb(),
 // the stylesheet's own default as hex; both are read.
@@ -6489,6 +6521,7 @@ window.__view.zones = (kind, index) => {
     .map(tr => tr.closest('table').dataset.pane + ': ' + tr.cells[0].textContent);
   if (zoneShape) mounted.main.updateMatrixWorld(true);
   const drawn = zoneShape ? { placed: zoneShape.userData.placed, skipped: zoneShape.userData.skipped,
+                              copiesLeftOut: zoneShape.userData.copies,
                               capsules: zoneShape.userData.readback() } : null;
   return { pick: zonePick, lit, drawn };
 };
