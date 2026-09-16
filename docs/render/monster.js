@@ -13,7 +13,7 @@
 //   parts        the mesh table's draw mask (bit 0) marks the LOD / proxy layer, listed per
 //                model as `hide` [part, verts]; rMonsterPartsManager's groups switch the rest
 import * as THREE from 'three';
-import { loadGlb, getTexture, loader, poseCache, bust } from './assets.js';
+import { loadGlb, getTexture, loader, poseCache, bust, texCache } from './assets.js';
 import { skeletonClone, meshGroupId, gidBonesOf } from './skeleton.js';
 import { createMaterial, setSpecTexture, setEnvTexture, applyRomUv, allMats,
          MAT_FPS, stepMaterialAnim } from './material.js';
@@ -87,8 +87,10 @@ export function releaseMonster(root){
     releaseBiased(m);
     m.dispose();
   }
-  // the per-arm texture copies stepArmSlime makes are this monster's own, unlike the cached originals
+  // the per-arm texture copies stepArmSlime makes are this monster's own, unlike the cached originals,
+  // and so are the copies loadMonster gives a material that moves its own UVs
   for (const tex of root.userData.armSlimeMaps || []) if (tex) tex.dispose();
+  for (const tex of root.userData.ownUvMaps || []) tex.dispose();
   // the refract pass's scene copy is a full-size render target and outlived the monster that
   // needed it -- 10 materials on 6 monsters use it, so it is null on most of the library
   if (!refractMats.length) releaseRefractTarget();
@@ -1367,6 +1369,59 @@ export async function attachedClipFor(file, clipName, modelUrl){
 // rec: a model record of monsters.json (the monster itself, or one of its `parts`); opt.tex is
 // the monster's staged textures by name, the fallback when materials.json has no entry.
 // ctx: { wire }
+// true when a material writes its own PRIMARY UV transform onto its map: a clip track on fUVTransform (the
+// evaluator's case in material.js), or a static cbm.uv that applyRomUv applies -- the same identity test
+// applyRomUv makes. fUVTransform2 / 3 go to the extend uniform instead and do not count.
+function movesOwnUv(rom){
+  if (!rom) return false;
+  for (const c of rom.anim || []) for (const t of c.tracks || []) if (t.target === 'fUVTransform') return true;
+  const uv = rom.cbm && rom.cbm.uv;
+  if (!uv) return false;
+  const f = Array.isArray(uv[0]) ? [].concat.apply([], uv) : uv;
+  return f.length >= 8 && !(f[0] === 1 && f[1] === 0 && f[3] === 0 && f[4] === 0 && f[5] === 1 && f[7] === 0);
+}
+let ownUvOn = true;
+// Switching back ON also puts every cached texture back at the identity transform. With the copies in
+// place nothing writes to a cached object, so identity is the state they are in anyway. With them off,
+// a driver writes its UVs into the cached object itself, and that value would otherwise be inherited by
+// every later mount that binds the file.
+export function setOwnUv(on){
+  if (on && !ownUvOn)
+    for (const t of texCache.values()){ t.offset.set(0, 0); t.repeat.set(1, 1); t.rotation = 0; }
+  ownUvOn = !!on;
+  return ownUvOn;
+}
+if (typeof window !== 'undefined'){
+  // readback: { on, copies, leaks, stale } over the mounted models. `leaks` counts textures a UV-driving
+  // material has moved while a material that does not drive UVs draws them too. `stale` counts textures
+  // drawn only by materials that do not drive UVs yet carrying a transform. 0 and 0 are right. Both need
+  // the material animation to have run (a visible pane). __uvOwn(false) goes back to the shared object
+  // from the NEXT mount: switch to another monster and back, since a first mount after a reload looks
+  // right anyway.
+  window.__uvOwn = (on) => {
+    if (on !== undefined) setOwnUv(on);
+    const out = { on: ownUvOn, copies: 0, leaks: 0, stale: 0 };
+    const mounted = (window.__view && window.__view.mounted) || {};
+    for (const root of Object.values(mounted)){
+      if (!root || !root.userData) continue;
+      out.copies += (root.userData.ownUvMaps || []).length;
+      const users = new Map();
+      root.traverse(o => {
+        if (!(o.isMesh || o.isSkinnedMesh) || !o.material || !o.material.map) return;
+        const a = users.get(o.material.map) || []; a.push(o.material); users.set(o.material.map, a);
+      });
+      const armMaps = new Set(root.userData.armSlimeMaps || []);   // stepArmSlime moves its own copies on purpose
+      for (const [t, ms] of users){
+        if (armMaps.has(t)) continue;
+        const moved = t.offset.x !== 0 || t.offset.y !== 0 || t.repeat.x !== 1 || t.repeat.y !== 1 || t.rotation !== 0;
+        const drives = ms.map(m => movesOwnUv(m.userData && m.userData.rom));
+        if (moved && drives.includes(true) && drives.includes(false)) out.leaks++;
+        if (moved && !drives.includes(true)) out.stale++;
+      }
+    }
+    return out;
+  };
+}
 export async function loadMonster(rec, opt, ctx){
   const gltf = await loadGlb(rec.glb, rec.glb);
   const root = skeletonClone(gltf.scene);
@@ -1468,8 +1523,36 @@ export async function loadMonster(rec, opt, ctx){
     const romCore = mat.userData.romCore === true;
     o.material = mat; allMats.push(mat); monsterMats.push(mat); mats.push(mat);
     if (mat.userData.renderOrder) o.renderOrder = mat.userData.renderOrder;
+    // A MATERIAL THAT MOVES ITS OWN UVs GETS ITS OWN TEXTURE OBJECT. The ROM's fUVTransform is a per-
+    // material constant (CBMaterial), but material.js writes it onto the three.js texture -- the evaluator's
+    // fUVTransform case sets map.offset / repeat, and applyRomUv does the same with a static cbm.uv. And
+    // getTexture hands every material that binds a file ONE cached object. So a material's UV write
+    // moves every other material drawing that texture.
+    //
+    // Raven, 2026-09-16, with two screenshots: "Thunderlord Zinogre at times loads in visually broken",
+    // "Refreshing fixes the issues". Its XfB__m02_light samples the same atlas as the body, hair, eyes
+    // and body1 (tex 2), and its auto-play normal_Loop holds fUVTransform at U +0.33333. The first mount
+    // after a reload happened to work because getTexture has no in-flight dedupe: every material starts
+    // its own load of the file and gets its own object (46 objects measured). Any later mount found the
+    // file cached, 44 materials shared one object, and one animation step put the whole monster at
+    // U +0.333.
+    // Measured library-wide: 18 UV-driving materials on 11 monsters share their albedo file with
+    // another material: Thunderlord, Grimclaw, Akantor, Amatsu, both Glavenus, Nakarkos, Old Fatalis,
+    // Lavasioth, Felyne and Melynx.
+    //
+    // clone() shares the texture's Source, and three.js 0.169 keys its GL texture on the source and the
+    // sampling state, not on offset / repeat -- so a copy costs no second image or upload.
+    // releaseMonster disposes the copies, as it does stepArmSlime's; the cached original is untouched.
+    const ownUv = ownUvOn && movesOwnUv(rom);
+    const own = t => {
+      if (!ownUv || !t) return t;
+      const c = t.clone();
+      (root.userData.ownUvMaps || (root.userData.ownUvMaps = [])).push(c);
+      return c;
+    };
     const albedo = (rom && rom.albedo) || fallback(/_bm$/i);
-    if (albedo) jobs.push(getTexture(albedo).then(t => {
+    if (albedo) jobs.push(getTexture(albedo).then(t0 => {
+      const t = own(t0);
       mat.map = applyRomUv(mat, t); if (mat.userData.emissiveFromMap) mat.emissiveMap = t;
       // the ROM's own albedo, kept so a kind-3 texture switch can be undone. material.js holds the
       // same thing in its private `animBase` WeakMap, but that is not exported and material.js is a
@@ -1679,7 +1762,8 @@ export async function loadMonster(rec, opt, ctx){
       mat.userData.texSwap = [];
       for (const i of swapIdx)
         if (i >= 1 && list[i - 1])
-          jobs.push(getTexture(list[i - 1]).then(t => { mat.userData.texSwap[i - 1] = t; }));
+          // a switched-in map takes this material's UV writes too, so it is private on the same rule
+          jobs.push(getTexture(list[i - 1]).then(t => { mat.userData.texSwap[i - 1] = own(t); }));
     }
   };
   root.traverse(buildMesh);
