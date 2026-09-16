@@ -388,5 +388,18 @@
    "5": "Tail",
    "6": "Pincers"
   }
+ },
+ "em008_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Back (slot 2) and Belly (slot 3) share joints 2 and 140, Back above the body and reaching up to joint 100, Belly below.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Back",
+   "3": "Belly",
+   "4": "Tail",
+   "5": "Wings",
+   "6": "Legs"
+  }
  }
 }
