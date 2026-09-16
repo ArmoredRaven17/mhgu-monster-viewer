@@ -439,6 +439,19 @@
    "1": "Body"
   }
  },
+ "em018_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Back (slot 2) runs along the top of the neck, body and tail, where Neck (slot 1), Belly (slot 3) and Tail (slot 4) hold the lower sides; it also has one sphere on each lower leg (joints 17 and 21, records 27-28), a little in front of Legs' spheres. Deadeye Yian Garuga carries identical capsule rows.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Back",
+   "3": "Belly",
+   "4": "Tail",
+   "5": "Wings",
+   "6": "Legs"
+  }
+ },
  "em034_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Gendrome, Iodrome, and Giadrome are the same as Velocidrome\". Its capsule rows are identical to Velocidrome's (only the damage values differ).",
