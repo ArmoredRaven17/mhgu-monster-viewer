@@ -519,5 +519,19 @@
    "6": "Tail",
    "7": "Tail Tip"
   }
+ },
+ "em057_04": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Thunderlord is the same as Zino\". Same slots on the same joints as Zinogre; the only differing row is the second head capsule (record 1, joint 3), which ends at (0, 92, 66) against Zinogre's (0, 52, 100), pointing further up. It carries the same two never-counted body shapes under Head (records 24-25, flag 0x0100; see Zinogre's note).",
+  "slots": {
+   "0": "Head",
+   "1": "Chest",
+   "2": "Back/Belly",
+   "3": "Claws",
+   "4": "Legs",
+   "5": "Limbs",
+   "6": "Tail",
+   "7": "Tail Tip"
+  }
  }
 }
