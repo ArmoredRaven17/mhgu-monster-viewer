@@ -68,19 +68,34 @@ export function extendMapMisses(){ return extMisses.slice(); }
 // likely need to be moved to a layer or alpha'd out." Its map's alpha averages 65/255 and 52% of it is
 // at or below 50, so drawn at the constant's 1.0 every strip covers its whole mesh.
 //
-// Off by default -- except on ALPHA_ROM_DEFAULT_REFS (Nakarkos), below -- because it moves 39 non-opaque
-// MapConstant materials on 30 models at once: Brachydios' slime, Boltreaver's taiden layers, Zinogre's
-// lights among them, looks already reviewed. Savage
-// Deviljho (em043_05) is left out even when it is on: it is another agent's test case (Raven,
-// 2026-09-13, "Ignore anything Savage related").
-//   __romMapConstantAlpha(true) / (false) / () -- readback: { on, materials, excluded }
-const MAPCONST_EXCLUDE = new Set(['em/043_05']);
+// Off by default -- except on ALPHA_ROM_DEFAULT_REFS (Nakarkos, Savage Deviljho), below -- because it
+// moves 39 non-opaque MapConstant materials on 30 models at once: Brachydios' slime, Boltreaver's taiden
+// layers, Zinogre's lights among them, looks already reviewed.
+//   __romMapConstantAlpha(true) / (false) / () -- readback: { on, materials, usingTextureAlpha }
+//
+// SAVAGE DEVILJHO USED TO BE LEFT OUT of this switch altogether, on or off, as another agent's test case
+// (Raven, 2026-09-13, "Ignore anything Savage related"). Raven lifted that for this item, 2026-09-16:
+// "The skip was put into place to avoid breaking existing effects while looking over other monsters. You
+// can look over it since I wanted to fix it." The fix is its neck glow -- see ALPHA_ROM_DEFAULT_REFS.
+//
 // MONSTERS WHERE THE ROM'S ALPHA IS ALREADY THE DEFAULT -- BOTH treatments: this switch, and (through
 // ALPHA_TEST_DEFAULT_REFS below) the alpha test in rom/material.js. Raven, 2026-09-13, after trying both
 // on Nakarkos: "The two tests look better", then "we can apply the two alpha treatments for Nakarkos".
 // Keyed by materials.json entry, so the two tentacle models come with the body. Everything else keeps
 // its old rule until reviewed.
-export const ALPHA_ROM_DEFAULT_REFS = new Set(['em/084_00', 'em/084_00/left', 'em/084_00/right']);
+//
+// Savage Deviljho, 2026-09-16. Raven: "Savage Deviljho has an effect that currently renders as a red
+// blob, but it should be sharper like Zinorge's charge state." That is its neck glow, part 12,
+// XfBA_IW_1__m00: MapConstant, BSBlendAlpha, alpha test GREATER 50 (fb 0x91903200), and a 128x128 flame
+// map whose alpha is a soft band (mean 105/255, 39% of texels at or below 50). On the old rule each
+// flame card drew as one flat sheet at the constant's alpha, which is the blob. With the map's alpha it
+// is flame streaks; with the test on top, only the tongues' cores survive. Measured headless, material
+// clock frozen, one change at a time: the glow is the only visible change. body_k (the rage overlay,
+// map alpha >= 225) and body_a (GREATER 0) moved 0 pixels. The eye moved about 100 pixels, and that was
+// the canvas leak the opaque branch below now closes, not the ROM. The tail model has no MapConstant
+// material and no live test; it is listed so it follows the body, as Nakarkos' tentacles do.
+export const ALPHA_ROM_DEFAULT_REFS = new Set(['em/084_00', 'em/084_00/left', 'em/084_00/right',
+                                               'em/043_05', 'em/043_05/tail']);
 // MONSTERS THAT TAKE THE ROM ALPHA TEST BY DEFAULT: every entry above, plus those that take the test
 // alone, with this switch left on its old rule. Nibelsnarf, 2026-09-16. Its gill cards
 // (XfBAN__E1__m02_era, opaque, GREATER 128) were cut only at alpha 0 by the old rule. That drew 39% /
@@ -92,26 +107,29 @@ const mapConstMats = new Set();              // { u: uniform holder, ref }
 let mapConstAlpha = null;                    // null: per-monster defaults; true / false: every material
 export function mapConstantAlphaOn(){ return mapConstAlpha; }
 function mapConstFor(ref){
-  if (MAPCONST_EXCLUDE.has(ref)) return false;
   return mapConstAlpha === null ? ALPHA_ROM_DEFAULT_REFS.has(ref) : mapConstAlpha;
 }
 export function enableMapConstantAlpha(on){
   mapConstAlpha = (on === 'default' || on === null) ? null : !!on;
-  let n = 0, lit = 0, excluded = 0;
+  let n = 0, lit = 0;
   for (const e of mapConstMats){
     e.u.value = mapConstFor(e.ref) ? 1 : 0;
-    if (MAPCONST_EXCLUDE.has(e.ref)) excluded++; else { n++; if (e.u.value) lit++; }
+    n++; if (e.u.value) lit++;
   }
-  return { on: mapConstAlpha === null ? 'default' : mapConstAlpha, materials: n, usingTextureAlpha: lit, excluded };
+  return { on: mapConstAlpha === null ? 'default' : mapConstAlpha, materials: n, usingTextureAlpha: lit };
 }
+// Opaque MapConstant materials whose coverage restore (below) found no anchor. Empty is the expected state.
+const solidMisses = [];
+export function mapConstSolidMisses(){ return solidMisses.slice(); }
 if (typeof window !== 'undefined'){
   //   __romMapConstantAlpha()           readback
-  //   __romMapConstantAlpha(true/false) every MapConstant material (Savage excepted)
-  //   __romMapConstantAlpha('default')  back to per-monster defaults (Nakarkos on)
+  //   __romMapConstantAlpha(true/false) every MapConstant material
+  //   __romMapConstantAlpha('default')  back to per-monster defaults (Nakarkos and Savage Deviljho on)
   window.__romMapConstantAlpha = on => (on === undefined
     ? { on: mapConstAlpha === null ? 'default' : mapConstAlpha,
-        materials: [...mapConstMats].filter(e => !MAPCONST_EXCLUDE.has(e.ref)).length,
-        usingTextureAlpha: [...mapConstMats].filter(e => e.u.value).length }
+        materials: mapConstMats.size,
+        usingTextureAlpha: [...mapConstMats].filter(e => e.u.value).length,
+        solidAnchorMisses: solidMisses.slice() }
     : enableMapConstantAlpha(on));
 }
 
@@ -158,12 +176,38 @@ export function injectFeatures(mat, rom, lit, ref){
       const u = { value: mapConstFor(ref) ? 1 : 0 };
       mapConstMats.add({ u, ref });
       mat.addEventListener('dispose', () => { for (const e of mapConstMats) if (e.u === u) mapConstMats.delete(e); });
+      // AN OPAQUE ONE KEEPS ITS COVERAGE. With the switch on, the map's alpha reaches diffuseColor.a,
+      // and on a BSSolid material nothing blends with it: it can only feed an alpha test (3 of the 62
+      // opaque MapConstant materials carry one). But rom/state.js draws BSSolid with NoBlending, so
+      // three.js does not define OPAQUE, and the alpha went out to the canvas. The canvas is
+      // alpha:true (stage.js), so the page behind it showed through the eye. Measured on Savage
+      // Deviljho's XfB__m00_eye, 2026-09-16, headless: the sclera came out brighter by about 7 levels
+      // over about 100 pixels. Its map is the body albedo, alpha mean 52/255. The transparent flag
+      // alone moved 0 pixels. Nakarkos' XfB_0_1_eyes (map alpha mean 65) has had the same leak since
+      // its default went on. Its eye drawn alone, read back from the framebuffer: all 109,710 pixels
+      // below 255, mean 91, before this. After it, only the 1,241 antialiased edge pixels, with the
+      // same RGB. Composited over the page, that took a lift of about 7 levels (max 33) off the eyes.
+      //
+      // So after the test, a surviving fragment's alpha goes back to the material's opacity. That is
+      // the constant's alpha, 1.0 on all 62. This is installCutoutSolid's reasoning in rom/material.js,
+      // and it has the same standing: NOT A ROM FINDING. The game's framebuffer is never composited
+      // with anything. It lands after the test because installRomAlphaTest is chained after this and
+      // inserts its discard directly after the same include. With the switch off it is a no-op:
+      // alpha is already opacity.
+      const solid = !!(rom.state && rom.state.blend === 'opaque');
       tagProgram(mat, 'alphaMapConst');
+      if (solid) tagProgram(mat, 'mapConstSolid');
       chain(mat, sh => {
         sh.uniforms.uMapConstAlpha = u;
-        sh.fragmentShader = 'uniform float uMapConstAlpha;\n' + sh.fragmentShader.replace(
+        let f = 'uniform float uMapConstAlpha;\n' + sh.fragmentShader.replace(
           '#include <map_fragment>',
           '#include <map_fragment>\n\tdiffuseColor.a = mix( opacity, diffuseColor.a, uMapConstAlpha );');
+        if (solid){
+          const A = '#include <alphatest_fragment>';
+          if (f.indexOf(A) >= 0) f = f.replace(A, A + '\n\tdiffuseColor.a = opacity;');
+          else solidMisses.push(mat.name || '?');
+        }
+        sh.fragmentShader = f;
       });
     }
     // FAlbedoMapConstant fixes it to the CONSTANT's alpha. That is the mechanism behind the three
@@ -177,11 +221,12 @@ export function injectFeatures(mat, rom, lit, ref){
     // MapConstant materials (the eyes) were sitting in three.js's transparent queue, re-sorted every
     // frame against the effect layers. With the texture's alpha now reaching them (Nakarkos) that
     // sort decided what showed through: Raven, 2026-09-13, "Eyes on mainbody oscillate when zoomed
-    // out". Savage Deviljho is left on the old path (another agent's test case).
+    // out". Savage Deviljho was left on the old path until 2026-09-16 (see MapConstant above). The
+    // transparent flag alone moved its eye 0 pixels when it joined.
     const blends = !(rom.state && rom.state.blend === 'opaque');
     if (albedo === 'MapConstant' && gl && gl.constant && gl.constant.length > 3){
       mat.opacity = gl.constant[3];
-      if (blends || MAPCONST_EXCLUDE.has(ref)) mat.transparent = true;
+      if (blends) mat.transparent = true;
     }
   }
 
