@@ -964,5 +964,15 @@
    "3": "Legs",
    "4": "Abdomen"
   }
+ },
+ "em011_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Horn/Head (slot 0) draws three shapes; its two radius-25 capsules between the legs (records 14-15, joints 4-8 and 12-16, flag 0x0100) are never counted and not drawn. Torso (slot 1) is one shape on joint 0; Rear (slot 2) is the hind legs and tail.",
+  "slots": {
+   "0": "Horn/Head",
+   "1": "Torso",
+   "2": "Rear",
+   "3": "Front Legs"
+  }
  }
 }
