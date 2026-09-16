@@ -708,5 +708,18 @@
    "5": "Legs",
    "6": "Tail"
   }
+ },
+ "em036_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render (the list came unlabelled, straight after Lavasioth was put up next). Back (slot 2) is the top of the body and Body (slot 3) the underside. Fins (slot 5) lists four capsules; the two thinner ones (records 0 and 2, flag 0x0300) are never counted by the hit test, so the highlight draws two.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Back",
+   "3": "Body",
+   "4": "Tail",
+   "5": "Fins",
+   "6": "Legs"
+  }
  }
 }
