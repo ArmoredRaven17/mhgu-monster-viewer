@@ -389,6 +389,20 @@
    "6": "Pincers"
   }
  },
+ "em080_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Back (slot 2) is two shapes high on the back (joints 0 and 140); Tail Blade (slot 7) six shapes on the tail's end (joints 143-145). Raven asked for a review of whether all of Glavenus's slots are taken into consideration.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Back",
+   "3": "Body",
+   "4": "Arms",
+   "5": "Legs",
+   "6": "Tail",
+   "7": "Tail Blade"
+  }
+ },
  "em008_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Back (slot 2) and Belly (slot 3) share joints 2 and 140, Back above the body and reaching up to joint 100, Belly below.",
