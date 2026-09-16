@@ -761,5 +761,19 @@
    "6": "Tail",
    "7": "Back"
   }
+ },
+ "em056_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render (the list came unlabelled, straight after Nibelsnarf was put up next). Nose (slot 4, joint 200), Gills (slot 6, joints 201-202) and Uvula (slot 7, joint 135) are made only of group-switched shapes (masks 0x4000, 0x2000, 0x8000; switch 0xee8fc8, see build-notes/hitzone-capsules.md). Front Legs (slot 3) also holds one capsule on each back leg (records 4-5, joints 17 and 21, parts 4 and 5), behind the front legs; asked whether the name should cover them.",
+  "slots": {
+   "0": "Head",
+   "1": "Body",
+   "2": "Back",
+   "3": "Front Legs",
+   "4": "Nose",
+   "5": "Belly",
+   "6": "Gills",
+   "7": "Uvula"
+  }
  }
 }
