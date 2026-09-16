@@ -4812,7 +4812,11 @@ function zoneBreakParts(e){
     // A key is any Parts-row state the table reads -- a break, or Barroth's mud -- and `sections` says which
     // heading it sits under; a break needs no entry.
     const section = (sw.sections && sw.sections[key]) || 'Broken Parts';
-    out.push({ key, rows, groups: info.groups, section, name: rows.map(nameOf).join(' & '), broken: info.broken });
+    // `labels` names a key by the Parts option it stands for, where the row alone would not say which (Ceanataur's
+    // Shell row holds both of its keys).
+    const rowNames = rows.map(nameOf).join(' & ');
+    const name = (sw.labels && sw.labels[key]) || rowNames;
+    out.push({ key, rows, groups: info.groups, section, name, rowNames, broken: info.broken });
   }
   return out;
 }
@@ -4830,7 +4834,7 @@ function paintZoneBreaks(e, zt){
     for (const p of parts.filter(x => x.section === sec)){
       const lab = document.createElement('label');
       lab.className = 'chk switch';
-      lab.title = 'The same choice as the ' + p.name + ' row in the Parts panel';
+      lab.title = 'The same choice as the ' + p.rowNames + (p.rows.length > 1 ? ' rows' : ' row') + ' in the Parts panel';
       const inp = document.createElement('input');
       inp.type = 'checkbox';
       inp.checked = p.broken;

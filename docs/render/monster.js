@@ -3798,6 +3798,42 @@ export const ROM_MEAT_SWITCH = {
       { slot: 3, row: 3, broken: 'iceFrontRight' },
     ],
   },
+  // SHOGUN CEANATAUR, uEm020_00: 0xdc4358. The SHELL is a u32 at [enemy+0xcadc], set by 0xdc5cec, which also copies
+  // it to +0xcb00 -- unless the shell is lost some other way, when +0xcb00 keeps the last one. The parts driver
+  // 0xdc5228 draws it as the Parts panel's Shell row (run value by value): 0 g6 nothing (Broken), 1 g4 Shell,
+  // 2 g5 Unknown Skull, 3 g3 Gravios Skull. The table: shell 3 -> slot 2; shell 0 -> slot 6; shell 4, or shell 0
+  // with +0xcb00 at 4, -> slots 2, 3, 7 -- a shell only Rustrazor wears. Shogun's claws unfold on ENRAGE
+  // (0x81670 in the same driver), which the table does not read.
+  em020_00: {
+    broken: { gravios: [3], noShell: [6] },
+    sections: { gravios: 'Shell', noShell: 'Shell' },
+    labels: { gravios: 'Gravios Skull', noShell: 'Broken' },
+    rules: [
+      { slot: 2, row: 2, broken: 'gravios' },
+      { slot: 6, row: 6, broken: 'noShell' },
+    ],
+  },
+  // RUSTRAZOR CEANATAUR, the same routine at variant 4. Its driver draws shell 4 as g12 Glavenus Skull and 5 as g11
+  // Gravios Skull (0 g13 nothing), and UNFOLDS both claws (g3 / g4, Rusted (Unfolded)) while the shell is 4 or
+  // +0xcb00 is 4 -- which, since a new shell resets +0xcb00, is the Glavenus Skull or its loss. So slots 2, 3 and 7
+  // follow the Glavenus Skull, or no shell with the claws still unfolded; slot 6 no shell; and slot 4 +0xcb14, the
+  // SHARPENED claws (g5 / g6; the review's Sharpened Broken g9 / g10 draw the same sharpened mesh on a broken claw,
+  // though this driver shows a broken claw rusted -- 0xdc52cc).
+  em020_04: {
+    broken: { glavenus: [12], noShell: [13], unfolded: [3, 4], sharpened: [5, 6, 9, 10] },
+    sections: { glavenus: 'Shell', noShell: 'Shell', unfolded: 'Claws', sharpened: 'Claws' },
+    labels: { glavenus: 'Glavenus Skull', noShell: 'Broken', unfolded: 'Unfolded', sharpened: 'Sharpened' },
+    rules: [
+      { slot: 2, row: 2, broken: 'glavenus' },
+      { slot: 3, row: 3, broken: 'glavenus' },
+      { slot: 7, row: 7, broken: 'glavenus' },
+      { slot: 2, row: 2, broken: ['noShell', 'unfolded'] },
+      { slot: 3, row: 3, broken: ['noShell', 'unfolded'] },
+      { slot: 7, row: 7, broken: ['noShell', 'unfolded'] },
+      { slot: 6, row: 6, broken: 'noShell' },
+      { slot: 4, row: 4, broken: 'sharpened' },
+    ],
+  },
   // ---- generated from the ROM sweep (build/hitzone-states) ----
   // Basarios (em004_00), uEm004_00: 0xd2329c. Coverage 0xd2329c 1/7.
   em004_00: {
@@ -4139,8 +4175,8 @@ export function meatTableFor(monId, tables, st){
     if (r.rung && r.rung.indexOf((st && st.rung) | 0) < 0) continue;
     if (r.rage !== undefined && !!r.rage !== !!(st && st.rage)) continue;
     if (r.mode && r.mode.indexOf((st && st.mode) | 0) < 0) continue;
-    if (r.broken && !broken(r.broken)) continue;
-    if (r.intact && broken(r.intact)) continue;
+    if (r.broken && ![].concat(r.broken).every(broken)) continue;
+    if (r.intact && [].concat(r.intact).some(broken)) continue;
     rows[r.slot] = tables[1][r.row]; from[r.slot] = [1, r.row]; done.add(r.slot);
   }
   return { rows, from };
@@ -4162,7 +4198,7 @@ export function meatBreakKeys(monId){
   const sw = meatSwitchOf(monId);
   if (!sw || !sw.broken) return [];
   const used = new Set();
-  for (const r of sw.rules){ if (r.broken) used.add(r.broken); if (r.intact) used.add(r.intact); }
+  for (const r of sw.rules){ [].concat(r.broken || [], r.intact || []).forEach(k => used.add(k)); }
   return Object.keys(sw.broken).filter(k => used.has(k));
 }
 // value: slot -> number, scaled by max through the ramp. colorBySlot: slot -> [r,g,b], used
