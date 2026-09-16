@@ -574,5 +574,16 @@
    "0": "Head",
    "1": "Body"
   }
+ },
+ "em060_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Torso (slot 1) is the front of the body (joints 2 and 100); Back (slot 3) is one capsule along the top (joints 1-140); Rear (slot 4) is the haunches (joints 1, 17 and 21).",
+  "slots": {
+   "0": "Head",
+   "1": "Torso",
+   "2": "Arms",
+   "3": "Back",
+   "4": "Rear"
+  }
  }
 }
