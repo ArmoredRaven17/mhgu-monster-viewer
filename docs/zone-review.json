@@ -1122,5 +1122,19 @@
    "5": "Blowhole",
    "6": "Weakspot"
   }
+ },
+ "em086_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Wing Arms (slot 3) is four shapes on joints 61, 62, 71 and 72; Wings (slot 6) six shapes on the wing blades reaching far out (joints 65-77 and 165-177). Body (slot 2) draws four shapes; its radius-160 capsule on joints 2-1 (record 38, flag 0x0100) is never counted and not drawn. Tail (slot 7) has a switched end shape (mask 0x0001).",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Body",
+   "3": "Wing Arms",
+   "4": "Front Legs",
+   "5": "Rear Legs",
+   "6": "Wings",
+   "7": "Tail"
+  }
  }
 }
