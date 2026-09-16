@@ -629,5 +629,17 @@
    "3": "Back",
    "4": "Legs"
   }
+ },
+ "em065_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render.",
+  "slots": {
+   "0": "Head",
+   "1": "Body",
+   "2": "Arms",
+   "3": "Claws",
+   "4": "Legs",
+   "5": "Tail"
+  }
  }
 }
