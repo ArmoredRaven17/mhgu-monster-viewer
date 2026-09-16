@@ -3950,6 +3950,27 @@ export const ROM_MEAT_SWITCH = {
       { slot: 7, row: 7, mode: [1] },
     ],
   },
+  // AMATSU, uEm058_00: 0xf09c18 puts slots 0-5 on their own table-1 rows while [enemy+0x15fb] is 1 (a latch at
+  // +0xcac0 makes it act once per change). The parts driver 0xf09d0c reads the same byte to draw the HORN GLOW --
+  // g15 / g16 / g17 (the head with m05_horn_add, parts 25/27/28) over g1 / g8 / g9 -- while the eyes' glow there
+  // follows the real enrage predicate 0x81670. The byte is set once, by the action handler for action (10, 0x8e)
+  // (0xf09190, a scripted action whose first clip reads as L3 Motion[18]), and nothing clears it. Raven,
+  // 2026-09-16: "Amatsu next, check if it's linked to its horn glow" -- it is the same byte. part-review draws the
+  // glow on the Head row's ENRAGED half, which folds it into the plain options, so the key is `exact`: it reads the
+  // group actually drawn, and the table follows the glow however it is put on screen.
+  em058_00: {
+    broken: { hornGlow: [15, 16, 17] },
+    exact: ['hornGlow'],
+    labels: { hornGlow: 'Horn Glow' },
+    rules: [
+      { slot: 0, row: 0, broken: 'hornGlow' },
+      { slot: 1, row: 1, broken: 'hornGlow' },
+      { slot: 2, row: 2, broken: 'hornGlow' },
+      { slot: 3, row: 3, broken: 'hornGlow' },
+      { slot: 4, row: 4, broken: 'hornGlow' },
+      { slot: 5, row: 5, broken: 'hornGlow' },
+    ],
+  },
   // ---- generated from the ROM sweep (build/hitzone-states) ----
   // Basarios (em004_00), uEm004_00: 0xd2329c. Coverage 0xd2329c 1/7.
   em004_00: {

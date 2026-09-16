@@ -4741,7 +4741,13 @@ function zoneTable(e, rec){
     const t = meatTableFor(e.id, rec.tables, { rung: state.level | 0, rage: !!state.rage, groups: state.groups,
                                               mode: st.axis === 'mode' ? i : 0,
                                               broken: k => breakRowInfo(e, k).broken });
-    if (t) return { rows: t.rows, from: t.from, names: st.names, axis: st.axis, index: i, label: st.names[i] || '' };
+    if (t){
+      // with no states to list, an `exact` key that is on names the table (Amatsu's Horn Glow)
+      const sw = meatSwitchOf(e.id);
+      const lit = !st.names.length && (sw.exact || []).find(k => sw.labels && sw.labels[k] && breakRowInfo(e, k).broken);
+      return { rows: t.rows, from: t.from, names: st.names, axis: st.axis, index: i,
+               label: st.names[i] || (lit ? sw.labels[lit] : '') };
+    }
   }
   const ti = Math.min(rec.tables.length - 1, Math.max(0, state.heatTable | 0));
   return { rows: rec.tables[ti], from: null, names: rec.tables.map((_, i) => 'Table ' + i), axis: null, index: ti,
@@ -4760,6 +4766,9 @@ function breakRowInfo(e, key){
   const all = (e && e.groups) || [];
   const on = k => !!(state.groups && state.groups[k]);
   const rvRows = reviewRows(e.id);
+  // AN `exact` KEY READS THE GROUP DRAWN, not the option: Amatsu's horn glow is a state variant the Head row folds into
+  // its plain options, so "an option holding it is applied" would always be true. It has no switch of its own.
+  if ((sw && sw.exact || []).indexOf(key) >= 0) return { key, groups: gs, rows: [], exact: true, broken: gs.some(on) };
   const cs = clusterGroups(all).filter(x => gs.some(g => x.members.indexOf(g) >= 0));
   if (!cs.length) return { key, groups: gs, rows: [], broken: gs.some(on) };
   // THE ROW ON SCREEN MAY BE A MERGED ONE. part-review joins clusters with '+' and buildGroups builds one
@@ -4802,6 +4811,7 @@ function zoneBreakParts(e){
   for (const key of Object.keys(sw.broken)){
     if (!tested.has(key)) continue;
     const info = breakRowInfo(e, key);
+    if (info.exact) continue;
     const rows = info.rows.filter(r => zoneBreakField(r.row));
     if (!rows.length){ console.warn('hit zones: ' + e.id + ' break "' + key + '" has no dropdown in the Parts panel'); continue; }
     const nameOf = r => {
