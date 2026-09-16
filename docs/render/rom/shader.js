@@ -101,8 +101,17 @@ export const ALPHA_ROM_DEFAULT_REFS = new Set(['em/084_00', 'em/084_00/left', 'e
 // (XfBAN__E1__m02_era, opaque, GREATER 128) were cut only at alpha 0 by the old rule. That drew 39% /
 // 35% of the two cards solid where the game discards them. Raven tried __romAlphaTest(true) and
 // said: "__romAlphaTest(true) make Nibelsnarf's default". The test also reaches its eye material
-// (parts 0 / 4 / 100, GREATER 10), as it did in what he tried.
-export const ALPHA_TEST_DEFAULT_REFS = new Set([...ALPHA_ROM_DEFAULT_REFS, 'em/056_00']);
+// (parts 0 / 4 / 100, GREATER 10), as it did in what Raven tried.
+//
+// Astalos, 2026-09-16. Raven: "__romAlphaTest(true) as the default for Astalos". Its charged
+// membrane, XfBAN__E1_wing_taiden (parts 42-44), is opaque + FTransparencyAlpha with no test in its
+// word (fb 0x95840000). The old rule still cut it at alpha 0, which is every vein, where the ROM
+// draws them. The test also brings the ROM's own cut to wingbone_taiden (GREATER 100, drawn at Fully
+// Charged) and tikuden (GREATER 150, Charging). Measured headless at Fully Charged: 28,406 px moved in
+// a top view and 50,264 close up, slightly greener. The tail model has no tested or cut material; it
+// is listed so it follows the body. Boltreaver (em/081_04) is not listed: its membrane keeps the old cut.
+export const ALPHA_TEST_DEFAULT_REFS = new Set([...ALPHA_ROM_DEFAULT_REFS, 'em/056_00',
+                                                'em/081_00', 'em/081_00/tail']);
 const mapConstMats = new Set();              // { u: uniform holder, ref }
 let mapConstAlpha = null;                    // null: per-monster defaults; true / false: every material
 export function mapConstantAlphaOn(){ return mapConstAlpha; }
