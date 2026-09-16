@@ -898,5 +898,19 @@
    "4": "Claws",
    "5": "Arms"
   }
+ },
+ "em019_04": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Same Head, Body, Skull and Arms as Daimyo Hermitaur; legs and claws go by side, the Left ones on the higher-x side as on Gravios (Left Legs slot 3, Left Claw slot 6 on joint 62, sitting a little wider and higher than the Right Claw, slot 4 on joint 72). Raven flagged Arms (slot 5) for review, as on Daimyo: \"Same issue as normal DH\".",
+  "slots": {
+   "0": "Head",
+   "1": "Body",
+   "2": "Skull",
+   "3": "Left Legs",
+   "4": "Right Claw",
+   "5": "Arms",
+   "6": "Left Claw",
+   "7": "Right Legs"
+  }
  }
 }
