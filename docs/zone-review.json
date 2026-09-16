@@ -974,5 +974,19 @@
    "2": "Rear",
    "3": "Front Legs"
   }
+ },
+ "em012_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Uvula (slot 2) is one sphere on joint 4 under the front of the head (record 0, mask 0x2000). Back Spines/Tail (slot 4) is twenty shapes over the back, body and tail, three of them switched (masks 0x8000, 0x4000). Head (slot 0) has a switched capsule on joint 3 (mask 0x1000); its radius-470 sphere on joint 140 (record 33, flag 0x0100) is never counted and not drawn.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Uvula",
+   "3": "Back",
+   "4": "Back Spines/Tail",
+   "5": "Body",
+   "6": "Feet",
+   "7": "Legs"
+  }
  }
 }
