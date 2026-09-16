@@ -1263,7 +1263,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          enableEffectMounts, effectMountsEnabled, effectMountsFor, effectMountsLive,
          setEffectRage, effectAutoOnRage, effectRuntimeInstance,
          clipEffectsFor, clipEffectMonsters, setClipEffectMonsters,
-         SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS, meatSwitchOf, meatTableFor, meatAxisOf, meatBreakKeys, meatModeForMotion,
+         SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS, meatSwitchOf, meatTableFor, meatAxisOf, meatBreakKeys, meatModeForMotion, meatFlagKeys,
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts, ROM_SPAWN_CLIP,
          ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels, levelClipFor, setClipFor,
@@ -2675,6 +2675,8 @@ const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: fals
                 anchor: true, groundLock: false, normalFlip: false, normalScale: 1,
                 // both OFF by default: see applyUndef and applyExtend
                 undef: false, extend: false, gap: false, proxy: false, ...STATE_DEFAULTS, axes: {}, rawParts: false, heat: '', heatTable: 0, zoneMode: 0, deflectT: 'f25', deflectTier: 2,
+                // the Hit Zones panel's held switches that are on, per monster id (zoneFlagOn)
+                zoneFlags: {},
                 zoneTab: 'raw',
                 zoneShow: true, zonePos: null,
                 // the additive effect meshes as a class; the ROM's part table already keeps
@@ -4740,13 +4742,20 @@ function zoneTable(e, rec){
     const i = st.names.length ? Math.max(0, Math.min(st.names.length - 1, zoneStateIndex(st.axis))) : 0;
     const t = meatTableFor(e.id, rec.tables, { rung: state.level | 0, rage: !!state.rage, groups: state.groups,
                                               mode: st.axis === 'mode' ? i : 0,
-                                              broken: k => breakRowInfo(e, k).broken });
+                                              broken: k => breakRowInfo(e, k).broken,
+                                              flag: k => zoneFlagOn(e, k) });
     if (t){
-      // with no states to list, an `exact` key that is on names the table (Amatsu's Horn Glow)
+      // with no states to list, an `exact` key that is on names the table (Amatsu's Horn Glow), and so do the held
+      // switches that are on, under their section ("Red Slime: Head, Tail")
       const sw = meatSwitchOf(e.id);
       const lit = !st.names.length && (sw.exact || []).find(k => sw.labels && sw.labels[k] && breakRowInfo(e, k).broken);
+      const held = st.names.length ? [] : meatFlagKeys(e.id).filter(k => zoneFlagOn(e, k));
+      const secOf = k => (sw.sections && sw.sections[k]) || '';
+      const heldLabel = [...new Set(held.map(secOf))]
+        .map(s => (s ? s + ': ' : '') + held.filter(k => secOf(k) === s).map(k => (sw.labels && sw.labels[k]) || k).join(', '))
+        .join('; ');
       return { rows: t.rows, from: t.from, names: st.names, axis: st.axis, index: i,
-               label: st.names[i] || (lit ? sw.labels[lit] : '') };
+               label: st.names[i] || (lit ? sw.labels[lit] : heldLabel) };
     }
   }
   const ti = Math.min(rec.tables.length - 1, Math.max(0, state.heatTable | 0));
@@ -4814,12 +4823,25 @@ function zoneBreakField(row){
   const f = [...document.querySelectorAll('#monGroups .field')].find(x => x.dataset.row === row);
   return f && f.querySelector('select') ? f : null;
 }
+// A HELD SWITCH: a state the table reads that no Parts row draws (Raging Brachydios' red slime, `flags` in
+// ROM_MEAT_SWITCH), so the Hit Zones panel keeps it itself, per monster, in state.zoneFlags.
+function zoneFlagOn(e, key){
+  return !!(e && state.zoneFlags && (state.zoneFlags[e.id] || []).indexOf(key) >= 0);
+}
+async function setZoneFlag(key, on){
+  const e = entry();
+  if (!e) return;
+  const cur = new Set((state.zoneFlags && state.zoneFlags[e.id]) || []);
+  if (on) cur.add(key); else cur.delete(key);
+  state.zoneFlags = Object.assign({}, state.zoneFlags, { [e.id]: [...cur] });
+  await applyHeat(); applyGap(); saveState();
+}
 function zoneBreakParts(e){
   const sw = meatSwitchOf(e && e.id);
-  if (!sw || !sw.broken) return [];
+  if (!sw) return [];
   const tested = new Set(meatBreakKeys(e.id));
   const out = [];
-  for (const key of Object.keys(sw.broken)){
+  for (const key of Object.keys(sw.broken || {})){
     if (!tested.has(key)) continue;
     const info = breakRowInfo(e, key);
     if (info.exact) continue;
@@ -4839,6 +4861,11 @@ function zoneBreakParts(e){
     const name = (sw.labels && sw.labels[key]) || rowNames;
     out.push({ key, rows, groups: info.groups, section, name, rowNames, broken: info.broken });
   }
+  for (const key of meatFlagKeys(e.id)){
+    const name = (sw.labels && sw.labels[key]) || key;
+    out.push({ key, rows: [], groups: [], flag: true, section: (sw.sections && sw.sections[key]) || 'States', name,
+               rowNames: name, tip: sw.tips && sw.tips[key], broken: zoneFlagOn(e, key) });
+  }
   return out;
 }
 function paintZoneBreaks(e, zt){
@@ -4855,7 +4882,8 @@ function paintZoneBreaks(e, zt){
     for (const p of parts.filter(x => x.section === sec)){
       const lab = document.createElement('label');
       lab.className = 'chk switch';
-      lab.title = 'The same choice as the ' + p.rowNames + (p.rows.length > 1 ? ' rows' : ' row') + ' in the Parts panel';
+      lab.title = p.flag ? (p.tip ? p.tip + ' ' : '') + 'Only the table follows this switch; the model does not show it.'
+                         : 'The same choice as the ' + p.rowNames + (p.rows.length > 1 ? ' rows' : ' row') + ' in the Parts panel';
       const inp = document.createElement('input');
       inp.type = 'checkbox';
       inp.checked = p.broken;
@@ -4871,6 +4899,7 @@ function paintZoneBreaks(e, zt){
 // Broken is the option HOLDING one of the driver's broken groups (breakRowInfo, which folds the state's
 // variants together); Intact the first that holds none. A break spanning rows sets every one of them.
 function setPartBroken(p, on){
+  if (p.flag) return setZoneFlag(p.key, on);
   for (const r of p.rows){
     const f = zoneBreakField(r.row);
     const sel = f && f.querySelector('select');
@@ -6365,6 +6394,9 @@ function applySet(o){
   if (typeof o.heat === 'string') state.heat = o.heat;
   if (typeof o.heatTable === 'number') state.heatTable = Math.max(0, o.heatTable | 0);
   if (typeof o.zoneMode === 'number') state.zoneMode = Math.max(0, o.zoneMode | 0);
+  if (o.zoneFlags && typeof o.zoneFlags === 'object' && !Array.isArray(o.zoneFlags))
+    state.zoneFlags = Object.fromEntries(Object.entries(o.zoneFlags).filter(([, v]) => Array.isArray(v))
+      .map(([id, v]) => [id, v.filter(k => typeof k === 'string')]));
   // accept the pre-rename keys so a saved set from before the Bounce -> Hardness change still opens
   // ...and the pre-2026-09-08 floor keys, which named the floor after a selector value that was
   // never identified. normal/strict were 0.25/0.27 and map straight across.
@@ -6733,6 +6765,7 @@ window.__view.zoneTable = () => {
            dropdown: document.getElementById('monHeatTable').value, title: document.getElementById('zoneTitle').textContent,
            breaks: [...document.querySelectorAll('#monZoneBreaks label')].map(l => l.textContent + (l.querySelector('input').checked ? ': on' : ': off')),
            sections: [...document.querySelectorAll('#monZoneBreaks .zone-sec')].map(x => x.textContent),
+           held: (state.zoneFlags && state.zoneFlags[e.id]) || [],
            slots: zoneSlots(rec).map(sl => ({ slot: sl, name: named[sl] || null, from: zt.from ? zt.from[sl] : [zt.index, sl],
                                               row: zt.rows[sl] })) };
 };

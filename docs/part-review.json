@@ -2089,7 +2089,7 @@
  },
  "em063_05": {
   "reviewed": "2026-09-13",
-  "note": "Reviewed by Raven as a copy of Brachydios: *'Update Raging Brachy, it doesn't have Primed states but the rest match up.'* **The part numbering is the same as em063_00's where the two overlap**, so the names carry straight across: Horn 1/2, Left Pounder 4/5, Right Pounder 6/7, Tail 101/8. Three real differences, all the ROM's: **no Primed item**, because the arm-slime `S. Part` is only added where an arm's material is slot 0/1 of the part driver, and this model carries its arm slime on the same meshes as the body (`XfB__m01_nenkin_arm_l` on part 4, `m02_nenkin_arm_r` on part 6) with no offered S item -- so the pounders are Diminished / Broken, his names; **no Broken (Enraged) horn**, the horn cluster here is just 1 / 2; and **the eye is a lid only**: cluster `3` is a single 18v plate with no separate eye mesh beside it (Brachydios pairs it with part 19, `XfB__E_m04_eye`), so drawing it CLOSES and Open is keyed `none`, with `order` putting Open first to match his Brachydios order. Part 9 (`XfB__m05_add`, 510v) has no row: it is the enrage layer the Enraged toggle owns, and its `ROM_RAGE_SET` pair is the one that FAILS the ID test (calm draws it, rage draws nothing) -- left exactly as it is, since Raven said not to flip Raging Brachydios on inference. `sheds` names Tail option 8 for the shipped em063_05_tail. Every default was already on the healthy option.",
+  "note": "Reviewed by Raven as a copy of Brachydios: *'Update Raging Brachy, it doesn't have Primed states but the rest match up.'* **The part numbering is the same as em063_00's where the two overlap**, so the names carry straight across: Horn 1/2, Left Pounder 4/5, Right Pounder 6/7, Tail 101/8. Three real differences, all the ROM's: **no Primed item**, because the arm-slime `S. Part` is only added where an arm's material is slot 0/1 of the part driver, and this model carries its arm slime on the same meshes as the body (`XfB__m01_nenkin_arm_l` on part 4, `m02_nenkin_arm_r` on part 6) with no offered S item -- so the pounders are Diminished / Broken, his names; **no Broken (Enraged) horn**, the horn cluster here is just 1 / 2; and **the eye is a lid only**: cluster `3` is a single 18v plate with no separate eye mesh beside it (Brachydios pairs it with part 19, `XfB__E_m04_eye`), so drawing it CLOSES and Open is keyed `none`, with `order` putting Open first to match his Brachydios order. Part 9 (`XfB__m05_add`, 510v) has no row: it is the enrage layer the Enraged toggle owns, and its `ROM_RAGE_SET` pair is the one that FAILS the ID test (calm draws it, rage draws nothing) -- left exactly as it is, since Raven said not to flip Raging Brachydios on inference. `sheds` names Tail option 8 for the shipped em063_05_tail. Every default was already on the healthy option. POUNDERS ARE INTACT / BROKEN, 2026-09-16. Raven: 'Change Diminished to Intact since Raging doesn't have a Diminished part like Brachy does where its slime needs to be rerpimed'. The first pass had copied Brachydios' Diminished label onto parts 4 and 6.",
   "rows": {
    "3": {
     "name": "Eyes",
@@ -2115,7 +2115,7 @@
     "name": "Left Pounder",
     "default": "4",
     "options": {
-     "4": "Diminished",
+     "4": "Intact",
      "5": "Broken"
     }
    },
@@ -2123,7 +2123,7 @@
     "name": "Right Pounder",
     "default": "6",
     "options": {
-     "6": "Diminished",
+     "6": "Intact",
      "7": "Broken"
     }
    },
