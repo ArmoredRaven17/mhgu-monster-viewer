@@ -953,5 +953,16 @@
    "6": "Right Front Leg Plate",
    "7": "Right Rear Leg Plate"
   }
+ },
+ "em076_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Horn (slot 1) is two shapes on joint 0, one a capsule reaching far up and forward (record 1, mask 0x8000); Claws (slot 2) is four shapes on joints 5 and 9 reaching far forward, two of them switched (mask 0x4000).",
+  "slots": {
+   "0": "Head/Body",
+   "1": "Horn",
+   "2": "Claws",
+   "3": "Legs",
+   "4": "Abdomen"
+  }
  }
 }
