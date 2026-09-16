@@ -4252,6 +4252,27 @@ export const ROM_MEAT_SWITCH = {
       { slot: 7, row: 2, broken: 'flag0' },
     ],
   },
+  // Hellblade Glavenus (em080_04), uEm080_00: 0xfffd8c -- the dispatcher 0xfffb24 picks it by the variant byte.
+  // Read 2026-09-16 by hand. Raven: "If we know Hellblades states and how it impacts its hit zones, ensure the UI
+  // reflects this". It moves rows only when [E+0xcaf4] asks, off two bits of the parts object's byte P+0x1bb:
+  // 0x10 puts Head and Neck on table-1 rows 0 and 1, and 0x08 puts Tail and Tail Blade on rows 6 and 7. Rows 2-5
+  // are never used. The parts driver 0x100acf8 plays the OVERHEAT clips of the throat material (m06_nodo_r,
+  // controller +0xcb88, set up by 0x100a6f4 from the material id) while 0x10 holds, and of the tail material
+  // (m04_tail, +0xcb84) while 0x08 holds. Those are the Parts panel's Throat "Blasted" item (group 5, parts 70/80
+  // = m07_overheat_nodo) and the Tail row's "(Blasted)" items, which draw what "(Heated)" draws and differ only in
+  // the clip -- hence `synthClip`. Not read: what raises the two bits in the game.
+  em080_04: {
+    broken: { throatBlast: [5], tailBlast: [] },
+    synthClip: { tailBlast: { XfBA1__m04_tail: 'overheat_Loop' } },
+    sections: { throatBlast: 'Overheated', tailBlast: 'Overheated' },
+    labels: { throatBlast: 'Throat Blasted', tailBlast: 'Tail Blasted' },
+    rules: [
+      { slot: 0, row: 0, broken: 'throatBlast' },
+      { slot: 1, row: 1, broken: 'throatBlast' },
+      { slot: 6, row: 6, broken: 'tailBlast' },
+      { slot: 7, row: 7, broken: 'tailBlast' },
+    ],
+  },
   // Mizutsune (em082_00), uEm082_00: 0x1036380. Coverage 0x1036380 14/14.
   em082_00: {
     broken: { part1: [10], part2: [8] },

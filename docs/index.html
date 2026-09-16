@@ -4769,6 +4769,17 @@ function breakRowInfo(e, key){
   // AN `exact` KEY READS THE GROUP DRAWN, not the option: Amatsu's horn glow is a state variant the Head row folds into
   // its plain options, so "an option holding it is applied" would always be true. It has no switch of its own.
   if ((sw && sw.exact || []).indexOf(key) >= 0) return { key, groups: gs, rows: [], exact: true, broken: gs.some(on) };
+  // A KEY A SYNTHETIC ROW ANSWERS BY ITS CLIP. Hellblade Glavenus' Tail offers "(Heated)" and "(Blasted)" items that
+  // draw the same parts and differ only in the heat clip, so no group can tell them apart: `synthClip` names the
+  // material clip that makes an item count, and the key is on when the row's applied item plays it.
+  const sc = sw && sw.synthClip && sw.synthClip[key];
+  if (sc){
+    const hit = it => !!(it && it.clip && Object.keys(sc).some(m => it.clip[m] === sc[m]));
+    const rows = Object.entries(rvRows).filter(([, rv]) => rv && Array.isArray(rv.synth) && rv.synth.some(hit))
+      .map(([row, rv]) => ({ row, rv, synth: true, offered: true, hits: rv.synth.map((it, i) => hit(it) ? i : -1).filter(i => i >= 0),
+                             broken: hit(rv.synth[synthIndex(row, rv)]) }));
+    return { key, groups: gs, rows, broken: rows.some(r => r.broken) };
+  }
   const cs = clusterGroups(all).filter(x => gs.some(g => x.members.indexOf(g) >= 0));
   if (!cs.length) return { key, groups: gs, rows: [], broken: gs.some(on) };
   // THE ROW ON SCREEN MAY BE A MERGED ONE. part-review joins clusters with '+' and buildGroups builds one
@@ -4864,6 +4875,22 @@ function setPartBroken(p, on){
     const f = zoneBreakField(r.row);
     const sel = f && f.querySelector('select');
     if (!sel) continue;
+    // A synthetic row keeps its form and swaps the clip: "Intact (Heated)" <-> "Intact (Blasted)", which draw the same
+    // parts. Either way the item with the same form and the same parts is taken first, then any same-form item.
+    if (r.synth){
+      const form = o => (o ? o.textContent : '').replace(/\s*\([^)]*\)\s*$/, '');
+      const opts = [...sel.options];
+      const cur = opts[sel.selectedIndex];
+      const same = opts.filter(o => form(o) === form(cur));
+      const isHit = o => r.hits.indexOf(+o.value) >= 0;
+      const drawOf = o => String((r.rv.synth[+o.value] || {}).draw || '');
+      const want = on ? isHit : (x => !isHit(x));
+      const o = same.find(x => want(x) && drawOf(x) === drawOf(cur)) || same.find(want);
+      if (!o || sel.value === o.value) continue;
+      sel.value = o.value;
+      sel.onchange();
+      continue;
+    }
     // A merged row's option is keyed by its halves ("9+11"), not by a group index, and one break can own more
     // than one half -- so score the options and take the one holding the most of them.
     const score = r.merged
