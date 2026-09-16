@@ -4760,24 +4760,38 @@ function breakRowInfo(e, key){
   const on = k => !!(state.groups && state.groups[k]);
   const rvRows = reviewRows(e.id);
   const cs = clusterGroups(all).filter(x => gs.some(g => x.members.indexOf(g) >= 0));
-  if (!cs.length) return { key, groups: gs, broken: gs.some(on) };
+  if (!cs.length) return { key, groups: gs, rows: [], broken: gs.some(on) };
   // THE ROW ON SCREEN MAY BE A MERGED ONE. part-review joins clusters with '+' and buildGroups builds one
   // field under the joined key, so a source cluster has no field of its own -- and one break can name halves
-  // of BOTH sources, as Gypceros' part 6 does over "8,9+10,11" (g10 draws part 9, g12 part 11). Resolve the
-  // row first, then every source cluster that shares it.
+  // of BOTH sources, as Gypceros' part 6 does over "8,9+10,11" (g10 draws part 9, g12 part 11).
   const rowKeyOf = c => Object.keys(rvRows).find(k => k.indexOf('+') >= 0 && k.split('+').indexOf(c.parts) >= 0)
                      || c.parts;
-  const row = rowKeyOf(cs[0]);
-  const srcs = cs.filter(c => rowKeyOf(c) === row);
-  const rv = rvRows[row];
-  const per = srcs.map(c => {
-    const opts = clusterOptions(c, all, stateParts(), reviewedParts(rv));
-    return { cluster: c, opts, broken: opts.filter(o => o.members.some(g => gs.indexOf(g) >= 0)) };
+  // AND ONE BREAK CAN SPAN SEPARATE ROWS. Nerscylla's part 2 is one break in the game -- its driver 0xf9bd10 applies
+  // g6 (left legs broken) AND g8 (right legs broken) off the same counter test -- while the review lists Left Legs
+  // and Right Legs as two rows. Raven, 2026-09-16, seeing only a Left Leg switch: "You'd expect it to be
+  // symmetrical". So every row the break's groups fall in is kept, and the switch drives them together.
+  const byRow = new Map();
+  for (const c of cs){
+    const k = rowKeyOf(c);
+    if (!byRow.has(k)) byRow.set(k, []);
+    byRow.get(k).push(c);
+  }
+  const rows = [...byRow].map(([row, srcs]) => {
+    const rv = rvRows[row];
+    const brokenOpts = srcs.reduce((a, c) => a.concat(clusterOptions(c, all, stateParts(), reviewedParts(rv))
+                                                      .filter(o => o.members.some(g => gs.indexOf(g) >= 0))), []);
+    return { row, rv, merged: row !== srcs[0].parts, reps: brokenOpts.map(o => o.rep),
+             halves: brokenOpts.map(o => o.key), offered: brokenOpts.length > 0,
+             broken: brokenOpts.some(o => o.members.some(on)) };
   });
-  const brokenOpts = per.reduce((a, x) => a.concat(x.broken), []);
-  return { key, groups: gs, row, merged: row !== srcs[0].parts, rv, per, brokenOpts,
-           reps: brokenOpts.map(o => o.rep), halves: brokenOpts.map(o => o.key),
-           broken: brokenOpts.length ? brokenOpts.some(o => o.members.some(on)) : gs.some(on) };
+  // The table reads the break as made when ANY of its rows shows it: the game never breaks one without the other,
+  // so a viewer pick of one broken side can only mean the break happened.
+  const offered = rows.filter(r => r.offered);
+  return { key, groups: gs, rows, broken: offered.length ? offered.some(r => r.broken) : gs.some(on) };
+}
+function zoneBreakField(row){
+  const f = [...document.querySelectorAll('#monGroups .field')].find(x => x.dataset.row === row);
+  return f && f.querySelector('select') ? f : null;
 }
 function zoneBreakParts(e){
   const sw = meatSwitchOf(e && e.id);
@@ -4787,13 +4801,14 @@ function zoneBreakParts(e){
   for (const key of Object.keys(sw.broken)){
     if (!tested.has(key)) continue;
     const info = breakRowInfo(e, key);
-    const f = info.row && [...document.querySelectorAll('#monGroups .field')].find(x => x.dataset.row === info.row);
-    const sel = f && f.querySelector('select');
-    if (!sel){ console.warn('hit zones: ' + e.id + ' break "' + key + '" has no dropdown in the Parts panel'); continue; }
-    const lab = f.querySelector('label');
-    out.push({ key, row: info.row, groups: info.groups, reps: info.reps, halves: info.halves, merged: info.merged,
-               name: (info.rv && info.rv.name) || (lab && lab.firstChild ? lab.firstChild.textContent.trim() : info.row),
-               broken: info.broken });
+    const rows = info.rows.filter(r => zoneBreakField(r.row));
+    if (!rows.length){ console.warn('hit zones: ' + e.id + ' break "' + key + '" has no dropdown in the Parts panel'); continue; }
+    const nameOf = r => {
+      if (r.rv && r.rv.name) return r.rv.name;
+      const lab = zoneBreakField(r.row).querySelector('label');
+      return lab && lab.firstChild ? lab.firstChild.textContent.trim() : r.row;
+    };
+    out.push({ key, rows, groups: info.groups, name: rows.map(nameOf).join(' & '), broken: info.broken });
   }
   return out;
 }
@@ -4816,23 +4831,25 @@ function paintZoneBreaks(e, zt){
     box.appendChild(lab);
   }
 }
-// The row is looked up again at the flip: a rung change rebuilds the Parts panel, and a held dropdown would be gone.
+// The rows are looked up again at the flip: a rung change rebuilds the Parts panel, and a held dropdown would be gone.
 // Broken is the option HOLDING one of the driver's broken groups (breakRowInfo, which folds the state's
-// variants together); Intact the first that holds none.
+// variants together); Intact the first that holds none. A break spanning rows sets every one of them.
 function setPartBroken(p, on){
-  const f = [...document.querySelectorAll('#monGroups .field')].find(x => x.dataset.row === p.row);
-  const sel = f && f.querySelector('select');
-  if (!sel) return;
-  // A merged row's option is keyed by its halves ("9+11"), not by a group index, and one break can own more
-  // than one half -- so score the options and take the one holding the most of them.
-  const score = p.merged
-    ? o => o.value.split('+').filter(h => (p.halves || []).indexOf(h) >= 0).length
-    : o => ((p.reps && p.reps.length ? p.reps : p.groups).indexOf(parseInt(o.value, 10)) >= 0) ? 1 : 0;
-  const opts = [...sel.options];
-  const o = on ? opts.reduce((a, b) => (score(b) > score(a) ? b : a), opts[0]) : opts.find(x => !score(x));
-  if (!o || !(on ? score(o) : true) || sel.value === o.value) return;
-  sel.value = o.value;
-  sel.onchange();
+  for (const r of p.rows){
+    const f = zoneBreakField(r.row);
+    const sel = f && f.querySelector('select');
+    if (!sel) continue;
+    // A merged row's option is keyed by its halves ("9+11"), not by a group index, and one break can own more
+    // than one half -- so score the options and take the one holding the most of them.
+    const score = r.merged
+      ? o => o.value.split('+').filter(h => r.halves.indexOf(h) >= 0).length
+      : o => (r.reps.indexOf(parseInt(o.value, 10)) >= 0) ? 1 : 0;
+    const opts = [...sel.options];
+    const o = on ? opts.reduce((a, b) => (score(b) > score(a) ? b : a), opts[0]) : opts.find(x => !score(x));
+    if (!o || (on && !score(o)) || sel.value === o.value) continue;
+    sel.value = o.value;
+    sel.onchange();
+  }
 }
 async function applyHeat(){
   const e = entry();

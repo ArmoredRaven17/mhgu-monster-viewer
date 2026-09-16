@@ -3700,6 +3700,48 @@ export const ROM_MEAT_SWITCH = {
       { slot: 6, row: 6, mode: [1] },
     ],
   },
+  // ZINOGRE, uEm057_00: 0xeec02c is ENTERING SUPERCHARGED -- it sets the flag [[enemy+0x1428]+0x5df3], arms a
+  // 1800-frame timer and puts slots 0-5 on their own table-1 rows; 0xeecc2c, leaving it, restores them. Zinogre's
+  // parts driver 0xef063c draws g1 while that flag is set (0x816d4) and g0 otherwise, and g1 is part-review's
+  // Fully Charged rung (g19, the middle rung, is drawn only in the death branch). So the table follows rung 2.
+  em057_00: {
+    rules: [
+      { slot: 0, row: 0, rung: [2] },
+      { slot: 1, row: 1, rung: [2] },
+      { slot: 2, row: 2, rung: [2] },
+      { slot: 3, row: 3, rung: [2] },
+      { slot: 4, row: 4, rung: [2] },
+      { slot: 5, row: 5, rung: [2] },
+    ],
+  },
+  // THUNDERLORD ZINOGRE, the same two routines. Its own parts driver 0xef0370 draws g19 while the flag is set, g0
+  // otherwise (g1 only in the death branch) -- g19 is the Overcharged rung of Charged / Overcharged / Uncharged.
+  em057_04: {
+    rules: [
+      { slot: 0, row: 0, rung: [1] },
+      { slot: 1, row: 1, rung: [1] },
+      { slot: 2, row: 2, rung: [1] },
+      { slot: 3, row: 3, rung: [1] },
+      { slot: 4, row: 4, rung: [1] },
+      { slot: 5, row: 5, rung: [1] },
+    ],
+  },
+  // ZAMTRIOS, uEm067_00: 0xf66ec0 is ENTERING ICE ARMOR -- the status byte [[enemy+0x1428]+0x1bb] := 1, fresh
+  // durability on the ice pieces' part records, slots 0-6 onto their own table-1 rows; 0xf660e4 puts all eight
+  // back. The parts driver 0xf768c0 runs its ice logic on the same byte (& 3 == 1), which is part-review's Ice
+  // Armor rung. UNMODELLED: while armored, 0xf75ab4 returns ONE slot to table 0 when that part's ice piece
+  // breaks (parts 0, 2, 3 and 6); the review has no ice-broken-but-part-intact option to hang that on.
+  em067_00: {
+    rules: [
+      { slot: 0, row: 0, rung: [1] },
+      { slot: 1, row: 1, rung: [1] },
+      { slot: 2, row: 2, rung: [1] },
+      { slot: 3, row: 3, rung: [1] },
+      { slot: 4, row: 4, rung: [1] },
+      { slot: 5, row: 5, rung: [1] },
+      { slot: 6, row: 6, rung: [1] },
+    ],
+  },
   // ---- generated from the ROM sweep (build/hitzone-states) ----
   // Basarios (em004_00), uEm004_00: 0xd2329c. Coverage 0xd2329c 1/7.
   em004_00: {
@@ -3928,28 +3970,6 @@ export const ROM_MEAT_SWITCH = {
       { slot: 3, row: 3, broken: 'part2' },
     ],
   },
-  // Zinogre (em057_00), uEm057_00: 0xeec02c, 0xeecc2c. Coverage 0xeec02c 6/6, 0xeecc2c 6/6.
-  em057_00: {
-    rules: [
-      { slot: 0, row: 0 },
-      { slot: 1, row: 1 },
-      { slot: 2, row: 2 },
-      { slot: 3, row: 3 },
-      { slot: 4, row: 4 },
-      { slot: 5, row: 5 },
-    ],
-  },
-  // Thunderlord Zinogre (em057_04), uEm057_00: 0xeec02c, 0xeecc2c. Coverage 0xeec02c 6/6, 0xeecc2c 6/6.
-  em057_04: {
-    rules: [
-      { slot: 0, row: 0 },
-      { slot: 1, row: 1 },
-      { slot: 2, row: 2 },
-      { slot: 3, row: 3 },
-      { slot: 4, row: 4 },
-      { slot: 5, row: 5 },
-    ],
-  },
   // Redhelm Arzuros (em060_04), uEm060_00: 0xf11360, 0xf11988. Coverage 0xf11360 8/16, 0xf11988 2/2.
   // Unread state inputs (arg r1): rows this monster moves in another state are not encoded, so the table is its resting state plus the breaks below.
   em060_04: {
@@ -3963,19 +3983,6 @@ export const ROM_MEAT_SWITCH = {
     broken: { part2: [13, 14] },
     rules: [
       { slot: 3, row: 3, broken: 'part2' },
-    ],
-  },
-  // Zamtrios (em067_00), uEm067_00: 0xf660e4, 0xf66ec0, 0xf75ab4. Coverage 0xf660e4 0/8, 0xf66ec0 7/7, 0xf75ab4 3/4.
-  // Unread state inputs (P+0x1bb, S0+0x4, arg r1): rows this monster moves in another state are not encoded, so the table is its resting state plus the breaks below.
-  em067_00: {
-    rules: [
-      { slot: 0, row: 0 },
-      { slot: 1, row: 1 },
-      { slot: 2, row: 2 },
-      { slot: 3, row: 3 },
-      { slot: 4, row: 4 },
-      { slot: 5, row: 5 },
-      { slot: 6, row: 6 },
     ],
   },
   // Seltas Queen (em069_00), uEm069_00: 0xf8c454. Coverage 0xf8c454 4/4.
