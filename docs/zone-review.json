@@ -747,5 +747,19 @@
    "5": "Rear Legs",
    "6": "Tail"
   }
+ },
+ "em049_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render (the list came unlabelled, straight after Agnaktor was put up next). The legs go by side, front and hind together: Right Legs (slot 3) the lower-x side, Left Legs (slot 4) the higher-x side, as on Gravios. Chest (slot 2) is one shape on joint 200 under the chest; Back (slot 7) runs along the top from the neck to the tail.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Chest",
+   "3": "Right Legs",
+   "4": "Left Legs",
+   "5": "Body",
+   "6": "Tail",
+   "7": "Back"
+  }
  }
 }
