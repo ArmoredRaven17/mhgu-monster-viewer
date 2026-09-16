@@ -5119,6 +5119,7 @@ function paintZonePick(){
     zoneShape.userData.root = mounted.main;
     zoneShape.userData.copies = picked.copies;
     zoneShape.userData.off = picked.off;
+    zoneShape.userData.special = picked.special;
     scene.add(zoneShape);
   }
 }
@@ -5139,10 +5140,16 @@ function paintZonePick(){
 // #3, #0x18), and every other type skips a word with any of 0x152 (0x16c05c). So a word with bit 6 or 8 set and
 // none of bits 0-4 fails every path: Zinogre's two body shapes filed under Head, the dromes' capsule between the
 // thighs, 40 shapes over 25 monsters here. That is known for every hit, where the gates above are not.
+// NOR IS A SHAPE ONLY THE SPECIAL ATTACK TYPES COUNT. Raven, 2026-09-16: "do not draw special-attack only capsules".
+// The common types all take that default path, so a word with any bit of 0x152 is never theirs; when it also has a
+// low bit a type path takes (0x03 for types 8/69, 0x18 for 9, 0x04 for 37-47) only those types can count it. Here
+// that is Seltas Queen's radius-280 sphere (0x0109) and Chaotic Gore Magala's radius-300 one (0x12), plus every
+// bone-255 record (0x12), which the drawing could not place anyway. So any bit of 0x152 leaves a shape out.
 const zoneNeverCounted = f => (f & 0x1f) === 0 && (f & 0x140) !== 0;
+const zoneSpecialOnly = f => (f & 0x152) !== 0 && !zoneNeverCounted(f);
 function zoneShapesFor(rec, pick){
   const flags = rec.capsuleFlags || [];
-  const live = rec.capsules.filter((c, i) => !zoneNeverCounted(flags[i] || 0));
+  const live = rec.capsules.filter((c, i) => ((flags[i] || 0) & 0x152) === 0);
   const shapeKey = c => c.slice(2).join(',');
   const slotsOf = new Map();
   for (const c of live){
@@ -5162,7 +5169,8 @@ function zoneShapesFor(rec, pick){
     rows.push(c);
   }
   const off = rec.capsules.filter((c, i) => c[col] === pick.index && zoneNeverCounted(flags[i] || 0)).length;
-  return { rows, copies, off };
+  const special = rec.capsules.filter((c, i) => c[col] === pick.index && zoneSpecialOnly(flags[i] || 0)).length;
+  return { rows, copies, off, special };
 }
 // a CSS colour variable as 0..1 RGB, so the drawn zone is the lit row's colour. A theme writes --cta as rgb(),
 // the stylesheet's own default as hex; both are read.
@@ -6684,6 +6692,7 @@ window.__view.zones = (kind, index) => {
   if (zoneShape) mounted.main.updateMatrixWorld(true);
   const drawn = zoneShape ? { placed: zoneShape.userData.placed, skipped: zoneShape.userData.skipped,
                               copiesLeftOut: zoneShape.userData.copies, neverCountedLeftOut: zoneShape.userData.off,
+                              specialOnlyLeftOut: zoneShape.userData.special,
                               capsules: zoneShape.userData.readback() } : null;
   return { pick: zonePick, lit, drawn };
 };
