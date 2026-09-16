@@ -695,5 +695,18 @@
    "5": "Legs",
    "6": "Tail"
   }
+ },
+ "em017_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Back/Fin (slot 2) is eight shapes along the whole top line, head to near the tail tip; Neck (slot 1), Body (slot 3) and Tail (slot 6) are the undersides of those parts.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Back/Fin",
+   "3": "Body",
+   "4": "Wings",
+   "5": "Legs",
+   "6": "Tail"
+  }
  }
 }
