@@ -1320,8 +1320,8 @@ const PARTNAMES = await loadJson('partnames.json').catch(() => ({ monsters: {} }
 // rBodyData capsule, and that slot indexes the ROM's dt_tune damage table. Optional, like the
 // part names -- an older deploy without it simply has no heat map.
 const HITZONES = await loadJson('hitzones.json').catch(() => ({ monsters: {} }));
-// Hit zone slot names Raven gives on review, per monster and slot (zone-review.json). Shown over the community
-// names hitzones.json carries; see zoneNames().
+// Hit zone slot names Raven gives on review, per monster and slot (zone-review.json) -- the only slot names the
+// chart shows; see zoneNames().
 const ZONE_REVIEW = await loadJson('zone-review.json').catch(() => ({}));
 // Which part-visibility group the GAME switches, and where in its AI it does it: the call sites of
 // rMonsterPartsManager::setVisibleGroup (0x00072c78) read out of the executable by
@@ -4943,13 +4943,16 @@ const ZONE_GROUPS = [
 // and 6, Volvidon 4, Zamtrios 7, Ahtal-Ka 3. Nerscylla's slot 7 still paints nowhere. An unpainted row
 // is listed and marked, not hidden.
 function zoneSlots(rec){ return rec.slotsDefined || rec.slotsUsed || []; }
-// A slot's name: Raven's from zone-review.json where given, else the community name, else the chart says "Slot N".
-// Raven, 2026-09-15: "we're going to update all the slots in the hitzone tables. I will manually go over
-// everything."
+// A slot's name: Raven's from zone-review.json, else the chart says "Slot N". Raven, 2026-09-15: "we're going to
+// update all the slots in the hitzone tables. I will manually go over everything." The community names
+// hitzones.json carries (rec.names, from the MHGU-Monster-Info verified sets) are NOT shown any more. Raven,
+// 2026-09-16: "Monsters that use community names, revert them to slot N names" and "I want every monster to have
+// slots named based on capsule locations" -- a name is given by reading the row's capsules on the render, and a
+// list keyed to a table row by someone else's parse cannot say where its capsules sit.
 function zoneNames(rec){
   const e = entry();
   const rv = e && ZONE_REVIEW[e.id];
-  return Object.assign({}, rec.names || {}, (rv && rv.slots) || {});
+  return Object.assign({}, (rv && rv.slots) || {});
 }
 function markUnpainted(th, rec, sl){
   if (rec.slotsDefined && (rec.slotsUsed || []).indexOf(sl) < 0){

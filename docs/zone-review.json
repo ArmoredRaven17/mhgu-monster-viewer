@@ -1,5 +1,5 @@
 {
- "_about": "Hit zone slot NAMES, dictated by Raven on review -- one monster at a time, reading each row's capsules on the render (a row's name draws its rBodyData shapes, see pickZone in index.html). The ROM ships no zone-name table, so a person saying what a slot is is the only source there is. Keyed by monster id, then by damage-table slot (the row index hitzones.json's tables and capsules use). A name here is shown over hitzones.json's community names; a slot not named here keeps whatever it had. `reviewed` is the date the names were given.",
+ "_about": "Hit zone slot NAMES, dictated by Raven on review -- one monster at a time, reading each row's capsules on the render (a row's name draws its rBodyData shapes, see pickZone in index.html). The ROM ships no zone-name table, so a person saying what a slot is is the only source there is. Keyed by monster id, then by damage-table slot (the row index hitzones.json's tables and capsules use). These are the only slot names the chart shows (since 2026-09-16 hitzones.json's community names are not shown); a slot not named here reads Slot N. `reviewed` is the date the names were given.",
  "em001_02": {
   "reviewed": "2026-09-15",
   "slots": {
