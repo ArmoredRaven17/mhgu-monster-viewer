@@ -1150,5 +1150,20 @@
    "6": "Wing Flaps",
    "7": "Tail"
   }
+ },
+ "em071_05": {
+  "reviewed": "2026-09-16",
+  "unsure": "Asked Raven, 2026-09-16: slot 4's wing arm is on joints 61-62, the higher-x wing whose hand (62-63) is slot 3, Left Wing -- by the sides used everywhere else (Left = higher x) that is the LEFT wing arm, and the name says Right.",
+  "note": "Named from the render. The layout is not Gore Magala's: Head/Neck (slot 0) takes the head (joint 4) and neck (joints 3-2), each listed twice (drawn once), plus record 43, a radius-300 sphere on joint 1 with flag 0x12 (only attack types 8/69 and 9 count it), which is drawn. Right Wing (slot 1, part record 7) is the lower-x wing's hand (72-73), arm (71-72) and edge (74-75). Left Wing (slot 3) is the higher-x wing hand (62-63). Front Legs/Right Wing Arm (slot 4) is the front legs plus the arm on joints 61-62. Wing Flaps (slot 6) is the membranes less the right wing's edge.",
+  "slots": {
+   "0": "Head/Neck",
+   "1": "Right Wing",
+   "2": "Body",
+   "3": "Left Wing",
+   "4": "Front Legs/Right Wing Arm",
+   "5": "Rear Legs",
+   "6": "Wing Flaps",
+   "7": "Tail"
+  }
  }
 }
