@@ -596,5 +596,16 @@
    "3": "Back",
    "4": "Rear"
   }
+ },
+ "em061_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Laid out like Arzuros: Torso (slot 1) the front of the body (joints 2 and 100), Back (slot 3) one capsule along the top (joints 0-140); Legs (slot 4) is the hind legs (joints 0, 18 and 22). Snowbaron Lagombi's slots sit on the same joints.",
+  "slots": {
+   "0": "Head",
+   "1": "Torso",
+   "2": "Arms",
+   "3": "Back",
+   "4": "Legs"
+  }
  }
 }
