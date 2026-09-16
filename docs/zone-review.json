@@ -230,6 +230,19 @@
    "6": "Tail"
   }
  },
+ "em042_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Back (slot 1) runs above the body from the neck (joints 100-102) to joint 140, Belly (slot 2) below it. Wing Blades (slot 3) is two shapes at the far ends of the forelimbs (joints 8-9 and 14-15); Wings (slot 4) the rest of the forelimbs.",
+  "slots": {
+   "0": "Head",
+   "1": "Back",
+   "2": "Belly",
+   "3": "Wing Blades",
+   "4": "Wings",
+   "5": "Legs",
+   "6": "Tail"
+  }
+ },
  "em077_00": {
   "reviewed": "2026-09-15",
   "note": "Named from the render, the full eight in slot order (an earlier seven-name list was not applied).",
