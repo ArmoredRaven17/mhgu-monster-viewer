@@ -1343,6 +1343,14 @@
    "1": "Body"
   }
  },
+ "ems002_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Same joints as Aptonoth: Head (slot 0) is one shape on joint 101 at the front; Body (slot 1) the body and tail.",
+  "slots": {
+   "0": "Head",
+   "1": "Body"
+  }
+ },
  "ems003_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
