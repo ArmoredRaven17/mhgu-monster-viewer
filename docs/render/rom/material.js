@@ -51,7 +51,7 @@
 //      ROM's fShininess as the exponent (`enableRomPhong`). DEFAULT OFF.
 //   7. The ALPHA TEST: NVN colour state, enable / function / reference unpacked from the MRL feature
 //      word by the rMaterial setup (`enableRomAlphaTest`, see the section at the end). DEFAULT OFF,
-//      except on ALPHA_ROM_DEFAULT_REFS (Nakarkos, 2026-09-13).
+//      except on ALPHA_TEST_DEFAULT_REFS (Nakarkos 2026-09-13, Nibelsnarf 2026-09-16).
 //
 // 4, 5 and 6 are off by default. Each either overlaps something the SHARED material.js/stage.js
 // already do -- so switching one on alone double-counts rather than corrects -- or changes every
@@ -60,7 +60,7 @@
 import * as THREE from 'three';
 import { applyTint } from '../material.js';
 import { applyRomState } from './state.js';
-import { injectFeatures, ALPHA_ROM_DEFAULT_REFS } from './shader.js';
+import { injectFeatures, ALPHA_TEST_DEFAULT_REFS } from './shader.js';
 import { installRomAmbient, trackRomAmbient, enableRomAmbient, romAmbientEnabled,
          setSHCoef, getSHCoef, setSHAmount } from './ambient.js';
 import { installRomSpecular, trackRomSpecular, enableRomSpecular, romSpecularEnabled,
@@ -642,12 +642,12 @@ export function romAlphaTestOf(rom){
   const on = (fb & 0x00100000) !== 0;
   return { on, func: on ? ((fb >>> 21) & 7) : 7, ref: (fb >>> 8) & 0xff };
 }
-// null: per-monster defaults (ALPHA_ROM_DEFAULT_REFS in rom/shader.js -- Nakarkos, at Raven's word);
+// null: per-monster defaults (ALPHA_TEST_DEFAULT_REFS in rom/shader.js -- Nakarkos and Nibelsnarf, at Raven's word);
 // true / false: every material. `__romAlphaTest('default')` returns to the defaults.
 let romAlphaTest = null;
 const alphaMats = new Set();
 export function romAlphaTestEnabled(){ return romAlphaTest; }
-function romAlphaTestFor(ref){ return romAlphaTest === null ? ALPHA_ROM_DEFAULT_REFS.has(ref) : romAlphaTest; }
+function romAlphaTestFor(ref){ return romAlphaTest === null ? ALPHA_TEST_DEFAULT_REFS.has(ref) : romAlphaTest; }
 export function enableRomAlphaTest(on){
   romAlphaTest = (on === 'default' || on === null) ? null : !!on;
   let tested = 0, untested = 0, active = 0;

@@ -75,11 +75,19 @@ export function extendMapMisses(){ return extMisses.slice(); }
 // 2026-09-13, "Ignore anything Savage related").
 //   __romMapConstantAlpha(true) / (false) / () -- readback: { on, materials, excluded }
 const MAPCONST_EXCLUDE = new Set(['em/043_05']);
-// MONSTERS WHERE THE ROM'S ALPHA IS ALREADY THE DEFAULT -- this switch and the alpha test in
-// rom/material.js both read it. Raven, 2026-09-13, after trying both on Nakarkos: "The two tests look
-// better", then "we can apply the two alpha treatments for Nakarkos". Keyed by materials.json entry, so
-// the two tentacle models come with the body. Everything else keeps its old rule until reviewed.
+// MONSTERS WHERE THE ROM'S ALPHA IS ALREADY THE DEFAULT -- BOTH treatments: this switch, and (through
+// ALPHA_TEST_DEFAULT_REFS below) the alpha test in rom/material.js. Raven, 2026-09-13, after trying both
+// on Nakarkos: "The two tests look better", then "we can apply the two alpha treatments for Nakarkos".
+// Keyed by materials.json entry, so the two tentacle models come with the body. Everything else keeps
+// its old rule until reviewed.
 export const ALPHA_ROM_DEFAULT_REFS = new Set(['em/084_00', 'em/084_00/left', 'em/084_00/right']);
+// MONSTERS THAT TAKE THE ROM ALPHA TEST BY DEFAULT: every entry above, plus those that take the test
+// alone, with this switch left on its old rule. Nibelsnarf, 2026-09-16. Its gill cards
+// (XfBAN__E1__m02_era, opaque, GREATER 128) were cut only at alpha 0 by the old rule. That drew 39% /
+// 35% of the two cards solid where the game discards them. Raven tried __romAlphaTest(true) and
+// said: "__romAlphaTest(true) make Nibelsnarf's default". The test also reaches its eye material
+// (parts 0 / 4 / 100, GREATER 10), as it did in what he tried.
+export const ALPHA_TEST_DEFAULT_REFS = new Set([...ALPHA_ROM_DEFAULT_REFS, 'em/056_00']);
 const mapConstMats = new Set();              // { u: uniform holder, ref }
 let mapConstAlpha = null;                    // null: per-monster defaults; true / false: every material
 export function mapConstantAlphaOn(){ return mapConstAlpha; }
