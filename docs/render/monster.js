@@ -3909,6 +3909,23 @@ export const ROM_MEAT_SWITCH = {
       { slot: 6, row: 6, mode: [1] },
     ],
   },
+  // KIRIN, uEm011_00: 0xd6e2ec puts slots 0-6 on their own table-1 rows while [[enemy+0xcac0]+6] is 0 and restores
+  // them while it is set (a latch at +7 makes it act once per change). Its caller, the frame routine 0xd6df64, writes
+  // that byte straight from the ENRAGE predicate 0x81670 every frame (after this runs, so it trails by one), and
+  // spawns the THUNDER AURA -- effects 1002 / 1003 on 32- and 45-frame timers -- only while +0xd is set, which it
+  // clears whenever that byte is 0. So calm Kirin has no aura and takes table 1; enraged, the aura is up and the
+  // table is table 0. Raven, 2026-09-16: "Kirin next, check if it's linked to its thunder aura".
+  em011_00: {
+    rules: [
+      { slot: 0, row: 0, rage: false },
+      { slot: 1, row: 1, rage: false },
+      { slot: 2, row: 2, rage: false },
+      { slot: 3, row: 3, rage: false },
+      { slot: 4, row: 4, rage: false },
+      { slot: 5, row: 5, rage: false },
+      { slot: 6, row: 6, rage: false },
+    ],
+  },
   // ---- generated from the ROM sweep (build/hitzone-states) ----
   // Basarios (em004_00), uEm004_00: 0xd2329c. Coverage 0xd2329c 1/7.
   em004_00: {

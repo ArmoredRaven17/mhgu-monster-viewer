@@ -5534,7 +5534,12 @@ function applyRage(){
   // is how Kecha Wacha's ear-dependent enrage layer asks for it.
   const wantsRage = s => s === 'rage' || (Array.isArray(s) && s.some(wantsRage));
   const reviewRages = Object.values(reviewRows(state.id)).some(r => r && wantsRage(r.state));
-  const has = reviewRages || (main ? (enrageParts(main).size > 0 || !!ROM_RAGE_SET[state.id] || perStateParts) : false);
+  // ...or the game's HIT ZONES switch on it. Kirin shows nothing when enraged that the viewer draws -- its thunder
+  // aura is an effect -- but its damage table follows the enrage predicate (ROM_MEAT_SWITCH em011_00), and without
+  // the toggle that table could not be reached.
+  const zonesRage = meatAxisOf(state.id) === 'rage';
+  const has = reviewRages || zonesRage ||
+              (main ? (enrageParts(main).size > 0 || !!ROM_RAGE_SET[state.id] || perStateParts) : false);
   // A LEVELLED MONSTER GETS A DROPDOWN INSTEAD OF THE TOGGLE. Raven, 2026-09-10: "Just have a drop
   // down that ranges from No Rage to the max level". Bloodbath has two stages and Gore Magala four,
   // and a checkbox can only say the deepest -- which on Gore was not even a stage, because the only
