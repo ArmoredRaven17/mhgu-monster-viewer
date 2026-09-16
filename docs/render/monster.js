@@ -3926,6 +3926,30 @@ export const ROM_MEAT_SWITCH = {
       { slot: 6, row: 6, rage: false },
     ],
   },
+  // NIBELSNARF, uEm056_00: 0xee1a80 puts slots 0-7 on their own table-1 rows when its argument is 0 and restores
+  // them otherwise (a latch at +0xcae6). The only caller is the action handler 0xee1218 -- the vtable +0x204 method
+  // the shared action starter 0x754f8 calls with the (group, index) of every action begun -- and it passes 0 for
+  // action (1, 0x0e) alone. That action (0xee2c10) loops L3 Motion[23] on a 360-frame timer, then starts (1, 0x0f)
+  // (L3 Motion[25]); it is entered from (1, 0x0c) (L3 Motion[22]), which first turns toward a hunter. Raven,
+  // 2026-09-16: "It is when it is Flaying around, after you knock it over". No other action starts L3 Motion[23]
+  // (every group dispatcher traced), so that clip is Flailing and every other clip puts the table back.
+  em056_00: {
+    modes: ['Normal', 'Flailing'],
+    motionModes: {
+      1: ['L3 M23'],
+      default: 0,
+    },
+    rules: [
+      { slot: 0, row: 0, mode: [1] },
+      { slot: 1, row: 1, mode: [1] },
+      { slot: 2, row: 2, mode: [1] },
+      { slot: 3, row: 3, mode: [1] },
+      { slot: 4, row: 4, mode: [1] },
+      { slot: 5, row: 5, mode: [1] },
+      { slot: 6, row: 6, mode: [1] },
+      { slot: 7, row: 7, mode: [1] },
+    ],
+  },
   // ---- generated from the ROM sweep (build/hitzone-states) ----
   // Basarios (em004_00), uEm004_00: 0xd2329c. Coverage 0xd2329c 1/7.
   em004_00: {
@@ -4286,13 +4310,17 @@ export function meatAxisOf(monId){
   return null;
 }
 // The state a clip STARTS, where the entry maps clips to its `modes` (Khezu): the index, or null when the clip
-// is not listed and the state should stay where it is. `list` is the viewer's list id, `motion` the N of Motion[N].
+// is not listed and the state should stay where it is -- unless the map gives a `default` for every other clip
+// (Nibelsnarf, where any other action puts the table back). `list` is the viewer's list id, `motion` the N of
+// Motion[N].
 export function meatModeForMotion(monId, list, motion){
   const sw = meatSwitchOf(monId);
   if (!sw || !sw.motionModes) return null;
   const key = 'L' + list + ' M' + motion;
-  for (const [mode, clips] of Object.entries(sw.motionModes)) if (clips.indexOf(key) >= 0) return +mode;
-  return null;
+  for (const [mode, clips] of Object.entries(sw.motionModes)){
+    if (Array.isArray(clips) && clips.indexOf(key) >= 0) return +mode;
+  }
+  return typeof sw.motionModes.default === 'number' ? sw.motionModes.default : null;
 }
 // Every break key a rule tests, so the panel lists only breaks that move a row.
 export function meatBreakKeys(monId){
