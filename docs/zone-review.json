@@ -40,6 +40,59 @@
    "7": "Tail Tip"
   }
  },
+ "em002_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Rathalos Line: Head, Neck, Back, Belly, Tail, Wings, Legs, Tail Tip (Silver/Dread)\". Rathalos takes the first seven. Same slots on the same joints as Rathian; Tail (slot 4) keeps the tail's last capsule (joint 144), as Rathian's does.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Back",
+   "3": "Belly",
+   "4": "Tail",
+   "5": "Wings",
+   "6": "Legs"
+  }
+ },
+ "em002_02": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Rathalos Line: Head, Neck, Back, Belly, Tail, Wings, Legs, Tail Tip (Silver/Dread)\". Same eight slots on the same joints as Gold Rathian: Tail Tip (slot 7) is the capsule on joint 144, and the sphere on that joint stays in Tail (slot 4).",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Back",
+   "3": "Belly",
+   "4": "Tail",
+   "5": "Wings",
+   "6": "Legs",
+   "7": "Tail Tip"
+  }
+ },
+ "em002_04": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Rathalos Line: Head, Neck, Back, Belly, Tail, Wings, Legs, Tail Tip (Silver/Dread)\". Same slots as Silver Rathalos except at the tail end: Tail Tip (slot 7) takes both the sphere and the capsule on joint 144, where Silver Rathalos and Dreadqueen Rathian keep that sphere in Tail (slot 4). Slot 5 carries two more wing spheres (joints 8 and 12), as on Dreadqueen.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Back",
+   "3": "Belly",
+   "4": "Tail",
+   "5": "Wings",
+   "6": "Legs",
+   "7": "Tail Tip"
+  }
+ },
+ "em003_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Body",
+   "3": "Legs",
+   "4": "Tail",
+   "5": "Wings"
+  }
+ },
  "em005_00": {
   "reviewed": "2026-09-15",
   "note": "Named from the render. Same skeleton as Basarios, laid out differently: slot 1 holds both the neck and the tail capsules, and wings and legs take a slot per side (4 and 6 on the higher-x side).",
