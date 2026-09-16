@@ -3762,6 +3762,42 @@ export const ROM_MEAT_SWITCH = {
       { slot: 5, row: 5, broken: 'mudTail' },
     ],
   },
+  // GAMMOTH, uEm083_00: 0x1054498. Six u32 part states at [enemy+0xcb50] + 4k; 0x1053f24 puts slot k+2 on its
+  // table-1 row while record k (k = 0..4) holds 1 or 2, and restores it at 0, 3 or 4. The snow driver 0x105418c
+  // draws them, record by record, as the Parts panel's own options (run under Unicorn, value by value):
+  //     value 0 No Snow   1 Partial Snow   2 Full Snow   3 Animated Snow (hidden)   4 Broken
+  //     record 0 Left Front Leg g10/g9/g8/g11/g12      record 1 Right Front Leg g15/g14/g13/g16/g17
+  //     record 2 Left Rear Leg g20/g19/g18/g21/g22     record 3 Right Rear Leg g25/g24/g23/g26/g27
+  //     record 4 Tail: 0 g29 (nothing), 2 g28 Snow, 3 g30 Animated; 1 and 4 draw nothing, so value 1 is not
+  //     reachable from the panel. Slot 1 follows the trunk BREAK (part 1 against dtp record 2, g7 Broken).
+  // So a leg or the tail carrying snow takes its table-1 row. Raven, 2026-09-16: "Let's look over ones that might
+  // be easier to figure out first".
+  em083_00: {
+    broken: { part1: [7], snowLeftFront: [8, 9], snowRightFront: [13, 14], snowLeftRear: [18, 19],
+              snowRightRear: [23, 24], snowTail: [28] },
+    sections: { snowLeftFront: 'Snow', snowRightFront: 'Snow', snowLeftRear: 'Snow', snowRightRear: 'Snow', snowTail: 'Snow' },
+    rules: [
+      { slot: 1, row: 1, broken: 'part1' },
+      { slot: 2, row: 2, broken: 'snowLeftFront' },
+      { slot: 3, row: 3, broken: 'snowRightFront' },
+      { slot: 4, row: 4, broken: 'snowLeftRear' },
+      { slot: 5, row: 5, broken: 'snowRightRear' },
+      { slot: 6, row: 6, broken: 'snowTail' },
+    ],
+  },
+  // ELDERFROST GAMMOTH, the same routine at variant 4, where slot 1 follows a sixth record ([enemy+0xcb64]) instead
+  // of the trunk break. Its model has the front legs' and the trunk's ice, the same five values as Gammoth's snow
+  // (the trunk: 0 g6 Intact, 1 g33 Partial Ice, 2 g31 Ice, 3 g32 Animated Ice, 4 g7 Broken); records 2-4 point at
+  // groups this model leaves EMPTY, so slots 4-6's iced rows are real but nothing on screen can select them.
+  em083_04: {
+    broken: { iceTrunk: [31, 33], iceFrontLeft: [8, 9], iceFrontRight: [13, 14] },
+    sections: { iceTrunk: 'Ice', iceFrontLeft: 'Ice', iceFrontRight: 'Ice' },
+    rules: [
+      { slot: 1, row: 1, broken: 'iceTrunk' },
+      { slot: 2, row: 2, broken: 'iceFrontLeft' },
+      { slot: 3, row: 3, broken: 'iceFrontRight' },
+    ],
+  },
   // ---- generated from the ROM sweep (build/hitzone-states) ----
   // Basarios (em004_00), uEm004_00: 0xd2329c. Coverage 0xd2329c 1/7.
   em004_00: {
@@ -4067,14 +4103,6 @@ export const ROM_MEAT_SWITCH = {
       { slot: 4, row: 3, broken: 'flag0' },
       { slot: 0, row: 0, rage: true },
       { slot: 7, row: 7, rage: true },
-    ],
-  },
-  // Gammoth (em083_00), uEm083_00: 0x1053d8c, 0x1054498. Coverage 0x1053d8c 0/10, 0x1054498 1/2.
-  // Unread state inputs (E+0xcb50, E+0xcb51, E+0xcb52, E+0xcb53, E+0xcb54, E+0xcb55, E+0xcb56, E+0xcb57, E+0xcb58, E+0xcb59, E+0xcb5a, E+0xcb5b, E+0xcb5c, E+0xcb5d, E+0xcb5e, E+0xcb5f, E+0xcb60, E+0xcb61, E+0xcb62, E+0xcb63): rows this monster moves in another state are not encoded, so the table is its resting state plus the breaks below.
-  em083_00: {
-    broken: { part1: [7] },
-    rules: [
-      { slot: 1, row: 1, broken: 'part1' },
     ],
   },
   // Valstrax (em086_00), uEm086_00: 0x109f2e8. Coverage 0x109f2e8 16/16.
