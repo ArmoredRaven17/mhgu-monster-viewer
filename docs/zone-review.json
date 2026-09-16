@@ -816,5 +816,18 @@
    "5": "Tail",
    "7": "Boulder"
   }
+ },
+ "em066_04": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Drilltusk is the same\" (as Tetsucabra). Same slots (0-5 and 7) on the same joints. Boulder (slot 7) holds two live held shapes where Tetsucabra has one: a capsule on joint 3 (radius 160, mask 0x2000, on for held kinds 1-2) and a wide side-to-side capsule (radius 190, mask 0x1000, on for kind 3), plus two larger never-counted twins. Tusks (slot 1) has four capsules, two per mask (0x8000, 0x4000).",
+  "slots": {
+   "0": "Head",
+   "1": "Tusks",
+   "2": "Body",
+   "3": "Front Legs",
+   "4": "Rear Legs",
+   "5": "Tail",
+   "7": "Boulder"
+  }
  }
 }
