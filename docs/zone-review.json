@@ -505,5 +505,19 @@
    "1": "Body",
    "2": "Tail"
   }
+ },
+ "em057_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render (Raven: \"Head, but I also see capsules in the body, look into this\"; slot 2 first given as Belly, then \"Update Belly to Back/Belly\"). The body shapes in Head are records 24 (capsule on joints 140-141, r100, under the tail base) and 25 (sphere on joint 0, r180, under the belly), and they are the only two with flag word 0x0100. The hit test 0x16bc54 never counts them for any attack type: types 8/69, 9 and 37-47 test only the low byte (0x03, 0x18, 0x04), which is 0 here, and every other type skips a flag with any of 0x0152. What reads them instead is not found (a scan for tests of bit 8 on +0xa/+0xb found none). Limbs (slot 5) is the upper legs, fore and hind (joints 7, 11, 15, 19); Claws (slot 3) the forearms to the paws; Legs (slot 4) the lower hind legs.",
+  "slots": {
+   "0": "Head",
+   "1": "Chest",
+   "2": "Back/Belly",
+   "3": "Claws",
+   "4": "Legs",
+   "5": "Limbs",
+   "6": "Tail",
+   "7": "Tail Tip"
+  }
  }
 }
