@@ -925,5 +925,19 @@
    "5": "Arms",
    "6": "Weak Point"
   }
+ },
+ "em020_04": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"RR is the same but with slot 3 for FL and slot 7 for Rl\" (as Shogun Ceanataur). Same slots on the same joints except the legs: Front Legs (slot 3, joints 5-10) and Rear Legs (slot 7, joints 13-18), each covering both sides. Shell (slot 2) has four spheres where Shogun's has six.",
+  "slots": {
+   "0": "Head",
+   "1": "Body",
+   "2": "Shell",
+   "3": "Front Legs",
+   "4": "Claws",
+   "5": "Arms",
+   "6": "Weak Point",
+   "7": "Rear Legs"
+  }
  }
 }
