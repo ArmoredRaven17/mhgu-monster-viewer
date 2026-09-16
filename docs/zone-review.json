@@ -734,5 +734,18 @@
    "5": "Tail",
    "6": "Rear Legs"
   }
+ },
+ "em047_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render (the list came unlabelled, straight after Royal Ludroth was put up next). Belly (slot 1) and Back (slot 3) are one capsule each on joints 1-140, Belly underneath and Back along the top; Mane (slot 2) is the neck (joints 100 and 101), rising above it.",
+  "slots": {
+   "0": "Head",
+   "1": "Belly",
+   "2": "Mane",
+   "3": "Back",
+   "4": "Front Legs",
+   "5": "Rear Legs",
+   "6": "Tail"
+  }
  }
 }
