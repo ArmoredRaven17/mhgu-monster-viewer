@@ -1165,5 +1165,166 @@
    "6": "Wing Flaps",
    "7": "Tail"
   }
+ },
+ "ems009_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems010_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems011_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems015_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems034_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems035_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems046_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems013_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems022_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems023_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems020_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems021_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems005_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems006_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems026_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems027_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems045_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems003_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems004_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems016_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems048_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems007_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
+ },
+ "ems008_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "slots": {
+   "0": "All"
+  }
  }
 }
