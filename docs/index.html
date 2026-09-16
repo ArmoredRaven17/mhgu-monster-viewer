@@ -4725,7 +4725,14 @@ function zoneStates(e, rec){
   // A level axis that OWNS rage (part-review `levels.rage`) hides the Enraged toggle and sets state.rage from
   // its rung, so offering Calm / Enraged here would be a second control for a state the rung already holds.
   // The table still follows state.rage; there is simply nothing to list.
-  if (axis === 'rage') return { axis, names: document.getElementById('monRageRow').hidden ? [] : ['Calm', 'Enraged'] };
+  // part-review's `rage` map names the two states where the monster's enrage means something else to a player.
+  // Raven, 2026-09-16: "The hit zone toggle to Yellow Slime/Red Slime" (Raging Brachydios).
+  if (axis === 'rage'){
+    if (document.getElementById('monRageRow').hidden) return { axis, names: [] };
+    const rv = (reviewFor(e.id) || {}).rage || {};
+    const nameOf = (k, d) => (rv[k] !== undefined && rv[k] !== null) ? String(rv[k]) : d;
+    return { axis, names: [nameOf('0', 'Calm'), nameOf('1', 'Enraged')] };
+  }
   return { axis: null, names: [] };
 }
 function zoneStateIndex(axis){
@@ -5652,6 +5659,13 @@ function applyRage(){
   // the checkbox is the control only where there is no ladder
   document.getElementById('monRageRow').hidden = !has || ladder.length > 0;
   document.getElementById('monRage').checked = !!state.rage;
+  // ...and its label is reviewable as the ladder's is: part-review `rage.name`. Raven, 2026-09-16: "Change Raging
+  // Brachy's Enraged Toggle to Red slime" -- its enrage is what turns the slime red (ROM_MEAT_SWITCH em063_05).
+  {
+    const rv = (reviewFor(state.id) || {}).rage || null;
+    const text = [...document.getElementById('monRageRow').childNodes].reverse().find(n => n.nodeType === 3);
+    if (text) text.textContent = (rv && rv.name) ? String(rv.name) : 'Enraged';
+  }
   // CHARGED IS ITS OWN STATE, not a deeper rage -- Khezu's Taiden branch (0xd1ec1c) hangs off a
   // different value of the same state byte as Angry, and running both at once put a 4Hz full-body
   // strobe over the rage veins. Offered only where the monster has somewhere to put it.
