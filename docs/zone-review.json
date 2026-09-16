@@ -1070,5 +1070,17 @@
    "5": "Rear Legs",
    "6": "Wings"
   }
+ },
+ "em050_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Head (slot 0) has a switched capsule on joint 3 (record 4, mask 0x8000); Wings (slot 3) also takes the middle of the back (joints 1 and 140); Tails (slot 5, as Raven wrote it) has a switched end capsule (record 3, mask 0x0001).",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Belly",
+   "3": "Wings",
+   "4": "Legs",
+   "5": "Tails"
+  }
  }
 }
