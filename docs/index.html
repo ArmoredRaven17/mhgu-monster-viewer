@@ -2673,7 +2673,7 @@ const STATE_DEFAULTS = { rage: false, charged: false, heated: true, rageLevel: 0
 const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: false,
                 anchor: true, groundLock: false, normalFlip: false, normalScale: 1,
                 // both OFF by default: see applyUndef and applyExtend
-                undef: false, extend: false, gap: false, proxy: false, ...STATE_DEFAULTS, axes: {}, rawParts: false, heat: '', heatTable: 0, deflectT: 'f25', deflectTier: 2,
+                undef: false, extend: false, gap: false, proxy: false, ...STATE_DEFAULTS, axes: {}, rawParts: false, heat: '', heatTable: 0, zoneMode: 0, deflectT: 'f25', deflectTier: 2,
                 zoneTab: 'raw',
                 zoneShow: true, zonePos: null,
                 // the additive effect meshes as a class; the ROM's part table already keeps
@@ -4709,10 +4709,15 @@ function zoneStates(e, rec){
   // (Gravios has none), and the break switches take their names from the Parts rows either way.
   if (!rec || rec.tables.length < 2 || !meatSwitchOf(e && e.id) || rawParts) return null;
   const axis = meatAxisOf(e.id);
+  // A STATE ONLY THE TABLE KNOWS: the entry names it (Najarala's Normal / Exhausted) and the dropdown is its control.
+  if (axis === 'mode') return { axis, names: meatSwitchOf(e.id).modes.map(String) };
+  // The level axis is named by whatever the Level control shows -- part-review's `levels`, or a ROM form machine's
+  // own rungs where the review names none (Alatreon's Form, render/monster.js ROM_FORM_CLIPS).
   if (axis === 'level'){
-    const lv = (reviewFor(e.id) || {}).levels;
-    if (!lv || !Array.isArray(lv.rungs) || lv.rungs.length < 2 || document.getElementById('monLevelRow').hidden) return null;
-    return { axis, names: lv.rungs.map(String) };
+    const row = document.getElementById('monLevelRow');
+    const names = [...document.getElementById('monLevel').options].map(o => o.textContent);
+    if (row.hidden || names.length < 2) return null;
+    return { axis, names };
   }
   // A table the enrage predicate moves: the two states are the Enraged toggle's, named as Rajang's rungs name
   // them in part-review.json. A table only a break moves has no state to list -- it follows the Parts panel.
@@ -4724,6 +4729,7 @@ function zoneStates(e, rec){
 }
 function zoneStateIndex(axis){
   if (axis === 'level') return state.level | 0;
+  if (axis === 'mode') return state.zoneMode | 0;
   if (axis === 'rage') return state.rage ? 1 : 0;
   return 0;
 }
@@ -4732,6 +4738,7 @@ function zoneTable(e, rec){
   if (st){
     const i = st.names.length ? Math.max(0, Math.min(st.names.length - 1, zoneStateIndex(st.axis))) : 0;
     const t = meatTableFor(e.id, rec.tables, { rung: state.level | 0, rage: !!state.rage, groups: state.groups,
+                                              mode: st.axis === 'mode' ? i : 0,
                                               broken: k => breakRowInfo(e, k).broken });
     if (t) return { rows: t.rows, from: t.from, names: st.names, axis: st.axis, index: i, label: st.names[i] || '' };
   }
@@ -5943,6 +5950,10 @@ document.getElementById('monHeatTable').onchange = async e => {
       rg.onchange({ target: rg });
       return;
     }
+    if (st.axis === 'mode'){
+      state.zoneMode = +e.target.value; await applyHeat(); applyGap(); saveState();
+      return;
+    }
   }
   state.heatTable = +e.target.value; await applyHeat(); applyGap(); saveState();
 };
@@ -6248,6 +6259,7 @@ function applySet(o){
   // the heat map is a damage-type NAME and a table index, not booleans
   if (typeof o.heat === 'string') state.heat = o.heat;
   if (typeof o.heatTable === 'number') state.heatTable = Math.max(0, o.heatTable | 0);
+  if (typeof o.zoneMode === 'number') state.zoneMode = Math.max(0, o.zoneMode | 0);
   // accept the pre-rename keys so a saved set from before the Bounce -> Hardness change still opens
   // ...and the pre-2026-09-08 floor keys, which named the floor after a selector value that was
   // never identified. normal/strict were 0.25/0.27 and map straight across.

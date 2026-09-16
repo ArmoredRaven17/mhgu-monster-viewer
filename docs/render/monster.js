@@ -3607,8 +3607,9 @@ export function hardnessLevel(hz, t, tier){
 // argument, so slot 7 need not read row 7. The monster's own code decides which slot takes which row, and
 // when. A state's table is therefore table 0 with the rows that state's rules switch in.
 //
-// A rule is { slot, row, rung: [cases], rage: bool, broken: 'key', intact: 'key' } -- every field optional but
-// slot and row. The first rule that holds for a slot wins, in the order the ROM tests them. `rung` is the case of
+// A rule is { slot, row, rung: [cases], rage: bool, mode: [indices], broken: 'key', intact: 'key' } -- every field
+// optional but slot and row. `mode` indexes the entry's own `modes`, a state the viewer has no other control for
+// (Najarala's Exhausted), which the Damage Table then offers itself. The first rule that holds for a slot wins, in the order the ROM tests them. `rung` is the case of
 // the state byte the monster's driver switches on, which is the level axis' rung index (part-review `levels`);
 // `rage` is the enrage predicate (0x81670); `broken`/`intact` name a key of `broken`, whose group sets are the
 // broken halves the monster's own parts driver draws for that break.
@@ -3644,6 +3645,59 @@ export const ROM_MEAT_SWITCH = {
       { slot: 3, row: 4, rung: [0, 1] }, { slot: 3, row: 1, rung: [4] },
       { slot: 7, row: 4, rung: [0, 1] }, { slot: 7, row: 1, rung: [4] },
       { slot: 6, row: 5, rung: [0, 1] }, { slot: 6, row: 2, rung: [4] },
+    ],
+  },
+  // RAJANG, uEm023_00: 0xde25e8 (both variants). ARMOR MODE -- the byte [[enemy+0xcac0]+4] set, and the monster not
+  // in action 0x218 -- puts slots 0-4 on their own table-1 rows; otherwise every slot is restored (0xde27d4). The parts
+  // driver 0xde2888 makes the same test to draw the pumped-up arm, g15 = part 13, over the ordinary g7 = part 12
+  // (0xde2ccc: byte 0 -> g7; set, and action 0x218 before frame 110 -> g7; else g15) -- which is what part-review's
+  // Armor Mode rung draws (Arms `12|12|13`). So the table follows that rung: index 2 of Calm / Enraged / Armor Mode.
+  em023_00: {
+    rules: [
+      { slot: 0, row: 0, rung: [2] },
+      { slot: 1, row: 1, rung: [2] },
+      { slot: 2, row: 2, rung: [2] },
+      { slot: 3, row: 3, rung: [2] },
+      { slot: 4, row: 4, rung: [2] },
+    ],
+  },
+  // FURIOUS RAJANG, the same routine; its review rungs are Enraged / Armor Mode, so Armor Mode is index 1.
+  em023_05: {
+    rules: [
+      { slot: 0, row: 0, rung: [1] },
+      { slot: 1, row: 1, rung: [1] },
+      { slot: 2, row: 2, rung: [1] },
+      { slot: 3, row: 3, rung: [1] },
+      { slot: 4, row: 4, rung: [1] },
+    ],
+  },
+  // ALATREON, uEm050_00: 0xeccd10. The status byte [[enemy+0x1428]+0x1bb] equal to 2 puts slots 0-5 on their
+  // own table-1 rows; any other value restores them (a latch at +0xcac0 makes it act once per change). The form
+  // machine ROM_FORM_CLIPS reads the same byte: 2 is the blue form, Thunder/Ice, rung 1 of the Form control.
+  em050_00: {
+    rules: [
+      { slot: 0, row: 0, rung: [1] },
+      { slot: 1, row: 1, rung: [1] },
+      { slot: 2, row: 2, rung: [1] },
+      { slot: 3, row: 3, rung: [1] },
+      { slot: 4, row: 4, rung: [1] },
+      { slot: 5, row: 5, rung: [1] },
+    ],
+  },
+  // NAJARALA, uEm068_00: 0xf87e70. EXHAUSTED -- the tired predicate 0x81614, status [[enemy+0x1428]+0x505] 2 or 3,
+  // the one Mizutsune's clip setter plays tired_Change on -- puts slots 0-6 on their own table-1 rows; otherwise
+  // every slot is restored. The viewer has no Exhausted control for Najarala, so the state is the Damage Table's
+  // own: `modes` names them (Raven's word for the state, from Mizutsune's Normal / Enraged / Exhausted).
+  em068_00: {
+    modes: ['Normal', 'Exhausted'],
+    rules: [
+      { slot: 0, row: 0, mode: [1] },
+      { slot: 1, row: 1, mode: [1] },
+      { slot: 2, row: 2, mode: [1] },
+      { slot: 3, row: 3, mode: [1] },
+      { slot: 4, row: 4, mode: [1] },
+      { slot: 5, row: 5, mode: [1] },
+      { slot: 6, row: 6, mode: [1] },
     ],
   },
   // ---- generated from the ROM sweep (build/hitzone-states) ----
@@ -4029,18 +4083,21 @@ export function meatTableFor(monId, tables, st){
     if (done.has(r.slot) || !tables[1][r.row]) continue;
     if (r.rung && r.rung.indexOf((st && st.rung) | 0) < 0) continue;
     if (r.rage !== undefined && !!r.rage !== !!(st && st.rage)) continue;
+    if (r.mode && r.mode.indexOf((st && st.mode) | 0) < 0) continue;
     if (r.broken && !broken(r.broken)) continue;
     if (r.intact && broken(r.intact)) continue;
     rows[r.slot] = tables[1][r.row]; from[r.slot] = [1, r.row]; done.add(r.slot);
   }
   return { rows, from };
 }
-// WHICH CONTROL THE STATES BELONG TO: the level axis where the rules test a rung, the Enraged toggle where they
-// test rage, and neither where a break is the only thing that moves a row -- then the table simply follows the
-// Parts panel and there is nothing to list.
+// WHICH CONTROL THE STATES BELONG TO: the entry's own `modes` where it names them (the Damage Table is then the
+// control), the level axis where the rules test a rung, the Enraged toggle where they test rage, and neither
+// where a break is the only thing that moves a row -- then the table simply follows the Parts panel and there is
+// nothing to list.
 export function meatAxisOf(monId){
   const sw = meatSwitchOf(monId);
   if (!sw) return null;
+  if (Array.isArray(sw.modes) && sw.modes.length > 1) return 'mode';
   if (sw.rules.some(r => r.rung)) return 'level';
   if (sw.rules.some(r => r.rage !== undefined)) return 'rage';
   return null;
