@@ -1044,5 +1044,18 @@
    "6": "Rear Legs",
    "7": "Wings"
   }
+ },
+ "em025_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Head/Horn (slot 0) is five shapes on joints 3, 4 and 150, one switched (record 2, mask 0x0002). Belly (slot 1) and Back (slot 2) are the underside and top of the neck and body. Tail (slot 6) has a switched end sphere (record 36, mask 0x0001).",
+  "slots": {
+   "0": "Head/Horn",
+   "1": "Belly",
+   "2": "Back",
+   "3": "Front Legs",
+   "4": "Rear Legs",
+   "5": "Wings",
+   "6": "Tail"
+  }
  }
 }
