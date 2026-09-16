@@ -1263,7 +1263,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          enableEffectMounts, effectMountsEnabled, effectMountsFor, effectMountsLive,
          setEffectRage, effectAutoOnRage, effectRuntimeInstance,
          clipEffectsFor, clipEffectMonsters, setClipEffectMonsters,
-         SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS, meatSwitchOf, meatTableFor, meatAxisOf, meatBreakKeys,
+         SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS, meatSwitchOf, meatTableFor, meatAxisOf, meatBreakKeys, meatModeForMotion,
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts, ROM_SPAWN_CLIP,
          ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels, levelClipFor, setClipFor,
@@ -5843,6 +5843,7 @@ async function play(){
     return;
   }
   pose.loopMode = () => (state.loop ? 'repeat' : 'once');
+  followMotionMode(e, l, c);
   // 18 monsters play another monster's motion list (Rathalos uses Rathian's, Genprey uses
   // Velociprey's). Those files name their tracks after the OWNER's bones, so the clip is
   // retargeted onto this model by global bone id first -- see clipFor.
@@ -5857,6 +5858,20 @@ async function play(){
   stepAttached();
   // every clip, list and lock change comes through here, and the severed pieces stand on the new floor
   placeParts();
+}
+// A CLIP CAN START A HIT-ZONE STATE. Khezu's table follows the category its actions set, and each action starts its
+// motions in one category (ROM_MEAT_SWITCH em003_00 `motionModes`), so the Damage Table takes the state of the clip
+// that plays -- a full animation by its first piece. A clip the entry does not list leaves the state alone, and a
+// pick in the dropdown holds until the next clip. Raven, 2026-09-16: "We could also see if the states change with
+// certain animations."
+function followMotionMode(e, l, c){
+  const first = c.pieces && c.pieces[0];
+  const m = /^Motion\[(\d+)\]/.exec(first ? first.clip : c.clip);
+  if (!m) return;
+  const mode = meatModeForMotion(e.id, first ? first.list.id : l.id, +m[1]);
+  if (mode === null || mode === (state.zoneMode | 0)) return;
+  state.zoneMode = mode;
+  applyHeat();
 }
 // the roots the BODY's driver moves -- never an attached second body, which has a driver of its own
 function poseRoots(){ return Object.entries(mounted).filter(([k]) => !isAttached(k)).map(([, g]) => g); }

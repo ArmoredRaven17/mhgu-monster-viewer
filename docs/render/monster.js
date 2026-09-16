@@ -3855,6 +3855,41 @@ export const ROM_MEAT_SWITCH = {
       { slot: 7, row: 7, broken: 'feelersOut' },
     ],
   },
+  // KHEZU, uEm003_00: 0xd1f880 switches on the ACTION CATEGORY every action sets through 0xbc7f4, stored at
+  // [[enemy+0x1428]+0x1ba]: 5 or 6 put slots 0-5 on their own table-1 rows, 0 or 1 restore them, 2-4 leave them.
+  // It is NOT the Discharge state -- the eight attacks that set the charge flag [[enemy+0xcac0]+0x20] run at
+  // category 0 but one. Raven, 2026-09-16: "Khezu is capable of flying, however it doesn't really fly during
+  // attacks. We can assume these are meant for ceiling actions. We could also see if the states change with
+  // certain animations." They do: every action of each group dispatcher (Fw 0xd10648, Action 0xd110c0, Move
+  // 0xd11e90, Fly 0xd15870, Attack 0xd1c920, Catch 0xd1d9bc, 0xd1f658), run under Unicorn with the core motion
+  // setter 0xafce8 logged, starts its motions in ONE category -- no motion is ever started in both halves. So
+  // `motionModes` below maps a clip (list, Motion[N]) to the state it starts; a clip not listed leaves the state
+  // where it was, as a category 2-4 action does in the game. The grab (L2 M73, the Catch group) is category 6 too,
+  // so "Ceiling" covers it; the name is Raven's for the Fly group.
+  em003_00: {
+    modes: ['Normal', 'Ceiling'],
+    motionModes: {
+      1: [
+        'L0 M26', 'L0 M54', 'L2 M7', 'L2 M8', 'L2 M9', 'L2 M28', 'L2 M33', 'L2 M36', 'L2 M51', 'L2 M55', 'L2 M57',
+        'L2 M61', 'L2 M71', 'L2 M73', 'L2 M75', 'L3 M36', 'L5 M1', 'L5 M4', 'L5 M5', 'L5 M6', 'L5 M7', 'L5 M36',
+        'L5 M37', 'L5 M38', 'L5 M40',
+      ],
+      0: [
+        'L0 M1', 'L0 M2', 'L0 M6', 'L0 M7', 'L0 M15', 'L0 M18', 'L0 M20', 'L0 M21', 'L0 M30', 'L0 M32', 'L0 M36',
+        'L0 M37', 'L0 M38', 'L0 M46', 'L0 M57', 'L1 M3', 'L2 M1', 'L2 M2', 'L2 M3', 'L2 M4', 'L2 M10', 'L2 M11',
+        'L2 M12', 'L2 M37', 'L2 M41', 'L2 M42', 'L2 M64', 'L2 M74', 'L2 M82', 'L2 M84', 'L3 M17', 'L3 M27', 'L4 M1',
+        'L5 M2',
+      ],
+    },
+    rules: [
+      { slot: 0, row: 0, mode: [1] },
+      { slot: 1, row: 1, mode: [1] },
+      { slot: 2, row: 2, mode: [1] },
+      { slot: 3, row: 3, mode: [1] },
+      { slot: 4, row: 4, mode: [1] },
+      { slot: 5, row: 5, mode: [1] },
+    ],
+  },
   // ---- generated from the ROM sweep (build/hitzone-states) ----
   // Basarios (em004_00), uEm004_00: 0xd2329c. Coverage 0xd2329c 1/7.
   em004_00: {
@@ -4212,6 +4247,15 @@ export function meatAxisOf(monId){
   if (Array.isArray(sw.modes) && sw.modes.length > 1) return 'mode';
   if (sw.rules.some(r => r.rung)) return 'level';
   if (sw.rules.some(r => r.rage !== undefined)) return 'rage';
+  return null;
+}
+// The state a clip STARTS, where the entry maps clips to its `modes` (Khezu): the index, or null when the clip
+// is not listed and the state should stay where it is. `list` is the viewer's list id, `motion` the N of Motion[N].
+export function meatModeForMotion(monId, list, motion){
+  const sw = meatSwitchOf(monId);
+  if (!sw || !sw.motionModes) return null;
+  const key = 'L' + list + ' M' + motion;
+  for (const [mode, clips] of Object.entries(sw.motionModes)) if (clips.indexOf(key) >= 0) return +mode;
   return null;
 }
 // Every break key a rule tests, so the panel lists only breaks that move a row.
