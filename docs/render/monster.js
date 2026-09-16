@@ -3607,7 +3607,8 @@ export function hardnessLevel(hz, t, tier){
 // argument, so slot 7 need not read row 7. The monster's own code decides which slot takes which row, and
 // when. A state's table is therefore table 0 with the rows that state's rules switch in.
 //
-// A rule is { slot, row, rung: [cases], rage: bool, mode: [indices], broken: 'key', intact: 'key' } -- every field
+// A rule is { slot, row, rung: [cases], rage: bool, mode: [indices], broken: 'key' | [keys], intact: 'key' | [keys] }
+// -- `broken` needs every key it names, `intact` none of them -- and every field
 // optional but slot and row. `mode` indexes the entry's own `modes`, a state the viewer has no other control for
 // (Najarala's Exhausted), which the Damage Table then offers itself. The first rule that holds for a slot wins, in the order the ROM tests them. `rung` is the case of
 // the state byte the monster's driver switches on, which is the level axis' rung index (part-review `levels`);
