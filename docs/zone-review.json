@@ -1057,5 +1057,18 @@
    "5": "Wings",
    "6": "Tail"
   }
+ },
+ "em027_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Rear Legs (slot 5) has sixteen shapes: eight larger spheres on joints 14-21 (records 0-7) carry the conditional flag 0x8000 and group mask 0x8000, so they count only during the timed state (Teostra's setter 0xe1a530). Tail (slot 3) has two switched end shapes (mask 0x0001).",
+  "slots": {
+   "0": "Head",
+   "1": "Belly",
+   "2": "Back",
+   "3": "Tail",
+   "4": "Front Legs",
+   "5": "Rear Legs",
+   "6": "Wings"
+  }
  }
 }
