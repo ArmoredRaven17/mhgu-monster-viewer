@@ -721,5 +721,18 @@
    "5": "Fins",
    "6": "Legs"
   }
+ },
+ "em046_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render (the list came unlabelled, straight after Lagiacrus was put up next). Shockers (slot 3) is one shape high above the body on joint 1; Chest (slot 1) is the lower neck (joints 100 and 101).",
+  "slots": {
+   "0": "Head/Neck",
+   "1": "Chest",
+   "2": "Body",
+   "3": "Shockers",
+   "4": "Front Legs",
+   "5": "Tail",
+   "6": "Rear Legs"
+  }
  }
 }
