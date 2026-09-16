@@ -135,6 +135,20 @@
    "7": "Tail Tip"
   }
  },
+ "em007_04": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Horns (slot 0) is its six horn capsules on joint 3; Head (slot 1) holds the head spheres, the spheres on joint 103 and the sphere on joint 101, which Diablos splits between Head and Neck. Wings (slot 2) has the same shapes as Diablos' Wings/Back (the back sphere and capsule with the wing arms). Several shapes are listed twice, the second copy larger (head, joint 103, belly, tail).",
+  "slots": {
+   "0": "Horns",
+   "1": "Head",
+   "2": "Wings",
+   "3": "Belly",
+   "4": "Wing Flaps",
+   "5": "Legs",
+   "6": "Tail",
+   "7": "Tail Tip"
+  }
+ },
  "em037_04": {
   "reviewed": "2026-09-15",
   "note": "Named from the render. Raven asked to verify slot 6: \"it seems off to have a sphere on the arm like that for a tail region\". Verified from the raw .bdd (build/frag copy byte-identical to the extracted ROM file): record 15, a sphere on joint 5 (radius 95 at 100, 0, 20), carries damage row 6 here and row 4 on Nargacuga. Its mirror on the other arm, record 21 on joint 9 (radius 95 at -100, 0, 20), is row 4 on both. Both spheres keep part record 4, the arm capsules' part, and the u16 at +10 is 512 on both, so the one-sided change is the only difference. Silverwind also enlarges two tail capsules (records 13 and 14).",
