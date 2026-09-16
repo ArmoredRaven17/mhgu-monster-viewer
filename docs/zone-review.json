@@ -630,6 +630,19 @@
    "4": "Legs"
   }
  },
+ "em062_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render; slot 5 after the read below (Raven: \"Is this the Rolling Capsule?\", then \"Call it Rolling then\"). Rolling (slot 5) is one sphere on joint 0, radius 200, group mask 0x4000; its row is cut/impact 75, shot 10, every element, stun and exhaust 0. 0xf22bd0 (in the class named uEm060_00, run only for enemy type 62) sets group bit 14 every frame, so the sphere is off, and clears it during given moves: motions 0x215 and 0x218, which are list 2 Motion[21] and Motion[24] (both short loops) if monster motion banks match the viewer's lists; two sub-actions under a timing check; or while [enemy+0xcb4d] is 1 or 2. Read in build-notes/hitzone-capsules.md, \"Who sets the group bits\". Back (slot 6) is one sphere on top of the body at joint 2.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Arms",
+   "3": "Back/Rear",
+   "4": "Legs",
+   "5": "Rolling",
+   "6": "Back"
+  }
+ },
  "em065_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render.",
