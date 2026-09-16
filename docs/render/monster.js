@@ -3613,8 +3613,7 @@ export function hardnessLevel(hz, t, tier){
 // (Najarala's Exhausted), which the Damage Table then offers itself. The first rule that holds for a slot wins, in the order the ROM tests them. `rung` is the case of
 // the state byte the monster's driver switches on, which is the level axis' rung index (part-review `levels`);
 // `rage` is the enrage predicate (0x81670); `broken`/`intact` name a key of `broken`, whose group sets are the
-// broken halves the monster's own parts driver draws for that break. `flag` names a key of the entry's `flags`: a
-// state no Parts row draws (Raging Brachydios' red slime), so the Hit Zones panel holds it as a switch of its own.
+// broken halves the monster's own parts driver draws for that break.
 //
 // Read out of the ROM by running each monster's routine under Unicorn against a stand-in enemy
 // (build/hitzone-states: meatemu.py harness, explore.py sweep, partsmap.py for the break -> group sets,
@@ -3972,36 +3971,32 @@ export const ROM_MEAT_SWITCH = {
       { slot: 5, row: 5, broken: 'hornGlow' },
     ],
   },
-  // RAGING BRACHYDIOS, uEm063_00 variant 5: 0xf3588c. Each of the four slime layers -- the materials with MRL ids
-  // 51..54, arm_l / arm_r / body / tail, cached as slots 0..3 by the spawn setup (00f353c0) -- has a colour state at
-  // [enemy+0xcacc]+0x54+8k (0 Yellow, 1 Yellow_to_Red, 2 Red, 3 Red_to_Yellow; the names are the table at 0x017d9750),
-  // and the routine puts a layer's rows on table 1 while that layer is Red and back on table 0 in any other state:
-  // arm_l -> slot 3, arm_r -> slot 7, body -> slots 0 and 1, tail -> slots 5 and 6. Raven, 2026-09-16: "Raging
-  // Brachydios next, check if it's linked to its slime" -- it is, one part at a time, and the Red rows are the
-  // HARDER ones (cut, impact and shot only). The layers move apart: each has a 2700-tick countdown that flips it
-  // between Yellow and Red (0xf36100), a hit on a Yellow part adds 180 ticks to it (0xf46f34), a hit on a Red part
-  // starts that part's eruption (0xf36984) and the explosion sets its countdown to -1, sending it back to Yellow
-  // (0xf46234). Move action 6 turns all four Red (0xf37b64), and all four go back while vtable +0x3f4 holds (0x7fed4:
-  // action group 0xb, 0xc or 0xe). No Parts row draws the colour -- ROM_SPAWN_CLIP keeps the model Yellow -- so each
-  // part is a `flags` switch the panel holds itself.
-  //   The body layer is the HEAD's slime: a hit on dtt part 0, the Horn and Head shapes, erupts it. The Pounders row
-  // follows the LEFT arm alone: both arms' shapes read slot 3 (bdd record+6), and the right arm's Red moves slot 7,
-  // which no shape on this model reads (its rows copy slot 3's in both blocks), so the right arm has no switch.
+  // RAGING BRACHYDIOS, uEm063_00 variant 5: 0xf3588c. Each of the four slime layers -- MRL ids 51..54, arm_l / arm_r /
+  // body (the head's slime: a hit on dtt part 0, the Horn and Head shapes, erupts it) / tail, cached as slots 0..3 by the
+  // spawn setup (00f353c0) -- has a colour state at [enemy+0xcacc]+0x54+8k (0 Yellow, 1 Yellow_to_Red, 2 Red,
+  // 3 Red_to_Yellow; the names are the table at 0x017d9750), and the routine puts a layer's rows on table 1 while it is
+  // Red: arm_l -> slot 3, arm_r -> slot 7, body -> slots 0 and 1, tail -> slots 5 and 6. The Red rows are the HARDER
+  // ones (cut, impact and shot only).
+  //   WHAT TURNS IT RED IS ENRAGING. Raven, 2026-09-16: "Red Slime would be tied to the Enrage state", "verify this in
+  // the ROM". When the anger points fill (0xbcb48 sets reaction bit 4), the reaction handler (0x7f010) points the AI at
+  // group 6 of the monster's command table and sets rage. Raging's group 6 (em063_00_cmdtbl.emc) requests ActionMove 6
+  // -- `00 01 06`, opcode 0 being the interpreter's action request (0x82ec4 case 0 -> 0x754b8), and the only request
+  // for that move in the table -- and the move (0xf37b64, List 0 Motion[15]) turns all four layers Red at frame 158.
+  // So the table follows the Enraged toggle, with the whole body Red. Raven: "To keep our app UI simple, we can assume
+  // red slime covers his whole body". What that leaves out: a hunter's hit on a Red part erupts it and sends it back to
+  // Yellow (0xf46f34 -> 0xf36984 -> 0xf46234; a hit on a Yellow part adds 180 ticks to its countdown instead), every
+  // layer also flips on its own 2700-tick countdown whether enraged or not (0xf36100), all four go back to Yellow in
+  // action groups 0xb, 0xc and 0xe (vtable +0x3f4 = 0x7fed4), and calming down changes no layer.
+  //   Both arms' shapes read slot 3 (bdd record+6), so in the game the Pounders row follows the left arm; slot 7, the
+  // right arm's, is read by no shape on this model.
   em063_05: {
-    flags: ['redHead', 'redLeftArm', 'redTail'],
-    sections: { redHead: 'Red Slime', redLeftArm: 'Red Slime', redTail: 'Red Slime' },
-    labels: { redHead: 'Head', redLeftArm: 'Left Pounder', redTail: 'Tail' },
-    tips: {
-      redHead: "The head's slime is Red: the Horn and Head rows.",
-      redLeftArm: "The left arm's slime is Red. Both Pounders take this row; the right arm's Red moves a row no hit shape reads.",
-      redTail: "The tail's slime is Red: the Tail and Tail Tip rows.",
-    },
     rules: [
-      { slot: 0, row: 0, flag: 'redHead' },
-      { slot: 1, row: 1, flag: 'redHead' },
-      { slot: 3, row: 3, flag: 'redLeftArm' },
-      { slot: 5, row: 5, flag: 'redTail' },
-      { slot: 6, row: 6, flag: 'redTail' },
+      { slot: 0, row: 0, rage: true },
+      { slot: 1, row: 1, rage: true },
+      { slot: 3, row: 3, rage: true },
+      { slot: 5, row: 5, rage: true },
+      { slot: 6, row: 6, rage: true },
+      { slot: 7, row: 7, rage: true },
     ],
   },
   // ---- generated from the ROM sweep (build/hitzone-states) ----
@@ -4368,7 +4363,6 @@ export function meatTableFor(monId, tables, st){
     if (r.mode && r.mode.indexOf((st && st.mode) | 0) < 0) continue;
     if (r.broken && ![].concat(r.broken).every(broken)) continue;
     if (r.intact && [].concat(r.intact).some(broken)) continue;
-    if (r.flag && !(st && st.flag && st.flag(r.flag))) continue;
     rows[r.slot] = tables[1][r.row]; from[r.slot] = [1, r.row]; done.add(r.slot);
   }
   return { rows, from };
@@ -4405,13 +4399,6 @@ export function meatBreakKeys(monId){
   const used = new Set();
   for (const r of sw.rules){ [].concat(r.broken || [], r.intact || []).forEach(k => used.add(k)); }
   return Object.keys(sw.broken).filter(k => used.has(k));
-}
-// Every held switch (`flags`) a rule tests, in the entry's order.
-export function meatFlagKeys(monId){
-  const sw = meatSwitchOf(monId);
-  if (!sw || !Array.isArray(sw.flags)) return [];
-  const used = new Set(sw.rules.map(r => r.flag).filter(Boolean));
-  return sw.flags.filter(k => used.has(k));
 }
 // value: slot -> number, scaled by max through the ramp. colorBySlot: slot -> [r,g,b], used
 // literally and taking precedence. A slot in neither comes out at the ramp's floor.
