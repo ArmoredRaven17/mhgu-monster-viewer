@@ -3742,6 +3742,26 @@ export const ROM_MEAT_SWITCH = {
       { slot: 6, row: 6, rung: [1] },
     ],
   },
+  // BARROTH, uEm044_00: 0xe8c914. Its MUD is a bit per part in [enemy+0xcada], set when that part's mud is gone:
+  // a clear bit k puts slot k on its own table-1 row, a set bit restores it. The parts driver 0xe8caa8 reads the
+  // same bits to draw the mud -- clear draws it, set draws the empty partner group:
+  //     bit 0 head g9 (part 2)    bit 1 torso g13 (part 8)     bit 2 hands g11 (part 5)
+  //     bit 3 right leg g17 (10)  bit 4 left leg g15 (part 9)  bit 5 tail g19 (part 11)
+  // So a muddy part takes its table-1 row. A `broken` key here is any Parts-row state the table reads, not only a
+  // break; `sections` puts these under their own heading in the Hit Zones panel. Raven, 2026-09-16: "Barroth, we
+  // know what parts turn on when the mud is applied."
+  em044_00: {
+    broken: { mudHead: [9], mudTorso: [13], mudHands: [11], mudRightLeg: [17], mudLeftLeg: [15], mudTail: [19] },
+    sections: { mudHead: 'Mud', mudTorso: 'Mud', mudHands: 'Mud', mudRightLeg: 'Mud', mudLeftLeg: 'Mud', mudTail: 'Mud' },
+    rules: [
+      { slot: 0, row: 0, broken: 'mudHead' },
+      { slot: 1, row: 1, broken: 'mudTorso' },
+      { slot: 2, row: 2, broken: 'mudHands' },
+      { slot: 3, row: 3, broken: 'mudRightLeg' },
+      { slot: 4, row: 4, broken: 'mudLeftLeg' },
+      { slot: 5, row: 5, broken: 'mudTail' },
+    ],
+  },
   // ---- generated from the ROM sweep (build/hitzone-states) ----
   // Basarios (em004_00), uEm004_00: 0xd2329c. Coverage 0xd2329c 1/7.
   em004_00: {

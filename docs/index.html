@@ -399,7 +399,9 @@ header #bar .btn.tiny{margin-right:0}
 #monRageLevelRow,#monLevelRow,#monVariantRow,#monSizeRow{gap:5px;margin-top:7px}
 /* The Hit Zones panel's Broken Parts: a caption the size and colour of a .field label, over the state switches' rows. */
 #monZoneBreakRow{display:flex;flex-direction:column;gap:2px}
-#monZoneBreakRow > span{font-size:12px;color:var(--text-dim)}
+#monZoneBreaks{display:flex;flex-direction:column;gap:2px}
+#monZoneBreaks > .zone-sec{font-size:12px;color:var(--text-dim)}
+#monZoneBreaks > .zone-sec + .zone-sec, #monZoneBreaks > label + .zone-sec{margin-top:6px}
 /* THE ARMOR VIEWER'S LIGHTING, CAMERA AND EFFECTS PANELS, 2026-09-13: a row of preset buttons, and
    the small heads between an effects panel's groups. Its rules, verbatim. */
 .light-row{display:flex;gap:4px;flex-wrap:wrap}
@@ -4808,7 +4810,10 @@ function zoneBreakParts(e){
       const lab = zoneBreakField(r.row).querySelector('label');
       return lab && lab.firstChild ? lab.firstChild.textContent.trim() : r.row;
     };
-    out.push({ key, rows, groups: info.groups, name: rows.map(nameOf).join(' & '), broken: info.broken });
+    // A key is any Parts-row state the table reads -- a break, or Barroth's mud -- and `sections` says which
+    // heading it sits under; a break needs no entry.
+    const section = (sw.sections && sw.sections[key]) || 'Broken Parts';
+    out.push({ key, rows, groups: info.groups, section, name: rows.map(nameOf).join(' & '), broken: info.broken });
   }
   return out;
 }
@@ -4817,18 +4822,25 @@ function paintZoneBreaks(e, zt){
   document.getElementById('monZoneBreakRow').hidden = !parts.length;
   const box = document.getElementById('monZoneBreaks');
   box.textContent = '';
-  for (const p of parts){
-    const lab = document.createElement('label');
-    lab.className = 'chk switch';
-    lab.title = 'The same choice as the ' + p.name + ' row in the Parts panel';
-    const inp = document.createElement('input');
-    inp.type = 'checkbox';
-    inp.checked = p.broken;
-    inp.onchange = () => setPartBroken(p, inp.checked);
-    const tog = document.createElement('span');
-    tog.className = 'toggle';
-    lab.append(inp, tog, document.createTextNode(p.name));
-    box.appendChild(lab);
+  // one heading per section, in the order the entry's keys first reach it
+  for (const sec of [...new Set(parts.map(p => p.section))]){
+    const head = document.createElement('span');
+    head.className = 'zone-sec';
+    head.textContent = sec;
+    box.appendChild(head);
+    for (const p of parts.filter(x => x.section === sec)){
+      const lab = document.createElement('label');
+      lab.className = 'chk switch';
+      lab.title = 'The same choice as the ' + p.name + ' row in the Parts panel';
+      const inp = document.createElement('input');
+      inp.type = 'checkbox';
+      inp.checked = p.broken;
+      inp.onchange = () => setPartBroken(p, inp.checked);
+      const tog = document.createElement('span');
+      tog.className = 'toggle';
+      lab.append(inp, tog, document.createTextNode(p.name));
+      box.appendChild(lab);
+    }
   }
 }
 // The rows are looked up again at the flip: a rung change rebuilds the Parts panel, and a held dropdown would be gone.
@@ -6643,6 +6655,7 @@ window.__view.zoneTable = () => {
   return { id: e.id, states: !!zt.from, names: zt.names, index: zt.index, label: zt.label,
            dropdown: document.getElementById('monHeatTable').value, title: document.getElementById('zoneTitle').textContent,
            breaks: [...document.querySelectorAll('#monZoneBreaks label')].map(l => l.textContent + (l.querySelector('input').checked ? ': on' : ': off')),
+           sections: [...document.querySelectorAll('#monZoneBreaks .zone-sec')].map(x => x.textContent),
            slots: zoneSlots(rec).map(sl => ({ slot: sl, name: named[sl] || null, from: zt.from ? zt.from[sl] : [zt.index, sl],
                                               row: zt.rows[sl] })) };
 };
