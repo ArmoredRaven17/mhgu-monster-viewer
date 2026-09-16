@@ -1030,5 +1030,19 @@
    "6": "Hips",
    "7": "Wings"
   }
+ },
+ "em024_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Head (slot 0) also lists record 0, a radius-300 sphere on joint 2 over the front of the body, with the conditional flag 0x8000 (counted only while the timed state 0xc02e4 sets is live and the attack has [attack+0x30] & 4; Kushala's setter is 0xdfc814); Raven asked for a note on whether that capsule is right. Tail (slot 4) has two switched end shapes (mask 0x0001).",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Body",
+   "3": "Back",
+   "4": "Tail",
+   "5": "Front Legs",
+   "6": "Rear Legs",
+   "7": "Wings"
+  }
  }
 }
