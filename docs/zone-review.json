@@ -403,6 +403,20 @@
    "7": "Tail Blade"
   }
  },
+ "em080_04": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Hellblade is the same as Glavenus\". Its capsule rows are identical to Glavenus'.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Back",
+   "3": "Body",
+   "4": "Arms",
+   "5": "Legs",
+   "6": "Tail",
+   "7": "Tail Blade"
+  }
+ },
  "em008_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Back (slot 2) and Belly (slot 3) share joints 2 and 140, Back above the body and reaching up to joint 100, Belly below.",
