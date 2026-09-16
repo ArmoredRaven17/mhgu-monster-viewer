@@ -472,5 +472,17 @@
    "0": "Head",
    "1": "Body"
   }
+ },
+ "em079_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Wing Claws (slot 3) is two one-joint capsules at the far ends of the wings (joints 132 and 133), past Wings (slot 2). Tail (slot 5) is one capsule (joints 140-141); Nightcloak Malfestio's is shorter and has four more capsules fanning out from joint 141.",
+  "slots": {
+   "0": "Head",
+   "1": "Body",
+   "2": "Wings",
+   "3": "Wing Claws",
+   "4": "Legs",
+   "5": "Tail"
+  }
  }
 }
