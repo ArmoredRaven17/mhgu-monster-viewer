@@ -1,5 +1,18 @@
 {
  "_about": "Hit zone slot NAMES, dictated by Raven on review -- one monster at a time, reading each row's capsules on the render (a row's name draws its rBodyData shapes, see pickZone in index.html). The ROM ships no zone-name table, so a person saying what a slot is is the only source there is. Keyed by monster id, then by damage-table slot (the row index hitzones.json's tables and capsules use). These are the only slot names the chart shows (since 2026-09-16 hitzones.json's community names are not shown); a slot not named here reads Slot N. `reviewed` is the date the names were given.",
+ "em001_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Rathian, same as Gold but without the final slot\". Slots 0-6 sit on the same joints as Gold Rathian's; Rathian keeps the tail's last capsule (joint 144) in its Tail row, where Gold splits it off as Tail Tip.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Back",
+   "3": "Belly",
+   "4": "Tail",
+   "5": "Wings",
+   "6": "Legs"
+  }
+ },
  "em001_02": {
   "reviewed": "2026-09-15",
   "slots": {
