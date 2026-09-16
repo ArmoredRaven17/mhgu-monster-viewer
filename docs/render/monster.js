@@ -3437,11 +3437,16 @@ export function hardnessLevel(hz, t, tier){
 // argument, so slot 7 need not read row 7. The monster's own code decides which slot takes which row, and
 // when. A state's table is therefore table 0 with the rows that state's rules switch in.
 //
-// A rule is [slot, table-1 row, rungs (null = any), part]: `part` names a key of `broken` that must be broken,
-// or '!key' for intact. The first rule that holds for a slot wins, in the order the code tests them. A rung is
-// the case of the charge byte each region's driver switches on (+0xcb01 head, +0xcb02 wings, +0xcb03 tail),
-// which is the level axis' rung index (part-review `levels`); the viewer's one Charge control moves all three
-// regions together, as it already does for the parts.
+// A rule is { slot, row, rung: [cases], rage: bool, broken: 'key', intact: 'key' } -- every field optional but
+// slot and row. The first rule that holds for a slot wins, in the order the ROM tests them. `rung` is the case of
+// the state byte the monster's driver switches on, which is the level axis' rung index (part-review `levels`);
+// `rage` is the enrage predicate (0x81670); `broken`/`intact` name a key of `broken`, whose group sets are the
+// broken halves the monster's own parts driver draws for that break.
+//
+// Read out of the ROM by running each monster's routine under Unicorn against a stand-in enemy
+// (build/hitzone-states: meatemu.py harness, explore.py sweep, partsmap.py for the break -> group sets,
+// gatecheck.py for which variant a routine belongs to). The harness reproduces this file's Astalos entry, which
+// was decoded by hand first, on all 13 of its checks.
 export const ROM_MEAT_SWITCH = {
   // ASTALOS, uEm081_00 variant 0: 0x101a71c, entered from 0x1018558 when [enemy+0xb5f5] is 0. A break is the
   // parts driver's own test (0x1018db8: the part's counter 0x9d36c against its rank-picked threshold, and bit
@@ -3449,15 +3454,15 @@ export const ROM_MEAT_SWITCH = {
   em081_00: {
     broken: { head: [4, 6, 8], back: [10], leftWing: [15, 17, 19], rightWing: [21, 23, 25], tail: [27, 29, 31] },
     rules: [
-      [0, 1, [2]],          [0, 0, [0, 1], 'head'],
-      [2, 2, null, 'back'],
-      [3, 4, [2]],          [3, 3, [0, 1], 'leftWing'],
-      [7, 4, [2]],          [7, 3, [0, 1], 'rightWing'],
-      [6, 7, [2]],          [6, 6, [0, 1], 'tail'],
+      { slot: 0, row: 1, rung: [2] },          { slot: 0, row: 0, rung: [0, 1], broken: 'head' },
+      { slot: 2, row: 2, broken: 'back' },
+      { slot: 3, row: 4, rung: [2] },          { slot: 3, row: 3, rung: [0, 1], broken: 'leftWing' },
+      { slot: 7, row: 4, rung: [2] },          { slot: 7, row: 3, rung: [0, 1], broken: 'rightWing' },
+      { slot: 6, row: 7, rung: [2] },          { slot: 6, row: 6, rung: [0, 1], broken: 'tail' },
       // Fully Charged with the tail whole takes slot 5 as well. Nothing in this class puts slot 5 back on
       // table 0 afterwards -- only the whole reset 0xbab38, whose caller 0xa4b90 is not traced -- so in the
       // game it may keep this row after a full charge ends. A per-state table cannot show that history.
-      [5, 7, [2], '!tail'],
+      { slot: 5, row: 7, rung: [2], intact: 'tail' },
     ],
     // row 5 is never switched in
   },
@@ -3465,33 +3470,366 @@ export const ROM_MEAT_SWITCH = {
   // Overcharging (cases 2 and 3) are table 0; rows 6 and 7 are never switched in.
   em081_04: {
     rules: [
-      [0, 3, [0, 1]], [0, 0, [4]],
-      [3, 4, [0, 1]], [3, 1, [4]],
-      [7, 4, [0, 1]], [7, 1, [4]],
-      [6, 5, [0, 1]], [6, 2, [4]],
+      { slot: 0, row: 3, rung: [0, 1] }, { slot: 0, row: 0, rung: [4] },
+      { slot: 3, row: 4, rung: [0, 1] }, { slot: 3, row: 1, rung: [4] },
+      { slot: 7, row: 4, rung: [0, 1] }, { slot: 7, row: 1, rung: [4] },
+      { slot: 6, row: 5, rung: [0, 1] }, { slot: 6, row: 2, rung: [4] },
+    ],
+  },
+  // ---- generated from the ROM sweep (build/hitzone-states) ----
+  // Basarios (em004_00), uEm004_00: 0xd2329c. Coverage 0xd2329c 1/7.
+  em004_00: {
+    broken: { part6: [4] },
+    rules: [
+      { slot: 3, row: 3, broken: 'part6' },
+    ],
+  },
+  // Gravios (em005_00), uEm004_00: 0xd2329c. Coverage 0xd2329c 7/7.
+  em005_00: {
+    broken: { part0: [18], part1: [6], part2: [8], part3: [14], part4: [16], part5: [4], part6: [10, 12] },
+    rules: [
+      { slot: 2, row: 2, broken: 'part0' },
+      { slot: 4, row: 4, broken: 'part1' },
+      { slot: 5, row: 5, broken: 'part2' },
+      { slot: 6, row: 6, broken: 'part3' },
+      { slot: 7, row: 7, broken: 'part4' },
+      { slot: 0, row: 0, broken: 'part5' },
+      { slot: 3, row: 3, broken: 'part6' },
+    ],
+  },
+  // Lao-Shan Lung (em012_00), uEm012_00: 0xd75914. Coverage 0xd75914 1/1.
+  em012_00: {
+    broken: { part1: [10, 12] },
+    rules: [
+      { slot: 3, row: 3, broken: 'part1' },
+    ],
+  },
+  // Crimson Fatalis (em013_01), uEm013_00: 0xd7e458. Coverage 0xd7e458 16/16.
+  em013_01: {
+    rules: [
+      { slot: 0, row: 0, rage: true },
+      { slot: 1, row: 1, rage: true },
+      { slot: 2, row: 2, rage: true },
+      { slot: 3, row: 3, rage: true },
+      { slot: 4, row: 4, rage: true },
+      { slot: 5, row: 5, rage: true },
+      { slot: 6, row: 6, rage: true },
+      { slot: 7, row: 7, rage: true },
+    ],
+  },
+  // Old Fatalis (em013_02), uEm013_00: 0xd7e458. Coverage 0xd7e458 16/16.
+  em013_02: {
+    rules: [
+      { slot: 0, row: 0, rage: true },
+      { slot: 1, row: 1, rage: true },
+      { slot: 2, row: 2, rage: true },
+      { slot: 3, row: 3, rage: true },
+      { slot: 4, row: 4, rage: true },
+      { slot: 5, row: 5, rage: true },
+      { slot: 6, row: 6, rage: true },
+      { slot: 7, row: 7, rage: true },
+    ],
+  },
+  // Daimyo Hermitaur (em019_00), uEm019_00: 0xdb5cac. Coverage 0xdb5cac 14/14.
+  // Unread state inputs (P+0x5de8, P+0x5de9, P+0x5dea, P+0x5deb): rows this monster moves in another state are not encoded, so the table is its resting state plus the breaks below.
+  em019_00: {
+    broken: { part2: [7] },
+    rules: [
+      { slot: 2, row: 6, broken: 'part2' },
+    ],
+  },
+  // Stonefist Hermitaur (em019_04), uEm019_00: 0xdb57e0. Coverage 0xdb57e0 10/10.
+  // Unread state inputs (S0+0x18): rows this monster moves in another state are not encoded, so the table is its resting state plus the breaks below.
+  em019_04: {
+    broken: { part2: [11], part3: [6], part4: [8], part5: [2], part6: [4] },
+    rules: [
+      { slot: 2, row: 2, broken: 'part2' },
+      { slot: 3, row: 3, broken: 'part3' },
+      { slot: 7, row: 7, broken: 'part4' },
+      { slot: 6, row: 6, broken: 'part5' },
+      { slot: 4, row: 4, broken: 'part6' },
+    ],
+  },
+  // Teostra (em027_00), uEm027_00: 0xe11768. Coverage 0xe11768 14/14.
+  em027_00: {
+    rules: [
+      { slot: 0, row: 0, rage: true },
+      { slot: 1, row: 1, rage: true },
+      { slot: 2, row: 2, rage: true },
+      { slot: 3, row: 3, rage: true },
+      { slot: 4, row: 4, rage: true },
+      { slot: 5, row: 5, rage: true },
+      { slot: 6, row: 6, rage: true },
+    ],
+  },
+  // Tigrex (em032_00), uEm032_00: 0xe21e24. Coverage 0xe21e24 14/45.
+  em032_00: {
+    rules: [
+      { slot: 0, row: 0, rage: true },
+      { slot: 1, row: 1, rage: true },
+      { slot: 2, row: 2, rage: true },
+      { slot: 3, row: 3, rage: true },
+      { slot: 4, row: 4, rage: true },
+      { slot: 5, row: 5, rage: true },
+      { slot: 6, row: 6, rage: true },
+    ],
+  },
+  // Grimclaw Tigrex (em032_04), uEm032_00: 0xe21e24. Coverage 0xe21e24 14/45.
+  em032_04: {
+    broken: { part4: [8], part6: [11] },
+    rules: [
+      { slot: 3, row: 3, broken: 'part4' },
+      { slot: 7, row: 3, broken: 'part6' },
+      { slot: 0, row: 0, rage: true },
+      { slot: 1, row: 1, rage: true },
+      { slot: 2, row: 2, rage: true },
+      { slot: 4, row: 4, rage: true },
+      { slot: 5, row: 5, rage: true },
+      { slot: 6, row: 6, rage: true },
+    ],
+  },
+  // Akantor (em033_00), uEm033_00: 0xe373f0. Coverage 0xe373f0 7/7.
+  em033_00: {
+    broken: { part1: [13] },
+    rules: [
+      { slot: 0, row: 0, broken: 'part1' },
+      { slot: 1, row: 1, broken: 'part1' },
+      { slot: 2, row: 2, broken: 'part1' },
+      { slot: 3, row: 3, broken: 'part1' },
+      { slot: 4, row: 4, broken: 'part1' },
+      { slot: 5, row: 5, broken: 'part1' },
+      { slot: 6, row: 6, broken: 'part1' },
+    ],
+  },
+  // Ukanlos (em038_00), uEm038_00: 0xe5ba74. Coverage 0xe5ba74 7/7.
+  em038_00: {
+    broken: { part2: [10] },
+    rules: [
+      { slot: 0, row: 0, broken: 'part2' },
+      { slot: 1, row: 1, broken: 'part2' },
+      { slot: 2, row: 2, broken: 'part2' },
+      { slot: 3, row: 3, broken: 'part2' },
+      { slot: 4, row: 4, broken: 'part2' },
+      { slot: 5, row: 5, broken: 'part2' },
+      { slot: 6, row: 6, broken: 'part2' },
+    ],
+  },
+  // Uragaan (em045_00), uEm045_00: 0xe9bc48. Coverage 0xe9bc48 1/1.
+  em045_00: {
+    broken: { part0: [4] },
+    rules: [
+      { slot: 0, row: 0, broken: 'part0' },
+    ],
+  },
+  // Crystalbeard Uragaan (em045_04), uEm045_00: 0xe9bc48. Coverage 0xe9bc48 1/1.
+  em045_04: {
+    broken: { flag1: [4] },
+    rules: [
+      { slot: 0, row: 0, broken: 'flag1' },
+    ],
+  },
+  // Agnaktor (em049_00), uEm049_00: 0xec0dbc. Coverage 0xec0dbc 16/16.
+  // Unread state inputs (E+0xcac0, E+0xcac1, E+0xcac2, E+0xcac3, E+0xcac4, E+0xcac5, E+0xcac6, E+0xcac7, E+0xcac8, E+0xcac9, E+0xcaca, E+0xcacb, E+0xcacc, E+0xcacd, E+0xcace, E+0xcacf): rows this monster moves in another state are not encoded, so the table is its resting state plus the breaks below.
+  em049_00: {
+    broken: { part0: [4], part1: [8], part2: [12], part3: [10], part4: [16], part5: [14], part6: [6], part7: [18] },
+    rules: [
+      { slot: 0, row: 0, broken: 'part0' },
+      { slot: 2, row: 2, broken: 'part1' },
+      { slot: 3, row: 3, broken: 'part2' },
+      { slot: 4, row: 4, broken: 'part3' },
+      { slot: 3, row: 3, broken: 'part4' },
+      { slot: 4, row: 4, broken: 'part5' },
+      { slot: 1, row: 1, broken: 'part6' },
+      { slot: 5, row: 5, broken: 'part6' },
+      { slot: 7, row: 7, broken: 'part6' },
+      { slot: 6, row: 6, broken: 'part7' },
+    ],
+  },
+  // Duramboros (em055_00), uEm055_00: 0xed2a1c. Coverage 0xed2a1c 1/1.
+  em055_00: {
+    broken: { part2: [5] },
+    rules: [
+      { slot: 3, row: 3, broken: 'part2' },
+    ],
+  },
+  // Zinogre (em057_00), uEm057_00: 0xeec02c, 0xeecc2c. Coverage 0xeec02c 6/6, 0xeecc2c 6/6.
+  em057_00: {
+    rules: [
+      { slot: 0, row: 0 },
+      { slot: 1, row: 1 },
+      { slot: 2, row: 2 },
+      { slot: 3, row: 3 },
+      { slot: 4, row: 4 },
+      { slot: 5, row: 5 },
+    ],
+  },
+  // Thunderlord Zinogre (em057_04), uEm057_00: 0xeec02c, 0xeecc2c. Coverage 0xeec02c 6/6, 0xeecc2c 6/6.
+  em057_04: {
+    rules: [
+      { slot: 0, row: 0 },
+      { slot: 1, row: 1 },
+      { slot: 2, row: 2 },
+      { slot: 3, row: 3 },
+      { slot: 4, row: 4 },
+      { slot: 5, row: 5 },
+    ],
+  },
+  // Redhelm Arzuros (em060_04), uEm060_00: 0xf11360, 0xf11988. Coverage 0xf11360 8/16, 0xf11988 2/2.
+  // Unread state inputs (arg r1): rows this monster moves in another state are not encoded, so the table is its resting state plus the breaks below.
+  em060_04: {
+    broken: { part2: [5] },
+    rules: [
+      { slot: 2, row: 2, broken: 'part2' },
+    ],
+  },
+  // Kecha Wacha (em065_00), uEm065_00: 0xf4a7d4. Coverage 0xf4a7d4 3/4.
+  em065_00: {
+    broken: { part2: [13, 14] },
+    rules: [
+      { slot: 3, row: 3, broken: 'part2' },
+    ],
+  },
+  // Zamtrios (em067_00), uEm067_00: 0xf660e4, 0xf66ec0, 0xf75ab4. Coverage 0xf660e4 0/8, 0xf66ec0 7/7, 0xf75ab4 3/4.
+  // Unread state inputs (P+0x1bb, S0+0x4, arg r1): rows this monster moves in another state are not encoded, so the table is its resting state plus the breaks below.
+  em067_00: {
+    rules: [
+      { slot: 0, row: 0 },
+      { slot: 1, row: 1 },
+      { slot: 2, row: 2 },
+      { slot: 3, row: 3 },
+      { slot: 4, row: 4 },
+      { slot: 5, row: 5 },
+      { slot: 6, row: 6 },
+    ],
+  },
+  // Seltas Queen (em069_00), uEm069_00: 0xf8c454. Coverage 0xf8c454 4/4.
+  em069_00: {
+    broken: { part2: [11], part3: [13], part4: [12], part5: [14] },
+    rules: [
+      { slot: 4, row: 4, broken: 'part2' },
+      { slot: 5, row: 5, broken: 'part3' },
+      { slot: 6, row: 6, broken: 'part4' },
+      { slot: 7, row: 7, broken: 'part5' },
+    ],
+  },
+  // Nerscylla (em070_00), uEm070_00: 0xf9c088. Coverage 0xf9c088 7/7.
+  em070_00: {
+    broken: { part2: [6, 8] },
+    rules: [
+      { slot: 0, row: 0, broken: 'part2' },
+      { slot: 1, row: 1, broken: 'part2' },
+      { slot: 2, row: 2, broken: 'part2' },
+      { slot: 3, row: 3, broken: 'part2' },
+      { slot: 4, row: 4, broken: 'part2' },
+      { slot: 5, row: 5, broken: 'part2' },
+      { slot: 6, row: 6, broken: 'part2' },
+    ],
+  },
+  // Shagaru Magala (em072_00), uEm071_00: 0xfadfa0. Coverage 0xfadfa0 2/12.
+  em072_00: {
+    broken: { part3: [8] },
+    rules: [
+      { slot: 3, row: 3, broken: 'part3' },
+    ],
+  },
+  // Glavenus (em080_00), uEm080_00: 0xfffc64. Coverage 0xfffc64 8/8.
+  // Unread state inputs (E+0xcad0, E+0xcaf4, P+0x1bb): rows this monster moves in another state are not encoded, so the table is its resting state plus the breaks below.
+  em080_00: {
+    broken: { flag0: [22, 25] },
+    rules: [
+      { slot: 7, row: 2, broken: 'flag0' },
+    ],
+  },
+  // Mizutsune (em082_00), uEm082_00: 0x1036380. Coverage 0x1036380 14/14.
+  em082_00: {
+    broken: { part1: [10], part2: [8] },
+    rules: [
+      { slot: 5, row: 5, broken: 'part1' },
+      { slot: 1, row: 1, broken: 'part2' },
+      { slot: 0, row: 0, rage: true },
+      { slot: 2, row: 2, rage: true },
+      { slot: 3, row: 3, rage: true },
+      { slot: 4, row: 4, rage: true },
+      { slot: 6, row: 6, rage: true },
+      { slot: 7, row: 7, rage: true },
+    ],
+  },
+  // Soulseer Mizutsune (em082_04), uEm082_00: 0x1036528. Coverage 0x1036528 11/12.
+  // Unread state inputs (P+0x1bb): rows this monster moves in another state are not encoded, so the table is its resting state plus the breaks below.
+  em082_04: {
+    broken: { flag0: [17], part1: [10], part2: [8] },
+    rules: [
+      { slot: 5, row: 5, broken: 'part1' },
+      { slot: 1, row: 1, broken: 'part2' },
+      { slot: 4, row: 3, broken: 'flag0' },
+      { slot: 0, row: 0, rage: true },
+      { slot: 7, row: 7, rage: true },
+    ],
+  },
+  // Gammoth (em083_00), uEm083_00: 0x1053d8c, 0x1054498. Coverage 0x1053d8c 0/10, 0x1054498 1/2.
+  // Unread state inputs (E+0xcb50, E+0xcb51, E+0xcb52, E+0xcb53, E+0xcb54, E+0xcb55, E+0xcb56, E+0xcb57, E+0xcb58, E+0xcb59, E+0xcb5a, E+0xcb5b, E+0xcb5c, E+0xcb5d, E+0xcb5e, E+0xcb5f, E+0xcb60, E+0xcb61, E+0xcb62, E+0xcb63): rows this monster moves in another state are not encoded, so the table is its resting state plus the breaks below.
+  em083_00: {
+    broken: { part1: [7] },
+    rules: [
+      { slot: 1, row: 1, broken: 'part1' },
+    ],
+  },
+  // Valstrax (em086_00), uEm086_00: 0x109f2e8. Coverage 0x109f2e8 16/16.
+  em086_00: {
+    rules: [
+      { slot: 0, row: 0, rage: true },
+      { slot: 1, row: 1, rage: true },
+      { slot: 2, row: 2, rage: true },
+      { slot: 3, row: 3, rage: true },
+      { slot: 4, row: 4, rage: true },
+      { slot: 5, row: 5, rage: true },
+      { slot: 6, row: 6, rage: true },
+      { slot: 7, row: 7, rage: true },
     ],
   },
 };
 export function meatSwitchOf(monId){ return (monId && ROM_MEAT_SWITCH[monId]) || null; }
 // The full table for one state: { rows, from } with `from[slot]` = [table, row]. `groups` is the part
 // visibility the Parts panel applied, which is where a break is read. null without rules or a second block.
-export function meatTableFor(monId, tables, rung, groups){
+export function meatTableFor(monId, tables, st){
   const sw = meatSwitchOf(monId);
   if (!sw || !Array.isArray(tables) || tables.length < 2) return null;
-  const broken = k => ((sw.broken || {})[k] || []).some(g => !!(groups && groups[g]));
+  const groups = (st && st.groups) || [];
+  // A break's groups are the ones the ROM's own part driver applies, and it applies the variant for the
+  // state it is in -- Glavenus' driver names the HEATED broken head (g11), never the cooled one (g8), and
+  // the Parts row offers the pair as one "Broken". So a caller that knows the row's options passes
+  // `st.broken`, which answers off the option the row has applied; without one, the group itself is read.
+  const broken = (st && st.broken) || (k => ((sw.broken || {})[k] || []).some(g => !!groups[g]));
   const rows = tables[0].slice();
   const from = rows.map((_, i) => [0, i]);
   const done = new Set();
-  for (const [slot, row, rungs, part] of sw.rules){
-    if (done.has(slot) || !tables[1][row]) continue;
-    if (rungs && rungs.indexOf(rung) < 0) continue;
-    if (part){
-      const want = part.charAt(0) !== '!';
-      if (broken(want ? part : part.slice(1)) !== want) continue;
-    }
-    rows[slot] = tables[1][row]; from[slot] = [1, row]; done.add(slot);
+  for (const r of sw.rules){
+    if (done.has(r.slot) || !tables[1][r.row]) continue;
+    if (r.rung && r.rung.indexOf((st && st.rung) | 0) < 0) continue;
+    if (r.rage !== undefined && !!r.rage !== !!(st && st.rage)) continue;
+    if (r.broken && !broken(r.broken)) continue;
+    if (r.intact && broken(r.intact)) continue;
+    rows[r.slot] = tables[1][r.row]; from[r.slot] = [1, r.row]; done.add(r.slot);
   }
   return { rows, from };
+}
+// WHICH CONTROL THE STATES BELONG TO: the level axis where the rules test a rung, the Enraged toggle where they
+// test rage, and neither where a break is the only thing that moves a row -- then the table simply follows the
+// Parts panel and there is nothing to list.
+export function meatAxisOf(monId){
+  const sw = meatSwitchOf(monId);
+  if (!sw) return null;
+  if (sw.rules.some(r => r.rung)) return 'level';
+  if (sw.rules.some(r => r.rage !== undefined)) return 'rage';
+  return null;
+}
+// Every break key a rule tests, so the panel lists only breaks that move a row.
+export function meatBreakKeys(monId){
+  const sw = meatSwitchOf(monId);
+  if (!sw || !sw.broken) return [];
+  const used = new Set();
+  for (const r of sw.rules){ if (r.broken) used.add(r.broken); if (r.intact) used.add(r.intact); }
+  return Object.keys(sw.broken).filter(k => used.has(k));
 }
 // value: slot -> number, scaled by max through the ramp. colorBySlot: slot -> [r,g,b], used
 // literally and taking precedence. A slot in neither comes out at the ramp's floor.

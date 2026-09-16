@@ -1262,7 +1262,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          enableEffectMounts, effectMountsEnabled, effectMountsFor, effectMountsLive,
          setEffectRage, effectAutoOnRage, effectRuntimeInstance,
          clipEffectsFor, clipEffectMonsters, setClipEffectMonsters,
-         SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS, meatSwitchOf, meatTableFor,
+         SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS, meatSwitchOf, meatTableFor, meatAxisOf, meatBreakKeys,
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts, ROM_SPAWN_CLIP,
          ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels, levelClipFor, setClipFor,
@@ -4704,47 +4704,88 @@ function hitZonesOpen(){ return document.getElementById('hitZonesPanel').dataset
 // these rows both -- and a break is read off the groups the Parts panel applied. Every other monster keeps the
 // file's blocks as "Table 0 / Table 1", and so does "Ignore the Review File", which has no rung names to offer.
 function zoneStates(e, rec){
-  const lv = (reviewFor(e && e.id) || {}).levels;
-  if (!rec || rec.tables.length < 2 || !meatSwitchOf(e.id)) return null;
-  if (!lv || !Array.isArray(lv.rungs) || lv.rungs.length < 2 || document.getElementById('monLevelRow').hidden) return null;
-  return lv.rungs.map(String);
+  // `rawParts` is the only thing that turns this off -- a monster with switch rules needs no review entry
+  // (Gravios has none), and the break switches take their names from the Parts rows either way.
+  if (!rec || rec.tables.length < 2 || !meatSwitchOf(e && e.id) || rawParts) return null;
+  const axis = meatAxisOf(e.id);
+  if (axis === 'level'){
+    const lv = (reviewFor(e.id) || {}).levels;
+    if (!lv || !Array.isArray(lv.rungs) || lv.rungs.length < 2 || document.getElementById('monLevelRow').hidden) return null;
+    return { axis, names: lv.rungs.map(String) };
+  }
+  // A table the enrage predicate moves: the two states are the Enraged toggle's, named as Rajang's rungs name
+  // them in part-review.json. A table only a break moves has no state to list -- it follows the Parts panel.
+  // A level axis that OWNS rage (part-review `levels.rage`) hides the Enraged toggle and sets state.rage from
+  // its rung, so offering Calm / Enraged here would be a second control for a state the rung already holds.
+  // The table still follows state.rage; there is simply nothing to list.
+  if (axis === 'rage') return { axis, names: document.getElementById('monRageRow').hidden ? [] : ['Calm', 'Enraged'] };
+  return { axis: null, names: [] };
+}
+function zoneStateIndex(axis){
+  if (axis === 'level') return state.level | 0;
+  if (axis === 'rage') return state.rage ? 1 : 0;
+  return 0;
 }
 function zoneTable(e, rec){
-  const names = zoneStates(e, rec);
-  if (names){
-    const i = Math.max(0, Math.min(names.length - 1, state.level | 0));
-    const t = meatTableFor(e.id, rec.tables, i, state.groups);
-    if (t) return { rows: t.rows, from: t.from, names, index: i, label: names[i] };
+  const st = zoneStates(e, rec);
+  if (st){
+    const i = st.names.length ? Math.max(0, Math.min(st.names.length - 1, zoneStateIndex(st.axis))) : 0;
+    const t = meatTableFor(e.id, rec.tables, { rung: state.level | 0, rage: !!state.rage, groups: state.groups,
+                                              broken: k => breakRowInfo(e, k).broken });
+    if (t) return { rows: t.rows, from: t.from, names: st.names, axis: st.axis, index: i, label: st.names[i] || '' };
   }
   const ti = Math.min(rec.tables.length - 1, Math.max(0, state.heatTable | 0));
-  return { rows: rec.tables[ti], from: null, names: rec.tables.map((_, i) => 'Table ' + i), index: ti,
+  return { rows: rec.tables[ti], from: null, names: rec.tables.map((_, i) => 'Table ' + i), axis: null, index: ti,
            label: rec.tables.length > 1 ? 'Table ' + ti : '' };
 }
-// BROKEN PARTS, SWITCHED WHERE THE ZONES ARE READ. Raven, 2026-09-15: "If we are going to have dynamic hit zones for
-// part breaks, it would help to allow the user to toggle breakable parts", then "we could list the break-able parts
-// that result in hit zone differences in the Hit Zones panel". Listed: only the parts a rule of the monster's own
-// tests (ROM_MEAT_SWITCH `broken`), so the list is the ROM's and not a copy of the Parts panel. Each switch IS its
-// Parts row -- named by it, lit from the groups it applied -- and flipping one picks that row's Broken or Intact
-// option through the row's own onchange, so the model, the Parts panel and the table stay one state (the row
-// repaints this through applyPartState). A part without a plain dropdown on screen is left out, not written
-// behind the Parts panel's back.
+// ONE BREAK KEY AGAINST THE PARTS PANEL. The groups in ROM_MEAT_SWITCH are the ones the monster's own part
+// driver applies, and it applies the variant for the state it was read in: Glavenus' driver (0x1009ff0) names
+// the HEATED broken head, g11 = parts 11,12,31, and never the cooled g8 = 11,12, because the sweep's harness
+// ran it heated. The Parts row offers that pair as ONE "Broken" -- clusterChoices folds the variants that
+// differ only in the state's own parts -- and applies whichever the state picks, so asking `state.groups[11]`
+// reads false on a broken cooled Glavenus. Ask the row instead: the break is on when an option holding one of
+// the driver's groups is the one applied. A key whose groups no row offers falls back to the plain reading.
+function breakRowInfo(e, key){
+  const sw = meatSwitchOf(e && e.id);
+  const gs = (sw && sw.broken && sw.broken[key]) || [];
+  const all = (e && e.groups) || [];
+  const on = k => !!(state.groups && state.groups[k]);
+  const rvRows = reviewRows(e.id);
+  const cs = clusterGroups(all).filter(x => gs.some(g => x.members.indexOf(g) >= 0));
+  if (!cs.length) return { key, groups: gs, broken: gs.some(on) };
+  // THE ROW ON SCREEN MAY BE A MERGED ONE. part-review joins clusters with '+' and buildGroups builds one
+  // field under the joined key, so a source cluster has no field of its own -- and one break can name halves
+  // of BOTH sources, as Gypceros' part 6 does over "8,9+10,11" (g10 draws part 9, g12 part 11). Resolve the
+  // row first, then every source cluster that shares it.
+  const rowKeyOf = c => Object.keys(rvRows).find(k => k.indexOf('+') >= 0 && k.split('+').indexOf(c.parts) >= 0)
+                     || c.parts;
+  const row = rowKeyOf(cs[0]);
+  const srcs = cs.filter(c => rowKeyOf(c) === row);
+  const rv = rvRows[row];
+  const per = srcs.map(c => {
+    const opts = clusterOptions(c, all, stateParts(), reviewedParts(rv));
+    return { cluster: c, opts, broken: opts.filter(o => o.members.some(g => gs.indexOf(g) >= 0)) };
+  });
+  const brokenOpts = per.reduce((a, x) => a.concat(x.broken), []);
+  return { key, groups: gs, row, merged: row !== srcs[0].parts, rv, per, brokenOpts,
+           reps: brokenOpts.map(o => o.rep), halves: brokenOpts.map(o => o.key),
+           broken: brokenOpts.length ? brokenOpts.some(o => o.members.some(on)) : gs.some(on) };
+}
 function zoneBreakParts(e){
   const sw = meatSwitchOf(e && e.id);
   if (!sw || !sw.broken) return [];
-  const tested = new Set(sw.rules.map(r => r[3]).filter(Boolean).map(p => String(p).replace(/^!/, '')));
-  const clusters = clusterGroups(e.groups || []);
+  const tested = new Set(meatBreakKeys(e.id));
   const out = [];
-  for (const [key, groups] of Object.entries(sw.broken)){
+  for (const key of Object.keys(sw.broken)){
     if (!tested.has(key)) continue;
-    const c = clusters.find(x => groups.some(g => x.members.indexOf(g) >= 0));
-    const f = c && [...document.querySelectorAll('#monGroups .field')].find(x => x.dataset.row === c.parts);
+    const info = breakRowInfo(e, key);
+    const f = info.row && [...document.querySelectorAll('#monGroups .field')].find(x => x.dataset.row === info.row);
     const sel = f && f.querySelector('select');
     if (!sel){ console.warn('hit zones: ' + e.id + ' break "' + key + '" has no dropdown in the Parts panel'); continue; }
-    const rv = reviewRows(e.id)[c.parts];
     const lab = f.querySelector('label');
-    out.push({ key, row: c.parts, groups,
-               name: (rv && rv.name) || (lab && lab.firstChild ? lab.firstChild.textContent.trim() : c.parts),
-               broken: groups.some(g => !!(state.groups && state.groups[g])) });
+    out.push({ key, row: info.row, groups: info.groups, reps: info.reps, halves: info.halves, merged: info.merged,
+               name: (info.rv && info.rv.name) || (lab && lab.firstChild ? lab.firstChild.textContent.trim() : info.row),
+               broken: info.broken });
   }
   return out;
 }
@@ -4768,14 +4809,20 @@ function paintZoneBreaks(e, zt){
   }
 }
 // The row is looked up again at the flip: a rung change rebuilds the Parts panel, and a held dropdown would be gone.
-// Broken is the option drawing one of the part's broken groups; Intact the first that draws none.
+// Broken is the option HOLDING one of the driver's broken groups (breakRowInfo, which folds the state's
+// variants together); Intact the first that holds none.
 function setPartBroken(p, on){
   const f = [...document.querySelectorAll('#monGroups .field')].find(x => x.dataset.row === p.row);
   const sel = f && f.querySelector('select');
   if (!sel) return;
-  const isBroken = o => p.groups.indexOf(parseInt(o.value, 10)) >= 0;
-  const o = [...sel.options].find(x => on ? isBroken(x) : !isBroken(x));
-  if (!o || sel.value === o.value) return;
+  // A merged row's option is keyed by its halves ("9+11"), not by a group index, and one break can own more
+  // than one half -- so score the options and take the one holding the most of them.
+  const score = p.merged
+    ? o => o.value.split('+').filter(h => (p.halves || []).indexOf(h) >= 0).length
+    : o => ((p.reps && p.reps.length ? p.reps : p.groups).indexOf(parseInt(o.value, 10)) >= 0) ? 1 : 0;
+  const opts = [...sel.options];
+  const o = on ? opts.reduce((a, b) => (score(b) > score(a) ? b : a), opts[0]) : opts.find(x => !score(x));
+  if (!o || !(on ? score(o) : true) || sel.value === o.value) return;
   sel.value = o.value;
   sel.onchange();
 }
@@ -5856,13 +5903,23 @@ document.getElementById('monRawParts').onchange = e => {
 document.getElementById('monExtend').onchange = e => { state.extend = e.target.checked; applyPartState(); applyExtend(); applyProxy(); applyRage(); saveState(); };
 document.getElementById('monHeat').onchange = async e => { state.heat = e.target.value; await applyHeat(); applyGap(); saveState(); };
 document.getElementById('monHeatTable').onchange = async e => {
-  // a STATE, not a block of the file: move the Parts panel's own rung, which switches the parts and repaints this
+  // a STATE, not a block of the file: move the control that owns it -- the Parts panel's rung, or the Enraged
+  // toggle -- which switches the parts and repaints this through applyPartState / applyRage
   const en = entry(), rec = en && HITZONES.monsters && HITZONES.monsters[en.id];
-  if (zoneStates(en, rec)){
-    const lvSel = document.getElementById('monLevel');
-    lvSel.value = e.target.value;
-    lvSel.onchange({ target: lvSel });
-    return;
+  const st = zoneStates(en, rec);
+  if (st && st.names.length > 1){
+    if (st.axis === 'level'){
+      const lvSel = document.getElementById('monLevel');
+      lvSel.value = e.target.value;
+      lvSel.onchange({ target: lvSel });
+      return;
+    }
+    if (st.axis === 'rage'){
+      const rg = document.getElementById('monRage');
+      rg.checked = (+e.target.value === 1);
+      rg.onchange({ target: rg });
+      return;
+    }
   }
   state.heatTable = +e.target.value; await applyHeat(); applyGap(); saveState();
 };
