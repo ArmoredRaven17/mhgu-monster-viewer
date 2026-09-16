@@ -844,5 +844,18 @@
    "6": "Tail",
    "7": "Belly (Blob Form)"
   }
+ },
+ "em068_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Crests/Tail Tip (slot 3) is nine shapes riding high along the top, from the neck (joints 100-103) to the tail end (joints 144-145); Body (slot 2) is eleven shapes along the length of the body.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Body",
+   "3": "Crests/Tail Tip",
+   "4": "Tail",
+   "5": "Arms",
+   "6": "Legs"
+  }
  }
 }
