@@ -1136,5 +1136,19 @@
    "6": "Wings",
    "7": "Tail"
   }
+ },
+ "em071_00": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Gore Same as Shagaru\". Same slots on the same joints as Shagaru Magala except the head, which here is only joint 4 (Shagaru's also has joint 3). Head and Neck each list their shape twice under part records 7 and 0; each is drawn once. Body (slot 2) draws three shapes; its radius-180 capsule (record 40, flag 0x0100) is never counted.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Body",
+   "3": "Wing Hands",
+   "4": "Wing Arms",
+   "5": "Rear Legs",
+   "6": "Wing Flaps",
+   "7": "Tail"
+  }
  }
 }
