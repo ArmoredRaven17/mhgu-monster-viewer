@@ -534,6 +534,17 @@
    "7": "Tail Tip"
   }
  },
+ "em021_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render; the same names, in the same order, as Blangonga's and Rajang's. Head (slot 0) and Body (slot 3) both list the same four spheres on joint 160 (records 0-3 and 19/20/21/23), which the highlight leaves out of both (see build-notes/hitzone-capsules.md), so each draws two shapes.",
+  "slots": {
+   "0": "Head",
+   "1": "Arms",
+   "2": "Legs",
+   "3": "Body",
+   "4": "Tail"
+  }
+ },
  "em022_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Body (slot 3) is two shapes on the body core (joints 1, 2 and 100); Arms (slot 1) and Legs (slot 2) take both sides each.",
