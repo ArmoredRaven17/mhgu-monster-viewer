@@ -988,5 +988,19 @@
    "6": "Feet",
    "7": "Legs"
   }
+ },
+ "em013_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Head (slot 0) reaches far forward; its radius-180 sphere on joint 140 (record 23, flag 0x0100) is never counted and not drawn. Belly (slot 2) and Back (slot 3) are the underside and top of the body; Hips (slot 6) is one shape on each hind thigh (joints 17 and 20). Crimson and Old Fatalis carry identical capsule rows.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Belly",
+   "3": "Back",
+   "4": "Tail",
+   "5": "Arms/Legs",
+   "6": "Hips",
+   "7": "Wings"
+  }
  }
 }
