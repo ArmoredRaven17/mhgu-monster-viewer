@@ -912,5 +912,18 @@
    "6": "Left Claw",
    "7": "Right Legs"
   }
+ },
+ "em020_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Head (slot 0) is three shapes on joint 1: the face, a capsule under it and a tall capsule rising above the head; its radius-180 sphere on joint 0 is never counted and not drawn. Shell (slot 2) is six spheres on joints 142-143. Weak Point (slot 6) is one sphere on joint 142 inside the shell's area, under the Body's part record (1).",
+  "slots": {
+   "0": "Head",
+   "1": "Body",
+   "2": "Shell",
+   "3": "Legs",
+   "4": "Claws",
+   "5": "Arms",
+   "6": "Weak Point"
+  }
  }
 }
