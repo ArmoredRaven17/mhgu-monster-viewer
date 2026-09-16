@@ -789,5 +789,19 @@
    "6": "Neck",
    "7": "Back"
   }
+ },
+ "em082_04": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Soulseer is the same\" (as Mizutsune). Same slots on the same joints except one capsule: the one on joint 141, at the tail base, is filed under Body (slot 3) here and under Tail (slot 4) on Mizutsune.",
+  "slots": {
+   "0": "Head",
+   "1": "Left Front Leg",
+   "2": "Rear Legs",
+   "3": "Body",
+   "4": "Tail",
+   "5": "Right Front Leg",
+   "6": "Neck",
+   "7": "Back"
+  }
  }
 }
