@@ -1095,5 +1095,19 @@
    "5": "Belly",
    "6": "Tail"
   }
+ },
+ "em072_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Wing Hands (slot 3) is one shape far out at each wing tip (joints 62 and 72); Wing Arms (slot 4) the front limbs (joints 5-11, 40, 50, 61, 71); Wing Flaps (slot 6) the membranes (joints 64-79). Body (slot 2) draws three shapes; its radius-180 capsule on joints 2-1 (record 40, flag 0x0100) is never counted and not drawn. Tail (slot 7) has a switched end capsule (mask 0x0001).",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Body",
+   "3": "Wing Hands",
+   "4": "Wing Arms",
+   "5": "Rear Legs",
+   "6": "Wing Flaps",
+   "7": "Tail"
+  }
  }
 }
