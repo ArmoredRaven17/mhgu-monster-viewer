@@ -34,7 +34,7 @@ export function uniformDecls(shaders, text){
   const lines = [];
   for (const [cb, members] of Object.entries(shaders.cbs)){
     const id = cb.replace('$', '');
-    for (const [name, type] of members){
+    for (const [name, type, , , arr] of members){
       const u = id + '_' + name;
       if (!new RegExp('\\b' + u + '\\b').test(text)) continue;
       const m = /^mat(\d)x(\d)$/.exec(type);
@@ -44,7 +44,7 @@ export function uniformDecls(shaders, text){
         const rows = Array.from({ length: +m[1] }, (_, i) => u + '_r' + i);
         lines.push('uniform vec' + m[2] + ' ' + rows.join(', ') + ';');
         lines.push('#define ' + u + ' ' + type + '(' + rows.join(', ') + ')');
-      } else lines.push('uniform ' + type + ' ' + u + ';');
+      } else lines.push('uniform ' + type + ' ' + u + (arr ? '[' + arr + ']' : '') + ';');   // arr: an array CB member (fSHCoef vec4[7])
     }
   }
   // FLighting samples a spot and a point projection texture for each of its 8 dynamic lights: 16 samplers,

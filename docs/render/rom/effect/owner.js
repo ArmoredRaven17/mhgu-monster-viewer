@@ -383,7 +383,12 @@ export function nodeUpdate(m, owner, inst){
   for (let k = 0; k < 0x40; k += 4) m.w32(inst + k, m.u32(world + k));
   if (f110b & 0x40) throw new Unverified('0x9bc1d0 node +0x110 bit 6');
   for (let k = 0; k < 0x40; k += 4) m.w32(inst + 0x40 + k, m.u32(world + k));   // 0x9bc9ac
-  if (f110b & 0x1000) throw new Unverified('0x9bca10 node +0x110 bit 12');
+  // 0x9bca10: node +0x110 bit 12 calls the node DRAW-REGISTRATION (0x9bca30) -- it walks the render singleton's
+  // active passes (0xe75730 +0x54/+0x204/... ) and, for each, computes the node's per-pass draw matrix from the
+  // camera (the world x view combine at 0x9bce20). The viewer does not draw through the ROM's render passes; it
+  // draws each effect through host.drawFrame with its own camera, so that registration is LEFT OUT here rather
+  // than translated (it needs the render singleton the viewer never stands up). The node's own matrix at
+  // inst+0x00..0x7c is already written above. If a model's placement/orientation comes out wrong, translate it.
   sc.free();
 }
 

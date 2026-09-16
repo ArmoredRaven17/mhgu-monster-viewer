@@ -179,6 +179,15 @@ const GENERATOR_TYPES = {
   1: { got: 0x183c9b0, name: 'LitePolyline' },    // 0xaae1b4 / 0xaae1f0
   5: { got: 0x183c948, name: 'Model' },           // 0xa91944 / 0xa91980
 };
+// Undecoded generator types (2, 9, 25 and anything else) the factory meets and skips, kept so the omission is
+// reportable rather than silent. genType -> how many rows were skipped. (Soulseer's eye flame em082_04_004 has
+// a genType-2 row alongside its supported billboards and models.)
+export const SKIPPED_GENERATORS = new Map();
+function recordSkippedGenerator(type){
+  const n = (SKIPPED_GENERATORS.get(type) || 0) + 1;
+  SKIPPED_GENERATORS.set(type, n);
+  if (n === 1) console.warn('effect: generator type ' + type + ' is not translated (genType 0/1/5 only) -- row skipped');
+}
 function newGenerator(m, type){
   const g = m.svc.alloc(0x1d0, 0x10);
   generatorCtor(m, g);
@@ -503,10 +512,14 @@ function generatorStart(m, g){
     for (let i = 0; i < 7; i++) m.w32(g + 0xd0 + 4 * i, w[i]);
     m.w32(g + 0xec, ec);
   }
-  if (m.u32(g + 0xa0) !== 0) throw new Unverified('0xa56688 generator +0xa0');
+  // 0xa5667c-0xa566d4: the draw-flag word g+0xf4. g+0xa0 != 0 seeds it with 0x80 and carries 0x10080; else the
+  // carry is 0x10000 (0xa566a4). Then, unless the effect masks it (owner+0xf0 bit 7, 0xa566b4 skips), a set
+  // entry+0x10 stores the carry (0xa566c4). Finally the row's draw flags are OR'd in (0x9b38dc). The recorded
+  // effects all had g+0xa0 == 0 and the bit clear; effect models with g+0xa0 set are the first to reach it.
   const owner = m.u32(g + 8);
-  if (m.u8(owner + 0xf0) & 0x80) throw new Unverified('0xa566c8 effect +0xf0 bit 7');
-  if (m.u32(entry + 0x10) !== 0) m.w32(g + 0xf4, 0x10000);
+  const gA0 = m.u32(g + 0xa0);
+  if (gA0 !== 0) m.w32(g + 0xf4, 0x80);
+  if (!(m.u8(owner + 0xf0) & 0x80) && m.u32(entry + 0x10) !== 0) m.w32(g + 0xf4, gA0 !== 0 ? 0x10080 : 0x10000);
   m.w32(g + 0xf4, (m.u32(g + 0xf4) | drawFlags(m, owner, par)) >>> 0);
   const p3 = m.u32(g + 0x34);
   m.w32(g + 0x188, m.u32(p3 + 0x20)); m.w32(g + 0x18c, m.u32(p3 + 0x24));
@@ -545,15 +558,25 @@ function startModel(m, g){                                     // 0xa91a30
   for (let i = 0; i < 8; i++) m.w32(g + 0xd0 + 4 * i, w[i]);
   const kind = (m.u32(par + 0x100) >>> 4) & 0xf;
   w[6] = ((w[6] & ~0x0f000000) | (kind << 24)) >>> 0;
-  if (kind !== 6) throw new Unverified('0xa91aa0 Model kind ' + kind);
+  // 0xa91aa0-0xa91ab4: a non-kind-6 model sets w[3] (g+0xdc) bit 30 (clear-then-set is a plain OR); kind 6
+  // skips this and leaves the bit clear. Both then converge at 0xa91ab8. Verified against the lifted L_a91a30,
+  // which lifts this same block from the em082_04 model recording (r[7] = r[2] | 0x40000000, r7 = w[3]).
+  if (kind !== 6) w[3] = (w[3] | 0x40000000) >>> 0;
   for (let i = 0; i < 8; i++) m.w32(g + 0xd0 + 4 * i, w[i]);
   if (w[7] & 0x400) throw new Unverified('0xa91b4c Model +0xed bit 2');
   const flag = paramBit16(m, g);
   const g40 = m.u32(g + 0x40), g44 = m.u32(g + 0x44);
   m.w32(g + 0x40, g40);
   m.w32(g + 0x44, ((g44 & ~0x00ff0000) | (flag !== 0 ? 0x1e0000 : 0x50000)) >>> 0);
-  if (m.u8(par + 0x10e) & 0x10) throw new Unverified('0xa91b14 Model parameters +0x10e bit 4');
-  if (m.u8(g + 0xc1) & 0x40) throw new Unverified('0xa91b3c Model +0xc1 bit 6');
+  // 0xa91b08-0xa91b2c: parameters +0x10e bit 4 re-packs g+0x44 -- (original g44 & 0xf7) | (the value just
+  // written & 0xff1fff00), then bit 3 forced set. Keeps the flag byte (bits 16-20) and the high byte from
+  // the write above, restores the original low byte. Recorded models never had this bit set.
+  if (m.u8(par + 0x10e) & 0x10){
+    const g44f = ((g44 & ~0x00ff0000) | (flag !== 0 ? 0x1e0000 : 0x50000)) >>> 0;
+    m.w32(g + 0x44, (((g44 & 0xf7) | (g44f & 0xff1fff00)) | 8) >>> 0);
+  }
+  // 0xa91b30-0xa91b44: +0xc1 bit 6 sets the draw-flag word's bit 5.
+  if (m.u8(g + 0xc1) & 0x40) m.w32(g + 0xf4, (m.u32(g + 0xf4) | 0x20) >>> 0);
   m.w32(g + 0x1ac, m.u32(par + 0x11c));
   const p = m.u32(g + 0x34);
   m.w8(g + 0x194, m.u32(p + 0x40));
@@ -901,10 +924,16 @@ function factory(m, owner){
     const rowp = (body + (row << 4)) >>> 0;
     m.u32(rowp);
     const type = m.u32(rowp + 4) & 0xff, c3 = m.u32(rowp + 0xc);
-    if (type === 0x19) throw new Unverified('0x9bada8 generator type 25');
-    if (type > 0x1a) throw new Unverified('0x9bb300 generator type ' + type);
+    // AN UNDECODED GENERATOR (2, 9, 25, ...) is skipped, not thrown, so the rest of the effect still draws:
+    // failing the whole effect drew nothing for an effect that is mostly decodable. The row is left out (not
+    // invented) and the skip recorded. (0x9bada8 type 25, 0x9bb300 type > 26, 0x9bade8 other became this skip.)
+    if (!GENERATOR_TYPES[type]){ recordSkippedGenerator(type); continue; }
+    // DEV TOGGLE (off by default, so Savage and every other monster are untouched): while the genType-5 model
+    // runtime is being built (its move/draw path is not yet lifted), globalThis.__skipEffectModels renders an
+    // effect's BILLBOARD/POLYLINE layers alone by leaving its model rows unbuilt. A stopgap for eyeballing an
+    // effect that is part billboards, part models -- not a shipped behaviour.
+    if (type === 5 && typeof globalThis !== 'undefined' && globalThis.__skipEffectModels){ recordSkippedGenerator(type); continue; }
     if ((type === 0 || type === 1) && (c3 & 0xf0)) throw new Unverified('0x9baf38 generator type ' + type + ' with col3 0x' + (c3 & 0xf0).toString(16));
-    if (!GENERATOR_TYPES[type]) throw new Unverified('0x9bade8 generator type ' + type);
     const g = newGenerator(m, type);
     if (prev !== 0) m.w32(prev + 0xc, g); else m.w32(owner + 0x1f0, g);
     if (vcall(m, g, 0x18, owner, row, m.u16(owner + 0x1e0)) === 0) throw new Unverified('0x9bb33c generator init failed');

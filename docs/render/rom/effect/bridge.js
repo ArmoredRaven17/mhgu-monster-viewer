@@ -92,6 +92,11 @@ export const PARENT_GETDTI = 0x7e001000;
 let parentClass = 0x184a218;
 export function setParentClass(dti){ parentClass = dti >>> 0; }
 native(PARENT_GETDTI, () => parentClass, [], 'r0');
+// The LiteBillboard generator's getDTI (its vtable at 0x17890b4 slot 5 / +0x14 is the ROM thunk 0xa81ed4,
+// which tail-calls through GOT 0x183c8a0 to the generator type's DTI 0x211c66c). A type check the effect
+// runs at 0x440d4 (getDTI, then compare [DTI+4]); the recorded monsters' billboards never reached slot 5,
+// cm200_007's (Raging Brachydios' enrage effect) does. Same shape as PARENT_GETDTI: return the DTI.
+native(0xa81ed4, () => 0x211c66c, [], 'r0');
 
 // ---- a monster's effect request, whole (proof.js ProofRequest; efx/proofunit.py) -------------------------
 // uMHProofEffect's move (0x327188) ends in uEffect's own move, and its owner matrix (vtable +0x50, 0x3273e8)
@@ -134,6 +139,12 @@ native(0x13ecbb4, (m, d, n) => { for (let i = 0; i < n; i++) m.w8(d + i, 0); ret
 native(0x13ecbe4, (m, d, n) => { for (let i = 0; i < n; i++) m.w8(d + i, 0); return d; }, A2, 'r0');          // __aeabi_memclr(dest, n)
 // 0x9bd170, uEffect vtable +0xfc: bx lr (the generator's preUpdate calls it) -- touches no register
 registerNative(0x9bd170, () => {});
+// 0x9bca30, the node DRAW-REGISTRATION: the lifted node update (L_9bba54) reaches it by a direct bl when a
+// node sets +0x110 bit 12 (Soulseer em082_04's eye flame does). It walks the render singleton's passes and
+// combines each with the camera -- the viewer stands up no render singleton and draws every effect itself
+// through host.drawFrame, so this is LEFT OUT, exactly as owner.js's hand nodeUpdate skips the same branch
+// (the vtable path). Its return is unused by the caller (0x9bca18 falls straight into the epilogue).
+registerNative(0x9bca30, () => {});
 // nn::os::InitializeMutex (a singleton's constructor): the emulator's import does nothing and answers 0
 native(0x13ecde8, () => 0, [], 'r0');
 // the effect manager's unique id (0xb8f4b8: lock, ++[mgr +0x22c], unlock), the harness's next_id service

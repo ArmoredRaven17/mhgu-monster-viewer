@@ -63,7 +63,12 @@ export async function liveEffectsFor(monsterId){
 }
 
 // ---- render state, decoded from the records' words the way ../state.js reads them -------------------
-const FACTOR = { 0: THREE.ZeroFactor, 1: THREE.OneFactor, 4: THREE.SrcAlphaFactor, 5: THREE.OneMinusSrcAlphaFactor };
+// The blend-factor enum, read off the package's own BS* state names: 0 Zero (BSMul src), 1 One (BSAdd),
+// 4 SrcAlpha (BSBlendAlpha), 5 InvSrcAlpha (BSBlendInvAlpha), 8 DstColor -- named directly by
+// BSBlendAddDestColor (w 0x21002: src 8, dst One, Add), Soulseer em082_04's eye flame. Factors no effect
+// has selected yet (2 SrcColor, 3 InvSrcColor, 6 DstAlpha, 7 InvDstAlpha, ...) are added when one hits them.
+const FACTOR = { 0: THREE.ZeroFactor, 1: THREE.OneFactor, 4: THREE.SrcAlphaFactor,
+                 5: THREE.OneMinusSrcAlphaFactor, 8: THREE.DstColorFactor };
 const EQUATION = { 0: THREE.AddEquation, 2: THREE.ReverseSubtractEquation };
 function applyState(mat, shaders, bs, ds, rs){
   const b = shaders.states[bs], d = shaders.states[ds], r = shaders.states[rs];
@@ -158,7 +163,16 @@ export class LiveEffects {
     // One parent for every effect, as in the game: they all hang from the monster (the request's parent is
     // the enemy itself), whose bones answer every joint any of their nodes names, and whose own placement a
     // request placed at the unit reads (writeJoints).
-    const joints = [...new Set(def.effects.flatMap(e => e.joints))];
+    // A record's ROOT joint (payload +0x32, signed): the ROM places the effect's root at this joint every frame
+    // (proof.js -> uMHProofEffect move 0x327188 -> jointMatrix 0x939278). It must be in the parent's joint table,
+    // or jointMatrix returns the model root (+0xb0) for the unmapped number and the effect draws at the body
+    // origin instead of the joint -- which is exactly why Soulseer's soul flame (record joint 2, the head centre)
+    // drew at the throat. -1 is the unit itself, which the model-root anchor already stands in for, so only real
+    // joints are added. (Decoded 2026-09-16; the export intentionally dropped this after an em003 test whose
+    // effect happened to have root joint -1, so it never exercised the joint path.)
+    const rootJointOf = hex => { const b = parseInt(hex.substr(100, 2), 16) | (parseInt(hex.substr(102, 2), 16) << 8); return (b << 16) >> 16; };
+    const rootJoints = def.effects.map(e => (e.record && e.record.payload) ? rootJointOf(e.record.payload) : -1).filter(j => j >= 0);
+    const joints = [...new Set([...def.effects.flatMap(e => e.joints), ...rootJoints])];
     this.effects = def.effects.map(e => ({ owner: host.createEffect(files[e.efl]), def: e }));
     const parent = this.parent = (joints.length || def.effects.some(e => e.record)) ? host.createParent(joints) : null;
     this.joints = joints.map(j => ({ j, bone: (bones.find(b => b.gid === j) || {}).node || null }));
@@ -167,7 +181,12 @@ export class LiveEffects {
     // authored root = the skeleton root bone (gid 0). The aura's own nodes are authored well BELOW that
     // origin (mass ~130 units under it, measured from the ROM effect data), so anchoring at the floor drops
     // the fire underground; the model root (gid 0) is where the ROM origin is, and lands it on the body.
-    this.originBone = (bones.find(b => b.gid === 0) || {}).node || null;
+    // `originJoint` OVERRIDES that anchor for an effect the ROM places on a specific bone that is NOT its record's
+    // root joint (which the joint-table path above already replays): a labelled viewer placement, the gid chosen
+    // against the skeleton. None currently sets it -- Soulseer Mizutsune's soul flame (em082_04_000) is placed on
+    // the head by its record root joint 2, decoded and handled above, not here.
+    const originGid = def.originJoint == null ? 0 : def.originJoint;
+    this.originBone = (bones.find(b => b.gid === originGid) || {}).node || null;
     root.updateMatrixWorld(true);
     this.writeJoints();
     // a record: the monster's request, whole (proof.js ProofRequest) -- the core makes the effect the game
