@@ -162,6 +162,20 @@
    "6": "Legs"
   }
  },
+ "em032_04": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Back (slot 1) holds what Tigrex splits over Neck (the spheres on joints 100-102) and Back, plus the shoulder spheres (joints 6 and 10) that Tigrex keeps in Wings. The claws are one sphere each at the end of a foreleg, radius 90 where Tigrex's are 65 inside Wings: Left Claw (slot 3) on joint 40, the higher-x side as on Gravios, and Right Claw (slot 7) on joint 50. Wings (slot 5) is Tigrex's Wings without the shoulder and claw spheres.",
+  "slots": {
+   "0": "Head",
+   "1": "Back",
+   "2": "Belly",
+   "3": "Left Claw",
+   "4": "Tail",
+   "5": "Wings",
+   "6": "Legs",
+   "7": "Right Claw"
+  }
+ },
  "em037_04": {
   "reviewed": "2026-09-15",
   "note": "Named from the render. Raven asked to verify slot 6: \"it seems off to have a sphere on the arm like that for a tail region\". Verified from the raw .bdd (build/frag copy byte-identical to the extracted ROM file): record 15, a sphere on joint 5 (radius 95 at 100, 0, 20), carries damage row 6 here and row 4 on Nargacuga. Its mirror on the other arm, record 21 on joint 9 (radius 95 at -100, 0, 20), is row 4 on both. Both spheres keep part record 4, the arm capsules' part, and the u16 at +10 is 512 on both, so the one-sided change is the only difference. Silverwind also enlarges two tail capsules (records 13 and 14).",
