@@ -1166,6 +1166,16 @@
    "7": "Tail"
   }
  },
+ "ems019_00": {
+  "reviewed": "2026-09-16",
+  "unsure": "Asked Raven, 2026-09-16: slot 1's only shapes are the two spheres out on the wings (joints 60 and 70), which do not reach the middle of the body -- Body as given, or Wings?",
+  "note": "Named from the render. Head (slot 0) is one radius-300 sphere on joint 1 over the front of the body; Body (slot 1) is two radius-240 spheres on the wing joints (60 and 70), centred about 5.7 units out to each side; Tail (slot 2) is one capsule on joints 140-141.",
+  "slots": {
+   "0": "Head",
+   "1": "Body",
+   "2": "Tail"
+  }
+ },
  "ems009_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
