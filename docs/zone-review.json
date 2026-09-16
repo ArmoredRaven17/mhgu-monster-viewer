@@ -149,6 +149,19 @@
    "7": "Tail Tip"
   }
  },
+ "em032_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Belly (slot 2) and Back (slot 3) share joints 1 and 140, Belly below the spine and Back above it. Wings (slot 5) is the forelimbs from the shoulders (joints 6 and 10) to the spheres at their ends (joints 40 and 50).",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Belly",
+   "3": "Back",
+   "4": "Tail",
+   "5": "Wings",
+   "6": "Legs"
+  }
+ },
  "em037_04": {
   "reviewed": "2026-09-15",
   "note": "Named from the render. Raven asked to verify slot 6: \"it seems off to have a sphere on the arm like that for a tail region\". Verified from the raw .bdd (build/frag copy byte-identical to the extracted ROM file): record 15, a sphere on joint 5 (radius 95 at 100, 0, 20), carries damage row 6 here and row 4 on Nargacuga. Its mirror on the other arm, record 21 on joint 9 (radius 95 at -100, 0, 20), is row 4 on both. Both spheres keep part record 4, the arm capsules' part, and the u16 at +10 is 512 on both, so the one-sided change is the only difference. Silverwind also enlarges two tail capsules (records 13 and 14).",
