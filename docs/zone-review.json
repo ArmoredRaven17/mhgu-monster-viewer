@@ -585,5 +585,16 @@
    "3": "Back",
    "4": "Rear"
   }
+ },
+ "em060_04": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Redhlem is the same\" (as Arzuros). Same slots on the same joints; its two arm capsules (joints 8-10 and 13-15) are radius 45 against Arzuros' 40.",
+  "slots": {
+   "0": "Head",
+   "1": "Torso",
+   "2": "Arms",
+   "3": "Back",
+   "4": "Rear"
+  }
  }
 }
