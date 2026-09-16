@@ -873,5 +873,18 @@
   "hide": {
    "7": "Raven, 2026-09-16: \"Hide Slot 7 for now, make a note of the oddity in case I want to revisit\". Slot 7's only shape is record 46, a bone-255 sphere: radius 260 on the monster's own position (0x16da04 places bone 255 at the unit's position, turned with it), group mask 0x1000, flag 0x12, so only attack types 8/69 and 9 can count it. It is the only slot in the library made of nothing else (the other 71 bone-255 spheres sit beside real shapes, nearly all under Head), and its row is 100 for cut, impact, shot and every element but dragon, with dragon and stun 0. See build-notes/hitzone-capsules.md, \"Bone 255\". Delete this key to list the row again."
   }
+ },
+ "em088_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render; slots 0-5 and 7. Head (slot 0) draws one shape on joint 1; its two radius-250 capsules between the legs (records 42-43, flag 0x0100) are never counted and not drawn. Claws (slot 1) is the very front (joints 5 and 9); Crest (slot 3) one shape raised on joint 100. Records 39-41 (joint 130, masks 0x2000/0x8000/0x4000, one of shape 6 at radius 800) report slot 15, past the table's eight rows, and are not listed.",
+  "slots": {
+   "0": "Head",
+   "1": "Claws",
+   "2": "Arms",
+   "3": "Crest",
+   "4": "Abdomen",
+   "5": "Legs",
+   "7": "Abdomen Tip"
+  }
  }
 }
