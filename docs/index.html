@@ -5061,6 +5061,7 @@ function paintZonePick(){
     zoneShape.userData.key = key;
     zoneShape.userData.root = mounted.main;
     zoneShape.userData.copies = picked.copies;
+    zoneShape.userData.off = picked.off;
     scene.add(zoneShape);
   }
 }
@@ -5072,13 +5073,22 @@ function paintZonePick(){
 // keep their other shapes. Gore Magala's two pairs sit in ONE slot under two part records, so nothing is dropped
 // there: an exact twin inside the picked row is simply drawn once rather than twice.
 // This does not choose a state. A shape goes only for being listed twice, never for the gates the ROM checks when a
-// hit lands -- the group mask, the attack type, the conditional bit, and the first-match order that settles which
-// copy the game takes. Those are decoded in build-notes/hitzone-capsules.md and are the table's to tell.
+// hit lands and that depend on the moment -- the group mask, the conditional bit, and the first-match order that
+// settles which copy the game takes. Those are decoded in build-notes/hitzone-capsules.md and are the table's to tell.
 // A PART-record pick keeps everything: Gore Magala's part rows 7 and 0 hold nothing but copies.
+// A SHAPE NO ATTACK EVER COUNTS IS NOT DRAWN, in either kind of pick. Raven, 2026-09-16: "if we know which capsules
+// that are effectively turned off, do not render them". The hit test 0x16bc54 checks a record's flag word (+0xa,
+// hitzones.json `capsuleFlags`) against the attack type. Types 37-47, 8/69 and 9 read only its low byte (tst #4,
+// #3, #0x18), and every other type skips a word with any of 0x152 (0x16c05c). So a word with bit 6 or 8 set and
+// none of bits 0-4 fails every path: Zinogre's two body shapes filed under Head, the dromes' capsule between the
+// thighs, 40 shapes over 25 monsters here. That is known for every hit, where the gates above are not.
+const zoneNeverCounted = f => (f & 0x1f) === 0 && (f & 0x140) !== 0;
 function zoneShapesFor(rec, pick){
+  const flags = rec.capsuleFlags || [];
+  const live = rec.capsules.filter((c, i) => !zoneNeverCounted(flags[i] || 0));
   const shapeKey = c => c.slice(2).join(',');
   const slotsOf = new Map();
-  for (const c of rec.capsules){
+  for (const c of live){
     const k = shapeKey(c);
     if (!slotsOf.has(k)) slotsOf.set(k, new Set());
     slotsOf.get(k).add(c[0]);
@@ -5086,7 +5096,7 @@ function zoneShapesFor(rec, pick){
   const col = pick.kind === 'slot' ? 0 : 1;            // a capsule row's slot, or its part record
   const rows = [], seen = new Set();
   let copies = 0;
-  for (const c of rec.capsules){
+  for (const c of live){
     if (c[col] !== pick.index) continue;
     const k = shapeKey(c);
     if (pick.kind === 'slot' && slotsOf.get(k).size > 1){ copies++; continue; }
@@ -5094,7 +5104,8 @@ function zoneShapesFor(rec, pick){
     seen.add(k);
     rows.push(c);
   }
-  return { rows, copies };
+  const off = rec.capsules.filter((c, i) => c[col] === pick.index && zoneNeverCounted(flags[i] || 0)).length;
+  return { rows, copies, off };
 }
 // a CSS colour variable as 0..1 RGB, so the drawn zone is the lit row's colour. A theme writes --cta as rgb(),
 // the stylesheet's own default as hex; both are read.
@@ -6590,7 +6601,7 @@ window.__view.zones = (kind, index) => {
     .map(tr => tr.closest('table').dataset.pane + ': ' + tr.cells[0].textContent);
   if (zoneShape) mounted.main.updateMatrixWorld(true);
   const drawn = zoneShape ? { placed: zoneShape.userData.placed, skipped: zoneShape.userData.skipped,
-                              copiesLeftOut: zoneShape.userData.copies,
+                              copiesLeftOut: zoneShape.userData.copies, neverCountedLeftOut: zoneShape.userData.off,
                               capsules: zoneShape.userData.readback() } : null;
   return { pick: zonePick, lit, drawn };
 };
