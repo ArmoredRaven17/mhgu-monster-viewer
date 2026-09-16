@@ -121,6 +121,20 @@
    "7": "Right Leg"
   }
  },
+ "em007_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Wings/Back (slot 2) is the back with the wing arms (joints 7-9 and 11-13); Wing Flaps (slot 4) is the two membrane capsules (8-60 and 12-70); Tail Tip (slot 7) is the two capsules on joint 145. Head (slot 0) holds the two horn capsules, the head sphere and a sphere on joint 103; Bloodbath Diablos keeps only its horns in slot 0 and files those two spheres under slot 1.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Wings/Back",
+   "3": "Belly",
+   "4": "Wing Flaps",
+   "5": "Legs",
+   "6": "Tail",
+   "7": "Tail Tip"
+  }
+ },
  "em037_04": {
   "reviewed": "2026-09-15",
   "note": "Named from the render. Raven asked to verify slot 6: \"it seems off to have a sphere on the arm like that for a tail region\". Verified from the raw .bdd (build/frag copy byte-identical to the extracted ROM file): record 15, a sphere on joint 5 (radius 95 at 100, 0, 20), carries damage row 6 here and row 4 on Nargacuga. Its mirror on the other arm, record 21 on joint 9 (radius 95 at -100, 0, 20), is row 4 on both. Both spheres keep part record 4, the arm capsules' part, and the u16 at +10 is 512 on both, so the one-sided change is the only difference. Silverwind also enlarges two tail capsules (records 13 and 14).",
