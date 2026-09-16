@@ -3771,6 +3771,34 @@ export const ROM_MEAT_SWITCH = {
       { slot: 6, row: 6, broken: 'part1' },
     ],
   },
+  // Nargacuga (em037_00), uEm037_00: 0xe485d0. Coverage 0xe485d0 16/16.
+  // E+0xcb2e is the routine's own latch: it holds the state last applied and the rows switch only when the enrage test disagrees with it, so the table simply follows Enraged.
+  em037_00: {
+    rules: [
+      { slot: 0, row: 0, rage: true },
+      { slot: 1, row: 1, rage: true },
+      { slot: 2, row: 2, rage: true },
+      { slot: 3, row: 3, rage: true },
+      { slot: 4, row: 4, rage: true },
+      { slot: 5, row: 5, rage: true },
+      { slot: 6, row: 6, rage: true },
+      { slot: 7, row: 7, rage: true },
+    ],
+  },
+  // Silverwind Nargacuga (em037_04), uEm037_00: 0xe485d0. Coverage 0xe485d0 16/16.
+  // E+0xcb2e is the routine's own latch: it holds the state last applied and the rows switch only when the enrage test disagrees with it, so the table simply follows Enraged.
+  em037_04: {
+    rules: [
+      { slot: 0, row: 0, rage: true },
+      { slot: 1, row: 1, rage: true },
+      { slot: 2, row: 2, rage: true },
+      { slot: 3, row: 3, rage: true },
+      { slot: 4, row: 4, rage: true },
+      { slot: 5, row: 5, rage: true },
+      { slot: 6, row: 6, rage: true },
+      { slot: 7, row: 7, rage: true },
+    ],
+  },
   // Ukanlos (em038_00), uEm038_00: 0xe5ba74. Coverage 0xe5ba74 7/7.
   em038_00: {
     broken: { part2: [10] },
@@ -3782,6 +3810,30 @@ export const ROM_MEAT_SWITCH = {
       { slot: 4, row: 4, broken: 'part2' },
       { slot: 5, row: 5, broken: 'part2' },
       { slot: 6, row: 6, broken: 'part2' },
+    ],
+  },
+  // Deviljho (em043_00), uEm043_00: 0xe7ef64. Coverage 0xe7ef64 12/12.
+  // S0+0x30 is the routine's own latch: it holds the state last applied and the rows switch only when the enrage test disagrees with it, so the table simply follows Enraged.
+  em043_00: {
+    rules: [
+      { slot: 0, row: 0, rage: true },
+      { slot: 1, row: 1, rage: true },
+      { slot: 2, row: 2, rage: true },
+      { slot: 3, row: 3, rage: true },
+      { slot: 4, row: 4, rage: true },
+      { slot: 5, row: 5, rage: true },
+    ],
+  },
+  // Savage Deviljho (em043_05), uEm043_00: 0xe7ef64. Coverage 0xe7ef64 12/12.
+  // S0+0x30 is the routine's own latch: it holds the state last applied and the rows switch only when the enrage test disagrees with it, so the table simply follows Enraged.
+  em043_05: {
+    rules: [
+      { slot: 0, row: 0, rage: true },
+      { slot: 1, row: 1, rage: true },
+      { slot: 2, row: 2, rage: true },
+      { slot: 3, row: 3, rage: true },
+      { slot: 4, row: 4, rage: true },
+      { slot: 5, row: 5, rage: true },
     ],
   },
   // Uragaan (em045_00), uEm045_00: 0xe9bc48. Coverage 0xe9bc48 1/1.
