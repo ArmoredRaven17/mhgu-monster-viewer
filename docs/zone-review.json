@@ -484,5 +484,17 @@
    "4": "Legs",
    "5": "Tail"
   }
+ },
+ "em079_04": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Nightcloak is the same\" (as Malfestio). Same slots on the same joints; only Tail (slot 5) differs: its capsule on joints 140-141 is shorter (end at -70 against -100), and four more one-joint capsules on joint 141 fan out, two to each side.",
+  "slots": {
+   "0": "Head",
+   "1": "Body",
+   "2": "Wings",
+   "3": "Wing Claws",
+   "4": "Legs",
+   "5": "Tail"
+  }
  }
 }
