@@ -886,5 +886,17 @@
    "5": "Legs",
    "7": "Abdomen Tip"
   }
+ },
+ "em019_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Head (slot 0) draws one sphere on joint 1 at the front; its radius-180 sphere on joint 0 (record 19, flag 0x0100) is never counted and not drawn. Body (slot 1) is one sphere on joint 0. Both carry group mask 0x0001. Skull (slot 2) is the shell on its back (joint 142). Raven flagged Arms (slot 5) for review: \"seems normal, but something is bothering about it\".",
+  "slots": {
+   "0": "Head",
+   "1": "Body",
+   "2": "Skull",
+   "3": "Legs",
+   "4": "Claws",
+   "5": "Arms"
+  }
  }
 }
