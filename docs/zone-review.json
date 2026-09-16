@@ -1082,5 +1082,18 @@
    "4": "Legs",
    "5": "Tails"
   }
+ },
+ "em058_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Back (slot 2) is seven shapes high along the back (joints 1, 2, 14, 100, 204); Arms (slot 3) the front limbs spread wide (joints 6-12, 210-213). Head (slot 0) has a switched capsule on joint 3 (record 6, mask 0x0002) and Tail (slot 6) a switched end capsule (record 30, mask 0x0001).",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Back",
+   "3": "Arms",
+   "4": "Legs",
+   "5": "Belly",
+   "6": "Tail"
+  }
  }
 }
