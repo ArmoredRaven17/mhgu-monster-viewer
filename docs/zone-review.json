@@ -764,12 +764,12 @@
  },
  "em056_00": {
   "reviewed": "2026-09-16",
-  "note": "Named from the render (the list came unlabelled, straight after Nibelsnarf was put up next). Nose (slot 4, joint 200), Gills (slot 6, joints 201-202) and Uvula (slot 7, joint 135) are made only of group-switched shapes (masks 0x4000, 0x2000, 0x8000; switch 0xee8fc8, see build-notes/hitzone-capsules.md). Front Legs (slot 3) also holds one capsule on each back leg (records 4-5, joints 17 and 21, parts 4 and 5), behind the front legs; asked whether the name should cover them.",
+  "note": "Named from the render (the list came unlabelled, straight after Nibelsnarf was put up next). Legs (slot 3) was first Front Legs; it also holds one capsule on each back leg (records 4-5, joints 17 and 21, parts 4 and 5), and Raven: \"Update Front Legs to Legs\". Nose (slot 4, joint 200), Gills (slot 6, joints 201-202) and Uvula (slot 7, joint 135) are made only of group-switched shapes (masks 0x4000, 0x2000, 0x8000; switch 0xee8fc8, see build-notes/hitzone-capsules.md).",
   "slots": {
    "0": "Head",
    "1": "Body",
    "2": "Back",
-   "3": "Front Legs",
+   "3": "Legs",
    "4": "Nose",
    "5": "Belly",
    "6": "Gills",
@@ -802,6 +802,19 @@
    "5": "Right Front Leg",
    "6": "Neck",
    "7": "Back"
+  }
+ },
+ "em066_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render; slot 7 after the read below (Raven: \"This might be when it is holding a boulder\", then \"Call it Boulder\"). The slots are 0-5 and 7 (row 6 is all zeros, no capsule). Boulder (slot 7) is one sphere on joint 3, radius 170, in front of and below the head, group mask 0x2000; 0xf63470 switches it on only while bit 0 of [[enemy+0x1428]+0x1bb] is set and [[enemy+0xcac0]+0x30] is 1 or 2 (build-notes/hitzone-capsules.md). Tusks (slot 1) is two capsules on joint 132 switched one at a time (masks 0x8000/0x4000, 0xf630a0).",
+  "slots": {
+   "0": "Head",
+   "1": "Tusks",
+   "2": "Body",
+   "3": "Front Legs",
+   "4": "Rear Legs",
+   "5": "Tail",
+   "7": "Boulder"
   }
  }
 }
