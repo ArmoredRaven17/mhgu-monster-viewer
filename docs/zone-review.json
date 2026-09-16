@@ -668,5 +668,19 @@
    "6": "Tail",
    "7": "Body"
   }
+ },
+ "em083_04": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Elderfrost is the same\" (as Gammoth). Same slots on the same joints, three rows differing: a head sphere on joint 3 is radius 75 against 60, a head capsule's end sits at y -160 against -180, and the trunk's last shape is a capsule spanning joints 157-160 (radius 70) where Gammoth's is a one-joint capsule on 157 (radius 65).",
+  "slots": {
+   "0": "Head/Tusks",
+   "1": "Trunk",
+   "2": "Left Front Leg",
+   "3": "Right Front Leg",
+   "4": "Left Rear Leg",
+   "5": "Right Rear Leg",
+   "6": "Tail",
+   "7": "Body"
+  }
  }
 }
