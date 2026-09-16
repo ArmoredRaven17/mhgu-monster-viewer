@@ -2609,6 +2609,92 @@ if (typeof window !== 'undefined'){
     return { on: tailSwellOn, state: s ? s.state : null, skin: s ? s.skin.slice() : null, tips: s ? s.tips.slice() : null };
   };
 }
+
+// SEREGIOS SWINGS ITS HORN FORWARD WHILE ENRAGED. No part or clip does this: its class writes the horn joint over
+// the clip. Raven, 2026-09-16: "The main horn needs to move forward when enraged, we have a part of the horn moving
+// forward." The part that already moved is the Snout row's enraged mesh (part 3 -> 4). The horn itself is part 110
+// (90v, on the Head row in both states), and it rides joint 200.
+//
+// uEm077_00 overrides uModel's slot 19 (vtable +0x4c, 0xfe0164). The enemy base (0xad6c0..0xad6e0) runs the motion
+// (0x94e1a0), then slot 19, then slot 20 (0x94b288). Slot 20 builds each joint's matrix from its rotation +0x60
+// (x, y, z, w), scale +0x70 and translation +0x80 (0x94b7ec), so a slot-19 write is drawn in the same frame. After
+// the base slot 19 (0x94b25c), the override finds joint 200 through the joint map ([enemy+0x498] byte +0xc8, joint =
+// [enemy+0x494] + index x 0xa0). While a timer at [enemy+0xcac0]+0x50 is above 0, it writes that joint's rotation
+// through 0x94a810:
+//
+//     q = normalise((1 - t) x captured + t x (0, 0, 0, 1))     t = timer x 0.166667 (0xfe01d8)
+//
+// The identity's sign is flipped when its dot with `captured` is negative (0xfe0218). (0, 0, 0, 1) is the constant
+// at 0x019178d0: the static initialiser at 0x7c4970 writes 0.0 to x, y and z and 1.0 to w.
+// The class's per-frame virtual +0x1dc (slot 119, 0xfdae58) keeps the timer and the captured rotation:
+//
+//     enraged (0x81670: [enemy+0x1428]+0x518 == 1)
+//         timer <= 0: copy joint 200's rotation (+0x60..+0x6c) to [enemy+0xcac0]+0x30..+0x3c, and call 0x4ef0ac
+//                     with 0xe2 (likely an effect -- not modelled here)
+//         timer = min(timer + 1.0 x dt, 6.0)            0x7264c -> 0x539d48, cap at 0xfdaf24..0xfdaf3c
+//     otherwise
+//         timer = max(timer - 1.0 x dt, 0)              0x7206c -> 0x539d5c
+//
+// So on rage the horn turns from the clip's rotation to the joint's bind rotation over 6 units of dt. When rage
+// ends it turns back over 6, and after that the clip has the joint again. Every Seregios motion carries a local-
+// rotation track on joint 200 (read from the .lmt headers). Most hold it constant at -82.5 deg about X
+// (-0.659, 0, 0, 0.752). L2 Motion[24] and [68] hold 84.7 deg. L0 Motion[4] and L2 Motion[21] animate it
+// between 64.5 and 82.5, and L2 Motion[58] between 90 and 94.4. So the enraged turn is about 82.5 deg.
+// Joint 200 also carries some vertices of other parts: 60 of part 0's 2116 (the body mesh, drawn in every state),
+// parts 3 / 4 (the snout, calm and enraged), part 42 (the broken head), and the proxy parts 100 and 108.
+//
+// NOT MODELLED, from the same function: while [enemy+0xcac0]+0x84 is set, joints 162, 163 and 164 are held at a
+// scale of at least (1, 1, 1) (0xfe02c8..0xfe0474, MtVector3 one at 0x019176c0). The enraged body and head meshes
+// (parts 10, 39, 44, and the proxy part 102) ride those joints. Clips in lists 0-2 scale them below 1: down to 0.01,
+// and to negative values in list 0. The flag is slot 170's
+// (0xfddc2c -> 0xfddcc4): the enrage predicate, but false during actions (3, 8) and (4, 9) (bytes +0x73e0 /
+// +0x73e1, and +0x73e2 / +0x73e3 when +0x73e4 is set), and a check at 0xb0968 during action (1, 9). The viewer
+// has no action state.
+// Frame units are taken at 60 a second, as the ear fold's are. The ROM's unit for dt ([enemy+0x1c],
+// cUnit::mDeltaTime) is not read. __hornRaise(false) leaves the joint to the clip.
+export const ROM_HORN_RAISE = { em077_00: { gid: 200, ramp: 6 } };
+const HORN_RAISE_FPS = 60;
+let hornRaiseOn = true;
+// Call right after the pose driver has written the frame, like stepEarFold. Returns the joints it wrote.
+export function stepHornRaise(roots, monId, enraged, tSec){
+  const t = monId && ROM_HORN_RAISE[monId];
+  if (!t) return 0;
+  let n = 0;
+  for (const root of roots || []){
+    if (!root || !root.userData) continue;
+    const b = gidBonesOf(root).find(x => x.gid === t.gid);
+    if (!b) continue;
+    let s = root.userData.hornRaise;
+    if (!s || s.monId !== monId)
+      s = root.userData.hornRaise = { monId, timer: 0, captured: new THREE.Quaternion(), tLast: tSec };
+    const f = Math.max(0, (tSec - s.tLast) * HORN_RAISE_FPS);
+    s.tLast = tSec;
+    const q = b.node.quaternion;
+    // the pose driver has just written the clip's rotation, so this is the value the ROM copies
+    if (enraged){
+      if (!(s.timer > 0)) s.captured.copy(q);
+      s.timer = Math.min(s.timer + f, t.ramp);
+    } else s.timer = Math.max(s.timer - f, 0);
+    if (!hornRaiseOn || !(s.timer > 0)) continue;
+    const w = s.timer / t.ramp, c = s.captured;
+    const id = c.w < 0 ? -1 : 1;                 // dot(captured, (0, 0, 0, 1)) is captured.w
+    q.set((1 - w) * c.x, (1 - w) * c.y, (1 - w) * c.z, (1 - w) * c.w + w * id).normalize();
+    n++;
+  }
+  return n;
+}
+export function setHornRaise(on){ hornRaiseOn = !!on; return hornRaiseOn; }
+if (typeof window !== 'undefined'){
+  // readback: { on, timer, captured: [x, y, z, w], joint: joint 200's rotation now } for the mounted monster
+  window.__hornRaise = (on) => {
+    if (on !== undefined) setHornRaise(on);
+    const root = window.__view && window.__view.mounted && window.__view.mounted.main;
+    const s = root && root.userData && root.userData.hornRaise;
+    const b = root && gidBonesOf(root).find(x => x.gid === 200);
+    return { on: hornRaiseOn, timer: s ? s.timer : null, captured: s ? s.captured.toArray() : null,
+             joint: b ? b.node.quaternion.toArray() : null };
+  };
+}
 // The clip a monster's LEVEL rung names, or undefined where no table says (the caller then falls back
 // to the Rage ladder). A rung past the table's end takes its last entry.
 export function levelClipFor(monId, level){
