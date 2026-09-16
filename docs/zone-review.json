@@ -775,5 +775,19 @@
    "6": "Gills",
    "7": "Uvula"
   }
+ },
+ "em082_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render; a first nine-name list split the rear legs, which share slot 2, and was not applied. Rear Legs (slot 2) holds both hind legs, the higher-x one under part record 3 (joints 19-22) and the other under part 7 (joints 23-26). Left Front Leg (slot 1) is the higher-x side, as on Gravios. Back (slot 7) is three shapes high above the back (joints 15 and 16).",
+  "slots": {
+   "0": "Head",
+   "1": "Left Front Leg",
+   "2": "Rear Legs",
+   "3": "Body",
+   "4": "Tail",
+   "5": "Right Front Leg",
+   "6": "Neck",
+   "7": "Back"
+  }
  }
 }
