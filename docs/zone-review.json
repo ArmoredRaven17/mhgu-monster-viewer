@@ -1396,6 +1396,14 @@
    "1": "Body"
   }
  },
+ "ems047_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Head (slot 0) is two shapes at the front (joints 2 and 102); Body (slot 1) is eight shapes over the body, legs and tail.",
+  "slots": {
+   "0": "Head",
+   "1": "Body"
+  }
+ },
  "ems048_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
