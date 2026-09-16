@@ -544,5 +544,16 @@
    "3": "Body",
    "4": "Tail"
   }
+ },
+ "em023_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render; the same names, in the same order, as Blangonga's. Furious Rajang's slots sit on the same joints.",
+  "slots": {
+   "0": "Head",
+   "1": "Arms",
+   "2": "Legs",
+   "3": "Body",
+   "4": "Tail"
+  }
  }
 }
