@@ -829,5 +829,20 @@
    "5": "Tail",
    "7": "Boulder"
   }
+ },
+ "em067_00": {
+  "reviewed": "2026-09-16",
+  "unsure": "Raven, 2026-09-16, on slot 7: \"Belly (Blob Form) potentially, I don't see a Table 0/1, so this will need to be reviewed for adding a toggle.\" The name follows the read that mode 2 switches it on; what mode 2 is has not been read.",
+  "note": "Named from the render. Belly (Blob Form) (slot 7) is one sphere on joint 201, radius 100, group mask 0x8000, switched on only in mode 2 of [[enemy+0x1428]+0x1bb] (0xf76088, build-notes/hitzone-capsules.md). Left Front Leg (slot 3) is the higher-x side, as on Gravios. Body (slot 1) draws one shape; its two radius-200 spheres are never counted.",
+  "slots": {
+   "0": "Head",
+   "1": "Body",
+   "2": "Fin",
+   "3": "Left Front Leg",
+   "4": "Right Front Leg",
+   "5": "Rear Legs",
+   "6": "Tail",
+   "7": "Belly (Blob Form)"
+  }
  }
 }
