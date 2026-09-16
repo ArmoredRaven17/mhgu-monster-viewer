@@ -939,5 +939,19 @@
    "6": "Weak Point",
    "7": "Rear Legs"
   }
+ },
+ "em069_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Head/Body (slot 0) also lists record 38, a radius-280 sphere on joint 0 (flags 0x0109, so only attack types 8/69 and 9 count it; group mask 0x2000), which is drawn. Claw/Pincers (slot 3) holds switched shapes: spheres on joints 160-161 (mask 0x1000) and capsules on joints 5 and 9 (masks 0xc000 and 0x4000). The four Leg Plates (slots 4-7) are one capsule each on joints 12, 20, 16 and 24; the Left ones are the higher-x side, as on Gravios.",
+  "slots": {
+   "0": "Head/Body",
+   "1": "Body/Tail",
+   "2": "Legs",
+   "3": "Claw/Pincers",
+   "4": "Left Front Leg Plate",
+   "5": "Left Rear Leg Plate",
+   "6": "Right Front Leg Plate",
+   "7": "Right Rear Leg Plate"
+  }
  }
 }
