@@ -555,5 +555,16 @@
    "3": "Body",
    "4": "Tail"
   }
+ },
+ "em023_05": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Furious is the same\" (as Rajang). Same slots on the same joints as Rajang.",
+  "slots": {
+   "0": "Head",
+   "1": "Arms",
+   "2": "Legs",
+   "3": "Body",
+   "4": "Tail"
+  }
  }
 }
