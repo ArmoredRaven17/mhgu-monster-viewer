@@ -607,5 +607,16 @@
    "3": "Back",
    "4": "Legs"
   }
+ },
+ "em061_04": {
+  "reviewed": "2026-09-16",
+  "note": "Raven: \"Snowbaron is the same\" (as Lagombi). Same slots on the same joints; the only differing row is Back's capsule (joints 0-140), whose start sits 25 up against Lagombi's 20.",
+  "slots": {
+   "0": "Head",
+   "1": "Torso",
+   "2": "Arms",
+   "3": "Back",
+   "4": "Legs"
+  }
  }
 }
