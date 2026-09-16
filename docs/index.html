@@ -4831,7 +4831,14 @@ async function applyHeat(){
   const rec = e && HITZONES.monsters && HITZONES.monsters[e.id];
   const note = document.getElementById('monZoneNote');
   document.getElementById('monHeatRow').hidden = !rec;
-  document.getElementById('monHeatTableRow').hidden = !(rec && rec.tables.length > 1);
+  // THE DROPDOWN LISTS TABLES, SO IT GOES WHEN THERE IS ONLY ONE. Raven, 2026-09-16: "if a monster no longer has
+  // multiple tables, hide the Damage Table drop down". A monster whose second block is switched in by its own
+  // rules has as many tables as it has states: a break-only one (Glavenus) has just the one, which follows the
+  // Parts panel, and so does a rage one whose Enraged toggle the level axis owns. Set here as well as below so the
+  // previous monster's row is not left showing while this one's zones load.
+  const heatTableRow = document.getElementById('monHeatTableRow');
+  const tableCount = !rec ? 0 : (zoneStates(e, rec) || { names: rec.tables }).names.length;
+  heatTableRow.hidden = tableCount < 2;
   document.getElementById('monBounceTRow').hidden = !(rec && /^hardness-/.test(state.heat));
   if (!rec){
     // Two monsters ship no damage table (em087_00 and ems017_00). The panel says so rather than
@@ -4868,6 +4875,7 @@ async function applyHeat(){
     tsel.dataset.names = names;
   }
   tsel.value = String(zt.index);
+  heatTableRow.hidden = zt.names.length < 2;
   paintZoneBreaks(e, zt);
   document.getElementById('monHeat').value = state.heat;
   document.getElementById('monBounceT').value = state.deflectT || 'f25';
