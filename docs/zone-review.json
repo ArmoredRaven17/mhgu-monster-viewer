@@ -1217,6 +1217,14 @@
    "0": "All"
   }
  },
+ "ems042_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Head (slot 0) is one shape at the front (joint 2); Body (slot 1) the body and neck (joints 1 and 102).",
+  "slots": {
+   "0": "Head",
+   "1": "Body"
+  }
+ },
  "ems046_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
@@ -1243,6 +1251,39 @@
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
   "slots": {
    "0": "All"
+  }
+ },
+ "ems012_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Body (slot 1) is eleven shapes over the body, fins and tail; Legs (slot 2) the legs.",
+  "slots": {
+   "0": "Head",
+   "1": "Body",
+   "2": "Legs"
+  }
+ },
+ "ems039_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render (the list came unlabelled, next in dropdown order after Cephalos). Head (slot 0) is the front (joints 2-103); Body (slot 1) the body and tail.",
+  "slots": {
+   "0": "Head",
+   "1": "Body"
+  }
+ },
+ "ems040_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render (the list came unlabelled, next in dropdown order after Ludroth). Head (slot 0) is the front (joints 2-103); Body (slot 1) the body and tail.",
+  "slots": {
+   "0": "Head",
+   "1": "Body"
+  }
+ },
+ "ems044_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render (the list came unlabelled, next in dropdown order after Uroktor). Head (slot 0) is one shape on joint 3 at the front; Body (slot 1) one shape on joint 2.",
+  "slots": {
+   "0": "Head",
+   "1": "Body"
   }
  },
  "ems020_00": {
