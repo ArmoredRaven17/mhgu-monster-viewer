@@ -3890,6 +3890,25 @@ export const ROM_MEAT_SWITCH = {
       { slot: 5, row: 5, mode: [1] },
     ],
   },
+  // KUSHALA DAORA, uEm024_00: 0xdf115c. Its WIND AURA level lives in [[enemy+0x1428]+0x1bb] (0xff none); a broken
+  // horn ([[enemy+0xcac0]+0x18]) shows 3 as 2 and 2 as 1. Any level of 1 or more puts slots 0-6 on their own
+  // table-1 rows, 0 restores them. The aura driver 0xdeffc4 makes the same adjustment and spawns effect 1000 + level
+  // (1001 / 1002 / 1003) for levels 1-3, none at 0 -- so the table follows the aura being up. The spawn setup
+  // 0xdef008 starts it at 0; the event handler 0xdef314 raises it (0 or 1 to 2, 2 to 3, or straight to 3), drops
+  // it (3 to 2), turns it off, or holds it suspended as level + 3. Raven, 2026-09-16: "Kushala next, check if it's
+  // linked to its wind aura" -- it is; which level is which in the hunt is his reading to give.
+  em024_00: {
+    modes: ['No Aura', 'Wind Aura'],
+    rules: [
+      { slot: 0, row: 0, mode: [1] },
+      { slot: 1, row: 1, mode: [1] },
+      { slot: 2, row: 2, mode: [1] },
+      { slot: 3, row: 3, mode: [1] },
+      { slot: 4, row: 4, mode: [1] },
+      { slot: 5, row: 5, mode: [1] },
+      { slot: 6, row: 6, mode: [1] },
+    ],
+  },
   // ---- generated from the ROM sweep (build/hitzone-states) ----
   // Basarios (em004_00), uEm004_00: 0xd2329c. Coverage 0xd2329c 1/7.
   em004_00: {
