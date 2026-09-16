@@ -566,5 +566,13 @@
    "3": "Body",
    "4": "Tail"
   }
+ },
+ "em030_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render.",
+  "slots": {
+   "0": "Head",
+   "1": "Body"
+  }
  }
 }
