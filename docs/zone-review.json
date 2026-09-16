@@ -401,5 +401,18 @@
    "5": "Wings",
    "6": "Legs"
   }
+ },
+ "em009_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Neck (slot 1) is one capsule under the head, from joint 100 to the head (joint 3); Belly (slot 3) is one sphere low under the body on joint 0. Head (slot 0) also takes the shapes on joint 150 above it. The layout does not follow Yian Kut-Ku's.",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Back",
+   "3": "Belly",
+   "4": "Tail",
+   "5": "Wings",
+   "6": "Legs"
+  }
  }
 }
