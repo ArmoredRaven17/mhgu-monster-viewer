@@ -3835,6 +3835,26 @@ export const ROM_MEAT_SWITCH = {
       { slot: 4, row: 4, broken: 'sharpened' },
     ],
   },
+  // GORE MAGALA, uEm071_00: the tail of its event handler 0xfadfa0 (number 0x47, variant 0) puts slots 0-7 on their
+  // own table-1 rows while [[enemy+0x1428]+0x1bb] is set, and resets them otherwise. Every path of that handler
+  // sets the byte together with [[enemy+0xcac0]+0x82] (0xfadbf4, 0xfadc94, 0xfae444, 0xfae4c0, 0xfae5f4 -- Chaotic
+  // is skipped), and the parts driver 0xfbf97c draws FEELERS OUT on +0x82 (g3 head, g7 feelers, run under
+  // Unicorn) -- the Feelers row's Intact (Feelers Out). So the table follows that option.
+  em071_00: {
+    broken: { feelersOut: [7, 8] },
+    sections: { feelersOut: 'Feelers' },
+    labels: { feelersOut: 'Out' },
+    rules: [
+      { slot: 0, row: 0, broken: 'feelersOut' },
+      { slot: 1, row: 1, broken: 'feelersOut' },
+      { slot: 2, row: 2, broken: 'feelersOut' },
+      { slot: 3, row: 3, broken: 'feelersOut' },
+      { slot: 4, row: 4, broken: 'feelersOut' },
+      { slot: 5, row: 5, broken: 'feelersOut' },
+      { slot: 6, row: 6, broken: 'feelersOut' },
+      { slot: 7, row: 7, broken: 'feelersOut' },
+    ],
+  },
   // ---- generated from the ROM sweep (build/hitzone-states) ----
   // Basarios (em004_00), uEm004_00: 0xd2329c. Coverage 0xd2329c 1/7.
   em004_00: {
