@@ -101,7 +101,90 @@ export function setGlobalEnvCube(tex){ GLOBAL_ENV.value = tex; }
 export function setGlobalReflection(on){ GLOBAL_REFL_ON.value = on ? 1 : 0; return !!GLOBAL_REFL_ON.value; }
 export function globalReflectionOn(){ return !!GLOBAL_REFL_ON.value; }
 
-export function installRomSpecular(mat, rom){
+// ---- FBRDF's specular lobe: the lights' highlight as the ROM computes it ------------------------
+// Raven, 2026-09-16: "When he is fully charged, the membrane should also glow green." Astalos'
+// charged membrane (XfBAN__E1_wing_taiden, part 42) carries no clip, and its class makes no material
+// call. Its green is its own fSpecularColor, (0.42, 0.6, 0). The specular map (em081_00_BM+A) is
+// exactly its pane mask: 255 on every pane texel, 0 on every vein. So the lights light the panes
+// yellow-green, and that is the one term of its program this viewer did not draw as the ROM does.
+//
+// FBRDF, read as a program (efx/shader/mfxprog.py FBRDF), once per light:
+//     h = normalize( light.direction - mc.eye_dir )
+//     mc.specular += light.specular * pow( max( dot( mc.normal, h ), 1e-5 ), mc.shininess )
+// Blinn-Phong with $Globals.fShininess as the exponent, NO normalisation and NO N.L factor. The
+// Standard class draws that lobe with three.js's GGX instead. The roughness that rom/material.js
+// bridges the exponent to is authored (80 -> 0.50), and at its peak GGX gives about 0.05 of the
+// light, where the ROM gives all of it. On Astalos' panes that is the whole charge colour.
+//
+// With this on, the lights' direct specular IS that sum. material.js still multiplies it by
+// fSpecularColor and the map's gloss, and romMul below still applies the fresnel and the RGB map:
+//     FSpecularMap   ( mc.specular * fSpecularColor + FReflect ) * specMap * occlusion
+// So only the lobe changes.
+//
+// THE LIGHT'S STRENGTH is not the ROM's. Lights are scene state, and this viewer's rig is its own.
+// The rig was tuned against three.js's Lambert, albedo * color * N.L / pi, where FBRDF's diffuse is
+// `light.diffuse * N.L` with no pi. So in the ROM's terms each light here is color / pi, and the lobe
+// takes the same color / pi: the ROM's ratio of highlight to diffuse, taking the light's specular
+// colour as its diffuse one (a READING; the ROM carries them separately). The scale is a knob.
+//
+// DEFAULT: on for BLINN_PHONG_DEFAULT_REFS only, the way the alpha treatments were staged. It
+// changes the highlight on every lit material: 469 monster materials, shininess 0.01..80, 197 at 16.
+// A monster joins at Raven's word.
+//   __romBlinnPhong()                   readback
+//   __romBlinnPhong(true / false)       every lit monster material
+//   __romBlinnPhong('default')          back to the per-monster defaults
+//   __romBlinnPhong('scale', k)         the light factor (default 1 / pi)
+export const BLINN_PHONG_DEFAULT_REFS = new Set(['em/081_00', 'em/081_00/tail']);
+let romBlinnPhong = null;                    // null: per-monster defaults; true / false: every material
+const BP_SCALE = { value: 1 / Math.PI };
+const bpMats = new Set();                    // { u: uniform holder, ref }
+function bpFor(ref){ return romBlinnPhong === null ? BLINN_PHONG_DEFAULT_REFS.has(ref) : romBlinnPhong; }
+export function enableRomBlinnPhong(on){
+  romBlinnPhong = (on === 'default' || on === null) ? null : !!on;
+  for (const e of bpMats) e.u.value = bpFor(e.ref) ? 1 : 0;
+  return romBlinnPhongState();
+}
+export function romBlinnPhongState(){
+  return { on: romBlinnPhong === null ? 'default' : romBlinnPhong, scale: +BP_SCALE.value.toFixed(4),
+           materials: bpMats.size, usingRomLobe: [...bpMats].filter(e => e.u.value).length };
+}
+if (typeof window !== 'undefined'){
+  window.__romBlinnPhong = (on, k) => {
+    if (on === undefined) return romBlinnPhongState();
+    if (on === 'scale'){ BP_SCALE.value = +k; return romBlinnPhongState(); }
+    return enableRomBlinnPhong(on);
+  };
+}
+// The lights three.js hands a Standard program, each lobe as FBRDF writes it. `geometryPosition` is
+// declared by lights_fragment_begin, earlier in main(), and is still in scope here.
+const BP_GLSL =
+  '\tif ( uRomBP > 0.5 ) {\n' +
+  '\t\treflectedLight.directSpecular = vec3( 0.0 );\n' +
+  '\t\tvec3 bpV = normalize( vViewPosition );\n' +
+  '\t\tvec3 bpN = normalize( normal );\n' +
+  '\t\tIncidentLight bpL;\n' +
+  '#if NUM_DIR_LIGHTS > 0\n' +
+  '\t\tfor ( int bi = 0; bi < NUM_DIR_LIGHTS; bi ++ ) {\n' +
+  '\t\t\tgetDirectionalLightInfo( directionalLights[ bi ], bpL );\n' +
+  '\t\t\treflectedLight.directSpecular += bpL.color * uRomBPScale * pow( max( dot( bpN, normalize( bpL.direction + bpV ) ), 1e-5 ), uRomShin );\n' +
+  '\t\t}\n' +
+  '#endif\n' +
+  '#if NUM_POINT_LIGHTS > 0\n' +
+  '\t\tfor ( int bi = 0; bi < NUM_POINT_LIGHTS; bi ++ ) {\n' +
+  '\t\t\tgetPointLightInfo( pointLights[ bi ], geometryPosition, bpL );\n' +
+  '\t\t\treflectedLight.directSpecular += bpL.color * uRomBPScale * pow( max( dot( bpN, normalize( bpL.direction + bpV ) ), 1e-5 ), uRomShin );\n' +
+  '\t\t}\n' +
+  '#endif\n' +
+  '#if NUM_SPOT_LIGHTS > 0\n' +
+  '\t\tfor ( int bi = 0; bi < NUM_SPOT_LIGHTS; bi ++ ) {\n' +
+  '\t\t\tgetSpotLightInfo( spotLights[ bi ], geometryPosition, bpL );\n' +
+  '\t\t\treflectedLight.directSpecular += bpL.color * uRomBPScale * pow( max( dot( bpN, normalize( bpL.direction + bpV ) ), 1e-5 ), uRomShin );\n' +
+  '\t\t}\n' +
+  '#endif\n' +
+  '\t}\n';
+const A_LIGHTS_END = '#include <lights_fragment_end>';
+
+export function installRomSpecular(mat, rom, ref){
   if (!enabled) return mat;
   if (!mat || !mat.isMeshStandardMaterial) return mat;
   const u = mat.userData.u;
@@ -112,13 +195,31 @@ export function installRomSpecular(mat, rom){
     const cr = rom.cbm && rom.cbm.reflective;
     u.uReflRGB = u.uReflRGB || { value: new THREE.Vector3(cr ? cr[0] : 0, cr ? cr[1] : 0, cr ? cr[2] : 0) };
   }
+  // FBRDF's lobe needs the material's own exponent; a material without one keeps three.js's lobe
+  const shin = rom && rom.glob && typeof rom.glob.shininess === 'number' ? rom.glob.shininess : null;
+  const bp = shin !== null;
+  if (bp){
+    u.uRomBP = u.uRomBP || { value: bpFor(ref) ? 1 : 0 };
+    u.uRomShin = u.uRomShin || { value: shin };
+    bpMats.add({ u: u.uRomBP, ref });
+    mat.addEventListener('dispose', () => { for (const e of bpMats) if (e.u === u.uRomBP) bpMats.delete(e); });
+  }
 
-  tagProgram(mat, globalRefl ? 'romSpec|globalRefl' : 'romSpec');
+  tagProgram(mat, (globalRefl ? 'romSpec|globalRefl' : 'romSpec') + (bp ? '|romBP' : ''));
   chain(mat, sh => {
     Object.assign(sh.uniforms, { uRomSpecAmount: u.uRomSpecAmount });
     if (globalRefl) Object.assign(sh.uniforms, { uGlobalEnv: GLOBAL_ENV, uGlobalReflOn: GLOBAL_REFL_ON, uReflRGB: u.uReflRGB });
     let f = sh.fragmentShader;
     if (globalRefl) f = 'uniform samplerCube uGlobalEnv;\nuniform float uGlobalReflOn;\nuniform vec3 uReflRGB;\n' + f;
+    // The lobe goes directly after the lights, which puts it AHEAD of material.js's
+    // `directSpecular *= uSpecRGB * specMask` block: material.js ran first and left the include in place.
+    if (bp){
+      if (f.indexOf(A_LIGHTS_END) >= 0){
+        Object.assign(sh.uniforms, { uRomBP: u.uRomBP, uRomShin: u.uRomShin, uRomBPScale: BP_SCALE });
+        f = 'uniform float uRomBP;\nuniform float uRomShin;\nuniform float uRomBPScale;\n' +
+            f.replace(A_LIGHTS_END, A_LIGHTS_END + '\n' + BP_GLSL);
+      } else { misses.push('lightsEnd'); }
+    }
 
     // DECLARE the uniform, by PREPENDING rather than by replacing an anchor. Adding it to
     // sh.uniforms alone does not put it in the GLSL, and the omission is silent in JS: the

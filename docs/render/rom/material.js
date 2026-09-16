@@ -28,6 +28,15 @@
 // exponent and fSpecularColor as the specular colour, with no conversion. Off by default only
 // because it changes every monster at once.
 //
+// NOT USABLE AS-IS, found 2026-09-16 on Astalos' charged membrane, and left alone:
+//   * rom/specular.js installs only on MeshStandardMaterial, so the Phong class loses the fresnel
+//     scope, the RGB specular map and FReflectGlobalCubeMap. Boltreaver's charge colour is that
+//     reflection, and it would go.
+//   * `mat.specular` is set to fSpecularColor below, and material.js multiplies `uSpecRGB`, which is
+//     also fSpecularColor. So the colour is applied twice.
+// The LOBE ALONE is rom/specular.js's romBlinnPhong switch: FBRDF's Blinn-Phong in place of GGX's
+// direct specular on the Standard class, with everything else kept. It is on for Astalos by default.
+//
 // UPDATED 2026-09-08. That paragraph used to end "whose OPERAND encoding is not [read]". It is now.
 // The MFX operand word decodes as [member:12][0:4][record:12][tag:4], MATERIAL_CONTEXT's 32 slots
 // are named, and every operator the monster materials reach is named -- so all 35 features they
@@ -464,7 +473,7 @@ export function createRomMaterial(spec){
   //    material.js takes its luminance. rom/specular.js corrects both. Also DEFAULT OFF: it
   //    rewrites text the SHARED material.js emits, and it changes the brightness of every material
   //    binding a specular map.
-  if (lit) { installRomSpecular(mat, rom); trackRomSpecular(mat); }
+  if (lit) { installRomSpecular(mat, rom, spec && spec.ref); trackRomSpecular(mat); }
 
   mat.userData.rom = rom || null;
   mat.userData.cls = cls;
