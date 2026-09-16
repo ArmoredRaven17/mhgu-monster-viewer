@@ -93,6 +93,20 @@
    "5": "Wings"
   }
  },
+ "em004_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Same skeleton as Gravios, but laid out like the Rathian line: neck (1), tail (4) and tail end (7, on joint 143) each have a slot, and one slot holds both wings (5) and one both legs (6).",
+  "slots": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Back",
+   "3": "Belly",
+   "4": "Tail",
+   "5": "Wings",
+   "6": "Legs",
+   "7": "Tail Tip"
+  }
+ },
  "em005_00": {
   "reviewed": "2026-09-15",
   "note": "Named from the render. Same skeleton as Basarios, laid out differently: slot 1 holds both the neck and the tail capsules, and wings and legs take a slot per side (4 and 6 on the higher-x side).",
