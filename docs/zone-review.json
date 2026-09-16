@@ -1109,5 +1109,18 @@
    "6": "Wing Flaps",
    "7": "Tail"
   }
+ },
+ "em084_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Many shapes are group-switched: Back Plates (slot 0) has eighteen shapes, five never counted and seven switched; Head Plate (slot 1) twelve on joint 5, four never counted and four switched; Face (slot 2) seven, all switched (masks 0x8100, 0x0100, 0x0280). Blowhole (slot 5) is two shapes high on joint 15. Weakspot (slot 6) is two small switched shapes on joint 15 (masks 0x0040, 0x0010), the rainbow spot; its row is 70/70/70 cut, impact, shot.",
+  "slots": {
+   "0": "Back Plates",
+   "1": "Head Plate",
+   "2": "Face",
+   "3": "Leg Tentacles",
+   "4": "Body",
+   "5": "Blowhole",
+   "6": "Weakspot"
+  }
  }
 }
