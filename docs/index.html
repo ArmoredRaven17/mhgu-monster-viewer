@@ -4982,7 +4982,15 @@ const ZONE_GROUPS = [
 // build-hitzones.py), which painted six of the seven: Nakarkos 6, Shogun and Rustrazor Ceanataur 1
 // and 6, Volvidon 4, Zamtrios 7, Ahtal-Ka 3. Nerscylla's slot 7 still paints nowhere. An unpainted row
 // is listed and marked, not hidden.
-function zoneSlots(rec){ return rec.slotsDefined || rec.slotsUsed || []; }
+// ONE ROW RAVEN HAS HIDDEN, by name: a zone-review.json entry's `hide` maps a slot to the reason, and deleting it
+// lists the row again. Raven, 2026-09-16: "Hide Slot 7 for now, make a note of the oddity in case I want to
+// revisit" -- Nerscylla's slot 7, whose only shape is a bone-255 sphere common attacks never count and whose row is
+// 100s (build-notes/hitzone-capsules.md, "Bone 255"). Not a rule: any other row needs its own word.
+function zoneSlots(rec){
+  const e = entry();
+  const hide = (e && ZONE_REVIEW[e.id] && ZONE_REVIEW[e.id].hide) || {};
+  return (rec.slotsDefined || rec.slotsUsed || []).filter(sl => !(String(sl) in hide));
+}
 // A slot's name: Raven's from zone-review.json, else the chart says "Slot N". Raven, 2026-09-15: "we're going to
 // update all the slots in the hitzone tables. I will manually go over everything." The community names
 // hitzones.json carries (rec.names, from the MHGU-Monster-Info verified sets) are NOT shown any more. Raven,

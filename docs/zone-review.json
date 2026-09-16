@@ -1,5 +1,5 @@
 {
- "_about": "Hit zone slot NAMES, dictated by Raven on review -- one monster at a time, reading each row's capsules on the render (a row's name draws its rBodyData shapes, see pickZone in index.html). The ROM ships no zone-name table, so a person saying what a slot is is the only source there is. Keyed by monster id, then by damage-table slot (the row index hitzones.json's tables and capsules use). These are the only slot names the chart shows (since 2026-09-16 hitzones.json's community names are not shown); a slot not named here reads Slot N. `reviewed` is the date the names were given.",
+ "_about": "Hit zone slot NAMES, dictated by Raven on review -- one monster at a time, reading each row's capsules on the render (a row's name draws its rBodyData shapes, see pickZone in index.html). The ROM ships no zone-name table, so a person saying what a slot is is the only source there is. Keyed by monster id, then by damage-table slot (the row index hitzones.json's tables and capsules use). These are the only slot names the chart shows (since 2026-09-16 hitzones.json's community names are not shown); a slot not named here reads Slot N. `reviewed` is the date the names were given. A monster's `hide` maps a slot to the reason the chart leaves that row out (Raven's call, one slot at a time); deleting the key lists the row again.",
  "em001_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Rathian, same as Gold but without the final slot\". Slots 0-6 sit on the same joints as Gold Rathian's; Rathian keeps the tail's last capsule (joint 144) in its Tail row, where Gold splits it off as Tail Tip.",
@@ -856,6 +856,22 @@
    "4": "Tail",
    "5": "Arms",
    "6": "Legs"
+  }
+ },
+ "em070_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render, slots 0-6. Spike (slot 1) is the shapes rising high above the body (joints 142-145, three of them group-switched); Claws (slot 4) the six shapes out front (joints 4-9); Legs (slot 5) the upper legs and Feet (slot 6) the leg ends. A capsule on joints 142-143 is listed under both Spike and Abdomen and is drawn under neither.",
+  "slots": {
+   "0": "Head",
+   "1": "Spike",
+   "2": "Thorax",
+   "3": "Abdomen",
+   "4": "Claws",
+   "5": "Legs",
+   "6": "Feet"
+  },
+  "hide": {
+   "7": "Raven, 2026-09-16: \"Hide Slot 7 for now, make a note of the oddity in case I want to revisit\". Slot 7's only shape is record 46, a bone-255 sphere: radius 260 on the monster's own position (0x16da04 places bone 255 at the unit's position, turned with it), group mask 0x1000, flag 0x12, so only attack types 8/69 and 9 can count it. It is the only slot in the library made of nothing else (the other 71 bone-255 spheres sit beside real shapes, nearly all under Head), and its row is 100 for cut, impact, shot and every element but dragon, with dragon and stun 0. See build-notes/hitzone-capsules.md, \"Bone 255\". Delete this key to list the row again."
   }
  }
 }
