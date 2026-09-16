@@ -3787,6 +3787,11 @@ function buildGroups(){
       // "calm|rage" halves above, which are hidden BECAUSE the other state owns them; this is hidden
       // because nobody knows what it is. Removing the key restores it.
       if (Array.isArray(rv && rv.hide)) for (const k of rv.hide){
+        // A key naming a part we add ("4,S1") is moot on a row that adds none: Raging Brachydios' slime items exist only
+        // while render/monster.js ROM_ARM_SLIME lists its slime materials, and a hide for an item that is not there is
+        // not a typo worth a warning. Raven, 2026-09-16: "Hide those parts for Raging".
+        const namesAdded = String(k).toLowerCase().split(',').some(t => /^s\.?\s*(?:part\s*)?\d+$/.test(t.trim()));
+        if (namesAdded && !opts.some(o => o.sOn)) continue;
         const o = resolveOptionKey(opts, k, (e && e.id) + ' row ' + c.parts + ' hide', stOn);
         if (o) dropped.add(o);
       }

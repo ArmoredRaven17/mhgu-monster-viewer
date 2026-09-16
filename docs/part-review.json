@@ -2089,7 +2089,7 @@
  },
  "em063_05": {
   "reviewed": "2026-09-13",
-  "note": "Reviewed by Raven as a copy of Brachydios: *'Update Raging Brachy, it doesn't have Primed states but the rest match up.'* **The part numbering is the same as em063_00's where the two overlap**, so the names carry straight across: Horn 1/2, Left Pounder 4/5, Right Pounder 6/7, Tail 101/8. Three real differences, all the ROM's: **no Primed item**, because the arm-slime `S. Part` is only added where an arm's material is slot 0/1 of the part driver, and this model carries its arm slime on the same meshes as the body (`XfB__m01_nenkin_arm_l` on part 4, `m02_nenkin_arm_r` on part 6) with no offered S item -- so the pounders are Diminished / Broken, his names; **no Broken (Enraged) horn**, the horn cluster here is just 1 / 2; and **the eye is a lid only**: cluster `3` is a single 18v plate with no separate eye mesh beside it (Brachydios pairs it with part 19, `XfB__E_m04_eye`), so drawing it CLOSES and Open is keyed `none`, with `order` putting Open first to match his Brachydios order. Part 9 (`XfB__m05_add`, 510v) has no row: it is the enrage layer the Enraged toggle owns, and its `ROM_RAGE_SET` pair is the one that FAILS the ID test (calm draws it, rage draws nothing) -- left exactly as it is, since Raven said not to flip Raging Brachydios on inference. `sheds` names Tail option 8 for the shipped em063_05_tail. Every default was already on the healthy option. POUNDERS ARE INTACT / BROKEN, 2026-09-16. Raven: 'Change Diminished to Intact since Raging doesn't have a Diminished part like Brachy does where its slime needs to be rerpimed'. The first pass had copied Brachydios' Diminished label onto parts 4 and 6. THE ENRAGED TOGGLE IS RED SLIME, 2026-09-16. Raven: 'Change Raging Brachy's Enraged Toggle to Red slime. The hit zone toggle to Yellow Slime/Red Slime'. The ROM ties the two: enraging runs the AI's enrage-start script, whose one move turns all four slime layers Red, and the Damage Table follows the Red rows (render/monster.js ROM_MEAT_SWITCH em063_05). So `rage` names the checkbox Red Slime and its two states Yellow Slime / Red Slime.",
+  "note": "Reviewed by Raven as a copy of Brachydios: *'Update Raging Brachy, it doesn't have Primed states but the rest match up.'* **The part numbering is the same as em063_00's where the two overlap**, so the names carry straight across: Horn 1/2, Left Pounder 4/5, Right Pounder 6/7, Tail 101/8. Three real differences, all the ROM's: **no Primed item**, because the arm-slime `S. Part` is only added where an arm's material is slot 0/1 of the part driver, and this model carries its arm slime on the same meshes as the body (`XfB__m01_nenkin_arm_l` on part 4, `m02_nenkin_arm_r` on part 6) with no offered S item -- so the pounders are Diminished / Broken, his names; **no Broken (Enraged) horn**, the horn cluster here is just 1 / 2; and **the eye is a lid only**: cluster `3` is a single 18v plate with no separate eye mesh beside it (Brachydios pairs it with part 19, `XfB__E_m04_eye`), so drawing it CLOSES and Open is keyed `none`, with `order` putting Open first to match his Brachydios order. Part 9 (`XfB__m05_add`, 510v) has no row: it is the enrage layer the Enraged toggle owns, and its `ROM_RAGE_SET` pair is the one that FAILS the ID test (calm draws it, rage draws nothing) -- left exactly as it is, since Raven said not to flip Raging Brachydios on inference. `sheds` names Tail option 8 for the shipped em063_05_tail. Every default was already on the healthy option. POUNDERS ARE INTACT / BROKEN, 2026-09-16. Raven: 'Change Diminished to Intact since Raging doesn't have a Diminished part like Brachy does where its slime needs to be rerpimed'. The first pass had copied Brachydios' Diminished label onto parts 4 and 6. THE ENRAGED TOGGLE IS RED SLIME, 2026-09-16. Raven: 'Change Raging Brachy's Enraged Toggle to Red slime. The hit zone toggle to Yellow Slime/Red Slime'. The ROM ties the two: enraging runs the AI's enrage-start script, whose one move turns all four slime layers Red, and the Damage Table follows the Red rows (render/monster.js ROM_MEAT_SWITCH em063_05). So `rage` names the checkbox Red Slime and its two states Yellow Slime / Red Slime. THE ADDED SLIME ITEMS ARE HIDDEN, 2026-09-16. Raven: 'Hide those parts for Raging, they're not need'. Horn 1,S3, Left Pounder 4,S1, Right Pounder 6,S2 and Tail 101,S4 are Brachydios' primed-slime item (armSlimeOptions), which appears on every Raging row carrying one of its four slime materials once render/monster.js ROM_ARM_SLIME lists them. Raging has no primed state, and the ROM agrees: its gauge block 0xf36dfc hands variant 5 to 0xf36328 before any slime level reaches a material. Where the item is not added at all, the hide keys are skipped.",
   "rage": {
    "name": "Red Slime",
    "0": "Yellow Slime",
@@ -2110,6 +2110,9 @@
    },
    "1,2": {
     "name": "Horn",
+    "hide": [
+     "1,S3"
+    ],
     "default": "1",
     "options": {
      "1": "Intact",
@@ -2118,6 +2121,9 @@
    },
    "4,5": {
     "name": "Left Pounder",
+    "hide": [
+     "4,S1"
+    ],
     "default": "4",
     "options": {
      "4": "Intact",
@@ -2126,6 +2132,9 @@
    },
    "6,7": {
     "name": "Right Pounder",
+    "hide": [
+     "6,S2"
+    ],
     "default": "6",
     "options": {
      "6": "Intact",
@@ -2134,6 +2143,9 @@
    },
    "8,101": {
     "name": "Tail",
+    "hide": [
+     "101,S4"
+    ],
     "sheds": "8",
     "default": "101",
     "options": {
