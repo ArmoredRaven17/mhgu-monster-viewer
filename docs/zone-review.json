@@ -414,5 +414,13 @@
    "5": "Wings",
    "6": "Legs"
   }
+ },
+ "em014_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Head (slot 0) is the shapes on joints 101 and 103 and the capsule spanning 10-13, plus a sphere on bone 255 that the viewer does not place; Body (slot 1) is the other eight. Gendrome, Iodrome and Giadrome carry identical capsule rows (only their damage values differ).",
+  "slots": {
+   "0": "Head",
+   "1": "Body"
+  }
  }
 }
