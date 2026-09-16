@@ -496,5 +496,14 @@
    "4": "Legs",
    "5": "Tail"
   }
+ },
+ "em085_00": {
+  "reviewed": "2026-09-16",
+  "note": "Named from the render. Head (slot 0) also takes the shapes on joint 202 above it; Body (slot 1) covers the body and limbs; Tail (slot 2) is five shapes along the tail (joints 140-144).",
+  "slots": {
+   "0": "Head",
+   "1": "Body",
+   "2": "Tail"
+  }
  }
 }
