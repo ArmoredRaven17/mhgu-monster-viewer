@@ -5074,6 +5074,13 @@ function zoneNames(rec){
   const rv = e && ZONE_REVIEW[e.id];
   return Object.assign({}, (rv && rv.slots) || {});
 }
+// An Extracts row's name: the part record's, from zone-review.json's `parts` where it gives one, else "Part N".
+// Raven, 2026-09-17: "Extracts has its own slots ... can you go over the Extract tables?"
+function zonePartName(i){
+  const e = entry();
+  const rv = e && ZONE_REVIEW[e.id];
+  return (rv && rv.parts && rv.parts[i]) || 'Part ' + i;
+}
 function markUnpainted(th, rec, sl){
   if (rec.slotsDefined && (rec.slotsUsed || []).indexOf(sl) < 0){
     th.classList.add('unpainted');
@@ -5284,7 +5291,7 @@ function paintZoneCapSel(){
   for (const o of [...sel.options]) if (o.dataset.shownOnly) o.remove();
   if (pick && pick.kind === 'part' && sel.options.length){
     const o = document.createElement('option');
-    o.value = want; o.textContent = 'Part ' + pick.index;
+    o.value = want; o.textContent = zonePartName(pick.index);
     o.hidden = true; o.dataset.shownOnly = '1';
     sel.appendChild(o);
   }
@@ -5437,7 +5444,7 @@ function buildPartsChart(rec){
   const body = chart.createTBody();
   for (const [i, p] of live){
     const tr = body.insertRow();
-    const th = document.createElement('th'); th.textContent = 'Part ' + i; zoneRow(tr, th, 'part', i); tr.appendChild(th);
+    const th = document.createElement('th'); th.textContent = zonePartName(i); zoneRow(tr, th, 'part', i); tr.appendChild(th);
     tr.insertCell().textContent = p.stagger || '—';
     // null is the ROM's 0xffff: cannot be broken at all, which is not the same as 0
     tr.insertCell().textContent = (p.break === null || p.break === undefined) ? '—' : p.break;

@@ -3,6 +3,17 @@
  "em001_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Rathian, same as Gold but without the final slot\". Slots 0-6 sit on the same joints as Gold Rathian's; Rathian keeps the tail's last capsule (joint 144) in its Tail row, where Gold splits it off as Tail Tip.",
+  "parts": {
+   "0": "Back / Belly",
+   "1": "Left Wing",
+   "2": "Right Wing",
+   "3": "Left Leg",
+   "4": "Right Leg",
+   "5": "Neck",
+   "6": "Head",
+   "7": "Tail"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -15,6 +26,17 @@
  },
  "em001_02": {
   "reviewed": "2026-09-15",
+  "parts": {
+   "0": "Back / Belly",
+   "1": "Left Wing",
+   "2": "Right Wing",
+   "3": "Left Leg",
+   "4": "Right Leg",
+   "5": "Neck",
+   "6": "Head",
+   "7": "Tail / Tail Tip"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -29,6 +51,17 @@
  "em001_04": {
   "reviewed": "2026-09-15",
   "note": "Raven: \"Dreadqueen is the same as Gold\". Same eight slots on the same joints as em001_02 (slot 5 carries two more wing spheres, on joints 8 and 12).",
+  "parts": {
+   "0": "Back / Belly",
+   "1": "Left Wing",
+   "2": "Right Wing",
+   "3": "Left Leg",
+   "4": "Right Leg",
+   "5": "Neck",
+   "6": "Head",
+   "7": "Tail / Tail Tip"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -43,6 +76,17 @@
  "em002_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Rathalos Line: Head, Neck, Back, Belly, Tail, Wings, Legs, Tail Tip (Silver/Dread)\". Rathalos takes the first seven. Same slots on the same joints as Rathian; Tail (slot 4) keeps the tail's last capsule (joint 144), as Rathian's does.",
+  "parts": {
+   "0": "Back / Belly",
+   "1": "Left Wing",
+   "2": "Right Wing",
+   "3": "Left Leg",
+   "4": "Right Leg",
+   "5": "Neck",
+   "6": "Head",
+   "7": "Tail"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -56,6 +100,17 @@
  "em002_02": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Rathalos Line: Head, Neck, Back, Belly, Tail, Wings, Legs, Tail Tip (Silver/Dread)\". Same eight slots on the same joints as Gold Rathian: Tail Tip (slot 7) is the capsule on joint 144, and the sphere on that joint stays in Tail (slot 4).",
+  "parts": {
+   "0": "Back / Belly",
+   "1": "Left Wing",
+   "2": "Right Wing",
+   "3": "Left Leg",
+   "4": "Right Leg",
+   "5": "Neck",
+   "6": "Head",
+   "7": "Tail / Tail Tip"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -70,6 +125,17 @@
  "em002_04": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Rathalos Line: Head, Neck, Back, Belly, Tail, Wings, Legs, Tail Tip (Silver/Dread)\". Same slots as Silver Rathalos except at the tail end: Tail Tip (slot 7) takes both the sphere and the capsule on joint 144, where Silver Rathalos and Dreadqueen Rathian keep that sphere in Tail (slot 4). Slot 5 carries two more wing spheres (joints 8 and 12), as on Dreadqueen.",
+  "parts": {
+   "0": "Back / Belly",
+   "1": "Left Wing",
+   "2": "Right Wing",
+   "3": "Left Leg",
+   "4": "Right Leg",
+   "5": "Neck",
+   "6": "Head",
+   "7": "Tail / Tail Tip"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -84,6 +150,17 @@
  "em003_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render.",
+  "parts": {
+   "0": "Body",
+   "1": "Left Wing",
+   "2": "Right Wing",
+   "3": "Left Leg",
+   "4": "Right Leg",
+   "5": "Neck",
+   "6": "Head",
+   "7": "Tail"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -96,6 +173,14 @@
  "em004_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Same skeleton as Gravios, but laid out like the Rathian line: neck (1), tail (4) and tail end (7, on joint 143) each have a slot, and one slot holds both wings (5) and one both legs (6).",
+  "parts": {
+   "1": "Left Wing",
+   "2": "Right Wing",
+   "3": "Left Leg",
+   "4": "Right Leg",
+   "6": "Belly"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -110,6 +195,14 @@
  "em005_00": {
   "reviewed": "2026-09-15",
   "note": "Named from the render. Same skeleton as Basarios, laid out differently: slot 1 holds both the neck and the tail capsules, and wings and legs take a slot per side (4 and 6 on the higher-x side).",
+  "parts": {
+   "1": "Left Wing",
+   "2": "Right Wing",
+   "3": "Left Leg",
+   "4": "Right Leg",
+   "6": "Belly"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck/Tail",
@@ -124,6 +217,12 @@
  "em007_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Wings/Back (slot 2) is the back with the wing arms (joints 7-9 and 11-13); Wing Flaps (slot 4) is the two membrane capsules (8-60 and 12-70); Tail Tip (slot 7) is the two capsules on joint 145. Head (slot 0) holds the two horn capsules, the head sphere and a sphere on joint 103; Bloodbath Diablos keeps only its horns in slot 0 and files those two spheres under slot 1.",
+  "parts": {
+   "3": "Left Leg",
+   "4": "Right Leg",
+   "7": "Tail / Tail Tip"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -138,6 +237,12 @@
  "em007_04": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Horns (slot 0) is its six horn capsules on joint 3; Head (slot 1) holds the head spheres, the spheres on joint 103 and the sphere on joint 101, which Diablos splits between Head and Neck. Wings (slot 2) has the same shapes as Diablos' Wings/Back (the back sphere and capsule with the wing arms). Several shapes are listed twice, the second copy larger (head, joint 103, belly, tail).",
+  "parts": {
+   "3": "Left Leg",
+   "4": "Right Leg",
+   "7": "Tail / Tail Tip"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Horns",
    "1": "Head",
@@ -152,6 +257,17 @@
  "em032_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Belly (slot 2) and Back (slot 3) share joints 1 and 140, Belly below the spine and Back above it. Wings (slot 5) is the forelimbs from the shoulders (joints 6 and 10) to the spheres at their ends (joints 40 and 50).",
+  "parts": {
+   "0": "Head",
+   "1": "Neck / Belly",
+   "2": "Back",
+   "3": "Tail",
+   "4": "Left Wing",
+   "5": "Left Leg",
+   "6": "Right Wing",
+   "7": "Right Leg"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -165,6 +281,13 @@
  "em032_04": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Back (slot 1) holds what Tigrex splits over Neck (the spheres on joints 100-102) and Back, plus the shoulder spheres (joints 6 and 10) that Tigrex keeps in Wings. The claws are one sphere each at the end of a foreleg, radius 90 where Tigrex's are 65 inside Wings: Left Claw (slot 3) on joint 40, the higher-x side as on Gravios, and Right Claw (slot 7) on joint 50. Wings (slot 5) is Tigrex's Wings without the shoulder and claw spheres.",
+  "parts": {
+   "0": "Head",
+   "3": "Tail",
+   "5": "Left Leg",
+   "7": "Right Leg"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Back",
@@ -179,6 +302,17 @@
  "em033_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Belly (slot 2) is the body core on joints 1, 100 and 140; Back (slot 3) sits above it, reaching joints 151 and 152 high on the back, and Neck (slot 1) also takes a shape on joint 151. The slot order is not Ukanlos': Tail, Arms and Legs are slots 4-6 here, 6, 3 and 4 there.",
+  "parts": {
+   "0": "Head",
+   "1": "Belly",
+   "2": "Neck / Back",
+   "3": "Tail",
+   "4": "Left Arm",
+   "5": "Left Leg",
+   "6": "Right Arm",
+   "7": "Right Leg"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -192,6 +326,15 @@
  "em037_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render; the same names as Silverwind Nargacuga, whose slots sit on the same joints except one shape: the sphere on joint 5 (record 15, on the arm) is in Wings (slot 4) here and in Tail (slot 6) on Silverwind.",
+  "parts": {
+   "2": "Left Wing Blade",
+   "3": "Tail / Tail Tip",
+   "4": "Wings",
+   "5": "Left Leg",
+   "6": "Right Wing Blade",
+   "7": "Right Leg"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Back",
@@ -206,6 +349,13 @@
  "em037_04": {
   "reviewed": "2026-09-15",
   "note": "Named from the render. Raven asked to verify slot 6: \"it seems off to have a sphere on the arm like that for a tail region\". Verified from the raw .bdd (build/frag copy byte-identical to the extracted ROM file): record 15, a sphere on joint 5 (radius 95 at 100, 0, 20), carries damage row 6 here and row 4 on Nargacuga. Its mirror on the other arm, record 21 on joint 9 (radius 95 at -100, 0, 20), is row 4 on both. Both spheres keep part record 4, the arm capsules' part, and the u16 at +10 is 512 on both, so the one-sided change is the only difference. Silverwind also enlarges two tail capsules (records 13 and 14).",
+  "parts": {
+   "2": "Left Wing Blade",
+   "5": "Left Leg",
+   "6": "Right Wing Blade",
+   "7": "Right Leg"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Back",
@@ -220,6 +370,17 @@
  "em038_00": {
   "reviewed": "2026-09-15",
   "note": "Named from the render.",
+  "parts": {
+   "0": "Head",
+   "1": "Back",
+   "2": "Belly",
+   "3": "Hips / Tail",
+   "4": "Left Front Leg",
+   "5": "Left Rear Leg",
+   "6": "Right Front Leg",
+   "7": "Right Rear Leg"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Back",
@@ -233,6 +394,17 @@
  "em042_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Back (slot 1) runs above the body from the neck (joints 100-102) to joint 140, Belly (slot 2) below it. Wing Blades (slot 3) is two shapes at the far ends of the forelimbs (joints 8-9 and 14-15); Wings (slot 4) the rest of the forelimbs.",
+  "parts": {
+   "0": "Head",
+   "1": "Back / Belly",
+   "2": "Left Wing Blade",
+   "3": "Right Wing Blade",
+   "4": "Wings",
+   "5": "Left Leg",
+   "6": "Right Leg",
+   "7": "Tail"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Back",
@@ -246,6 +418,17 @@
  "em077_00": {
   "reviewed": "2026-09-15",
   "note": "Named from the render, the full eight in slot order (an earlier seven-name list was not applied).",
+  "parts": {
+   "0": "Back / Belly",
+   "1": "Left Wing Arm / Left Wing",
+   "2": "Right Wing Arm / Right Wing",
+   "3": "Left Leg",
+   "4": "Right Leg",
+   "5": "Neck",
+   "6": "Head",
+   "7": "Tail"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -260,6 +443,16 @@
  "em043_00": {
   "reviewed": "2026-09-15",
   "note": "Named from the render, then given Savage Deviljho's terms (Raven: \"Apply Savage's terms to Deviljho\"; same joints and slots): Belly is slot 1's single sphere under the front of the body (joint 2), Back the spine capsules. First named Chest and Torso.",
+  "parts": {
+   "0": "Head",
+   "1": "Belly",
+   "2": "Back",
+   "3": "Arms",
+   "4": "Right Leg",
+   "5": "Left Leg",
+   "6": "Tail"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Belly",
@@ -272,6 +465,16 @@
  "em043_05": {
   "reviewed": "2026-09-15",
   "note": "Named from the render, handed to the render agent directly (Savage is otherwise another agent's test case; this file is read only by the hit-zone chart). Same joints and slots as Deviljho, which now carries these same terms.",
+  "parts": {
+   "0": "Head",
+   "1": "Belly",
+   "2": "Back",
+   "3": "Arms",
+   "4": "Right Leg",
+   "5": "Left Leg",
+   "6": "Tail"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Belly",
@@ -284,6 +487,15 @@
  "em044_00": {
   "reviewed": "2026-09-15",
   "note": "Named from the render. Right Leg (slot 3) is the lower-x side and Left Leg (slot 4) the higher-x side, the same sides as Gravios' Left/Right with the slot order flipped.",
+  "parts": {
+   "0": "Head",
+   "1": "Torso",
+   "2": "Arms",
+   "3": "Right Leg",
+   "4": "Left Leg",
+   "5": "Tail"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Torso",
@@ -296,6 +508,14 @@
  "em045_00": {
   "reviewed": "2026-09-15",
   "note": "Named from the render.",
+  "parts": {
+   "0": "Head",
+   "3": "Arms",
+   "4": "Left Leg",
+   "5": "Right Leg",
+   "6": "Tail / Tail Tip"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -310,6 +530,14 @@
  "em045_04": {
   "reviewed": "2026-09-15",
   "note": "Raven: \"Crystalbeard is the same as Uragaan\". Same joints and slots as em045_00, no differences.",
+  "parts": {
+   "0": "Head",
+   "3": "Arms",
+   "4": "Left Leg",
+   "5": "Right Leg",
+   "6": "Tail / Tail Tip"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -324,6 +552,17 @@
  "em055_00": {
   "reviewed": "2026-09-15",
   "note": "Named from the render. Slots 0 (Head) and 1 (Horns) both hang off joint 3, told apart on the render.",
+  "parts": {
+   "0": "Head / Horns",
+   "1": "Torso",
+   "2": "Humps",
+   "3": "Arms",
+   "4": "Left Leg",
+   "5": "Right Leg",
+   "6": "Tail",
+   "7": "Tail Tip"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Horns",
@@ -338,6 +577,16 @@
  "em063_00": {
   "reviewed": "2026-09-15",
   "note": "Named from the render (\"Brachy\"). Horn (slot 0) and Head (slot 1) both hang off joint 3; Pounders are the arms down to the fists.",
+  "parts": {
+   "0": "Horn / Head",
+   "1": "Torso",
+   "2": "Right Pounder",
+   "3": "Left Pounder",
+   "4": "Right Leg",
+   "5": "Left Leg",
+   "6": "Tail / Tail Tip"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Horn",
    "1": "Head",
@@ -351,6 +600,16 @@
  "em063_05": {
   "reviewed": "2026-09-15",
   "note": "Raven: \"Raging is the same as Brachy\". Same seven slots as em063_00, none swapped. Pounders (slot 3) also takes joints 40 and 50, reaching the hands, and Tail (slot 5) has a capsule on joint 143 instead of 142.",
+  "parts": {
+   "0": "Horn / Head",
+   "1": "Torso",
+   "2": "Right Pounder",
+   "3": "Left Pounder",
+   "4": "Right Leg",
+   "5": "Left Leg",
+   "6": "Tail / Tail Tip"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Horn",
    "1": "Head",
@@ -392,6 +651,14 @@
  "em080_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Back (slot 2) is two shapes high on the back (joints 0 and 140); Tail Blade (slot 7) six shapes on the tail's end (joints 143-145). Raven asked for a review of whether all of Glavenus's slots are taken into consideration.",
+  "parts": {
+   "0": "Head / Neck",
+   "3": "Arms",
+   "4": "Right Leg",
+   "5": "Left Leg",
+   "6": "Tail / Tail Blade"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -406,6 +673,14 @@
  "em080_04": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Hellblade is the same as Glavenus\". Its capsule rows are identical to Glavenus'.",
+  "parts": {
+   "0": "Head / Neck",
+   "3": "Arms",
+   "4": "Right Leg",
+   "5": "Left Leg",
+   "6": "Tail / Tail Blade"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -420,6 +695,17 @@
  "em008_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Back (slot 2) and Belly (slot 3) share joints 2 and 140, Back above the body and reaching up to joint 100, Belly below.",
+  "parts": {
+   "0": "Back / Belly",
+   "1": "Left Wing",
+   "2": "Right Wing",
+   "3": "Left Leg",
+   "4": "Right Leg",
+   "5": "Neck",
+   "6": "Head",
+   "7": "Tail"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -433,6 +719,15 @@
  "em009_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Neck (slot 1) is one capsule under the head, from joint 100 to the head (joint 3); Belly (slot 3) is one sphere low under the body on joint 0. Head (slot 0) also takes the shapes on joint 150 above it. The layout does not follow Yian Kut-Ku's.",
+  "parts": {
+   "1": "Left Wing",
+   "2": "Right Wing",
+   "3": "Left Leg",
+   "4": "Right Leg",
+   "6": "Head",
+   "7": "Tail"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -446,6 +741,11 @@
  "em014_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Head (slot 0) is the shapes on joints 101 and 103 and the capsule spanning 10-13, plus a sphere on bone 255 that the viewer does not place; Body (slot 1) is the other eight. Gendrome, Iodrome and Giadrome carry identical capsule rows (only their damage values differ).",
+  "parts": {
+   "0": "Head",
+   "1": "Body"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body"
@@ -454,6 +754,11 @@
  "em015_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Gendrome, Iodrome, and Giadrome are the same as Velocidrome\". Its capsule rows are identical to Velocidrome's (only the damage values differ).",
+  "parts": {
+   "0": "Head",
+   "1": "Body"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body"
@@ -462,6 +767,11 @@
  "em016_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Gendrome, Iodrome, and Giadrome are the same as Velocidrome\". Its capsule rows are identical to Velocidrome's (only the damage values differ).",
+  "parts": {
+   "0": "Head",
+   "1": "Body"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body"
@@ -470,6 +780,12 @@
  "em018_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Back (slot 2) runs along the top of the neck, body and tail, where Neck (slot 1), Belly (slot 3) and Tail (slot 4) hold the lower sides; it also has one sphere on each lower leg (joints 17 and 21, records 27-28), a little in front of Legs' spheres. Deadeye Yian Garuga carries identical capsule rows.",
+  "parts": {
+   "1": "Left Wing",
+   "2": "Right Wing",
+   "6": "Head"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -483,6 +799,12 @@
  "em018_04": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Deadeye is the same\" (as Yian Garuga). Its capsule rows are identical to Yian Garuga's.",
+  "parts": {
+   "1": "Left Wing",
+   "2": "Right Wing",
+   "6": "Head"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -496,6 +818,11 @@
  "em034_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Gendrome, Iodrome, and Giadrome are the same as Velocidrome\". Its capsule rows are identical to Velocidrome's (only the damage values differ).",
+  "parts": {
+   "0": "Head",
+   "1": "Body"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body"
@@ -504,6 +831,15 @@
  "em079_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Wing Claws (slot 3) is two one-joint capsules at the far ends of the wings (joints 132 and 133), past Wings (slot 2). Tail (slot 5) is one capsule (joints 140-141); Nightcloak Malfestio's is shorter and has four more capsules fanning out from joint 141.",
+  "parts": {
+   "0": "Head",
+   "1": "Body",
+   "2": "Right Wing / Right Wing Claw",
+   "3": "Left Wing / Left Wing Claw",
+   "4": "Legs",
+   "5": "Tail"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body",
@@ -516,6 +852,15 @@
  "em079_04": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Nightcloak is the same\" (as Malfestio). Same slots on the same joints; only Tail (slot 5) differs: its capsule on joints 140-141 is shorter (end at -70 against -100), and four more one-joint capsules on joint 141 fan out, two to each side.",
+  "parts": {
+   "0": "Head",
+   "1": "Body",
+   "2": "Right Wing / Right Wing Claw",
+   "3": "Left Wing / Left Wing Claw",
+   "4": "Legs",
+   "5": "Tail"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body",
@@ -528,6 +873,10 @@
  "em085_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Head (slot 0) also takes the shapes on joint 202 above it; Body (slot 1) covers the body and limbs; Tail (slot 2) is five shapes along the tail (joints 140-144).",
+  "parts": {
+   "0": "Head"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body",
@@ -537,6 +886,13 @@
  "em057_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render (Raven: \"Head, but I also see capsules in the body, look into this\"; slot 2 first given as Belly, then \"Update Belly to Back/Belly\"). The body shapes in Head are records 24 (capsule on joints 140-141, r100, under the tail base) and 25 (sphere on joint 0, r180, under the belly), and they are the only two with flag word 0x0100. The hit test 0x16bc54 never counts them for any attack type: types 8/69, 9 and 37-47 test only the low byte (0x03, 0x18, 0x04), which is 0 here, and every other type skips a flag with any of 0x0152. What reads them instead is not found (a scan for tests of bit 8 on +0xa/+0xb found none). Limbs (slot 5) is the upper legs, fore and hind (joints 7, 11, 15, 19); Claws (slot 3) the forearms to the paws; Legs (slot 4) the lower hind legs.",
+  "parts": {
+   "0": "Head",
+   "1": "Chest",
+   "2": "Back/Belly",
+   "7": "Tail / Tail Tip"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Chest",
@@ -551,6 +907,13 @@
  "em057_04": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Thunderlord is the same as Zino\". Same slots on the same joints as Zinogre; the only differing row is the second head capsule (record 1, joint 3), which ends at (0, 92, 66) against Zinogre's (0, 52, 100), pointing further up. It carries the same two never-counted body shapes under Head (records 24-25, flag 0x0100; see Zinogre's note).",
+  "parts": {
+   "0": "Head",
+   "1": "Chest",
+   "2": "Back/Belly",
+   "7": "Tail / Tail Tip"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Chest",
@@ -565,6 +928,16 @@
  "em021_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render; the same names, in the same order, as Blangonga's and Rajang's. Head (slot 0) and Body (slot 3) both list the same four spheres on joint 160 (records 0-3 and 19/20/21/23), which the highlight leaves out of both (see build-notes/hitzone-capsules.md), so each draws two shapes.",
+  "parts": {
+   "0": "Head",
+   "1": "Body",
+   "2": "Left Arm",
+   "3": "Right Arm",
+   "4": "Tail",
+   "5": "Left Leg",
+   "6": "Right Leg"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Arms",
@@ -576,6 +949,16 @@
  "em022_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Body (slot 3) is two shapes on the body core (joints 1, 2 and 100); Arms (slot 1) and Legs (slot 2) take both sides each.",
+  "parts": {
+   "0": "Head",
+   "1": "Right Arm",
+   "2": "Left Arm",
+   "3": "Body",
+   "4": "Tail",
+   "5": "Right Leg",
+   "6": "Left Leg"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Arms",
@@ -587,6 +970,16 @@
  "em023_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render; the same names, in the same order, as Blangonga's. Furious Rajang's slots sit on the same joints.",
+  "parts": {
+   "0": "Head",
+   "1": "Right Arm",
+   "2": "Left Arm",
+   "3": "Body",
+   "4": "Tail",
+   "5": "Right Leg",
+   "6": "Left Leg"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Arms",
@@ -598,6 +991,16 @@
  "em023_05": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Furious is the same\" (as Rajang). Same slots on the same joints as Rajang.",
+  "parts": {
+   "0": "Head",
+   "1": "Right Arm",
+   "2": "Left Arm",
+   "3": "Body",
+   "4": "Tail",
+   "5": "Right Leg",
+   "6": "Left Leg"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Arms",
@@ -609,6 +1012,10 @@
  "em030_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render.",
+  "parts": {
+   "0": "Head / Body"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body"
@@ -617,6 +1024,14 @@
  "em060_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Torso (slot 1) is the front of the body (joints 2 and 100); Back (slot 3) is one capsule along the top (joints 1-140); Rear (slot 4) is the haunches (joints 1, 17 and 21).",
+  "parts": {
+   "0": "Head",
+   "1": "Torso",
+   "2": "Arms",
+   "3": "Back",
+   "4": "Rear"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Torso",
@@ -628,6 +1043,14 @@
  "em060_04": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Redhlem is the same\" (as Arzuros). Same slots on the same joints; its two arm capsules (joints 8-10 and 13-15) are radius 45 against Arzuros' 40.",
+  "parts": {
+   "0": "Head",
+   "1": "Torso",
+   "2": "Arms",
+   "3": "Back",
+   "4": "Rear"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Torso",
@@ -639,6 +1062,14 @@
  "em061_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Laid out like Arzuros: Torso (slot 1) the front of the body (joints 2 and 100), Back (slot 3) one capsule along the top (joints 0-140); Legs (slot 4) is the hind legs (joints 0, 18 and 22). Snowbaron Lagombi's slots sit on the same joints.",
+  "parts": {
+   "0": "Head",
+   "1": "Torso",
+   "2": "Arms",
+   "3": "Back",
+   "4": "Legs"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Torso",
@@ -650,6 +1081,14 @@
  "em061_04": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Snowbaron is the same\" (as Lagombi). Same slots on the same joints; the only differing row is Back's capsule (joints 0-140), whose start sits 25 up against Lagombi's 20.",
+  "parts": {
+   "0": "Head",
+   "1": "Torso",
+   "2": "Arms",
+   "3": "Back",
+   "4": "Legs"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Torso",
@@ -661,6 +1100,15 @@
  "em062_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render; slot 5 after the read below (Raven: \"Is this the Rolling Capsule?\", then \"Call it Rolling then\"). Rolling (slot 5) is one sphere on joint 0, radius 200, group mask 0x4000; its row is cut/impact 75, shot 10, every element, stun and exhaust 0. 0xf22bd0 (in the class named uEm060_00, run only for enemy type 62) sets group bit 14 every frame, so the sphere is off, and clears it during given moves: motions 0x215 and 0x218, which are list 2 Motion[21] and Motion[24] (both short loops) if monster motion banks match the viewer's lists; two sub-actions under a timing check; or while [enemy+0xcb4d] is 1 or 2. Read in build-notes/hitzone-capsules.md, \"Who sets the group bits\". Back (slot 6) is one sphere on top of the body at joint 2.",
+  "parts": {
+   "0": "Back",
+   "1": "Head / Neck",
+   "2": "Arms",
+   "3": "Back/Rear",
+   "4": "Legs",
+   "5": "Rolling"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -674,6 +1122,14 @@
  "em065_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render.",
+  "parts": {
+   "0": "Head",
+   "1": "Body",
+   "2": "Arms / Claws",
+   "4": "Legs",
+   "5": "Tail"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body",
@@ -686,6 +1142,17 @@
  "em083_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. The Left legs (slots 2 and 4) are the higher-x side, as on Gravios. Trunk (slot 1) is four shapes along joints 150-157; Body (slot 7) is the body core with joints 1, 4, 8, 30, 100, 101 and 134.",
+  "parts": {
+   "0": "Head/Tusks",
+   "1": "Trunk",
+   "2": "Left Front Leg",
+   "3": "Right Front Leg",
+   "4": "Left Rear Leg",
+   "5": "Right Rear Leg",
+   "6": "Tail",
+   "7": "Body"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head/Tusks",
    "1": "Trunk",
@@ -700,6 +1167,17 @@
  "em083_04": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Elderfrost is the same\" (as Gammoth). Same slots on the same joints, three rows differing: a head sphere on joint 3 is radius 75 against 60, a head capsule's end sits at y -160 against -180, and the trunk's last shape is a capsule spanning joints 157-160 (radius 70) where Gammoth's is a one-joint capsule on 157 (radius 65).",
+  "parts": {
+   "0": "Head/Tusks",
+   "1": "Trunk",
+   "2": "Left Front Leg",
+   "3": "Right Front Leg",
+   "4": "Left Rear Leg",
+   "5": "Right Rear Leg",
+   "6": "Tail",
+   "7": "Body"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head/Tusks",
    "1": "Trunk",
@@ -714,6 +1192,17 @@
  "em010_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Fin (slot 2) and Body (slot 3) share the body-core joints (1 and 140); Fin sits high, reaching joint 134 on top, and Body low.",
+  "parts": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Fin / Body",
+   "3": "Left Wing",
+   "4": "Right Wing",
+   "5": "Left Leg",
+   "6": "Right Leg",
+   "7": "Tail"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -727,6 +1216,14 @@
  "em017_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Back/Fin (slot 2) is eight shapes along the whole top line, head to near the tail tip; Neck (slot 1), Body (slot 3) and Tail (slot 6) are the undersides of those parts.",
+  "parts": {
+   "1": "Left Wing",
+   "2": "Right Wing",
+   "3": "Left Leg",
+   "4": "Right Leg",
+   "6": "Head"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -740,6 +1237,13 @@
  "em036_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render (the list came unlabelled, straight after Lavasioth was put up next). Back (slot 2) is the top of the body and Body (slot 3) the underside. Fins (slot 5) lists four capsules; the two thinner ones (records 0 and 2, flag 0x0300) are never counted by the hit test, so the highlight draws two.",
+  "parts": {
+   "1": "Left Fin",
+   "2": "Right Fin",
+   "3": "Left Leg",
+   "4": "Right Leg"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -753,6 +1257,13 @@
  "em046_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render (the list came unlabelled, straight after Lagiacrus was put up next). Shockers (slot 3) is one shape high above the body on joint 1; Chest (slot 1) is the lower neck (joints 100 and 101).",
+  "parts": {
+   "3": "Shockers",
+   "4": "Front Legs",
+   "5": "Rear Legs",
+   "6": "Tail"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head/Neck",
    "1": "Chest",
@@ -766,6 +1277,15 @@
  "em047_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render (the list came unlabelled, straight after Royal Ludroth was put up next). Belly (slot 1) and Back (slot 3) are one capsule each on joints 1-140, Belly underneath and Back along the top; Mane (slot 2) is the neck (joints 100 and 101), rising above it.",
+  "parts": {
+   "0": "Head",
+   "1": "Mane",
+   "2": "Belly / Back",
+   "3": "Left Front Leg / Left Rear Leg",
+   "4": "Right Front Leg / Right Rear Leg",
+   "5": "Tail"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Belly",
@@ -779,6 +1299,13 @@
  "em049_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render (the list came unlabelled, straight after Agnaktor was put up next). The legs go by side, front and hind together: Right Legs (slot 3) the lower-x side, Left Legs (slot 4) the higher-x side, as on Gravios. Chest (slot 2) is one shape on joint 200 under the chest; Back (slot 7) runs along the top from the neck to the tail.",
+  "parts": {
+   "0": "Head",
+   "1": "Chest",
+   "6": "Neck / Body / Back",
+   "7": "Tail"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -793,6 +1320,13 @@
  "em056_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render (the list came unlabelled, straight after Nibelsnarf was put up next). Legs (slot 3) was first Front Legs; it also holds one capsule on each back leg (records 4-5, joints 17 and 21, parts 4 and 5), and Raven: \"Update Front Legs to Legs\". Nose (slot 4, joint 200), Gills (slot 6, joints 201-202) and Uvula (slot 7, joint 135) are made only of group-switched shapes (masks 0x4000, 0x2000, 0x8000; switch 0xee8fc8, see build-notes/hitzone-capsules.md).",
+  "parts": {
+   "0": "Head / Nose",
+   "1": "Body / Back / Belly",
+   "6": "Gills",
+   "7": "Uvula"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body",
@@ -807,6 +1341,17 @@
  "em082_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render; a first nine-name list split the rear legs, which share slot 2, and was not applied. Rear Legs (slot 2) holds both hind legs, the higher-x one under part record 3 (joints 19-22) and the other under part 7 (joints 23-26). Left Front Leg (slot 1) is the higher-x side, as on Gravios. Back (slot 7) is three shapes high above the back (joints 15 and 16).",
+  "parts": {
+   "0": "Head",
+   "1": "Right Front Leg",
+   "2": "Left Front Leg",
+   "3": "Left Rear Leg",
+   "4": "Body / Neck",
+   "5": "Tail",
+   "6": "Back",
+   "7": "Right Rear Leg"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Left Front Leg",
@@ -821,6 +1366,15 @@
  "em082_04": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Soulseer is the same\" (as Mizutsune). Same slots on the same joints except one capsule: the one on joint 141, at the tail base, is filed under Body (slot 3) here and under Tail (slot 4) on Mizutsune.",
+  "parts": {
+   "0": "Head",
+   "1": "Right Front Leg",
+   "2": "Left Front Leg",
+   "3": "Left Rear Leg",
+   "6": "Back",
+   "7": "Right Rear Leg"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Left Front Leg",
@@ -835,6 +1389,17 @@
  "em066_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render; slot 7 after the read below (Raven: \"This might be when it is holding a boulder\", then \"Call it Boulder\"). The slots are 0-5 and 7 (row 6 is all zeros, no capsule). Boulder (slot 7) is one sphere on joint 3, radius 170, in front of and below the head, group mask 0x2000; 0xf63470 switches it on only while bit 0 of [[enemy+0x1428]+0x1bb] is set and [[enemy+0xcac0]+0x30] is 1 or 2 (build-notes/hitzone-capsules.md). Tusks (slot 1) is two capsules on joint 132 switched one at a time (masks 0x8000/0x4000, 0xf630a0).",
+  "parts": {
+   "0": "Head / Tusks",
+   "1": "Body",
+   "2": "Left Front Leg",
+   "3": "Right Front Leg",
+   "4": "Left Rear Leg",
+   "5": "Right Rear Leg",
+   "6": "Tail",
+   "7": "Boulder"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Tusks",
@@ -848,6 +1413,17 @@
  "em066_04": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Drilltusk is the same\" (as Tetsucabra). Same slots (0-5 and 7) on the same joints. Boulder (slot 7) holds two live held shapes where Tetsucabra has one: a capsule on joint 3 (radius 160, mask 0x2000, on for held kinds 1-2) and a wide side-to-side capsule (radius 190, mask 0x1000, on for kind 3), plus two larger never-counted twins. Tusks (slot 1) has four capsules, two per mask (0x8000, 0x4000).",
+  "parts": {
+   "0": "Head / Tusks",
+   "1": "Body",
+   "2": "Left Front Leg",
+   "3": "Right Front Leg",
+   "4": "Left Rear Leg",
+   "5": "Right Rear Leg",
+   "6": "Tail",
+   "7": "Boulder"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Tusks",
@@ -862,6 +1438,17 @@
   "reviewed": "2026-09-16",
   "unsure": "Raven, 2026-09-16, on slot 7: \"Belly (Blob Form) potentially, I don't see a Table 0/1, so this will need to be reviewed for adding a toggle.\" The name follows the read that mode 2 switches it on; what mode 2 is has not been read.",
   "note": "Named from the render. Belly (Blob Form) (slot 7) is one sphere on joint 201, radius 100, group mask 0x8000, switched on only in mode 2 of [[enemy+0x1428]+0x1bb] (0xf76088, build-notes/hitzone-capsules.md). Left Front Leg (slot 3) is the higher-x side, as on Gravios. Body (slot 1) draws one shape; its two radius-200 spheres are never counted.",
+  "parts": {
+   "0": "Head",
+   "1": "Fin",
+   "2": "Left Front Leg",
+   "3": "Right Front Leg",
+   "4": "Left Rear Leg",
+   "5": "Right Rear Leg",
+   "6": "Tail",
+   "7": "Body / Belly (Blob Form)"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body",
@@ -876,6 +1463,14 @@
  "em068_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Crests/Tail Tip (slot 3) is nine shapes riding high along the top, from the neck (joints 100-103) to the tail end (joints 144-145); Body (slot 2) is eleven shapes along the length of the body.",
+  "parts": {
+   "0": "Head",
+   "4": "Right Arm",
+   "5": "Left Arm",
+   "6": "Right Leg",
+   "7": "Left Leg"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -889,6 +1484,12 @@
  "em070_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render, slots 0-6. Spike (slot 1) is the shapes rising high above the body (joints 142-145, three of them group-switched); Claws (slot 4) the six shapes out front (joints 4-9); Legs (slot 5) the upper legs and Feet (slot 6) the leg ends. A capsule on joints 142-143 is listed under both Spike and Abdomen and is drawn under neither.",
+  "parts": {
+   "0": "Head",
+   "1": "Spike",
+   "3": "Abdomen"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Spike",
@@ -905,6 +1506,12 @@
  "em088_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render; slots 0-5 and 7. Head (slot 0) draws one shape on joint 1; its two radius-250 capsules between the legs (records 42-43, flag 0x0100) are never counted and not drawn. Claws (slot 1) is the very front (joints 5 and 9); Crest (slot 3) one shape raised on joint 100. Records 39-41 (joint 130, masks 0x2000/0x8000/0x4000, one of shape 6 at radius 800) report slot 15, past the table's eight rows, and are not listed.",
+  "parts": {
+   "2": "Crest",
+   "4": "Right Leg",
+   "5": "Left Leg"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Claws",
@@ -918,6 +1525,17 @@
  "em019_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Head (slot 0) draws one sphere on joint 1 at the front; its radius-180 sphere on joint 0 (record 19, flag 0x0100) is never counted and not drawn. Body (slot 1) is one sphere on joint 0. Both carry group mask 0x0001. Skull (slot 2) is the shell on its back (joint 142). Raven flagged Arms (slot 5) for review: \"seems normal, but something is bothering about it\".",
+  "parts": {
+   "0": "Head",
+   "1": "Body",
+   "2": "Skull",
+   "3": "Left Leg",
+   "4": "Right Leg",
+   "5": "Left Claw",
+   "6": "Right Claw",
+   "7": "Arms"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body",
@@ -930,6 +1548,17 @@
  "em019_04": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Same Head, Body, Skull and Arms as Daimyo Hermitaur; legs and claws go by side, the Left ones on the higher-x side as on Gravios (Left Legs slot 3, Left Claw slot 6 on joint 62, sitting a little wider and higher than the Right Claw, slot 4 on joint 72). Raven flagged Arms (slot 5) for review, as on Daimyo: \"Same issue as normal DH\".",
+  "parts": {
+   "0": "Head",
+   "1": "Body",
+   "2": "Skull",
+   "3": "Left Legs",
+   "4": "Right Legs",
+   "5": "Left Claw",
+   "6": "Right Claw",
+   "7": "Arms"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body",
@@ -944,6 +1573,17 @@
  "em020_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Head (slot 0) is three shapes on joint 1: the face, a capsule under it and a tall capsule rising above the head; its radius-180 sphere on joint 0 is never counted and not drawn. Shell (slot 2) is six spheres on joints 142-143. Weak Point (slot 6) is one sphere on joint 142 inside the shell's area, under the Body's part record (1).",
+  "parts": {
+   "0": "Head",
+   "1": "Body / Weak Point",
+   "2": "Shell",
+   "3": "Left Leg",
+   "4": "Right Leg",
+   "5": "Left Claw",
+   "6": "Right Claw",
+   "7": "Arms"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body",
@@ -957,6 +1597,17 @@
  "em020_04": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"RR is the same but with slot 3 for FL and slot 7 for Rl\" (as Shogun Ceanataur). Same slots on the same joints except the legs: Front Legs (slot 3, joints 5-10) and Rear Legs (slot 7, joints 13-18), each covering both sides. Shell (slot 2) has four spheres where Shogun's has six.",
+  "parts": {
+   "0": "Head",
+   "1": "Body / Weak Point",
+   "2": "Shell",
+   "3": "Left Front Leg / Left Rear Leg",
+   "4": "Right Front Leg / Right Rear Leg",
+   "5": "Left Claw",
+   "6": "Right Claw",
+   "7": "Arms"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body",
@@ -971,6 +1622,10 @@
  "em069_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Head/Body (slot 0) also lists record 38, a radius-280 sphere on joint 0 (flags 0x0109, so only attack types 8/69 and 9 count it; group mask 0x2000), which is drawn. Claw/Pincers (slot 3) holds switched shapes: spheres on joints 160-161 (mask 0x1000) and capsules on joints 5 and 9 (masks 0xc000 and 0x4000). The four Leg Plates (slots 4-7) are one capsule each on joints 12, 20, 16 and 24; the Left ones are the higher-x side, as on Gravios.",
+  "parts": {
+   "6": "Head/Body"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head/Body",
    "1": "Body/Tail",
@@ -985,6 +1640,12 @@
  "em076_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Horn (slot 1) is two shapes on joint 0, one a capsule reaching far up and forward (record 1, mask 0x8000); Claws (slot 2) is four shapes on joints 5 and 9 reaching far forward, two of them switched (mask 0x4000).",
+  "parts": {
+   "0": "Head/Body / Horn",
+   "1": "Claws / Legs",
+   "2": "Abdomen"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head/Body",
    "1": "Horn",
@@ -996,6 +1657,12 @@
  "em011_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Horn/Head (slot 0) draws three shapes; its two radius-25 capsules between the legs (records 14-15, joints 4-8 and 12-16, flag 0x0100) are never counted and not drawn. Torso (slot 1) is one shape on joint 0; Rear (slot 2) is the hind legs and tail.",
+  "parts": {
+   "0": "Horn/Head",
+   "1": "Torso / Front Legs",
+   "2": "Rear"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Horn/Head",
    "1": "Torso",
@@ -1006,6 +1673,11 @@
  "em012_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Uvula (slot 2) is one sphere on joint 4 under the front of the head (record 0, mask 0x2000). Back Spines/Tail (slot 4) is twenty shapes over the back, body and tail, three of them switched (masks 0x8000, 0x4000). Head (slot 0) has a switched capsule on joint 3 (mask 0x1000); its radius-470 sphere on joint 140 (record 33, flag 0x0100) is never counted and not drawn.",
+  "parts": {
+   "0": "Head / Uvula",
+   "7": "Neck / Body"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -1020,6 +1692,14 @@
  "em013_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Head (slot 0) reaches far forward; its radius-180 sphere on joint 140 (record 23, flag 0x0100) is never counted and not drawn. Belly (slot 2) and Back (slot 3) are the underside and top of the body; Hips (slot 6) is one shape on each hind thigh (joints 17 and 20). Crimson and Old Fatalis carry identical capsule rows.",
+  "parts": {
+   "0": "Belly / Back",
+   "4": "Neck",
+   "5": "Head",
+   "6": "Tail",
+   "7": "Wings"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -1034,6 +1714,14 @@
  "em013_01": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Crimson and Old are the same as Fatalis\". Its capsule rows are identical to Fatalis'.",
+  "parts": {
+   "0": "Belly / Back",
+   "4": "Neck",
+   "5": "Head",
+   "6": "Tail",
+   "7": "Wings"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -1048,6 +1736,14 @@
  "em013_02": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Crimson and Old are the same as Fatalis\". Its capsule rows are identical to Fatalis'.",
+  "parts": {
+   "0": "Belly / Back",
+   "4": "Neck",
+   "5": "Head",
+   "6": "Tail",
+   "7": "Wings"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -1062,6 +1758,15 @@
  "em024_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Head (slot 0) also lists record 0, a radius-300 sphere on joint 2 over the front of the body, with the conditional flag 0x8000 (counted only while the timed state 0xc02e4 sets is live and the attack has [attack+0x30] & 4; Kushala's setter is 0xdfc814); Raven asked for a note on whether that capsule is right. Tail (slot 4) has two switched end shapes (mask 0x0001).",
+  "parts": {
+   "0": "Head / Neck",
+   "1": "Body / Back",
+   "2": "Tail",
+   "3": "Left Front Leg / Left Rear Leg",
+   "4": "Right Front Leg / Right Rear Leg",
+   "5": "Wings"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -1076,6 +1781,17 @@
  "em025_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Head/Horn (slot 0) is five shapes on joints 3, 4 and 150, one switched (record 2, mask 0x0002). Belly (slot 1) and Back (slot 2) are the underside and top of the neck and body. Tail (slot 6) has a switched end sphere (record 36, mask 0x0001).",
+  "parts": {
+   "0": "Head/Horn",
+   "1": "Belly",
+   "2": "Left Front Leg",
+   "3": "Right Front Leg",
+   "4": "Left Rear Leg",
+   "5": "Right Rear Leg",
+   "6": "Tail",
+   "7": "Back / Wings"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head/Horn",
    "1": "Belly",
@@ -1089,6 +1805,15 @@
  "em027_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Rear Legs (slot 5) has sixteen shapes: eight larger spheres on joints 14-21 (records 0-7) carry the conditional flag 0x8000 and group mask 0x8000, so they count only during the timed state (Teostra's setter 0xe1a530). Tail (slot 3) has two switched end shapes (mask 0x0001).",
+  "parts": {
+   "0": "Head",
+   "1": "Belly / Back",
+   "2": "Tail",
+   "3": "Left Front Leg / Left Rear Leg",
+   "4": "Right Front Leg / Right Rear Leg",
+   "5": "Wings"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Belly",
@@ -1102,6 +1827,17 @@
  "em050_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Head (slot 0) has a switched capsule on joint 3 (record 4, mask 0x8000); Wings (slot 3) also takes the middle of the back (joints 1 and 140); Tails (slot 5, as Raven wrote it) has a switched end capsule (record 3, mask 0x0001).",
+  "parts": {
+   "0": "Head",
+   "1": "Neck",
+   "2": "Belly",
+   "3": "Right Wing",
+   "4": "Left Wing",
+   "5": "Right Leg",
+   "6": "Left Leg",
+   "7": "Tails"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -1114,6 +1850,17 @@
  "em058_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Back (slot 2) is seven shapes high along the back (joints 1, 2, 14, 100, 204); Arms (slot 3) the front limbs spread wide (joints 6-12, 210-213). Head (slot 0) has a switched capsule on joint 3 (record 6, mask 0x0002) and Tail (slot 6) a switched end capsule (record 30, mask 0x0001).",
+  "parts": {
+   "0": "Head",
+   "1": "Left Arm",
+   "2": "Right Arm",
+   "3": "Left Leg",
+   "4": "Right Leg",
+   "5": "Belly",
+   "6": "Tail",
+   "7": "Neck / Back"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -1127,6 +1874,13 @@
  "em072_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Wing Hands (slot 3) is one shape far out at each wing tip (joints 62 and 72); Wing Arms (slot 4) the front limbs (joints 5-11, 40, 50, 61, 71); Wing Flaps (slot 6) the membranes (joints 64-79). Body (slot 2) draws three shapes; its radius-180 capsule on joints 2-1 (record 40, flag 0x0100) is never counted and not drawn. Tail (slot 7) has a switched end capsule (mask 0x0001).",
+  "parts": {
+   "0": "Head / Neck",
+   "1": "Body",
+   "5": "Rear Legs",
+   "6": "Tail"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -1141,6 +1895,13 @@
  "em084_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Many shapes are group-switched: Back Plates (slot 0) has eighteen shapes, five never counted and seven switched; Head Plate (slot 1) twelve on joint 5, four never counted and four switched; Face (slot 2) seven, all switched (masks 0x8100, 0x0100, 0x0280). Blowhole (slot 5) is two shapes high on joint 15. Weakspot (slot 6) is two small switched shapes on joint 15 (masks 0x0040, 0x0010), the rainbow spot; its row is 70/70/70 cut, impact, shot.",
+  "parts": {
+   "2": "Right Blowhole",
+   "3": "Left Blowhole",
+   "5": "Head Plate",
+   "6": "Face"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Back Plates",
    "1": "Head Plate",
@@ -1154,6 +1915,17 @@
  "em086_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Wing Arms (slot 3) is four shapes on joints 61, 62, 71 and 72; Wings (slot 6) six shapes on the wing blades reaching far out (joints 65-77 and 165-177). Body (slot 2) draws four shapes; its radius-160 capsule on joints 2-1 (record 38, flag 0x0100) is never counted and not drawn. Tail (slot 7) has a switched end shape (mask 0x0001).",
+  "parts": {
+   "0": "Head / Neck",
+   "1": "Body",
+   "2": "Left Wing Arm / Left Wing",
+   "3": "Right Wing Arm / Right Wing",
+   "4": "Left Front Leg",
+   "5": "Right Front Leg",
+   "6": "Tail",
+   "7": "Rear Legs"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -1168,6 +1940,12 @@
  "em071_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Gore Same as Shagaru\". Same slots on the same joints as Shagaru Magala except the head, which here is only joint 4 (Shagaru's also has joint 3). Head and Neck each list their shape twice under part records 7 and 0; each is drawn once. Body (slot 2) draws three shapes; its radius-180 capsule (record 40, flag 0x0100) is never counted.",
+  "parts": {
+   "1": "Body",
+   "5": "Rear Legs",
+   "6": "Tail"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Neck",
@@ -1182,6 +1960,14 @@
  "em071_05": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. The layout is not Gore Magala's: Head/Neck (slot 0) takes the head (joint 4) and neck (joints 3-2), each listed twice (drawn once), plus record 43, a radius-300 sphere on joint 1 with flag 0x12 (only attack types 8/69 and 9 count it), which is drawn. Right Wing (slot 1, part record 7) is the lower-x wing's hand (72-73), arm (71-72) and edge (74-75). Left Wing (slot 3) is the higher-x wing hand (62-63). Front Legs/Right Wing Arm (slot 4) is the front legs plus the arm on joints 61-62, the same wing chain as Left Wing's hand; asked, Raven kept the name: \"I said Front Legs/Right Wing Arm\". Wing Flaps (slot 6) is the membranes less the right wing's edge.",
+  "parts": {
+   "0": "Head/Neck",
+   "1": "Body",
+   "5": "Rear Legs",
+   "6": "Tail",
+   "7": "Right Wing"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head/Neck",
    "1": "Right Wing",
@@ -1197,6 +1983,12 @@
   "reviewed": "2026-09-16",
   "unsure": "Asked Raven, 2026-09-16: slot 1's only shapes are the two spheres out on the wings (joints 60 and 70), which do not reach the middle of the body -- Body as given, or Wings?",
   "note": "Named from the render. Head (slot 0) is one radius-300 sphere on joint 1 over the front of the body; Body (slot 1) is two radius-240 spheres on the wing joints (60 and 70), centred about 5.7 units out to each side; Tail (slot 2) is one capsule on joints 140-141.",
+  "parts": {
+   "0": "Head",
+   "1": "Body",
+   "2": "Tail"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body",
@@ -1206,6 +1998,10 @@
  "ems009_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1213,6 +2009,10 @@
  "ems010_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1220,6 +2020,10 @@
  "ems011_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1227,6 +2031,10 @@
  "ems015_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1234,6 +2042,10 @@
  "ems034_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1241,6 +2053,10 @@
  "ems035_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1248,6 +2064,10 @@
  "ems042_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Head (slot 0) is one shape at the front (joint 2); Body (slot 1) the body and neck (joints 1 and 102).",
+  "parts": {
+   "0": "Head / Body"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body"
@@ -1256,6 +2076,10 @@
  "ems046_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1263,6 +2087,10 @@
  "ems013_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1270,6 +2098,10 @@
  "ems022_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1277,6 +2109,10 @@
  "ems023_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1284,6 +2120,13 @@
  "ems012_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Body (slot 1) is eleven shapes over the body, fins and tail; Legs (slot 2) the legs.",
+  "parts": {
+   "0": "Body",
+   "3": "Left Leg",
+   "4": "Right Leg",
+   "6": "Head"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body",
@@ -1293,6 +2136,11 @@
  "ems039_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render (the list came unlabelled, next in dropdown order after Cephalos). Head (slot 0) is the front (joints 2-103); Body (slot 1) the body and tail.",
+  "parts": {
+   "0": "Head",
+   "1": "Body"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body"
@@ -1301,6 +2149,11 @@
  "ems040_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render (the list came unlabelled, next in dropdown order after Ludroth). Head (slot 0) is the front (joints 2-103); Body (slot 1) the body and tail.",
+  "parts": {
+   "0": "Head",
+   "1": "Body"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body"
@@ -1309,6 +2162,11 @@
  "ems044_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render (the list came unlabelled, next in dropdown order after Uroktor). Head (slot 0) is one shape on joint 3 at the front; Body (slot 1) one shape on joint 2.",
+  "parts": {
+   "0": "Head",
+   "1": "Body"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body"
@@ -1317,6 +2175,10 @@
  "ems020_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1324,6 +2186,10 @@
  "ems021_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1331,6 +2197,10 @@
  "ems005_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1338,6 +2208,10 @@
  "ems006_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1345,6 +2219,10 @@
  "ems026_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1352,6 +2230,10 @@
  "ems027_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1359,6 +2241,10 @@
  "ems045_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1366,6 +2252,10 @@
  "ems001_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Head (slot 0) is one shape on joint 101 at the front; Body (slot 1) the body and tail. Apceros sits on the same joints.",
+  "parts": {
+   "0": "Head / Body"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body"
@@ -1374,6 +2264,10 @@
  "ems002_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Same joints as Aptonoth: Head (slot 0) is one shape on joint 101 at the front; Body (slot 1) the body and tail.",
+  "parts": {
+   "0": "Head / Body"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body"
@@ -1382,6 +2276,10 @@
  "ems003_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1389,6 +2287,10 @@
  "ems004_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1396,6 +2298,10 @@
  "ems014_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Head (slot 0) is one shape on joint 2 at the front; Body (slot 1) one shape on joint 1.",
+  "parts": {
+   "0": "Head / Body"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body"
@@ -1404,6 +2310,10 @@
  "ems016_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1411,6 +2321,10 @@
  "ems025_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Head (slot 0) is one shape on joint 100 at the front; Body (slot 1) the body and tail.",
+  "parts": {
+   "0": "Head / Body"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body"
@@ -1419,6 +2333,10 @@
  "ems041_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Head (slot 0) is one shape on joint 2 at the front; Body (slot 1) the body (joints 1 and 140).",
+  "parts": {
+   "0": "Head / Body"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body"
@@ -1427,6 +2345,11 @@
  "ems047_00": {
   "reviewed": "2026-09-16",
   "note": "Named from the render. Head (slot 0) is two shapes at the front (joints 2 and 102); Body (slot 1) is eight shapes over the body, legs and tail.",
+  "parts": {
+   "0": "Head",
+   "1": "Body"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "Head",
    "1": "Body"
@@ -1435,6 +2358,10 @@
  "ems048_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1442,6 +2369,10 @@
  "ems007_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
@@ -1449,8 +2380,13 @@
  "ems008_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Review which small monsters have one hit zone\", \"Those can be labelled All\". Its one listed slot holds every drawn capsule.",
+  "parts": {
+   "0": "All"
+  },
+  "partsFrom": "Filled from the slot names below, 2026-09-17, not yet reviewed: each part record takes the names of the slots its capsules fall in, and a slot shared with one other record takes Left / Right from which side its capsules sit on. Rows it could not settle read Part N.",
   "slots": {
    "0": "All"
   }
- }
+ },
+ "_aboutParts": "A monster's `parts` names the rows of the chart's Extracts table -- the .dtt PART records, a different list from the damage slots (a limb the damage table keeps as one row can be two records, left and right). Keyed by part-record index; a record not named here reads Part N. First filled 2026-09-17 from `slots` by build/hitzone-states/extract_names.py, using the capsules' own slot and part-record fields (bdd record+6 and +8) and, where a slot is shared by two records, which side of the model each one's capsules sit on (Raven's Left/Right slot names say which side is Left). Raven, 2026-09-17: \"Extracts has its own slots, I have noticed some tend to be induvial limbs that were grouped together in the Hit Zones tables\", \"I will be manually reviewing each monster, I just figured you could fill in some of them easily\". `partsFrom` marks a monster whose part names have not been reviewed yet."
 }
