@@ -4717,18 +4717,58 @@ void main(){
   float edge = 1.0 - abs(dot(normalize(vN), normalize(vV)));
   gl_FragColor = vec4(min(uColor * (0.8 + 0.6 * edge), vec3(1.0)), uAlpha * (0.35 + 0.65 * edge * edge));
 }`;
-// THE CAPSULE COLOUR IS FIXED, not the theme's. Raven, 2026-09-17: "We may need to have the capsules stay the
-// same color between themes. The heatmap colors don't change, but the theme colors do. Meaning at some point the
-// capsules will be similar to heat map colors." They took the theme's --cta, the accent's complement, so any theme
-// could put them on a heat colour. The old default #19e0d2 sat only CIEDE2000 11.8 from the ramp's teal.
-// #ff3399 was the first fixed colour, the candidate (36 hues x 3 tones) farthest from every colour the heat map
-// paints. Its nearest was sharpness purple, at 22.1.
+// THE CAPSULE COLOUR IS NOT THE THEME'S. Raven, 2026-09-17: "We may need to have the capsules stay the same color
+// between themes. The heatmap colors don't change, but the theme colors do. Meaning at some point the capsules will
+// be similar to heat map colors." They took the theme's --cta, the accent's complement, so any theme could put them
+// on a heat colour. #ff3399 was the first fixed colour, then white: "Make capsules white."
 //
-// WHITE, at Raven's word, 2026-09-17: "Make capsules white." It stays clear of the value ramp (27.8 from its yellow,
-// 31.0 from its teal). It sits close to the two whites the heat map paints: 4.1 from the Hardness heat map's white
-// sharpness and 6.9 from the Extract heat map's white. So on those two heat maps a capsule can blend with a white
-// zone.
-export const ZONE_CAPSULE_RGB = [1.0, 1.0, 1.0];
+// THEN A CHOICE, and one choice that changes with the heat map. Raven, 2026-09-17: "Giving people options might not
+// be a bad idea. Check against heat mapping on.", then "Another option we can do is have the color change between
+// tables". Measured against the heat map AS SHOWN: applyHeatmap's colours are vertex colours, which three reads as
+// linear and shows through the sRGB transfer, so the ramp's teal 0.35 0.72 0.62 is on screen as 160 221 206 and the
+// Extract white as 241 241 243 (read back off a headless frame). The capsule shaders write their colour as given.
+// The distances first noted here were taken against the colours as written, not as shown, and are replaced by these.
+// CIEDE2000, where about 2 is a just-visible difference and 20 or more very distinct. EDGE is the capsule colour to
+// the nearest colour that heat map paints: the damage ramp at 201 points, the extract or sharpness colours, the dark
+// of a slot with none and the grey of an attached body with no zones. MIDDLE is a capsule's middle, its two passes
+// over a colour (about 0.77 of it plus 0.19 of the capsule), to that colour, at the worst colour.
+//                   damage ramp     Kinsect Extract   Hardness
+//                   edge  middle    edge  middle      edge  middle
+//   White           19.1   2.7       3.1   1.9         1.8   2.1
+//   Magenta         28.8  11.7      30.4  12.7        17.3   8.2    (sharpness purple)
+//   Cyan            13.0   4.4      24.8   6.4        25.0   5.8    (sharpness green)
+//   Violet #bb00cc  29.2  10.4      26.1  12.3        25.7   8.8
+//   Pink #ff3399    15.5   5.3      17.5   6.1        17.7   6.3
+//   Lime #80ff00    20.0   7.5      17.6   5.8        15.5   5.1
+// So white all but vanishes on the white zones of the Extract and Hardness maps, and the old theme colour #19e0d2 sat
+// 10.2 from the ramp. Violet is the only colour listed at 25 or more on every map, and the best worst case of 72 hues
+// x 4 tones; its cost is that it is darker. Deviljho's legs, drawn in each of these with the heat map off, Cut,
+// Extract and Hardness, read the same way: on Hardness a cyan capsule's middle turned green over the yellow zones.
+// AUTO takes the colour that stands out most on the heat map being drawn: magenta on the damage and Extract maps,
+// violet on Hardness, where magenta sits close to the purple sharpness and violet leads at both the edge and the
+// middle. On the damage map violet is 0.4 ahead at the edge and 1.3 behind in the middle, so magenta keeps it. With no
+// heat map on it is white, Raven's pick.
+export const ZONE_CAPSULE_COLOURS = [
+  { key: 'white',   name: 'White',   rgb: [1.0, 1.0, 1.0] },
+  { key: 'magenta', name: 'Magenta', rgb: [1.0, 0.0, 1.0] },
+  { key: 'cyan',    name: 'Cyan',    rgb: [0.0, 1.0, 1.0] },
+  { key: 'violet',  name: 'Violet',  rgb: [0.733, 0.0, 0.8] },
+  { key: 'pink',    name: 'Pink',    rgb: [1.0, 0.2, 0.6] },
+  { key: 'lime',    name: 'Lime',    rgb: [0.5, 1.0, 0.0] },
+];
+export const ZONE_CAPSULE_AUTO = 'auto';
+const ZONE_AUTO_BY_MAP = { none: 'white', damage: 'magenta', extract: 'magenta', hardness: 'violet' };
+export const ZONE_CAPSULE_RGB = ZONE_CAPSULE_COLOURS[0].rgb;
+// choice: a ZONE_CAPSULE_COLOURS key, or anything else for Auto. heat: the heat map on screen, '' for none.
+// Returns { key, rgb } -- the colour drawn.
+export function zoneCapsuleColour(choice, heat){
+  let c = ZONE_CAPSULE_COLOURS.find(x => x.key === choice);
+  if (!c){
+    const map = !heat ? 'none' : heat === 'extract' ? 'extract' : /^hardness-/.test(heat) ? 'hardness' : 'damage';
+    c = ZONE_CAPSULE_COLOURS.find(x => x.key === ZONE_AUTO_BY_MAP[map]);
+  }
+  return { key: c.key, rgb: c.rgb.slice() };
+}
 // records: hitzones.json capsule rows [slot, part, shape, boneA, boneB, radius, ax, ay, az, bx, by, bz].
 // opts.color: [r, g, b] 0..1, written as given. Returns a Group for the scene (not the monster, so no
 // traversal of the model meets it), with userData.placed / skipped, readback() and dispose().
@@ -4785,6 +4825,7 @@ export function zoneCapsules(root, records, opts = {}){
     A: l.u.uA.value.toArray().map(v => +v.toFixed(3)), B: l.u.uB.value.toArray().map(v => +v.toFixed(3)),
     r: +l.u.uR.value.toFixed(3) }));
   group.userData.setColor = c => { if (c) color.value.set(c[0], c[1], c[2]); };
+  group.userData.getColor = () => color.value.toArray().map(v => +v.toFixed(3));
   group.userData.dispose = () => { geo.dispose(); for (const m of mats) m.dispose(); };
   return group;
 }

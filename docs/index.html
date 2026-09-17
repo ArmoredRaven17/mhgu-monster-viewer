@@ -644,6 +644,13 @@ input[type=range]{width:100%;accent-color:var(--accent)}
             <label for="monZoneCap">Part - Hit Zone Capsules</label>
             <select id="monZoneCap"></select>
           </div>
+          <!-- THE CAPSULES' COLOUR. Raven, 2026-09-17: "Giving people options might not be a bad idea", then "Another
+               option we can do is have the color change between tables". Auto changes with the heat map. The colours
+               and how they were checked are in render/monster.js (ZONE_CAPSULE_COLOURS); see paintZoneColour(). -->
+          <div class="field" id="monZoneColRow" hidden>
+            <label for="monZoneCol">Capsule Colour</label>
+            <select id="monZoneCol"></select>
+          </div>
           <div class="field" id="monHeatTableRow" hidden>
             <label for="monHeatTable">Damage Table</label>
             <select id="monHeatTable"></select>
@@ -1264,7 +1271,8 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          hasChargeState, applyMaterialSwap, stateHoldSeconds, chargeFreezesRage, rageLadder, rageLadderParts,
          clusterChoices, ladderVariant, groupLabelWithout, romRageParts,
          setUndefinedMaterialVisible, setExtendVisible, extendCount,
-         applyHeatmap, clearHeatmap, applyFlat, parseZones, heatColor, EXTRACT_RGB, zoneCapsules, ZONE_CAPSULE_RGB,
+         applyHeatmap, clearHeatmap, applyFlat, parseZones, heatColor, EXTRACT_RGB, zoneCapsules,
+         ZONE_CAPSULE_COLOURS, ZONE_CAPSULE_AUTO, zoneCapsuleColour,
          setCutoutSolid, cutoutSolidCount, cutoutAnchorMisses,
          setClipFallback, clipFallbackOn,
          loadEffectMounts, attachEffectMounts, detachEffectMounts,
@@ -2685,6 +2693,7 @@ const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: fals
                 undef: false, extend: false, gap: false, proxy: false, ...STATE_DEFAULTS, axes: {}, rawParts: false, heat: '', heatTable: 0, zoneMode: 0, deflectT: 'f25', deflectTier: 2,
                 zoneTab: 'raw',
                 zoneShow: true, zonePos: null,
+                zoneColour: ZONE_CAPSULE_AUTO,
                 // the additive effect meshes as a class; the ROM's part table already keeps
                 // them off at rest, so this is a way to look at them, not a correction
                 effects: true };
@@ -5170,7 +5179,7 @@ function paintZonePick(){
   }
   if (shown && !zoneShape){
     const picked = zoneShapesFor(rec, pick);
-    zoneShape = zoneCapsules(mounted.main, picked.rows, { color: ZONE_CAPSULE_RGB });
+    zoneShape = zoneCapsules(mounted.main, picked.rows, { color: zoneColourNow().rgb });
     zoneShape.userData.key = key;
     zoneShape.userData.root = mounted.main;
     zoneShape.userData.copies = picked.copies;
@@ -5178,7 +5187,26 @@ function paintZonePick(){
     zoneShape.userData.special = picked.special;
     scene.add(zoneShape);
   }
+  paintZoneColour();
 }
+// THE CAPSULES' COLOUR (zoneCapsuleColour in render/monster.js): the one picked, or with Auto the one that stands out
+// on the heat map being drawn. It is repainted with the pick, and applyHeat ends there too (buildZoneChart ->
+// paintZonePanel), so a heat-map change recolours capsules already drawn. Saved with the view, as the heat map is.
+function zoneColourNow(){ return zoneCapsuleColour(state.zoneColour, hitZonesOpen() ? state.heat : ''); }
+function paintZoneColour(){
+  const sel = document.getElementById('monZoneCol');
+  if (sel.value !== state.zoneColour) sel.value = state.zoneColour;
+  if (!zoneShape) return;
+  const c = zoneColourNow();
+  zoneShape.userData.setColor(c.rgb);
+  zoneShape.userData.colour = c.key;
+}
+for (const [value, text] of [[ZONE_CAPSULE_AUTO, 'Auto - Follows Heat Map']].concat(ZONE_CAPSULE_COLOURS.map(c => [c.key, c.name]))){
+  const o = document.createElement('option');
+  o.value = value; o.textContent = text;
+  document.getElementById('monZoneCol').appendChild(o);
+}
+document.getElementById('monZoneCol').onchange = e => { state.zoneColour = e.target.value; paintZoneColour(); saveState(); };
 // A SHAPE LISTED UNDER TWO SLOTS IS LEFT OUT OF BOTH. A few monsters file the same shape -- same kind, same joints,
 // same radius, same points -- under more than one damage slot, and drawing it under both makes the model read as
 // though two zones sit on one spot. Raven, 2026-09-15: "The duplicate zones while ROM accurate may lead to some
@@ -5235,6 +5263,7 @@ function buildZoneCapSel(rec){
   const sel = document.getElementById('monZoneCap');
   const has = !!(rec && Array.isArray(rec.capsules) && rec.capsules.length);
   document.getElementById('monZoneCapRow').hidden = !has;
+  document.getElementById('monZoneColRow').hidden = !has;
   sel.textContent = '';
   if (!has) return;
   const named = zoneNames(rec);
@@ -5266,8 +5295,8 @@ document.getElementById('monZoneCap').onchange = e => {
   zonePick = m ? { id: (entry() || {}).id, kind: m[1], index: +m[2] } : null;
   paintZonePick();
 };
-// The drawn zone keeps ONE colour whatever the theme (ZONE_CAPSULE_RGB in render/monster.js). It used to take the
-// theme's --cta and follow every theme change, which could land it on a heat-map colour.
+// The drawn zone's colour never follows the theme (paintZoneColour). It used to take the theme's --cta and follow
+// every theme change, which could land it on a heat-map colour.
 // Which pane a heat-map selection belongs to, so picking a type in the dropdown brings its table
 // to the front instead of leaving the reader on the wrong tab.
 function tabForHeat(h){
@@ -6525,6 +6554,8 @@ function applySet(o){
   if (typeof o.heat === 'string') state.heat = o.heat;
   if (typeof o.heatTable === 'number') state.heatTable = Math.max(0, o.heatTable | 0);
   if (typeof o.zoneMode === 'number') state.zoneMode = Math.max(0, o.zoneMode | 0);
+  // the capsules' colour: Auto or a listed colour's key
+  if (o.zoneColour === ZONE_CAPSULE_AUTO || ZONE_CAPSULE_COLOURS.some(c => c.key === o.zoneColour)) state.zoneColour = o.zoneColour;
   // accept the pre-rename keys so a saved set from before the Bounce -> Hardness change still opens
   // ...and the pre-2026-09-08 floor keys, which named the floor after a selector value that was
   // never identified. normal/strict were 0.25/0.27 and map straight across.
@@ -6884,7 +6915,9 @@ window.__view.zones = (kind, index) => {
                               copiesLeftOut: zoneShape.userData.copies, neverCountedLeftOut: zoneShape.userData.off,
                               specialOnlyLeftOut: zoneShape.userData.special,
                               capsules: zoneShape.userData.readback() } : null;
-  return { pick: zonePick, lit, menu: document.getElementById('monZoneCap').value, drawn };
+  const colour = { choice: state.zoneColour, menu: document.getElementById('monZoneCol').value,
+                   drawn: zoneShape ? zoneShape.userData.colour : null, rgb: zoneShape ? zoneShape.userData.getColor() : null };
+  return { pick: zonePick, lit, menu: document.getElementById('monZoneCap').value, drawn, colour };
 };
 // The damage table on screen, read back (zoneTable): the state it is for, and per listed slot the name, which of
 // the file's rows it reads, and the ten values. Reads only; picks nothing.
