@@ -4070,6 +4070,30 @@ export const ROM_MEAT_SWITCH = {
       { slot: 7, row: 7, rage: true },
     ],
   },
+  // TETSUCABRA, uEm066_00: 0xf57f8c, its action-start handler, the same for both variants. Starting one of a set of its
+  // actions (groups 1, 2, 7 and 10) sets bit 1 of [[enemy+0x1428]+0x1bb], starts a timer at [[enemy+0xcac0]+4] (60, or
+  // 1 on the path from 0xf5859c) and puts slot 5 on its table-1 row (0xf58cf0), the SOFTER tail. When a later action
+  // starts with that timer run out, or is in group 0xb, the bit is cleared and slot 5 restored (0xf58d3c). The parts
+  // driver 0xf636a4 reads the same bit to draw the swollen tail -- g13 (part 2 off) over g12 (part 2 on), which is
+  // part-review's Tail row, Normal / Swollen. Raven, 2026-09-17: "Tetsucabra's table change appears to impact only his
+  // tail, if this is the case it is likely due to his tail inflating". It is: the two change together, always.
+  em066_00: {
+    broken: { swollen: [13] },
+    sections: { swollen: 'Tail' },
+    labels: { swollen: 'Swollen' },
+    rules: [
+      { slot: 5, row: 5, broken: 'swollen' },
+    ],
+  },
+  // DRILLTUSK TETSUCABRA, the same handler and driver (em066_04's own table-1 tail row).
+  em066_04: {
+    broken: { swollen: [13] },
+    sections: { swollen: 'Tail' },
+    labels: { swollen: 'Swollen' },
+    rules: [
+      { slot: 5, row: 5, broken: 'swollen' },
+    ],
+  },
   // ---- generated from the ROM sweep (build/hitzone-states) ----
   // Basarios (em004_00), uEm004_00: 0xd2329c. Coverage 0xd2329c 1/7.
   em004_00: {
