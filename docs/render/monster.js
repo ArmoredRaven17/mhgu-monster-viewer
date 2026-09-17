@@ -4696,13 +4696,14 @@ const ZONE_VS = `
 uniform vec3 uA;
 uniform vec3 uB;
 uniform float uR;
+uniform float uGrow;
 uniform mat3 uBasis;
 varying vec3 vN;
 varying vec3 vV;
 void main(){
   bool top = position.y > 0.0;
   vec3 local = position - vec3(0.0, top ? 0.5 : -0.5, 0.0);
-  vec3 world = (top ? uB : uA) + uBasis * (local * uR);
+  vec3 world = (top ? uB : uA) + uBasis * (local * uR * uGrow);
   vec4 mv = viewMatrix * vec4(world, 1.0);
   vN = normalize(mat3(viewMatrix) * (uBasis * normal));
   vV = projectionMatrix[3][3] == 1.0 ? vec3(0.0, 0.0, 1.0) : -mv.xyz;
@@ -4717,6 +4718,33 @@ void main(){
   float edge = 1.0 - abs(dot(normalize(vN), normalize(vV)));
   gl_FragColor = vec4(min(uColor * (0.8 + 0.6 * edge), vec3(1.0)), uAlpha * (0.35 + 0.65 * edge * edge));
 }`;
+// A VERY SLIGHT GLOW. Raven, 2026-09-17: "Can we have a very slight glow on the capsules?" A viewer overlay, not
+// anything the game draws. Each capsule gets a shell ZONE_GLOW_GROW times its radius, drawn back faces only and
+// added to the frame, before the two passes above. The shell's far side faces the eye in the middle and turns edge-on
+// at its rim, so |N.V| is a halo: strongest just outside the capsule, nothing at the shell's edge. Like the faint pass
+// it ignores depth, so a zone inside the body still glows.
+//   __zoneGlow()      readback
+//   __zoneGlow(k)     strength, 0 = off (default ZONE_GLOW_DEFAULT)
+const ZONE_GLOW_FS = `
+uniform vec3 uColor;
+uniform float uGlow;
+varying vec3 vN;
+varying vec3 vV;
+void main(){
+  float d = abs(dot(normalize(vN), normalize(vV)));
+  gl_FragColor = vec4(uColor, uGlow * d * d);
+}`;
+const ZONE_GLOW_GROW = 1.35;
+// 0.15 by eye from headless shots with the pose frozen: 0.15 is a faint halo (the interior up about 20 in red), 0.25
+// is plainly visible, 0.35 is a full glow.
+const ZONE_GLOW_DEFAULT = 0.15;
+const ZONE_GLOW = { value: ZONE_GLOW_DEFAULT };
+if (typeof window !== 'undefined'){
+  window.__zoneGlow = k => {
+    if (k !== undefined) ZONE_GLOW.value = Math.max(0, +k || 0);
+    return { strength: ZONE_GLOW.value, grow: ZONE_GLOW_GROW, default: ZONE_GLOW_DEFAULT };
+  };
+}
 // THE CAPSULE COLOUR IS FIXED, not the theme's. Raven, 2026-09-17: "We may need to have the capsules stay the
 // same color between themes. The heatmap colors don't change, but the theme colors do. Meaning at some point the
 // capsules will be similar to heat map colors." They took the theme's --cta, the accent's complement, so any theme
@@ -4744,7 +4772,7 @@ export function zoneCapsules(root, records, opts = {}){
     const ja = bones.get(a), jb = shape === 2 ? bones.get(b) : ja;
     if (!(shape === 0 || shape === 1 || shape === 2) || !ja || !jb){ skipped++; continue; }
     const u = { uA: { value: new THREE.Vector3() }, uB: { value: new THREE.Vector3() }, uR: { value: 0 },
-                uBasis: { value: new THREE.Matrix3() }, uColor: color };
+                uBasis: { value: new THREE.Matrix3() }, uColor: color, uGrow: { value: 1 } };
     const la = new THREE.Vector3(ax, ay, az).multiplyScalar(0.01);
     const lb = new THREE.Vector3(bx, by, bz).multiplyScalar(0.01);
     const place = () => {
@@ -4759,6 +4787,20 @@ export function zoneCapsules(root, records, opts = {}){
       z.crossVectors(x, y);
       u.uBasis.value.set(x.x, y.x, z.x, x.y, y.y, z.y, x.z, y.z, z.z);
     };
+    // the glow shell first (ZONE_GLOW_FS), placed as the renderer reaches it -- after the frame's world matrices,
+    // the posed joints, are current -- and the two capsule passes after it read the same uniforms
+    {
+      const m = new THREE.ShaderMaterial({ vertexShader: ZONE_VS, fragmentShader: ZONE_GLOW_FS,
+        uniforms: Object.assign({}, u, { uGrow: { value: ZONE_GLOW_GROW }, uGlow: ZONE_GLOW }),
+        transparent: true, depthWrite: false, depthTest: false, side: THREE.BackSide,
+        blending: THREE.AdditiveBlending });
+      const mesh = new THREE.Mesh(geo, m);
+      mesh.frustumCulled = false;
+      mesh.renderOrder = 8999;
+      mesh.onBeforeRender = place;
+      mats.push(m);
+      group.add(mesh);
+    }
     // the faint pass through the body first, then the surface pass over it
     for (const [through, alpha, order] of [[true, 0.2, 9000], [false, 0.5, 9001]]){
       const m = new THREE.ShaderMaterial({ vertexShader: ZONE_VS, fragmentShader: ZONE_FS,
@@ -4767,8 +4809,6 @@ export function zoneCapsules(root, records, opts = {}){
       const mesh = new THREE.Mesh(geo, m);
       mesh.frustumCulled = false;             // the vertex shader places it; the geometry's bounds are the unit capsule
       mesh.renderOrder = order;
-      // placed as the renderer reaches it, after the frame's world matrices -- the posed joints -- are current
-      if (through) mesh.onBeforeRender = place;
       mats.push(m);
       group.add(mesh);
     }
