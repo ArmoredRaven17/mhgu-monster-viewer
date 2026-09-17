@@ -6124,7 +6124,9 @@ monSel.onchange = async () => {
   state.id = monSel.value; state.groups = null; state.list = ''; state.clip = '';
   resetMonsterState();
   buildLists();
-  await remount(); saveState();
+  await remount();
+  holdHitZonesView();              // a monster picked inside Hit Zones opens on its List 0 Motion[1] too
+  saveState();
 };
 monListSel.onchange = async () => {
   state.list = monListSel.value; state.clip = '';
@@ -6351,6 +6353,36 @@ function releaseHitZonesLook(){
 }
 document.getElementById('hitZonesPanel').addEventListener('panelopen', holdHitZonesLook);
 document.getElementById('hitZonesPanel').addEventListener('panelclose', releaseHitZonesLook);
+// HIT ZONES ARE READ ON THE MONSTER'S LIST 0 MOTION[1]. Raven, 2026-09-17: "for Hit Zones, have the monster enter L0,
+// M1", and "We can have the animation return to the selected one after moving away from the hitzone panel". Entering
+// the panel keeps the clip that was selected, and the Damage Table state with it, and plays Motion[1] of List 0 (its
+// loop where the viewer splits it); leaving puts both back, whatever the panel played in between -- Motion[1] or a
+// state's own clip (zoneModeView). A monster picked, or a view opened, inside the panel is held the same way, and a
+// save made meanwhile records the held clip rather than the panel's (currentSet), as the lighting hold does.
+let hzView = null;   // { id, before: {list, clip}, mode }
+function hitZonesIdleClip(e){
+  const l0 = ((e && e.lists) || []).find(l => String(l.id) === '0');
+  const names = ((l0 && l0.clips) || []).map(c => c.clip);
+  const clip = ['Motion[1]_loop', 'Motion[1]'].find(n => names.indexOf(n) >= 0) ||
+               names.find(n => /^Motion\[1\](_|$)/.test(n));
+  return clip ? { list: '0', clip } : null;
+}
+function holdHitZonesView(){
+  const e = entry();
+  if (!e || !hitZonesOpen() || (hzView && hzView.id === e.id)) return;
+  hzView = { id: e.id, before: { list: state.list, clip: state.clip }, mode: state.zoneMode | 0 };
+  const idle = hitZonesIdleClip(e);
+  if (idle) setView(idle, 'the Hit Zones panel');
+}
+function releaseHitZonesView(){
+  const h = hzView;
+  hzView = null;
+  if (!h || h.id !== state.id) return;
+  state.zoneMode = h.mode;
+  setView(h.before, 'the Hit Zones panel');
+}
+document.getElementById('hitZonesPanel').addEventListener('panelopen', holdHitZonesView);
+document.getElementById('hitZonesPanel').addEventListener('panelclose', releaseHitZonesView);
 normScaleEl.oninput = e => { state.normalScale = +e.target.value; paintNormal(); saveState(); };
 document.getElementById('resetBtn').onclick = async () => {
   const first = MON.monsters.find(e => !e.small) || MON.monsters[0];
@@ -6365,7 +6397,9 @@ document.getElementById('resetBtn').onclick = async () => {
   document.getElementById('monAnchor').checked = true;
   document.getElementById('monGround').checked = false;
   animLoopBtn.classList.toggle('on', true);
-  await remount(); saveState();
+  await remount();
+  if (hitZonesOpen()){ hzView = null; holdHitZonesView(); }
+  saveState();
 };
 
 // Save / Save As / Open, the Armor Viewer's, with a monster view in place of an armour set.
@@ -6441,6 +6475,8 @@ document.getElementById('monGap').checked = state.gap;
   animLoopBtn.classList.toggle('on', state.loop);
   await remount({ frame: !o.camera });
   if (o.camera) applyCameraState(o.camera);
+  // ...and the file's clip is what leaving the panel gives back (holdHitZonesView)
+  if (hitZonesOpen()){ hzView = null; holdHitZonesView(); }
   saveState();
   flash(btn, 'Opened');
 }
@@ -6543,7 +6579,9 @@ function currentSet(){
     camera: cameraState(), orbitLocked, spinStep, wireOn, hideCursor, flySpeed: fly.speed,
     spinRev, camDamp: controls.enableDamping, camZoomCursor: !!controls.zoomToCursor, camFace: faceLock,
     // inside Hit Zones the lights and effects on screen are stand-ins; the user's own are the ones to keep
-    postfx: hzLook ? hzLook.fx : effectsState(), ...(hzLook ? hzLook.light : lightingSaveState()) });
+    postfx: hzLook ? hzLook.fx : effectsState(), ...(hzLook ? hzLook.light : lightingSaveState()),
+    // and the clip it holds, not List 0 Motion[1] (holdHitZonesView)
+    ...(hzView && hzView.id === state.id ? { list: hzView.before.list, clip: hzView.before.clip, zoneMode: hzView.mode } : {}) });
 }
 if (SAVED){ applySet(SAVED); resetHiddenDebug(); }
 buildMonsterList(); buildLists(); paintNormal(); paintOrbitLock(); paintSpin(); paintWire(); paintCursor();
