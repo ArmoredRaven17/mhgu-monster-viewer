@@ -3952,6 +3952,7 @@ export const ROM_MEAT_SWITCH = {
         'L5 M2',
       ],
     },
+    modeViews: { 1: { list: '5', clip: 'Motion[1]_loop' } },
     rules: [
       { slot: 0, row: 0, mode: [1] },
       { slot: 1, row: 1, mode: [1] },
@@ -4010,6 +4011,7 @@ export const ROM_MEAT_SWITCH = {
       1: ['L3 M23'],
       default: 0,
     },
+    modeViews: { 1: { list: '3', clip: 'Motion[23]_loop' } },
     rules: [
       { slot: 0, row: 0, mode: [1] },
       { slot: 1, row: 1, mode: [1] },
@@ -4083,6 +4085,7 @@ export const ROM_MEAT_SWITCH = {
   em021_00: {
     modes: ['Normal', 'Belly Pump'],
     motionModes: { 1: ['L2 M10_start@40', 'L2 M10_loop'], default: 0 },
+    modeViews: { 1: { list: '2', clip: 'Motion[10]_loop' } },
     rules: [
       { slot: 0, row: 0, mode: [1] },
       { slot: 1, row: 1, mode: [1] },
@@ -4515,6 +4518,15 @@ export function meatModeForMotion(monId, list, motion, part, frame){
     }
   }
   return typeof sw.motionModes.default === 'number' ? sw.motionModes.default : null;
+}
+// THE CLIP A STATE BRINGS, where a state lives in an animation: `modeViews` maps a state to a {list, clip} that holds
+// it for its whole length. Raven, 2026-09-17: "Should the Hitzone table show the animation when selecting the Belly
+// Pump" -> "Add the animation based switching". Congalala's Belly Pump loop, Khezu's first List 5 loop (a Ceiling
+// clip) and Nibelsnarf's flailing loop.
+export function meatModeView(monId, mode){
+  const sw = meatSwitchOf(monId);
+  const v = sw && sw.modeViews && sw.modeViews[mode];
+  return (v && v.list !== undefined && v.clip) ? { list: String(v.list), clip: String(v.clip) } : null;
 }
 // Whether any of a monster's clip keys waits for a frame, so its state has to be read again as the clip plays.
 export function meatFrameGated(monId){

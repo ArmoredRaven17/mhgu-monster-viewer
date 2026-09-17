@@ -1270,7 +1270,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          enableEffectMounts, effectMountsEnabled, effectMountsFor, effectMountsLive,
          setEffectRage, effectAutoOnRage, effectRuntimeInstance,
          clipEffectsFor, clipEffectMonsters, setClipEffectMonsters,
-         SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS, meatSwitchOf, meatTableFor, meatAxisOf, meatBreakKeys, meatModeForMotion, meatFrameGated,
+         SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS, meatSwitchOf, meatTableFor, meatAxisOf, meatBreakKeys, meatModeForMotion, meatFrameGated, meatModeView,
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts, ROM_SPAWN_CLIP,
          ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels, levelClipFor, setClipFor,
@@ -5990,14 +5990,46 @@ async function play(){
 // that plays -- a full animation by its first piece. A clip the entry does not list leaves the state alone, and a
 // pick in the dropdown holds until the next clip. Raven, 2026-09-16: "We could also see if the states change with
 // certain animations."
+// the state a clip gives at a frame of it (a joined animation by its first piece), or null where the entry has no say
+function clipZoneMode(e, l, c, frame){
+  const first = c && c.pieces && c.pieces[0];
+  const m = c && /^Motion\[(\d+)\](?:_(\w+))?/.exec(first ? first.clip : c.clip);
+  if (!m) return null;
+  return meatModeForMotion(e.id, first ? first.list.id : l.id, +m[1], m[2] || '', frame);
+}
+// a clip holding a state that brings its own animation (ROM_MEAT_SWITCH `modeViews`) -- what the Damage Table hands
+// the transport back FROM, so it is never where it hands back TO
+function isStateClip(e, l, c){
+  const m = clipZoneMode(e, l, c, Infinity);
+  return m !== null && !!meatModeView(e.id, m);
+}
+let lastPlainClip = null;   // { id, list, clip }: the last clip that played outside such a state
 function followMotionMode(e, l, c){
-  const first = c.pieces && c.pieces[0];
-  const m = /^Motion\[(\d+)\](?:_(\w+))?/.exec(first ? first.clip : c.clip);
-  if (!m) return;
-  const mode = meatModeForMotion(e.id, first ? first.list.id : l.id, +m[1], m[2] || '', 0);
+  if (!isStateClip(e, l, c)) lastPlainClip = { id: e.id, list: l.id, clip: c.clip };
+  const mode = clipZoneMode(e, l, c, 0);
   if (mode === null || mode === (state.zoneMode | 0)) return;
   state.zoneMode = mode;
   applyHeat();
+}
+// A STATE THAT LIVES IN AN ANIMATION BRINGS IT. Raven, 2026-09-17: "Should the Hitzone table show the animation when
+// selecting the Belly Pump" -> "Add the animation based switching". Picking such a state on the Damage Table plays the
+// clip that holds it (`modeViews`: Congalala's Belly Pump loop, Khezu's Ceiling loop, Nibelsnarf's flailing loop),
+// unless the clip on screen already gives it. Picking a state with no clip while the clip on screen gives another
+// hands the transport back: to the last clip played outside those states, or where the monster opens. Any other
+// pick leaves the animation alone. The clip that then plays sets the state as it always does (followMotionMode).
+function zoneModeView(e, mode){
+  const l = listOf(e), c = clipOf(l);
+  const act = pose.action;
+  const frame = (act && c && act.getClip && act.getClip().name === c.clip) ? act.time * 60 : 0;
+  const here = c ? clipZoneMode(e, l, c, frame) : null;
+  const want = meatModeView(e.id, mode);
+  if (want){
+    if (here !== mode) setView(want, 'ROM_MEAT_SWITCH modeViews');
+    return;
+  }
+  if (here === null || here === mode) return;
+  const back = lastPlainClip && lastPlainClip.id === e.id ? lastPlainClip : null;
+  setView(back ? { list: back.list, clip: back.clip } : null, 'the Damage Table');
 }
 // ...AND FROM A FRAME OF IT. Congalala's table changes at frame 40 of the Belly Pump (ROM_MEAT_SWITCH em021_00, a key
 // ending "@40"), so while a clip plays the state is read again each frame and set when that reading changes -- on the
@@ -6148,7 +6180,9 @@ document.getElementById('monHeatTable').onchange = async e => {
       return;
     }
     if (st.axis === 'mode'){
-      state.zoneMode = +e.target.value; await applyHeat(); applyGap(); saveState();
+      state.zoneMode = +e.target.value;
+      zoneModeView(en, state.zoneMode);
+      await applyHeat(); applyGap(); saveState();
       return;
     }
   }
