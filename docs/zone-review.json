@@ -1410,7 +1410,7 @@
    "7": "Boulder"
   },
   "objects": {
-   "7": "Raven, 2026-09-17: \"I have noticed the boulder capsules impact how we color some areas on the body itself. We may need to omit the boulders or color them as their own entity.\", then \"render the boulder itself instead of simply rendering the capsules at all times\". The Boulder is the rock Tetsucabra carries, and the monster model has no mesh for it: its parts (0-13, 100-105) are the body, eyes, tusks, legs, back and tail. The Boulder sphere hangs off joint 3, which the Head capsules share, so the bake gave 24 vertices of the jaw, throat and tusks the Boulder's row. The rock is drawn by the effect system: em066_00_shell16's effect parameters name unit effects 31, 41 and 101, which em066_00u.pel maps to em066_00_009, em066_00_008 (the break) and em066_00_014, and the first two carry the model effect\\base\\em066_00_001, a 145-vertex rock. Until the viewer plays that effect, nothing paints the Boulder's row."
+   "7": "Raven, 2026-09-17: \"I have noticed the boulder capsules impact how we color some areas on the body itself. We may need to omit the boulders or color them as their own entity.\", then \"render the boulder itself instead of simply rendering the capsules at all times\". The Boulder is the rock Tetsucabra carries, and the monster model has no mesh for it: its parts (0-13, 100-105) are the body, eyes, tusks, legs, back and tail. The Boulder sphere hangs off joint 3, which the Head capsules share, so the bake gave 24 vertices of the jaw, throat and tusks the Boulder's row. The held rock is drawn by the effect system as a monster effect: while carrying, uEm066 requests its own effect 1001, which em066_00u.pel maps to UNIQUE key 10, em066_00_004 on joint 131 (read 2026-09-17 by the EMC code agent). An earlier note here named shell16 (em066_00_009 with the rock model em066_00_001), which is the breakable rock dug up onto the ground, not the one in the mouth. Until the viewer plays that effect, nothing paints the Boulder's row."
   }
  },
  "em066_04": {
@@ -1437,7 +1437,7 @@
    "7": "Boulder"
   },
   "objects": {
-   "7": "As Tetsucabra's (Raven, 2026-09-17, on the boulder capsules colouring the body). Drilltusk's model has no rock mesh either, and the bake gave 109 of its vertices the Boulder's row (90 on the body, 19 on the tusks). Its arc carries the same em066_00_008 / em066_00_009 effects and the same rock model."
+   "7": "As Tetsucabra's (Raven, 2026-09-17, on the boulder capsules colouring the body). Drilltusk's model has no rock mesh either, and the bake gave 109 of its vertices the Boulder's row (90 on the body, 19 on the tusks). Its held rock is its own em066_04u.pel UNIQUE key 10, and key 12 for the wide rock of held kind 3, which the slot's second shape follows."
   }
  },
  "em067_00": {
