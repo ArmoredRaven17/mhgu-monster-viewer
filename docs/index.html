@@ -553,6 +553,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           <!-- THE ICON BESIDE THE DROPDOWN, THE READOUT IN DEBUG. Raven, 2026-09-13: "Move all the text
                to be displayed in the Debug Panel. Move the Icon Next to the drop down". The icon takes
                the place the Armor Viewer gives a colour swatch: right of its select, in a .row.gap. -->
+          <div class="field"><label for="monType">Species Type</label><select id="monType"></select></div>
           <div class="field"><label for="monSel">Monster</label>
             <div class="row gap" id="monPick"><select id="monSel"></select><img id="monIcon" class="mon-icon" alt="" hidden></div></div>
         </div>
@@ -2749,7 +2750,13 @@ function clipOf(l){ return (l && (l.clips || []).find(c => c.clip === state.clip
 const monName = e => (e && PARTREVIEW[e.id] && PARTREVIEW[e.id].name) || (e && e.name) || null;
 const label = e => (monName(e) || e.id) + (monName(e) ? '' : ' (unnamed)');
 
-function buildMonsterList(){
+// TWO DROPDOWNS, SPECIES TYPE THEN MONSTER. Raven, 2026-09-17: "Can we split up the monster list into two drop downs?
+// One for Species Type, then Monster". The types are the buckets the single list used to head its groups with -- the
+// monster's CLASS, in the game's own order, LARGE AND SMALL KEPT APART (Raven, 2026-09-05: "Keep Large and Small
+// Separate") -- so Species Type holds a Large and a Small group of class names, and Monster lists one type's
+// monsters. The name filter still searches every monster: Species Type offers only the types it leaves, and Monster
+// only that type's matches. Picking a type opens its first monster, as picking a motion list plays its first clip.
+function monsterBuckets(){
   const f = (monFilter.value || '').trim().toLowerCase();
   // The monster ON SCREEN always stays in the list, whatever the filter says. Dropping it
   // used to re-point state.id at whichever monster the filter left first -- without
@@ -2757,61 +2764,76 @@ function buildMonsterList(){
   // app then ran one monster's size, part groups and clips against another's model. (The
   // Armor Viewer keeps the worn piece listed for exactly this reason.)
   const hit = e => !f || label(e).toLowerCase().includes(f) || e.id.includes(f) || e.id === state.id;
-  const opt = e => '<option value="' + e.id + '">' + label(e) + '</option>';
   // Grouped by the monster's CLASS, in the game's own order, so everything on one skeleton sits
-  // together -- and LARGE AND SMALL STAY APART (Raven, 2026-09-05: "Keep Large and Small
-  // Separate"), every large class first, then every small one. A select cannot nest optgroups, so
-  // the two levels are spelled out in the heading rather than indented. Within a class the em id
-  // order is kept, which already puts a monster next to its own variants.
+  // together, every large class first, then every small one. Within a class the em id order is
+  // kept, which already puts a monster next to its own variants.
   const order = (MONCLASS._about && MONCLASS._about.order) || [];
   const cls = MONCLASS.classes || {};
-  let html = '';
-  if (order.length){
-    const key = (small, k) => (small ? 'S|' : 'L|') + k;
-    const bucket = new Map();
-    for (const e of MON.monsters){
-      if (!hit(e)) continue;
-      const k = cls[e.id] && order.includes(cls[e.id]) ? cls[e.id] : order[order.length - 1];
-      const kk = key(!!e.small, k);
-      if (!bucket.has(kk)) bucket.set(kk, []);
-      bucket.get(kk).push(e);
+  const out = [];
+  if (!order.length){                          // no class file: the old split
+    for (const small of [false, true]){
+      const list = MON.monsters.filter(e => !!e.small === small && hit(e));
+      if (list.length) out.push({ key: small ? 'S|' : 'L|', small, name: small ? 'Small monsters' : 'Large monsters', list });
     }
-    // LISTED UNDER ANOTHER MONSTER, WHATEVER ITS CLASS SAYS. Ahtal-Neset is filed Unclassified by
-    // build-monster-classes.py, and correctly -- it is a siege machine, not a monster, and has no
-    // species -- so the class data stays honest and only the PICKER moves it. Raven, 2026-09-12:
-    // "list it under Athal-Ka". A part-review `listAfter` names the monster to sit directly below;
-    // it wins over the bucket the class put it in. Where the target is filtered out of the list the
-    // monster simply stays in its own bucket.
-    for (const e of MON.monsters){
-      const after = PARTREVIEW[e.id] && PARTREVIEW[e.id].listAfter;
-      if (!after || !hit(e)) continue;
-      let from = null, to = null;
-      for (const list of bucket.values()){
-        if (list.includes(e)) from = list;
-        if (list.some(x => x.id === after)) to = list;
-      }
-      if (!from || !to) continue;
-      from.splice(from.indexOf(e), 1);
-      to.splice(to.findIndex(x => x.id === after) + 1, 0, e);
-    }
-    for (const small of [false, true])
-      for (const k of order){
-        const list = bucket.get(key(small, k)) || [];
-        if (!list.length) continue;
-        html += '<optgroup label="' + (small ? 'Small' : 'Large') + ' — ' + k + '">' +
-                list.map(opt).join('') + '</optgroup>';
-      }
-  } else {                                    // no class file: the old split
-    const big = MON.monsters.filter(e => !e.small && hit(e)).map(opt).join('');
-    const small = MON.monsters.filter(e => e.small && hit(e)).map(opt).join('');
-    html = (big ? '<optgroup label="Large monsters">' + big + '</optgroup>' : '') +
-           (small ? '<optgroup label="Small monsters">' + small + '</optgroup>' : '');
+    return out;
   }
-  monSel.innerHTML = html;
-  if (![...monSel.options].some(o => o.value === state.id)){
+  const key = (small, k) => (small ? 'S|' : 'L|') + k;
+  const bucket = new Map();
+  for (const e of MON.monsters){
+    if (!hit(e)) continue;
+    const k = cls[e.id] && order.includes(cls[e.id]) ? cls[e.id] : order[order.length - 1];
+    const kk = key(!!e.small, k);
+    if (!bucket.has(kk)) bucket.set(kk, []);
+    bucket.get(kk).push(e);
+  }
+  // LISTED UNDER ANOTHER MONSTER, WHATEVER ITS CLASS SAYS. Ahtal-Neset is filed Unclassified by
+  // build-monster-classes.py, and correctly -- it is a siege machine, not a monster, and has no
+  // species -- so the class data stays honest and only the PICKER moves it. Raven, 2026-09-12:
+  // "list it under Athal-Ka". A part-review `listAfter` names the monster to sit directly below;
+  // it wins over the bucket the class put it in. Where the target is filtered out of the list the
+  // monster simply stays in its own bucket.
+  for (const e of MON.monsters){
+    const after = PARTREVIEW[e.id] && PARTREVIEW[e.id].listAfter;
+    if (!after || !hit(e)) continue;
+    let from = null, to = null;
+    for (const list of bucket.values()){
+      if (list.includes(e)) from = list;
+      if (list.some(x => x.id === after)) to = list;
+    }
+    if (!from || !to) continue;
+    from.splice(from.indexOf(e), 1);
+    to.splice(to.findIndex(x => x.id === after) + 1, 0, e);
+  }
+  for (const small of [false, true])
+    for (const k of order){
+      const list = bucket.get(key(small, k)) || [];
+      if (list.length) out.push({ key: key(small, k), small, name: k, list });
+    }
+  return out;
+}
+const monTypeSel = document.getElementById('monType');
+function buildMonsterList(){
+  const buckets = monsterBuckets();
+  if (!buckets.some(b => b.list.some(e => e.id === state.id))){
     const first = MON.monsters.find(e => !e.small) || MON.monsters[0];
     if (first) state.id = first.id;
   }
+  const mine = buckets.find(b => b.list.some(e => e.id === state.id)) || buckets[0];
+  const opt = (value, text) => '<option value="' + value + '">' + text + '</option>';
+  let html = '';
+  for (const small of [false, true]){
+    const group = buckets.filter(b => b.small === small);
+    if (group.length)
+      html += '<optgroup label="' + (small ? 'Small' : 'Large') + '">' + group.map(b => opt(b.key, b.name)).join('') + '</optgroup>';
+  }
+  monTypeSel.innerHTML = html;
+  monTypeSel.value = mine ? mine.key : '';
+  // A NAME BEING SEARCHED lists every match, under its type, so a hit in another type can be picked straight away;
+  // with the filter empty the list is the chosen type's.
+  if ((monFilter.value || '').trim())
+    monSel.innerHTML = buckets.map(b => '<optgroup label="' + (b.small ? 'Small' : 'Large') + ' — ' + b.name + '">' +
+                                        b.list.map(e => opt(e.id, label(e))).join('') + '</optgroup>').join('');
+  else monSel.innerHTML = mine ? mine.list.map(e => opt(e.id, label(e))).join('') : '';
   monSel.value = state.id;
 }
 // The ROM's array order is not a reading order: Basarios ships its OWN list 4 and borrows 0-3 from
@@ -6147,8 +6169,17 @@ document.getElementById('animReplay').onclick = () => play();
 
 // ---- controls -----------------------------------------------------------------------------
 monFilter.oninput = () => { buildMonsterList(); };
+monTypeSel.onchange = () => {
+  const b = monsterBuckets().find(x => x.key === monTypeSel.value);
+  if (!b || !b.list.length) return;
+  if (b.list.some(e => e.id === state.id)) return;
+  monSel.innerHTML = b.list.map(e => '<option value="' + e.id + '">' + label(e) + '</option>').join('');
+  monSel.value = b.list[0].id;
+  monSel.onchange();
+};
 monSel.onchange = async () => {
   state.id = monSel.value; state.groups = null; state.list = ''; state.clip = '';
+  buildMonsterList();              // Species Type follows a monster picked from a search across types
   resetMonsterState();
   buildLists();
   await remount();
