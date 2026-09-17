@@ -718,7 +718,6 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           <div class="field"><label for="camLens">Lens</label><select id="camLens" title="Standard is the plain lens. Fisheye is a true curved wide angle. Orthographic has no perspective at all (orbit only; the focal length then makes no difference). Anamorphic is the widescreen squeeze with oval bokeh and streak flares. Tilt-shift keeps a band sharp and blurs above and below it"><option value="standard">Standard</option><option value="fisheye">Fisheye</option><option value="ortho">Orthographic</option><option value="anamorphic">Anamorphic</option><option value="tiltshift">Tilt-shift</option></select></div>
           <div class="field" id="lensP1Field" hidden><label for="lensP1"><span id="lensP1Label"></span> <span class="hx" id="lensP1Val"></span></label><input id="lensP1" type="range" min="0" max="1000" step="1"></div>
           <div class="field" id="lensP2Field" hidden><label for="lensP2"><span id="lensP2Label"></span> <span class="hx" id="lensP2Val"></span></label><input id="lensP2" type="range" min="0" max="1000" step="1"></div>
-          <p class="hint" id="camFlyHint" hidden>Click the view to look around; Esc frees the mouse. W/S move where you look, A/D strafe, Q/E (or C/Space) go down and up, Shift is three times faster and the wheel changes the speed. With Face the monster on, every key orbits: A/D round, E/Q up and down, W/S closer and farther, and the wheel zooms. The focal length works as it does in orbit: it steps you along the line to the monster, so the monster keeps its size and the perspective changes.</p>
           <div class="field"><label for="camFocal">Focal length <span class="hx" id="camFocalVal"></span></label><input id="camFocal" type="range" min="0" max="1000" step="1" title="5 mm is a fisheye-wide view with the deepest perspective, 300 mm a long lens that has flattened it; 35 mm is the default"></div>
           <div class="field" id="camSpeedField" hidden><label for="camSpeed">Move speed <span class="hx" id="camSpeedVal"></span></label><input id="camSpeed" type="range" min="0" max="1000" step="1" title="How fast the keys move the camera; the wheel changes it too while the mouse is locked"></div>
           <div class="field" id="camTrackField">
@@ -1811,7 +1810,9 @@ function paintCamMode(){
   // the Camera panel's side of the mode, as the Armor Viewer paints it
   for (const id of ['camSpin', 'camSpinRev']) document.getElementById(id).disabled = on;
   const sel = document.getElementById('camMode'); if (document.activeElement !== sel) sel.value = camMode;
-  document.getElementById('camFlyHint').hidden = !on;
+  // The first-person controls are named in the view itself (flyHint below), so the panel does not repeat them.
+  // Raven, 2026-09-17: "Remove the tool tip for First Person, it's pretty bulky and we explain the controls in
+  // the rendering area".
   document.getElementById('camSpeedField').hidden = !on;
   document.getElementById('camFace').disabled = !on;          // the lock is a first-person thing
   const oo = document.querySelector('#camLens option[value=ortho]'); if (oo) oo.disabled = on;
