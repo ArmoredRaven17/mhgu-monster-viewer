@@ -1,5 +1,5 @@
 {
- "_about": "Hit zone slot NAMES, dictated by Raven on review -- one monster at a time, reading each row's capsules on the render (a row's name draws its rBodyData shapes, see pickZone in index.html). The ROM ships no zone-name table, so a person saying what a slot is is the only source there is. Keyed by monster id, then by damage-table slot (the row index hitzones.json's tables and capsules use). These are the only slot names the chart shows (since 2026-09-16 hitzones.json's community names are not shown); a slot not named here reads Slot N. `reviewed` is the date the names were given. A monster's `hide` maps a slot to the reason the chart leaves that row out (Raven's call, one slot at a time); deleting the key lists the row again.",
+ "_about": "Hit zone slot NAMES, dictated by Raven on review -- one monster at a time, reading each row's capsules on the render (a row's name draws its rBodyData shapes, see pickZone in index.html). The ROM ships no zone-name table, so a person saying what a slot is is the only source there is. Keyed by monster id, then by damage-table slot (the row index hitzones.json's tables and capsules use). These are the only slot names the chart shows (since 2026-09-16 hitzones.json's community names are not shown); a slot not named here reads Slot N. `reviewed` is the date the names were given. A monster's `hide` maps a slot to the reason the chart leaves that row out (Raven's call, one slot at a time); deleting the key lists the row again. A monster's `objects` maps a slot to why its shapes sit on a thing the monster holds rather than on its body: build-hitzones.py leaves those capsules out of the vertex bake, so no part of the body takes that row's colour. Deleting the key bakes them into the body again.",
  "em001_00": {
   "reviewed": "2026-09-16",
   "note": "Raven: \"Rathian, same as Gold but without the final slot\". Slots 0-6 sit on the same joints as Gold Rathian's; Rathian keeps the tail's last capsule (joint 144) in its Tail row, where Gold splits it off as Tail Tip.",
@@ -1408,6 +1408,9 @@
    "4": "Rear Legs",
    "5": "Tail",
    "7": "Boulder"
+  },
+  "objects": {
+   "7": "Raven, 2026-09-17: \"I have noticed the boulder capsules impact how we color some areas on the body itself. We may need to omit the boulders or color them as their own entity.\", then \"render the boulder itself instead of simply rendering the capsules at all times\". The Boulder is the rock Tetsucabra carries, and the monster model has no mesh for it: its parts (0-13, 100-105) are the body, eyes, tusks, legs, back and tail. The Boulder sphere hangs off joint 3, which the Head capsules share, so the bake gave 24 vertices of the jaw, throat and tusks the Boulder's row. The rock is drawn by the effect system: em066_00_shell16's effect parameters name unit effects 31, 41 and 101, which em066_00u.pel maps to em066_00_009, em066_00_008 (the break) and em066_00_014, and the first two carry the model effect\\base\\em066_00_001, a 145-vertex rock. Until the viewer plays that effect, nothing paints the Boulder's row."
   }
  },
  "em066_04": {
@@ -1432,6 +1435,9 @@
    "4": "Rear Legs",
    "5": "Tail",
    "7": "Boulder"
+  },
+  "objects": {
+   "7": "As Tetsucabra's (Raven, 2026-09-17, on the boulder capsules colouring the body). Drilltusk's model has no rock mesh either, and the bake gave 109 of its vertices the Boulder's row (90 on the body, 19 on the tusks). Its arc carries the same em066_00_008 / em066_00_009 effects and the same rock model."
   }
  },
  "em067_00": {
