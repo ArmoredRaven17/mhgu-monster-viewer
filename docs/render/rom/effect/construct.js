@@ -760,13 +760,17 @@ function nodeBlocks(m, inst){
   return 1;
 }
 
-// 0xae9424: a node's random seed (node block +0x60, negative: draw one) into +0x112 and +0x114.
+// 0xae9424: a node's random seed (node block +0x60) into +0x110 and +0x114. Negative: draw one
+// (0xae943c, managerRandom masked to 12 bits); non-negative: the block's OWN fixed seed, used as-is
+// (0xae9438 bge skips the draw straight to 0xae945c with r0 still the block value). Both paths then write
+// it the same way. (Fixed-seed branch verified by em070_00_003/008/011's recordings, unit07000k*.)
 function nodeSeed(m, inst){
   const par = m.u32(inst + 0x104);
   let seed = m.u32(par + 0x60) | 0;
-  if (seed >= 0) throw new Unverified('0xae945c node with a fixed seed');
-  const owner = m.u32(inst + 0x100);
-  seed = managerRandom(m, mgrOf(m), m.u32(owner + 0xf0) & 8) & 0xfff;
+  if (seed < 0){
+    const owner = m.u32(inst + 0x100);
+    seed = managerRandom(m, mgrOf(m), m.u32(owner + 0xf0) & 8) & 0xfff;
+  }
   const w108 = m.u32(inst + 0x108), w10c = m.u32(inst + 0x10c), lo = m.u16(inst + 0x110);
   m.w32(inst + 0x108, w108); m.w32(inst + 0x10c, w10c);
   m.w32(inst + 0x110, (lo | (seed << 16)) >>> 0);

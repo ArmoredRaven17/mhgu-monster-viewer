@@ -1234,6 +1234,33 @@ export const ROM_ANIMATIONS = {
     // Copied to the Special list to test which attack this is -- replicated straight from the ROM (Raven's note).
     { name: 'Motion 28', pieces: [['2', 'Motion[28]_start'], ['2', 'Motion[28]_loop']] },
   ],
+  // Nerscylla (em070_00): the motions that fire its OWN effects, copied to the Special list so the effects can be
+  // linked (CLIP_EFFECTS) without touching Lists 0/2/4 (Raven, 2026-09-16: "place copies of the animations into
+  // the Special list before making the links ... to keep them separate"). From em070_00's PSL (effects-efl-psl.md,
+  // p1=bank: u.pel = Nerscylla's own): L0 M18, L2 M1/7/10/13/24/27/30/31/54/73/74/75/76/78, L4 M11/30/31. Each is
+  // a single clip -- the glb carries Motion[N] whole, no start/loop split -- so each piece is just [list, clip].
+  // The ubiquitous footstep-dust template (cm202_020/021) is left out; only Nerscylla-specific effects are linked.
+  // Placeholder S. names, list-qualified because motion numbers repeat across lists, until Raven names the attacks.
+  em070_00: [
+    { name: 'S. L0 Motion 18', pieces: [['0', 'Motion[18]']] },
+    { name: 'S. L2 Motion 1',  pieces: [['2', 'Motion[1]']] },
+    { name: 'S. L2 Motion 7',  pieces: [['2', 'Motion[7]']] },
+    { name: 'S. L2 Motion 10', pieces: [['2', 'Motion[10]']] },
+    { name: 'S. L2 Motion 13', pieces: [['2', 'Motion[13]']] },
+    { name: 'S. L2 Motion 24', pieces: [['2', 'Motion[24]']] },
+    { name: 'S. L2 Motion 27', pieces: [['2', 'Motion[27]']] },
+    { name: 'S. L2 Motion 30', pieces: [['2', 'Motion[30]']] },
+    { name: 'S. L2 Motion 31', pieces: [['2', 'Motion[31]']] },
+    { name: 'S. L2 Motion 54', pieces: [['2', 'Motion[54]']] },
+    { name: 'S. L2 Motion 73', pieces: [['2', 'Motion[73]']] },
+    { name: 'S. L2 Motion 74', pieces: [['2', 'Motion[74]']] },
+    { name: 'S. L2 Motion 75', pieces: [['2', 'Motion[75]']] },
+    { name: 'S. L2 Motion 76', pieces: [['2', 'Motion[76]']] },
+    { name: 'S. L2 Motion 78', pieces: [['2', 'Motion[78]']] },
+    { name: 'S. L4 Motion 11', pieces: [['4', 'Motion[11]']] },
+    { name: 'S. L4 Motion 30', pieces: [['4', 'Motion[30]']] },
+    { name: 'S. L4 Motion 31', pieces: [['4', 'Motion[31]']] },
+  ],
 };
 export function romAnimationsOf(monId){ return (monId && ROM_ANIMATIONS[monId]) || []; }
 // ATTACK-ANIMATION EFFECTS, from the monster's PSL (rProofEffectMotSequenceList: the motion->effect binding,
@@ -1255,6 +1282,31 @@ export const CLIP_EFFECTS = {
       { efl: 'em003_00_000.efl', from: 0, to: 132 },
       { efl: 'em003_00_001.efl', from: 132, to: 274 },
     ],
+  },
+  // Nerscylla (em070_00): its own attack effects, from em070_00's PSL run windows (rise = from, fall = to;
+  // a bit with no fall self-terminates, so no `to`). Frames are the PSL slot's own 60fps timeline, which the
+  // single-clip Special copies reproduce 1:1 (slot frames == clip dur*60). `from`/`to` here are the u.pel (p1=4)
+  // Nerscylla bits only; the c.pel dust (cm202_020/021) is left out. NOTE: startClip fires every em070_00.json
+  // record for an efl, so an efl with several placement keys (006: 200/201 same spot; 008: 270/280; 003: 360/361)
+  // fires all of them together -- a small over-fire where one motion's PSL named only one of the keys.
+  em070_00: {
+    'S. L0 Motion 18': [{ efl: 'em070_00_006.efl', from: 46 }],
+    'S. L2 Motion 1':  [{ efl: 'cm202_030.efl', from: 80, to: 87 }, { efl: 'cm202_031.efl', from: 87 }],
+    'S. L2 Motion 7':  [{ efl: 'em070_00_008.efl', from: 31 }],
+    'S. L2 Motion 10': [{ efl: 'em070_00_008.efl', from: 32 }],
+    'S. L2 Motion 13': [{ efl: 'em070_00_011.efl', from: 37 }],
+    'S. L2 Motion 24': [{ efl: 'em070_00_023.efl', from: 2, to: 63 }],
+    'S. L2 Motion 27': [{ efl: 'em070_00_006.efl', from: 33 }],
+    'S. L2 Motion 30': [{ efl: 'em070_00_003.efl', from: 79 }],
+    'S. L2 Motion 31': [{ efl: 'em070_00_003.efl', from: 1, to: 40 }],
+    'S. L2 Motion 54': [{ efl: 'em070_00_006.efl', from: 12 }],
+    'S. L2 Motion 73': [{ efl: 'cm202_030.efl', from: 52 }],
+    'S. L2 Motion 74': [{ efl: 'cm202_031.efl', from: 52 }],
+    'S. L2 Motion 75': [{ efl: 'em070_00_023.efl', from: 2, to: 89 }],
+    'S. L2 Motion 76': [{ efl: 'em070_00_023.efl', from: 0, to: 37 }],
+    'S. L4 Motion 11': [{ efl: 'em070_00_006.efl', from: 8 }],
+    'S. L4 Motion 30': [{ efl: 'em070_00_006.efl', from: 29 }],
+    'S. L4 Motion 31': [{ efl: 'em070_00_006.efl', from: 29 }],
   },
 };
 export function clipEffectsFor(monId, clipName){ return ((monId && CLIP_EFFECTS[monId]) || {})[clipName] || []; }
@@ -3393,6 +3445,22 @@ export const ROM_ARM_SLIME = {
     offsetV: [0, -0.33, -0.66],                                 // by level, >= 2 takes the last
     enragedU: 0.5,
   },
+  // Raging Brachydios: the SAME enrage colour switch, on ALL FOUR slime layers. The gauge block at
+  // 00f36fd8 sets the U-offset-0.5 bit ([enemy+0x1428]+0x5cfc bit 0) for the body slime as well as the
+  // arms (see the arm note above, "the same switch as the body slime"); the +0.5 U walks each slime
+  // texture from its yellow-green column to the red one -- measured here at U 0 = 0x8e900a and U 0.5 =
+  // 0xd74400 on the arm atlas, and a U+0.5 on all four reddens 7.8% of the frame. Only the enrage U is
+  // driven here (offsetV [0], so V stays where the mesh UVs already sit -- the calm look is unchanged);
+  // the per-arm brightness LEVEL the attack AI drives (em063_00 above) is a separate mechanic not
+  // exposed for Raging. Raven, 2026: "the enraged effect that colors the slime on Raging's body." The
+  // yellow<->red BLEND clips (Yellow_to_Red / fAlbedoBlendColor) are the eruption, NOT this -- see
+  // ROM_SPAWN_CLIP and kept off the Enraged toggle.
+  em063_05: {
+    mats: ['XfB__m01_nenkin_arm_l', 'XfB__m02_nenkin_arm_r', 'XfB__m03_nenkin_body', 'XfB__m04_nenkin_tail'],
+    spawnLevel: 0,
+    offsetV: [0],
+    enragedU: 0.5,
+  },
 };
 // The level each arm is showing, per mounted root: [left, right]. Absent = the ROM's spawn level.
 export function setArmSlimeLevel(root, arm, level){
@@ -3433,7 +3501,10 @@ function stepArmSlime(root, monId, state){
   for (let slot = 0; slot < maps.length; slot++){
     const tex = maps[slot];
     if (!tex) continue;
-    const v = t.offsetV[Math.min(lv[slot], t.offsetV.length - 1)];
+    // `lv` is sized for the arms; a slot past it (Raging's body / tail, which carry no per-arm level) takes
+    // the spawn level, so its V never comes out NaN from an undefined index.
+    const level = lv[slot] ?? t.spawnLevel;
+    const v = t.offsetV[Math.min(level, t.offsetV.length - 1)] || 0;
     if (tex.offset.x !== u || tex.offset.y !== v) tex.offset.set(u, v);
   }
 }
