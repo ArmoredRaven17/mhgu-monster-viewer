@@ -60,7 +60,8 @@
 //      ROM's fShininess as the exponent (`enableRomPhong`). DEFAULT OFF.
 //   7. The ALPHA TEST: NVN colour state, enable / function / reference unpacked from the MRL feature
 //      word by the rMaterial setup (`enableRomAlphaTest`, see the section at the end). DEFAULT OFF,
-//      except on ALPHA_TEST_DEFAULT_REFS (Nakarkos 2026-09-13; Nibelsnarf, Savage Deviljho, Astalos 2026-09-16).
+//      except on ALPHA_TEST_DEFAULT_REFS (Nakarkos 2026-09-13; Nibelsnarf, Savage Deviljho, Astalos 2026-09-16;
+//      Amatsu 2026-09-17).
 //
 // 4, 5 and 6 are off by default. Each either overlaps something the SHARED material.js/stage.js
 // already do -- so switching one on alone double-counts rather than corrects -- or changes every
@@ -651,7 +652,8 @@ export function romAlphaTestOf(rom){
   const on = (fb & 0x00100000) !== 0;
   return { on, func: on ? ((fb >>> 21) & 7) : 7, ref: (fb >>> 8) & 0xff };
 }
-// null: per-monster defaults (ALPHA_TEST_DEFAULT_REFS in rom/shader.js -- Nakarkos, Nibelsnarf, Savage Deviljho and Astalos, at Raven's word);
+// null: per-monster defaults (ALPHA_TEST_DEFAULT_REFS in rom/shader.js -- Nakarkos, Nibelsnarf, Savage Deviljho, Astalos and
+// Amatsu, at Raven's word);
 // true / false: every material. `__romAlphaTest('default')` returns to the defaults.
 let romAlphaTest = null;
 const alphaMats = new Set();

@@ -110,8 +110,25 @@ export const ALPHA_ROM_DEFAULT_REFS = new Set(['em/084_00', 'em/084_00/left', 'e
 // Charged) and tikuden (GREATER 150, Charging). Measured headless at Fully Charged: 28,406 px moved in
 // a top view and 50,264 close up, slightly greener. The tail model has no tested or cut material; it
 // is listed so it follows the body. Boltreaver (em/081_04) is not listed: its membrane keeps the old cut.
+//
+// Amatsu, 2026-09-17. Raven: "Take a look at Amatsu's back fins. Currently they have a colored layer
+// that renders poorly. It also creates see through sections that bypasses the fins on the back."
+//   * The fins: XfBA_E1__m50_fin, BSBlendAlpha + DSZTestWrite, GREATER 128 in the ROM, the case the
+//     alpha-test note in rom/material.js was written about in 2026-09-12.
+//   * The colour layer: XfB_0__m51_ins, an opaque unlit sheet with an auto-scrolling colour map,
+//     sandwiched inside each fin (every vertex within 0.1 of a fin vertex).
+//   * Both symptoms are one fault. Without the test, a front fin's near-clear texels still write
+//     depth. The fin behind it draws later and fails there. The only thing left in that spot is the
+//     back fin's inner colour sheet, drawn first, so it shows as orange-red fringes. The ROM discards
+//     those texels, so no depth is written and the back fin covers its own sheet.
+//   * The fin atlas's alpha: 71.8% at 255, 8.8% at or below 128 (discarded), 4.4% at 129-200. That
+//     last band still blends and writes depth, as in the ROM.
+//   * Measured headless from three views: 16,278 / 25,211 / 28,328 px moved. The test also reaches
+//     XfBAN__E0__m52_face_d (GREATER 0), where the old 1/512 cut was nearly the same.
+//   * The tail model carries the same fin (GREATER 128), so it is listed with the body.
 export const ALPHA_TEST_DEFAULT_REFS = new Set([...ALPHA_ROM_DEFAULT_REFS, 'em/056_00',
-                                                'em/081_00', 'em/081_00/tail']);
+                                                'em/081_00', 'em/081_00/tail',
+                                                'em/058_00', 'em/058_00/tail']);
 const mapConstMats = new Set();              // { u: uniform holder, ref }
 let mapConstAlpha = null;                    // null: per-monster defaults; true / false: every material
 export function mapConstantAlphaOn(){ return mapConstAlpha; }
