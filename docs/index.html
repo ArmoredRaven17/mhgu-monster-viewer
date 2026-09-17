@@ -769,6 +769,20 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         </div>
       </section>
 
+      <!-- BACKGROUND: a map's sky, distant scenery and ground behind the monster (render/background.js). Raven,
+           2026-09-17: "We can have a Panel for Background. That way if I don't want to keep the feature, it isn't
+           tied to other panels". Taking it out is this block, the script block marked BACKGROUND PANEL (and its two
+           marked lines in applySet and loadSet), render/background.js, backgrounds.json and backgrounds/. -->
+      <section class="panel" id="bgPanel" data-open="false">
+        <button class="panel-head">Background <span class="chev">&#9662;</span></button>
+        <div class="panel-body">
+          <div class="field">
+            <label for="bgMap">Map</label>
+            <select id="bgMap"><option value="">Off</option></select>
+          </div>
+        </div>
+      </section>
+
       <!-- HIDDEN, NOT REMOVED. Raven, 2026-09-14: "Hide the Debug panel", the end-of-project step he set
            out 2026-09-12 ("the Debug Panel will no longer be needed (or hidden)"). Every control in it
            still exists and still applies its setting; delete `hidden` to bring the panel back. -->
@@ -1266,6 +1280,7 @@ import { allMats, setWire, setBiasUnitsPerStep } from './render/material.js';
 import { PoseDriver } from './render/pose.js';
 import { gidBonesOf } from './render/skeleton.js';
 import { loadMaterialsDb } from './render/materials-db.js';
+import { createBackground } from './render/background.js';
 import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
          partVerts, partsDrawn, applyParts, groupLabel, groupIsInert, setNormalOpt,
          DEFAULT_PARTS_OFF, DEFAULT_PARTS_ON, defaultPartsOn, ROM_RAGE_SET, setRestSets, stepRefract,
@@ -6523,6 +6538,7 @@ async function loadSet(text, btn){
     flash(btn, 'Bad file'); return;
   }
   applySet(o); resetHiddenDebug();
+  paintBackground();      // BACKGROUND PANEL
   // opened inside Hit Zones: the file's lighting and effects are what leaving the panel gives back, and
   // the panel keeps its defaults meanwhile (the same tests applySet uses to decide it restored them)
   if (hzLook){
@@ -6594,6 +6610,8 @@ function applySet(o){
   if (typeof o.zoneMode === 'number') state.zoneMode = Math.max(0, o.zoneMode | 0);
   // the capsules' colour: Auto or a listed colour's key
   if (o.zoneColour === ZONE_CAPSULE_AUTO || ZONE_CAPSULE_COLOURS.some(c => c.key === o.zoneColour)) state.zoneColour = o.zoneColour;
+  // BACKGROUND PANEL: the map behind the monster ('' for none); paintBackground checks it against the list
+  if (typeof o.background === 'string') state.background = o.background;
   // accept the pre-rename keys so a saved set from before the Bounce -> Hardness change still opens
   // ...and the pre-2026-09-08 floor keys, which named the floor after a selector value that was
   // never identified. normal/strict were 0.25/0.27 and map straight across.
@@ -6777,6 +6795,56 @@ async function runScene(name){
 }
 window.__view = { camera, controls, scene, world, renderer, frameAll, pose, state, MON, mounted,
                   monsterMats, runScene, capture: captureHarness };
+
+// ---- BACKGROUND PANEL -------------------------------------------------------------------
+// A map's sky, scenery and ground behind the monster; render/background.js has the why and the how. Raven,
+// 2026-09-17: "One area per map, keep the viewer lighting", "We can have a Panel for Background. That way if I don't
+// want to keep the feature, it isn't tied to other panels". This block, the panel, state.background (read in
+// applySet, repainted in loadSet), render/background.js, backgrounds.json and backgrounds/ are the whole feature.
+const BACKGROUNDS = await loadJson('backgrounds.json').catch(() => null);
+const bgMaps = (BACKGROUNDS && Array.isArray(BACKGROUNDS.maps)) ? BACKGROUNDS.maps : [];
+const bgBindFloor = new WeakMap();
+// The floor the monster stands on, in scene space, by the rule placeParts uses: the clip's own y = 0, or on a flying
+// list the body's lowest reach over the loop, and in the bind pose the lowest point of the model. Those are in the
+// world group's space, which carries the monster's size multiplier.
+function backgroundFloor(){
+  const root = mounted.main;
+  if (!root) return 0;
+  const s = world.scale.y || 1;
+  const clipRoot = pose.mixer ? pose.mixer.getRoot() : null;
+  let y;
+  if (clipRoot){
+    const reach = (pose.bounds && !pose.bounds.isEmpty()) ? pose.bounds.min.y : Infinity;
+    y = Math.min(clipRoot.position.y, reach);
+  } else {
+    if (!bgBindFloor.has(root)) bgBindFloor.set(root, new THREE.Box3().setFromObject(root).min.y / s);
+    y = bgBindFloor.get(root);
+  }
+  return y * s + world.position.y;
+}
+const background = createBackground({ scene, renderer, floor: backgroundFloor });
+let bgWant = null;
+function paintBackground(){
+  const sel = document.getElementById('bgMap');
+  const m = bgMaps.find(x => x.id === state.background) || null;
+  const want = m ? m.id : '';
+  sel.value = want;
+  if (bgWant === want) return;
+  bgWant = want;
+  background.set(m).catch(err => noteError('Background: ' + (err && err.message || err)));
+}
+for (const m of bgMaps){
+  const o = document.createElement('option');
+  o.value = m.id; o.textContent = m.name;
+  document.getElementById('bgMap').appendChild(o);
+}
+document.getElementById('bgMap').onchange = e => { state.background = e.target.value; paintBackground(); saveState(); };
+paintBackground();
+// __view.background() reads back what is drawn; __view.background('m11') / ('') picks the way the dropdown does
+window.__view.background = id => {
+  if (id !== undefined){ state.background = id || ''; paintBackground(); }
+  return Object.assign({ want: bgWant, floor: +backgroundFloor().toFixed(3) }, background.info());
+};
 // The Camera and Effects panels' hooks, in the Armor Viewer's shape, so a test can drive them the same
 // way in both apps: __view.lens.set('fisheye', 140), __view.fx.preset('glow'), __view.fx.render() ...
 Object.assign(window.__view, {
