@@ -4717,6 +4717,14 @@ void main(){
   float edge = 1.0 - abs(dot(normalize(vN), normalize(vV)));
   gl_FragColor = vec4(min(uColor * (0.8 + 0.6 * edge), vec3(1.0)), uAlpha * (0.35 + 0.65 * edge * edge));
 }`;
+// THE CAPSULE COLOUR IS FIXED, not the theme's. Raven, 2026-09-17: "We may need to have the capsules stay the
+// same color between themes. The heatmap colors don't change, but the theme colors do. Meaning at some point the
+// capsules will be similar to heat map colors." They took the theme's --cta, the accent's complement, so any theme
+// could put them on a heat colour. The old default #19e0d2 sat only CIEDE2000 11.8 from the ramp's teal.
+// #ff3399 is the candidate (36 hues x 3 tones) farthest from every colour the heat map paints: the value ramp's
+// six stops and the points between them, the extract, sharpness and no-zone colours. Its nearest is sharpness
+// purple, at 22.1.
+export const ZONE_CAPSULE_RGB = [1.0, 0.2, 0.6];
 // records: hitzones.json capsule rows [slot, part, shape, boneA, boneB, radius, ax, ay, az, bx, by, bz].
 // opts.color: [r, g, b] 0..1, written as given. Returns a Group for the scene (not the monster, so no
 // traversal of the model meets it), with userData.placed / skipped, readback() and dispose().
@@ -4726,7 +4734,7 @@ export function zoneCapsules(root, records, opts = {}){
   const bones = new Map();
   for (const b of gidBonesOf(root)) bones.set(b.gid, b.leaf || b.node);
   const geo = new THREE.CapsuleGeometry(1, 1, 6, 24);
-  const rgb = opts.color || [0.1, 0.88, 0.82];
+  const rgb = opts.color || ZONE_CAPSULE_RGB;
   const color = { value: new THREE.Vector3(rgb[0], rgb[1], rgb[2]) };
   const mats = [], live = [];
   const s = new THREE.Vector3(), y = new THREE.Vector3(), x = new THREE.Vector3(), z = new THREE.Vector3();

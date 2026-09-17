@@ -1264,7 +1264,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          hasChargeState, applyMaterialSwap, stateHoldSeconds, chargeFreezesRage, rageLadder, rageLadderParts,
          clusterChoices, ladderVariant, groupLabelWithout, romRageParts,
          setUndefinedMaterialVisible, setExtendVisible, extendCount,
-         applyHeatmap, clearHeatmap, applyFlat, parseZones, heatColor, EXTRACT_RGB, zoneCapsules,
+         applyHeatmap, clearHeatmap, applyFlat, parseZones, heatColor, EXTRACT_RGB, zoneCapsules, ZONE_CAPSULE_RGB,
          setCutoutSolid, cutoutSolidCount, cutoutAnchorMisses,
          setClipFallback, clipFallbackOn,
          loadEffectMounts, attachEffectMounts, detachEffectMounts,
@@ -5170,7 +5170,7 @@ function paintZonePick(){
   }
   if (shown && !zoneShape){
     const picked = zoneShapesFor(rec, pick);
-    zoneShape = zoneCapsules(mounted.main, picked.rows, { color: cssRgb('--cta') });
+    zoneShape = zoneCapsules(mounted.main, picked.rows, { color: ZONE_CAPSULE_RGB });
     zoneShape.userData.key = key;
     zoneShape.userData.root = mounted.main;
     zoneShape.userData.copies = picked.copies;
@@ -5266,23 +5266,8 @@ document.getElementById('monZoneCap').onchange = e => {
   zonePick = m ? { id: (entry() || {}).id, kind: m[1], index: +m[2] } : null;
   paintZonePick();
 };
-// a CSS colour variable as 0..1 RGB, so the drawn zone is the lit row's colour. A theme writes --cta as rgb(),
-// the stylesheet's own default as hex; both are read.
-function cssRgb(name){
-  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  const hex = /^#?([0-9a-f]{6})$/i.exec(v);
-  if (hex){
-    const n = parseInt(hex[1], 16);
-    return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
-  }
-  const m = /rgba?\(([^)]+)\)/.exec(v);
-  if (!m) return null;
-  const p = m[1].split(',').map(Number);
-  return [p[0] / 255, p[1] / 255, p[2] / 255];
-}
-// a theme change recolours the lit row through CSS; the drawn zone follows it
-new MutationObserver(() => { if (zoneShape) zoneShape.userData.setColor(cssRgb('--cta')); })
-  .observe(document.documentElement, { attributes: true, attributeFilter: ['style', 'class'] });
+// The drawn zone keeps ONE colour whatever the theme (ZONE_CAPSULE_RGB in render/monster.js). It used to take the
+// theme's --cta and follow every theme change, which could land it on a heat-map colour.
 // Which pane a heat-map selection belongs to, so picking a type in the dropdown brings its table
 // to the front instead of leaving the reader on the wrong tab.
 function tabForHeat(h){
