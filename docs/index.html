@@ -638,7 +638,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           </div>
           <!-- A ZONE'S CAPSULES, picked here as well as by a row name in the chart. Raven, 2026-09-17: "Add a drop down
                in the Hit Zones for selecting Capsule to match having a drop down for Heat Map", "Place it under Heat
-               Map's DD". Its items are the chart's pickable rows; see buildZoneCapSel(). -->
+               Map's DD". Its items are the damage table's zones; see buildZoneCapSel(). -->
           <div class="field" id="monZoneCapRow" hidden>
             <label for="monZoneCap">Capsule</label>
             <select id="monZoneCap"></select>
@@ -5222,40 +5222,37 @@ function zoneShapesFor(rec, pick){
   const special = rec.capsules.filter((c, i) => c[col] === pick.index && zoneSpecialOnly(flags[i] || 0)).length;
   return { rows, copies, off, special };
 }
-// THE CAPSULE DROPDOWN lists what the chart lets you pick: every damage slot the grids list, under the same name, then
-// the Extracts table's part records. Rebuilt with the chart, so a renamed or hidden slot changes both at once.
+// THE CAPSULE DROPDOWN lists the damage table's zones, every slot the grids list, under the same names. Raven,
+// 2026-09-17: "Only show the Hit Zone regions from the table, no need for the Extracts". Rebuilt with the chart, so a
+// renamed or hidden slot changes both at once.
 function buildZoneCapSel(rec){
   const sel = document.getElementById('monZoneCap');
   const has = !!(rec && Array.isArray(rec.capsules) && rec.capsules.length);
   document.getElementById('monZoneCapRow').hidden = !has;
   sel.textContent = '';
   if (!has) return;
-  const add = (parent, value, text) => {
+  const named = zoneNames(rec);
+  for (const [value, text] of [['', 'Off']].concat(zoneSlots(rec).map(sl => ['slot:' + sl, named[sl] || 'Slot ' + sl]))){
     const o = document.createElement('option');
     o.value = value; o.textContent = text;
-    parent.appendChild(o);
-  };
-  add(sel, '', 'Off');
-  const named = zoneNames(rec);
-  const groups = [
-    ['Hit Zones', zoneSlots(rec).map(sl => ['slot:' + sl, named[sl] || 'Slot ' + sl])],
-    ['Extracts', zoneLiveParts(rec).map(([i]) => ['part:' + i, 'Part ' + i])],
-  ];
-  for (const [label, items] of groups){
-    if (!items.length) continue;
-    const g = document.createElement('optgroup');
-    g.label = label;
-    for (const [value, text] of items) add(g, value, text);
-    sel.appendChild(g);
+    sel.appendChild(o);
   }
   paintZoneCapSel();
 }
-// the dropdown shows the pick however it was made; a pick from another monster reads Off
+// The dropdown shows the pick however it was made; a pick from another monster reads Off. A part record picked in the
+// chart's Extracts table is not offered here, so it is SHOWN by an item the list does not open to.
 function paintZoneCapSel(){
   const sel = document.getElementById('monZoneCap');
   const e = entry();
   const pick = zonePick && e && zonePick.id === e.id ? zonePick : null;
   const want = pick ? pick.kind + ':' + pick.index : '';
+  for (const o of [...sel.options]) if (o.dataset.shownOnly) o.remove();
+  if (pick && pick.kind === 'part' && sel.options.length){
+    const o = document.createElement('option');
+    o.value = want; o.textContent = 'Part ' + pick.index;
+    o.hidden = true; o.dataset.shownOnly = '1';
+    sel.appendChild(o);
+  }
   sel.value = [...sel.options].some(o => o.value === want) ? want : '';
 }
 document.getElementById('monZoneCap').onchange = e => {
@@ -5396,14 +5393,11 @@ function buildHardnessChart(rec, table){
 // the damage table has neck and torso apart -- so there is no 1:1 join to make, and pretending
 // otherwise put every value on the wrong part. The rows are numbered rather than named because the
 // names we have belong to the DAMAGE list and would be a lie here.
-// The records the table lists, as [index, record]: one with neither a stagger value nor an extract has no row.
-function zoneLiveParts(rec){
-  return (rec.parts || []).map((p, i) => [i, p]).filter(([, p]) => p && (p.stagger || p.extract));
-}
 function buildPartsChart(rec){
   const chart = document.getElementById('monPartsChart');
+  const parts = rec.parts || [];
   chart.textContent = '';
-  const live = zoneLiveParts(rec);
+  const live = parts.map((p, i) => [i, p]).filter(([, p]) => p && (p.stagger || p.extract));
   if (!live.length) return;      // left empty; paintZoneTabs disables the tab
   const head = chart.createTHead().insertRow();
   for (const h of ['Part', 'Stagger', 'Break', 'Extract']){
