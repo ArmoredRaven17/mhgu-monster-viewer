@@ -1270,7 +1270,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          loadEffectMounts, attachEffectMounts, detachEffectMounts,
          enableEffectMounts, effectMountsEnabled, effectMountsFor, effectMountsLive,
          setEffectRage, effectAutoOnRage, effectRuntimeInstance,
-         clipEffectsFor, clipEffectMonsters, setClipEffectMonsters,
+         clipEffectsFor, clipEffectMonsters, setClipEffectMonsters, setEffectsSuppressed,
          SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS, meatSwitchOf, meatTableFor, meatAxisOf, meatBreakKeys, meatModeForMotion, meatFrameGated, meatModeView,
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts, ROM_SPAWN_CLIP,
@@ -4928,6 +4928,11 @@ async function applyHeat(){
   const rec = e && HITZONES.monsters && HITZONES.monsters[e.id];
   const note = document.getElementById('monZoneNote');
   document.getElementById('monHeatRow').hidden = !rec;
+  // Hide the particle effect runtime while the Hit Zones panel is open -- "Hit Zones is read ... with no
+  // effects" (holdHitZonesLook already sets the default rig and post-fx off; the particle runtime draws into its
+  // OWN scene over the body, which the heat map's body-mesh repaint never reaches, so it needs hiding too). Set
+  // here (not only in holdHitZonesLook) so a session restored with the panel already open is covered as well.
+  setEffectsSuppressed(hitZonesOpen());
   // THE DROPDOWN LISTS TABLES, SO IT GOES WHEN THERE IS ONLY ONE. Raven, 2026-09-16: "if a monster no longer has
   // multiple tables, hide the Damage Table drop down". A monster whose second block is switched in by its own
   // rules has as many tables as it has states: a break-only one (Glavenus) has just the one, which follows the

@@ -48,6 +48,13 @@ let clipEffectIds = new Set();
 export function setClipEffectMonsters(ids){ clipEffectIds = new Set(ids || []); }
 function hasClipEffects(id){ return clipEffectIds.has(id); }
 export function setEffectRuntime(on){ runtimeOn = !!on; }
+// HEAT MAP hides the particle effects. The ROM effect runtime draws into its OWN scene, over the body, so the
+// hit-zone heat map (index.html applyHeat, which repaints the mounted body meshes) never touches it and the
+// effect meshes stay on screen over the coloured body. index.html sets this true whenever a heat map is painted;
+// the runtime's frame() then draws nothing. Material effects (slime, veins) are the body's own meshes, so they
+// follow the heat map on their own and are unaffected.
+let effectsSuppressed = false;
+export function setEffectsSuppressed(on){ effectsSuppressed = !!on; if (runtime) runtime.suppressed = effectsSuppressed; }
 export function effectRuntimeStats(){ return runtime ? Object.assign({}, runtime.stats) : null; }
 export function effectRuntimeInstance(){ return runtime; }
 // __view.effectRuntime()        what the ROM runtime drew in its last frame (null when it is not running)
@@ -70,6 +77,8 @@ function installConsoleHook(){
       if (runtime) runtime.groundOn = on !== false;
       return { ground: on !== false, runtime: !!runtime };
     };
+    // __view.effectRuntimeObj() -- the live LiveEffects instance, for inspecting the drawn meshes/host in dev.
+    window.__view.effectRuntimeObj = () => runtime;
   };
   install();
 }
@@ -178,6 +187,7 @@ export async function attachEffectMounts(root, monsterId, only){
       const fx = new LiveEffects(def);
       fx.monsterId = monsterId;
       fx.keepAcrossRage = !rageOnly;
+      fx.suppressed = effectsSuppressed;                   // a monster shown while a heat map is up starts hidden
       await fx.attach(root, { rage: rageOn });
       if (token !== attachToken){ fx.detach(); return 0; }
       runtime = fx;

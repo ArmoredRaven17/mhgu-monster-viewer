@@ -43,10 +43,10 @@ export { extendMapMisses };
 import { loadEffectMounts, attachEffectMounts, detachEffectMounts, enableEffectMounts,
          effectMountsEnabled, effectMountsFor, effectMountsLive,
          setEffectScale, setEffectRage, effectAutoOnRage,
-         effectRuntimeInstance, setClipEffectMonsters } from './rom/effect-mounts.js';
+         effectRuntimeInstance, setClipEffectMonsters, setEffectsSuppressed } from './rom/effect-mounts.js';
 // The proof-effect models a monster hangs on a joint. Felyne only on shipped data; the module
 // header says why, and why it is off by default.
-export { effectRuntimeInstance, setClipEffectMonsters };
+export { effectRuntimeInstance, setClipEffectMonsters, setEffectsSuppressed };
 export { loadEffectMounts, attachEffectMounts, detachEffectMounts, enableEffectMounts,
          effectMountsEnabled, effectMountsFor, effectMountsLive,
          // the undecoded mount scale, so it can be judged by eye without a reload

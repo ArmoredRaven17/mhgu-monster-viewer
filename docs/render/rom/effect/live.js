@@ -292,7 +292,10 @@ export class LiveEffects {
   // A refusal (a branch of the ROM's code no recorded run reached: Unverified) or any other fault stops
   // this effect and says where, once; the viewer's render loop must not die with it.
   frame(renderer, scene, camera){
-    if (this.failed) return;
+    // `suppressed` (effect-mounts setEffectsSuppressed): the hit-zone HEAT MAP is up. The effects draw into this
+    // runtime's own scene here, over the body, so the heat map -- which repaints only the mounted body meshes --
+    // would otherwise leave them on screen over the coloured body. Skipping the frame draws nothing.
+    if (this.failed || this.suppressed) return;
     try { this.frameUnsafe(renderer, scene, camera); }
     catch (e){ this.fail(e); }
   }
