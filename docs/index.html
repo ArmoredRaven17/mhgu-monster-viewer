@@ -772,8 +772,11 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <!-- BACKGROUND: a map's sky, distant scenery and ground behind the monster (render/background.js). Raven,
            2026-09-17: "We can have a Panel for Background. That way if I don't want to keep the feature, it isn't
            tied to other panels". Taking it out is this block, the script block marked BACKGROUND PANEL (and its two
-           marked lines in applySet and loadSet), render/background.js, backgrounds.json and backgrounds/. -->
-      <section class="panel" id="bgPanel" data-open="false">
+           marked lines in applySet and loadSet), render/background.js, backgrounds.json and backgrounds/.
+           HIDDEN FOR NOW, NOT REMOVED. Raven, 2026-09-17: "For now, hide the backgrounds since I will want to refine
+           them a bit more before letting users see them". Adding ?backgrounds to the URL shows the panel for review;
+           delete `hidden` to show it to everyone. -->
+      <section class="panel" id="bgPanel" data-open="false" hidden>
         <button class="panel-head">Background <span class="chev">&#9662;</span></button>
         <div class="panel-body">
           <div class="field">
@@ -6801,7 +6804,13 @@ window.__view = { camera, controls, scene, world, renderer, frameAll, pose, stat
 // 2026-09-17: "One area per map, keep the viewer lighting", "We can have a Panel for Background. That way if I don't
 // want to keep the feature, it isn't tied to other panels". This block, the panel, state.background (read in
 // applySet, repainted in loadSet), render/background.js, backgrounds.json and backgrounds/ are the whole feature.
-const BACKGROUNDS = await loadJson('backgrounds.json').catch(() => null);
+const bgPanel = document.getElementById('bgPanel');
+// HIDDEN FOR NOW (see the panel's markup): ?backgrounds on the URL shows it for review. While it is hidden the map list
+// is not fetched and nothing is drawn -- a saved or opened view naming a map would otherwise put a background on
+// screen with no switch to turn it off (resetHiddenDebug's rule for the Debug panel). The view keeps its choice, so
+// the map comes back once the panel shows.
+if (new URLSearchParams(location.search).has('backgrounds')) bgPanel.hidden = false;
+const BACKGROUNDS = bgPanel.hidden ? null : await loadJson('backgrounds.json').catch(() => null);
 const bgMaps = (BACKGROUNDS && Array.isArray(BACKGROUNDS.maps)) ? BACKGROUNDS.maps : [];
 const bgBindFloor = new WeakMap();
 // The floor the monster stands on, in scene space, by the rule placeParts uses: the clip's own y = 0, or on a flying
@@ -6826,7 +6835,7 @@ const background = createBackground({ scene, renderer, floor: backgroundFloor })
 let bgWant = null;
 function paintBackground(){
   const sel = document.getElementById('bgMap');
-  const m = bgMaps.find(x => x.id === state.background) || null;
+  const m = bgPanel.hidden ? null : (bgMaps.find(x => x.id === state.background) || null);
   const want = m ? m.id : '';
   sel.value = want;
   if (bgWant === want) return;
