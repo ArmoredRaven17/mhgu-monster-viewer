@@ -4070,6 +4070,27 @@ export const ROM_MEAT_SWITCH = {
       { slot: 7, row: 7, rage: true },
     ],
   },
+  // CONGALALA, uEm021_00: 0xdcf708, every frame. While the motion is 0x20a -- List 2 Motion[10], the Belly Pump -- and
+  // has reached frame 40 (0x72714 mode 1: the clip's frame at or past it), slots 0-4 take their table-1 rows; in any
+  // other motion slots 0-3 are restored, and slot 4 keeps its table-1 row only while [[enemy+0x1428]+0x5cb6] is 100 --
+  // a byte copied from the quest's monster record at spawn (0x6fa58) and tested at that value by a dozen classes, a
+  // quest mode rather than a state of the hunt, so it is not offered. Raven, 2026-09-17: "Congalala, do the hit zones
+  // become resistant?", then "I was going to suggest it was the Belly Pump move L2, M10 plays". Mostly: the Body goes
+  // from 30/30/40 cut/impact/shot to 5/5/5 and the Tail drops, while the Arms and Legs fall to 15 impact and shot but
+  // rise to 65 cut. The viewer splits that motion into _start (60 frames) and _loop; the game's frame keeps counting
+  // through the loop, which is past 40 throughout. So the Damage Table follows the clip that plays, from frame 40 of
+  // the _start clip on, and every other clip puts it back.
+  em021_00: {
+    modes: ['Normal', 'Belly Pump'],
+    motionModes: { 1: ['L2 M10_start@40', 'L2 M10_loop'], default: 0 },
+    rules: [
+      { slot: 0, row: 0, mode: [1] },
+      { slot: 1, row: 1, mode: [1] },
+      { slot: 2, row: 2, mode: [1] },
+      { slot: 3, row: 3, mode: [1] },
+      { slot: 4, row: 4, mode: [1] },
+    ],
+  },
   // TETSUCABRA, uEm066_00: 0xf57f8c, its action-start handler, the same for both variants. Starting one of a set of its
   // actions (groups 1, 2, 7 and 10) sets bit 1 of [[enemy+0x1428]+0x1bb], starts a timer at [[enemy+0xcac0]+4] (60, or
   // 1 on the path from 0xf5859c) and puts slot 5 on its table-1 row (0xf58cf0), the SOFTER tail. When a later action
@@ -4477,15 +4498,29 @@ export function meatAxisOf(monId){
 // The state a clip STARTS, where the entry maps clips to its `modes` (Khezu): the index, or null when the clip
 // is not listed and the state should stay where it is -- unless the map gives a `default` for every other clip
 // (Nibelsnarf, where any other action puts the table back). `list` is the viewer's list id, `motion` the N of
-// Motion[N].
-export function meatModeForMotion(monId, list, motion){
+// Motion[N]. A key may also name the part of the motion as the viewer splits it ("L2 M10_loop") and the frame of
+// that clip the state starts on ("L2 M10_start@40", Congalala); a key with neither matches the whole motion.
+// `part` is the clip's suffix ('' for none) and `frame` its frame, 0 at the clip's start.
+export function meatModeForMotion(monId, list, motion, part, frame){
   const sw = meatSwitchOf(monId);
   if (!sw || !sw.motionModes) return null;
-  const key = 'L' + list + ' M' + motion;
   for (const [mode, clips] of Object.entries(sw.motionModes)){
-    if (Array.isArray(clips) && clips.indexOf(key) >= 0) return +mode;
+    if (!Array.isArray(clips)) continue;
+    for (const k of clips){
+      const m = /^L(\S+) M(\d+)(?:_(\w+))?(?:@(\d+))?$/.exec(k);
+      if (!m || m[1] !== String(list) || +m[2] !== +motion) continue;
+      if (m[3] && m[3] !== (part || '')) continue;
+      if (m[4] && !((frame || 0) >= +m[4])) continue;
+      return +mode;
+    }
   }
   return typeof sw.motionModes.default === 'number' ? sw.motionModes.default : null;
+}
+// Whether any of a monster's clip keys waits for a frame, so its state has to be read again as the clip plays.
+export function meatFrameGated(monId){
+  const sw = meatSwitchOf(monId);
+  return !!(sw && sw.motionModes &&
+            Object.values(sw.motionModes).some(v => Array.isArray(v) && v.some(k => /@\d+$/.test(k))));
 }
 // Every break key a rule tests, so the panel lists only breaks that move a row.
 export function meatBreakKeys(monId){

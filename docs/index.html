@@ -1270,7 +1270,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          enableEffectMounts, effectMountsEnabled, effectMountsFor, effectMountsLive,
          setEffectRage, effectAutoOnRage, effectRuntimeInstance,
          clipEffectsFor, clipEffectMonsters, setClipEffectMonsters,
-         SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS, meatSwitchOf, meatTableFor, meatAxisOf, meatBreakKeys, meatModeForMotion,
+         SHARP_NAME, SHARP_RGB, DEFLECT_T, hardnessLevel, deflectTier, DEFLECT_RUNGS, meatSwitchOf, meatTableFor, meatAxisOf, meatBreakKeys, meatModeForMotion, meatFrameGated,
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts, ROM_SPAWN_CLIP,
          ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels, levelClipFor, setClipFor,
@@ -5992,10 +5992,34 @@ async function play(){
 // certain animations."
 function followMotionMode(e, l, c){
   const first = c.pieces && c.pieces[0];
-  const m = /^Motion\[(\d+)\]/.exec(first ? first.clip : c.clip);
+  const m = /^Motion\[(\d+)\](?:_(\w+))?/.exec(first ? first.clip : c.clip);
   if (!m) return;
-  const mode = meatModeForMotion(e.id, first ? first.list.id : l.id, +m[1]);
+  const mode = meatModeForMotion(e.id, first ? first.list.id : l.id, +m[1], m[2] || '', 0);
   if (mode === null || mode === (state.zoneMode | 0)) return;
+  state.zoneMode = mode;
+  applyHeat();
+}
+// ...AND FROM A FRAME OF IT. Congalala's table changes at frame 40 of the Belly Pump (ROM_MEAT_SWITCH em021_00, a key
+// ending "@40"), so while a clip plays the state is read again each frame and set when that reading changes -- on the
+// frame the game changes it, and back when the clip loops. A pick in the dropdown holds until the next change. Single
+// clips only: a joined animation keeps the state its first piece started. The first reading of a clip only records it,
+// since play() has already set the state the clip starts in.
+let zoneFrameMode = null;   // { key, mode }: the clip, and the state its frame last gave
+function driveZoneFrameMode(){
+  const e = entry();
+  const act = pose.action;
+  if (!e || !act || !meatFrameGated(e.id)) return;
+  const l = listOf(e), c = clipOf(l);
+  if (!c || c.pieces || (act.getClip && act.getClip().name !== c.clip)) return;   // a joined clip, or still loading
+  const m = /^Motion\[(\d+)\](?:_(\w+))?/.exec(c.clip);
+  if (!m) return;
+  const mode = meatModeForMotion(e.id, l.id, +m[1], m[2] || '', act.time * 60);
+  if (mode === null) return;
+  const key = e.id + '|' + l.id + '|' + c.clip;
+  if (zoneFrameMode && zoneFrameMode.key === key && zoneFrameMode.mode === mode) return;
+  const edge = !!(zoneFrameMode && zoneFrameMode.key === key);
+  zoneFrameMode = { key, mode };
+  if (!edge || mode === (state.zoneMode | 0)) return;
   state.zoneMode = mode;
   applyHeat();
 }
@@ -6547,6 +6571,7 @@ renderer.setAnimationLoop(() => {
   if (!booted || loadHold > 0) return;
   pose.step(poseRoots());
   driveClipEffects();
+  driveZoneFrameMode();
   stepAttached();
   updateDepthBias();
   // the ROM's own material animation: scrolling UVs, pulsing alpha, tinted glows
