@@ -636,6 +636,13 @@ input[type=range]{width:100%;accent-color:var(--accent)}
               <option value="hardness-impact">Hardness (Impact)</option>
             </select>
           </div>
+          <!-- A ZONE'S CAPSULES, picked here as well as by a row name in the chart. Raven, 2026-09-17: "Add a drop down
+               in the Hit Zones for selecting Capsule to match having a drop down for Heat Map", "Place it under Heat
+               Map's DD". Its items are the chart's pickable rows; see buildZoneCapSel(). -->
+          <div class="field" id="monZoneCapRow" hidden>
+            <label for="monZoneCap">Capsule</label>
+            <select id="monZoneCap"></select>
+          </div>
           <div class="field" id="monHeatTableRow" hidden>
             <label for="monHeatTable">Damage Table</label>
             <select id="monHeatTable"></select>
@@ -4928,6 +4935,7 @@ async function applyHeat(){
   const heatTableRow = document.getElementById('monHeatTableRow');
   const tableCount = !rec ? 0 : (zoneStates(e, rec) || { names: rec.tables }).names.length;
   heatTableRow.hidden = tableCount < 2;
+  if (!rec) buildZoneCapSel(null);
   document.getElementById('monBounceTRow').hidden = !(rec && /^hardness-/.test(state.heat));
   if (!rec){
     // Two monsters ship no damage table (em087_00 and ems017_00). The panel says so rather than
@@ -5111,6 +5119,7 @@ function buildZoneChart(rec, table, zt){
     buildTypeChart(document.getElementById(g.id), g.types, rec, table, zt.from);
   buildPartsChart(rec);
   buildHardnessChart(rec, table);
+  buildZoneCapSel(rec);
   paintZoneTabs();
   document.getElementById('zoneTitle').textContent = 'Hit Zones' + (zt.label ? ' — ' + zt.label : '');
   paintZonePanel();
@@ -5124,8 +5133,9 @@ function buildZoneChart(rec, table, zt){
 // table lists the .dtt's PART records, a different list, so its rows draw the capsules carrying that part
 // record. The shapes are the records themselves (zoneCapsules in render/monster.js), not the heat map's
 // per-vertex bake, so they show a zone no vertex won and do not depend on the heat map being on.
-// Drawn only while the chart is on screen (paintZonePanel), and not saved: slot numbers mean nothing on the
-// next monster, so a pick belongs to the monster it was made on.
+// The Capsule dropdown under the Heat Map picks the same zones (buildZoneCapSel), so the shapes are drawn while the
+// Hit Zones panel is open, as the heat map is, whether or not the chart is showing. Not saved: slot numbers mean
+// nothing on the next monster, so a pick belongs to the monster it was made on.
 let zonePick = null;       // { id, kind: 'slot' | 'part', index }
 let zoneShape = null;      // the capsules drawn for it, under the scene
 function zoneRow(tr, th, kind, index){
@@ -5146,7 +5156,8 @@ function paintZonePick(){
   const pick = zonePick && e && zonePick.id === e.id ? zonePick : null;
   for (const tr of document.querySelectorAll('#monZoneWrap tbody tr'))
     tr.classList.toggle('zpick', !!pick && tr.dataset.zkind === pick.kind && +tr.dataset.zindex === pick.index);
-  const shown = !!(pick && rec && rec.capsules && mounted.main && !document.getElementById('zonePanel').hidden);
+  paintZoneCapSel();
+  const shown = !!(pick && rec && rec.capsules && mounted.main && hitZonesOpen());
   const key = shown ? pick.kind + ':' + pick.index : null;
   if (zoneShape && (zoneShape.userData.key !== key || zoneShape.userData.root !== mounted.main)){
     scene.remove(zoneShape); zoneShape.userData.dispose(); zoneShape = null;
@@ -5211,6 +5222,47 @@ function zoneShapesFor(rec, pick){
   const special = rec.capsules.filter((c, i) => c[col] === pick.index && zoneSpecialOnly(flags[i] || 0)).length;
   return { rows, copies, off, special };
 }
+// THE CAPSULE DROPDOWN lists what the chart lets you pick: every damage slot the grids list, under the same name, then
+// the Extracts table's part records. Rebuilt with the chart, so a renamed or hidden slot changes both at once.
+function buildZoneCapSel(rec){
+  const sel = document.getElementById('monZoneCap');
+  const has = !!(rec && Array.isArray(rec.capsules) && rec.capsules.length);
+  document.getElementById('monZoneCapRow').hidden = !has;
+  sel.textContent = '';
+  if (!has) return;
+  const add = (parent, value, text) => {
+    const o = document.createElement('option');
+    o.value = value; o.textContent = text;
+    parent.appendChild(o);
+  };
+  add(sel, '', 'Off');
+  const named = zoneNames(rec);
+  const groups = [
+    ['Hit Zones', zoneSlots(rec).map(sl => ['slot:' + sl, named[sl] || 'Slot ' + sl])],
+    ['Extracts', zoneLiveParts(rec).map(([i]) => ['part:' + i, 'Part ' + i])],
+  ];
+  for (const [label, items] of groups){
+    if (!items.length) continue;
+    const g = document.createElement('optgroup');
+    g.label = label;
+    for (const [value, text] of items) add(g, value, text);
+    sel.appendChild(g);
+  }
+  paintZoneCapSel();
+}
+// the dropdown shows the pick however it was made; a pick from another monster reads Off
+function paintZoneCapSel(){
+  const sel = document.getElementById('monZoneCap');
+  const e = entry();
+  const pick = zonePick && e && zonePick.id === e.id ? zonePick : null;
+  const want = pick ? pick.kind + ':' + pick.index : '';
+  sel.value = [...sel.options].some(o => o.value === want) ? want : '';
+}
+document.getElementById('monZoneCap').onchange = e => {
+  const m = /^(slot|part):(\d+)$/.exec(e.target.value);
+  zonePick = m ? { id: (entry() || {}).id, kind: m[1], index: +m[2] } : null;
+  paintZonePick();
+};
 // a CSS colour variable as 0..1 RGB, so the drawn zone is the lit row's colour. A theme writes --cta as rgb(),
 // the stylesheet's own default as hex; both are read.
 function cssRgb(name){
@@ -5344,11 +5396,14 @@ function buildHardnessChart(rec, table){
 // the damage table has neck and torso apart -- so there is no 1:1 join to make, and pretending
 // otherwise put every value on the wrong part. The rows are numbered rather than named because the
 // names we have belong to the DAMAGE list and would be a lie here.
+// The records the table lists, as [index, record]: one with neither a stagger value nor an extract has no row.
+function zoneLiveParts(rec){
+  return (rec.parts || []).map((p, i) => [i, p]).filter(([, p]) => p && (p.stagger || p.extract));
+}
 function buildPartsChart(rec){
   const chart = document.getElementById('monPartsChart');
-  const parts = rec.parts || [];
   chart.textContent = '';
-  const live = parts.map((p, i) => [i, p]).filter(([, p]) => p && (p.stagger || p.extract));
+  const live = zoneLiveParts(rec);
   if (!live.length) return;      // left empty; paintZoneTabs disables the tab
   const head = chart.createTHead().insertRow();
   for (const h of ['Part', 'Stagger', 'Break', 'Extract']){
@@ -5445,7 +5500,7 @@ function paintZonePanel(){
   document.getElementById('monZoneShow').checked = state.zoneShow;
   document.getElementById('monZoneShowRow').hidden = !has;
   if (shown) placeZonePanel();     // its size changes with the monster, so re-clamp on every paint
-  paintZonePick();                 // a picked zone is drawn only while its chart is
+  paintZonePick();                 // a picked zone is drawn only while the Hit Zones panel is open
 }
 // ---- the hit-zone window is movable -----------------------------------------------------
 // Dragged by its title bar, kept inside the render area, and its corner remembered with the
@@ -6740,7 +6795,7 @@ window.__view.zones = (kind, index) => {
                               copiesLeftOut: zoneShape.userData.copies, neverCountedLeftOut: zoneShape.userData.off,
                               specialOnlyLeftOut: zoneShape.userData.special,
                               capsules: zoneShape.userData.readback() } : null;
-  return { pick: zonePick, lit, drawn };
+  return { pick: zonePick, lit, menu: document.getElementById('monZoneCap').value, drawn };
 };
 // The damage table on screen, read back (zoneTable): the state it is for, and per listed slot the name, which of
 // the file's rows it reads, and the ten values. Reads only; picks nothing.
