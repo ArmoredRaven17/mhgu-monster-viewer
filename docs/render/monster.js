@@ -13,7 +13,7 @@
 //   parts        the mesh table's draw mask (bit 0) marks the LOD / proxy layer, listed per
 //                model as `hide` [part, verts]; rMonsterPartsManager's groups switch the rest
 import * as THREE from 'three';
-import { loadGlb, getTexture, loader, poseCache, bust, texCache } from './assets.js';
+import { loadGlb, getTexture, loader, poseCache, bust, texCache, loadJson } from './assets.js';
 import { skeletonClone, meshGroupId, gidBonesOf } from './skeleton.js';
 import { createMaterial, setSpecTexture, setEnvTexture, applyRomUv, allMats,
          MAT_FPS, stepMaterialAnim } from './material.js';
@@ -63,6 +63,67 @@ export { enableRomAmbient, romAmbientEnabled, setSHAmount,
          enableRomSpecular, romSpecularEnabled, setRomSpecularAmount, anchorMisses,
          enableRomPhong, romPhongEnabled };
 
+// THE ROM'S TRANSLUCENT DRAW ORDER INSIDE A MODEL -- a switch, per-monster defaults.
+//
+// Raven, 2026-09-17, on Amatsu: "Currently they have a colored layer that renders poorly. It also creates
+// see through sections that bypasses the fins on the back". The ROM alpha test (rom/shader.js) took the
+// fringes out. What it leaves is the order the fins draw in, which this viewer re-decided every frame.
+// three.js sorts meshes that share a renderOrder by their own depth, so the fins traded places as the
+// camera moved: the "vibrating" of 2026-09-13, and a fin blocking the one behind it in some views and
+// not in others.
+//
+// THE ROM DOES NOT SORT A MODEL'S MESHES BY DEPTH. Read from the skinned-model draw 0x9392c0 (uEnemy's
+// vtable +0x68): it walks the mesh table in index order, and on the translucent passes (item type 0x11 /
+// 0x0f) keys every row
+//     (0x7fff - clamp(mPriorityBias + model+0x19c - depth)) << 12  |  (row+8 >> 8) & 0xff
+// where depth is ONE view depth for the whole model. A row is keyed on its own bounding centre only when
+// bit 2 of row+8 is set, and no monster model has a row with that bit (3,292 rows, 186 models). So inside
+// a model, translucent meshes draw by the row's ORDER BYTE, then in table order. Amatsu's fins are rows
+// #36..#68: #39 / #40 carry byte 0, #41 byte 1, the rest byte 2.
+//
+// docs/draw-order.json (C:\MHGU-Extract\build-draw-order.py) carries [tableIndex, orderByte, ownDepth] per
+// glb primitive, matched back to its row by part, vertex count and material.
+//
+// HOW IT IS APPLIED. The existing slots stay: a translucent mesh keeps its integer renderOrder (the
+// depth-bias rule in rom/material.js), and the ROM's order goes in as a fraction under 1, so the
+// per-frame depth sort inside a slot is replaced and nothing moves between slots. Amatsu's translucent
+// layers all sit in one slot, so for Amatsu this is the ROM's order exactly. Across separate models
+// (a tail, Nakarkos' tentacles) the ROM also sorts by each model's own depth, which this does not do.
+//
+// DEFAULT: on for DRAW_ORDER_DEFAULT_REFS only. On any other monster it changes which of two
+// overlapping same-slot layers wins.
+//   __romDrawOrder()               readback
+//   __romDrawOrder(true / false)   every monster
+//   __romDrawOrder('default')      back to the per-monster defaults
+export const DRAW_ORDER_DEFAULT_REFS = new Set(['em/058_00', 'em/058_00/tail']);
+let romDrawOrder = null;
+let drawOrderP = null;
+function drawOrderTable(){
+  return drawOrderP || (drawOrderP = loadJson('draw-order.json').then(d => (d && d.models) || {}).catch(() => ({})));
+}
+const orderedMeshes = new Set();
+function drawOrderFor(ref){ return romDrawOrder === null ? DRAW_ORDER_DEFAULT_REFS.has(ref) : romDrawOrder; }
+// order byte, then table index, packed under 1
+function orderFraction(row){ return (row[1] * 4096 + Math.min(row[0], 4095)) / 16777216; }
+function applyDrawOrder(o){
+  const base = Math.floor(o.renderOrder || 0);
+  const on = base > 0 && !!o.userData.romRow && drawOrderFor(o.userData.romRef);
+  o.renderOrder = on ? base + orderFraction(o.userData.romRow) : base;
+}
+export function enableRomDrawOrder(on){
+  romDrawOrder = (on === 'default' || on === null) ? null : !!on;
+  for (const o of orderedMeshes) applyDrawOrder(o);
+  return romDrawOrderState();
+}
+export function romDrawOrderState(){
+  let ordered = 0;
+  for (const o of orderedMeshes) if (o.renderOrder % 1) ordered++;
+  return { on: romDrawOrder === null ? 'default' : romDrawOrder, meshes: orderedMeshes.size, ordered };
+}
+if (typeof window !== 'undefined'){
+  window.__romDrawOrder = on => (on === undefined ? romDrawOrderState() : enableRomDrawOrder(on));
+}
+
 // every material a monster mesh was given (the debug knobs walk this)
 export const monsterMats = [];
 // materials carrying FDistortionRefract; the capture pass below feeds them the scene colour
@@ -79,6 +140,7 @@ export function releaseMonster(root){
     if (!(o.isMesh || o.isSkinnedMesh)) return;
     if (o.material) mine.add(o.material);
     if (o.geometry) o.geometry.dispose();
+    orderedMeshes.delete(o);
   });
   for (const m of mine){
     let i = monsterMats.indexOf(m); if (i >= 0) monsterMats.splice(i, 1);
@@ -1483,6 +1545,8 @@ export async function loadMonster(rec, opt, ctx){
   // part and vertex count with a proxy one -- em020_04 lost meshes that way.
   const hideIdx = new Set(rec.hideIdx || []);
   const hideSig = rec.hideIdx ? null : new Set((rec.hide || []).map(h => h[0] + '#' + h[1]));
+  // each primitive's mesh-table row and order byte, by the same ordinal (see DRAW_ORDER_DEFAULT_REFS)
+  const orderRows = ((await drawOrderTable())[rec.glb] || {}).rows || null;
   // ems017_00 "Great Thunderbug" renders nothing, and no change here can alter that. Its whole
   // .mod is 964 bytes: one bone, one mesh, three vertices at (0,0,0) (1,0,0) (0.5,1,0) -- a
   // placeholder triangle -- and its only texture is 16x16 with ALPHA 0 ON ALL 256 PIXELS, so
@@ -1512,6 +1576,8 @@ export async function loadMonster(rec, opt, ctx){
     o.frustumCulled = false;              // bind-pose bounds, same as the armour
     prim++;
     o.userData.prim = prim;
+    o.userData.romRow = orderRows ? (orderRows[prim] || null) : null;
+    o.userData.romRef = ref;
     // MARKED, NOT SKIPPED. This used to `return` here, which meant a mask-hidden mesh never got
     // its ROM material at all -- it kept the loader's default and rendered flat grey the moment
     // anything made it visible (Raven, 2026-09-06, on the new Debug toggle: "The mesh shows grey
@@ -1575,6 +1641,7 @@ export async function loadMonster(rec, opt, ctx){
     const romCore = mat.userData.romCore === true;
     o.material = mat; allMats.push(mat); monsterMats.push(mat); mats.push(mat);
     if (mat.userData.renderOrder) o.renderOrder = mat.userData.renderOrder;
+    if (o.userData.romRow){ orderedMeshes.add(o); applyDrawOrder(o); }
     // A MATERIAL THAT MOVES ITS OWN UVs GETS ITS OWN TEXTURE OBJECT. The ROM's fUVTransform is a per-
     // material constant (CBMaterial), but material.js writes it onto the three.js texture -- the evaluator's
     // fUVTransform case sets map.offset / repeat, and applyRomUv does the same with a static cbm.uv. And
@@ -2219,6 +2286,7 @@ function retargetMaterials(root){
     if (o.material === next) return;
     o.material = next;
     o.renderOrder = (next.userData && next.userData.renderOrder) || o.userData.orderOrig || 0;
+    if (o.userData.romRow) applyDrawOrder(o);
     n++;
   });
   return n;
