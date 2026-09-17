@@ -6361,12 +6361,19 @@ document.getElementById('hitZonesPanel').addEventListener('panelclose', releaseH
 // state's own clip (zoneModeView). A monster picked, or a view opened, inside the panel is held the same way, and a
 // save made meanwhile records the held clip rather than the panel's (currentSet), as the lighting hold does.
 let hzView = null;   // { id, before: {list, clip}, mode }
+// A monster with no List 0 Motion[1] -- Akantor, Ukanlos, Amatsu, Najarala, the three Magalas, Valstrax, Remobra --
+// takes the first animation the Animation panel offers after Bind pose. Raven, 2026-09-17: "For monsters without L0
+// M1, use the first animation that is not Bind Pose".
 function hitZonesIdleClip(e){
   const l0 = ((e && e.lists) || []).find(l => String(l.id) === '0');
   const names = ((l0 && l0.clips) || []).map(c => c.clip);
   const clip = ['Motion[1]_loop', 'Motion[1]'].find(n => names.indexOf(n) >= 0) ||
                names.find(n => /^Motion\[1\](_|$)/.test(n));
-  return clip ? { list: '0', clip } : null;
+  if (clip) return { list: '0', clip };
+  const hide = attachedListIds(e);
+  const first = ((e && e.lists) || []).filter(l => !hide.has(l.id)).slice().sort(listOrder)
+    .find(l => (l.clips || []).length);
+  return first ? { list: String(first.id), clip: first.clips[0].clip } : null;
 }
 function holdHitZonesView(){
   const e = entry();
