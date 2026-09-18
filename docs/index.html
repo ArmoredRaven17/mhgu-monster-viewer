@@ -730,8 +730,9 @@ input[type=range]{width:100%;accent-color:var(--accent)}
             <label class="chk" title="Turn the other way"><input type="checkbox" id="camSpinRev">Turn clockwise</label>
             <label class="chk" title="Orbit and pan glide to a stop instead of stopping dead"><input type="checkbox" id="camDamp">Smooth orbit</label>
             <label class="chk" title="The wheel zooms toward the pointer instead of the centre of the view"><input type="checkbox" id="camZoomCursor">Zoom toward the pointer</label>
+            <label class="chk" title="Lines on the monster's floor, a metre apart with a heavier one every ten"><input type="checkbox" id="camGrid">Floor grid</label>
           </div>
-          <div class="row"><button id="camReset" class="btn tiny" title="Camera settings back to their defaults: Orbit, Standard lens, 35 mm, turntable off, smooth orbit on, zoom at the centre, no face lock. The view itself stays where it is (Fit to View frames it)">Reset camera settings</button></div>
+          <div class="row"><button id="camReset" class="btn tiny" title="Camera settings back to their defaults: Orbit, Standard lens, 35 mm, turntable off, smooth orbit on, zoom at the centre, no face lock, floor grid on. The view itself stays where it is (Fit to View frames it)">Reset camera settings</button></div>
         </div>
       </section>
       <section class="panel" id="fxPanel" data-open="false">
@@ -1283,6 +1284,7 @@ import { PoseDriver } from './render/pose.js';
 import { gidBonesOf } from './render/skeleton.js';
 import { loadMaterialsDb } from './render/materials-db.js';
 import { createBackground } from './render/background.js';
+import { createFloorGrid } from './render/grid.js';
 import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
          partVerts, partsDrawn, applyParts, groupLabel, groupIsInert, setNormalOpt,
          DEFAULT_PARTS_OFF, DEFAULT_PARTS_ON, defaultPartsOn, ROM_RAGE_SET, setRestSets, stepRefract,
@@ -2251,6 +2253,54 @@ function renderFrame(t){
   if (following && ((++fxFocusTick) % 15) === 0) paintFocusLive();
   if (fx.active) fx.render(cam); else renderer.render(scene, cam);
 }
+// ---- the floor ---------------------------------------------------------------------------------
+// Where the monster stands, in scene space, by the rule placeParts uses: the clip's own y = 0, or on a flying
+// list the body's lowest reach over the loop, and in the bind pose the lowest point of the model. Those are in
+// the world group's space, which carries the monster's size multiplier. The floor grid lies on it, and so does a
+// map background's ground (the BACKGROUND PANEL block).
+const bindExtent = new WeakMap();        // per mounted model: its bind-pose floor and half-size, unscaled
+function bindOf(root){
+  if (!bindExtent.has(root)){
+    const b = new THREE.Box3().setFromObject(root);
+    bindExtent.set(root, { minY: b.min.y / (world.scale.y || 1),
+                           half: 0.5 * Math.max(b.max.x - b.min.x, b.max.z - b.min.z) / (world.scale.x || 1) });
+  }
+  return bindExtent.get(root);
+}
+function monsterFloorY(){
+  const root = mounted.main;
+  if (!root) return 0;
+  const clipRoot = pose.mixer ? pose.mixer.getRoot() : null;
+  let y;
+  if (clipRoot){
+    const reach = (pose.bounds && !pose.bounds.isEmpty()) ? pose.bounds.min.y : Infinity;
+    y = Math.min(clipRoot.position.y, reach);
+  } else y = bindOf(root).minY;
+  return y * (world.scale.y || 1) + world.position.y;
+}
+// the monster's horizontal half-size: over the playing loop, or in the bind pose
+function monsterReach(){
+  const s = world.scale.x || 1;
+  if (pose.bounds && !pose.bounds.isEmpty()){
+    const b = pose.bounds;
+    return 0.5 * Math.max(b.max.x - b.min.x, b.max.z - b.min.z) * s;
+  }
+  return mounted.main ? bindOf(mounted.main).half * s : 5;
+}
+
+// ---- the floor grid (render/grid.js), a Camera panel setting ----------------------------------------
+// Raven, 2026-09-18: "Can we have a grid for the floor of the render space? Make it toggle-able in the camera
+// settings." Saved with the view as camGrid, and on unless a view turned it off. Never drawn in a dev scene
+// (?scene=), whose shots are compared pixel for pixel with runs made before the grid existed.
+const FLOOR_GRID_DEFAULT = true;
+let floorGridOn = FLOOR_GRID_DEFAULT;
+const floorGrid = createFloorGrid({ scene, floor: monsterFloorY, centre: monsterCenter, reach: monsterReach });
+function paintFloorGrid(){
+  floorGrid.set(floorGridOn && !SCENE);
+  document.getElementById('camGrid').checked = floorGridOn;
+}
+paintFloorGrid();
+
 // the Camera panel's controls: the lens, the turntable (the bar's steps, with a direction), the mode,
 // the fly speed, the tracking and two orbit behaviours of the controls themselves
 {
@@ -2265,6 +2315,7 @@ function renderFrame(t){
   damp.checked = controls.enableDamping; zoomCur.checked = !!controls.zoomToCursor;
   damp.onchange = () => { controls.enableDamping = damp.checked; saveState(); };
   zoomCur.onchange = () => { controls.zoomToCursor = zoomCur.checked; saveState(); };
+  document.getElementById('camGrid').onchange = e => { floorGridOn = e.target.checked; paintFloorGrid(); saveState(); };
   const mode = document.getElementById('camMode');
   mode.onchange = () => { setCamMode(mode.value); saveState(); };
   if (flyBtn.hidden) mode.querySelector('option[value=fly]').disabled = true;   // no pointer lock here
@@ -2285,6 +2336,7 @@ function renderFrame(t){
     controls.enableDamping = true; damp.checked = true;
     controls.zoomToCursor = false; zoomCur.checked = false;
     setFlySpeed(FLY_SPEED);
+    floorGridOn = FLOOR_GRID_DEFAULT; paintFloorGrid();
     paintCamMode(); saveState();
   };
   const lensSel = document.getElementById('camLens');
@@ -6696,6 +6748,7 @@ function applySet(o){
   if (typeof o.spinRev === 'boolean') spinRev = o.spinRev;
   if (typeof o.camDamp === 'boolean'){ controls.enableDamping = o.camDamp; document.getElementById('camDamp').checked = o.camDamp; }
   if (typeof o.camZoomCursor === 'boolean'){ controls.zoomToCursor = o.camZoomCursor; document.getElementById('camZoomCursor').checked = o.camZoomCursor; }
+  if (typeof o.camGrid === 'boolean'){ floorGridOn = o.camGrid; paintFloorGrid(); }
   if (typeof o.camFace === 'boolean') setFaceLock(o.camFace);
   if (o.postfx && typeof o.postfx === 'object') restoreEffects(o.postfx);
   // a set without a rig keeps the one on screen, as the Armor Viewer's files do; the boot path starts
@@ -6708,7 +6761,7 @@ function applySet(o){
 function currentSet(){
   return Object.assign({}, state, {
     camera: cameraState(), orbitLocked, spinStep, wireOn, hideCursor, flySpeed: fly.speed,
-    spinRev, camDamp: controls.enableDamping, camZoomCursor: !!controls.zoomToCursor, camFace: faceLock,
+    spinRev, camDamp: controls.enableDamping, camZoomCursor: !!controls.zoomToCursor, camFace: faceLock, camGrid: floorGridOn,
     // inside Hit Zones the lights and effects on screen are stand-ins; the user's own are the ones to keep
     postfx: hzLook ? hzLook.fx : effectsState(), ...(hzLook ? hzLook.light : lightingSaveState()),
     // and the clip it holds, not List 0 Motion[1] (holdHitZonesView)
@@ -6855,26 +6908,8 @@ const bgPanel = document.getElementById('bgPanel');
 if (new URLSearchParams(location.search).has('backgrounds')) bgPanel.hidden = false;
 const BACKGROUNDS = bgPanel.hidden ? null : await loadJson('backgrounds.json').catch(() => null);
 const bgMaps = (BACKGROUNDS && Array.isArray(BACKGROUNDS.maps)) ? BACKGROUNDS.maps : [];
-const bgBindFloor = new WeakMap();
-// The floor the monster stands on, in scene space, by the rule placeParts uses: the clip's own y = 0, or on a flying
-// list the body's lowest reach over the loop, and in the bind pose the lowest point of the model. Those are in the
-// world group's space, which carries the monster's size multiplier.
-function backgroundFloor(){
-  const root = mounted.main;
-  if (!root) return 0;
-  const s = world.scale.y || 1;
-  const clipRoot = pose.mixer ? pose.mixer.getRoot() : null;
-  let y;
-  if (clipRoot){
-    const reach = (pose.bounds && !pose.bounds.isEmpty()) ? pose.bounds.min.y : Infinity;
-    y = Math.min(clipRoot.position.y, reach);
-  } else {
-    if (!bgBindFloor.has(root)) bgBindFloor.set(root, new THREE.Box3().setFromObject(root).min.y / s);
-    y = bgBindFloor.get(root);
-  }
-  return y * s + world.position.y;
-}
-const background = createBackground({ scene, renderer, floor: backgroundFloor });
+// the ground lies on the monster's floor, the rule the floor grid uses too (monsterFloorY)
+const background = createBackground({ scene, renderer, floor: monsterFloorY });
 let bgWant = null;
 function paintBackground(){
   const sel = document.getElementById('bgMap');
@@ -6895,12 +6930,13 @@ paintBackground();
 // __view.background() reads back what is drawn; __view.background('m11') / ('') picks the way the dropdown does
 window.__view.background = id => {
   if (id !== undefined){ state.background = id || ''; paintBackground(); }
-  return Object.assign({ want: bgWant, floor: +backgroundFloor().toFixed(3) }, background.info());
+  return Object.assign({ want: bgWant, floor: +monsterFloorY().toFixed(3) }, background.info());
 };
 // The Camera and Effects panels' hooks, in the Armor Viewer's shape, so a test can drive them the same
 // way in both apps: __view.lens.set('fisheye', 140), __view.fx.preset('glow'), __view.fx.render() ...
 Object.assign(window.__view, {
   setFocal, setFov, currentSet, applySet,
+  grid: { set: on => { floorGridOn = !!on; paintFloorGrid(); }, info: () => floorGrid.info() },
   face: { set: on => setFaceLock(on), get: () => faceLock }, aimPoint: () => aimPoint(new THREE.Vector3()).toArray(),
   aimSurface: () => ({ depth: aimSurfaceDepth(true), hit: aimHit.hit, cost: +aimHit.cost.toFixed(2), every: aimHit.every }),
   lens: {
