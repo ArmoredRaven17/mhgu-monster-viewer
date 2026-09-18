@@ -4855,6 +4855,15 @@ function breakRowInfo(e, key){
   // AN `exact` KEY READS THE GROUP DRAWN, not the option: Amatsu's horn glow is a state variant the Head row folds into
   // its plain options, so "an option holding it is applied" would always be true. It has no switch of its own.
   if ((sw && sw.exact || []).indexOf(key) >= 0) return { key, groups: gs, rows: [], exact: true, broken: gs.some(on) };
+  // A KEY AN ATTACHED BODY'S FORM ANSWERS. Nakarkos' Face opens while either tentacle is Exposed -- the same body part
+  // state byte picks that form (ROM_MEAT_SWITCH em084_00) -- so the key is on when any of the listed bodies shows one of
+  // its listed forms, and its rows are those bodies' own form rows (buildAttachedRows), whose values are group indices.
+  const att = sw && sw.attached && sw.attached[key];
+  if (att){
+    const rows = Object.entries(att).map(([name, forms]) => ({ row: 'attached:' + name, rv: null, offered: true,
+      reps: forms.slice(), broken: forms.indexOf(attachedFormOf(e, name)) >= 0 }));
+    return { key, groups: gs, rows, broken: rows.some(r => r.broken) };
+  }
   // A KEY A SYNTHETIC ROW ANSWERS BY ITS CLIP. Hellblade Glavenus' Tail offers "(Heated)" and "(Blasted)" items that
   // draw the same parts and differ only in the heat clip, so no group can tell them apart: `synthClip` names the
   // material clip that makes an item count, and the key is on when the row's applied item plays it.

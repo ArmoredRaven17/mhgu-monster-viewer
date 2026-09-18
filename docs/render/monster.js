@@ -4186,6 +4186,49 @@ export const ROM_MEAT_SWITCH = {
       { slot: 5, row: 5, broken: 'swollen' },
     ],
   },
+  // NAKARKOS, uEm084_00: 0x1069b88, every frame (vtable +0x2a8). Only the Face (slot 2) moves: table 0's row is
+  // 65/65/40 cut/impact/shot with fire 15, thunder 10, dragon 20; table 1's is 30/30/15 with no element. The routine
+  // leaves the slot alone while the fight stance [enemy+0xcac4] is 1; otherwise the Face is on table 1 while a handle
+  // at [enemy+0xcbc4] is held, else on table 0. 0x106aa48, run just before it, holds that handle only in stance 2 and
+  // drops it -- the Face on table 0 -- while any of these is true:
+  //   * [enemy+0xcadc] is set. (7, 0x32), List 2 Motion[81], sets it as it starts; (7, 0x33..0x35) and any group 11
+  //     action clear it (0x1067ed4, called by the action-start handler).
+  //   * the action is (7, 0x33..0x35 / 0x3c..0x3e) -- one attack, 0x10767c0: List 2 Motion[82] looped, then [83] -- or
+  //     (10, 0x0d / 0x14 / 0x5f / 0x6a / 0x72 / 0xaf), or any action of groups 11 and 13.
+  //   * [enemy+0xcb14] is 2: set by (6, 2) and (6, 4) (List 0 Motion[18]), cleared by (6, 3) (0x10694c0).
+  //   * either tentacle's body part state, [[enemy+0x1428]+0x3bc] or +0x3c8, is 3 -- the byte that puts that tentacle
+  //     in its Exposed form (ROM_ATTACHED_BODY, 0x107e25c).
+  // THE STANCE: as each action of groups 1, 2, 6, 7 and 13 starts, the handler (0x1066c14, vtable +0x204 -> 0x1065c60)
+  // sets 1 or 2 -- mostly 1 below index 0x32 and 2 from it -- and every other group keeps it. It opens at 1, or at 2
+  // where 0x3a8430 reads 5 (0x10655c4), and each change refills both tentacles' part HP and clears their states. The
+  // two stances play their own clips (the idle is List 0 Motion[1] in 1, Motion[50] in 2), so a clip says the stance.
+  // Raven, 2026-09-18: "It is likely when he does certain animations to go between his '2 Headed Dragon' disguise and
+  // his actual form where he revels his face", "ensure that I am in the ROM". It is the animation: the Face opens for
+  // List 2 Motion[81] (7, 0x32) and for [82] and [83] (7, 0x33..) -- (7, 0x33..0x35) is also what moves the fight
+  // from phase 1 to 2 (0x1067d78) -- and for the reactions: (10, 0xaf) List 3 Motion[64], [65], [66]; (10, 0x5f) [16],
+  // [9], [10]; (10, 0x6a) [76], [77], [78]; group 11 [63]. (10, 0x14) and (10, 0x72) play List 3 Motion[50], which
+  // (1, 0x3a) plays with the Face shut, so that clip is left out. Every other stance-2 clip is Face Guarded, and
+  // a stance-1 clip changes nothing, as in the game. Two places the clip cannot say: (10, 0x5f) and group 11 play the
+  // same clips in stance 1, where the Face is left as it was, and [enemy+0xcb14] outlasts the actions that set it.
+  // A tentacle set to Exposed opens the Face whatever the clip (the `attached` key, answered by the tentacle rows).
+  // Clips traced under Unicorn for every action (build/hitzone-states/state-decodes.md).
+  em084_00: {
+    modes: ['Face Revealed', 'Face Guarded'],
+    motionModes: {
+      0: ['L2 M81', 'L2 M82', 'L2 M83', 'L3 M64', 'L3 M65', 'L3 M66', 'L3 M16', 'L3 M9', 'L3 M10',
+          'L3 M76', 'L3 M77', 'L3 M78', 'L3 M63'],
+      1: ['L0 M41', 'L0 M50', 'L0 M59', 'L0 M63', 'L0 M66', 'L0 M67', 'L2 M85', 'L2 M86', 'L2 M101', 'L2 M102',
+          'L2 M103', 'L3 M62'],
+    },
+    modeViews: { 0: { list: '2', clip: 'Motion[82]_loop' }, 1: { list: '0', clip: 'Motion[50]_loop' } },
+    broken: { exposed: [] },
+    attached: { exposed: { em084_00_left: [1], em084_00_right: [1] } },
+    sections: { exposed: 'Tentacles' },
+    labels: { exposed: 'Exposed' },
+    rules: [
+      { slot: 2, row: 2, mode: [1], intact: 'exposed' },
+    ],
+  },
   // ---- generated from the ROM sweep (build/hitzone-states) ----
   // Basarios (em004_00), uEm004_00: 0xd2329c. Coverage 0xd2329c 1/7.
   em004_00: {
