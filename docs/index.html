@@ -1285,6 +1285,7 @@ import { gidBonesOf } from './render/skeleton.js';
 import { loadMaterialsDb } from './render/materials-db.js';
 import { createBackground } from './render/background.js';
 import { createFloorGrid } from './render/grid.js';
+import { setEyeGlow, updateEyeGlow } from './render/eye-glow.js';
 import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
          partVerts, partsDrawn, applyParts, groupLabel, groupIsInert, setNormalOpt,
          DEFAULT_PARTS_OFF, DEFAULT_PARTS_ON, defaultPartsOn, ROM_RAGE_SET, setRestSets, stepRefract,
@@ -1525,6 +1526,8 @@ const viewport = document.getElementById('viewport');
 const stage = createStage(viewport, { margin: MARGIN, fixedSize: SCENE ? [1280, 800] : null });
 const { renderer, scene, camera, controls, world } = stage;
 const head = stage.lights.head;
+// Barioth's eye-glow easter egg rides these lights' summed intensity (render/eye-glow.js)
+const GLOW_LIGHTS = Object.values(stage.lights);
 // post-processing (render/fx.js, the Armor Viewer's), switched in only when an effect is on: with
 // every effect off the frame is the plain renderer.render this app has always drawn. The renderer's
 // tone mapping stays NoToneMapping for it -- the grade pass is the one place that tone-maps.
@@ -2056,6 +2059,10 @@ function applyRig(){
   set('lKeyAz', Math.round(lightRig.az)); set('lKeyEl', Math.round(lightRig.el)); set('lKey', lightRig.key); set('lKeyCol', lightRig.keyColor);
   set('lRim', lightRig.rim); set('lFill', lightRig.fill); set('lAmb', lightRig.ambient);
   document.getElementById('lHead').checked = lightRig.head; document.getElementById('lSpin').checked = lightRig.spin;
+  // Barioth's eye glow rides the light level the rig just set (render/eye-glow.js). The viewer
+  // renders on demand through renderer.render, not renderFrame, so the glow is refreshed here where
+  // the lights change rather than only in the animation loop.
+  updateEyeGlow(GLOW_LIGHTS);
 }
 function applyLighting(name){
   lightingName = LIGHT_PRESETS[name] ? name : 'default';
@@ -2328,6 +2335,7 @@ function renderFrame(t){
             mask: document.documentElement.classList.contains('chroma'), aspect: camera.aspect,
             focus, near: cam.near, far: cam.far, ortho: !!cam.isOrthographicCamera, aniso: _aniso });
   if (following && ((++fxFocusTick) % 15) === 0) paintFocusLive();
+  updateEyeGlow(GLOW_LIGHTS);   // Barioth eye glow: opacity from the current light level
   if (fx.active) fx.render(cam); else renderer.render(scene, cam);
 }
 // ---- the floor ---------------------------------------------------------------------------------
@@ -4720,6 +4728,10 @@ async function mount(){
     setupAttached();
     readLadder();                              // before buildGroups: it decides which clusters show
     buildGroups(); applyPartState(); paintAbout(); applyUndef(); applyExtend(); applyProxy(); applyRage();
+    // Barioth's eye glow: claim its additive eye-ray meshes now that visibility is settled, so the
+    // per-frame lighting driver (renderFrame) owns them instead of the Parts effect-layer hide.
+    setEyeGlow(state.id, world);
+    updateEyeGlow(GLOW_LIGHTS);   // set the glow's opacity for the current lighting on this fresh mount
     // the Lighting panel's Ambient: setSHAmount reaches only materials that exist, and these are new
     if (lightRig) setSHAmount(lightRig.ambient);
     // A fresh mount is a state change: a monster restored with Charged already ticked has to start
@@ -6067,6 +6079,9 @@ function applyRage(){
     setEffectRage(!!state.rage);
     attachEffectMounts(main, state.id, null);
   }
+  // Barioth's eye glow: re-sync the calm/enraged glow ray to whichever eye this state now shows, so
+  // the enraged (different-colour) glow never leaks into the calm state and vice versa.
+  updateEyeGlow(GLOW_LIGHTS);
 }
 // The one place that turns the two checkboxes into ONE state name, for a monster that cannot charge (and the
 // part rows' state keys). A monster that can charge runs matAxes instead, where both may be on at once.
