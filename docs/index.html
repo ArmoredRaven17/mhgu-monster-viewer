@@ -4791,6 +4791,14 @@ function zoneStates(e, rec){
   const axis = meatAxisOf(e.id);
   // A STATE ONLY THE TABLE KNOWS: the entry names it (Najarala's Normal / Exhausted) and the dropdown is its control.
   if (axis === 'mode') return { axis, names: meatSwitchOf(e.id).modes.map(String) };
+  // THE RAGE LADDER'S RUNGS, named as the Rage dropdown names them: Bloodbath's Head follows the same stages as its
+  // rage glow (ROM_MEAT_SWITCH em007_04), so the table is that dropdown's and lists its rungs.
+  if (axis === 'ladder'){
+    const row = document.getElementById('monRageLevelRow');
+    const opts = [...document.getElementById('monRageLevel').options];
+    if (row.hidden || opts.length < 2) return null;
+    return { axis, names: opts.map(o => o.textContent) };
+  }
   // The level axis is named by whatever the Level control shows -- part-review's `levels`, or a ROM form machine's
   // own rungs where the review names none (Alatreon's Form, render/monster.js ROM_FORM_CLIPS).
   if (axis === 'level'){
@@ -4816,6 +4824,9 @@ function zoneStates(e, rec){
 }
 function zoneStateIndex(axis){
   if (axis === 'level') return state.level | 0;
+  // the option holding the current rung: a review may drop rungs, so the value is not always the index
+  if (axis === 'ladder') return Math.max(0, [...document.getElementById('monRageLevel').options]
+                                              .findIndex(o => +o.value === (state.rageLevel | 0)));
   if (axis === 'mode') return state.zoneMode | 0;
   if (axis === 'rage') return state.rage ? 1 : 0;
   return 0;
@@ -4825,7 +4836,7 @@ function zoneTable(e, rec){
   if (st){
     const i = st.names.length ? Math.max(0, Math.min(st.names.length - 1, zoneStateIndex(st.axis))) : 0;
     const t = meatTableFor(e.id, rec.tables, { rung: state.level | 0, rage: !!state.rage, groups: state.groups,
-                                              mode: st.axis === 'mode' ? i : 0,
+                                              mode: st.axis === 'mode' ? i : 0, ladder: state.rageLevel | 0,
                                               broken: k => breakRowInfo(e, k).broken });
     if (t){
       // with no states to list, an `exact` key that is on names the table (Amatsu's Horn Glow)
@@ -6281,6 +6292,12 @@ document.getElementById('monHeatTable').onchange = async e => {
       const rg = document.getElementById('monRage');
       rg.checked = (+e.target.value === 1);
       rg.onchange({ target: rg });
+      return;
+    }
+    if (st.axis === 'ladder'){
+      const rl = document.getElementById('monRageLevel');
+      const o = rl.options[+e.target.value];
+      if (o){ rl.value = o.value; rl.onchange({ target: rl }); }
       return;
     }
     if (st.axis === 'mode'){

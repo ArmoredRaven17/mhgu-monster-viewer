@@ -4231,6 +4231,36 @@ export const ROM_MEAT_SWITCH = {
       { slot: 2, row: 2, mode: [1], intact: 'exposed' },
     ],
   },
+  // BLOODBATH DIABLOS, uEm007_00 variant 4: 0xd32a00, every frame. Only the Head (slot 1) moves, and it moves by HP.
+  // With hp% = current * 100 / max (P+0x370 / P+0x374) and two thresholds at [enemy+0xcac0]+0x6c (first) and +0x6d
+  // (second), each stage LATCHES the first time HP reaches it (+0x6e, +0x6f) and never unlatches: the second stage puts
+  // the Head on table 1 row 1 (57/21/35 cut/impact/shot), the first on row 2 (52/20/32), and neither leaves table 0
+  // (45/15/30). Entering the first clears its rage state (0xba7b8: P+0x510..0x51c, the enrage flag among them);
+  // entering the second clears its tiredness (0xba8dc: P+0x505 = 0, P+0x506/0x508 = 1000); each then raises reaction
+  // bit 1 (0x7fba0), and the reaction handler (0x7f010) runs group 7 of
+  // the command table, program 0 for the first stage and 1 for the second -- em007_00_cmdtbl `14 21 00 07 5f ff` and
+  // `14 21 00 07 67 ..` -- whose actions (7, 0x5f) / (7, 0x67) are one roar, 0xd3e7b0, List 2 Motion[22].
+  //   THE THRESHOLDS are set up per quest (0xd320b4, from setup 0xd31c54): ints of em007_04_actiontune picked by the
+  // special-permit level, which the ROM reads as the last two digits of the quest id (0x3a8470): G1 and any other
+  // quest 75 / 25, G2-G5 85 / 40, EX (and fourteen event quest ids) 85 / 50. A quest spawn byte (P+0x5cb6) of 3-5
+  // starts it in the first stage (second at 70), 6-8 in both.
+  //   THE SAME STAGES ARE ITS RAGE LADDER. 0xd32214 writes P+0x1bb every frame -- 1 above the first threshold, 2 below
+  // it (3 while enraged), 4 below the second, 0 while exhausted -- and the rage material's driver (0xd36e50, with the
+  // clip indices setup reads off XfB_0__m50_angry) plays nothing at 1, Lv1_to_Lv2 into Lv2_loop at 2-4, and
+  // Lv2_to_Lv3 into Lv3_loop at 4 once [enemy+0xcac0]+0x70 is set, which the second stage's roar (7, 0x67) does as it
+  // starts (the action-start handler 0xd322e4). Those are the viewer's Rage rungs: Calm (no clip), Building (Lv2),
+  // Full (Lv3). So the Head follows the Rage dropdown: Calm table 0, Building row 2, Full row 1. What that leaves out:
+  // between the second threshold and its roar the Head is already on row 1 under the Lv2 glow. The stages also speed it
+  // up: every action start sets [enemy+0xcac0]+0x74, the factor its actions hand to the motion speed (0xb07b4), to the
+  // tune float for its P+0x1bb -- 1.0 above the first threshold, 1.08 below it (1.1 enraged, 0.9 tired), and 1.15 once
+  // the second stage's roar has started.
+  // Raven, 2026-09-18: "Bloodbath Diablos, seems easy enough to look into".
+  em007_04: {
+    rules: [
+      { slot: 1, row: 1, ladder: [2] },
+      { slot: 1, row: 2, ladder: [1] },
+    ],
+  },
   // ---- generated from the ROM sweep (build/hitzone-states) ----
   // Basarios (em004_00), uEm004_00: 0xd2329c. Coverage 0xd2329c 1/7.
   em004_00: {
@@ -4591,6 +4621,7 @@ export function meatTableFor(monId, tables, st){
   for (const r of sw.rules){
     if (done.has(r.slot) || !tables[1][r.row]) continue;
     if (r.rung && r.rung.indexOf((st && st.rung) | 0) < 0) continue;
+    if (r.ladder && r.ladder.indexOf((st && st.ladder) | 0) < 0) continue;
     if (r.rage !== undefined && !!r.rage !== !!(st && st.rage)) continue;
     if (r.mode && r.mode.indexOf((st && st.mode) | 0) < 0) continue;
     if (r.broken && ![].concat(r.broken).every(broken)) continue;
@@ -4600,13 +4631,14 @@ export function meatTableFor(monId, tables, st){
   return { rows, from };
 }
 // WHICH CONTROL THE STATES BELONG TO: the entry's own `modes` where it names them (the Damage Table is then the
-// control), the level axis where the rules test a rung, the Enraged toggle where they test rage, and neither
-// where a break is the only thing that moves a row -- then the table simply follows the Parts panel and there is
-// nothing to list.
+// control), the level axis where the rules test a rung, the rage ladder where they test a `ladder` rung (the
+// Rage dropdown's value, 0 being its lowest), the Enraged toggle where they test rage, and neither where a break
+// is the only thing that moves a row -- then the table simply follows the Parts panel and there is nothing to list.
 export function meatAxisOf(monId){
   const sw = meatSwitchOf(monId);
   if (!sw) return null;
   if (Array.isArray(sw.modes) && sw.modes.length > 1) return 'mode';
+  if (sw.rules.some(r => r.ladder)) return 'ladder';
   if (sw.rules.some(r => r.rung)) return 'level';
   if (sw.rules.some(r => r.rage !== undefined)) return 'rage';
   return null;
