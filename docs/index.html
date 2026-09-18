@@ -1691,11 +1691,11 @@ function flyTurn(dyaw, dpitch){
   fly.yaw += dyaw; fly.pitch = Math.min(FLY_PITCH_MAX, Math.max(-FLY_PITCH_MAX, fly.pitch + dpitch));
   applyFlyLook(); fly.moved = true;
 }
-// THE MONSTER'S TRAVEL: how far the playing clip has carried its hip from where it rests, in X/Z and in scene
-// space. Zero while Hold Monster In Place pins it. The driver's bounds and centre are measured held (see play), so
-// this is what puts them where the monster is now; a loop's wrap brings it back to the start with the clip.
+// THE MONSTER'S TRAVEL: how far it has come from where it rested, in X/Z and in scene space -- the ground the world
+// group has carried (THE WALK CARRIES OVER, below) plus how far the playing clip has taken its hip this pass. The
+// driver's bounds and centre are measured held (see play), so this is what puts them where the monster is now.
 const _travel = new THREE.Vector3(), _hipNow = new THREE.Vector3();
-function monsterTravel(out){
+function inLoopTravel(out){
   out.set(0, 0, 0);
   if (!pose.proxyBones || !pose.anchor || pose.anchorXZ !== false) return out;
   const hip = pose.proxyBones.get(0);
@@ -1705,9 +1705,59 @@ function monsterTravel(out){
   const s = world.scale.x || 1;
   return out.set((_hipNow.x - pose.anchor.x) * s, 0, (_hipNow.z - pose.anchor.z) * s);
 }
-// The orbit camera rides that travel: each frame it moves by however far the monster moved, target and all, so
-// the monster stays where it is framed and the floor grid slides under it. A clip's loop, or a new clip, takes
-// the monster back to its start and the camera with it. Not in first person, which stays where it is put.
+function monsterTravel(out){
+  inLoopTravel(out);
+  out.x += world.position.x; out.z += world.position.z;
+  return out;
+}
+// THE WALK CARRIES OVER. Raven, 2026-09-18: "I noticed when an animation loops, it reverts the monster's position, so
+// the grid snaps back". A clip starting over went back to where it began, and the camera riding it went too. The
+// game keeps the ground a motion gains -- the unit is wherever its motion left it -- so the world group carries it
+// here: when the clip starts over, or another clip takes over, the world group moves on by the distance the hip was
+// carried, and the next pass starts where the last one ended. The hip is the measure. At a restart the clip's last
+// frame is laid on its first (loopShift, sampled when the clip starts). At a clip change the new clip's first frame
+// is laid on the old clip's last drawn one. Distance only: none of Rathian's _loop clips turns at all, and carrying
+// a looped one-shot's turn would spin it on the spot. Severed parts are moved back by the same amount, so they stay
+// where they lie. A new monster starts at the origin (mount). The scrubber pauses the clip, and a paused or frozen
+// clip is never a restart, so seeking back is a seek.
+const loopShift = new THREE.Vector3();         // the hip's X/Z over one pass of the playing clip, scene units
+const lastInLoop = new THREE.Vector3();        // the in-loop travel of the last frame drawn
+let carryAction = null, carryTime = 0;
+function shiftWorld(dx, dz){
+  if (!dx && !dz) return;
+  world.position.x += dx; world.position.z += dz;
+  world.updateMatrixWorld();
+  const s = world.scale.x || 1;
+  for (const [k, g] of Object.entries(mounted)) if (k !== 'main' && !isAttached(k)){ g.position.x -= dx / s; g.position.z -= dz / s; }
+}
+// the playing clip's pass, sampled from its first frame to its last with the hip free; returns the first frame's
+// in-loop travel, and leaves the clip at its start
+function measureLoopShift(){
+  loopShift.set(0, 0, 0);
+  const first = new THREE.Vector3(), act = pose.action;
+  if (!act || !pose.proxyBones || !pose.anchor || pose.anchorXZ !== false) return first;
+  const hip = pose.proxyBones.get(0), dur = act.getClip().duration;
+  if (!hip || !(dur > 0.001)) return first;
+  const at = t => { act.time = t; pose.mixer.update(0); pose.anchorProxy(); hip.updateWorldMatrix(true, false);
+                    return new THREE.Vector3().setFromMatrixPosition(hip.matrixWorld); };
+  const a = at(0), b = at(dur - 1e-4);
+  at(0);
+  const s = world.scale.x || 1;
+  loopShift.set((b.x - a.x) * s, 0, (b.z - a.z) * s);
+  return first.set((a.x - pose.anchor.x) * s, 0, (a.z - pose.anchor.z) * s);
+}
+// every frame, after the clip steps: a pass that started over moves the world group on; true when it did
+function carryLoop(){
+  const act = pose.action;
+  const restarted = !!act && act === carryAction && !act.paused && act.timeScale > 0 && pose.anchorXZ === false
+                    && act.time + 1e-6 < carryTime;
+  if (restarted) shiftWorld(loopShift.x, loopShift.z);
+  carryAction = act; carryTime = act ? act.time : 0;
+  return restarted;
+}
+// The orbit camera rides the travel: each frame it moves by however far the monster moved, target and all, so the
+// monster stays where it is framed and the floor grid slides under it. Not in first person, which stays where it
+// is put.
 const _travFollow = new THREE.Vector3(), _travPrev = new THREE.Vector3();
 let travSeen = false;
 function followTravel(){
@@ -4661,6 +4711,7 @@ async function mount(){
     partsPicked = {};            // a new monster: nothing has been picked by hand yet
     synthPicked = {};
     clearMounts();
+    world.position.x = 0; world.position.z = 0; lastInLoop.set(0, 0, 0);   // a new monster starts at the origin
     world.add(main); mounted.main = main;
     for (const [name, g] of extra){ world.add(g); mounted[name] = g; }
     applySize();
@@ -4714,7 +4765,8 @@ function placeParts(){
   // Every box above is in SCENE space, so it carries the world group's size multiplier, but a
   // part's position is local to that group. Divide through and the whole calculation is local.
   const s = world.scale.x || 1;
-  box.min.divideScalar(s); box.max.divideScalar(s);
+  // ...and it may stand off the origin, carried along by a walk (THE WALK CARRIES OVER)
+  box.min.sub(world.position).divideScalar(s); box.max.sub(world.position).divideScalar(s);
   const bodySize = box.getSize(new THREE.Vector3());
   const bodyC = box.getCenter(new THREE.Vector3());
   // measure each part first, in its own unplaced space
@@ -4722,7 +4774,7 @@ function placeParts(){
     const g = mounted[n];
     g.position.set(0, 0, 0);
     const b = new THREE.Box3().setFromObject(g);
-    b.min.divideScalar(s); b.max.divideScalar(s);
+    b.min.sub(world.position).divideScalar(s); b.max.sub(world.position).divideScalar(s);
     return { g, b, size: b.getSize(new THREE.Vector3()), c: b.getCenter(new THREE.Vector3()) };
   });
   const widest = Math.max(...parts.map(p => Math.hypot(p.size.x, p.size.z)));
@@ -6157,6 +6209,8 @@ async function play(){
     // so the model has to be put back explicitly.
     pose.stop();
     for (const a of attached.values()) a.driver.stop();
+    // the bind pose stands where the last clip left the body (THE WALK CARRIES OVER)
+    shiftWorld(lastInLoop.x, lastInLoop.z); lastInLoop.set(0, 0, 0);
     for (const g of Object.values(mounted)) restoreBind(g);
     placeParts();
     return;
@@ -6178,6 +6232,9 @@ async function play(){
                     anchorXZ: true, groundLock: state.groundLock });
   if (mine !== playSeq){ pose.stop(); return; }   // ...or won while the clip was being prepared
   pose.anchorXZ = state.anchor;
+  // the new clip's first frame goes where the old clip's last drawn one was (THE WALK CARRIES OVER)
+  { const first = measureLoopShift(); shiftWorld(lastInLoop.x - first.x, lastInLoop.z - first.z); lastInLoop.copy(first);
+    carryAction = pose.action; carryTime = pose.action ? pose.action.time : 0; }
   await playAttached(l, c);
   stepAttached();
   // every clip, list and lock change comes through here, and the severed pieces stand on the new floor
@@ -6868,7 +6925,9 @@ renderer.setAnimationLoop(() => {
   // Loading overlay reads as a screen rather than a caption over the outgoing monster
   if (!booted || loadHold > 0) return;
   pose.step(poseRoots());
+  if (carryLoop()) pose.step(poseRoots());   // a pass started over: the world group moved on, so lay the bones again
   followTravel();                          // the orbit camera rides the monster's travel
+  inLoopTravel(lastInLoop);
   driveClipEffects();
   driveZoneFrameMode();
   stepAttached();
