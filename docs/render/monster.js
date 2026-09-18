@@ -4192,7 +4192,9 @@ export const ROM_MEAT_SWITCH = {
   // at [enemy+0xcbc4] is held, else on table 0. 0x106aa48, run just before it, holds that handle only in stance 2 and
   // drops it -- the Face on table 0 -- while any of these is true:
   //   * [enemy+0xcadc] is set. (7, 0x32), List 2 Motion[81], sets it as it starts; (7, 0x33..0x35) and any group 11
-  //     action clear it (0x1067ed4, called by the action-start handler).
+  //     action clear it (0x1067ed4, called by the action-start handler). It is the CANNON'S CHARGE: while it is set
+  //     the face plate's driver (0x106b7d4) steps the shell through hadouhou1_Loop .. hadouhouMAX_Loop (波動砲, the
+  //     wave-motion cannon, part-review's Charging), and on the attack below it plays hadouhou_Fire.
   //   * the action is (7, 0x33..0x35 / 0x3c..0x3e) -- one attack, 0x10767c0: List 2 Motion[82] looped, then [83] -- or
   //     (10, 0x0d / 0x14 / 0x5f / 0x6a / 0x72 / 0xaf), or any action of groups 11 and 13.
   //   * [enemy+0xcb14] is 2: set by (6, 2) and (6, 4) (List 0 Motion[18]), cleared by (6, 3) (0x10694c0).
