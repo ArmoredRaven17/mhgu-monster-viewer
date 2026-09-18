@@ -792,7 +792,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <section class="panel" id="debugPanel" data-open="false" hidden>
         <button class="panel-head">Debug <span class="chev">&#9662;</span></button>
         <div class="panel-body">
-          <label class="chk"><input type="checkbox" id="monAnchor" checked>Hold Monster In Place</label>
+          <label class="chk"><input type="checkbox" id="monAnchor">Hold Monster In Place</label>
           <label class="chk"><input type="checkbox" id="monGround">Ground Lowest Bone</label>
           <label class="chk"><input type="checkbox" id="monNormalFlip">Flip Green Channel</label>
           <label class="chk"><input type="checkbox" id="monUndef">Draw Undefined Meshes</label>
@@ -1691,10 +1691,37 @@ function flyTurn(dyaw, dpitch){
   fly.yaw += dyaw; fly.pitch = Math.min(FLY_PITCH_MAX, Math.max(-FLY_PITCH_MAX, fly.pitch + dpitch));
   applyFlyLook(); fly.moved = true;
 }
+// THE MONSTER'S TRAVEL: how far the playing clip has carried its hip from where it rests, in X/Z and in scene
+// space. Zero while Hold Monster In Place pins it. The driver's bounds and centre are measured held (see play), so
+// this is what puts them where the monster is now; a loop's wrap brings it back to the start with the clip.
+const _travel = new THREE.Vector3(), _hipNow = new THREE.Vector3();
+function monsterTravel(out){
+  out.set(0, 0, 0);
+  if (!pose.proxyBones || !pose.anchor || pose.anchorXZ !== false) return out;
+  const hip = pose.proxyBones.get(0);
+  if (!hip) return out;
+  hip.updateWorldMatrix(true, false);
+  _hipNow.setFromMatrixPosition(hip.matrixWorld);
+  const s = world.scale.x || 1;
+  return out.set((_hipNow.x - pose.anchor.x) * s, 0, (_hipNow.z - pose.anchor.z) * s);
+}
+// The orbit camera rides that travel: each frame it moves by however far the monster moved, target and all, so
+// the monster stays where it is framed and the floor grid slides under it. A clip's loop, or a new clip, takes
+// the monster back to its start and the camera with it. Not in first person, which stays where it is put.
+const _travFollow = new THREE.Vector3(), _travPrev = new THREE.Vector3();
+let travSeen = false;
+function followTravel(){
+  monsterTravel(_travFollow);
+  if (travSeen && camMode !== 'fly'){
+    const dx = _travFollow.x - _travPrev.x, dz = _travFollow.z - _travPrev.z;
+    if (dx || dz){ controls.target.x += dx; controls.target.z += dz; camera.position.x += dx; camera.position.z += dz; }
+  }
+  _travPrev.copy(_travFollow); travSeen = true;
+}
 // the monster's centre: the playing pose's own (the driver measures on the unscaled proxy, so
 // it needs the world's factor), else the one seeded when fly began, else the orbit target
 function monsterCenter(out){
-  if (pose.center) return out.copy(pose.center).multiplyScalar(world.scale.x || 1);
+  if (pose.center) return out.copy(pose.center).multiplyScalar(world.scale.x || 1).add(monsterTravel(_travel));
   return out.copy(flyAnchor || controls.target);
 }
 // THE AIM POINT, shared by the depth of field's focus follow and the first-person face lock. The
@@ -2677,8 +2704,9 @@ function frameAll(){
   // The driver measures its bounds on the proxy, which is never scaled, so they need the
   // world's factor before they can frame a monster shown at its true size.
   const s = world.scale.x || 1;
+  const trav = monsterTravel(new THREE.Vector3());   // the body's bounds are measured held: put them where it is
   if (pose.bounds && !pose.bounds.isEmpty()){
-    box.copy(pose.bounds); box.min.multiplyScalar(s); box.max.multiplyScalar(s);
+    box.copy(pose.bounds); box.min.multiplyScalar(s); box.max.multiplyScalar(s); box.translate(trav);
     // copy() DROPS the union above, which is right for the body -- a skinned mesh's own box is
     // its T-pose -- but it also dropped the severed parts, so once they were moved off the
     // monster they framed straight out of shot. They are rigid, so their own boxes are honest.
@@ -2689,7 +2717,7 @@ function frameAll(){
   if (box.isEmpty()) return;
   const size = box.getSize(new THREE.Vector3());
   const c = box.getCenter(new THREE.Vector3());
-  if (pose.center) c.copy(pose.center).multiplyScalar(s);
+  if (pose.center) c.copy(pose.center).multiplyScalar(s).add(trav);
   const vFov = THREE.MathUtils.degToRad(camera.fov);
   let dist = Math.max((size.y * 0.5) / Math.tan(vFov / 2),
                       (size.x * 0.5) / Math.tan(vFov / 2) / camera.aspect) * MARGIN + size.z * 0.5;
@@ -2744,8 +2772,11 @@ function cameraState(){
     // the mode rides along, exactly as the Armor Viewer saves it
     const t = camMode === 'fly'
       ? camera.getWorldDirection(new THREE.Vector3()).add(camera.position) : controls.target;
-    const c = { p: camera.position.toArray().map(n => +n.toFixed(4)),
-                t: t.toArray().map(n => +n.toFixed(4)),
+    // the orbit camera is saved as it stands for the monster AT REST: the view reopens with the clip at its start,
+    // where the travel it rides (followTravel) is nil, so the monster comes back framed as it was
+    const back = camMode === 'fly' ? new THREE.Vector3() : monsterTravel(new THREE.Vector3());
+    const c = { p: camera.position.clone().sub(back).toArray().map(n => +n.toFixed(4)),
+                t: t.clone().sub(back).toArray().map(n => +n.toFixed(4)),
                 fov: +camera.fov.toFixed(2) };
     if (camMode === 'fly') c.mode = 'fly';
     if (lensState.type !== 'standard') c.lens = lensFileState();
@@ -2775,8 +2806,14 @@ const STATE_DEFAULTS = { rage: false, charged: false, heated: true, rageLevel: 0
 // for the hunter's lobby clips -- while a monster's clips already stand on their own floor (lowest bone
 // +0.12..+0.19 on Rathian and Valstrax, +0.18 on Teostra): the lock dropped them 4.0 / 4.7 / 5.5 units and
 // bobbed Rathian's flying clips by up to 3.6 within a clip.
+// HOLD MONSTER IN PLACE IS OFF, and the orbit camera rides the monster instead. Raven, 2026-09-18: "Can we disable
+// Hold Monster in place, but lock the camera to them?", then "First Person, keep the lock optional since they can
+// toggle it on or off". A clip's travel now plays -- a walk walks, a charge crosses the floor grid -- and
+// followTravel moves the orbit camera by the same amount each frame, so the monster stays where it is framed and
+// the world goes past. First person is left free; its Face the monster lock is the way to stay on them. The
+// checkbox stays in the (hidden) Debug panel, and resetHiddenDebug applies this default from DEBUG_DEFAULTS.
 const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: false,
-                anchor: true, groundLock: false, normalFlip: false, normalScale: 1,
+                anchor: false, groundLock: false, normalFlip: false, normalScale: 1,
                 // both OFF by default: see applyUndef and applyExtend
                 undef: false, extend: false, gap: false, proxy: false, ...STATE_DEFAULTS, axes: {}, rawParts: false, heat: '', heatTable: 0, zoneMode: 0, deflectT: 'f25', deflectTier: 2,
                 zoneTab: 'raw',
@@ -6132,10 +6169,15 @@ async function play(){
   // a full animation (c.pieces) is its clips joined into one -- see composeClip in render/monster.js
   const clip3 = c.pieces ? await sequenceClipFor(c, e.glb) : await clipFor(l, c.clip, e.glb);
   if (mine !== playSeq) return;          // a later selection won while this one was loading
+  // The driver measures the loop's bounds and the body's centre with the SAME hold it plays with, so with the hold
+  // off both would describe the clip's whole path. It measures held, then plays as the hold is set: bounds and
+  // centre stay the body's own, and monsterTravel adds where the clip has carried it (render/pose.js reads
+  // anchorXZ every frame, so the switch takes from the next frame on).
   await pose.play({ file: l.file, clip: c.clip, model: e.glb, clip3 },
                   { figure: 'monster', joints: e.joints || [],
-                    anchorXZ: state.anchor, groundLock: state.groundLock });
+                    anchorXZ: true, groundLock: state.groundLock });
   if (mine !== playSeq){ pose.stop(); return; }   // ...or won while the clip was being prepared
+  pose.anchorXZ = state.anchor;
   await playAttached(l, c);
   stepAttached();
   // every clip, list and lock change comes through here, and the severed pieces stand on the new floor
@@ -6565,14 +6607,14 @@ normScaleEl.oninput = e => { state.normalScale = +e.target.value; paintNormal();
 document.getElementById('resetBtn').onclick = async () => {
   const first = MON.monsters.find(e => !e.small) || MON.monsters[0];
   Object.assign(state, { id: first ? first.id : '', list: '', clip: '', groups: null, loop: true,
-                         tail: false, anchor: true, groundLock: false,
+                         tail: false, anchor: false, groundLock: false,
                          normalFlip: false, normalScale: 1 });
   resetMonsterState();
   applyFxPreset('off');                    // Reset names Off, as the Armor Viewer's does
   applyLighting('default');
   monFilter.value = '';
   buildMonsterList(); buildLists(); paintNormal();
-  document.getElementById('monAnchor').checked = true;
+  document.getElementById('monAnchor').checked = false;
   document.getElementById('monGround').checked = false;
   animLoopBtn.classList.toggle('on', true);
   await remount();
@@ -6826,6 +6868,7 @@ renderer.setAnimationLoop(() => {
   // Loading overlay reads as a screen rather than a caption over the outgoing monster
   if (!booted || loadHold > 0) return;
   pose.step(poseRoots());
+  followTravel();                          // the orbit camera rides the monster's travel
   driveClipEffects();
   driveZoneFrameMode();
   stepAttached();
