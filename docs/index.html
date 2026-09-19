@@ -288,6 +288,21 @@ header #bar .btn.tiny{margin-right:0}
   stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 /* the Record button is bright red in both states, the dot and the stop square */
 #clipBtn svg{color:#ff2a2a}
+/* The clip countdown, the Armor Viewer's (Raven there, 2026-09-05: "a timer that counts down ... :30 -> :09 format
+   ... remains the same size"; here, 2026-09-19: "I would like to make both apps have the same camera controls bar"):
+   tabular digits in a fixed box, so :30 and :09 take the same room and nothing beside it shifts. Amber through the
+   3 s lead, red while the clip runs, and a flash of :00 when it ends. The Record button blinks in step: fast through
+   the lead, once a second while recording -- opacity only, so the button never changes size. */
+#bar .clip-timer{display:inline-flex;align-items:center;justify-content:center;width:34px;height:22px;
+  font-size:12px;font-variant-numeric:tabular-nums;letter-spacing:.5px;color:var(--text-hint);user-select:none}
+#bar .clip-timer.pre{color:#ffb020}
+#bar .clip-timer.on{color:#ff2a2a}
+#bar .clip-timer.end{color:#ff2a2a;animation:clipEndFlash .45s steps(1,end) 4}
+#clipBtn.pre svg{animation:clipBlink .5s steps(1,end) infinite}
+#clipBtn.on svg{animation:clipBlink 1s steps(1,end) infinite}
+@keyframes clipBlink{50%{opacity:.15}}
+@keyframes clipEndFlash{50%{opacity:.1}}
+@media (prefers-reduced-motion: reduce){#clipBtn.pre svg,#clipBtn.on svg,#bar .clip-timer.end{animation:none}}
 /* the first-person camera's prompt, above the bar; no pointer events, so the click it asks
    for reaches the canvas */
 #flyHint{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);max-width:calc(100% - 32px);
@@ -855,7 +870,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <button id="gridBtn" class="btn tiny ico" aria-label="Floor Grid" title="Floor Grid: Lines on the monster's floor, a metre apart with a heavier one every ten"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6h10l4 13H3L7 6Z"/><path d="M10.3 6 9 19M13.7 6 15 19M5.8 10h12.4M4.5 14.2h15"/></svg></button>
         <button id="cursorBtn" class="btn tiny ico" aria-label="Hide Cursor" title="Hide Cursor: Hide the mouse pointer over the model"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.6 15.8 12l-4.3.5 2.1 5.4-2 .8-2.1-5.4-3.5 2.9V3.6Z"/><path d="M4 20 20 4"/></svg></button>
         <button id="shotBtn" class="btn tiny ico" aria-label="Screenshot" title="Screenshot: Save a PNG of the render area"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8.6h3.2L8.2 6.5h7.6l1.5 2.1h3.2v10.4H3.5V8.6Z"/><circle cx="12" cy="13.6" r="3.3"/></svg></button>
-        <button id="clipBtn" class="btn tiny ico" aria-label="Record" title="Record: Record a clip of the render area"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5.6" fill="currentColor" stroke="none"/></svg></button>
+        <button id="clipBtn" class="btn tiny ico" aria-label="Record" title="Record: Record a clip of the render area"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5.6" fill="currentColor" stroke="none"/></svg></button><span id="clipTimer" class="clip-timer" title="Seconds of clip left. It counts the 3-second lead first, then the clip; :00 flashes when the clip is done">:30</span>
       </div>
     </section>
   </main>
@@ -2611,15 +2626,35 @@ const CLIP_TYPE = ['video/mp4;codecs=avc1.64001F', 'video/mp4;codecs=avc1', 'vid
                    'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']
   .find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || '';
 const CLIP_EXT = CLIP_TYPE.startsWith('video/mp4') ? 'mp4' : 'webm';
-let recorder = null, recTimer = null, recStart = 0;
+// THE COUNTDOWN, the Armor Viewer's (Raven there, 2026-09-05: "a timer that counts down ... next to the Record Button
+// ... :30 -> :09 format ... When :00 is hit, have it flash a few times then revert back to :30 ... Have the Record
+// Button flash while recording. Add a 3s delay before the capture starts"; here, 2026-09-19: "I would like to make
+// both apps have the same camera controls bar. Add the features the Monster Viewer lacks currently"). The click starts
+// a REC_LEAD-second lead -- the timer counts :03 :02 :01 in amber and the button blinks -- then the capture starts and
+// the timer runs the clip down from :30; at :00 (or an early Stop) the recording stops, :00 flashes four times and the
+// timer reads :30 again. A second click during the lead cancels it.
+let recorder = null, recTimer = null, recStart = 0, recPre = null, recEndFx = null, clipMax = CLIP_MAX;
+const REC_LEAD = 3;
+let clipHarness = null;
 {
-  const btn = document.getElementById('clipBtn');
+  const btn = document.getElementById('clipBtn'), timer = document.getElementById('clipTimer');
+  const showTime = (sec, cls) => {
+    timer.textContent = ':' + String(Math.max(0, Math.min(99, Math.round(sec)))).padStart(2, '0');
+    timer.className = 'clip-timer' + (cls ? ' ' + cls : '');
+  };
+  showTime(clipMax, '');
   if (!CLIP_TYPE || !recCanvas.captureStream){
-    btn.hidden = true;                       // no recorder in this browser: no dead button
+    btn.hidden = true; timer.hidden = true;  // no recorder in this browser: no dead button
   } else {
     const rest = () => {
       clearInterval(recTimer); recTimer = null; recorder = null; clipSeq = null;
-      setIcon(btn, 'rec'); setLabel(btn, 'Record', CLIP_TIP); btn.classList.remove('on');
+      clearTimeout(recPre); recPre = null;
+      setIcon(btn, 'rec'); setLabel(btn, 'Record', CLIP_TIP); btn.classList.remove('on', 'pre');
+    };
+    // the clip is over: :00 flashes, then the timer is :30 again and the button is Record
+    const ended = () => {
+      rest(); showTime(0, 'end'); clearTimeout(recEndFx);
+      recEndFx = setTimeout(() => { showTime(clipMax, ''); recEndFx = null; }, 1900);
     };
     // The sequence's end: stop taking frames, let the encoders still in flight land, then zip
     // what came back. Frames are numbered from 1 so a reader orders them as an editor expects.
@@ -2635,7 +2670,7 @@ let recorder = null, recTimer = null, recStart = 0;
       clipSeq = null;
       const frames = s.frames.filter(Boolean);
       if (!frames.length){
-        rest();
+        ended();
         setLabel(btn, 'Nothing recorded', 'The render area produced no frames: keep the tab visible while recording');
         setTimeout(() => setLabel(btn, 'Record', CLIP_TIP), 2500);
         return;
@@ -2646,13 +2681,12 @@ let recorder = null, recTimer = null, recStart = 0;
         data: new Uint8Array(await b.arrayBuffer())
       })));
       saveBlob(zipStore(bufs), captureName('zip'));
-      rest();
+      ended();
       if (s.dropped)
         setLabel(btn, 'Saved', frames.length + ' frames, ' + s.dropped + ' skipped while encoding');
     };
-    btn.onclick = () => {
-      if (recorder){ recorder.stop(); return; }
-      if (clipSeq){ finishSeq(); return; }
+    // the capture itself, once the lead has run out
+    const start = () => {
       const el = renderer.domElement;
       const w = Math.max(2, el.width & ~1), h = Math.max(2, el.height & ~1);
       // A frame sequence needs no MediaRecorder and no stream: the render loop hands frames
@@ -2667,18 +2701,20 @@ let recorder = null, recTimer = null, recStart = 0;
                 quality: capture.clip === 'png' ? undefined : 0.92 };
         // NO PRIMING FRAME HERE. The MP4 branch below calls recFrame() to put something in
         // recCanvas before captureStream reads it, and copying that here is what made
-        // frame_0001 blank on every sequence (Raven, 2026-09-09). This runs inside the CLICK
-        // handler, and the context is not preserveDrawingBuffer -- the same rule the screenshot
-        // path states above: the drawing buffer is only guaranteed readable inside the task that
-        // drew it. Read from a click, it comes back cleared, and that empty copy became frame 1.
-        // A sequence needs no priming: every frame comes from the render loop's recFrame(), which
-        // runs immediately after renderer.render() and is therefore inside the drawing task.
+        // frame_0001 blank on every sequence (Raven, 2026-09-09). This runs outside the render
+        // loop -- once from the click, now from the lead's timer -- and the context is not
+        // preserveDrawingBuffer: the same rule the screenshot path states above, the drawing buffer
+        // is only guaranteed readable inside the task that drew it. Read from here, it comes back
+        // cleared, and that empty copy became frame 1. A sequence needs no priming: every frame
+        // comes from the render loop's recFrame(), which runs immediately after renderer.render()
+        // and is therefore inside the drawing task.
         recStart = performance.now();
-        setIcon(btn, 'stop'); btn.classList.add('on');
+        setIcon(btn, 'stop'); btn.classList.remove('pre'); btn.classList.add('on');
         const tickSeq = () => {
-          const t = Math.floor((performance.now() - recStart) / 1000);
-          setLabel(btn, 'Stop', 'Recording ' + (clipSeq ? clipSeq.next : 0) + ' frames, ' + t + 's of ' + CLIP_MAX + 's');
-          if (t >= CLIP_MAX) finishSeq();
+          const t = (performance.now() - recStart) / 1000;
+          showTime(Math.ceil(clipMax - t), 'on');
+          setLabel(btn, 'Stop', 'Recording ' + (clipSeq ? clipSeq.next : 0) + ' frames, ' + Math.floor(t) + 's of ' + clipMax + 's');
+          if (t >= clipMax) finishSeq();
         };
         tickSeq(); recTimer = setInterval(tickSeq, 200);
         return;
@@ -2698,26 +2734,50 @@ let recorder = null, recTimer = null, recStart = 0;
         // a few header bytes, and the MP4 writer as nothing at all: say so instead of saving
         // an empty file.
         if (blob.size < 2048){
-          rest();
+          ended();
           setLabel(btn, 'Nothing recorded', 'The render area produced no frames: keep the tab visible while recording');
           setTimeout(() => setLabel(btn, 'Record', CLIP_TIP), 2500);
           return;
         }
         saveBlob(blob, captureName(CLIP_EXT));
-        rest();
+        ended();
       };
       // a timeslice, so the muxer gets its data as it goes: the MP4 writer hands back an empty
       // file when everything arrives at stop
       recorder.start(250);
       recFrame();
       recStart = performance.now();
-      setIcon(btn, 'stop'); btn.classList.add('on');
+      setIcon(btn, 'stop'); btn.classList.remove('pre'); btn.classList.add('on');
       const tick = () => {
-        const t = Math.floor((performance.now() - recStart) / 1000);
-        setLabel(btn, 'Stop', 'Recording, ' + t + 's of ' + CLIP_MAX + 's');
-        if (t >= CLIP_MAX && recorder) recorder.stop();
+        const t = (performance.now() - recStart) / 1000;
+        showTime(Math.ceil(clipMax - t), 'on');
+        setLabel(btn, 'Stop', 'Recording, ' + Math.floor(t) + 's of ' + clipMax + 's');
+        if (t >= clipMax && recorder) recorder.stop();
       };
-      tick(); recTimer = setInterval(tick, 1000);
+      tick(); recTimer = setInterval(tick, 200);
+    };
+    btn.onclick = () => {
+      if (recorder){ recorder.stop(); return; }               // onstop -> ended()
+      if (clipSeq){ finishSeq(); return; }
+      if (recPre){ rest(); showTime(clipMax, ''); return; }    // a click during the lead cancels it
+      clearTimeout(recEndFx); recEndFx = null;
+      const t0 = performance.now();
+      btn.classList.add('pre'); setIcon(btn, 'stop');
+      setLabel(btn, 'Starting', 'Recording starts in ' + REC_LEAD + ' s; click to cancel');
+      const lead = () => {
+        const left = REC_LEAD - (performance.now() - t0) / 1000;
+        if (left > 0){ showTime(Math.ceil(left), 'pre'); recPre = setTimeout(lead, 100); }
+        else { recPre = null; start(); }
+      };
+      lead();
+    };
+    // __view.clip, as the Armor Viewer's: the countdown's state and text, a shorter clip for a test, and the click
+    clipHarness = {
+      state: () => (recorder || clipSeq) ? 'on' : (recPre ? 'pre' : (recEndFx ? 'end' : 'idle')),
+      text: () => timer.textContent, cls: () => timer.className + ' | ' + btn.className,
+      setMax: n => { clipMax = Math.max(1, +n || CLIP_MAX); if (!recorder && !clipSeq && !recPre) showTime(clipMax, ''); },
+      click: () => btn.onclick(),
+      seq: () => clipSeq ? { frames: clipSeq.next, pending: clipSeq.pending, dropped: clipSeq.dropped, ext: clipSeq.ext } : null
     };
   }
 }
@@ -7013,7 +7073,7 @@ async function runScene(name){
   return sc;
 }
 window.__view = { camera, controls, scene, world, renderer, frameAll, pose, state, MON, mounted,
-                  monsterMats, runScene, capture: captureHarness };
+                  monsterMats, runScene, capture: captureHarness, clip: clipHarness };
 
 // ---- BACKGROUND PANEL -------------------------------------------------------------------
 // A map's sky, scenery and ground behind the monster; render/background.js has the why and the how. Raven,
