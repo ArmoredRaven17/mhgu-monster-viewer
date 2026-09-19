@@ -2899,6 +2899,87 @@ if (typeof window !== 'undefined'){
              joint: b ? b.node.quaternion.toArray() : null };
   };
 }
+// RAJANG'S FUR STANDS UP, and ARMOR MODE PUMPS ITS ARMS. Raven, 2026-09-19: "Enraged states are not displaying
+// the raised fur I expect." No mesh or clip raises it: the enraged fur (part 3, XfBAN__E1__m02_hair_a) is the calm
+// fur's size to within a few centimetres, and the clips hold the joints below at scale 1. uEm023_00 overrides +0x2a0
+// with 0xde2e08, which writes them after the motion, every frame:
+//  - while the enrage predicate (0x81670) holds, joint 150's scale is (7, 11, 1) and a timer at [+0xcac0]+0x10 is
+//    set to 30. Out of rage the timer runs down by dt (0x7206c, floor 0) and the scale follows it, (7t, 11t, 1)
+//    with t = timer / 30, written on the frame it reaches 0 as well; after that the class writes nothing and the
+//    clip's own scale is back. Joint 150 hangs off the chest (gid 2) at (0, -0.65, 0.33) and carries part of both
+//    furs' skin (5.4 of weight on each, dominating no vertex), so the scale lifts the fur rather than moving a piece.
+//  - in Armor Mode, the mode byte [+0xcac0]+4 (skipped while the action is 0x218; the viewer has no action state):
+//    joint 152's scale is (4, 2, 2), 155 and 156 take (6, 1, 2), and 153 and 154 keep the clip's rotation -- vtable
+//    +0xd8 (0x539e60) hands back the joint's local rotation and translation, and 0x7237c writes them back -- with the
+//    translation replaced by (30, 40, 0) and (-30, 40, 0) and scale (1, 2, 1.5). The ROM's units are centimetres;
+//    the glb's joints are metres (Rajang's upper arm sits 0.17, 0.25, 1.0 off the chest).
+// Furious Rajang (em023_05) runs the same class: the registry has no uEm023_05, and 0xde2e08 has no variant test.
+// Frame units are taken at 60 a second, as the other class writes here take them. Where no clip drives the joints
+// (the bind pose) nothing puts them back between frames, so a joint this lets go of is returned to the value it had
+// before the first write. __rageFur(false) leaves the joints to the clip.
+export const ROM_RAGE_FUR = { em023_00: { armorLevel: 2 }, em023_05: { armorLevel: 1 } };
+const RAGE_FUR = { gid: 150, scale: [7, 11, 1], timer: 30 };
+const ARMOR_FUR = [
+  { gid: 152, scale: [4, 2, 2] },
+  { gid: 155, scale: [6, 1, 2] },
+  { gid: 156, scale: [6, 1, 2] },
+  { gid: 153, scale: [1, 2, 1.5], pos: [0.30, 0.40, 0] },
+  { gid: 154, scale: [1, 2, 1.5], pos: [-0.30, 0.40, 0] },
+];
+const RAGE_FUR_FPS = 60;
+let rageFurOn = true;
+// Call right after the pose driver has written the frame, like stepHornRaise. `driven`: a clip is playing, so the
+// driver rewrites these joints every frame. Returns the joints it wrote.
+export function stepRageFur(roots, monId, enraged, level, tSec, driven){
+  const t = monId && ROM_RAGE_FUR[monId];
+  if (!t) return 0;
+  let n = 0;
+  for (const root of roots || []){
+    if (!root || !root.userData) continue;
+    let s = root.userData.rageFur;
+    if (!s || s.monId !== monId) s = root.userData.rageFur = { monId, timer: 0, tLast: tSec, saved: new Map() };
+    const f = Math.max(0, (tSec - s.tLast) * RAGE_FUR_FPS);
+    s.tLast = tSec;
+    const writes = new Map();                       // gid -> { scale, pos? } this frame
+    if (rageFurOn){
+      if (enraged){ s.timer = RAGE_FUR.timer; writes.set(RAGE_FUR.gid, { scale: RAGE_FUR.scale }); }
+      else if (s.timer > 0){
+        s.timer = Math.max(0, s.timer - f);
+        const k = s.timer / RAGE_FUR.timer;
+        writes.set(RAGE_FUR.gid, { scale: [RAGE_FUR.scale[0] * k, RAGE_FUR.scale[1] * k, RAGE_FUR.scale[2]] });
+      }
+      if ((level | 0) === t.armorLevel) for (const j of ARMOR_FUR) writes.set(j.gid, j);
+    } else s.timer = 0;
+    for (const b of gidBonesOf(root)){
+      const w = writes.get(b.gid), target = b.leaf || b.node;
+      if (w){
+        if (!s.saved.has(b.gid)) s.saved.set(b.gid, { scale: target.scale.clone(), pos: b.node.position.clone() });
+        target.scale.set(w.scale[0], w.scale[1], w.scale[2]);
+        if (w.pos) b.node.position.set(w.pos[0], w.pos[1], w.pos[2]);
+        n++;
+      } else if (s.saved.has(b.gid)){
+        // let go: a clip rewrites the joint next frame anyway; the bind pose needs it put back
+        if (!driven){ const v = s.saved.get(b.gid); target.scale.copy(v.scale); b.node.position.copy(v.pos); }
+        s.saved.delete(b.gid);
+      }
+    }
+    if (driven) s.saved.clear();    // a playing clip's values go stale by next frame; only the bind pose keeps one
+  }
+  return n;
+}
+export function setRageFur(on){ rageFurOn = !!on; return rageFurOn; }
+if (typeof window !== 'undefined'){
+  // readback: { on, timer, joints: { gid: { scale, pos } } } for the mounted monster's joints 150..156
+  window.__rageFur = (on) => {
+    if (on !== undefined) setRageFur(on);
+    const root = window.__view && window.__view.mounted && window.__view.mounted.main;
+    const s = root && root.userData && root.userData.rageFur;
+    const joints = {};
+    if (root) for (const b of gidBonesOf(root)) if (b.gid >= 150 && b.gid <= 156)
+      joints[b.gid] = { scale: (b.leaf || b.node).scale.toArray().map(x => +x.toFixed(3)), pos: b.node.position.toArray().map(x => +x.toFixed(3)) };
+    return { on: rageFurOn, timer: s ? +s.timer.toFixed(2) : null, joints };
+  };
+}
 // The clip a monster's LEVEL rung names, or undefined where no table says (the caller then falls back
 // to the Rage ladder). A rung past the table's end takes its last entry.
 export function levelClipFor(monId, level){

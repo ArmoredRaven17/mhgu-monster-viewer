@@ -1321,7 +1321,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels, levelClipFor, setClipFor,
          attachedBodyOf, attachedClipFor, partnerBodyOf, composeClip, sequenceClipFor, seqFrames,
          FULL_ANIM_LIST, romAnimationsOf,
-         stepEarFold, stepTailSwell, stepHornRaise, romFormsOf,
+         stepEarFold, stepTailSwell, stepHornRaise, stepRageFur, romFormsOf,
          monsterMats,
          enableRomAmbient, enableRomSpecular, enableRomPhong,
          setSHAmount, setRomSpecularAmount, anchorMisses } from './render/monster.js';
@@ -4716,10 +4716,13 @@ function stepAttached(){
   }
   // Every caller runs this straight after the body's pose, so the joints a monster's own class writes over
   // the clip go here too: Kecha Wacha's enraged ear fold (render/monster.js ROM_EAR_FOLD), Tetsucabra's
-  // swollen tail (ROM_TAIL_SWELL, driven by the Tail row's part state) and Seregios' enraged horn (ROM_HORN_RAISE).
+  // swollen tail (ROM_TAIL_SWELL, driven by the Tail row's part state), Seregios' enraged horn (ROM_HORN_RAISE)
+  // and Rajang's raised fur and Armor Mode arms (ROM_RAGE_FUR).
   stepEarFold(poseRoots(), state.id, !!state.rage, performance.now() / 1000);
   stepTailSwell(poseRoots(), state.id, performance.now() / 1000);
   stepHornRaise(poseRoots(), state.id, !!state.rage, performance.now() / 1000);
+  // Rajang's fur stands up in rage and its arms pump in Armor Mode (ROM_RAGE_FUR); the bind pose has no clip to reset them
+  stepRageFur(poseRoots(), state.id, !!state.rage, state.level | 0, performance.now() / 1000, !!pose.mixer);
 }
 // The Loading overlay is a SCREEN, not a caption. Showing the text on its own left the
 // outgoing monster rendering underneath it (Raven, 2026-09-04: "The loading... doesn't bring up
