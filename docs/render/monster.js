@@ -2980,6 +2980,132 @@ if (typeof window !== 'undefined'){
     return { on: rageFurOn, timer: s ? +s.timer.toFixed(2) : null, joints };
   };
 }
+// A GAG: NIBELSNARF'S EYES ON KHEZU. Raven, 2026-09-20: "Can you isolate Nibelsnarfs eyes? So we can add them to a
+// different monster?", then "Khezu, keep in mind this is a gag setting" and "We can manually place them since it
+// isn't an in game render". Khezu has no eyes of its own; Nibelsnarf's are one rigid piece -- em056_00's Group[0]
+// primitive 0, 18 vertices, two eyes of 9, every vertex weighted 100% to its head joint -- so they carry across
+// whole. The geometry, the material and the texture are the game's own, lifted out of the shipped model at load
+// time; nothing is written into either model and nothing here runs unless the gag is switched on.
+//
+// WHERE they sit is NOT the game's: it is placed by hand, which is what Raven asked for. `pos` and `scale` are in
+// the target joint's own space in model metres, one entry per eye so spacing, size and toe-in are independent
+// (each eye is centred on itself, and `scale` 1 is the eye at Nibelsnarf's own size, about 15 cm across). Khezu's
+// head joint (gid 2) sits at the base of the snout with an identity bind rotation, so +y runs up the face and +z
+// out along the snout; its head is about 1.1 m wide and the snout tip is 1.0 m ahead of the joint.
+export const GAG_EYES = {
+  // placed by eye against Khezu's own face: at this height its skin is 0.93 forward of the joint, so the eyes sit
+  // just proud of it and just above the mouth, turned out a little so both read from the front
+  em003_00: { joint: 2, scale: 1.6, eyes: [{ pos: [0.17, 0.05, 0.93], rot: [0, -0.20, 0] },
+                                           { pos: [-0.17, 0.05, 0.93], rot: [0, 0.20, 0] }] },
+};
+const GAG_SRC = { glb: 'models/monsters/em056_00.glb', ref: 'em/056_00', mat: 'XfB_0__m00_eye', group: /^Group0(_|$)/ };
+let gagEyesOn = false;
+export function setGagEyes(on){ gagEyesOn = !!on; return gagEyesOn; }
+export function gagEyesOf(monId){ return (monId && GAG_EYES[monId]) || null; }
+// the source piece, split into its two eyes and each centred on itself, built once
+let gagGeomPromise = null;
+function gagGeometry(){
+  if (gagGeomPromise) return gagGeomPromise;
+  return (gagGeomPromise = loadGlb(GAG_SRC.glb, GAG_SRC.glb).then(gltf => {
+    let src = null;
+    gltf.scene.traverse(o => {
+      if (src || !o.isMesh) return;
+      const m = Array.isArray(o.material) ? o.material[0] : o.material;
+      let g = o; while (g && !/^Group\d+/.test(g.name || '')) g = g.parent;
+      if (m && m.name === GAG_SRC.mat && g && GAG_SRC.group.test(g.name)) src = o;
+    });
+    if (!src) return null;
+    // the piece as it is DRAWN in its own bind pose: one joint holds every vertex, so this is rigid and can be
+    // lifted out of the skin entirely. Centred between the eyes, so a placement is about the pair, not one eye.
+    src.updateWorldMatrix(true, false);
+    const pos = src.geometry.attributes.position, out = new Float32Array(pos.count * 3), v = new THREE.Vector3();
+    for (let i = 0; i < pos.count; i++){
+      v.fromBufferAttribute(pos, i);
+      if (src.isSkinnedMesh) src.applyBoneTransform(i, v);
+      v.applyMatrix4(src.matrixWorld);
+      out[i * 3] = v.x; out[i * 3 + 1] = v.y; out[i * 3 + 2] = v.z;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(out, 3));
+    for (const k of ['normal', 'uv']) if (src.geometry.attributes[k]) geo.setAttribute(k, src.geometry.attributes[k].clone());
+    if (src.geometry.index) geo.setIndex(src.geometry.index.clone());
+    // the two eyes are mirrored about the model's centre line, so the sign of x separates them cleanly
+    const halves = [1, -1].map(sign => {
+      const keep = [];
+      for (let i = 0; i < pos.count; i++) if (Math.sign(out[i * 3]) === sign || out[i * 3] === 0) keep.push(i);
+      const g = new THREE.BufferGeometry(), idx = new Map();
+      for (const k of ['position', 'normal', 'uv']){
+        const a = geo.getAttribute(k);
+        if (!a) continue;
+        const arr = new Float32Array(keep.length * a.itemSize);
+        keep.forEach((vi, j) => { idx.set(vi, j); for (let c = 0; c < a.itemSize; c++) arr[j * a.itemSize + c] = a.array[vi * a.itemSize + c]; });
+        g.setAttribute(k, new THREE.BufferAttribute(arr, a.itemSize));
+      }
+      const src3 = geo.index ? geo.index.array : null;
+      if (src3){
+        const tri = [];
+        for (let i = 0; i < src3.length; i += 3){
+          const t = [src3[i], src3[i + 1], src3[i + 2]];
+          if (t.every(x => idx.has(x))) tri.push(idx.get(t[0]), idx.get(t[1]), idx.get(t[2]));
+        }
+        g.setIndex(tri);
+      }
+      g.center();
+      return g;
+    });
+    return halves;
+  }).catch(() => null));
+}
+// Call after a monster is mounted, and whenever the gag is switched. Returns the piece, or null.
+export async function mountGagEyes(root, monId){
+  if (!root) return null;
+  const had = root.userData.gagEyes;
+  if (had){
+    if (had.parent) had.parent.remove(had);
+    had.traverse(o => { if (o.geometry) o.geometry.dispose(); });
+    root.userData.gagEyes = null;
+  }
+  const spec = gagEyesOf(monId);
+  if (!gagEyesOn || !spec) return null;
+  const geo = await gagGeometry();
+  const bone = geo && geo.length && gidBonesOf(root).find(b => b.gid === spec.joint);
+  if (!bone) return null;
+  const rom = specFor(GAG_SRC.ref, GAG_SRC.mat);
+  const mat = createMaterial({ srcName: GAG_SRC.mat, rom, alphaCut: 0, noTint: true,
+                               unlit: !!(rom && rom.cls && rom.cls !== 'Std') });
+  if (rom && rom.albedo) getTexture(rom.albedo).then(t => { mat.map = applyRomUv(mat, t); mat.needsUpdate = true; });
+  const group = new THREE.Group();
+  group.name = 'gag-eyes';
+  spec.eyes.forEach((e, i) => {
+    const m = new THREE.Mesh(geo[Math.min(i, geo.length - 1)].clone(), mat);
+    m.name = 'gag-eye-' + i;
+    m.position.fromArray(e.pos);
+    m.rotation.set((e.rot || [0, 0, 0])[0] || 0, (e.rot || [0, 0, 0])[1] || 0, (e.rot || [0, 0, 0])[2] || 0);
+    m.scale.setScalar(e.scale === undefined ? spec.scale : e.scale);
+    if (mat.userData.renderOrder) m.renderOrder = mat.userData.renderOrder;
+    group.add(m);
+  });
+  bone.node.add(group);
+  root.userData.gagEyes = group;
+  return group;
+}
+if (typeof window !== 'undefined'){
+  // readback, and the knobs for placing them by eye: __gagEyes() reports, __gagEyes({pos, rot, scale}) moves them
+  window.__gagEyes = (set) => {
+    const root = window.__view && window.__view.mounted && window.__view.mounted.main;
+    const eyes = root && root.userData.gagEyes;
+    const spec = gagEyesOf(window.__view && window.__view.state && window.__view.state.id);
+    if (set && spec){
+      // __gagEyes({ scale }) resizes both; __gagEyes({ eyes: [{pos, rot, scale}, ...] }) places them one at a time
+      if (set.scale !== undefined) spec.scale = set.scale;
+      if (Array.isArray(set.eyes)) set.eyes.forEach((e, i) => { if (spec.eyes[i]) Object.assign(spec.eyes[i], e); });
+      if (eyes) spec.eyes.forEach((e, i) => { const m = eyes.children[i]; if (!m) return;
+        m.position.fromArray(e.pos); m.rotation.set((e.rot || [0, 0, 0])[0] || 0, (e.rot || [0, 0, 0])[1] || 0, (e.rot || [0, 0, 0])[2] || 0);
+        m.scale.setScalar(e.scale === undefined ? spec.scale : e.scale); });
+    }
+    return { on: gagEyesOn, mounted: !!eyes, spec: spec ? JSON.parse(JSON.stringify(spec)) : null };
+  };
+}
 // The clip a monster's LEVEL rung names, or undefined where no table says (the caller then falls back
 // to the Rage ladder). A rung past the table's end takes its last entry.
 export function levelClipFor(monId, level){

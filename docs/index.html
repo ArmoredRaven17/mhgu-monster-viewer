@@ -629,6 +629,10 @@ input[type=range]{width:100%;accent-color:var(--accent)}
                that halves a child and gives it the small tusks. -->
           <div class="field" id="monSizeRow" hidden><label for="monSize" id="monSizeLab">Size</label>
             <select id="monSize"></select></div>
+          <!-- A GAG, off by default and offered only where render/monster.js GAG_EYES names a monster: Nibelsnarf's
+               eye piece, lifted from its own model and hand-placed on this one. Raven, 2026-09-20: "Khezu, keep in
+               mind this is a gag setting". -->
+          <label class="chk switch" id="monGagRow" hidden><input type="checkbox" id="monGag"><span class="toggle"></span>Nibelsnarf's eyes (gag)</label>
         </div>
       </section>
 
@@ -1322,6 +1326,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          attachedBodyOf, attachedClipFor, partnerBodyOf, composeClip, sequenceClipFor, seqFrames,
          FULL_ANIM_LIST, romAnimationsOf,
          stepEarFold, stepTailSwell, stepHornRaise, stepRageFur, romFormsOf,
+         GAG_EYES, gagEyesOf, setGagEyes, mountGagEyes,
          monsterMats,
          enableRomAmbient, enableRomSpecular, enableRomPhong,
          setSHAmount, setRomSpecularAmount, anchorMisses } from './render/monster.js';
@@ -2947,6 +2952,8 @@ const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: fals
                 zoneTab: 'raw',
                 zoneShow: true, zonePos: null,
                 zoneColour: ZONE_CAPSULE_AUTO,
+                // a gag, off unless asked for: Nibelsnarf's eye piece on a monster GAG_EYES names (Khezu)
+                gagEyes: false,
                 // the additive effect meshes as a class; the ROM's part table already keeps
                 // them off at rest, so this is a way to look at them, not a correction
                 effects: true };
@@ -4330,6 +4337,16 @@ function variantOff(){
   }
   return out.size ? out : null;
 }
+// THE GAG EYES' row and piece. The row is offered only where GAG_EYES names the mounted monster, and mounting
+// is asynchronous because the piece is lifted out of Nibelsnarf's own model the first time it is asked for.
+function paintGagEyes(){
+  const row = document.getElementById('monGagRow'), box = document.getElementById('monGag');
+  const has = !!gagEyesOf(state.id);
+  row.hidden = !has;
+  box.checked = !!state.gagEyes;
+  setGagEyes(!!state.gagEyes);
+  return mountGagEyes(mounted.main, state.id).catch(err => noteError('Gag eyes: ' + (err && err.message || err)));
+}
 function applyPartState(){
   const e = entry();
   if (!e) return;
@@ -4791,6 +4808,8 @@ async function mount(){
     }
     partsPicked = {};            // a new monster: nothing has been picked by hand yet
     synthPicked = {};
+    // the gag piece belongs to the body that is going (GAG_EYES); paintGagEyes builds a fresh one
+    if (mounted.main && mounted.main.userData.gagEyes) mountGagEyes(mounted.main, null);
     clearMounts();
     world.position.x = 0; world.position.z = 0; lastInLoop.set(0, 0, 0);   // a new monster starts at the origin
     forgetTravel();
@@ -4802,6 +4821,7 @@ async function mount(){
     setupAttached();
     readLadder();                              // before buildGroups: it decides which clusters show
     buildGroups(); applyPartState(); paintAbout(); applyUndef(); applyExtend(); applyProxy(); applyRage();
+    paintGagEyes();
     // Barioth's eye glow: claim its additive eye-ray meshes now that visibility is settled, so the
     // per-frame lighting driver (renderFrame) owns them instead of the Parts effect-layer hide.
     setEyeGlow(state.id, world);
@@ -6551,6 +6571,7 @@ document.getElementById('monHeatTable').onchange = async e => {
 };
 document.getElementById('monBounceT').onchange = async e => { state.deflectT = e.target.value; await applyHeat(); applyGap(); saveState(); };
 document.getElementById('monTier').onchange = async e => { state.deflectTier = +e.target.value; await applyHeat(); applyGap(); saveState(); };
+document.getElementById('monGag').onchange = e => { state.gagEyes = e.target.checked; paintGagEyes(); saveState(); };
 document.getElementById('monRage').onchange = e => {
   state.rage = e.target.checked;
   // BOTH MAY BE ON. They used to be one state at a time on the reading that Khezu's Angry and Taiden branches
@@ -6937,6 +6958,7 @@ function applySet(o){
   if (typeof o.camDamp === 'boolean'){ controls.enableDamping = o.camDamp; document.getElementById('camDamp').checked = o.camDamp; }
   if (typeof o.camZoomCursor === 'boolean'){ controls.zoomToCursor = o.camZoomCursor; document.getElementById('camZoomCursor').checked = o.camZoomCursor; }
   if (typeof o.camGrid === 'boolean'){ floorGridOn = o.camGrid; paintFloorGrid(); }
+  if (typeof o.gagEyes === 'boolean') state.gagEyes = o.gagEyes;      // the gag eyes (GAG_EYES)
   if (typeof o.camFace === 'boolean') setFaceLock(o.camFace);
   if (o.postfx && typeof o.postfx === 'object') restoreEffects(o.postfx);
   // a set without a rig keeps the one on screen, as the Armor Viewer's files do; the boot path starts
