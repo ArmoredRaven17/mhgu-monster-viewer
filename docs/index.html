@@ -1778,6 +1778,12 @@ function carryLoop(){
 // is put.
 const _travFollow = new THREE.Vector3(), _travPrev = new THREE.Vector3();
 let travSeen = false;
+// FORGET THE LAST FRAME'S TRAVEL. Raven, 2026-09-19: "When switching monsters, if I allowed a monster to move for a
+// bit, switching results in a blank screen until I Fit to View." The follow moves the camera by the CHANGE in travel,
+// so a change of monster (the world group goes back to the origin) or a deliberate framing would otherwise be
+// followed by one step the size of everything the last monster had walked. A cached model switches inside a single
+// loading hold, so that step landed after frameAll and took the new monster off screen.
+function forgetTravel(){ travSeen = false; _travPrev.set(0, 0, 0); }
 function followTravel(){
   monsterTravel(_travFollow);
   if (travSeen && camMode !== 'fly'){
@@ -2852,6 +2858,7 @@ function frameAll(){
   camera.position.copy(c).add(new THREE.Vector3(0, 0, dist));
   camera.near = Math.max(dist / 1000, 1e-4); camera.far = dist * 20;
   camera.updateProjectionMatrix(); controls.update();
+  forgetTravel();                   // this framing is the new reference; no travel from before it moves the camera
 }
 document.getElementById('fitBtn').onclick = () => frameAll();
 // The ROM's depth bias is in depth-buffer units, whose real size depends on the projection,
@@ -4786,6 +4793,7 @@ async function mount(){
     synthPicked = {};
     clearMounts();
     world.position.x = 0; world.position.z = 0; lastInLoop.set(0, 0, 0);   // a new monster starts at the origin
+    forgetTravel();
     world.add(main); mounted.main = main;
     for (const [name, g] of extra){ world.add(g); mounted[name] = g; }
     applySize();
