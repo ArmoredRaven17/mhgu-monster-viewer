@@ -3792,11 +3792,21 @@ export const DEFLECT_TIERS = [2, 3, 4];
 // WHEN EACH NUMBER IS USED, read 2026-09-20. The grader branches on the player's weapon-type byte
 // [player+0x4d4] BEFORE the ladder (0x177c84; the second grader 0x17443c runs the same ladder):
 //   * types 4 and 6 -> both multipliers forced to 1.0 (0x177cf0), so the value is the zone x power
-//     term alone and SHARPNESS CANNOT MOVE IT. Those two are the weapons with no sharpness: the
-//     library's own model order (harvest-weapons-all.py CLASSES) has 4 = Heavy Bowgun, 6 = Light
-//     Bowgun, and the executable groups 4 / 6 / 10 together at 10 further sites, the three gunner
-//     weapons. The enum itself is not read from a table -- MHGU hashes its paths -- so this is
-//     corroboration, not a decode.
+//     term alone and SHARPNESS CANNOT MOVE IT.
+//     THE CLASS NUMBERING IS THE ROM'S OWN, not this library's ordering: the game ships one table per
+//     class, romfs table/weapon00BaseData.w00d .. weapon14BaseData.w14d with NO 05, one name file per
+//     class (weaponNNMsgData_eng.gmd -- w04's first names are Petrified Cannon / Queen's Longfire,
+//     w06's Petrified Shooter / Dios Blaster, w07's Petrified Saber, w11's Petrified Daggers), and a
+//     contiguous run in eng/table/CommonMsg_eng.gmd 85..99: Great Sword, Sword & Shield, Hammer,
+//     Lance, Heavy Bowgun, "Med. Bowgun (Removed)", Light Bowgun, Long Sword, Switch Axe, Gunlance,
+//     Bow, Dual Blades, Hunting Horn, Insect Glaive, Charge Blade -- the removed slot holding 5,
+//     exactly as the filenames do. So 4 / 6 / 10 are Heavy Bowgun, Light Bowgun and Bow: the three
+//     weapons with no sharpness, which is why the sharpness-free path is theirs.
+//     WHAT IS NOT PROVEN is that [player+0x4d4] carries that same numbering. What supports it: the
+//     byte indexes a 16-entry per-class table at .rodata 0x01621e9c (0x29a5f0) whose entries 4 and 6
+//     share one id, as two bowguns would; the executable groups 4 / 6 / 10 at 10 further sites; and
+//     the three they pick out are the three sharpness-free classes. To close it, trace the write at
+//     0x685b90 back to the equipment record's class field.
 //   * type 10 (Bow) -> 1.0, or 1.32 when 0x2ff1c4 returns 4 (0x177cbc..0x177ce0).
 //   * everything else -> RAW[sharp] x KIND[sharp][col], col from the damage class (0x177bf8: 0, 2,
 //     3, or 4 when the u16 at +6 of the class record is 1).
