@@ -3802,11 +3802,11 @@ export const DEFLECT_TIERS = [2, 3, 4];
 //     Bow, Dual Blades, Hunting Horn, Insect Glaive, Charge Blade -- the removed slot holding 5,
 //     exactly as the filenames do. So 4 / 6 / 10 are Heavy Bowgun, Light Bowgun and Bow: the three
 //     weapons with no sharpness, which is why the sharpness-free path is theirs.
-//     WHAT IS NOT PROVEN is that [player+0x4d4] carries that same numbering. What supports it: the
-//     byte indexes a 16-entry per-class table at .rodata 0x01621e9c (0x29a5f0) whose entries 4 and 6
-//     share one id, as two bowguns would; the executable groups 4 / 6 / 10 at 10 further sites; and
-//     the three they pick out are the three sharpness-free classes. To close it, trace the write at
-//     0x685b90 back to the equipment record's class field.
+//     AND [player+0x4d4] IS THAT NUMBERING. The game registers one player class per weapon class --
+//     uPlayerQuest00 .. uPlayerQuest15 in the MtDTI registry, WITH NO 05 -- the same gap the weapon
+//     tables and the name run have. The byte also indexes a 16-entry per-class table at .rodata
+//     0x01621e9c (0x29a5f0) whose entries 4 and 6 share one id, as two bowguns would. (15 is a
+//     sixteenth class the name run does not cover; not identified.)
 //   * type 10 (Bow) -> 1.0, or 1.32 when 0x2ff1c4 returns 4 (0x177cbc..0x177ce0).
 //   * everything else -> RAW[sharp] x KIND[sharp][col], col from the damage class (0x177bf8: 0, 2,
 //     3, or 4 when the u16 at +6 of the class record is 1).
@@ -3818,6 +3818,37 @@ export const DEFLECT_TIERS = [2, 3, 4];
 // model order 7 and 11 are Long Sword and Dual Blades -- the two gauge weapons -- and 14 is Charge
 // Blade. So for a Great Sword or a Hammer the rungs change nothing that this decode can find: only
 // the floor matters, because only the floor decides the bounce.
+// WHAT THE SCALED AMOUNT IS, read 2026-09-20. The amount is the signed byte at hit+0x57 (0x171ca0,
+// `ldrsb sb,[r7,#0x57]`, skipped when < 1); the tier scales it, and it goes to the player's vtable
+// +0x474. That method is 0x2a28dc for most classes and does, for weapon 7 and weapon 14 only:
+// [player+0x2780] += amount, clamped to 0..100 (0x2a2a10 `cmp r1,#0x64`), with x1.5 for weapon 14 in
+// one state (0x2a296c, under the +0x1b0 test with r3 = 0x40000) and x1.2 with any of skills 0x98 /
+// 0x10a / 0x11c / 0x125, x0.8 with 0x99. At the 100 clamp it re-reads the weapon byte and only
+// weapon 7 continues, calling vtable +0x73c with 1800.0 (0x2a2a20..0x2a2a44). Weapon 11 overrides
+// +0x474 with 0x11be28c: same [player+0x2780] accumulator and the same 0..100 clamp and skills, but
+// at 100 it calls vtable +0x734 with r1 = 2 and at 0 it calls +0x738 with r1 = 2 -- enter and exit of a
+// mode -- and it refuses to fill at all in two states (+0x168 returning 1 or 5). Weapon 15 overrides
+// it with 0x11e04c8, a per-action table. So the ROM has one 0-100 charge field that the equipped
+// class interprets: a 1800-unit timer refresh for 7, a mode toggle for 11, a plain accumulator for 14.
+// WHERE THE PER-MONSTER PART IS, read 2026-09-20. Everything above is weapon-side. The monster gets
+// one say, and only on a hit that already bounced: 0x16d924 calls the ENEMY's vtable +0x318 with the
+// hit record, and the 1 or 2 it returns becomes tier 7 or tier 6 (0x174744..0x174760, and the same
+// at 0x1749e4..0x174a24), which is why the tier table has ten entries and not five --
+// [0.5, 0.5, 0.75, 1.0, 1.1, 0.5, 0.5, 0.75, 1.0, 1.05], 0..4 for a hit that landed and 5..9 for one
+// that bounced. The default +0x318 is 0x6c034, `mov r0,#0; bx lr`, on 55 of the 61 enemy classes
+// read. Six override it:
+//   * uEm021_00, uEm023_00, uEm027_00 (Congalala, Rajang, Teostra) -- identical bodies returning
+//     1 when the capsule's flag halfword at +0xa has either of bits 14/15 set, else 0. Per capsule.
+//   * uEm024_00 (Kushala Daora) 0xdfd274 -- needs bit 14, then reads the state byte
+//     [[enemy+0x1428]+0x1bb]: 0xff -> 0, 3 -> 2 (1 when [enemy+0xcac0]+0x18 is set), 2 -> 1 (or 2).
+//     So its deflect strength follows a state, not the capsule alone.
+//   * uEm019_00 and uEm020_00 (Daimyo Hermitaur, Shogun Ceanataur) share 0xdc0b48 -- bit 14, plus
+//     action state [enemy+0xb5f4] == 0x13 and [enemy+0xb5f5] == 4, and then a threshold pair at
+//     [[enemy+0x75f0]+0x64] bytes +1 and +2 picked BY QUEST LEVEL through the same selector as the
+//     floor (0xdc0bb8 `bl 0x3a8430`; `cmp r0,#4` / `movle r7,r6` takes byte +1 at level <= 4 and
+//     byte +2 above), compared against 0x9d36c(enemy, 5), then branching on [enemy+0x73e0/0x73e1].
+// Tier bytes actually written in this band are 0, 1, 2, 3, 6, 7 and 0xff (unset); 4, 5, 8 and 9 have
+// no writer found, so the 1.1 and 1.05 ends of the table are UNREACHED by anything traced here.
 export const TIER_LABEL = { 2: 'Tier 2', 3: 'Tier 3', 4: 'Tier 4' };
 // The rule a rung clears, in the ROM's own numbers. Tier 2's floor is the selector's.
 export function tierRule(tier, floor){
