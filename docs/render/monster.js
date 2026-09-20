@@ -3789,6 +3789,25 @@ export const DEFLECT_TIERS = [2, 3, 4];
 // scale by 0.5 / 0.75 / 1.0 / 1.1. WHICH weapons those cases are is NOT established: the only
 // weapon enum found (cCatSkillBase's property order) puts Long Sword at 1 and Dual Blades at 3,
 // and neither of those cases acts -- so no weapon is named here.
+// WHEN EACH NUMBER IS USED, read 2026-09-20. The grader branches on the player's weapon-type byte
+// [player+0x4d4] BEFORE the ladder (0x177c84; the second grader 0x17443c runs the same ladder):
+//   * types 4 and 6 -> both multipliers forced to 1.0 (0x177cf0), so the value is the zone x power
+//     term alone and SHARPNESS CANNOT MOVE IT. Those two are the weapons with no sharpness: the
+//     library's own model order (harvest-weapons-all.py CLASSES) has 4 = Heavy Bowgun, 6 = Light
+//     Bowgun, and the executable groups 4 / 6 / 10 together at 10 further sites, the three gunner
+//     weapons. The enum itself is not read from a table -- MHGU hashes its paths -- so this is
+//     corroboration, not a decode.
+//   * type 10 (Bow) -> 1.0, or 1.32 when 0x2ff1c4 returns 4 (0x177cbc..0x177ce0).
+//   * everything else -> RAW[sharp] x KIND[sharp][col], col from the damage class (0x177bf8: 0, 2,
+//     3, or 4 when the u16 at +6 of the class record is 1).
+// AND WHO USES THE RUNGS. The tier lands at hit+6 (0x177f0c) and goes to 0x171c68, which switches on
+// the same weapon byte minus 7 over 9 cases (jump table 0x171cd8): only weapon 7 and weapon 11 reach
+// the arm that scales an amount by the per-tier table (0x171cfc; [0.5, 0.5, 0.75, 1.0, 1.1] indexed
+// by the tier, the table's only reference in the executable), weapon 14 takes the amount unscaled
+// (0x171d3c), weapon 15 has its own arm, and 8 / 9 / 10 / 12 / 13 return without acting. In the same
+// model order 7 and 11 are Long Sword and Dual Blades -- the two gauge weapons -- and 14 is Charge
+// Blade. So for a Great Sword or a Hammer the rungs change nothing that this decode can find: only
+// the floor matters, because only the floor decides the bounce.
 export const TIER_LABEL = { 2: 'Tier 2', 3: 'Tier 3', 4: 'Tier 4' };
 // The rule a rung clears, in the ROM's own numbers. Tier 2's floor is the selector's.
 export function tierRule(tier, floor){
