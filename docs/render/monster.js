@@ -3811,8 +3811,24 @@ export function deflectLadder(hz, floor){
 // Raven, 2026-09-06: "update Bounce to be Hardness".
 // NOTE, and it bounds what this pane can ever say: a hit zone can carry a bit that forces tier 0
 // regardless of the multiplier (0x177efc `ldrh r1,[r8,#0xa]` / `tst r1,#0x2000` / `movne sl,sb`),
-// which is what Raven saw as a good hit zone that still bounces. That bit sits on a record this
-// decode has not traced, so no threshold model over the multiplier alone is complete.
+// which is what Raven saw as a good hit zone that still bounces.
+// THE RECORD IS TRACED, 2026-09-20. `r8` is the classifier's 4th argument and it is the .bdd CAPSULE
+// record -- the same one hitzones.json carries as `capsules` -- read at +6 (the damage row, handed to
+// 0xbaaa4) and at +0xa (the flag word, `capsuleFlags`). So the force-bounce bit is per SHAPE, and a
+// census of all 131 .bdd files finds it on 8 records over 2 monsters: em088_00 Ahtal-Ka, 3 shapes on
+// damage slot 15, and em087_00 (its machine), 5 shapes on slot 8. Every other monster in the game
+// grades purely on the multiplier, so this pane is complete for all of them.
+//
+// AND THE ZONE VALUES ARE THE CURRENT STATE'S. The classifier resolves the row through
+// 0xbaaa4(enemy, slot) = [[enemy+0x1428] + 0x418 + slot*4] -- the very pointer ROM_MEAT_SWITCH's
+// 0xbaacc / 0xbaafc move. A state that switches a slot's row changes what bounces off it too.
+//
+// DECODED AND INERT: 0x16d800 subtracts 15 from the row's cut and impact bytes when 0xbac60 reports
+// the monster's status timer [enemy+0x1428]+0x5db4 above 0 -- 15 points harder to bite. The only
+// writer of a non-zero value there is 0xbac04 (5400.0), reachable only through enemy vtable slot 272
+// (+0x440, 0xccbcc) on the flag byte of a record; its one call site (0x645844) loads the function
+// pointer into r1 and passes no record, so that byte reads 0 and nothing starts the timer. Not
+// modelled, and nothing here depends on it.
 export function hardnessLevel(hz, t, tier){
   return deflectLadder(hz, t)[tier || 2];
 }
