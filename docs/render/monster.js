@@ -4026,7 +4026,13 @@ export const DEFLECT_TIERS = [2, 3, 4];
 //     [player+0x3350]. So this is the KINSECT's ladder, and a Kinsect hit on a part with extract 0 is
 //     forced to tier 0.
 //   * 0x8000 -> 0x17817c: computes the value (cut and impact both 100) and writes a FIXED tier 2 -- no
-//     rungs, no bounce. Which hits carry 0x8000 is not identified.
+//     rungs, no bounce. IT IS SET BY THE ATTACK, NOT THE MONSTER: the player-hit assembler 0x2b6b14 takes a
+//     property word per attack and adds 0x8000 when it has bit 0x800 (ahead of the 0x20 blade route, which
+//     needs bit 1; 0x2b6be0 / 0x2b6be8). The word is either .rodata 0x0162212c[kind] -- 24 kinds, of which
+//     kind 12 is exactly 0x800 and most carry bit 1 -- or the constant 0x800 / 0x810 that player action
+//     0x2b7b88 passes for its three hits (kinds 2, 0xa, 0xb). So these are moves that never bounce, not a
+//     monster state; a monster's hardening lives in its zone rows. Which moves: not named yet (0x2b7b88
+//     has no direct caller or data pointer -- it is reached indirectly).
 // Weapon class 15 is the PROWLER: the player hit tables include pl_we15_slash_hitdata and
 // pl_we15_strike_hitdata beside pl_airou_com_hitdata, the same slash/strike pair as the Palico's
 // otomo\hit\ot_slash_hitdata / ot_strike_hitdata.
