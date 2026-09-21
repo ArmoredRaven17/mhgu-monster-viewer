@@ -202,8 +202,8 @@ export function initUpdSlot(m, gen, upd, info){
   m.wf32(upd + 0x14, drawF(m, gen, 0x48, m.f32(col3 + 8), m.f32(col3 + 0xc)));
 }
 
-// 0x320ed4: rotation matrix from euler angles. Orders 0, 2, 3, 4 and 5 recorded (the order is the jump
-// table at 0x320efc: 0 -> 0x320f14, 2 -> 0x321100, 3 -> 0x3211ac, 4 -> 0x321260, 5 -> 0x32131c).
+// 0x320ed4: rotation matrix from euler angles. Orders 0 to 5 recorded (the order is the jump table at
+// 0x320efc: 0 -> 0x320f14, 1 -> 0x321054, 2 -> 0x321100, 3 -> 0x3211ac, 4 -> 0x321260, 5 -> 0x32131c).
 export function eulerMatrix(m, out, ang, order){
   const sx = F(Math.sin(m.f32(ang))), sy = F(Math.sin(m.f32(ang + 4))), sz = F(Math.sin(m.f32(ang + 8)));
   const cx = F(Math.cos(m.f32(ang))), cy = F(Math.cos(m.f32(ang + 4))), cz = F(Math.cos(m.f32(ang + 8)));
@@ -337,6 +337,33 @@ export function eulerMatrix(m, out, ang, order){
     s0 = F(-F(s16 * s24));
     m.wf32(out + 0x20, s18);
     m.wf32(out + 0x24, s0);
+    m.wf32(out + 0x28, s2);
+  } else if (order === 1){                                   // 0x321054 (first met in the roar's cm202_050 models)
+    s2 = F(s24 * s0);
+    s4 = F(s16 * s18);
+    s6 = F(s20 * s22);
+    let s8 = F(s16 * s24);
+    const s10 = F(s22 * s0);
+    m.wf32(out, s2);
+    s2 = F(-F(s18 * s0));                                   // vnmul
+    m.wf32(out + 4, s20);
+    s0 = F(-F(s16 * s0));                                   // vnmul
+    m.wf32(out + 8, s2);
+    s2 = s4;
+    m.w32(out + 0xc, 0);
+    s2 = F(s2 - F(s6 * s24));                               // vmls
+    s6 = F(s18 * s22);
+    m.wf32(out + 0x10, s2);
+    s2 = F(s16 * s20);
+    s8 = F(s8 + F(s20 * s6));                               // vmla
+    m.wf32(out + 0x14, s10);
+    s6 = F(s6 + F(s2 * s24));                               // vmla
+    s2 = F(s22 * s24);
+    s2 = F(s2 - F(s4 * s20));                               // vmls
+    m.wf32(out + 0x18, s8);
+    m.w32(out + 0x1c, 0);
+    m.wf32(out + 0x20, s6);
+    m.wf32(out + 0x24, s0);                                 // the common tail 0x3213c4
     m.wf32(out + 0x28, s2);
   } else throw new Unverified('0x320ef8 euler order ' + order);
   m.w32(out + 0x2c, 0); m.w32(out + 0x30, 0); m.w32(out + 0x34, 0); m.w32(out + 0x38, 0);

@@ -1376,7 +1376,7 @@ export const CLIP_EFFECTS = {
   em043_05: {
     'L0 Motion[2]': { frames: 303, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 1, on: [[165, 166]] }] },
     'L0 Motion[4]': { frames: 301, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 1, on: [[130, 131]] }] },
-    'L0 Motion[5]': { frames: 301, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[62, 63]] }] },
+    'L0 Motion[5]': { frames: 301, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[62, 63]] }, { bit: 15, efl: 'cm202_050.efl', key: 60, on: [[96, 106]] }] },
     'L0 Motion[7]': { frames: 83, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[73, 74]] }, { bit: 1, efl: 'cm202_001.efl', key: 0, on: [[26, 27]] }, { bit: 2, efl: 'cm202_001.efl', key: 1, on: [[49, 50]] }] },
     'L0 Motion[10]': { frames: 89, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[72, 73]] }] },
     'L0 Motion[12]': { frames: 117, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[84, 85]] }, { bit: 1, efl: 'cm202_001.efl', key: 1, on: [[57, 58]] }] },

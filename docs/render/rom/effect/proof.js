@@ -47,6 +47,12 @@ registerCode(0x3273e8, (m, o) => ownerMatrix(m, o));
 // is added this way (0x9b6e44 -> 0xc04f84 at 0x9b6f00); so are the ed&4 model records (0xa92688).
 registerNative(0xc04f84, (m, c) => { m.svc.registerUnit(c.r[0] >>> 0, c.r[1] >>> 0, c.r[2] >>> 0, c.r[3] >>> 0); });
 
+// 0xb8f05c(sEffect, request, param): a type-9 generator's post (0xa826bc, at 0xa82c0c) hands sEffect a 0xf0-byte
+// SCREEN FILTER request (effects-filter.md; the caller ignores the return). sEffect's per-view filter units rank
+// and draw them; that consumer is not the effect's code, so the request is taken here, as the recorder takes it
+// (efx/proofunit.py 'filter_submit'), for the host to draw (filter.js).
+registerNative(0xb8f05c, (m, c) => { m.svc.filterSubmit(c.r[0] >>> 0, c.r[1] >>> 0, c.r[2] >>> 0); });
+
 // TEMPORARILY BACK OUT the ed&4 path (2026-09-20): with it on, Raven reports the RED energy effect no
 // longer renders. Until that regression is understood, ed&4 Model generators are skipped again -- their
 // per-particle records are not built, exactly as before this work. The lifted ed&4 branch, the record
@@ -117,7 +123,21 @@ const PROOF_EFFECT_VT = 0x172a7d4 + 8;              // uMHProofEffect's vtable, 
 // state the services read.
 export function installRequests(m, malloc){
   const state = { units: [], lists: new Map(), handleParent: 0, malloc };
-  m.svc.registerUnit = (sunit, line, unit) => { state.units.push([unit >>> 0, line >>> 0]); };
+  m.svc.registerUnit = (sunit, line, unit) => {
+    state.units.push([unit >>> 0, line >>> 0]);
+    // the one write the real add makes to the UNIT that effect code reads back: its move line into flags bits
+    // 3..9 (0xc036f8 / 0xc05030: bfi +0xc, line, #3, #7) -- as efx/proofunit.py's service does it
+    if (unit) m.w32(unit + 0xc, ((m.u32(unit + 0xc) & ~(0x7f << 3)) | ((line & 0x7f) << 3)) >>> 0);
+  };
+  // this frame's screen-filter requests (0xb8f05c): the 0xf0 bytes as submitted and the param (the row's mask
+  // texture entry, 0 as shipped); cleared as each frame's unit passes start (unitFrame), as sEffect's filter unit
+  // clears its entries in its update pass before the effects' move submits again (0xc6050c)
+  state.filters = [];
+  m.svc.filterSubmit = (mgr, req, param) => {
+    const bytes = new Uint8Array(0xf0);
+    for (let i = 0; i < 0xf0; i++) bytes[i] = m.rawByte(req + i);
+    state.filters.push({ bytes, param });
+  };
   m.svc.handleValid = () => 1;
   m.svc.handleUnit = () => state.handleParent;
   m.svc.requestLoad = (dti, path) => {
@@ -135,6 +155,9 @@ export function installRequests(m, malloc){
   state.session = liftedCall(m, 0x3f6be8).r[0];
   m.w32(state.session + 0x1c, 5);
   m.w8(state.session + 0x49, AREA);
+  // the unit manager sUnit (*0x211ff48) by its own newInstance 0xc0374c: 64 move lines, each flags word 0x3fd
+  // (0xc037d4); effect code reads a line's flags byte for the line in a unit's flags (the filter gate, 0xa82660)
+  state.sunit = liftedCall(m, 0xc0374c).r[0];
   state.manager = liftedCall(m, 0x4111c).r[0];
   if (!state.manager) throw new Unverified('MH effect manager: none');
   state.units.length = 0;
@@ -224,6 +247,7 @@ export function releaseRequest(state, request){
 
 // One frame of the unit passes over every unit the requests registered (proofunit.py unit_frame).
 export function unitFrame(m, state){
+  state.filters = [];
   for (const [u] of state.units.slice()){                                   // update pass
     m.wf32(u + 0x1c, DT);
     const w = m.u32(u + 0xc);

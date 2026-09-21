@@ -33,6 +33,7 @@ import { EffectHost } from './host.js';
 import { linkPrimitive, cbUniforms, FORMATS } from './primshader.js';
 import { linkMaterial } from './modelshader.js';
 import { EffectSchedule } from './schedule.js';
+import { rank as rankFilters, constants as filterConstants, FilterPass } from './filter.js';
 import { loadJson, getTexture, loadGlb } from '../../assets.js';
 import { gidBonesOf } from '../../skeleton.js';
 
@@ -304,12 +305,35 @@ export class LiveEffects {
   // A refusal (a branch of the ROM's code no recorded run reached: Unverified) or any other fault stops
   // this effect and says where, once; the viewer's render loop must not die with it.
   frame(renderer, scene, camera){
+    this.filterDraw = null;
     // `suppressed` (effect-mounts setEffectsSuppressed): the hit-zone HEAT MAP is up. The effects draw into this
     // runtime's own scene here, over the body, so the heat map -- which repaints only the mounted body meshes --
     // would otherwise leave them on screen over the coloured body. Skipping the frame draws nothing.
     if (this.failed || this.suppressed) return;
+    this.hookAfterRender(scene);
     try { this.frameUnsafe(renderer, scene, camera); }
     catch (e){ this.fail(e); }
+  }
+  // THE SCREEN FILTER'S PASS (filter.js): the game draws it in render pass 0x16, after the scene and the effects
+  // (pass 0x11). The effects draw from a hook inside the viewer's render; the filter waits for that render to
+  // end -- the scene's onAfterRender, chained to whatever the scene had -- and draws only into the canvas (a
+  // render into a target, like sceneDepth's, is not the frame).
+  hookAfterRender(scene){
+    if (this.hookedScene === scene) return;
+    this.unhookAfterRender();
+    const prev = scene.onAfterRender;
+    this.hookedScene = scene; this.hookedPrev = prev;
+    scene.onAfterRender = (renderer, s, camera, target) => {
+      if (prev) prev.call(scene, renderer, s, camera, target);
+      const k = this.filterDraw;
+      if (!k || renderer.getRenderTarget() !== null) return;
+      this.filterDraw = null;
+      try { (this.filterPass || (this.filterPass = new FilterPass())).draw(renderer, k); }
+      catch (e){ this.fail(e); }
+    };
+  }
+  unhookAfterRender(){
+    if (this.hookedScene){ this.hookedScene.onAfterRender = this.hookedPrev; this.hookedScene = null; this.hookedPrev = null; }
   }
   fail(e){
     this.failed = String(e && e.message || e);
@@ -332,6 +356,17 @@ export class LiveEffects {
     }
     const effects = this.schedule.effects();
     this.stats.running = this.schedule.running;
+    // this frame's screen-filter requests (proof.js, submitted during the last step's move): the one sEffect's
+    // unit draws (filter.js rank) and its constants, drawn when the viewer's render ends (hookAfterRender)
+    const filters = this.host.requests ? this.host.requests.filters : null;
+    if (filters && filters.length){
+      const cam = this.cameraMatrices(camera);
+      const c = { position: cam.position.toArray(), dir: camera.getWorldDirection(new THREE.Vector3()).toArray(), view: cam.view, viewProj: cam.viewProj };
+      const best = rankFilters(filters, c);
+      const size = renderer.getDrawingBufferSize(new THREE.Vector2());
+      if (best) this.filterDraw = filterConstants(best.entry, best.s0, c, size.x, size.y);
+    }
+    this.stats.filters = filters ? filters.length : 0;
     if (!effects.length){                                      // nothing running: no draw, no depth pass
       // reclaim the bump heap the finished requests leaked. Nothing is running, so nothing references anything
       // above the mount baseline (host.js heapReset); without this a looping clip re-starts every loop and the
@@ -649,6 +684,8 @@ export class LiveEffects {
     this.modelMeshes.length = 0;
     if (this.depthTarget){ this.depthTarget.depthTexture.dispose(); this.depthTarget.dispose(); this.depthTarget = null; }
     if (this.ground){ this.ground.geometry.dispose(); this.ground.material.dispose(); this.scene.remove(this.ground); this.ground = null; }
+    this.unhookAfterRender();
+    if (this.filterPass){ this.filterPass.dispose(); this.filterPass = null; }
   }
 }
 // the ground stand-in's switch, for every runtime from now on (__view.effectGround)

@@ -190,15 +190,19 @@ const GENERATOR_TYPES = {
   // class mapping is NOT pinned for anything except 5 <-> Model (build-notes effects-efl-psl.md), so
   // the names on 0 and 1 above are themselves unpinned guesses and this row does not add another.
   2: { got: 0x183c960 },                         // vtable 0x1789834
+  // genType 9, the screen FILTER generator (cParticleGeneratorFilter, DTI 0x211c76c): its ctor 0xa82574 is the
+  // generic 0xa55db4 and this vtable (GOT 0x183c8e0 -> 0x178932c + 8), its alloc 0xa82538 the same 0x1d0.
+  // It draws nothing itself (+0x54 bx lr); its post (+0x50 0xa8262c) submits requests (effects-filter.md).
+  9: { got: 0x183c8e0 },                         // vtable 0x1789334
 };
-// Undecoded generator types (2, 9, 25 and anything else) the factory meets and skips, kept so the omission is
+// Undecoded generator types (25 and anything else not in GENERATOR_TYPES) the factory meets and skips, kept so the omission is
 // reportable rather than silent. genType -> how many rows were skipped. (Soulseer's eye flame em082_04_004 has
 // a genType-2 row alongside its supported billboards and models.)
 export const SKIPPED_GENERATORS = new Map();
 function recordSkippedGenerator(type){
   const n = (SKIPPED_GENERATORS.get(type) || 0) + 1;
   SKIPPED_GENERATORS.set(type, n);
-  if (n === 1) console.warn('effect: generator type ' + type + ' is not translated (genType 0/1/5 only) -- row skipped');
+  if (n === 1) console.warn('effect: generator type ' + type + ' is not translated (genType 0/1/2/5/9 only) -- row skipped');
 }
 function newGenerator(m, type){
   const g = m.svc.alloc(0x1d0, 0x10);
@@ -271,10 +275,14 @@ function generatorInit(m, g, owner, row, index){
 const headerSize = (m, g) => m.u32(0x166a600 + 4 * ((((m.u32(g + 0x40) >>> 12) & 0xf) ^ 8)));
 // 0xb5a03c
 const typeHasBit = (t) => (t > 0x1a ? 0 : ((0x06fff37f >>> t) & 1));
-// 0xa588b8
+// 0xa588b8: parameter word 0 bit 16 -> 1. With bit 22 as well and a +0x1b4 object it first calls 0xae948c(that
+// object, the parameters' sub-block (u16 +0x3e, 0 when none), +0x18) at 0xa588f0 -- no recording reaches that
+// (the roar's cm202_050 model rows take bit 16 alone, vectors/filter_k60), so it is refused.
 function paramBit16(m, g){
-  if ((m.u32(m.u32(g + 0x34)) >>> 16) & 1) throw new Unverified('0xa588d0 generator parameter bit 16');
-  return 0;
+  const w = m.u32(m.u32(g + 0x34));
+  if (!((w >>> 16) & 1)) return 0;
+  if (((w >>> 16) & 0x40) && m.u32(g + 0x1b4) !== 0) throw new Unverified('0xa588f0 generator parameter bits 16 and 22 (0xae948c)');
+  return 1;
 }
 
 // 0xa58690: the particle stride and the pool size the generator will need.
@@ -696,6 +704,15 @@ function startType2(m, g){                                     // 0xa99590
 }
 function transformType2(m, g){                                 // 0xa56d14
   return liftedCall(m, 0xa56d14, [g]).r[0];
+}
+// Slots 6 and 8 for genType 9, the screen filter (vtable 0x1789334), each the lifted ROM routine: 0xa825c8 (0xa55fe0,
+// then 0xa58690(gen, 0xb0, 0)) and 0xa825f4 (the base init 0xa562a0, then gen+0x46 = 0x34). Its slots 9 and 15
+// are the shared 0xa56960 and 0xa56d14, registered already.
+function initType9(m, g, owner, row, index){                   // 0xa825c8
+  return liftedCall(m, 0xa825c8, [g, owner, row, index]).r[0];
+}
+function startType9(m, g){                                     // 0xa825f4
+  return liftedCall(m, 0xa825f4, [g]).r[0];
 }
 function transformModel(m, g){                                 // 0xa91b80
   if (!(m.u8(g + 0xed) & 4)){
@@ -1132,6 +1149,7 @@ registerCode(0xa91a30, startModel); registerCode(0xa78178, startLiteBillboard); 
 registerCode(0xa56960, generatorSeedStart);
 registerCode(0xa91b80, transformModel); registerCode(0xa783a8, transformLiteBillboard); registerCode(0xaaea38, transformLitePolyline);
 registerCode(0xa99558, initType2); registerCode(0xa99590, startType2); registerCode(0xa56d14, transformType2);
+registerCode(0xa825c8, initType9); registerCode(0xa825f4, startType9);
 
 export const internals = {
   allocGenerator: (m, size, align) => m.svc.alloc(size, align),

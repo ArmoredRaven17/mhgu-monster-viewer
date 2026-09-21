@@ -11,7 +11,8 @@
 //                                                 r0-r3, the stack words and s0 as the procedure call
 //                                                 standard passes them, the result put back in r0 or s0,
 //                                                 and the other scratch registers poisoned (cpu.js).
-import { Cpu, call, registerNative, clobber } from './cpu.js';
+import { Cpu, call, registerNative, clobber, toS32 } from './cpu.js';
+import { Unverified } from './mem.js';
 import { Scratch } from './motion.js';
 import * as life from './life.js';
 import * as motion from './motion.js';
@@ -53,6 +54,43 @@ const A1 = ['r0'], A2 = ['r0', 'r1'], A3 = ['r0', 'r1', 'r2'], A4 = ['r0', 'r1',
 native(0x1ebe8, (m, ...a) => polyline.matMul(m, ...a), A2, null);
 native(0x29d00, (m, ...a) => polyline.matMulTo(m, ...a), A3, null);
 native(0x320ed4, (m, ...a) => spawn.eulerMatrix(m, ...a), A3, null);
+
+// 0xca6874(params, v1, v2, mul, s0 = the camera distance) -> an int: the DISTANCE FADE the draws apply (110 callers).
+// Translated whole, every branch from the instructions, because which branch runs is the viewer's camera
+// distance and no recorder camera reaches them all (the roar's cm202_050 models met 0xca68fc live). Checked
+// against the recorded vectors (dev/effect-check.mjs) and, every branch, against the ROM's own routine run under
+// the emulator over 264 flag x distance cases, NaN included (efx/fadegrid.py -> dev/effect-fadegrid.mjs). Flag bit 29 turns the fade on: 0 up to +0x10, rising to 1
+// at +0x14 (bit 30: stays 0), 1 up to +0x18, falling to 0 at +0x1c (bit 31: 0 from +0x18), 0 beyond +0x1c.
+// Bit 7 multiplies in an angle factor (0xca6988) no recording reaches: refused.
+const F = Math.fround;
+export function distanceFade(m, p, v1, v2, mul, d){
+  let s16 = 1.0;
+  const flags = m.u32(p);
+  if (flags & 0x20000000){                                          // 0xca688c
+    const s6 = m.f32(p + 0x10);
+    if (s6 >= d) s16 = 0;                                           // bge 0xca68ec (unordered: not taken)
+    else {
+      const s4 = m.f32(p + 0x1c);
+      if (s4 <= d) s16 = 0;                                         // bls 0xca68fc
+      else {
+        const s8 = m.f32(p + 0x14);
+        if (s8 <= d || Number.isNaN(s8) || Number.isNaN(d)){        // ble 0xca6944 (unordered: taken)
+          const s18 = m.f32(p + 0x18);
+          if (s18 < d){                                             // bpl 0xca6900 when s18 >= d or unordered
+            if ((flags | 0) < 0) s16 = 0;                           // 0xca6958 blt
+            else s16 = F(1 - F(F(d - s18) / F(s4 - s18)));          // 0xca6960
+          }
+        } else if (flags & 0x40000000) s16 = 0;                     // 0xca68cc
+        else s16 = F(F(d - s6) / F(s8 - s6));                       // 0xca68d4
+      }
+    }
+  }
+  if (flags & 0x80) throw new Unverified('0xca6908 distance fade with the angle factor 0xca6988');
+  const f28 = m.f32(p + 0x28);                                      // 0xca6914
+  const s0 = F(F(f28 + F(s16 * F(1 - f28))) * 256);
+  return Math.imul(toS32(s0) | 0, mul | 0) >> 8;                    // vcvt.s32.f32, mul, asr #8
+}
+native(0xca6874, (m, p, v1, v2, mul, d) => distanceFade(m, p, v1, v2, mul, d), ['r0', 'r1', 'r2', 'r3', 's0'], 'r0');
 native(0xb8ef7c, (m, ...a) => C.workArea(m, ...a), A3, 'r0');
 native(0xa55fe0, (m, ...a) => C.generatorInit(m, ...a), A4, 'r0');
 native(0xa562a0, (m, ...a) => C.generatorStart(m, ...a), A1, null);

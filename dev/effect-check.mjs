@@ -24,6 +24,7 @@ import { Cpu, call, lifted, POISON } from '../docs/render/rom/effect/cpu.js';
 import '../docs/render/rom/effect/draw.js';
 import '../docs/render/rom/effect/prim.js';
 import '../docs/render/rom/effect/proof.js';
+import { distanceFade } from '../docs/render/rom/effect/bridge.js';
 
 // address -> [translation, arguments from the vector, what to compare on return]
 const TABLE = {
@@ -46,6 +47,7 @@ const TABLE = {
   '0xa67304': [() => {}, v => [], null],
   '0xa97838': [model.animStep, v => [v.args[0], v.args[1]], 'r0'],
   '0xa6746c': [model.scaleStep, v => [v.args[0], v.args[1], s0(v)], 'r0'],
+  '0xca6874': [distanceFade, v => [v.args[0], v.args[1], v.args[2], v.args[3], s0(v)], 'r0'],
   '0xa683f8': [model.rotStep, v => [v.args[0], v.args[1], v.args[2], s0(v)], null],
   '0xa68c44': [model.channelStep, v => [v.args[0], v.args[1], v.args[2], v.args[3]], null],
   '0xa97dd8': [model.channelPass, v => [v.args[0], v.args[1]], null],
@@ -304,6 +306,15 @@ function servicesFor(v, problems, m, known = () => true){
       const s = next('unit_register');
       // sUnit, line, unit: r3 is not an argument (the harness logs whatever it held)
       for (let k = 0; k < 3; k++) if ((args[k] >>> 0) !== s[1][k]) problems.push('unit_register r' + k + ' 0x' + (args[k] >>> 0).toString(16) + ', game 0x' + s[1][k].toString(16));
+    },
+    // a type-9 generator's screen-filter request (0xb8f05c): the 0xf0 bytes it submits, as the game submitted them
+    filterSubmit(mgr, req, param){
+      const s = next('filter_submit');
+      if ((mgr >>> 0) !== s[1][0]) problems.push('filter_submit to 0x' + (mgr >>> 0).toString(16) + ', game 0x' + s[1][0].toString(16));
+      let hex = '';
+      for (let i = 0; i < 0xf0; i++) hex += m.rawByte(req + i).toString(16).padStart(2, '0');
+      if (hex !== s[2][2].request) problems.push('filter_submit request differs from the recorded one');
+      if ((param >>> 0) !== s[2][2].param) problems.push('filter_submit param 0x' + (param >>> 0).toString(16) + ', game 0x' + s[2][2].param.toString(16));
     },
     handleValid(){ return next('handle_valid')[3]; },
     handleUnit(){ return next('handle_get')[3]; },

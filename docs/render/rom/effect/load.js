@@ -134,6 +134,13 @@ function generatorResources(m, entry, blk, type){
     textureSlot(m, entry, (blk + 0xa0) >>> 0, 0);                           // 0xb590e8 -> 0xb59178
     return;
   }
+  if (type === 9){                                                          // 0xb58ed8: the screen FILTER's mask
+    // only for kind 0 (block +0x40) and a named mask (+0xa0): 0xb590f0 -> 0xb59178, an rTexture into slot 0
+    // (entry +8). No shipped row names one (effects-filter.md section 8), so for them nothing loads.
+    if (m.u8(blk + 0x40) !== 0 || m.u8(blk + 0xa0) === 0) return;
+    textureSlot(m, entry, (blk + 0xa0) >>> 0, 0);
+    return;
+  }
   throw new Unverified('0xb58c4c generator resources, type ' + type);
 }
 

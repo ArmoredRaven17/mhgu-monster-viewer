@@ -45,6 +45,22 @@ export function call(m, c, address){
   f(m, c);
 }
 
+// VMAXNM / VMINNM (ARMv8 FPMaxNum / FPMinNum, single precision): a quiet NaN against a number gives the number,
+// two NaNs a NaN; between zeros the max is +0 unless both are -0, the min -0 unless both are +0. The lifted
+// code stores the result into the Float32Array, as the S register holds it. (0xcacd5c is the first user.)
+export function fmaxnm(a, b){
+  if (Number.isNaN(a)) return Number.isNaN(b) ? NaN : b;
+  if (Number.isNaN(b)) return a;
+  if (a === 0 && b === 0) return (Object.is(a, -0) && Object.is(b, -0)) ? -0 : 0;
+  return a > b ? a : b;
+}
+export function fminnm(a, b){
+  if (Number.isNaN(a)) return Number.isNaN(b) ? NaN : b;
+  if (Number.isNaN(b)) return a;
+  if (a === 0 && b === 0) return (Object.is(a, 0) && Object.is(b, 0)) ? 0 : -0;
+  return a < b ? a : b;
+}
+
 // VCMP / VCMPE into the FPSCR flags (copied to NZCV by VMRS).
 export function fcmp(c, a, b){
   if (Number.isNaN(a) || Number.isNaN(b)){ c.fN = 0; c.fZ = 0; c.fC = 1; c.fV = 1; }
