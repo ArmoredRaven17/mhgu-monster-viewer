@@ -171,7 +171,12 @@ dl.info dd{margin:0;color:var(--text);font-variant-numeric:tabular-nums;
 .pchart td.ladder{padding:2px 4px;white-space:nowrap}
 .pchart td.ladder .rung{display:inline-block;min-width:14px;padding:1px 3px;margin:0 1px;
   border-radius:2px;font-size:10px;line-height:13px;opacity:.55}
-.pchart td.ladder .rung.cur{min-width:44px;padding:1px 6px;opacity:1;font-weight:600}
+/* EVERY CELL THE SAME BOX, swatch or dash. Raven, 2026-09-21: "When hit zones are - in the hardness table, if they
+   become a color the table expands, ensure all entries are the same size". The swatch had a minimum width, so a longer
+   name widened its column, and the dash sat bare in a cell padded differently. Now the dash is drawn in the swatch's
+   own box, without the colour, and the box is one fixed width that holds the longest name (Orange, Yellow, Purple). */
+.pchart td.ladder .rung.cur{width:52px;box-sizing:border-box;padding:1px 0;text-align:center;opacity:1;font-weight:600}
+.pchart td.ladder .rung.none{background:none;color:var(--text-hint);font-weight:400}
 .zchart th,.zchart td{padding:2px 5px;text-align:center;white-space:nowrap}
 .pchart th,.pchart td{padding:2px 8px;text-align:center;white-space:nowrap}
 .zchart thead th,.pchart thead th{color:var(--text-hint);font-weight:600;
@@ -5732,21 +5737,23 @@ function buildHardnessChart(rec, table){
       // The floor rung only: the sharpness a hit needs to NOT BOUNCE. Tiers 3 and 4 are not hardness --
       // they never make a hit bounce -- so they are not drawn (Raven, 2026-09-21).
       const lv = deflectLadder(hz, t)[2];
+      // one box either way (see .rung.cur): the dash takes the swatch's size, so a change never resizes the table
+      td.className = 'ladder';
+      const sw = document.createElement('span');
       if (lv === null){
-        td.textContent = '—';
+        sw.className = 'rung cur none';
+        sw.textContent = '—';
         td.title = hz ? 'Bounces at every sharpness' : 'No hit zone';
       } else {
-        td.className = 'ladder';
-        const sw = document.createElement('span');
         sw.className = 'rung cur';
         const c = SHARP_RGB[lv];
         sw.style.background = 'rgb(' + c.map(x => Math.round(x * 255)).join(',') + ')';
         const lum = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
         sw.style.color = lum > 0.45 ? '#101216' : '#f2f4f8';
         sw.textContent = SHARP_NAME[lv];
-        td.appendChild(sw);
         td.title = 'Hit zone ' + hz + ': no bounce at ' + SHARP_NAME[lv] + ' or better (' + tierRule(2, t) + ')';
       }
+      td.appendChild(sw);
       if (state.heat === 'hardness-' + key) td.classList.add('sel');
     }
   }
