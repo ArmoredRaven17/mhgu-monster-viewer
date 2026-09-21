@@ -4033,6 +4033,18 @@ export const DEFLECT_TIERS = [2, 3, 4];
 //     0x2b7b88 passes for its three hits (kinds 2, 0xa, 0xb). So these are moves that never bounce, not a
 //     monster state; a monster's hardening lives in its zone rows. Which moves: not named yet (0x2b7b88
 //     has no direct caller or data pointer -- it is reached indirectly).
+// BLIND EYE (skill 0x58, "Causes your attacks to be deflected more easily"), read 2026-09-21. Not a new
+// threshold: a ROLL. When each player action starts (0x282960) the local player draws a random u16 --
+// 0x27c430 -> 0x3f76d8 -> the xorshift step 0x7c9234 -- into [player+0x2522], kept for that action. The
+// bounce-grade method every uPlayerQuestNN shares (vtable +0x26c = 0x2a7fe8) takes the better tier of
+// the two current hit records (the array at player+0x3020, stride 0xb8, tier at +6) and, with Blind Eye
+// on and none of Steady Hand 0x12f / Nightcloak Soul 0x116 / Nightcloak Soul X 0x128, turns a tier of
+// EXACTLY 2 into 0 when that u16 is a multiple of 3 (0x2a8110..0x2a8144). Callers treat 0 / 1 / 5 as a
+// deflect (0x2b78b4, mask 0x23). So each ATTACK has a 1-in-3 chance that a hit landing between the floor
+// and 0.45 bounces anyway; tiers 3 and 4 are never touched. Later checks in the same method can still
+// lift the grade back to 2 (vtable +0x218 / +0x208 / +0x1b8, byte +0x29dc) -- not decoded. The same
+// method lifts 0 -> 2 for Mind's Eye 0x57 / Steady Hand / Nightcloak Soul (skill ids = skillData_eng.gmd
+// entry / 2, confirmed by Focus 0x98 and Distraction 0x99 in the gauge code).
 // Weapon class 15 is the PROWLER: the player hit tables include pl_we15_slash_hitdata and
 // pl_we15_strike_hitdata beside pl_airou_com_hitdata, the same slash/strike pair as the Palico's
 // otomo\hit\ot_slash_hitdata / ot_strike_hitdata.
