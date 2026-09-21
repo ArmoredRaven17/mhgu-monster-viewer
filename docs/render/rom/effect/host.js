@@ -80,6 +80,7 @@ export class EffectHost {
     this.materialVT = 0;
     this.primDraws = [];
     this.gpuDraws = [];
+    this.drawSeq = 0;
     const host = this;
     m.svc = {
       alloc: (size) => host.malloc(size),
@@ -106,9 +107,17 @@ export class EffectHost {
       streamRead(s, buf, n){ const d = host.streams.get(s); m.load(buf, d.subarray(0, n)); return Math.min(n, d.length); },
       loadResource: (dti, path, flags) => host.loadResource(dti, path, flags),
       beginModel: (args, stack) => modeldraw.beginModel(m, args[0], args[1], args[2], args[3], stack),
-      drawMesh: (args, stack, c) => host.modelDraws.push(Object.assign(
-        modeldraw.drawMesh(m, args[0], args[1], args[2], args[3], stack, c.sf[0], (model, index) => host.material(model, index)),
-        { model: (host.handles.get(args[0] && m.u32(args[0] + 0x70)) || {}).name })),
+      // a model mesh's draw: its COMMAND KEY is the context's pass, kept -- neither emit path sets one -- with the draw's
+      // order bits above it, written into +0x164 before the GPU draw (sorted path 0xc8f608..0xc8f620, unsorted 0xc8f2a4..
+      // 0xc8f2d4); modeldraw.js computes the bits (`order`), the key and the write are the ROM's
+      drawMesh: (args, stack, c) => {
+        const view = args[1] >>> 0;
+        const d = modeldraw.drawMesh(m, args[0], args[1], args[2], args[3], stack, c.sf[0], (model, index) => host.material(model, index));
+        d.key = ((m.u32(view + 0x164) & 0x1f) | d.order) >>> 0;
+        d.w178 = m.u32(view + 0x178);
+        m.w32(view + 0x164, d.key);
+        host.modelDraws.push(Object.assign(d, { model: (host.handles.get(args[0] && m.u32(args[0] + 0x70)) || {}).name, seq: host.drawSeq++ }));
+      },
       drawBegin(){},
       renderSetup(){},
       primDraw: (args, stack) => host.primDraw(args, stack),
@@ -386,6 +395,7 @@ export class EffectHost {
   drawFrame(owners){
     const m = this.m;
     this.modelDraws = []; this.primDraws = []; this.gpuDraws = [];
+    this.drawSeq = 0;                          // the order draws are submitted in, across the three kinds (live.js order)
     m.w32(this.VIEW + 0x14, this.BUF); m.w32(this.VIEW + 0x18, this.BUF + 0x100000);
     m.w32(this.LIST + 0x74, this.RECS); m.w32(this.LIST + 0x78, this.ENTS);
     m.w32(this.LIST + 0x80, 0); m.w32(this.LIST + 0x64, 0);
@@ -400,14 +410,18 @@ export class EffectHost {
     //   +0x168 low byte (the VIEW) = 0 (0xb87844 / 0xb87854); +0x16a (the pass mask) = 1 (0x878ea0..0x878eb4). The effect
     //   draw reads the view as a per-view index: 0x9b7684 clamps it (>= 8 -> 0), a cParticleNode's draw does not
     //   (node+0x230[view], 0xaee448 -- with 9 it read past the 0x250-byte node).
-    //   +0x164 (the PASS, bits 0..4) = 0x15 with key 0 (0x87b684 / 0x87bf44) or 0x17 with key all ones (0x87ca58..),
-    //   set by the scene setup 0x878e0c after the frame's 0x87cf70(ctx, 0, 0) (0xbbfa88, 0xb87830); which of the two
-    //   hangs on the surface set's flags and size (0x87c9fc..0x87ca40), not read. Nothing on the effect path the host
-    //   runs tells 0, 0x15 and 0x17 apart -- the model draw tests only == 0x11 (0xc8ea44) and, with no surface set
-    //   (+0x1e0 = 0), the pass setter only writes the bits -- so the frame's pass-0 reset stands in. What does matter
-    //   is that it is reset every frame: the primitive list draw sets 0x11 for itself (0xbab5fc) after every unit, and a
-    //   context carried into the next frame with that 0x11 sends every model draw down the sorted path (0xc8ea44).
-    invoke(m, 0x87cf70, [this.VIEW, 0, 0]);
+    //   +0x164 (the PASS, bits 0..4) = 0x15 with key 0 (0x87b684 / 0x87bf44), set by the scene setup 0x878e0c after the
+    //   frame's 0x87cf70(ctx, 0, 0) (0xbbfa88, 0xb87830) -- 0x15 because the viewport is the whole screen at the origin
+    //   (0x87c9fc..0x87ca40: surf+0x10 bit 6 is always set, 0xbb93d0; otherwise 0x17 with key all ones). No effect code
+    //   sets it before a model draw, whose command KEEPS it (0xc8f608 / 0xc8f2a4): a model particle is a pass-0x15
+    //   command, drawn after every pass-0x11 one (billboards, nodes) -- unless a cParticleNode drew earlier in the frame
+    //   and left 0x11 (record A's 0x87cf70). It is reset every frame: the primitive list draw sets 0x11 for itself
+    //   (0xbab5fc) after every unit, and a context carried into the next frame with that 0x11 sends every model draw
+    //   down the sorted path (0xc8ea44).
+    //   (Pass 0x15 draws into mpRTPostTarget, pass 0x11 into mpRTMainTarget -- separate colour buffers with HDR on, the
+    //   depth shared (nDraw::Scene 0xb03434..0xb03594, 0xb02748 -> 0xb054dc); what copies or tone-maps Main into Post,
+    //   and what the scene's pass-0x15 full-screen quads draw, is not read. The viewer has one target: it keeps the order.)
+    invoke(m, 0x87cf70, [this.VIEW, 0x15, 0]);
     m.w32(this.VIEW + 0x168, (m.u32(this.VIEW + 0x168) & ~0xff) >>> 0);
     m.w32(this.VIEW + 0x164, m.u32(this.VIEW + 0x164) & 0x1f);
     // sGpuParticle's frame (effects-node.md 4.2): vfn +0x28 0xb8fcbc begins it -- write pointers to the current
@@ -420,7 +434,13 @@ export class EffectHost {
     const gpu = this.requests ? this.requests.gpu : null;
     if (gpu) liftedCall(m, 0xb8fcbc, [gpu.manager]);
     invoke(m, 0xbad710, [this.SYS, this.VIEW, 0, 0], [0]);
-    for (const o of owners) drawEffect(m, o, this.VIEW);
+    // in the order sUnit's draw walks them (0xc03cd0): by move line, then each line's list in the order the units joined
+    // it (proof.js registerUnit) -- which matters, as a model draw keeps the pass the draw before it left
+    const units = this.requests ? this.requests.units : [];
+    const rank = new Map(units.map(([u, line], i) => [u >>> 0, [line, i]]));
+    const drawn = owners.map((o, i) => [rank.get(o >>> 0) || [Infinity, Infinity], i, o])
+                        .sort((a, b) => (a[0][0] - b[0][0]) || (a[0][1] - b[0][1]) || (a[1] - b[1])).map(x => x[2]);
+    for (const o of drawn) drawEffect(m, o, this.VIEW);
     invoke(m, 0xbad790, [this.SYS, this.VIEW, 0, 0]);
     if (gpu) liftedCall(m, 0xb8fdb8, [gpu.manager]);
     if (this.sceneModels) for (const o of owners) this.sceneModelDraws(o);   // off until the red regression is understood
@@ -546,6 +566,7 @@ export class EffectHost {
       vertices, stride, vertexBytes, indexList,
       blend: this.recordName(m.u32(ctx + 0x118)), depth: this.recordName(m.u32(ctx + 0x11c)),
       raster: this.recordName(m.u32(ctx + 0x120)), layout: m.u32(ctx + 0x154), key: m.u32(ctx + 0x164), w178: m.u32(ctx + 0x178),
+      seq: this.drawSeq++,
       technique: (this.records[m.u32(ctx + 0x1d8) & 0xfff] || [])[0],
       inputLayout: (this.records[m.u32(ctx + 0x1c8) & 0xfff] || [])[0] }));
   }
@@ -586,6 +607,7 @@ export class EffectHost {
     for (let i = 0; i < d.vertexBytes.length; i++) d.vertexBytes[i] = m.rawByte(this.VBUF + i);
     d.indexList = new Uint16Array(d.indices);
     for (let i = 0; i < d.indices; i++) d.indexList[i] = m.rawByte(this.IBUF + 2 * i) | (m.rawByte(this.IBUF + 2 * i + 1) << 8);
+    d.seq = this.drawSeq++;
     this.primDraws.push(d);
     this.pending = null;
   }

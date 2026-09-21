@@ -462,7 +462,8 @@ export function stepShells(state, input){
   for (const S of state.shells) if (S.state === 0xff) out.removed.push(S);
   state.shells = state.shells.filter(S => S.state !== 0xff);
   out.alive = state.shells.slice();
-  state.hist = [state.hist[1], frame];
+  // (no motion yet -- the viewer shows the monster before any clip plays -- leaves hist unset; a motion's start sets it)
+  state.hist = [state.hist ? state.hist[1] : frame, frame];
   // the joint matrices this step's pose was built with: the next step's action code reads these
   const snap = new Map();
   state.prevJoints = gid => { if (!snap.has(gid)){ const m = J(gid); snap.set(gid, m ? Array.from(m) : null); } return snap.get(gid); };

@@ -146,11 +146,16 @@ function writeGeometry(mesh, p, d){
 // {key, command} to the context's list (0x890db4..0x890df4, 0x881820..0x881860), key = pass (ctx+0x164 bits 0..4) << 27 |
 // ((ctx+0x164 >> 5) + (ctx+0x178 >> 5)) & 0x7ffffff; once a frame each section's list is merge-sorted, ascending,
 // unsigned, stable (0x87f410 -> 0x87eea8, the left element winning ties), and the executor walks it in that order
-// (0xbbba00). A cParticleNode's draws and the primitive batches are one section (sUnit's draw pushes none between the
-// unit draws and the primitive draw 0xbad790), all pass 0x11: the node's key is its depth key << 12 | its record's
-// address bits 8..19 (0xb91ba8..0xb91bc4), a batch's its layer depth key << 12 | its part number (0xbac744..0xbac758) --
-// both far before near. Submitted first (the unit draws precede the primitive draw), the nodes win a full tie.
-// The record's heap address is the viewer's heap's, not the game's: two draws with the SAME depth key order by it.
+// (0xbbba00). The effects' draws are all in the viewport's 'Scene' section (0x878e0c pushes it; sUnit's draw pushes
+// none between the unit draws and the primitive draw 0xbad790):
+//   pass 0x11 -- a cParticleNode's draws, key its depth key << 12 | its record's address bits 8..19 (0xb91ba8..0xb91bc4),
+//     and the primitive batches, key their layer depth key << 12 | their part number (0xbac744..0xbac758): far first;
+//   pass 0x15 -- a model particle's mesh draws, which keep the scene's pass (host.js drawMesh): after every 0x11 one,
+//     in their own depth / bias order -- unless a node drew before them in the frame and left 0x11.
+// Ties fall to submission order (host.js seq): the unit draws (nodes, models) before the primitive draw. The node
+// record's heap address is the viewer's heap's, not the game's: two node draws with the SAME depth key order by it.
+// (Pass 0x15 renders into the game's post target, pass 0x11 into its main target -- see host.js drawFrame; the viewer
+// draws both into its one target, in this order.)
 export const commandKey = d => (((d.key & 0x1f) << 27) | ((((d.key >>> 5) + ((d.w178 || 0) >>> 5)) & 0x7ffffff))) >>> 0;
 
 const T_NEAR_IS_ZERO = new THREE.Matrix4().set(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
@@ -444,7 +449,7 @@ export class LiveEffects {
     this.syncModels(models, renderer, cam);
     this.sync(prims, renderer, cam);
     this.syncGpu(gpu, renderer, cam);
-    this.order(gpu, prims);
+    this.order(gpu, prims, models);
     // into the same target, over what is there: no clear
     const autoClear = renderer.autoClear;
     renderer.autoClear = false;
@@ -602,8 +607,9 @@ export class LiveEffects {
           'colorIn', /in vec4 color;/.test(mesh.material.vertexShader || ''),
           'blend', d.blend, 'blendSrc', mesh.material.blendSrc, 'blendDst', mesh.material.blendDst, 'depthWrite', mesh.material.depthWrite);
       }
-      mesh.renderOrder = 900 + k;
+      mesh.renderOrder = 900 + k;                      // order() places it among the other draws
       mesh.visible = !!u.tAlbedoMap.value;
+      d.mesh = mesh;
       k++;
     }
     for (let i = k; i < this.modelMeshes.length; i++) this.modelMeshes[i].visible = false;
@@ -752,14 +758,14 @@ export class LiveEffects {
     for (let k = draws.length; k < this.gpuMeshes.length; k++) this.gpuMeshes[k].visible = false;
   }
 
-  // the pass-0x11 draws in the order the game's sorted command list runs them (commandKey above): the node draws in their
-  // submission order, then the primitive batches in theirs, stably sorted by key
+  // every effect draw in the order the game's sorted command list runs them (commandKey above), ties by submission
   // (stats.reordered counts batches the sort moves relative to one another: the primitive layer draws its batches in its
   // own depth order (0xc8cc58), which the keys are expected to agree with)
-  order(gpu, prims){
-    const all = [...gpu.map((d, k) => ({ d, mesh: this.gpuMeshes[k] })), ...prims.map((d, k) => ({ d, mesh: this.meshes[k], prim: k }))];
-    for (const e of all) if ((e.d.key & 0x1f) !== 0x11) throw new Error('live effects: a pass-0x11 draw in pass 0x' + (e.d.key & 0x1f).toString(16));
-    const sorted = all.map((e, i) => [commandKey(e.d), i, e]).sort((a, b) => (a[0] - b[0]) || (a[1] - b[1]));
+  order(gpu, prims, models){
+    const all = [...gpu.map((d, k) => ({ d, mesh: this.gpuMeshes[k] })), ...prims.map((d, k) => ({ d, mesh: this.meshes[k], prim: k })),
+                 ...models.filter(d => d.mesh && d.key !== undefined).map(d => ({ d, mesh: d.mesh }))];
+    for (const d of [...gpu, ...prims]) if ((d.key & 0x1f) !== 0x11) throw new Error('live effects: a node or batch draw in pass 0x' + (d.key & 0x1f).toString(16));
+    const sorted = all.map(e => [commandKey(e.d), e.d.seq, e]).sort((a, b) => (a[0] - b[0]) || (a[1] - b[1]));
     let last = -1, moved = 0;
     sorted.forEach(([, , e], rank) => {
       e.mesh.renderOrder = 1000 + rank;
