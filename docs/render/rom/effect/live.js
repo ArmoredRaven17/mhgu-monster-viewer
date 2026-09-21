@@ -36,6 +36,7 @@ import { EffectSchedule } from './schedule.js';
 import { rank as rankFilters, constants as filterConstants, FilterPass } from './filter.js';
 import { loadJson, getTexture, loadGlb } from '../../assets.js';
 import { gidBonesOf } from '../../skeleton.js';
+import { getSHCoef } from '../ambient.js';
 
 const MT_TO_VIEW = 0.01;
 const STEP = 1 / 60;
@@ -586,7 +587,7 @@ export class LiveEffects {
       const attrs = Object.keys(src.geometry.attributes);
       const key = 'model|' + layout + '|' + attrs.join(',') + '|' + Object.keys(features).sort().map(f => features[f]).join(',');
       let p = this.programs.get(key);
-      if (!p){ p = linkMaterial(shaders, layout, features, attrs); this.programs.set(key, p); }
+      if (!p){ p = linkMaterial(shaders, layout, features, attrs); p.label = 'model ' + short + ' mesh ' + d.meshIndex + ' ' + layout; this.programs.set(key, p); }
       let mesh = this.modelMeshes[k];
       if (!mesh){
         mesh = new THREE.Mesh(src.geometry, null);
@@ -620,6 +621,12 @@ export class LiveEffects {
       u.CBROPTest_fGlobalTransparency = { value: d.globalTransparency };
       u.CBPrimEflEmu_fPrimColor = { value: new THREE.Vector4(...(d.primColor || [1, 1, 1, 1])) };
       u.CBAmbient_fEnvMapMask = { value: 0 };                 // scene ambient: not bound (see the header)
+      // FAmbientSH (6 of the 263 effect materials, the opaque lit rocks among them -- Savage's cm202_020_g in c 15 /
+      // c 41) evaluates CBAmbient.fSHCoef, which the game fills per scene from stage state and which no stage archive
+      // carries. Left unset it read 0: no ambient at all, the rocks black. It takes the coefficients the monster's own
+      // FAmbientSH takes (render/rom/ambient.js -- the viewer's authored studio set, a CHOICE, labelled there), so an
+      // effect model and the body it flies off are lit by the same ambient. fLightMapMask stays 0: no light map.
+      u.CBAmbient_fSHCoef = { value: getSHCoef() };
       const tex = material.textures || {};
       u.tAlbedoMap = { value: tex.tAlbedoMap ? this.fileTexture(tex.tAlbedoMap) : this.black };
       u.tSpecularMap = { value: tex.tSpecularMap ? this.fileTexture(tex.tSpecularMap) : this.black };
@@ -678,7 +685,7 @@ export class LiveEffects {
   program(layout, features){
     const key = layout + '|' + Object.keys(features).sort().map(k => features[k]).join(',');
     let p = this.programs.get(key);
-    if (!p){ p = linkPrimitive(this.shaders, layout, features); this.programs.set(key, p); }
+    if (!p){ p = linkPrimitive(this.shaders, layout, features); p.label = 'batch ' + layout + ' ' + Object.values(features).join(','); this.programs.set(key, p); }
     return p;
   }
 
@@ -748,7 +755,7 @@ export class LiveEffects {
       const key = 'gpu|' + d.inputLayout + '|' + Object.keys(d.features).sort().map(f => d.features[f]).join(',') + '|' +
                   (alphaTest ? alphaTest.func + ':' + alphaTest.ref : 'none');
       let p = this.programs.get(key);
-      if (!p){ p = linkProgram(this.gpuShaders, d.inputLayout, d.features, GPU_PARTICLE, alphaTest); this.programs.set(key, p); }
+      if (!p){ p = linkProgram(this.gpuShaders, d.inputLayout, d.features, GPU_PARTICLE, alphaTest); p.label = 'node ' + d.inputLayout; this.programs.set(key, p); }
       let mesh = this.gpuMeshes[k];
       if (!mesh){
         mesh = new THREE.Mesh(new THREE.BufferGeometry(), null);

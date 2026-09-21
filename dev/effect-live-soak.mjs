@@ -5,7 +5,7 @@
 // ROM's code that only the animated joints (or the viewer's camera) reach shows up here as the refusal the live page
 // would stop on -- live.js fail() stops every effect of the monster at the first one.
 //
-//   node dev/effect-live-soak.mjs <monster> [motion key ...] [--url http://localhost:3000] [--swiftshader] [--camera sweep] [--rage]
+//   node dev/effect-live-soak.mjs <monster> [motion key ...] [--url http://localhost:3000] [--swiftshader] [--camera sweep] [--rage] [--wiring]
 //
 // Without --url it serves docs/ itself (dev/serve.py on a free port). Each motion is played whole, twice (a motion the
 // viewer splits: its _start once, then its _loop twice), with the viewer's clip loop on; after a refusal the runtime is
@@ -14,7 +14,9 @@
 // --camera sweep: the camera circles the monster's orbit target each frame at a distance that swings from inside the
 // body out past the fitted view -- what a viewer's zoom and orbit reach -- instead of staying where the view was fitted
 // (the effects' draw reads the camera: sort keys, facing, fades). --rage: the effects mounted enraged, so the rage
-// auras run through every motion (live.js setRage, as the viewer's Enraged toggle starts them).
+// auras run through every motion (live.js setRage, as the viewer's Enraged toggle starts them). --wiring: every 15
+// frames, each visible effect material's compiled program is read back from WebGL: active uniforms the viewer never
+// set (they read 0), attributes the geometry lacks (a constant), samplers with no texture -- per program, at the end.
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import net from 'node:net';
@@ -31,6 +33,7 @@ let site = opt('--url');
 const swiftshader = flag('--swiftshader');
 const camera = opt('--camera') || 'fit';
 const rage = flag('--rage');
+const wiring = flag('--wiring');
 const [monster, ...only] = argv;
 if (!monster){ console.log('usage: node dev/effect-live-soak.mjs <monster> [motion key ...] [--url <viewer>] [--swiftshader]'); process.exit(2); }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -59,7 +62,7 @@ const evaluate = (c, expression) => c.send('Runtime.evaluate', { expression, awa
   .then(r => { if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception ? r.exceptionDetails.exception.description : r.exceptionDetails.text); return r.result.value; });
 
 // Runs IN THE PAGE (serialised): the soak, started and left running; window.__soak holds its progress.
-function pageSoak(MONID, ONLY, CAMERA, RAGE){
+function pageSoak(MONID, ONLY, CAMERA, RAGE, WIRING){
   window.__soak = { status: 'starting', results: [], t0: performance.now() };
   (async () => {
     const S = window.__soak;
@@ -86,6 +89,30 @@ function pageSoak(MONID, ONLY, CAMERA, RAGE){
       pose.clock.getDelta = () => 1 / 60;                    // one frame a step, whatever the wall clock did
       const entry = V.MON.monsters.find(e => e.id === MONID);
       const R0 = V.camera.position.distanceTo(V.controls.target) || 1;
+      // the wiring read-back: what each compiled effect program declares against what the viewer feeds it
+      S.wiring = {};
+      const readWiring = rt => {
+        const kinds = [['batch', rt.meshes], ['model', rt.modelMeshes], ['node', rt.gpuMeshes]];
+        for (const [kind, list] of kinds) for (const mesh of list || []){
+          if (!mesh.visible || !mesh.material) continue;
+          const mat = mesh.material, props = V.renderer.properties.get(mat), prog = props && props.currentProgram;
+          if (!prog) continue;
+          const key = kind + ' ' + (props.programKey || (mat.vertexShader.length + ':' + mat.fragmentShader.length));
+          const w = S.wiring[key] || (S.wiring[key] = { kind, draws: 0, unfed: {}, noAttr: {}, noTex: {}, example: (mesh.userData.programKey && mesh.userData.programKey.label) || '' });
+          w.draws++;
+          const names = [];
+          const walk = (seq, pre) => { for (const u of seq){ if (u.seq) walk(u.seq, pre + u.id + '.'); else names.push(pre + u.id); } };
+          walk(prog.getUniforms().seq, '');
+          for (const n of names){
+            const top = n.split('.')[0];
+            if (/^(modelMatrix|modelViewMatrix|projectionMatrix|viewMatrix|normalMatrix|cameraPosition|isOrthographic)$/.test(top)) continue;
+            if (!(top in mat.uniforms)) w.unfed[n] = (w.unfed[n] || 0) + 1;
+            else { const v = mat.uniforms[top].value; if (v === null || v === undefined) w.noTex[n] = (w.noTex[n] || 0) + 1; }
+          }
+          const attrs = prog.getAttributes();
+          for (const a of Object.keys(attrs)) if (!mesh.geometry.getAttribute(a)) w.noAttr[a] = (w.noAttr[a] || 0) + 1;
+        }
+      };
       let tick = 0;
       const placeCamera = () => {
         if (CAMERA !== 'sweep') return;
@@ -128,6 +155,7 @@ function pageSoak(MONID, ONLY, CAMERA, RAGE){
             fx.last = null; fx.acc = 1 / 60 + 1e-9;          // exactly one effect step in this render
             V.renderer.render(V.scene, V.camera);
             frames++;
+            if (WIRING && (f % 15) === 7) readWiring(fx);
             maxRun = Math.max(maxRun, fx.stats.running || 0);
             drew += (fx.stats.prims || 0) + (fx.stats.models || 0) + (fx.stats.gpu || 0);
             if (fx.failed){ fail = fx.failed; break; }
@@ -191,7 +219,7 @@ async function main(){
   }
   await evaluate(c, '__view.renderer.setAnimationLoop(null), true');      // only the soak steps from here on
   soaking = true;
-  console.log(await evaluate(c, `(${pageSoak.toString()})(${JSON.stringify(monster)}, ${JSON.stringify(only)}, ${JSON.stringify(camera)}, ${JSON.stringify(rage)})`), monster, 'in', site, 'camera', camera, rage ? 'enraged' : '');
+  console.log(await evaluate(c, `(${pageSoak.toString()})(${JSON.stringify(monster)}, ${JSON.stringify(only)}, ${JSON.stringify(camera)}, ${JSON.stringify(rage)}, ${JSON.stringify(wiring)})`), monster, 'in', site, 'camera', camera, rage ? 'enraged' : '');
   let shown = 0, refused = 0, S;
   for (;;){
     await sleep(2000);
@@ -207,6 +235,20 @@ async function main(){
     if (S.status !== 'starting') { if (S.status === 'done' || S.status.startsWith('error')) break; }
   }
   if (S.status !== 'done') console.log(S.status);
+  if (wiring){
+    const W = JSON.parse(await evaluate(c, 'JSON.stringify(window.__soak.wiring || {})'));
+    const keys = Object.keys(W);
+    console.log('wiring: ' + keys.length + ' effect programs drawn');
+    for (const k of keys){
+      const w = W[k], u = Object.keys(w.unfed), a = Object.keys(w.noAttr), t = Object.keys(w.noTex);
+      if (!u.length && !a.length && !t.length) continue;
+      const NL = String.fromCharCode(10);
+      console.log('  ' + w.kind + ' program (' + w.draws + ' draws' + (w.example ? ', e.g. ' + w.example : '') + '):' +
+                  (u.length ? NL + '    uniforms never set: ' + u.join(', ') : '') +
+                  (a.length ? NL + '    attributes the geometry lacks: ' + a.join(', ') : '') +
+                  (t.length ? NL + '    samplers with no texture: ' + t.join(', ') : ''));
+    }
+  }
   for (const [k, n] of logged) console.log('console ' + k + (n > 1 ? '  (x' + n + ')' : ''));
   const consoleErrors = [...logged.keys()].filter(k => k.startsWith('error')).length;
   console.log(`${monster}: ${S.results.filter(r => !r.skip).length} motions played in the viewer, ${refused} refused (${S.secs} s)`);
