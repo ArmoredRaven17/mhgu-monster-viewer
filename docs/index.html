@@ -447,6 +447,8 @@ header #bar .btn.tiny{margin-right:0}
    read as a stray highlight (Raven, 2026-09-04: "We don't need the highlight around the
    box") -- Chrome keeps :focus-visible on after its popup closes, so it goes outright */
 select:focus{outline:none}
+/* Quest Level on a monster only ever fought in G Rank quests: the value, where the select would be. */
+#monBounceTFixed{color:var(--text);font-size:13px;line-height:1.4;padding:7px 9px}
 .field input[type=text]::placeholder{color:var(--text-hint);opacity:1}
 input[type=range]{width:100%;accent-color:var(--accent)}
 
@@ -681,11 +683,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
             <div id="monZoneBreaks"></div>
           </div>
           <div class="field" id="monBounceTRow" hidden>
-            <label for="monBounceT" title="The floor a hit must clear to avoid bouncing. The ROM holds two, 0.25 and 0.27, and picks between them with a signed byte read at 0x3a8430 that is NOT identified -- so both are offered here and neither is presented as the monster's. It is not a per-monster value: the deflect site reads it from a global.">Threshold</label>
+            <label for="monBounceT" title="The floor a hit must clear to avoid bouncing: 0.25, or 0.27 when the quest's Monster Level is G. The ROM reads it from the loaded quest (cQuestData mMonsterLv, via 0x3a8430). Low and High Rank quests use 0.25 -- Village included, and its 6-star Advanced quests; G Rank quests and the Village 10-star Advanced quests use 0.27. A monster only ever fought in G Rank quests is fixed at G Rank (quest-levels.json).">Quest Level</label>
             <select id="monBounceT">
-              <option value="f25">Floor 0.25</option>
-              <option value="f27">Floor 0.27</option>
+              <option value="f25">Low / High Rank</option>
+              <option value="f27">G Rank</option>
             </select>
+            <div id="monBounceTFixed" hidden>G Rank</div>
             <label for="monTier" title="The ROM grades every hit 4/3/2/0 and stores it on the hit record (+6). It names none of the tiers, so these are labelled by the threshold they clear. Tier 0 is the bounce. The tier is passed to 0x171c68, which scales an amount by a per-tier table (.rodata 0x0161e364) at 0.5 / 0.75 / 1.0 / 1.1 for tier 0 / 2 / 3 / 4, on 4 of its 9 cases. Which weapons those cases are, and what else the tier drives, is not established.">Rung</label>
             <select id="monTier">
               <option value="2">Tier 2 &mdash; the floor</option>
@@ -1378,6 +1381,18 @@ const PARTNAMES = await loadJson('partnames.json').catch(() => ({ monsters: {} }
 // rBodyData capsule, and that slot indexes the ROM's dt_tune damage table. Optional, like the
 // part names -- an older deploy without it simply has no heat map.
 const HITZONES = await loadJson('hitzones.json').catch(() => ({ monsters: {} }));
+// QUEST LEVEL (Raven, 2026-09-21): the deflect floor follows the quest's Monster Level -- 0.27 at G, 0.25
+// otherwise -- so a monster fought ONLY in G Rank quests has one floor. Built from the ROM's quest files by
+// build-quest-levels.py; see its _about.
+const QUESTLV = await loadJson('quest-levels.json').catch(() => ({ monsters: {} }));
+function gRankOnly(id){
+  const lv = QUESTLV.monsters && QUESTLV.monsters[id];
+  const keys = lv ? Object.keys(lv) : [];
+  return keys.length > 0 && keys.every(k => k === '5');
+}
+// The floor key in force: G Rank for a G-only monster, the Quest Level pick otherwise. state.deflectT is
+// left alone so the pick comes back on the next monster.
+function deflectKey(){ return gRankOnly(state.id) ? 'f27' : (state.deflectT || 'f25'); }
 // Hit zone slot names Raven gives on review, per monster and slot (zone-review.json) -- the only slot names the
 // chart shows; see zoneNames().
 const ZONE_REVIEW = await loadJson('zone-review.json').catch(() => ({}));
@@ -5314,7 +5329,11 @@ async function applyHeat(){
   heatTableRow.hidden = zt.names.length < 2;
   paintZoneBreaks(e, zt);
   document.getElementById('monHeat').value = state.heat;
-  document.getElementById('monBounceT').value = state.deflectT || 'f25';
+  const gOnly = gRankOnly(state.id);
+  const bounceSel = document.getElementById('monBounceT');
+  bounceSel.value = deflectKey();
+  bounceSel.hidden = gOnly;
+  document.getElementById('monBounceTFixed').hidden = !gOnly;
   document.getElementById('monTier').value = String(+state.deflectTier || 2);
   const wantTab = tabForHeat(state.heat);
   if (wantTab) state.zoneTab = wantTab;
@@ -5343,7 +5362,7 @@ async function applyHeat(){
     // the default dark, which is the honest answer -- and switching rung repaints the whole model,
     // which is the ladder doing the work rather than describing itself.
     const type = shownHeat === 'hardness-cut' ? 'cut' : 'impact';
-    const t = DEFLECT_T[state.deflectT] || DEFLECT_T.normal;
+    const t = DEFLECT_T[deflectKey()] || DEFLECT_T.normal;
     const tier = +state.deflectTier || 2;
     const bySlot = {};
     table.forEach((row, slot) => {
@@ -5678,7 +5697,7 @@ function buildHardnessChart(rec, table){
   const chart = document.getElementById('monHardChart');
   const named = zoneNames(rec);
   const slots = zoneSlots(rec);
-  const t = DEFLECT_T[state.deflectT] || DEFLECT_T.normal;
+  const t = DEFLECT_T[deflectKey()] || DEFLECT_T.normal;
   const tier = +state.deflectTier || 2;
   chart.textContent = '';
   if (!slots.length) return;
