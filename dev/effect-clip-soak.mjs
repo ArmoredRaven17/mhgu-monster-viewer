@@ -98,14 +98,14 @@ try {
     if (!motion){ console.log(name + ': not in CLIP_EFFECTS'); continue; }
     const startsBefore = schedule.starts;
     const stopAt = new Map();              // request -> frame it went to state 2
-    let peak = 0, prims = 0, models = 0;
+    let peak = 0, prims = 0, models = 0, gpu = 0;
     const total = 2 * (motion.frames - 1);
     for (let k = 0; k <= total + 1; k++){
       const frame = k % (motion.frames - 1);  // the clip loops back to its first frame
       schedule.setClip(monster + '|' + (name.match(/^L(\d+) /) || [0, ''])[1] + '|' + name.replace(/^L\d+ /, ''), frame, motion, 0);
       schedule.step();
       const d = host.drawFrame(schedule.effects());
-      prims += d.prims.length; models += d.models.length;
+      prims += d.prims.length; models += d.models.length; gpu += d.gpu.length;
       const live = liveReport();
       for (const r of live) if (r.state === 2 && !stopAt.has(r.q)) stopAt.set(r.q, k);
       peak = Math.max(peak, schedule.running);
@@ -113,7 +113,7 @@ try {
       f++;
     }
     console.log(name + ': ' + (schedule.starts - startsBefore) + ' starts, ' + stopAt.size + ' stopped (at ' +
-      [...stopAt.values()].join(',') + '), at most ' + peak + ' running, ' + prims + ' prim / ' + models + ' model draws; ' +
+      [...stopAt.values()].join(',') + '), at most ' + peak + ' running, ' + prims + ' prim / ' + models + ' model / ' + gpu + ' node draws; ' +
       schedule.running + ' still running into the next motion');
   }
   // a last motion change with no clip: everything is told the motion is over and runs out

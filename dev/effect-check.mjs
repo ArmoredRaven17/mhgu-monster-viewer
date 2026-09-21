@@ -325,6 +325,36 @@ function servicesFor(v, problems, m, known = () => true){
       if (hex !== s[2][2].request) problems.push('filter_submit request differs from the recorded one');
       if ((param >>> 0) !== s[2][2].param) problems.push('filter_submit param 0x' + (param >>> 0).toString(16) + ', game 0x' + s[2][2].param.toString(16));
     },
+    // sGpuParticle's driver side (efx/proofunit.py services; proof.js natives): the NVN buffer procs and GPU pool 5,
+    // answered as the recorder answered them, and record A's GPU draw 0x890ce0 (vecdrawsched.py GPU_DRAW_ROM=1)
+    gpuStub(kind, r0){
+      const s = next(kind);
+      if ((r0 >>> 0) !== s[1][0]) problems.push(kind + ' r0 0x' + (r0 >>> 0).toString(16) + ', game 0x' + s[1][0].toString(16));
+      return s[3];
+    },
+    gpuSetStorage(builder, pool, offset, size){
+      const s = next('nvn_set_storage');
+      [builder, pool, offset, size].forEach((a, k) => { if ((a >>> 0) !== s[1][k]) problems.push('nvn_set_storage r' + k + ' 0x' + (a >>> 0).toString(16) + ', game 0x' + s[1][k].toString(16)); });
+    },
+    gpuInitialize(buffer, builder){
+      const s = next('nvn_initialize');
+      [buffer, builder].forEach((a, k) => { if ((a >>> 0) !== s[1][k]) problems.push('nvn_initialize r' + k + ' 0x' + (a >>> 0).toString(16) + ', game 0x' + s[1][k].toString(16)); });
+      return s[3];
+    },
+    gpuMap(buffer){
+      const s = next('nvn_map');
+      if ((buffer >>> 0) !== s[1][0]) problems.push('nvn_map r0 0x' + (buffer >>> 0).toString(16) + ', game 0x' + s[1][0].toString(16));
+      return s[3];
+    },
+    gpuPoolAlloc(size, align, pool){
+      const s = next('gpu_pool_alloc');
+      [pool, size, align].forEach((a, k) => { if ((a >>> 0) !== s[1][k]) problems.push('gpu_pool_alloc r' + k + ' 0x' + (a >>> 0).toString(16) + ', game 0x' + s[1][k].toString(16)); });
+      return s[3];
+    },
+    gpuMeshDraw(args){
+      const s = next('gpu_mesh_draw');
+      for (let k = 0; k < 4; k++) if ((args[k] >>> 0) !== s[1][k]) problems.push('gpu_mesh_draw r' + k + ' 0x' + (args[k] >>> 0).toString(16) + ', game 0x' + s[1][k].toString(16));
+    },
     handleValid(){ return next('handle_valid')[3]; },
     handleUnit(){ return next('handle_get')[3]; },
     requestLoad(dti, path, flags){

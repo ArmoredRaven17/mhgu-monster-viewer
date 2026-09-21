@@ -36,11 +36,13 @@
 
 // The layout's element formats (chunk5-shaders Part 18; NVN attribute formats from 0xbd93d4):
 // 1 F32, 3 S16, 4 U16, 7 S8 -- integer values reaching the shader as floats, unnormalised --
+// 5 the 16-bit signed NORMALISED case (IAGPUParticle's TexCoordScl, the corners +-0x7fff / 0x8001 = +-1),
 // 14 VertexColor, 4 bytes read as normalised RGBA8 (its conversion before that switch is not read).
 export const FORMATS = {
   1: { array: Float32Array, size: 4, normalized: false },
   3: { array: Int16Array, size: 2, normalized: false },
   4: { array: Uint16Array, size: 2, normalized: false },
+  5: { array: Int16Array, size: 2, normalized: true },
   7: { array: Int8Array, size: 1, normalized: false },
   8: { array: Uint8Array, size: 1, normalized: false },
   14: { array: Uint8Array, size: 1, normalized: true, components: 4 },
@@ -89,10 +91,33 @@ export function linkFunctions(shaders, entry, features){
 export function structBlock(shaders){ return orderStructs(shaders.structs).map(n => shaders.structs[n].glsl).join('\n'); }
 
 export function linkPrimitive(shaders, layoutName, features){
+  return linkProgram(shaders, layoutName, features, PRIMITIVE);
+}
+const PRIMITIVE = { vs: 'VS_Primitive', ps: 'PS_Primitive', input: 'PRIMITIVE_VS_INPUT', output: 'PRIMITIVE_VS_OUTPUT' };
+// TGPUParticle pass 0, sGpuParticle's record A draw (effects-node.md 5.5; docs/effects/gpu-shaders.json)
+export const GPU_PARTICLE = { vs: 'VS_GpuParticle', ps: 'PS_GpuParticle', input: 'GPU_PARTICLE_VS_INPUT', output: 'GPU_PARTICLE_PS_INPUT' };
+
+// THE FIXED-FUNCTION ALPHA TEST a draw's state carries in ctx+0x154 (effects-node.md 5.2 / 5.4): with bit 19 or 20 set
+// the command executor binds the colour state for the function field (bits 3..10) through table 0x211cee0 = {1..8}[func]
+// and sets the reference (bits 11..18) / 255 (0xbbf25c..0xbbf364). WebGL has no alpha test, so the program does it
+// after the pixel shader: { func: the NVN value, ref }. Only NVN 5 is taken -- its name GREATER is the NVN API's enum
+// order (NEVER 1 .. ALWAYS 8), not read from the image; another value throws until a draw selects it.
+export function alphaTestOf(w154){
+  if (!((w154 >>> 19) & 3)) return null;
+  const func = (w154 >>> 3) & 0xff;
+  if (func > 7) throw new Error('primshader: alpha test function field ' + func);
+  return { func: func + 1, ref: ((w154 >>> 11) & 0xff) / 255 };
+}
+function alphaTestGlsl({ func, ref }){
+  if (func !== 5) throw new Error('primshader: alpha test NVN function ' + func + ' not taken yet');
+  return '  if (!(fragColor.a > ' + ref.toFixed(9) + ')) discard;';
+}
+
+export function linkProgram(shaders, layoutName, features, entry = PRIMITIVE, alphaTest = null){
   const layout = shaders.layouts[layoutName];
   if (!layout) throw new Error('primshader: no input layout ' + layoutName);
-  const vsFunctions = linkFunctions(shaders, 'VS_Primitive', features);
-  const fsFunctions = linkFunctions(shaders, 'PS_Primitive', features);
+  const vsFunctions = linkFunctions(shaders, entry.vs, features);
+  const fsFunctions = linkFunctions(shaders, entry.ps, features);
 
   const structs = structBlock(shaders);
   const uniforms = text => {
@@ -107,8 +132,8 @@ export function linkPrimitive(shaders, layoutName, features){
   };
 
   // vertex: attributes by semantic
-  const input = shaders.structs.PRIMITIVE_VS_INPUT.members;
-  const output = shaders.structs.PRIMITIVE_VS_OUTPUT.members;
+  const input = shaders.structs[entry.input].members;
+  const output = shaders.structs[entry.output].members;
   const attributes = [];
   const assign = [];
   for (const [semantic, offset, count, format] of layout.elements){
@@ -136,20 +161,32 @@ export function linkPrimitive(shaders, layoutName, features){
     varying.map(([t, v]) => 'out ' + t + ' ' + v + ';').join('\n'),
     vsFunctions,
     'void main() {',
-    '  PRIMITIVE_VS_INPUT I = zero_PRIMITIVE_VS_INPUT();',
+    '  ' + entry.input + ' I = zero_' + entry.input + '();',
     assign.join('\n'),
-    '  PRIMITIVE_VS_OUTPUT O = VS_Primitive(I);',
+    '  ' + entry.output + ' O = ' + entry.vs + '(I);',
     '  gl_Position = vec4(O.position.xy, 2.0 * O.position.z - O.position.w, O.position.w);',
     varying.map(([, v, path]) => '  ' + v + ' = O.' + path + ';').join('\n'),
     '}',
   ].join('\n');
 
-  // fragment: PS_Primitive's parameters by semantic
-  const params = shaders.functions.PS_Primitive.params;
+  // fragment: the pixel shader's parameters by semantic
+  const params = shaders.functions[entry.ps].params;
   const args = [];
   const prelude = [];
+  const FRAG_POSITION = 'vec4(gl_FragCoord.xyz, 1.0 / gl_FragCoord.w)';
   for (const [type, name, semantic] of params){
-    if (semantic === 'SV_POSITION'){ args.push('vec4(gl_FragCoord.xyz, 1.0 / gl_FragCoord.w)'); continue; }
+    if (semantic === 'SV_POSITION'){ args.push(FRAG_POSITION); continue; }
+    // the vertex shader's whole output struct as one parameter (PS_GpuParticle(GPU_PARTICLE_PS_INPUT I)): rebuilt member
+    // by member from the varyings, its SV_POSITION member from gl_FragCoord as above
+    if (type === entry.output){
+      prelude.push('  ' + type + ' ' + name + ' = ' + type + '(' + output.map(([mn, mt, sem]) => {
+        if (sem === 'SV_POSITION') return FRAG_POSITION;
+        const st = shaders.structs[mt];
+        return st ? mt + '(' + st.members.map(([sm]) => 'v_' + mn + '_' + sm).join(', ') + ')' : 'v_' + mn;
+      }).join(', ') + ');');
+      args.push(name);
+      continue;
+    }
     const member = output.find(m => m[2] === semantic);
     if (!member) throw new Error('primshader: no vertex output for ' + semantic);
     const st = shaders.structs[type];
@@ -166,8 +203,9 @@ export function linkPrimitive(shaders, layoutName, features){
     fsFunctions,
     'void main() {',
     prelude.join('\n'),
-    // stored as the program returns it (OUTPUT above)
-    '  fragColor = PS_Primitive(' + args.join(', ') + ');',
+    // stored as the program returns it (OUTPUT above), after the fixed-function alpha test when the state has one
+    '  fragColor = ' + entry.ps + '(' + args.join(', ') + ');',
+    alphaTest ? alphaTestGlsl(alphaTest) : '',
     '}',
   ].join('\n');
   return { vertexShader, fragmentShader, attributes, stride: layout.stride };

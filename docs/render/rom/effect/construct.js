@@ -195,14 +195,14 @@ const GENERATOR_TYPES = {
   // It draws nothing itself (+0x54 bx lr); its post (+0x50 0xa8262c) submits requests (effects-filter.md).
   9: { got: 0x183c8e0 },                         // vtable 0x1789334
 };
-// Undecoded generator types (25 and anything else not in GENERATOR_TYPES) the factory meets and skips, kept so the omission is
+// Undecoded generator types (anything not in GENERATOR_TYPES, and not the cParticleNode branch) the factory meets and skips, kept so the omission is
 // reportable rather than silent. genType -> how many rows were skipped. (Soulseer's eye flame em082_04_004 has
 // a genType-2 row alongside its supported billboards and models.)
 export const SKIPPED_GENERATORS = new Map();
 function recordSkippedGenerator(type){
   const n = (SKIPPED_GENERATORS.get(type) || 0) + 1;
   SKIPPED_GENERATORS.set(type, n);
-  if (n === 1) console.warn('effect: generator type ' + type + ' is not translated (genType 0/1/2/5/9 only) -- row skipped');
+  if (n === 1) console.warn('effect: generator type ' + type + ' is not translated (genType 0/1/2/5/9/25 only) -- row skipped');
 }
 function newGenerator(m, type){
   const g = m.svc.alloc(0x1d0, 0x10);
@@ -979,9 +979,26 @@ function factory(m, owner){
     const rowp = (body + (row << 4)) >>> 0;
     m.u32(rowp);
     const type = m.u32(rowp + 4) & 0xff, c3 = m.u32(rowp + 0xc);
-    // AN UNDECODED GENERATOR (2, 9, 25, ...) is skipped, not thrown, so the rest of the effect still draws:
+    // AN UNDECODED GENERATOR (a type neither branch below builds) is skipped, not thrown, so the rest of the effect still draws:
     // failing the whole effect drew nothing for an effect that is mostly decodable. The row is left out (not
     // invented) and the skip recorded. (0x9bada8 type 25, 0x9bb300 type > 26, 0x9bade8 other became this skip.)
+    // TYPE 25 is tested before the jump table (0x9bada0; effects-node.md 1): row word 3 & 0xf0 set builds
+    // cParticleNodeInfinite (0xaf127c / 0xaf12b8), whose CPU side is not read -- refused; clear builds cParticleNode:
+    // 0xaece5c(0x250, 0x10) (the class's allocator, getAllocator(DTI 0x211cd5c) +0x20) and its constructor 0xaece98,
+    // both lifted. From 0x9bae94 on it takes the path every type takes.
+    if (type === 25){
+      if (c3 & 0xf0) throw new Unverified('0x9badb4 cParticleNodeInfinite (row word 3 & 0xf0 = 0x' + (c3 & 0xf0).toString(16) + ') not translated');
+      const g = liftedCall(m, 0xaece5c, [0x250, 0x10]).r[0];
+      if (g === 0) throw new Unverified('0x9bae90 cParticleNode allocation failed');
+      liftedCall(m, 0xaece98, [g]);
+      if (prev !== 0) m.w32(prev + 0xc, g); else m.w32(owner + 0x1f0, g);
+      if (vcall(m, g, 0x18, owner, row, m.u16(owner + 0x1e0)) === 0) throw new Unverified('0x9bb33c generator init failed');
+      const w0 = m.u32(owner + 0x1d8), w1 = m.u32(owner + 0x1dc), w2 = m.u32(owner + 0x1e0), w3 = m.u32(owner + 0x1e4);
+      prev = g;
+      m.w32(owner + 0x1d8, w0); m.w32(owner + 0x1dc, w1);
+      m.w32(owner + 0x1e0, ((w2 & 0xffff0000) | ((w2 + 1) & 0xffff)) >>> 0); m.w32(owner + 0x1e4, w3);
+      continue;
+    }
     if (!GENERATOR_TYPES[type]){ recordSkippedGenerator(type); continue; }
     // DEV TOGGLE (off by default, so Savage and every other monster are untouched): while the genType-5 model
     // runtime is being built (its move/draw path is not yet lifted), globalThis.__skipEffectModels renders an
@@ -1150,6 +1167,14 @@ registerCode(0xa56960, generatorSeedStart);
 registerCode(0xa91b80, transformModel); registerCode(0xa783a8, transformLiteBillboard); registerCode(0xaaea38, transformLitePolyline);
 registerCode(0xa99558, initType2); registerCode(0xa99590, startType2); registerCode(0xa56d14, transformType2);
 registerCode(0xa825c8, initType9); registerCode(0xa825f4, startType9);
+// cParticleNode (vtable 0x1789ebc, effects-node.md 1): the slots the start reaches through its own dispatch -- 6 init
+// 0xaed19c, 7 pool 0xaecd44, 8 start 0xaed2b8, 9 arm 0xaed79c, 15 its record in sGpuParticle 0xaedaac (must return 1) --
+// each the lifted ROM routine. Its move, post pass, draw and stop are reached from lifted code.
+registerCode(0xaed19c, (m, g, owner, row, index) => liftedCall(m, 0xaed19c, [g, owner, row, index]).r[0]);
+registerCode(0xaecd44, (m, g, pool) => liftedCall(m, 0xaecd44, [g, pool]).r[0]);
+registerCode(0xaed2b8, (m, g) => liftedCall(m, 0xaed2b8, [g]).r[0]);
+registerCode(0xaed79c, (m, g) => liftedCall(m, 0xaed79c, [g]).r[0]);
+registerCode(0xaedaac, (m, g) => liftedCall(m, 0xaedaac, [g]).r[0]);
 
 export const internals = {
   allocGenerator: (m, size, align) => m.svc.alloc(size, align),

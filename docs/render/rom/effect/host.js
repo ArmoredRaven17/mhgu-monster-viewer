@@ -24,7 +24,7 @@
 // The engine's own draw submission is where the host's output is: every Model particle mesh draw
 // (modeldraw.js's answer) and every primitive GPU draw (the context's selected shader records,
 // constant buffers, blend / depth / rasterizer states, textures, and the vertex and index bytes).
-import { Mem, bitsf32 } from './mem.js';
+import { Mem, bitsf32, Unverified } from './mem.js';
 import { newEffect, startEffect } from './construct.js';
 import { loadEffectList, loadEffectAnim, DTI } from './load.js';
 import { move } from './owner.js';
@@ -79,6 +79,7 @@ export class EffectHost {
     this.materialObjs = new Map();
     this.materialVT = 0;
     this.primDraws = [];
+    this.gpuDraws = [];
     const host = this;
     m.svc = {
       alloc: (size) => host.malloc(size),
@@ -112,6 +113,7 @@ export class EffectHost {
       renderSetup(){},
       primDraw: (args, stack) => host.primDraw(args, stack),
       drawEnd: () => host.primDrawEnd(),
+      gpuMeshDraw: args => host.gpuMeshDraw(args),
     };
     this.allocator = allocator;
   }
@@ -383,27 +385,46 @@ export class EffectHost {
   // One view's frame: the primitive layer opened, the effects drawn into it, the layer drawn.
   drawFrame(owners){
     const m = this.m;
-    this.modelDraws = []; this.primDraws = [];
+    this.modelDraws = []; this.primDraws = []; this.gpuDraws = [];
     m.w32(this.VIEW + 0x14, this.BUF); m.w32(this.VIEW + 0x18, this.BUF + 0x100000);
     m.w32(this.LIST + 0x74, this.RECS); m.w32(this.LIST + 0x78, this.ENTS);
     m.w32(this.LIST + 0x80, 0); m.w32(this.LIST + 0x64, 0);
     m.w32(this.VB + 0xc, 0); m.w32(this.VB + 0x14, this.VBDATA); m.w32(this.VB + 4, 0);
     m.w32(this.PRIM + 0x248 + 8, 0);
     m.w32(this.PRIM + 0x54, 0);
-    // THE PASS, SET THE WAY THE GAME'S RENDER FRAME SETS IT EVERY FRAME (0xbbf93c, its context at +0x25c):
-    // 0xbbfa88 calls the pass setter 0x87cf70(ctx, 0, 0), then 0xbbfa90-0xbbfab0 puts 9 in +0x168's low byte
-    // and clears +0x164 above the pass bits, before the 'Common' section draws the scene -- sUnit's draw
-    // (0xc03cd0) among it, which brackets the units with this same primitive layer. The primitive list draw
-    // sets pass 0x11 for itself (0xbab5fc) at the END, after every unit; a context carried into the next frame
-    // without this keeps that 0x11, and every model draw then fails 0xc8ea44 and loses the unsorted emit.
+    // THE CONTEXT THE GAME DRAWS EFFECTS WITH. Effect units carry view bit 0 only (unit +0xe = 1: the core's ctor 0x41e54
+    // at 0x41f34, the proof effect's 0x326c30), and sUnit's draw (0xc03cd0) draws a unit only in a view whose bit it
+    // carries (mask 1 << ctx byte +0x168, 0xc03cfc; tests 0xc03e50 / 0xc03fcc) -- so they are drawn by sCamera's
+    // viewport-0 scene draw (sRender frame 0xbbf93c -> sCamera vtable +0x28 0xb87734 -> sUnit draw at 0xb87a0c), on the
+    // frame's context (sRender +0x25c), not by the 'Common' section (view 9, 0xbbfae0). At that call:
+    //   +0x168 low byte (the VIEW) = 0 (0xb87844 / 0xb87854); +0x16a (the pass mask) = 1 (0x878ea0..0x878eb4). The effect
+    //   draw reads the view as a per-view index: 0x9b7684 clamps it (>= 8 -> 0), a cParticleNode's draw does not
+    //   (node+0x230[view], 0xaee448 -- with 9 it read past the 0x250-byte node).
+    //   +0x164 (the PASS, bits 0..4) = 0x15 with key 0 (0x87b684 / 0x87bf44) or 0x17 with key all ones (0x87ca58..),
+    //   set by the scene setup 0x878e0c after the frame's 0x87cf70(ctx, 0, 0) (0xbbfa88, 0xb87830); which of the two
+    //   hangs on the surface set's flags and size (0x87c9fc..0x87ca40), not read. Nothing on the effect path the host
+    //   runs tells 0, 0x15 and 0x17 apart -- the model draw tests only == 0x11 (0xc8ea44) and, with no surface set
+    //   (+0x1e0 = 0), the pass setter only writes the bits -- so the frame's pass-0 reset stands in. What does matter
+    //   is that it is reset every frame: the primitive list draw sets 0x11 for itself (0xbab5fc) after every unit, and a
+    //   context carried into the next frame with that 0x11 sends every model draw down the sorted path (0xc8ea44).
     invoke(m, 0x87cf70, [this.VIEW, 0, 0]);
-    m.w32(this.VIEW + 0x168, ((m.u32(this.VIEW + 0x168) & ~0xff) | 9) >>> 0);
+    m.w32(this.VIEW + 0x168, (m.u32(this.VIEW + 0x168) & ~0xff) >>> 0);
     m.w32(this.VIEW + 0x164, m.u32(this.VIEW + 0x164) & 0x1f);
+    // sGpuParticle's frame (effects-node.md 4.2): vfn +0x28 0xb8fcbc begins it -- write pointers to the current
+    // triple-buffered VB / IB, used counts 0, CPU staging cursors to the block starts -- and vfn +0x2c 0xb8fdb8 ends
+    // it -- used counts into the stats, the buffer index on, each record's slot 7 (0xb91394). The game brackets its
+    // whole frame with them (0x3d9d3c / 0x3da1b4); nothing between its begin and the effect draw reads what they
+    // write, so the viewer brackets its draw. A cParticleNode's draw (0xaee3d8) fills the staging through its
+    // record (slots 1 / 2 / 0) and submits it with slot 3 (0xb918c4, lifted-gpu.js), whose GPU draw 0x890ce0 is
+    // read here (gpuMeshDraw).
+    const gpu = this.requests ? this.requests.gpu : null;
+    if (gpu) liftedCall(m, 0xb8fcbc, [gpu.manager]);
     invoke(m, 0xbad710, [this.SYS, this.VIEW, 0, 0], [0]);
     for (const o of owners) drawEffect(m, o, this.VIEW);
     invoke(m, 0xbad790, [this.SYS, this.VIEW, 0, 0]);
+    if (gpu) liftedCall(m, 0xb8fdb8, [gpu.manager]);
     if (this.sceneModels) for (const o of owners) this.sceneModelDraws(o);   // off until the red regression is understood
-    return { models: this.modelDraws, prims: this.primDraws };
+    return { models: this.modelDraws, prims: this.primDraws, gpu: this.gpuDraws };
   }
 
 
@@ -477,6 +498,58 @@ export class EffectHost {
     const k = (v - this.FAKE) / 0x40;
     return (Number.isInteger(k) && k >= 0 && this.records[k]) ? this.records[k][0] : null;
   }
+  // What a draw leaves selected in the context's record slots (+0x204 + 8 x record): features (kind 2), textures (1),
+  // samplers (3), constant buffers (0: the block's words), and the rest (7..9).
+  contextSlots(ctx){
+    const m = this.m, recs = this.records;
+    const features = {}, textures = {}, samplers = {}, cb = {}, other = {};
+    for (let i = 0; i < recs.length; i++){
+      const r = recs[i];
+      if (!r) continue;
+      const v = m.rawByte(ctx + 0x204 + 8 * i) | (m.rawByte(ctx + 0x205 + 8 * i) << 8) |
+                (m.rawByte(ctx + 0x206 + 8 * i) << 16) | (m.rawByte(ctx + 0x207 + 8 * i) << 24);
+      if (!v) continue;
+      if (r[1] === 2) features[r[0]] = this.recordName(v >>> 0);
+      else if (r[1] === 1){ const h = this.handles.get(v >>> 0); textures[r[0]] = h ? h.name : '0x' + (v >>> 0).toString(16); }
+      else if (r[1] === 3) samplers[r[0]] = this.recordName(v >>> 0);
+      else if (r[1] === 9 || r[1] === 7 || r[1] === 8) (other[r[0]] = this.recordName(v >>> 0) || '0x' + (v >>> 0).toString(16));
+      else if (r[1] === 0 && r[2]){
+        const words = [];
+        for (let k = 0; k < (r[2] & 0xffff); k++) words.push(m.u32((v >>> 0) + 4 * k));
+        cb[r[0]] = words;
+      }
+    }
+    return { features, textures, samplers, cb, other };
+  }
+  // 0x890ce0(ctx, index count, first index, 0): the INDEXED GPU DRAW, reached here from sGpuParticle's record A draw
+  // (0xb918c4, lifted-gpu.js: a cParticleNode's particles as quads). The context is read at the call as the primitive
+  // draw's is at 0x881584 -- its record slots, the states (+0x118 blend, +0x11c depth-stencil, +0x120 rasterizer), the
+  // input layout (+0x1c8), +0x154 (topology in bits 21..28, the alpha test) and +0x164 (the pass and sort key) -- and
+  // the buffers it binds: the vertex buffer object at +0x124 (stride byte +0x134, byte offset +0x138) and the index
+  // buffer object at +0x14c, NVN buffers kept mapped at object +0x18 (nvnBufferMap, 0xb08390 / 0xaffa90; proof.js
+  // gpuMap), into which the draw copied its staging (0xb92fd8 / 0xb92fec). Indices are u16 strips, 0xffff between.
+  gpuMeshDraw(args){
+    const m = this.m, ctx = args[0] >>> 0, count = args[1] >>> 0, first = args[2] >>> 0;
+    if (args[3] >>> 0) throw new Unverified('0x890ce0 with a base vertex');
+    const ibmem = m.u32(m.u32(ctx + 0x14c) + 0x18), vbmem = m.u32(m.u32(ctx + 0x124) + 0x18);
+    const stride = m.rawByte(ctx + 0x134), vboff = m.u32(ctx + 0x138);
+    const indexList = new Uint16Array(count);
+    let vertices = 0;
+    for (let i = 0; i < count; i++){
+      const a = ibmem + 2 * (first + i);
+      const v = indexList[i] = m.rawByte(a) | (m.rawByte(a + 1) << 8);
+      if (v !== 0xffff && v + 1 > vertices) vertices = v + 1;
+    }
+    const vertexBytes = new Uint8Array(vertices * stride);
+    for (let i = 0; i < vertexBytes.length; i++) vertexBytes[i] = m.rawByte(vbmem + vboff + i);
+    this.gpuDraws.push(Object.assign(this.contextSlots(ctx), {
+      vertices, stride, vertexBytes, indexList,
+      blend: this.recordName(m.u32(ctx + 0x118)), depth: this.recordName(m.u32(ctx + 0x11c)),
+      raster: this.recordName(m.u32(ctx + 0x120)), layout: m.u32(ctx + 0x154), key: m.u32(ctx + 0x164), w178: m.u32(ctx + 0x178),
+      technique: (this.records[m.u32(ctx + 0x1d8) & 0xfff] || [])[0],
+      inputLayout: (this.records[m.u32(ctx + 0x1c8) & 0xfff] || [])[0] }));
+  }
+
   // 0x881584: room for the batch. The context is read here -- every slot the draw leaves selected.
   primDraw(args, stack){
     const m = this.m, ctx = args[0] >>> 0, recs = this.records;
@@ -501,6 +574,7 @@ export class EffectHost {
     this.pending = { vertices: args[2] >>> 0, indices: args[3] >>> 0, stride: stack[0] >>> 0, features, textures, samplers, cb, other,
                      blend: this.recordName(m.u32(ctx + 0x118)), depth: this.recordName(m.u32(ctx + 0x11c)),
                      raster: this.recordName(m.u32(ctx + 0x120)), layout: m.u32(ctx + 0x154),
+                     key: m.u32(ctx + 0x164), w178: m.u32(ctx + 0x178),                   // the command's sort key (live.js)
                      inputLayout: (this.records[m.u32(ctx + 0x1c8) & 0xfff] || [])[0] };   // ctx+0x1c8: the layout record's key
     return this.VBUF;
   }

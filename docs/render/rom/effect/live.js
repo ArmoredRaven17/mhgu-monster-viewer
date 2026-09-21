@@ -30,7 +30,7 @@
 // Interfaces the draws never select (FFogVTF, FAlphaTest, ...) run their own bodies (no fog, no alpha test).
 import * as THREE from 'three';
 import { EffectHost } from './host.js';
-import { linkPrimitive, cbUniforms, FORMATS } from './primshader.js';
+import { linkPrimitive, linkProgram, GPU_PARTICLE, alphaTestOf, cbUniforms, FORMATS } from './primshader.js';
 import { linkMaterial } from './modelshader.js';
 import { EffectSchedule } from './schedule.js';
 import { rank as rankFilters, constants as filterConstants, FilterPass } from './filter.js';
@@ -50,11 +50,12 @@ function pages(b){
 }
 async function loadShared(){
   if (shared) return shared;
-  const [rom, records, drawSystem, shaders, modelShaders, romPages] = await Promise.all([
+  const [rom, records, drawSystem, shaders, modelShaders, gpuShaders, romPages] = await Promise.all([
     loadJson('effects/rom.json'), loadJson('effects/mfx-records.json'), loadJson('effects/draw-system.json'),
-    loadJson('effects/prim-shaders.json'), loadJson('effects/model-shaders.json'), bytes('effects/rom-pages.bin')]);
+    loadJson('effects/prim-shaders.json'), loadJson('effects/model-shaders.json'), loadJson('effects/gpu-shaders.json'),
+    bytes('effects/rom-pages.bin')]);
   shared = { rom, records: records.records, drawSystem: Uint8Array.from(drawSystem.bytes.match(/../g), h => parseInt(h, 16)),
-             shaders, modelShaders, romPages: pages(romPages) };
+             shaders, modelShaders, gpuShaders, romPages: pages(romPages) };
   return shared;
 }
 
@@ -107,6 +108,51 @@ function stripsToTriangles(indices){
   return out;
 }
 
+// A draw's vertices and strips into a mesh's geometry: each layout element as its own attribute over the draw's bytes.
+// The buffers are kept and rewritten in place, and grow by replacing the whole geometry: an attribute replaced on its
+// own keeps its GPU buffer until the geometry is disposed.
+function writeGeometry(mesh, p, d){
+  const n = d.vertices;
+  const triangles = stripsToTriangles(d.indexList);
+  let g = mesh.geometry;
+  const fits = mesh.userData.layoutKey === p && g.index && g.index.count >= triangles.length &&
+               p.attributes.every(a => { const at = g.getAttribute(a.name); return at && at.count >= n; });
+  if (!fits){
+    g.dispose();
+    g = mesh.geometry = new THREE.BufferGeometry();
+    const capacity = c => Math.max(64, 2 ** Math.ceil(Math.log2(Math.max(c, 1))));
+    for (const a of p.attributes){
+      const f = FORMATS[a.format];
+      g.setAttribute(a.name, new THREE.BufferAttribute(new f.array(capacity(n) * a.count), a.count, f.normalized).setUsage(THREE.DynamicDrawUsage));
+    }
+    g.setIndex(new THREE.BufferAttribute(new Uint32Array(capacity(triangles.length)), 1).setUsage(THREE.DynamicDrawUsage));
+    mesh.userData.layoutKey = p;
+  }
+  for (const a of p.attributes){
+    const f = FORMATS[a.format];
+    const width = f.size * a.count;
+    const at = g.getAttribute(a.name);
+    const out = new Uint8Array(at.array.buffer, at.array.byteOffset, n * width);
+    const src = d.vertexBytes;
+    for (let v = 0; v < n; v++) out.set(src.subarray(v * d.stride + a.offset, v * d.stride + a.offset + width), v * width);
+    at.needsUpdate = true;
+  }
+  g.index.array.set(triangles);
+  g.index.needsUpdate = true;
+  g.setDrawRange(0, triangles.length);
+}
+
+// THE ORDER THE GAME EXECUTES A FRAME'S DRAWS IN. A draw call does not draw: 0x890ce0 / 0x881584 each append an entry
+// {key, command} to the context's list (0x890db4..0x890df4, 0x881820..0x881860), key = pass (ctx+0x164 bits 0..4) << 27 |
+// ((ctx+0x164 >> 5) + (ctx+0x178 >> 5)) & 0x7ffffff; once a frame each section's list is merge-sorted, ascending,
+// unsigned, stable (0x87f410 -> 0x87eea8, the left element winning ties), and the executor walks it in that order
+// (0xbbba00). A cParticleNode's draws and the primitive batches are one section (sUnit's draw pushes none between the
+// unit draws and the primitive draw 0xbad790), all pass 0x11: the node's key is its depth key << 12 | its record's
+// address bits 8..19 (0xb91ba8..0xb91bc4), a batch's its layer depth key << 12 | its part number (0xbac744..0xbac758) --
+// both far before near. Submitted first (the unit draws precede the primitive draw), the nodes win a full tie.
+// The record's heap address is the viewer's heap's, not the game's: two draws with the SAME depth key order by it.
+export const commandKey = d => (((d.key & 0x1f) << 27) | ((((d.key >>> 5) + ((d.w178 || 0) >>> 5)) & 0x7ffffff))) >>> 0;
+
 const T_NEAR_IS_ZERO = new THREE.Matrix4().set(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
 const VIEW_BUFFER = /^(CBViewProjection|CBScreen)_/;
 
@@ -131,12 +177,13 @@ export class LiveEffects {
     this.scene = new THREE.Scene();              // the effect meshes, rendered by the frame driver
     this.meshes = [];
     this.modelMeshes = [];
+    this.gpuMeshes = [];
     this.glbs = new Map();
     this.programs = new Map();
     this.textures = new Map();
     this.last = null;
     this.acc = 0;
-    this.stats = { frames: 0, steps: 0, prims: 0, models: 0 };
+    this.stats = { frames: 0, steps: 0, prims: 0, models: 0, gpu: 0 };
     this.gameJoints = new Map();                 // joint -> the game's 16-float matrix this step (writeJoints)
     this.groundOn = groundDefault;
   }
@@ -154,6 +201,7 @@ export class LiveEffects {
     }
     this.shaders = s.shaders;
     this.modelShaders = s.modelShaders;
+    this.gpuShaders = s.gpuShaders;
     this.files = files;
     const host = this.host = new EffectHost({
       pages: s.romPages, heap: s.rom.heap, records: s.records, drawSystem: s.drawSystem, strict: true,
@@ -345,6 +393,7 @@ export class LiveEffects {
     this.stats.failed = this.failed;
     for (const mesh of this.meshes) mesh.visible = false;
     for (const mesh of this.modelMeshes) mesh.visible = false;
+    for (const mesh of this.gpuMeshes) mesh.visible = false;
     console.warn('live effects stopped: ' + this.failed);
   }
 
@@ -379,20 +428,23 @@ export class LiveEffects {
       if (this.schedule.running === 0 && this.host.heap > this.heapBase) this.host.heapReset(this.heapBase);
       for (const mesh of this.meshes) mesh.visible = false;
       for (const mesh of this.modelMeshes) mesh.visible = false;
-      this.stats.prims = this.stats.models = 0;
+      for (const mesh of this.gpuMeshes) mesh.visible = false;
+      this.stats.prims = this.stats.models = this.stats.gpu = 0;
       return;
     }
     // the camera the effect draw sorts by (and the model draw's sort key reads): this render's camera,
     // in the game's units, into the camera block (+0x40 position, +0x70 view, +0xb0 its inverse)
     const cam = this.cameraMatrices(camera);
     this.host.setCamera({ position: cam.position.toArray(), view: Array.from(cam.view.elements), world: Array.from(cam.viewI.elements) });
-    const { prims, models } = this.host.drawFrame(effects);
-    this.stats.frames++; this.stats.prims = prims.length; this.stats.models = models.length;
+    const { prims, models, gpu } = this.host.drawFrame(effects);
+    this.stats.frames++; this.stats.prims = prims.length; this.stats.models = models.length; this.stats.gpu = gpu.length;
     const ground = !!(this.groundOn && this.unitOnGround);
     if (this.ground) this.ground.visible = ground;
     this.depth = this.sceneDepth(renderer, scene, camera);
     this.syncModels(models, renderer, cam);
     this.sync(prims, renderer, cam);
+    this.syncGpu(gpu, renderer, cam);
+    this.order(gpu, prims);
     // into the same target, over what is there: no clear
     const autoClear = renderer.autoClear;
     renderer.autoClear = false;
@@ -627,37 +679,7 @@ export class LiveEffects {
         this.meshes[k] = mesh;
         this.scene.add(mesh);
       }
-      // vertices: each layout element as its own attribute over the draw's bytes. The buffers are kept and
-      // rewritten in place, and grow by replacing the whole geometry: an attribute replaced on its own keeps
-      // its GPU buffer until the geometry is disposed.
-      const n = d.vertices;
-      const triangles = stripsToTriangles(d.indexList);
-      let g = mesh.geometry;
-      const fits = mesh.userData.layoutKey === p && g.index && g.index.count >= triangles.length &&
-                   p.attributes.every(a => { const at = g.getAttribute(a.name); return at && at.count >= n; });
-      if (!fits){
-        g.dispose();
-        g = mesh.geometry = new THREE.BufferGeometry();
-        const capacity = c => Math.max(64, 2 ** Math.ceil(Math.log2(Math.max(c, 1))));
-        for (const a of p.attributes){
-          const f = FORMATS[a.format];
-          g.setAttribute(a.name, new THREE.BufferAttribute(new f.array(capacity(n) * a.count), a.count, f.normalized).setUsage(THREE.DynamicDrawUsage));
-        }
-        g.setIndex(new THREE.BufferAttribute(new Uint32Array(capacity(triangles.length)), 1).setUsage(THREE.DynamicDrawUsage));
-        mesh.userData.layoutKey = p;
-      }
-      for (const a of p.attributes){
-        const f = FORMATS[a.format];
-        const width = f.size * a.count;
-        const at = g.getAttribute(a.name);
-        const out = new Uint8Array(at.array.buffer, at.array.byteOffset, n * width);
-        const src = d.vertexBytes;
-        for (let v = 0; v < n; v++) out.set(src.subarray(v * d.stride + a.offset, v * d.stride + a.offset + width), v * width);
-        at.needsUpdate = true;
-      }
-      g.index.array.set(triangles);
-      g.index.needsUpdate = true;
-      g.setDrawRange(0, triangles.length);
+      writeGeometry(mesh, p, d);
       // material: one per program and draw slot; uniforms are this draw's
       if (!mesh.material || mesh.userData.programKey !== p){
         mesh.material = new THREE.RawShaderMaterial({ glslVersion: THREE.GLSL3, vertexShader: p.vertexShader, fragmentShader: p.fragmentShader, uniforms: {} });
@@ -681,9 +703,76 @@ export class LiveEffects {
     for (let k = prims.length; k < this.meshes.length; k++) this.meshes[k].visible = false;
   }
 
+  // ---- sGpuParticle draws: a cParticleNode's particles ------------------------------------------------------
+  // Each is record A's GPU draw as the host read it at 0x890ce0 (host.gpuMeshDraw): TGPUParticle pass 0 linked for the
+  // draw's feature slots (docs/effects/gpu-shaders.json, efx/shader/glsl.py --gpu), its IAGPUParticle vertices -- four
+  // 32-byte corners a particle (position, colour, scale, pattern index, intensity, rotation, corner) -- and u16 strips
+  // with 0xffff between (topology code 4, which the command executor draws as NVN primitive 5 with restart 0xffff,
+  // 0xbbbae8 / 0xbbba7c), its CBGPUParticleTex / CBGPUParticleEx, its texture, blend / depth / rasterizer states, and the
+  // fixed-function alpha test its +0x154 carries (primshader.js alphaTestOf). The view's buffers are this render's.
+  syncGpu(draws, renderer, cam){
+    const common = this.commonUniforms(renderer, cam);
+    for (let k = 0; k < draws.length; k++){
+      const d = draws[k];
+      if (d.technique !== 'TGPUParticle') throw new Error('live effects: GPU draw technique ' + d.technique);
+      const topology = (d.layout >>> 21) & 0xff;
+      if (topology !== 4) throw new Error('live effects: GPU draw topology code ' + topology);
+      const alphaTest = alphaTestOf(d.layout);
+      const key = 'gpu|' + d.inputLayout + '|' + Object.keys(d.features).sort().map(f => d.features[f]).join(',') + '|' +
+                  (alphaTest ? alphaTest.func + ':' + alphaTest.ref : 'none');
+      let p = this.programs.get(key);
+      if (!p){ p = linkProgram(this.gpuShaders, d.inputLayout, d.features, GPU_PARTICLE, alphaTest); this.programs.set(key, p); }
+      let mesh = this.gpuMeshes[k];
+      if (!mesh){
+        mesh = new THREE.Mesh(new THREE.BufferGeometry(), null);
+        mesh.frustumCulled = false;
+        this.gpuMeshes[k] = mesh;
+        this.scene.add(mesh);
+      }
+      writeGeometry(mesh, p, d);
+      if (!mesh.material || mesh.userData.programKey !== p){
+        if (mesh.material) mesh.material.dispose();
+        mesh.material = new THREE.RawShaderMaterial({ glslVersion: THREE.GLSL3, vertexShader: p.vertexShader, fragmentShader: p.fragmentShader, uniforms: {} });
+        mesh.userData.programKey = p;
+      }
+      const mat = mesh.material;
+      const u = mat.uniforms;
+      for (const [name, { type, value }] of Object.entries(cbUniforms(this.gpuShaders, d.cb))){
+        if (VIEW_BUFFER.test(name)) continue;                      // the renderer's (the header)
+        const v = type === 'float' ? value[0] : type === 'vec2' ? new THREE.Vector2(...value) : type === 'vec3' ? new THREE.Vector3(...value)
+                : type === 'vec4' ? new THREE.Vector4(...value) : type === 'mat4' ? new THREE.Matrix4().fromArray(value) : null;
+        if (v !== null) u[name] = { value: v };
+      }
+      for (const [name, value] of Object.entries(common)) u[name] = { value };
+      u.tBaseMap = { value: this.texture(d.textures.tBaseMap) };
+      applyState(mat, this.gpuShaders, d.blend, d.depth, d.raster);
+      mesh.renderOrder = 1000 + k;                     // until order() places it among the batches
+      mesh.visible = !!(u.tBaseMap.value || !/BaseMap/.test(d.features.FGPUParticleSample || ''));
+    }
+    for (let k = draws.length; k < this.gpuMeshes.length; k++) this.gpuMeshes[k].visible = false;
+  }
+
+  // the pass-0x11 draws in the order the game's sorted command list runs them (commandKey above): the node draws in their
+  // submission order, then the primitive batches in theirs, stably sorted by key
+  // (stats.reordered counts batches the sort moves relative to one another: the primitive layer draws its batches in its
+  // own depth order (0xc8cc58), which the keys are expected to agree with)
+  order(gpu, prims){
+    const all = [...gpu.map((d, k) => ({ d, mesh: this.gpuMeshes[k] })), ...prims.map((d, k) => ({ d, mesh: this.meshes[k], prim: k }))];
+    for (const e of all) if ((e.d.key & 0x1f) !== 0x11) throw new Error('live effects: a pass-0x11 draw in pass 0x' + (e.d.key & 0x1f).toString(16));
+    const sorted = all.map((e, i) => [commandKey(e.d), i, e]).sort((a, b) => (a[0] - b[0]) || (a[1] - b[1]));
+    let last = -1, moved = 0;
+    sorted.forEach(([, , e], rank) => {
+      e.mesh.renderOrder = 1000 + rank;
+      if (e.prim !== undefined){ if (e.prim < last) moved++; last = Math.max(last, e.prim); }
+    });
+    this.stats.reordered = moved;
+  }
+
   detach(){
     if (this.group.parent) this.group.parent.remove(this.group);
     for (const mesh of this.meshes){ mesh.geometry.dispose(); if (mesh.material) mesh.material.dispose(); this.scene.remove(mesh); }
+    for (const mesh of this.gpuMeshes){ mesh.geometry.dispose(); if (mesh.material) mesh.material.dispose(); this.scene.remove(mesh); }
+    this.gpuMeshes.length = 0;
     for (const mesh of this.modelMeshes){ if (mesh.material) mesh.material.dispose(); this.scene.remove(mesh); }   // the geometry is the glb's
     this.meshes.length = 0;
     this.modelMeshes.length = 0;

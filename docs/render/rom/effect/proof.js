@@ -20,9 +20,10 @@
 // transcribed from 0x32a284.
 import { Unverified } from './mem.js';
 import { liftedCall } from './bridge.js';
-import { registerNative } from './cpu.js';
+import { registerNative, clobber } from './cpu.js';
 import './lifted-proof.js';
 import './lifted-request.js';
+import './lifted-gpu.js';
 import { L_a91c48 } from './lifted-particles.js';
 import { registerCode, ownerMatrix } from './owner.js';
 
@@ -52,6 +53,30 @@ registerNative(0xc04f84, (m, c) => { m.svc.registerUnit(c.r[0] >>> 0, c.r[1] >>>
 // and draw them; that consumer is not the effect's code, so the request is taken here, as the recorder takes it
 // (efx/proofunit.py 'filter_submit'), for the host to draw (filter.js).
 registerNative(0xb8f05c, (m, c) => { m.svc.filterSubmit(c.r[0] >>> 0, c.r[1] >>> 0, c.r[2] >>> 0); });
+
+// sGpuParticle's driver side (E:/offline/decode/notes/effects-node.md section 8; efx/proofunit.py build_gpu_particle): the
+// NVN buffer procs its ctor calls through .bss pointers, GPU memory pool 5 and the device -- answered at the fixed
+// addresses the recorder uses, through m.svc (installRequests).
+export const NVN_SET_DEVICE = 0x7e001020, NVN_SET_DEFAULTS = 0x7e001024, NVN_SET_STORAGE = 0x7e001028,
+             NVN_INITIALIZE = 0x7e00102c, NVN_MAP = 0x7e001030, NVN_FINALIZE = 0x7e001034, POOL_ALLOC = 0x7e001038, POOL_FREE = 0x7e00103c;
+const NVN_SLOTS = [[0x1918704, NVN_SET_DEVICE], [0x1918708, NVN_SET_DEFAULTS], [0x191870c, NVN_SET_STORAGE],
+                   [0x191871c, NVN_INITIALIZE], [0x1918728, NVN_MAP], [0x1918724, NVN_FINALIZE]];
+const POOL_BYTES = 0x200000;
+// Each answers through m.svc under the recorder's service name, so a check replays them in the game's order.
+registerNative(NVN_SET_DEVICE, (m, c) => { c.r[0] = m.svc.gpuStub('nvn_set_device', c.r[0] >>> 0) >>> 0; });
+registerNative(NVN_SET_DEFAULTS, (m, c) => { c.r[0] = m.svc.gpuStub('nvn_set_defaults', c.r[0] >>> 0) >>> 0; });
+registerNative(NVN_FINALIZE, (m, c) => { c.r[0] = m.svc.gpuStub('nvn_finalize', c.r[0] >>> 0) >>> 0; });
+registerNative(NVN_SET_STORAGE, (m, c) => { m.svc.gpuSetStorage(c.r[0] >>> 0, c.r[1] >>> 0, c.r[2] >>> 0, c.r[3] >>> 0); c.r[0] = 0; });
+registerNative(NVN_INITIALIZE, (m, c) => { c.r[0] = m.svc.gpuInitialize(c.r[0] >>> 0, c.r[1] >>> 0) >>> 0; });
+registerNative(NVN_MAP, (m, c) => { c.r[0] = m.svc.gpuMap(c.r[0] >>> 0) >>> 0; });
+registerNative(POOL_ALLOC, (m, c) => { c.r[0] = m.svc.gpuPoolAlloc(c.r[1] >>> 0, c.r[2] >>> 0, c.r[0] >>> 0) >>> 0; });
+registerNative(POOL_FREE, (m, c) => { c.r[0] = m.svc.gpuStub('gpu_pool_free', c.r[0] >>> 0) >>> 0; });
+// RECORD A'S DRAW (sGpuParticle record vtable 0x178e160 slot 3, 0xb918c4, with its fog features, slot 8 0xb913fc) runs
+// LIFTED (lifted-gpu.js; effects-node.md 5.2-5.4): the pass and sort key, technique, input layout, states, constant
+// buffers and the copies of its staging into the mapped buffers. What it hands the GPU, the indexed draw
+// 0x890ce0(ctx, index count, first index, 0), is the host's to render: the context is read there (host.gpuMeshDraw),
+// as the primitive draw's is at 0x881584 (prim.js). Recorded the same way: efx/vecdrawsched.py GPU_DRAW_ROM=1.
+registerNative(0x890ce0, (m, c) => { m.svc.gpuMeshDraw([c.r[0], c.r[1], c.r[2], c.r[3]]); clobber(c); c.r[0] = 0; });
 
 // TEMPORARILY BACK OUT the ed&4 path (2026-09-20): with it on, Raven reports the RED energy effect no
 // longer renders. Until that regression is understood, ed&4 Model generators are skipped again -- their
@@ -160,6 +185,36 @@ export function installRequests(m, malloc){
   // the unit manager sUnit (*0x211ff48) by its own newInstance 0xc0374c: 64 move lines, each flags word 0x3fd
   // (0xc037d4); effect code reads a line's flags byte for the line in a unit's flags (the filter gate, 0xa82660)
   state.sunit = liftedCall(m, 0xc0374c).r[0];
+  // sGpuParticle (*0x211f5d4) by its own ctor 0xb8f968(obj, 0x60000, 0x20000), as the boot builds it (0x3d81b0) and
+  // efx/proofunit.py build_gpu_particle does: pool 5 ([0x189f148 + 0x14], vtable +0x1c alloc / +0x34 free, +0x58 base,
+  // +0x5b0 an opaque NVN pool), the device ([0x211f998] + 0x90) and the NVN proc pointers
+  {
+    const gpu = state.gpu = { storage: new Map(), buffers: new Map(), base: malloc(POOL_BYTES), cursor: 0 };
+    gpu.cursor = gpu.base;
+    m.svc.gpuPoolAlloc = (size, align) => {
+      align = Math.max(align, 1);
+      const at = Math.ceil(gpu.cursor / align) * align;
+      gpu.cursor = at + size;
+      if (gpu.cursor > gpu.base + POOL_BYTES) throw new Unverified('GPU pool 5 stand-in exhausted');
+      return at;
+    };
+    m.svc.gpuSetStorage = (builder, pool, offset, size) => { gpu.storage.set(builder, [pool, offset, size]); };
+    m.svc.gpuInitialize = (buffer, builder) => { gpu.buffers.set(buffer, gpu.base + gpu.storage.get(builder)[1]); return 1; };
+    m.svc.gpuMap = buffer => gpu.buffers.get(buffer);
+    m.svc.gpuStub = () => 0;
+    const pool = malloc(0x800), pvt = malloc(0x100);
+    m.w32(pvt + 0x1c, POOL_ALLOC); m.w32(pvt + 0x34, POOL_FREE);
+    m.w32(pool, pvt); m.w32(pool + 0x58, gpu.base); m.w32(pool + 0x5b0, malloc(0x100));
+    m.w32(0x189f148 + 5 * 4, pool);
+    const dev = malloc(0x100);
+    m.w32(dev + 0x90, malloc(0x1000));
+    m.w32(0x211f998, dev);
+    for (const [slot, addr] of NVN_SLOTS) m.w32(slot, addr);
+    const M = malloc(0x114);
+    liftedCall(m, 0xb8f968, [M, 0x60000, 0x20000]);
+    m.w32(0x211f5d4, M);
+    gpu.manager = M;
+  }
   state.manager = liftedCall(m, 0x4111c).r[0];
   if (!state.manager) throw new Unverified('MH effect manager: none');
   state.units.length = 0;

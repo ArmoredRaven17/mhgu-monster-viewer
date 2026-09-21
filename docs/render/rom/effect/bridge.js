@@ -51,8 +51,11 @@ function native(address, fn, argSpec, result){
 // registered lazily: polyline.js and construct.js import this file, so their exports may not exist yet
 const A1 = ['r0'], A2 = ['r0', 'r1'], A3 = ['r0', 'r1', 'r2'], A4 = ['r0', 'r1', 'r2', 'r3'];
 
-native(0x1ebe8, (m, ...a) => polyline.matMul(m, ...a), A2, null);
-native(0x29d00, (m, ...a) => polyline.matMulTo(m, ...a), A3, null);
+// 0x1ebe8 / 0x29d00, the matrix products, run LIFTED (lifted-math.js), not as these hand translations: the ROM routines
+// push d8-d15 on entry, and a later routine reads that dead stack -- the genType-2 draw 0xa996e4 copies a local buffer
+// with one word it never initialises (0x7ffffcd8 in efx/vectors/node_k5), which in the game holds what 0x29d00 pushed.
+// polyline.matMul / matMulTo stay for the JS callers.
+import './lifted-math.js';
 native(0x320ed4, (m, ...a) => spawn.eulerMatrix(m, ...a), A3, null);
 
 // 0xca6874(params, v1, v2, mul, s0 = the camera distance) -> an int: the DISTANCE FADE the draws apply (110 callers).
@@ -122,6 +125,11 @@ export const RESMGR_RELEASE = 0x7e000144;
 native(RESMGR_RELEASE, () => 0, [], 'r0');
 // 0x9baa9c (uEffect vtable +0xd0): the start, which setting an effect's list calls (0x9ba238, lifted-proof.js)
 native(0x9baa9c, (m, ...a) => C.startEffect(m, ...a), A1, 'r0');
+// 0x9bd16c / 0x9bd174 (uEffect vtable +0xf8 / +0x100, the proof effect's too): each one instruction, `bx lr` -- every
+// register comes back as it went in, so no clobber. A cParticleNode's frame prep (0xaeda7c) and pre-update (0xaedafc)
+// call them on the owner.
+registerNative(0x9bd16c, () => {});
+registerNative(0x9bd174, () => {});
 // A parent unit's getDTI (vtable +0x14), which a start on a parent asks (0x9ba080 walks the chain for
 // uModel). The emulator's stand-in parent (efx/parent.py GETDTI) answers from this address with its
 // monster's class: uEm043_00's DTI 0x184a218 (its getDTI thunk 0xe812ac, GOT 0x18325fc). A host whose
@@ -188,6 +196,7 @@ native(0x13ecd58, (m, d, n, v) => { for (let i = 0; i < n; i++) m.w8(d + i, v & 
 native(0x13ecbb4, (m, d, n) => { for (let i = 0; i < n; i++) m.w8(d + i, 0); return d; }, A2, 'r0');          // __aeabi_memclr4(dest, n)
 native(0x13ecbfc, (m, d, n) => { for (let i = 0; i < n; i++) m.w8(d + i, 0); return d; }, A2, 'r0');          // __aeabi_memclr8(dest, n)
 native(0x13ecbe4, (m, d, n) => { for (let i = 0; i < n; i++) m.w8(d + i, 0); return d; }, A2, 'r0');          // __aeabi_memclr(dest, n)
+native(0x13ece0c, () => 0, [], 'r0');   // nn::os::GetCurrentThread: 0, as the emulator answers an unknown import
 // 0x9bd170, uEffect vtable +0xfc: bx lr (the generator's preUpdate calls it) -- touches no register
 registerNative(0x9bd170, () => {});
 // 0x9bca30, the node DRAW-REGISTRATION: the lifted node update (L_9bba54) reaches it by a direct bl when a
