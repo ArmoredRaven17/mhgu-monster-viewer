@@ -306,6 +306,15 @@ function servicesFor(v, problems, m, known = () => true){
       const s = next('unit_register');
       // sUnit, line, unit: r3 is not an argument (the harness logs whatever it held)
       for (let k = 0; k < 3; k++) if ((args[k] >>> 0) !== s[1][k]) problems.push('unit_register r' + k + ' 0x' + (args[k] >>> 0).toString(16) + ', game 0x' + s[1][k].toString(16));
+      // the service's own write, as efx/proofunit.py and proof.js make it: the unit's move line into flags bits 3..9 --
+      // UNTRACKED (a vector records the instructions' writes, not the service's), so later reads see it but it is not
+      // compared as the routine's write; and only for entries recorded with it (tagged lineWrite)
+      const unit = args[2] >>> 0, line = args[1] >>> 0;
+      if (unit && s[2] && s[2][2] && s[2][2].lineWrite){
+        const w = ((m.rawByte(unit + 0xc) | (m.rawByte(unit + 0xd) << 8) | (m.rawByte(unit + 0xe) << 16) | (m.rawByte(unit + 0xf) << 24)) >>> 0);
+        const v = ((w & ~(0x7f << 3)) | ((line & 0x7f) << 3)) >>> 0;
+        m.load(unit + 0xc, [v & 0xff, (v >>> 8) & 0xff, (v >>> 16) & 0xff, v >>> 24]);
+      }
     },
     // a type-9 generator's screen-filter request (0xb8f05c): the 0xf0 bytes it submits, as the game submitted them
     filterSubmit(mgr, req, param){

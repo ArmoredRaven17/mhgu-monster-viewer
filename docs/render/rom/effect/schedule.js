@@ -50,6 +50,8 @@
 // emitters (0x327e7c: gracefully for the record's +0x3b 0, at once for 1) and the core waits in state 2 while it
 // runs out, drawn, until its last effect is gone (0x426e0; the ROM's own limit there is 1800 frames). Only then
 // is the request finished() and dropped.
+import { createShellState, stepShells, SHELL_DATA } from '../../shells.js';
+
 const hex = h => Uint8Array.from(h.match(/../g) || [], b => parseInt(b, 16));
 
 const WALK_BITS = 32;                // cMhEffectSequence +0xc4: one state word per bit of a PSL block
@@ -96,11 +98,12 @@ export class EffectSchedule {
     }
   }
 
-  // one 1/60 s step: the clip's walker, the unit passes over every request, then the plain effects' moves
+  // one 1/60 s step: the clip's walker, the unit passes over every request (the shells between the update and the
+  // move pass), then the plain effects' moves
   step(){
     this.frame = (this.frame || 0) + 1;
     this.walk();
-    this.host.unitFrame();
+    this.host.unitFrame(this.shells ? () => this.stepShells() : undefined);
     for (const e of this.entries) if (!e.def.record) this.host.move(e.owner);
     this.host.pruneUnits();
     for (const e of this.entries) if (e.requests.length) e.requests = e.requests.filter(q => !q.finished());
@@ -164,6 +167,47 @@ export class EffectSchedule {
         out.push(e.requests[e.requests.length - 1]);
       }
     return out;
+  }
+
+  // THE SHELLS (render/shells.js, the Shell Agent's translation of the monster's shell code): a monster whose shells are
+  // decoded (SHELL_DATA) gets them stepped here once per step, BETWEEN the unit passes -- the enemy's action spawns a
+  // shell in its move (line 4) and the shell's own move (line 18) places its effect, both before the effects' move
+  // (line 22) and after every update pass. joints: gid => the game's 16-float joint matrix this step (live.js).
+  useShells(monId, joints){
+    this.shells = SHELL_DATA[monId] ? { monId, state: createShellState(monId), joints } : null;
+  }
+  stepShells(){
+    const S = this.shells, c = this.clip, m = this.host.m;
+    let list = null, clip = null;
+    if (c && c.key){ const k = c.key.split('|'); list = k[1]; clip = k.slice(2).join('|'); }
+    // the handle's unit in state 1 or 2 (0x3ff958). A shell spawned this step has not had its request started yet --
+    // the ROM starts it in the shell's init, before the shell's first move -- so a pending start counts as alive
+    const alive = sh => sh.request === undefined ? !!sh.start
+                      : !!(sh.request && (((m.u32(sh.request.core + 0xc) & 7) - 1) >>> 0) < 2);
+    const out = stepShells(S.state, { monId: S.monId, list, clip, frame: c && clip ? c.frame : 0,
+                                      loopStart: c && c.start ? c.start : null, joints: S.joints, rage: this.rage,
+                                      effectAlive: (sh, param) => param === 0 && alive(sh) });
+    const pose = sh => this.host.setParentPose(sh.parent, { position: sh.position, quaternion: [0, 0, 0, 1], scale: sh.start.requester.scale[0] });
+    // a spawned shell's init starts its _ef param 0 on itself (0x4a10c8 / 0x4a11e4): the 'shell' record with that key,
+    // hung from the shell (a parent with no joints: its model interface) with the requester the ROM fills
+    for (const sh of out.spawned){
+      if (!sh.start){ sh.request = null; continue; }
+      const e = this.entries.find(x => x.when === 'shell' && x.def.record && x.def.record.pel === sh.start.pel && x.def.record.key === sh.start.key);
+      if (!e){ sh.request = null; continue; }                   // no such record exported: the effect is not there
+      sh.parent = this.host.createParent([]);
+      if (sh.position) pose(sh);
+      const r = e.def.record;
+      sh.request = this.host.requestEffect(e.owner, sh.parent, { index: r.index, key: r.key, path: r.path, payload: hex(r.payload) },
+                                           undefined, sh.start.requester);
+      e.requests.push(sh.request);
+      this.starts++;
+    }
+    // each moving shell places its effect (0x329c9c / 0x329d04); an ended one stops it gracefully (0x329c40(h, 0))
+    for (const sh of out.alive){
+      if (sh.parent && sh.position) pose(sh);
+      if (sh.place && sh.request && alive(sh)) this.host.placeRequest(sh.request, sh.place.position, sh.place.rotationDeg);
+    }
+    for (const sh of out.ended) if (sh.stop && sh.request && alive(sh) && !sh.request.stopped) this.host.stopRequest(sh.request);
   }
 
   // the effects to draw this frame: every request not yet finished, a stopped one included -- it runs out on screen

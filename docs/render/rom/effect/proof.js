@@ -139,7 +139,9 @@ export function installRequests(m, malloc){
     state.filters.push({ bytes, param });
   };
   m.svc.handleValid = () => 1;
-  m.svc.handleUnit = () => state.handleParent;
+  // the handle's own parent (ProofRequest stores it at handle +8, which only this service reads), so requests hung
+  // from different parents -- the monster's and a shell's -- each get theirs (efx/proofunit.py does the same)
+  m.svc.handleUnit = h => (h && m.u32(h + 8)) || state.handleParent;
   m.svc.requestLoad = (dti, path) => {
     let name = ''; for (let a = path, c; (c = m.u8(a)) !== 0; a++) name += String.fromCharCode(c);
     const list = state.lists.get(name);
@@ -169,7 +171,7 @@ const vslot = (m, obj, slot) => m.u32((m.u32(obj) + slot) >>> 0);
 // record: { index, key, path, payload (Uint8Array) }; list: the loaded rEffectList handle for record.path;
 // parent: the parent unit (host.createParent's object).
 export class ProofRequest {
-  constructor(m, state, { list, parent, record, area = AREA }){
+  constructor(m, state, { list, parent, record, area = AREA, requester = null }){
     const malloc = state.malloc;
     this.m = m; this.state = state;
     m.w32(list + 0x50, (m.u32(list + 0x50) | 1) >>> 0);
@@ -178,6 +180,7 @@ export class ProofRequest {
     state.handleParent = parent;
     const H = this.handle = malloc(0x40), HVT = malloc(0x40);
     m.w32(H, HVT); m.w32(HVT, HANDLE_VALID); m.w32(HVT + 4, HANDLE_GET);
+    m.w32(H + 8, parent);
     const idx = record.index;
     const L = this.list = malloc(0x100), recs = malloc(4 * (idx + 1));
     m.w32(L + 0x90, idx + 1); m.w32(L + 0x9c, recs);
@@ -197,6 +200,19 @@ export class ProofRequest {
     liftedCall(m, 0x40a54, [Q]);
     m.w8(Q + 0xc, area);
     m.w32(Q + 0xd0, H); m.w32(Q + 0x1c, (m.u32(Q + 0x1c) | 2) >>> 0);
+    if (requester){
+      // A SHELL'S requester (E:/offline/decode/notes/shells-em043.md section 1), as efx/proofunit.py fills it:
+      // 0x4a10c8 sets +0x1c |= 3, +0xc0..+0xcc the anchor position (w 0), +0x14 |= 0x40000000 with +0x40..+0x4c =
+      // (ShellScale x3, 0), +4 = 0; the shell sets +0x14 |= 2 with +0x30..+0x3c the rotation override (degrees,
+      // w 0); 0x4a11e4 sets +8 = 3. The parent (+0xd0's handle) is the shell's model interface.
+      const r = requester, v4 = (a, v) => { for (let k = 0; k < 3; k++) m.wf32(a + 4 * k, v[k]); m.w32(a + 12, 0); };
+      m.w32(Q + 0x1c, (m.u32(Q + 0x1c) | (r.flags1c == null ? 3 : r.flags1c)) >>> 0);
+      v4(Q + 0xc0, r.position);
+      m.w32(Q + 0x14, (m.u32(Q + 0x14) | (r.flags14 == null ? 0x40000002 : r.flags14)) >>> 0);
+      v4(Q + 0x40, r.scale);
+      v4(Q + 0x30, r.rotationDeg);
+      m.w32(Q + 4, 0); m.w32(Q + 8, r.type8 == null ? 3 : r.type8);
+    }
     const C = this.core = malloc(0x350);
     liftedCall(m, 0x41e54, [C]);
     liftedCall(m, 0x328b48, [C, L, 2, idx], [Q + 0x10]);
@@ -246,7 +262,9 @@ export function releaseRequest(state, request){
 }
 
 // One frame of the unit passes over every unit the requests registered (proofunit.py unit_frame).
-export function unitFrame(m, state){
+// between: called after the update pass and before the move pass -- where a shell's move places its effect (the
+// shell's move line 18 runs before the effects' line 22 in the move pass, after every update; efx/proofunit.py)
+export function unitFrame(m, state, between){
   state.filters = [];
   for (const [u] of state.units.slice()){                                   // update pass
     m.wf32(u + 0x1c, DT);
@@ -254,6 +272,7 @@ export function unitFrame(m, state){
     if ((w & 7) === 1){ m.w32(u + 0xc, ((w & ~7) | 2) >>> 0); liftedCall(m, vslot(m, u, 0x18), [u]); }
     if ((m.u32(u + 0xc) & 0x407) === 0x402) liftedCall(m, vslot(m, u, 0x24), [u]);
   }
+  if (between) between();
   for (const [u] of state.units.slice()){                                   // move pass
     const w = m.u32(u + 0xc);
     if ((w & 7) === 1){

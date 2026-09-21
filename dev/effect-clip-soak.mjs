@@ -77,6 +77,11 @@ if (existsSync(jointsFile)){
   console.log('(no ' + jointsFile + ': joints ' + joints.join(',') + ' at stand-in positions)');
 }
 const schedule = new EffectSchedule(host, parent, owners.map((owner, i) => ({ owner, def: def.effects[i] })), false);
+// the monster's shells (render/shells.js) as live.js runs them, on the same joints (a pose at rest, not the clip's)
+if (existsSync(jointsFile)){
+  const jf = JSON.parse(readFileSync(jointsFile, 'utf8'));
+  schedule.useShells(monster, gid => jf.joints[gid] ? jf.joints[gid].map(Math.fround) : null);
+}
 
 const m = host.m;
 const liveReport = () => schedule.entries.flatMap(e => e.requests.map(q => {
@@ -97,7 +102,7 @@ try {
     const total = 2 * (motion.frames - 1);
     for (let k = 0; k <= total + 1; k++){
       const frame = k % (motion.frames - 1);  // the clip loops back to its first frame
-      schedule.setClip(monster + '|' + name, frame, motion, 0);
+      schedule.setClip(monster + '|' + (name.match(/^L(\d+) /) || [0, ''])[1] + '|' + name.replace(/^L\d+ /, ''), frame, motion, 0);
       schedule.step();
       const d = host.drawFrame(schedule.effects());
       prims += d.prims.length; models += d.models.length;

@@ -7100,6 +7100,8 @@ async function runScene(name){
 }
 window.__view = { camera, controls, scene, world, renderer, frameAll, pose, state, MON, mounted,
                   monsterMats, runScene, capture: captureHarness, clip: clipHarness };
+// ?shells: debug markers for the shells render/shells.js reproduces from the ROM (render/shells-debug.js)
+if (new URLSearchParams(location.search).has('shells')) import('./render/shells-debug.js').then(m => m.attachShellsDebug(window.__view));
 
 // ---- BACKGROUND PANEL -------------------------------------------------------------------
 // A map's sky, scenery and ground behind the monster; render/background.js has the why and the how. Raven,

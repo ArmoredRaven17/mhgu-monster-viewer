@@ -157,7 +157,7 @@ export const HANDLE_VALID = 0x7e001004, HANDLE_GET = 0x7e001008;
 export const PARENT_ADD_EFFECT = 0x7e001010;
 native(PARENT_ADD_EFFECT, () => 0, [], 'r0');
 native(HANDLE_VALID, (m) => m.svc.handleValid(), [], 'r0');
-native(HANDLE_GET, (m) => m.svc.handleUnit(), [], 'r0');
+native(HANDLE_GET, (m, h) => m.svc.handleUnit(h), A1, 'r0');           // the handle's own parent (proof.js)
 // The resource manager's load (vtable +0x30) a request's state machine calls for its record's path
 // (0x323b40): the host answers with the list it loaded (m.svc.requestLoad).
 export const REQUEST_LOAD = 0x7e00100c;

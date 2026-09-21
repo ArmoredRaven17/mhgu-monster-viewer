@@ -33,7 +33,7 @@ import { invoke } from './cpu.js';
 import * as modeldraw from './modeldraw.js';
 import './prim.js';
 import { proofStart, installRequests, ProofRequest, unitFrame, pruneUnits, releaseRequest, stopRequest, AREA } from './proof.js';
-import { PARENT_GETDTI, PARENT_ADD_EFFECT, RESMGR_RELEASE, MATERIAL_VM } from './bridge.js';
+import { PARENT_GETDTI, PARENT_ADD_EFFECT, RESMGR_RELEASE, MATERIAL_VM, liftedCall } from './bridge.js';
 
 const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 const u32bytes = v => new Uint8Array(new Uint32Array([v >>> 0]).buffer);
@@ -233,11 +233,22 @@ export class EffectHost {
   // A monster's effect request, whole (proof.js ProofRequest): the core and the uMHProofEffect it makes, from
   // the record ({ index, key, path, payload }) whose list createEffect loaded (owner +0xf4), hung from
   // parent. The first request builds the boot objects. Every frame: unitFrame(), then draw request.effects().
-  requestEffect(owner, parent, record, area = AREA){
+  requestEffect(owner, parent, record, area = AREA, requester = null){
     if (!this.requests) this.requests = installRequests(this.m, n => this.malloc(n));
-    return new ProofRequest(this.m, this.requests, { list: this.m.u32(owner + 0xf4), parent: parent.object, record, area });
+    return new ProofRequest(this.m, this.requests, { list: this.m.u32(owner + 0xf4), parent: parent.object, record, area, requester });
   }
-  unitFrame(){ if (this.requests) unitFrame(this.m, this.requests); }
+  // between: called after the update pass, before the move pass (proof.js unitFrame) -- where a shell places its effect
+  unitFrame(between){ if (this.requests) unitFrame(this.m, this.requests, between); }
+  // A SHELL'S per-frame placement of its effect (E:/offline/decode/notes/shells-em043.md section 1): 0x329c9c(h, pos,
+  // 0) writes the position into the core's effects (+0x40, w 0) and 0x329d04(h, rotDeg, 0) their rotation (degrees x
+  // pi/180 through 0x8a4dfc) -- the ROM's own routines, lifted.
+  placeRequest(q, position, rotationDeg){
+    const m = this.m, v = this.malloc(0x20);
+    for (let k = 0; k < 3; k++){ m.wf32(v + 4 * k, position[k]); m.wf32(v + 0x10 + 4 * k, rotationDeg[k]); }
+    m.w32(v + 12, 0); m.w32(v + 0x1c, 0);
+    liftedCall(m, 0x329c9c, [q.core, v, 0]);
+    liftedCall(m, 0x329d04, [q.core, v + 0x10, 0]);
+  }
   // units the passes no longer act on (state 3) off the list; a request off the passes altogether (proof.js)
   pruneUnits(){ if (this.requests) pruneUnits(this.m, this.requests); }
   // Take a request off the unit passes (proof.js). Called on a request that has already been stopped and

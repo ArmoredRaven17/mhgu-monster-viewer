@@ -137,6 +137,7 @@ export class LiveEffects {
     this.last = null;
     this.acc = 0;
     this.stats = { frames: 0, steps: 0, prims: 0, models: 0 };
+    this.gameJoints = new Map();                 // joint -> the game's 16-float matrix this step (writeJoints)
     this.groundOn = groundDefault;
   }
 
@@ -205,6 +206,9 @@ export class LiveEffects {
     // a record: the monster's request, whole (proof.js ProofRequest) -- the core makes the effect the game
     // draws, a uMHProofEffect, which the unit passes run every frame -- made when schedule.js says
     this.schedule = new EffectSchedule(host, parent, this.effects, rage);
+    // the monster's SHELLS (render/shells.js), when its shells are decoded: stepped by the schedule, from this
+    // step's joints in the game's convention (writeJoints keeps them in gameJoints)
+    this.schedule.useShells(this.def.monster, gid => this.gameJoints.get(gid) || null);
     // the heap after the mount's own allocations (draw system, effects, parent, any auto-started effect): the
     // floor frame() rewinds the bump heap to when nothing is running, freeing what looping clip starts leak
     this.heapBase = host.heap;
@@ -267,6 +271,7 @@ export class LiveEffects {
         el[12] /= MT_TO_VIEW; el[13] /= MT_TO_VIEW; el[14] /= MT_TO_VIEW;
         // three.js stores columns; the game's rows in memory order are exactly that array
         this.host.setJointMatrix(this.parent, j, Array.from(el));
+        this.gameJoints.set(j, Array.from(el, Math.fround));   // the shells read the same matrices (shells.js)
       }
     }
   }
