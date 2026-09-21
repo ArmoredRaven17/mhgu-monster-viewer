@@ -268,9 +268,11 @@ export class ProofRequest {
       const r = requester, v4 = (a, v) => { for (let k = 0; k < 3; k++) m.wf32(a + 4 * k, v[k]); m.w32(a + 12, 0); };
       m.w32(Q + 0x1c, (m.u32(Q + 0x1c) | (r.flags1c == null ? 3 : r.flags1c)) >>> 0);
       v4(Q + 0xc0, r.position);
-      m.w32(Q + 0x14, (m.u32(Q + 0x14) | (r.flags14 == null ? 0x40000002 : r.flags14)) >>> 0);
+      // a rock's shell sets no rotation override (shells-em043.md 9.4 step 6): +0x14 keeps 0x4a10c8's 0x40000000 alone
+      const rot = r.rotationDeg != null;
+      m.w32(Q + 0x14, (m.u32(Q + 0x14) | (r.flags14 == null ? (rot ? 0x40000002 : 0x40000000) : r.flags14)) >>> 0);
       v4(Q + 0x40, r.scale);
-      v4(Q + 0x30, r.rotationDeg);
+      if (rot) v4(Q + 0x30, r.rotationDeg);
       m.w32(Q + 4, 0); m.w32(Q + 8, r.type8 == null ? 3 : r.type8);
     }
     const C = this.core = malloc(0x350);

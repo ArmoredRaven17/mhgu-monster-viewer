@@ -182,12 +182,22 @@ export class EffectSchedule {
     if (c && c.key){ const k = c.key.split('|'); list = k[1]; clip = k.slice(2).join('|'); }
     // the handle's unit in state 1 or 2 (0x3ff958). A shell spawned this step has not had its request started yet --
     // the ROM starts it in the shell's init, before the shell's first move -- so a pending start counts as alive
-    const alive = sh => sh.request === undefined ? !!sh.start
-                      : !!(sh.request && (((m.u32(sh.request.core + 0xc) & 7) - 1) >>> 0) < 2);
+    const reqAlive = q => !!(q && (((m.u32(q.core + 0xc) & 7) - 1) >>> 0) < 2);
+    const alive = sh => sh.request === undefined ? !!sh.start : reqAlive(sh.request);
+    // THE ROCKS (shells-em043.md 9) take three inputs the game gives and the ROM does not read here -- which rock the AI
+    // picks, the target its aim reads, the stage it lands on -- so they come from the viewer (rockInput(): { variant,
+    // target, floorY } in game units, or null: no rock), with the monster's facing as the u16 the unit keeps.
+    const rock = this.rockInput ? this.rockInput() : null;
     const out = stepShells(S.state, { monId: S.monId, list, clip, frame: c && clip ? c.frame : 0,
                                       loopStart: c && c.start ? c.start : null, joints: S.joints, rage: this.rage,
-                                      effectAlive: (sh, param) => param === 0 && alive(sh) });
-    const pose = sh => this.host.setParentPose(sh.parent, { position: sh.position, quaternion: [0, 0, 0, 1], scale: sh.start.requester.scale[0] });
+                                      rock, owner: rock ? { x: 0, y: this.ownerYaw16(), z: 0 } : undefined,
+                                      // param 0 is the shell's own effect; a rock's bounce / landing effect is the handle's
+                                      effectAlive: (sh, param, h) => param === 0 ? alive(sh) : reqAlive(h && h.request) });
+    // a breath shell's effect is placed (0x329c9c / 0x329d04, below); a rock's is bound to the shell, which keeps its own
+    // position and angles -- the parent carries both (host.setParentAngles: 0x539cd4 -> 0x8a4dfc)
+    const pose = sh => sh.angles && !sh.place
+      ? this.host.setParentAngles(sh.parent, { position: sh.position, angles: sh.angles, scale: sh.start.requester.scale[0] })
+      : this.host.setParentPose(sh.parent, { position: sh.position, quaternion: [0, 0, 0, 1], scale: sh.start.requester.scale[0] });
     // a spawned shell's init starts its _ef param 0 on itself (0x4a10c8 / 0x4a11e4): the 'shell' record with that key,
     // hung from the shell (a parent with no joints: its model interface) with the requester the ROM fills
     for (const sh of out.spawned){
@@ -207,7 +217,27 @@ export class EffectSchedule {
       if (sh.parent && sh.position) pose(sh);
       if (sh.place && sh.request && alive(sh)) this.host.placeRequest(sh.request, sh.place.position, sh.place.rotationDeg);
     }
+    // a rock's bounce / landing effect: started by its move at the contact point (placed: placement mode 3), hung from
+    // the shell's parent; the handle keeps the request, so the rock's ending waits for it (shells.js effect2)
+    for (const { shell: sh, start } of out.started){
+      const e = this.entries.find(x => x.when === 'shell' && x.def.record && x.def.record.pel === start.pel && x.def.record.key === start.key);
+      if (!e || !sh.parent) continue;                             // no such record exported: the effect is not there
+      const r = e.def.record;
+      const q = this.host.requestEffect(e.owner, sh.parent, { index: r.index, key: r.key, path: r.path, payload: hex(r.payload) },
+                                        undefined, start.requester);
+      e.requests.push(q);
+      this.starts++;
+      if (sh.effect2) sh.effect2.request = q;
+    }
     for (const sh of out.ended) if (sh.stop && sh.request && alive(sh) && !sh.request.stopped) this.host.stopRequest(sh.request);
+  }
+  // the monster's facing as the u16 angle a unit keeps (+0x54; forward = (sin Y, 0, cos Y)), from its parent's
+  // quaternion; the float-to-u16 rounding is the viewer's (the unit's own word is not kept here)
+  ownerYaw16(){
+    const q = this.parent ? this.parent.quaternion : [0, 0, 0, 1];
+    const [x, y, z, w] = q;
+    const fx = 2 * (x * z + w * y), fz = 1 - 2 * (x * x + y * y);        // the unit's +Z, turned
+    return Math.round(Math.atan2(fx, fz) * 65536 / (2 * Math.PI)) & 0xffff;
   }
 
   // the effects to draw this frame: every request not yet finished, a stopped one included -- it runs out on screen

@@ -33,6 +33,7 @@ import { EffectHost } from './host.js';
 import { linkPrimitive, linkProgram, GPU_PARTICLE, alphaTestOf, cbUniforms, FORMATS } from './primshader.js';
 import { linkMaterial } from './modelshader.js';
 import { EffectSchedule } from './schedule.js';
+import { SHELL_DATA } from '../../shells.js';
 import { rank as rankFilters, constants as filterConstants, FilterPass } from './filter.js';
 import { loadJson, getTexture, loadGlb } from '../../assets.js';
 import { gidBonesOf } from '../../skeleton.js';
@@ -246,6 +247,8 @@ export class LiveEffects {
     this.effects = def.effects.map(e => ({ owner: host.createEffect(files[e.efl]), def: e }));
     const parent = this.parent = (named.length || def.effects.some(e => e.record)) ? host.createParent(joints) : null;
     this.joints = joints.map(j => ({ j, bone: (bones.find(b => b.gid === j) || {}).node || null }));
+    // every mapped bone, for a monster whose shells are decoded (writeJoints: a shell's joint comes from its params)
+    this.shellBones = SHELL_DATA[def.monster] ? bones.filter(b => b.gid != null && b.node) : null;
     // ANCHOR (joint -1 = model+0xb0, the model's world-matrix ORIGIN, per the joint getter 0x939278). The
     // mounted group's origin sits on the FLOOR, but the ROM places the model's world matrix at the model's
     // authored root = the skeleton root bone (gid 0). The aura's own nodes are authored well BELOW that
@@ -328,6 +331,16 @@ export class LiveEffects {
         // three.js stores columns; the game's rows in memory order are exactly that array
         this.host.setJointMatrix(this.parent, j, Array.from(el));
         this.gameJoints.set(j, Array.from(el, Math.fround));   // the shells read the same matrices (shells.js)
+      }
+      // A SHELL reads the monster's joints by the numbers its own params give (a rock launches from joint 4, the .shl's
+      // common int 0: shells-em043.md 9.3), not only the ones the effects name -- so for a monster with shells every
+      // bone the model maps goes into the shells' joints too, the same matrices (the parent's joint table is unchanged)
+      if (this.shellBones) for (const { gid, node } of this.shellBones){
+        if (this.gameJoints.has(gid) && this.joints.some(x => x.j === gid)) continue;
+        m.copy(node.matrixWorld);
+        const el = m.elements;
+        el[12] /= MT_TO_VIEW; el[13] /= MT_TO_VIEW; el[14] /= MT_TO_VIEW;
+        this.gameJoints.set(gid, Array.from(el, Math.fround));
       }
     }
   }

@@ -306,6 +306,21 @@ export class EffectHost {
     parent.position = position.slice(); parent.quaternion = quaternion.slice(); parent.scale = scale;
     this.composeParent(parent);
   }
+  // A SHELL'S OWN POSE, as a rock shell keeps it (shells-em043.md 9.8): its position, and the rotation 0x539cd4 (the
+  // shell's vtable +0xcc, after its move) builds from its three u32 angle words +0xfe8 / +0xfec / +0xff0 -- each
+  // vcvt.f32.u32 times 9.58738019e-05 (0x38c90fdb) -- through 0x8a4dfc on the unit, in the unit's own rotation order
+  // (+0x38 = 0x30004: uCoord's 0x8a46a0, which a shell's base constructor reaches as a monster's does: 0x4a0b28 ->
+  // 0x538b34 -> 0x9366e0 -> 0x88b754). The quaternion 0x8a4dfc leaves at +0x50, then the matrices as composeParent.
+  setParentAngles(parent, { position, angles, scale }){
+    const m = this.m, F = Math.fround, k = bitsf32(0x38c90fdb);
+    const v = this.angleVec || (this.angleVec = this.malloc(0x10));
+    for (let i = 0; i < 3; i++) m.wf32(v + 4 * i, F(F(angles[i] >>> 0) * k));
+    m.w32(v + 12, 0);
+    liftedCall(m, 0x8a4dfc, [parent.object, v]);
+    const q = [0, 4, 8, 12].map(o => m.f32(parent.object + 0x50 + o));
+    parent.position = position.slice(); parent.quaternion = q; parent.scale = scale;
+    this.composeParent(parent);
+  }
   // Position +0x40, quaternion +0x50, scale +0x60 and the matrices the ROM composes from them, in its own
   // single-precision operations: the local matrix +0x70 (0x8a53bc: the quaternion's rotation, the position
   // in the last row) and, for a unit with no parent, the world matrix +0xb0 (0x8a5480: the local matrix

@@ -5,7 +5,7 @@
 // ROM's code that only the animated joints (or the viewer's camera) reach shows up here as the refusal the live page
 // would stop on -- live.js fail() stops every effect of the monster at the first one.
 //
-//   node dev/effect-live-soak.mjs <monster> [motion key ...] [--url http://localhost:3000] [--swiftshader] [--camera sweep] [--rage] [--wiring]
+//   node dev/effect-live-soak.mjs <monster> [motion key ...] [--url http://localhost:3000] [--swiftshader] [--camera sweep] [--rage] [--wiring] [--rock <variant>]
 //
 // Without --url it serves docs/ itself (dev/serve.py on a free port). Each motion is played whole, twice (a motion the
 // viewer splits: its _start once, then its _loop twice), with the viewer's clip loop on; after a refusal the runtime is
@@ -17,6 +17,8 @@
 // auras run through every motion (live.js setRage, as the viewer's Enraged toggle starts them). --wiring: every 15
 // frames, each visible effect material's compiled program is read back from WebGL: active uniforms the viewer never
 // set (they read 0), attributes the geometry lacks (a constant), samplers with no texture -- per program, at the end.
+// --rock <shell00_0 | shell00_8 | shell54_0>: a TEST input for Savage's rock throw (shells.js): the rock lands on the
+// unit's own floor height, aimed at a point 2000 units ahead -- test stand-ins, not the viewer's choice.
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import net from 'node:net';
@@ -34,6 +36,7 @@ const swiftshader = flag('--swiftshader');
 const camera = opt('--camera') || 'fit';
 const rage = flag('--rage');
 const wiring = flag('--wiring');
+const rockVariant = opt('--rock');
 const [monster, ...only] = argv;
 if (!monster){ console.log('usage: node dev/effect-live-soak.mjs <monster> [motion key ...] [--url <viewer>] [--swiftshader]'); process.exit(2); }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -62,7 +65,7 @@ const evaluate = (c, expression) => c.send('Runtime.evaluate', { expression, awa
   .then(r => { if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception ? r.exceptionDetails.exception.description : r.exceptionDetails.text); return r.result.value; });
 
 // Runs IN THE PAGE (serialised): the soak, started and left running; window.__soak holds its progress.
-function pageSoak(MONID, ONLY, CAMERA, RAGE, WIRING){
+function pageSoak(MONID, ONLY, CAMERA, RAGE, WIRING, ROCK){
   window.__soak = { status: 'starting', results: [], t0: performance.now() };
   (async () => {
     const S = window.__soak;
@@ -80,6 +83,8 @@ function pageSoak(MONID, ONLY, CAMERA, RAGE, WIRING){
       await V.effects(false); await V.effects(true);
       let fx = M.effectRuntimeInstance();
       if (RAGE && fx) fx.setRage(true);
+      const setRock = rt => { if (ROCK && rt && rt.schedule) rt.schedule.rockInput = () => { const p = rt.parent.position; return { variant: ROCK, target: { x: p[0], y: p[1], z: p[2] + 2000 }, floorY: p[1] }; }; };
+      setRock(fx);
       const sched = M.CLIP_EFFECTS[MONID] || {};
       // a monster with no clip effects (its effects are auras) plays its first clip for 600 frames instead: '(idle)'
       const keys0 = Object.keys(sched);
@@ -134,7 +139,7 @@ function pageSoak(MONID, ONLY, CAMERA, RAGE, WIRING){
                     : list.clips.some(c => c.clip === base) ? [[base, 2]]
                     : [[base + '_start', 1], [base + '_loop', 2]].filter(([n]) => list.clips.some(c => c.clip === n));
         if (!parts.length){ S.results.push({ key, skip: !list ? 'no list carries it' : 'no clip' }); continue; }
-        if (!fx || fx.failed){ await V.effects(false); await V.effects(true); fx = M.effectRuntimeInstance(); if (RAGE && fx) fx.setRage(true); }
+        if (!fx || fx.failed){ await V.effects(false); await V.effects(true); fx = M.effectRuntimeInstance(); if (RAGE && fx) fx.setRage(true); setRock(fx); }
         const starts0 = fx.schedule.starts, regrouped0 = fx.stats.regrouped || 0;
         let frames = 0, fail = null, maxRun = 0, drew = 0;
         if (V.state.list !== list.id){ listSel.value = list.id; await listSel.onchange(); }
@@ -219,7 +224,7 @@ async function main(){
   }
   await evaluate(c, '__view.renderer.setAnimationLoop(null), true');      // only the soak steps from here on
   soaking = true;
-  console.log(await evaluate(c, `(${pageSoak.toString()})(${JSON.stringify(monster)}, ${JSON.stringify(only)}, ${JSON.stringify(camera)}, ${JSON.stringify(rage)}, ${JSON.stringify(wiring)})`), monster, 'in', site, 'camera', camera, rage ? 'enraged' : '');
+  console.log(await evaluate(c, `(${pageSoak.toString()})(${JSON.stringify(monster)}, ${JSON.stringify(only)}, ${JSON.stringify(camera)}, ${JSON.stringify(rage)}, ${JSON.stringify(wiring)}, ${JSON.stringify(rockVariant)})`), monster, 'in', site, 'camera', camera, rage ? 'enraged' : '');
   let shown = 0, refused = 0, S;
   for (;;){
     await sleep(2000);
