@@ -16,7 +16,9 @@
 // LEAVING THE STATE. An entry with `stop: 'request'` is ended the way its monster's code ends it -- Teostra's
 // aura goes out through a stop request (0x329c40(core, 0) at 0xe1108c) and fades over its own frames; the
 // core it kept is forgotten there, so the next rage starts a new aura beside the fading one (0xe111d8 has
-// nothing to kill). Any other 'rage' effect comes off at once: how the game ends Savage's is not read.
+// nothing to kill). Savage's aura and eyes end the same way: its rage controller (0xe80500, variant 5 only)
+// stops both handles with 0x329c40(h, 0) at 0xe805e8 / 0xe8060c when rage ends. Any other 'rage' effect comes
+// off at once, which is only right where its monster's code is read to kill it.
 //
 // A request that has run its course (proof.js finished()) is dropped, and units the passes no longer act
 // on come off the list (pruneUnits). Every start builds the request anew -- the heap is a bump allocator, so
