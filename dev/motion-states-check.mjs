@@ -184,6 +184,40 @@ async function pageCheck(){
   check(same(drawn(), user0) && ms().cur === null, 'at its end the parts are the user\'s again', { d: drawn(), cur: ms().cur });
   V.state.loop = true;
 
+  // 9. THE ROCK THROW with the viewer's stand-in inputs (index.html rockInput): each play of L2 Motion[24] throws the
+  //    next of the three rocks; the flying effect (u 0, cm202_200) starts at the spawn, the landing (u 10, cm202_250)
+  //    and the bouncing rock's bounces (u 20, cm202_001) where they touch the grid floor
+  const host = fx.schedule.host, request0 = host.requestEffect.bind(host);
+  const reqLog = [];
+  let lastRock = null;
+  await frames(2);
+  const rockIn = fx.schedule.rockInput;
+  check(typeof rockIn === 'function', 'the viewer hands the schedule its rock inputs');
+  if (rockIn) fx.schedule.rockInput = () => (lastRock = rockIn());
+  host.requestEffect = (...a) => {
+    const r = request0(...a);
+    const name = String((a[2] && a[2].path) || '').split(String.fromCharCode(92)).pop().split('/').pop();
+    reqLog.push({ name, variant: lastRock && lastRock.variant, frame: V.pose.action ? Math.round(V.pose.action.time * 60) : -1 });
+    return r;
+  };
+  await play('2', 'Motion[24]');
+  await frames(3 * dur('2', 'Motion[24]') + 240);
+  const flying = reqLog.filter(r => r.name === 'cm202_200');
+  check(flying.length >= 3, 'L2 Motion[24] played three times: a rock each play (u 0)', reqLog.filter(r => /^cm202_(200|250|001)$/.test(r.name)));
+  check(same(flying.slice(0, 3).map(r => r.variant), ['shell00_0', 'shell00_8', 'shell54_0']), 'each play takes the next rock: flat, lob, bouncing', flying);
+  check(reqLog.some(r => r.name === 'cm202_250'), 'a rock lands on the grid floor: u 10', reqLog.filter(r => /^cm202_/.test(r.name)));
+  check(reqLog.some(r => r.name === 'cm202_001'), 'the bouncing rock bounces: u 20', reqLog.filter(r => /^cm202_/.test(r.name)));
+  const t = lastRock && lastRock.target;
+  const P = fx.parent.position, yaw = fx.schedule.ownerYaw16() * 2 * Math.PI / 65536;
+  check(t && Math.abs(t.x - (P[0] + 2100 * Math.sin(yaw))) < 1e-3 && Math.abs(t.z - (P[2] + 2100 * Math.cos(yaw))) < 1e-3 && t.y === lastRock.floorY,
+        'the target is a point 2100 in front of the monster, on the floor', { lastRock, P, yaw });
+  reqLog.length = 0;
+  await play('2', 'Motion[23]'); await frames(dur('2', 'Motion[23]'));
+  check(reqLog.some(r => r.name === 'cm202_200'), 'L2 Motion[23]: a rock too', reqLog.filter(r => /^cm202_/.test(r.name)));
+  host.requestEffect = request0;
+  if (rockIn) fx.schedule.rockInput = rockIn;
+  await play(...REST); await frames(3);
+
   // 8. the table itself: every motion it lists is a clip Savage carries
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
     const [list, clip] = k.split('|');

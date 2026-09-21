@@ -1307,6 +1307,7 @@ import { loadMaterialsDb } from './render/materials-db.js';
 import { createBackground } from './render/background.js';
 import { createFloorGrid } from './render/grid.js';
 import { MotionStates } from './render/motion-states.js';
+import { ROCK_VARIANTS, rockActionFor } from './render/shells.js';
 import { setEyeGlow, updateEyeGlow } from './render/eye-glow.js';
 import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
          partVerts, partsDrawn, applyParts, groupLabel, groupIsInert, setNormalOpt,
@@ -7049,6 +7050,38 @@ function driveClipEffects(){
   }
   rt.schedule.setClip(act ? state.id + '|' + state.list + '|' + base : null, act ? act.time * 60 + splitOffset : 0,
                       base ? clipEffectsFor(state.id, base, state.list) : null, splitOffset);
+  if (!rt.schedule.rockInput) rt.schedule.rockInput = rockInput;
+}
+
+// THE ROCK THROW'S INPUTS (render/shells.js; shells-em043.md 9). The game aims a rock at the hunter its AI targets, the
+// AI picks one of three rocks, and the rock lands on the stage. The viewer has none of the three, so it stands in, in
+// the game units the shells read (the viewer's world / 0.01, as live.js writes the joints):
+//   * the TARGET is a point on the grid floor straight in front of the monster (Raven, 2026-09-21: "The target can
+//     simply be a point in front of the monster when it comes to animations that need a target. We don't need to render
+//     the target, just specify a point"), TARGET_AHEAD from its unit along its facing (the owner facing the shells
+//     read, schedule.ownerYaw16: forward = (sin Y, 0, cos Y)). The aim reads it once, at the spawn, and only for the
+//     throw's pitch: the rock always flies along the facing (9.3). The distance is the viewer's; 2100 is the one the
+//     ROM's own flat / bouncing aim is built around -- its pitch term (h - 2100) / 50 * 96 is 0 there (0xe82234..);
+//   * the STAGE is the grid floor's plane (Raven, 2026-09-21: "We have the Grid Floor, can that be used as the stage?");
+//   * each play of a throw (L2 Motion[23] / [24]) takes the next of the ROM's three rocks in turn -- flat (shell00 mode
+//     0), lob (shell00 mode 8), bouncing (shell54 mode 0) -- as no one of them is the game's own choice.
+// Viewer stand-ins, not ROM values. Every monster gets them; only one whose shells have rock actions (Savage) uses them.
+const TARGET_AHEAD = 2100;
+const rockPlays = { key: null, time: 0, n: -1 };
+function rockInput(){
+  const act = pose.action, clipName = act && act.getClip ? act.getClip().name : null;
+  if (clipName && rockActionFor(state.id, state.list, clipName, ROCK_VARIANTS[0])){
+    const key = state.id + '|' + state.list + '|' + clipName;
+    if (key !== rockPlays.key || act.time < rockPlays.time) rockPlays.n++;       // a new play of a throw
+    rockPlays.key = key; rockPlays.time = act.time;
+  } else rockPlays.key = null;
+  const rt = effectRuntimeInstance(), P = rt && rt.parent;
+  if (!P || !rt.schedule) return null;
+  const y = monsterFloorY() / 0.01;
+  const yaw = rt.schedule.ownerYaw16() * 2 * Math.PI / 65536;
+  return { variant: ROCK_VARIANTS[Math.max(0, rockPlays.n) % ROCK_VARIANTS.length],
+           target: { x: P.position[0] + TARGET_AHEAD * Math.sin(yaw), y, z: P.position[2] + TARGET_AHEAD * Math.cos(yaw) },
+           floorY: y };
 }
 
 // PARTS AND STATES IN A MOTION (render/motion-states.js). Raven, 2026-09-21: "Animations that involve part breaks or
