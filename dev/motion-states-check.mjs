@@ -93,6 +93,7 @@ async function pageCheck(){
     return true;
   };
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const monsterFloor = () => window.__view.grid.info().y;            // the grid floor (rounded to 3 places)
   const REST = ['2', 'Motion[2]'];                  // a motion the table does not list
   V.state.loop = true;
   await play(...REST); await frames(3);
@@ -141,8 +142,36 @@ async function pageCheck(){
   d = drawn();
   // (switching to list 3 passes through its first clip, L3 Motion[2] -- the shock trap's effect fires there, as it should)
   check(fired.filter(k => k === 900).length === 1 && d[8] === true && d[9] === false && d[101] === false, 'L3 Motion[15]: u 900, the tail severed (set 12)', { fired, d });
+  // THE CUT TAIL, as the ROM drops it (tail-option-em043.md): at joint 142 on the sever frame, at rest on G from frame
+  // 53 turned qa x Q(54), u 905 at G once at frame 42
+  const piece = V.mounted['em043_05_tail'];
+  const ct0 = V.cutTail();
+  const wp = o => o.getWorldPosition(new V.camera.position.constructor());
+  const bone142 = ((V.mounted.main.userData.gidBones || []).find(b => b.gid === 142) || {}).node || null;
+  check(piece && piece.visible && ct0, 'L3 Motion[15]: the cut tail is shown', { visible: piece && piece.visible, ct0 });
+  const pErr = ct0 ? Math.hypot(ct0.pose.position[0] * 0.01 - wp(piece).x, ct0.pose.position[1] * 0.01 - wp(piece).y, ct0.pose.position[2] * 0.01 - wp(piece).z) : -1;
+  check(ct0 && ct0.k <= 3 && pErr >= 0 && pErr < 1e-4, 'drawn where the ROM formula puts it on its frame', { k: ct0 && ct0.k, pErr });
+  const bJ = bone142 ? wp(bone142) : null;
+  check(ct0 && bJ && Math.hypot(ct0.J[0] * 0.01 - bJ.x, ct0.J[2] * 0.01 - bJ.z) < 0.25, 'J is joint 142 (the tail\'s cut end, give or take the motion since)', { J: ct0 && ct0.J, bone: bJ && [bJ.x / 0.01, bJ.y / 0.01, bJ.z / 0.01] });
+  const landingFires = [];
+  const fa0 = fx.fireAt.bind(fx);
+  fx.fireAt = (pel, key, pos) => { landingFires.push([key, ct0 ? V.cutTail().k : -1, pos]); return fa0(pel, key, pos); };
+  await frames(60);
+  const ct1 = V.cutTail(), pr = wp(piece);
+  const gErr = ct1 ? Math.hypot(ct1.G[0] * 0.01 - pr.x, ct1.G[1] * 0.01 - pr.y, ct1.G[2] * 0.01 - pr.z) : -1;
+  check(ct1 && ct1.k >= 53 && gErr >= 0 && gErr < 1e-3, 'at rest on G from frame 53', { k: ct1 && ct1.k, gErr, G: ct1 && ct1.G });
+  check(ct1 && Math.abs(ct1.G[1] * 0.01 - (ct1.floor + 0.2 * (V.world.scale.x || 1))) < 1e-4, 'G is 20 S above the grid floor', { Gy: ct1 && ct1.G[1], floor: ct1 && ct1.floor });
+  const wq = piece.getWorldQuaternion(new V.camera.quaternion.constructor());
+  const Q54 = [0, -0.421642065, 0, 0.906762362], qa = ct1 ? ct1.qa : [0, 0, 0, 1];
+  const want = [qa[3] * Q54[0] + qa[0] * Q54[3] + qa[1] * Q54[2] - qa[2] * Q54[1], qa[3] * Q54[1] - qa[0] * Q54[2] + qa[1] * Q54[3] + qa[2] * Q54[0],
+                qa[3] * Q54[2] + qa[0] * Q54[1] - qa[1] * Q54[0] + qa[2] * Q54[3], qa[3] * Q54[3] - qa[0] * Q54[0] - qa[1] * Q54[1] - qa[2] * Q54[2]];
+  const qd = Math.abs(wq.x * want[0] + wq.y * want[1] + wq.z * want[2] + wq.w * want[3]);
+  check(qd > 0.99999, 'turned qa x Q(54) at rest', { got: [wq.x, wq.y, wq.z, wq.w], want });
+  check(landingFires.length === 1 && landingFires[0][0] === 905 && Math.abs(landingFires[0][1] - 42) <= 1, 'u 905 requested once, at frame 42, at G', landingFires);
+  fx.fireAt = fa0;
   await play(...REST); await frames(3);
   check(same(drawn(), user0), 'another motion: the tail is the user\'s again', drawn());
+  check(piece && piece.visible === false && !V.cutTail(), 'and the cut tail is gone (the user\'s tail is intact)', { visible: piece && piece.visible });
 
   // 5. rage entry from calm: rage shown while it plays, the aura and eyes started, Gekikou_Start's clock, set 13
   calls.length = 0;

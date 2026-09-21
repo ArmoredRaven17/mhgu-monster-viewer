@@ -266,9 +266,14 @@ export class ProofRequest {
       // 0x4a10c8 sets +0x1c |= 3, +0xc0..+0xcc the anchor position (w 0), +0x14 |= 0x40000000 with +0x40..+0x4c =
       // (ShellScale x3, 0), +4 = 0; the shell sets +0x14 |= 2 with +0x30..+0x3c the rotation override (degrees,
       // w 0); 0x4a11e4 sets +8 = 3. The parent (+0xd0's handle) is the shell's model interface.
+      // A REQUEST AT A POINT stops there: 0x703b8 (a cut tail's landing, tail-option-em043.md 7) writes the parent
+      // handle, +0x1c |= 3 and the position alone -- no +0x14, +0x40, +4 or +8.
       const r = requester, v4 = (a, v) => { for (let k = 0; k < 3; k++) m.wf32(a + 4 * k, v[k]); m.w32(a + 12, 0); };
       m.w32(Q + 0x1c, (m.u32(Q + 0x1c) | (r.flags1c == null ? 3 : r.flags1c)) >>> 0);
       v4(Q + 0xc0, r.position);
+    }
+    if (requester && !requester.positionOnly){
+      const r = requester, v4 = (a, v) => { for (let k = 0; k < 3; k++) m.wf32(a + 4 * k, v[k]); m.w32(a + 12, 0); };
       // a rock's shell sets no rotation override (shells-em043.md 9.4 step 6): +0x14 keeps 0x4a10c8's 0x40000000 alone
       const rot = r.rotationDeg != null;
       m.w32(Q + 0x14, (m.u32(Q + 0x14) | (r.flags14 == null ? (rot ? 0x40000002 : 0x40000000) : r.flags14)) >>> 0);

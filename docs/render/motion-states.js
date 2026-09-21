@@ -53,9 +53,9 @@ export const MOTION_STATES = {
     // THE TAIL SEVER (breaks-em043.md 4). Part 6's second counter runs out once -> action (10, 0x72): its start hook severs
     // (0xc2274: P+0x3b4 |= 1, then u 900 through 0xa4354 -- cm202_062 on joint 144), and its script (0x17c0c00) plays
     // L3 Motion[15] from frame 0; the part driver shows set 12 with the sever bit, set 10 without (0xe80c00..0xe80c24).
-    // The cut tail -- uEnemyOption slot 0, put at the monster's position + 20 up (0xc2390..0xc2408) -- is not shown yet:
-    // Raven, 2026-09-21: "Follow how the ROM handles tail cut animations"; its update, model and motion are being read.
-    '3|Motion[15]': { part: 'tail', levels: [[10], [12]], fire: [null, ['em043_05u', 900]] },
+    // The cut tail drops on the same frame (render/tail-option.js, tail-option-em043.md; Raven: "Follow how the ROM
+    // handles tail cut animations").
+    '3|Motion[15]': { part: 'tail', levels: [[10], [12]], fire: [null, ['em043_05u', 900]], drops: true },
     // RAGE ENTRY (states-em043.md 1.2). The gauge's request makes the forced transition set rage (0xbcdb0) and start
     // action (1, 2) (command group 6 stream 0), whose phase 0 sets L0 Motion[5] from frame 0 (0xe74d10); the same frame's
     // +0x28 pass requests the aura (u 30, joint 103) and the eyes (u 31, joint 3) (0xe80500), plays Gekikou_Start on the
@@ -148,6 +148,7 @@ export class MotionStates {
   //   entry    rage started over while it was already shown (a rage entry replayed): the effects and the materials'
   //            start clip run from this frame again
   //   fire     [[pel, key], ...] the effect records the game requests at this frame
+  //   drop     the motion's frame 0 drops a cut tail (a sever: index.html stepCutTail flies it from here)
   //   holdOn / holdOff    [[pel, key], ...] event records to keep running from now / to stop now
   //   eyesOff / eyesOn    [[pel, key], ...] rage records to hold off from now / to let run again
   //   clips    the material clips shown changed (clips())
@@ -160,7 +161,7 @@ export class MotionStates {
     const prev = this.cur;
     const rageBefore = this.rage(user.rage), setsBefore = this.setsKey(), clipsBefore = this.clipsKey();
     const holdsBefore = this.holds(), eyesBefore = this.eyesOff();
-    const out = { parts: false, rage: false, entry: false, fire: [], clips: false, settled: false,
+    const out = { parts: false, rage: false, entry: false, fire: [], clips: false, settled: false, drop: false,
                   holdOn: [], holdOff: [], eyesOff: [], eyesOn: [] };
     if (!spec) this.cur = null;
     else if (prev && prev.key === key && (frame >= prev.frame || loopSeg)){
@@ -192,6 +193,8 @@ export class MotionStates {
         out.clips = true;                   // death's clips run from this frame (again, on a loop)
       }
       if (spec.rage === false) c.rage = false;
+      c.frame0 = frame;
+      if (spec.drops) out.drop = true;
       if (!spec.levels && !spec.dead && spec.sets && spec.rage !== true) c.sets = spec.sets;
       // a countdown starts at 0, so its record comes at once (0x7206c), and the period follows
       if (spec.every){ out.fire.push(spec.every[0]); c.timers.push({ rec: spec.every[0], period: spec.every[1], left: spec.every[1] }); }

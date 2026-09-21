@@ -1308,6 +1308,7 @@ import { createBackground } from './render/background.js';
 import { createFloorGrid } from './render/grid.js';
 import { MotionStates } from './render/motion-states.js';
 import { ROCK_VARIANTS, rockActionFor } from './render/shells.js';
+import { CUT_TAIL, CutTail } from './render/tail-option.js';
 import { setEyeGlow, updateEyeGlow } from './render/eye-glow.js';
 import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
          partVerts, partsDrawn, applyParts, groupLabel, groupIsInert, setNormalOpt,
@@ -1337,6 +1338,8 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
 
 // A motion carrying a part break or a state change shows it over the user's choices while it plays (driveMotionStates)
 const motionStates = new MotionStates();
+// a cut tail the game is dropping, { tail, spec, frame0 } (stepCutTail) -- up here: applyPartState reads it at the first mount
+let cutTail = null;
 const errEl = document.getElementById('err');
 const errors = [];
 window.__errors = errors;
@@ -4419,7 +4422,8 @@ function applyPartState(){
       continue;
     }
     const pc = (e.parts || []).find(x => x.name === k);
-    g.visible = !!state.tail || !!(pc && shed.has(pc.kind));
+    // ...or while a cut tail the game drops is flying or lying there (stepCutTail)
+    g.visible = !!state.tail || !!(pc && shed.has(pc.kind)) || !!(cutTail && cutTail.spec.piece === k);
   }
   // applyParts writes o.visible from the part table, so the class toggles run after it
   for (const g of Object.values(mounted)) setUndefinedMaterialVisible(g, state.undef);
@@ -7056,6 +7060,46 @@ function driveClipEffects(){
   if (!rt.schedule.rockInput) rt.schedule.rockInput = rockInput;
 }
 
+// THE CUT TAIL (render/tail-option.js; tail-option-em043.md). A sever's frame 0 drops the monster's tail piece at its
+// joint 142 and flies it on its own clock -- k, the frames the sever motion has advanced since then -- to G, the
+// monster's position on the grid floor (+20 S), where it lands (u 905 at k = 42) and stays, drawn at the ROM's own
+// transform. The piece is the one the Parts panel's Severed shows; it goes back to that panel's say when the motion
+// is over. Each start of the sever motion drops it again from where the tail is then.
+function stepCutTail(r, rt){
+  const spec = motionStates.cur && motionStates.cur.spec.drops ? CUT_TAIL[state.id] : null;
+  const g = spec && mounted[spec.piece];
+  if (!spec || !g){
+    if (cutTail){
+      const piece = mounted[cutTail.spec.piece];
+      cutTail = null;
+      if (piece){ piece.quaternion.identity(); piece.scale.set(1, 1, 1); }
+      placeParts(); applyPartState();
+    }
+    return;
+  }
+  if (r.drop || !cutTail){
+    const bones = gidBonesOf(mounted.main), at = gid => { const b = bones.find(x => x.gid === gid); return b && b.node; };
+    const joint = at(spec.joint), unit = at(0) || mounted.main;
+    if (!joint) return;
+    const J = joint.getWorldPosition(new THREE.Vector3()).divideScalar(0.01);
+    const U = unit.getWorldPosition(new THREE.Vector3()).divideScalar(0.01);
+    const S = world.scale.x || 1;
+    const G = [U.x, monsterFloorY() / 0.01 + spec.above * S, U.z];
+    const first = !cutTail;
+    cutTail = { tail: new CutTail([J.x, J.y, J.z], G), spec, frame0: motionStates.cur.frame0 };
+    if (first) applyPartState();
+  }
+  const k = Math.max(0, Math.floor(motionStates.cur.frame - cutTail.frame0));
+  const landed = cutTail.tail.advance(k);
+  const { position: p, quaternion: q } = cutTail.tail.pose();
+  const s = world.scale.x || 1;
+  g.position.set((p[0] * 0.01 - world.position.x) / s, (p[1] * 0.01 - world.position.y) / s, (p[2] * 0.01 - world.position.z) / s);
+  g.quaternion.set(q[0], q[1], q[2], q[3]);
+  g.scale.set(1, 1, 1);
+  g.visible = true;
+  if (landed && rt) rt.fireAt(spec.landing[0], spec.landing[1], cutTail.tail.G);
+}
+
 // THE ROCK THROW'S INPUTS (render/shells.js; shells-em043.md 9). The game aims a rock at the hunter its AI targets, the
 // AI picks one of three rocks, and the rock lands on the stage. The viewer has none of the three, so it stands in, in
 // the game units the shells read (the viewer's world / 0.01, as live.js writes the joints):
@@ -7119,6 +7163,7 @@ function driveMotionStates(){
     setEffectRage(motionStates.rage(state.rage));
     if (rt){ if (r.entry) rt.restartRage(); else rt.setRage(motionStates.rage(state.rage)); }
   }
+  stepCutTail(r, rt);
   if (rt){
     for (const [pel, key] of r.eyesOff) rt.holdRage(pel, key, true);
     for (const [pel, key] of r.eyesOn) rt.holdRage(pel, key, false);
@@ -7323,6 +7368,9 @@ window.__view.effects = async (on, only) => {
   return { on: effectMountsEnabled(), mounted: effectMountsLive() };
 };
 window.__view.effectsAvailable = () => effectMountsFor(state.id);
+// the cut tail as it flies (render/tail-option.js): J, G (game units) and the frame it is on
+window.__view.cutTail = () => cutTail && { J: cutTail.tail.J, G: cutTail.tail.G, k: cutTail.tail.k, qa: cutTail.tail.qa,
+                                            pose: cutTail.tail.pose(), floor: monsterFloorY() };
 // the break / state driver as it stands (render/motion-states.js; dev/motion-states-check.mjs reads it back)
 window.__view.motionStates = () => ({ cur: motionStates.cur && { key: motionStates.cur.key, sets: motionStates.cur.sets,
                                                              rage: motionStates.cur.rage, clips: motionStates.clips() },

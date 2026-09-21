@@ -363,6 +363,12 @@ export class LiveEffects {
     try { this.schedule.fire(pel, key); }
     catch (e){ this.fail(e); }
   }
+  // an event's effect requested at a point (schedule.js fireAt: the cut tail's landing)
+  fireAt(pel, key, position){
+    if (this.failed || !this.schedule) return;
+    try { this.schedule.fireAt(pel, key, position); }
+    catch (e){ this.fail(e); }
+  }
   // an event's effect held while its state lasts / a rage record held off (schedule.js holdEvent / holdRage)
   holdEvent(pel, key, on){
     if (this.failed || !this.schedule) return;

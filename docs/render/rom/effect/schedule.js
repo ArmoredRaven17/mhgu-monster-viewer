@@ -114,6 +114,22 @@ export class EffectSchedule {
     return out;
   }
 
+  // AN EVENT'S EFFECT AT A POINT -- the cut tail's landing: 0x703b8 requests u 905 with a requester carrying the
+  // position G alone (tail-option-em043.md 7). position: game units. Returns the requests it started.
+  fireAt(pel, key, position){
+    const out = [];
+    for (const e of this.entries)
+      if (e.when === 'event' && e.def.record && e.def.record.pel === pel && e.def.record.key === key){
+        const r = e.def.record;
+        const q = this.host.requestEffect(e.owner, this.parent, { index: r.index, key: r.key, path: r.path, payload: hex(r.payload) },
+                                          undefined, { position, positionOnly: true });
+        e.requests.push(q);
+        this.starts++;
+        out.push(q);
+      }
+    return out;
+  }
+
   // AN EVENT'S EFFECT HELD while its state lasts -- Savage's stun: 0xa3ef0 requests c 1103 once, into one handle, and
   // 0x6f124 stops it with 0x329c40(h, 0) when the stun ends. On starts it unless one of its requests runs un-stopped;
   // off stops those (they run out, as a stop request does).
