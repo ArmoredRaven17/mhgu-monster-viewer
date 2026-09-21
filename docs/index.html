@@ -166,8 +166,8 @@ dl.info dd{margin:0;color:var(--text);font-variant-numeric:tabular-nums;
    .zchart is a damage grid (parts down, types across), .pchart the two narrow record tables. */
 .zchart,.pchart{border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums}
 .pchart{margin:6px}
-/* A Hardness cell is the whole deflect ladder: one swatch per rung (avoids a bounce / bites /
-   bites clean), the selected rung widened and named, the other two initialled. */
+/* A Hardness cell: one swatch, the sharpness a hit needs to NOT BOUNCE (the ladder's floor rung). Tiers 3
+   and 4 are not hardness, so they are not drawn (Raven, 2026-09-21, removing the Rung control). */
 .pchart td.ladder{padding:2px 4px;white-space:nowrap}
 .pchart td.ladder .rung{display:inline-block;min-width:14px;padding:1px 3px;margin:0 1px;
   border-radius:2px;font-size:10px;line-height:13px;opacity:.55}
@@ -689,12 +689,6 @@ input[type=range]{width:100%;accent-color:var(--accent)}
               <option value="f27">G Rank</option>
             </select>
             <div id="monBounceTFixed" hidden>G Rank</div>
-            <label for="monTier" title="The ROM grades every hit 4/3/2/0 and stores it on the hit record (+6). It names none of the tiers, so these are labelled by the threshold they clear. Tier 0 is the bounce. The tier is passed to 0x171c68, which scales an amount by a per-tier table (.rodata 0x0161e364) at 0.5 / 0.75 / 1.0 / 1.1 for tier 0 / 2 / 3 / 4, on 4 of its 9 cases. Which weapons those cases are, and what else the tier drives, is not established.">Rung</label>
-            <select id="monTier">
-              <option value="2">Tier 2 &mdash; the floor</option>
-              <option value="3">Tier 3 &mdash; 0.45</option>
-              <option value="4">Tier 4 &mdash; 0.66</option>
-            </select>
           </div>
           <label class="chk" id="monZoneShowRow"><input type="checkbox" id="monZoneShow" checked>Show the Chart over the Render</label>
           <p class="hint" id="monZoneNote" hidden></p>
@@ -2963,7 +2957,7 @@ const STATE_DEFAULTS = { rage: false, charged: false, heated: true, rageLevel: 0
 const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: false,
                 anchor: false, groundLock: false, normalFlip: false, normalScale: 1,
                 // both OFF by default: see applyUndef and applyExtend
-                undef: false, extend: false, gap: false, proxy: false, ...STATE_DEFAULTS, axes: {}, rawParts: false, heat: '', heatTable: 0, zoneMode: 0, deflectT: 'f25', deflectTier: 2,
+                undef: false, extend: false, gap: false, proxy: false, ...STATE_DEFAULTS, axes: {}, rawParts: false, heat: '', heatTable: 0, zoneMode: 0, deflectT: 'f25',
                 zoneTab: 'raw',
                 zoneShow: true, zonePos: null,
                 zoneColour: ZONE_CAPSULE_AUTO,
@@ -5334,7 +5328,6 @@ async function applyHeat(){
   bounceSel.value = deflectKey();
   bounceSel.hidden = gOnly;
   document.getElementById('monBounceTFixed').hidden = !gOnly;
-  document.getElementById('monTier').value = String(+state.deflectTier || 2);
   const wantTab = tabForHeat(state.heat);
   if (wantTab) state.zoneTab = wantTab;
   const table = zt.rows;
@@ -5357,13 +5350,13 @@ async function applyHeat(){
     if (!map) { for (const g of Object.values(mounted)) clearHeatmap(g); }
     else heatEach(e, g => applyHeatmap(g, map, null, 1, THREE, byPart));
   } else if (shownHeat === 'hardness-cut' || shownHeat === 'hardness-impact'){
-    // Painted the sharpness colour you have to bring to reach the SELECTED RUNG, so the model reads
-    // as "green here, white there" for that tier. A slot no sharpness carries to the rung is left
-    // the default dark, which is the honest answer -- and switching rung repaints the whole model,
-    // which is the ladder doing the work rather than describing itself.
+    // Painted the sharpness colour you have to bring to NOT BOUNCE -- the ladder's floor rung, tier 2 --
+    // so the model reads as "green here, white there". A slot no sharpness lifts off the floor is left
+    // the default dark, which is the honest answer. Only the floor is hardness: tiers 3 and 4 never make
+    // a hit bounce, they grade a hit that already did not (Raven, 2026-09-21, removing the Rung control).
     const type = shownHeat === 'hardness-cut' ? 'cut' : 'impact';
     const t = DEFLECT_T[deflectKey()] || DEFLECT_T.normal;
-    const tier = +state.deflectTier || 2;
+    const tier = 2;
     const bySlot = {};
     table.forEach((row, slot) => {
       const lv = hardnessLevel(row[type], t, tier);
@@ -5698,7 +5691,6 @@ function buildHardnessChart(rec, table){
   const named = zoneNames(rec);
   const slots = zoneSlots(rec);
   const t = DEFLECT_T[deflectKey()] || DEFLECT_T.normal;
-  const tier = +state.deflectTier || 2;
   chart.textContent = '';
   if (!slots.length) return;
   const head = chart.createTHead().insertRow();
@@ -5725,33 +5717,23 @@ function buildHardnessChart(rec, table){
     for (const key of ['cut', 'impact']){
       const td = tr.insertCell();
       const hz = table[sl] && table[sl][key];
-      // EVERY rung is drawn, as three swatches -- the cell is the ladder, not one number with the
-      // rest of it hidden in a tooltip. The selected rung is the one that carries the name.
-      const lad = deflectLadder(hz, t);
-      if (lad[2] === null && lad[3] === null && lad[4] === null){
+      // The floor rung only: the sharpness a hit needs to NOT BOUNCE. Tiers 3 and 4 are not hardness --
+      // they never make a hit bounce -- so they are not drawn (Raven, 2026-09-21).
+      const lv = deflectLadder(hz, t)[2];
+      if (lv === null){
         td.textContent = '—';
         td.title = hz ? 'Bounces at every sharpness' : 'No hit zone';
       } else {
         td.className = 'ladder';
-        for (const rung of DEFLECT_TIERS){
-          const lv = lad[rung];
-          const sw = document.createElement('span');
-          sw.className = 'rung' + (rung === tier ? ' cur' : '');
-          if (lv === null){
-            sw.textContent = '—';
-            sw.title = TIER_LABEL[rung] + ' (' + tierRule(rung, t) + '): out of reach at every sharpness';
-          } else {
-            const c = SHARP_RGB[lv];
-            sw.style.background = 'rgb(' + c.map(x => Math.round(x * 255)).join(',') + ')';
-            const lum = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
-            sw.style.color = lum > 0.45 ? '#101216' : '#f2f4f8';
-            sw.textContent = rung === tier ? SHARP_NAME[lv] : SHARP_NAME[lv].slice(0, 1);
-            sw.title = TIER_LABEL[rung] + ' (' + tierRule(rung, t) + '): ' +
-                       SHARP_NAME[lv] + ' or better';
-          }
-          td.appendChild(sw);
-        }
-        td.title = 'Hit zone ' + hz;
+        const sw = document.createElement('span');
+        sw.className = 'rung cur';
+        const c = SHARP_RGB[lv];
+        sw.style.background = 'rgb(' + c.map(x => Math.round(x * 255)).join(',') + ')';
+        const lum = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+        sw.style.color = lum > 0.45 ? '#101216' : '#f2f4f8';
+        sw.textContent = SHARP_NAME[lv];
+        td.appendChild(sw);
+        td.title = 'Hit zone ' + hz + ': no bounce at ' + SHARP_NAME[lv] + ' or better (' + tierRule(2, t) + ')';
       }
       if (state.heat === 'hardness-' + key) td.classList.add('sel');
     }
@@ -6589,7 +6571,6 @@ document.getElementById('monHeatTable').onchange = async e => {
   state.heatTable = +e.target.value; await applyHeat(); applyGap(); saveState();
 };
 document.getElementById('monBounceT').onchange = async e => { state.deflectT = e.target.value; await applyHeat(); applyGap(); saveState(); };
-document.getElementById('monTier').onchange = async e => { state.deflectTier = +e.target.value; await applyHeat(); applyGap(); saveState(); };
 document.getElementById('monGag').onchange = e => { state.gagEyes = e.target.checked; paintGagEyes(); saveState(); };
 document.getElementById('monRage').onchange = e => {
   state.rage = e.target.checked;
@@ -6943,7 +6924,6 @@ function applySet(o){
   // never identified. normal/strict were 0.25/0.27 and map straight across.
   const dt = { normal: 'f25', strict: 'f27' }[o.deflectT || o.bounceT] || o.deflectT || o.bounceT;
   if (dt === 'f25' || dt === 'f27') state.deflectT = dt;
-  if ([2, 3, 4].indexOf(+o.deflectTier) >= 0) state.deflectTier = +o.deflectTier;
   if (typeof o.proxy === 'boolean') state.proxy = o.proxy;
   if (typeof o.rage === 'boolean') state.rage = o.rage;
   if (typeof o.charged === 'boolean') state.charged = o.charged;
