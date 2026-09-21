@@ -505,9 +505,9 @@ export class LiveEffects {
   }
 
   // ---- Model particles -----------------------------------------------------------------------------
-  // The effect model's mesh (docs/models/effects/<model>.glb: node Group[k] is the .mod's mesh k, its
-  // positions in game units under the node's 0.01) drawn with the program modelshader.js links for the
-  // material's selection under the model draw's, and modeldraw.js's constant buffers and states.
+  // The effect model's mesh (docs/models/effects/<model>.glb, positions in game units under the node's 0.01; which
+  // node is meshOf's) drawn with the program modelshader.js links for the material's selection under the model
+  // draw's, and modeldraw.js's constant buffers and states.
   glb(model){
     let g = this.glbs.get(model);
     if (!g){
@@ -524,6 +524,36 @@ export class LiveEffects {
     const ia = table[48 * meshIndex + 0x14];                     // mesh +0x14: (hash24 << 8) | layout record
     const shaders = this.modelShaders;
     return Object.keys(shaders.layouts).find(n => shaders.layouts[n].index === ia);
+  }
+
+  // THE MESH A DRAW NAMES. The ROM draws mesh k of the model: its 48-byte record in the .mod's mesh table (the
+  // resource's .mesh file). The glb does not keep that order: the converter names its nodes by each mesh's GROUP --
+  // record +4, low 12 bits -- as Group[g], the meshes of one group being that node's primitives in mesh order. In 25 of
+  // the 48 effect models a mesh sits in a group of another number (cm202_014's mesh 7 is Group[0], its Group[7] is
+  // mesh 9), so node Group<k> is not mesh k; every model checked follows the group rule (vertex counts per group, in
+  // order). The vertex count the record gives (+2) is checked against the geometry found: another mesh's shape would
+  // draw where the ROM draws this one, so a mismatch skips the draw and says so once.
+  meshOf(scene, model, meshIndex){
+    const t = this.files[this.def.resources[model].mesh];
+    const group = k => (t[48 * k + 4] | (t[48 * k + 5] << 8)) & 0xfff;
+    const g = group(meshIndex);
+    let pos = 0;
+    for (let j = 0; j < meshIndex; j++) if (group(j) === g) pos++;
+    if (g !== meshIndex || pos) this.stats.regrouped = (this.stats.regrouped || 0) + 1;   // draws not on node Group<k>
+    const node = scene.getObjectByName('Group' + g);             // GLTFLoader drops the brackets of 'Group[g]'
+    const prims = !node ? [] : node.isMesh ? [node] : node.children.filter(c => c.isMesh);
+    const src = prims[pos] || null;
+    const count = t[48 * meshIndex + 2] | (t[48 * meshIndex + 3] << 8);
+    if (!src || src.geometry.attributes.position.count !== count){
+      const key = model + '#' + meshIndex;
+      if (!(this.meshWarned || (this.meshWarned = new Set())).has(key)){
+        this.meshWarned.add(key);
+        console.error('live effects: ' + model + ' mesh ' + meshIndex + ' (group ' + g + ', ' + count + ' vertices) is not in its glb' +
+                      (src ? ' -- the geometry found has ' + src.geometry.attributes.position.count : ''));
+      }
+      return null;
+    }
+    return src;
   }
 
   standIns(){
@@ -547,8 +577,7 @@ export class LiveEffects {
       if (this.hideModels && this.hideModels.has(short)) continue;   // TEMPORARY: hide Khezu's flash (HIDE_MODELS)
       const scene = this.glb(short);
       if (!scene) continue;
-      const node = scene.getObjectByName('Group' + d.meshIndex);
-      const src = node && (node.isMesh ? node : node.children.find(c => c.isMesh));
+      const src = this.meshOf(scene, d.model, d.meshIndex);
       if (!src) continue;
       const res = this.def.resources[d.model];
       const material = res.materials[d.material];

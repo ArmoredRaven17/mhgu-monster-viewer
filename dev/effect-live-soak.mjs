@@ -5,12 +5,16 @@
 // ROM's code that only the animated joints (or the viewer's camera) reach shows up here as the refusal the live page
 // would stop on -- live.js fail() stops every effect of the monster at the first one.
 //
-//   node dev/effect-live-soak.mjs <monster> [motion key ...] [--url http://localhost:3000] [--swiftshader]
+//   node dev/effect-live-soak.mjs <monster> [motion key ...] [--url http://localhost:3000] [--swiftshader] [--camera sweep] [--rage]
 //
 // Without --url it serves docs/ itself (dev/serve.py on a free port). Each motion is played whole, twice (a motion the
 // viewer splits: its _start once, then its _loop twice), with the viewer's clip loop on; after a refusal the runtime is
 // remounted for the next motion. The viewer's own animation loop is stopped first, so nothing else steps. The GPU, or
 // software GL with --swiftshader (the same counts, ten times slower). Exit code 1 when any motion refused.
+// --camera sweep: the camera circles the monster's orbit target each frame at a distance that swings from inside the
+// body out past the fitted view -- what a viewer's zoom and orbit reach -- instead of staying where the view was fitted
+// (the effects' draw reads the camera: sort keys, facing, fades). --rage: the effects mounted enraged, so the rage
+// auras run through every motion (live.js setRage, as the viewer's Enraged toggle starts them).
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import net from 'node:net';
@@ -25,6 +29,8 @@ const opt = name => { const i = argv.indexOf(name); return i >= 0 ? argv.splice(
 const flag = name => { const i = argv.indexOf(name); return i >= 0 ? (argv.splice(i, 1), true) : false; };
 let site = opt('--url');
 const swiftshader = flag('--swiftshader');
+const camera = opt('--camera') || 'fit';
+const rage = flag('--rage');
 const [monster, ...only] = argv;
 if (!monster){ console.log('usage: node dev/effect-live-soak.mjs <monster> [motion key ...] [--url <viewer>] [--swiftshader]'); process.exit(2); }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -53,7 +59,7 @@ const evaluate = (c, expression) => c.send('Runtime.evaluate', { expression, awa
   .then(r => { if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception ? r.exceptionDetails.exception.description : r.exceptionDetails.text); return r.result.value; });
 
 // Runs IN THE PAGE (serialised): the soak, started and left running; window.__soak holds its progress.
-function pageSoak(MONID, ONLY){
+function pageSoak(MONID, ONLY, CAMERA, RAGE){
   window.__soak = { status: 'starting', results: [], t0: performance.now() };
   (async () => {
     const S = window.__soak;
@@ -70,24 +76,39 @@ function pageSoak(MONID, ONLY){
       V.state.loop = true;                                   // the clip loop on: the second pass walks the loop
       await V.effects(false); await V.effects(true);
       let fx = M.effectRuntimeInstance();
+      if (RAGE && fx) fx.setRage(true);
       const sched = M.CLIP_EFFECTS[MONID] || {};
-      const keys = Object.keys(sched).filter(k => !ONLY.length || ONLY.includes(k));
+      // a monster with no clip effects (its effects are auras) plays its first clip for 600 frames instead: '(idle)'
+      const keys0 = Object.keys(sched);
+      const keys = (keys0.length ? keys0 : ['(idle)']).filter(k => !ONLY.length || ONLY.includes(k));
       S.total = keys.length;
       const pose = V.pose;
       pose.clock.getDelta = () => 1 / 60;                    // one frame a step, whatever the wall clock did
       const entry = V.MON.monsters.find(e => e.id === MONID);
+      const R0 = V.camera.position.distanceTo(V.controls.target) || 1;
+      let tick = 0;
+      const placeCamera = () => {
+        if (CAMERA !== 'sweep') return;
+        const c = V.controls.target, k = tick++ / 60;
+        const r = R0 * (0.01 + 1.2 * (0.5 + 0.5 * Math.sin(k * 0.7)));
+        V.camera.position.set(c.x + r * Math.cos(k * 0.9), c.y + r * 0.35 * Math.sin(k * 0.5), c.z + r * Math.sin(k * 0.9));
+        V.camera.lookAt(c);
+        V.camera.updateMatrixWorld();
+      };
       for (const key of keys){
         // 'L<list> Motion[N]': that list's slot (split or whole); a bare key is a clip's own name in whichever list
         // carries it -- a full animation on the joined list (ROM_ANIMATIONS, Khezu's 'Motion 3'), as clipEffectsFor
         // matches it
         const m = /^L(\S+) (Motion\[\d+\])$/.exec(key);
-        const list = m ? entry.lists.find(l => l.id === m[1]) : entry.lists.find(l => l.clips.some(c => c.clip === key));
-        const base = m ? m[2] : key;
-        const parts = !list ? [] : list.clips.some(c => c.clip === base) ? [[base, 2]]
+        const idle = key === '(idle)';
+        const list = idle ? entry.lists[0] : m ? entry.lists.find(l => l.id === m[1]) : entry.lists.find(l => l.clips.some(c => c.clip === key));
+        const base = idle ? (list && list.clips[0] && list.clips[0].clip) : m ? m[2] : key;
+        const parts = !list || !base ? [] : idle ? [[base, Math.max(1, Math.ceil(600 / Math.max(1, Math.round(list.clips[0].dur * 60))))]]
+                    : list.clips.some(c => c.clip === base) ? [[base, 2]]
                     : [[base + '_start', 1], [base + '_loop', 2]].filter(([n]) => list.clips.some(c => c.clip === n));
         if (!parts.length){ S.results.push({ key, skip: !list ? 'no list carries it' : 'no clip' }); continue; }
-        if (!fx || fx.failed){ await V.effects(false); await V.effects(true); fx = M.effectRuntimeInstance(); }
-        const starts0 = fx.schedule.starts;
+        if (!fx || fx.failed){ await V.effects(false); await V.effects(true); fx = M.effectRuntimeInstance(); if (RAGE && fx) fx.setRage(true); }
+        const starts0 = fx.schedule.starts, regrouped0 = fx.stats.regrouped || 0;
         let frames = 0, fail = null, maxRun = 0, drew = 0;
         if (V.state.list !== list.id){ listSel.value = list.id; await listSel.onchange(); }
         for (const [clipName, passes] of parts){
@@ -103,6 +124,7 @@ function pageSoak(MONID, ONLY){
             const b = nm ? nm.replace(/_(start|loop)$/, '') : null;
             fx.schedule.setClip(act ? V.state.id + '|' + V.state.list + '|' + b : null, act ? act.time * 60 + splitOffset : 0,
                                 b ? M.clipEffectsFor(V.state.id, b, V.state.list) : null, splitOffset);
+            placeCamera();
             fx.last = null; fx.acc = 1 / 60 + 1e-9;          // exactly one effect step in this render
             V.renderer.render(V.scene, V.camera);
             frames++;
@@ -113,7 +135,7 @@ function pageSoak(MONID, ONLY){
           }
           if (fail) break;
         }
-        S.results.push({ key, frames, starts: fx.schedule.starts - starts0, maxRun, drew, fail });
+        S.results.push({ key, frames, starts: fx.schedule.starts - starts0, maxRun, drew, regrouped: (fx.stats.regrouped || 0) - regrouped0, fail });
       }
       S.status = 'done';
     } catch (e){ S.status = 'error: ' + (e && e.stack || e); }
@@ -169,7 +191,7 @@ async function main(){
   }
   await evaluate(c, '__view.renderer.setAnimationLoop(null), true');      // only the soak steps from here on
   soaking = true;
-  console.log(await evaluate(c, `(${pageSoak.toString()})(${JSON.stringify(monster)}, ${JSON.stringify(only)})`), monster, 'in', site);
+  console.log(await evaluate(c, `(${pageSoak.toString()})(${JSON.stringify(monster)}, ${JSON.stringify(only)}, ${JSON.stringify(camera)}, ${JSON.stringify(rage)})`), monster, 'in', site, 'camera', camera, rage ? 'enraged' : '');
   let shown = 0, refused = 0, S;
   for (;;){
     await sleep(2000);
@@ -178,7 +200,7 @@ async function main(){
       if (r.skip) console.log(`  ${r.key}: not played (${r.skip})`);
       else {
         if (r.fail) refused++;
-        console.log(`  ${r.key}: ${r.frames} frames, ${r.starts} started, up to ${r.maxRun} running, ${r.drew} draws` + (r.fail ? `  REFUSED: ${r.fail}` : ''));
+        console.log(`  ${r.key}: ${r.frames} frames, ${r.starts} started, up to ${r.maxRun} running, ${r.drew} draws` + (r.regrouped ? `, ${r.regrouped} model draws on a regrouped mesh` : '') + (r.fail ? `  REFUSED: ${r.fail}` : ''));
       }
     }
     shown = S.results.length;
