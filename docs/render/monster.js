@@ -3960,9 +3960,14 @@ export const DEFLECT_TIERS = [2, 3, 4];
 // one say, and only on a hit that already bounced: 0x16d924 calls the ENEMY's vtable +0x318 with the
 // hit record, and the 1 or 2 it returns becomes tier 7 or tier 6 (0x174744..0x174760, and the same
 // at 0x1749e4..0x174a24), which is why the tier table has ten entries and not five --
-// [0.5, 0.5, 0.75, 1.0, 1.1, 0.5, 0.5, 0.75, 1.0, 1.05], 0..4 for a hit that landed and 5..9 for one
-// that bounced. The default +0x318 is 0x6c034, `mov r0,#0; bx lr`, on 55 of the 61 enemy classes
-// read. Six override it:
+// [0.5, 0.5, 0.75, 1.0, 1.1, 0.5, 0.5, 0.75, 1.0, 1.05]. WHAT THE TWO BLOCKS MEAN IS NOT READ; what
+// is read is which site writes what. The sharpness ladder writes 0 / 2 / 3 (0x174680, 0x177f0c). The
+// bounce-reaction path presets 2 (0x174718) and then, only if [rec+0x30] & 4, asks the monster: a 2
+// back becomes tier 6 and a 1 becomes tier 7. Tier 6 halves the amount against that preset
+// (0.75 -> 0.5); tier 7 keeps 0.75 and only moves the byte into the second block, so a 1 must matter
+// to something else that reads the byte -- not found yet.
+// The default +0x318 is 0x6c034, `mov r0,#0; bx lr`, on 55 of the 61 enemy classes read (uEm087_08
+// would not read at all). Six override it:
 //   * uEm021_00, uEm023_00, uEm027_00 (Congalala, Rajang, Teostra) -- identical bodies returning
 //     1 when the capsule's flag halfword at +0xa has either of bits 14/15 set, else 0. Per capsule.
 //   * uEm024_00 (Kushala Daora) 0xdfd274 -- needs bit 14, then reads the state byte
@@ -3975,6 +3980,15 @@ export const DEFLECT_TIERS = [2, 3, 4];
 //     byte +2 above), compared against 0x9d36c(enemy, 5), then branching on [enemy+0x73e0/0x73e1].
 // Tier bytes actually written in this band are 0, 1, 2, 3, 6, 7 and 0xff (unset); 4, 5, 8 and 9 have
 // no writer found, so the 1.1 and 1.05 ends of the table are UNREACHED by anything traced here.
+// WHICH CAPSULES CARRY THE BIT, from our own .bdd set (132 files, flag halfword at +0xa): only seven
+// monsters set either of bits 14/15 at all --
+//   em019_04 Stonefist Hermitaur 3, em021_00 Congalala 4, em023_00 Rajang 4, em023_05 Furious Rajang
+//   4, em024_00 Kushala Daora 1, em027_00 Teostra 22 (8 + 14), em079_04 Nightcloak Malfestio 8.
+// So the code and the data only MEET on six of them: uEm079_00 takes the default +0x318, so
+// Nightcloak Malfestio's eight flagged capsules are INERT -- nothing reads them. And the reverse
+// holds too: em019_00 Daimyo Hermitaur, em020_00 Shogun and em020_04 Rustrazor Ceanataur all run the
+// overriding class but set the bit on no capsule, so their check never fires. Do not surface bits
+// 14/15 as "deflects" from the data alone; the class has to read them.
 export const TIER_LABEL = { 2: 'Tier 2', 3: 'Tier 3', 4: 'Tier 4' };
 // The rule a rung clears, in the ROM's own numbers. Tier 2's floor is the selector's.
 export function tierRule(tier, floor){
