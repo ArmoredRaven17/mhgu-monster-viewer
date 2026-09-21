@@ -5131,6 +5131,15 @@ function breakRowInfo(e, key){
       reps: forms.slice(), broken: forms.indexOf(attachedFormOf(e, name)) >= 0 }));
     return { key, groups: gs, rows, broken: rows.some(r => r.broken) };
   }
+  // A KEY A PART-REVIEW AXIS ANSWERS. Soulseer's tail fur is groomed or not on an axis of its own (buildAxisRows) --
+  // every Tail option carries both halves, so no group can say which is applied -- and the key is on while the axis
+  // sits on one of the listed option indices. Its one row is the axis's own field, whose values are those indices.
+  const ax = sw && sw.axis && sw.axis[key];
+  if (ax){
+    const rows = Object.entries(ax).map(([name, on]) => ({ row: 'axis:' + name, rv: null, offered: true,
+      reps: on.slice(), broken: on.indexOf(axisIndex(e.id, name)) >= 0 }));
+    return { key, groups: gs, rows, broken: rows.some(r => r.broken) };
+  }
   // A KEY A SYNTHETIC ROW ANSWERS BY ITS CLIP. Hellblade Glavenus' Tail offers "(Heated)" and "(Blasted)" items that
   // draw the same parts and differ only in the heat clip, so no group can tell them apart: `synthClip` names the
   // material clip that makes an item count, and the key is on when the row's applied item plays it.
@@ -5173,7 +5182,10 @@ function breakRowInfo(e, key){
   return { key, groups: gs, rows, broken: offered.length ? offered.some(r => r.broken) : gs.some(on) };
 }
 function zoneBreakField(row){
-  const f = [...document.querySelectorAll('#monGroups .field')].find(x => x.dataset.row === row);
+  // an 'axis:<key>' row is the axis's own field (buildAxisRows), which carries data-axis rather than data-row
+  const axisKey = row.indexOf('axis:') === 0 ? row.slice(5) : null;
+  const f = [...document.querySelectorAll('#monGroups .field')]
+    .find(x => axisKey !== null ? x.dataset.axis === axisKey : x.dataset.row === row);
   return f && f.querySelector('select') ? f : null;
 }
 function zoneBreakParts(e){

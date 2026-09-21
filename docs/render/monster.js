@@ -5061,10 +5061,26 @@ export const ROM_MEAT_SWITCH = {
     ],
   },
   // Soulseer Mizutsune (em082_04), uEm082_00: 0x1036528. Coverage 0x1036528 11/12.
-  // Unread state inputs (P+0x1bb): rows this monster moves in another state are not encoded, so the table is its resting state plus the breaks below.
+  // THE P+0x1bb INPUTS ARE ITS GROOMED FUR (read 2026-09-21). Raven: "Soulseer's Hardness values don't take the arm
+  // and tail 'groomed' state into account". Bit 4 puts both front legs on their soft table-1 rows -- slot 1 row 2, slot
+  // 5 row 6, 52/52/45 and 52/52/35 against the resting 15/15/10 -- ahead of their break rows; bit 8 puts the Tail on
+  // row 4, 52/52/45 against 20/20/10, ahead of its sever row. Grooming sets them: in the action group 1 dispatcher
+  // (0x1039b58), (1, 0x0e) plays List 9 Motion[2] and at frame 60 sets bit 4 (0x1039348), (1, 0x0f) plays List 9
+  // Motion[3] and at frame 60 sets bit 8 (0x103938c), each with a 120 s timer (tune floats 0x75 / 0x76) that clears it
+  // (0x1038968). The same bits run the fur's material clips (0x1037fa8: tuya_start / tuya_end, "tuya" being gloss), and
+  // the parts driver (0x10384dc) draws the groomed fur from them: g28 (part 80 without the dry fur 90) over g27 once bit
+  // 4 is set and both arms' clip states (E+0xcb84, +0xcb88) reach 2, and the tail's g24-g26 over g15-g17 once bit 8 is
+  // set and its state (E+0xcb8c) does. Those are the Parts panel's Arm Fur and Tail Fur "Groomed" options, so the keys
+  // read them: armGroomed off g28, tailGroomed off the Tail Fur axis, which has no cluster of its own (every Tail
+  // option carries both halves). Base Mizutsune's routine (0x1036380) tests neither bit.
   em082_04: {
-    broken: { flag0: [17], part1: [10], part2: [8] },
+    broken: { flag0: [17], part1: [10], part2: [8], armGroomed: [28], tailGroomed: [] },
+    axis: { tailGroomed: { tailFur: [1] } },
+    sections: { armGroomed: 'Groomed', tailGroomed: 'Groomed' },
     rules: [
+      { slot: 1, row: 2, broken: 'armGroomed' },
+      { slot: 5, row: 6, broken: 'armGroomed' },
+      { slot: 4, row: 4, broken: 'tailGroomed' },
       { slot: 5, row: 5, broken: 'part1' },
       { slot: 1, row: 1, broken: 'part2' },
       { slot: 4, row: 3, broken: 'flag0' },
