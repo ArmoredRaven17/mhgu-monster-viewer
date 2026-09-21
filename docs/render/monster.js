@@ -3998,8 +3998,21 @@ export const DEFLECT_TIERS = [2, 3, 4];
 //     [[enemy+0x75f0]+0x64] bytes +1 and +2 picked BY QUEST LEVEL through the same selector as the
 //     floor (0xdc0bb8 `bl 0x3a8430`; `cmp r0,#4` / `movle r7,r6` takes byte +1 at level <= 4 and
 //     byte +2 above), compared against 0x9d36c(enemy, 5), then branching on [enemy+0x73e0/0x73e1].
-// Tier bytes actually written in this band are 0, 1, 2, 3, 6, 7 and 0xff (unset); 4, 5, 8 and 9 have
-// no writer found, so the 1.1 and 1.05 ends of the table are UNREACHED by anything traced here.
+// Tier bytes written in this band: 0, 1, 2, 3, 6, 7 and 0xff (unset) as constants, and 4 THROUGH A REGISTER
+// -- both graders set it at >= 0.66 (0x177e7c `mov sl,#4` -> 0x177f0c; 0x174608 `mov r0,#4` -> 0x174680).
+// (Corrected 2026-09-21: an earlier constant-only scan missed that and called tier 4 unreached.) 5, 8 and
+// 9 have no writer found, so only the table's 1.05 end is unreached.
+// WHO READS TIERS 3 AND 4 (2026-09-21):
+//   * 0x171c68: Long Sword / Dual Blades gauge gain x0.5 / 0.75 / 1.0 / 1.1 for tier 0 / 2 / 3 / 4 --
+//     the ONLY reader found that tells 4 from 3.
+//   * 0x17b910 and 0x17ad70: tier 3 OR 4, on hits whose effect type (hit+0x52) is 2, 3, 0x2e or 0x2f --
+//     0x17b910 then writes a base angle plus a random +-15 degrees (5461 / 2731 in 65536-per-turn units);
+//     otherwise 0. What that angle drives is not traced.
+//   * 0x17ad34: flag 0x10 when the float argument of 0x17a418 is above 0.45, else 0x20 -- the tier-3 line,
+//     but that float comes from different places per caller (one passes a constant 1.0), so it is not
+//     proven to be the graded value. Where 0x10 / 0x20 go is not traced.
+//   * 0x1885bc: splits tier below 2 / exactly 2 / above 2 into different ids (0x2f; 0x13 or 0x14; ...).
+//   * 0x2a7fe8 (bounce grade): 2, 3 and 4 alike are "no deflect"; Blind Eye acts on exactly 2 only.
 // WHICH CAPSULES CARRY THE BIT, from our own .bdd set (132 files, flag halfword at +0xa): only seven
 // monsters set either of bits 14/15 at all --
 //   em019_04 Stonefist Hermitaur 3, em021_00 Congalala 4, em023_00 Rajang 4, em023_05 Furious Rajang
