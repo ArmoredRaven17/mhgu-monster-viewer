@@ -3771,6 +3771,9 @@ export function stepMatAnim(root, tSec, stateIn, monId, tState, prev, levelClip)
   // a mounted partner's combine clip, held at its last frame -- the result of the combine (ROM_PARTNER_BODY)
   const pc = root && root.userData && root.userData.partnerClip;
   if (pc) stages.push({ mats: [pc.mat], rest: null, clip: pc.clip, t0: -1e9 });
+  // a motion's own material clips, from the frame it makes its change (render/motion-states.js: Savage's death plays
+  // Angry_End on the body glow, 0xe80a3c), over any pin or state
+  for (const mc of (root && root.userData && root.userData.motionClips) || []) stages.push(mc);
   const pick = axes ? axisPicker(axes, monId, levelClip, stages.length ? stages : null)
                     : clipPicker(state, monId, tState, prev, levelClip, stages.length ? stages : null);
   // ONE evaluator for both paths. A ROM-core material is a stock three.js material -- the technique

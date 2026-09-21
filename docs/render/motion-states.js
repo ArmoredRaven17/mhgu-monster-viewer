@@ -25,7 +25,15 @@
 // Only what the ROM changes at that frame is shown changed. Savage's part driver (0xe809e8, every frame) picks the body
 // set from rage alone (13 enraged / 9 calm, 0xe80bc8..0xe80bfc), the tail set from the sever bit alone (12 / 10,
 // 0xe80c00..0xe80c24) and the head sets from the break level alone (0xe80c28..0xe80cf4) -- so a rage entry shows the body
-// set and leaves the head and tail as the user has them, and a break shows its own part's sets and nothing else.
+// set and leaves the head and tail as the user has them, and a break shows its own part's sets and nothing else. Death
+// keeps every break the user set: the break level and the sever bit outlive it (nothing on the death path clears them).
+//
+// A spec is one of:
+//   { levels, fire }           a break: the part sets per level (the level shown is the user's, at least the 1st) and
+//                              the [pel, key] each level's break requests
+//   { rage: true, sets }       rage entry: sets [calm, enraged]
+//   { dead: true, sets, clips, settled? }   death: the sets shown dead, the material clips death plays from its frame 0
+//                              ({ mats, clip }), and `settled` when the motion begins after death's transitions are over
 export const MOTION_STATES = {
   em043_05: {
     // THE HEAD BREAK (breaks-em043.md 2). Every depletion of part 0 plays L2 Motion[9] from frame 0 (reaction code 3 ->
@@ -39,8 +47,8 @@ export const MOTION_STATES = {
     // THE TAIL SEVER (breaks-em043.md 4). Part 6's second counter runs out once -> action (10, 0x72): its start hook severs
     // (0xc2274: P+0x3b4 |= 1, then u 900 through 0xa4354 -- cm202_062 on joint 144), and its script (0x17c0c00) plays
     // L3 Motion[15] from frame 0; the part driver shows set 12 with the sever bit, set 10 without (0xe80c00..0xe80c24).
-    // The cut tail -- uEnemyOption slot 0, put at the monster's position + 20 up (0xc2390..0xc2408) -- is not shown here:
-    // its update, model and motion are NOT READ.
+    // The cut tail -- uEnemyOption slot 0, put at the monster's position + 20 up (0xc2390..0xc2408) -- is not shown yet:
+    // Raven, 2026-09-21: "Follow how the ROM handles tail cut animations"; its update, model and motion are being read.
     '3|Motion[15]': { part: 'tail', levels: [[10], [12]], fire: [null, ['em043_05u', 900]] },
     // RAGE ENTRY (states-em043.md 1.2). The gauge's request makes the forced transition set rage (0xbcdb0) and start
     // action (1, 2) (command group 6 stream 0), whose phase 0 sets L0 Motion[5] from frame 0 (0xe74d10); the same frame's
@@ -49,6 +57,25 @@ export const MOTION_STATES = {
     // L0 Motion[5] also plays with no rage change -- the roar after paralysis and after the shock trap (scripts
     // 0x17c08f0 and 0x17c0bd0), action (1, 0x12) -- and is shown here as the entry.
     '0|Motion[5]': { rage: true, sets: [[9], [13]] },
+    // DEATH (status 11; Raven, 2026-09-21: "we do have Death States to take to consideration if the parts are broken
+    // during the animations"). Every status-11 action start, in setAction 0x754f8's status-11 path (0x75b40..): rage is
+    // cleared (0xba7b8(e, 0) at 0x75b90) and, uEm043_00's vtable +0x21c (0x6be7c) returning 0, 0xbd594(e, -1) sets the
+    // eye flag P+0x5d02 with timer 0xffff (0x75c1c) -- which the +0x28 pass never counts down (a timer at or below -1 is
+    // skipped, 0xae3b4 / 0xaf04c), so from then on 0x6f4e8 applies eye set A every frame: Savage's A / B / C are 5 / 1 /
+    // -1 (0x71398 from 0xe72b14), set 5 = part 7 drawn -- the Eyes row's Closed. The same frame, the part driver's
+    // death branch (0xe80a08..0xe80ae4, status byte == 0xb) plays Angry_End on the body-glow material at [+0xcac0]+0x90
+    // -- XfB__m02_body_k, which the spawn left lit with Angry_Start -- from time 0, Gekikou_End on the two rage
+    // materials if the stage was enraged (2), and locks the stage at 3; the body set follows the cleared rage: 9.
+    // Rage ends as it always does: the aura and eyes stopped, left to run out.
+    // Savage's death actions (0xe7dffc, number -> script): (11, 0) L3 Motion[18] (0x17c0a50); (11, 1) L3 Motion[32] ->
+    // [33] -> [34] (0x17c0c70, a fall); (11, 7) L3 Motion[21] (pit); (11, 0x10) L3 Motion[14] -> [25] and (11, 0x12)
+    // L3 Motion[21] (both read as capture: the same status, NOT READ as such). Only Motion[18] and Motion[34] play in
+    // nothing but death (every other one is also a reaction: [32] / [33] a fall, [21] the pit, [14] / [25] sleep), so
+    // only those two are listed. [34] begins at least 169 frames into the fall's death ([32]_start 70 + [33] 99; the
+    // script's ops between them, 0xb / 1 / 4, are NOT READ), past Gekikou_End's 60 frames and most of Angry_End's 200:
+    // shown settled, the glow already out.
+    '3|Motion[18]': { dead: true, sets: [9, 5], clips: [{ mats: ['XfB__m02_body_k'], clip: 'Angry_End' }] },
+    '3|Motion[34]': { dead: true, sets: [9, 5], clips: [{ mats: ['XfB__m02_body_k'], clip: 'Angry_End' }], settled: true },
   },
 };
 
@@ -81,18 +108,21 @@ export class MotionStates {
   //   entry    rage started over while it was already shown (a rage entry replayed): the effects and the materials'
   //            start clip run from this frame again
   //   fire     [[pel, key], ...] the effect records the game requests at this frame
-  step(monId, list, clip, frame, loopStart, ended, user){
+  //   clips    the material clips shown changed (clips())
+  //   settled  the motion began after its change's transitions were over: the materials' clock is to start settled
+  // now: the wall clock the materials run on (seconds).
+  step(monId, list, clip, frame, loopStart, ended, user, now = 0){
     const spec = (clip != null && !ended && MOTION_STATES[monId]) ? MOTION_STATES[monId][list + '|' + clip] || null : null;
     const key = spec ? monId + '|' + list + '|' + clip : null;
     const prev = this.cur;
-    const rageBefore = this.rage(user.rage), setsBefore = this.setsKey();
-    const out = { parts: false, rage: false, entry: false, fire: [] };
+    const rageBefore = this.rage(user.rage), setsBefore = this.setsKey(), clipsBefore = this.clipsKey();
+    const out = { parts: false, rage: false, entry: false, fire: [], clips: false, settled: false };
     if (!spec) this.cur = null;
     else if (prev && prev.key === key && (frame >= prev.frame || (loopStart > 0 && frame >= loopStart)))
       prev.frame = frame;                                                                // the same motion, moving on
     else {
       // frame 0 of the motion: a new one, or the same one started over (a loop, a replay, the scrubber moved back)
-      const c = { key, spec, frame, sets: null, rage: false };
+      const c = { key, spec, frame, sets: null, rage: null, t0: now };
       if (spec.levels){
         const lv = Math.max(1, userLevel(spec.levels, this.table, this.userDrawn));
         c.sets = spec.levels[lv];
@@ -103,16 +133,32 @@ export class MotionStates {
         c.sets = spec.sets[1];
         out.entry = rageBefore;             // already shown: it starts over here all the same
       }
+      if (spec.dead){
+        c.rage = false;
+        c.sets = spec.sets;
+        out.settled = !!spec.settled;
+        out.clips = true;                   // death's clips run from this frame (again, on a loop)
+      }
       this.cur = c;
     }
     out.rage = this.rage(user.rage) !== rageBefore;
     out.parts = this.setsKey() !== setsBefore;
+    out.clips = out.clips || this.clipsKey() !== clipsBefore;
     return out;
   }
 
-  // the rage the display shows: the motion's while it plays, else the user's
-  rage(userRage){ return this.cur && this.cur.rage ? true : !!userRage; }
+  // the rage the display shows: the motion's while it plays (on at a rage entry, off in death), else the user's
+  rage(userRage){ const o = this.rageOverride(); return o === null ? !!userRage : o; }
+  rageOverride(){ return this.cur && this.cur.rage !== null && this.cur.rage !== undefined ? this.cur.rage : null; }
   setsKey(){ return this.cur && this.cur.sets ? this.cur.sets.join(',') : ''; }
+  clipsKey(){ return this.cur && this.cur.spec.clips ? this.cur.key + '@' + this.cur.t0 : ''; }
+  // the material clips the motion shows, for render/monster.js stepMatAnim: [{ mats, clip, rest, t0 }], each played
+  // from t0 on the materials' clock and held at its end; a settled one is at its end already
+  clips(){
+    const c = this.cur;
+    if (!c || !c.spec.clips) return null;
+    return c.spec.clips.map(x => ({ mats: x.mats, clip: x.clip, rest: null, t0: c.spec.settled ? -1e9 : c.t0 }));
+  }
 
   // THE PARTS SHOWN: `drawn` is the user's (part -> drawn, as the Parts panel makes it), kept for the level a break
   // starts from; the motion's sets are laid over it -- every part they name takes the set's value, in the order the

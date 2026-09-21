@@ -6244,10 +6244,13 @@ function levelClip(){
 // (0xd1e914) -- and which end clip belongs to the state being left, since Khezu's discharge plays
 // Body_Taiden_End (0xd1e7a0) where its calm-down plays Angry_End (0xd1e698).
 let tStateChanged = 0, prevMatState = 'calm', curMatState = 'calm';
-// THE STATE THE MATERIALS SHOW: the user's (matState), or rage while a rage-entry motion plays (driveMotionStates)
+// THE STATE THE MATERIALS SHOW: the user's (matState), or a motion's rage while it plays -- on at a rage entry, off in
+// death (driveMotionStates)
 function shownMatState(){
-  const st = matState();
-  return st === 'calm' && motionStates.rage(false) ? 'enraged' : st;
+  const st = matState(), o = motionStates.rageOverride();
+  if (o === true && st === 'calm') return 'enraged';
+  if (o === false && st === 'enraged') return 'calm';
+  return st;
 }
 function markStateChange(force){
   const next = shownMatState();
@@ -7101,10 +7104,13 @@ function driveMotionStates(){
   }
   // a play-once clip at its end is over: pose.js holds its last frame (clampWhenFinished)
   const ended = !!(act && act.loop === THREE.LoopOnce && act.time >= act.getClip().duration - 1e-6);
+  const now = performance.now() / 1000;
   const r = motionStates.step(state.id, state.list, base, act ? act.time * 60 + loopStart : 0, loopStart, ended,
-                              { rage: !!state.rage });
+                              { rage: !!state.rage }, now);
   if (r.parts) applyPartState();
-  if (r.rage) markStateChange();
+  // a change the motion begins after (death, well into its fall) is shown with its transitions over
+  if (r.rage){ markStateChange(); if (r.settled) tStateChanged = -1e9; }
+  if (r.clips && mounted.main) mounted.main.userData.motionClips = motionStates.clips();
   // rage entered again while shown: Gekikou_Start runs from this frame, as from calm
   if (r.entry){ prevMatState = 'calm'; curMatState = shownMatState(); tStateChanged = performance.now() / 1000; }
   const rt = effectRuntimeInstance();
@@ -7312,7 +7318,7 @@ window.__view.effects = async (on, only) => {
 window.__view.effectsAvailable = () => effectMountsFor(state.id);
 // the break / state driver as it stands (render/motion-states.js; dev/motion-states-check.mjs reads it back)
 window.__view.motionStates = () => ({ cur: motionStates.cur && { key: motionStates.cur.key, sets: motionStates.cur.sets,
-                                                             rage: motionStates.cur.rage },
+                                                             rage: motionStates.cur.rage, clips: motionStates.clips() },
                                       mat: { shown: shownMatState(), prev: prevMatState, cur: curMatState, t: tStateChanged } });
 // The sustained-clip fallback: on by default. Off restores the previous behaviour, where a material
 // whose clips match no name and carry no auto bit was left on its static constant.

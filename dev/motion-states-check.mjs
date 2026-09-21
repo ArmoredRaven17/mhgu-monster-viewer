@@ -73,7 +73,7 @@ async function pageCheck(){
   wrap('fire', a => fired.push(a[1]));
   wrap('restartRage', () => calls.push('restart ' + rageReqs()));
   wrap('setRage', a => calls.push('setRage ' + a[0]));
-  const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => [1, 2, 4, 5, 6, 8, 9, 12, 101].includes(p))) : null; };
+  const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => [1, 2, 4, 5, 6, 7, 8, 9, 12, 101].includes(p))) : null; };
   const rageReqs = () => fx.schedule.entries.filter(e => e.when === 'rage').map(e => e.requests.map(q => q.stopped ? 's' : 'r').join('')).join('|');
   const ms = () => V.motionStates();
   const listOf = id => V.MON.monsters.find(e => e.id === MON).lists.find(l => l.id === id);
@@ -217,6 +217,51 @@ async function pageCheck(){
   host.requestEffect = request0;
   if (rockIn) fx.schedule.rockInput = rockIn;
   await play(...REST); await frames(3);
+
+  // 11. DEATH, L3 Motion[18]: eyes closed (set 5, part 7), body set 9, Angry_End on the body glow from frame 0 -- the
+  //     user's breaks kept; enraged, the rage ends with it
+  let glowMat = null;
+  V.mounted.main.traverse(o => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
+                                 for (const m of ms) if (!glowMat && m.name === 'XfB__m02_body_k') glowMat = m; });
+  const glowOf = m => m ? JSON.stringify([m.emissive && m.emissive.toArray().map(v => +v.toFixed(4)), +(m.emissiveIntensity || 0).toFixed(4),
+                                          +(m.opacity || 0).toFixed(4), m.uniforms ? Object.keys(m.uniforms).length : 0]) : null;
+  check(!!glowMat, 'the body-glow material XfB__m02_body_k is on the model');
+  check(await pick('1,2', 'Broken'), 'the Jaw row set to Broken (a break to keep through death)');
+  const userDead0 = drawn();
+  check(userDead0[7] === false, "the user's eyes are open", userDead0);
+  const glowAlive = glowOf(glowMat);
+  await play('3', 'Motion[18]'); await frames(3);
+  d = drawn();
+  check(d[7] === true, 'L3 Motion[18]: the eyes close (set 5)', d);
+  check(d[2] === true && d[1] === false, "the user's broken jaw stays broken in death", d);
+  check(d[12] === false, 'the body shows set 9', d);
+  const mc = V.mounted.main.userData.motionClips;
+  check(mc && mc.length === 1 && mc[0].clip === 'Angry_End' && mc[0].mats[0] === 'XfB__m02_body_k' && mc[0].t0 > 0, 'Angry_End runs on the body glow from the death frame', mc);
+  await frames(100);
+  const glowMid = glowOf(glowMat);
+  await frames(120);
+  const glowEnd = glowOf(glowMat);
+  check(glowMid !== glowAlive && glowEnd !== glowMid, 'the glow material changes as Angry_End plays (alive, 100 f, 220 f)', { glowAlive, glowMid, glowEnd });
+  await play(...REST); await frames(3);
+  d = drawn();
+  check(same(d, userDead0) && !V.mounted.main.userData.motionClips, "another motion: eyes open, the glow back to its pin, the parts the user's", { d, mc: V.mounted.main.userData.motionClips });
+  await frames(3);
+  check(glowOf(glowMat) === glowAlive, 'the glow material is as it was alive', { now: glowOf(glowMat), glowAlive });
+  // enraged: the rage ends at death -- the aura and eyes stop, Gekikou_End
+  rageBox.checked = true; await rageBox.onchange({ target: rageBox }); await frames(3);
+  calls.length = 0;
+  await play('3', 'Motion[18]'); await frames(3);
+  check(fx.schedule.rage === false && rageReqs().split('|').every(x => !x.includes('r')), 'enraged, L3 Motion[18]: the aura and eyes stop', { calls, reqs: rageReqs() });
+  check(ms().mat.shown === 'calm' && ms().mat.prev === 'enraged' && ms().mat.t > 0, 'the rage materials run Gekikou_End from the death frame', ms().mat);
+  check(drawn()[12] === false, 'the neck glow (part 12) goes with the rage', drawn());
+  // L3 Motion[34], the end of the fall death: dead already, its transitions over
+  await play('3', 'Motion[34]'); await frames(3);
+  const mc34 = V.mounted.main.userData.motionClips;
+  check(mc34 && mc34[0].t0 === -1e9 && drawn()[7] === true, 'L3 Motion[34]: dead, the glow already out, eyes closed', { mc34, d: drawn() });
+  await play(...REST); await frames(3);
+  check(fx.schedule.rage === true && rageReqs().split('|').every(x => x.endsWith('r')), "another motion: the user's rage again, the aura and eyes requested", rageReqs());
+  rageBox.checked = false; await rageBox.onchange({ target: rageBox }); await frames(3);
+  await pick('1,2', 'Intact');
 
   // 8. the table itself: every motion it lists is a clip Savage carries
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
