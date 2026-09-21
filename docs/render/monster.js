@@ -3964,8 +3964,14 @@ export const DEFLECT_TIERS = [2, 3, 4];
 // is read is which site writes what. The sharpness ladder writes 0 / 2 / 3 (0x174680, 0x177f0c). The
 // bounce-reaction path presets 2 (0x174718) and then, only if [rec+0x30] & 4, asks the monster: a 2
 // back becomes tier 6 and a 1 becomes tier 7. Tier 6 halves the amount against that preset
-// (0.75 -> 0.5); tier 7 keeps 0.75 and only moves the byte into the second block, so a 1 must matter
-// to something else that reads the byte -- not found yet.
+// (0.75 -> 0.5); tier 7 keeps 0.75 and only moves the byte into the second block. NOTHING FOUND READS
+// THAT DIFFERENCE: every reader of +6 in 0x160000..0x1a0000 was checked, and the whole executable was
+// scanned for a compare of that byte against 5..9 -- the only compares on this record are against 1,
+// 2 and 3/4 (0x17b914 `sub #3; cmp #1`, 0x1881d0, 0x1885c4), all of which treat 6 and 7 as ">= 3".
+// So on everything traced, a 1 back from the monster is a NO-OP and only a 2 changes the amount --
+// which leaves Kushala Daora and Stonefist Hermitaur as the only two whose hook does anything, since
+// Congalala, Rajang, Furious Rajang and Teostra can only ever return 1. Stated as a negative result,
+// not a conclusion: a reader may exist outside the way it was searched for.
 // The default +0x318 is 0x6c034, `mov r0,#0; bx lr`, on 55 of the 61 enemy classes read (uEm087_08
 // would not read at all). Six override it:
 //   * uEm021_00, uEm023_00, uEm027_00 (Congalala, Rajang, Teostra) -- identical bodies returning
