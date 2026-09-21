@@ -3863,24 +3863,29 @@ export const SHARP_RGB  = [
   [0.64, 0.31, 0.85],   // purple
 ];
 // The two floors are both in the binary: 0.25, and 0.27 when the selector at 0x3a8430 returns 5.
-// THAT SELECTOR IS NOT IDENTIFIED. It reads a signed byte at +0x0f of the pointer at +0xa4,
-// returns 5/3/1 for those values and 0 for anything else, and only 5 reaches 0.27 -- that is the
-// whole of what is known. The values 1/3/5 resemble a rank ladder, which is why a previous label
-// called this Monster Level and cited cOtQuestExpBias for '0 Village Low, 1 Low, 3 High, 5 G'.
-// Checked 2026-09-08 and FALSE: cOtQuestExpBias is the Palico quest-EXP table, its level fields
-// are mLvVillageLow / mLvLow / mLvHigh -- three, no G -- and it carries no 0/1/3/5 mapping.
-// So the keys here are the floors themselves. Do not name this control after what it might pick.
-//
-// A CANDIDATE, strongly evidenced but not proven (2026-09-08). Quests ship as rQuestData, 3,451
-// files, every one 329 bytes and every one starting with the same 4 bytes 00 00 4b 43 -- a
-// constant header, so the loaded struct is very likely the file + 4. Byte +0x13 of the file is
-// then struct +0x0f, which is exactly where the selector reads. Scanning all 329 offsets over all
-// 3,451 files, +0x13 is the ONLY byte whose values are {0, 1, 3, 5} with a real spread
-// (0 x1142, 1 x266, 3 x1217, 5 x826); every other offset in that value set is >90% zero with a
-// handful of exceptions. Four agreements -- header, offset, value set, distribution.
-// WHAT WOULD FINISH IT: read the rQuestData loader and confirm it maps file+4 to struct+0, or
-// find the write to [singleton+0xa4]. Until then this stays a candidate and the UI stays generic:
-// the byte is quest-scoped, which is enough to know it is NOT per-monster.
+// THE SELECTOR IS IDENTIFIED, end to end from the ROM, 2026-09-21. It reads a signed byte at +0x0f
+// of [sQuest+0xa4], returns 5/3/1 for those values and 0 for anything else, and only 5 reaches 0.27.
+//   * The only non-zero writer of [sQuest+0xa4] is 0x3ad570: it stores 0x39af14(res, 0), where res is
+//     the resource just placed at [sQuest+0xa0] and 0x39af14 returns [res+0x6c] + i*0x108 when
+//     i < [res+0x64] -- record 0 of an array of 0x108-byte records. 0x108 is sizeof(cQuestData), and
+//     rQuestData (0x70) is the resource with that count/array pair.
+//   * cQuestData's own property registration names +0x0f: 0x370520 "mMonsterLv", type 8, `add r1,
+//     sl, #0xf`. So the floor follows the QUEST's Monster Level -- not the monster.
+//   * 5 IS G, by the ROM's own association: the Palico EXP scaler 0x3ada90 reads the same byte and
+//     picks cOtQuestExpBias +0x10 / +0x14 / +0x18 / +0x5c for 0 / 1 / 3 / 5, and that class's
+//     registration (0x24ef0c, in its vtable at 0x173f450) names them mLvVillageLow / mLvLow / mLvHigh
+//     and -- after its sixteen mPermitLv[] entries -- mLvG at +0x5c, its last field.
+//   CORRECTION: this comment used to say (2026-09-08) that cOtQuestExpBias has "three, no G". It
+//   has four; the check stopped before the mPermitLv[] array and missed mLvG registered after it.
+// THE FILES: quest\questData\questData_NNNNNNN.ext, 1,849 of them, magic 00 00 4B 43, a u32, then ONE
+// cQuestData as a PACKED stream (natural sizes, no padding) -- so "file = struct + 4" holds only up
+// to the struct's first padding byte; mMonsterLv is file +0x13 and boss n's mEmType (u16, variant
+// in the high byte: 0x413 = em019_04) is at file +0x64 + 13*(n-1). Checked: all 1,849 mQuestNo
+// match their filenames, mMonsterLv only ever holds {0, 1, 3, 5} (0 x571, 1 x141, 3 x672, 5 x465).
+// WHICH MONSTERS GET 0.27, over every boss slot of every quest: only em088_00 Ahtal-Ka and its
+// machine em087_00 appear in G-level quests alone, so their floor is ALWAYS 0.27. The other 92
+// bosses appear at both levels (0.27 in their G quests, 0.25 elsewhere); none is never in G.
+// So this control is a real, nameable ROM input: the quest's Monster Level, G or not.
 export const DEFLECT_T = { f25: 0.25, f27: 0.27 };
 
 // THE DEFLECT LADDER, read from the ROM 2026-09-07 (build/notes/deflect-ladder.md).
