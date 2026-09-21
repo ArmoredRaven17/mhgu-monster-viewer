@@ -24,6 +24,7 @@ import { registerNative, clobber } from './cpu.js';
 import './lifted-proof.js';
 import './lifted-request.js';
 import './lifted-gpu.js';
+import './lifted-added.js';          // efx/add_effects.py --grow
 import { L_a91c48 } from './lifted-particles.js';
 import { registerCode, ownerMatrix } from './owner.js';
 

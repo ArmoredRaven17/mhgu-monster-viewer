@@ -363,6 +363,17 @@ export class LiveEffects {
     try { this.schedule.fire(pel, key); }
     catch (e){ this.fail(e); }
   }
+  // an event's effect held while its state lasts / a rage record held off (schedule.js holdEvent / holdRage)
+  holdEvent(pel, key, on){
+    if (this.failed || !this.schedule) return;
+    try { this.schedule.holdEvent(pel, key, on); }
+    catch (e){ this.fail(e); }
+  }
+  holdRage(pel, key, off){
+    if (this.failed || !this.schedule) return;
+    try { this.schedule.holdRage(pel, key, off); }
+    catch (e){ this.fail(e); }
+  }
 
   // WHERE THE UNIT IS. Joint -1 -- the root of a request's effect, and the aura's nodes -- resolves through
   // the parent's joint getter (0x939278): a bone the table maps, else the MODEL'S OWN WORLD MATRIX (+0xb0).

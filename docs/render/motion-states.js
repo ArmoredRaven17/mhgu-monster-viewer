@@ -7,8 +7,10 @@
 // A motion listed here changes what the viewer SHOWS while it plays and nothing the user chose -- index.html's `state`,
 // the Parts panel, the Enraged checkbox and the saved view all stay as they are. From the frame the ROM makes the change,
 // the display takes the motion's state (the part sets, the rage), and that change's own effects are requested there;
-// when the motion is over -- another clip, the bind pose, or a play-once clip at its end -- the display goes back to the
-// user's choices by the game's own way out (a part's set; rage's stop request and Gekikou_End).
+// when the motion is over -- another clip or the bind pose -- the display goes back to the user's choices by the game's
+// own way out (a part's set; rage's stop request and Gekikou_End). A play-once clip held on its last frame is still that
+// motion and keeps its state: Raven, 2026-09-21, of a death played once: "he goes back to being enraged, eyes open in
+// the death state".
 //
 // WHERE THE CHANGE FALLS. Savage's all fall on FRAME 0 of the motion. A break: the damage code raises the break level and
 // requests the effect, the reaction's script sets its motion from frame 0 in the same enemy update, and that frame's
@@ -34,6 +36,10 @@
 //   { rage: true, sets }       rage entry: sets [calm, enraged]
 //   { dead: true, sets, clips, settled? }   death: the sets shown dead, the material clips death plays from its frame 0
 //                              ({ mats, clip }), and `settled` when the motion begins after death's transitions are over
+//   an ailment / tiredness, any of: rage (false: rage shown off), sets, every: [[pel, key], period] (a record requested
+//                              on a countdown: at the motion's frame 0, then every `period` frames), hold: [pel, key] (a
+//                              record requested once and kept while the state lasts, stopped after), eyesOff: [pel, key]
+//                              (a rage record the monster's code holds off in this state)
 export const MOTION_STATES = {
   em043_05: {
     // THE HEAD BREAK (breaks-em043.md 2). Every depletion of part 0 plays L2 Motion[9] from frame 0 (reaction code 3 ->
@@ -76,6 +82,37 @@ export const MOTION_STATES = {
     // shown settled, the glow already out.
     '3|Motion[18]': { dead: true, sets: [9, 5], clips: [{ mats: ['XfB__m02_body_k'], clip: 'Angry_End' }] },
     '3|Motion[34]': { dead: true, sets: [9, 5], clips: [{ mats: ['XfB__m02_body_k'], clip: 'Angry_End' }], settled: true },
+    // AILMENTS AND TIREDNESS (states-em043.md 2-3; Raven, 2026-09-21: "yes I would like the 'aliment effects'"). Their
+    // effects come from the +0x28 pass while the state holds (0xa4518, 0xa41b8, 0xa3ef0), each on a countdown the shared
+    // timer 0x7206c keeps: at or below 0 it fires, and the code sets the period again -- so a state starts with one at
+    // once and then one every period frames. These motions also play outside their state (the breaks' and states'
+    // notes list them: [2] a flinch, [3] / [6] a leg's trip, [13] the shock trap's hold, L0 Motion[15] actions (1, 0)
+    // and (1, 0x11)); each is shown here in the state named.
+    // TIRED (2.5): the idle while tired, L0 Motion[15] ((0, 2), 0xe74410). Drool c 1104 (cm200_006, joint 3) while tired,
+    // not enraged, not asleep: timer +0x5c70, 48.0 (0xa42d0..0xa4334; rage zeroes it, 0xa42a4). A tired monster is never
+    // enraged (the gauge will not ask for rage while tired, 0xbcd20; tiredness does not start while enraged, 0x76200):
+    // rage shown off, body set 9.
+    '0|Motion[15]': { rage: false, sets: [9], every: [['em043_00c', 1104], 48] },
+    // ASLEEP (3.2): (10, 0x1d) L3 Motion[14] falls asleep (ailment bit 1 set at its start, 0xa2800), (10, 0x1e) L3
+    // Motion[25] holds -- and the rest sleep holds L3 Motion[25] too (+0x522, 0xe74738). While asleep (0x81bb0(e, 0))
+    // the +0x28 pass sets the eye flag every frame (0xae3c0..0xae3f0): eye set 5, closed, as in death; and Savage's rage
+    // controller stops the eyes (u 31) with 0x329c40(h, 0) while either sleep test holds, the aura left running, and
+    // requests them again after (0xe8058c..0xe8061c). In the hold (0x81bb0(e, 1): (10, 0x1e) or the rest flag): zzz,
+    // c 1102 (cm200_002, joint 3), timer +0x5c60, 90.0 (0xa3e60..0xa3ee8). Falling asleep has no zzz.
+    '3|Motion[14]': { sets: [5], eyesOff: ['em043_05u', 31] },
+    '3|Motion[25]': { sets: [5], eyesOff: ['em043_05u', 31], every: [['em043_00c', 1102], 90] },
+    // PARALYSIS (3.2): (10, 0x1f) holds L3 Motion[13] (script 0x17c08e0). c 1101 (cm200_001, joint 1) while ailment bit
+    // 4 is set: timer +0x5c60, 60.0 (0xa4554..0xa45c8).
+    '3|Motion[13]': { every: [['em043_00c', 1101], 60] },
+    // SHOCK TRAP (3.2): (10, 0x6e) plays L3 Motion[2] then holds L3 Motion[13] (0x17c0b50). c 1105 (cm200_001, joint 1)
+    // while the action is (10, 0x6e) (0x80254): timer e+0xb7c8, 42.0 (0xa4854..0xa48bc). L3 Motion[13] is shown as
+    // paralysis (above).
+    '3|Motion[2]': { every: [['em043_00c', 1105], 42] },
+    // STUN (3.2): (10, 0x20) plays L3 Motion[3] then holds L3 Motion[6] (0x17c0a00). c 1103 (cm200_003, joint 3) is
+    // requested once into one handle while ailment bit 0x10 is set (0xa3f58..0xa4054) and stopped with 0x329c40(h, 0)
+    // when it clears (0x6f124), at the recovery L3 Motion[7] (bit 0x10 cleared by changeAction, 0x80964).
+    '3|Motion[3]': { hold: ['em043_00c', 1103] },
+    '3|Motion[6]': { hold: ['em043_00c', 1103] },
   },
 };
 
@@ -97,32 +134,47 @@ function userLevel(levels, table, drawn){
 
 export class MotionStates {
   constructor(){ this.cur = null; this.userDrawn = null; this.table = null; }
+  // the records the motion holds on (hold) and the rage records it holds off (eyesOff), as 'pel|key' ids
+  holds(){ return this.cur && this.cur.spec.hold ? [this.cur.spec.hold.join('|')] : []; }
+  eyesOff(){ return this.cur && this.cur.spec.eyesOff ? [this.cur.spec.eyesOff.join('|')] : []; }
 
   // Once a frame, after the clip has been advanced. monId; list; clip: the motion's bare slot name (a _start/_loop pair
-  // is one motion) or null; frame: its frame at 60 a second, counted over the whole slot; loopStart: where a _loop clip
-  // sits in its slot (0 for a whole clip) -- its wrap goes back there and is the motion going on, not starting over;
-  // ended: a play-once clip held at its end; user: { rage } -- the user's own (their parts are what showParts last
-  // kept). Returns what the display has to follow:
+  // is one motion) or null; frame: its frame at 60 a second, counted over the whole slot; at: { loopStart, loopEnd,
+  // loopSeg } -- where a _loop clip sits in its slot and ends (a _loop clip's wrap goes back to loopStart and is the
+  // motion going on, not starting over; loopSeg: the clip is a _loop);
+  // user: { rage } -- the user's own (their parts are what showParts last kept). Returns what the display has to follow:
   //   parts    the part sets shown changed (index.html re-applies the parts)
   //   rage     the rage shown changed (the materials' clock and the effects follow)
   //   entry    rage started over while it was already shown (a rage entry replayed): the effects and the materials'
   //            start clip run from this frame again
   //   fire     [[pel, key], ...] the effect records the game requests at this frame
+  //   holdOn / holdOff    [[pel, key], ...] event records to keep running from now / to stop now
+  //   eyesOff / eyesOn    [[pel, key], ...] rage records to hold off from now / to let run again
   //   clips    the material clips shown changed (clips())
   //   settled  the motion began after its change's transitions were over: the materials' clock is to start settled
   // now: the wall clock the materials run on (seconds).
-  step(monId, list, clip, frame, loopStart, ended, user, now = 0){
-    const spec = (clip != null && !ended && MOTION_STATES[monId]) ? MOTION_STATES[monId][list + '|' + clip] || null : null;
+  step(monId, list, clip, frame, at, user, now = 0){
+    const { loopStart = 0, loopEnd = 0, loopSeg = false } = at || {};
+    const spec = (clip != null && MOTION_STATES[monId]) ? MOTION_STATES[monId][list + '|' + clip] || null : null;
     const key = spec ? monId + '|' + list + '|' + clip : null;
     const prev = this.cur;
     const rageBefore = this.rage(user.rage), setsBefore = this.setsKey(), clipsBefore = this.clipsKey();
-    const out = { parts: false, rage: false, entry: false, fire: [], clips: false, settled: false };
+    const holdsBefore = this.holds(), eyesBefore = this.eyesOff();
+    const out = { parts: false, rage: false, entry: false, fire: [], clips: false, settled: false,
+                  holdOn: [], holdOff: [], eyesOff: [], eyesOn: [] };
     if (!spec) this.cur = null;
-    else if (prev && prev.key === key && (frame >= prev.frame || (loopStart > 0 && frame >= loopStart)))
-      prev.frame = frame;                                                                // the same motion, moving on
+    else if (prev && prev.key === key && (frame >= prev.frame || loopSeg)){
+      // the same motion, moving on -- across a _loop clip's wrap too: the countdowns run on the frames it advanced
+      const d = frame >= prev.frame ? frame - prev.frame : Math.max(0, loopEnd - prev.frame) + Math.max(0, frame - loopStart);
+      prev.frame = frame;
+      for (const t of prev.timers){
+        t.left -= d;
+        if (t.left <= 0){ out.fire.push(t.rec); t.left = t.period; }     // 0x7206c at or below 0, then the period again
+      }
+    }
     else {
       // frame 0 of the motion: a new one, or the same one started over (a loop, a replay, the scrubber moved back)
-      const c = { key, spec, frame, sets: null, rage: null, t0: now };
+      const c = { key, spec, frame, sets: null, rage: null, t0: now, timers: [] };
       if (spec.levels){
         const lv = Math.max(1, userLevel(spec.levels, this.table, this.userDrawn));
         c.sets = spec.levels[lv];
@@ -139,8 +191,18 @@ export class MotionStates {
         out.settled = !!spec.settled;
         out.clips = true;                   // death's clips run from this frame (again, on a loop)
       }
+      if (spec.rage === false) c.rage = false;
+      if (!spec.levels && !spec.dead && spec.sets && spec.rage !== true) c.sets = spec.sets;
+      // a countdown starts at 0, so its record comes at once (0x7206c), and the period follows
+      if (spec.every){ out.fire.push(spec.every[0]); c.timers.push({ rec: spec.every[0], period: spec.every[1], left: spec.every[1] }); }
       this.cur = c;
     }
+    const holdsAfter = this.holds(), eyesAfter = this.eyesOff();
+    const ids = s => s.split('|').map((x, i) => i ? +x : x);
+    for (const h of holdsAfter) if (!holdsBefore.includes(h)) out.holdOn.push(ids(h));
+    for (const h of holdsBefore) if (!holdsAfter.includes(h)) out.holdOff.push(ids(h));
+    for (const h of eyesAfter) if (!eyesBefore.includes(h)) out.eyesOff.push(ids(h));
+    for (const h of eyesBefore) if (!eyesAfter.includes(h)) out.eyesOn.push(ids(h));
     out.rage = this.rage(user.rage) !== rageBefore;
     out.parts = this.setsKey() !== setsBefore;
     out.clips = out.clips || this.clipsKey() !== clipsBefore;

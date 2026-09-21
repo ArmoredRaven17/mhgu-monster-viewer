@@ -72,6 +72,7 @@ export class EffectSchedule {
     this.walker = { motion: undefined, last: 0, values: 0, data: null };
     this.clip = null;
     this.entries = entries.map(({ owner, def }) => ({ owner, def, when: def.when || 'rage', requests: [] }));
+    this.rageOff = new Set();          // 'pel|key' of rage records held off (holdRage)
     for (const e of this.entries){
       if (!e.def.record){                     // a plain effect: started once and moved every step, as before
         if (e.def.joints.length) host.attach(e.owner, parent);
@@ -94,7 +95,7 @@ export class EffectSchedule {
       if (!e.def.record) continue;
       if (e.when === 'rage' || e.when === 'calm'){
         const want = e.when === 'rage' ? on : !on;    // 'calm' runs while not enraged: the inverse of 'rage'
-        if (want) this.start(e);
+        if (want){ if (!this.rageOff.has(e.def.record.pel + '|' + e.def.record.key)) this.start(e); }
         else if (e.def.stop === 'request'){ for (const q of e.requests) if (!q.stopped) this.host.stopRequest(q); }
         else { for (const q of e.requests) this.host.releaseRequest(q); e.requests.length = 0; }
       } else if (e.when === (on ? 'rageStart' : 'rageEnd')) this.start(e);
@@ -111,6 +112,33 @@ export class EffectSchedule {
         out.push(e.requests[e.requests.length - 1]);
       }
     return out;
+  }
+
+  // AN EVENT'S EFFECT HELD while its state lasts -- Savage's stun: 0xa3ef0 requests c 1103 once, into one handle, and
+  // 0x6f124 stops it with 0x329c40(h, 0) when the stun ends. On starts it unless one of its requests runs un-stopped;
+  // off stops those (they run out, as a stop request does).
+  holdEvent(pel, key, on){
+    for (const e of this.entries){
+      if (e.when !== 'event' || !e.def.record || e.def.record.pel !== pel || e.def.record.key !== key) continue;
+      const live = e.requests.filter(q => !q.stopped);
+      if (on){ if (!live.length) this.start(e); }
+      else for (const q of live) this.host.stopRequest(q);
+    }
+  }
+
+  // A RAGE RECORD HELD OFF by its monster's code -- Savage's eyes while asleep: 0xe80500 stops the eyes handle with
+  // 0x329c40(h, 0) while 0x81bb0(e, 0) or (e, 1) holds, the aura left running, and requests them again when neither
+  // does. Off stops its running requests and keeps setRage from starting it; on lets it run again -- started now if
+  // rage is on.
+  holdRage(pel, key, off){
+    const id = pel + '|' + key;
+    if (off) this.rageOff.add(id); else this.rageOff.delete(id);
+    for (const e of this.entries){
+      if (!e.def.record || e.when !== 'rage' || e.def.record.pel !== pel || e.def.record.key !== key) continue;
+      const live = e.requests.filter(q => !q.stopped);
+      if (off){ for (const q of live) this.host.stopRequest(q); }
+      else if (this.rage && !live.length) this.start(e);
+    }
   }
 
   // RAGE ENTERED AGAIN while it is shown (a rage-entry motion started over, render/motion-states.js): rage off and on

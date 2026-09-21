@@ -139,7 +139,8 @@ async function pageCheck(){
   fired.length = 0;
   await play('3', 'Motion[15]'); await frames(3);
   d = drawn();
-  check(same(fired, [900]) && d[8] === true && d[9] === false && d[101] === false, 'L3 Motion[15]: u 900, the tail severed (set 12)', { fired, d });
+  // (switching to list 3 passes through its first clip, L3 Motion[2] -- the shock trap's effect fires there, as it should)
+  check(fired.filter(k => k === 900).length === 1 && d[8] === true && d[9] === false && d[101] === false, 'L3 Motion[15]: u 900, the tail severed (set 12)', { fired, d });
   await play(...REST); await frames(3);
   check(same(drawn(), user0), 'another motion: the tail is the user\'s again', drawn());
 
@@ -181,7 +182,18 @@ async function pageCheck(){
   await play('2', 'Motion[9]'); await frames(3);
   check(same(fired, [1000]) && drawn()[2] === true, 'played once: the break shows', { fired, d: drawn() });
   await frames(dur('2', 'Motion[9]') + 6);
-  check(same(drawn(), user0) && ms().cur === null, 'at its end the parts are the user\'s again', { d: drawn(), cur: ms().cur });
+  check(drawn()[2] === true && ms().cur && ms().cur.key === 'em043_05|2|Motion[9]', 'held on its last frame, the break still shows', { d: drawn(), cur: ms().cur });
+  await play(...REST); await frames(3);
+  check(same(drawn(), user0) && ms().cur === null, 'another clip: the parts are the user\'s again', { d: drawn(), cur: ms().cur });
+  // death played once, enraged: held on its last frame it stays dead -- eyes closed, rage off (Raven: "he goes back to
+  // being enraged, eyes open in the death state")
+  rageBox.checked = true; await rageBox.onchange({ target: rageBox }); await frames(3);
+  await play('3', 'Motion[18]'); await frames(dur('3', 'Motion[18]') + 8);
+  check(V.pose.action.time >= V.pose.action.getClip().duration - 1e-6 && drawn()[7] === true && fx.schedule.rage === false && ms().mat.shown === 'calm',
+        'death played once, held on its last frame: eyes closed, rage still off', { t: V.pose.action.time, d: drawn(), rage: fx.schedule.rage, mat: ms().mat });
+  await play(...REST); await frames(3);
+  check(drawn()[7] === false && fx.schedule.rage === true, 'another clip: eyes open, the user\'s rage back', { d: drawn(), rage: fx.schedule.rage });
+  rageBox.checked = false; await rageBox.onchange({ target: rageBox }); await frames(3);
   V.state.loop = true;
 
   // 9. THE ROCK THROW with the viewer's stand-in inputs (index.html rockInput): each play of L2 Motion[24] throws the
@@ -263,10 +275,62 @@ async function pageCheck(){
   rageBox.checked = false; await rageBox.onchange({ target: rageBox }); await frames(3);
   await pick('1,2', 'Intact');
 
+  // 12. AILMENTS AND TIREDNESS: each state's effect on its countdown -- at once, then every period frames
+  const evReqs = key => fx.schedule.entries.filter(e => e.when === 'event' && e.def.record.key === key).map(e => e.requests.map(q => q.stopped ? 's' : 'r').join('')).join('|');
+  const eyesReqs = () => fx.schedule.entries.filter(e => e.when === 'rage' && e.def.record.key === 31).map(e => e.requests.map(q => q.stopped ? 's' : 'r').join('')).join('|');
+  const auraReqs = () => fx.schedule.entries.filter(e => e.when === 'rage' && e.def.record.key === 30).map(e => e.requests.map(q => q.stopped ? 's' : 'r').join('')).join('|');
+  const count = (arr, k) => arr.filter(x => x === k).length;
+  // tired: drool c 1104 at once and every 48; rage shown off
+  fired.length = 0;
+  await play('0', 'Motion[15]_loop'); await frames(2);
+  check(count(fired, 1104) === 1, 'L0 Motion[15] (tired): drool c 1104 at once', fired);
+  await frames(48 * 3 + 4);
+  check(count(fired, 1104) === 4, 'the drool comes every 48 frames (4 in 150)', fired);
+  rageBox.checked = true; await rageBox.onchange({ target: rageBox }); await frames(3);
+  check(fx.schedule.rage === false && ms().mat.shown === 'calm' && drawn()[12] === false, 'tired while the user is enraged: rage shown off (aura, eyes, neck glow)', { rage: fx.schedule.rage, mat: ms().mat, d: drawn() });
+  await play(...REST); await frames(3);
+  check(fx.schedule.rage === true && auraReqs().endsWith('r'), 'another motion: the user’s rage back', auraReqs());
+  // asleep: eyes closed, the rage eyes held off (the aura kept); zzz c 1102 in the hold, at once and every 90
+  fired.length = 0;
+  await play('3', 'Motion[14]'); await frames(3);
+  check(drawn()[7] === true, 'L3 Motion[14] (falling asleep): the eyes close', drawn());
+  check(!eyesReqs().includes('r') && auraReqs().endsWith('r'), 'enraged and asleep: the eyes effect stopped, the aura kept', { eyes: eyesReqs(), aura: auraReqs() });
+  check(count(fired, 1102) === 0, 'no zzz while falling asleep', fired);
+  await play('3', 'Motion[25]_loop'); await frames(2);
+  check(count(fired, 1102) === 1 && drawn()[7] === true && !eyesReqs().includes('r'), 'L3 Motion[25] (asleep): zzz c 1102 at once, eyes still closed and off', { fired, eyes: eyesReqs() });
+  await frames(92);
+  check(count(fired, 1102) === 2, 'the zzz comes every 90 frames', fired);
+  await play(...REST); await frames(3);
+  check(drawn()[7] === false && eyesReqs().endsWith('r'), 'awake: the eyes open and the eyes effect is requested again', { d: drawn(), eyes: eyesReqs() });
+  rageBox.checked = false; await rageBox.onchange({ target: rageBox }); await frames(3);
+  // paralysis: c 1101 at once and every 60 -- its hold, the _loop clip (166 frames), which wraps on without starting over
+  fired.length = 0;
+  await play('3', 'Motion[13]_loop'); await frames(2);
+  check(count(fired, 1101) === 1, 'L3 Motion[13] (paralysis): c 1101 at once', fired);
+  await frames(62);
+  check(count(fired, 1101) === 2, 'c 1101 again 60 frames on', fired);
+  await frames(60 * 3);
+  check(count(fired, 1101) === 5, 'and every 60 across the loop\'s wrap (5 in 244)', fired);
+  // shock trap: c 1105 at once and every 42
+  fired.length = 0;
+  await play('3', 'Motion[2]'); await frames(2);
+  check(count(fired, 1105) === 1, 'L3 Motion[2] (shock trap): c 1105 at once', fired);
+  await frames(44);
+  check(count(fired, 1105) === 2, 'c 1105 again 42 frames on', fired);
+  // stun: c 1103 requested once and held across [3] -> [6], stopped after
+  await play('3', 'Motion[3]'); await frames(3);
+  const st0 = evReqs(1103);
+  check(st0.endsWith('r') && st0.split('r').length - 1 === 1, 'L3 Motion[3] (stun): c 1103 requested', st0);
+  await play('3', 'Motion[6]_loop'); await frames(3);
+  check(evReqs(1103) === st0, 'L3 Motion[6] (stun hold): the same c 1103 kept, none added', { before: st0, now: evReqs(1103) });
+  await play(...REST); await frames(3);
+  check(!evReqs(1103).includes('r'), 'the stun over: c 1103 stopped (runs out)', evReqs(1103));
+
   // 8. the table itself: every motion it lists is a clip Savage carries
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
     const [list, clip] = k.split('|');
-    check(listOf(list) && listOf(list).clips.some(c => c.clip === clip), 'the table\'s ' + k + ' is a clip Savage carries');
+    check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
+          'the table\'s ' + k + ' is a clip Savage carries');
   }
   check(!fx.failed, 'the effect runtime never stopped', fx.failed);
   return out;

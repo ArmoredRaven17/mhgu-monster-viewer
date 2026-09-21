@@ -7091,8 +7091,9 @@ function rockInput(){
 // state changes should show that ... This way the animation can play out, but we keep the user's toggle choices."
 // A motion that carries a break or a state change shows it from the ROM's frame -- the parts through applyPartState,
 // rage through the materials' clock and the effects -- and the change's own effects are requested there; when the
-// motion is over (another clip, the bind pose, a play-once clip at its end) the display goes back to the user's
-// choices. `state` is never written: the Parts panel, the Enraged checkbox and the saved view stay the user's.
+// motion is over (another clip, the bind pose) the display goes back to the user's choices -- a play-once clip held on
+// its last frame is still showing its motion. `state` is never written: the Parts panel, the Enraged checkbox and the
+// saved view stay the user's.
 function driveMotionStates(){
   const act = pose.action;
   const clipName = act && act.getClip ? act.getClip().name : null;
@@ -7102,11 +7103,11 @@ function driveMotionStates(){
     const sib = ((listOf(entry()) || {}).clips || []).find(c => c.clip === base + '_start');
     if (sib) loopStart = Math.round(sib.dur * 60);
   }
-  // a play-once clip at its end is over: pose.js holds its last frame (clampWhenFinished)
-  const ended = !!(act && act.loop === THREE.LoopOnce && act.time >= act.getClip().duration - 1e-6);
   const now = performance.now() / 1000;
-  const r = motionStates.step(state.id, state.list, base, act ? act.time * 60 + loopStart : 0, loopStart, ended,
-                              { rage: !!state.rage }, now);
+  const loopSeg = !!(clipName && clipName.endsWith('_loop'));
+  const loopEnd = act ? loopStart + act.getClip().duration * 60 : 0;
+  const r = motionStates.step(state.id, state.list, base, act ? act.time * 60 + loopStart : 0,
+                              { loopStart, loopEnd, loopSeg }, { rage: !!state.rage }, now);
   if (r.parts) applyPartState();
   // a change the motion begins after (death, well into its fall) is shown with its transitions over
   if (r.rage){ markStateChange(); if (r.settled) tStateChanged = -1e9; }
@@ -7118,7 +7119,13 @@ function driveMotionStates(){
     setEffectRage(motionStates.rage(state.rage));
     if (rt){ if (r.entry) rt.restartRage(); else rt.setRage(motionStates.rage(state.rage)); }
   }
-  if (rt) for (const [pel, key] of r.fire) rt.fire(pel, key);
+  if (rt){
+    for (const [pel, key] of r.eyesOff) rt.holdRage(pel, key, true);
+    for (const [pel, key] of r.eyesOn) rt.holdRage(pel, key, false);
+    for (const [pel, key] of r.holdOff) rt.holdEvent(pel, key, false);
+    for (const [pel, key] of r.holdOn) rt.holdEvent(pel, key, true);
+    for (const [pel, key] of r.fire) rt.fire(pel, key);
+  }
 }
 
 // the canvas and the effects composer resize together (fitRenderer)
