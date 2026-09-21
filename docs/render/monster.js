@@ -3882,9 +3882,18 @@ export const SHARP_RGB  = [
 // to the struct's first padding byte; mMonsterLv is file +0x13 and boss n's mEmType (u16, variant
 // in the high byte: 0x413 = em019_04) is at file +0x64 + 13*(n-1). Checked: all 1,849 mQuestNo
 // match their filenames, mMonsterLv only ever holds {0, 1, 3, 5} (0 x571, 1 x141, 3 x672, 5 x465).
-// WHICH MONSTERS GET 0.27, over every boss slot of every quest: only em088_00 Ahtal-Ka and its
-// machine em087_00 appear in G-level quests alone, so their floor is ALWAYS 0.27. The other 92
-// bosses appear at both levels (0.27 in their G quests, 0.25 elsewhere); none is never in G.
+// WHICH MONSTERS GET 0.27 -- counted over REAL quests only (corrected 2026-09-21; the first count
+// took every file and was wrong). Real = listed by the quest boards' rQuestGroup ("quest\quest_group",
+// village/common.arc, 1,509 cQuestGroup records) and not titled DUMMY / dummy data / @ / NOT USED by
+// the ROM's own text: 1,479 of 1,849. FOURTEEN monsters are fought only at Monster Level G, so their
+// floor is ALWAYS 0.27: Bloodbath Diablos, Rustrazor Ceanataur, Nightcloak Malfestio, Boltreaver
+// Astalos, Soulseer Mizutsune, Elderfrost Gammoth, Raging Brachydios, Chaotic Gore Magala, Lao-Shan
+// Lung, Fatalis, Crimson Fatalis, Old Fatalis, Ahtal-Ka and em087_00 (its machine). The other 80
+// meet both floors -- including Furious Rajang and Savage Deviljho, which are main targets at
+// Monster Level High ("Child of Destruction", "A Shock in the Dark", "Triumphant Rage").
+// VILLAGE ADVANCED QUESTS ARE SPLIT, per the ROM: the ★6 Advanced set (622..641) is Monster Level
+// High, the ★10 Advanced set (1009..1055) is Monster Level G -- so those sixteen use 0.27 although
+// they sit on the village board. No other village quest is G.
 // So this control is a real, nameable ROM input: the quest's Monster Level, G or not.
 export const DEFLECT_T = { f25: 0.25, f27: 0.27 };
 
