@@ -4353,9 +4353,14 @@ function variantOff(){
 }
 // THE GAG EYES' row and piece. The row is offered only where GAG_EYES names the mounted monster, and mounting
 // is asynchronous because the piece is lifted out of Nibelsnarf's own model the first time it is asked for.
+// HIDDEN FOR NOW. Raven, 2026-09-21: "For now, hide the gag toggle for Khezu" -- the only monster GAG_EYES names, so
+// the gag is not offered at all unless ?gag is on the URL (the Background panel's rule). Not offered, it is also OFF:
+// a saved view that had it on would otherwise draw eyes with no switch on screen to take them away.
+const GAG_OFFERED = new URLSearchParams(location.search).has('gag');
 function paintGagEyes(){
   const row = document.getElementById('monGagRow'), box = document.getElementById('monGag');
-  const has = !!gagEyesOf(state.id);
+  const has = GAG_OFFERED && !!gagEyesOf(state.id);
+  if (!GAG_OFFERED) state.gagEyes = false;
   row.hidden = !has;
   box.checked = !!state.gagEyes;
   setGagEyes(!!state.gagEyes);
