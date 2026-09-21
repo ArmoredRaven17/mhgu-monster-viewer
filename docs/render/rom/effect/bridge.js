@@ -143,6 +143,10 @@ native(PARENT_GETDTI, () => parentClass, [], 'r0');
 // runs at 0x440d4 (getDTI, then compare [DTI+4]); the recorded monsters' billboards never reached slot 5,
 // cm200_007's (Raging Brachydios' enrage effect) does. Same shape as PARENT_GETDTI: return the DTI.
 native(0xa81ed4, () => 0x211c66c, [], 'r0');
+// The Model generator's getDTI, the same shape: cParticleGeneratorModel's vtable 0x1789734 slot 5 / +0x14 is the thunk
+// 0xa981a8 (`ldr r0, [pc, r0]` of GOT 0x1836364 -> the type's DTI 0x211c9ec, on the same exported page). The same type
+// check reaches it from Raging Brachydios' cm202_070 (c 70: L0 Motion[50] / [51]).
+native(0xa981a8, () => 0x211c9ec, [], 'r0');
 
 // ---- a monster's effect request, whole (proof.js ProofRequest; efx/proofunit.py) -------------------------
 // uMHProofEffect's move (0x327188) ends in uEffect's own move, and its owner matrix (vtable +0x50, 0x3273e8)
