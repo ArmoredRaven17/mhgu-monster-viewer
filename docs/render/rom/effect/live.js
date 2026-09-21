@@ -87,7 +87,9 @@ function applyState(mat, shaders, bs, ds, rs){
   } else { mat.blending = THREE.NoBlending; mat.transparent = false; }
   mat.depthTest = !!(d[1] & 1);
   mat.depthWrite = !!((d[1] >>> 1) & 1);
-  if (((d[1] >>> 2) & 0xf) !== 3) throw new Error('live effects: depth compare ' + ((d[1] >>> 2) & 0xf) + ' (' + ds + ')');
+  // the compare function only counts while the depth test is on: DSDefault (0x7fff9c, test and write off, compare 7)
+  // is the state Rathian's cm202_014 model draws with, and draws with no depth test at all
+  if ((d[1] & 1) && ((d[1] >>> 2) & 0xf) !== 3) throw new Error('live effects: depth compare ' + ((d[1] >>> 2) & 0xf) + ' (' + ds + ')');
   const cull = (r[1] >>> 3) & 7;
   mat.side = cull === 0 ? THREE.DoubleSide : cull === 1 ? THREE.BackSide : THREE.FrontSide;
 }
@@ -597,16 +599,6 @@ export class LiveEffects {
       u.tSpotLightTextures = { value: this.black };
       u.tPointLightTextures = { value: this.blackCube };
       applyState(mesh.material, shaders, d.blend, d.depth, material.state[2]);
-      // TEMP flashprobe (2026-09-19): why did binding vertex alpha not change the flash on screen?
-      // Latches once per flash model on a colour-carrying mesh: did my branch fire (colorIn), and does the
-      // blend gate on src alpha (blendSrc 204=SrcAlpha => alpha matters; 201=One => alpha ignored, fix is a
-      // no-op). Remove once answered.
-      if ((short === 'cm100_000' || short === 'cm101_000') && attrs.includes('color') && !(this._probed || (this._probed = new Set())).has(short)){
-        this._probed.add(short);
-        console.warn('[flashprobe]', short, 'meshIdx', d.meshIndex, 'layout', layout, 'attrs', attrs.join(','),
-          'colorIn', /in vec4 color;/.test(mesh.material.vertexShader || ''),
-          'blend', d.blend, 'blendSrc', mesh.material.blendSrc, 'blendDst', mesh.material.blendDst, 'depthWrite', mesh.material.depthWrite);
-      }
       mesh.renderOrder = 900 + k;                      // order() places it among the other draws
       mesh.visible = !!u.tAlbedoMap.value;
       d.mesh = mesh;
@@ -764,7 +756,14 @@ export class LiveEffects {
   order(gpu, prims, models){
     const all = [...gpu.map((d, k) => ({ d, mesh: this.gpuMeshes[k] })), ...prims.map((d, k) => ({ d, mesh: this.meshes[k], prim: k })),
                  ...models.filter(d => d.mesh && d.key !== undefined).map(d => ({ d, mesh: d.mesh }))];
-    for (const d of [...gpu, ...prims]) if ((d.key & 0x1f) !== 0x11) throw new Error('live effects: a node or batch draw in pass 0x' + (d.key & 0x1f).toString(16));
+    // a batch's pass is its own: the primitive list's batch draw 0xbac62c sets 0x15 for a record whose word +4 has a bit
+    // of 0x200001 (0xbac688..0xbac698; Rathian's u 231 billboard), else 0x11 -- the key sorts it after the 0x11 draws,
+    // as the game's list runs it (pass 0x15 renders into mpRTPostTarget, the model draws' target: not read). A pass the
+    // viewer has not seen a draw take (0x16..0x18) stops the effects.
+    for (const d of [...gpu, ...prims]){
+      const pass = d.key & 0x1f;
+      if (pass !== 0x11 && pass !== 0x15) throw new Error('live effects: a node or batch draw in pass 0x' + pass.toString(16));
+    }
     const sorted = all.map(e => [commandKey(e.d), e.d.seq, e]).sort((a, b) => (a[0] - b[0]) || (a[1] - b[1]));
     let last = -1, moved = 0;
     sorted.forEach(([, , e], rank) => {

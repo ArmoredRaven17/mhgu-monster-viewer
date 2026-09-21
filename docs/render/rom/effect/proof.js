@@ -30,7 +30,8 @@ import { registerCode, ownerMatrix } from './owner.js';
 // uMHProofEffect's owner matrix (vtable +0x50, 0x3273e8) is a branch to uEffect's.
 registerCode(0x3273e8, (m, o) => ownerMatrix(m, o));
 
-// 0x42744 is uMHProofEffect's GROUND-HEIGHT resolve (vtable +0x58, NOT the draw at +0x12c = 0x43168), called
+// 0x42744 is the request CORE's GROUND-HEIGHT resolve (uMHEffectCore vtable 0x172a578 +0x58 -- the core's, not
+// uMHProofEffect's: a run shows it reading core+0x140 and core+0xec; NOT the draw at +0x12c = 0x43168), called
 // from the placement 0x31d16c/0x327188 with (self, vec3*) and RETURNING THE HEIGHT AS A FLOAT IN s0, which
 // 0x31f904 stores straight into the effect's world-matrix Y. It is now LIFTED (lift-effects.sh,
 // lifted-request.js) instead of stubbed: a no-op left s0 holding cpu.js's POISON, so every particle of
@@ -39,7 +40,11 @@ registerCode(0x3273e8, (m, o) => ownerMatrix(m, o));
 // unchanged. Otherwise, only when effect+0xec bit 4 is set does it ray-cast through 0x18154c (the -FLT
 // sentinel 0xc7c35000) -- that branch is unrecorded and stays an Unverified throw. With the bit clear it
 // takes the parent unit's own fields: s0 = [parent+0x1074], s2 = [parent+0x10f0], skipped entirely when
-// [parent+0x1066] & 4; then s0 = max(s0, s2) and effect+0xec bit 0 picks s0 over s2.
+// [parent+0x1066] & 4; then s0 = max(s0, s2) and effect+0xec bit 0 picks s0 over s2. Both fields are ZERO on a
+// constructed enemy -- 0x538b34 stores -100000.0 at +0x1074 (0x538c3c) and then clears +0x1058..+0x1093 and
+// +0x10a0..+0x10fb (memclr8 at 0x538e14 / 0x538e20); in game the stage floor query 0x18154c fills them -- so with
+// no stage this answers 0.0, the ROM's own value. The core's spawn height check (0x328c10, payload +0x40 / +0x52,
+// allowed height payload +0x58) compares a joint's y against it.
 
 // 0xc04f84 is the unit manager's add with a parent (sUnit *0x211ff48, line, unit, parent): the same line-list
 // link as 0xc03670 (sUnit + line*0x18 + 0x28/0x2c, the line into the unit's +0xc bits 3..9, 0xc04d7c with the
