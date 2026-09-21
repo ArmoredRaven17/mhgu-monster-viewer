@@ -13,11 +13,12 @@
 // because no dynamic light is selected for the draw (FDynamicLight0..7 run their own bodies, which
 // light nothing) and a material with no specular map multiplies the specular term by it.
 //
-// WHAT THE VIEWER SUPPLIES THAT THE ROM'S BUILD DID, STATED -- none of it read:
-//   * vertex elements the mesh's layout does not carry (IANonSkinB has no VertexColor, VertexAlpha,
-//     Occlusion, Tangent, and no instancing input): the program compiled for that layout substitutes
-//     values that are not in the package; here they are 1 (colour 1,1,1, alpha 1, occlusion 1,
-//     instance colour 1,1,1,1) -- the only values under which these effects are visible at all
+// WHAT THE VIEWER SUPPLIES THAT THE ROM'S BUILD DID, STATED:
+//   * VertexColor / VertexAlpha are READ when the mesh's layout declares them (IANonSkinBC and the other
+//     *C/*A layouts) and the model export carried them as the glb 'color' attribute (COLOR_0, RGBA8): bound
+//     below to I.vcolor(.rgb) / I.valpha(.w). Where the layout does NOT carry them (IANonSkinB), nothing
+//     binds and they are the stand-in 1 (colour 1,1,1, alpha 1) -- the only value under which those meshes
+//     are visible at all. Occlusion (1) and the instance colour (1,1,1,1) are the same kind of stand-in.
 //   * a texture slot the material leaves empty (tSpecularMap index 0): bound to black, so it zeroes
 //     the specular term it multiplies instead of adding a colour nothing selected
 //   * the normal: IANonSkinB packs it as format 11, which the model export drops; a stand-in (0,1,0)
@@ -76,8 +77,17 @@ export function linkMaterial(shaders, layoutName, features, attributes){
   const semantics = new Set(layout.elements.map(e => e[0]));
   const used = new Set();
   const assign = [];
+  let vertexColor = false;
   for (const [name, type, semantic] of input){
-    if (semantics.has(semantic) && ATTRIBUTE[semantic] && attributes.includes(ATTRIBUTE[semantic][0])){
+    if ((semantic === 'VertexColor' || semantic === 'VertexAlpha') && semantics.has(semantic) && attributes.includes('color')){
+      // the mesh's own vertex data, which the ROM reads for a VertexColor/VertexAlpha layout (IANonSkinBC and
+      // the other *C/*A): the glb 'color' attribute is COLOR_0 (RGBA8, normalized). .rgb is the vertex colour
+      // VS_MaterialStd linearises into mc.vertex_color; .w the vertex alpha it carries into mc.transparency,
+      // the master fragment alpha. The cm100/cm101 flash shells author it 0 over most of the mesh -- their
+      // soft falloff -- so stubbing it to 1 draws every shell opaque. (A vec3 export leaves .w at 1.)
+      vertexColor = true;
+      assign.push('  I.' + name + ' = color' + (semantic === 'VertexColor' ? '.rgb' : '.w') + ';');
+    } else if (semantics.has(semantic) && ATTRIBUTE[semantic] && attributes.includes(ATTRIBUTE[semantic][0])){
       const [attr, n] = ATTRIBUTE[semantic];
       used.add(attr + ':' + n);
       assign.push('  I.' + name + ' = ' + (GLSL_TYPE(n) === type ? attr : type + '(' + attr + ')') + ';');
@@ -89,6 +99,7 @@ export function linkMaterial(shaders, layoutName, features, attributes){
     'precision highp float;', 'precision highp int;',
     structs, uniformDecls(shaders, vsFunctions),
     [...used].map(u => { const [a, n] = u.split(':'); return 'in ' + GLSL_TYPE(+n) + ' ' + a + ';'; }).join('\n'),
+    vertexColor ? 'in vec4 color;' : '',
     varying.map(([t, v]) => 'out ' + t + ' ' + v + ';').join('\n'),
     vsFunctions,
     'void main() {',

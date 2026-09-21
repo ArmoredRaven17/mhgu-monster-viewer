@@ -111,10 +111,15 @@ const VIEW_BUFFER = /^(CBViewProjection|CBScreen)_/;
 
 // TEMPORARY flash suppression (2026-09-15). cm100_000 is Khezu's discharge flash: a ROM-faithful but
 // screen-filling burst -- its ±190 model mesh drawn at the ROM's own CBWorld scale 60->120 (confirmed
-// with efx/engdraw.py), which we cannot yet shade as the soft burst the game shows. Hide it for Khezu
-// only until the flash material path lands. Keyed by monster so Teostra (em027) and Savage (em043),
-// which also use cm100_000, are left untouched. See memory effect-model-particles-no-node-scale.
-const HIDE_MODELS = { em003_00: new Set(['cm100_000']) };
+// with efx/engdraw.py). The "hard blob" look was the FLASH MATERIAL PATH: these burst meshes are
+// IANonSkinBC and carry a soft per-vertex VertexAlpha the ROM routes to mc.transparency, which the
+// viewer was stubbing to 1 (fully opaque). That is now bound in modelshader.js. BUT binding it changed
+// nothing on screen (Raven, 2026-09-19: "still looks the same") -- so fragColor.a is not reaching these
+// draws: either the 'color' attribute is not binding or the flash blend ignores src alpha. Under
+// investigation; cm101_000 (em023_00) and cm100_000 (em003_00) both stay hidden meanwhile. Keyed by
+// monster so Teostra (em027) and Savage (em043), which also use cm100_000, are untouched.
+// See memory effect-model-particles-no-node-scale.
+const HIDE_MODELS = { em003_00: new Set(['cm100_000']), em023_00: new Set(['cm101_000']) };
 
 export class LiveEffects {
   constructor(def){
@@ -172,9 +177,14 @@ export class LiveEffects {
     // effect happened to have root joint -1, so it never exercised the joint path.)
     const rootJointOf = hex => { const b = parseInt(hex.substr(100, 2), 16) | (parseInt(hex.substr(102, 2), 16) << 8); return (b << 16) >> 16; };
     const rootJoints = def.effects.map(e => (e.record && e.record.payload) ? rootJointOf(e.record.payload) : -1).filter(j => j >= 0);
-    const joints = [...new Set([...def.effects.flatMap(e => e.joints), ...rootJoints])];
+    const named = [...new Set([...def.effects.flatMap(e => e.joints), ...rootJoints])];
+    // ONLY THE MODEL'S OWN JOINTS ARE MAPPED. The parent's joint table (+0x498) is the model's joint-number
+    // remap: a number the model has no bone for stays 0xff, and 0x939278 then answers the model's world matrix
+    // (+0xb0). Savage's cm202_002 k4 names joint 81, which em043_05.mod does not have (its remap maps 36 joints,
+    // 81 -> 0xff); mapping it anyway left a ZERO matrix in the slot and collapsed the node to a point.
+    const joints = named.filter(j => bones.some(b => b.gid === j));
     this.effects = def.effects.map(e => ({ owner: host.createEffect(files[e.efl]), def: e }));
-    const parent = this.parent = (joints.length || def.effects.some(e => e.record)) ? host.createParent(joints) : null;
+    const parent = this.parent = (named.length || def.effects.some(e => e.record)) ? host.createParent(joints) : null;
     this.joints = joints.map(j => ({ j, bone: (bones.find(b => b.gid === j) || {}).node || null }));
     // ANCHOR (joint -1 = model+0xb0, the model's world-matrix ORIGIN, per the joint getter 0x939278). The
     // mounted group's origin sits on the FLOOR, but the ROM places the model's world matrix at the model's
@@ -488,6 +498,16 @@ export class LiveEffects {
       u.tSpotLightTextures = { value: this.black };
       u.tPointLightTextures = { value: this.blackCube };
       applyState(mesh.material, shaders, d.blend, d.depth, material.state[2]);
+      // TEMP flashprobe (2026-09-19): why did binding vertex alpha not change the flash on screen?
+      // Latches once per flash model on a colour-carrying mesh: did my branch fire (colorIn), and does the
+      // blend gate on src alpha (blendSrc 204=SrcAlpha => alpha matters; 201=One => alpha ignored, fix is a
+      // no-op). Remove once answered.
+      if ((short === 'cm100_000' || short === 'cm101_000') && attrs.includes('color') && !(this._probed || (this._probed = new Set())).has(short)){
+        this._probed.add(short);
+        console.warn('[flashprobe]', short, 'meshIdx', d.meshIndex, 'layout', layout, 'attrs', attrs.join(','),
+          'colorIn', /in vec4 color;/.test(mesh.material.vertexShader || ''),
+          'blend', d.blend, 'blendSrc', mesh.material.blendSrc, 'blendDst', mesh.material.blendDst, 'depthWrite', mesh.material.depthWrite);
+      }
       mesh.renderOrder = 900 + k;
       mesh.visible = !!u.tAlbedoMap.value;
       k++;

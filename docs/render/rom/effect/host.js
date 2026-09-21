@@ -33,7 +33,7 @@ import { invoke } from './cpu.js';
 import * as modeldraw from './modeldraw.js';
 import './prim.js';
 import { proofStart, installRequests, ProofRequest, unitFrame, pruneUnits, releaseRequest, stopRequest } from './proof.js';
-import { PARENT_GETDTI, PARENT_ADD_EFFECT, RESMGR_RELEASE } from './bridge.js';
+import { PARENT_GETDTI, PARENT_ADD_EFFECT, RESMGR_RELEASE, MATERIAL_VM } from './bridge.js';
 
 const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 const u32bytes = v => new Uint8Array(new Uint32Array([v >>> 0]).buffer);
@@ -75,10 +75,29 @@ export class EffectHost {
     this.handles = new Map();                 // resource handle -> { dti, name }
     this.ids = 0;
     this.modelDraws = [];
+    this.materialObjs = new Map();
+    this.materialVT = 0;
     this.primDraws = [];
     const host = this;
     m.svc = {
       alloc: (size) => host.malloc(size),
+      // materialAt: a stand-in material object per (model, mesh-material index). The ROM only needs an
+      // object with a vtable here -- the real material values come from the .mrl at draw time
+      // (modeldraw.js / host.material). Its vtable slots are all MATERIAL_VM, which leaves r0 alone.
+      materialAt: (model, index) => {
+        const key = (model >>> 0) + ':' + (index >>> 0);
+        let obj = host.materialObjs.get(key);
+        if (obj === undefined){
+          if (host.materialVT === 0){
+            host.materialVT = host.malloc(0x100);
+            for (let off = 0; off < 0x100; off += 4) m.w32(host.materialVT + off, MATERIAL_VM);
+          }
+          obj = host.malloc(0x200);
+          m.w32(obj, host.materialVT);
+          host.materialObjs.set(key, obj);
+        }
+        return obj;
+      },
       free: (p) => host.free(p),
       nextId: () => ++host.ids,
       streamSize: s => host.streams.get(s).length,
@@ -357,7 +376,75 @@ export class EffectHost {
     invoke(m, 0xbad710, [this.SYS, this.VIEW, 0, 0], [0]);
     for (const o of owners) drawEffect(m, o, this.VIEW);
     invoke(m, 0xbad790, [this.SYS, this.VIEW, 0, 0]);
+    if (this.sceneModels) for (const o of owners) this.sceneModelDraws(o);   // off until the red regression is understood
     return { models: this.modelDraws, prims: this.primDraws };
+  }
+
+
+  // ---- ed&4 Model generators: effect-SPAWNED SCENE MODELS -----------------------------------------
+  // An ed&4 Model generator (gen+0xed bit 2) is marked gen+0x46 = 0x37 by 0xa91a30, and the generator
+  // draw 0xa92710 handles only 5 and 0x1e -- so these particles are NOT drawn as effect particles at
+  // all. Each one instead gets its own cModel-like record (0xa925e8 -> 0xa92610, registered by
+  // 0xc04f84), which the ENGINE MODEL RENDER 0x892028 draws via record->vtable[+0x68] (0xc68664) down
+  // to the GPU mesh draw 0x890ce0. This host does not run that path -- its bl closure is ~111 functions
+  // of engine render, which the viewer never lifts (modeldraw.js hand-translates the engine draw at its
+  // entry for the same reason). Everything that path needs is ROM-computed in the record:
+  //     +0x40 position, +0x50 quaternion, +0x60 scale   composed exactly as composeParent above does
+  //     +0xf0 the rModel handle
+  //     +0x110 a per-mesh VISIBILITY bitmask the ed&4 move writes (0xa921b8): word (row4 >> 5) & 0x7f,
+  //            bit row4 & 0x1f -- the draw tests it at 0xc69458 and skips the mesh when clear
+  //     the mesh row's material index is ubfx(row4, 0xc, 0xc) (0xc69518)
+  // so the draws are emitted from the record here, in the shape modeldraw.js produces. The blend is the
+  // one engdraw MEASURED for these draws (BSBlendBlendAlpha, the ROM's own 0xafd834 pick); depth comes
+  // from the material's .mrl state.
+  sceneModelDraws(owner){
+    const m = this.m, F = Math.fround;
+    for (let g = m.u32(owner + 0x1f0) >>> 0; g; g = m.u32(g + 0xc) >>> 0){
+      if (!(m.u8(g + 0xed) & 4)) continue;
+      for (let p = m.u32(g + 0xb0) >>> 0, n = 0; p && n < 4096; p = m.u32(p + 4) >>> 0, n++){
+        const rec = m.u32(p + 0x4c) >>> 0;
+        if (!rec) continue;
+        const h = this.handles.get(m.u32(rec + 0xf0) >>> 0);
+        if (!h) continue;
+        let table, count;
+        try { ({ table, count } = this.resources.meshTable(h.name)); } catch (e) { continue; }
+        if (!count) continue;
+        // the ROM's own composition (0x8a53bc local, 0x8a5480 world = rows 0..2 times the scale)
+        const px = m.f32(rec + 0x40), py = m.f32(rec + 0x44), pz = m.f32(rec + 0x48);
+        const x = m.f32(rec + 0x50), y = m.f32(rec + 0x54), z = m.f32(rec + 0x58), w = m.f32(rec + 0x5c);
+        const sx = m.f32(rec + 0x60), sy = m.f32(rec + 0x64), sz = m.f32(rec + 0x68);
+        const x2 = F(x + x), y2 = F(y + y), z2 = F(z + z);
+        const xx = F(x * x2), yy = F(y * y2), zz = F(z * z2);
+        const xy = F(x * y2), xz = F(x * z2), yz = F(y * z2);
+        const xw = F(x2 * w), yw = F(y2 * w), zw = F(z2 * w);
+        const M = [F(1 - F(yy + zz)), F(xy + zw), F(xz - yw), 0,
+                   F(xy - zw), F(1 - F(xx + zz)), F(yz + xw), 0,
+                   F(xz + yw), F(yz - xw), F(1 - F(xx + yy)), 0,
+                   px, py, pz, 1];
+        const S = [sx, sy, sz];
+        for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) M[4 * r + c] = F(S[r] * M[4 * r + c]);
+        // CBWorld rows are the matrix's first three columns (modeldraw.js: w(0),w(0x10),w(0x20),w(0x30) ...)
+        const world = [M[0], M[4], M[8], M[12], M[1], M[5], M[9], M[13], M[2], M[6], M[10], M[14]];
+        for (let i = 0; i < count; i++){
+          const o = 48 * i + 4;
+          const row4 = (table[o] | (table[o + 1] << 8) | (table[o + 2] << 16) | (table[o + 3] << 24)) >>> 0;
+          const word = m.u32(rec + 0x110 + 4 * ((row4 >>> 5) & 0x7f)) >>> 0;
+          if (!((word >>> (row4 & 0x1f)) & 1)) continue;          // the move cleared this mesh
+          const material = (row4 >>> 12) & 0xfff;
+          let mat;
+          try { mat = this.resources.material(h.name, material); } catch (e) { continue; }
+          if (!mat) continue;
+          this.modelDraws.push({
+            model: h.name, meshIndex: i, material, world,
+            cbMaterial: (mat.cbs && mat.cbs.CBMaterial) || mat.cbm || [],
+            globalTransparency: 1,
+            blend: 'BSBlendBlendAlpha',
+            depth: (mat.state && mat.state[1]) || 'DSZTest',
+            features: {},
+          });
+        }
+      }
+    }
   }
 
   recordName(v){

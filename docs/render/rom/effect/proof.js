@@ -20,12 +20,41 @@
 // transcribed from 0x32a284.
 import { Unverified } from './mem.js';
 import { liftedCall } from './bridge.js';
+import { registerNative } from './cpu.js';
 import './lifted-proof.js';
 import './lifted-request.js';
+import { L_a91c48 } from './lifted-particles.js';
 import { registerCode, ownerMatrix } from './owner.js';
 
 // uMHProofEffect's owner matrix (vtable +0x50, 0x3273e8) is a branch to uEffect's.
 registerCode(0x3273e8, (m, o) => ownerMatrix(m, o));
+
+// 0x42744 is uMHProofEffect's GROUND-HEIGHT resolve (vtable +0x58, NOT the draw at +0x12c = 0x43168), called
+// from the placement 0x31d16c/0x327188 with (self, vec3*) and RETURNING THE HEIGHT AS A FLOAT IN s0, which
+// 0x31f904 stores straight into the effect's world-matrix Y. It is now LIFTED (lift-effects.sh,
+// lifted-request.js) instead of stubbed: a no-op left s0 holding cpu.js's POISON, so every particle of
+// em084_00_007 was placed at Y = -6.27e18 and drew off-screen.
+//   The ROM: s16 = the input Y (the default result); with no parent handle or no parent unit it returns that
+// unchanged. Otherwise, only when effect+0xec bit 4 is set does it ray-cast through 0x18154c (the -FLT
+// sentinel 0xc7c35000) -- that branch is unrecorded and stays an Unverified throw. With the bit clear it
+// takes the parent unit's own fields: s0 = [parent+0x1074], s2 = [parent+0x10f0], skipped entirely when
+// [parent+0x1066] & 4; then s0 = max(s0, s2) and effect+0xec bit 0 picks s0 over s2.
+
+// The ed&4 Model generators' per-particle records are registered into the unit DRAW LIST by 0xc04f84.
+// The viewer keeps no render list -- it draws through the host -- so that registration is a no-op here,
+// exactly as the recorder skips it (efx/proofunit.py skip_draw_registration) and as bridge.js no-ops the
+// node draw-registration 0x9bca30.
+registerNative(0xc04f84, () => {});
+
+// TEMPORARILY BACK OUT the ed&4 path (2026-09-20): with it on, Raven reports the RED energy effect no
+// longer renders. Until that regression is understood, ed&4 Model generators are skipped again -- their
+// per-particle records are not built, exactly as before this work. The lifted ed&4 branch, the record
+// machinery and host.sceneModelDraws stay in place behind this switch.
+registerNative(0xa91c48, (m, c) => {
+  const gen = c.r[0] >>> 0;
+  if ((m.u8(gen + 0xed) & 4) && !globalThis.__ED4__) return;   // __ED4__ = true re-enables the ed&4 records
+  return L_a91c48(m, c);
+});
 
 const QUAT_GOT = 0x1832ad8;          // 0x32a300: the quaternion the start passes (identity)
 

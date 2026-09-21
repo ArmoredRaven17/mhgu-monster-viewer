@@ -178,6 +178,18 @@ const GENERATOR_TYPES = {
   0: { got: 0x183c8a4, name: 'LiteBillboard' },   // 0xa780bc / 0xa780f8
   1: { got: 0x183c9b0, name: 'LitePolyline' },    // 0xaae1b4 / 0xaae1f0
   5: { got: 0x183c948, name: 'Model' },           // 0xa91944 / 0xa91980
+  // genType 2. The GOT here was 0x183c984, read off a ctor literal; that is a SIBLING class, and a
+  // generator built with it dispatched into 0xaa7b60 -- a routine no recorded run ever calls, so the
+  // effect stopped with "virtual +0x18 -> 0xaa7b60 not translated" (Bloodbath's List 9, 2026-09-20).
+  // CORRECTED by asking the ROM itself: configure a record whose row is type 2 (em007_04_008.efl,
+  // em007_04u:631, row 0) and run the effect's own start 0x9baa9c under the emulator, and the generator
+  // the factory builds carries vtable 0x1789834, whose GOT entry is 0x183c960. Every recording agrees --
+  // cm202_250 and two Bloodbath records all call 0x1789834's virtuals (0xa99558 init, 0xa99590 start,
+  // 0xa9cfc4 spawn, 0xa9d630 particle frame) and never touch 0x17899e4's.
+  //   NO NAME: the 27 cParticleGenerator* class names are in rodata (0x01574f99..) but the genType ->
+  // class mapping is NOT pinned for anything except 5 <-> Model (build-notes effects-efl-psl.md), so
+  // the names on 0 and 1 above are themselves unpinned guesses and this row does not add another.
+  2: { got: 0x183c960 },                         // vtable 0x1789834
 };
 // Undecoded generator types (2, 9, 25 and anything else) the factory meets and skips, kept so the omission is
 // reportable rather than silent. genType -> how many rows were skipped. (Soulseer's eye flame em082_04_004 has
@@ -563,7 +575,7 @@ function startModel(m, g){                                     // 0xa91a30
   // which lifts this same block from the em082_04 model recording (r[7] = r[2] | 0x40000000, r7 = w[3]).
   if (kind !== 6) w[3] = (w[3] | 0x40000000) >>> 0;
   for (let i = 0; i < 8; i++) m.w32(g + 0xd0 + 4 * i, w[i]);
-  if (w[7] & 0x400) throw new Unverified('0xa91b4c Model +0xed bit 2');
+  if (w[7] & 0x400) m.w8(g + 0x46, 0x37);   // 0xa91b4c: +0xed bit 2 -> +0x46 = 0x37 (read from the ROM disasm; no recording exercised it, so not vector-verified. Nakarkos's aura em084_00_007 is the first model to set it)
   const flag = paramBit16(m, g);
   const g40 = m.u32(g + 0x40), g44 = m.u32(g + 0x44);
   m.w32(g + 0x40, g40);
@@ -673,6 +685,18 @@ function generatorTransform(m, g, extra){
 }
 
 // Vtable slot 15 per type.
+// Slots 6, 8 and 15 for genType 2 (vtable 0x1789834), each the lifted ROM routine. The transform entry
+// 0xa56d14 is `mov r1, #0; b 0xa56d1c` -- the same shared routine the Model transform ends in, entered
+// with the flag clear.
+function initType2(m, g, owner, row, index){                   // 0xa99558
+  return liftedCall(m, 0xa99558, [g, owner, row, index]).r[0];
+}
+function startType2(m, g){                                     // 0xa99590
+  return liftedCall(m, 0xa99590, [g]).r[0];
+}
+function transformType2(m, g){                                 // 0xa56d14
+  return liftedCall(m, 0xa56d14, [g]).r[0];
+}
 function transformModel(m, g){                                 // 0xa91b80
   if (!(m.u8(g + 0xed) & 4)){
     const model = m.u32(m.u32(g + 0x28) + 0x18);
@@ -695,15 +719,25 @@ function transformLitePolyline(m, g){                          // 0xaaea38
   return liftedCall(m, 0xaaea38, [g]).r[0];
 }
 
-// 0xae9df4: the generator's random seed (node block +0x10, negative: draw one).
+// 0xae9df4: the generator's random seed. The node block holds a TABLE of seeds at +0x10 and node block
+// +0x0c selects how an entry is chosen: below 0x2000000 the game always takes entry 0, at or above it
+// draws a random index (0xae9e10) modulo the count byte at +0x0f. Either way, a NEGATIVE entry means
+// "draw the seed itself" (0xae9e4c, masked to 12 bits by the bfc). Bloodbath's em007_04_000 is the first
+// effect to use the table form, which this refused before (Raven 2026-09-20: nothing rendered).
+//   The modulo is ARM `udiv` + `mls`, and ARM's udiv by zero yields 0 rather than trapping -- so a count
+// of 0 leaves the raw draw as the index, which is what is reproduced here.
 function generatorSeed(m, g){
   const nb = m.u32(g + 0x30);
-  if (m.u32(nb + 0xc) >= 0x2000000) throw new Unverified('0xae9e10 node block +0x0c');
-  let seed = m.u32(nb + 0x10) | 0;
-  if (seed < 0){
-    const owner = m.u32(g + 8);
-    seed = managerRandom(m, mgrOf(m), m.u32(owner + 0xf0) & 8) & 0xfff;
+  const owner = m.u32(g + 8);
+  const draw = () => managerRandom(m, mgrOf(m), m.u32(owner + 0xf0) & 8) >>> 0;
+  let index = 0;
+  if (m.u32(nb + 0xc) >= 0x2000000){
+    const count = m.u8(nb + 0xf);
+    const r = draw();
+    index = count ? (r % count) : r;
   }
+  let seed = m.u32(nb + 0x10 + 4 * index) | 0;
+  if (seed < 0) seed = draw() & 0xfff;
   seed &= 0xffff;
   m.w16(g + 0x50, seed); m.w32(g + 0x48, seed); m.w32(g + 0x4c, seed);
 }
@@ -937,7 +971,12 @@ function factory(m, owner){
     // effect's BILLBOARD/POLYLINE layers alone by leaving its model rows unbuilt. A stopgap for eyeballing an
     // effect that is part billboards, part models -- not a shipped behaviour.
     if (type === 5 && typeof globalThis !== 'undefined' && globalThis.__skipEffectModels){ recordSkippedGenerator(type); continue; }
-    if ((type === 0 || type === 1) && (c3 & 0xf0)) throw new Unverified('0x9baf38 generator type ' + type + ' with col3 0x' + (c3 & 0xf0).toString(16));
+    // Types 0, 1 and 2 test the row's word 3 first (0x9baf2c / 0x9baf58 / 0x9bafa4: tst r0, #0xf0) and build a
+    // DIFFERENT class when any of bits 4..7 is set -- 0xa8103c, 0xab9460, 0xaa7b10 (vtables 0x17891f8, 0x1789c20,
+    // 0x17899e4) -- none of which is translated. GENERATOR_TYPES holds the bits-clear classes only, so a row
+    // with the bits set is refused rather than built as a class the game would not create for it.
+    if ((type === 0 || type === 1 || type === 2) && (c3 & 0xf0))
+      throw new Unverified({ 0: '0x9baf38', 1: '0x9baf64', 2: '0x9bafb0' }[type] + ' generator type ' + type + ' with col3 0x' + (c3 & 0xf0).toString(16));
     const g = newGenerator(m, type);
     if (prev !== 0) m.w32(prev + 0xc, g); else m.w32(owner + 0x1f0, g);
     if (vcall(m, g, 0x18, owner, row, m.u16(owner + 0x1e0)) === 0) throw new Unverified('0x9bb33c generator init failed');
@@ -1092,6 +1131,7 @@ registerCode(0xa56174, linkPool);
 registerCode(0xa91a30, startModel); registerCode(0xa78178, startLiteBillboard); registerCode(0xaae2a4, startLitePolyline);
 registerCode(0xa56960, generatorSeedStart);
 registerCode(0xa91b80, transformModel); registerCode(0xa783a8, transformLiteBillboard); registerCode(0xaaea38, transformLitePolyline);
+registerCode(0xa99558, initType2); registerCode(0xa99590, startType2); registerCode(0xa56d14, transformType2);
 
 export const internals = {
   allocGenerator: (m, size, align) => m.svc.alloc(size, align),

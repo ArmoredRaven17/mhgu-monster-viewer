@@ -16,6 +16,7 @@
 //
 // Squaring the value (generator +0x40 bit 30) is the caller's business: 0xa60f68.
 import { Unverified, F } from './mem.js';
+import { liftedCall } from './bridge.js';
 
 export function updateLife(m, gen, p, slot){               // 0xaeae40
   const pflags = m.u32(p + 0x0c);
@@ -97,7 +98,15 @@ export function releaseParticle(m, p){
   const w8 = m.u32(p + 8), wc = m.u32(p + 0xc);
   m.w32(p + 8, w8);
   m.w32(p + 0xc, (wc & ~0x4000000) >>> 0);
-  if (m.u32(p + 0x4c) !== 0) throw new Unverified('0xcaa648 particle with an attached object (+0x4c)');
+  // 0xcaa63c: the ed&4 Model record this particle carries at +0x4c (made by 0xa925e8 -> 0xa92610). The
+  // ROM releases it through the record's OWN vtable +0x40 and clears the pointer -- but only while the
+  // record is in state 1 or 2 ([rec+0xc] & 7, then `sub r1,#1; cmp r1,#1; pophi` at 0xcaa650, so any
+  // other state returns and leaves it attached).
+  const rec = m.u32(p + 0x4c) >>> 0;
+  if (rec !== 0 && ((((m.u32(rec + 0xc) & 7) - 1) >>> 0) <= 1)){
+    liftedCall(m, m.u32((m.u32(rec) + 0x40) >>> 0) >>> 0, [rec]);
+    m.w32(p + 0x4c, 0);
+  }
 }
 
 // Unlink a particle from the generator active list (+0xb0 head, +0xb4 tail) and append it to the

@@ -123,6 +123,16 @@ native(HANDLE_GET, (m) => m.svc.handleUnit(), [], 'r0');
 // The resource manager's load (vtable +0x30) a request's state machine calls for its record's path
 // (0x323b40): the host answers with the list it loaded (m.svc.requestLoad).
 export const REQUEST_LOAD = 0x7e00100c;
+
+// materialAt (0x88db14 = model->materials[+0xf8][i]) and the material's own vmethods. A MODEL effect's
+// ed&4 records ask the model for each material (0x88be08's fill loop, then the draw) -- but no recorder or
+// host builds model material OBJECTS: materials are resolved from the .mrl at draw time (modeldraw.js).
+// So the host answers materialAt with a stand-in object, exactly as efx/engdraw.py does for the recorder.
+// MATERIAL_VM is every slot of its vtable: it must leave r0 alone, because the fill loop STORES the return
+// of vt+0x1c (addref) into the table.
+export const MATERIAL_VM = 0x7e001010;
+native(MATERIAL_VM, () => {}, [], null);
+native(0x88db14, (m, model, index) => m.svc.materialAt(model, index), A2, 'r0');
 native(REQUEST_LOAD, (m, self, dti, path, flags) => m.svc.requestLoad(dti, path, flags), A4, 'r0');
 // libm, as the emulator's imports compute it (build/arm/emu.py _on_plt): the float32 argument, the double
 // result rounded to float32, in s0.
@@ -132,10 +142,13 @@ function libm(address, fn){
 }
 libm(0x13ecba8, (a, b) => Math.atan2(a, b));           // atan2f
 libm(0x13ecc2c, a => Math.cos(a));                     // cosf
+libm(0x13ecc14, a => Math.sqrt(a));                    // sqrtf
 libm(0x13ecc20, a => Math.sin(a));                     // sinf
 libm(0x13ecfc8, a => (a < -1 || a > 1) ? NaN : Math.asin(a));   // asinf (math.asin raises -> nan)
 native(0x13ecd34, (m, d, n, v) => { for (let i = 0; i < n; i++) m.w8(d + i, v & 0xff); return d; }, A3, 'r0');   // __aeabi_memset4(dest, n, c)
+native(0x13ecd58, (m, d, n, v) => { for (let i = 0; i < n; i++) m.w8(d + i, v & 0xff); return d; }, A3, 'r0');   // __aeabi_memset8(dest, n, c)
 native(0x13ecbb4, (m, d, n) => { for (let i = 0; i < n; i++) m.w8(d + i, 0); return d; }, A2, 'r0');          // __aeabi_memclr4(dest, n)
+native(0x13ecbfc, (m, d, n) => { for (let i = 0; i < n; i++) m.w8(d + i, 0); return d; }, A2, 'r0');          // __aeabi_memclr8(dest, n)
 native(0x13ecbe4, (m, d, n) => { for (let i = 0; i < n; i++) m.w8(d + i, 0); return d; }, A2, 'r0');          // __aeabi_memclr(dest, n)
 // 0x9bd170, uEffect vtable +0xfc: bx lr (the generator's preUpdate calls it) -- touches no register
 registerNative(0x9bd170, () => {});

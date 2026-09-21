@@ -3,6 +3,9 @@
 // Each effect in docs/effects/<monster>.json carries `when` (C:\MHGU-Extract\efx\export_effects.py), the
 // state in which the monster's code starts it (E:\offline\decode\notes\effects-firing.md):
 //   'always'     from the moment the monster is shown
+//   'calm'       while NOT enraged -- the inverse of 'rage' (Nakarkos's charge aura, em084_00_060 on joint 0:
+//                his code steps it through hadouhou charge stages 1..3 driven by charging actions, gated OFF
+//                of the enrage/red state; the viewer ties it to Raven's Calm+Charging rungs, i.e. !rage)
 //   'rage'       while enraged (Savage Deviljho's aura and eyes, em043_05_000 keys 30 / 31; Teostra's fire
 //                aura, em027_00_011 key 0 -- Teostra's own switch for it is a byte its hook sets and clears,
 //                0xe107ac, which the viewer ties to Enraged on Raven's word: "does not turn off with Enraged")
@@ -39,7 +42,7 @@ export class EffectSchedule {
       if (!e.def.record){                     // a plain effect: started once and moved every step, as before
         if (e.def.joints.length) host.attach(e.owner, parent);
         host.start(e.owner);
-      } else if (e.when === 'always' || (e.when === 'rage' && this.rage)) this.start(e);
+      } else if (e.when === 'always' || (e.when === 'rage' && this.rage) || (e.when === 'calm' && !this.rage)) this.start(e);
     }
   }
 
@@ -55,8 +58,9 @@ export class EffectSchedule {
     this.rage = on;
     for (const e of this.entries){
       if (!e.def.record) continue;
-      if (e.when === 'rage'){
-        if (on) this.start(e);
+      if (e.when === 'rage' || e.when === 'calm'){
+        const want = e.when === 'rage' ? on : !on;    // 'calm' runs while not enraged: the inverse of 'rage'
+        if (want) this.start(e);
         else if (e.def.stop === 'request'){ for (const q of e.requests) if (!q.stopped) this.host.stopRequest(q); }
         else { for (const q of e.requests) this.host.releaseRequest(q); e.requests.length = 0; }
       } else if (e.when === (on ? 'rageStart' : 'rageEnd')) this.start(e);
@@ -85,18 +89,24 @@ export class EffectSchedule {
   // own frame (render/monster.js CLIP_EFFECTS, driven from index.html's render loop by pose.action.time), not by
   // a monster state. A 'clip' effect is never auto-started (the constructor only starts 'always'/'rage'); these
   // are the only way it runs. Idempotent: startClip does nothing if it is already running.
-  startClip(efl){
+  // `key` is the PSL's effectNo, which IS the pel record's key. One .efl can have MANY records on different
+  // joints with different masks (Bloodbath's em007_04_000 has seven), and the PSL names exactly which one a
+  // motion fires -- so match on it when the binding carries it. A binding without a key matches by file
+  // alone, as before, so the monsters wired that way are untouched.
+  startClip(efl, key){
     for (const e of this.entries)
-      if (e.when === 'clip' && e.def.record && (e.def.efl || '').endsWith(efl) && !e.requests.length) this.start(e);
+      if (e.when === 'clip' && e.def.record && (e.def.efl || '').endsWith(efl) && !e.requests.length
+          && (key == null || e.def.record.key === key)) this.start(e);
   }
   // Stop a clip effect the ROM's way: stopRequest (0x329c40) turns its emitters off so its live particles
   // age out and DIE, freeing their pool slots -- then it is taken off the passes once dead (step). Releasing
   // it outright (as before) orphaned those particles: their slots (L_4187c's +0x74 mask) stayed set, so after
   // ~15 loops a slot group filled (0xffffffff) and the request builder walked into unrecorded code (0x418d4),
   // which stopped every effect until a page refresh (Raven, 2026-09-15). The dying request is not drawn.
-  stopClip(efl){
+  stopClip(efl, key){
     for (const e of this.entries)
-      if (e.when === 'clip' && (e.def.efl || '').endsWith(efl)){
+      if (e.when === 'clip' && (e.def.efl || '').endsWith(efl)
+          && (key == null || (e.def.record && e.def.record.key === key))){
         for (const q of e.requests){ if (!q.stopped) this.host.stopRequest(q); q.dieBy = (this.frame || 0) + STOP_FRAMES; (e.dying || (e.dying = [])).push(q); }
         e.requests.length = 0;
       }
