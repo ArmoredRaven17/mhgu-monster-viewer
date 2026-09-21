@@ -202,7 +202,7 @@ export const SKIPPED_GENERATORS = new Map();
 function recordSkippedGenerator(type){
   const n = (SKIPPED_GENERATORS.get(type) || 0) + 1;
   SKIPPED_GENERATORS.set(type, n);
-  if (n === 1) console.warn('effect: generator type ' + type + ' is not translated (genType 0/1/2/5/9/25 only) -- row skipped');
+  if (n === 1) console.warn('effect: generator type ' + type + ' is not translated -- row skipped');
 }
 function newGenerator(m, type){
   const g = m.svc.alloc(0x1d0, 0x10);
@@ -983,11 +983,12 @@ function factory(m, owner){
     // failing the whole effect drew nothing for an effect that is mostly decodable. The row is left out (not
     // invented) and the skip recorded. (0x9bada8 type 25, 0x9bb300 type > 26, 0x9bade8 other became this skip.)
     // TYPE 25 is tested before the jump table (0x9bada0; effects-node.md 1): row word 3 & 0xf0 set builds
-    // cParticleNodeInfinite (0xaf127c / 0xaf12b8), whose CPU side is not read -- refused; clear builds cParticleNode:
-    // 0xaece5c(0x250, 0x10) (the class's allocator, getAllocator(DTI 0x211cd5c) +0x20) and its constructor 0xaece98,
-    // both lifted. From 0x9bae94 on it takes the path every type takes.
+    // cParticleNodeInfinite (0xaf127c / 0xaf12b8), whose CPU side is not read -- skipped and counted like any other
+    // undecoded generator (above: the rest of the effect still draws); clear builds cParticleNode: 0xaece5c(0x250, 0x10)
+    // (the class's allocator, getAllocator(DTI 0x211cd5c) +0x20) and its constructor 0xaece98, both lifted. From
+    // 0x9bae94 on it takes the path every type takes.
     if (type === 25){
-      if (c3 & 0xf0) throw new Unverified('0x9badb4 cParticleNodeInfinite (row word 3 & 0xf0 = 0x' + (c3 & 0xf0).toString(16) + ') not translated');
+      if (c3 & 0xf0){ recordSkippedGenerator('25 (cParticleNodeInfinite)'); continue; }
       const g = liftedCall(m, 0xaece5c, [0x250, 0x10]).r[0];
       if (g === 0) throw new Unverified('0x9bae90 cParticleNode allocation failed');
       liftedCall(m, 0xaece98, [g]);
