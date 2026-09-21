@@ -51,7 +51,11 @@ for (const file of process.argv.slice(2)){
     same('fGlobalTransparency', words([out.globalTransparency]), [d.ctx17c]);
     if (out.primColor) same('fPrimColor', words(out.primColor), d.cb.CBPrimEflEmu);
     if (out.blend !== d.bs) problems.push('blend ' + out.blend + ', rom ' + d.bs);
-    if (out.depth !== d.ds) problems.push('depth ' + out.depth + ', rom ' + d.ds);
+    // the depth-stencil object in the context at the GPU draw. `ds` is the record the flags' depth path picked
+    // (0xc8eb10), which the unsorted emit never runs -- it stores the context's slot 0x1b9 directly (0xc8f2f8) --
+    // so `ds` is null there; where both exist they must agree.
+    if (d.ds && d.ds !== d.ds_obj) problems.push('recording: ds ' + d.ds + ' but ds_obj ' + d.ds_obj);
+    if (out.depth !== d.ds_obj) problems.push('depth ' + out.depth + ', rom ' + d.ds_obj);
     for (const [k, v] of Object.entries(out.features)) if (d.slots[k] !== v) problems.push(k + ' ' + v + ', rom ' + d.slots[k]);
     const order = ((s.ctx164 & 0x1f) | out.order) >>> 0;
     if (order !== d.ctx164) problems.push('ctx+0x164 0x' + order.toString(16) + ', rom 0x' + d.ctx164.toString(16));

@@ -345,6 +345,15 @@ export class EffectHost {
     m.w32(this.VB + 0xc, 0); m.w32(this.VB + 0x14, this.VBDATA); m.w32(this.VB + 4, 0);
     m.w32(this.PRIM + 0x248 + 8, 0);
     m.w32(this.PRIM + 0x54, 0);
+    // THE PASS, SET THE WAY THE GAME'S RENDER FRAME SETS IT EVERY FRAME (0xbbf93c, its context at +0x25c):
+    // 0xbbfa88 calls the pass setter 0x87cf70(ctx, 0, 0), then 0xbbfa90-0xbbfab0 puts 9 in +0x168's low byte
+    // and clears +0x164 above the pass bits, before the 'Common' section draws the scene -- sUnit's draw
+    // (0xc03cd0) among it, which brackets the units with this same primitive layer. The primitive list draw
+    // sets pass 0x11 for itself (0xbab5fc) at the END, after every unit; a context carried into the next frame
+    // without this keeps that 0x11, and every model draw then fails 0xc8ea44 and loses the unsorted emit.
+    invoke(m, 0x87cf70, [this.VIEW, 0, 0]);
+    m.w32(this.VIEW + 0x168, ((m.u32(this.VIEW + 0x168) & ~0xff) | 9) >>> 0);
+    m.w32(this.VIEW + 0x164, m.u32(this.VIEW + 0x164) & 0x1f);
     invoke(m, 0xbad710, [this.SYS, this.VIEW, 0, 0], [0]);
     for (const o of owners) drawEffect(m, o, this.VIEW);
     invoke(m, 0xbad790, [this.SYS, this.VIEW, 0, 0]);

@@ -123,14 +123,18 @@ export function drawMesh(m, prim, view, meshIndex, matrix, stack, s0, materialOf
     if (eflEmu) out.features.FColorModifier = 'FPrimiteveColorModifierEmu';
   } else out.features.FColorModifier = 'FPrimiteveColorModifier';
 
-  // OPAQUE MODEL DRAW (0xc8ea68 -> 0xc8ef98 -> 0xc8f2a4): an opaque-colour mesh (col alpha 0xff, no volume,
-  // no LOD, W bits clear, not pass 0x11) is emitted into the OPAQUE pass instead of the sorted transparent
-  // list. That path SKIPS the depth sort (0xc8ea78) and the material blend/depth (0xafd834 / 0xc8eb10): it
-  // takes the pass's own draw state -- no blend, depth test+write -- and a bias-only order (prim+0x8c, no
-  // depth key). The material's shader features (computed below) still describe the mesh. So the descriptor is
-  // built as normal and then overridden to the opaque-pass state at the end (see `opaqueModel`).
-  const opaqueModel = (volume === 0 && col >= 0xff000000 && (W & 0x1200001) === 0
-      && (m.u32(view + 0x164) & 0x1f) !== 0x11 && ((W & 0x62000000) | lod) === 0);
+  // THE UNSORTED EMIT (0xc8ea1c -> 0xc8ef98 -> 0xc8f2a4). A mesh with no volume, an opaque colour (alpha
+  // 0xff), W clear of 0x1200001 and of 0x62000000 and no LOD skips the depth sort (0xc8ea78) -- unless the
+  // context's current pass is 0x11 (0xc8ea44), the pass the primitive list draw sets for itself (0xbab5fc)
+  // after every unit has drawn. It keeps that current pass and orders by the prim's bias alone (0xc8f2a4 ->
+  // 0xc8f2cc), and its depth state is the context's slot 0x1b9 (ctx+0xfcc, 0xc8f2dc -> 0xc8f2f8) instead of the
+  // one the flags name (0xc8eb10). Everything else is the sorted emit's: both join at 0xc8f658, so the fog
+  // and the blend picker (0xafd834, called at 0xc8f774) run for it exactly as for any other mesh -- the
+  // material's blend stands. Pass 0xf takes a third emit (0xc8efa8) that no recording has reached.
+  const pass = m.u32(view + 0x164) & 0x1f;
+  const unsorted = (volume === 0 && col >= 0xff000000 && (W & 0x1200001) === 0
+      && pass !== 0x11 && ((W & 0x62000000) | lod) === 0);
+  if (unsorted && pass === 0xf) throw new Unverified('0xc8efa8 unsorted emit in pass 0xf');
 
   // the sort key, from the depth of the world translation in the camera's view matrix (0xc8ea78)
   const vm = (m.u32(view + 0xd7c) & ~0xf) + 0x70;                            // 0x88283c
@@ -180,17 +184,16 @@ export function drawMesh(m, prim, view, meshIndex, matrix, stack, s0, materialOf
   out.features.FWorldCoordinate = 'FWorldCoordinate';
   out.cbMaterial = cbm;
   out.range = [m.u32(mesh + 0x1c), m.u32(mesh + 0x18), m.u32(mesh + 0x20)];    // 0x890ce0's r1, r2, r3 (0xc90758)
-  if (opaqueModel){
-    // the opaque pass's own state: no blend, depth test+write (the ROM emits into it, not the material's
-    // blend/depth), and a bias-only order (0xc8f2a4: first non-zero 12-bit field of prim+0x8c, << 5; no depth
-    // sort). The exact pass state records are the engine's opaque defaults; the effect-draw harness leaves the
-    // pass fields (view+0x164/+0x168/+0x16c) zero, so they are named here from the opaque-pass meaning.
-    out.blend = 'BSBlendNoBlend';
-    out.depth = DEPTH[0x1b9];                                                  // DSZTestWrite
+  if (unsorted){
+    out.depth = DEPTH[0x1b9];                                                  // ctx+0xfcc (0xc8f2dc)
+    // 0xc8f2a4: prim+0x8c's low 12 bits (kept at sp+0x24 since 0xc8ea14), else its fields at bits 4, 8, 12
     const b8c = m.u32(prim + 0x8c);
-    let bias = (b8c >>> 4) & 0xfff; if (!bias) bias = (b8c >>> 8) & 0xfff; if (!bias) bias = (b8c >>> 12) & 0xfff;
-    out.sortKey = 0; out.order = (bias << 5) >>> 0;
-    out.opaque = true;
+    let bias = b8c & 0xfff;
+    if (!bias) bias = (b8c >>> 4) & 0xfff;
+    if (!bias) bias = (b8c >>> 8) & 0xfff;
+    if (!bias) bias = (b8c >>> 12) & 0xfff;
+    out.sortKey = 0; out.order = (bias << 5) >>> 0;                            // ctx+0x164 above the kept pass
+    out.unsorted = true;
   }
   return out;
 }
