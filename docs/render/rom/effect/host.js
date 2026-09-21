@@ -32,7 +32,7 @@ import { drawEffect } from './draw.js';
 import { invoke } from './cpu.js';
 import * as modeldraw from './modeldraw.js';
 import './prim.js';
-import { proofStart, installRequests, ProofRequest, unitFrame, pruneUnits, releaseRequest, stopRequest } from './proof.js';
+import { proofStart, installRequests, ProofRequest, unitFrame, pruneUnits, releaseRequest, stopRequest, AREA } from './proof.js';
 import { PARENT_GETDTI, PARENT_ADD_EFFECT, RESMGR_RELEASE, MATERIAL_VM } from './bridge.js';
 
 const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
@@ -72,6 +72,7 @@ export class EffectHost {
     this.resources = resources;
     this.streams = new Map();
     this.pendingAnims = [];
+    this.pendingLists = [];
     this.handles = new Map();                 // resource handle -> { dti, name }
     this.ids = 0;
     this.modelDraws = [];
@@ -162,6 +163,10 @@ export class EffectHost {
     const handle = this.malloc(0x200);
     this.handles.set(handle, { dti, name });
     if (dti === DTI.rEffectAnim) this.pendingAnims.push([handle, name]);
+    // A CHILD LIST: rEffectList::load's tail (0xb59a08) asks for the list named in the list's extension block (header
+    // +0x2c -> block +0xa) and keeps the handle at list +0x80. The game loads it as it loads any list; loaded after
+    // the list that asked (loadPending), in the order the recorder does (efx_load.py load_pending).
+    if (dti === DTI.rEffectList) this.pendingLists.push([handle, name]);
     if (dti === DTI.rModel){
       const { count, table } = this.resources.meshTable(name);
       const t = this.malloc(48 * count);
@@ -201,11 +206,21 @@ export class EffectHost {
     }
     const list = this.malloc(0x98 + 0x100);
     if (loadEffectList(m, list, this.stream(efl)) !== 1) throw new Error('effect list load failed');
-    for (const [h, name] of this.pendingAnims.splice(0)){
-      if (loadEffectAnim(m, h, this.stream(this.resources.anim(name))) !== 1) throw new Error('effect anim load failed: ' + name);
-    }
+    this.loadPending();
     m.w32(owner + 0xf4, list);
     return owner;
+  }
+  // what a load asked for, loaded after it returns: every child list pending, then every .ean pending, until none is
+  loadPending(){
+    const m = this.m;
+    while (this.pendingLists.length || this.pendingAnims.length){
+      for (const [h, name] of this.pendingLists.splice(0)){
+        if (loadEffectList(m, h, this.stream(this.resources.list(name))) !== 1) throw new Error('child effect list load failed: ' + name);
+      }
+      for (const [h, name] of this.pendingAnims.splice(0)){
+        if (loadEffectAnim(m, h, this.stream(this.resources.anim(name))) !== 1) throw new Error('effect anim load failed: ' + name);
+      }
+    }
   }
   start(owner){ if (startEffect(this.m, owner) !== 1) throw new Error('effect start failed'); }
   // An effect started the way a monster's request starts it, from its record's 160 payload bytes, hung
@@ -218,7 +233,7 @@ export class EffectHost {
   // A monster's effect request, whole (proof.js ProofRequest): the core and the uMHProofEffect it makes, from
   // the record ({ index, key, path, payload }) whose list createEffect loaded (owner +0xf4), hung from
   // parent. The first request builds the boot objects. Every frame: unitFrame(), then draw request.effects().
-  requestEffect(owner, parent, record, area = 1){
+  requestEffect(owner, parent, record, area = AREA){
     if (!this.requests) this.requests = installRequests(this.m, n => this.malloc(n));
     return new ProofRequest(this.m, this.requests, { list: this.m.u32(owner + 0xf4), parent: parent.object, record, area });
   }

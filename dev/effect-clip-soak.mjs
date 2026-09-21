@@ -51,6 +51,7 @@ const host = new EffectHost({
     meshTable: name => ({ count: res[name].meshCount, table: new Uint8Array(readFileSync(join(docs, 'effects', res[name].mesh))) }),
     textureSize: name => res[name].size,
     anim: name => new Uint8Array(readFileSync(join(docs, 'effects', res[name].ean))),
+    list: name => new Uint8Array(readFileSync(join(docs, 'effects', res[name].list))),
     material: (name, index) => res[name].materials[index],
   },
 });

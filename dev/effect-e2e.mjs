@@ -89,7 +89,7 @@ const par = info.parent;
 let parentArray = 0;
 if (par){
   const hex = h => Uint8Array.from(h.match(/../g), b => parseInt(b, 16));
-  const P = malloc(0x1000), VT = malloc(0x400), TABLE = malloc(0x100);
+  const P = malloc(0x32b4), VT = malloc(0x400), TABLE = malloc(0x100);   // P: the real cUnit size (parent.py)
   parentArray = malloc(0xa0 * par.joints.length);
   if (P !== par.object || VT !== par.vtable || TABLE !== par.table || parentArray !== par.array) throw new Error('parent allocation diverged');
   m.load(P, hex(par.bytes.object)); m.load(VT, hex(par.bytes.vtable)); m.load(TABLE, hex(par.bytes.table));

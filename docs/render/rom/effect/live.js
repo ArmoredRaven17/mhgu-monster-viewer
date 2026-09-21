@@ -148,6 +148,7 @@ export class LiveEffects {
     for (const r of Object.values(res)){
       if (r.ean) files[r.ean] = await bytes('effects/' + r.ean);
       if (r.mesh) files[r.mesh] = await bytes('effects/' + r.mesh);
+      if (r.list) files[r.list] = await bytes('effects/' + r.list);     // a child list (host.js loadPending)
     }
     this.shaders = s.shaders;
     this.modelShaders = s.modelShaders;
@@ -158,6 +159,7 @@ export class LiveEffects {
         meshTable: name => ({ count: res[name].meshCount, table: files[res[name].mesh] }),
         textureSize: name => res[name].size,
         anim: name => files[res[name].ean],
+        list: name => files[res[name].list],
         material: (name, index) => res[name].materials[index],
       },
     });

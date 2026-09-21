@@ -40,11 +40,12 @@ registerCode(0x3273e8, (m, o) => ownerMatrix(m, o));
 // takes the parent unit's own fields: s0 = [parent+0x1074], s2 = [parent+0x10f0], skipped entirely when
 // [parent+0x1066] & 4; then s0 = max(s0, s2) and effect+0xec bit 0 picks s0 over s2.
 
-// The ed&4 Model generators' per-particle records are registered into the unit DRAW LIST by 0xc04f84.
-// The viewer keeps no render list -- it draws through the host -- so that registration is a no-op here,
-// exactly as the recorder skips it (efx/proofunit.py skip_draw_registration) and as bridge.js no-ops the
-// node draw-registration 0x9bca30.
-registerNative(0xc04f84, () => {});
+// 0xc04f84 is the unit manager's add with a parent (sUnit *0x211ff48, line, unit, parent): the same line-list
+// link as 0xc03670 (sUnit + line*0x18 + 0x28/0x2c, the line into the unit's +0xc bits 3..9, 0xc04d7c with the
+// parent's +0x20/+0x24 masks), not a draw list. So it is answered like 0xc03670 (bridge.js): registers as they
+// were, the unit kept for the passes -- as efx/proofunit.py answers both. An ended effect's CHILD LIST effect
+// is added this way (0x9b6e44 -> 0xc04f84 at 0x9b6f00); so are the ed&4 model records (0xa92688).
+registerNative(0xc04f84, (m, c) => { m.svc.registerUnit(c.r[0] >>> 0, c.r[1] >>> 0, c.r[2] >>> 0, c.r[3] >>> 0); });
 
 // TEMPORARILY BACK OUT the ed&4 path (2026-09-20): with it on, Raven reports the RED energy effect no
 // longer renders. Until that regression is understood, ed&4 Model generators are skipped again -- their
@@ -108,9 +109,12 @@ import { ALLOCATOR, REQUEST_LOAD, HANDLE_VALID, HANDLE_GET } from './bridge.js';
 
 const RECORD_VT_GOT = 0x32288c + 0x1512d40;          // 0x322884: the record object's vtable
 const DT = 1.0;                                      // the frame delta a pass writes to a unit's +0x1c
+export const AREA = 1;                               // the monster's and the player's area: only ever compared
+const PROOF_EFFECT_VT = 0x172a7d4 + 8;              // uMHProofEffect's vtable, as its ctor 0x43af0 installs it
 
 // The boot objects, once per memory: the default heap and MtString's allocator on the host's allocator, the
-// session singleton (mode 0) and the MH effect manager. Returns the request state the services read.
+// session singleton (a quest, the monster in the player's area) and the MH effect manager. Returns the request
+// state the services read.
 export function installRequests(m, malloc){
   const state = { units: [], lists: new Map(), handleParent: 0, malloc };
   m.svc.registerUnit = (sunit, line, unit) => { state.units.push([unit >>> 0, line >>> 0]); };
@@ -124,7 +128,13 @@ export function installRequests(m, malloc){
   };
   m.w32(0x189f148 + 4, ALLOCATOR);
   m.w32(0x177feb0, ALLOCATOR);
+  // The session as a hunt has it (efx/proofunit.py install): mode 5, an aQuest running (0x126c4), so 0x3f79c8
+  // picks the local area byte +0x49, and that area is the monster's (AREA, what every request carries): each
+  // core then sets +0x18c = (local area == its area) (0x43300) and the effect's unit flag bit 11 follows it
+  // (0x327210) -- the bit a child list's spawn (0x4498c) needs. The ctor's mode 0 / area 0 was "another area".
   state.session = liftedCall(m, 0x3f6be8).r[0];
+  m.w32(state.session + 0x1c, 5);
+  m.w8(state.session + 0x49, AREA);
   state.manager = liftedCall(m, 0x4111c).r[0];
   if (!state.manager) throw new Unverified('MH effect manager: none');
   state.units.length = 0;
@@ -136,7 +146,7 @@ const vslot = (m, obj, slot) => m.u32((m.u32(obj) + slot) >>> 0);
 // record: { index, key, path, payload (Uint8Array) }; list: the loaded rEffectList handle for record.path;
 // parent: the parent unit (host.createParent's object).
 export class ProofRequest {
-  constructor(m, state, { list, parent, record, area = 1 }){
+  constructor(m, state, { list, parent, record, area = AREA }){
     const malloc = state.malloc;
     this.m = m; this.state = state;
     m.w32(list + 0x50, (m.u32(list + 0x50) | 1) >>> 0);
@@ -174,12 +184,22 @@ export class ProofRequest {
     liftedCall(m, 0x42e4c, [C, 0, 2]);
     state.units.unshift([C, 0]);
   }
-  // the uMHProofEffects the core has made (+0x150, +0x15c count)
-  effects(){ const m = this.m; return Array.from({ length: m.u32(this.core + 0x15c) }, (_, i) => m.u32(this.core + 0x150 + 4 * i)); }
+  // the uMHProofEffects the core has made (+0x150, +0x15c count), then any CHILD LIST effect one of them left
+  // when it ended (0x9b6e44): the same core made it (vtable +0x88 = 0x42550 -> ctor 0x43af0, whose +0x374 is
+  // the core) and the unit manager has it (0xc04f84), but it never joins the core's array -- the game runs and
+  // draws it as a unit of its own, so it is found among the units.
+  effects(){
+    const m = this.m, core = this.core;
+    const out = Array.from({ length: m.u32(core + 0x15c) }, (_, i) => m.u32(core + 0x150 + 4 * i));
+    for (const [u] of this.state.units){
+      if (m.u32(u) === PROOF_EFFECT_VT && m.u32(u + 0x374) === core && (m.u32(u + 0xc) & 7) !== 3 && !out.includes(u)) out.push(u);
+    }
+    return out;
+  }
   // A one-shot's end, as efx lifecycle runs show it (Teostra's rage burst: its effect's unit goes to state 3
   // at frame 209 and leaves the core's array, the core goes to state 3 three frames later): the core in
-  // state 3 with no effect left.
-  finished(){ return (this.m.u32(this.core + 0xc) & 7) === 3 && this.m.u32(this.core + 0x15c) === 0; }
+  // state 3 with no effect left -- a child list effect included, which outlives the effect that left it.
+  finished(){ return (this.m.u32(this.core + 0xc) & 7) === 3 && this.effects().length === 0; }
 }
 
 // THE UNIT MANAGER'S SIDE OF A UNIT'S END, which the harness's runs never needed. A unit in state 3 gets
