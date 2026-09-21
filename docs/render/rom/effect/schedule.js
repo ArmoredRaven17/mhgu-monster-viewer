@@ -11,6 +11,9 @@
 //                0xe107ac, which the viewer ties to Enraged on Raven's word: "does not turn off with Enraged")
 //   'rageStart'  once, as rage turns on (Teostra's burst, em027_00_019 key 2)
 //   'rageEnd'    once, as rage turns off (em027_00_019 key 3; Teostra's aura end, em027_00_018 key 1)
+//   'event'      when the game event its monster's code requests it on happens -- a part break (Savage's u 1000 / 1001 /
+//                900, breaks-em043.md), an ailment (c 1100..1109, states-em043.md 3.4); render/motion-states.js says
+//                when (fire)
 // An entry without `when` is a 'rage' effect, as the viewer showed every effect before it had the field.
 //
 // LEAVING THE STATE. An entry with `stop: 'request'` is ended the way its monster's code ends it -- Teostra's
@@ -96,6 +99,26 @@ export class EffectSchedule {
         else { for (const q of e.requests) this.host.releaseRequest(q); e.requests.length = 0; }
       } else if (e.when === (on ? 'rageStart' : 'rageEnd')) this.start(e);
     }
+  }
+
+  // AN EVENT'S EFFECT: every 'event' record with this pel and key, started now -- a new request each time, as the
+  // game's request is (render/motion-states.js decides when). Returns the requests it started.
+  fire(pel, key){
+    const out = [];
+    for (const e of this.entries)
+      if (e.when === 'event' && e.def.record && e.def.record.pel === pel && e.def.record.key === key){
+        this.start(e);
+        out.push(e.requests[e.requests.length - 1]);
+      }
+    return out;
+  }
+
+  // RAGE ENTERED AGAIN while it is shown (a rage-entry motion started over, render/motion-states.js): rage off and on
+  // at this step -- the running rage effects end as rage's end ends them, and the entry requests them anew.
+  restartRage(){
+    if (!this.rage) return this.setRage(true);
+    this.setRage(false);
+    this.setRage(true);
   }
 
   // one 1/60 s step: the clip's walker, the unit passes over every request (the shells between the update and the

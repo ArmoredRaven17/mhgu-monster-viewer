@@ -1306,6 +1306,7 @@ import { gidBonesOf } from './render/skeleton.js';
 import { loadMaterialsDb } from './render/materials-db.js';
 import { createBackground } from './render/background.js';
 import { createFloorGrid } from './render/grid.js';
+import { MotionStates } from './render/motion-states.js';
 import { setEyeGlow, updateEyeGlow } from './render/eye-glow.js';
 import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
          partVerts, partsDrawn, applyParts, groupLabel, groupIsInert, setNormalOpt,
@@ -1333,6 +1334,8 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          enableRomAmbient, enableRomSpecular, enableRomPhong,
          setSHAmount, setRomSpecularAmount, anchorMisses } from './render/monster.js';
 
+// A motion carrying a part break or a state change shows it over the user's choices while it plays (driveMotionStates)
+const motionStates = new MotionStates();
 const errEl = document.getElementById('err');
 const errors = [];
 window.__errors = errors;
@@ -4386,6 +4389,8 @@ function applyPartState(){
       for (const p of synthIds(k)) drawn.set(p, on.has(p));
       if (it.clip && typeof it.clip === 'object') Object.assign(pins, it.clip);
     }
+    // a motion carrying a break shows its part sets over the user's while it plays (driveMotionStates)
+    motionStates.showParts(drawn, e.groups || []);
     setReviewClipPins(e.id, pins, drawn);
     applyParts(mounted.main, drawn);
   }
@@ -6195,7 +6200,7 @@ function applyRage(){
   // until __view.effects(true) asks for them. applyRage() is the single hook because both the
   // rage toggle and a fresh mount already run through it.
   if (main && effectAutoOnRage(state.id)){
-    setEffectRage(!!state.rage);
+    setEffectRage(motionStates.rage(state.rage));      // a rage-entry motion shows rage while it plays
     attachEffectMounts(main, state.id, null);
   }
   // Barioth's eye glow: re-sync the calm/enraged glow ray to whichever eye this state now shows, so
@@ -6238,8 +6243,13 @@ function levelClip(){
 // (0xd1e914) -- and which end clip belongs to the state being left, since Khezu's discharge plays
 // Body_Taiden_End (0xd1e7a0) where its calm-down plays Angry_End (0xd1e698).
 let tStateChanged = 0, prevMatState = 'calm', curMatState = 'calm';
+// THE STATE THE MATERIALS SHOW: the user's (matState), or rage while a rage-entry motion plays (driveMotionStates)
+function shownMatState(){
+  const st = matState();
+  return st === 'calm' && motionStates.rage(false) ? 'enraged' : st;
+}
 function markStateChange(force){
-  const next = matState();
+  const next = shownMatState();
   if (next === curMatState && !force) return;
   if (next !== curMatState) prevMatState = curMatState;
   curMatState = next;
@@ -7041,6 +7051,37 @@ function driveClipEffects(){
                       base ? clipEffectsFor(state.id, base, state.list) : null, splitOffset);
 }
 
+// PARTS AND STATES IN A MOTION (render/motion-states.js). Raven, 2026-09-21: "Animations that involve part breaks or
+// state changes should show that ... This way the animation can play out, but we keep the user's toggle choices."
+// A motion that carries a break or a state change shows it from the ROM's frame -- the parts through applyPartState,
+// rage through the materials' clock and the effects -- and the change's own effects are requested there; when the
+// motion is over (another clip, the bind pose, a play-once clip at its end) the display goes back to the user's
+// choices. `state` is never written: the Parts panel, the Enraged checkbox and the saved view stay the user's.
+function driveMotionStates(){
+  const act = pose.action;
+  const clipName = act && act.getClip ? act.getClip().name : null;
+  const base = clipName ? clipName.replace(/_(start|loop)$/, '') : null;
+  let loopStart = 0;
+  if (clipName && clipName.endsWith('_loop')){
+    const sib = ((listOf(entry()) || {}).clips || []).find(c => c.clip === base + '_start');
+    if (sib) loopStart = Math.round(sib.dur * 60);
+  }
+  // a play-once clip at its end is over: pose.js holds its last frame (clampWhenFinished)
+  const ended = !!(act && act.loop === THREE.LoopOnce && act.time >= act.getClip().duration - 1e-6);
+  const r = motionStates.step(state.id, state.list, base, act ? act.time * 60 + loopStart : 0, loopStart, ended,
+                              { rage: !!state.rage });
+  if (r.parts) applyPartState();
+  if (r.rage) markStateChange();
+  // rage entered again while shown: Gekikou_Start runs from this frame, as from calm
+  if (r.entry){ prevMatState = 'calm'; curMatState = shownMatState(); tStateChanged = performance.now() / 1000; }
+  const rt = effectRuntimeInstance();
+  if ((r.rage || r.entry) && effectAutoOnRage(state.id)){
+    setEffectRage(motionStates.rage(state.rage));
+    if (rt){ if (r.entry) rt.restartRage(); else rt.setRage(motionStates.rage(state.rage)); }
+  }
+  if (rt) for (const [pel, key] of r.fire) rt.fire(pel, key);
+}
+
 // the canvas and the effects composer resize together (fitRenderer)
 new ResizeObserver(fitRenderer).observe(viewport);
 addEventListener('resize', fitRenderer);
@@ -7057,6 +7098,7 @@ renderer.setAnimationLoop(() => {
   followTravel();                          // the orbit camera rides the monster's travel
   inLoopTravel(lastInLoop);
   driveClipEffects();
+  driveMotionStates();
   driveZoneFrameMode();
   stepAttached();
   updateDepthBias();
@@ -7069,7 +7111,7 @@ renderer.setAnimationLoop(() => {
     // frozen wherever the enraged pass last wrote it. Raven, 2026-09-07: "Enrage toggle doesn't
     // turn off the enrage changes." The ROM does not do nothing either: its driver plays
     // Gekikou_End on the way out of rage (0xe80b34 vs 0xe80b54), which is what CALM_CLIPS asks for.
-    const st = matState();
+    const st = shownMatState();
     const mid = (entry() || {}).id;
     stepReviewCycle(mid, t);
     if (chargeAxis){
@@ -7235,6 +7277,10 @@ window.__view.effects = async (on, only) => {
   return { on: effectMountsEnabled(), mounted: effectMountsLive() };
 };
 window.__view.effectsAvailable = () => effectMountsFor(state.id);
+// the break / state driver as it stands (render/motion-states.js; dev/motion-states-check.mjs reads it back)
+window.__view.motionStates = () => ({ cur: motionStates.cur && { key: motionStates.cur.key, sets: motionStates.cur.sets,
+                                                             rage: motionStates.cur.rage },
+                                      mat: { shown: shownMatState(), prev: prevMatState, cur: curMatState, t: tStateChanged } });
 // The sustained-clip fallback: on by default. Off restores the previous behaviour, where a material
 // whose clips match no name and carry no auto bit was left on its static constant.
 window.__view.clipFallback = on => {

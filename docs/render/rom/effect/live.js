@@ -351,6 +351,18 @@ export class LiveEffects {
     try { this.schedule.setRage(on); }
     catch (e){ this.fail(e); }
   }
+  // rage entered again while shown -- a rage-entry motion started over (schedule.js restartRage)
+  restartRage(){
+    if (this.failed || !this.schedule) return;
+    try { this.schedule.restartRage(); }
+    catch (e){ this.fail(e); }
+  }
+  // an event's effect -- a part break, an ailment (schedule.js fire; render/motion-states.js says when)
+  fire(pel, key){
+    if (this.failed || !this.schedule) return;
+    try { this.schedule.fire(pel, key); }
+    catch (e){ this.fail(e); }
+  }
 
   // WHERE THE UNIT IS. Joint -1 -- the root of a request's effect, and the aura's nodes -- resolves through
   // the parent's joint getter (0x939278): a bone the table maps, else the MODEL'S OWN WORLD MATRIX (+0xb0).
