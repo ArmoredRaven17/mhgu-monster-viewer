@@ -4009,6 +4009,27 @@ export const DEFLECT_TIERS = [2, 3, 4];
 // holds too: em019_00 Daimyo Hermitaur, em020_00 Shogun and em020_04 Rustrazor Ceanataur all run the
 // overriding class but set the bit on no capsule, so their check never fires. Do not surface bits
 // 14/15 as "deflects" from the data alone; the class has to read them.
+// THE RUNGS, CHECKED FOR EVERY LADDER IN THE EXECUTABLE (2026-09-21). The float 0.27 is loaded only
+// by the two blade graders; 0.66 and 0.45 by those two plus unrelated code, one Kinsect ladder and
+// one hit-flag pick. The hit function 0x170670 routes on the hit record's flags at +0x30:
+//   * 0x20 -> blade: 0x177bc4, or 0x17443c when bit 3 of [attacker+0x13cc] is set. BOTH read in full,
+//     BOTH arms of each: 0.66 -> tier 4, 0.45 -> tier 3, floor 0.25 / 0.27 by Monster Level -> tier 2.
+//     No monster, quest or weapon moves 0.45 or 0.66. A monster only changes the zone value.
+//   * 0x10000 -> 0x17806c, a SEPARATE LADDER: the raw zone for pure cut OR pure impact at power 100 (bit 1
+//     of hit+0x40, copied from the attack table's +0x0c), NO sharpness, NO Monster Level switch:
+//     < 0.30 -> tier 0, > 0.45 (strictly) -> tier 3, else tier 2 -- no tier 4. With an attacker it then
+//     hands a code to the attacker's vtable +0x748 and forces tier 0 when that code is 0. The code is
+//     5 / 6 / 7 for hit+0x4c bits 0x200 / 0x400 / 0x800, else 0x71158(enemy, part) = byte +8 of the
+//     part's 10-byte record in rEnemyDtTune ([enemy+0x75ec], set at 0x107bff4) -- the .dtt field
+//     build-hitzones.py reads as the KINSECT EXTRACT colour. +0x748 is a bare `bx lr` for uOtomo and
+//     every uPlayerQuestNN EXCEPT uPlayerQuest13 (Insect Glaive), whose 0x11d013c stores the code at
+//     [player+0x3350]. So this is the KINSECT's ladder, and a Kinsect hit on a part with extract 0 is
+//     forced to tier 0.
+//   * 0x8000 -> 0x17817c: computes the value (cut and impact both 100) and writes a FIXED tier 2 -- no
+//     rungs, no bounce. Which hits carry 0x8000 is not identified.
+// Weapon class 15 is the PROWLER: the player hit tables include pl_we15_slash_hitdata and
+// pl_we15_strike_hitdata beside pl_airou_com_hitdata, the same slash/strike pair as the Palico's
+// otomo\hit\ot_slash_hitdata / ot_strike_hitdata.
 export const TIER_LABEL = { 2: 'Tier 2', 3: 'Tier 3', 4: 'Tier 4' };
 // The rule a rung clears, in the ROM's own numbers. Tier 2's floor is the selector's.
 export function tierRule(tier, floor){
