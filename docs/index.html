@@ -7054,9 +7054,17 @@ function animAdvance(){
   if (act !== effectClipAction){ effectClipAction = act; effectClipTime = t; return 0; }
   const was = effectClipTime;
   effectClipTime = t;
-  if (act.paused || !act.isRunning()) return 0;
+  // WHATEVER MOVES THE CLIP MOVES THE EFFECT, playback or the scrubber: seekTo() pauses the action and writes
+  // act.time, so stepping a frame at a time hands over exactly one frame and the effect takes exactly one
+  // step with it (Raven, 2026-09-22: "when you seek frame by frame, it freezes in place" -- it used to,
+  // because paused returned zero outright). Standing still is still zero, because the time does not move.
   let d = t - was;
-  if (d < 0) d += act.getClip().duration || 0;      // the clip wrapped
+  if (d < 0){
+    // backwards: a seek, since a wrap only happens while playing. Nothing in the ROM runs an effect
+    // backwards, so the effect holds where it is rather than being wound back.
+    if (act.paused || !act.isRunning()) return 0;
+    d += act.getClip().duration || 0;               // the clip wrapped
+  }
   // A SEEK, not playback: the scrubber jumps the time by much more than a frame. The cut cannot be a frame
   // or two -- a slow draw is a long frame, and headless runs at 10 fps, which zeroed every step the first
   // time this was written. Quarter of a second is well past any frame and well under a seek; the runtime
