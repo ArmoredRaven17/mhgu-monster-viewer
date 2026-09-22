@@ -27,6 +27,11 @@ export const CUT_TAIL = {
   // Rathian: the same option code (breaks-em001.md 4.3): +0x1477 = 0x8f (joint 143) from its sever call (0xcedfa8), model
   // em001_00_tail (descriptor 0x15950ec), dtp row count +0x91 = 0 -- no override, as Savage
   em001_00: { piece: 'em001_00_tail', joint: 143, above: 20, landing: ['em001_00u', 905] },
+  // Gold Rathian: the same class and sever call (joint 143), its own model (descriptor 0x15951b8: 0x77ef = em001_02_tail)
+  // and landing record, the same option motion (0x77ed)
+  em001_02: { piece: 'em001_02_tail', joint: 143, above: 20, landing: ['em001_02u', 905] },
+  // Dreadqueen: descriptor 0x1595284 (0x7805 = em001_04_tail), the same option motion; her tail is cut only once broken
+  em001_04: { piece: 'em001_04_tail', joint: 143, above: 20, landing: ['em001_04u', 905] },
 };
 
 // The root curves of em001_00_option motion 1, frames 0..54, as the ROM's own evaluator 0xafb70c gives them

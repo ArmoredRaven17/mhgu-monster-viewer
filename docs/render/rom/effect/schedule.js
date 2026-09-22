@@ -293,6 +293,9 @@ export class EffectSchedule {
                                       // 100 moves since her setup; shared-state-effects.md) -- counted here from the mount,
                                       // a viewer stand-in for its phase
                                       stepCount: this.frame,
+                                      // what else the viewer hands a monster's shells (index.html shellExtra: Dreadqueen's
+                                      // quest level stand-in and her tail as the parts show it)
+                                      ...(this.shellExtra ? this.shellExtra() : {}),
                                       // param 0 is the shell's own effect; a rock's bounce / landing effect is the handle's
                                       effectAlive: (sh, param, h) => param === 0 ? alive(sh) : reqAlive(h && h.request) });
     // a breath shell's effect is placed (0x329c9c / 0x329d04, below); a rock's is bound to the shell, which keeps its own

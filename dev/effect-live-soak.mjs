@@ -17,10 +17,10 @@
 // auras run through every motion (live.js setRage, as the viewer's Enraged toggle starts them). --wiring: every 15
 // frames, each visible effect material's compiled program is read back from WebGL: active uniforms the viewer never
 // set (they read 0), attributes the geometry lacks (a constant), samplers with no texture -- per program, at the end.
-// --rock <variant>: a TEST input for a monster's shells (shells.js pickVariantsFor names them: Savage's shell00_0 /
-// shell00_8 / shell54_0, Nargacuga's 7:0x28 .., Rathian's 7:0x02 ..): the shell lands on the unit's own floor height,
-// aimed at a point 2000 units ahead -- test stand-ins, not the viewer's choice. Motions named on the command line play
-// even when they carry no clip effect of their own.
+// --rock <variant>: a monster's shells with that pick fixed (shells.js pickVariantsFor names them: Savage's shell00_0 /
+// shell00_8 / shell54_0, Nargacuga's 7:0x28 .., Rathian's 7:0x02 ..), everything else as the viewer gives it (its
+// rockInput: the target ahead on the grid floor; its shellExtra). Motions named on the command line play even when they
+// carry no clip effect of their own.
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import net from 'node:net';
@@ -85,12 +85,14 @@ function pageSoak(MONID, ONLY, CAMERA, RAGE, WIRING, ROCK){
       await V.effects(false); await V.effects(true);
       let fx = M.effectRuntimeInstance();
       if (RAGE && fx) fx.setRage(true);
-      // the viewer's own shell inputs (index.html rockInput: the target 2100 ahead on the grid floor, the floor), the pick
+      // the viewer's own shell inputs (index.html rockInput: the target ahead on the grid floor, the floor), the pick
       // fixed; a page without that hook: the unit's own height as the floor, 2000 ahead
       const setRock = rt => { if (ROCK && rt && rt.schedule) rt.schedule.rockInput = V.rockInput
         ? () => { const r = V.rockInput(); return r && { ...r, variant: ROCK }; }
         : () => { const p = rt.parent.position; return { variant: ROCK, target: { x: p[0], y: p[1], z: p[2] + 2000 }, floorY: p[1] }; }; };
-      setRock(fx);
+      // and the rest of the viewer's shell inputs (index.html shellExtra: a quest level stand-in, the tail as shown)
+      const setExtra = rt => { if (rt && rt.schedule && V.shellExtra) rt.schedule.shellExtra = V.shellExtra; };
+      setRock(fx); setExtra(fx);
       const sched = M.CLIP_EFFECTS[MONID] || {};
       // a monster with no clip effects (its effects are auras) plays its first clip for 600 frames instead: '(idle)'
       const keys0 = Object.keys(sched);
@@ -147,7 +149,7 @@ function pageSoak(MONID, ONLY, CAMERA, RAGE, WIRING, ROCK){
                     : list.clips.some(c => c.clip === base) ? [[base, 2]]
                     : [[base + '_start', 1], [base + '_loop', 2]].filter(([n]) => list.clips.some(c => c.clip === n));
         if (!parts.length){ S.results.push({ key, skip: !list ? 'no list carries it' : 'no clip' }); continue; }
-        if (!fx || fx.failed){ await V.effects(false); await V.effects(true); fx = M.effectRuntimeInstance(); if (RAGE && fx) fx.setRage(true); setRock(fx); }
+        if (!fx || fx.failed){ await V.effects(false); await V.effects(true); fx = M.effectRuntimeInstance(); if (RAGE && fx) fx.setRage(true); setRock(fx); setExtra(fx); }
         const starts0 = fx.schedule.starts, regrouped0 = fx.stats.regrouped || 0;
         let frames = 0, fail = null, maxRun = 0, drew = 0;
         if (V.state.list !== list.id){ listSel.value = list.id; await listSel.onchange(); }

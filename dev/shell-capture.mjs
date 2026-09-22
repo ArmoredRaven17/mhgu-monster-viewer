@@ -86,8 +86,9 @@ async function pageCapture(MONID, LISTID, CLIPNAME, VAR, N){
     const P = fx.parent.position;
     const joints = {};
     for (const [gid, m] of fx.gameJoints) joints[gid] = Array.from(m);
+    const extra = V.shellExtra ? V.shellExtra() : {};
     steps.push({ list: act ? V.state.list : null, clip: act ? b : null, frame: act ? act.time * 60 + splitOffset : 0,
-                 loopStart: act && splitOffset ? splitOffset : null, rage: false, rock,
+                 loopStart: act && splitOffset ? splitOffset : null, rage: false, rock, extra,
                  owner: rock ? { x: 0, y: S.ownerYaw16(), z: 0 } : null, ownerPos: { x: P[0], y: P[1], z: P[2] }, joints });
   }
   // kept in the page and fetched in slices: every joint of every step is several MB, too much for one reply

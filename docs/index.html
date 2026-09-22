@@ -1306,7 +1306,7 @@ import { gidBonesOf } from './render/skeleton.js';
 import { loadMaterialsDb } from './render/materials-db.js';
 import { createBackground } from './render/background.js';
 import { createFloorGrid } from './render/grid.js';
-import { MotionStates, RAGE_BY_LEVEL, RAGE_PUFF } from './render/motion-states.js';
+import { MotionStates, RAGE_BY_LEVEL, RAGE_PUFF, shellTailInput } from './render/motion-states.js';
 import { pickVariantsFor } from './render/shells.js';
 import { CUT_TAIL, CutTail } from './render/tail-option.js';
 import { setEyeGlow, updateEyeGlow } from './render/eye-glow.js';
@@ -7061,6 +7061,7 @@ function driveClipEffects(){
   rt.schedule.setClip(act ? state.id + '|' + state.list + '|' + base : null, act ? act.time * 60 + splitOffset : 0,
                       base ? clipEffectsFor(state.id, base, state.list) : null, splitOffset);
   if (!rt.schedule.rockInput) rt.schedule.rockInput = rockInput;
+  if (!rt.schedule.shellExtra) rt.schedule.shellExtra = shellExtra;
 }
 
 // RAGE RECORDS THAT FOLLOW A PART (render/motion-states.js RAGE_BY_LEVEL): Nargacuga's trails, one record while its head
@@ -7136,7 +7137,15 @@ const TARGET_AHEAD = 2100;
 // 134 above the floor on L2 Motion[5]'s throw), so they land about a third of the way to it: measured on the viewer's
 // own inputs, 2100 ahead lands one 10 moves after the throw (~0.2 s), 6300 ahead 32 moves (~0.5 s, ~2100 out). A
 // viewer stand-in like the default; the pitch is the ROM's aim at whatever point
-const TARGET_AHEAD_BY_MON = { em001_00: 6300 };
+const TARGET_AHEAD_BY_MON = { em001_00: 6300, em001_02: 6300, em001_04: 6300 };   // Gold, Dreadqueen: the same class and throws
+// THE REST OF WHAT A MONSTER'S SHELLS READ that the viewer has no game for (shells.js): the QUEST's number (0x49930: the
+// quest id mod 100 for an ordinary quest) -- Dreadqueen's poison is weakest at 3 or below and strongest at 9 or above,
+// and L9 Motion[9]'s extra shells need it at their gate: 10, the top deviant level, shows everything she does (a viewer
+// stand-in, like the rank's G); and her tail as the parts show it (render/motion-states.js shellTailInput).
+const SHELL_QUEST_LEVEL = 10;
+function shellExtra(){
+  return { questLevel: SHELL_QUEST_LEVEL, ...shellTailInput(state.id, mounted.main && mounted.main.userData.partsDrawn) };
+}
 const rockPlays = { key: null, time: 0, n: -1, names: [] };
 function rockInput(){
   const act = pose.action, clipName = act && act.getClip ? act.getClip().name : null;
@@ -7406,6 +7415,7 @@ window.__view.cutTail = () => cutTail && { J: cutTail.tail.J, G: cutTail.tail.G,
 // the shells' inputs as the viewer makes them (rockInput: the pick, the target ahead on the grid floor, the floor) --
 // dev/shell-capture.mjs and dev/effect-live-soak.mjs --rock fix the pick and keep the rest
 window.__view.rockInput = () => rockInput();
+window.__view.shellExtra = () => shellExtra();
 // the break / state driver as it stands (render/motion-states.js; dev/motion-states-check.mjs reads it back)
 window.__view.motionStates = () => ({ cur: motionStates.cur && { key: motionStates.cur.key, sets: motionStates.cur.sets,
                                                              rage: motionStates.cur.rage, clips: motionStates.clips() },

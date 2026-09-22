@@ -500,8 +500,9 @@ async function pageCheckNarga(){
   check(flying.length === 6, 'two plays of L2 Motion[8]: 3 spikes each (u 0)', flying);
   check(flying.slice(0, 3).every(r => r.variant === '7:0x28') && flying.slice(3, 6).every(r => r.variant === '7:0x29'), 'each play the next attack: 7:0x28, then 7:0x29', flying.map(r => r.variant));
   // the spawn test fires the step after the frame passes 46 ((F[k-2], F[k-1]]), and this page's effect steps follow the
-  // wall clock while its clip steps a frame a render: the request lands a few frames past 46
-  check(flying.every(r => r.frame >= 46 && r.frame <= 52), 'thrown as frame 46 passes', flying.map(r => r.frame));
+  // wall clock while its clip steps a frame a render: the request lands a few frames past 46 -- more on a busy machine
+  // (53 seen under load). The exact frame is dev/shells-spike-check.mjs's to check, against the ROM
+  check(flying.every(r => r.frame >= 46 && r.frame <= 60), 'thrown as frame 46 passes', flying.map(r => r.frame));
   check(reqLog.some(r => r.name === 'em037_00_002'), 'they land on the grid floor (u 1)', reqLog.filter(r => r.name.startsWith('em037_00')).length);
   host.requestEffect = request0;
   if (pickIn) fx.schedule.rockInput = pickIn;
@@ -519,9 +520,9 @@ async function pageCheckNarga(){
 // cut tail, the rage entry and the rage puff on its countdown (u 1120 / 1121 by joint 4's rotation, paused asleep,
 // zeroed tired, its leftover kept across a calm spell), tired, asleep, paralysis, the shock trap, the stun and death
 // (states-em001.md, breaks-em001.md)
-async function pageCheckRathian(){
+async function pageCheckRathian(MON = 'em001_00', LABEL = 'Rathian'){
   const out = [];
-  const check = (ok, label, detail) => out.push([!!ok, 'Rathian: ' + label, detail === undefined ? '' : JSON.stringify(detail)]);
+  const check = (ok, label, detail) => out.push([!!ok, LABEL + ': ' + label, detail === undefined ? '' : JSON.stringify(detail)]);
   const V = window.__view;
   const M = await import('/render/monster.js');
   const MS = await import('/render/motion-states.js');
@@ -530,7 +531,6 @@ async function pageCheckRathian(){
   const until = async (test, n = 600) => { for (let i = 0; i < n; i++){ if (test()) return true; await frames(1); } return false; };
   V.pose.clock.getDelta = () => 1 / 60;
   const monSel = document.getElementById('monSel'), listSel = document.getElementById('monList'), clipSel = document.getElementById('monClip');
-  const MON = 'em001_00';
   if (![...monSel.options].some(o => o.value === MON)) monSel.add(new Option(MON, MON));
   monSel.value = MON; await monSel.onchange();
   check(V.state.id === MON && V.mounted.main, 'mounted', V.state.id);
@@ -553,7 +553,7 @@ async function pageCheckRathian(){
     }
     return s0(e);
   };
-  const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 101, 102].includes(p))) : null; };
+  const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 101, 102].includes(p))) : null; };
   const evReqs = key => S.entries.filter(e => e.when === 'event' && e.def.record.key === key).map(e => e.requests.map(q => q.stopped ? 's' : 'r').join('')).join('|');
   const listOf = id => V.MON.monsters.find(e => e.id === MON).lists.find(l => l.id === id);
   const dur = (list, clip) => Math.round(listOf(list).clips.find(c => c.clip === clip).dur * 60);
@@ -591,10 +591,19 @@ async function pageCheckRathian(){
   await frames(3); d = drawn();
   check(same(fired, [1000, 1005, 1010]) && d[7] === true && d[6] === false && d[4] === true, '3rd play: the right wing breaks (set 8), u 1010', { fired, d });
   check(tear()['XfBAN__E0__m50_wing_l'] === null && tear()['XfBAN__E0__m51_wing_r'] === 127, 'the right membrane torn, the left whole again', tear());
-  await until(() => fired.length >= 4, dur('3', 'Motion[2]') + 60);
-  await frames(3); d = drawn();
-  check(same(fired, [1000, 1005, 1010, 1109]) && d[10] === false && d[102] === true && d[5] === false && d[7] === false,
-        '4th play: (10, 0x1b) -- c 1109 at frame 0, no part changed', { fired, d });
+  // the plays after the three breaks, as this monster's table cycles them: Rathian's and Gold's (10, 0x1b) (c 1109, no
+  // part changed); Dreadqueen's tail break (set 12, u 1036) before it
+  const cyc = MS.MOTION_STATES[MON]['3|Motion[2]'].cycle;
+  const keyOf = e => e.fire ? e.fire[e.fire.length - 1][1] : e.start[0][1];
+  for (let n = 4; n <= cyc.length; n++){
+    await until(() => fired.length >= n, dur('3', 'Motion[2]') + 60);
+    await frames(3); d = drawn();
+    const e = cyc[n - 1];
+    const parts = e.start ? (d[10] === false && d[102] === true && d[5] === false && d[7] === false)
+                          : (d[12] === true && d[11] === false);            // Dreadqueen's tail broken: set 12
+    check(same(fired, cyc.slice(0, n).map(keyOf)) && parts,
+          'play ' + n + ': ' + (e.start ? '(10, 0x1b) -- c 1109 at frame 0, no part changed' : 'the tail breaks (set 12), u ' + keyOf(e)), { fired, d });
+  }
   await play(...REST); await frames(3);
   check(same(drawn(), user0) && tear()['XfBAN__E0__m51_wing_r'] === null, 'another motion: the user\'s parts and whole membranes again', { d: drawn(), tear: tear() });
 
@@ -609,7 +618,7 @@ async function pageCheckRathian(){
   const fa0 = fx.fireAt.bind(fx), landing = [];
   fx.fireAt = (pel, key, pos) => { landing.push(key); return fa0(pel, key, pos); };
   await play('3', 'Motion[15]'); await frames(3); d = drawn();
-  const piece = V.mounted['em001_00_tail'];
+  const piece = V.mounted[MON + '_tail'];
   check(same(fired, [900]) && d[8] === true && d[101] === false, 'L3 Motion[15]: the tail severed (set 12), u 900', { fired, d });
   check(piece && piece.visible && V.cutTail() && V.cutTail().J, 'the cut tail is shown', { visible: piece && piece.visible });
   await frames(60);
@@ -646,7 +655,8 @@ async function pageCheckRathian(){
   check(wait >= left - 1 && wait <= left + 1, 'rage on again: the next puff when the leftover runs out', { left, wait });
   // TIRED while the user is enraged: rage shown off, the drool, and the countdown zeroed -> a puff at once after
   fired.length = 0;
-  await play('0', 'Motion[14]_loop'); await frames(3);
+  // the countdown is the schedule's, stepped on its own clock (live.js: real time), not a step a frame: wait for steps
+  await play('0', 'Motion[14]_loop'); await frames(3); await steps(2);
   check(S.rage === false && count(fired, 1104) === 1 && S.puff.left === 0, 'L0 Motion[14] (tired): rage shown off, drool at once, the countdown zeroed', { rage: S.rage, fired, left: S.puff.left });
   await frames(50);
   check(count(fired, 1104) === 2, 'the drool again 48 frames on', fired);
@@ -700,6 +710,9 @@ async function pageCheckRathian(){
   // THE FIREBALLS (shells-em001.md; shells.js): each play of a fireball clip takes the next of the ROM's choices while
   // not tired (the no-fire twins are op 0x24's tired branch); the fireball flies to the grid floor, and its landing starts
   // the fire and the landing effect. Requests logged by effect file, with the clip frame they came on
+  // (a Rath-line sibling whose shells are not in shells.js yet skips this part)
+  const SH = await import('/render/shells.js');
+  if (SH.SHELL_DATA[MON]){
   const host = S.host, request0 = host.requestEffect.bind(host);
   const reqLog = [];
   let lastPick = null;
@@ -743,10 +756,11 @@ async function pageCheckRathian(){
   check(named('em001_02_004').length >= 1, 'it lands: the explosions (em001_02_004)', reqLog.map(r => r.name));
   host.requestEffect = request0;
   if (pickIn) S.rockInput = pickIn;
+  }
   await play(...REST); await frames(3);
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
     const [list, clip] = k.split('|');
-    check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'), 'the table\'s ' + k + ' is a clip Rathian carries');
+    check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'), 'the table\'s ' + k + ' is a clip ' + LABEL + ' carries');
   }
   S.start = s0;
   check(!fx.failed, 'the effect runtime never stopped', fx.failed);
@@ -789,7 +803,9 @@ async function main(){
   }
   const before = 0;
   const res = (await evaluate(c, `(${pageCheck.toString()})()`)).concat(await evaluate(c, `(${pageCheckNarga.toString()})()`))
-    .concat(await evaluate(c, `(${pageCheckRathian.toString()})()`));
+    .concat(await evaluate(c, `(${pageCheckRathian.toString()})()`))
+    .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em001_02', 'Gold Rathian')`))
+    .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em001_04', 'Dreadqueen')`));
   let fail = 0;
   for (const [ok, label, detail] of res){
     if (!ok) fail++;

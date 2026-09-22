@@ -43,6 +43,14 @@
 //     the ROM's line-18 rule. Inputs NOT READ: the action (input.rock.variant), the target, the stage, the owner block
 //     (words, position, ground, size, base scale, block +0x5c), the quest rank, the hover-dust timer's phase
 //     (input.stepCount), the hit-slot life.
+//   * HER SIBLINGS, GOLD RATHIAN (em001_02) and DREADQUEEN RATHIAN (em001_04): Rathian's class uEm001_00 with variant byte
+//     2 / 4, their own shell ids (0xd09918), files, EffectLists (c = em001_00c, u = their own u.pel), actiontune and .dtp.
+//     Rathian's actions on the shared clips are theirs (SHELL_DATA shares her entries, dust rows and posture read); their
+//     own L4 / L9 clips add the class code's other spawn helpers (spawnVar001): L2 M1's puffs (3..5, G 38..40), L4 M18's
+//     fireballs (9..11, 24 / 25, which land like mode 8), and for Dreadqueen L2 M13's puffs, L9's puffs / ground dust /
+//     36 / 48..50, and THE POISON (0xd09b84(e, 0x10), poison001: shell01 16 / 23 / 24 by the quest's number and part 7's
+//     break level, none once the tail is severed, the two newest kept). Its inputs: input.questLevel (no default),
+//     input.breakLevel7, input.tailSevered.
 //
 // UNITS AND FRAMES. Positions are GAME units in world space (the viewer's world is game units / 100: live.js
 // MT_TO_VIEW). Joint matrices are the game's: 16 floats in memory order (row-vector convention, rows = axes, row 3 =
@@ -72,8 +80,14 @@
 //     0x1040 (the plane stand-in: the fire is always made); the
 //     camera request 0x43ac04 (an event only); the hit side beyond the slot countdown (who runs 0x168d30, where in the
 //     frame, its step -- the hit-slot life is input.hitLife, see slotStep); how the effect runtime binds placement-mode-0
-//     records to the shell and orients placed ones; (7, 0x7b)'s phase-0 call; the other variants (Gold Rathian,
-//     Dreadqueen, Rathalos) -- their own ids and files, not in SHELL_DATA.
+//     records to the shell and orients placed ones; (7, 0x7b)'s phase-0 call; Rathalos (em 2) and its variants -- their
+//     own ids and files, not in SHELL_DATA.
+//   * her siblings: as Rathian; who issues (7, 0x4d) / (7, 0x75) / (7, 0x7a) / (7, 0x7b) (no command-table stream names
+//     them, no class code chains to them); the owner's travel and turns inside their actions (0x7c9fc, 0x7a820, 0x76c08,
+//     0x770e4 -- input.ownerPos / input.owner instead); (7, 0xf6) / (7, 0xf7), which start on clips em001_04_9.lmt lacks;
+//     creates whose modes have no files (shell00 21 / 22 / 23 / 31..36, Gold's shell01 10..12: ROM-run, a no-file shell00
+//     ends at move 1 with no effect and no child) -- not listed; the take-offs (L4 M13 f6: shell00 21 / 22 / 32 / 33 no
+//     files, or shell01 0, which draws nothing).
 const f = Math.fround;
 
 // ---- ROM constants (float literals as stored) -------------------------------------------------------------------
@@ -561,7 +575,406 @@ export const SHELL_DATA = {
     // 0xcff7d8, setMotion 0x20b at 0xcff7ec).
     postures: { '2|Motion[12]': 1 },
   },
+
+  // GOLD RATHIAN (em001_02): Rathian's class uEm001_00 with em byte +0xb5f4 = 1, variant +0xb5f5 = 2. 0xd09918
+  // keeps the global shells 0x55 / 0x5b / 0x61 at enemy +0xcac4 / +0xcac8 / +0xcacc (0xd099dc..0xd099f8); table
+  // 0x175c3e8 names Rathian's classes for them (uShellEm001_sp_00 / sp_01 / sp_11) with this monster's .shl (resources
+  // 0x89a8 / 0x89ae / 0x89b4). The shell classes test no variant byte (in 0xd0d928..0xd0f400 only the landing's em-2
+  // tests, 0xd0e11c..0xd0e268), so Rathian's base00 / base01 / base11 code runs them. Values: the files' own,
+  // C:\MHGU-Extract\scratch-em\em001_02\em001_02.arc, shell\em\em001_02_shellNN (ShellInfoList 38 / 56 / 1, ShellScale 1.0).
+  em001_02: {
+    name: 'Gold Rathian',
+    variant: 2,                                     // enemy +0xb5f5
+    // every em001_02 .shl (shell00, shell01) names EffectLists[0] = effect\pel\em\em001_00c (Rathian's c.pel) and [1] =
+    // effect\pel\em\em001_02u (its own u.pel), the rest null (the XFS arrays at 0x184b / 0x2409); shell11's are all null
+    lists: { 0: { list: 'c', pel: 'em001_00c' }, 1: { list: 'u', pel: 'em001_02u' } },
+    shells: {
+      // THE FIREBALLS (uShellEm001_sp_00, base00; Rathian's shell00 notes apply). Modes 0..7 as Rathian's; 8 (camera id 5
+      // at a type-0 contact), 9 / 10 / 11 / 24 / 25 (flags 0: angles from the owner's words; X offset 15 / 25 / 35 / 15 /
+      // 25 degrees, Y spread -20 / 0, speed 100, flight 72) are this monster's; 8..11, 24, 25 are in the landing's mask
+      // (0xd0dd08..0xd0dd24: shell11 on the floor, shell01 mode 9 otherwise).
+      shell00: {
+        id: 0x55, cls: 'uShellEm001_sp_00', base: 'base00', folder: 'shell\\em\\em001_02_shell00', reader: 0xd0d988,
+        modes: {
+          0: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+             sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 60.0, 180.0, -45.0, 45.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 200.0, 200.0]] } },
+          1: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+             sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [5.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          2: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+             sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [5.0, -18.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          3: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+             sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [4.4, 23.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          4: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+             sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 60.0, 180.0, 0.0, 90.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 260.0, 400.0]] } },
+          5: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+             sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 60.0, 180.0, -90.0, 90.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 250.0, 100.0]] } },
+          6: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+             sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, -18.0, 60.0, 180.0, -90.0, 90.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 250.0, 100.0]] } },
+          7: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+             sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 23.0, 60.0, 180.0, -90.0, 90.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 250.0, 100.0]] } },
+          8: { scale: 1.0, ef: [[1, 30], [999, -1], [999, -1], [1, 36]], hit: [1],
+             sh: { ints: [3, 5, 5, -1, -1, -1, -1, -1], floats: [25.0, 0.0, 100.0, 72.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          9: { scale: 1.0, ef: [[1, 30], [999, -1], [999, -1], [0, 2]], hit: [1],
+             sh: { ints: [3, 5, 5, -1, -1, -1, -1, -1], floats: [15.0, -20.0, 100.0, 72.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          10: { scale: 1.0, ef: [[1, 30], [999, -1], [999, -1], [0, 2]], hit: [1],
+              sh: { ints: [3, 5, 5, -1, -1, -1, -1, -1], floats: [25.0, 0.0, 100.0, 72.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          11: { scale: 1.0, ef: [[1, 30], [999, -1], [999, -1], [0, 2]], hit: [1],
+              sh: { ints: [3, 5, 5, -1, -1, -1, -1, -1], floats: [35.0, 0.0, 100.0, 72.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          24: { scale: 1.0, ef: [[1, 30], [999, -1], [999, -1], [0, 2]], hit: [1],
+              sh: { ints: [3, 5, 5, -1, -1, -1, -1, -1], floats: [15.0, 0.0, 100.0, 72.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          25: { scale: 1.0, ef: [[1, 30], [999, -1], [999, -1], [0, 2]], hit: [1],
+              sh: { ints: [3, 5, 5, -1, -1, -1, -1, -1], floats: [25.0, 0.0, 100.0, 72.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+        },
+      },
+      // GROUND FIRE, EXPLOSIONS, DUST, PUFFS, HIT VOLUMES (uShellEm001_sp_01, base01; params011). Rathian's 1, 2, 6..9, 15,
+      // 44..46; mode 0 (the no-fire hit volume) has timer 9.0; 13 / 14 / 20 (dust) refuse EffectParam 1 as (999, -1) and 20
+      // registers hit slot 0 (record 15); this monster's: 3..5 / 38..40 (L2 M1's puffs, rank < 5 / G) and 31..33 (L4 M65's
+      // at rank < 5), on joint 4 (flag 1), starting u 60 / 61 / 62 of em001_02u.
+      shell01: {
+        id: 0x5b, cls: 'uShellEm001_sp_01', base: 'base01', folder: 'shell\\em\\em001_02_shell01', reader: 0xd0e6a0,
+        modes: {
+          0: { scale: 1.0, ef: [[999, -1], [999, -1]], hit: [8, -1],
+             sh: { ints: [0, 3, 0, -1, -1, -1, -1, -1, -1], floats: [9.0, 0.0, 0.0], vecs: [[0.0, 0.0, 190.0]] } },
+          1: { scale: 1.0, ef: [[999, -1], [999, -1]], hit: [0, 2],
+             sh: { ints: [-1, -1, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          2: { scale: 1.0, ef: [[0, 3], [999, -1]], hit: [7, -1],
+             sh: { ints: [-1, -1, -1, 0, 0, -1, -1, -1, -1], floats: [200.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          3: { scale: 1.0, ef: [[1, 60], [999, -1]], hit: [9, -1],
+             sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-150.0, -50.0, 100.0]] } },
+          4: { scale: 1.0, ef: [[1, 60], [999, -1]], hit: [10, -1],
+             sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-70.0, -200.0, 150.0]] } },
+          5: { scale: 1.0, ef: [[1, 62], [999, -1]], hit: [10, -1],
+             sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[150.0, -200.0, 200.0]] } },
+          6: { scale: 1.0, ef: [[1, 31], [999, -1]], hit: [3, -1],
+             sh: { ints: [-1, -1, -1, 0, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          7: { scale: 1.0, ef: [[1, 34], [999, -1]], hit: [4, -1],
+             sh: { ints: [-1, -1, -1, 0, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          8: { scale: 1.0, ef: [[1, 33], [999, -1]], hit: [5, -1],
+             sh: { ints: [-1, -1, -1, 0, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          9: { scale: 1.0, ef: [[1, 32], [999, -1]], hit: [6, -1],
+             sh: { ints: [-1, -1, -1, 0, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          13: { scale: 1.0, ef: [[0, 30], [999, -1]], hit: [-1, 12],
+              sh: { ints: [-1, -1, -1, 0, -1, 0, -1, -1, 0], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 100.0]] } },
+          14: { scale: 1.0, ef: [[0, 31], [999, -1]], hit: [-1, 13],
+              sh: { ints: [-1, -1, -1, 0, -1, 0, -1, -1, 0], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          15: { scale: 1.0, ef: [[0, 31], [999, -1]], hit: [-1, 14],
+              sh: { ints: [-1, -1, -1, 0, -1, 0, -1, -1, 0], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          20: { scale: 1.0, ef: [[0, 31], [999, -1]], hit: [15, -1],
+              sh: { ints: [-1, -1, -1, 0, -1, 0, -1, -1, 0], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          31: { scale: 1.0, ef: [[1, 61], [999, -1]], hit: [9, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-150.0, -50.0, 100.0]] } },
+          32: { scale: 1.0, ef: [[1, 61], [999, -1]], hit: [10, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-70.0, -200.0, 150.0]] } },
+          33: { scale: 1.0, ef: [[1, 62], [999, -1]], hit: [10, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[150.0, -200.0, 200.0]] } },
+          38: { scale: 1.0, ef: [[1, 61], [999, -1]], hit: [16, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-150.0, -50.0, 100.0]] } },
+          39: { scale: 1.0, ef: [[1, 61], [999, -1]], hit: [17, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-70.0, -200.0, 150.0]] } },
+          40: { scale: 1.0, ef: [[1, 62], [999, -1]], hit: [17, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[150.0, -200.0, 200.0]] } },
+          44: { scale: 1.0, ef: [[1, 61], [999, -1]], hit: [16, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-150.0, -50.0, 100.0]] } },
+          45: { scale: 1.0, ef: [[1, 61], [999, -1]], hit: [17, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-70.0, -200.0, 150.0]] } },
+          46: { scale: 1.0, ef: [[1, 62], [999, -1]], hit: [17, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[150.0, -200.0, 200.0]] } },
+        },
+        // em001_02_01_hitdata (HDS, 18 records): (s16 +0 delay, s16 +2 duration) by record, for input.hitLife
+        hitdata: [[10, 10], [10, 10], [0, 10], [10, 20], [6, 16], [6, 16], [6, 16], [8, 172], [6, 5], [2, 10], [2, 10],
+                  [0, 10], [14, 10], [14, 10], [14, 10], [14, 10], [2, 10], [2, 10]],
+      },
+      // THE EXPLOSION TIMER (uShellEm001_sp_11, base11): the same file values as Rathian's
+      shell11: {
+        id: 0x61, cls: 'uShellEm001_sp_11', base: 'base11', folder: 'shell\\em\\em001_02_shell11', reader: 0xd0ee8c,
+        modes: {
+          0: { scale: 1.0, ef: [], hit: [],
+             sh: { ints: [], floats: [0.0, 16.0, 26.0, 36.0], vecs: [[0.0, 0.0, 0.0], [400.0, 0.0, 100.0], [-460.0, 0.0, 150.0], [0.0, 0.0, 450.0]] } },
+        },
+        times: [0, 1, 2, 3], vecIdx: [0, 1, 2, 3], modes01: [6, 7, 8, 9],
+      },
+    },
+    // THE ACTIONS. Rathian's (7, 0x02) .. (7, 0x7a) and the hover turns are this monster's too -- the same case bodies and
+    // spawn helpers, which test no variant byte on these paths, on the same clips (L2 is em001_00_2.lmt, which all three
+    // load; L4 M8 / M16 / M65 are in em001_02_4.lmt with Rathian's frame counts) -- so SHELL_DATA.em001_00.actions is put in
+    // front of these (after this table; the ROM-run action sweep, efx\agents\rathian-variants-scratch\arun.py: every one
+    // makes the same shells at the same frames, the modes being this monster's files). Gold's own: the class code's other
+    // spawn helpers on clips its lists have (`spawns`, each { at: the helper, kind, frames, shell, modes }):
+    //   'first': the first passing test in the listed order makes its mode (one shell); modesG when 0x3a8430 > 4
+    //   'seq':   one phase per test (the next test runs only after the previous passed): one shell per passed phase
+    //   'each':  every test on its own, each passing one a shell
+    // The shell01 setups are 0xd09b84's (mode != 0x10): the zero vector 0x19176b0, the owner's angle words e+0xfe8..,
+    // +0x3c = 0xffff (0xd09c18..0xd09cbc). None of the command table's streams issues (7, 0x4d) / (7, 0x75)
+    // (em001_00_cmdtbl.emc, which all three load: no op names them) and no class code chains to them: who issues them is
+    // NOT READ. Creates that draw nothing here, not listed: (7, 0x4e) (L2 M13 -> shell01 10..12: no em001_02 files), (7,
+    // 0xec) / (7, 0xf9) (L4 M18 -> shell00 34..36), (7, 0xf5) (shell00 31), the take-offs (L4 M13 f6 -> shell00 21 / 22 /
+    // 32 / 33 or shell01 0); a no-file shell00 ends at move 1 with no effect and no child (ROM-run, nofile.py).
+    actions: [
+      // (7, 0x4d) = 0xcfd770(e, 1) / (7, 0x75) = 0xd03b60(e, 1): phase 0 setMotion 0x201 = L2 M1, blend 8.0; phase 1 ->
+      // 0xd0a074 / 0xd0ba2c (the same code): passes 74 -> mode 5, else 69 -> 4, else 64 -> 3, or 0x28 / 0x27 / 0x26 when
+      // 0x3a8430 > 4 (0xd0a078..0xd0a118 / 0xd0ba30..0xd0bad0), via 0xd09b84. (7, 0x00) / (7, 0x74) are the same bodies
+      // with r1 0, which never call the helper; (7, 0x75) plays L2 M3 after L2 M1 (0xd03db0). For em 1 variant 2 the
+      // body also sets the motion speed 1.1 (0xb07b4 at 0xcfd820, s0 = 0x3f8ccccd): frames are motion frames either way.
+      { action: [7, 0x4d], code: 0xcfd770, args: [1], list: '2', clip: 'Motion[1]', partners: [], spawns: [{ at: 0xd0a074, kind: 'first', frames: [74.0, 69.0, 64.0], shell: 'shell01', modes: [5, 4, 3], modesG: [0x28, 0x27, 0x26] }], pick: 'ai', variant: '7:0x4d' },
+      { action: [7, 0x75], code: 0xd03b60, args: [1], list: '2', clip: 'Motion[1]', partners: [], spawns: [{ at: 0xd0ba2c, kind: 'first', frames: [74.0, 69.0, 64.0], shell: 'shell01', modes: [5, 4, 3], modesG: [0x28, 0x27, 0x26] }], pick: 'ai', variant: '7:0x75' },
+      { action: [7, 0x00], code: 0xcfd770, args: [0], list: '2', clip: 'Motion[1]', partners: [], spawns: [], pick: 'ai', variant: '7:0x00' },
+      { action: [7, 0x74], code: 0xd03b60, args: [0], list: '2', clip: 'Motion[1]', partners: [], spawns: [], pick: 'ai', variant: '7:0x74' },
+      // (7, 0x42) = 0xd01988: phase 0 setMotion 0x412 = L4 M18, blend 4.0; phase 1 passes 116 -> 0xd0b18c(e, 1) = shell00
+      // mode 9 and phase 2; then 168 -> mode 10, phase 3; then 226 -> mode 11 (0xd01a28 / 0xd01a8c / 0xd01af0; literals
+      // 0xd01b6c / 0xd01b60 / 0xd01b54); a turn (0x76c08(e, 0x2e, 0)) in the windows 0..60, 140..160, 200..220 (NOT READ:
+      // input.owner.y). The command table issues it in the else body of op 0x24 (g1 s82; its tired body: (7, 0x0f)).
+      { action: [7, 0x42], code: 0xd01988, args: [], list: '4', clip: 'Motion[18]', partners: [], spawns: [{ at: 0xd0b18c, kind: 'seq', frames: [116.0, 168.0, 226.0], shell: 'shell00', modes: [9, 10, 11] }], op24: 'else', pick: 'ai', variant: '7:0x42' },
+      // (7, 0x4a) / (7, 0x5a) / (7, 0x5b) = 0xd02058(e, 0 / 1 / 2) and (7, 0xef) = 0xd0454c: their L4 M18 phase -> 0xd0b49c:
+      // passes 116 -> shell00 mode 0x18, passes 168 -> 0x19, each on its own (0xd0b4a0 / 0xd0b558; literals 0xd0b610 /
+      // 0xd0b624). Else bodies of op 0x24 (g1 s166; g1 s229 / s230).
+      { action: [7, 0x4a], code: 0xd02058, args: [0], list: '4', clip: 'Motion[18]', partners: [], spawns: [{ at: 0xd0b49c, kind: 'each', frames: [116.0, 168.0], shell: 'shell00', modes: [0x18, 0x19] }], op24: 'else', pick: 'ai', variant: '7:0x4a' },
+      { action: [7, 0x5a], code: 0xd02058, args: [1], list: '4', clip: 'Motion[18]', partners: [], spawns: [{ at: 0xd0b49c, kind: 'each', frames: [116.0, 168.0], shell: 'shell00', modes: [0x18, 0x19] }], op24: 'else', pick: 'ai', variant: '7:0x5a' },
+      { action: [7, 0x5b], code: 0xd02058, args: [2], list: '4', clip: 'Motion[18]', partners: [], spawns: [{ at: 0xd0b49c, kind: 'each', frames: [116.0, 168.0], shell: 'shell00', modes: [0x18, 0x19] }], op24: 'else', pick: 'ai', variant: '7:0x5b' },
+      { action: [7, 0xef], code: 0xd0454c, args: [], list: '4', clip: 'Motion[18]', partners: [], spawns: [{ at: 0xd0b49c, kind: 'each', frames: [116.0, 168.0], shell: 'shell00', modes: [0x18, 0x19] }], op24: 'else', pick: 'ai', variant: '7:0xef' },
+    ],
+  },
+  // DREADQUEEN RATHIAN (em001_04): Rathian's class uEm001_00 with em byte +0xb5f4 = 1, variant +0xb5f5 = 4. 0xd09918
+  // keeps the global shells 0x56 / 0x5c / 0x62 at enemy +0xcac4 / +0xcac8 / +0xcacc (0xd099b8..0xd099d4); table
+  // 0x175c3e8 names Rathian's classes for them (uShellEm001_sp_00 / sp_01 / sp_11) with this monster's .shl (resources
+  // 0x89a9 / 0x89af / 0x89b5). The shell classes test no variant byte (in 0xd0d928..0xd0f400 only the landing's em-2
+  // tests, 0xd0e11c..0xd0e268), so Rathian's base00 / base01 / base11 code runs them. Values: the files' own,
+  // C:\MHGU-Extract\scratch-em\em001_04\em001_04.arc, shell\em\em001_04_shellNN (ShellInfoList 38 / 56 / 1, ShellScale 1.0).
+  em001_04: {
+    name: 'Dreadqueen Rathian',
+    variant: 4,                                     // enemy +0xb5f5
+    // every em001_04 .shl (shell00, shell01) names EffectLists[0] = effect\pel\em\em001_00c (Rathian's c.pel) and [1] =
+    // effect\pel\em\em001_04u (its own u.pel), the rest null (the XFS arrays at 0x184b / 0x2fbd); shell11's are all null
+    lists: { 0: { list: 'c', pel: 'em001_00c' }, 1: { list: 'u', pel: 'em001_04u' } },
+    shells: {
+      // THE FIREBALLS (uShellEm001_sp_00, base00; Rathian's shell00 notes apply). Modes 0..7 as Rathian's; 8 (camera id 5
+      // at a type-0 contact), 9 / 10 / 11 / 24 / 25 (flags 0: angles from the owner's words; X offset 15 / 25 / 35 / 15 /
+      // 25 degrees, Y spread -20 / 0, speed 100, flight 72) are this monster's; 8..11, 24, 25 are in the landing's mask
+      // (0xd0dd08..0xd0dd24: shell11 on the floor, shell01 mode 9 otherwise).
+      shell00: {
+        id: 0x56, cls: 'uShellEm001_sp_00', base: 'base00', folder: 'shell\\em\\em001_04_shell00', reader: 0xd0d988,
+        modes: {
+          0: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+             sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 60.0, 180.0, -45.0, 45.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 200.0, 200.0]] } },
+          1: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+             sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [5.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          2: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+             sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [5.0, -18.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          3: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+             sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [4.4, 23.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          4: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+             sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 60.0, 180.0, 0.0, 90.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 260.0, 400.0]] } },
+          5: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+             sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 60.0, 180.0, -90.0, 90.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 250.0, 100.0]] } },
+          6: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+             sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, -18.0, 60.0, 180.0, -90.0, 90.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 250.0, 100.0]] } },
+          7: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+             sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 23.0, 60.0, 180.0, -90.0, 90.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 250.0, 100.0]] } },
+          8: { scale: 1.0, ef: [[1, 30], [0, 2], [999, -1], [0, 2]], hit: [1],
+             sh: { ints: [3, 5, 5, -1, -1, -1, -1, -1], floats: [25.0, 0.0, 100.0, 72.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          9: { scale: 1.0, ef: [[1, 30], [0, 2], [999, -1], [0, 2]], hit: [1],
+             sh: { ints: [3, 5, 5, -1, -1, -1, -1, -1], floats: [15.0, -20.0, 100.0, 72.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          10: { scale: 1.0, ef: [[1, 30], [0, 2], [999, -1], [0, 2]], hit: [1],
+              sh: { ints: [3, 5, 5, -1, -1, -1, -1, -1], floats: [25.0, 0.0, 100.0, 72.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          11: { scale: 1.0, ef: [[1, 30], [0, 2], [999, -1], [0, 2]], hit: [1],
+              sh: { ints: [3, 5, 5, -1, -1, -1, -1, -1], floats: [35.0, 0.0, 100.0, 72.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          24: { scale: 1.0, ef: [[1, 30], [0, 2], [999, -1], [0, 2]], hit: [1],
+              sh: { ints: [3, 5, 5, -1, -1, -1, -1, -1], floats: [15.0, 0.0, 100.0, 72.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          25: { scale: 1.0, ef: [[1, 30], [0, 2], [999, -1], [0, 2]], hit: [1],
+              sh: { ints: [3, 5, 5, -1, -1, -1, -1, -1], floats: [25.0, 0.0, 100.0, 72.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+        },
+      },
+      // GROUND FIRE, EXPLOSIONS, DUST, PUFFS, HIT VOLUMES, THE POISON (uShellEm001_sp_01, base01; params011). Rathian's 1,
+      // 2, 6..9, 15; mode 0 has timer 9.0; this monster's: 3..5 / 38..40 (L2 M1, rank < 5 / G), 10..12 (L2 M13), 31..33
+      // (L4 M65 at rank < 5, L9 M4 / M5), 44..46 (L4 M65, G), 36 / 48..50 (L9 M9) -- on joint 4 (flag 1; ints [0, 4, 0]:
+      // flag 2 too, the offset turned by the angle words, 0x3fa9f4..0x3faab4) -- 21 (L9 M7: the owner's ground, 200 ahead)
+      // and THE POISON 16 / 23 / 24 (0xd09b84(e, 0x10): from joint 145, snapped to the ground with its angles, flags
+      // 1 | 4 | 8; timer 450.0; u 40 / 41 / 42).
+      shell01: {
+        id: 0x5c, cls: 'uShellEm001_sp_01', base: 'base01', folder: 'shell\\em\\em001_04_shell01', reader: 0xd0e6a0,
+        modes: {
+          0: { scale: 1.0, ef: [[999, -1], [999, -1]], hit: [8, -1],
+             sh: { ints: [0, 3, 0, -1, -1, -1, -1, -1, -1], floats: [9.0, 0.0, 0.0], vecs: [[0.0, 0.0, 190.0]] } },
+          1: { scale: 1.0, ef: [[999, -1], [999, -1]], hit: [0, 2],
+             sh: { ints: [-1, -1, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          2: { scale: 1.0, ef: [[0, 3], [999, -1]], hit: [7, -1],
+             sh: { ints: [-1, -1, -1, 0, 0, -1, -1, -1, -1], floats: [200.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          3: { scale: 1.0, ef: [[1, 60], [999, -1]], hit: [9, -1],
+             sh: { ints: [0, 4, 0, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-150.0, -50.0, 100.0]] } },
+          4: { scale: 1.0, ef: [[1, 60], [999, -1]], hit: [10, -1],
+             sh: { ints: [0, 4, 0, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-70.0, -200.0, 150.0]] } },
+          5: { scale: 1.0, ef: [[1, 60], [999, -1]], hit: [10, -1],
+             sh: { ints: [0, 4, 0, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[150.0, -200.0, 200.0]] } },
+          6: { scale: 1.0, ef: [[1, 31], [999, -1]], hit: [3, -1],
+             sh: { ints: [-1, -1, -1, 0, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          7: { scale: 1.0, ef: [[1, 34], [999, -1]], hit: [4, -1],
+             sh: { ints: [-1, -1, -1, 0, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          8: { scale: 1.0, ef: [[1, 33], [999, -1]], hit: [5, -1],
+             sh: { ints: [-1, -1, -1, 0, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          9: { scale: 1.0, ef: [[1, 32], [999, -1]], hit: [6, -1],
+             sh: { ints: [-1, -1, -1, 0, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          10: { scale: 1.0, ef: [[1, 60], [999, -1]], hit: [11, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-100.0, -20.0, 80.0]] } },
+          11: { scale: 1.0, ef: [[1, 60], [999, -1]], hit: [11, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[80.0, 0.0, 100.0]] } },
+          12: { scale: 1.0, ef: [[1, 60], [999, -1]], hit: [11, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 100.0], vecs: [[200.0, -130.0, 100.0]] } },
+          13: { scale: 1.0, ef: [[0, 30], [999, -1]], hit: [-1, 12],
+              sh: { ints: [-1, -1, -1, 0, -1, 0, -1, -1, 0], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 100.0]] } },
+          14: { scale: 1.0, ef: [[0, 31], [999, -1]], hit: [-1, 13],
+              sh: { ints: [-1, -1, -1, 0, -1, 0, -1, -1, 0], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          15: { scale: 1.0, ef: [[0, 31], [999, -1]], hit: [-1, 14],
+              sh: { ints: [-1, -1, -1, 0, -1, 0, -1, -1, 0], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          16: { scale: 1.0, ef: [[1, 40], [999, -1]], hit: [15, -1],
+              sh: { ints: [0, 145, -1, 0, 0, -1, -1, -1, -1], floats: [450.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          20: { scale: 1.0, ef: [[0, 31], [999, -1]], hit: [-1, 16],
+              sh: { ints: [-1, -1, -1, 0, -1, 0, -1, -1, 0], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          21: { scale: 1.0, ef: [[0, 31], [999, -1]], hit: [-1, 22],
+              sh: { ints: [-1, -1, -1, 0, -1, 0, -1, -1, 0], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 200.0]] } },
+          23: { scale: 1.0, ef: [[1, 41], [999, -1]], hit: [17, -1],
+              sh: { ints: [0, 145, -1, 0, 0, -1, -1, -1, -1], floats: [450.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          24: { scale: 1.0, ef: [[1, 42], [999, -1]], hit: [18, -1],
+              sh: { ints: [0, 145, -1, 0, 0, -1, -1, -1, -1], floats: [450.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          31: { scale: 1.0, ef: [[1, 60], [999, -1]], hit: [19, -1],
+              sh: { ints: [0, 4, 0, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-150.0, -50.0, 100.0]] } },
+          32: { scale: 1.0, ef: [[1, 61], [999, -1]], hit: [20, -1],
+              sh: { ints: [0, 4, 0, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-70.0, -200.0, 150.0]] } },
+          33: { scale: 1.0, ef: [[1, 60], [999, -1]], hit: [19, -1],
+              sh: { ints: [0, 4, 0, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[100.0, -170.0, 200.0]] } },
+          36: { scale: 1.0, ef: [[1, 70], [999, -1]], hit: [21, -1],
+              sh: { ints: [0, 4, 0, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, -100.0, 300.0]] } },
+          38: { scale: 1.0, ef: [[1, 61], [999, -1]], hit: [23, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-150.0, -50.0, 100.0]] } },
+          39: { scale: 1.0, ef: [[1, 62], [999, -1]], hit: [24, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-70.0, -200.0, 150.0]] } },
+          40: { scale: 1.0, ef: [[1, 62], [999, -1]], hit: [24, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[150.0, -200.0, 200.0]] } },
+          41: { scale: 1.0, ef: [[1, 62], [999, -1]], hit: [25, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-100.0, -20.0, 80.0]] } },
+          42: { scale: 1.0, ef: [[1, 62], [999, -1]], hit: [25, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[80.0, 0.0, 100.0]] } },
+          43: { scale: 1.0, ef: [[1, 62], [999, -1]], hit: [25, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[200.0, -130.0, 100.0]] } },
+          44: { scale: 1.0, ef: [[1, 61], [999, -1]], hit: [23, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-150.0, -50.0, 100.0]] } },
+          45: { scale: 1.0, ef: [[1, 62], [999, -1]], hit: [24, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-70.0, -200.0, 150.0]] } },
+          46: { scale: 1.0, ef: [[1, 62], [999, -1]], hit: [24, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[150.0, -200.0, 200.0]] } },
+          48: { scale: 1.0, ef: [[1, 61], [999, -1]], hit: [26, -1],
+              sh: { ints: [0, 4, 0, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-150.0, -150.0, 100.0]] } },
+          49: { scale: 1.0, ef: [[1, 61], [999, -1]], hit: [27, -1],
+              sh: { ints: [0, 4, 0, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-70.0, -200.0, 150.0]] } },
+          50: { scale: 1.0, ef: [[1, 61], [999, -1]], hit: [27, -1],
+              sh: { ints: [0, 4, 0, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[150.0, -200.0, 200.0]] } },
+        },
+        // em001_04_01_hitdata (HDS, 28 records): (s16 +0 delay, s16 +2 duration) by record, for input.hitLife
+        hitdata: [[10, 10], [10, 10], [0, 10], [10, 20], [6, 16], [6, 16], [6, 16], [8, 172], [6, 5], [2, 10], [2, 10],
+                  [0, 10], [14, 10], [14, 10], [14, 10], [2, 9999], [14, 10], [2, 9999], [2, 9999], [2, 10], [2, 10],
+                  [0, 8], [8, 10], [2, 10], [2, 10], [2, 10], [2, 8], [2, 8]],
+      },
+      // THE EXPLOSION TIMER (uShellEm001_sp_11, base11): the same file values as Rathian's
+      shell11: {
+        id: 0x62, cls: 'uShellEm001_sp_11', base: 'base11', folder: 'shell\\em\\em001_04_shell11', reader: 0xd0ee8c,
+        modes: {
+          0: { scale: 1.0, ef: [], hit: [],
+             sh: { ints: [], floats: [0.0, 16.0, 26.0, 36.0], vecs: [[0.0, 0.0, 0.0], [400.0, 0.0, 100.0], [-460.0, 0.0, 150.0], [0.0, 0.0, 450.0]] } },
+        },
+        times: [0, 1, 2, 3], vecIdx: [0, 1, 2, 3], modes01: [6, 7, 8, 9],
+      },
+    },
+    // THE ACTIONS. As Gold's (above): Rathian's actions in front (after this table), except her four L4 M65 entries, which
+    // this monster's replace (0xd0baec's variant-4 extra); Gold's kinds, and the variant-4 paths:
+    //   'poison': 0xd09b84(e, 0x10) -- the mode, the old poison's end and the inputs are poison001's (below)
+    //   'ground': 0xd09e28(e, mode, 900.0), the landing dust's create (the owner's point, its 900 height test)
+    // `tune` = frames read from the actiontune: 0x6f618(e, n) = [e+0x75e4] vtable +0x4c = the rFreeUseParam float getter
+    // 0x3cb330 (0.0 past the end); e+0x75e4 is the rFreeUseParam the enemy loader requests at 0x4b874 (DTI 0x1884fd0) and
+    // hands to the delegate e+0x76d0 = 0x70944 (installed at 0x70608) -- the only non-shell rFreeUseParam in em001_04.arc
+    // is enemy\action_tune\em001_04_actiontune (`tune` below). No command-table stream issues (7, 0x4d), (7, 0x75), (7,
+    // 0x7a) or (7, 0x7b) (NOT READ who does); (7, 0xf2) is chained from (7, 0xef) / (7, 0xf0) / (7, 0xf1) (vtable +0x3d0
+    // at 0xd0477c / 0xd049f8 / 0xd04b9c). Not listed (no files): (7, 0xec) / (7, 0xf9) shell00 34..36, (7, 0xfa) / (7,
+    // 0xfb) shell00 31 (L9 M1 f346), (7, 0xf5), the take-offs; (7, 0xf6) / (7, 0xf7) start on L9 M14 / M12, which
+    // em001_04_9.lmt lacks (their L9 M4 / M5 phases were not run).
+    actions: [
+      // L4 M65 = 0xd03e9c(e, r1, r2) as Rathian's (7, 0x77) / (7, 0x7b) / (7, 0x76) / (7, 0x7a); for variant 4 every
+      // 0xd0baec call then passes 116 -> 0xd09b84(e, 0x10) (0xd0bbd0..0xd0bc00; literal 0xd0bc24), whatever r1
+      { action: [7, 0x77], code: 0xd03e9c, args: [1, 0], list: '4', clip: 'Motion[65]', partners: [], spawns: [{ at: 0xd0baec, kind: 'first', frames: [76.0, 72.0, 68.0], shell: 'shell01', modes: [0x21, 0x20, 0x1f], modesG: [0x2e, 0x2d, 0x2c] }, { at: 0xd0bbd0, kind: 'poison', frames: [116.0] }], pick: 'ai', variant: '7:0x77' },
+      { action: [7, 0x7b], code: 0xd03e9c, args: [1, 1], list: '4', clip: 'Motion[65]', partners: [], spawns: [{ at: 0xd0baec, kind: 'first', frames: [76.0, 72.0, 68.0], shell: 'shell01', modes: [0x21, 0x20, 0x1f], modesG: [0x2e, 0x2d, 0x2c] }, { at: 0xd0bbd0, kind: 'poison', frames: [116.0] }], pick: 'ai', variant: '7:0x7b' },
+      { action: [7, 0x76], code: 0xd03e9c, args: [0, 0], list: '4', clip: 'Motion[65]', partners: [], spawns: [{ at: 0xd0bbd0, kind: 'poison', frames: [116.0] }], pick: 'ai', variant: '7:0x76' },
+      { action: [7, 0x7a], code: 0xd03e9c, args: [0, 1], list: '4', clip: 'Motion[65]', partners: [], spawns: [{ at: 0xd0bbd0, kind: 'poison', frames: [116.0] }], pick: 'ai', variant: '7:0x7a' },
+      // L2 M1: as Gold's (0xd0a074 / 0xd0ba2c)
+      { action: [7, 0x4d], code: 0xcfd770, args: [1], list: '2', clip: 'Motion[1]', partners: [], spawns: [{ at: 0xd0a074, kind: 'first', frames: [74.0, 69.0, 64.0], shell: 'shell01', modes: [5, 4, 3], modesG: [0x28, 0x27, 0x26] }], pick: 'ai', variant: '7:0x4d' },
+      { action: [7, 0x75], code: 0xd03b60, args: [1], list: '2', clip: 'Motion[1]', partners: [], spawns: [{ at: 0xd0ba2c, kind: 'first', frames: [74.0, 69.0, 64.0], shell: 'shell01', modes: [5, 4, 3], modesG: [0x28, 0x27, 0x26] }], pick: 'ai', variant: '7:0x75' },
+      { action: [7, 0x00], code: 0xcfd770, args: [0], list: '2', clip: 'Motion[1]', partners: [], spawns: [], pick: 'ai', variant: '7:0x00' },
+      { action: [7, 0x74], code: 0xd03b60, args: [0], list: '2', clip: 'Motion[1]', partners: [], spawns: [], pick: 'ai', variant: '7:0x74' },
+      // L4 M18: as Gold's
+      { action: [7, 0x42], code: 0xd01988, args: [], list: '4', clip: 'Motion[18]', partners: [], spawns: [{ at: 0xd0b18c, kind: 'seq', frames: [116.0, 168.0, 226.0], shell: 'shell00', modes: [9, 10, 11] }], op24: 'else', pick: 'ai', variant: '7:0x42' },
+      { action: [7, 0x4a], code: 0xd02058, args: [0], list: '4', clip: 'Motion[18]', partners: [], spawns: [{ at: 0xd0b49c, kind: 'each', frames: [116.0, 168.0], shell: 'shell00', modes: [0x18, 0x19] }], op24: 'else', pick: 'ai', variant: '7:0x4a' },
+      { action: [7, 0x5a], code: 0xd02058, args: [1], list: '4', clip: 'Motion[18]', partners: [], spawns: [{ at: 0xd0b49c, kind: 'each', frames: [116.0, 168.0], shell: 'shell00', modes: [0x18, 0x19] }], op24: 'else', pick: 'ai', variant: '7:0x5a' },
+      { action: [7, 0x5b], code: 0xd02058, args: [2], list: '4', clip: 'Motion[18]', partners: [], spawns: [{ at: 0xd0b49c, kind: 'each', frames: [116.0, 168.0], shell: 'shell00', modes: [0x18, 0x19] }], op24: 'else', pick: 'ai', variant: '7:0x5b' },
+      { action: [7, 0xef], code: 0xd0454c, args: [], list: '4', clip: 'Motion[18]', partners: [], spawns: [{ at: 0xd0b49c, kind: 'each', frames: [116.0, 168.0], shell: 'shell00', modes: [0x18, 0x19] }], op24: 'else', pick: 'ai', variant: '7:0xef' },
+      // L4 M6, the poison at 12: (7, 0x05) / (7, 0x3d) = 0xcfdfa4(e, 0 / 1) -> 0xd0a340 (variant 4 and the action number
+      // +0x73e1 0x3d or 5, 0xd0a348..0xd0a368; 12.0 at 0xd0a36c); (7, 0x09) / (7, 0x0e) / (7, 0x1e) = 0xcfe2cc(e, 0 / 1 / 2),
+      // L4 M5 then L4 M6 -> 0xd0a560 (number 9, 14 or 30: bits of 0x40004200, 0xd0a578..0xd0a594), and (7, 0x1e)'s second
+      // L4 M6 (after L4 M10 and L4 M5 from 70) -> 0xd0a5c4 (number 0x1e); both 12.0. (7, 0x4a) = 0xd02058(e, 0): after L4
+      // M18, L4 M19 and L4 M5 from 100, L4 M6 -> 0xd0b44c (number 0x4a, 0xd0b464..0xd0b470): passes 4.0. (7, 0x73) =
+      // 0xcfdfa4(e, 2) and (7, 0x6d) = 0xcfe2cc(e, 7) reach the same helpers on L4 M6 with a number they refuse.
+      { action: [7, 0x05], code: 0xcfdfa4, args: [0], list: '4', clip: 'Motion[6]', partners: [], spawns: [{ at: 0xd0a340, kind: 'poison', frames: [12.0] }], pick: 'ai', variant: '7:0x05' },
+      { action: [7, 0x3d], code: 0xcfdfa4, args: [1], list: '4', clip: 'Motion[6]', partners: [], spawns: [{ at: 0xd0a340, kind: 'poison', frames: [12.0] }], pick: 'ai', variant: '7:0x3d' },
+      { action: [7, 0x09], code: 0xcfe2cc, args: [0], list: '4', clip: 'Motion[6]', partners: [], spawns: [{ at: 0xd0a560, kind: 'poison', frames: [12.0] }], pick: 'ai', variant: '7:0x09' },
+      { action: [7, 0x0e], code: 0xcfe2cc, args: [1], list: '4', clip: 'Motion[6]', partners: [], spawns: [{ at: 0xd0a560, kind: 'poison', frames: [12.0] }], pick: 'ai', variant: '7:0x0e' },
+      { action: [7, 0x1e], code: 0xcfe2cc, args: [2], list: '4', clip: 'Motion[6]', partners: [], spawns: [{ at: 0xd0a560, kind: 'poison', frames: [12.0] }], pick: 'ai', variant: '7:0x1e' },
+      { action: [7, 0x4a], code: 0xd02058, args: [0], list: '4', clip: 'Motion[6]', partners: [], spawns: [{ at: 0xd0b44c, kind: 'poison', frames: [4.0] }], op24: 'else', pick: 'ai', variant: '7:0x4a' },
+      { action: [7, 0x73], code: 0xcfdfa4, args: [2], list: '4', clip: 'Motion[6]', partners: [], spawns: [], pick: 'ai', variant: '7:0x73' },
+      { action: [7, 0x6d], code: 0xcfe2cc, args: [7], list: '4', clip: 'Motion[6]', partners: [], spawns: [], pick: 'ai', variant: '7:0x6d' },
+      // L2 M13: (7, 0x4e) = 0xcff1b0(e, 1) -> 0xd0a818(e, 1): passes 82 -> shell01 mode 12, else 78 -> 11, else 74 -> 10
+      // (0xd0a834 / 0xd0a924 / 0xd0aa10; literals 0xd0abc0..0xd0abc8; the G-rank modes 0x2b / 0x2a / 0x29 are em 2's); (7,
+      // 0x11) = 0xcff1b0(e, 0): 0xd0a818 with r1 0 makes nothing (0xd0a82c)
+      { action: [7, 0x4e], code: 0xcff1b0, args: [1], list: '2', clip: 'Motion[13]', partners: [], spawns: [{ at: 0xd0a818, kind: 'first', frames: [82.0, 78.0, 74.0], shell: 'shell01', modes: [12, 11, 10] }], pick: 'ai', variant: '7:0x4e' },
+      { action: [7, 0x11], code: 0xcff1b0, args: [0], list: '2', clip: 'Motion[13]', partners: [], spawns: [], pick: 'ai', variant: '7:0x11' },
+      // L9 M1: (1, 0xff) = 0xcf37ac (status 1's switch 0xcee720, number 0xff at 0xcee7f4): phase 0 setMotion 0x901, blend
+      // 4.0; phase 1 -> 0xd09f28: passes 106 (0xd09f50) -> 0xd09b84(e, 0x10). L9 M2: (7, 0xff) = 0xd06e50 -> 0xd0c0b0:
+      // passes 188 (0xd0c0d8) -> 0xd09b84(e, 0x10).
+      { action: [1, 0xff], code: 0xcf37ac, args: [], list: '9', clip: 'Motion[1]', partners: [], spawns: [{ at: 0xd09f28, kind: 'poison', frames: [106.0] }], pick: 'ai', variant: '1:0xff' },
+      { action: [7, 0xff], code: 0xd06e50, args: [], list: '9', clip: 'Motion[2]', partners: [], spawns: [{ at: 0xd0c0b0, kind: 'poison', frames: [188.0] }], pick: 'ai', variant: '7:0xff' },
+      // L9 M4 / M5: (7, 0xed) / (7, 0xee) = 0xd041b0(e, 2 / 1) (L0 M7, L0 M8, then L9 M8 or M3 from 20, then L9 M4 and M5 in
+      // turn: phases 6 / 7 at 0xd0424c / 0xd04270) and (7, 0xf8) = 0xd05014(e, 0, 0) (L9 M3, M4, M5, M7) -> 0xd0bf98 each
+      // frame: passes 10 -> shell01 0x21, else 6 -> 0x20, else 2 -> 0x1f (0xd0bf9c..0xd0bfec), via 0xd09b84
+      { action: [7, 0xed], code: 0xd041b0, args: [2], list: '9', clip: 'Motion[4]', partners: [], spawns: [{ at: 0xd0bf98, kind: 'first', frames: [10.0, 6.0, 2.0], shell: 'shell01', modes: [0x21, 0x20, 0x1f] }], pick: 'ai', variant: '7:0xed' },
+      { action: [7, 0xee], code: 0xd041b0, args: [1], list: '9', clip: 'Motion[4]', partners: [], spawns: [{ at: 0xd0bf98, kind: 'first', frames: [10.0, 6.0, 2.0], shell: 'shell01', modes: [0x21, 0x20, 0x1f] }], pick: 'ai', variant: '7:0xee' },
+      { action: [7, 0xf8], code: 0xd05014, args: [0, 0], list: '9', clip: 'Motion[4]', partners: [], spawns: [{ at: 0xd0bf98, kind: 'first', frames: [10.0, 6.0, 2.0], shell: 'shell01', modes: [0x21, 0x20, 0x1f] }], pick: 'ai', variant: '7:0xf8' },
+      { action: [7, 0xed], code: 0xd041b0, args: [2], list: '9', clip: 'Motion[5]', partners: [], spawns: [{ at: 0xd0bf98, kind: 'first', frames: [10.0, 6.0, 2.0], shell: 'shell01', modes: [0x21, 0x20, 0x1f] }], pick: 'ai', variant: '7:0xed' },
+      { action: [7, 0xee], code: 0xd041b0, args: [1], list: '9', clip: 'Motion[5]', partners: [], spawns: [{ at: 0xd0bf98, kind: 'first', frames: [10.0, 6.0, 2.0], shell: 'shell01', modes: [0x21, 0x20, 0x1f] }], pick: 'ai', variant: '7:0xee' },
+      { action: [7, 0xf8], code: 0xd05014, args: [0, 0], list: '9', clip: 'Motion[5]', partners: [], spawns: [{ at: 0xd0bf98, kind: 'first', frames: [10.0, 6.0, 2.0], shell: 'shell01', modes: [0x21, 0x20, 0x1f] }], pick: 'ai', variant: '7:0xf8' },
+      // L9 M7: (7, 0xef) = 0xd0454c / (7, 0xf0) = 0xd047ac / (7, 0xf1) = 0xd04a24: their L9 M7 phase passes tune float 0x18
+      // (0xd04680 / 0xd048fc / 0xd04aa0) -> 0xd09e28(e, 0x15, 900.0) (literals 0xd04798 / 0xd04a14 / 0xd04bb8)
+      { action: [7, 0xef], code: 0xd0454c, args: [], list: '9', clip: 'Motion[7]', partners: [], spawns: [{ at: 0xd09e28, kind: 'ground', tune: [0x18], mode: 0x15 }], op24: 'else', pick: 'ai', variant: '7:0xef' },
+      { action: [7, 0xf0], code: 0xd047ac, args: [], list: '9', clip: 'Motion[7]', partners: [], spawns: [{ at: 0xd09e28, kind: 'ground', tune: [0x18], mode: 0x15 }], pick: 'ai', variant: '7:0xf0' },
+      { action: [7, 0xf1], code: 0xd04a24, args: [], list: '9', clip: 'Motion[7]', partners: [], spawns: [{ at: 0xd09e28, kind: 'ground', tune: [0x18], mode: 0x15 }], pick: 'ai', variant: '7:0xf1' },
+      // L9 M9: (7, 0xf2) = 0xd04bc4 -> 0xd0bc28: when 0x49930(e) >= 13 (0xd0bc30..0xd0bc3c), tune floats 0x1a / 0x1b / 0x1c
+      // -> shell01 0x30 / 0x31 / 0x32, each on its own; then, always, tune float 0x13 -> 0x24 (0xd0be98..0xd0bf60)
+      { action: [7, 0xf2], code: 0xd04bc4, args: [], list: '9', clip: 'Motion[9]', partners: [], spawns: [{ at: 0xd0bc28, kind: 'each', quest: 13, tune: [0x1a, 0x1b, 0x1c], shell: 'shell01', modes: [0x30, 0x31, 0x32] }, { at: 0xd0bc28, kind: 'each', tune: [0x13], shell: 'shell01', modes: [0x24] }], pick: 'ai', variant: '7:0xf2' },
+    ],
+    // em001_04_actiontune (enemy\action_tune; rFreeUseParam, 0 ints, 29 floats)
+    tune: [50.0, 0.0, -1800.0, 1.8, 25.0, 3.0, 19.5, 0.0, 1.5, 1.5, 0.6, 20.0, 20.0, 54.0, 60.0, 50.0, 4.0, 24.0, 45.0, 122.0,
+           600.0, 330.0, 0.5, 2.0, 50.0, -1000.0, 24.0, 26.0, 28.0],
+    // THE POISON (0xd09b84(e, 0x10); poison001): the break row its mode reads -- em001_04_dtbparts.dtp (enemy\dt_base, the
+    // .dtp at e+0x75f0) break row 4 (the +0x64 array, [[e+0x75f0]+0x64] + 0x10): part 7, level 2 at rank <= 4, 2 at rank > 4
+    poison: { part: 7, levels: [2, 2] },
+  },
 };
+
+// The siblings run Rathian's class code on the clips they share with her, so her action entries are theirs (in front of
+// their own; Dreadqueen's own L4 M65 entries replace hers), and so are the per-frame handler's dust rows and the posture
+// read: 0xcf1a5c tests the motion id and frame only, never the variant (its prologue 0xcf2180 reads it for part states,
+// not shells); swept on the ROM for every motion id of the three monsters' lists (vperframe.py), it makes the same shells
+// at the same frames -- the ids of L4 (0x407 .. 0x411) are slots each monster's own L4 has; L4 M50 / M52 and L9 M1 / M2 / M9
+// only request cameras (0xc241c).
+for (const [id, own] of [['em001_02', []], ['em001_04', ['7:0x77', '7:0x7b', '7:0x76', '7:0x7a']]]){
+  const D = SHELL_DATA[id], R = SHELL_DATA.em001_00;
+  D.actions = R.actions.filter(a => !own.includes(a.variant)).concat(D.actions);
+  D.dust = R.dust;
+  D.postures = R.postures;
+}
 
 // An action plays `clip` when it is the action's main motion or one of its blend partners (Rathian's 0xb04d0 actions:
 // the viewer may show the secondary clip, whose frames run with the main one's -- shells-em001.md 2.2).
@@ -595,7 +1008,8 @@ export function rockActionFor(monId, list, clip, variant){
 // Any monster's viewer-named action: Savage's rocks (pick 'rock', the variants above -- rockActionFor's answer),
 // Nargacuga's tail spikes and Rathian's fireballs / breath (pick 'ai', the variant is the action, '7:0x28' ... ; a
 // Rathian blend partner clip names its main clip's actions), and Rathian's hover turns (pick 'hover', '4:0x04' /
-// '4:0x15': named only, never listed by pickVariantsFor). null when the clip has none.
+// '4:0x15': named only, never listed by pickVariantsFor). Her siblings' the same way ('7:0x42', ...; Dreadqueen's L9
+// Motion[1] action is status 1's: '1:0xff'). null when the clip has none.
 export function variantActionFor(monId, list, clip, variant){
   const D = SHELL_DATA[monId];
   if (!D || !variant) return null;
@@ -614,8 +1028,14 @@ export function variantActionFor(monId, list, clip, variant){
 // L2 Motion[18] (and partner Motion[17]): '7:0x0a' / '7:0x0b'; L4 Motion[8]: '7:0x08', '7:0x6b' / '7:0x22', '7:0x6c'
 // (partners Motion[53] / [54]: '7:0x6b' / '7:0x6c'); L4 Motion[16]: '7:0x3a', '7:0x47' / none (tired, the streams issue
 // (7, 0x10), another clip); L4 Motion[65], either way: '7:0x77', '7:0x7b', '7:0x76', '7:0x7a' (the choice among them is
-// not read; the two that draw first). Any other clip: [] (its shells, if any, need no pick -- Rathian's landing dust).
-// `clip` may carry a _start / _loop suffix.
+// not read; the two that draw first). Gold Rathian (em001_02) and Dreadqueen (em001_04): Rathian's lists above for the
+// same clips, and (not tired / tired): L2 Motion[1]: '7:0x4d', '7:0x75', '7:0x00', '7:0x74' either way (the two that draw
+// first); L4 Motion[18]: '7:0x42', '7:0x4a', '7:0x5a', '7:0x5b', '7:0xef' / none (op-0x24 else bodies). Dreadqueen also:
+// L4 Motion[65] (all four draw: the poison at 116); L4 Motion[6]: '7:0x05', '7:0x3d', '7:0x09', '7:0x0e', '7:0x1e',
+// '7:0x4a', '7:0x73', '7:0x6d' / the same without '7:0x4a'; L2 Motion[13]: '7:0x4e', '7:0x11'; L9 Motion[1]: '1:0xff';
+// L9 Motion[2]: '7:0xff'; L9 Motion[4] / [5]: '7:0xed', '7:0xee', '7:0xf8'; L9 Motion[7]: '7:0xef', '7:0xf0', '7:0xf1' /
+// '7:0xf0', '7:0xf1'; L9 Motion[9]: '7:0xf2'. Any other clip: [] (its shells, if any, need no pick -- Rathian's landing
+// dust). `clip` may carry a _start / _loop suffix.
 export function pickVariantsFor(monId, list, clip, opts){
   const D = SHELL_DATA[monId];
   if (!D || !clip) return [];
@@ -1728,11 +2148,12 @@ function create11(S, idx, ctx, D){
 
 // base01's end 0x3fb264(shell, 0): graceful stops (0x43b058 -> 0x329c40(h, 0)) of +0x1624 / +0x1628 / +0x162c, 0x4a1de4
 // (hit side), vtable +0x154 (sp_01 0xd0eb20: creates only for modes 0x1b / 0x11 / 0x1d / 0x34 / 0x36 -- none of these),
-// state 0xfe, +0x1618 = 0; EffectParam +0x15d4 (a request at the end) is never set by these readers
-function end011(S){
+// state 0xfe, +0x1618 = 0; EffectParam +0x15d4 (a request at the end) is never set by these readers. `events`: where the
+// stops go (the shell's move's, or retire001's for the next move)
+function end011(S, events = S.events){
   S.stops = [];
   for (const h of [S.effect, S.effect2]) if (h && !h.gone) S.stops.push({ param: h.param, request: 0, key: h.key });
-  for (const s of S.stops) S.events.push({ ev: 'stop', param: s.param, key: s.key, flag: 0 });
+  for (const s of S.stops) events.push({ ev: 'stop', param: s.param, key: s.key, flag: 0 });
   S.stop = S.stops[0] || null;
   S.state = 0xfe;
   S.elapsed = 0;
@@ -1741,6 +2162,7 @@ function end011(S){
 // one base01 / base11 shell's move this step (vtable +0x24 = 0x3faec4)
 function step011(S, ctx, input, D, out){
   S.events = [];
+  if (S.carry){ S.events = S.carry; delete S.carry; }   // (a retirement in this step's line 4: retire001)
   S.place = null;                                       // never placed: no 0x329c9c / 0x329d04 in 0xd0d928..0xd0f400
   const alive = h => input.effectAlive ? !!input.effectAlive(S, h.param, h) : true;
   // +0x1378 += dt, 0x4a1698 (hit side, not visual); a handle whose unit left states 1 / 2 is dropped (0x3faeec..0x3fafb8)
@@ -1848,7 +2270,10 @@ function make001(state, D, name, setup, got, J, ctx, creator){
 // number = [n, 1]; [1, 1] for the viewer's unscaled monster), the base scale [[e+0x75e8]+0x64] (input.baseScale, 1),
 // block +0x5c (input.y5c, 0 at rest: 0xa5db8 decays it toward 0), the target block +0x1d0.. (input.rock.target), the
 // stage (input.rock.floorY), the quest rank byte 0x3a8430 (input.rank: 1 / 3 / 5, default 5 -- "> 4" = G rank is
-// INFERRED), and input.hitLife (the timer-0 shells' hit-slot life, above).
+// INFERRED), and input.hitLife (the timer-0 shells' hit-slot life, above). Dreadqueen's poison (poison001) and L9 M9 also
+// read: the quest's number 0x49930 (input.questLevel, no default), part 7's break level (input.breakLevel7, default 0:
+// 0x9d1b4 clears every part's +0x3bc) and the sever bit P+0x3b4 & 1 (input.tailSevered, default false: only the sever
+// 0xc2274 sets it).
 function owner001(input){
   const o = input.owner, r = input.rock, P = input.ownerPos, t = r && r.target, fin = Number.isFinite;
   const sz = input.size == null ? [1, 1] : Array.isArray(input.size) ? input.size : [input.size, 1];
@@ -1859,7 +2284,9 @@ function owner001(input){
            floorY: r && fin(r.floorY) ? f(r.floorY) : null,
            ground: fin(input.ground) ? f(input.ground) : (r && fin(r.floorY) ? f(r.floorY) : null),
            size: [f(sz[0]), f(sz[1])], base: f(input.baseScale == null ? 1 : input.baseScale), y5c: f(input.y5c == null ? 0 : input.y5c),
-           rank: input.rank == null ? 5 : input.rank, hitLife: !!input.hitLife };
+           rank: input.rank == null ? 5 : input.rank, hitLife: !!input.hitLife,
+           questLevel: fin(input.questLevel) ? input.questLevel >>> 0 : null,
+           breakLevel7: fin(input.breakLevel7) ? input.breakLevel7 & 0xff : 0, tailSevered: !!input.tailSevered };
 }
 // the first missing input among those named, as a refusal reason (null: all present)
 function missing001(own, need){
@@ -1966,11 +2393,121 @@ function dust001(state, D, ctx, input, out, fresh, a){
 // the spawn helpers stepShells hands a Rathian action to
 const HELPERS001 = new Set([0xd0a134, 0xd0a394, 0xd0a614, 0xd0b638, 0xd0b0b8, 0xd0baec]);
 
+// ---- Rathian's siblings (em001_02 Gold, em001_04 Dreadqueen): the class's other spawn helpers ---------------------------
+// An action entry with `spawns` (SHELL_DATA.em001_02 / em001_04) runs its helpers in order, in the action code (line 4) on
+// the frame pair and joints spawn001 uses. Frames are the helper's literals, or (`tune`) floats of the monster's actiontune
+// read by 0x6f618 (0.0 past the end, 0x3cb330).
+const tuneFrames001 = (D, sp) => sp.tune ? sp.tune.map(n => f(D.tune && n < D.tune.length ? D.tune[n] : 0.0)) : sp.frames.map(f);
+
+// a shell a sibling's helper makes, with the inputs its init reads (else a refusal): shell00 -- 0x3f883c's setup, which
+// init001 does not read (as spawn001's); shell01 -- 0xd09b84's setup for a mode != 0x10 (0xd09c18..0xd09cbc: the zero
+// vector 0x19176b0, the owner's angle words e+0xfe8.., +0x3c = 0xffff), or 0xd0a818's, the same words
+function create001(state, D, a, ctx, out, shell, mode, F){
+  const own = ctx.own001;
+  let why;
+  if (shell === 'shell00'){
+    const m = D.shells.shell00.modes[mode], aimed = !!(m && params001(m.sh).flags & 1);
+    why = missing001(own, { facing: true, floor: true, target: aimed, pos: aimed });
+  } else {
+    // the ground snap (flag 4) queries the stage; flag 0x80 reads the owner's position and ground
+    const m = D.shells.shell01.modes[mode], k = params011(m ? m.sh : null);
+    why = missing001(own, { facing: true, floor: !!(k.flags & 4), pos: !!(k.flags & 0x80), ground: !!(k.flags & 0x80) });
+  }
+  if (why){ out.refused.push({ action: a.action, shell, mode, why }); return null; }
+  const S = make001(state, D, shell, { id: D.shells[shell].id, mode, position: [0, 0, 0], angles: shell === 'shell00' ? [0, 0, 0] : ownerWords001(own),
+                                       action: a.action, frame: F }, own, state.prevJoints, ctx, null);
+  if (S){ state.shells.push(S); out.spawned.push(S); }
+  return S;
+}
+
+// vtable +0x148 with 0 = base01's end 0x3fb264 on a shell another one's create retires: nothing when it is already ending
+// (state & 0xfe == 0xfe, 0x3fb27c..0x3fb288); else end011. Its stop events are this step's (line 4, before its move).
+function retire001(S, out){
+  if (S.state === 0xfe || S.state === 0xff) return;
+  const ev = [];
+  end011(S, ev);
+  S.carry = (S.carry || []).concat(ev);
+  out.ended.push(S);
+}
+
+// THE POISON: 0xd09b84(e, 0x10) (0xd09b84..0xd09e08). Nothing when vtable +0x370(e, 1) = 0xa3bf4 says P+0x3b4 & 1 (the
+// sever 0xc2274 sets it: input.tailSevered). Variant 4: the quest's number n = 0x49930(e) = 0x3a8470(quest) (the quest
+// id mod 100 for an ordinary quest, 0x3b8eb4; 0 or 0x10 for others, 0x3a84b0..0x3a84d0 -- input.questLevel) picks n > 8
+// -> 0x18, n < 4 -> 0x10, else 0x17 (unsigned, 0xd09bcc..0xd09c10); other variants 0x10. Then part 7's break level
+// 0x9d36c(e, 7) (byte P+0x3bc + 12 x 7: input.breakLevel7) at or over the .dtp break row 4's level (byte +0x11 at rank <= 4
+// by 0x3a8430, +0x12 above: D.poison.levels) steps the mode down: & 0xf == 7 -> 0x10, == 8 -> 0x17 (0xd09cc4..0xd09d24).
+// The two newest poisons are kept at ctl+0xa0 (older) / +0xa4 (newer), ctl = [e+0xcac0]: the older one gets vtable +0x148
+// with 0 (retire001), the newer becomes the older, the new shell the newer (0xd09d28..0xd09e04); vtable +0x1dc (0xcee250,
+// em 1 variant 4, every move before the action) drops a handle whose unit left states 1 / 2 (0xcee358..0xcee3c4: stepShells).
+function poison001(state, D, a, ctx, out, F){
+  const own = ctx.own001;
+  if (own.tailSevered) return;
+  let mode = 0x10;
+  if (D.variant === 4){
+    if (own.questLevel == null){ out.refused.push({ action: a.action, shell: 'shell01', mode: 0x10, why: 'no quest level (input.questLevel)' }); return; }
+    const n = own.questLevel;
+    mode = n > 8 ? 0x18 : n < 4 ? 0x10 : 0x17;
+  }
+  if (D.poison){
+    const th = own.rank <= 4 ? D.poison.levels[0] : D.poison.levels[1];
+    if (own.breakLevel7 >= th){ const t = mode & 0xf; if (t === 7) mode = 0x10; else if (t === 8) mode = 0x17; }
+  }
+  const ring = state.poison;
+  if (ring.older) retire001(ring.older, out);
+  ring.older = ring.newer;
+  ring.newer = create001(state, D, a, ctx, out, 'shell01', mode, F);
+}
+
+// 0xd09e28(e, mode, 900.0) from an action (Dreadqueen's L9 M7): the landing dust's create -- block +0x44 over block +0x5b4
+// + 900 (or unordered) makes nothing (0xd09e48..0xd09e5c), else a setup at block +0x40.. with e+0xfe8.. (0xd09e80..0xd09ee0)
+function ground001(state, D, a, ctx, out, mode, F){
+  const own = ctx.own001;
+  const why = missing001(own, { facing: true, pos: true, ground: true });
+  if (why){ out.refused.push({ action: a.action, shell: 'shell01', mode, why }); return; }
+  if (!(own.ownerPos[1] <= f(own.ground + 900.0))) return;
+  const S = make001(state, D, 'shell01', { id: D.shells.shell01.id, mode, position: own.ownerPos.slice(), angles: ownerWords001(own),
+                                           action: a.action, frame: F }, own, state.prevJoints, ctx, null);
+  if (S){ state.shells.push(S); out.spawned.push(S); }
+}
+
+// the helpers of one action this step (0x72714 mode 0 on (F[k-2], F[k-1]] each, as pass001):
+//   'first' -- the first passing frame in the listed order makes its mode (modesG when 0x3a8430 > 4); one shell
+//   'each'  -- every passing frame its own shell; `quest` = 0xd0bc28's gate 0x49930(e) >= quest (input.questLevel)
+//   'seq'   -- 0xd01988's phases: frame j is tested only once j - 1 has passed (state.seq, 0 at the motion's start)
+//   'poison' / 'ground' -- poison001 / ground001 at the frame
+function spawnVar001(state, D, a, ctx, input, out){
+  for (const sp of a.spawns){
+    const F = tuneFrames001(D, sp);
+    if (sp.kind === 'first'){
+      const i = F.findIndex(x => pass001(state, x));
+      if (i >= 0) create001(state, D, a, ctx, out, sp.shell, (sp.modesG && ctx.own001.rank > 4 ? sp.modesG : sp.modes)[i], F[i]);
+    } else if (sp.kind === 'each'){
+      if (sp.quest != null){
+        const q = ctx.own001.questLevel;
+        if (q == null){
+          if (F.some(x => pass001(state, x))) out.refused.push({ action: a.action, shell: sp.shell, modes: sp.modes.slice(), why: 'no quest level (input.questLevel)' });
+          continue;
+        }
+        if (!(q >= sp.quest)) continue;
+      }
+      F.forEach((x, j) => { if (pass001(state, x)) create001(state, D, a, ctx, out, sp.shell, sp.modes[j], x); });
+    } else if (sp.kind === 'seq'){
+      const j = state.seq;
+      if (j < F.length && pass001(state, F[j])){ state.seq = j + 1; create001(state, D, a, ctx, out, sp.shell, sp.modes[j], F[j]); }
+    } else if (sp.kind === 'poison'){
+      if (pass001(state, F[0])) poison001(state, D, a, ctx, out, F[0]);
+    } else if (sp.kind === 'ground'){
+      if (pass001(state, F[0])) ground001(state, D, a, ctx, out, sp.mode, F[0]);
+    } else throw new Error('shells.js: spawn kind ' + sp.kind);
+  }
+}
+
 // ---- the step ------------------------------------------------------------------------------------------------------
 export function createShellState(monId){
-  // acc5c58: Rathian's block +0x5c58, the 16-frame dust period of 0xcf2424 (who else resets it: NOT READ; 0 here)
+  // acc5c58: Rathian's block +0x5c58, the 16-frame dust period of 0xcf2424 (who else resets it: NOT READ; 0 here);
+  // poison: Dreadqueen's ctl+0xa0 / +0xa4 (poison001), null at the setup; seq: 0xd01988's phase (spawnVar001)
   return { monId, data: SHELL_DATA[monId] || null, motion: null, action: null, hist: null, prevJoints: null,
-           shells: [], nextId: 1, frames: 0, acc5c58: 0 };
+           shells: [], nextId: 1, frames: 0, acc5c58: 0, poison: { older: null, newer: null }, seq: 0 };
 }
 
 // a frame within 0.0005 under an integer is that integer (0x94ef64..0x94ef94, the motion advance; 0x72854 the test)
@@ -2009,6 +2546,11 @@ function snapFrame(x){
 //          the game's setup; without it this module counts its own calls), variant '4:0x15' (or action [4, 0x15]) to
 //          name the hover turn that skips the L1 M2 / M11 / M12 dust -- never listed by pickVariantsFor, so the default
 //          is the other one; posture? (a test override of P+0x1ba for the checks; the viewer never passes it),
+//          GOLD RATHIAN (em001_02) / DREADQUEEN (em001_04) read all of Rathian's inputs (their actions by the same
+//          names: pickVariantsFor), and Dreadqueen's poison and L9 M9 also: questLevel? (0x49930: the quest's number, the
+//          quest id mod 100 for an ordinary quest; NO default -- without it the poison and L9 M9's 48..50 are refused),
+//          breakLevel7? (part 7's break level P+0x3bc + 84; default 0, the setup's), tailSevered? (P+0x3b4 bit 0, set by
+//          the tail sever; default false),
 //          effectAlive?: (shell, param, handle) => bool }
 // returns { spawned, started, ended, removed, alive, refused, created }. spawned / ended / removed / alive are shells;
 // each carries `start` (spawned: the effect request), `place` (each moving step: what 0x329c9c / 0x329d04 give the
@@ -2030,7 +2572,9 @@ function snapFrame(x){
 // em001_00 never starts two), `initEvents` ({ ev: 'start' | 'refused' }, in ROM order), `setup` (the setup the maker
 // filled), position / angles (base01 never moves), timer (+0x1614) and elapsed (+0x1618). A fireball's landing puts c 1
 // in out.started (effect2) and its creates in its events ({ ev: 'create', stepped: true, child }); `camera` events are
-// 0x43ac04's requests. out.created stays for shells made and not stepped (Nargacuga's drop), none for Rathian.
+// 0x43ac04's requests. out.created stays for shells made and not stepped (Nargacuga's drop), none for Rathian. Her
+// siblings' shells the same way (their starts name 'em001_00c' or their own 'em001_02u' / 'em001_04u'); a poison the
+// newest two push out is in out.ended (its stop) the step it is retired.
 export function stepShells(state, input){
   const out = { spawned: [], started: [], ended: [], removed: [], alive: [], refused: [], created: [] };
   const D = state.data;
@@ -2068,6 +2612,10 @@ export function stepShells(state, input){
     fresh = true;
   }
   state.loopStart = input.loopStart == null ? null : snapFrame(input.loopStart);
+  if (fresh) state.seq = 0;
+  // Dreadqueen's poison handles: vtable +0x1dc (0xcee250, every move before the action main) drops one whose unit left
+  // states 1 / 2 -- here a shell removed in an earlier step (0xcee374..0xcee3c4)
+  for (const k of ['older', 'newer']) if (state.poison[k] && state.poison[k].state === 0xff) state.poison[k] = null;
   // 1. line 4, the enemy: its action code tests the previous advance, (F[k-2], F[k-1]], on last frame's joints.
   // A rock clip (L2 M23 / M24) has no action the table picks by itself: which rock the monster throws is the command
   // stream the AI takes (NOT READ), so input.rock.variant names it -- read at each spawn test. Nargacuga's spike clip
@@ -2078,6 +2626,9 @@ export function stepShells(state, input){
   } else if (a && !fresh && state.prevJoints && HELPERS001.has(a.spawner)){
     // Rathian's spawn helpers: their own tests on the same frame pair, one shell per call (spawn001)
     spawn001(state, D, a, ctx, input, out);
+  } else if (a && !fresh && state.prevJoints && a.spawns){
+    // her siblings' other helpers (spawnVar001)
+    spawnVar001(state, D, a, ctx, input, out);
   } else if (a && !fresh && state.prevJoints){
     const [prev, cur] = state.hist, F = a.frame;
     // 0x72b1c: cur >= f && prev < f; after the motion looped (0x7294c): (loopStart <= f && cur >= f) || prev < f
