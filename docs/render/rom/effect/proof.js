@@ -332,9 +332,10 @@ export function releaseRequest(state, request){
 // One frame of the unit passes over every unit the requests registered (proofunit.py unit_frame).
 // between: called after the update pass and before the move pass -- where a shell's move places its effect (the
 // shell's move line 18 runs before the effects' line 22 in the move pass, after every update; efx/proofunit.py)
-export function unitFrame(m, state, between){
+// passes: 'all', or 'move' alone -- for units made between the passes when none ran before them (host.js unitFrame)
+export function unitFrame(m, state, between, passes = 'all'){
   state.filters = [];
-  for (const [u] of state.units.slice()){                                   // update pass
+  if (passes === 'all') for (const [u] of state.units.slice()){             // update pass
     m.wf32(u + 0x1c, DT);
     const w = m.u32(u + 0xc);
     if ((w & 7) === 1){ m.w32(u + 0xc, ((w & ~7) | 2) >>> 0); liftedCall(m, vslot(m, u, 0x18), [u]); }

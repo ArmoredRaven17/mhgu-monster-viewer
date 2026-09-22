@@ -477,6 +477,35 @@ async function pageCheckNarga(){
   await play('3', 'Motion[13]_loop'); await frames(3);
   check(count(fired, 1101) === 1, 'L3 Motion[13]: c 1101 at once', fired);
   await play(...REST); await frames(3);
+  // THE TAIL SPIKES (shells-em037.md; shells.js): L2 Motion[8] throws at frame 46 -- a motion with no clip effect of its
+  // own, so the shells must step with nothing else running -- 3 spikes for 7:0x28 / 7:0x29, each flying (u 0,
+  // em037_00_007) until it meets the grid floor (u 1, em037_00_002, at the contact); each play takes the next attack
+  const host = fx.schedule.host, request0 = host.requestEffect.bind(host);
+  const reqLog = [];
+  let lastPick = null;
+  await frames(2);
+  const pickIn = fx.schedule.rockInput;
+  check(typeof pickIn === 'function', 'the viewer hands the schedule its shell inputs');
+  if (pickIn) fx.schedule.rockInput = () => (lastPick = pickIn());
+  host.requestEffect = (...a) => {
+    const r = request0(...a);
+    reqLog.push({ name: String((a[2] && a[2].path) || '').split(String.fromCharCode(92)).pop().split('/').pop(),
+                  variant: lastPick && lastPick.variant, frame: V.pose.action ? Math.round(V.pose.action.time * 60) : -1 });
+    return r;
+  };
+  await play('2', 'Motion[7]'); await frames(3);
+  await play('2', 'Motion[8]');
+  await frames(2 * dur('2', 'Motion[8]') + 30);
+  const flying = reqLog.filter(r => r.name === 'em037_00_007');
+  check(flying.length === 6, 'two plays of L2 Motion[8]: 3 spikes each (u 0)', flying);
+  check(flying.slice(0, 3).every(r => r.variant === '7:0x28') && flying.slice(3, 6).every(r => r.variant === '7:0x29'), 'each play the next attack: 7:0x28, then 7:0x29', flying.map(r => r.variant));
+  // the spawn test fires the step after the frame passes 46 ((F[k-2], F[k-1]]), and this page's effect steps follow the
+  // wall clock while its clip steps a frame a render: the request lands a few frames past 46
+  check(flying.every(r => r.frame >= 46 && r.frame <= 52), 'thrown as frame 46 passes', flying.map(r => r.frame));
+  check(reqLog.some(r => r.name === 'em037_00_002'), 'they land on the grid floor (u 1)', reqLog.filter(r => r.name.startsWith('em037_00')).length);
+  host.requestEffect = request0;
+  if (pickIn) fx.schedule.rockInput = pickIn;
+  await play(...REST); await frames(3);
   const MS = await import('/render/motion-states.js');
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
     const [list, clip] = k.split('|');

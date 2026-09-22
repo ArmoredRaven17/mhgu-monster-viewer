@@ -248,8 +248,16 @@ export class EffectHost {
     if (!this.requests) this.requests = installRequests(this.m, n => this.malloc(n));
     return new ProofRequest(this.m, this.requests, { list: this.m.u32(owner + 0xf4), parent: parent.object, record, area, requester });
   }
-  // between: called after the update pass, before the move pass (proof.js unitFrame) -- where a shell places its effect
-  unitFrame(between){ if (this.requests) unitFrame(this.m, this.requests, between); }
+  // between: called after the update pass, before the move pass (proof.js unitFrame) -- where a shell places its effect.
+  // With no effect running the passes have nothing to run, but a monster's shells are units of their own and move
+  // every frame all the same (Nargacuga's spikes spawn on a motion with no effect of its own); the first effect one
+  // starts then takes this frame's move pass alone, as units added between the passes do.
+  unitFrame(between){
+    if (this.requests) return unitFrame(this.m, this.requests, between);
+    if (!between) return;
+    between();
+    if (this.requests) unitFrame(this.m, this.requests, null, 'move');
+  }
   // A SHELL'S per-frame placement of its effect (E:/offline/decode/notes/shells-em043.md section 1): 0x329c9c(h, pos,
   // 0) writes the position into the core's effects (+0x40, w 0) and 0x329d04(h, rotDeg, 0) their rotation (degrees x
   // pi/180 through 0x8a4dfc) -- the ROM's own routines, lifted.

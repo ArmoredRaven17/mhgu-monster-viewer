@@ -1307,7 +1307,7 @@ import { loadMaterialsDb } from './render/materials-db.js';
 import { createBackground } from './render/background.js';
 import { createFloorGrid } from './render/grid.js';
 import { MotionStates, RAGE_BY_LEVEL } from './render/motion-states.js';
-import { ROCK_VARIANTS, rockActionFor } from './render/shells.js';
+import { pickVariantsFor } from './render/shells.js';
 import { CUT_TAIL, CutTail } from './render/tail-option.js';
 import { setEyeGlow, updateEyeGlow } from './render/eye-glow.js';
 import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
@@ -7122,23 +7122,27 @@ function stepCutTail(r, rt){
 //     throw's pitch: the rock always flies along the facing (9.3). The distance is the viewer's; 2100 is the one the
 //     ROM's own flat / bouncing aim is built around -- its pitch term (h - 2100) / 50 * 96 is 0 there (0xe82234..);
 //   * the STAGE is the grid floor's plane (Raven, 2026-09-21: "We have the Grid Floor, can that be used as the stage?");
-//   * each play of a throw (L2 Motion[23] / [24]) takes the next of the ROM's three rocks in turn -- flat (shell00 mode
-//     0), lob (shell00 mode 8), bouncing (shell54 mode 0) -- as no one of them is the game's own choice.
-// Viewer stand-ins, not ROM values. Every monster gets them; only one whose shells have rock actions (Savage) uses them.
+//   * each play of a throw takes the next of the ROM's own choices for that motion in turn (shells.js pickVariantsFor):
+//     Savage's three rocks on L2 Motion[23] / [24] -- flat (shell00 mode 0), lob (shell00 mode 8), bouncing (shell54
+//     mode 0) -- and Nargacuga's nine spike attacks on L2 Motion[8], as no one of them is the game's own pick (the AI's).
+// Viewer stand-ins, not ROM values. Every monster gets them; only one whose shells take a pick uses them.
 const TARGET_AHEAD = 2100;
-const rockPlays = { key: null, time: 0, n: -1 };
+const rockPlays = { key: null, time: 0, n: -1, names: [] };
 function rockInput(){
   const act = pose.action, clipName = act && act.getClip ? act.getClip().name : null;
-  if (clipName && rockActionFor(state.id, state.list, clipName, ROCK_VARIANTS[0])){
+  const names = clipName ? pickVariantsFor(state.id, state.list, clipName) : [];
+  if (names.length){
     const key = state.id + '|' + state.list + '|' + clipName;
+    if (names.join() !== rockPlays.names.join()) rockPlays.n = -1;             // another monster's picks: from its first
     if (key !== rockPlays.key || act.time < rockPlays.time) rockPlays.n++;       // a new play of a throw
-    rockPlays.key = key; rockPlays.time = act.time;
+    rockPlays.key = key; rockPlays.time = act.time; rockPlays.names = names;
   } else rockPlays.key = null;
   const rt = effectRuntimeInstance(), P = rt && rt.parent;
   if (!P || !rt.schedule) return null;
   const y = monsterFloorY() / 0.01;
   const yaw = rt.schedule.ownerYaw16() * 2 * Math.PI / 65536;
-  return { variant: ROCK_VARIANTS[Math.max(0, rockPlays.n) % ROCK_VARIANTS.length],
+  const picks = rockPlays.names;
+  return { variant: picks.length ? picks[Math.max(0, rockPlays.n) % picks.length] : null,
            target: { x: P.position[0] + TARGET_AHEAD * Math.sin(yaw), y, z: P.position[2] + TARGET_AHEAD * Math.cos(yaw) },
            floorY: y };
 }
