@@ -261,6 +261,26 @@ export class EffectSchedule {
     return out;
   }
 
+  // A STEP BACK TAKES THE CLIP'S EFFECTS OFF. The game never plays a motion backwards, so there is nothing
+  // to translate for it: running an effect in reverse would have to be invented, and Raven (2026-09-22) would
+  // rather not carry invented work. What a seek can do honestly is clear what the clip started -- the same
+  // end a clip change gives them -- and let the walk start them again as the motion plays forward past their
+  // frames. Only the CLIP's requests go: a rage aura or an 'always' record is not tied to a frame and keeps
+  // running. The walker is re-armed at the frame seeked to, so nothing fires for frames that were skipped.
+  clearClipEffects(frame = 0){
+    for (const e of this.entries){
+      if (e.when !== 'clip' || !e.requests.length) continue;
+      for (const q of e.requests){
+        if (!q.stopped) this.host.stopRequest(q);     // the core's own stop (0x329c40), as the rage path uses
+        this.host.releaseRequest(q);                  // and off the unit passes now: no frames pass while paused
+      }
+      e.requests.length = 0;
+    }
+    const W = this.walker;
+    W.values = 0;                                     // nothing is on: the walk re-arms every bit from here
+    W.last = frame;
+  }
+
   // THE SHELLS (render/shells.js, the Shell Agent's translation of the monster's shell code): a monster whose shells are
   // decoded (SHELL_DATA) gets them stepped here once per step, BETWEEN the unit passes -- the enemy's action spawns a
   // shell in its move (line 4) and the shell's own move (line 18) places its effect, both before the effects' move

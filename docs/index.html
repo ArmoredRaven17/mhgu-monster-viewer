@@ -6494,8 +6494,17 @@ function paintAnim(){
 function seekTo(t){
   const act = pose.action;
   if (!act) return;
+  const was = act.time;
   act.paused = true; act.enabled = true;
   act.time = Math.max(0, Math.min(t, clipDur(act)));
+  // STEPPING BACK CLEARS THE CLIP'S EFFECTS (schedule.clearClipEffects). Forward, a seek hands the effects the
+  // frames it passed and they run them; backwards there is nothing to run, since the game has no reverse and
+  // the viewer will not invent one -- so what the clip started is taken off and the walk starts it again when
+  // the motion plays forward past its frames. A rage aura is untouched: it belongs to the state, not the frame.
+  if (act.time < was){
+    const rt = effectRuntimeInstance();
+    if (rt && rt.schedule) rt.schedule.clearClipEffects(act.time * 60);
+  }
   pose.step(poseRoots());
   stepAttached();
 }
