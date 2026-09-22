@@ -36,10 +36,21 @@
 //   { rage: true, sets }       rage entry: sets [calm, enraged]
 //   { dead: true, sets, clips, settled? }   death: the sets shown dead, the material clips death plays from its frame 0
 //                              ({ mats, clip }), and `settled` when the motion begins after death's transitions are over
+//   tables: [{ calm, enraged }, ...]   part groups whose sets follow rage as well as a level (Nargacuga's head and tail):
+//                              each is shown at the user's level, in the enraged table while rage is shown (or
+//                              `show: 'enraged'`), else the calm one; `levels` may be such a pair too, picked by the
+//                              user's rage, and `at` is the level a break motion reaches (default 1)
 //   an ailment / tiredness, any of: rage (false: rage shown off), sets, every: [[pel, key], period] (a record requested
 //                              on a countdown: at the motion's frame 0, then every `period` frames), hold: [pel, key] (a
 //                              record requested once and kept while the state lasts, stopped after), eyesOff: [pel, key]
 //                              (a rage record the monster's code holds off in this state)
+
+// NARGACUGA (em037_00): E:\offline\decode\notes\states-em037.md and breaks-em037.md (uEm037_00, vtable 0x17bc47c; its
+// per-frame part driver 0xe486f4). The head and tail sets follow both the break level and rage: head intact 4 / 6,
+// broken 5 / 7 (calm / enraged); tail intact 12 / 15, broken 13 / 16, severed 14 / 17. Eye set 2 (both lids) while
+// the eye flag is up -- asleep, resting, dead (0xe4749c); set 3 is never applied.
+const N_HEAD = { calm: [[4], [5]], enraged: [[6], [7]] };
+const N_TAIL = { calm: [[12], [13], [14]], enraged: [[15], [16], [17]] };
 export const MOTION_STATES = {
   em043_05: {
     // THE HEAD BREAK (breaks-em043.md 2). Every depletion of part 0 plays L2 Motion[9] from frame 0 (reaction code 3 ->
@@ -114,6 +125,62 @@ export const MOTION_STATES = {
     '3|Motion[3]': { hold: ['em043_00c', 1103] },
     '3|Motion[6]': { hold: ['em043_00c', 1103] },
   },
+  em037_00: {
+    // HEAD BREAK (breaks-em037.md): its 2nd depletion raises part 0 to level 2 (dtp row 0) -- the only head row -- and the
+    // reaction (10, 7) plays L3 Motion[2] from frame 0 (0xe56f5c, script 0x17bcef0); the part driver shows set 5 calm,
+    // 7 enraged (0xe488b4); u 1001 (id 8: cm202_060 on joint 2, 0xa442c). Its 1st depletion plays the same motion and
+    // changes nothing. L3 Motion[2] is also the shock trap's start (10, 0x6e): shown here as the head break.
+    '3|Motion[2]':  { levels: N_HEAD, fire: [null, ['em037_00u', 1001]] },
+    // WING BREAKS (dtt parts 2 / 6, capsule joints 61 / 71): the 1st depletion is the break (rows 1 / 2) -- wing A set 8
+    // -> 9, u 1010 (id 17, joint 7), reaction L3 Motion[10] -> [11] (held 240) -> [12]; wing B set 10 -> 11, u 1030 (id
+    // 37, joint 11), L3 Motion[7] -> [8] (held 120) -> [9] (0xe48904, 0xe48954; scripts 0x17bd130 / 0x17bd158). The
+    // held and closing clips keep the broken wing. These six clips are also the stun's (10, 0x20): shown as the breaks.
+    '3|Motion[10]': { levels: [[8], [9]], fire: [null, ['em037_00u', 1010]] },
+    '3|Motion[11]': { levels: [[8], [9]], fire: [null, null] },
+    '3|Motion[12]': { levels: [[8], [9]], fire: [null, null] },
+    '3|Motion[7]':  { levels: [[10], [11]], fire: [null, ['em037_00u', 1030]] },
+    '3|Motion[8]':  { levels: [[10], [11]], fire: [null, null] },
+    '3|Motion[9]':  { levels: [[10], [11]], fire: [null, null] },
+    // TAIL BREAK: part 3's 2nd depletion, level 2 (row 3): set 12 -> 13 calm, 15 -> 16 enraged; u 1016 (id 23: joint 141);
+    // reaction L3 Motion[1] from frame 0 (0x17bcf00). A severed tail stays severed (and fires nothing).
+    '3|Motion[1]':  { levels: N_TAIL, fire: [null, ['em037_00u', 1016], null] },
+    // TAIL SEVER: part 3's second counter (300) runs out with the tail at level 3 and Nargacuga enraged or tired ->
+    // (10, 0x72): the start hook severs (0xc2274: u 900 on joint 143), then L3 Motion[4] from frame 0 -> L3 Motion[5];
+    // set 14 calm / 17 enraged. The cut tail drops from joint 143 (render/tail-option.js, the same option code as
+    // Savage's). The script's 180-degree turn over L3 Motion[4] f52..122 (op 0xa) is not in the clip and is not shown.
+    '3|Motion[4]':  { levels: N_TAIL, at: 2, fire: [null, null, ['em037_00u', 900]], drops: true },
+    '3|Motion[5]':  { levels: N_TAIL, at: 2, fire: [null, null, null] },
+    // RAGE: the forced transition's command group 6 starts with a hop and then the roar L0 Motion[26] (1, 4); rage is on
+    // from the hop's frame 0 -- which hop comes first is NOT READ -- so the roar is shown enraged throughout: the head
+    // and tail in their enraged sets at the user's levels, and the trails (u 1120 / 1121, RAGE_BY_LEVEL) requested.
+    // No material changes (the class makes no material call). Its motion rate x1.2 is not shown (the viewer plays 1.0).
+    '0|Motion[26]': { rage: true, tables: [N_HEAD, N_TAIL] },
+    // THE TAIL'S SPIKES WHILE CALM: actions (7, 2), (7, 0x6c) and (7, 0x6f) -- L2 Motion[4], [5], [21], [6] -- show the tail
+    // in its enraged set (15 / 16) calm as well (0xe486f4); (7, 0xf9) / (7, 0xfa) play the same code without the spikes.
+    '2|Motion[4]':  { tables: [N_TAIL], show: 'enraged' },
+    '2|Motion[5]':  { tables: [N_TAIL], show: 'enraged' },
+    '2|Motion[21]': { tables: [N_TAIL], show: 'enraged' },
+    '2|Motion[6]':  { tables: [N_TAIL], show: 'enraged' },
+    // TIRED: the idle (0, 2) is L0 Motion[30]; drool c 1104 every 48 while not enraged -- tired and rage exclude each other.
+    '0|Motion[30]': { rage: false, tables: [N_HEAD, N_TAIL], every: [['em037_00c', 1104], 48] },
+    // ASLEEP: (10, 0x1d) L0 Motion[22] -> (10, 0x1e) L0 Motion[20] (hold) -> (10, 0x44) L0 Motion[21]; eyes set 2 from
+    // L0 Motion[22] f0; zzz c 1102 every 90 in the hold. The rage trails keep running (the class holds nothing off).
+    '0|Motion[22]': { sets: [2] },
+    '0|Motion[20]': { sets: [2], every: [['em037_00c', 1102], 90] },
+    // PARALYSIS: (10, 0x1f) holds L3 Motion[13]; c 1101 every 60, first at once (L3 Motion[13] is also the shock trap's hold).
+    '3|Motion[13]': { every: [['em037_00c', 1101], 60] },
+    // DEATH: L3 Motion[6], the one clip nothing but death plays (every status-11 number but 1, 7, 0x10, 0x12): rage cleared
+    // at the setAction -- the trails stopped, the head and tail calm at the user's levels --, eye set 2 for good. The
+    // class has no death branch of its own (no material clip).
+    '3|Motion[6]':  { dead: true, tables: [N_HEAD, N_TAIL], sets: [2] },
+  },
+};
+
+// RAGE RECORDS BY A PART'S LEVEL: Nargacuga's class requests its rage trails itself (+0x1d0 0xe49ec0, table 0x169dc88) --
+// u 1120 (both rows) while the head is below break level 2, u 1121 (one row) from it; the break swaps them while
+// enraged (0xe488b4 / 0xe48828). levels: the part's sets per level (calm); records: the record shown at each level.
+export const RAGE_BY_LEVEL = {
+  em037_00: { levels: N_HEAD.calm, records: [['em037_00u', 1120], ['em037_00u', 1121]] },
 };
 
 // THE LEVEL THE USER'S PARTS STAND AT, read from what they see: the highest level one of whose own parts -- drawn at
@@ -176,14 +243,18 @@ export class MotionStates {
     else {
       // frame 0 of the motion: a new one, or the same one started over (a loop, a replay, the scrubber moved back)
       const c = { key, spec, frame, sets: null, rage: null, t0: now, timers: [] };
+      // a { calm, enraged } table is read in the rage the motion shows: its own, else the user's
+      const rageFor = spec.rage === true ? true : (spec.rage === false || spec.dead) ? false : !!user.rage;
+      const pick = t => (t && !Array.isArray(t)) ? (rageFor ? t.enraged : t.calm) : t;
       if (spec.levels){
-        const lv = Math.max(1, userLevel(spec.levels, this.table, this.userDrawn));
-        c.sets = spec.levels[lv];
+        const levels = pick(spec.levels);
+        const lv = Math.max(spec.at || 1, userLevel(levels, this.table, this.userDrawn));
+        c.sets = levels[lv];
         if (spec.fire[lv]) out.fire.push(spec.fire[lv]);
       }
       if (spec.rage){
         c.rage = true;
-        c.sets = spec.sets[1];
+        c.sets = spec.sets ? spec.sets[1] : null;
         out.entry = rageBefore;             // already shown: it starts over here all the same
       }
       if (spec.dead){
@@ -196,6 +267,13 @@ export class MotionStates {
       c.frame0 = frame;
       if (spec.drops) out.drop = true;
       if (!spec.levels && !spec.dead && spec.sets && spec.rage !== true) c.sets = spec.sets;
+      // part groups shown at the user's level, enraged or calm as the motion shows rage (or `show: 'enraged'`)
+      if (spec.tables){
+        const shown = spec.show === 'enraged' || rageFor ? 'enraged' : 'calm';
+        const extra = [];
+        for (const t of spec.tables) extra.push(...t[shown][userLevel(t.calm, this.table, this.userDrawn)]);
+        c.sets = extra.concat(c.sets || []);
+      }
       // a countdown starts at 0, so its record comes at once (0x7206c), and the period follows
       if (spec.every){ out.fire.push(spec.every[0]); c.timers.push({ rec: spec.every[0], period: spec.every[1], left: spec.every[1] }); }
       this.cur = c;
@@ -210,6 +288,15 @@ export class MotionStates {
     out.parts = this.setsKey() !== setsBefore;
     out.clips = out.clips || this.clipsKey() !== clipsBefore;
     return out;
+  }
+
+  // THE RAGE RECORDS HELD OFF for the parts shown (RAGE_BY_LEVEL): 'pel|key' of every record but the one for the level
+  // the part stands at in `drawn` (the parts as drawn, the motion's sets over the user's)
+  rageRecordsOff(monId, drawn){
+    const r = RAGE_BY_LEVEL[monId];
+    if (!r || !this.table || !drawn) return [];
+    const lv = Math.min(userLevel(r.levels, this.table, drawn), r.records.length - 1);
+    return r.records.filter((_, i) => i !== lv).map(x => x.join('|'));
   }
 
   // the rage the display shows: the motion's while it plays (on at a rage entry, off in death), else the user's

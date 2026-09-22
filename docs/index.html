@@ -1306,7 +1306,7 @@ import { gidBonesOf } from './render/skeleton.js';
 import { loadMaterialsDb } from './render/materials-db.js';
 import { createBackground } from './render/background.js';
 import { createFloorGrid } from './render/grid.js';
-import { MotionStates } from './render/motion-states.js';
+import { MotionStates, RAGE_BY_LEVEL } from './render/motion-states.js';
 import { ROCK_VARIANTS, rockActionFor } from './render/shells.js';
 import { CUT_TAIL, CutTail } from './render/tail-option.js';
 import { setEyeGlow, updateEyeGlow } from './render/eye-glow.js';
@@ -7060,6 +7060,18 @@ function driveClipEffects(){
   if (!rt.schedule.rockInput) rt.schedule.rockInput = rockInput;
 }
 
+// RAGE RECORDS THAT FOLLOW A PART (render/motion-states.js RAGE_BY_LEVEL): Nargacuga's trails, one record while its head
+// is intact and another once broken -- the one for the head as drawn runs, the other is held off (schedule holdRage).
+let rageRecordsHeld = { rt: null, key: null };
+function syncRageRecords(rt){
+  if (!rt || !RAGE_BY_LEVEL[state.id] || !mounted.main || !mounted.main.userData.partsDrawn) return;
+  const off = motionStates.rageRecordsOff(state.id, mounted.main.userData.partsDrawn);
+  const key = off.join(',');
+  if (rageRecordsHeld.rt === rt && rageRecordsHeld.key === key) return;
+  rageRecordsHeld = { rt, key };
+  for (const [pel, k] of RAGE_BY_LEVEL[state.id].records) rt.holdRage(pel, k, off.includes(pel + '|' + k));
+}
+
 // THE CUT TAIL (render/tail-option.js; tail-option-em043.md). A sever's frame 0 drops the monster's tail piece at its
 // joint 142 and flies it on its own clock -- k, the frames the sever motion has advanced since then -- to G, the
 // monster's position on the grid floor (+20 S), where it lands (u 905 at k = 42) and stays, drawn at the ROM's own
@@ -7164,6 +7176,7 @@ function driveMotionStates(){
     if (rt){ if (r.entry) rt.restartRage(); else rt.setRage(motionStates.rage(state.rage)); }
   }
   stepCutTail(r, rt);
+  syncRageRecords(rt);
   if (rt){
     for (const [pel, key] of r.eyesOff) rt.holdRage(pel, key, true);
     for (const [pel, key] of r.eyesOn) rt.holdRage(pel, key, false);

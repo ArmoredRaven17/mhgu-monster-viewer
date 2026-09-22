@@ -365,6 +365,127 @@ async function pageCheck(){
   return out;
 }
 
+// NARGACUGA (em037_00), the same way: its head / wing / tail breaks, the sever and its cut tail, rage entry with the
+// head-level trails, the calm tail spikes, tired, asleep, paralysis and death (states-em037.md, breaks-em037.md)
+async function pageCheckNarga(){
+  const out = [];
+  const check = (ok, label, detail) => out.push([!!ok, 'Nargacuga: ' + label, detail === undefined ? '' : JSON.stringify(detail)]);
+  const V = window.__view;
+  const M = await import('/render/monster.js');
+  const frames = n => new Promise(r => { let k = 0; const f = () => (++k >= n ? r() : requestAnimationFrame(f)); requestAnimationFrame(f); });
+  const until = async (test, n = 600) => { for (let i = 0; i < n; i++){ if (test()) return true; await frames(1); } return false; };
+  V.pose.clock.getDelta = () => 1 / 60;
+  const monSel = document.getElementById('monSel'), listSel = document.getElementById('monList'), clipSel = document.getElementById('monClip');
+  const MON = 'em037_00';
+  if (![...monSel.options].some(o => o.value === MON)) monSel.add(new Option(MON, MON));
+  monSel.value = MON; await monSel.onchange();
+  check(V.state.id === MON && V.mounted.main, 'mounted', V.state.id);
+  await V.effects(false); await V.effects(true);
+  const rt = () => M.effectRuntimeInstance();
+  check(await until(() => rt() && rt().monsterId === MON && rt().schedule), 'the effect runtime is up');
+  const fx = rt();
+  const fired = [];
+  const f0 = fx.fire.bind(fx); fx.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
+  const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 101].includes(p))) : null; };
+  const reqs = key => fx.schedule.entries.filter(e => e.def.record && e.def.record.key === key && (e.when === 'rage' || e.when === 'event')).map(e => e.requests.map(q => q.stopped ? 's' : 'r').join('')).join('|');
+  const listOf = id => V.MON.monsters.find(e => e.id === MON).lists.find(l => l.id === id);
+  const dur = (list, clip) => Math.round(listOf(list).clips.find(c => c.clip === clip).dur * 60);
+  const play = async (list, clip) => {
+    if (V.state.list !== list){ listSel.value = list; await listSel.onchange(); }
+    clipSel.value = clip; await clipSel.onchange();
+    await until(() => V.pose.action && V.pose.action.getClip().name === clip, 300);
+  };
+  const count = (arr, k) => arr.filter(x => x === k).length;
+  const REST = ['0', 'Motion[3]'];
+  V.state.loop = true;
+  await play(...REST); await frames(3);
+  const user0 = drawn();
+  check(user0 && user0[1] === true && user0[2] === false && user0[9] === true && user0[11] === true && user0[15] === true, 'at rest: head, wings, tail intact', user0);
+  // head break, calm: set 5, u 1001
+  fired.length = 0;
+  await play('3', 'Motion[2]'); await frames(3);
+  let d = drawn();
+  check(count(fired, 1001) === 1 && d[1] === false && d[2] === true && d[3] === false && d[7] === true, 'L3 Motion[2]: head break -- set 5, u 1001', { fired, d });
+  // wing A / B
+  fired.length = 0;
+  await play('3', 'Motion[10]'); await frames(3); d = drawn();
+  check(count(fired, 1010) === 1 && d[9] === false && d[10] === true, 'L3 Motion[10]: wing A break -- set 9, u 1010', { fired, d });
+  await play('3', 'Motion[11]_loop'); await frames(3); d = drawn();
+  check(count(fired, 1010) === 1 && d[10] === true, 'L3 Motion[11]: the wing stays broken, nothing fired again', { fired, d });
+  fired.length = 0;
+  await play('3', 'Motion[7]'); await frames(3); d = drawn();
+  check(count(fired, 1030) === 1 && d[11] === false && d[12] === true, 'L3 Motion[7]: wing B break -- set 11, u 1030', { fired, d });
+  // tail break: set 13, u 1016
+  fired.length = 0;
+  await play('3', 'Motion[1]'); await frames(3); d = drawn();
+  check(count(fired, 1016) === 1 && d[15] === false && d[16] === true && d[17] === false, 'L3 Motion[1]: tail break -- set 13, u 1016', { fired, d });
+  // tail sever: set 14, u 900, the cut tail from joint 143, u 905 at G
+  fired.length = 0;
+  const fa0 = fx.fireAt.bind(fx), landing = [];
+  fx.fireAt = (pel, key, pos) => { landing.push(key); return fa0(pel, key, pos); };
+  await play('3', 'Motion[4]'); await frames(3); d = drawn();
+  const piece = V.mounted['em037_00_tail'];
+  check(count(fired, 900) === 1 && d[16] === true && d[17] === true && d[18] === false && d[101] === false, 'L3 Motion[4]: tail severed -- set 14, u 900', { fired, d });
+  check(piece && piece.visible && V.cutTail() && V.cutTail().J, 'the cut tail is shown', { visible: piece && piece.visible });
+  await frames(60);
+  const ct = V.cutTail();
+  check(ct && ct.k >= 53 && count(landing, 905) === 1, 'it lands (u 905 once) and rests', { k: ct && ct.k, landing });
+  fx.fireAt = fa0;
+  await play(...REST); await frames(3);
+  check(JSON.stringify(drawn()) === JSON.stringify(user0) && piece.visible === false, 'another motion: the user\'s parts again, no cut tail', drawn());
+  // rage entry, calm user: the roar shows rage -- head set 6, tail set 15, trail u 1120 (head intact), 1121 held off
+  await play('0', 'Motion[26]'); await frames(4); d = drawn();
+  check(fx.schedule.rage === true && d[3] === true && d[4] === true && d[8] === true && d[7] === false && d[13] === true && d[14] === true,
+        'L0 Motion[26]: enraged -- head set 6, tail set 15', { rage: fx.schedule.rage, d });
+  check(reqs(1120).includes('r') && !reqs(1121).includes('r'), 'the trails: u 1120 (head intact), u 1121 held off', { u1120: reqs(1120), u1121: reqs(1121) });
+  await play(...REST); await frames(3);
+  check(fx.schedule.rage === false && !reqs(1120).includes('r'), 'another motion: rage off, the trails stopped', { rage: fx.schedule.rage, u1120: reqs(1120) });
+  // enraged user, head break: set 7 and the trails swap to u 1121
+  const rageBox = document.getElementById('monRage');
+  check(rageBox && !rageBox.closest('[hidden]'), 'the Enraged toggle is offered', !!rageBox);
+  rageBox.checked = true; await rageBox.onchange({ target: rageBox }); await frames(4);
+  check(fx.schedule.rage === true && reqs(1120).includes('r'), 'Enraged on: u 1120 runs', reqs(1120));
+  fired.length = 0;
+  await play('3', 'Motion[2]'); await frames(4); d = drawn();
+  check(count(fired, 1001) === 1 && d[2] === true && d[3] === true && d[4] === false && d[8] === true, 'enraged head break -- set 7', { fired, d });
+  check(!reqs(1120).includes('r') && reqs(1121).includes('r'), 'the trails swap: u 1120 stopped, u 1121 runs', { u1120: reqs(1120), u1121: reqs(1121) });
+  await play(...REST); await frames(4);
+  check(reqs(1120).endsWith('r') && !reqs(1121).includes('r'), 'head intact again (the user\'s): back to u 1120', { u1120: reqs(1120), u1121: reqs(1121) });
+  // tired while the user is enraged: rage shown off, drool at once and every 48
+  fired.length = 0;
+  await play('0', 'Motion[30]_loop'); await frames(3);
+  check(fx.schedule.rage === false && count(fired, 1104) === 1, 'L0 Motion[30] (tired): rage shown off, drool at once', { rage: fx.schedule.rage, fired });
+  await frames(50);
+  check(count(fired, 1104) === 2, 'the drool again 48 frames on', fired);
+  // asleep: eyes set 2, trails kept; zzz in the hold
+  fired.length = 0;
+  await play('0', 'Motion[22]'); await frames(3); d = drawn();
+  check(d[5] === true && d[6] === true && reqs(1120).includes('r'), 'L0 Motion[22]: both lids close (set 2), the trails keep running', { d, u1120: reqs(1120) });
+  await play('0', 'Motion[20]_loop'); await frames(3);
+  check(count(fired, 1102) === 1 && drawn()[5] === true, 'L0 Motion[20]: zzz c 1102 at once, eyes closed', fired);
+  // death: rage off, eyes closed, calm sets
+  await play('3', 'Motion[6]'); await frames(4); d = drawn();
+  check(fx.schedule.rage === false && d[5] === true && d[6] === true && d[3] === false && d[13] === false && !reqs(1120).includes('r'),
+        'L3 Motion[6] (death): rage off, the trails stopped, eyes closed, calm sets', { rage: fx.schedule.rage, d });
+  await play(...REST); await frames(3);
+  rageBox.checked = false; await rageBox.onchange({ target: rageBox }); await frames(3);
+  // calm tail spikes in the tail attacks
+  await play('2', 'Motion[4]'); await frames(3); d = drawn();
+  check(fx.schedule.rage === false && d[13] === true && d[14] === true, 'L2 Motion[4] (tail attack, calm): the tail spikes (set 15), rage stays off', { rage: fx.schedule.rage, d });
+  // paralysis
+  fired.length = 0;
+  await play('3', 'Motion[13]_loop'); await frames(3);
+  check(count(fired, 1101) === 1, 'L3 Motion[13]: c 1101 at once', fired);
+  await play(...REST); await frames(3);
+  const MS = await import('/render/motion-states.js');
+  for (const k of Object.keys(MS.MOTION_STATES[MON])){
+    const [list, clip] = k.split('|');
+    check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'), 'the table\'s ' + k + ' is a clip Nargacuga carries');
+  }
+  check(!fx.failed, 'the effect runtime never stopped', fx.failed);
+  return out;
+}
+
 const children = [];
 let browserWs = null;
 async function main(){
@@ -400,7 +521,7 @@ async function main(){
     await sleep(200);
   }
   const before = 0;
-  const res = await evaluate(c, `(${pageCheck.toString()})()`);
+  const res = (await evaluate(c, `(${pageCheck.toString()})()`)).concat(await evaluate(c, `(${pageCheckNarga.toString()})()`));
   let fail = 0;
   for (const [ok, label, detail] of res){
     if (!ok) fail++;
