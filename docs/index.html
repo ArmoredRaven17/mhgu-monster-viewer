@@ -7041,8 +7041,31 @@ restoring = false;
 // bit off, motion change, loop -- once per step. When an effect ends is then decided by the effect's own lifted
 // code from the record's end mode, and a stopped effect runs out on screen as it does in the game; nothing here
 // starts or stops anything itself.
+// THE EFFECT CLOCK: how much ANIMATION time passed since the last draw, which is what the effect runtime
+// steps on (live.js frameUnsafe). Read off the action's own time so it follows pause, playback speed and the
+// scrubber: paused or stopped is 0, a loop wrap adds the clip's length back, and anything bigger than a few
+// frames is a seek -- the effect holds still rather than fast-forwarding through it. Null means no clip is
+// playing, and the runtime keeps its own clock for effects that run on a still monster.
+let effectClipTime = null, effectClipAction = null;
+function animAdvance(){
+  const act = pose.action;
+  if (!act || !act.getClip){ effectClipAction = null; return null; }
+  const t = act.time;
+  if (act !== effectClipAction){ effectClipAction = act; effectClipTime = t; return 0; }
+  const was = effectClipTime;
+  effectClipTime = t;
+  if (act.paused || !act.isRunning()) return 0;
+  let d = t - was;
+  if (d < 0) d += act.getClip().duration || 0;      // the clip wrapped
+  // A SEEK, not playback: the scrubber jumps the time by much more than a frame. The cut cannot be a frame
+  // or two -- a slow draw is a long frame, and headless runs at 10 fps, which zeroed every step the first
+  // time this was written. Quarter of a second is well past any frame and well under a seek; the runtime
+  // clamps whatever it gets to MAX_STEPS anyway, so a long frame costs at most four steps.
+  return d > 0 ? Math.min(d, 0.25) : 0;
+}
 function driveClipEffects(){
   const rt = effectRuntimeInstance();
+  if (rt) rt.advance = animAdvance();               // the effects step on the animation, not on wall time
   if (!rt || !rt.schedule) return;
   const act = pose.action;
   const clipName = act && act.getClip ? act.getClip().name : null;

@@ -465,7 +465,16 @@ export class LiveEffects {
   frameUnsafe(renderer, scene, camera){
     const now = performance.now() / 1000;
     if (this.last === null) this.last = now;
-    this.acc = Math.min(this.acc + (now - this.last), MAX_STEPS * STEP);
+    // THE ANIMATION IS THE CLOCK. The game steps an effect once per game frame, in the same pass that
+    // advances the monster's motion, so the two never drift apart: a frame of animation is a frame of
+    // effect. The viewer can pause and scrub, which the game cannot, and this runtime used to keep its
+    // own wall clock -- so a paused clip left Nargacuga's eyes and its motion trail running on a frozen
+    // monster (Raven, 2026-09-22). `advance` is the seconds of ANIMATION time the clip moved since the
+    // last draw (index.html animAdvance): 0 while paused, 0 across a scrub or a clip change, and scaled
+    // with the playback speed. It is null when no clip is playing at all -- a rage aura on a still pose
+    // has no animation to follow, so the wall clock still drives that.
+    const dt = typeof this.advance === 'number' ? this.advance : now - this.last;
+    this.acc = Math.min(this.acc + dt, MAX_STEPS * STEP);
     this.last = now;
     if (this.acc >= STEP) this.writeJoints();
     while (this.acc >= STEP){
