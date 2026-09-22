@@ -14,6 +14,9 @@
 //   'event'      when the game event its monster's code requests it on happens -- a part break (Savage's u 1000 / 1001 /
 //                900, breaks-em043.md), an ailment (c 1100..1109, states-em043.md 3.4); render/motion-states.js says
 //                when (fire)
+//   'ragePuff'   a one-shot the shared rage puff requests on its countdown while enraged (Rathian's u 1120 / 1121,
+//                states-em001.md 2.3): render/motion-states.js RAGE_PUFF names them and picks which, setRagePuff /
+//                stepPuff below count
 // An entry without `when` is a 'rage' effect, as the viewer showed every effect before it had the field.
 //
 // LEAVING THE STATE. An entry with `stop: 'request'` is ended the way its monster's code ends it -- Teostra's
@@ -157,6 +160,27 @@ export class EffectSchedule {
     }
   }
 
+  // THE SHARED RAGE PUFF (0xa41b8; render/motion-states.js RAGE_PUFF): spec { period, records: [id 0, id 1], pick() -> 1
+  // for id 0, 0 for id 1 }. The countdown (P+0x5c6c) starts at 0 -- the enemy's reset zeroes it (0xb8b98) -- and is
+  // counted in the step, once a 1/60 s, as the +0x28 pass counts it once a frame.
+  setRagePuff(spec){ this.puff = spec ? { period: spec.period, records: spec.records, pick: spec.pick, left: 0, paused: false, tired: false } : null; }
+  // the gates the motion shows: paused -- the sleep hold or the rest (0x81bb0(e, 1)), where 0xa41b8 returns before its
+  // countdowns; tired -- calm and tired, where it zeroes this one (0xa4338..0xa434c)
+  puffGates(paused, tired){ if (this.puff){ this.puff.paused = !!paused; this.puff.tired = !!tired; } }
+  stepPuff(){
+    const P = this.puff;
+    if (!P || P.paused) return;
+    if (!this.rage){ if (P.tired) P.left = 0; return; }
+    // 0x7206c: spent (at or below 0) -> 0 and fire; else 1 less (0x539d5c), firing when that is at or below 0
+    let fire;
+    if (P.left <= 0){ P.left = 0; fire = true; } else { P.left -= 1; fire = P.left <= 0; }
+    if (!fire) return;
+    P.left = P.period;                                              // 30.0 (0xa423c..0xa4248)
+    const [pel, key] = P.records[P.pick() === 1 ? 0 : 1];          // vtable +0x2a4: 1 -> u id 0, else u id 1
+    for (const e of this.entries)
+      if (e.when === 'ragePuff' && e.def.record && e.def.record.pel === pel && e.def.record.key === key) this.start(e);
+  }
+
   // RAGE ENTERED AGAIN while it is shown (a rage-entry motion started over, render/motion-states.js): rage off and on
   // at this step -- the running rage effects end as rage's end ends them, and the entry requests them anew.
   restartRage(){
@@ -170,6 +194,7 @@ export class EffectSchedule {
   step(){
     this.frame = (this.frame || 0) + 1;
     this.walk();
+    this.stepPuff();                  // the +0x28 pass's request, ahead of the effects' own passes
     this.host.unitFrame(this.shells ? () => this.stepShells() : undefined);
     for (const e of this.entries) if (!e.def.record) this.host.move(e.owner);
     this.host.pruneUnits();
@@ -255,9 +280,19 @@ export class EffectSchedule {
     // picks, the target its aim reads, the stage it lands on -- so they come from the viewer (rockInput(): { variant,
     // target, floorY } in game units, or null: no rock), with the monster's facing as the u16 the unit keeps.
     const rock = this.rockInput ? this.rockInput() : null;
+    // Rathian's shells (shells-em001.md) also read, every step: the owner's position (block +0x40.., game units -- the
+    // aimed fireballs' origin and the landing dust's height test) and, a labelled viewer input, the hit-slot life of a
+    // timer-0 shell01 (its hit data's delay + duration; shells.js slotStep) -- without it the fire and explosions would
+    // end at their first move, as the ROM-run harness shows them
+    const P = this.parent && this.parent.position;
     const out = stepShells(S.state, { monId: S.monId, list, clip, frame: c && clip ? c.frame : 0,
                                       loopStart: c && c.start ? c.start : null, joints: S.joints, rage: this.rage,
                                       rock, owner: rock ? { x: 0, y: this.ownerYaw16(), z: 0 } : undefined,
+                                      ownerPos: P ? { x: P[0], y: P[1], z: P[2] } : undefined, hitLife: true,
+                                      // the free-running timer Rathian's hover dust pulses on (vtable +0x1dc 0xcee250: every
+                                      // 100 moves since her setup; shared-state-effects.md) -- counted here from the mount,
+                                      // a viewer stand-in for its phase
+                                      stepCount: this.frame,
                                       // param 0 is the shell's own effect; a rock's bounce / landing effect is the handle's
                                       effectAlive: (sh, param, h) => param === 0 ? alive(sh) : reqAlive(h && h.request) });
     // a breath shell's effect is placed (0x329c9c / 0x329d04, below); a rock's is bound to the shell, which keeps its own

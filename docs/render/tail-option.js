@@ -24,6 +24,9 @@ export const CUT_TAIL = {
   // Nargacuga: the same option code (breaks-em037.md): +0x1477 = 143 from its sever call, model em037_00_tail, its
   // dtbparts.dtp row count +0x91 = 0 (file byte 13) -- no speed, height or rotation override, as Savage
   em037_00: { piece: 'em037_00_tail', joint: 143, above: 20, landing: ['em037_00u', 905] },
+  // Rathian: the same option code (breaks-em001.md 4.3): +0x1477 = 0x8f (joint 143) from its sever call (0xcedfa8), model
+  // em001_00_tail (descriptor 0x15950ec), dtp row count +0x91 = 0 -- no override, as Savage
+  em001_00: { piece: 'em001_00_tail', joint: 143, above: 20, landing: ['em001_00u', 905] },
 };
 
 // The root curves of em001_00_option motion 1, frames 0..54, as the ROM's own evaluator 0xafb70c gives them

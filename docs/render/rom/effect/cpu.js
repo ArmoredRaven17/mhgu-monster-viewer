@@ -41,7 +41,9 @@ export function lifted(address){ return LIFTED.get(address); }
 
 export function call(m, c, address){
   const f = LIFTED.get(address >>> 0);
-  if (!f) throw new Unverified('call to 0x' + (address >>> 0).toString(16) + ', which is not translated');
+  // the refusal names the call site too: a lifted call sets lr to the instruction after its bl / blx first
+  if (!f) throw new Unverified('call to 0x' + (address >>> 0).toString(16) + ', which is not translated' +
+                               (c.r[14] !== 0xfffffffe ? ' (from 0x' + ((c.r[14] - 4) >>> 0).toString(16) + ')' : ''));
   f(m, c);
 }
 

@@ -34,6 +34,15 @@
 //     circular clamp; the Y spread 0x3f9cc4) and its own landing (0xe59334), which drops shell01 at a floor contact
 //     (an event: shell01 mode 0 draws nothing). The same inputs as the rocks, NOT READ: which action (the AI's pick,
 //     input.rock.variant names it: pickVariantsFor), the target (read only by the aimed kinds), the stage.
+//   * RATHIAN (em001_00; notes E:\offline\decode\notes\shells-em001.md): shell00 the fireballs (base00 again, with its
+//     own reader 0xd0d988 -- the aimed modes aim from the OWNER's point -- and landing 0xd0dc9c), thrown by the attack
+//     actions' spawn helpers on L2 Motion[5] / [18], L4 Motion[8] / [16] (blend partners map to their main clip); shell01
+//     (base01): the ground fire a landing leaves, mode 8's four explosions (made by shell11, base11), the landing dust of
+//     the per-frame handler 0xcf1a5c (no pick: clip and frame), the breath puffs of L4 Motion[65] (G rank) and the hit
+//     volumes of the no-fire actions. Shells made by shells are stepped shells here (out.spawned when made), moved by
+//     the ROM's line-18 rule. Inputs NOT READ: the action (input.rock.variant), the target, the stage, the owner block
+//     (words, position, ground, size, base scale, block +0x5c), the quest rank, the hover-dust timer's phase
+//     (input.stepCount), the hit-slot life.
 //
 // UNITS AND FRAMES. Positions are GAME units in world space (the viewer's world is game units / 100: live.js
 // MT_TO_VIEW). Joint matrices are the game's: 16 floats in memory order (row-vector convention, rows = axes, row 3 =
@@ -56,6 +65,15 @@
 //   * spikes (em037_00): as the rocks (the owner's turn during M7 / M8 is NOT READ: input.owner.y instead); shell01
 //     mode 1 (the ground impact c 30 of L0 M28 f20, L1 M1 f60, L1 M2 f2): not built -- its lifetime rests on the hit
 //     slots and L1 M2's condition 0x6fe88 is not read (notes 6, 11); its data is in SHELL_DATA.
+//   * Rathian (em001_00; notes 12): the AI's pick of fire / no-fire (op 0x24) and every other op; the owner's turns
+//     ((7, 0x47) while f < 40, the puffs' 0x76c08 / 0x76dd0: input.owner.y instead); what sets block +0x78 (the blend
+//     weight); the hover dust's timer phase (the monster's setup: input.stepCount stands in) and which hover turn the AI
+//     issues, (4, 4) or (4, 0x15) (the default: not (4, 0x15)); the stage core 0xc30b30 and its attribute bits
+//     0x1040 (the plane stand-in: the fire is always made); the
+//     camera request 0x43ac04 (an event only); the hit side beyond the slot countdown (who runs 0x168d30, where in the
+//     frame, its step -- the hit-slot life is input.hitLife, see slotStep); how the effect runtime binds placement-mode-0
+//     records to the shell and orients placed ones; (7, 0x7b)'s phase-0 call; the other variants (Gold Rathian,
+//     Dreadqueen, Rathalos) -- their own ids and files, not in SHELL_DATA.
 const f = Math.fround;
 
 // ---- ROM constants (float literals as stored) -------------------------------------------------------------------
@@ -176,8 +194,11 @@ export const SHELL_DATA = {
       // kind 0 -> shell00 mode 0x1592318[index], kind 2 -> shell00 mode 0x161f25c[sub*4 + index], kind 3 -> shell54
       // mode 0x161f27c[sub*4 + index]. `args` = (r1, index, kind, sub), read from each case body (status 7 switch
       // 0xe7b1d4, table 0xe7b200) to the call. r1 0 and 2 (1 and 3) give the same motion, shell, mode and frame; which
-      // one a stream takes (ops 0x2e / 0x24) is not read. pick 'rock': the command table's group 1 stream 36 (shell00
-      // mode 0), 56 (shell00 mode 8) and 57 (shell54 mode 0) issue them; WHICH stream the AI takes is NOT READ, so the
+      // one a stream takes: op 0x24 (0x86fac -> 0x81634: tired and not enraged) takes r1 2 / 3 -- the same rock, so the
+      // pick below does not depend on it -- and op 0x2e (M23 or M24) is not read. pick 'rock': the command table's group
+      // 1 stream 36 (shell00 mode 0), 56 (shell00 mode 8) and 57 (shell54 mode 0) issue them (em043_00_cmdtbl:
+      // `2e 00 00 | 24 00 | r1 3 | 24 02 | r1 1 | 24 ff | 2e 02 | 24 00 | r1 2 | 24 02 | r1 0 | 24 ff | 2e ff`); WHICH
+      // stream the AI takes is NOT READ, so the
       // viewer's input.rock.variant chooses (rockActionFor). pick 'unread': no read command stream plays it; only a
       // forced input.action reaches it.
       { action: [7, 0x08], code: 0xe78e34, args: [0, 0, 0, 0], list: '2', clip: 'Motion[24]', frame: 114.0, shell: 'shell00', mode: 0, pick: 'rock', variant: 'shell00_0' },
@@ -337,7 +358,214 @@ export const SHELL_DATA = {
       { action: [7, 0x84], code: 0xe55030, args: [1], list: '2', clip: 'Motion[8]', frame: 46.0, shell: 'shell00', spawner: 0xe48fc8, spawnArgs: [0, 4], modes: [19, 20, 21, 22, 23], pick: 'ai', variant: '7:0x84' },
     ],
   },
+
+  // RATHIAN (notes E:\offline\decode\notes\shells-em001.md). uEm001_00 (ctor 0xcecd20, vtable 0x1793c28) serves Rathian
+  // (em number byte +0xb5f4 = 1) and Rathalos (2); its vtable +0x158 0xd09918 loads, for em 1 variant 0, the global shells
+  // 0x54 / 0x5a / 0x60 and keeps them at enemy +0xcac4 / +0xcac8 / +0xcacc (0xd09958..0xd09978). Values below are the
+  // files' own, em001_00.arc (C:\MHGU-Extract\scratch-em\em001_00\em001_00.arc, folders shell\em\em001_00_shellNN).
+  em001_00: {
+    name: 'Rathian',
+    // every em001_00 .shl (shell00, shell01) names EffectLists[0] = effect\pel\em\em001_00c (c.pel) and [1] =
+    // effect\pel\em\em001_00u (u.pel), the rest null (notes 1); shell11's are all null and it starts nothing
+    lists: { 0: { list: 'c', pel: 'em001_00c' }, 1: { list: 'u', pel: 'em001_00u' } },
+    shells: {
+      // THE FIREBALLS. Global shell id 0x54; table 0x175c3e8[0x54] = {uShellEm001_sp_00 DTI 0x188bc48, uShellEmBase00::
+      // cSetupParamEmBase00 DTI 0x1885948, resource 0x89a7}; size 0x1670, ctor 0xd0d928 (base00 ctor 0x3f8a04; +0x1660..
+      // +0x1668 = the zero vector, +0x166c = 0), vtable 0x1795490: its own slots are 1, 5, +0x14c the reader 0xd0d988 and
+      // +0x150 the landing 0xd0dc9c; the rest is uShellEmBase00's (init +0x13c 0x3f8b80, move +0x24 0x3f96a0, end +0x148
+      // 0x3f9ef4, ending +0x15c 0x3f986c).
+      shell00: {
+        id: 0x54, cls: 'uShellEm001_sp_00', base: 'base00', folder: 'shell\\em\\em001_00_shell00', reader: 0xd0d988,
+        // em001_00_00_sh### (the reader, params001): ints [joint gid, camera id at a type-0 contact, at a type-1 contact
+        // (the floor), != -1: flag 1 (X aimed), flag 2, flag 4, flag 8, flag 0x20]; floats [X degrees, Y degrees (the
+        // spread), speed along +Z, flight time, X min, X max, the aim offset's y, Y min, Y max]; vecs [launch offset in
+        // joint 3's space, the aim-from offset in the owner's space]. em001_00_00_ef###: EffectParams 0 the flying fireball
+        // (c 0 = em001_00_003; mode 8 u 30 = em001_02_001), 1 landing type 0 (c 2 = em001_02_008), 2 landing type 1, the
+        // floor (c 1 = em001_00_006; mode 8 none), 3 type 2, a hunter. `hit` = the HitParam ints (not visual here).
+        // ShellInfoList has 38 entries, files at 0..8 only. ShellScale 1.0 in every entry.
+        modes: {
+          0: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+               sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 60.0, 180.0, -45.0, 45.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 200.0, 200.0]] } },
+          1: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+               sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [5.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          2: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+               sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [5.0, -18.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          // 4.4 is the float32 0x408ccccd
+          3: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+               sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [4.4, 23.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          4: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+               sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 60.0, 180.0, 0.0, 90.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 260.0, 400.0]] } },
+          5: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+               sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 60.0, 180.0, -90.0, 90.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 250.0, 100.0]] } },
+          6: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+               sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, -18.0, 60.0, 180.0, -90.0, 90.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 250.0, 100.0]] } },
+          7: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+               sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 23.0, 60.0, 180.0, -90.0, 90.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 250.0, 100.0]] } },
+          8: { scale: 1.0, ef: [[1, 30], [999, -1], [999, -1], [1, 36]], hit: [1],
+               sh: { ints: [3, 1, 5, -1, -1, -1, -1, -1], floats: [25.0, 0.0, 100.0, 72.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+        },
+      },
+      // GROUND FIRE, EXPLOSIONS, LANDING DUST, BREATH PUFFS, HIT VOLUMES. Global shell id 0x5a; table 0x175c3e8[0x5a] =
+      // {uShellEm001_sp_01 DTI 0x188bc68, uShellEmBase01::cSetupParamEmBase01 DTI 0x18859e8, resource 0x89ad}; size 0x1660,
+      // ctor 0xd0e670 (base01 ctor 0x3fa2f8; +0x1654 = 0), vtable 0x179560c: its own slots are 1, 5, +0x14c the reader
+      // 0xd0e6a0, +0x150 0xd0e9d4 (the hit radius growth), +0x154 0xd0eb20 (end creates: none of these modes), +0x158
+      // 0xd0ec98 (the hit registration); base01's: init +0x13c 0x3fa498, move +0x24 0x3faec4, end +0x148 0x3fb264.
+      shell01: {
+        id: 0x5a, cls: 'uShellEm001_sp_01', base: 'base01', folder: 'shell\\em\\em001_00_shell01', reader: 0xd0e6a0,
+        // em001_00_01_sh### (the reader, params011): ints [!= -1: flag 1 (from a joint), the joint gid, flag 2 (turned by
+        // the angle words), flag 4 (snapped to the ground), flag 8 (angles from the ground), flag 0x80 (at the owner's
+        // ground), flag 0x100, flag 0x800, flag 0x1000]; floats [timer, hit radius growth frames, (+0x15fc)]; vecs [the
+        // offset]. em001_00_01_ef###: EffectParams 0 / 1 (c 3 = em001_00_008 the fire; u 31 / 34 / 33 / 32 = em001_02_004
+        // the explosions; c 30 / c 31 = cm200_040 the dust; u 61 / 62 = em001_02_006 the breath puffs). `hit` = the HitParam
+        // ints: records of em001_00_01_hitdata (hitdata below) for hit slots 0 / 1. ShellInfoList has 56 entries, files at
+        // these 14 only; a created mode with no files (31..33) reads -1 / 0.0 / the zero vector and starts nothing.
+        modes: {
+          0: { scale: 1.0, ef: [[999, -1], [999, -1]], hit: [8, -1],
+               sh: { ints: [0, 3, 0, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 190.0]] } },
+          1: { scale: 1.0, ef: [[999, -1], [999, -1]], hit: [0, 2],
+               sh: { ints: [-1, -1, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          2: { scale: 1.0, ef: [[0, 3], [999, -1]], hit: [7, -1],
+               sh: { ints: [-1, -1, -1, 0, 0, -1, -1, -1, -1], floats: [200.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          6: { scale: 1.0, ef: [[1, 31], [999, -1]], hit: [3, -1],
+               sh: { ints: [-1, -1, -1, 0, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          7: { scale: 1.0, ef: [[1, 34], [999, -1]], hit: [4, -1],
+               sh: { ints: [-1, -1, -1, 0, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          8: { scale: 1.0, ef: [[1, 33], [999, -1]], hit: [5, -1],
+               sh: { ints: [-1, -1, -1, 0, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          9: { scale: 1.0, ef: [[1, 32], [999, -1]], hit: [6, -1],
+               sh: { ints: [-1, -1, -1, 0, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          13: { scale: 1.0, ef: [[0, 30], [0, -1]], hit: [-1, 12],
+                sh: { ints: [-1, -1, -1, 0, -1, 0, -1, -1, 0], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 100.0]] } },
+          14: { scale: 1.0, ef: [[0, 31], [0, -1]], hit: [-1, 13],
+                sh: { ints: [-1, -1, -1, 0, -1, 0, -1, -1, 0], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          15: { scale: 1.0, ef: [[0, 31], [999, -1]], hit: [-1, 14],
+                sh: { ints: [-1, -1, -1, 0, -1, 0, -1, -1, 0], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          20: { scale: 1.0, ef: [[0, 31], [999, -1]], hit: [-1, -1],
+                sh: { ints: [-1, -1, -1, 0, -1, 0, -1, -1, 0], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          44: { scale: 1.0, ef: [[1, 61], [999, -1]], hit: [16, -1],
+                sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-150.0, -50.0, 100.0]] } },
+          45: { scale: 1.0, ef: [[1, 61], [999, -1]], hit: [17, -1],
+                sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-70.0, -200.0, 150.0]] } },
+          46: { scale: 1.0, ef: [[1, 62], [999, -1]], hit: [17, -1],
+                sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[150.0, -200.0, 200.0]] } },
+        },
+        // em001_00_01_hitdata (HDS, 18 records of 0x38 bytes from +0x10): (s16 +0 delay, s16 +2 duration) by record, the
+        // two values the hit registration hands the slot (0x168a68..0x168a84). Read only for the hit-slot life (input.hitLife).
+        hitdata: [[10, 10], [10, 10], [0, 10], [10, 20], [6, 16], [6, 16], [6, 16], [8, 172], [6, 4], [2, 10], [2, 10],
+                  [0, 10], [14, 10], [14, 10], [14, 10], [14, 10], [2, 10], [2, 10]],
+      },
+      // THE EXPLOSION TIMER. Global shell id 0x60; table 0x175c3e8[0x60] = {uShellEm001_sp_11 DTI 0x188bc88, uShellEmBase01::
+      // cSetupParamEmBase01, resource 0x89b3}; size 0x1670, ctor 0xd0ee5c (base11 ctor 0x402f80: base01 ctor, +0x1654 = 0,
+      // +0x1658 = 0, +0x165c = -1, +0x1660 = 0, +0x15a8 = 0xb; then +0x1664 = 0x19d), vtable 0x179577c: base11's init +0x13c
+      // 0x402fd8 and +0x150 0x40308c; its own +0x14c the reader 0xd0ee8c and +0x168 the create 0xd0efc0; base01's move.
+      shell11: {
+        id: 0x60, cls: 'uShellEm001_sp_11', base: 'base11', folder: 'shell\\em\\em001_00_shell11', reader: 0xd0ee8c,
+        // em001_00_11_sh000: floats [the create times], vecs [the offsets, turned by the Y word]; no EffectParams, no hit
+        modes: {
+          0: { scale: 1.0, ef: [], hit: [],
+               sh: { ints: [], floats: [0.0, 16.0, 26.0, 36.0], vecs: [[0.0, 0.0, 0.0], [400.0, 0.0, 100.0], [-460.0, 0.0, 150.0], [0.0, 0.0, 450.0]] } },
+        },
+        // per create k (0xd0ef78..0xd0efac, 0xd0efc0): the time's float index (0x169b744), the vec index (0x169b754) and
+        // the shell01 mode (0x169b764)
+        times: [0, 1, 2, 3], vecIdx: [0, 1, 2, 3], modes01: [6, 7, 8, 9],
+      },
+    },
+    // THE ACTIONS (status 7 switch 0xcefbd4, table 0xcefc00; notes 2.2 / 2.3), each read to its spawn helper. Every one is
+    // issued by a command stream (em001_00_cmdtbl op 0x00) the AI picks by op 0x24 and others, whose values are NOT READ,
+    // so the viewer names the action (input.rock.variant = `variant`; pickVariantsFor lists a clip's). `clip` is the
+    // action's MAIN motion, whose frame the spawn test reads; `partners` are the blend's secondary clips (0xb04d0: same
+    // length, started at the same frame -- INFERRED in step), which the viewer may play instead: they map to the action.
+    // `spawner` = the helper, `spawnArgs` its args, `frames` / `modes` its tests and the mode each makes:
+    //   0xd0a134 / 0xd0a614 / 0xd0b0b8: one test (0xb0974); r1 0 -> shell00, r1 1 -> shell01 mode 0 (a hit volume)
+    //   0xd0a394 / 0xd0b638: three tests, all evaluated; ONE shell, the last passing test's mode (0xd0a3a8..0xd0a3fc)
+    //   0xd0baec(e, r1, r2, 1): r1 1: passes 76 -> modes[0], else 72 -> [1], else 68 -> [2] (0xd0bb04..0xd0bbc8), G rank
+    //     (0x3a8430 > 4) modesG; r1 != 1 -> nothing for em001_00 (variant 4's mode 0x10 only)
+    // `op24` = the branch of the command table's op 0x24 if / else that issues the action: the interpreter's op-0x24 case
+    // 0x86fac runs the `24 00` body only when 0x81634(e) != 0 (0x86fd0..0x86fdc), else skips past the `24 02` marker
+    // (0x8df88) to the else body; 0x81634 = 0 while enraged (P+0x518 == 1, 0x8163c..0x81648), else +0x505 in {1, 2, 3}
+    // (exhaustion pending or tired, 0x8164c..0x81668; states-em043.md: +0x505 0 normal, 1 pending, 2 / 3 tired). Every
+    // em001_00_cmdtbl site: 'if' (tired and not enraged) = the no-fire twins (7, 0x0f) g1 s4 / s82 / s166 / s216..s218 /
+    // s223 / s229 / s231, g8 s0; (7, 0x22) g1 s8 / s12, g8 s0; (7, 0x0b) g1 s126 / s133; (7, 0x6c) g1 s178 / s179. 'else'
+    // = the fire actions (7, 0x02) g1 s4 / s223, g8 s0 (and g1 s127, which has no op 0x24 and no stream calls it: `14 7f`
+    // appears nowhere; whether code enters it is NOT READ); (7, 0x08) g1 s8 / s12, g8 s0; (7, 0x0a) g1 s126 / s133; (7,
+    // 0x6b) g1 s178 / s179; (7, 0x3a) g1 s59 and (7, 0x47) g1 s91, whose `24 00` bodies issue (7, 0x10) = 0xcf44d0(e, 2),
+    // which starts with motion 7 (L0 M7), not L4 M16. No op24: the L4 M65 actions (the choice among them is NOT READ).
+    actions: [
+      // (7, 0x02) / (7, 0x0f) = 0xcfddec(e, 0 / 1): 0xb04d0(e, 0x205 = L2 M5, 0x20f = M15 (w >= 0) or 0x210 = M16, 6.0, 0.0, w)
+      { action: [7, 0x02], code: 0xcfddec, args: [0], list: '2', clip: 'Motion[5]', partners: ['Motion[15]', 'Motion[16]'], spawner: 0xd0a134, spawnArgs: [0], frames: [78.0], shell: 'shell00', modes: [0], op24: 'else', pick: 'ai', variant: '7:0x02' },
+      { action: [7, 0x0f], code: 0xcfddec, args: [1], list: '2', clip: 'Motion[5]', partners: ['Motion[15]', 'Motion[16]'], spawner: 0xd0a134, spawnArgs: [1], frames: [78.0], shell: 'shell01', modes: [0], op24: 'if', pick: 'ai', variant: '7:0x0f' },
+      // (7, 0x0a) / (7, 0x0b) = 0xcfef64(e, 0 / 1): main 0x212 = L2 M18, secondary 0x212 (w >= 0) or 0x211 = M17
+      { action: [7, 0x0a], code: 0xcfef64, args: [0], list: '2', clip: 'Motion[18]', partners: ['Motion[17]'], spawner: 0xd0a614, spawnArgs: [0], frames: [80.0], shell: 'shell00', modes: [4], op24: 'else', pick: 'ai', variant: '7:0x0a' },
+      { action: [7, 0x0b], code: 0xcfef64, args: [1], list: '2', clip: 'Motion[18]', partners: ['Motion[17]'], spawner: 0xd0a614, spawnArgs: [1], frames: [80.0], shell: 'shell01', modes: [0], op24: 'if', pick: 'ai', variant: '7:0x0b' },
+      // (7, 0x08) case body 0xcf0390: setMotion 0x408 = L4 M8, blend 4.0 (no partner); (7, 0x6b) / (7, 0x6c) = 0xd02efc(e,
+      // 0 / 1): main L4 M8, secondary 0x435 = M53 (w >= 0) or 0x436 = M54; (7, 0x22) = 0xcfe204(e, 1): L4 M8
+      { action: [7, 0x08], code: 0xcf0390, args: [], list: '4', clip: 'Motion[8]', partners: [], spawner: 0xd0a394, spawnArgs: [0], frames: [82.0, 122.0, 162.0], shell: 'shell00', modes: [1, 2, 3], op24: 'else', pick: 'ai', variant: '7:0x08' },
+      { action: [7, 0x6b], code: 0xd02efc, args: [0], list: '4', clip: 'Motion[8]', partners: ['Motion[53]', 'Motion[54]'], spawner: 0xd0b638, spawnArgs: [0], frames: [76.0, 114.0, 156.0], shell: 'shell00', modes: [5, 6, 7], op24: 'else', pick: 'ai', variant: '7:0x6b' },
+      { action: [7, 0x22], code: 0xcfe204, args: [1], list: '4', clip: 'Motion[8]', partners: [], spawner: 0xd0a394, spawnArgs: [1], frames: [82.0, 122.0, 162.0], shell: 'shell01', modes: [0, 0, 0], op24: 'if', pick: 'ai', variant: '7:0x22' },
+      { action: [7, 0x6c], code: 0xd02efc, args: [1], list: '4', clip: 'Motion[8]', partners: ['Motion[53]', 'Motion[54]'], spawner: 0xd0b638, spawnArgs: [1], frames: [76.0, 114.0, 156.0], shell: 'shell01', modes: [0, 0, 0], op24: 'if', pick: 'ai', variant: '7:0x6c' },
+      // (7, 0x3a) case body 0xcf01b0 / (7, 0x47) = 0xd01640(e, 1): setMotion 0x410 = L4 M16, blend 4.0; (7, 0x47) turns the
+      // monster while the frame is below 40 (0x76c08(e, 0x111, 0): NOT READ -- input.owner.y is the facing at the spawn)
+      { action: [7, 0x3a], code: 0xcf01b0, args: [], list: '4', clip: 'Motion[16]', partners: [], spawner: 0xd0b0b8, spawnArgs: [], frames: [108.0], shell: 'shell00', modes: [8], op24: 'else', pick: 'ai', variant: '7:0x3a' },
+      { action: [7, 0x47], code: 0xd01640, args: [1], list: '4', clip: 'Motion[16]', partners: [], spawner: 0xd0b0b8, spawnArgs: [], frames: [108.0], shell: 'shell00', modes: [8], op24: 'else', pick: 'ai', variant: '7:0x47' },
+      // (7, 0x77) / (7, 0x7b) / (7, 0x76) / (7, 0x7a) = 0xd03e9c(e, r1, r2) = (1, 0) / (1, 1) / (0, 0) / (0, 1): setMotion
+      // 0x441 = L4 M65, start 0.0 (r2 0) or 64.0 (r2 1); phase 1 0xd0baec(e, r1, r2, 1). (7, 0x7b)'s phase-0 call 0xd0baec(e,
+      // 1, 1, 0) tests 68.0 on the frame pair the motion start leaves -- the viewer's fresh motion has none (not modelled).
+      // No op 0x24 chooses among these four: (7, 0x77) is issued in g1 s212 (under ops 0x6e / 0x1d), (7, 0x76) in g0 s41 /
+      // s43 and g1 s95, (7, 0x7b) / (7, 0x7a) by no stream; which one plays is NOT READ. The two that draw come first.
+      { action: [7, 0x77], code: 0xd03e9c, args: [1, 0], list: '4', clip: 'Motion[65]', partners: [], spawner: 0xd0baec, spawnArgs: [1, 0, 1], frames: [76.0, 72.0, 68.0], shell: 'shell01', modes: [0x21, 0x20, 0x1f], modesG: [0x2e, 0x2d, 0x2c], pick: 'ai', variant: '7:0x77' },
+      { action: [7, 0x7b], code: 0xd03e9c, args: [1, 1], list: '4', clip: 'Motion[65]', partners: [], spawner: 0xd0baec, spawnArgs: [1, 1, 1], frames: [76.0, 72.0, 68.0], shell: 'shell01', modes: [0x21, 0x20, 0x1f], modesG: [0x2e, 0x2d, 0x2c], pick: 'ai', variant: '7:0x7b' },
+      { action: [7, 0x76], code: 0xd03e9c, args: [0, 0], list: '4', clip: 'Motion[65]', partners: [], spawner: 0xd0baec, spawnArgs: [0, 0, 1], frames: [], shell: 'shell01', modes: [], pick: 'ai', variant: '7:0x76' },
+      { action: [7, 0x7a], code: 0xd03e9c, args: [0, 1], list: '4', clip: 'Motion[65]', partners: [], spawner: 0xd0baec, spawnArgs: [0, 1, 1], frames: [], shell: 'shell01', modes: [], pick: 'ai', variant: '7:0x7a' },
+      // THE HOVER TURNS: (4, 4) and (4, 0x15) share the status-4 case body 0xcef9d8 -> 0xcfad9c, which picks L1 M2, M11 or M12
+      // by the turn (0x7a284 from 0x1794170 -> 0x169b674 / 0x169b6b4: motions 0x102 / 0x10b / 0x10c, blend 6.0); no shell.
+      // They matter only to the hover dust, which (4, 0x15) skips on those clips. Which one the AI issues is NOT READ: pick
+      // 'hover' is never listed by pickVariantsFor (so the viewer's default is not (4, 0x15)); the viewer names (4, 0x15)
+      // with input.rock.variant '4:0x15' (or input.action [4, 0x15]) when it wants that play.
+      { action: [4, 0x04], code: 0xcfad9c, args: [], list: '1', clip: 'Motion[2]', partners: ['Motion[11]', 'Motion[12]'], frames: [], modes: [], pick: 'hover', variant: '4:0x04' },
+      { action: [4, 0x15], code: 0xcfad9c, args: [], list: '1', clip: 'Motion[2]', partners: ['Motion[11]', 'Motion[12]'], frames: [], modes: [], pick: 'hover', variant: '4:0x15' },
+    ],
+    // THE LANDING DUST: the per-frame handler (vtable +0x208 = 0xcf1a5c, run from the enemy's vtable +0x28 after its move)
+    // switches on the motion id (0xb0944; tables 0xcf1c70 / 0xcf1aa4 / 0xcf1d00 / 0xcf1b90) and, on the same frame pair the
+    // action code tests (0xb09b0 = 0x72714 on +0x13ac / +0x13b4), calls 0xd09e28(e, mode, 900.0). `ids` = motion ids (list
+    // << 8 | slot), `frame` the literal, `mode` the shell01 mode. Needs no pick. (L4 M34 / M37, 0x422 / 0x425, share two
+    // case bodies but are not in em001_00's .lmt files.)
+    dust: [
+      { ids: [0x018, 0x01b, 0x01e], at: 0xcf1cd8, frame: 2.0, mode: 14 },
+      { ids: [0x104], at: 0xcf1e04, frame: 2.0, mode: 13 },
+      { ids: [0x105], at: 0xcf1e0c, frame: 46.0, mode: 14 },
+      { ids: [0x10e], at: 0xcf1e14, frame: 52.0, mode: 13 },
+      { ids: [0x111], at: 0xcf1e3c, frame: 2.0, mode: 14 },
+      { ids: [0x113, 0x40d], at: 0xcf1d7c, frame: 2.0, mode: 14 },
+      { ids: [0x125], at: 0xcf1e64, frame: 4.0, mode: 14 },
+      { ids: [0x407], at: 0xcf1e94, frame: 34.0, mode: 14 },
+      { ids: [0x409, 0x425], at: 0xcf1c4c, frame: 112.0, mode: 14 },
+      { ids: [0x40a], at: 0xcf1ebc, frame: 28.0, mode: 14 },
+      { ids: [0x40f, 0x422], at: 0xcf1d84, frame: 2.0, mode: 14 },
+      { ids: [0x411], at: 0xcf1f04, frame: 2.0, mode: 20 },
+      // THE HOVER DUST (shared-state-effects.md 10): L1 M1 (0xcf1b50) and L1 M2 / M11 / M12 (0xcf1b38: nothing when
+      // 0x6fe88(e, 4, 0x15) -- "the action is (4, 0x15)", +0x73e0 == 4 && +0x73e1 == 0x15, 0x6fe88..0x6feb4): byte ctl+0x14
+      // (ctl = [e+0xcac0] = block +0x60, so block +0x74) != 0 -> 0xd09e28(e, 13, 900.0), no frame test. ctl+0x14 is a
+      // ONE-FRAME PULSE: vtable +0x1dc = 0xcee250, called every move at 0xaddc8 (before the action main 0xadddc), clears
+      // it (0xcee2a8), adds the step to the timer ctl+8 (0x7264c -> 0x539d48, times 1.0), and at ctl+8 >= 100.0 (0xcee3cc)
+      // sets ctl+8 = 0 and ctl+0x14 = 1 (0xcee2c0..0xcee2e0); the setup 0xcecd94 zeroes both (0xcece94 / 0xceceac). So
+      // one c 30 per 100 frames of hover, phased by the timer since the monster's setup, not by the clip (input.stepCount).
+      { ids: [0x101], at: 0xcf1b50, pulse: true, mode: 13 },
+      { ids: [0x102, 0x10b, 0x10c], at: 0xcf1b38, pulse: true, not: [4, 0x15], mode: 13 },
+      // L2 M12 (0xcf1dc8): posture P+0x1ba == 3 and 0xb09a4(e, 1, 0, 24.0) (cur >= 24) -> 0xcf2424, every 16 frames
+      // (block +0x5c58) at the owner's ground. NEVER in Rathian's play: its posture while L2 M12 plays is 1 (`postures`).
+      { ids: [0x20c], at: 0xcf1dc8, period: 16.0, from: 24.0, posture: 3, mode: 15 },
+    ],
+    // P+0x1ba, the posture, while a clip plays -- only where a dust row reads it (L2 M12). L2 M12 is set by one site in the
+    // class code, 0xcff700 in 0xcff66c ((7, 0x1c) / (7, 0x1d) / (7, 0x39)), whose phase 0 calls 0xbc984 first (0xcff6f0:
+    // posture 1 unless already 1, 0xbca0c..0xbca18); posture 3 comes only with its switch to L2 M11 (0xbc7f4(e, 3) at
+    // 0xcff7d8, setMotion 0x20b at 0xcff7ec).
+    postures: { '2|Motion[12]': 1 },
+  },
 };
+
+// An action plays `clip` when it is the action's main motion or one of its blend partners (Rathian's 0xb04d0 actions:
+// the viewer may show the secondary clip, whose frames run with the main one's -- shells-em001.md 2.2).
+const playsClip = (a, clip) => a.clip === clip || (!!a.partners && a.partners.includes(clip));
 
 // The action the monster would be playing this clip in. A clip reached only by 'chain' has one action; a clip the
 // command table picks by rage has two, and rage decides (the switch is evaluated when the action is chosen, i.e. at
@@ -345,7 +573,7 @@ export const SHELL_DATA = {
 export function actionFor(monId, list, clip, rage, force){
   const D = SHELL_DATA[monId];
   if (!D) return null;
-  const cands = D.actions.filter(a => a.list === String(list) && a.clip === clip);
+  const cands = D.actions.filter(a => a.list === String(list) && playsClip(a, clip));
   if (force) return cands.find(a => a.action[0] === force[0] && a.action[1] === force[1]) || null;
   const byRage = cands.filter(a => a.pick === (rage ? 'rage' : 'calm'));
   if (byRage.length === 1) return byRage[0];
@@ -364,26 +592,39 @@ export function rockActionFor(monId, list, clip, variant){
   return D.actions.find(a => a.pick === 'rock' && a.variant === variant && a.list === String(list) && a.clip === clip) || null;
 }
 
-// Any monster's viewer-named action: Savage's rocks (pick 'rock', the variants above -- rockActionFor's answer) and
-// Nargacuga's tail spikes (pick 'ai', the variant is the action, '7:0x28' ... '7:0x84'). null when the clip has none.
+// Any monster's viewer-named action: Savage's rocks (pick 'rock', the variants above -- rockActionFor's answer),
+// Nargacuga's tail spikes and Rathian's fireballs / breath (pick 'ai', the variant is the action, '7:0x28' ... ; a
+// Rathian blend partner clip names its main clip's actions), and Rathian's hover turns (pick 'hover', '4:0x04' /
+// '4:0x15': named only, never listed by pickVariantsFor). null when the clip has none.
 export function variantActionFor(monId, list, clip, variant){
   const D = SHELL_DATA[monId];
   if (!D || !variant) return null;
-  return D.actions.find(a => (a.pick === 'rock' || a.pick === 'ai') && a.variant === variant && a.list === String(list) && a.clip === clip) || null;
+  return D.actions.find(a => (a.pick === 'rock' || a.pick === 'ai' || a.pick === 'hover') && a.variant === variant && a.list === String(list) && playsClip(a, clip)) || null;
 }
 
 // The variants a clip's shells can be thrown with, in a fixed order (the actions table's), for the viewer to name one
-// per play in input.rock.variant -- the AI's pick among them is NOT READ. Savage's rock clips (L2 Motion[23] / [24]):
-// ROCK_VARIANTS; Nargacuga's spike clip (L2 Motion[8]): its issued actions '7:0x28', '7:0x29', '7:0x2a', '7:0x2b',
-// '7:0x2c', '7:0x35', '7:0x3a', '7:0x82', '7:0x84'. Any other clip: [] (its shells, if any, need no pick). `clip` may
-// carry a _start / _loop suffix.
-export function pickVariantsFor(monId, list, clip){
+// per play in input.rock.variant -- where the AI's pick among them is not read. opts = { tired, rage } (both false by
+// default): an action the command table issues from one branch of its op-0x24 if / else (`op24`) is listed only in that
+// branch's state -- the `24 00` body runs when 0x81634 != 0 (0x86fac..0x86fdc): not enraged and +0x505 in {1, 2, 3}
+// (exhaustion pending or tired), so tired && !rage lists the 'if' actions, anything else the 'else' ones; an action
+// with no op24 is listed either way. Savage's rock clips (L2 Motion[23] / [24]): ROCK_VARIANTS, tired or not (both
+// op-0x24 branches throw the same rock); Nargacuga's spike clip (L2 Motion[8]): its issued actions '7:0x28', '7:0x29',
+// '7:0x2a', '7:0x2b', '7:0x2c', '7:0x35', '7:0x3a', '7:0x82', '7:0x84', tired or not (no op 0x24 issues them). Rathian
+// (shells-em001.md 10), not tired / tired: L2 Motion[5] and its blend partners Motion[15] / [16]: '7:0x02' / '7:0x0f';
+// L2 Motion[18] (and partner Motion[17]): '7:0x0a' / '7:0x0b'; L4 Motion[8]: '7:0x08', '7:0x6b' / '7:0x22', '7:0x6c'
+// (partners Motion[53] / [54]: '7:0x6b' / '7:0x6c'); L4 Motion[16]: '7:0x3a', '7:0x47' / none (tired, the streams issue
+// (7, 0x10), another clip); L4 Motion[65], either way: '7:0x77', '7:0x7b', '7:0x76', '7:0x7a' (the choice among them is
+// not read; the two that draw first). Any other clip: [] (its shells, if any, need no pick -- Rathian's landing dust).
+// `clip` may carry a _start / _loop suffix.
+export function pickVariantsFor(monId, list, clip, opts){
   const D = SHELL_DATA[monId];
   if (!D || !clip) return [];
   const base = String(clip).replace(/_(start|loop)$/, '');
+  const branch = opts && opts.tired && !opts.rage ? 'if' : 'else';
   const names = [];
   for (const a of D.actions)
-    if ((a.pick === 'rock' || a.pick === 'ai') && a.variant && a.list === String(list) && a.clip === base && !names.includes(a.variant)) names.push(a.variant);
+    if ((a.pick === 'rock' || a.pick === 'ai') && a.variant && a.list === String(list) && playsClip(a, base) &&
+        (!a.op24 || a.op24 === branch) && !names.includes(a.variant)) names.push(a.variant);
   return names;
 }
 
@@ -910,7 +1151,7 @@ function move00(S, ctx, D){
   const hit = collide(S, null, ctx.floorY);             // vtable +0x168 = 0x3f99e0
   if (!hit) return 'keep';
   S.events.push({ ev: 'hit', point: hit.point, type: hit.type });
-  (LANDING[S.cls] || landing)(S, D, hit);               // vtable +0x150: base00's 0x3f8878 unless the class has its own
+  (LANDING[S.cls] || landing)(S, D, hit, ctx);          // vtable +0x150: base00's 0x3f8878 unless the class has its own
   return 'end';
 }
 
@@ -950,7 +1191,9 @@ function stepRock(S, J, ctx, input, D, out){
     const r = S.base === 'base00' ? move00(S, ctx, D) : move54(S, J, ctx, D);
     for (const e of S.events){
       if (e.ev === 'start') out.started.push({ shell: S, start: e.start });
-      else if (e.ev === 'create') out.created.push({ shell: S, create: e });   // a shell the move created (0x48b884)
+      // a shell the move created (0x48b884) that is not stepped here (Nargacuga's drop); Rathian's are stepped shells,
+      // reported in out.spawned when they are made
+      else if (e.ev === 'create' && !e.stepped) out.created.push({ shell: S, create: e });
     }
     if (r === 'end'){                                   // vtable +0x148 with 0 (0x3f9ef4 / 0x42c0c0)
       end(S);
@@ -988,7 +1231,10 @@ function motionIdOf(list, clip){
 
 const isRockAction = (D, a) => { const d = D.shells[a.shell]; return !!d && (d.base === 'base00' || d.base === 'base54'); };
 // the joint a shell's init reads (base01 -- Nargacuga's shell01 -- reads none)
-const shellJoint = (def, mode) => def.base === 'base01' ? null : def.cmn ? def.cmn.ints[0] : mode.sh.ints[0];
+// (Rathian's base01, reader 0xd0e6a0: the joint +0x15e4 = int 1 when flag 1 (int 0 != -1) is set -- modes 0 and 44..46;
+// base11 reads none)
+const shellJoint = (def, mode) => def.base === 'base01' ? (def.reader === 0xd0e6a0 && mode.sh.ints[0] !== -1 ? mode.sh.ints[1] : null)
+                                : def.base === 'base11' ? null : def.cmn ? def.cmn.ints[0] : mode.sh.ints[0];
 // the effect lists a shell's requests name: its own .shl's when the data gives them per shell, else the monster's
 const listsOf = (D, S) => (D.shells[S.shell] && D.shells[S.shell].lists) || D.lists;
 
@@ -1043,19 +1289,21 @@ function params37(sh){
 }
 
 // 0x3f9b58(shell, &aX, &aY, from, T, off): the angles from `from` to the target T, as u16. off = [+0x1618], which
-// base00's ctor points at the zero vector (0x3f8a98) and this reader leaves: its branch runs with (0, 0, 0) -- the
-// yaw it turns the offset by and the additions are kept as the ROM computes them (they add signed zeros); it also
-// writes +0x1640..+0x1648 = T + the turned offset, which nothing reads after the init.
-function aim37(from, T){
+// base00's ctor points at the zero vector (0x3f8a98) and Nargacuga's reader leaves: its branch runs with (0, 0, 0) --
+// the yaw it turns the offset by and the additions are kept as the ROM computes them (they add signed zeros).
+// Rathian's reader (0xd0d988) points it at (0, f6, 0) (+0x1660..+0x1668): the offset turned by the first yaw is added
+// to the difference, its y to dy. It also writes +0x1640..+0x1648 = T + the turned offset (`target`), which nothing
+// reads after the init.
+const ZERO3 = [0, 0, 0];
+function aim37(from, T, off = ZERO3){
   let dx = f(T[0] - from[0]), dy = f(T[1] - from[1]), dz = f(T[2] - from[2]);
-  const off = [0, 0, 0];
   const r = f(u16(s32(mla(0.5, atan2f(dx, dz), RAD_TO_U16))) * U16_TO_RAD), sn = sinf(r), cs = cosf(r);
   const ox = mla(f(off[0] * cs), off[2], sn), oz = mls(f(off[2] * cs), off[0], sn);     // 0x3f9bf4..0x3f9c04
   dy = f(dy + off[1]); dz = f(dz + oz); dx = f(dx + ox);                                // 0x3f9c14..0x3f9c28
   const Y = s32(mla(0.5, atan2f(dx, dz), RAD_TO_U16));                                  // 0x3f9c54..0x3f9c84
   const h = sqrtf(mla(f(dz * dz), dx, dx));
   const X = s32(mla(0.5, atan2f(f(-dy), h), RAD_TO_U16));                               // 0x3f9c9c..0x3f9cb0
-  return { X: u16(X), Y: u16(Y) };
+  return { X: u16(X), Y: u16(Y), target: [f(T[0] + ox), f(off[1] + T[1]), f(oz + T[2])] };
 }
 
 // the circular clamp of a 32-bit angle v to [lo, hi] (X 0x3f9530..0x3f9588, Y 0x3f9e80..0x3f9ed8): d = u16(v - lo),
@@ -1066,20 +1314,25 @@ function clampCircular(v, lo, hi){
   return u16((0x8000 | (r >>> 1)) > d ? hi : lo);
 }
 
-// 0x3f9378: the X adjust. Flag 1 clear: the X offset +0x15ec in degrees, as u16. Flag 1 set (this reader always sets
-// flag 4: the aim starts at the launch point p): the aim's X from p to the target minus the owner's X word, plus the
-// offset (32-bit), clamped to [+0x1600, +0x1604]. `got.target` is null only for a kind that never depends on it: the
-// one aimed mode among them (mode 0) has lo == hi, and then the clamp gives lo whatever the aim.
+// 0x3f9378: the X adjust. Flag 1 clear: the X offset +0x15ec in degrees, as u16. Flag 1 set: the aim's X from a point
+// to the target minus the owner's X word, plus the offset (32-bit), clamped to [+0x1600, +0x1604]. The point: flag 4
+// set (Nargacuga's reader always sets it) the launch point p; flag 4 clear (Rathian's reader never sets it) the owner's
+// point, 0x3f93f0..0x3f9494 (aimFrom001), with the aim offset [+0x1618] (k.aimOff; Nargacuga: none, the zero vector).
+// `got.target` is null only for a kind that never depends on it: the one aimed Nargacuga mode among them (mode 0) has
+// lo == hi, and then the clamp gives lo whatever the aim. Rathian's aimed modes keep what the aim computed in k.aim.
 function xAdjust37(k, p, got){
   const deg = s32(mla(0.5, k.xDeg, DEG_TO_U16));
   if (!(k.flags & 1)) return u16(deg);
-  if (!(k.flags & 4)) throw new Error('shells.js: base00 X aim from the owner (flag 4 clear, 0x3f93f0..0x3f9498): not transcribed');
   const lo = s32(mla(0.5, k.xLo, DEG_TO_U16)), hi = s32(mla(0.5, k.xHi, DEG_TO_U16));
   if (!got.target){
     if (u16(hi - lo) === 0) return u16(lo);
     throw new Error('shells.js: an aimed spike without a target');
   }
-  return clampCircular(deg + (aim37(p, got.target).X - got.ownerX), lo, hi);
+  if (k.flags & 4) return clampCircular(deg + (aim37(p, got.target).X - got.ownerX), lo, hi);
+  const from = aimFrom001(k, got);
+  const a = aim37(from, got.target, k.aimOff);
+  k.aim = { from, X: a.X, Y: a.Y, target: a.target };
+  return clampCircular(deg + (a.X - got.ownerX), lo, hi);
 }
 
 // vtable +0x16c = 0x3f9cc4: the Y adjust, the same with flag 2, the aim's Y minus the owner's Y word, the offset
@@ -1153,7 +1406,7 @@ function dropShell01(S, D, point){
 }
 
 // vtable +0x150 by class, where the class has its own
-const LANDING = { uShellEm037_sp_00: landing37 };
+const LANDING = { uShellEm037_sp_00: landing37, uShellEm001_sp_00: landing001 };
 
 // 0xe48fc8(e, xIdx, kind): the setups of an action's shells. off = s32(mla(0.5, [0x169dc74 + 4 xIdx], 182.04445)); X =
 // the owner's X word + u16(off) (uxtah, 32-bit); Y, Z = the owner's words through vcvt.f32.u32 then vcvt.u32.f32 (exact
@@ -1205,10 +1458,519 @@ function spawnSpikes(state, D, a, J, ctx, got){
   return made;
 }
 
+// ---- Rathian (em001_00): the fireballs, the ground fire, the explosions, the landing dust, the breath puffs -------------
+// Notes E:\offline\decode\notes\shells-em001.md (sections cited as "notes N"). The fireball is base00, flown exactly as
+// Savage's rock and Nargacuga's spike (move 0x3f96a0 -> 0x3f9738: move00 / stepRock); its own parts are the reader
+// 0xd0d988 (params001), base00's init as that reader's flags run it (init001: the X aim from the OWNER's point with the
+// aim offset, 0x3f93f0..0x3f9494) and the landing 0xd0dc9c (landing001), which creates shells. shell01 is base01
+// (params011, init011, step011: init 0x3fa498, move 0x3faec4 -> 0x3fb048, end 0x3fb264, ending 0x3fafd0..), shell11 is
+// base11 on top of it (init 0x402fd8, +0x150 0x40308c, sp_11's create 0xd0efc0). A shell made by a shell is a real,
+// stepped shell: 0x48b884 runs its init at once (its effect starts then) and 0xc03670 appends it at the TAIL of unit
+// line 18, whose walker 0xc04728 reads a unit's next pointer (+0x14) BEFORE it runs the unit (0xc047a4) -- so the new
+// shell moves in the same frame unless its creator was the last unit of the line (the walk in stepShells). The owner's
+// side: the attack actions' spawn helpers (spawn001) and the per-frame handler's landing dust (dust001).
+// dev/shells-rathian-check.mjs runs all of it against the ROM's reference runs
+// (efx\agents\rathian-shell-scratch\rathian-shell-reference.json), move by move, bit for bit.
+
+// sp_00's reader 0xd0d988 (vtable +0x14c; getters 0x4a22f0.. as em043 s1), notes 3.2: what base00 reads
+function params001(sh){
+  const I = i => i < sh.ints.length ? sh.ints[i] : 0, F = i => i < sh.floats.length ? f(sh.floats[i]) : 0;
+  const V = i => i < sh.vecs.length ? sh.vecs[i].map(f) : [0, 0, 0];
+  // +0x15e8 (0xd0da54..0xd0db24, each bit cleared then set): bit 0 = int 3 != -1, bit 1 = int 4, bit 2 = int 5, bit 3 =
+  // int 6, bit 5 (0x20) = int 7; the others keep base00's ctor 0. em001_00: 0x01 (modes 0, 4..7), 0x00 (modes 1, 2, 3, 8)
+  const flags = (I(3) !== -1 ? 1 : 0) | (I(4) !== -1 ? 2 : 0) | (I(5) !== -1 ? 4 : 0) | (I(6) !== -1 ? 8 : 0) | (I(7) !== -1 ? 0x20 : 0);
+  return { joint: I(0),                // +0x15dc: int 0 (3)
+           i1: I(1), i2: I(2),         // +0x15e0 / +0x15e4: the landing's camera request ids (type 0 / type 1)
+           flags,
+           xDeg: F(0), yDeg: F(1),     // +0x15ec / +0x15f0: the X offset / the Y spread, degrees
+           vz: F(2),                   // +0x15f4: speed along +Z
+           vy: 0,                      // +0x15f8: not written by this reader; base00's ctor clears +0x15ec..+0x160f (0x3f8a6c..0x3f8a74)
+           flight: F(3),               // +0x15fc: flight time
+           xLo: F(4), xHi: F(5),       // +0x1600 / +0x1604: the X clamp, degrees
+           yLo: F(7), yHi: F(8),       // +0x1608 / +0x160c: the Y clamp (flag 2 is never set: not read)
+           aimOff: [0, F(6), 0],       // +0x1618 = &+0x1660: (+0x1660 = 0, +0x1664 = f6, +0x1668 = 0) (0xd0dc0c..0xd0dc3c)
+           vec: V(0),                  // +0x1610 = &vec 0: the launch offset in the joint's space
+           from: V(1),                 // +0x1614 = &vec 1: the aim-from offset in the owner's space
+           gravity: [0, 0, 0] };       // +0x161c keeps the ctor's zero vector (0x3f8a9c..0x3f8aa0): no gravity
+}
+
+// 0xbe518(owner): block +0x1ac x block +0x1b0 (the size); 0xbec34(owner): that over [[e+0x75e8]+0x64] (the base scale)
+const size001 = got => f(got.size[0] * got.size[1]);
+const scale001 = got => f(size001(got) / got.base);
+
+// 0x3f93f0..0x3f9494 (flag 1 set, flag 4 clear): the point the X aim starts from -- the owner's position plus the
+// size times vec 1 turned by the owner's facing (u16 block +0x54), plus block +0x5c on y
+function aimFrom001(k, got){
+  const v = k.from, sc = size001(got);
+  const r = f(u16(got.ownerY) * U16_TO_RAD), sn = sinf(r), cs = cosf(r);
+  const a = f(sc * v[0]), b = f(sc * v[2]);
+  const P = got.ownerPos;
+  return [f(P[0] + mla(f(a * cs), b, sn)), f(got.y5c + mla(P[1], sc, v[1])), f(P[2] + mls(f(b * cs), a, sn))];
+}
+
+// base00's init 0x3f8b80 after the reader 0xd0d988 (notes 4). J = the joints built for the previous pose; `got` = the
+// owner block the init reads (owner001: inputs the ROM takes from the game).
+function init001(S, J, got){
+  const k = S.k = params001(S.mode.sh);
+  if (k.flags & ~1) throw new Error('shells.js: sp_00 flags 0x' + k.flags.toString(16) + ': only flag 1 is transcribed (every em001_00 mode)');
+  // the angle words (0x3f8c70..0x3f8c94): flag 0x20 clear -> +0xfe8 = block +0x50 (the owner's X), +0xfec = block +0x54
+  // (Y), +0xff0 = 0 (flag 0x200 clear); state 1; timer +0x162c = +0x15fc
+  const A = [got.ownerX >>> 0, got.ownerY >>> 0, 0];
+  S.timer = k.flight;
+  const M = jointMatrix(J, k.joint);                    // 0xc15a4: joint 3
+  if (!M) return false;
+  const p = launchPoint(M, k.vec);                      // row 3 + vec 0 through M's 3x3 (0x3f8e70..0x3f8ec0; flag 0x80 clear)
+  const ax = xAdjust37(k, p, got), ay = yAdjust37(k, p, got);
+  A[0] = (A[0] + ax) >>> 0;                             // +0xfe8 += the X adjust, 32-bit
+  A[1] = (A[1] + ay) >>> 0;                             // +0xfec += the Y adjust (vtable +0x16c = 0x3f9cc4, flag 2 clear)
+  S.angles = A;
+  S.position = p;                                       // +0x40 = p, anchor +0x1000 = p
+  S.anchor = p.slice();
+  S.gravity = gravityOf(k.gravity, A[1]);               // vtable +0x170 = 0x3f9f98 with the zero vector: signed zeros
+  S.velocity = launchVelocity(k.vy, k.vz, A);           // 0x3f91a0..0x3f928c: (0, 0, f2) turned by Z, X, Y
+  // +0x1640..+0x1648: the target copy (block +0x1d0.., 0x3f8b80 step 1) or, aimed, the target plus the turned aim offset
+  S.launch = { point: p.slice(), target: got.target ? got.target.slice() : null, flags: k.flags, xAdjust: ax, yAdjust: ay,
+               aim: k.aim || null, target1640: k.aim ? k.aim.target.slice() : (got.target ? got.target.slice() : null),
+               angles: A.slice(), position: S.position.slice(), anchor: S.anchor.slice(), velocity: S.velocity.slice(),
+               gravity: S.gravity.slice(), timer: S.timer };
+  return true;
+}
+
+// 0x43ac04(shell, n): n != -1 (and the shell's byte +0x1054 the local one) -> a camera request with id n at the shell
+// (0x19148 -> uFestaCamera 0x1ce9c: INFERRED a shake, NOT READ further) -- an event only
+function camera001(S, n){ if (n !== -1) S.events.push({ ev: 'camera', id: n }); }
+
+// sp_00's landing, vtable +0x150 = 0xd0dc9c(shell, &c, &result, type) (notes 5.2). The owner is always active in the
+// viewer (0x4a0f00 / 0x4a0f38), so the creates always run; each is a shell01 / shell11 setup (0x40 bytes, 0x3fa2bc: +0x10
+// = the contact, +0x30..+0x38 = the fireball's angle words) made with 0x48b884 -- its init runs at once. Then 0x3f8970
+// starts the param at the contact (contactStart: handle -> +0x1628), and the caller ends the fireball (vtable +0x148, 0).
+function landing001(S, D, hit, ctx){
+  const k = S.k, mode = S.modeIndex;
+  // "in mask" (0xd0dd08..0xd0dd24): mode - 8 <= 0x1d (unsigned) and bit (mode - 8) of 0x227f000f -- modes 8..11,
+  // 24..30, 33, 37; of em001_00's only mode 8
+  const m8 = (mode - 8) >>> 0, inMask = m8 <= 0x1d && ((0x227f000f >>> m8) & 1) === 1;
+  const make = (name, m) => ctx.create(S, name, { mode: m, position: hit.point.slice(), angles: S.angles.map(w => w >>> 0) });
+  let param;
+  if (hit.type === 1){                                   // the floor (0xd0dcd8..)
+    param = 2;                                           // +0x15d0
+    camera001(S, k.i2);                                  // 0x43ac04(shell, +0x15e4): 1 (modes 0..7), 5 (mode 8)
+    if (inMask) make('shell11', 0);                      // 0xd0dd28..0xd0ddec: id [owner+0xcacc]
+    else if (mode === 0x1f || (mode >= 0x22 && mode <= 0x24) || mode === 0x20)
+      throw new Error('shells.js: em001 landing of mode 0x' + mode.toString(16) + ': not transcribed (no em001_00 files)');
+    else make('shell01', 1);                             // 0xd0e360..0xd0e444: id [owner+0xcac8]
+    // the stage result's halfword +8 & 0x1040 == 0 -> the ground fire, shell01 mode 2 (0xd0ddf0..0xd0deb8, 0xd0dfb8). The
+    // bits are the stage's (NOT READ); the plane stand-in's result record is zero there, so the fire is always made.
+    if (!((hit.resultH8 || 0) & 0x1040)) make('shell01', 2);
+  } else if (hit.type === 0){                            // too steep (0xd0debc..): never with the plane stand-in
+    param = 1;                                           // +0x15cc
+    camera001(S, k.i1);                                  // 0x43ac04(shell, +0x15e0)
+    if (inMask) make('shell01', 9);
+  } else {                                               // type 2, a hunter (0xd0dfcc..): the viewer has none
+    if (inMask) make('shell01', 9);
+    param = 3;                                           // +0x15d4
+  }
+  contactStart(S, D, param, hit.point, 'landing');       // 0x3f8970(shell, param, &c)
+}
+
+// ---- base01 (uShellEmBase01) and base11 -------------------------------------------------------------------------------
+// sp_01's reader 0xd0e6a0 (notes 6.1). `sh` null = a mode with no files: every int -1, float 0.0, vec the zero vector.
+// The ctor 0x3fa2f8 leaves what the reader does not write: +0x15f4 = +0x15f8 = 500.0 (the ground query's reach up /
+// down), +0x1604 = 900.0 (the owner-height limit), +0x1608 = +0x160c = the zero vector.
+function params011(sh){
+  const I = i => !sh ? -1 : i < sh.ints.length ? sh.ints[i] : 0, F = i => !sh ? 0 : i < sh.floats.length ? f(sh.floats[i]) : 0;
+  const V = i => !sh ? [0, 0, 0] : i < sh.vecs.length ? sh.vecs[i].map(f) : [0, 0, 0];
+  // +0x15ec (0xd0e700..0xd0e864): bit 0 = int 0 != -1, bit 1 = int 2, bit 2 = int 3, bit 3 = int 4, bit 7 (0x80) = int 5,
+  // bit 8 (0x100) = int 6, bit 11 (0x800) = int 7, bit 12 (0x1000) = int 8. em001_00: mode 0 0x3, 1 0, 2 0xc, 6..9 0x4,
+  // 13 / 14 / 15 / 20 0x1084, 44..46 0x1
+  const flags = (I(0) !== -1 ? 1 : 0) | (I(2) !== -1 ? 2 : 0) | (I(3) !== -1 ? 4 : 0) | (I(4) !== -1 ? 8 : 0) |
+                (I(5) !== -1 ? 0x80 : 0) | (I(6) !== -1 ? 0x100 : 0) | (I(7) !== -1 ? 0x800 : 0) | (I(8) !== -1 ? 0x1000 : 0);
+  return { flags,
+           joint: I(1),                // +0x15e4
+           timer: F(0),                // +0x15f0 -> timer +0x1614
+           f1600: F(1), f15fc: F(2),   // +0x1600 (the hit radius growth frames, 0xd0e9d4: not visual), +0x15fc
+           vec: V(0),                  // +0x1608 = &vec 0
+           up: f(500.0), down: f(500.0), maxH: f(900.0) };
+}
+
+// sp_11's reader 0xd0ee8c (notes 7): none of base01's fields (flags 0, timer 0, +0x1608 the ctor's zero vector); +0x1664 =
+// [owner+0xcac8] (the shell01 id); a 4-float table (+0x1654, count +0x1658 = 4) = sh floats [0x169b744[k]]
+function params11(def, mode){
+  const F = i => i < mode.sh.floats.length ? f(mode.sh.floats[i]) : 0;
+  return { flags: 0, joint: -1, timer: 0, f1600: 0, f15fc: 0, vec: [0, 0, 0], up: f(500.0), down: f(500.0), maxH: f(900.0),
+           table: def.times.map(F) };
+}
+
+// the X-Y-Z turn of a vector by the three angle words (their low halves x 9.58738e-05), as base01 computes it
+// (0x3fa65c..0x3fa73c; the same at 0x3fa9f4..0x3faab4)
+function rotXYZ(v, A){
+  const X = f(u16(A[0]) * U16_TO_RAD), Y = f(u16(A[1]) * U16_TO_RAD), Z = f(u16(A[2]) * U16_TO_RAD);
+  const sX = sinf(X), cX = cosf(X), sY = sinf(Y), cY = cosf(Y);
+  const [vx, vy, vz] = v;
+  const a = mla(f(vz * cX), vy, sX), b = mls(f(vy * cX), vz, sX);
+  const c = mla(f(vx * cY), a, sY), z = mls(f(a * cY), vx, sY);
+  const sZ = sinf(Z), cZ = cosf(Z);
+  return [mls(f(c * cZ), b, sZ), mla(f(b * cZ), c, sZ), z];
+}
+
+// 0x232530's normalisation: left as is when the length is below 2^-23
+function norm3(v){
+  const l = sqrtf(mla(mla(f(v[1] * v[1]), v[0], v[0]), v[2], v[2]));
+  if (l < SEG_EPS) return v.slice();
+  const r = f(1.0 / l);
+  return [f(r * v[0]), f(r * v[1]), f(r * v[2])];
+}
+
+// 0x232530(m, fwd, up): the frame from a forward and an up vector (notes 6.2.5): rows (R, U, F'), R = U x F (normalised
+// unless shorter than 2^-23), F' = R x U
+function frameFrom(fwd, up){
+  const F = norm3(fwd), U = norm3(up);
+  let r30 = mls(f(F[0] * U[2]), F[2], U[0]), r17 = mls(f(F[2] * U[1]), F[1], U[2]), r28 = mls(f(F[1] * U[0]), F[0], U[1]);
+  const l = sqrtf(mla(mla(f(r30 * r30), r17, r17), r28, r28));
+  if (!(l < SEG_EPS)){ const inv = f(1.0 / l); r28 = f(r28 * inv); r30 = f(inv * r30); r17 = f(inv * r17); }
+  return [r17, r30, r28, 0, U[0], U[1], U[2], 0,
+          mls(f(U[2] * r30), U[1], r28), mls(f(U[0] * r28), U[2], r17), mls(f(U[1] * r17), U[0], r30), 0, 0, 0, 0, 1];
+}
+
+// 0x43b1a0(shell, &+0xfe8, &result, &+0xfec) (flag 8): the angle words from the ground normal n (result +0x20) and the
+// yaw word -- fwd = (sin Y, 0, cos Y) as the ROM computes it, the frame 0x232530, its Euler angles 0x7c3a38, each
+// u16(s32(0.5 + e x 10430.378))
+function groundAngles(A, n){
+  const r = f(u16(A[1]) * U16_TO_RAD), sY = sinf(r), cY = cosf(r);
+  const e = eulerOf(frameFrom([mla(sY, cY, 0.0), 0, mls(cY, sY, 0.0)], n));
+  return [u16(s32(mla(0.5, e.x, RAD_TO_U16))), u16(s32(mla(0.5, e.y, RAD_TO_U16))), u16(s32(mla(0.5, e.z, RAD_TO_U16)))];
+}
+
+// base01's init 0x3fa498 (notes 6.2) with the reader's params k; setup = { position (+0x10..), angles (+0x30..+0x38) }.
+// Returns false where the init deletes the shell (0x3fae84).
+function init011(S, k, setup, got, J, floorY){
+  if (k.flags & 0x800) throw new Error('shells.js: base01 flag 0x800 (+0x1650 x 0xbec34): not transcribed (no em001_00 mode)');
+  let A = setup.angles.map(w => w >>> 0);               // +0xfe8..+0xff0 = setup +0x30..+0x38 (0x3fa594..0x3fa5a8)
+  const v = k.vec;
+  let pos;
+  if (k.flags & 0x80){
+    // at the owner's ground (0x3fa740..0x3fa82c): the owner's x / z plus the scaled vec turned by its facing, y = the
+    // ground (block +0x5b4) plus vec.y x sc; deleted unless block +0x44 - block +0x5b4 < +0x1604 (0x3fa8b0..0x3fa8dc).
+    // This path skips the words' offset, the ground snap and flag 8.
+    const sc = scale001(got);
+    const r = f(u16(got.ownerY) * U16_TO_RAD), sn = sinf(r), cs = cosf(r);
+    const a = f(v[0] * sc), b = f(v[2] * sc);
+    const P = got.ownerPos;
+    pos = [f(P[0] + mla(f(a * cs), b, sn)), mla(got.ground, v[1], sc), f(mls(f(b * cs), a, sn) + P[2])];
+    if (!(f(P[1] - got.ground) < k.maxH)) return false;
+  } else {
+    // the words += u16(s32(0.5 + [+0x160c] x 182.04445)) (uxtah): [+0x160c] is the ctor's zero vector, + 0
+    const add = u16(s32(mla(0.5, 0.0, DEG_TO_U16)));
+    A = A.map(w => (w + add) >>> 0);
+    if (!(k.flags & 1)){
+      // 0x3fa65c..0x3fa73c + 0x3faab8: the setup's point plus 0xbec34 x (vec turned X, Y, Z by the words)
+      const [x, y, z] = rotXYZ(v, A), sc = scale001(got), P = setup.position;
+      pos = [f(f(sc * x) + P[0]), f(f(sc * y) + P[1]), f(f(z * sc) + P[2])];
+    } else {
+      if (k.joint === -1) throw new Error('shells.js: base01 on the owner\'s own matrix (+0x15e4 == -1, 0x3fa8e4): not transcribed');
+      const M = jointMatrix(J, k.joint);                // 0xc15a4
+      if (!M) return false;
+      if (k.flags & 2){                                 // 0x3fa9f4..0x3faab4: the turned vec, no scale, + row 3
+        const d = rotXYZ(v, A);
+        pos = [f(d[0] + M[12]), f(d[1] + M[13]), f(d[2] + M[14])];
+      } else pos = launchPoint(M, v);                   // 0x3fa994..0x3fa9ec: vec through M's 3x3 + row 3
+    }
+    if (k.flags & 4){
+      // the ground snap (0x3faaf8..0x3faba0): query 0x183490 (mask 0x10) from +0x15f4 above down to +0x15f8 below (0 ->
+      // 1e6), result -> +0x1060; no hit -> deleted; a hit -> y = the hit's y
+      const up = k.up !== 0 ? k.up : f(1000000.0), dn = k.down !== 0 ? k.down : f(1000000.0);
+      const q = stageQuery([pos[0], f(pos[1] - dn), pos[2]], [pos[0], f(pos[1] + up), pos[2]], floorY);
+      if (!q) return false;
+      pos[1] = q.point[1];
+      if (k.flags & 8) A = groundAngles(A, q.normal);    // then 0x4a211c (byte +0x159c from the attribute: not visual)
+    }
+  }
+  S.position = pos;                                     // +0x40; anchor +0x1000, +0x10f0 = y (0x3fabf0..0x3fac18)
+  S.anchor = pos.slice();
+  S.angles = A;
+  S.timer = k.timer;                                    // state 1; timer +0x1614 = +0x15f0
+  S.elapsed = 0;                                        // +0x1618
+  return true;
+}
+
+// base01's move 0x3faec4 -> state 1 0x3fb048 (notes 6.3). The owner is always active in the viewer (0x4a0f38).
+function move011(S, ctx, D){
+  const T = S.timer;
+  if (T > 0){
+    const e = f(ctx.dt + S.elapsed);                    // +0x1618 += dt; past the timer -> the end
+    S.elapsed = e;
+    if (e > T) return 'end';
+    // flag 0x100 with both hit slots idle -> vtable +0x158 (the registration again): no em001_00 mode has flag 0x100
+    if (S.k.flags & 0x100) throw new Error('shells.js: base01 flag 0x100 (0x3fb098..0x3fb0d4): not transcribed');
+  } else if (!(S.slots && S.slots.some(sl => sl.on))) return 'end';     // T <= 0: ends unless byte +0x13ad or +0x1465 is set
+  // flag 0x20 -> vtable +0x164 (never set by these readers), +0x160 (bx lr), then +0x150: sp_01's 0xd0e9d4 (the hit
+  // radius growth: not visual) or base11's 0x40308c
+  return S.base === 'base11' ? tick11(S, ctx, D) : 'keep';
+}
+
+// base11's +0x150 = 0x40308c: while table[idx] < +0x1618, vtable +0x168(shell, idx) (sp_11: 0xd0efc0) and idx + 1
+// (+0x1660); idx at the count (+0x1658) -> the end (vtable +0x148 with 0)
+function tick11(S, ctx, D){
+  const T = S.k.table;
+  while (S.next < T.length && T[S.next] < S.elapsed){ create11(S, S.next, ctx, D); S.next++; }
+  return S.next < T.length ? 'keep' : 'end';
+}
+
+// sp_11's vtable +0x168 = 0xd0efc0(shell, k): shell01 mode 0x169b764[k] at the shell's point plus sh vec [0x169b754[k]]
+// turned by its Y word (ldrh +0xfec), with its angle words (setup +0x30..); the owner is always active in the viewer
+function create11(S, idx, ctx, D){
+  const def = D.shells[S.shell], sh = S.mode.sh, vi = def.vecIdx[idx];
+  const v = vi < sh.vecs.length ? sh.vecs[vi].map(f) : [0, 0, 0];
+  const r = f(u16(S.angles[1]) * U16_TO_RAD), sn = sinf(r), cs = cosf(r);
+  const P = S.position;
+  ctx.create(S, 'shell01', { mode: def.modes01[idx], angles: S.angles.map(w => w >>> 0),
+                             position: [f(mla(f(v[0] * cs), v[2], sn) + P[0]), f(v[1] + P[1]), f(mls(f(v[2] * cs), v[0], sn) + P[2])] });
+}
+
+// base01's end 0x3fb264(shell, 0): graceful stops (0x43b058 -> 0x329c40(h, 0)) of +0x1624 / +0x1628 / +0x162c, 0x4a1de4
+// (hit side), vtable +0x154 (sp_01 0xd0eb20: creates only for modes 0x1b / 0x11 / 0x1d / 0x34 / 0x36 -- none of these),
+// state 0xfe, +0x1618 = 0; EffectParam +0x15d4 (a request at the end) is never set by these readers
+function end011(S){
+  S.stops = [];
+  for (const h of [S.effect, S.effect2]) if (h && !h.gone) S.stops.push({ param: h.param, request: 0, key: h.key });
+  for (const s of S.stops) S.events.push({ ev: 'stop', param: s.param, key: s.key, flag: 0 });
+  S.stop = S.stops[0] || null;
+  S.state = 0xfe;
+  S.elapsed = 0;
+}
+
+// one base01 / base11 shell's move this step (vtable +0x24 = 0x3faec4)
+function step011(S, ctx, input, D, out){
+  S.events = [];
+  S.place = null;                                       // never placed: no 0x329c9c / 0x329d04 in 0xd0d928..0xd0f400
+  const alive = h => input.effectAlive ? !!input.effectAlive(S, h.param, h) : true;
+  // +0x1378 += dt, 0x4a1698 (hit side, not visual); a handle whose unit left states 1 / 2 is dropped (0x3faeec..0x3fafb8)
+  if (S.effect && !S.effect.gone && !alive(S.effect)) S.effect.gone = true;
+  if (S.effect2 && !S.effect2.gone && !alive(S.effect2)) S.effect2.gone = true;
+  if (S.state === 1){
+    S.moves++;
+    if (move011(S, ctx, D) === 'end'){ end011(S); out.ended.push(S); }
+  } else if (S.state === 0xfe){                         // the ending (0x3fafd0..0x3fb03c)
+    const e = f(ctx.dt + S.elapsed);                    // +0x1618 += dt
+    S.elapsed = e;
+    if (e > ENDING_FRAMES) S.state = 0xff;              // past [0x162493c] x 60: deleted (vtable +0x40)
+    else if (!(S.effect && !S.effect.gone) && !(S.effect2 && !S.effect2.gone)) S.state = 0xff;   // all four handles gone
+  }
+}
+
+// ---- the hit slots: the life of a timer-0 shell01 (input.hitLife) ----------------------------------------------------
+// A shell01 whose timer is 0 lives while a hit slot byte (+0x13ad, slot 0; +0x1465, slot 1) is set (0x3fb0dc..0x3fb0f8).
+// READ: the init's registration (vtable +0x158 -> 0x4a1ad8 gate -> vtable +0x140 0x43a8b0 -> 0x4a1b24 -> 0x168a2c) for
+// HitParam int 0 -> slot 0 and int 1 -> slot 1 when >= 0: byte +5 = 1, delay +0x5c = s16 record +0, duration +0x60 = s16
+// record +2 of the shell's hitdata record (0x168a54..0x168a84); the slot update 0x168d30: delay > 0 -> delay -= step, and
+// at <= 0 the overshoot is added to the duration and delay = 0; else duration <= 0 -> byte +5 = 0; else duration -= step.
+// NOT READ: who calls 0x168d30 and where in the frame, the step it uses ([0x211f764]+0x68, or times the owner's +0x50c by
+// slot +0x31 bit 1), the slot's owner-motion checks under +0x31 bit 0, and the gate 0x4a1ad8 (taken to pass). The viewer
+// input: input.hitLife true -> each slot counts down once per step after every shell's move (the hit manager's pass,
+// INFERRED order), by dt -- a shell made and moved in a step ends at move delay + duration + 2 (+ 1 for a shell made by the
+// last unit of line 18, which first moves the next step). Without it, the ROM-run harness's life: the end at move 1.
+function slotsOf011(def, mode){
+  const out = [];
+  if (!mode || !mode.hit || !def.hitdata) return out;
+  for (const slot of [0, 1]){
+    const idx = mode.hit[slot];
+    if (idx == null || idx < 0 || !def.hitdata[idx]) continue;
+    out.push({ slot, record: idx, on: true, delay: f(def.hitdata[idx][0]), duration: f(def.hitdata[idx][1]) });
+  }
+  return out;
+}
+function slotStep(sl, step){                            // 0x168d30
+  if (!sl.on) return;
+  if (sl.delay > 0){
+    const d = f(sl.delay - step);
+    sl.delay = d;
+    if (d > 0) return;
+    sl.duration = f(d + sl.duration);
+    sl.delay = 0;
+    return;
+  }
+  if (!(sl.duration > 0)){ sl.on = false; return; }
+  sl.duration = f(sl.duration - step);                  // (+0x64 / +0x68, further countdowns: not read, not the byte)
+}
+
+// ---- making a Rathian shell: 0x48b884 (the init at once; the unit to the tail of line 18) --------------------------------
+// setup = { id, mode, position (+0x10..), angles (+0x30..+0x38) [, action, frame] }; J = the joints the init reads (the
+// previous pose's in the enemy's line 4, this frame's in line 18); `creator` = the shell whose move made it, or null
+function make001(state, D, name, setup, got, J, ctx, creator){
+  const def = D.shells[name], mode = def.modes[setup.mode] || null;
+  const S = { id: state.nextId++, monId: state.monId, shell: name, cls: def.cls, globalId: def.id, base: def.base,
+              mode, modeIndex: setup.mode, action: setup.action || null, spawnFrame: setup.frame == null ? null : setup.frame,
+              motion: ctx.motion, state: 1, folder: def.folder,
+              setup: { id: setup.id, mode: setup.mode, position: setup.position.slice(), angles: setup.angles.map(w => w >>> 0) },
+              creator: creator ? creator.id : null, createdAtMove: creator ? creator.moves : null,
+              position: null, prevPosition: null, anchor: null, angles: null, velocity: null, gravity: null, trail: null,
+              timer: 0, elapsed: 0, moves: 0, bounces: 0, held: false, launch: null, events: [], initEvents: [],
+              effect: null, effect2: null, start: null, starts: [], place: null, stop: null, stops: [], slots: null };
+  S.effects = (mode ? mode.ef : []).map(([listId, key], param) => ({ param, listId, list: (D.lists[listId] || {}).list || null, key, started: false }));
+  if (def.base === 'base00'){
+    if (!mode || !init001(S, J, got)) return null;
+    // EffectParam 0 at +0x40: requester parent the shell (+0xfd0), ShellScale, no rotation; handle -> +0x1624
+    S.start = rockRequest(D, mode, 0, S.position, 'flight');
+    S.effect = S.start ? { param: 0, key: S.start.key, kind: 'flight' } : null;
+    if (S.start){ S.effects[0].started = true; S.starts.push(S.start); S.initEvents.push({ ev: 'start', param: 0, start: S.start }); }
+    else S.initEvents.push({ ev: 'refused', param: 0, listId: mode.ef[0] ? mode.ef[0][0] : null, key: mode.ef[0] ? mode.ef[0][1] : null });
+  } else {
+    const k = S.k = def.base === 'base11' ? params11(def, mode) : params011(mode ? mode.sh : null);
+    if (!init011(S, k, setup, got, J, ctx.floorY)) return null;
+    if (def.base === 'base11'){
+      S.timer = f(k.table[k.table.length - 1] + 10.0);  // 0x402fd8: +0x1614 = the last time + 10.0 (+0x165c = -1: no motion-speed divide)
+      S.next = 0;                                        // +0x1660
+      S.shell01Id = D.shells.shell01.id;                 // +0x1664 = [owner+0xcac8]
+    }
+    // EffectParam 0 at +0x40 -> +0x1624, EffectParam 1 -> +0x1628 (0x3fad08..0x3fadf8): requester at +0x40, parent the
+    // shell (+0xfd0), ShellScale, no rotation. A (999, -1) / (n, -1) param is refused (0x4a11e4); a mode with no files
+    // (or shell11, which has no EffectParams) starts nothing.
+    for (const param of [0, 1]){
+      const p = mode && mode.ef[param];
+      if (!p) continue;
+      const rq = rockRequest(D, mode, param, S.position, 'init');
+      if (!rq){ S.initEvents.push({ ev: 'refused', param, listId: p[0], key: p[1] }); continue; }
+      S.initEvents.push({ ev: 'start', param, start: rq });
+      S.starts.push(rq);
+      S.effects[param].started = true;
+      if (param === 0) S.effect = { param, key: rq.key, kind: 'init' }; else S.effect2 = { param, key: rq.key, kind: 'init' };
+    }
+    S.start = S.starts[0] || null;
+    // the hit registration (vtable +0x158): the slots, counted only with input.hitLife
+    if (got.hitLife) S.slots = slotsOf011(def, mode);
+  }
+  S.prevPosition = S.position.slice();
+  return S;
+}
+
+// The owner block the Rathian code reads -- inputs the viewer gives (the ROM takes them from the game): the angle words
+// block +0x50 / +0x54 / +0x58 (input.owner x / y / z), the position block +0x40.. (input.ownerPos), the ground block +0x5b4
+// (input.ground, else the stage floor input.rock.floorY), the size block +0x1ac / +0x1b0 (input.size: [a, b] or one
+// number = [n, 1]; [1, 1] for the viewer's unscaled monster), the base scale [[e+0x75e8]+0x64] (input.baseScale, 1),
+// block +0x5c (input.y5c, 0 at rest: 0xa5db8 decays it toward 0), the target block +0x1d0.. (input.rock.target), the
+// stage (input.rock.floorY), the quest rank byte 0x3a8430 (input.rank: 1 / 3 / 5, default 5 -- "> 4" = G rank is
+// INFERRED), and input.hitLife (the timer-0 shells' hit-slot life, above).
+function owner001(input){
+  const o = input.owner, r = input.rock, P = input.ownerPos, t = r && r.target, fin = Number.isFinite;
+  const sz = input.size == null ? [1, 1] : Array.isArray(input.size) ? input.size : [input.size, 1];
+  return { facing: !!o && fin(o.y),
+           ownerX: o && fin(o.x) ? o.x >>> 0 : 0, ownerY: o && fin(o.y) ? o.y >>> 0 : 0, ownerZ: o && fin(o.z) ? o.z >>> 0 : 0,
+           ownerPos: P && fin(P.x) && fin(P.y) && fin(P.z) ? [f(P.x), f(P.y), f(P.z)] : null,
+           target: t && fin(t.x) && fin(t.y) && fin(t.z) ? [f(t.x), f(t.y), f(t.z)] : null,
+           floorY: r && fin(r.floorY) ? f(r.floorY) : null,
+           ground: fin(input.ground) ? f(input.ground) : (r && fin(r.floorY) ? f(r.floorY) : null),
+           size: [f(sz[0]), f(sz[1])], base: f(input.baseScale == null ? 1 : input.baseScale), y5c: f(input.y5c == null ? 0 : input.y5c),
+           rank: input.rank == null ? 5 : input.rank, hitLife: !!input.hitLife };
+}
+// the first missing input among those named, as a refusal reason (null: all present)
+function missing001(own, need){
+  if (need.facing && !own.facing) return 'no owner facing (input.owner.y)';
+  if (need.floor && own.floorY == null) return 'no floor (input.rock.floorY)';
+  if (need.target && !own.target) return 'no target (input.rock.target)';
+  if (need.pos && !own.ownerPos) return 'no owner position (input.ownerPos)';
+  if (need.ground && own.ground == null) return 'no ground (input.ground or input.rock.floorY)';
+  return null;
+}
+
+// the owner's angle words as the spawners copy them into a shell01 setup: e+0xfe8..+0xff0, the words' low halves
+// (0xc2710 copies block +0x50..+0x58 there, the advance's wrapper keeps the low halves, 0x719e4..0x71a04)
+const ownerWords001 = own => [own.ownerX & 0xffff, own.ownerY & 0xffff, own.ownerZ & 0xffff];
+
+// 0x72714 mode 0 on the frame pair (F[k-2], F[k-1]] -- the test in stepShells (0x72b1c; looped 0x7294c)
+function pass001(state, F){
+  const [prev, cur] = state.hist, ls = state.loopStart;
+  return prev <= cur ? (!(cur < F) && prev < F) : ((ls != null && ls <= F && !(cur < F)) || prev < F);
+}
+
+// The attack actions' spawn helpers (notes 2.1 / 2.2 / 2.3), in the enemy's action code (line 4) on the previous pose's
+// joints: which test passed and which mode it makes; shell00 -> a fireball, shell01 -> the helper's setup (0x3fa2bc: +0x10
+// = the zero vector 0x19176b0, +0x30.. = e+0xfe8.., +0x3c = 0xffff; 0xd09b84 for the breath)
+function spawn001(state, D, a, ctx, input, out){
+  let i = -1;
+  if (a.spawner === 0xd0baec){ if (a.spawnArgs[0] === 1) i = a.frames.findIndex(F => pass001(state, F)); }   // 76, else 72, else 68
+  else a.frames.forEach((F, j) => { if (pass001(state, F)) i = j; });    // every test evaluated; the last passing one's mode
+  if (i < 0) return;
+  const own = ctx.own001;
+  const J = state.prevJoints;
+  if (a.shell === 'shell00'){
+    const mode = a.modes[i], aimed = !!(params001(D.shells.shell00.modes[mode].sh).flags & 1);
+    const why = missing001(own, { facing: true, floor: true, target: aimed, pos: aimed });
+    if (why){ out.refused.push({ action: a.action, shell: a.shell, mode, why }); return; }
+    const S = make001(state, D, 'shell00', { id: D.shells.shell00.id, mode, position: [0, 0, 0], angles: [0, 0, 0], action: a.action, frame: a.frames[i] },
+                      own, J, ctx, null);
+    if (S){ state.shells.push(S); out.spawned.push(S); }
+    return;
+  }
+  const mode = a.modesG && own.rank > 4 ? a.modesG[i] : a.modes[i];      // 0x3a8430 > 4 (G rank, INFERRED)
+  const why = missing001(own, { facing: true });
+  if (why){ out.refused.push({ action: a.action, shell: a.shell, mode, why }); return; }
+  const S = make001(state, D, 'shell01', { id: D.shells.shell01.id, mode, position: [0, 0, 0], angles: ownerWords001(own), action: a.action, frame: a.frames[i] },
+                    own, J, ctx, null);
+  if (S){ state.shells.push(S); out.spawned.push(S); }
+}
+
+// ctl+0x14 this step (the hover dust's pulse; see the dust rows): the ROM's timer ctl+8 counts the enemy's moves from its
+// setup (0xcece94 = 0; + the step x 1.0 each move, the viewer's unit step dt 1) and pulses on the move where it reaches
+// 100.0, i.e. moves 100, 200, ... since the setup, whatever clip plays. The viewer gives its own count of steps since
+// the monster was mounted, this one included (input.stepCount: the schedule's step counter; without it, this module's
+// count of stepShells calls since createShellState, state.frames): the pulse is on every 100th. Its PHASE -- the mount,
+// not the game's setup -- is a viewer stand-in.
+function pulse74(input, state){
+  const n = Number.isFinite(input.stepCount) ? input.stepCount : state.frames;
+  return n > 0 && n % 100 === 0;
+}
+
+// The per-frame handler's landing dust (vtable +0x208 = 0xcf1a5c, after the enemy's move; notes 2.4): the row of the
+// playing motion id, its test, then 0xd09e28(e, mode, 900.0) -- block +0x44 > block +0x5b4 + 900 (or unordered) ->
+// nothing (0xd09e48..0xd09e5c); else a setup at block +0x40.. with e+0xfe8.. (0xd09e80..0xd09ee0). `a` = the action the
+// viewer names for the clip (the hover rows skip (4, 0x15), 0x6fe88). The posture the L2 M12 row reads is the one the
+// ROM has while that clip plays (D.postures); input.posture overrides it for the checks only -- the viewer never
+// passes it (the harness's reference D6 forced 3).
+function dust001(state, D, ctx, input, out, fresh, a){
+  const m = /^Motion\[(\d+)\]$/.exec(input.clip || ''), L = String(input.list);
+  if (!m || !/^\d+$/.test(L)) return;
+  const mid = (Number(L) << 8) | Number(m[1]);
+  const row = D.dust.find(r => r.ids.includes(mid));
+  if (!row) return;
+  const own = ctx.own001;
+  let at = null;                                         // the setup's point, when a shell is made
+  if (row.pulse){
+    if (!pulse74(input, state)) return;                  // byte ctl+0x14 (block +0x74) != 0 (0xcf1b50)
+    if (row.not && a && a.action[0] === row.not[0] && a.action[1] === row.not[1]) return;   // 0x6fe88(e, 4, 0x15) (0xcf1b38)
+  } else if (row.period){
+    const posture = input.posture != null ? input.posture : (D.postures || {})[L + '|' + input.clip];
+    if (posture !== row.posture || fresh || !state.hist) return;   // posture P+0x1ba == 3 (0xcf1dc8)
+    // 0xb09a4(e, 1, 0, 24.0) = 0x72714 mode 1: cur >= 24 (0x72b04); after a loop (0x7290c) prev + step >= 24 || cur >= 24,
+    // and prev + step, the frame before the wrap, is past the clip's end -- taken as true (INFERRED)
+    const [prev, cur] = state.hist;
+    if (prev <= cur && cur < row.from) return;
+    // 0xcf2424: block +0x5c58 += the owner's dt (0x7264c -> 0x539d48, vmla with 1.0); at >= 16.0 it is reset to 0 and
+    // mode 15 made at (block +0x40, block +0x5b4, block +0x48) -- no 900 test here (the shell's own init has one)
+    state.acc5c58 = mla(state.acc5c58, ctx.dt, 1.0);
+    if (!(state.acc5c58 >= row.period)) return;
+    state.acc5c58 = 0;
+    const why = missing001(own, { facing: true, pos: true, ground: true });
+    if (why){ out.refused.push({ dust: row.at, shell: 'shell01', mode: row.mode, why }); return; }
+    at = [own.ownerPos[0], own.ground, own.ownerPos[2]];
+  } else if (fresh || !state.hist || !pass001(state, row.frame)) return;             // 0xb09b0(e, F)
+  if (!at){
+    const why = missing001(own, { facing: true, pos: true, ground: true });
+    if (why){ out.refused.push({ dust: row.at, shell: 'shell01', mode: row.mode, why }); return; }
+    if (!(own.ownerPos[1] <= f(own.ground + 900.0))) return;                         // 0xd09e28's height test
+    at = own.ownerPos.slice();
+  }
+  const S = make001(state, D, 'shell01', { id: D.shells.shell01.id, mode: row.mode, position: at, angles: ownerWords001(own), frame: row.frame == null ? null : row.frame },
+                    own, state.prevJoints, ctx, null);
+  if (S){ S.dust = row.at; state.shells.push(S); out.spawned.push(S); }
+}
+
+// the spawn helpers stepShells hands a Rathian action to
+const HELPERS001 = new Set([0xd0a134, 0xd0a394, 0xd0a614, 0xd0b638, 0xd0b0b8, 0xd0baec]);
+
 // ---- the step ------------------------------------------------------------------------------------------------------
 export function createShellState(monId){
+  // acc5c58: Rathian's block +0x5c58, the 16-frame dust period of 0xcf2424 (who else resets it: NOT READ; 0 here)
   return { monId, data: SHELL_DATA[monId] || null, motion: null, action: null, hist: null, prevJoints: null,
-           shells: [], nextId: 1, frames: 0 };
+           shells: [], nextId: 1, frames: 0, acc5c58: 0 };
 }
 
 // a frame within 0.0005 under an integer is that integer (0x94ef64..0x94ef94, the motion advance; 0x72854 the test)
@@ -1229,7 +1991,24 @@ function snapFrame(x){
 //                   the target its aim reads, the stage it hits: a plane at floorY); no rock without all of them.
 //                   Nargacuga's spikes read the same object: variant = the action, '7:0x28' .. '7:0x84'
 //                   (pickVariantsFor(monId, list, clip) lists a clip's names), the target only for the aimed
-//                   '7:0x82' / '7:0x84', the floor always; owner.y (the facing) always, owner.x / .z as given (0),
+//                   '7:0x82' / '7:0x84', the floor always; owner.y (the facing) always, owner.x / .z as given (0).
+//                   Rathian's actions the same way: variant '7:0x02' ... (pickVariantsFor(monId, list, clip, { tired,
+//                   rage }): the fire actions, or while tired and not enraged the no-fire twins -- the command table's
+//                   op-0x24 if / else; a blend partner clip names its main clip's), the target read only by fireball
+//                   modes 0 / 4..7, the floor by every fireball,
+//          RATHIAN (em001_00) also reads, on EVERY step (its landing dust needs no pick, so pass these even without a
+//          rock variant): owner { x, y, z } (the words block +0x50 / +0x54 / +0x58; the fireballs take them whole, a
+//          shell01 setup their low halves), ownerPos?: { x, y, z } (block +0x40.., game units: the aimed fireballs and the
+//          dust; refused without it), ground? (block +0x5b4; default input.rock.floorY), size? ([+0x1ac, +0x1b0] or one
+//          number = [n, 1]; default [1, 1], the unscaled monster), baseScale? ([[e+0x75e8]+0x64]; default 1), y5c? (block
+//          +0x5c; default 0, at rest), rank? (0x3a8430's quest rank byte 1 / 3 / 5; default 5, "> 4" = G rank INFERRED:
+//          the breath puffs 44..46; 1 / 3 make modes 31..33, which draw nothing), hitLife? (true: a timer-0 shell01 lives
+//          while its hit slots count down, the hit data's delay + duration -- see slotStep; absent: move 1, the
+//          ROM-run harness), stepCount? (the viewer's steps since the monster was mounted, this one included -- the
+//          schedule's step counter: the hover dust's timer, one pulse every 100th step; its phase is a viewer stand-in for
+//          the game's setup; without it this module counts its own calls), variant '4:0x15' (or action [4, 0x15]) to
+//          name the hover turn that skips the L1 M2 / M11 / M12 dust -- never listed by pickVariantsFor, so the default
+//          is the other one; posture? (a test override of P+0x1ba for the checks; the viewer never passes it),
 //          effectAlive?: (shell, param, handle) => bool }
 // returns { spawned, started, ended, removed, alive, refused, created }. spawned / ended / removed / alive are shells;
 // each carries `start` (spawned: the effect request), `place` (each moving step: what 0x329c9c / 0x329d04 give the
@@ -1244,6 +2023,14 @@ function snapFrame(x){
 // (the three u32 words +0xfe8 / +0xfec / +0xff0, as the ROM keeps them), velocity (+0x1010), timer, moves, bounces,
 // held, events (this step's move: { ev: 'hit' | 'start' | 'stop', ... } in ROM order), launch (what the init left),
 // effect (the flying effect's handle, param 0) and effect2 (the last bounce / landing effect's handle).
+// RATHIAN: every shell is in out.spawned the step it is made -- by an action or the dust (line 4) or by another shell's
+// move (a landing's shell01 1 / 2 or shell11; shell11's explosions), with `creator` (the maker's id) and createdAtMove --
+// and carries `start` (the first effect its init started: the fireball's c 0 / u 30, the fire's c 3, an explosion's u
+// 31..34, the dust's c 30 / 31, a puff's u 61 / 62; null for a hit volume or a mode with no files), `starts` (every one;
+// em001_00 never starts two), `initEvents` ({ ev: 'start' | 'refused' }, in ROM order), `setup` (the setup the maker
+// filled), position / angles (base01 never moves), timer (+0x1614) and elapsed (+0x1618). A fireball's landing puts c 1
+// in out.started (effect2) and its creates in its events ({ ev: 'create', stepped: true, child }); `camera` events are
+// 0x43ac04's requests. out.created stays for shells made and not stepped (Nargacuga's drop), none for Rathian.
 export function stepShells(state, input){
   const out = { spawned: [], started: [], ended: [], removed: [], alive: [], refused: [], created: [] };
   const D = state.data;
@@ -1255,6 +2042,18 @@ export function stepShells(state, input){
                 floorY: input.rock && Number.isFinite(input.rock.floorY) ? f(input.rock.floorY) : null,
                 ownerMotion: input.clip ? motionIdOf(input.list, input.clip) : null, frameSeen: null };
   const J = typeof input.joints === 'function' ? input.joints : (() => null);
+  // Rathian: the owner block its code reads (inputs, owner001), and the shells its shells make (0x48b884 during a move in
+  // line 18: inited at once on this frame's joints, appended at the tail of the line, reported in out.spawned)
+  if (D.dust){
+    ctx.own001 = owner001(input);
+    ctx.create = (creator, name, setup) => {
+      const def = D.shells[name], full = Object.assign({ id: def.id }, setup);
+      const S2 = make001(state, D, name, full, ctx.own001, J, ctx, creator);
+      creator.events.push({ ev: 'create', stepped: true, shell: name, id: def.id, mode: full.mode, position: full.position.slice(),
+                            angles: full.angles.slice(), child: S2 ? S2.id : null, deleted: !S2 });
+      if (S2){ state.shells.push(S2); out.spawned.push(S2); }
+    };
+  }
   const frame = input.clip ? snapFrame(input.frame) : 0;
   // THE MOTION. A new clip is a new motion id. A frame that went back is either the motion's own loop -- a _loop
   // clip wrapping to its start (input.loopStart, the _start clip's length as driveClipEffects computes it) -- or the
@@ -1274,7 +2073,12 @@ export function stepShells(state, input){
   // stream the AI takes (NOT READ), so input.rock.variant names it -- read at each spawn test. Nargacuga's spike clip
   // (L2 M8) the same: the variant names the action.
   const a = state.action || (input.action ? null : variantActionFor(input.monId, input.list, input.clip, input.rock && input.rock.variant));
-  if (a && !fresh && state.prevJoints){
+  if (a && a.pick === 'hover'){
+    // Rathian's hover turns make no shell: the action only matters to the hover dust below
+  } else if (a && !fresh && state.prevJoints && HELPERS001.has(a.spawner)){
+    // Rathian's spawn helpers: their own tests on the same frame pair, one shell per call (spawn001)
+    spawn001(state, D, a, ctx, input, out);
+  } else if (a && !fresh && state.prevJoints){
     const [prev, cur] = state.hist, F = a.frame;
     // 0x72b1c: cur >= f && prev < f; after the motion looped (0x7294c): (loopStart <= f && cur >= f) || prev < f
     const passed = prev <= cur ? (!(cur < F) && prev < F)
@@ -1296,27 +2100,22 @@ export function stepShells(state, input){
       if (S){ out.spawned.push(S); state.shells.push(S); }
     }
   }
+  // Rathian's per-frame handler (its landing dust), run from the enemy's vtable +0x28 after its move: still line 4
+  if (D.dust) dust001(state, D, ctx, input, out, fresh, a);
   ctx.frameSeen = state.hist ? state.hist[1] : null;               // F[k-1], for a held rock (0xb09a4)
-  // 2. line 18, the shells, in the order they were made: each one's move (vtable +0x24) on this frame's joints
-  for (const S of state.shells){
-    if (S.base === 'base00' || S.base === 'base54'){ stepRock(S, J, ctx, input, D, out); continue; }
-    const alive = p => (input.effectAlive ? !!input.effectAlive(S, p) : true);
-    if (S.state === 1){
-      if (S.effect && !alive(0)) S.effect.gone = true;                // 0x3ff944: a dead handle is cleared
-      const r = S.base === 'base04' ? move04(S, J, ctx, D) : move55(S, J, ctx, D);
-      S.place = (S.effect && !S.effect.gone) ? { param: 0, position: S.anchor.slice(), rotationDeg: aimOf(S.position, S.anchor, ctx.owner.z) } : null;
-      if (r === 'end'){ end(S); out.ended.push(S); }
-    } else if (S.state === 0xfe){                                     // 0x3ff998 / 0x42cbbc: waiting for the effect
-      S.place = null;
-      let T = S.timer;
-      if (!(T > 0)){ S.timer = 0; S.state = 0xff; }
-      else {
-        T = f(T - ctx.dt); S.timer = 0 >= T ? 0 : T;
-        const any = (S.effect && !S.effect.gone && alive(0)) || (S.effect2 && alive(1));
-        if (!(T > 0) || !any) S.state = 0xff;
-      }
-    }
+  // 2. line 18, the shells, in the order they were made: each one's move (vtable +0x24) on this frame's joints. The
+  // walker 0xc04728 reads a unit's next pointer (+0x14) before it runs the unit (0xc047a4) and 0xc03670 appends a new unit
+  // at the tail: a shell a move makes is reached in this walk unless its maker was the last unit (Rathian's landings and
+  // explosion timer; Savage's and Nargacuga's shells make none that are stepped)
+  for (let i = 0; i < state.shells.length; i++){
+    const S = state.shells[i], last = i === state.shells.length - 1;
+    if (S.base === 'base00' || S.base === 'base54') stepRock(S, J, ctx, input, D, out);
+    else if (S.base === 'base01' || S.base === 'base11') step011(S, ctx, input, D, out);
+    else stepBreath(S, J, ctx, input, D, out);
+    if (last) break;
   }
+  // the hit manager's pass (input.hitLife only; see slotStep): every registered slot counted down once
+  for (const S of state.shells) if (S.slots) for (const sl of S.slots) slotStep(sl, ctx.dt);
   for (const S of state.shells) if (S.state === 0xff) out.removed.push(S);
   state.shells = state.shells.filter(S => S.state !== 0xff);
   out.alive = state.shells.slice();
@@ -1332,6 +2131,26 @@ export function stepShells(state, input){
   }
   state.prevJoints(0);
   return out;
+}
+
+// one breath shell's move this step (base04 0x3ff938, base55 0x42cb28): Savage's shell04 / shell55
+function stepBreath(S, J, ctx, input, D, out){
+  const alive = p => (input.effectAlive ? !!input.effectAlive(S, p) : true);
+  if (S.state === 1){
+    if (S.effect && !alive(0)) S.effect.gone = true;                // 0x3ff944: a dead handle is cleared
+    const r = S.base === 'base04' ? move04(S, J, ctx, D) : move55(S, J, ctx, D);
+    S.place = (S.effect && !S.effect.gone) ? { param: 0, position: S.anchor.slice(), rotationDeg: aimOf(S.position, S.anchor, ctx.owner.z) } : null;
+    if (r === 'end'){ end(S); out.ended.push(S); }
+  } else if (S.state === 0xfe){                                     // 0x3ff998 / 0x42cbbc: waiting for the effect
+    S.place = null;
+    let T = S.timer;
+    if (!(T > 0)){ S.timer = 0; S.state = 0xff; }
+    else {
+      T = f(T - ctx.dt); S.timer = 0 >= T ? 0 : T;
+      const any = (S.effect && !S.effect.gone && alive(0)) || (S.effect2 && alive(1));
+      if (!(T > 0) || !any) S.state = 0xff;
+    }
+  }
 }
 
 function spawn(state, D, a, J, ctx){

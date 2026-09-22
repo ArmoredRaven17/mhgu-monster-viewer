@@ -17,8 +17,10 @@
 // auras run through every motion (live.js setRage, as the viewer's Enraged toggle starts them). --wiring: every 15
 // frames, each visible effect material's compiled program is read back from WebGL: active uniforms the viewer never
 // set (they read 0), attributes the geometry lacks (a constant), samplers with no texture -- per program, at the end.
-// --rock <shell00_0 | shell00_8 | shell54_0>: a TEST input for Savage's rock throw (shells.js): the rock lands on the
-// unit's own floor height, aimed at a point 2000 units ahead -- test stand-ins, not the viewer's choice.
+// --rock <variant>: a TEST input for a monster's shells (shells.js pickVariantsFor names them: Savage's shell00_0 /
+// shell00_8 / shell54_0, Nargacuga's 7:0x28 .., Rathian's 7:0x02 ..): the shell lands on the unit's own floor height,
+// aimed at a point 2000 units ahead -- test stand-ins, not the viewer's choice. Motions named on the command line play
+// even when they carry no clip effect of their own.
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import net from 'node:net';
@@ -83,12 +85,18 @@ function pageSoak(MONID, ONLY, CAMERA, RAGE, WIRING, ROCK){
       await V.effects(false); await V.effects(true);
       let fx = M.effectRuntimeInstance();
       if (RAGE && fx) fx.setRage(true);
-      const setRock = rt => { if (ROCK && rt && rt.schedule) rt.schedule.rockInput = () => { const p = rt.parent.position; return { variant: ROCK, target: { x: p[0], y: p[1], z: p[2] + 2000 }, floorY: p[1] }; }; };
+      // the viewer's own shell inputs (index.html rockInput: the target 2100 ahead on the grid floor, the floor), the pick
+      // fixed; a page without that hook: the unit's own height as the floor, 2000 ahead
+      const setRock = rt => { if (ROCK && rt && rt.schedule) rt.schedule.rockInput = V.rockInput
+        ? () => { const r = V.rockInput(); return r && { ...r, variant: ROCK }; }
+        : () => { const p = rt.parent.position; return { variant: ROCK, target: { x: p[0], y: p[1], z: p[2] + 2000 }, floorY: p[1] }; }; };
       setRock(fx);
       const sched = M.CLIP_EFFECTS[MONID] || {};
       // a monster with no clip effects (its effects are auras) plays its first clip for 600 frames instead: '(idle)'
       const keys0 = Object.keys(sched);
-      const keys = (keys0.length ? keys0 : ['(idle)']).filter(k => !ONLY.length || ONLY.includes(k));
+      // motions named on the command line play whether or not they carry clip effects (a shell's clip may have none of
+      // its own: Rathian's L2 Motion[5] throws its fireball and fires no PSL bit)
+      const keys = ONLY.length ? ONLY.slice() : (keys0.length ? keys0 : ['(idle)']);
       S.total = keys.length;
       const pose = V.pose;
       pose.clock.getDelta = () => 1 / 60;                    // one frame a step, whatever the wall clock did

@@ -1306,7 +1306,7 @@ import { gidBonesOf } from './render/skeleton.js';
 import { loadMaterialsDb } from './render/materials-db.js';
 import { createBackground } from './render/background.js';
 import { createFloorGrid } from './render/grid.js';
-import { MotionStates, RAGE_BY_LEVEL } from './render/motion-states.js';
+import { MotionStates, RAGE_BY_LEVEL, RAGE_PUFF } from './render/motion-states.js';
 import { pickVariantsFor } from './render/shells.js';
 import { CUT_TAIL, CutTail } from './render/tail-option.js';
 import { setEyeGlow, updateEyeGlow } from './render/eye-glow.js';
@@ -6038,7 +6038,10 @@ function applyRage(){
   // aura is an effect -- but its damage table follows the enrage predicate (ROM_MEAT_SWITCH em011_00), and without
   // the toggle that table could not be reached.
   const zonesRage = meatAxisOf(state.id) === 'rage';
-  const has = reviewRages || zonesRage ||
+  // ...or its EFFECTS do: Rathian's rage changes no part, material or zone -- its one sign is the puff her code requests
+  // every 30 frames while enraged (render/motion-states.js RAGE_PUFF, states-em001.md 2.3)
+  const effectsRage = !!RAGE_PUFF[state.id] && effectAutoOnRage(state.id);
+  const has = reviewRages || zonesRage || effectsRage ||
               (main ? (enrageParts(main).size > 0 || !!ROM_RAGE_SET[state.id] || perStateParts) : false);
   // A LEVELLED MONSTER GETS A DROPDOWN INSTEAD OF THE TOGGLE. Raven, 2026-09-10: "Just have a drop
   // down that ranges from No Rage to the max level". Bloodbath has two stages and Gore Magala four,
@@ -7127,10 +7130,19 @@ function stepCutTail(r, rt){
 //     mode 0) -- and Nargacuga's nine spike attacks on L2 Motion[8], as no one of them is the game's own pick (the AI's).
 // Viewer stand-ins, not ROM values. Every monster gets them; only one whose shells take a pick uses them.
 const TARGET_AHEAD = 2100;
+// ...per monster, where the default makes the shot too quick to see. Raven, 2026-09-22, of Rathian's fireball: "It
+// happens too quickly for me to see, set the target further away from Rathian". Her aimed fireballs (modes 0, 4..7)
+// fly straight, no gravity, 60 a move, pitched by the ROM's aim at the target -- and leave her mouth low (joint 3 about
+// 134 above the floor on L2 Motion[5]'s throw), so they land about a third of the way to it: measured on the viewer's
+// own inputs, 2100 ahead lands one 10 moves after the throw (~0.2 s), 6300 ahead 32 moves (~0.5 s, ~2100 out). A
+// viewer stand-in like the default; the pitch is the ROM's aim at whatever point
+const TARGET_AHEAD_BY_MON = { em001_00: 6300 };
 const rockPlays = { key: null, time: 0, n: -1, names: [] };
 function rockInput(){
   const act = pose.action, clipName = act && act.getClip ? act.getClip().name : null;
-  const names = clipName ? pickVariantsFor(state.id, state.list, clipName) : [];
+  // the choices the monster's state leaves: Rathian's tired twins (no fireball) only while tired and not enraged (the
+  // command table's op 0x24 on 0x81634, shells-em001.md) -- as the motion shows those states
+  const names = clipName ? pickVariantsFor(state.id, state.list, clipName, { tired: motionStates.tired(), rage: motionStates.rage(state.rage) }) : [];
   if (names.length){
     const key = state.id + '|' + state.list + '|' + clipName;
     if (names.join() !== rockPlays.names.join()) rockPlays.n = -1;             // another monster's picks: from its first
@@ -7141,9 +7153,10 @@ function rockInput(){
   if (!P || !rt.schedule) return null;
   const y = monsterFloorY() / 0.01;
   const yaw = rt.schedule.ownerYaw16() * 2 * Math.PI / 65536;
+  const ahead = TARGET_AHEAD_BY_MON[state.id] || TARGET_AHEAD;
   const picks = rockPlays.names;
   return { variant: picks.length ? picks[Math.max(0, rockPlays.n) % picks.length] : null,
-           target: { x: P.position[0] + TARGET_AHEAD * Math.sin(yaw), y, z: P.position[2] + TARGET_AHEAD * Math.cos(yaw) },
+           target: { x: P.position[0] + ahead * Math.sin(yaw), y, z: P.position[2] + ahead * Math.cos(yaw) },
            floorY: y };
 }
 
@@ -7187,6 +7200,8 @@ function driveMotionStates(){
     for (const [pel, key] of r.holdOff) rt.holdEvent(pel, key, false);
     for (const [pel, key] of r.holdOn) rt.holdEvent(pel, key, true);
     for (const [pel, key] of r.fire) rt.fire(pel, key);
+    // the rage puff's gates (render/motion-states.js RAGE_PUFF): paused in the sleep hold, zeroed calm and tired
+    rt.puffGates(motionStates.puffOff(), motionStates.tired());
   }
 }
 
@@ -7388,6 +7403,9 @@ window.__view.effectsAvailable = () => effectMountsFor(state.id);
 // the cut tail as it flies (render/tail-option.js): J, G (game units) and the frame it is on
 window.__view.cutTail = () => cutTail && { J: cutTail.tail.J, G: cutTail.tail.G, k: cutTail.tail.k, qa: cutTail.tail.qa,
                                             pose: cutTail.tail.pose(), floor: monsterFloorY() };
+// the shells' inputs as the viewer makes them (rockInput: the pick, the target ahead on the grid floor, the floor) --
+// dev/shell-capture.mjs and dev/effect-live-soak.mjs --rock fix the pick and keep the rest
+window.__view.rockInput = () => rockInput();
 // the break / state driver as it stands (render/motion-states.js; dev/motion-states-check.mjs reads it back)
 window.__view.motionStates = () => ({ cur: motionStates.cur && { key: motionStates.cur.key, sets: motionStates.cur.sets,
                                                              rage: motionStates.cur.rage, clips: motionStates.clips() },

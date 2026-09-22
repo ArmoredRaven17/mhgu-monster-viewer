@@ -43,7 +43,11 @@
 //   an ailment / tiredness, any of: rage (false: rage shown off), sets, every: [[pel, key], period] (a record requested
 //                              on a countdown: at the motion's frame 0, then every `period` frames), hold: [pel, key] (a
 //                              record requested once and kept while the state lasts, stopped after), eyesOff: [pel, key]
-//                              (a rage record the monster's code holds off in this state)
+//                              (a rage record the monster's code holds off in this state), puffOff (the rage puff's
+//                              countdown paused: the sleep hold), tired (calm and tired: the rage puff's countdown zeroed)
+//   { cycle: [spec, ...] }     one motion that several breaks play (Rathian's back and wings): each play -- each frame 0 --
+//                              shows the next spec
+//   start: [[pel, key], ...]   records requested once at the motion's frame 0 (a reaction whose setAction requests one)
 
 // NARGACUGA (em037_00): E:\offline\decode\notes\states-em037.md and breaks-em037.md (uEm037_00, vtable 0x17bc47c; its
 // per-frame part driver 0xe486f4). The head and tail sets follow both the break level and rage: head intact 4 / 6,
@@ -51,6 +55,21 @@
 // the eye flag is up -- asleep, resting, dead (0xe4749c); set 3 is never applied.
 const N_HEAD = { calm: [[4], [5]], enraged: [[6], [7]] };
 const N_TAIL = { calm: [[12], [13], [14]], enraged: [[15], [16], [17]] };
+
+// RATHIAN (em001_00): E:\offline\decode\notes\states-em001.md and breaks-em001.md (uEm001_00, vtable 0x1793c28; its
+// per-frame part driver 0xcf253c follows the break levels and the sever alone -- no rage, tired or status test). Eye set A
+// = 1 (group 1 on, 9 off) while the eye flag is up -- asleep, resting, dead --, B = 2 otherwise (0x71398 from 0xcecfc4).
+// A wing's break also tears its membrane (its material's alpha-test reference 20 -> 127, 0xcf25ac..0xcf2894):
+// render/monster.js ROM_BREAK_ALPHA follows the wing part drawn, so a motion's sets carry the tear with them.
+const R_BACK = { levels: [[9], [10]], fire: [null, ['em001_00u', 1000]] };
+const R_WING_L = { levels: [[5], [6]], fire: [null, ['em001_00u', 1005]] };
+const R_WING_R = { levels: [[7], [8]], fire: [null, ['em001_00u', 1010]] };
+// (10, 0x1b): the tune+0x44 status -- a gauge fed by the attack data's byte hit+0x59 beside the KO feed (0x9db10); its
+// threshold (180, +75 a time, cap 480) sends reaction code 8 -> (10, 0x1b) on the ground, whose setAction requests c 1109
+// once (0x75e4c -> 0xa30dc -> 0xa4074: cm200_008 on joint 3) and whose script 0x1794b30 plays L3 Motion[2] from frame 0.
+// INFERRED exhaust (E:\offline\decode\notes\shared-state-effects.md; states-em001.md 4.2 called it blast -- blast is the
+// tune+0x54 status, c 1130..1137 on the part hit, with no clip of its own). No part set changes.
+const R_EXHAUST = { start: [['em001_00c', 1109]] };
 export const MOTION_STATES = {
   em043_05: {
     // THE HEAD BREAK (breaks-em043.md 2). Every depletion of part 0 plays L2 Motion[9] from frame 0 (reaction code 3 ->
@@ -174,6 +193,62 @@ export const MOTION_STATES = {
     // class has no death branch of its own (no material clip).
     '3|Motion[6]':  { dead: true, tables: [N_HEAD, N_TAIL], sets: [2] },
   },
+  em001_00: {
+    // THE BACK AND WING BREAKS (breaks-em001.md 0, 3): the 1st depletion of the back (dtt part 0), the left wing (1) or the
+    // right wing (2) raises its level to 1 -- its only row -- and the reaction (10, 7) plays L3 Motion[2] from frame 0
+    // (scripts 0x1794ab0 / 0x1794ac0, blend 2): back set 9 -> 10 and u 1000 (id 7: cm202_060 on joint 1); left wing 5 -> 6
+    // and u 1005 (id 12, joint 9); right wing 7 -> 8 and u 1010 (id 17, joint 13) (0xa442c: id part x 5 + level + 6). One
+    // motion, three breaks, and a hit depletes one part: each play shows the next of them, in the parts' order -- then
+    // (10, 0x1b), the tune+0x44 status's reaction (R_EXHAUST: c 1109 at frame 0). The neck's and the tail's depletions play
+    // it too and change nothing.
+    '3|Motion[2]':  { cycle: [R_BACK, R_WING_L, R_WING_R, R_EXHAUST] },
+    // THE HEAD BREAK: part 6's 2nd depletion, level 2 (row 0, the head's only row): set 3 -> 4 and u 1031 (id 38: cm202_060
+    // on joint 4); reaction L3 Motion[1] from frame 0 (0x1794ae0). Its 1st depletion plays the same motion and changes
+    // nothing; (10, 0xbd) / (10, 0xbe) play it too.
+    '3|Motion[1]':  { levels: [[3], [4]], fire: [null, ['em001_00u', 1031]] },
+    // THE TAIL SEVER: part 7's second counter (230) runs out on the ground -> (10, 0x72): the start hook severs (0xc2274:
+    // u 900, cm202_062 on joint 144), then L3 Motion[15] from frame 0 (0x1794c10) -- the only motion that plays it -- and
+    // set 12 in place of 11 (0xcf2a94). The cut tail drops from joint 143 (render/tail-option.js). The script's turn of
+    // 180 degrees over f148..245 (op 0xa) is not in the clip and is not shown.
+    '3|Motion[15]': { levels: [[11], [12]], fire: [null, ['em001_00u', 900]], drops: true },
+    // RAGE (2.2): the forced transition's command group 6 issues (1, 9) -- L0 Motion[4] from frame 0 (0xcf2dec) -- on the
+    // ground (in the air the landing L1 Motion[16] -> [17] comes first); rage is on from its frame 0. No part set,
+    // material or eye change (the driver reads no rage); the rage puff (RAGE_PUFF) runs while rage is shown. L0
+    // Motion[4] is also the plain roar of (1, 0), (1, 0xf), (1, 0x21) and (1, 0x22): shown here as the entry. Its motion
+    // rate x1.15 is not shown (the viewer plays 1.0).
+    '0|Motion[4]':  { rage: true },
+    // TIRED (3): the idle (0, 2) is L0 Motion[14] (0xcee5f8); drool c 1104 (cm200_006, joint 3) every 48 while not enraged
+    // (0xa42b0..0xa4334) -- rage shown off -- and, calm and tired, the rage puff's countdown is zeroed (0xa4340).
+    '0|Motion[14]': { rage: false, tired: true, every: [['em001_00c', 1104], 48] },
+    // ASLEEP (4.2, 4.3): (10, 0x1d) L3 Motion[14] falls asleep, (10, 0x1e) holds L0 Motion[19], (10, 0x44) wakes with L0
+    // Motion[20]; eye set 1 from L3 Motion[14] f0 (the flag drops one pass into L0 Motion[20]: one frame, not shown). In
+    // the hold (0x81bb0(e, 1)): zzz c 1102 (cm200_002, joint 3) every 90 (0xa3e60..), and 0xa41b8 returns before its
+    // countdowns -- the rage puff pauses. The rest -- L0 Motion[18] lying down, then the same L0 Motion[19] (+0x522 from
+    // its f0) -- is the same hold. L3 Motion[14] -> L0 Motion[19] is also the capture (11, 0x10): shown as sleep.
+    '3|Motion[14]': { sets: [1] },
+    '0|Motion[19]': { sets: [1], every: [['em001_00c', 1102], 90], puffOff: true },
+    // PARALYSIS: (10, 0x1f) holds L3 Motion[13]; c 1101 (cm200_001, joint 1) every 60, first at once. L3 Motion[13] is
+    // also the shock trap's hold: shown as paralysis.
+    '3|Motion[13]': { every: [['em001_00c', 1101], 60] },
+    // SHOCK TRAP: (10, 0x6e) plays L3 Motion[9] (to f60), then holds L3 Motion[13]; c 1105 (cm200_001, joint 1) every 42
+    // while the action lasts. L3 Motion[9] also plays for (10, 0x52), (10, 0x87) and (10, 0xb4) (meanings NOT READ).
+    '3|Motion[9]':  { every: [['em001_00c', 1105], 42] },
+    // STUN: (10, 0x20) plays L3 Motion[3] -> [5] (held) -> [7] for side 2 and L3 Motion[4] -> [6] -> [8] for the others
+    // (0xcf0d94); c 1103 (cm200_003, joint 3) is requested once into one handle while stunned (bit 0x10) and stopped when
+    // it clears, at (10, 0x2b)'s L3 Motion[16]. The six clips are also the legs' depletion trips and play in other
+    // reactions (breaks-em001.md 3, states-em001.md 4.4): shown as the stun.
+    '3|Motion[3]':  { hold: ['em001_00c', 1103] },
+    '3|Motion[5]':  { hold: ['em001_00c', 1103] },
+    '3|Motion[7]':  { hold: ['em001_00c', 1103] },
+    '3|Motion[4]':  { hold: ['em001_00c', 1103] },
+    '3|Motion[6]':  { hold: ['em001_00c', 1103] },
+    '3|Motion[8]':  { hold: ['em001_00c', 1103] },
+    // DEATH (5): L3 Motion[17] (every status-11 number but 1, 7, 0x10, 0x12, 0x26) and L3 Motion[12] (the end of the fall,
+    // (11, 1)) -- the two clips only death plays: rage cleared at the setAction (no more puffs), eye set 1 for good, the
+    // breaks and the sever as they were. The class has no death branch of its own.
+    '3|Motion[17]': { dead: true, sets: [1] },
+    '3|Motion[12]': { dead: true, sets: [1] },
+  },
 };
 
 // RAGE RECORDS BY A PART'S LEVEL: Nargacuga's class requests its rage trails itself (+0x1d0 0xe49ec0, table 0x169dc88) --
@@ -182,6 +257,44 @@ export const MOTION_STATES = {
 export const RAGE_BY_LEVEL = {
   em037_00: { levels: N_HEAD.calm, records: [['em037_00u', 1120], ['em037_00u', 1121]] },
 };
+
+// THE SHARED RAGE PUFF (states-em001.md 2.3). 0xa41b8, in every +0x28 pass: alive, not in the sleep hold or the rest
+// (0x81bb0(e, 1)), vtable +0x2d8 == 1 and enraged, it counts P+0x5c6c down with 0x7206c (at or below 0 it fires at once;
+// else 1 less, firing when that reaches 0) and each time it fires sets 30.0 again and -- when the class leaves e+0xb7d2 at
+// the base constructor's 1 (0xacbd0: 0xacc4c), as Rathian's does -- requests u id 0 when the class's vtable +0x2a4 returns
+// 1, else u id 1 (0xa425c..0xa42a0), through the base u table (0x159c7fc: 1120 / 1121). Calm it leaves the countdown
+// where it stopped, unless tired: then it zeroes it (0xa4338..0xa434c). The enemy's reset zeroes it (0xb8b98: 0xba0e8),
+// so the first rage's first puff comes at once. Each is a one-shot (end mode 0) nothing stops. period: frames; joint:
+// the joint number whose rotation the pick reads; records: [id 0, id 1]; pick(q): the class's +0x2a4 on that joint's
+// local quaternion [x, y, z, w].
+export const RAGE_PUFF = {
+  em001_00: { period: 30, joint: 4, records: [['em001_00u', 1120], ['em001_00u', 1121]], pick: rathianPuffPick },
+};
+
+// uEm001_00's vtable +0x2a4 = 0xd08afc. v is row 2 of the matrix vtable +0xd8 (0x539e60) builds from joint 4's record --
+// its quaternion at +0x60, the motion's -- which 0xc0d40 keeps at P+0x5d10 each pass just before 0xa41b8 reads it
+// (0xae75c, 0xae78c). a = atan2f(-v.y, sqrtf(v.z^2 + v.x^2)) as a u16 angle (x 10430.378, + 0.5, truncated,
+// 0xd08b54..0xd08b6c); it returns 0 when that angle is at or below -4552 (a <= -25.0076 degrees: joint 4's third axis
+// more than 25 degrees above its parent's xz plane), 1 otherwise. Float32 in the ROM's order (vmla: product rounded, then
+// the sum). Run under the emulator on the real .mod and .lmt (E:\offline\decode\notes\puff-pick-em001.md): +0x60 is the
+// joint's rotation relative to joint 3 as the joint pass 0x953ad8 (and the motion blend 0x94df88) writes it -- the
+// quaternion the viewer's bone for joint 4 carries. At rest the axis points 44-49 degrees up, so u 1121 is the everyday
+// puff (every frame of L0 Motion[1]) and u 1120 comes while the jaw swings below 25 degrees (L0 Motion[4] f18-81,
+// 109-224, 250-276). The viewer's clips run one frame late (clip time t shows motion frame 60t - 1), so its picks flip a
+// frame after the ROM's -- the pose files' offset, on the task board, not corrected here.
+export function rathianPuffPick(q){
+  if (!q) return 1;
+  const f = Math.fround;
+  const x = f(q[0]), y = f(q[1]), z = f(q[2]), w = f(q[3]);
+  const z2 = f(z + z), y2 = f(y + y), x2 = f(x + x);                // 0x539ea8 / 0x539eac / 0x539ee4
+  const vx = f(f(x * z2) + f(y2 * w));                               // +0x20 = s7 + s10 (0x539f1c)
+  const vy = f(f(y * z2) - f(x2 * w));                               // +0x24 = s2 - s6 (0x539f0c)
+  const vz = f(1 - f(f(x * x2) + f(y * y2)));                        // +0x28 = 1 - (s0 + s12) (0x539f04, 0x539f14)
+  const h = f(Math.sqrt(f(f(vz * vz) + f(vx * vx))));                // 0xd08b20..0xd08b28
+  const a = f(Math.atan2(f(-vy), h));                                 // 0x13ecba8
+  const u = Math.trunc(f(0.5 + f(a * f(10430.378))));                // vmla, vcvt.s32 (towards zero)
+  return ((0xffff8000 + (u & 0xffff)) >>> 0) > 0x6e38 ? 1 : 0;       // uxtah, cmp 0x6e38, movwhi
+}
 
 // THE LEVEL THE USER'S PARTS STAND AT, read from what they see: the highest level one of whose own parts -- drawn at
 // that level, not at the one below -- is drawn. Read from the parts rather than the sets because the Parts panel may
@@ -200,10 +313,13 @@ function userLevel(levels, table, drawn){
 }
 
 export class MotionStates {
-  constructor(){ this.cur = null; this.userDrawn = null; this.table = null; }
+  constructor(){ this.cur = null; this.userDrawn = null; this.table = null; this.plays = new Map(); }
   // the records the motion holds on (hold) and the rage records it holds off (eyesOff), as 'pel|key' ids
   holds(){ return this.cur && this.cur.spec.hold ? [this.cur.spec.hold.join('|')] : []; }
   eyesOff(){ return this.cur && this.cur.spec.eyesOff ? [this.cur.spec.eyesOff.join('|')] : []; }
+  // the rage puff's gates the motion shows (RAGE_PUFF): paused in the sleep hold, zeroed calm and tired
+  puffOff(){ return !!(this.cur && this.cur.spec.puffOff); }
+  tired(){ return !!(this.cur && this.cur.spec.tired); }
 
   // Once a frame, after the clip has been advanced. monId; list; clip: the motion's bare slot name (a _start/_loop pair
   // is one motion) or null; frame: its frame at 60 a second, counted over the whole slot; at: { loopStart, loopEnd,
@@ -223,7 +339,7 @@ export class MotionStates {
   // now: the wall clock the materials run on (seconds).
   step(monId, list, clip, frame, at, user, now = 0){
     const { loopStart = 0, loopEnd = 0, loopSeg = false } = at || {};
-    const spec = (clip != null && MOTION_STATES[monId]) ? MOTION_STATES[monId][list + '|' + clip] || null : null;
+    let spec = (clip != null && MOTION_STATES[monId]) ? MOTION_STATES[monId][list + '|' + clip] || null : null;
     const key = spec ? monId + '|' + list + '|' + clip : null;
     const prev = this.cur;
     const rageBefore = this.rage(user.rage), setsBefore = this.setsKey(), clipsBefore = this.clipsKey();
@@ -242,6 +358,11 @@ export class MotionStates {
     }
     else {
       // frame 0 of the motion: a new one, or the same one started over (a loop, a replay, the scrubber moved back)
+      if (spec.cycle){                      // a motion several breaks play: this play shows the next of them
+        const n = (this.plays.has(key) ? this.plays.get(key) : -1) + 1;
+        this.plays.set(key, n);
+        spec = spec.cycle[n % spec.cycle.length];
+      }
       const c = { key, spec, frame, sets: null, rage: null, t0: now, timers: [] };
       // a { calm, enraged } table is read in the rage the motion shows: its own, else the user's
       const rageFor = spec.rage === true ? true : (spec.rage === false || spec.dead) ? false : !!user.rage;
@@ -274,6 +395,7 @@ export class MotionStates {
         for (const t of spec.tables) extra.push(...t[shown][userLevel(t.calm, this.table, this.userDrawn)]);
         c.sets = extra.concat(c.sets || []);
       }
+      if (spec.start) for (const rec of spec.start) out.fire.push(rec);
       // a countdown starts at 0, so its record comes at once (0x7206c), and the period follows
       if (spec.every){ out.fire.push(spec.every[0]); c.timers.push({ rec: spec.every[0], period: spec.every[1], left: spec.every[1] }); }
       this.cur = c;

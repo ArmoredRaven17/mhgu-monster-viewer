@@ -37,6 +37,7 @@ import { SHELL_DATA } from '../../shells.js';
 import { rank as rankFilters, constants as filterConstants, FilterPass } from './filter.js';
 import { loadJson, getTexture, loadGlb } from '../../assets.js';
 import { gidBonesOf } from '../../skeleton.js';
+import { RAGE_PUFF } from '../../motion-states.js';
 import { getSHCoef } from '../ambient.js';
 
 const MT_TO_VIEW = 0.01;
@@ -268,8 +269,16 @@ export class LiveEffects {
     // the monster's SHELLS (render/shells.js), when its shells are decoded: stepped by the schedule, from this
     // step's joints in the game's convention (writeJoints keeps them in gameJoints)
     this.schedule.useShells(this.def.monster, gid => this.gameJoints.get(gid) || null);
-    // the heap after the mount's own allocations (draw system, effects, parent, any auto-started effect): the
-    // floor frame() rewinds the bump heap to when nothing is running, freeing what looping clip starts leak
+    // the monster's RAGE PUFF (render/motion-states.js RAGE_PUFF): its pick reads a joint's rotation as the motion leaves it
+    // -- the bone's own quaternion, relative to its parent, the joint record's +0x60 (0x539e60)
+    const puff = RAGE_PUFF[def.monster];
+    if (puff){
+      const node = (bones.find(b => b.gid === puff.joint) || {}).node || null;
+      this.schedule.setRagePuff({ period: puff.period, records: puff.records,
+                                  pick: () => puff.pick(node ? [node.quaternion.x, node.quaternion.y, node.quaternion.z, node.quaternion.w] : null) });
+    }
+    // the heap after the mount's own allocations (draw system, effects, parent, any auto-started effect) -- kept to
+    // read the growth since the mount (frame() no longer rewinds to it: see there)
     this.heapBase = host.heap;
     // The frame driver: an empty mesh at the end of the viewer's render list (transparent, last). Its hook
     // steps the effects, draws them on the host and renders their meshes right there, into the target the
@@ -367,6 +376,12 @@ export class LiveEffects {
   fireAt(pel, key, position){
     if (this.failed || !this.schedule) return;
     try { this.schedule.fireAt(pel, key, position); }
+    catch (e){ this.fail(e); }
+  }
+  // the rage puff's gates, as the motion shows them (schedule.js puffGates)
+  puffGates(paused, tired){
+    if (this.failed || !this.schedule) return;
+    try { this.schedule.puffGates(paused, tired); }
     catch (e){ this.fail(e); }
   }
   // an event's effect held while its state lasts / a rage record held off (schedule.js holdEvent / holdRage)
@@ -472,10 +487,14 @@ export class LiveEffects {
     }
     this.stats.filters = filters ? filters.length : 0;
     if (!effects.length){                                      // nothing running: no draw, no depth pass
-      // reclaim the bump heap the finished requests leaked. Nothing is running, so nothing references anything
-      // above the mount baseline (host.js heapReset); without this a looping clip re-starts every loop and the
-      // heap grows ~40 KB a loop until a start runs out and the effects stop until a refresh (Raven, 2026-09-15).
-      if (this.schedule.running === 0 && this.host.heap > this.heapBase) this.host.heapReset(this.heapBase);
+      // NO HEAP RESET HERE ANY MORE. This used to rewind the bump heap to the mount baseline whenever no request ran
+      // (host.js heapReset, 2026-09-15: before free() returned blocks, a looping clip grew the heap ~40 KB a loop). Its
+      // premise -- nothing running, so nothing references anything above the baseline -- is false: the ROM's own
+      // objects and a shell's parent and handles outlive "no request running", and the rewind handed their memory out
+      // again. Rathian's landing dust found it (2026-09-22): a new request's parent handle (core +0x140) was allocated
+      // inside a block still in use, overwritten, and 0x43168 called address 0 from 0x4319c -- after 24 motions, never
+      // alone. With the rewind off (free() still recycling blocks) the same run is clean and the heap grows ~33 KB a
+      // play (6.9 MB over Rathian's 103 motions twice); the effect memory is sparse pages and nothing sits above it.
       for (const mesh of this.meshes) mesh.visible = false;
       for (const mesh of this.modelMeshes) mesh.visible = false;
       for (const mesh of this.gpuMeshes) mesh.visible = false;

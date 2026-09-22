@@ -515,6 +515,244 @@ async function pageCheckNarga(){
   return out;
 }
 
+// RATHIAN (em001_00), the same way: the back / wing breaks one motion plays in turn, the head break, the sever and its
+// cut tail, the rage entry and the rage puff on its countdown (u 1120 / 1121 by joint 4's rotation, paused asleep,
+// zeroed tired, its leftover kept across a calm spell), tired, asleep, paralysis, the shock trap, the stun and death
+// (states-em001.md, breaks-em001.md)
+async function pageCheckRathian(){
+  const out = [];
+  const check = (ok, label, detail) => out.push([!!ok, 'Rathian: ' + label, detail === undefined ? '' : JSON.stringify(detail)]);
+  const V = window.__view;
+  const M = await import('/render/monster.js');
+  const MS = await import('/render/motion-states.js');
+  const SK = await import('/render/skeleton.js');
+  const frames = n => new Promise(r => { let k = 0; const f = () => (++k >= n ? r() : requestAnimationFrame(f)); requestAnimationFrame(f); });
+  const until = async (test, n = 600) => { for (let i = 0; i < n; i++){ if (test()) return true; await frames(1); } return false; };
+  V.pose.clock.getDelta = () => 1 / 60;
+  const monSel = document.getElementById('monSel'), listSel = document.getElementById('monList'), clipSel = document.getElementById('monClip');
+  const MON = 'em001_00';
+  if (![...monSel.options].some(o => o.value === MON)) monSel.add(new Option(MON, MON));
+  monSel.value = MON; await monSel.onchange();
+  check(V.state.id === MON && V.mounted.main, 'mounted', V.state.id);
+  await V.effects(false); await V.effects(true);
+  const rt = () => M.effectRuntimeInstance();
+  check(await until(() => rt() && rt().monsterId === MON && rt().schedule), 'the effect runtime is up');
+  const fx = rt(), S = fx.schedule;
+  check(S.puff && S.puff.period === 30 && S.entries.filter(e => e.when === 'ragePuff').length === 2, 'the rage puff is set up: every 30, u 1120 / 1121', S.puff && S.puff.period);
+  const fired = [];
+  const f0 = fx.fire.bind(fx); fx.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
+  // every puff the schedule starts: its key, the step, and the pick recomputed from joint 4's bone at that moment
+  const j4 = (SK.gidBonesOf(V.mounted.main).find(b => b.gid === 4) || {}).node;
+  check(!!j4, 'joint 4 has a bone', !!j4);
+  const puffs = [];
+  const s0 = S.start.bind(S);
+  S.start = e => {
+    if (e.when === 'ragePuff'){
+      const q = j4.quaternion;
+      puffs.push({ key: e.def.record.key, step: S.frame, pick: MS.rathianPuffPick([q.x, q.y, q.z, q.w]) });
+    }
+    return s0(e);
+  };
+  const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 101, 102].includes(p))) : null; };
+  const evReqs = key => S.entries.filter(e => e.when === 'event' && e.def.record.key === key).map(e => e.requests.map(q => q.stopped ? 's' : 'r').join('')).join('|');
+  const listOf = id => V.MON.monsters.find(e => e.id === MON).lists.find(l => l.id === id);
+  const dur = (list, clip) => Math.round(listOf(list).clips.find(c => c.clip === clip).dur * 60);
+  const play = async (list, clip) => {
+    if (V.state.list !== list){ listSel.value = list; await listSel.onchange(); }
+    clipSel.value = clip; await clipSel.onchange();
+    await until(() => V.pose.action && V.pose.action.getClip().name === clip, 300);
+  };
+  const steps = async n => { const a = S.frame; await until(() => S.frame - a >= n, 20 * n + 200); };
+  const count = (arr, k) => arr.filter(x => x === k).length;
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const tear = () => Object.fromEntries((window.__breakAlpha().materials || []).map(m => [m.name, m.ref]));
+  const REST = ['0', 'Motion[1]_loop'];
+  const rageBox = document.getElementById('monRage');
+  V.state.loop = true;
+  await play(...REST); await frames(3);
+  const user0 = drawn();
+  check(user0 && user0[9] === true && user0[1] === false && user0[2] === true && user0[4] === true && user0[6] === true && user0[102] === true && user0[101] === true,
+        'at rest: eyes open, head, wings, back intact, tail on', user0);
+  check(S.rage === false && puffs.length === 0, 'calm: no puff', puffs);
+
+  // THE BACK AND WING BREAKS: L3 Motion[2], looping -- each play the next: back, left wing, right wing. List 3 is entered
+  // on a clip the table does not list (a list change plays the list's first clip, L3 Motion[1], the head break)
+  await play('3', 'Motion[16]'); await frames(3);
+  fired.length = 0;
+  await play('3', 'Motion[2]'); await frames(3);
+  let d = drawn();
+  check(same(fired, [1000]) && d[10] === true && d[102] === false && d[4] === true && d[6] === true, 'L3 Motion[2], 1st play: the back breaks (set 10), u 1000', { fired, d });
+  check(tear()['XfBAN__E0__m50_wing_l'] === null && tear()['XfBAN__E0__m51_wing_r'] === null, 'the membranes are whole', tear());
+  await until(() => fired.length >= 2, dur('3', 'Motion[2]') + 60);
+  await frames(3); d = drawn();
+  check(same(fired, [1000, 1005]) && d[5] === true && d[4] === false && d[102] === true, 'the loop, 2nd play: the left wing breaks (set 6), u 1005; the back as the user has it', { fired, d });
+  check(tear()['XfBAN__E0__m50_wing_l'] === 127 && tear()['XfBAN__E0__m51_wing_r'] === null, 'the left membrane torn (alpha reference 127)', tear());
+  await until(() => fired.length >= 3, dur('3', 'Motion[2]') + 60);
+  await frames(3); d = drawn();
+  check(same(fired, [1000, 1005, 1010]) && d[7] === true && d[6] === false && d[4] === true, '3rd play: the right wing breaks (set 8), u 1010', { fired, d });
+  check(tear()['XfBAN__E0__m50_wing_l'] === null && tear()['XfBAN__E0__m51_wing_r'] === 127, 'the right membrane torn, the left whole again', tear());
+  await until(() => fired.length >= 4, dur('3', 'Motion[2]') + 60);
+  await frames(3); d = drawn();
+  check(same(fired, [1000, 1005, 1010, 1109]) && d[10] === false && d[102] === true && d[5] === false && d[7] === false,
+        '4th play: (10, 0x1b) -- c 1109 at frame 0, no part changed', { fired, d });
+  await play(...REST); await frames(3);
+  check(same(drawn(), user0) && tear()['XfBAN__E0__m51_wing_r'] === null, 'another motion: the user\'s parts and whole membranes again', { d: drawn(), tear: tear() });
+
+  // THE HEAD BREAK
+  fired.length = 0;
+  await play('3', 'Motion[1]'); await frames(3); d = drawn();
+  check(same(fired, [1031]) && d[3] === true && d[2] === false, 'L3 Motion[1]: the head breaks (set 4), u 1031', { fired, d });
+  await play(...REST); await frames(3);
+
+  // THE TAIL SEVER and the cut tail
+  fired.length = 0;
+  const fa0 = fx.fireAt.bind(fx), landing = [];
+  fx.fireAt = (pel, key, pos) => { landing.push(key); return fa0(pel, key, pos); };
+  await play('3', 'Motion[15]'); await frames(3); d = drawn();
+  const piece = V.mounted['em001_00_tail'];
+  check(same(fired, [900]) && d[8] === true && d[101] === false, 'L3 Motion[15]: the tail severed (set 12), u 900', { fired, d });
+  check(piece && piece.visible && V.cutTail() && V.cutTail().J, 'the cut tail is shown', { visible: piece && piece.visible });
+  await frames(60);
+  const ct = V.cutTail();
+  check(ct && ct.k >= 53 && count(landing, 905) === 1, 'it lands (u 905 once) and rests', { k: ct && ct.k, landing });
+  fx.fireAt = fa0;
+  await play(...REST); await frames(3);
+  check(same(drawn(), user0) && piece.visible === false, 'another motion: the tail back on, no cut tail', drawn());
+
+  // RAGE ENTRY, the user calm: rage shown from L0 Motion[4]'s frame 0, the first puff at once, then every 30 steps
+  puffs.length = 0;
+  await play('0', 'Motion[4]'); await steps(95);
+  check(S.rage === true, 'L0 Motion[4]: rage shown', S.rage);
+  const gaps = puffs.slice(1).map((p, i) => p.step - puffs[i].step);
+  check(puffs.length >= 3 && gaps.every(g => g === 30), 'the puff comes at once, then every 30 steps', { n: puffs.length, gaps });
+  check(puffs.every(p => p.key === (p.pick === 1 ? 1120 : 1121)), 'each puff is the one joint 4\'s rotation picks (1 -> u 1120, 0 -> u 1121)', puffs);
+  await play(...REST); await frames(3);
+  const nAfter = puffs.length; await steps(70);
+  check(S.rage === false && puffs.length === nAfter, 'another motion, the user calm: rage off, no more puffs', { rage: S.rage, n: puffs.length - nAfter });
+
+  // THE USER ENRAGED: the countdown's leftover carries across a calm spell (0xa41b8 leaves it; only tired zeroes it)
+  check(rageBox && !rageBox.closest('[hidden]'), 'the Enraged toggle is offered', !!rageBox);
+  puffs.length = 0;
+  rageBox.checked = true; await rageBox.onchange({ target: rageBox });
+  await until(() => puffs.length >= 1, 600);
+  await steps(10);                                         // 20 left on the countdown
+  const left = S.puff.left;
+  rageBox.checked = false; await rageBox.onchange({ target: rageBox }); await steps(50);
+  check(S.puff.left === left, 'rage off, calm, not tired: the countdown stays where it was', { was: left, now: S.puff.left });
+  const at = S.frame, n1 = puffs.length;
+  rageBox.checked = true; await rageBox.onchange({ target: rageBox });
+  await until(() => puffs.length > n1, 600);
+  const wait = puffs[n1] && puffs[n1].step - at;
+  check(wait >= left - 1 && wait <= left + 1, 'rage on again: the next puff when the leftover runs out', { left, wait });
+  // TIRED while the user is enraged: rage shown off, the drool, and the countdown zeroed -> a puff at once after
+  fired.length = 0;
+  await play('0', 'Motion[14]_loop'); await frames(3);
+  check(S.rage === false && count(fired, 1104) === 1 && S.puff.left === 0, 'L0 Motion[14] (tired): rage shown off, drool at once, the countdown zeroed', { rage: S.rage, fired, left: S.puff.left });
+  await frames(50);
+  check(count(fired, 1104) === 2, 'the drool again 48 frames on', fired);
+  const n2 = puffs.length, at2 = S.frame;
+  await play(...REST);
+  await until(() => puffs.length > n2, 600);
+  check(puffs[n2] && puffs[n2].step - at2 <= 3, 'rage back after tired: a puff at once', puffs[n2] && puffs[n2].step - at2);
+  // ASLEEP, enraged: eyes closed from L3 Motion[14]; in the hold L0 Motion[19] the zzz every 90 and no puff
+  fired.length = 0;
+  await play('3', 'Motion[14]'); await frames(3); d = drawn();
+  check(d[1] === true && d[9] === false && count(fired, 1102) === 0, 'L3 Motion[14] (falling asleep): eyes closed (set 1), no zzz', { d, fired });
+  await play('0', 'Motion[19]_loop'); await frames(3);
+  const n3 = puffs.length;
+  check(count(fired, 1102) === 1 && drawn()[1] === true, 'L0 Motion[19] (the hold): zzz at once, eyes closed', fired);
+  await frames(92);
+  check(count(fired, 1102) === 2, 'the zzz again 90 frames on', fired);
+  await steps(40);
+  check(S.rage === true && puffs.length === n3 && S.puff.paused === true, 'enraged in the hold: the puff paused', { rage: S.rage, puffs: puffs.length - n3 });
+  await play(...REST); await frames(3);
+  await steps(40);
+  check(puffs.length > n3 && drawn()[9] === true, 'awake: eyes open, the puff runs again', { d: drawn(), puffs: puffs.length - n3 });
+  // DEATH, the user enraged: rage off, no puffs, eyes closed; the parts otherwise the user's
+  await play('3', 'Motion[17]'); await frames(3);
+  const n4 = puffs.length; await steps(70); d = drawn();
+  check(S.rage === false && puffs.length === n4 && d[1] === true && d[9] === false && d[2] === true && d[102] === true && d[101] === true,
+        'L3 Motion[17] (death): rage off, no puff, eyes closed, the breaks as the user has them', { rage: S.rage, d });
+  await play('3', 'Motion[12]'); await frames(3);
+  check(S.rage === false && drawn()[1] === true, 'L3 Motion[12] (death after the fall): the same', { rage: S.rage, d: drawn() });
+  await play(...REST); await frames(3);
+  rageBox.checked = false; await rageBox.onchange({ target: rageBox }); await frames(3);
+  // PARALYSIS, SHOCK TRAP, STUN
+  fired.length = 0;
+  await play('3', 'Motion[13]_loop'); await frames(3);
+  check(count(fired, 1101) === 1, 'L3 Motion[13] (paralysis): c 1101 at once', fired);
+  await frames(62);
+  check(count(fired, 1101) === 2, 'c 1101 again 60 frames on', fired);
+  fired.length = 0;
+  await play('3', 'Motion[9]'); await frames(3);
+  check(count(fired, 1105) === 1, 'L3 Motion[9] (shock trap): c 1105 at once', fired);
+  await frames(44);
+  check(count(fired, 1105) === 2, 'c 1105 again 42 frames on', fired);
+  await play('3', 'Motion[3]'); await frames(3);
+  const st0 = evReqs(1103);
+  check(st0.endsWith('r') && st0.split('r').length - 1 === 1, 'L3 Motion[3] (stun): c 1103 requested', st0);
+  await play('3', 'Motion[5]_loop'); await frames(3);
+  check(evReqs(1103) === st0, 'L3 Motion[5] (stun hold): the same c 1103 kept', { before: st0, now: evReqs(1103) });
+  await play('3', 'Motion[7]'); await frames(3);
+  check(evReqs(1103) === st0, 'L3 Motion[7] (stun end): still kept', { before: st0, now: evReqs(1103) });
+  await play(...REST); await frames(3);
+  check(!evReqs(1103).includes('r'), 'the stun over: c 1103 stopped (runs out)', evReqs(1103));
+  // THE FIREBALLS (shells-em001.md; shells.js): each play of a fireball clip takes the next of the ROM's choices while
+  // not tired (the no-fire twins are op 0x24's tired branch); the fireball flies to the grid floor, and its landing starts
+  // the fire and the landing effect. Requests logged by effect file, with the clip frame they came on
+  const host = S.host, request0 = host.requestEffect.bind(host);
+  const reqLog = [];
+  let lastPick = null;
+  const pickIn = S.rockInput;
+  check(typeof pickIn === 'function', 'the viewer hands the schedule its shell inputs');
+  if (pickIn) S.rockInput = () => (lastPick = pickIn());
+  host.requestEffect = (...a) => {
+    const r = request0(...a);
+    reqLog.push({ name: String((a[2] && a[2].path) || '').split(String.fromCharCode(92)).pop().split('/').pop(),
+                  key: a[2] && a[2].key, variant: lastPick && lastPick.variant,
+                  clip: V.pose.action ? V.pose.action.getClip().name : null, frame: V.pose.action ? Math.round(V.pose.action.time * 60) : -1 });
+    return r;
+  };
+  const named = (n, clip) => reqLog.filter(r => r.name === n && (!clip || r.clip === clip));
+  // L2 Motion[5]: 7:0x02 -- one fireball (mode 0, c 0 em001_00_003) as frame 78 passes; the landing: c 1 (em001_00_006)
+  // and shell01 mode 2's fire (c 3, em001_00_008)
+  await play('2', 'Motion[5]'); await frames(dur('2', 'Motion[5]') + 20);
+  const fb = named('em001_00_003', 'Motion[5]');
+  check(fb.length === 1 && fb[0].variant === '7:0x02' && fb[0].frame >= 78 && fb[0].frame <= 86, 'L2 Motion[5]: one fireball (c 0), 7:0x02, as frame 78 passes', fb);
+  check(named('em001_00_006').length >= 1 && named('em001_00_008').length >= 1, 'it lands on the grid floor: c 1 and the fire (c 3)',
+        { c1: named('em001_00_006').length, c3: named('em001_00_008').length });
+  // L4 Motion[8]: two plays -- 7:0x08 (modes 1 / 2 / 3 at 82 / 122 / 162), then 7:0x6b (modes 5 / 6 / 7 at 76 / 114 / 156)
+  reqLog.length = 0;
+  await play('4', 'Motion[8]'); await frames(2 * dur('4', 'Motion[8]') + 20);
+  const f8 = named('em001_00_003', 'Motion[8]');
+  check(f8.length === 6 && f8.slice(0, 3).every(r => r.variant === '7:0x08') && f8.slice(3).every(r => r.variant === '7:0x6b'),
+        'L4 Motion[8]: three fireballs a play, 7:0x08 then 7:0x6b', f8.map(r => [r.variant, r.frame]));
+  check(f8.slice(0, 3).every((r, i) => r.frame >= [82, 122, 162][i] && r.frame <= [82, 122, 162][i] + 8) &&
+        f8.slice(3).every((r, i) => r.frame >= [76, 114, 156][i] && r.frame <= [76, 114, 156][i] + 8), 'at 82 / 122 / 162, then 76 / 114 / 156', f8.map(r => r.frame));
+  // L4 Motion[65]: 7:0x77 -- the breath puffs (shell01 44 / 45 / 46: u 61 / 61 / 62, em001_02_006) at 68 / 72 / 76, G rank
+  reqLog.length = 0;
+  await play('4', 'Motion[65]'); await frames(dur('4', 'Motion[65]') - 10);
+  const puffs65 = named('em001_02_006', 'Motion[65]');
+  check(puffs65.length === 3 && puffs65.every(r => r.variant === '7:0x77'), 'L4 Motion[65]: three breath puffs (u 61 / 61 / 62), 7:0x77',
+        puffs65.map(r => [r.key, r.frame]));
+  // L4 Motion[16]: 7:0x3a -- the mode-8 fireball (u 30, em001_02_001) at 108; its landing: shell11's explosions
+  reqLog.length = 0;
+  await play('4', 'Motion[16]'); await frames(dur('4', 'Motion[16]') + 60);
+  const m8 = named('em001_02_001', 'Motion[16]');
+  check(m8.length === 1 && m8[0].variant === '7:0x3a' && m8[0].frame >= 108 && m8[0].frame <= 116, 'L4 Motion[16]: the mode-8 fireball (u 30), 7:0x3a, at 108', m8);
+  check(named('em001_02_004').length >= 1, 'it lands: the explosions (em001_02_004)', reqLog.map(r => r.name));
+  host.requestEffect = request0;
+  if (pickIn) S.rockInput = pickIn;
+  await play(...REST); await frames(3);
+  for (const k of Object.keys(MS.MOTION_STATES[MON])){
+    const [list, clip] = k.split('|');
+    check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'), 'the table\'s ' + k + ' is a clip Rathian carries');
+  }
+  S.start = s0;
+  check(!fx.failed, 'the effect runtime never stopped', fx.failed);
+  return out;
+}
+
 const children = [];
 let browserWs = null;
 async function main(){
@@ -550,7 +788,8 @@ async function main(){
     await sleep(200);
   }
   const before = 0;
-  const res = (await evaluate(c, `(${pageCheck.toString()})()`)).concat(await evaluate(c, `(${pageCheckNarga.toString()})()`));
+  const res = (await evaluate(c, `(${pageCheck.toString()})()`)).concat(await evaluate(c, `(${pageCheckNarga.toString()})()`))
+    .concat(await evaluate(c, `(${pageCheckRathian.toString()})()`));
   let fail = 0;
   for (const [ok, label, detail] of res){
     if (!ok) fail++;
