@@ -746,7 +746,22 @@ async function pageCheckRathian(MON = 'em001_00', LABEL = 'Rathian'){
   const named = (n, clip) => reqLog.filter(r => r.name === n && (!clip || r.clip === clip));
   // a record by its key AND its file: the same key can sit in both pel lists (u 20 is em002_04_007, c 20 em001_00_004)
   const keyed = (key, name, clip) => reqLog.filter(r => r.key === key && (!name || r.name === name) && (!clip || r.clip === clip));
-  if (MON === 'em002_00'){
+  if (MON === 'em002_02'){
+  // SILVER RATHALOS'S SHELLS (shells.js): the line's fireball records with his own files, and a landing of his own.
+  // L2 Motion[5]: 7:0x02 -- the fireball (c 0), its floor contact (c 1) and the fire it leaves (c 3)
+  await play('2', 'Motion[5]'); await frames(dur('2', 'Motion[5]') + 20);
+  const fb = named('em001_00_003', 'Motion[5]');
+  check(fb.length >= 1 && fb[0].variant === '7:0x02', 'L2 Motion[5]: the fireball (c 0), 7:0x02', fb);
+  check(named('em001_00_006').length >= 1 && named('em001_00_008').length >= 1, 'it lands on the grid floor: c 1 and the fire (c 3)',
+        { c1: named('em001_00_006').length, c3: named('em001_00_008').length });
+  // L4 Motion[38]: 7:0x43 -- the mode-0x1a fireball (u 30) is IN THE LANDING'S MASK, so its landing makes the
+  // explosion timer (shell11) and four explosions (u 31..34), where the other fireballs leave only fire
+  reqLog.length = 0;
+  await play('4', 'Motion[38]'); await frames(dur('4', 'Motion[38]') + 120);
+  const m38 = named('em001_02_001', 'Motion[38]');
+  check(m38.length >= 1 && m38[0].variant === '7:0x43', 'L4 Motion[38]: the fireball (u 30), 7:0x43', m38);
+  check(named('em001_02_004').length >= 1, 'it lands in the mask: the explosions (u 31..34)', reqLog.map(r => [r.key, r.name]));
+  } else if (MON === 'em002_00'){
   // RATHALOS'S SHELLS (shells.js): his fireballs take the Rath line's own records -- c 0 the flight, c 1 its floor
   // contact, c 3 the ground fire, u 60 the L2 Motion[13] puffs -- with his own modes.
   // L2 Motion[5]: 7:0x02, shell00 mode 0 -- one fireball, then its landing and the fire it leaves
@@ -882,6 +897,7 @@ async function main(){
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em001_02', 'Gold Rathian')`))
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em001_04', 'Dreadqueen')`))
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em002_00', 'Rathalos')`))
+    .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em002_02', 'Silver Rathalos')`))
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em002_04', 'Dreadking')`));
   let fail = 0;
   for (const [ok, label, detail] of res){

@@ -276,6 +276,11 @@ export const MOTION_STATES = {
   // records are his own em002_00c, the breaks, sever and rage puff his em002_00u. What is his own is the air rage entry
   // (em2Air): command group 6 issues (4, 0xb) for em 2 whatever the variant.
   em002_00: em2Air(rathLine('em002_00u', 'em002_00c')),
+  // SILVER RATHALOS (em002_02): em 2 variant 2 -- Rathalos's table from his own em002_02u, the same c.pel
+  // (em002_00c), Rathian's lists 0..3 and the same set layout, tail included (11 intact, 12 severed; no u 1036).
+  // His variant's branches in the class are hit tables, tune values and the (10, 0xa7) hold (states-em002_04.md 5.3),
+  // none of which changes what a motion shows.
+  em002_02: em2Air(rathLine('em002_02u', 'em002_00c')),
   // DREADKING RATHALOS (em002_04): the same class as em 2 variant 4 (states-em002_04.md). Rathian's lists 0..3 -- her very
   // files -- so every state clip above is his; his ailment records come from Rathalos's em002_00c, whose state records are
   // byte for byte Rathian's; his breaks, sever and rage puff from em002_04u (the same keys, the back on joint 2 and the
@@ -347,6 +352,7 @@ export const RAGE_PUFF = {
   // f0-6, f22-30, f79-216, f240-262, f281-284 and u 1121 between (states-em002_04.md 2.3)
   // Rathalos: the same shared puff and the same pick on joint 4, his own records
   em002_00: { period: 30, joint: 4, records: [['em002_00u', 1120], ['em002_00u', 1121]], pick: rathianPuffPick },
+  em002_02: { period: 30, joint: 4, records: [['em002_02u', 1120], ['em002_02u', 1121]], pick: rathianPuffPick },   // Silver
   em002_04: { period: 30, joint: 4, records: [['em002_04u', 1120], ['em002_04u', 1121]], pick: rathianPuffPick },
 };
 
