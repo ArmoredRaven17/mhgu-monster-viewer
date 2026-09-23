@@ -818,7 +818,20 @@ export class LiveEffects {
     const common = this.commonUniforms(renderer, cam);
     for (let k = 0; k < draws.length; k++){
       const d = draws[k];
-      if (d.technique !== 'TGPUParticle') throw new Error('live effects: GPU draw technique ' + d.technique);
+      // A TECHNIQUE THE VIEWER CANNOT LINK YET is skipped and counted, not thrown -- the same choice construct.js makes
+      // for an undecoded generator, and for the same reason: failing here stops EVERY effect of the monster, so one
+      // layer we cannot draw would take the whole monster dark. cParticleNodeInfinite's draws come through as
+      // TInfParticle: its ROM side is translated and runs (it builds, updates and submits), but the viewer's GL side
+      // still lacks three things the decode named -- glsl.py has no op37 (`%`, which FInfParticleTexturePattern uses),
+      // primshader.js names attributes `a_` + semantic so the layout's two Attribute elements collide, and
+      // gpu-shaders.json carries no InfParticle programs. Until those land the node runs and draws nothing.
+      if (d.technique !== 'TGPUParticle'){
+        this.stats.skippedTechnique = (this.stats.skippedTechnique || 0) + 1;
+        (this.skippedTechniques || (this.skippedTechniques = new Set())).add(d.technique);
+        const hide = this.gpuMeshes[k];
+        if (hide) hide.visible = false;
+        continue;
+      }
       const topology = (d.layout >>> 21) & 0xff;
       if (topology !== 4) throw new Error('live effects: GPU draw topology code ' + topology);
       const alphaTest = alphaTestOf(d.layout);
@@ -860,7 +873,8 @@ export class LiveEffects {
   // (stats.reordered counts batches the sort moves relative to one another: the primitive layer draws its batches in its
   // own depth order (0xc8cc58), which the keys are expected to agree with)
   order(gpu, prims, models){
-    const all = [...gpu.map((d, k) => ({ d, mesh: this.gpuMeshes[k] })), ...prims.map((d, k) => ({ d, mesh: this.meshes[k], prim: k })),
+    // a node draw whose technique syncGpu could not link has no mesh (skippedTechnique): it takes no place in the order
+    const all = [...gpu.map((d, k) => ({ d, mesh: this.gpuMeshes[k] })).filter(x => x.mesh), ...prims.map((d, k) => ({ d, mesh: this.meshes[k], prim: k })),
                  ...models.filter(d => d.mesh && d.key !== undefined).map(d => ({ d, mesh: d.mesh }))];
     // a batch's pass is its own: the primitive list's batch draw 0xbac62c sets 0x15 for a record whose word +4 has a bit
     // of 0x200001 (0xbac688..0xbac698; Rathian's u 231 billboard), else 0x11 -- the key sorts it after the 0x11 draws,

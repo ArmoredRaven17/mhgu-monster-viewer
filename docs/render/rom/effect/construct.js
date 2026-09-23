@@ -1033,16 +1033,27 @@ function factory(m, owner){
     // AN UNDECODED GENERATOR (a type neither branch below builds) is skipped, not thrown, so the rest of the effect still draws:
     // failing the whole effect drew nothing for an effect that is mostly decodable. The row is left out (not
     // invented) and the skip recorded. (0x9bada8 type 25, 0x9bb300 type > 26, 0x9bade8 other became this skip.)
-    // TYPE 25 is tested before the jump table (0x9bada0; effects-node.md 1): row word 3 & 0xf0 set builds
-    // cParticleNodeInfinite (0xaf127c / 0xaf12b8), whose CPU side is not read -- skipped and counted like any other
-    // undecoded generator (above: the rest of the effect still draws); clear builds cParticleNode: 0xaece5c(0x250, 0x10)
-    // (the class's allocator, getAllocator(DTI 0x211cd5c) +0x20) and its constructor 0xaece98, both lifted. From
-    // 0x9bae94 on it takes the path every type takes.
+    // TYPE 25 is tested before the jump table (0x9bada0; effects-node.md 1) and the CLASS is picked by row word 3
+    // & 0xf0 (0x9bada8): clear builds cParticleNode through 0xaece5c(0x250, 0x10) -- the class's allocator,
+    // getAllocator(DTI 0x211cd5c) +0x20 -- and its constructor 0xaece98; set builds cParticleNodeInfinite through
+    // 0xaf127c and 0xaf12b8 (DTI 0x211cd7c, vtable 0x1789f20). Both are lifted, and from 0x9bae94 on the two take
+    // the same path every type takes, so only the pair of addresses differs here.
+    //   THE INFINITE VARIANT (E:\offline\decode\notes\effect-node-infinite.md) is the same particle system with the
+    //   CPU work done ONCE: slot 18 builds every particle's vertices the frame its start delay expires, into the
+    //   node's own VB/IB, and after that the GPU re-emits them for ever from a loop counter that wraps at 65535 --
+    //   which is what "Infinite" names. Its constructor sets one bit the plain one does not, +0x21c |= 0x08000000,
+    //   and the only readers of that bit (0xaee704 / 0xaee7ac) scale the colour curve by 255: an Infinite row's
+    //   colours are authored 0..1 where a plain row's are 0..255.
+    //   The predicate is `& 0xf0`, not `== 0x10`, as the ROM writes it -- though across the whole staged corpus
+    //   (192 type-25 rows in 119 .efl) the value is only ever 0x10, so the data cannot tell the two apart.
     if (type === 25){
-      if (c3 & 0xf0){ recordSkippedGenerator('25 (cParticleNodeInfinite)'); continue; }
-      const g = liftedCall(m, 0xaece5c, [0x250, 0x10]).r[0];
-      if (g === 0) throw new Unverified('0x9bae90 cParticleNode allocation failed');
-      liftedCall(m, 0xaece98, [g]);
+      const inf = (c3 & 0xf0) !== 0;
+      const g = liftedCall(m, inf ? 0xaf127c : 0xaece5c, [0x250, 0x10]).r[0];
+      // the ROM runs the constructor BEFORE this test on both sides (0x9badc4 / 0x9bae88); the order is kept the
+      // other way round here because a constructor on a null pointer is worse than a throw, and the two differ only
+      // when the allocation failed, which throws either way
+      if (g === 0) throw new Unverified((inf ? '0x9badd0 cParticleNodeInfinite' : '0x9bae90 cParticleNode') + ' allocation failed');
+      liftedCall(m, inf ? 0xaf12b8 : 0xaece98, [g]);
       if (prev !== 0) m.w32(prev + 0xc, g); else m.w32(owner + 0x1f0, g);
       if (vcall(m, g, 0x18, owner, row, m.u16(owner + 0x1e0)) === 0) throw new Unverified('0x9bb33c generator init failed');
       const w0 = m.u32(owner + 0x1d8), w1 = m.u32(owner + 0x1dc), w2 = m.u32(owner + 0x1e0), w3 = m.u32(owner + 0x1e4);
@@ -1227,6 +1238,15 @@ registerCode(0xaecd44, (m, g, pool) => liftedCall(m, 0xaecd44, [g, pool]).r[0]);
 registerCode(0xaed2b8, (m, g) => liftedCall(m, 0xaed2b8, [g]).r[0]);
 registerCode(0xaed79c, (m, g) => liftedCall(m, 0xaed79c, [g]).r[0]);
 registerCode(0xaedaac, (m, g) => liftedCall(m, 0xaedaac, [g]).r[0]);
+// cParticleNodeInfinite (vtable 0x1789f20) has its own four: 6 init 0xaf1330, 8 start 0xaf1334, 9 arm 0xaf1450 and
+// 15 its record in sGpuParticle 0xaf15a8 (must return 1). Slot 7, the pool link, is the shared 0xaecd44 above, and
+// its move (0xaf15f8), post pass (0xaf2314), draw (0xaf24d8) and stop are reached from lifted code, as the plain
+// node's are. Slot 10, the state-6 re-arm 0xaf14fc, is listed in lift-effects.sh but NOT lifted: no run has reached
+// it, so there are no vectors for it -- it will lift itself the first time a recording gets there.
+registerCode(0xaf1330, (m, g, owner, row, index) => liftedCall(m, 0xaf1330, [g, owner, row, index]).r[0]);
+registerCode(0xaf1334, (m, g) => liftedCall(m, 0xaf1334, [g]).r[0]);
+registerCode(0xaf1450, (m, g) => liftedCall(m, 0xaf1450, [g]).r[0]);
+registerCode(0xaf15a8, (m, g) => liftedCall(m, 0xaf15a8, [g]).r[0]);
 
 export const internals = {
   allocGenerator: (m, size, align) => m.svc.alloc(size, align),

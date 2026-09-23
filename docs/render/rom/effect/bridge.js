@@ -156,6 +156,44 @@ native(0x9b4184, () => 1, [], 'r0');                   // uEffect vtable +0x88: 
 // the constructors the request's objects start from, translated by hand (construct.js): cUnit's and uEffect's base
 native(0x884990, (m, p) => { C.unitCtor(m, p); return p; }, A1, 'r0');
 native(0x9b1f1c, (m, p) => { C.effectBaseCtor(m, p); return p; }, A1, 'r0');
+// 0xb01c44, THE ATOMIC RELEASE -- the one routine in the cParticleNodeInfinite chain lift.py cannot take (LDAEX /
+// STLEX / CLREX). Hand-translated from the ROM at 0xb01c44..0xb01cd8 rather than stubbed, because this is what
+// destroys a GPU particle record: the Infinite node's teardown reaches it through 0xb977b0 on every play, and a stub
+// would leak the record and never run its deleting destructor.
+//   ip = obj; r0 = obj + 8; r3 = [r0]; r4 = r3 - 1; the LDAEX/STLEX pair writes r4 back and retries on contention --
+//   with one thread here the result is the same as the plain store. If r4 != 0 it returns (0xb01c94 popne, with r0
+//   still obj + 8). Otherwise it compares [obj+4] against [0x211d120] SIGNED (0xb01cac is `bge`, not `bhs`) and,
+//   when LESS, TAIL-CALLS the object's own vtable slot 1 -- the deleting destructor -- with r0 = obj
+//   (0xb01cb0..0xb01cc0). The other side (0xb01cc4: an append to the device's deferred-destruction array through
+//   0xbbf5b8) is NOT READ, so it refuses rather than guesses.
+//   [obj+4] IS A GPU FENCE STAMP and the sign is the whole point: nDraw::VertexBuffer's constructor chain
+//   (0xb082e0 -> 0xcc86e8 -> 0xb01aa0) writes 0xFFFFFFFF there, meaning "never submitted", and the two sites that
+//   ever stamp it (0x87af3c, 0x8ae2a4) write [0x211d120] + [0x211d124] -- the device's frame counter plus the frames
+//   in flight, i.e. "free me once the GPU has passed the frame I was last drawn in". Nothing on the effect path
+//   stamps it, so the value stays -1, the test is true, and the buffer is destroyed at once: 0xbbf5b8 and its drain
+//   (0xbbdc34, from the device's frame end 0xbbd8ac) are dead code here rather than something the viewer skips.
+//   THE COMPARE MUST BE `| 0`, NOT toS32: toS32 is the SATURATING float->int conversion (vcvt.s32.f32), which turns
+//   0xFFFFFFFF into 2147483647 and sends every buffer down the deferred branch. That cost an afternoon.
+registerNative(0xb01c44, (m, c) => {
+  const obj = c.r[0] >>> 0;
+  const n = (m.u32((obj + 8) >>> 0) - 1) >>> 0;
+  m.w32((obj + 8) >>> 0, n);
+  if (n !== 0){ clobber(c); c.r[0] = (obj + 8) >>> 0; return; }
+  if ((m.u32((obj + 4) >>> 0) | 0) >= (m.u32(0x211d120) | 0))
+    throw new Unverified('0xb01cc4 release through 0xbbf5b8, which is not read');
+  const rc = liftedCall(m, m.u32((m.u32(obj) + 4) >>> 0), [obj]);
+  clobber(c); c.r[0] = rc.r[0] >>> 0;
+});
+// 0xaee2dc: three instructions, `r1 = [r0]; r1 = [r1 + 0x40]; bx r1` -- a bare tail call through the generator's
+// vtable SLOT 16, which the effect's move reaches at 0x9b65b0. A native rather than a lift because lifting a computed
+// tail call would only reproduce the dispatch: this reads the slot and runs what is in it, passing r0-r3 through as
+// the branch does. Both cParticleNode (vtable 0x1789ebc) and cParticleNodeInfinite (0x1789f20) hold 0xaedafc there,
+// which is lifted -- the Infinite node is the first to come through the thunk rather than call it directly.
+registerNative(0xaee2dc, (m, c) => {
+  const obj = c.r[0] >>> 0;
+  const rc = liftedCall(m, m.u32((m.u32(obj) + 0x40) >>> 0), [obj, c.r[1], c.r[2], c.r[3]]);
+  clobber(c); c.r[0] = rc.r[0] >>> 0;
+});
 // cUnit's empty virtual (vtable +0x2c of both the core and the effect): bx lr.
 registerNative(0x1eba8, () => {});
 // The unit manager's add (0xc03670: sUnit, line, unit, ...): the harness hooks it to return at once with the
