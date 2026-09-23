@@ -69,7 +69,7 @@ const D = SHELL_DATA.em003_00;
 // ---- 2. the actions ----------------------------------------------------------------------------------------------
 console.log('== 2. the lightning actions his command table issues');
 {
-  const A = D.actions;
+  const A = D.actions.filter(a => a.shell === 'shell03');
   check('six numbers reach the handler 0xd16e08, each with its own index (0xd1c94c -> the case bodies)',
         A.length === 6 && A.every(a => a.code === 0xd16e08 && a.spawner === 0xd16e08) &&
         eq(A.map(a => a.action[1]), [0x05, 0x0e, 0x35, 0x46, 0x47, 0x4d]) &&
@@ -157,7 +157,7 @@ function play(variant, steps){
 console.log('== 4. the records his lightning requests');
 {
   const keys = new Set();
-  for (const a of D.actions) for (const m of a.modes){
+  for (const a of D.actions.filter(x => x.shell === 'shell03')) for (const m of a.modes){
     const md = D.shells.shell03.modes[m];
     if (md) for (const [lid, key] of md.ef) if (lid !== 999 && key >= 0) keys.add((D.lists[lid] || {}).pel + '|' + key);
   }
@@ -199,5 +199,95 @@ console.log('== 5. controls: wrong inputs must fail');
   check('control a floor out of the init’s reach (500 below the joint): no ground, no bolt', high.made.length === 0);
 }
 
-console.log(`\n${pass} passed, ${fail} failed`);
+// ---- 6. the orbs (base13) ----------------------------------------------------------------------------------------
+console.log('== 6. the orb: its ring slot, its flight, and what it leaves');
+const REF13 = process.env.KHEZU_BASE13_REF || String.raw`C:\MHGU-Extract\efx\agents\khezu-shell-scratch\khezu-base13-reference.json`;
+const r13 = JSON.parse(readFileSync(REF13, 'utf8'));
+function orb(target, rank, steps, variant = '7:0x3f'){
+  const st = createShellState('em003_00');
+  const made = [], stepsOf = new Map(), created = [], refused = [];
+  for (let k = 0; k < steps; k++){
+    const out = stepShells(st, { monId: 'em003_00', list: '2', clip: 'Motion[61]', frame: k, joints: () => J,
+                                 rock: { variant, target: { x: target[0], y: target[1], z: target[2] }, floorY: FLOOR },
+                                 owner: { x: 0, y: 0, z: 0 }, ownerPos: { x: 0, y: 0, z: 0 }, rank, size: [1, 1] });
+    for (const S of out.spawned){ made.push(S); stepsOf.set(S.id, []); }
+    for (const S of made) if (S.state !== 0xff) stepsOf.get(S.id).push({ state: S.state, pos: S.position.slice(), vel: S.velocity.slice(), ang: S.angles.slice() });
+    for (const c of out.created) created.push({ k, shell: c.create.shell, mode: c.create.mode });
+    for (const x of out.refused) refused.push(x);
+  }
+  return { made, stepsOf, created, refused };
+}
+{
+  const A = D.actions.filter(a => a.shell === 'shell13');
+  check('his five orb actions all reach 0xd18ee0 on L2 Motion[61] and test 114.0 (0xd1c94c and its case bodies)',
+        A.length === 5 && A.every(a => a.code === 0xd18ee0 && a.spawner === 0xd18ee0 && a.list === '2' &&
+                                       a.clip === 'Motion[61]' && a.frame === 114.0) &&
+        eq(A.map(a => a.action[1]), [0x29, 0x3a, 0x3f, 0x42, 0x43]),
+        A.map(a => '(7, 0x' + a.action[1].toString(16) + ')').join(' '));
+  check('the two the streams issue are the ones the viewer can name; the chained pair and (7, 0x29) are not',
+        eq(pickVariantsFor('em003_00', '2', 'Motion[61]'), ['7:0x3f', '7:0x42']),
+        pickVariantsFor('em003_00', '2', 'Motion[61]').join(', '));
+  let bad = 0, first = null;
+  for (const row of r13.slots){
+    const r = orb(row.target, row.rank, 130);
+    const S = r.made[0];
+    const point = S && S.launch.point;
+    if (!S || S.modeIndex !== row.mode || !sameF(point, row.point) || S.spawnFrame !== 114.0){
+      bad++;
+      if (!first) first = 'bearing ' + row.bearing + ' rank ' + row.rank + ': mode ' + (S && S.modeIndex) + ' vs ' +
+                          row.mode + ', point ' + (point ? fmt(point) : '-') + ' vs ' + fmt(row.point);
+    }
+  }
+  check('the ring slot picks the same orb the ROM does at all ' + r13.slots.length + ' bearings of the sweep ' +
+        '(six sixths of a turn, both quest ranks, each with its own point)', bad === 0, first || '');
+  for (const run of r13.runs.filter(x => x.action.indexOf('(7,0x29)') === 0)){
+    const r = orb(r13.meta.target, run.rank, 114 + run.frames.length + 2);
+    const S = r.made[0], got = r.stepsOf.get(S.id);
+    let why = null;
+    for (let i = 0; i < run.frames.length && i < got.length; i++){
+      const w = run.frames[i], g = got[i];
+      if (!sameF(g.pos, w.pos) || !sameF(g.vel, w.vel) || g.state !== w.state){
+        why = 'step ' + (i + 1) + ': pos ' + fmt(g.pos) + ' vs ' + fmt(w.pos) + ', vel ' + fmt(g.vel) + ' vs ' +
+              fmt(w.vel) + ', state ' + g.state + ' vs ' + w.state;
+        break;
+      }
+    }
+    check('mode ' + run.mode + ' (quest rank ' + run.rank + '): ' + run.frames.length +
+          " moves match the ROM's, float for float", why === null, why || '');
+    const land = run.frames.find(x => x.log.some(l => l[0] === 'hit'));
+    check('mode ' + run.mode + ": it lands on the floor at the ROM's own step and leaves a shell01 there",
+          !!land && r.created.length === 1 && r.created[0].shell === 'shell01' &&
+          r.created[0].mode === (run.rank > 1 ? 2 : 1) && r.created[0].k === 114 + land.k,
+          r.created.map(c => c.shell + ' mode ' + c.mode + ' at k' + c.k).join(', ') + (land ? ' (ROM k' + land.k + ')' : ''));
+  }
+  const keys = new Set(), keysG = new Set();
+  for (const m of [0, 1, 2, 3, 4, 5]) for (const [lid, key] of D.shells.shell13.modes[m].ef) keys.add(D.lists[lid].pel + '|' + key);
+  for (const m of [6, 7, 8, 9, 10, 11]) for (const [lid, key] of D.shells.shell13.modes[m].ef) keysG.add(D.lists[lid].pel + '|' + key);
+  check('every orb of the ring asks for one record: u 30 below quest rank 2 and u 32 above (em003_00_009 either way)',
+        eq([...keys], ['em003_00u|30']) && eq([...keysG], ['em003_00u|32']), [...keys].concat([...keysG]).join(', '));
+  const drive = opts => {
+    const st = createShellState('em003_00'), out = [];
+    for (let k = 0; k < 130; k++) out.push(stepShells(st, Object.assign({ monId: 'em003_00', list: '2',
+      clip: 'Motion[61]', frame: k, joints: () => J,
+      rock: { variant: '7:0x3f', target: { x: 0, y: 0, z: 2100 }, floorY: FLOOR },
+      owner: { x: 0, y: 0, z: 0 }, ownerPos: { x: 0, y: 0, z: 0 }, rank: 1, size: [1, 1] }, opts)));
+    return out;
+  };
+  const noTarget = drive({ rock: { variant: '7:0x3f', target: null, floorY: FLOOR } });
+  check('control no target: no orb, and the refusal says which input is missing',
+        noTarget.every(o => o.spawned.length === 0) && noTarget.some(o => o.refused.length),
+        (noTarget.find(o => o.refused.length) || { refused: [{}] }).refused[0].why);
+  const noPos = drive({ ownerPos: null });
+  check('control no owner position: no orb (base13 starts it from the monster, not from a joint)',
+        noPos.every(o => o.spawned.length === 0) && noPos.some(o => o.refused.length),
+        (noPos.find(o => o.refused.length) || { refused: [{}] }).refused[0].why);
+  const ahead = orb([0, 0, 2100], 1, 130), sideways = orb([2100, 0, 0], 1, 130);
+  check('control the target moved a quarter turn round him: another slot, another orb, from another point',
+        ahead.made[0].modeIndex !== sideways.made[0].modeIndex &&
+        !sameF(ahead.made[0].launch.point, sideways.made[0].launch.point),
+        'mode ' + ahead.made[0].modeIndex + ' from ' + fmt(ahead.made[0].launch.point) + ' vs mode ' +
+        sideways.made[0].modeIndex + ' from ' + fmt(sideways.made[0].launch.point));
+}
+
+console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

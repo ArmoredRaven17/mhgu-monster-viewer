@@ -1790,10 +1790,11 @@ export const SHELL_DATA = {
   // every ShellInfoList entry and no ShellCmnParam; EffectLists[0] is effect\pel\em\em003_00u in all five, and
   // shell01 alone also names [1] = em003_00c.
   //
-  // WHAT IS WIRED HERE: shell03, the ground lightning (base03 below). Its 21 modes are one attack's fan -- the .shl
-  // gives each a Y offset in degrees, a speed and a life -- and the action's index picks a triple of them. The
-  // other four shells' files are transcribed but no action is listed for them yet: base01, base05 and base13 are
-  // not translated, and Khezu's shell00 runs base00 through his own reader (0xd2145c), which is not read yet.
+  // WHAT IS WIRED HERE: shell03, the ground lightning (base03 below) -- its 21 modes are one attack's fan, the .shl
+  // giving each a Y offset in degrees, a speed and a life, and the action's index picking a triple of them -- and
+  // shell13, the orb (base13), one of whose six the ring slot picks. The other three shells' files are transcribed
+  // but no action is listed for them yet: base05 is not translated, base01 would need Khezu's own reader (0xd218c4)
+  // over the base Rathian's shells already use, and his shell00 runs base00 through his reader 0xd2145c, unread.
   //
   // THE ACTIONS. The status switch 0xd1f658 (status byte +0x73e0) sends status 7 to the number switch 0xd1c920
   // (number byte +0x73e1, table 0xd1c94c). Six numbers reach one handler, 0xd16e08, each with its own index: phase 0
@@ -2032,6 +2033,21 @@ export const SHELL_DATA = {
       // first wave is listed; the second is NOT MODELLED.
       { action: [7, 0x4d], code: 0xd16e08, args: [5], list: '2', clip: 'Motion[3]', frame: 176.0, shell: 'shell03',
         modes: [15, 16, 17], spawner: 0xd16e08, pick: 'ai', variant: '7:0x4d' },
+      // THE ORBS (uShellEm003_sp_13, base13 below). 0xd18ee0 plays L2 Motion[61] (motion 0x23d) and at 114.0 makes
+      // ONE orb: the ring slot the target stands in decides which (the bearing test in its phase 0, 0xd18f3c) and
+      // where it comes from. The streams issue (7, 0x3f) and (7, 0x42) (group 1 streams 16 and 21); the class chains
+      // (7, 0x3a) and (7, 0x43) itself (0xd196c0 / 0xd19670, the same clip replayed from frame 70), and no stream or
+      // chain names (7, 0x29). All five make the same orb, so only the two the streams issue are offered as picks.
+      { action: [7, 0x29], code: 0xd18ee0, args: [0, 0], list: '2', clip: 'Motion[61]', frame: 114.0,
+        shell: 'shell13', spawner: 0xd18ee0, pick: 'unread' },
+      { action: [7, 0x3a], code: 0xd18ee0, args: [1, 0], list: '2', clip: 'Motion[61]', frame: 114.0,
+        shell: 'shell13', spawner: 0xd18ee0, pick: 'chain' },
+      { action: [7, 0x3f], code: 0xd18ee0, args: [2, 0], list: '2', clip: 'Motion[61]', frame: 114.0,
+        shell: 'shell13', spawner: 0xd18ee0, pick: 'ai', variant: '7:0x3f' },
+      { action: [7, 0x42], code: 0xd18ee0, args: [0, 1], list: '2', clip: 'Motion[61]', frame: 114.0,
+        shell: 'shell13', spawner: 0xd18ee0, pick: 'ai', variant: '7:0x42' },
+      { action: [7, 0x43], code: 0xd18ee0, args: [1, 1], list: '2', clip: 'Motion[61]', frame: 114.0,
+        shell: 'shell13', spawner: 0xd18ee0, pick: 'chain' },
     ],
   },
 };
@@ -2959,6 +2975,241 @@ function boltInputs(input){
   if (!o || !Number.isFinite(o.y)) return { why: 'no owner facing (input.owner.y)' };
   if (!r || !Number.isFinite(r.floorY)) return { why: 'no floor (input.rock.floorY)' };
   return { ownerX: (o.x || 0) >>> 0, ownerY: o.y >>> 0 };
+}
+
+// ---- base13 (uShellEmBase13): the orb lobbed at a point ahead of the monster -------------------------------------
+// KHEZU's shell13 (uShellEm003_sp_13, ctor 0xd22070 over base13's 0x404350): init 0x4044d8, move 0x40500c (its state
+// dispatcher; state 1 -> vtable +0x158 = 0x405164), the aim 0x4053e4, the point it is thrown at 0x405500 (+0x168),
+// the Y word toward that point 0x405a88 (+0x16c), the owner's target slot 0x405a60 (+0x170), end 0x405af0. The orb is
+// launched on a ballistic arc at a point on the monster's line to its target, falls under the file's gravity, and
+// ends at a floor contact or when its life runs out.
+//
+// NOT TRANSCRIBED (no Khezu mode reaches them, and the viewer has no state to answer them): the joint path of the
+// init (+0x15e4 != -1, 0x4045ec), the flag paths 0x200 / 0x40 / 0x10 of the aim and the thrown point (0x405564,
+// 0x4055b0, 0x4054e8), and the byte +0x15e1 bit 0 branch of the move (0x405268), which skips the turn.
+
+// 0x43ae70(vec, owner) -- a vector turned into the owner's frame: by its block's Z word (+0x58), then X (+0x50), then
+// Y (+0x54), each u16 times 2pi/65536. The posture byte [+0x1428]+0x1ba picks other orders at 2..4 and 5 / 6
+// (0x43ae9c..0x43aeb0): NOT TRANSCRIBED, the viewer has no posture -- 0 is the standing one.
+function turnByWords(v, A){
+  const rz = f(u16(A[2]) * U16_TO_RAD), sz = sinf(rz), cz = cosf(rz);
+  const x1 = mls(f(v[0] * cz), v[1], sz), y1 = mla(f(v[1] * cz), v[0], sz);
+  const rx = f(u16(A[0]) * U16_TO_RAD), sx = sinf(rx), cx = cosf(rx);
+  const y2 = mls(f(y1 * cx), v[2], sx), z2 = mla(f(v[2] * cx), y1, sx);
+  const ry = f(u16(A[1]) * U16_TO_RAD), sy = sinf(ry), cy = cosf(ry);
+  return [mla(f(x1 * cy), z2, sy), y2, mls(f(z2 * cy), x1, sy)];
+}
+
+// the u16 angle of a horizontal direction, as the bases make it: int(atan2(dx, dz) * 65536/2pi + 0.5), kept as a u16
+const wordOf = (dx, dz) => u16(s32(mla(0.5, atan2f(dx, dz), RAD_TO_U16)));
+// the same for a value in degrees (+0x1604 / +0x1608 and the class's own limits)
+const wordOfDeg = d => u16(s32(mla(0.5, f(d), DEG_TO_U16)));
+
+function params13(def, mode){          // Khezu's sp_13 reader 0xd220a4 (vtable +0x14c)
+  const sh = mode.sh, F = i => f(sh.floats[i] == null ? 0.0 : sh.floats[i]);
+  return { // +0x15e0: bit 3 always, bit 7 / 5 / 6 when sh int 0 / 1 / 2 is not -1 (0xd220f8..0xd22154)
+           flags: 8 | (sh.ints[0] !== -1 ? 0x80 : 0) | (sh.ints[1] !== -1 ? 0x20 : 0) | (sh.ints[2] !== -1 ? 0x40 : 0),
+           speed0: F(0),        // +0x15ec   the launch speed at no distance
+           speedPer: F(1),      // +0x160c   and what each unit of distance adds
+           gravity: F(2),       // +0x15f4   the fall (its y acceleration)
+           near: F(3),          // +0x15fc   the thrown point is at least this far
+           far: F(4),           // +0x1600   and at most this
+           life: F(5),          // +0x15f8 -> +0x1638, the frames it lives
+           limitA: F(6),        // +0x1604   the aim's two limits either side of the owner's facing, in degrees
+           limitB: F(7),        // +0x1608
+           vec: (sh.vecs[0] || ZERO3).map(f) };   // +0x161c / +0x1620 until the init replaces them (0xd22244)
+}
+
+// vtable +0x170 (0x405a60): the owner's target slot the shell carries at +0x1670 -- [owner+0x1428] + 0x1d0 + slot*16;
+// the viewer passes one target (input.rock.target), which is slot 0
+const target13Slot = own => own.target;
+
+// the aim 0x4053e4: the u16 the orb is thrown along, from the owner's block position when the reader set bit 5 (sh
+// int 1 != -1) or from the shell's own point when it did not, clamped to the file's two degree limits either side of
+// the owner's facing (block +0x54)
+function aim13(S, k, own){
+  const T = target13Slot(own);
+  const R = (k.flags & 0x20) ? own.ownerPos : S.position;      // 0x405430 / 0x405420
+  const a = wordOf(f(T[0] - R[0]), f(T[2] - R[2]));            // 0x40544c..0x405478
+  const d = u16(a - own.ownerY);                               // 0x405494: uxth(angle - the facing)
+  const limB = wordOfDeg(k.limitB);                            // +0x1608
+  if (d > limB && limB !== 0) return (own.ownerY + limB) >>> 0; // 0x4054b0: not masked before it is returned
+  const limA = wordOfDeg(k.limitA);                            // +0x1604
+  return d >= limA ? a : ((own.ownerY + limA) >>> 0);          // 0x4054d4..0x4054e0
+}
+
+// vtable +0x168 (0x405500): the point the orb is thrown at -- along the aim from the shell's own position, as far as
+// the owner's target is (clamped to the file's near / far), with the setup's own point (+0x1650, the action's second
+// point) added, and the height of the owner's target plus +0x1614 (which Khezu's reader leaves 0)
+function thrown13(S, k, own){
+  const P = S.position, T = target13Slot(own);
+  const dx = f(T[0] - P[0]), dz = f(T[2] - P[2]);
+  let d = sqrtf(mla(mla(0.0, dx, dx), dz, dz));                // 0x4055fc..0x405604
+  d = k.near > d ? k.near : d;                                 // 0x405638: vselgt, the near clamp
+  d = d > k.far ? k.far : d;                                   // 0x405644: and the far one
+  const a = aim13(S, k, own);
+  const rad = f(u16(a) * U16_TO_RAD), sn = sinf(rad), cs = cosf(rad);
+  const ox = f(0.0 + S.centre[0]), oz = f(d + S.centre[2]);    // 0x4059e4: the setup's point is added
+  return [f(P[0] + mla(f(ox * cs), oz, sn)), f(T[1] + S.y1614), f(P[2] + mls(f(oz * cs), ox, sn))];
+}
+
+// 0x404dc8: the launch, from the shell's point to the thrown point -- the speed grows with the distance, the flight
+// time follows from it, and the vertical speed is what lands the orb there under the file's gravity
+function launch13(S, k, own){
+  const T = thrown13(S, k, own), P = S.position;
+  const dx = f(P[0] - T[0]), dz = f(P[2] - T[2]);
+  let dy = f(T[1] - P[1]);                                     // 0x404ea4
+  dy = dy > 0 ? (S.k.f15f0 > 0 ? f(0.0) : dy) : dy;            // 0x404eb4 / 0x404ec4: +0x15f0 is 0, so the raw drop
+  const dist = sqrtf(mla(mla(0.0, dx, dx), dz, dz));           // 0x404eb8..0x404ecc
+  const speed = mla(k.speed0, k.speedPer, dist);               // 0x404ee4: +0x15ec + +0x160c * distance
+  const t = f(dist / speed);                                   // 0x404ef0
+  const vy = f(mla(dy, f(f(t * t) * k.gravity), f(-0.5)) / t); // 0x404f54..0x404f70
+  return { velocity: [f(0.0), vy, speed], acceleration: [f(0.0), k.gravity, f(0.0)], thrown: T, dist, speed, t };
+}
+
+function init13(S, def, J, got, ctx, setup){
+  const k = S.k = params13(def, S.mode);
+  k.f15f0 = f(0.0);                                            // +0x15f0: no Khezu mode's reader writes it
+  S.centre = setup.centre.slice();                             // +0x1650..+0x1658 = setup +0x20 (0x404504)
+  S.y1614 = f(0.0);                                            // +0x1614, likewise never written
+  S.lifetime = k.life;                                         // +0x1638 = +0x15f8 (0x4045d4)
+  S.angles = [0, 0, 0];                                        // +0xfe8..+0xff0 (0x4045c8)
+  // the reader writes no joint (+0x15e4 == -1), so the shell starts at the owner's own point (0x4046ac)
+  S.position = got.ownerPos.slice();
+  // and flag 7 is set, so the two points it carries are the setup's spawn point (0x404720); their midpoint at
+  // +0x163c = 0.5 is the same point, turned into the owner's frame (0x43ae70) and scaled by its size (0xbe518)
+  let mid = setup.point.slice();                               // 0x404768..0x4047a8, both points are the setup's
+  mid = turnByWords(mid, [got.ownerX, got.ownerY, got.ownerZ]);
+  const size = f(got.size[0] * got.size[1]);                   // 0xbe518
+  mid = mid.map(v => f(size * v));                             // 0x404848..0x404864
+  S.position = [f(mid[0] + S.position[0]), f(mid[1] + S.position[1]), f(mid[2] + S.position[2])];
+  S.anchor = S.position.slice();
+  // the launch, then its velocity turned by the Y word toward the thrown point (0x405a88) -- the ROM's other turn,
+  // by the angles at +0x1630, is by the zero vector the ctor left there (0x404350), so it is the identity
+  const L = launch13(S, k, got);
+  const a = wordOf(f(L.thrown[0] - S.position[0]), f(L.thrown[2] - S.position[2]));   // vtable +0x16c
+  const rad = f(u16(a) * U16_TO_RAD), sn = sinf(rad), cs = cosf(rad);
+  S.velocity = [f(L.velocity[2] * sn), L.velocity[1], f(L.velocity[2] * cs)];         // 0x404940..0x404974
+  S.gravity = L.acceleration.slice();                                                 // +0x1020..+0x1028
+  S.aim = a;
+  S.launch = { point: S.position.slice(), thrown: L.thrown.slice(), aim: a, dist: L.dist, speed: L.speed, t: L.t,
+               velocity: S.velocity.slice(), gravity: S.gravity.slice(), life: S.lifetime };
+  S.timer = f(0.0);
+  return true;
+}
+
+// base13's state-1 move 0x405164
+function move13(S, ctx, D){
+  S.clock = f((S.clock || 0) + ctx.dt);                        // +0x1378 (0x405188)
+  S.anchor = S.position.slice();                               // +0x1000..+0x100c
+  stepFlight(S, ctx.dt);                                       // 0x539224
+  // the turn: the X word from the fall, the Y word from the heading (0x4051dc..0x405264)
+  const [vx, vy, vz] = S.velocity;
+  const h = sqrtf(mla(f(vz * vz), vx, vx));
+  S.angles = [wordOf(f(-vy), h), wordOf(vx, vz), S.angles[2]];
+  // the life (+0x1638) runs down by the shell's dt and ends it at 0 (0x405278..0x4052b4)
+  const T = S.lifetime;
+  if (!(T > 0)){ S.lifetime = 0; return 'end'; }
+  const t = f(T - ctx.dt);
+  S.lifetime = (0 >= t) ? 0 : t;
+  if (!(t > 0)) return 'end';
+  const hit = collide(S, null, ctx.floorY);                    // 0x43ac6c / 0x43ac8c, the same query the rocks make
+  if (!hit) return 'keep';
+  S.events.push({ ev: 'hit', point: hit.point, type: hit.type });
+  return 'contact';                                            // vtable +0x150: the class's own landing
+}
+
+// ---- Khezu's orbs: uShellEm003_sp_13 over base13 -------------------------------------------------------------------
+// The ring the monster spits round itself. His action 0xd18ee0 (status 7 numbers 0x29 / 0x3a / 0x3f / 0x42 / 0x43,
+// 0xd1c94c) plays L2 Motion[61] (motion 0x23d) and, when it passes 114.0, makes ONE shell13: which one is the ring
+// slot the target stands in, measured in phase 0 (0xd18f3c..0xd18fe0) as the bearing from the monster to its target
+// against its own facing, and kept in the action's byte [+0x1428]+0x1a2. The slot picks both the mode (the table at
+// 0xd194bc, six cases, each +6 above quest rank 1 -- 0x3a8430) and the point the orb starts from (the three tables
+// 0x1796b50 / 0x1796b70 / 0x1796b90, whose entries the game's own static initialisers fill: the values below are
+// read out of the initialised image, not out of main.data). The point is scaled by the monster's size (0xbe518) and
+// handed to the shell as its setup +0x10; base13's init turns it into the owner's frame itself.
+//
+// NOT LISTED: (7, 0x32), the other orb action (0xd1a488) -- it throws modes 12..17 from three points of its own at
+// two different frames, and its own spawner is not transcribed.
+const ORB_SLOT_MODE = [0, 3, 5, 4, 2, 1];                    // 0xd194bc's six case bodies (0xd194d4, 0xd194ec, ...)
+const ORB_SLOT_POINT = [[43.0, 878.0, 564.0], [30.0, 841.0, -536.0], [-240.0, 832.0, -470.0],
+                        [389.0, 880.0, -366.0], [-282.0, 910.0, 472.0], [468.0, 866.0, 299.0]];
+
+// 0xd18f3c..0xd18fe0: the slot the target's bearing falls in, in sixths of a turn around the monster's facing
+function orbSlot(own){
+  const T = own.target;
+  const a = wordOf(f(T[0] - own.ownerPos[0]), f(T[2] - own.ownerPos[2]));   // 0xd18f50..0xd18f7c
+  const d = u16(a - own.ownerY);                                            // 0xd18f8c
+  if (u16(d - 0x1555) > 0xd555) return 0;                                   // 0xd18f98..0xd18fa4
+  if (d < 0x4000) return 4;                                                 // 0xd18fb0
+  if (d < 0x6aab) return 2;                                                 // 0xd18fc0
+  if (d < 0x9555) return 1;                                                 // 0xd18fcc
+  if (d < 0xc000) return 3;                                                 // 0xd18fd8
+  return 5;
+}
+
+function spawnOrbs(state, D, a, ctx, own, out){
+  const def = D.shells[a.shell], lists = def.lists || D.lists;
+  const slot = orbSlot(own);
+  // the mode: the slot's own, and its high-rank pair above quest rank 1 (0xd194d8: `cmp r0, #1; movwgt r5, #6`)
+  const m = ORB_SLOT_MODE[slot] + (own.rank > 1 ? 6 : 0);
+  const mode = def.modes[m];
+  if (!mode) return [];
+  const size = f(own.size[0] * own.size[1]);                                // 0xbe518, at 0xd1920c
+  const setup = { point: ORB_SLOT_POINT[slot].map(v => f(f(v) * size)),     // setup +0x10 (0xd19574)
+                  centre: ZERO3.slice() };                                  // setup +0x20: the zero vector 0xb18500
+  const S = { id: state.nextId++, monId: state.monId, shell: a.shell, cls: def.cls, globalId: def.id, base: def.base,
+              mode, modeIndex: m, action: a.action, spawnFrame: a.frame, motion: ctx.motion, state: 2, slot,
+              position: null, prevPosition: null, anchor: null, angles: null, velocity: null, gravity: null,
+              centre: null, lifetime: 0, timer: 0, clock: 0, moves: 0, aim: 0, launch: null, events: [],
+              folder: def.folder, effect: null, effect2: null, start: null, place: null, stop: null };
+  S.effects = mode.ef.map(([listId, key], param) => ({ param, listId, list: (lists[listId] || {}).list || null, key, started: false }));
+  if (!init13(S, def, null, own, ctx, setup)) return [];
+  S.prevPosition = S.position.slice();
+  S.start = rockRequest(D, mode, 0, S.position, 'flight', lists);           // 0x404cc0..0x404ce0, at +0x40
+  S.effect = S.start ? { param: 0, key: S.start.key, kind: 'flight' } : null;
+  if (S.start) S.effects[0].started = true;
+  return [S];
+}
+
+// one orb's step (vtable +0x24 = 0x40500c: state 2 -> +0x158 = 0x405164, state 1 -> +0x15c = 0x405160,
+// which is a bare `bx lr`, and state 0xfe -> the dispatcher's own countdown at 0x4050b4)
+const own13 = input => owner001(input);
+function stepOrb(S, ctx, input, D, out){
+  S.events = [];
+  S.place = null;
+  const alive = h => input.effectAlive ? !!input.effectAlive(S, h.param, h) : true;
+  if (S.effect && !S.effect.gone && !alive(S.effect)) S.effect.gone = true;
+  if (S.state === 2){                                    // base13 flies in state 2 (its init 0x404d9c), not 1
+    S.moves++;
+    const r = move13(S, ctx, D);
+    if (r === 'contact'){
+      // Khezu's own landing, sp_13's vtable +0x150 (0xd22268): it makes a shell01 -- mode 1 below quest rank 2 and
+      // mode 2 above (its u 31). base01 through his reader (0xd218c4) is NOT TRANSCRIBED, so the shell is reported
+      // and not stepped, and its effect is not started here.
+      const child = own13(input).rank > 1 ? 2 : 1;
+      S.events.push({ ev: 'create', stepped: false, shell: 'shell01', id: D.shells.shell01.id, mode: child,
+                      position: S.position.slice(), why: 'base01 with uShellEm003_sp_01 (0xd218c4) is not transcribed' });
+      out.created.push({ shell: S, create: S.events[S.events.length - 1] });
+    }
+    if (r === 'end' || r === 'contact'){
+      // base13's end 0x405af0: the effect is stopped, the state goes to 0xfe and +0x1638 becomes 30 x 60 frames
+      S.stop = (S.effect && !S.effect.gone) ? { param: 0, request: 0, key: S.effect.key } : null;
+      S.state = 0xfe;
+      S.lifetime = ENDING_FRAMES;
+      if (S.stop) S.events.push({ ev: 'stop', param: 0, key: S.stop.key, flag: 0 });
+      out.ended.push(S);
+    }
+  } else if (S.state === 0xfe){                          // the dispatcher's own ending, 0x4050b4
+    const T = S.lifetime;
+    if (!(T > 0)){ S.lifetime = 0; S.state = 0xff; }
+    else {
+      const t = f(T - ctx.dt);
+      S.lifetime = (0 >= t) ? 0 : t;
+      if (t <= 0) S.state = 0xff;
+      else if (!(S.effect && !S.effect.gone)) S.state = 0xff;
+    }
+  }
 }
 
 // ---- Nargacuga's tail spikes: base00 with uShellEm037_sp_00's own reader, init path and landing ------------------------
@@ -4047,6 +4298,11 @@ export function stepShells(state, input){
       const got = spikeInputs(input, a.spawnArgs[1]);
       if (got.why) out.refused.push({ action: a.action, shell: a.shell, modes: a.modes.slice(), why: got.why });
       else for (const S of spawnSpikes(state, D, a, state.prevJoints, ctx, got)){ out.spawned.push(S); state.shells.push(S); }
+    } else if (passed && a.spawner === 0xd18ee0){
+      // Khezu's orb: one shell13, the ring slot picking its mode and its point
+      const own = owner001(input), why = missing001(own, { facing: true, target: true, pos: true });
+      if (why) out.refused.push({ action: a.action, shell: a.shell, why });
+      else for (const S of spawnOrbs(state, D, a, ctx, own, out)){ out.spawned.push(S); state.shells.push(S); }
     } else if (passed && a.spawner === 0xd16e08){
       // Khezu's lightning: the action's index makes its whole triple in this step, each bolt inited here and moved below
       const got = boltInputs(input);
@@ -4074,6 +4330,7 @@ export function stepShells(state, input){
   for (let i = 0; i < state.shells.length; i++){
     const S = state.shells[i], last = i === state.shells.length - 1;
     if (S.base === 'base03') stepBolt(S, ctx, input, D, out);
+    else if (S.base === 'base13') stepOrb(S, ctx, input, D, out);
     else if (S.base === 'base00' || S.base === 'base54') stepRock(S, J, ctx, input, D, out);
     else if (S.base === 'base01' || S.base === 'base11') step011(S, ctx, input, D, out);
     else stepBreath(S, J, ctx, input, D, out);
