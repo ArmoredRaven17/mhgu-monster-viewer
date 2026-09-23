@@ -51,6 +51,15 @@
 //     36 / 48..50, and THE POISON (0xd09b84(e, 0x10), poison001: shell01 16 / 23 / 24 by the quest's number and part 7's
 //     break level, none once the tail is severed, the two newest kept). Its inputs: input.questLevel (no default),
 //     input.breakLevel7, input.tailSevered.
+//   * DREADKING RATHALOS (em002_04): the same class with em byte 2 and variant byte 4, its shell ids 0x59 / 0x5f / 0x64
+//     (0xd09918), files and EffectLists (c = em002_00c, Rathalos's; u = em002_04u). Its lists 0..3 are Rathian's files,
+//     so her hover turns and dust rows are its, with the flight dust of its own L4 M25..M27 (0xcf1f74 / 0xcf1f30 /
+//     0xcf1f54, posture 3); its fire actions are its own: the spawn helpers' em-2 variant-4 branches give its fireballs
+//     0x1d / 0x1e (L2 M5 / M18, L4 M22 / M29), the take-off's 0x15 / 0x21 / 0x20 (L4 M32), L4 M38's 0x1a..0x1c and 0x1f,
+//     L4 M18's 0x22..0x24, L4 M45's 0x17 (aimed on X and Y from the owner) and L9 M1's 0x1f. Their landings take the
+//     em-2 variant-4 paths (0x15 as the mask's modes; 0x1f -> shell01 0x1b, or 0x11 above quest 6; 0x22..0x24 -> 0x1d /
+//     0x34 / 0x36, no ground fire), and sp_01's end create (0xd0eb20) makes 0x1c / 0x12 / 0x1e / 0x35 / 0x37 when those
+//     end. Its input: input.questLevel (the 0x1f landing).
 //
 // UNITS AND FRAMES. Positions are GAME units in world space (the viewer's world is game units / 100: live.js
 // MT_TO_VIEW). Joint matrices are the game's: 16 floats in memory order (row-vector convention, rows = axes, row 3 =
@@ -80,14 +89,19 @@
 //     0x1040 (the plane stand-in: the fire is always made); the
 //     camera request 0x43ac04 (an event only); the hit side beyond the slot countdown (who runs 0x168d30, where in the
 //     frame, its step -- the hit-slot life is input.hitLife, see slotStep); how the effect runtime binds placement-mode-0
-//     records to the shell and orients placed ones; (7, 0x7b)'s phase-0 call; Rathalos (em 2) and its variants -- their
-//     own ids and files, not in SHELL_DATA.
+//     records to the shell and orients placed ones; (7, 0x7b)'s phase-0 call; Rathalos (em002_00) and Silver Rathalos
+//     (em002_02) -- their own ids and files, not in SHELL_DATA (Dreadking is).
 //   * her siblings: as Rathian; who issues (7, 0x4d) / (7, 0x75) / (7, 0x7a) / (7, 0x7b) (no command-table stream names
 //     them, no class code chains to them); the owner's travel and turns inside their actions (0x7c9fc, 0x7a820, 0x76c08,
 //     0x770e4 -- input.ownerPos / input.owner instead); (7, 0xf6) / (7, 0xf7), which start on clips em001_04_9.lmt lacks;
 //     creates whose modes have no files (shell00 21 / 22 / 23 / 31..36, Gold's shell01 10..12: ROM-run, a no-file shell00
 //     ends at move 1 with no effect and no child) -- not listed; the take-offs (L4 M13 f6: shell00 21 / 22 / 32 / 33 no
 //     files, or shell01 0, which draws nothing).
+//   * Dreadking: as Rathian; (7, 0x02)'s turn in its phase 1 (0xcfde84..0xcfde90: input.owner.y instead); who issues
+//     (7, 0x27) / (7, 0x28) / (7, 0x33) / (7, 0x34) (no stream calls them); how often an L4 M29 attack repeats (P+0x1a2:
+//     every shot is 0x1d); creates made and deleted by their init for want of files ((7, 0x42) 9..11, (7, 0x4a) / (7, 0x5a) /
+//     (7, 0x5b) / (7, 0xef) 24 / 25, (7, 0x70) 37, (1, 0xff) 16) and the helpers whose frames are actiontune floats past
+//     its six (L9 M7's dust, (7, 0xf2)): not listed.
 const f = Math.fround;
 
 // ---- ROM constants (float literals as stored) -------------------------------------------------------------------
@@ -961,6 +975,288 @@ export const SHELL_DATA = {
     // .dtp at e+0x75f0) break row 4 (the +0x64 array, [[e+0x75f0]+0x64] + 0x10): part 7, level 2 at rank <= 4, 2 at rank > 4
     poison: { part: 7, levels: [2, 2] },
   },
+
+  // DREADKING RATHALOS (em002_04): Rathian's class uEm001_00 with em byte +0xb5f4 = 2, variant +0xb5f5 = 4. 0xd09918
+  // keeps the global shells 0x59 / 0x5f / 0x64 at enemy +0xcac4 / +0xcac8 / +0xcacc (0xd09a00..0xd09a1c); table
+  // 0x175c3e8 names Rathian's classes for them (uShellEm001_sp_00 / sp_01 / sp_11) with this monster's .shl (resources
+  // 0x89ac / 0x89b2 / 0x89b7). Values: the files' own, C:\MHGU-Extract\scratch-em\em002_04\em002_04.arc,
+  // shell\em\em002_04_shellNN (ShellInfoList 38 / 56 / 1, ShellScale 1.0).
+  em002_04: {
+    name: 'Dreadking Rathalos',
+    em: 2, variant: 4,                               // enemy +0xb5f4 / +0xb5f5
+    // every em002_04 .shl (shell00, shell01) names EffectLists[0] = effect\pel\em\em002_00c (Rathalos's c.pel) and [1] =
+    // effect\pel\em\em002_04u (its own u.pel), the rest null (the XFS arrays at 0x217d / 0x2fbd); shell11's are all null
+    lists: { 0: { list: 'c', pel: 'em002_00c' }, 1: { list: 'u', pel: 'em002_04u' } },
+    shells: {
+      // THE FIREBALLS (uShellEm001_sp_00, base00). The Rathalos modes 0 / 4 / 12..23 (13, 14, 16..22 unaimed; 12 / 15 aimed,
+      // 23 aimed on X and Y: flags 1 | 2), and this monster's 26..36: 26..28 / 29 / 30 / 33 in the landing's mask with u 20
+      // / c 20, 31 (u 10; its landing makes shell01 27 / 17), 34..36 (u 200 / u 10; their landings shell01 29 / 52 / 54).
+      // 29 (0x1d) is this monster's own fireball on L2 M5, L4 M22 and L4 M29, 30 (0x1e) on L2 M18 (the em-2 variant-4
+      // branch of each spawn helper); of the Rathalos modes it throws only 21 (the take-off) and 23 (L4 M45).
+      shell00: {
+        id: 0x59, cls: 'uShellEm001_sp_00', base: 'base00', folder: 'shell\\em\\em002_04_shell00', reader: 0xd0d988,
+        modes: {
+          0: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+             sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 60.0, 180.0, -45.0, 45.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 200.0, 200.0]] } },
+          4: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+             sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 60.0, 180.0, 0.0, 90.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 260.0, 400.0]] } },
+          12: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 60.0, 180.0, -30.0, 50.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 400.0, 100.0]] } },
+          13: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [50.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          14: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [50.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          15: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 50.0, 216.0, 10.0, 90.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 50.0, 350.0]] } },
+          16: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [50.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          17: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [43.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          18: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [43.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          19: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [50.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          20: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [50.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          21: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [50.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          22: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [30.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          23: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, 0, 0, -1, -1, -1], floats: [0.0, 0.0, 50.0, 216.0, -70.0, 70.0, 50.0, 30.0, 150.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 500.0]] } },
+          26: { scale: 1.0, ef: [[1, 20], [1, 36], [1, 31], [1, 36]], hit: [1],
+              sh: { ints: [3, 5, 5, -1, -1, -1, -1, -1], floats: [40.0, 0.0, 100.0, 72.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          27: { scale: 1.0, ef: [[1, 20], [1, 36], [1, 31], [1, 36]], hit: [1],
+              sh: { ints: [3, 5, 5, -1, -1, -1, -1, -1], floats: [20.0, 0.0, 100.0, 72.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          28: { scale: 1.0, ef: [[1, 20], [1, 36], [1, 31], [1, 36]], hit: [1],
+              sh: { ints: [3, 5, 5, -1, -1, -1, -1, -1], floats: [10.0, 0.0, 100.0, 72.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          29: { scale: 1.0, ef: [[1, 20], [1, 22], [1, -1], [1, 22]], hit: [2],
+              sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 65.0, 180.0, -45.0, 45.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 200.0, 200.0]] } },
+          30: { scale: 1.0, ef: [[1, 20], [1, 22], [1, 21], [1, 22]], hit: [2],
+              sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 65.0, 180.0, 0.0, 90.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 260.0, 400.0]] } },
+          31: { scale: 1.0, ef: [[1, 10], [1, 12], [1, 12], [1, 12]], hit: [3],
+              sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 60.0, 180.0, -30.0, 50.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 400.0, 100.0]] } },
+          32: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [40.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          33: { scale: 1.0, ef: [[0, 20], [0, 22], [0, -1], [0, 22]], hit: [2],
+              sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [30.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          34: { scale: 1.0, ef: [[1, 200], [1, 202], [1, 202], [1, 202]], hit: [3],
+              sh: { ints: [3, 5, 5, -1, -1, -1, -1, -1], floats: [12.0, -55.0, 80.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          35: { scale: 1.0, ef: [[1, 10], [1, 202], [1, 202], [1, 202]], hit: [3],
+              sh: { ints: [3, 5, 5, -1, -1, -1, -1, -1], floats: [20.0, 0.0, 50.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          36: { scale: 1.0, ef: [[1, 200], [1, 202], [1, 202], [1, 202]], hit: [3],
+              sh: { ints: [3, 5, 5, -1, -1, -1, -1, -1], floats: [5.5, 39.0, 90.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+        },
+      },
+      // GROUND FIRE, EXPLOSIONS, DUST, PUFFS, HIT VOLUMES, FIRE FIELDS (uShellEm001_sp_01, base01; params011). Rathian's 1,
+      // 2, 13..15; 6..9 (the explosions, snapped with the ground's angles: flags 4 | 8); 3..5 / 38..40 (L2 M1), 10..12 (L2
+      // M13), 31..33 (L9 M4 / M5) on joint 4; 17 / 27 / 29 / 52 / 54 (mode 31 / 34..36's landings: snapped, timer 300 /
+      // 300 / 320 / 314 / 220, flag 0x100) and 18 / 28 / 30 / 53 / 55 (their end creates, 0xd0eb20); 19 (mode 32's
+      // landing: a hit volume).
+      shell01: {
+        id: 0x5f, cls: 'uShellEm001_sp_01', base: 'base01', folder: 'shell\\em\\em002_04_shell01', reader: 0xd0e6a0,
+        modes: {
+          0: { scale: 1.0, ef: [[999, -1], [999, -1]], hit: [8, -1],
+             sh: { ints: [0, 3, 0, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 190.0]] } },
+          1: { scale: 1.0, ef: [[999, -1], [999, -1]], hit: [0, 2],
+             sh: { ints: [-1, -1, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          2: { scale: 1.0, ef: [[0, 3], [999, -1]], hit: [7, -1],
+             sh: { ints: [-1, -1, -1, 0, 0, -1, -1, -1, -1], floats: [200.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          3: { scale: 1.0, ef: [[1, 61], [999, -1]], hit: [9, -1],
+             sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-150.0, -50.0, 100.0]] } },
+          4: { scale: 1.0, ef: [[1, 61], [999, -1]], hit: [10, -1],
+             sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-70.0, -200.0, 150.0]] } },
+          5: { scale: 1.0, ef: [[1, 62], [999, -1]], hit: [10, -1],
+             sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[150.0, -200.0, 200.0]] } },
+          6: { scale: 1.0, ef: [[1, 31], [999, -1]], hit: [3, -1],
+             sh: { ints: [-1, -1, -1, 0, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          7: { scale: 1.0, ef: [[1, 32], [999, -1]], hit: [4, -1],
+             sh: { ints: [-1, -1, -1, 0, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          8: { scale: 1.0, ef: [[1, 33], [999, -1]], hit: [5, -1],
+             sh: { ints: [-1, -1, -1, 0, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          9: { scale: 1.0, ef: [[1, 34], [999, -1]], hit: [6, -1],
+             sh: { ints: [-1, -1, -1, 0, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          10: { scale: 1.0, ef: [[1, 60], [999, -1]], hit: [11, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-100.0, -20.0, 80.0]] } },
+          11: { scale: 1.0, ef: [[1, 60], [999, -1]], hit: [11, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[80.0, 0.0, 100.0]] } },
+          12: { scale: 1.0, ef: [[1, 62], [999, -1]], hit: [11, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[200.0, -130.0, 100.0]] } },
+          13: { scale: 1.0, ef: [[0, 30], [999, -1]], hit: [-1, 12],
+              sh: { ints: [-1, -1, -1, 0, -1, 0, -1, -1, 0], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 100.0]] } },
+          14: { scale: 1.0, ef: [[0, 31], [999, -1]], hit: [-1, 13],
+              sh: { ints: [-1, -1, -1, 0, -1, 0, -1, -1, 0], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          15: { scale: 1.0, ef: [[0, 31], [999, -1]], hit: [-1, 14],
+              sh: { ints: [-1, -1, -1, 0, -1, 0, -1, -1, 0], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          17: { scale: 1.0, ef: [[1, 25], [999, -1]], hit: [-1, -1],
+              sh: { ints: [-1, -1, -1, 0, 0, -1, 0, -1, -1], floats: [300.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          18: { scale: 1.0, ef: [[1, 11], [999, -1]], hit: [16, -1],
+              sh: { ints: [-1, -1, -1, 0, 0, -1, -1, -1, -1], floats: [0.0, 50.0, 6.0], vecs: [[0.0, 0.0, 0.0]] } },
+          19: { scale: 1.0, ef: [[999, -1], [999, -1]], hit: [18, -1],
+              sh: { ints: [-1, -1, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          20: { scale: 1.0, ef: [[0, 31], [999, -1]], hit: [-1, 17],
+              sh: { ints: [-1, -1, -1, 0, -1, 0, -1, -1, 0], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          27: { scale: 1.0, ef: [[1, 13], [999, -1]], hit: [-1, -1],
+              sh: { ints: [-1, -1, -1, 0, 0, -1, 0, -1, -1], floats: [300.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          28: { scale: 1.0, ef: [[1, 23], [999, -1]], hit: [20, -1],
+              sh: { ints: [-1, -1, -1, 0, 0, -1, -1, -1, -1], floats: [0.0, 40.0, 5.0], vecs: [[0.0, 0.0, 0.0]] } },
+          29: { scale: 1.0, ef: [[1, 206], [999, -1]], hit: [-1, -1],
+              sh: { ints: [-1, -1, -1, 0, 0, -1, 0, -1, -1], floats: [320.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          30: { scale: 1.0, ef: [[1, 201], [999, -1]], hit: [24, -1],
+              sh: { ints: [-1, -1, -1, 0, 0, -1, -1, -1, -1], floats: [0.0, 15.0, 5.0], vecs: [[0.0, 0.0, 0.0]] } },
+          31: { scale: 1.0, ef: [[1, 60], [999, -1]], hit: [9, -1],
+              sh: { ints: [0, 4, 0, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, -200.0, 150.0]] } },
+          32: { scale: 1.0, ef: [[1, 60], [999, -1]], hit: [10, -1],
+              sh: { ints: [0, 4, 0, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, -150.0, 150.0]] } },
+          33: { scale: 1.0, ef: [[1, 62], [999, -1]], hit: [10, -1],
+              sh: { ints: [0, 4, 0, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, -100.0, 100.0]] } },
+          38: { scale: 1.0, ef: [[1, 61], [999, -1]], hit: [21, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-150.0, -50.0, 100.0]] } },
+          39: { scale: 1.0, ef: [[1, 61], [999, -1]], hit: [22, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-70.0, -200.0, 150.0]] } },
+          40: { scale: 1.0, ef: [[1, 62], [999, -1]], hit: [22, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, -200.0, 200.0]] } },
+          41: { scale: 1.0, ef: [[1, 60], [999, -1]], hit: [23, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-100.0, -20.0, 80.0]] } },
+          42: { scale: 1.0, ef: [[1, 60], [999, -1]], hit: [23, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[80.0, 0.0, 100.0]] } },
+          43: { scale: 1.0, ef: [[1, 62], [999, -1]], hit: [23, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[200.0, -130.0, 100.0]] } },
+          52: { scale: 1.0, ef: [[1, 203], [999, -1]], hit: [-1, -1],
+              sh: { ints: [-1, -1, -1, 0, 0, -1, 0, -1, -1], floats: [314.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          53: { scale: 1.0, ef: [[1, 204], [999, -1]], hit: [25, -1],
+              sh: { ints: [-1, -1, -1, 0, 0, -1, -1, -1, -1], floats: [0.0, 15.0, 5.0], vecs: [[0.0, 0.0, 0.0]] } },
+          54: { scale: 1.0, ef: [[1, 206], [999, -1]], hit: [-1, -1],
+              sh: { ints: [-1, -1, -1, 0, 0, -1, 0, -1, -1], floats: [220.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          55: { scale: 1.0, ef: [[1, 205], [999, -1]], hit: [24, -1],
+              sh: { ints: [-1, -1, -1, 0, 0, -1, -1, -1, -1], floats: [0.0, 15.0, 5.0], vecs: [[0.0, 0.0, 0.0]] } },
+        },
+        // em002_04_01_hitdata (HDS, 26 records): (s16 +0 delay, s16 +2 duration) by record, for input.hitLife
+        hitdata: [[10, 10], [10, 10], [0, 10], [10, 20], [6, 16], [6, 16], [6, 16], [8, 172], [6, 5], [0, 10], [0, 10],
+                  [0, 10], [14, 10], [14, 10], [14, 10], [0, 30], [0, 80], [14, 10], [10, 10], [0, 30], [0, 60], [2, 10],
+                  [2, 10], [2, 10], [0, 30], [0, 30]],
+      },
+      // THE EXPLOSION TIMER (uShellEm001_sp_11, base11): this monster's times 0 / 12 / 24 / 36 and offsets
+      shell11: {
+        id: 0x64, cls: 'uShellEm001_sp_11', base: 'base11', folder: 'shell\\em\\em002_04_shell11', reader: 0xd0ee8c,
+        modes: {
+          0: { scale: 1.0, ef: [], hit: [],
+             sh: { ints: [], floats: [0.0, 12.0, 24.0, 36.0], vecs: [[0.0, 0.0, -100.0], [250.0, 0.0, 100.0], [-250.0, 0.0, 180.0], [0.0, 0.0, 350.0]] } },
+        },
+        times: [0, 1, 2, 3], vecIdx: [0, 1, 2, 3], modes01: [6, 7, 8, 9],
+      },
+    },
+    // THE ACTIONS. Rathian's hover turns and dust rows are this monster's (after this table); its fire actions are its
+    // own: the same case bodies and spawn helpers, whose em-2 variant-4 branches pick this monster's modes, on the clips
+    // its lists have (L2 = em001_00_2.lmt; L4 / L9 = em002_04_4 / _9.lmt: the Rathalos slots -- no L4 M8 / M16 / M65).
+    // Read to their helpers and run on the ROM (arun.py: every drawing create below at its frame). `spawns` as the
+    // siblings' ('first': one shell, the first passing test in the listed order). Not listed: (7, 0x42) shell00 9..11 and
+    // (7, 0x4a) / (7, 0x5a) / (7, 0x5b) / (7, 0xef) 24 / 25 (L4 M18), (7, 0x70) 37 (L4 M38 from frame 70), (1, 0xff) shell01
+    // 16 (L9 M1 f106, 0xd09b84's poison): made and deleted by their init, this monster's files having no such modes;
+    // (7, 0xef) / (7, 0xf0) / (7, 0xf1)'s L9 M7 dust (shell01 21) and (7, 0xf2)'s L9 M9 shells (36, 48..50): their frames
+    // are actiontune floats 24 (0x6f618(e, 0x18) at 0xd04680 / 0xd048fc / 0xd04aa0) and 19 / 26..28, 0.0 past the end of
+    // this monster's six (0x3cb330), a frame their motions never pass -- nothing made (and no files either). The other
+    // actions that make shells play clips its lists do not have (L4 M5 / M6 / M8 / M16 / M65). The op24 marks: the
+    // command table's op-0x24 branch of every called site (op24.py).
+    actions: [
+      // L2 M5 / M18: (7, 0x02) / (7, 0x0f) = 0xcfddec(e, 0 / 1) and (7, 0x0a) / (7, 0x0b) = 0xcfef64(e, 0 / 1), as Rathian's
+      // (the blend partners too); 0xd0a134 makes shell00 0x1d for em 2 variant 4 (0xd0a200..0xd0a244, else 0), 0xd0a614
+      // 0x1e (0xd0a6e0..0xd0a724, else 4). For em 2 variant 4, 0xcfddec also turns the monster in phase 1 (0xcfde84..0xcfde90:
+      // NOT READ, input.owner.y).
+      { action: [7, 0x02], code: 0xcfddec, args: [0], list: '2', clip: 'Motion[5]', partners: ['Motion[15]', 'Motion[16]'], spawner: 0xd0a134, spawnArgs: [0], frames: [78.0], shell: 'shell00', modes: [0x1d], op24: 'else', pick: 'ai', variant: '7:0x02' },
+      { action: [7, 0x0f], code: 0xcfddec, args: [1], list: '2', clip: 'Motion[5]', partners: ['Motion[15]', 'Motion[16]'], spawner: 0xd0a134, spawnArgs: [1], frames: [78.0], shell: 'shell01', modes: [0], op24: 'if', pick: 'ai', variant: '7:0x0f' },
+      { action: [7, 0x0a], code: 0xcfef64, args: [0], list: '2', clip: 'Motion[18]', partners: ['Motion[17]'], spawner: 0xd0a614, spawnArgs: [0], frames: [80.0], shell: 'shell00', modes: [0x1e], op24: 'else', pick: 'ai', variant: '7:0x0a' },
+      { action: [7, 0x0b], code: 0xcfef64, args: [1], list: '2', clip: 'Motion[18]', partners: ['Motion[17]'], spawner: 0xd0a614, spawnArgs: [1], frames: [80.0], shell: 'shell01', modes: [0], op24: 'if', pick: 'ai', variant: '7:0x0b' },
+      // L2 M1 / M13: as the siblings' (0xd0a074 / 0xd0ba2c; 0xd0a818, whose G-rank 0x29..0x2b are em 2 variant 1 / 2's only)
+      { action: [7, 0x4d], code: 0xcfd770, args: [1], list: '2', clip: 'Motion[1]', partners: [], spawns: [{ at: 0xd0a074, kind: 'first', frames: [74.0, 69.0, 64.0], shell: 'shell01', modes: [5, 4, 3], modesG: [0x28, 0x27, 0x26] }], pick: 'ai', variant: '7:0x4d' },
+      { action: [7, 0x75], code: 0xd03b60, args: [1], list: '2', clip: 'Motion[1]', partners: [], spawns: [{ at: 0xd0ba2c, kind: 'first', frames: [74.0, 69.0, 64.0], shell: 'shell01', modes: [5, 4, 3], modesG: [0x28, 0x27, 0x26] }], pick: 'ai', variant: '7:0x75' },
+      { action: [7, 0x00], code: 0xcfd770, args: [0], list: '2', clip: 'Motion[1]', partners: [], spawns: [], pick: 'ai', variant: '7:0x00' },
+      { action: [7, 0x74], code: 0xd03b60, args: [0], list: '2', clip: 'Motion[1]', partners: [], spawns: [], pick: 'ai', variant: '7:0x74' },
+      { action: [7, 0x4e], code: 0xcff1b0, args: [1], list: '2', clip: 'Motion[13]', partners: [], spawns: [{ at: 0xd0a818, kind: 'first', frames: [82.0, 78.0, 74.0], shell: 'shell01', modes: [12, 11, 10] }], pick: 'ai', variant: '7:0x4e' },
+      { action: [7, 0x11], code: 0xcff1b0, args: [0], list: '2', clip: 'Motion[13]', partners: [], spawns: [], pick: 'ai', variant: '7:0x11' },
+      // L4 M22: (7, 0x23) / (7, 0x2e) = 0xd00118(e, 0, 0 / 1) -> 0xd0ac20: passes 82 (0xd0adfc) -> shell00 0x1d for em 2
+      // variant 4 (0xd0ad20..0xd0ad34; else 0xc); (7, 0x30) / (7, 0x41) = 0xd00118(e, 1, 0 / 1): shell01 0 (the hit volume)
+      { action: [7, 0x23], code: 0xd00118, args: [0, 0], list: '4', clip: 'Motion[22]', partners: [], spawns: [{ at: 0xd0ac20, kind: 'first', frames: [82.0], shell: 'shell00', modes: [0x1d] }], op24: 'else', pick: 'ai', variant: '7:0x23' },
+      { action: [7, 0x2e], code: 0xd00118, args: [0, 1], list: '4', clip: 'Motion[22]', partners: [], spawns: [{ at: 0xd0ac20, kind: 'first', frames: [82.0], shell: 'shell00', modes: [0x1d] }], op24: 'else', pick: 'ai', variant: '7:0x2e' },
+      { action: [7, 0x30], code: 0xd00118, args: [1, 0], list: '4', clip: 'Motion[22]', partners: [], spawns: [{ at: 0xd0ac20, kind: 'first', frames: [82.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x30' },
+      { action: [7, 0x41], code: 0xd00118, args: [1, 1], list: '4', clip: 'Motion[22]', partners: [], spawns: [{ at: 0xd0ac20, kind: 'first', frames: [82.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x41' },
+      // L4 M29 (after L4 M28): 0xd004cc(e, r1, r2, r3) -> 0xd0ae28: passes 40 (0xd0b08c) -> shell00 0x1d for em 2 variant 4
+      // (0xd0af84..0xd0af98; else by r1 and the count P+0x1a2, 0xd0af04..0xd0af50); r2 1: shell01 0. (7, 0x27) / (7, 0x28) /
+      // (7, 0x33) / (7, 0x34) sit in streams no op 0x14 calls (who issues them: NOT READ).
+      { action: [7, 0x24], code: 0xd004cc, args: [0, 0, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell00', modes: [0x1d] }], op24: 'else', pick: 'ai', variant: '7:0x24' },
+      { action: [7, 0x26], code: 0xd004cc, args: [1, 0, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell00', modes: [0x1d] }], op24: 'else', pick: 'ai', variant: '7:0x26' },
+      { action: [7, 0x27], code: 0xd004cc, args: [2, 0, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell00', modes: [0x1d] }], pick: 'ai', variant: '7:0x27' },
+      { action: [7, 0x28], code: 0xd004cc, args: [3, 0, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell00', modes: [0x1d] }], pick: 'ai', variant: '7:0x28' },
+      { action: [7, 0x3b], code: 0xd004cc, args: [4, 0, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell00', modes: [0x1d] }], op24: 'else', pick: 'ai', variant: '7:0x3b' },
+      { action: [7, 0x65], code: 0xd004cc, args: [6, 0, 1], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell00', modes: [0x1d] }], pick: 'ai', variant: '7:0x65' },
+      { action: [7, 0x67], code: 0xd004cc, args: [0, 0, 1], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell00', modes: [0x1d] }], pick: 'ai', variant: '7:0x67' },
+      { action: [7, 0x31], code: 0xd004cc, args: [0, 1, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x31' },
+      { action: [7, 0x32], code: 0xd004cc, args: [1, 1, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x32' },
+      { action: [7, 0x33], code: 0xd004cc, args: [2, 1, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell01', modes: [0] }], pick: 'ai', variant: '7:0x33' },
+      { action: [7, 0x34], code: 0xd004cc, args: [3, 1, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell01', modes: [0] }], pick: 'ai', variant: '7:0x34' },
+      { action: [7, 0x3c], code: 0xd004cc, args: [4, 1, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x3c' },
+      // L4 M32 (the take-off, after L4 M31): 0xcf3ff0(e, r1, r2, r3) -> 0xd0c0dc(e, kind, sub): passes 6 (0xd0c0fc / 0xd0c1ac)
+      // -> kind 1 / 2: shell00 0x20 with sub 1 (0xd0c158), else 0x15 (0xd0c32c); kind 5 / 6: 0x21 for variant 4
+      // (0xd0c1c0..0xd0c1f8, else 0x16); kind 3 / 4: shell01 0 (0xd0c244). (9, 3) / (9, 4) = status 9's 0xcee4e4 / 0xcee4f4.
+      { action: [7, 0x03], code: 0xcf3ff0, args: [0, 1, 0], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell00', modes: [0x15] }], op24: 'else', pick: 'ai', variant: '7:0x03' },
+      { action: [7, 0x29], code: 0xcf3ff0, args: [1, 1, 0], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell00', modes: [0x15] }], pick: 'ai', variant: '7:0x29' },
+      { action: [7, 0x2b], code: 0xcf3ff0, args: [0, 2, 0], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell00', modes: [0x15] }], op24: 'else', pick: 'ai', variant: '7:0x2b' },
+      { action: [7, 0x2c], code: 0xcf3ff0, args: [1, 2, 0], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell00', modes: [0x15] }], op24: 'else', pick: 'ai', variant: '7:0x2c' },
+      { action: [7, 0x48], code: 0xcf3ff0, args: [1, 5, 0], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell00', modes: [0x21] }], op24: 'else', pick: 'ai', variant: '7:0x48' },
+      { action: [7, 0x49], code: 0xcf3ff0, args: [1, 6, 0], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell00', modes: [0x21] }], op24: 'else', pick: 'ai', variant: '7:0x49' },
+      { action: [9, 0x03], code: 0xcf3ff0, args: [0, 1, 1], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell00', modes: [0x20] }], pick: 'ai', variant: '9:0x03' },
+      { action: [7, 0x35], code: 0xcf3ff0, args: [0, 3, 0], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x35' },
+      { action: [7, 0x36], code: 0xcf3ff0, args: [1, 3, 0], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x36' },
+      { action: [7, 0x37], code: 0xcf3ff0, args: [0, 4, 0], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x37' },
+      { action: [7, 0x38], code: 0xcf3ff0, args: [1, 4, 0], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x38' },
+      { action: [9, 0x04], code: 0xcf3ff0, args: [0, 3, 1], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell01', modes: [0] }], pick: 'ai', variant: '9:0x04' },
+      // L4 M38: (7, 0x43) / (7, 0x45) / (7, 0x46) = 0xd01b70(e, 0 / 1 / 2) -> 0xd0b364: passes 82 (0xd0b438) -> shell00 0x1a /
+      // 0x1b / 0x1c; (7, 0xf5) = 0xd04edc: passes 82 (0xb0968 at 0xd04fc0, literal 0xd0500c) -> 0xd0bff0: shell00 0x1f
+      { action: [7, 0x43], code: 0xd01b70, args: [0], list: '4', clip: 'Motion[38]', partners: [], spawns: [{ at: 0xd0b364, kind: 'first', frames: [82.0], shell: 'shell00', modes: [0x1a] }], op24: 'else', pick: 'ai', variant: '7:0x43' },
+      { action: [7, 0x45], code: 0xd01b70, args: [1], list: '4', clip: 'Motion[38]', partners: [], spawns: [{ at: 0xd0b364, kind: 'first', frames: [82.0], shell: 'shell00', modes: [0x1b] }], pick: 'ai', variant: '7:0x45' },
+      { action: [7, 0x46], code: 0xd01b70, args: [2], list: '4', clip: 'Motion[38]', partners: [], spawns: [{ at: 0xd0b364, kind: 'first', frames: [82.0], shell: 'shell00', modes: [0x1c] }], op24: 'else', pick: 'ai', variant: '7:0x46' },
+      { action: [7, 0xf5], code: 0xd04edc, args: [], list: '4', clip: 'Motion[38]', partners: [], spawns: [{ at: 0xd0bff0, kind: 'first', frames: [82.0], shell: 'shell00', modes: [0x1f] }], op24: 'else', pick: 'ai', variant: '7:0xf5' },
+      // L4 M18: (7, 0xec) / (7, 0xf9) = 0xd054c8(e, 1 / 0): phase 0 setMotion 0x412; phases 1..3 pass 116 / 168 / 226
+      // (literals 0xd058d0 / 0xd058c8 / 0xd058bc), each then 0xd09acc(e, 0x22 / 0x23 / 0x24): shell00 34 / 35 / 36
+      { action: [7, 0xec], code: 0xd054c8, args: [1], list: '4', clip: 'Motion[18]', partners: [], spawns: [{ at: 0xd09acc, kind: 'seq', frames: [116.0, 168.0, 226.0], shell: 'shell00', modes: [0x22, 0x23, 0x24] }], op24: 'else', pick: 'ai', variant: '7:0xec' },
+      { action: [7, 0xf9], code: 0xd054c8, args: [0], list: '4', clip: 'Motion[18]', partners: [], spawns: [{ at: 0xd09acc, kind: 'seq', frames: [116.0, 168.0, 226.0], shell: 'shell00', modes: [0x22, 0x23, 0x24] }], pick: 'ai', variant: '7:0xf9' },
+      // L4 M45: (3, 0x4d) = status 3's 0xcef548 -> 0xcf5210(e, 0xa, 1) -> 0xd09f54: passes 44 (0xd0a060) -> shell00 0x17
+      { action: [3, 0x4d], code: 0xcf5210, args: [0xa, 1], list: '4', clip: 'Motion[45]', partners: [], spawns: [{ at: 0xd09f54, kind: 'first', frames: [44.0], shell: 'shell00', modes: [0x17] }], pick: 'ai', variant: '3:0x4d' },
+      // L9 M1: (7, 0xfa) = 0xd058d4 / (7, 0xfb) = 0xd05a40, phase 1: at the MOTION'S END -- 0xb09c8(e) (0x94dc04: bit 2 of
+      // byte e+0x4b6, the motion's ended flag; not a frame test) at 0xd05950 / 0xd05ab0 -- setMotion 0x902 and 0xd0bff0
+      // (0xd05a14 / 0xd05b14): shell00 0x1f. `atEnd` with the clip's last frame, 126 (em002_04_9.lmt's L9 M1 is 127
+      // frames): a play that runs to its end passes it like any other frame, a looping one takes endWrap001's path.
+      { action: [7, 0xfa], code: 0xd058d4, args: [], list: '9', clip: 'Motion[1]', partners: [], spawns: [{ at: 0xd0bff0, kind: 'first', atEnd: true, frames: [126.0], shell: 'shell00', modes: [0x1f] }], op24: 'else', pick: 'ai', variant: '7:0xfa' },
+      { action: [7, 0xfb], code: 0xd05a40, args: [], list: '9', clip: 'Motion[1]', partners: [], spawns: [{ at: 0xd0bff0, kind: 'first', atEnd: true, frames: [126.0], shell: 'shell00', modes: [0x1f] }], pick: 'ai', variant: '7:0xfb' },
+      // L9 M4 / M5: as Dreadqueen's (0xd0bf98: 10 / 6 / 2 -> shell01 0x21 / 0x20 / 0x1f), and (7, 0xf6) / (7, 0xf7) =
+      // 0xd05014(e, 1, 2 / 1), which start on L9 M14 / M12 (em002_04_9.lmt has them) and turn to L9 M5 / M4
+      { action: [7, 0xed], code: 0xd041b0, args: [2], list: '9', clip: 'Motion[4]', partners: [], spawns: [{ at: 0xd0bf98, kind: 'first', frames: [10.0, 6.0, 2.0], shell: 'shell01', modes: [0x21, 0x20, 0x1f] }], pick: 'ai', variant: '7:0xed' },
+      { action: [7, 0xee], code: 0xd041b0, args: [1], list: '9', clip: 'Motion[4]', partners: [], spawns: [{ at: 0xd0bf98, kind: 'first', frames: [10.0, 6.0, 2.0], shell: 'shell01', modes: [0x21, 0x20, 0x1f] }], pick: 'ai', variant: '7:0xee' },
+      { action: [7, 0xf6], code: 0xd05014, args: [1, 2], list: '9', clip: 'Motion[4]', partners: [], spawns: [{ at: 0xd0bf98, kind: 'first', frames: [10.0, 6.0, 2.0], shell: 'shell01', modes: [0x21, 0x20, 0x1f] }], pick: 'ai', variant: '7:0xf6' },
+      { action: [7, 0xf7], code: 0xd05014, args: [1, 1], list: '9', clip: 'Motion[4]', partners: [], spawns: [{ at: 0xd0bf98, kind: 'first', frames: [10.0, 6.0, 2.0], shell: 'shell01', modes: [0x21, 0x20, 0x1f] }], pick: 'ai', variant: '7:0xf7' },
+      { action: [7, 0xf8], code: 0xd05014, args: [0, 0], list: '9', clip: 'Motion[4]', partners: [], spawns: [{ at: 0xd0bf98, kind: 'first', frames: [10.0, 6.0, 2.0], shell: 'shell01', modes: [0x21, 0x20, 0x1f] }], pick: 'ai', variant: '7:0xf8' },
+      { action: [7, 0xed], code: 0xd041b0, args: [2], list: '9', clip: 'Motion[5]', partners: [], spawns: [{ at: 0xd0bf98, kind: 'first', frames: [10.0, 6.0, 2.0], shell: 'shell01', modes: [0x21, 0x20, 0x1f] }], pick: 'ai', variant: '7:0xed' },
+      { action: [7, 0xee], code: 0xd041b0, args: [1], list: '9', clip: 'Motion[5]', partners: [], spawns: [{ at: 0xd0bf98, kind: 'first', frames: [10.0, 6.0, 2.0], shell: 'shell01', modes: [0x21, 0x20, 0x1f] }], pick: 'ai', variant: '7:0xee' },
+      { action: [7, 0xf6], code: 0xd05014, args: [1, 2], list: '9', clip: 'Motion[5]', partners: [], spawns: [{ at: 0xd0bf98, kind: 'first', frames: [10.0, 6.0, 2.0], shell: 'shell01', modes: [0x21, 0x20, 0x1f] }], pick: 'ai', variant: '7:0xf6' },
+      { action: [7, 0xf7], code: 0xd05014, args: [1, 1], list: '9', clip: 'Motion[5]', partners: [], spawns: [{ at: 0xd0bf98, kind: 'first', frames: [10.0, 6.0, 2.0], shell: 'shell01', modes: [0x21, 0x20, 0x1f] }], pick: 'ai', variant: '7:0xf7' },
+      { action: [7, 0xf8], code: 0xd05014, args: [0, 0], list: '9', clip: 'Motion[5]', partners: [], spawns: [{ at: 0xd0bf98, kind: 'first', frames: [10.0, 6.0, 2.0], shell: 'shell01', modes: [0x21, 0x20, 0x1f] }], pick: 'ai', variant: '7:0xf8' },
+    ],
+    // THE FLIGHT DUST: the per-frame handler's own bodies for L4 M25 / M26 / M27 (0x419 / 0x41a / 0x41b, its table 0xcf1b90),
+    // clips Rathian's lists do not have: 0xcf1f74 (the posture only), 0xcf1f30 (0xb09a4(e, 1, 0, 70.0) == 1: cur >= 70),
+    // 0xcf1f54 (0xb09a4(e, 1, 0, 38.0) == 0: cur < 38), each then posture P+0x1ba == 3 -> 0xcf2424, the period dust of
+    // Rathian's L2 M12 row (shell01 mode 15 every 16 frames at the owner's ground). Rathian's rows follow (the share below).
+    dust: [
+      { ids: [0x419], at: 0xcf1f74, period: 16.0, posture: 3, mode: 15 },
+      { ids: [0x41a], at: 0xcf1f30, period: 16.0, from: 70.0, posture: 3, mode: 15 },
+      { ids: [0x41b], at: 0xcf1f54, period: 16.0, until: 38.0, posture: 3, mode: 15 },
+    ],
+    // P+0x1ba while they play: 3. Every action that plays them sets it first and not again until it leaves them:
+    // 0xbc7f4(e, 3) at 0xcfd8fc before L4 M26 (0xcfd910), then L4 M25 (0xcfdb70) / L4 M27 (0xcfdc4c); at 0xcff7d8 before
+    // L2 M11 (the em-2 path of 0xcff66c), then L4 M25 (0xcff8f0) / L4 M27 (0xcffbdc); at 0xd02ad8 before L4 M26 (0xd02ae8),
+    // then L4 M25 (0xd02d50). A landing sets 0 with its own clip (0xcfdc14 -> L4 M37). ROM-run (the actions of every clip:
+    // dk\posture_probe.py): posture 3 on every frame of these three clips.
+    postures: { '4|Motion[25]': 3, '4|Motion[26]': 3, '4|Motion[27]': 3 },
+  },
 };
 
 // The siblings run Rathian's class code on the clips they share with her, so her action entries are theirs (in front of
@@ -974,6 +1270,16 @@ for (const [id, own] of [['em001_02', []], ['em001_04', ['7:0x77', '7:0x7b', '7:
   D.actions = R.actions.filter(a => !own.includes(a.variant)).concat(D.actions);
   D.dust = R.dust;
   D.postures = R.postures;
+}
+// Dreadking Rathalos (em002_04) shares Rathian's hover turns (the status-4 body 0xcfad9c on the shared L1 clips), her
+// dust rows and posture read (the per-frame handler 0xcf1a5c, swept on the ROM for every motion id of em002_04's lists:
+// the same shells at the same frames, Rathalos's L4 M34 (0x422) taking the 0x40f row), with its own flight dust rows and
+// postures added; its fire actions are its own.
+{
+  const D = SHELL_DATA.em002_04, R = SHELL_DATA.em001_00;
+  D.actions = R.actions.filter(a => a.pick === 'hover').concat(D.actions);
+  D.dust = R.dust.concat(D.dust);
+  D.postures = Object.assign({}, R.postures, D.postures);
 }
 
 // An action plays `clip` when it is the action's main motion or one of its blend partners (Rathian's 0xb04d0 actions:
@@ -1009,7 +1315,8 @@ export function rockActionFor(monId, list, clip, variant){
 // Nargacuga's tail spikes and Rathian's fireballs / breath (pick 'ai', the variant is the action, '7:0x28' ... ; a
 // Rathian blend partner clip names its main clip's actions), and Rathian's hover turns (pick 'hover', '4:0x04' /
 // '4:0x15': named only, never listed by pickVariantsFor). Her siblings' the same way ('7:0x42', ...; Dreadqueen's L9
-// Motion[1] action is status 1's: '1:0xff'). null when the clip has none.
+// Motion[1] action is status 1's: '1:0xff'; Dreadking's L4 Motion[45] and L4 Motion[32] have status 3's '3:0x4d' and
+// status 9's '9:0x03' / '9:0x04'). null when the clip has none.
 export function variantActionFor(monId, list, clip, variant){
   const D = SHELL_DATA[monId];
   if (!D || !variant) return null;
@@ -1034,8 +1341,16 @@ export function variantActionFor(monId, list, clip, variant){
 // L4 Motion[65] (all four draw: the poison at 116); L4 Motion[6]: '7:0x05', '7:0x3d', '7:0x09', '7:0x0e', '7:0x1e',
 // '7:0x4a', '7:0x73', '7:0x6d' / the same without '7:0x4a'; L2 Motion[13]: '7:0x4e', '7:0x11'; L9 Motion[1]: '1:0xff';
 // L9 Motion[2]: '7:0xff'; L9 Motion[4] / [5]: '7:0xed', '7:0xee', '7:0xf8'; L9 Motion[7]: '7:0xef', '7:0xf0', '7:0xf1' /
-// '7:0xf0', '7:0xf1'; L9 Motion[9]: '7:0xf2'. Any other clip: [] (its shells, if any, need no pick -- Rathian's landing
-// dust). `clip` may carry a _start / _loop suffix.
+// '7:0xf0', '7:0xf1'; L9 Motion[9]: '7:0xf2'. Dreadking (em002_04), not tired / tired: L2 Motion[5]: '7:0x02' / '7:0x0f';
+// L2 Motion[18]: '7:0x0a' / '7:0x0b'; L2 Motion[1]: '7:0x4d', '7:0x75', '7:0x00', '7:0x74' either way; L2 Motion[13]:
+// '7:0x4e', '7:0x11'; L4 Motion[22]: '7:0x23', '7:0x2e' / '7:0x30', '7:0x41'; L4 Motion[29]: '7:0x24', '7:0x26', '7:0x27',
+// '7:0x28', '7:0x3b', '7:0x65', '7:0x67', '7:0x33', '7:0x34' / '7:0x27', '7:0x28', '7:0x65', '7:0x67', '7:0x31', '7:0x32',
+// '7:0x33', '7:0x34', '7:0x3c'; L4 Motion[32]: '7:0x03', '7:0x29', '7:0x2b', '7:0x2c', '7:0x48', '7:0x49', '9:0x03', '9:0x04'
+// / '7:0x29', '9:0x03', '7:0x35', '7:0x36', '7:0x37', '7:0x38', '9:0x04'; L4 Motion[38]: '7:0x43', '7:0x45', '7:0x46',
+// '7:0xf5' / '7:0x45'; L4 Motion[18]: '7:0xec', '7:0xf9' / '7:0xf9'; L4 Motion[45]: '3:0x4d'; L9 Motion[1]: '7:0xfa',
+// '7:0xfb' / '7:0xfb'; L9 Motion[4] / [5]: '7:0xed', '7:0xee', '7:0xf6', '7:0xf7', '7:0xf8'. Any other clip: [] (its
+// shells, if any, need no pick -- Rathian's landing dust, Dreadking's flight dust). `clip` may carry a _start / _loop
+// suffix.
 export function pickVariantsFor(monId, list, clip, opts){
   const D = SHELL_DATA[monId];
   if (!D || !clip) return [];
@@ -1756,16 +2071,19 @@ function xAdjust37(k, p, got){
 }
 
 // vtable +0x16c = 0x3f9cc4: the Y adjust, the same with flag 2, the aim's Y minus the owner's Y word, the offset
-// +0x15f0 and the clamp [+0x1608, +0x160c]. No em037_00 mode sets flag 2: every spike takes its spread, +0x15f0.
+// +0x15f0 and the clamp [+0x1608, +0x160c]. No em037_00 mode sets flag 2: every spike takes its spread, +0x15f0. With
+// flag 4 clear the aim starts from the owner's point (0x3f9d3c..0x3f9de4: the owner's position plus the size times vec
+// +0x1614 turned by its facing, plus block +0x5c -- aimFrom001's) through 0x3f9b58 with the aim offset +0x1618
+// (0x3f9e0c..0x3f9e38): Rathalos's mode 0x17.
 function yAdjust37(k, p, got){
   const deg = s32(mla(0.5, k.yDeg, DEG_TO_U16));
   if (!(k.flags & 2)) return u16(deg);
-  if (!(k.flags & 4)) throw new Error('shells.js: base00 Y aim from the owner (flag 4 clear, 0x3f9d3c..0x3f9de4): not transcribed');
   const lo = s32(mla(0.5, k.yLo, DEG_TO_U16)), hi = s32(mla(0.5, k.yHi, DEG_TO_U16));
   if (!got.target){
     if (u16(hi - lo) === 0) return u16(lo);
     throw new Error('shells.js: an aimed spike without a target');
   }
+  if (!(k.flags & 4)) return clampCircular(deg + (aim37(aimFrom001(k, got), got.target, k.aimOff).Y - got.ownerY), lo, hi);
   return clampCircular(deg + (aim37(p, got.target).Y - got.ownerY), lo, hi);
 }
 
@@ -1932,7 +2250,7 @@ function aimFrom001(k, got){
 // owner block the init reads (owner001: inputs the ROM takes from the game).
 function init001(S, J, got){
   const k = S.k = params001(S.mode.sh);
-  if (k.flags & ~1) throw new Error('shells.js: sp_00 flags 0x' + k.flags.toString(16) + ': only flag 1 is transcribed (every em001_00 mode)');
+  if (k.flags & ~3) throw new Error('shells.js: sp_00 flags 0x' + k.flags.toString(16) + ': only flags 1 and 2 are transcribed');
   // the angle words (0x3f8c70..0x3f8c94): flag 0x20 clear -> +0xfe8 = block +0x50 (the owner's X), +0xfec = block +0x54
   // (Y), +0xff0 = 0 (flag 0x200 clear); state 1; timer +0x162c = +0x15fc
   const A = [got.ownerX >>> 0, got.ownerY >>> 0, 0];
@@ -1967,26 +2285,45 @@ function camera001(S, n){ if (n !== -1) S.events.push({ ev: 'camera', id: n }); 
 function landing001(S, D, hit, ctx){
   const k = S.k, mode = S.modeIndex;
   // "in mask" (0xd0dd08..0xd0dd24): mode - 8 <= 0x1d (unsigned) and bit (mode - 8) of 0x227f000f -- modes 8..11,
-  // 24..30, 33, 37; of em001_00's only mode 8
+  // 24..30, 33, 37; of em001_00's only mode 8. For em 2 variant 4 (Dreadking: 0x4a0f00's owner, bytes +0xb5f4 / +0xb5f5)
+  // mode 0x15 (m8 0xd) takes the mask's paths too (floor 0xd0e140..0xd0e16c, type 0 0xd0e10c..0xd0e138, type 2
+  // 0xd0e23c..0xd0e268)
   const m8 = (mode - 8) >>> 0, inMask = m8 <= 0x1d && ((0x227f000f >>> m8) & 1) === 1;
+  const asMask = inMask || (m8 === 0xd && (D.em || 1) === 2 && (D.variant || 0) === 4);
   const make = (name, m) => ctx.create(S, name, { mode: m, position: hit.point.slice(), angles: S.angles.map(w => w >>> 0) });
+  // the stage result's halfword +8 & 0x1040 == 0 -> the ground fire, shell01 mode 2 (0xd0ddf0..0xd0deb8, 0xd0dfb8). The
+  // bits are the stage's (NOT READ); the plane stand-in's result record is zero there, so the fire is always made.
+  const fire = () => { if (!((hit.resultH8 || 0) & 0x1040)) make('shell01', 2); };
   let param;
   if (hit.type === 1){                                   // the floor (0xd0dcd8..)
     param = 2;                                           // +0x15d0
     camera001(S, k.i2);                                  // 0x43ac04(shell, +0x15e4): 1 (modes 0..7), 5 (mode 8)
-    if (inMask) make('shell11', 0);                      // 0xd0dd28..0xd0ddec: id [owner+0xcacc]
-    else if (mode === 0x1f || (mode >= 0x22 && mode <= 0x24) || mode === 0x20)
-      throw new Error('shells.js: em001 landing of mode 0x' + mode.toString(16) + ': not transcribed (no em001_00 files)');
-    else make('shell01', 1);                             // 0xd0e360..0xd0e444: id [owner+0xcac8]
-    // the stage result's halfword +8 & 0x1040 == 0 -> the ground fire, shell01 mode 2 (0xd0ddf0..0xd0deb8, 0xd0dfb8). The
-    // bits are the stage's (NOT READ); the plane stand-in's result record is zero there, so the fire is always made.
-    if (!((hit.resultH8 || 0) & 0x1040)) make('shell01', 2);
+    if (asMask){ make('shell11', 0); fire(); }           // 0xd0dd28..0xd0ddec: id [owner+0xcacc]
+    else if (mode === 0x1f){
+      // 0xd0e170..0xd0e238: shell01 0x1b, or 0x11 when the owner's variant byte is 4 and 0x49930(owner) > 6 (the quest's
+      // number: input.questLevel -- refused without it); no ground fire (0xd0de98 -> 0xd0dfb8 -> 0xd0e0e0)
+      let m = 0x1b;
+      if ((D.variant || 0) === 4){
+        const q = ctx.own001 && ctx.own001.questLevel;
+        if (q == null) m = null;
+        else if (q > 6) m = 0x11;
+      }
+      if (m == null) ctx.out.refused.push({ shell: 'shell01', modes: [0x1b, 0x11], creator: S.id, why: 'no quest level (input.questLevel)' });
+      else make('shell01', m);
+    } else if (mode >= 0x22 && mode <= 0x24)
+      // 0xd0e270..0xd0e35c: shell01 0x1d / 0x34 / 0x36 for mode 0x22 / 0x23 / 0x24; no ground fire (0xd0dfbc -> 0xd0e0e0)
+      make('shell01', mode === 0x22 ? 0x1d : mode === 0x23 ? 0x34 : 0x36);
+    else {
+      make('shell01', 1);                                // 0xd0e360..0xd0e444: id [owner+0xcac8]
+      if (mode === 0x20) make('shell01', 0x13);          // 0xd0e448..0xd0e514 (-> 0xd0dde0)
+      fire();
+    }
   } else if (hit.type === 0){                            // too steep (0xd0debc..): never with the plane stand-in
     param = 1;                                           // +0x15cc
     camera001(S, k.i1);                                  // 0x43ac04(shell, +0x15e0)
-    if (inMask) make('shell01', 9);
+    if (asMask) make('shell01', 9);
   } else {                                               // type 2, a hunter (0xd0dfcc..): the viewer has none
-    if (inMask) make('shell01', 9);
+    if (asMask) make('shell01', 9);
     param = 3;                                           // +0x15d4
   }
   contactStart(S, D, param, hit.point, 'landing');       // 0x3f8970(shell, param, &c)
@@ -2119,8 +2456,10 @@ function move011(S, ctx, D){
     const e = f(ctx.dt + S.elapsed);                    // +0x1618 += dt; past the timer -> the end
     S.elapsed = e;
     if (e > T) return 'end';
-    // flag 0x100 with both hit slots idle -> vtable +0x158 (the registration again): no em001_00 mode has flag 0x100
-    if (S.k.flags & 0x100) throw new Error('shells.js: base01 flag 0x100 (0x3fb098..0x3fb0d4): not transcribed');
+    // flag 0x100 (byte +0x15ed bit 0) with both hit slots idle (+0x13ad, +0x1465) -> vtable +0x158, sp_01's hit
+    // registration 0xd0ec98 again (0x3fb098..0x3fb0d8): the slots re-armed from the hit data -- the hit side, counted here
+    // only with input.hitLife (S.slots); nothing visual
+    if (S.k.flags & 0x100 && S.slots && !S.slots.some(sl => sl.on)) S.slots = slotsOf011(D.shells[S.shell], S.mode);
   } else if (!(S.slots && S.slots.some(sl => sl.on))) return 'end';     // T <= 0: ends unless byte +0x13ad or +0x1465 is set
   // flag 0x20 -> vtable +0x164 (never set by these readers), +0x160 (bx lr), then +0x150: sp_01's 0xd0e9d4 (the hit
   // radius growth: not visual) or base11's 0x40308c
@@ -2147,16 +2486,30 @@ function create11(S, idx, ctx, D){
 }
 
 // base01's end 0x3fb264(shell, 0): graceful stops (0x43b058 -> 0x329c40(h, 0)) of +0x1624 / +0x1628 / +0x162c, 0x4a1de4
-// (hit side), vtable +0x154 (sp_01 0xd0eb20: creates only for modes 0x1b / 0x11 / 0x1d / 0x34 / 0x36 -- none of these),
-// state 0xfe, +0x1618 = 0; EffectParam +0x15d4 (a request at the end) is never set by these readers. `events`: where the
-// stops go (the shell's move's, or retire001's for the next move)
-function end011(S, events = S.events){
+// (hit side), vtable +0x154 (sp_01's 0xd0eb20: endCreate001; sp_11's 0x3fb54c is bx lr), state 0xfe, +0x1618 = 0;
+// EffectParam +0x15d4 (a request at the end) is never set by these readers. `events`: where the stops and the create go
+// (the shell's move's, or retire001's for the next move)
+function end011(S, events = S.events, ctx = null){
   S.stops = [];
   for (const h of [S.effect, S.effect2]) if (h && !h.gone) S.stops.push({ param: h.param, request: 0, key: h.key });
   for (const s of S.stops) events.push({ ev: 'stop', param: s.param, key: s.key, flag: 0 });
   S.stop = S.stops[0] || null;
+  endCreate001(S, ctx, events);
   S.state = 0xfe;
   S.elapsed = 0;
+}
+
+// sp_01's vtable +0x154 = 0xd0eb20(shell): with the owner active (0x4a0f38; always in the viewer) a shell01 of mode 0x1b /
+// 0x11 / 0x1d / 0x34 / 0x36 makes one more shell01 (id [owner+0xcac8]) of mode 0x1c / 0x12 / 0x1e / 0x35 / 0x37
+// (0xd0eb3c..0xd0eba8: 0x1b and 0x11 by compare, the others by bit (mode - 0x1d) of 0x02800001) at its own point (+0x40..
+// -> setup +0x10..) with the angle words (0, 0, 0) (0x1620e60 -> setup +0x30..), the zero vector at +0x20 and halfword
+// +0x3c = 0xffff, with 0x48b884: its init at once, the unit at the tail of line 18. The first ones are Dreadking's landing
+// shells of its modes 0x1f / 0x22..0x24 (landing001); no mode of Rathian's, Gold's or Dreadqueen's is one of them.
+const END_MODES001 = new Map([[0x1b, 0x1c], [0x11, 0x12], [0x1d, 0x1e], [0x34, 0x35], [0x36, 0x37]]);
+function endCreate001(S, ctx, events){
+  if (S.cls !== 'uShellEm001_sp_01' || !END_MODES001.has(S.modeIndex)) return;
+  if (!ctx || !ctx.create) throw new Error('shells.js: sp_01 end create (0xd0eb20) without the create context');
+  ctx.create(S, 'shell01', { mode: END_MODES001.get(S.modeIndex), position: S.position.slice(), angles: [0, 0, 0] }, events);
 }
 
 // one base01 / base11 shell's move this step (vtable +0x24 = 0x3faec4)
@@ -2170,7 +2523,7 @@ function step011(S, ctx, input, D, out){
   if (S.effect2 && !S.effect2.gone && !alive(S.effect2)) S.effect2.gone = true;
   if (S.state === 1){
     S.moves++;
-    if (move011(S, ctx, D) === 'end'){ end011(S); out.ended.push(S); }
+    if (move011(S, ctx, D) === 'end'){ end011(S, S.events, ctx); out.ended.push(S); }
   } else if (S.state === 0xfe){                         // the ending (0x3fafd0..0x3fb03c)
     const e = f(ctx.dt + S.elapsed);                    // +0x1618 += dt
     S.elapsed = e;
@@ -2365,11 +2718,15 @@ function dust001(state, D, ctx, input, out, fresh, a){
     if (row.not && a && a.action[0] === row.not[0] && a.action[1] === row.not[1]) return;   // 0x6fe88(e, 4, 0x15) (0xcf1b38)
   } else if (row.period){
     const posture = input.posture != null ? input.posture : (D.postures || {})[L + '|' + input.clip];
-    if (posture !== row.posture || fresh || !state.hist) return;   // posture P+0x1ba == 3 (0xcf1dc8)
-    // 0xb09a4(e, 1, 0, 24.0) = 0x72714 mode 1: cur >= 24 (0x72b04); after a loop (0x7290c) prev + step >= 24 || cur >= 24,
-    // and prev + step, the frame before the wrap, is past the clip's end -- taken as true (INFERRED)
+    if (posture !== row.posture || fresh || !state.hist) return;   // posture P+0x1ba == 3 (0xcf1dc8, 0xcf1f74)
+    // 0xb09a4(e, 1, 0, F) = 0x72714 mode 1: cur >= F (0x72b04); after a loop (0x7290c) prev + step >= F || cur >= F, and
+    // prev + step, the frame before the wrap, is past the clip's end -- taken as true (INFERRED). `from` F: on when it is
+    // true (0xcf1dc8, 0xcf1f30); `until` F: on when it is false (0xcf1f54). The step after a fresh one tests [start,
+    // start], the pair the motion change 0x7256c leaves (+0x13ac = the start frame, +0x13b4 = 0): the ROM's frame of the
+    // setMotion, whose handler call counts (the flight dust from cur 0: dk reference KD3 / KD5)
     const [prev, cur] = state.hist;
-    if (prev <= cur && cur < row.from) return;
+    if (row.from != null && prev <= cur && cur < row.from) return;
+    if (row.until != null && !(prev <= cur && cur < row.until)) return;
     // 0xcf2424: block +0x5c58 += the owner's dt (0x7264c -> 0x539d48, vmla with 1.0); at >= 16.0 it is reset to 0 and
     // mode 15 made at (block +0x40, block +0x5b4, block +0x48) -- no 900 test here (the shell's own init has one)
     state.acc5c58 = mla(state.acc5c58, ctx.dt, 1.0);
@@ -2392,6 +2749,29 @@ function dust001(state, D, ctx, input, out, fresh, a){
 
 // the spawn helpers stepShells hands a Rathian action to
 const HELPERS001 = new Set([0xd0a134, 0xd0a394, 0xd0a614, 0xd0b638, 0xd0b0b8, 0xd0baec]);
+
+// A SPAWN AT THE MOTION'S END (`atEnd`): there the ROM tests no frame but the motion's ended flag -- 0xb09c8(e) ->
+// 0x94dc04: bit 2 of byte e+0x4b6 -- and Dreadking's L9 M1 actions (7, 0xfa) / (7, 0xfb) spawn and set the next motion
+// there. The table's frame is the clip's last (126, em002_04_9.lmt's 127 frames), which a play that runs to its end
+// passes like any other frame. A viewer that LOOPS the clip never reports it: the pose's time wraps at the clip's
+// duration, so its frames run ...125 and go back. That wrap is the end of that play -- the game plays this clip once and
+// the action ends there, and stepShells already reads a wrap with no loopStart as the action issued again -- so the
+// play's end shells are made on the wrap step, on its last frame's joints (the previous pose's, as every spawn here).
+// The test is the ROM's own for a motion that wrapped past a frame: prev < F (0x72b1c) and prev + step >= F (0x7290c,
+// the frame the motion would have had). INFERRED: that a viewer's wrap of a clip the game plays once is that play's end.
+function endWrap001(state, D, a, ctx, out){
+  // the play's last advance, and never less than one motion frame -- the ROM's own advance at motion speed 1 (0x7256c's
+  // +0x13b4 per game frame). A viewer whose pose clock runs slower than this module's steps samples the same frame twice
+  // just before the wrap, so the measured advance can be 0 while the play did reach its end
+  const [p0, p1] = state.hist, adv = f(p1 - p0), reach = f(p1 + (adv > 1.0 ? adv : 1.0));
+  for (const sp of a.spawns){
+    if (!sp.atEnd) continue;
+    if (sp.kind !== 'first') throw new Error('shells.js: an atEnd spawn of kind ' + sp.kind);
+    const F = tuneFrames001(D, sp);
+    const i = F.findIndex(x => p1 < x && reach >= x);
+    if (i >= 0) create001(state, D, a, ctx, out, sp.shell, (sp.modesG && ctx.own001.rank > 4 ? sp.modesG : sp.modes)[i], F[i]);
+  }
+}
 
 // ---- Rathian's siblings (em001_02 Gold, em001_04 Dreadqueen): the class's other spawn helpers ---------------------------
 // An action entry with `spawns` (SHELL_DATA.em001_02 / em001_04) runs its helpers in order, in the action code (line 4) on
@@ -2422,10 +2802,10 @@ function create001(state, D, a, ctx, out, shell, mode, F){
 
 // vtable +0x148 with 0 = base01's end 0x3fb264 on a shell another one's create retires: nothing when it is already ending
 // (state & 0xfe == 0xfe, 0x3fb27c..0x3fb288); else end011. Its stop events are this step's (line 4, before its move).
-function retire001(S, out){
+function retire001(S, out, ctx){
   if (S.state === 0xfe || S.state === 0xff) return;
   const ev = [];
-  end011(S, ev);
+  end011(S, ev, ctx);
   S.carry = (S.carry || []).concat(ev);
   out.ended.push(S);
 }
@@ -2453,7 +2833,7 @@ function poison001(state, D, a, ctx, out, F){
     if (own.breakLevel7 >= th){ const t = mode & 0xf; if (t === 7) mode = 0x10; else if (t === 8) mode = 0x17; }
   }
   const ring = state.poison;
-  if (ring.older) retire001(ring.older, out);
+  if (ring.older) retire001(ring.older, out, ctx);
   ring.older = ring.newer;
   ring.newer = create001(state, D, a, ctx, out, 'shell01', mode, F);
 }
@@ -2551,6 +2931,9 @@ function snapFrame(x){
 //          quest id mod 100 for an ordinary quest; NO default -- without it the poison and L9 M9's 48..50 are refused),
 //          breakLevel7? (part 7's break level P+0x3bc + 84; default 0, the setup's), tailSevered? (P+0x3b4 bit 0, set by
 //          the tail sever; default false),
+//          DREADKING (em002_04) reads Rathian's inputs, and questLevel? for its 0x1f fireballs' landing (0xd0e19c: > 6 ->
+//          shell01 0x11, else 0x1b; without it that landing's shell01 is refused -- the fireball and its contact effect
+//          are not), and posture 3 on its L4 Motion[25..27] (its SHELL_DATA postures: the flight dust),
 //          effectAlive?: (shell, param, handle) => bool }
 // returns { spawned, started, ended, removed, alive, refused, created }. spawned / ended / removed / alive are shells;
 // each carries `start` (spawned: the effect request), `place` (each moving step: what 0x329c9c / 0x329d04 give the
@@ -2573,14 +2956,15 @@ function snapFrame(x){
 // filled), position / angles (base01 never moves), timer (+0x1614) and elapsed (+0x1618). A fireball's landing puts c 1
 // in out.started (effect2) and its creates in its events ({ ev: 'create', stepped: true, child }); `camera` events are
 // 0x43ac04's requests. out.created stays for shells made and not stepped (Nargacuga's drop), none for Rathian. Her
-// siblings' shells the same way (their starts name 'em001_00c' or their own 'em001_02u' / 'em001_04u'); a poison the
-// newest two push out is in out.ended (its stop) the step it is retired.
+// siblings' shells the same way (their starts name 'em001_00c' or their own 'em001_02u' / 'em001_04u'; Dreadking's
+// 'em002_00c' / 'em002_04u', its sp_01 end creates in the ending shell's events); a poison the newest two push out is in
+// out.ended (its stop) the step it is retired.
 export function stepShells(state, input){
   const out = { spawned: [], started: [], ended: [], removed: [], alive: [], refused: [], created: [] };
   const D = state.data;
   if (!D) return out;
   state.frames++;
-  const ctx = { dt: f(input.dt == null ? 1.0 : input.dt), speed: f(input.speed == null ? 1.0 : input.speed),
+  const ctx = { out, dt: f(input.dt == null ? 1.0 : input.dt), speed: f(input.speed == null ? 1.0 : input.speed),
                 owner: input.owner || { x: 0, z: 0 }, motion: input.clip ? input.monId + '|' + input.list + '|' + input.clip : null,
                 // the rocks: this step's stage floor, the owner's motion id (u16 +0x4b4), the frame its action code saw
                 floorY: input.rock && Number.isFinite(input.rock.floorY) ? f(input.rock.floorY) : null,
@@ -2590,10 +2974,10 @@ export function stepShells(state, input){
   // line 18: inited at once on this frame's joints, appended at the tail of the line, reported in out.spawned)
   if (D.dust){
     ctx.own001 = owner001(input);
-    ctx.create = (creator, name, setup) => {
+    ctx.create = (creator, name, setup, events = creator.events) => {
       const def = D.shells[name], full = Object.assign({ id: def.id }, setup);
       const S2 = make001(state, D, name, full, ctx.own001, J, ctx, creator);
-      creator.events.push({ ev: 'create', stepped: true, shell: name, id: def.id, mode: full.mode, position: full.position.slice(),
+      events.push({ ev: 'create', stepped: true, shell: name, id: def.id, mode: full.mode, position: full.position.slice(),
                             angles: full.angles.slice(), child: S2 ? S2.id : null, deleted: !S2 });
       if (S2){ state.shells.push(S2); out.spawned.push(S2); }
     };
@@ -2605,6 +2989,12 @@ export function stepShells(state, input){
   // id, so a live shell is not ended by it).
   let fresh = false;
   const back = !!(state.hist && frame < state.hist[1]);
+  // the wrap of a clip the game plays once is the end of that play: its `atEnd` shells (endWrap001), made before the
+  // action's state is reset below and on the joints of the play's last frame. The action is the one the step below
+  // resolves (the clip has not changed): the table's own, or the variant the viewer named
+  const endAct = back && input.loopStart == null && state.hist && state.prevJoints
+    ? (state.action || (input.action ? null : variantActionFor(input.monId, input.list, input.clip, input.rock && input.rock.variant))) : null;
+  if (endAct && (endAct.spawns || []).some(sp => sp.atEnd)) endWrap001(state, D, endAct, ctx, out);
   if (ctx.motion !== state.motion || (back && input.loopStart == null)){
     state.motion = ctx.motion;
     state.action = ctx.motion ? actionFor(input.monId, input.list, input.clip, !!input.rage, input.action) : null;

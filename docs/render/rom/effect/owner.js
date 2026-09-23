@@ -227,10 +227,11 @@ export function nodeIntegrate(m, inst){
   m.wf32(blk + 0x28, F(damp * m.f32(blk + 0x28)));
 }
 
-// The node scale (+0xf0 * the effect's +0x60) into +0xe0, its largest axis into +0xfc.
-function nodeScale(m, inst){
+// The node scale (`src` * the effect's +0x60) into +0xe0, its largest axis into +0xfc. `src` is the node's
+// own +0xf0 (0xae8d50 / 0xae8b8c), or this frame's value of its SCALE TRACK when it has one (0xae8d94).
+function nodeScale(m, inst, src = inst + 0xf0){
   const owner = m.u32(inst + 0x100);
-  let sy = m.f32(inst + 0xf4), sx = m.f32(inst + 0xf0), sz = m.f32(inst + 0xf8);
+  let sy = m.f32(src + 4), sx = m.f32(src), sz = m.f32(src + 8);
   const ox = m.f32(owner + 0x60), oy = m.f32(owner + 0x64), oz = m.f32(owner + 0x68);
   sx = F(sx * ox); sy = F(sy * oy); sz = F(sz * oz);
   m.wf32(inst + 0xe0, sx); m.wf32(inst + 0xe4, sy); m.wf32(inst + 0xe8, sz); m.w32(inst + 0xec, 0);
@@ -250,33 +251,69 @@ export function nodeLocal(m, inst, mat, vec){
   m.w32(mat + 0x30, 0); m.w32(mat + 0x34, 0); m.w32(mat + 0x38, 0); m.w32(mat + 0x3c, 0x3f800000);
 }
 
-// 0xae8d18: the same for a node with a motion block: rotation from its euler angles blended between
-// the two buffers by the frame fraction `t`.
+// 0xae9050 (lifted): one of the node's animated TRACKS, evaluated for this frame. A track is a list of
+// keyframes, each `base + state * range` per axis; the ROM samples it at the owner's frame and at the one
+// after and blends them by owner+0x104, and `state` is the node's own 0x10-byte random draw. `out` gets a
+// vec3 and a zero word. The three tracks and where their state lives are in
+// E:/offline/decode/notes/effects-nodeblocks.md.
+function trackEval(m, out, inst, track, state){ liftedCall(m, 0xae9050, [out, inst, track, state]); }
+
+// A track's keyframe block: the node block plus its u16 offset (+0x68 scale, +0x6a position, +0x6c
+// rotation), or 0 when the offset is 0 (0xae8d80 / 0xae8e1c / 0xae8efc are all `cmp #0 ; addne`).
+function trackBlock(m, par, field){ const off = m.u16(par + field); return off === 0 ? 0 : (par + off) >>> 0; }
+
+// 0xae8d18: the node's local transform when any channel is animated. Each of scale, position and rotation
+// is either the node block's fixed value or a TRACK evaluated for this frame (inst+0x10c bits 4, 5 and 6,
+// set by nodeBlocks); rotation can instead come from the motion block's two euler buffers blended by `t`,
+// and with neither it is the node's quaternion, as in nodeLocal.
 export function nodeLocalLerp(m, inst, mat, vec, t){
   m.u32(inst + 0x108);
   const f10c = m.u32(inst + 0x10c);
-  if (f10c & 0x10) throw new Unverified('0xae8d70 node lerp, +0x10c bit 4');
-  nodeScale(m, inst);
-  if ((f10c & 0x20) && m.u32(inst + 0x128) !== 0) throw new Unverified('0xae8e10 node position from +0x128');
-  const x = m.u32(inst + 0x80), y = m.u32(inst + 0x84), z = m.u32(inst + 0x88);
-  m.w32(vec, x); m.w32(vec + 4, y); m.w32(vec + 8, z); m.w32(vec + 0xc, 0);
-  const w10c = m.u32(inst + 0x10c), w110 = m.u32(inst + 0x110);
-  if ((w10c & 0x40) && m.u32(inst + 0x128) !== 0) throw new Unverified('0xae8eec node rotation from +0x128');
-  const blk = m.u32(inst + 0x12c);
-  if (blk === 0) throw new Unverified('0xae8f4c node lerp without a motion block');
   const sc = new Scratch(m);
-  const ang = sc.alloc(0x10);
-  m.w32(ang + 0xc, 0);
+  const out = sc.alloc(0x10), scaled = sc.alloc(0x10);      // the ROM's sp+0x00 and sp+0x10
+  if (f10c & 0x10){                                                        // 0xae8d70: a SCALE track
+    trackEval(m, scaled, inst, trackBlock(m, m.u32(inst + 0x104), 0x68), inst + 0xf0);    // 0xae8d8c
+    nodeScale(m, inst, scaled);                                            // 0xae8d90: this frame's value
+  } else {
+    nodeScale(m, inst);                                                    // 0xae8d50: the fixed one
+  }
+  if ((f10c & 0x20) && m.u32(inst + 0x128) !== 0){                         // 0xae8e10: a POSITION track
+    trackEval(m, out, inst, trackBlock(m, m.u32(inst + 0x104), 0x6a), m.u32(inst + 0x128));   // 0xae8e30
+    m.w32(vec, m.u32(out)); m.w32(vec + 4, m.u32(out + 4));                // 0xae8e34: state slot 0
+    m.w32(vec + 8, m.u32(out + 8)); m.w32(vec + 0xc, 0);
+  } else {                                                                 // 0xae8dfc
+    const x = m.u32(inst + 0x80), y = m.u32(inst + 0x84), z = m.u32(inst + 0x88);
+    m.w32(vec, x); m.w32(vec + 4, y); m.w32(vec + 8, z); m.w32(vec + 0xc, 0);
+  }
+  const w10c = m.u32(inst + 0x10c), w110 = m.u32(inst + 0x110);            // 0xae8e50
+  if ((w10c & 0x40) && m.u32(inst + 0x128) !== 0){                         // 0xae8eec: a ROTATION track
+    trackEval(m, out, inst, trackBlock(m, m.u32(inst + 0x104), 0x6c),
+              (m.u32(inst + 0x128) + 0x10) >>> 0);                         // 0xae8f08: state slot 1
+    const r10c = m.u32(inst + 0x10c), r110 = m.u32(inst + 0x110);          // 0xae8f0c: both re-read
+    if (r110 & 0x400) throw new Unverified('0xae8f14 node rotation track, +0x110 bit 10');
+    eulerMatrix(m, mat, out, (r10c >>> 8) & 0xf);                          // 0xae8f3c
+    sc.free();
+    return;
+  }
+  const blk = m.u32(inst + 0x12c);
+  if (blk === 0){                                                          // 0xae8f4c: no track, no motion
+    if (w110 & 0x400) throw new Unverified('0xae8f54 node quaternion, +0x110 bit 10');
+    quatRows(m, inst + 0x90, mat);                                         // 0xae8f90
+    m.w32(mat + 0x30, 0); m.w32(mat + 0x34, 0); m.w32(mat + 0x38, 0); m.w32(mat + 0x3c, 0x3f800000);
+    sc.free();
+    return;
+  }
+  m.w32(out + 0xc, 0);                                                     // 0xae8e80
   const b = (w110 >>> 4) & 1;
   const cur = blk + (b << 4), prev = blk + ((b ^ 1) << 4);
   const u = F(1.0 - t);
   for (let k = 0; k < 12; k += 4){
     let s = F(m.f32(cur + k) * t);
     s = F(s + F(u * m.f32(prev + k)));
-    m.wf32(ang + k, s);
+    m.wf32(out + k, s);
   }
   if (w110 & 0x400) throw new Unverified('0xae8ed8 node lerp, +0x110 bit 10');
-  eulerMatrix(m, mat, ang, (w10c >>> 8) & 0xf);
+  eulerMatrix(m, mat, out, (w10c >>> 8) & 0xf);
   sc.free();
 }
 

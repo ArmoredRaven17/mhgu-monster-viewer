@@ -553,7 +553,16 @@ async function pageCheckRathian(MON = 'em001_00', LABEL = 'Rathian'){
     }
     return s0(e);
   };
-  const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 101, 102].includes(p))) : null; };
+  const MONSTER = V.MON.monsters.find(e => e.id === MON);
+  const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => MONSTER.partIds.includes(p))) : null; };
+  // A .mpm SET as this monster's own table has it (monsters.json groups = the .mpm): every group the set names, drawn or
+  // not. The set NUMBERS are the class's (the same for all four: 2 eyes open, 3 / 4 head, 5..8 wings, 9 / 10 back,
+  // 11.. tail), the groups inside are the monster's -- Dreadking's back is 10 / 11 where Rathian's is 10 / 102.
+  // only the groups the viewer offers as PARTS: a set can also name a sub-mesh the part list leaves out
+  // (Dreadking's wing sets carry 104 / 106, which are not in his partIds)
+  const isSet = (d, n) => (MONSTER.groups[n] || []).filter(([g]) => MONSTER.partIds.includes(g)).every(([g, on]) => d[g] === on);
+  const setsShown = (d, ...ns) => ns.every(n => isSet(d, n));
+  const setOf = spec => spec.levels[spec.levels.length - 1][0];   // the set a break motion reaches
   const evReqs = key => S.entries.filter(e => e.when === 'event' && e.def.record.key === key).map(e => e.requests.map(q => q.stopped ? 's' : 'r').join('')).join('|');
   const listOf = id => V.MON.monsters.find(e => e.id === MON).lists.find(l => l.id === id);
   const dur = (list, clip) => Math.round(listOf(list).clips.find(c => c.clip === clip).dur * 60);
@@ -571,8 +580,7 @@ async function pageCheckRathian(MON = 'em001_00', LABEL = 'Rathian'){
   V.state.loop = true;
   await play(...REST); await frames(3);
   const user0 = drawn();
-  check(user0 && user0[9] === true && user0[1] === false && user0[2] === true && user0[4] === true && user0[6] === true && user0[102] === true && user0[101] === true,
-        'at rest: eyes open, head, wings, back intact, tail on', user0);
+  check(user0 && setsShown(user0, 2, 3, 5, 7, 9, 11), 'at rest: eyes open, head, wings, back intact, tail on (sets 2, 3, 5, 7, 9, 11)', user0);
   check(S.rage === false && puffs.length === 0, 'calm: no puff', puffs);
 
   // THE BACK AND WING BREAKS: L3 Motion[2], looping -- each play the next: back, left wing, right wing. List 3 is entered
@@ -581,15 +589,15 @@ async function pageCheckRathian(MON = 'em001_00', LABEL = 'Rathian'){
   fired.length = 0;
   await play('3', 'Motion[2]'); await frames(3);
   let d = drawn();
-  check(same(fired, [1000]) && d[10] === true && d[102] === false && d[4] === true && d[6] === true, 'L3 Motion[2], 1st play: the back breaks (set 10), u 1000', { fired, d });
+  check(same(fired, [1000]) && setsShown(d, 10, 5, 7), 'L3 Motion[2], 1st play: the back breaks (set 10), u 1000; the wings whole', { fired, d });
   check(tear()['XfBAN__E0__m50_wing_l'] === null && tear()['XfBAN__E0__m51_wing_r'] === null, 'the membranes are whole', tear());
   await until(() => fired.length >= 2, dur('3', 'Motion[2]') + 60);
   await frames(3); d = drawn();
-  check(same(fired, [1000, 1005]) && d[5] === true && d[4] === false && d[102] === true, 'the loop, 2nd play: the left wing breaks (set 6), u 1005; the back as the user has it', { fired, d });
+  check(same(fired, [1000, 1005]) && setsShown(d, 6, 9, 7), 'the loop, 2nd play: the left wing breaks (set 6), u 1005; the back as the user has it', { fired, d });
   check(tear()['XfBAN__E0__m50_wing_l'] === 127 && tear()['XfBAN__E0__m51_wing_r'] === null, 'the left membrane torn (alpha reference 127)', tear());
   await until(() => fired.length >= 3, dur('3', 'Motion[2]') + 60);
   await frames(3); d = drawn();
-  check(same(fired, [1000, 1005, 1010]) && d[7] === true && d[6] === false && d[4] === true, '3rd play: the right wing breaks (set 8), u 1010', { fired, d });
+  check(same(fired, [1000, 1005, 1010]) && setsShown(d, 8, 5, 9), '3rd play: the right wing breaks (set 8), u 1010; the left wing whole again', { fired, d });
   check(tear()['XfBAN__E0__m50_wing_l'] === null && tear()['XfBAN__E0__m51_wing_r'] === 127, 'the right membrane torn, the left whole again', tear());
   // the plays after the three breaks, as this monster's table cycles them: Rathian's and Gold's (10, 0x1b) (c 1109, no
   // part changed); Dreadqueen's tail break (set 12, u 1036) before it
@@ -599,10 +607,9 @@ async function pageCheckRathian(MON = 'em001_00', LABEL = 'Rathian'){
     await until(() => fired.length >= n, dur('3', 'Motion[2]') + 60);
     await frames(3); d = drawn();
     const e = cyc[n - 1];
-    const parts = e.start ? (d[10] === false && d[102] === true && d[5] === false && d[7] === false)
-                          : (d[12] === true && d[11] === false);            // Dreadqueen's tail broken: set 12
+    const parts = e.start ? setsShown(d, 9, 5, 7) : isSet(d, setOf(e));   // the deviants' tail broken: set 12
     check(same(fired, cyc.slice(0, n).map(keyOf)) && parts,
-          'play ' + n + ': ' + (e.start ? '(10, 0x1b) -- c 1109 at frame 0, no part changed' : 'the tail breaks (set 12), u ' + keyOf(e)), { fired, d });
+          'play ' + n + ': ' + (e.start ? '(10, 0x1b) -- c 1109 at frame 0, no part changed' : 'the tail breaks (set ' + setOf(e) + '), u ' + keyOf(e)), { fired, d });
   }
   await play(...REST); await frames(3);
   check(same(drawn(), user0) && tear()['XfBAN__E0__m51_wing_r'] === null, 'another motion: the user\'s parts and whole membranes again', { d: drawn(), tear: tear() });
@@ -610,7 +617,7 @@ async function pageCheckRathian(MON = 'em001_00', LABEL = 'Rathian'){
   // THE HEAD BREAK
   fired.length = 0;
   await play('3', 'Motion[1]'); await frames(3); d = drawn();
-  check(same(fired, [1031]) && d[3] === true && d[2] === false, 'L3 Motion[1]: the head breaks (set 4), u 1031', { fired, d });
+  check(same(fired, [1031]) && isSet(d, 4), 'L3 Motion[1]: the head breaks (set 4), u 1031', { fired, d });
   await play(...REST); await frames(3);
 
   // THE TAIL SEVER and the cut tail
@@ -619,7 +626,7 @@ async function pageCheckRathian(MON = 'em001_00', LABEL = 'Rathian'){
   fx.fireAt = (pel, key, pos) => { landing.push(key); return fa0(pel, key, pos); };
   await play('3', 'Motion[15]'); await frames(3); d = drawn();
   const piece = V.mounted[MON + '_tail'];
-  check(same(fired, [900]) && d[8] === true && d[101] === false, 'L3 Motion[15]: the tail severed (set 12), u 900', { fired, d });
+  check(same(fired, [900]) && isSet(d, setOf(MS.MOTION_STATES[MON]['3|Motion[15]'])), 'L3 Motion[15]: the tail severed (set ' + setOf(MS.MOTION_STATES[MON]['3|Motion[15]']) + '), u 900', { fired, d });
   check(piece && piece.visible && V.cutTail() && V.cutTail().J, 'the cut tail is shown', { visible: piece && piece.visible });
   await frames(60);
   const ct = V.cutTail();
@@ -638,6 +645,16 @@ async function pageCheckRathian(MON = 'em001_00', LABEL = 'Rathian'){
   await play(...REST); await frames(3);
   const nAfter = puffs.length; await steps(70);
   check(S.rage === false && puffs.length === nAfter, 'another motion, the user calm: rage off, no more puffs', { rage: S.rage, n: puffs.length - nAfter });
+  // THE AIR RAGE ENTRY, for a monster whose table carries one (Dreadking: (4, 0xb) L1 Motion[3], the em-2 branch of
+  // command group 6 -- the em 1 monsters flip on a clip they share with every landing, so their tables list none)
+  if (MS.MOTION_STATES[MON]['1|Motion[3]']){
+    puffs.length = 0;
+    await play('1', 'Motion[3]'); await steps(40);
+    check(S.rage === true && puffs.length >= 1, 'L1 Motion[3] (the air rage entry): rage shown, the puff runs', { rage: S.rage, puffs: puffs.length });
+    await play(...REST); await frames(3);
+    const n1 = puffs.length; await steps(40);
+    check(S.rage === false && puffs.length === n1, 'another motion: rage off again', { rage: S.rage, more: puffs.length - n1 });
+  }
 
   // THE USER ENRAGED: the countdown's leftover carries across a calm spell (0xa41b8 leaves it; only tired zeroes it)
   check(rageBox && !rageBox.closest('[hidden]'), 'the Enraged toggle is offered', !!rageBox);
@@ -681,8 +698,8 @@ async function pageCheckRathian(MON = 'em001_00', LABEL = 'Rathian'){
   // DEATH, the user enraged: rage off, no puffs, eyes closed; the parts otherwise the user's
   await play('3', 'Motion[17]'); await frames(3);
   const n4 = puffs.length; await steps(70); d = drawn();
-  check(S.rage === false && puffs.length === n4 && d[1] === true && d[9] === false && d[2] === true && d[102] === true && d[101] === true,
-        'L3 Motion[17] (death): rage off, no puff, eyes closed, the breaks as the user has them', { rage: S.rage, d });
+  check(S.rage === false && puffs.length === n4 && isSet(d, 1) && setsShown(d, 3, 5, 7, 9, 11),
+        'L3 Motion[17] (death): rage off, no puff, eyes closed (set 1), the breaks as the user has them', { rage: S.rage, d });
   await play('3', 'Motion[12]'); await frames(3);
   check(S.rage === false && drawn()[1] === true, 'L3 Motion[12] (death after the fall): the same', { rage: S.rage, d: drawn() });
   await play(...REST); await frames(3);
@@ -727,6 +744,41 @@ async function pageCheckRathian(MON = 'em001_00', LABEL = 'Rathian'){
     return r;
   };
   const named = (n, clip) => reqLog.filter(r => r.name === n && (!clip || r.clip === clip));
+  // a record by its key AND its file: the same key can sit in both pel lists (u 20 is em002_04_007, c 20 em001_00_004)
+  const keyed = (key, name, clip) => reqLog.filter(r => r.key === key && (!name || r.name === name) && (!clip || r.clip === clip));
+  if (MON === 'em002_04'){
+  // DREADKING'S SHELLS (the Shell Agent's decode in shells.js; every mode's records are its .shl EffectParam slots,
+  // list 0 = em002_00c, list 1 = em002_04u). One play a clip, so each takes its FIRST pick.
+  // L2 Motion[5]: 7:0x02 -- the fireball shell00 mode 0x1d, whose creation record is u 20 (em002_04_007), at frame 78
+  await play('2', 'Motion[5]'); await frames(dur('2', 'Motion[5]') + 20);
+  const fb = keyed(20, 'em002_04_007', 'Motion[5]');
+  check(fb.length >= 1 && fb[0].variant === '7:0x02' && fb[0].frame >= 78 && fb[0].frame <= 86, 'L2 Motion[5]: the fireball (u 20), 7:0x02, as frame 78 passes', fb);
+  // L2 Motion[18]: 7:0x0a -- mode 0x1e, the same creation record at 80 and a landing of its own (u 21, em002_04_009)
+  reqLog.length = 0;
+  await play('2', 'Motion[18]'); await frames(dur('2', 'Motion[18]') + 90);
+  const fb18 = keyed(20, 'em002_04_007', 'Motion[18]');
+  check(fb18.length >= 1 && fb18[0].variant === '7:0x0a' && fb18[0].frame >= 80 && fb18[0].frame <= 88, 'L2 Motion[18]: the fireball (u 20), 7:0x0a, as frame 80 passes', fb18);
+  check(keyed(21, 'em002_04_009').length >= 1, 'it lands on the grid floor: u 21', reqLog.map(r => r.key));
+  // L4 Motion[38]: the first pick 7:0x43 -- mode 0x1a at 82, its landing u 31 (em002_04_009)
+  reqLog.length = 0;
+  await play('4', 'Motion[38]'); await frames(dur('4', 'Motion[38]') + 90);
+  const m38 = keyed(20, 'em002_04_007', 'Motion[38]');
+  check(m38.length >= 1 && m38[0].variant === '7:0x43' && m38[0].frame >= 82 && m38[0].frame <= 90, 'L4 Motion[38]: the mode-0x1a fireball (u 20), 7:0x43, at 82', m38);
+  check(keyed(31, 'em002_04_009').length >= 1, 'it lands: u 31', reqLog.map(r => r.key));
+  // L9 Motion[1]'s shell (7:0xfa -> shell00 0x1f, u 10, its landing u 25) is NOT checked here: it is made when
+  // the MOTION ENDS (the ROM tests the motion's ended flag 0xb09c8, shells.js atEnd), which on a looping clip is
+  // the wrap -- and this page pins the pose clock (getDelta 1/60) while the schedule steps on real time, so under
+  // load the clip advances slower than the steps and the wrap falls between them. Measured with a normal cadence
+  // the viewer does make it every loop (u 10 at the wrap, u 25 and u 12 about 16 steps later). Where it IS
+  // checked: efx/shell_soaks.py (every pick, in the viewer) and dev/shells-rathalos-check.mjs KF13 (the looping
+  // play, against the ROM).
+  // L4 Motion[25]: the flight dust needs no pick -- shell01 mode 15 every 16 frames while the posture holds (c 31)
+  reqLog.length = 0;
+  await play('4', 'Motion[25]_loop'); await frames(Math.min(dur('4', 'Motion[25]_loop'), 120));
+  const dust = keyed(31, 'cm200_040', 'Motion[25]_loop');
+  const dgaps = dust.slice(1).map((r, i) => r.frame - dust[i].frame);
+  check(dust.length >= 3 && dgaps.every(g => g === 16), 'L4 Motion[25]: the flight dust (c 31) every 16 frames', { n: dust.length, dgaps });
+  } else {
   // L2 Motion[5]: 7:0x02 -- one fireball (mode 0, c 0 em001_00_003) as frame 78 passes; the landing: c 1 (em001_00_006)
   // and shell01 mode 2's fire (c 3, em001_00_008)
   await play('2', 'Motion[5]'); await frames(dur('2', 'Motion[5]') + 20);
@@ -754,6 +806,7 @@ async function pageCheckRathian(MON = 'em001_00', LABEL = 'Rathian'){
   const m8 = named('em001_02_001', 'Motion[16]');
   check(m8.length === 1 && m8[0].variant === '7:0x3a' && m8[0].frame >= 108 && m8[0].frame <= 116, 'L4 Motion[16]: the mode-8 fireball (u 30), 7:0x3a, at 108', m8);
   check(named('em001_02_004').length >= 1, 'it lands: the explosions (em001_02_004)', reqLog.map(r => r.name));
+  }
   host.requestEffect = request0;
   if (pickIn) S.rockInput = pickIn;
   }
@@ -805,7 +858,8 @@ async function main(){
   const res = (await evaluate(c, `(${pageCheck.toString()})()`)).concat(await evaluate(c, `(${pageCheckNarga.toString()})()`))
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})()`))
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em001_02', 'Gold Rathian')`))
-    .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em001_04', 'Dreadqueen')`));
+    .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em001_04', 'Dreadqueen')`))
+    .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em002_04', 'Dreadking')`));
   let fail = 0;
   for (const [ok, label, detail] of res){
     if (!ok) fail++;

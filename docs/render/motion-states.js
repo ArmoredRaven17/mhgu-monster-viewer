@@ -66,12 +66,16 @@ const N_TAIL = { calm: [[12], [13], [14]], enraged: [[15], [16], [17]] };
 // once (0x75e4c -> 0xa30dc -> 0xa4074: cm200_008 on joint 3) and whose script 0x1794b30 plays L3 Motion[2] from frame 0.
 // INFERRED exhaust (E:\offline\decode\notes\shared-state-effects.md; states-em001.md 4.2 called it blast -- blast is the
 // tune+0x54 status, c 1130..1137 on the part hit, with no clip of its own). No part set changes.
-const R_EXHAUST = { start: [['em001_00c', 1109]] };
-// THE RATH LINE'S MOTIONS. uEm001_00 runs Rathian, Gold Rathian and Dreadqueen (and the three Rathalos, not read for
-// them here), each on Rathian's lists 0..3 and her .mpm set layout -- Gold's is identical set for set; Dreadqueen's differs
-// in her tail (em001_04 below) -- and each fires its break, sever and rage records from its OWN u.pel (em001_02u /
-// em001_04u carry the same keys, some placed differently), the ailment ones from Rathian's c.pel, which all three load.
-function rathLine(u){
+// THE RATH LINE'S MOTIONS. uEm001_00 runs Rathian, Gold Rathian, Dreadqueen and the three Rathalos, each on Rathian's
+// lists 0..3 (the Rathalos load her very files, states-em002_04.md 1) and on the same .mpm set NUMBERS -- Gold's layout is
+// Rathian's set for set; Dreadqueen's and Dreadking's tails have three states (below), and Dreadking's sets hold different
+// groups, which the set numbers here do not care about. Each fires its break, sever and rage records from its OWN u.pel
+// (em001_02u / em001_04u / em002_04u carry the same keys, some placed differently and Dreadking's with other offsets) and
+// the ailment ones from its c.pel -- Rathian's em001_00c for the three em 1, Rathalos's em002_00c for the em 2, whose
+// state records are byte-identical to hers (states-em002_04.md 1).
+function rathLine(u, c = 'em001_00c'){
+  // (10, 0x1b): the tune+0x44 status -- see above. c 1109 differs between the two c.pels at payload +0x38 alone.
+  const R_EXHAUST = { start: [[c, 1109]] };
   const R_BACK = { levels: [[9], [10]], fire: [null, [u, 1000]] };
   const R_WING_L = { levels: [[5], [6]], fire: [null, [u, 1005]] };
   const R_WING_R = { levels: [[7], [8]], fire: [null, [u, 1010]] };
@@ -104,31 +108,31 @@ function rathLine(u){
     '0|Motion[4]':  { rage: true },
     // TIRED (3): the idle (0, 2) is L0 Motion[14] (0xcee5f8); drool c 1104 (cm200_006, joint 3) every 48 while not enraged
     // (0xa42b0..0xa4334) -- rage shown off -- and, calm and tired, the rage puff's countdown is zeroed (0xa4340).
-    '0|Motion[14]': { rage: false, tired: true, every: [['em001_00c', 1104], 48] },
+    '0|Motion[14]': { rage: false, tired: true, every: [[c, 1104], 48] },
     // ASLEEP (4.2, 4.3): (10, 0x1d) L3 Motion[14] falls asleep, (10, 0x1e) holds L0 Motion[19], (10, 0x44) wakes with L0
     // Motion[20]; eye set 1 from L3 Motion[14] f0 (the flag drops one pass into L0 Motion[20]: one frame, not shown). In
     // the hold (0x81bb0(e, 1)): zzz c 1102 (cm200_002, joint 3) every 90 (0xa3e60..), and 0xa41b8 returns before its
     // countdowns -- the rage puff pauses. The rest -- L0 Motion[18] lying down, then the same L0 Motion[19] (+0x522 from
     // its f0) -- is the same hold. L3 Motion[14] -> L0 Motion[19] is also the capture (11, 0x10): shown as sleep.
     '3|Motion[14]': { sets: [1] },
-    '0|Motion[19]': { sets: [1], every: [['em001_00c', 1102], 90], puffOff: true },
+    '0|Motion[19]': { sets: [1], every: [[c, 1102], 90], puffOff: true },
     // PARALYSIS: (10, 0x1f) holds L3 Motion[13]; c 1101 (cm200_001, joint 1) every 60, first at once. L3 Motion[13] is
     // also the shock trap's hold: shown as paralysis.
-    '3|Motion[13]': { every: [['em001_00c', 1101], 60] },
+    '3|Motion[13]': { every: [[c, 1101], 60] },
     // SHOCK TRAP: (10, 0x6e) plays L3 Motion[9] (to f60), then holds L3 Motion[13]; c 1105 (cm200_001, joint 1) every 42
     // while the action lasts. L3 Motion[9] also plays for (10, 0x52) (INFERRED the flash, states-em002_04.md 5.2),
     // (10, 0x87) and (10, 0xb4) (meanings NOT READ), and for Gold and Dreadqueen (10, 0x94) (5.3).
-    '3|Motion[9]':  { every: [['em001_00c', 1105], 42] },
+    '3|Motion[9]':  { every: [[c, 1105], 42] },
     // STUN: (10, 0x20) plays L3 Motion[3] -> [5] (held) -> [7] for side 2 and L3 Motion[4] -> [6] -> [8] for the others
     // (0xcf0d94); c 1103 (cm200_003, joint 3) is requested once into one handle while stunned (bit 0x10) and stopped when
     // it clears, at (10, 0x2b)'s L3 Motion[16]. The six clips are also the legs' depletion trips and play in other
     // reactions (breaks-em001.md 3, states-em001.md 4.4): shown as the stun.
-    '3|Motion[3]':  { hold: ['em001_00c', 1103] },
-    '3|Motion[5]':  { hold: ['em001_00c', 1103] },
-    '3|Motion[7]':  { hold: ['em001_00c', 1103] },
-    '3|Motion[4]':  { hold: ['em001_00c', 1103] },
-    '3|Motion[6]':  { hold: ['em001_00c', 1103] },
-    '3|Motion[8]':  { hold: ['em001_00c', 1103] },
+    '3|Motion[3]':  { hold: [c, 1103] },
+    '3|Motion[5]':  { hold: [c, 1103] },
+    '3|Motion[7]':  { hold: [c, 1103] },
+    '3|Motion[4]':  { hold: [c, 1103] },
+    '3|Motion[6]':  { hold: [c, 1103] },
+    '3|Motion[8]':  { hold: [c, 1103] },
     // DEATH (5): L3 Motion[17] (every status-11 number but 1, 7, 0x10, 0x12, 0x26) and L3 Motion[12] (the end of the fall,
     // (11, 1)) -- the two clips only death plays: rage cleared at the setAction (no more puffs), eye set 1 for good, the
     // breaks and the sever as they were. The class has no death branch of its own.
@@ -263,22 +267,42 @@ export const MOTION_STATES = {
   // GOLD RATHIAN: the same class (variant 2; its branches there are hit tables and tune values, states-em001.md 8), lists
   // 0..3 and set layout -- Rathian's table from its own u.pel. Its own list 4 carries no state motion.
   em001_02: rathLine('em001_02u'),
-  // DREADQUEEN RATHIAN (variant 4): the same, but her tail breaks before it can be cut. The driver's variant-4 branch
-  // (0xcf2a14..0xcf2a98) shows set 11 intact, 12 once part 7's level reaches her fifth dtp row (part 7, level 2) and 13
-  // severed -- her .mpm's 11 / 12 / 13 are the tail's three states, where Rathian's 11 / 12 are intact / severed. Its
-  // break fires u id 7 x 5 + 2 + 6 = 43 -> 1036 (0xa442c, 0x159c7fc[43]: cm202_060 on joint 145) and plays the tail's
-  // depletion reaction, L3 Motion[2] (0x1794ad0: breaks-em001.md 3, the same table for variant 4); vtable +0x234
-  // (0xd08bd4) lets the sever through only at that level (breaks-em001.md 4.1), so L3 Motion[15] cuts a broken tail.
-  em001_04: dreadqueen(),
+  // DREADQUEEN RATHIAN (variant 4): the same from her own u.pel, with a deviant's tail (deviantTail below) -- hers breaks
+  // before it can be cut. Her list 4's own state motion, the air rage entry (4, 0x16) L4 Motion[7], is not listed: see RAGE.
+  em001_04: deviantTail(rathLine('em001_04u'), 'em001_04u'),
+  // DREADKING RATHALOS (em002_04): the same class as em 2 variant 4 (states-em002_04.md). Rathian's lists 0..3 -- her very
+  // files -- so every state clip above is his; his ailment records come from Rathalos's em002_00c, whose state records are
+  // byte for byte Rathian's; his breaks, sever and rage puff from em002_04u (the same keys, the back on joint 2 and the
+  // wings offset (0, 0, 120), which is in the records, not here). His tail is Dreadqueen's three states, from the same
+  // variant-4 branch of the driver (0xcf29e4..0xcf2aa4) and the same vtable +0x234 gate. What is his own:
+  //   RAGE IN THE AIR. Command group 6's first action is (4, 0xb) for em 2 -- L1 Motion[3] from frame 0 (0xcfbaa8), the
+  //   clip the plain air roar (4, 0xa) also plays, as L0 Motion[4] on the ground is also the plain roar: both are shown
+  //   as the entry (2.2). The em 1 monsters never take (4, 0xb): Rathian lands first, Gold and Dreadqueen play L4
+  //   Motion[7], and neither clip is theirs alone (see RAGE above).
+  //   L9 Motion[20] / [21], the variant-4 air reaction to a flash (10, 0x53), change no state: the clip PSL plays their
+  //   effects and the INFERRED blind timer they cut is not shown (5.2). L4 Motion[31] -> [32] follow the ground roar as
+  //   the attack (7, 0x29), with rage already on from L0 Motion[4].
+  em002_04: dreadking(),
 };
 
-// Dreadqueen's table: Rathian's from her own u.pel, her tail as above (the cycle's tail break before the (10, 0x1b) play)
-function dreadqueen(){
-  const t = rathLine('em001_04u');
+// Rathian's table with a DEVIANT'S TAIL: three states where hers has two. The driver's variant-4 branch (0xcf2a14..
+// 0xcf2a98 for em 1, 0xcf29e4..0xcf2aa4 for em 2) shows set 11 intact, 12 once part 7's level reaches the fifth dtp row
+// (part 7, level 2) and 13 severed -- where Rathian's 11 / 12 are intact / severed. The break fires u id 7 x 5 + 2 + 6 =
+// 43 -> 1036 (0xa442c, 0x159c7fc[43]: cm202_060, joint 145) and plays the tail's depletion reaction, L3 Motion[2]
+// (0x1794ad0: breaks-em001.md 3, the same table for variant 4), before the cycle's (10, 0x1b) play; vtable +0x234
+// (0xd08bd4) lets the sever through only at that level (breaks-em001.md 4.1), so L3 Motion[15] cuts a broken tail.
+function deviantTail(t, u){
   const c = t['3|Motion[2]'].cycle;
-  const R_TAIL = { levels: [[11], [12]], fire: [null, ['em001_04u', 1036]] };
+  const R_TAIL = { levels: [[11], [12]], fire: [null, [u, 1036]] };
   t['3|Motion[2]'] = { cycle: [c[0], c[1], c[2], R_TAIL, c[3]] };
-  t['3|Motion[15]'] = { levels: [[11], [12], [13]], at: 2, fire: [null, null, ['em001_04u', 900]], drops: true };
+  t['3|Motion[15]'] = { levels: [[11], [12], [13]], at: 2, fire: [null, null, [u, 900]], drops: true };
+  return t;
+}
+
+// Dreadking's table: the Rath line's from em002_04u and Rathalos's c.pel, a deviant's tail, and the air rage entry above.
+function dreadking(){
+  const t = deviantTail(rathLine('em002_04u', 'em002_00c'), 'em002_04u');
+  t['1|Motion[3]'] = { rage: true };
   return t;
 }
 
@@ -303,6 +327,10 @@ export const RAGE_PUFF = {
   // Gold Rathian: the same class and pick (P+0x5d04 = 4 from the shared setup 0xcecd94), its own records
   em001_02: { period: 30, joint: 4, records: [['em001_02u', 1120], ['em001_02u', 1121]], pick: rathianPuffPick },
   em001_04: { period: 30, joint: 4, records: [['em001_04u', 1120], ['em001_04u', 1121]], pick: rathianPuffPick },   // Dreadqueen
+  // Dreadking: the same shared puff and the same pick on joint 4 -- run on em002_04's own model and lists, 0xd08afc gives
+  // puff-pick-em001.md's table for L0 Motion[4] frame for frame, and for L1 Motion[3] (his air rage entry) u 1120 over
+  // f0-6, f22-30, f79-216, f240-262, f281-284 and u 1121 between (states-em002_04.md 2.3)
+  em002_04: { period: 30, joint: 4, records: [['em002_04u', 1120], ['em002_04u', 1121]], pick: rathianPuffPick },
 };
 
 // THE TAIL AS THE SHELLS READ IT (shells.js: Dreadqueen's poison, 0xd09b84(e, 0x10)): part 7's break level (byte P+0x3bc +
@@ -312,6 +340,9 @@ export const RAGE_PUFF = {
 export const SHELL_TAIL = {
   em001_00: { severed: 8 }, em001_02: { severed: 8 },
   em001_04: { severed: 8, broken: 12, level: 2 },
+  // Dreadking: the same poison path (his shell data carries the break row), his own .mpm -- set 12 draws part 13 broken,
+  // set 13 part 8 severed (states-em002_04.md 3.2), where Dreadqueen's draw 12 and 8
+  em002_04: { severed: 8, broken: 13, level: 2 },
 };
 export function shellTailInput(monId, drawn){
   const t = SHELL_TAIL[monId];

@@ -781,21 +781,38 @@ function nodeBind(m, inst, owner, node, slot){
   m.w32(inst + 0x108, w108); m.w32(inst + 0x10c, ip); m.w32(inst + 0x110, (w110 & ~0xf) >>> 0);
 }
 
-// 0xae8268: a node's motion blocks (+0x128 rotation, +0x12c position), when its block asks for them.
+// 0xae8268: the node's TRACK STATE (+0x128) and rotation-MOTION (+0x12c) blocks, when its block asks for
+// them. The node block's four u16 offsets each name a sub-block behind it and set a flag in inst+0x10c:
+// +0x68 a SCALE track (0x10, its evaluator state is inst+0xf0), +0x6a a TRANSLATION track (0x20), +0x6c a
+// ROTATION track (0x40), +0x6e the rotation motion block (0x02). Either track bit asks for 0x20 bytes of
+// evaluator state at +0x128 (two 0x10-byte slots, +0x00 the translation track's and +0x10 the rotation
+// track's); +0x6e asks for 0x30 bytes at +0x12c. One allocation holds both, state first.
+// (E:/offline/decode/notes/effects-nodeblocks.md)
 function nodeBlocks(m, inst){
   const par = m.u32(inst + 0x104);
   const w68 = m.u32(par + 0x68);
-  if (w68 & 0xffff) throw new Unverified('0xae8284 node block +0x68');
+  const w108 = m.u32(inst + 0x108), w110 = m.u32(inst + 0x110);
+  let w10c = m.u32(inst + 0x10c);
+  if (w68 & 0xffff){                                                       // 0xae8284: a scale track
+    w10c = (w10c | 0x10) >>> 0;
+    m.w32(inst + 0x108, w108); m.w32(inst + 0x10c, w10c); m.w32(inst + 0x110, w110);
+  }
   const w6c = m.u32(par + 0x6c);
-  if (w68 & 0xffff0000) throw new Unverified('0xae82b0 node block +0x6a');
-  const w108 = m.u32(inst + 0x108), w10c = m.u32(inst + 0x10c), w110 = m.u32(inst + 0x110);
-  if (w6c & 0xffff) throw new Unverified('0xae82e0 node block +0x6c');
-  const r8 = w10c & 0x60;
+  if (w68 & 0xffff0000){                                                   // 0xae82b0: a translation track
+    w10c = (w10c | 0x20) >>> 0;
+    m.w32(inst + 0x108, w108); m.w32(inst + 0x10c, w10c); m.w32(inst + 0x110, w110);
+  }
+  if (w6c & 0xffff){                                                       // 0xae82e0: a rotation track
+    w10c = (w10c | 0x40) >>> 0;
+    m.w32(inst + 0x108, w108); m.w32(inst + 0x10c, w10c); m.w32(inst + 0x110, w110);
+  }
+  const r8 = w10c & 0x60;                                                  // 0xae82f0: the two TRACK bits
   const r6 = r8 ? 0x20 : 0;
   let r7 = 0;
   if (w6c >= 0x10000){
     r7 = 0x30;
-    m.w32(inst + 0x108, w108); m.w32(inst + 0x10c, (w10c | 2) >>> 0); m.w32(inst + 0x110, w110);
+    w10c = (w10c | 2) >>> 0;
+    m.w32(inst + 0x108, w108); m.w32(inst + 0x10c, w10c); m.w32(inst + 0x110, w110);
   }
   const size = (r7 + r6) >>> 0;
   if (size !== 0){
@@ -923,17 +940,51 @@ function nodeInit(m, inst){
   const r8 = (r0 | (0x200 & (m.u32(pp + 4) << 8))) >>> 0;
   m.w32(inst + 0x108, ip); m.w32(inst + 0x10c, r3); m.w32(inst + 0x110, r8);
   m.w32(inst + 0x118, 0);
-  if (m.u16(pp + 0x68) !== 0) throw new Unverified('0xae8880 node block +0x68 at init');
-  const rnd = m.u32(GOT_FLOAT_RNG);                                        // 0xae88ec
+  const rnd = m.u32(GOT_FLOAT_RNG);
   const c0 = m.u32(inst + 0x114);
-  m.w32(inst + 0x114, (c0 + 1) >>> 0);
-  m.wf32(inst + 0xf0, F(m.f32(pp + 8) + F(m.f32(rnd + 4 * ((c0 + 1) & 0xfff)) * m.f32(pp + 0xc))));
-  m.w32(inst + 0x114, (c0 + 2) >>> 0);
-  m.wf32(inst + 0xf4, F(m.f32(pp + 0x10) + F(m.f32(rnd + 4 * ((c0 + 2) & 0xfff)) * m.f32(pp + 0x14))));
-  m.w32(inst + 0x114, (c0 + 3) >>> 0);
-  m.wf32(inst + 0xf8, F(m.f32(pp + 0x18) + F(m.f32(rnd + 4 * ((c0 + 3) & 0xfff)) * m.f32(pp + 0x1c))));
-  if (m.u16(pp + 0x6a) !== 0) throw new Unverified('0xae8974 node block +0x6a at init');
-  if (m.u16(pp + 0x6c) !== 0) throw new Unverified('0xae89dc node block +0x6c at init');
+  let i10c = r3, i110 = r8;                        // what the three branches below edit, as the ROM's r3/r8
+  if (m.u16(pp + 0x68) !== 0){                                             // 0xae8880: the node has a SCALE TRACK
+    // With a track, +0xf0/+0xf4/+0xf8 are not a scale at all: they are the track evaluator's own random
+    // draw (0xaf7a44 multiplies them into each key's ranges), so the RAW table words go in, with none of
+    // the base/range the no-track path below applies. The ROM rebuilds the low byte of +0x10c out of lr
+    // and ORs 0x10 -- reproduced as written; with the bfc at 0xae83ec it restores the same byte.
+    i10c = ((((r3 & ~0xff) | (lr & 0xef)) >>> 0) | 0x10) >>> 0;            // 0xae8880..0xae8898
+    i110 = (r8 & ~0x410) >>> 0;                                            // 0xae8888
+    m.w32(inst + 0x108, ip); m.w32(inst + 0x10c, i10c); m.w32(inst + 0x110, i110);
+    m.w32(inst + 0x114, (c0 + 1) >>> 0); m.w32(inst + 0xf0, m.u32(rnd + 4 * ((c0 + 1) & 0xfff)));
+    m.w32(inst + 0x114, (c0 + 2) >>> 0); m.w32(inst + 0xf4, m.u32(rnd + 4 * ((c0 + 2) & 0xfff)));
+    m.w32(inst + 0x114, (c0 + 3) >>> 0); m.w32(inst + 0xf8, m.u32(rnd + 4 * ((c0 + 3) & 0xfff)));
+  } else {                                                                 // 0xae88ec
+    m.w32(inst + 0x114, (c0 + 1) >>> 0);
+    m.wf32(inst + 0xf0, F(m.f32(pp + 8) + F(m.f32(rnd + 4 * ((c0 + 1) & 0xfff)) * m.f32(pp + 0xc))));
+    m.w32(inst + 0x114, (c0 + 2) >>> 0);
+    m.wf32(inst + 0xf4, F(m.f32(pp + 0x10) + F(m.f32(rnd + 4 * ((c0 + 2) & 0xfff)) * m.f32(pp + 0x14))));
+    m.w32(inst + 0x114, (c0 + 3) >>> 0);
+    m.wf32(inst + 0xf8, F(m.f32(pp + 0x18) + F(m.f32(rnd + 4 * ((c0 + 3) & 0xfff)) * m.f32(pp + 0x1c))));
+  }
+  if (m.u16(pp + 0x6a) !== 0){                                             // 0xae8974: a TRANSLATION TRACK
+    m.w32(inst + 0x108, ip); m.w32(inst + 0x10c, (i10c | 0x20) >>> 0); m.w32(inst + 0x110, i110);
+    const b = m.u32(inst + 0x128);                                         // 0xae8980: state slot 0
+    if (b !== 0){
+      const c = m.u32(inst + 0x114);
+      m.w32(inst + 0x114, (c + 1) >>> 0); const t0 = m.u32(rnd + 4 * ((c + 1) & 0xfff));
+      m.w32(inst + 0x114, (c + 2) >>> 0); const t1 = m.u32(rnd + 4 * ((c + 2) & 0xfff));
+      m.w32(inst + 0x114, (c + 3) >>> 0); const t2 = m.u32(rnd + 4 * ((c + 3) & 0xfff));
+      m.w32(b, t0); m.w32(b + 4, t1); m.w32(b + 8, t2);                    // 0xae89c4
+    }
+  }
+  if (m.u16(pp + 0x6c) !== 0){                                             // 0xae89dc: a ROTATION TRACK
+    const v108 = m.u32(inst + 0x108), v10c = m.u32(inst + 0x10c), v110 = m.u32(inst + 0x110);
+    m.w32(inst + 0x108, v108); m.w32(inst + 0x10c, (v10c | 0x40) >>> 0); m.w32(inst + 0x110, v110);
+    const b = m.u32(inst + 0x128);                                         // 0xae89e8: state slot 1
+    if (b !== 0){
+      const c = m.u32(inst + 0x114);
+      m.w32(inst + 0x114, (c + 1) >>> 0); const t0 = m.u32(rnd + 4 * ((c + 1) & 0xfff));
+      m.w32(inst + 0x114, (c + 2) >>> 0); const t1 = m.u32(rnd + 4 * ((c + 2) & 0xfff));
+      m.w32(inst + 0x114, (c + 3) >>> 0); const t2 = m.u32(rnd + 4 * ((c + 3) & 0xfff));
+      m.w32(b + 0x10, t0); m.w32(b + 0x14, t1); m.w32(b + 0x18, t2);       // 0xae8a30
+    }
+  }
   const n = (m.u32(inst + 0x114) + 1) >>> 0;
   const owner = m.u32(inst + 0x100);
   const base = m.u32(owner + 0x1b8);
