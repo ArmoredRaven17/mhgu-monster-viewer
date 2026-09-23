@@ -56,6 +56,13 @@
 const N_HEAD = { calm: [[4], [5]], enraged: [[6], [7]] };
 const N_TAIL = { calm: [[12], [13], [14]], enraged: [[15], [16], [17]] };
 
+// DEVILJHO (em043_00): his part driver reads RAGE as well as the break levels (states-em043_00.md 1.1, ROM-run over
+// every combination) -- the body swaps set, and the tail and head have an enraged form of each level. Savage's driver
+// reads the levels alone, which is why his table needs none of this.
+const D_BODY = { calm: [[0]], enraged: [[9]] };
+const D_TAIL = { calm: [[4], [8]], enraged: [[10], [12]] };
+const D_HEAD = { calm: [[2, 3], [7, 3], [7, 6]], enraged: [[2, 3], [7, 3], [7, 11]] };
+
 // RATHIAN (em001_00): E:\offline\decode\notes\states-em001.md and breaks-em001.md (uEm001_00, vtable 0x1793c28; its
 // per-frame part driver 0xcf253c follows the break levels and the sever alone -- no rage, tired or status test). Eye set A
 // = 1 (group 1 on, 9 off) while the eye flag is up -- asleep, resting, dead --, B = 2 otherwise (0x71398 from 0xcecfc4).
@@ -141,6 +148,57 @@ function rathLine(u, c = 'em001_00c'){
   };
 }
 export const MOTION_STATES = {
+  // DEVILJHO (em043_00): E:\offline\decode\notes\states-em043_00.md, read and ROM-run by the Deviljho decode agent
+  // (2026-09-22). He and Savage are the same class uEm043_00 and differ only by enemy+0xb5f5: their motion lists, PSL
+  // set, command table, .dtp rows, body data and em043_00c.pel are byte-identical, so every motion below is Savage's
+  // too. What his variant changes is the part driver (0xe806a0 against Savage's 0xe809e8) -- his sets follow RAGE as
+  // well as the break level, where Savage's follow the level alone.
+  //   body   calm set 0 -> enraged 9 (group 3 on)
+  //   tail   intact 4 / severed 8 calm -> 10 / 12 enraged (8 and 12 draw the same groups)
+  //   head   jaw and face by break level: 2,3 -> 7,3 -> 7,6 calm; the level-2 face is 11 (group 6 on) enraged
+  // NOT SHOWN, both read and ROM-run and neither of them a part set: while enraged the class scales joints 200 and 201
+  // (vtable +0x2a0, 0xe7eda8: (1.5, 7, 1) and (3, 6.5, 1) over 12 frames, 421 and 356 vertices weighted to them), and
+  // the enraged sets are held 200 frames after rage ends while Angry_End runs (states-em043_00.md 1.2, 2.2). The
+  // viewer has no joint scaling and the table has no way to hold a state past its motion.
+  em043_00: {
+    // THE HEAD BREAK, whose REACTION the rage state picks (0xe80f00): enraged -> (10, 0x14) L2 Motion[9], calm ->
+    // (10, 7) L3 Motion[9]. The same two levels and the same records either way (u 1000 at level 1, u 1001 at 2;
+    // 0xa442c ids 7 and 8), but the level-2 face differs: set 11 enraged, set 6 calm. Each motion shows its own form,
+    // since the ROM plays L2 Motion[9] only enraged and L3 Motion[9] only calm.
+    '2|Motion[9]':  { levels: D_HEAD.enraged, fire: [null, ['em043_00u', 1000], ['em043_00u', 1001]] },
+    // L3 Motion[9] is also the tune+0x44 status's reaction ((10, 0x1b) / (10, 0x1c)), whose setAction requests c 1109
+    // once at frame 0 and changes no part: each play shows the next, as Rathian's L3 Motion[2] does.
+    '3|Motion[9]':  { cycle: [{ levels: D_HEAD.calm, fire: [null, ['em043_00u', 1000], ['em043_00u', 1001]] },
+                              { start: [['em043_00c', 1109]] }] },
+    // THE TAIL SEVER: part 1's counter runs out -> (10, 0x72), and L3 Motion[15] is the only motion that plays it.
+    // The tail's sets follow rage as well as the sever, so the pair is picked by the rage the user has shown.
+    '3|Motion[15]': { levels: D_TAIL, fire: [null, ['em043_00u', 900]], drops: true },
+    // RAGE: the forced transition's command group 6 issues (1, 2) -- L0 Motion[5] from frame 0. The body takes set 9
+    // and the tail and head their enraged sets at the user's level; the class itself requests no effect (its only
+    // +0x1d0 request site, 0xe80500, is variant-5 gated), and Angry_Start runs on XfB__m02_body_k, which the viewer's
+    // own enrage material path plays.
+    '0|Motion[5]':  { rage: true, tables: [D_BODY, D_TAIL, D_HEAD] },
+    // TIRED (the idle (0, 2), L0 Motion[15]): rage shown off, the body calm again, drool c 1104 every 48 while not
+    // enraged, and -- calm and tired -- the shared rage puff's countdown is zeroed (0xa4338).
+    '0|Motion[15]': { rage: false, tired: true, sets: [0], every: [['em043_00c', 1104], 48] },
+    // ASLEEP: (10, 0x1d) L3 Motion[14] falls asleep and (10, 0x1e) holds L3 Motion[25], which the rest uses too; the
+    // eye set 5 goes on with the flag. In the hold the zzz c 1102 comes every 90 and the puff's countdown pauses.
+    '3|Motion[14]': { sets: [5] },
+    '3|Motion[25]': { sets: [5], every: [['em043_00c', 1102], 90], puffOff: true },
+    // PARALYSIS: (10, 0x1f) holds L3 Motion[13]; c 1101 every 60, first at once. The shock trap holds it too.
+    '3|Motion[13]': { every: [['em043_00c', 1101], 60] },
+    // SHOCK TRAP: (10, 0x6e) plays L3 Motion[2]; c 1105 every 42 while the action lasts.
+    '3|Motion[2]':  { every: [['em043_00c', 1105], 42] },
+    // STUN: (10, 0x20) plays L3 Motion[3] -> Motion[6]; c 1103 requested once into one handle while stunned and
+    // stopped when it clears.
+    '3|Motion[3]':  { hold: ['em043_00c', 1103] },
+    '3|Motion[6]':  { hold: ['em043_00c', 1103] },
+    // DEATH: L3 Motion[18] and L3 Motion[34], the only two motions death plays -- rage cleared (the body calm), eye
+    // set 5 for good, the break and the sever as the user has them, and Angry_End on XfB__m02_body_k. Motion[34]
+    // begins 169 frames into the fall, past death's transitions, so it is settled.
+    '3|Motion[18]': { dead: true, sets: [0, 5], clips: [{ mats: ['XfB__m02_body_k'], clip: 'Angry_End' }] },
+    '3|Motion[34]': { dead: true, sets: [0, 5], clips: [{ mats: ['XfB__m02_body_k'], clip: 'Angry_End' }], settled: true },
+  },
   em043_05: {
     // THE HEAD BREAK (breaks-em043.md 2). Every depletion of part 0 plays L2 Motion[9] from frame 0 (reaction code 3 ->
     // action (10, 0x14), 0x9e82c; script 0x17c08a0: motion 0x209, blend 4, start 0). The 1st raises the break level to 1:
@@ -343,6 +401,12 @@ export const RAGE_BY_LEVEL = {
 // the joint number whose rotation the pick reads; records: [id 0, id 1]; pick(q): the class's +0x2a4 on that joint's
 // local quaternion [x, y, z, w].
 export const RAGE_PUFF = {
+  // DEVILJHO: he runs the shared puff -- the class clears e+0xb7d2 only for variant 5 (0xe72b18), so his stays at the
+  // base ctor's 1 -- and its pick is the BASE STUB: vtable +0x2a4 is not overridden, 0x6bf64 returns 0, and 0xa425c
+  // turns a non-1 return into id 1, so the request is always u 1121 (0x159c7fc[1]). Key 1120 is never asked for. The
+  // two records are byte-identical but for the key (em043_00_008, joint 3, (0, -20, 110)), so nothing is read from a
+  // joint: the pick is constant (states-em043_00.md 5).
+  em043_00: { period: 30, joint: 3, records: [['em043_00u', 1120], ['em043_00u', 1121]], pick: () => 0 },
   em001_00: { period: 30, joint: 4, records: [['em001_00u', 1120], ['em001_00u', 1121]], pick: rathianPuffPick },
   // Gold Rathian: the same class and pick (P+0x5d04 = 4 from the shared setup 0xcecd94), its own records
   em001_02: { period: 30, joint: 4, records: [['em001_02u', 1120], ['em001_02u', 1121]], pick: rathianPuffPick },

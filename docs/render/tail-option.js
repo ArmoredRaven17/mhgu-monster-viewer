@@ -21,6 +21,9 @@
 // takes 16 steps of the same easing, not 32).
 export const CUT_TAIL = {
   em043_05: { piece: 'em043_05_tail', joint: 142, above: 20, landing: ['em043_05u', 905] },
+  // Deviljho: the same class, the same sever call and joint 142, his own model and landing record
+  // (states-em043_00.md 4: the cut tail is the only part of the sever that differs from Savage)
+  em043_00: { piece: 'em043_00_tail', joint: 142, above: 20, landing: ['em043_00u', 905] },
   // Nargacuga: the same option code (breaks-em037.md): +0x1477 = 143 from its sever call, model em037_00_tail, its
   // dtbparts.dtp row count +0x91 = 0 (file byte 13) -- no speed, height or rotation override, as Savage
   em037_00: { piece: 'em037_00_tail', joint: 143, above: 20, landing: ['em037_00u', 905] },

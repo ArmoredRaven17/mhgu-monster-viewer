@@ -520,6 +520,163 @@ async function pageCheckNarga(){
 // cut tail, the rage entry and the rage puff on its countdown (u 1120 / 1121 by joint 4's rotation, paused asleep,
 // zeroed tired, its leftover kept across a calm spell), tired, asleep, paralysis, the shock trap, the stun and death
 // (states-em001.md, breaks-em001.md)
+// DEVILJHO (em043_00): what his motions show, against E:\offline\decode\notes\states-em043_00.md. He is Savage's class
+// with another variant byte, and his part driver reads RAGE as well as the break levels -- the body swaps set, the tail
+// and head have an enraged form of each level -- which no other wired monster does. He also runs the SHARED rage puff,
+// always key 1121, where Savage requests his own auras instead.
+async function pageCheckDeviljho(){
+  const out = [];
+  const check = (ok, label, detail) => out.push([!!ok, 'Deviljho: ' + label, detail === undefined ? '' : JSON.stringify(detail)]);
+  const V = window.__view;
+  const M = await import('/render/monster.js');
+  const MS = await import('/render/motion-states.js');
+  const frames = n => new Promise(r => { let k = 0; const f = () => (++k >= n ? r() : requestAnimationFrame(f)); requestAnimationFrame(f); });
+  const until = async (test, n = 600) => { for (let i = 0; i < n; i++){ if (test()) return true; await frames(1); } return false; };
+  V.pose.clock.getDelta = () => 1 / 60;
+  const MON = 'em043_00';
+  const monSel = document.getElementById('monSel'), listSel = document.getElementById('monList'), clipSel = document.getElementById('monClip');
+  if (![...monSel.options].some(o => o.value === MON)) monSel.add(new Option(MON, MON));
+  monSel.value = MON; await monSel.onchange();
+  check(V.state.id === MON && V.mounted.main, 'mounted', V.state.id);
+  await V.effects(false); await V.effects(true);
+  const rt = () => M.effectRuntimeInstance();
+  check(await until(() => rt() && rt().monsterId === MON && rt().schedule), 'the effect runtime is up');
+  const fx = rt(), S = fx.schedule;
+  check(S.puff && S.puff.period === 30 && S.entries.filter(e => e.when === 'ragePuff').length === 2, 'the rage puff is set up: every 30, u 1120 / 1121', S.puff && S.puff.period);
+  const fired = [];
+  const f0 = fx.fire.bind(fx); fx.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
+  const puffs = [];
+  const s0 = S.start.bind(S);
+  S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
+  const MONSTER = V.MON.monsters.find(e => e.id === MON);
+  const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => MONSTER.partIds.includes(p))) : null; };
+  const isSet = (d, n) => (MONSTER.groups[n] || []).filter(([g]) => MONSTER.partIds.includes(g)).every(([g, on]) => d[g] === on);
+  const listOf = id => MONSTER.lists.find(l => l.id === id);
+  const dur = (list, clip) => Math.round(listOf(list).clips.find(c => c.clip === clip).dur * 60);
+  const play = async (list, clip) => {
+    if (V.state.list !== list){ listSel.value = list; await listSel.onchange(); }
+    clipSel.value = clip; await clipSel.onchange();
+    await until(() => V.pose.action && V.pose.action.getClip().name === clip, 300);
+  };
+  const steps = async n => { const a = S.frame; await until(() => S.frame - a >= n, 20 * n + 200); };
+  const count = (arr, k) => arr.filter(x => x === k).length;
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const REST = ['0', 'Motion[1]_loop'];               // a motion the table does not list (his idle is a split clip)
+  const rageBox = document.getElementById('monRage');
+  V.state.loop = true;
+  await play(...REST); await frames(3);
+  const user0 = drawn();
+  check(user0 && isSet(user0, 0) && isSet(user0, 2) && isSet(user0, 3) && isSet(user0, 4), 'at rest: body calm (set 0), jaw and face intact (2, 3), tail on (4)', user0);
+  check(S.rage === false && puffs.length === 0, 'calm: no puff', puffs);
+
+  // THE HEAD BREAK, calm: (10, 7) plays L3 Motion[9]. Its second play is the tune+0x44 status, which requests c 1109
+  // and changes no part (the cycle).
+  fired.length = 0;
+  await play('3', 'Motion[9]'); await frames(3);
+  let d = drawn();
+  check(same(fired, [1000]) && isSet(d, 7) && isSet(d, 3), 'L3 Motion[9], 1st play: the jaw breaks (set 7), the face intact (3), u 1000', { fired, d });
+  await until(() => fired.length >= 2, dur('3', 'Motion[9]') + 60);
+  await frames(3);
+  check(same(fired, [1000, 1109]) && same(drawn(), user0), 'the 2nd play: (10, 0x1b) -- c 1109 at frame 0, no part changed', { fired, d: drawn() });
+  await play(...REST); await frames(3);
+
+  // THE HEAD BREAK, enraged: (10, 0x14) plays L2 Motion[9] -- the same records, its own level-2 face
+  fired.length = 0;
+  await play('2', 'Motion[9]'); await frames(3);
+  check(same(fired, [1000]) && isSet(drawn(), 7), 'L2 Motion[9]: the same break, u 1000', { fired, d: drawn() });
+  await play(...REST); await frames(3);
+  check(same(drawn(), user0), 'another motion: the user\'s parts again', drawn());
+
+  // THE TAIL SEVER: L3 Motion[15], the only motion that plays it; the cut tail drops and lands
+  fired.length = 0;
+  const fa0 = fx.fireAt.bind(fx), landing = [];
+  fx.fireAt = (pel, key, pos) => { landing.push(key); return fa0(pel, key, pos); };
+  await play('3', 'Motion[15]'); await frames(3);
+  d = drawn();
+  check(same(fired, [900]) && isSet(d, 8), 'L3 Motion[15]: the tail severed (set 8), u 900', { fired, d });
+  const piece = V.mounted[MON + '_tail'];
+  check(piece && piece.visible && V.cutTail(), 'the cut tail is shown', { visible: piece && piece.visible });
+  await frames(60);
+  check(count(landing, 905) === 1, 'it lands (u 905 once)', landing);
+  fx.fireAt = fa0;
+  await play(...REST); await frames(3);
+
+  // RAGE: L0 Motion[5] from frame 0 -- the BODY takes set 9 (group 3 on) and the TAIL its enraged set 10, which is
+  // what his driver does and Savage's does not. The class requests no effect of its own; the shared puff runs.
+  puffs.length = 0;
+  await play('0', 'Motion[5]'); await steps(95);
+  d = drawn();
+  check(S.rage === true && isSet(d, 9) && isSet(d, 10), 'L0 Motion[5]: rage shown -- body set 9, tail set 10', { rage: S.rage, d });
+  const gaps = puffs.slice(1).map((p, i) => p.step - puffs[i].step);
+  check(puffs.length >= 3 && gaps.every(g => g === 30), 'the puff comes at once, then every 30 steps', { n: puffs.length, gaps });
+  check(puffs.every(p => p.key === 1121), 'every puff is u 1121: the class does not override the pick (+0x2a4), so the id is always 1', puffs.map(p => p.key));
+  await play(...REST); await frames(3);
+  const nAfter = puffs.length; await steps(70);
+  check(S.rage === false && puffs.length === nAfter && same(drawn(), user0), 'another motion, the user calm: rage off, no more puffs, the body calm', { rage: S.rage, d: drawn() });
+
+  // THE SEVER WHILE ENRAGED: the tail's enraged severed set (12), from the same motion
+  rageBox.checked = true; await rageBox.onchange({ target: rageBox }); await frames(3);
+  await play('3', 'Motion[15]'); await frames(3);
+  check(isSet(drawn(), 12), 'enraged, L3 Motion[15]: the tail severed in its enraged form (set 12)', drawn());
+  await play(...REST); await frames(3);
+  rageBox.checked = false; await rageBox.onchange({ target: rageBox }); await frames(3);
+
+  // TIRED: the idle L0 Motion[15] -- rage shown off, the body calm, drool c 1104 every 48
+  fired.length = 0;
+  await play('0', 'Motion[15]_loop'); await frames(3); await steps(2);
+  check(S.rage === false && count(fired, 1104) === 1 && isSet(drawn(), 0), 'L0 Motion[15]_loop (tired): rage off, body calm, drool at once', { fired, d: drawn() });
+  await frames(50);
+  check(count(fired, 1104) === 2, 'the drool again 48 frames on', fired);
+
+  // ASLEEP: eye set 5 from L3 Motion[14]; the hold L3 Motion[25] has the zzz every 90 and pauses the puff
+  fired.length = 0;
+  await play('3', 'Motion[14]'); await frames(3);
+  check(isSet(drawn(), 5) && count(fired, 1102) === 0, 'L3 Motion[14] (falling asleep): the eye set 5, no zzz', { d: drawn(), fired });
+  await play('3', 'Motion[25]_loop'); await frames(3);
+  check(count(fired, 1102) === 1 && isSet(drawn(), 5), 'L3 Motion[25]_loop (the hold): zzz at once', fired);
+  await frames(92);
+  check(count(fired, 1102) === 2, 'the zzz again 90 frames on', fired);
+  rageBox.checked = true; await rageBox.onchange({ target: rageBox });
+  const n3 = puffs.length; await steps(40);
+  check(S.puff.paused === true && puffs.length === n3, 'enraged in the hold: the puff paused', { paused: S.puff.paused, more: puffs.length - n3 });
+  await play(...REST); await frames(3);
+
+  // PARALYSIS, SHOCK TRAP, STUN
+  fired.length = 0;
+  await play('3', 'Motion[13]_loop'); await frames(3);
+  check(count(fired, 1101) === 1, 'L3 Motion[13]_loop (paralysis): c 1101 at once', fired);
+  fired.length = 0;
+  await play('3', 'Motion[2]'); await frames(3);
+  check(count(fired, 1105) === 1, 'L3 Motion[2] (shock trap): c 1105 at once', fired);
+  const evReqs = key => S.entries.filter(e => e.when === 'event' && e.def.record.key === key).map(e => e.requests.map(q => q.stopped ? 's' : 'r').join('')).join('|');
+  await play('3', 'Motion[3]'); await frames(3);
+  const st0 = evReqs(1103);
+  check(st0.endsWith('r'), 'L3 Motion[3] (stun): c 1103 requested', st0);
+  await play('3', 'Motion[6]_loop'); await frames(3);
+  check(evReqs(1103) === st0, 'L3 Motion[6]_loop (the stun end): the same c 1103 kept', { before: st0, now: evReqs(1103) });
+  await play(...REST); await frames(3);
+  check(!evReqs(1103).includes('r'), 'the stun over: c 1103 stopped', evReqs(1103));
+
+  // DEATH: L3 Motion[18] and L3 Motion[34], the only two motions death plays -- rage cleared, the eye set 5, and the
+  // breaks as the user has them
+  await play('3', 'Motion[18]'); await frames(3);
+  const n4 = puffs.length; await steps(40);
+  d = drawn();
+  check(S.rage === false && puffs.length === n4 && isSet(d, 0) && isSet(d, 5), 'L3 Motion[18] (death): rage off, no puff, the body calm and the eye set 5', { rage: S.rage, d });
+  await play('3', 'Motion[34]'); await frames(3);
+  check(S.rage === false && isSet(drawn(), 5), 'L3 Motion[34] (the fall\'s end): the same', drawn());
+  rageBox.checked = false; await rageBox.onchange({ target: rageBox });
+  await play(...REST); await frames(3);
+
+  for (const k of Object.keys(MS.MOTION_STATES[MON])){
+    const [list, clip] = k.split('|');
+    check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'), 'the table\'s ' + k + ' is a clip he carries');
+  }
+  S.start = s0;
+  check(!fx.failed, 'the effect runtime never stopped', fx.failed);
+  return out;
+}
+
 async function pageCheckRathian(MON = 'em001_00', LABEL = 'Rathian'){
   const out = [];
   const check = (ok, label, detail) => out.push([!!ok, LABEL + ': ' + label, detail === undefined ? '' : JSON.stringify(detail)]);
@@ -893,6 +1050,7 @@ async function main(){
   }
   const before = 0;
   const res = (await evaluate(c, `(${pageCheck.toString()})()`)).concat(await evaluate(c, `(${pageCheckNarga.toString()})()`))
+    .concat(await evaluate(c, `(${pageCheckDeviljho.toString()})()`))
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})()`))
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em001_02', 'Gold Rathian')`))
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em001_04', 'Dreadqueen')`))
