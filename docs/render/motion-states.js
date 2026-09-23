@@ -148,6 +148,61 @@ function rathLine(u, c = 'em001_00c'){
   };
 }
 export const MOTION_STATES = {
+  // BASARIOS (em004_00): E:\offline\decode\notes\states-em004_00.md, read and ROM-run by the Basarios decode agent
+  // (2026-09-23). His class uEm004_00 (vtable 0x1797c8c) IS ALSO GRAVIOS -- every state function branches on
+  // enemy+0xb5f4 (4 / 5) -- so this table is half of em005_00's too, and his motion lists are Gravios's files
+  // (L0..L3 = em005_00_0..3; only L4 is his own).
+  //   HIS BREAKS SWAP GEOMETRY, where Khezu's add it: the chest takes set 3 -> 4 (group 2 off, 3 on) and the back
+  //   set 5 -> 6 (group 7 off, 8 on) -- an intact mesh out, a broken one in. Only parts 6 and 0 have a .dtp row, so
+  //   no other depletion changes the model, and nothing but the break level picks a set.
+  //   HE HAS NO HEAD BREAK at all (dtt part 5 has no row; the row partnames calls "Head" is the eye pair), and NO
+  //   MATERIAL ANIMATION of any kind -- the class calls no material function and his .mrl has no clips, so rage and
+  //   death change nothing on his body.
+  // NOT SHOWN, decoded and stated here instead: reaction code 0x25, which he is the first monster we have read to
+  //   reach (+0x240 is not the base stub) -- on soft ground a chest depletion SINKS him (L3 Motion[18]) and he
+  //   climbs out instead of staggering; the buried state P+0x524 that L4 Motion[2] / [4] raise, which turns his
+  //   hyper auras off underground; and hit capsules that swap on an animation frame (+0x2a8). None is a part set.
+  em004_00: {
+    // THE CHEST / BELLY BREAK: (10, 0x14) with part 6 plays L3 Motion[107]. One level, and set 4 with it -- the
+    // broken chest in, the intact one out -- firing u 1030 (cm202_060 on joint 2, id 6*5 + 1 + 6 = 37).
+    '3|Motion[107]': { levels: [[3], [4]], fire: [null, ['em004_00u', 1030]] },
+    // THE BACK BREAK: (10, 7) with part 0 plays L3 Motion[106] (parts 1, 2 and 7 play it too and change nothing).
+    // Set 5 -> 6, firing u 1000 (the same file on joint 1, id 0*5 + 1 + 6 = 7).
+    '3|Motion[106]': { levels: [[5], [6]], fire: [null, ['em004_00u', 1000]] },
+    // THE TAIL SEVER: part 7's second counter (140, once) -> (10, 0x72), on L3 Motion[15]. Set 7 -> 8 and u 900
+    // (cm202_062 on joint 143, the Rath line's sever joint). His cut tail is NOT dropped here: the ROM has one
+    // (uEnemyOption slot 0, sever kind 0x8f) but the viewer has no em004_00_tail model staged, so `drops` is left
+    // off rather than set to something that would silently do nothing.
+    '3|Motion[15]':  { levels: [[7], [8]], fire: [null, ['em004_00u', 900]] },
+    // RAGE: command group 6's ground branch issues (1, 0x0a) -- L0 Motion[4] from frame 0 -- and NOTHING ON THE
+    // MODEL CHANGES WITH IT: no part set, no eye, no joint, and no material, because he has none. The shared puff is
+    // the whole of what rage shows.
+    '0|Motion[4]':   { rage: true },
+    // TIRED: the idle (0, 2) is L0 Motion[14]; drool c 1104 every 48 while not enraged -- the one state record of his
+    // that carries a rotation, (70, 0, 0) -- and, calm and tired, the puff's countdown is zeroed.
+    '0|Motion[14]':  { rage: false, tired: true, every: [['em004_00c', 1104], 48] },
+    // ASLEEP: (10, 0x1d) L3 Motion[14] falls asleep and (10, 0x1e) holds L0 Motion[19]. His eyes DO shut -- set 1 for
+    // set 2, the only monster state that moves them (P+0x5d02, which shared code raises only asleep or resting) --
+    // and the hold has the zzz c 1102 every 90 and pauses the puff.
+    '3|Motion[14]':  { sets: [1] },
+    '0|Motion[19]':  { sets: [1], every: [['em004_00c', 1102], 90], puffOff: true },
+    // PARALYSIS: (10, 0x1f) holds L3 Motion[13]; c 1101 every 60, first at once. L3 Motion[13] is also the shock
+    // trap's hold (c 1105 every 42, after L3 Motion[9] to f60): shown as paralysis, as Khezu's and Rathian's are.
+    '3|Motion[13]':  { every: [['em004_00c', 1101], 60] },
+    // STUN: (10, 0x20) plays L3 Motion[110] -> L3 Motion[111]; c 1103 requested once into one handle and stopped when
+    // it clears.
+    '3|Motion[110]': { hold: ['em004_00c', 1103] },
+    '3|Motion[111]': { hold: ['em004_00c', 1103] },
+    // THE tune+0x44 STATUS (INFERRED exhaust): (10, 0x1b) plays L3 Motion[2], which requests c 1109 once at frame 0.
+    '3|Motion[2]':   { start: [['em004_00c', 1109]] },
+    // DEATH: L3 Motion[17] on the ground for (11, 0) and every number the table does not name, L3 Motion[12] at the
+    // end of the fall ((11, 1), after L3 M10 -> L3 M11), and L3 Motion[20] for (11, 7) / (11, 0x12). Death shows
+    // NOTHING of its own on him: the break sets stay as the user has them, his eyes stay open (death does not raise
+    // P+0x5d02) and there is no material to change. L3 Motion[12] begins past the fall's landing, so it is settled.
+    '3|Motion[17]':  { dead: true },
+    '3|Motion[12]':  { dead: true, settled: true },
+    '3|Motion[20]':  { dead: true },
+  },
   // KHEZU (em003_00): E:\offline\decode\notes\states-em003_00.md, read and ROM-run by the Khezu decode agent
   // (2026-09-23). His class uEm003_00 (vtable 0x17958f0) overrides almost none of the shared state machinery: the
   // break reaction is the plain (10, 7) because +0x23c is the base stub, there is no joint scaling (+0x2a0), no
@@ -505,6 +560,10 @@ export class JointScale {
 // the joint number whose rotation the pick reads; records: [id 0, id 1]; pick(q): the class's +0x2a4 on that joint's
 // local quaternion [x, y, z, w].
 export const RAGE_PUFF = {
+  // BASARIOS: the same shape again -- vtable +0x2a4 is the base stub, so 0xa425c turns the 0 into id 1 and the
+  // request is always u 1121. His two records are NOT identical, unlike Khezu's and Deviljho's (1120 is scale 1 at
+  // (0, -40, 30), 1121 scale 0.6 at (0, -40, 35)), but only 1121 is ever reached, so the difference never shows.
+  em004_00: { period: 30, joint: 4, records: [['em004_00u', 1120], ['em004_00u', 1121]], pick: () => 0 },
   // KHEZU: the same shape as Deviljho's -- vtable +0x2a4 is the base stub 0x6bf64 (`mov r0,#0; bx lr`), so 0xa425c
   // turns the 0 into id 1 and the request is always u 1121; key 1120 is never asked for. His two records are
   // byte-identical but for the key number (em003_00_012, joint 2, offset (0, -5, 75), scale 1), so nothing is read

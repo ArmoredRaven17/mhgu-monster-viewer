@@ -754,6 +754,164 @@ async function pageCheckDeviljho(){
   return out;
 }
 
+// BASARIOS (em004_00): what his motions show, against E:\offline\decode\notes\states-em004_00.md. His class is also
+// Gravios's, his breaks SWAP geometry where Khezu's add it, rage changes nothing at all on his body -- he has no
+// material animation of any kind -- and his eyes shut only for sleep, never for death.
+async function pageCheckBasarios(){
+  const out = [];
+  const check = (ok, label, detail) => out.push([!!ok, 'Basarios: ' + label, detail === undefined ? '' : JSON.stringify(detail)]);
+  const V = window.__view;
+  const M = await import('/render/monster.js');
+  const MS = await import('/render/motion-states.js');
+  const frames = n => new Promise(r => { let k = 0; const f = () => (++k >= n ? r() : requestAnimationFrame(f)); requestAnimationFrame(f); });
+  const until = async (test, n = 600) => { for (let i = 0; i < n; i++){ if (test()) return true; await frames(1); } return false; };
+  V.pose.clock.getDelta = () => 1 / 60;
+  const MON = 'em004_00';
+  const monSel = document.getElementById('monSel'), listSel = document.getElementById('monList'), clipSel = document.getElementById('monClip');
+  if (![...monSel.options].some(o => o.value === MON)) monSel.add(new Option(MON, MON));
+  monSel.value = MON; await monSel.onchange();
+  check(V.state.id === MON && V.mounted.main, 'mounted', V.state.id);
+  await V.effects(false); await V.effects(true);
+  const rt = () => M.effectRuntimeInstance();
+  check(await until(() => rt() && rt().monsterId === MON && rt().schedule), 'the effect runtime is up');
+  const fx = rt(), S = fx.schedule;
+  check(S.puff && S.puff.period === 30, 'the rage puff is set up, every 30', S.puff && S.puff.period);
+  const fired = [];
+  const f0 = fx.fire.bind(fx); fx.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
+  const puffs = [];
+  const s0 = S.start.bind(S);
+  S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
+  const MONSTER = V.MON.monsters.find(e => e.id === MON);
+  const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => MONSTER.partIds.includes(p))) : null; };
+  const isSet = (d, n) => (MONSTER.groups[n] || []).filter(([g]) => MONSTER.partIds.includes(g)).every(([g, on]) => d[g] === on);
+  const listOf = id => MONSTER.lists.find(l => l.id === id);
+  const play = async (list, clip) => {
+    if (V.state.list !== list){ listSel.value = list; await listSel.onchange(); }
+    clipSel.value = clip; await clipSel.onchange();
+    await until(() => V.pose.action && V.pose.action.getClip().name === clip, 300);
+  };
+  const steps = async n => { const a = S.frame; await until(() => S.frame - a >= n, 20 * n + 200); };
+  const count = (arr, k) => arr.filter(x => x === k).length;
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  // his part rows are found by their LABEL (Eyes / Belly / Back / Tail, Raven's 2026-09-10 review) rather than by a
+  // group list, so the check keeps working if the row's groups are ever renumbered
+  const pickBy = async (label, text) => {
+    const f = [...document.querySelectorAll('#monGroups .field')]
+      .find(x => x.querySelector('label') && x.querySelector('label').textContent.trim().startsWith(label));
+    const sel = f && f.querySelector('select');
+    const o = sel && [...sel.options].find(x => x.textContent.trim() === text);
+    if (!o) return false;
+    sel.value = o.value; sel.dispatchEvent(new Event('change'));
+    await frames(2);
+    return true;
+  };
+  const REST = ['0', 'Motion[1]'];
+  const rageBox = document.getElementById('monRage');
+  V.state.loop = true;
+  await play(...REST); await frames(3);
+  const user0 = drawn();
+  check(user0 && isSet(user0, 3) && isSet(user0, 5) && isSet(user0, 7) && isSet(user0, 2),
+        'at rest: the chest, back and tail intact (sets 3, 5, 7) and the eyes open (set 2)', user0);
+
+  // THE CHEST BREAK, L3 Motion[107]: one level, set 3 -> 4 -- the intact mesh OUT and the broken one IN, where
+  // Khezu's break turns an overlay on -- firing u 1030
+  check(await pickBy('Belly', 'Broken'), 'the Belly row set to Broken');
+  fired.length = 0;
+  await play('3', 'Motion[107]'); await frames(3);
+  check(same(fired, [1030]) && isSet(drawn(), 4), 'L3 Motion[107]: the chest breaks (set 4, group 2 out and 3 in), u 1030', { fired, d: drawn() });
+
+  // THE BACK BREAK, L3 Motion[106]: set 5 -> 6, u 1000 -- and the chest stays as the user has it
+  check(await pickBy('Back', 'Broken'), 'the Back row set to Broken');
+  fired.length = 0;
+  await play('3', 'Motion[106]'); await frames(3);
+  const dB = drawn();
+  check(same(fired, [1000]) && isSet(dB, 6) && isSet(dB, 4), 'L3 Motion[106]: the back breaks (set 6), u 1000, the chest still broken', { fired, d: dB });
+
+  // THE TAIL SEVER, L3 Motion[15]: set 7 -> 8 and u 900. His cut tail is NOT dropped -- the ROM has one but the
+  // viewer has no model for it, so the table deliberately leaves `drops` off
+  check(await pickBy('Tail', 'Severed'), 'the Tail row set to Severed');
+  fired.length = 0;
+  await play('3', 'Motion[15]'); await frames(3);
+  check(same(fired, [900]) && isSet(drawn(), 8), 'L3 Motion[15]: the tail severed (set 8), u 900', { fired, d: drawn() });
+  check(!MS.CUT_TAIL || !MS.CUT_TAIL[MON], 'and no cut tail is dropped: he has no piece staged');
+  await pickBy('Belly', 'Intact'); await pickBy('Back', 'Intact'); await pickBy('Tail', 'Intact');
+  await play(...REST); await frames(3);
+  check(same(drawn(), user0), 'the rows back to Intact: the parts are the user\'s again', drawn());
+
+  // RAGE, L0 Motion[4]: NOTHING on the model changes -- no set, no eye, no material, because he has none. The
+  // shared puff is the whole of what rage shows, always u 1121.
+  puffs.length = 0;
+  await play('0', 'Motion[4]'); await steps(95);
+  check(S.rage === true && same(drawn(), user0), 'L0 Motion[4]: rage on, and NOTHING on the model changes with it', { rage: S.rage, d: drawn() });
+  const gaps = puffs.slice(1).map((p, i) => p.step - puffs[i].step);
+  check(puffs.length >= 3 && gaps.every(g => g === 30), 'the puff comes at once, then every 30 steps', { n: puffs.length, gaps });
+  check(puffs.every(p => p.key === 1121), 'every puff is u 1121: +0x2a4 is the base stub, so the id is always 1', puffs.map(p => p.key));
+  await play(...REST); await frames(3);
+  const nAfter = puffs.length; await steps(70);
+  check(S.rage === false && puffs.length === nAfter, 'another motion, the user calm: rage off, no more puffs', { rage: S.rage });
+
+  // TIRED and SLEEP
+  fired.length = 0;
+  await play('0', 'Motion[14]_loop'); await frames(3); await steps(2);
+  check(S.rage === false && count(fired, 1104) === 1, 'L0 Motion[14] (tired): rage off, drool at once', fired);
+  await frames(50);
+  check(count(fired, 1104) === 2, 'the drool again 48 frames on', fired);
+  await play('3', 'Motion[14]'); await frames(3);
+  check(isSet(drawn(), 1), 'L3 Motion[14] (falling asleep): HIS EYES SHUT (set 1)', drawn());
+  fired.length = 0;
+  await play('0', 'Motion[19]_loop'); await frames(3);
+  check(count(fired, 1102) === 1 && isSet(drawn(), 1), 'L0 Motion[19] (the hold): zzz at once, the eyes still shut', fired);
+  await frames(92);
+  check(count(fired, 1102) === 2, 'the zzz again 90 frames on', fired);
+  rageBox.checked = true; await rageBox.onchange({ target: rageBox });
+  const n3 = puffs.length; await steps(40);
+  check(S.puff.paused === true && puffs.length === n3, 'enraged in the hold: the puff paused', { paused: S.puff.paused, more: puffs.length - n3 });
+  rageBox.checked = false; await rageBox.onchange({ target: rageBox });
+  await play(...REST); await frames(3);
+  check(isSet(drawn(), 2), 'awake: the eyes open again (set 2)', drawn());
+
+  // PARALYSIS, THE EXHAUST STATUS, STUN
+  fired.length = 0;
+  await play('3', 'Motion[13]_start'); await frames(3);
+  check(count(fired, 1101) === 1, 'L3 Motion[13] (paralysis): c 1101 at once', fired);
+  fired.length = 0;
+  await play('3', 'Motion[2]'); await frames(3);
+  check(count(fired, 1109) === 1, 'L3 Motion[2] (the tune+0x44 status): c 1109 once', fired);
+  const evReqs = key => S.entries.filter(e => e.when === 'event' && e.def.record.key === key).map(e => e.requests.map(q => q.stopped ? 's' : 'r').join('')).join('|');
+  await play('3', 'Motion[110]_start'); await frames(3);
+  const st0 = evReqs(1103);
+  check(st0.endsWith('r'), 'L3 Motion[110] (stun): c 1103 requested', st0);
+  await play('3', 'Motion[111]'); await frames(3);
+  check(evReqs(1103) === st0, 'L3 Motion[111] (its end): the same handle kept', { before: st0, now: evReqs(1103) });
+  await play(...REST); await frames(3);
+  check(!evReqs(1103).includes('r'), 'the stun over: c 1103 stopped', evReqs(1103));
+
+  // DEATH: L3 Motion[17] on the ground, L3 Motion[12] at the end of a fall, L3 Motion[20] for the other kinds. Rage
+  // is cleared and the breaks stay -- and HIS EYES STAY OPEN, where every other monster we have wired shuts them.
+  check(await pickBy('Belly', 'Broken'), 'the Belly row set to Broken (a break to keep through death)');
+  const userDead0 = drawn();
+  rageBox.checked = true; await rageBox.onchange({ target: rageBox }); await frames(3);
+  await play('3', 'Motion[17]'); await frames(3);
+  const nD = puffs.length; await steps(40);
+  check(S.rage === false && puffs.length === nD, 'L3 Motion[17] (death): rage off and no puff, though the user is enraged', { rage: S.rage, more: puffs.length - nD });
+  check(same(drawn(), userDead0) && isSet(drawn(), 2), "death keeps the user's broken chest AND LEAVES HIS EYES OPEN", drawn());
+  await play('3', 'Motion[12]'); await frames(3);
+  check(S.rage === false && isSet(drawn(), 2), 'L3 Motion[12] (the fall\'s end): the same', drawn());
+  await play('3', 'Motion[20]'); await frames(3);
+  check(S.rage === false && isSet(drawn(), 2), 'L3 Motion[20] (the other death kinds): the same', drawn());
+  rageBox.checked = false; await rageBox.onchange({ target: rageBox });
+  await pickBy('Belly', 'Intact');
+  await play(...REST); await frames(3);
+
+  for (const k of Object.keys(MS.MOTION_STATES[MON])){
+    const [list, clip] = k.split('|');
+    check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'), 'the table\'s ' + k + ' is a clip he carries');
+  }
+  S.start = s0;
+  check(!fx.failed, 'the effect runtime never stopped', fx.failed);
+  return out;
+}
+
 // KHEZU (em003_00): what his motions show, against E:\offline\decode\notes\states-em003_00.md. He is the plainest
 // state machine we have wired -- the base break reaction, no joint scaling, no sever -- with two things no other
 // monster does: HIS BREAKS ADD GEOMETRY (the damage overlays are OFF at rest and each break turns one ON), and he
@@ -1300,6 +1458,7 @@ async function main(){
   const res = (await evaluate(c, `(${pageCheck.toString()})()`)).concat(await evaluate(c, `(${pageCheckNarga.toString()})()`))
     .concat(await evaluate(c, `(${pageCheckDeviljho.toString()})()`))
     .concat(await evaluate(c, `(${pageCheckKhezu.toString()})()`))
+    .concat(await evaluate(c, `(${pageCheckBasarios.toString()})()`))
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})()`))
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em001_02', 'Gold Rathian')`))
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em001_04', 'Dreadqueen')`))
