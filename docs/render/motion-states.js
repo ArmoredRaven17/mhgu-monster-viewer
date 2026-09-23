@@ -148,6 +148,64 @@ function rathLine(u, c = 'em001_00c'){
   };
 }
 export const MOTION_STATES = {
+  // KHEZU (em003_00): E:\offline\decode\notes\states-em003_00.md, read and ROM-run by the Khezu decode agent
+  // (2026-09-23). His class uEm003_00 (vtable 0x17958f0) overrides almost none of the shared state machinery: the
+  // break reaction is the plain (10, 7) because +0x23c is the base stub, there is no joint scaling (+0x2a0), no
+  // sever, and no effect of his own -- he never calls +0x1cc or +0x1d0. He also never calls 0x71398, so his eye sets
+  // stay -1 and his .mpm has none at all: NOTHING closes his eyes, asleep or dead. He has none.
+  //   HIS BREAKS ADD GEOMETRY. At rest the part pass applies sets 0, 1 and 2, which turn mesh groups 1 and 2 OFF.
+  //   The head (dtt part 6, joint 2, durability 200) at level 2 takes set 3, turning group 1 ON; the body (part 0,
+  //   joints 0/1/140, durability 240) at level 3 takes set 4, turning group 2 ON. Both extra meshes draw in
+  //   XfBAN__E0__m02_body_d, the damage overlay (70 and 92 vertices). Only the break level picks a set -- no rage,
+  //   no flag, no variant -- and only parts 6 and 0 have a .dtp row, so no other depletion changes the model.
+  // NOT SHOWN here because the viewer already plays it: his material state machine (vtable +0x210 = 0xd1e52c, 11
+  // states on ctl+0x48) runs Angry_Start / Angry_Repeat / Angry_End / Nomal_Repeat and the Taiden pair, which
+  // monster.js's STATE_NAMES and STATE_MATERIAL_SWAP drive from the Enraged and Charged toggles.
+  em003_00: {
+    // THE HEAD BREAK: (10, 7) with part 6 plays L3 Motion[1], blend 2 (parts 2 and 5 play it too and change nothing,
+    // having no .dtp row). Only level 2 has a row, so levels 0 and 1 keep set 1 and fire nothing; level 2 takes set 3
+    // and fires u 1031 -- cm202_060 on joint 2 at 0.6x, id 6*5 + 2 + 6 = 38 through 0xa442c.
+    '3|Motion[1]':  { levels: [[1], [1], [3]], fire: [null, null, ['em003_00u', 1031]] },
+    // THE BODY BREAK: (10, 7) with part 0 plays L3 Motion[2], blend 6 (part 7 and any out-of-range index play it too).
+    // Its row is level 3: set 2 -> set 4, firing u 1002 -- the same cm202_060 on joint 0 at 1x, id 0*5 + 3 + 6 = 9.
+    // L3 Motion[2] is also the shock trap's first motion (10, 0x6e), which shows nothing of its own: the trap's
+    // effect runs on its hold, L3 Motion[13].
+    '3|Motion[2]':  { levels: [[2], [2], [2], [4]], fire: [null, null, null, ['em003_00u', 1002]] },
+    // RAGE: the gauge (threshold 450) -> command group 6 -> (1, 0x0d), the only action it issues on the ground,
+    // playing L0 Motion[2] from frame 0. NOTHING ON THE MODEL CHANGES -- no part set, no eye, no joint -- and the
+    // class requests no effect. What rage shows is the material pair Angry_Start (60 f) -> Angry_Repeat (120 f,
+    // looping) on XfBA_A0__m03_blood, which the viewer's own enrage path plays, and the shared puff below.
+    '0|Motion[2]':  { rage: true },
+    // TIRED: the idle (0, 2) is L0 Motion[15]; drool c 1104 every 48 while not enraged, and -- calm and tired -- the
+    // shared puff's countdown is zeroed (0xa4338).
+    '0|Motion[15]': { rage: false, tired: true, every: [['em003_00c', 1104], 48] },
+    // ASLEEP: (10, 0x1d) L3 Motion[14] falls asleep and (10, 0x1e) holds L0 Motion[19]; the hold has the zzz c 1102
+    // every 90 and pauses the puff. L3 Motion[14] is not listed: with no eye set it changes nothing and fires nothing.
+    '0|Motion[19]': { every: [['em003_00c', 1102], 90], puffOff: true },
+    // PARALYSIS: (10, 0x1f) holds L3 Motion[13]; c 1101 every 60, first at once. L3 Motion[13] is also the shock
+    // trap's hold (c 1105 every 42): shown as paralysis, as Rathian's same motion is.
+    '3|Motion[13]': { every: [['em003_00c', 1101], 60] },
+    // STUN: (10, 0x20) plays L3 M3 -> M5 -> M7 or L3 M4 -> M6 -> M8, by whether part 3 or part 4 took the damage;
+    // c 1103 is requested once into one handle while stunned and stopped when it clears. Those same six motions are
+    // the part-3 and part-4 depletion reactions, which change nothing.
+    '3|Motion[3]':  { hold: ['em003_00c', 1103] },
+    '3|Motion[5]':  { hold: ['em003_00c', 1103] },
+    '3|Motion[7]':  { hold: ['em003_00c', 1103] },
+    '3|Motion[4]':  { hold: ['em003_00c', 1103] },
+    '3|Motion[6]':  { hold: ['em003_00c', 1103] },
+    '3|Motion[8]':  { hold: ['em003_00c', 1103] },
+    // THE tune+0x44 STATUS (INFERRED exhaust): (10, 0x1b) plays L3 Motion[9], whose setAction requests c 1109 once at
+    // frame 0 and changes no part.
+    '3|Motion[9]':  { start: [['em003_00c', 1109]] },
+    // DEATH: L3 Motion[18] on the ground for (11, 0) and every number the table does not name, and L3 Motion[12] at
+    // the end of every fall ((11,1) / (11,4) / (11,5) / (11,6), after L3 M10 -> L3 M11). Those two are the only
+    // motions death plays that nothing else plays. setAction clears rage, so Angry_End runs, and the driver then
+    // plays the one-frame `Death` material clip on material 0 -- NO OTHER CLASS WE HAVE WIRED HAS ONE. The break sets
+    // stay as the user has them (the part pass keeps re-applying them) and the eyes do not change: he has none.
+    // L3 Motion[12] begins past the fall's landing and transitions, so it is settled.
+    '3|Motion[18]': { dead: true, clips: [{ mats: ['XfBA_A0__m03_blood'], clip: 'Death' }] },
+    '3|Motion[12]': { dead: true, clips: [{ mats: ['XfBA_A0__m03_blood'], clip: 'Death' }], settled: true },
+  },
   // DEVILJHO (em043_00): E:\offline\decode\notes\states-em043_00.md, read and ROM-run by the Deviljho decode agent
   // (2026-09-22). He and Savage are the same class uEm043_00 and differ only by enemy+0xb5f5: their motion lists, PSL
   // set, command table, .dtp rows, body data and em043_00c.pel are byte-identical, so every motion below is Savage's
@@ -447,6 +505,11 @@ export class JointScale {
 // the joint number whose rotation the pick reads; records: [id 0, id 1]; pick(q): the class's +0x2a4 on that joint's
 // local quaternion [x, y, z, w].
 export const RAGE_PUFF = {
+  // KHEZU: the same shape as Deviljho's -- vtable +0x2a4 is the base stub 0x6bf64 (`mov r0,#0; bx lr`), so 0xa425c
+  // turns the 0 into id 1 and the request is always u 1121; key 1120 is never asked for. His two records are
+  // byte-identical but for the key number (em003_00_012, joint 2, offset (0, -5, 75), scale 1), so nothing is read
+  // from a joint and the pick is constant (states-em003_00.md 4.3).
+  em003_00: { period: 30, joint: 2, records: [['em003_00u', 1120], ['em003_00u', 1121]], pick: () => 0 },
   // DEVILJHO: he runs the shared puff -- the class clears e+0xb7d2 only for variant 5 (0xe72b18), so his stays at the
   // base ctor's 1 -- and its pick is the BASE STUB: vtable +0x2a4 is not overridden, 0x6bf64 returns 0, and 0xa425c
   // turns a non-1 return into id 1, so the request is always u 1121 (0x159c7fc[1]). Key 1120 is never asked for. The

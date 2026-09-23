@@ -754,6 +754,177 @@ async function pageCheckDeviljho(){
   return out;
 }
 
+// KHEZU (em003_00): what his motions show, against E:\offline\decode\notes\states-em003_00.md. He is the plainest
+// state machine we have wired -- the base break reaction, no joint scaling, no sever -- with two things no other
+// monster does: HIS BREAKS ADD GEOMETRY (the damage overlays are OFF at rest and each break turns one ON), and he
+// has NO EYE SET AT ALL, so nothing closes his eyes, asleep or dead.
+async function pageCheckKhezu(){
+  const out = [];
+  const check = (ok, label, detail) => out.push([!!ok, 'Khezu: ' + label, detail === undefined ? '' : JSON.stringify(detail)]);
+  const V = window.__view;
+  const M = await import('/render/monster.js');
+  const MS = await import('/render/motion-states.js');
+  const frames = n => new Promise(r => { let k = 0; const f = () => (++k >= n ? r() : requestAnimationFrame(f)); requestAnimationFrame(f); });
+  const until = async (test, n = 600) => { for (let i = 0; i < n; i++){ if (test()) return true; await frames(1); } return false; };
+  V.pose.clock.getDelta = () => 1 / 60;
+  const MON = 'em003_00';
+  const monSel = document.getElementById('monSel'), listSel = document.getElementById('monList'), clipSel = document.getElementById('monClip');
+  if (![...monSel.options].some(o => o.value === MON)) monSel.add(new Option(MON, MON));
+  monSel.value = MON; await monSel.onchange();
+  check(V.state.id === MON && V.mounted.main, 'mounted', V.state.id);
+  await V.effects(false); await V.effects(true);
+  const rt = () => M.effectRuntimeInstance();
+  check(await until(() => rt() && rt().monsterId === MON && rt().schedule), 'the effect runtime is up');
+  const fx = rt(), S = fx.schedule;
+  check(S.puff && S.puff.period === 30, 'the rage puff is set up, every 30', S.puff && S.puff.period);
+  const fired = [];
+  const f0 = fx.fire.bind(fx); fx.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
+  const puffs = [];
+  const s0 = S.start.bind(S);
+  S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
+  const MONSTER = V.MON.monsters.find(e => e.id === MON);
+  const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => MONSTER.partIds.includes(p))) : null; };
+  const isSet = (d, n) => (MONSTER.groups[n] || []).filter(([g]) => MONSTER.partIds.includes(g)).every(([g, on]) => d[g] === on);
+  const listOf = id => MONSTER.lists.find(l => l.id === id);
+  const dur = (list, clip) => Math.round(listOf(list).clips.find(c => c.clip === clip).dur * 60);
+  const play = async (list, clip) => {
+    if (V.state.list !== list){ listSel.value = list; await listSel.onchange(); }
+    clipSel.value = clip; await clipSel.onchange();
+    await until(() => V.pose.action && V.pose.action.getClip().name === clip, 300);
+  };
+  const steps = async n => { const a = S.frame; await until(() => S.frame - a >= n, 20 * n + 200); };
+  const count = (arr, k) => arr.filter(x => x === k).length;
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const pick = async (row, text) => {
+    const f = document.querySelector('[data-row="' + row + '"]');
+    const sel = f && f.querySelector('select');
+    const o = sel && [...sel.options].find(x => x.textContent.trim() === text);
+    if (!o) return false;
+    sel.value = o.value; sel.dispatchEvent(new Event('change'));
+    await frames(2);
+    return true;
+  };
+  const REST = ['0', 'Motion[8]'];                    // a motion the table does not list
+  const rageBox = document.getElementById('monRage');
+  V.state.loop = true;
+  await play(...REST); await frames(3);
+  const user0 = drawn();
+  check(user0 && isSet(user0, 0) && isSet(user0, 1) && isSet(user0, 2),
+        'at rest: the body on (set 0) and BOTH DAMAGE OVERLAYS OFF (sets 1 and 2) -- his breaks add geometry', user0);
+  check(S.rage === false && puffs.length === 0, 'calm: no puff', puffs);
+
+  // THE HEAD BREAK, L3 Motion[1]: only level 2 has a .dtp row, so an intact head shows set 1 and fires nothing,
+  // and Broken shows set 3 -- mesh group 1 ON -- and fires u 1031 (cm202_060 on joint 2)
+  fired.length = 0;
+  await play('3', 'Motion[1]'); await frames(3);
+  check(same(fired, []) && isSet(drawn(), 1), 'L3 Motion[1] with the head intact: nothing fires, the overlay stays off', { fired, d: drawn() });
+  await play(...REST); await frames(3);
+  check(await pick('1', 'Broken'), 'the Head row set to Broken');
+  fired.length = 0;
+  await play('3', 'Motion[1]'); await frames(3);
+  check(same(fired, [1031]) && isSet(drawn(), 3), 'L3 Motion[1] at level 2: the head overlay draws (set 3), u 1031', { fired, d: drawn() });
+
+  // THE BODY BREAK, L3 Motion[2]: its row is level 3 -- set 4, mesh group 2 ON -- firing u 1002 on joint 0
+  check(await pick('2', 'Broken'), 'the Body row set to Broken');
+  fired.length = 0;
+  await play('3', 'Motion[2]'); await frames(3);
+  const d2 = drawn();
+  check(same(fired, [1002]) && isSet(d2, 4) && isSet(d2, 3), 'L3 Motion[2] at level 3: the body overlay draws too (set 4), u 1002, the head kept', { fired, d: d2 });
+  await pick('1', 'Intact'); await pick('2', 'Intact');
+  await play(...REST); await frames(3);
+  check(same(drawn(), user0), 'both rows back to Intact: the overlays are off again', drawn());
+
+  // RAGE: (1, 0x0d) plays L0 Motion[2] from frame 0. NOTHING on the model changes -- what rage shows is the material
+  // pair, which the viewer's own enrage path plays -- and the shared puff runs, always u 1121.
+  puffs.length = 0;
+  await play('0', 'Motion[2]_loop'); await steps(95);
+  check(S.rage === true && same(drawn(), user0), 'L0 Motion[2]: rage on, and NO part set changes with it', { rage: S.rage, d: drawn() });
+  const gaps = puffs.slice(1).map((p, i) => p.step - puffs[i].step);
+  check(puffs.length >= 3 && gaps.every(g => g === 30), 'the puff comes at once, then every 30 steps', { n: puffs.length, gaps });
+  check(puffs.every(p => p.key === 1121), 'every puff is u 1121: +0x2a4 is the base stub, so the id is always 1', puffs.map(p => p.key));
+  await play(...REST); await frames(3);
+  const nAfter = puffs.length; await steps(70);
+  check(S.rage === false && puffs.length === nAfter, 'another motion, the user calm: rage off, no more puffs', { rage: S.rage });
+
+  // TIRED: the idle L0 Motion[15] -- rage shown off, drool c 1104 every 48
+  fired.length = 0;
+  await play('0', 'Motion[15]_start'); await frames(3); await steps(2);
+  check(S.rage === false && count(fired, 1104) === 1, 'L0 Motion[15] (tired): rage off, drool at once', { fired, rage: S.rage });
+  await frames(50);
+  check(count(fired, 1104) === 2, 'the drool again 48 frames on', fired);
+
+  // ASLEEP: the hold L0 Motion[19] has the zzz every 90 and pauses the puff. HIS EYES DO NOT CHANGE -- he has no eye
+  // set, so the parts drawn are the user's throughout.
+  fired.length = 0;
+  await play('0', 'Motion[19]_loop'); await frames(3);
+  check(count(fired, 1102) === 1 && same(drawn(), user0), 'L0 Motion[19] (the sleep hold): zzz at once, and NO eye set -- he has none', { fired, d: drawn() });
+  await frames(92);
+  check(count(fired, 1102) === 2, 'the zzz again 90 frames on', fired);
+  rageBox.checked = true; await rageBox.onchange({ target: rageBox });
+  const n3 = puffs.length; await steps(40);
+  check(S.puff.paused === true && puffs.length === n3, 'enraged in the hold: the puff paused', { paused: S.puff.paused, more: puffs.length - n3 });
+  rageBox.checked = false; await rageBox.onchange({ target: rageBox });
+  await play(...REST); await frames(3);
+
+  // PARALYSIS and the tune+0x44 status
+  fired.length = 0;
+  await play('3', 'Motion[13]_start'); await frames(3);
+  check(count(fired, 1101) === 1, 'L3 Motion[13] (paralysis): c 1101 at once', fired);
+  fired.length = 0;
+  await play('3', 'Motion[9]'); await frames(3);
+  check(count(fired, 1109) === 1, 'L3 Motion[9] (the tune+0x44 status): c 1109 once', fired);
+
+  // STUN: L3 M3 -> M5 -> M7, one held handle kept across all three and stopped when the state clears
+  const evReqs = key => S.entries.filter(e => e.when === 'event' && e.def.record.key === key).map(e => e.requests.map(q => q.stopped ? 's' : 'r').join('')).join('|');
+  await play('3', 'Motion[3]'); await frames(3);
+  const st0 = evReqs(1103);
+  check(st0.endsWith('r'), 'L3 Motion[3] (stun): c 1103 requested', st0);
+  await play('3', 'Motion[5]_loop'); await frames(3);
+  check(evReqs(1103) === st0, 'L3 Motion[5] (the stun holds): the same c 1103 kept', { before: st0, now: evReqs(1103) });
+  await play('3', 'Motion[7]'); await frames(3);
+  check(evReqs(1103) === st0, 'L3 Motion[7] (its end): still the same handle', { before: st0, now: evReqs(1103) });
+  await play(...REST); await frames(3);
+  check(!evReqs(1103).includes('r'), 'the stun over: c 1103 stopped', evReqs(1103));
+
+  // DEATH: L3 Motion[18] on the ground and L3 Motion[12] at the end of a fall -- rage cleared, no puff, the user's
+  // breaks kept, the eyes unchanged, and the driver's one-frame `Death` material clip on the vein layer
+  let bloodMat = null;
+  V.mounted.main.traverse(o => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
+                                 for (const m of ms) if (!bloodMat && m.name === 'XfBA_A0__m03_blood') bloodMat = m; });
+  check(!!bloodMat, 'the vein material XfBA_A0__m03_blood is on the model');
+  const matOf = m => m ? JSON.stringify([m.color && m.color.toArray().map(v => +v.toFixed(4)), +(m.opacity || 0).toFixed(4),
+                                         m.map && m.map.offset ? [+m.map.offset.x.toFixed(4), +m.map.offset.y.toFixed(4)] : null]) : null;
+  check(await pick('1', 'Broken'), 'the Head row set to Broken (a break to keep through death)');
+  const userDead0 = drawn();
+  // his vein layer is never still while he lives: Nomal_Repeat / Angry_Repeat animate it, so the test is whether it
+  // MOVES, not what value it holds -- comparing one sample against another would only be comparing two phases
+  const moves = async () => { const a = matOf(bloodMat); await frames(30); return a !== matOf(bloodMat); };
+  check(await moves(), 'alive, the vein layer is animating');
+  rageBox.checked = true; await rageBox.onchange({ target: rageBox }); await frames(3);
+  await play('3', 'Motion[18]'); await frames(3);
+  const nD = puffs.length; await steps(40);
+  check(S.rage === false && puffs.length === nD, 'L3 Motion[18] (death): rage off and no puff, though the user is enraged', { rage: S.rage, more: puffs.length - nD });
+  check(same(drawn(), userDead0), "the user's broken head stays broken in death, and nothing closes his eyes", drawn());
+  const mc = V.mounted.main.userData.motionClips;
+  check(mc && mc.some(x => x.clip === 'Death' && x.mats[0] === 'XfBA_A0__m03_blood'), 'the one-frame `Death` material clip runs on the vein layer', mc);
+  await frames(60);
+  check(!(await moves()), 'and it HOLDS the vein layer still -- the clip is one frame and does not loop', matOf(bloodMat));
+  await play('3', 'Motion[12]'); await frames(3);
+  check(S.rage === false && same(drawn(), userDead0), 'L3 Motion[12] (the fall\'s end): the same', drawn());
+  rageBox.checked = false; await rageBox.onchange({ target: rageBox });
+  await pick('1', 'Intact');
+  await play(...REST); await frames(3);
+  check(!V.mounted.main.userData.motionClips && (await moves()), 'another motion: the Death clip is gone and the vein layer animates again', matOf(bloodMat));
+
+  for (const k of Object.keys(MS.MOTION_STATES[MON])){
+    const [list, clip] = k.split('|');
+    check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'), 'the table\'s ' + k + ' is a clip he carries');
+  }
+  S.start = s0;
+  check(!fx.failed, 'the effect runtime never stopped', fx.failed);
+  return out;
+}
+
 async function pageCheckRathian(MON = 'em001_00', LABEL = 'Rathian'){
   const out = [];
   const check = (ok, label, detail) => out.push([!!ok, LABEL + ': ' + label, detail === undefined ? '' : JSON.stringify(detail)]);
@@ -1128,6 +1299,7 @@ async function main(){
   const before = 0;
   const res = (await evaluate(c, `(${pageCheck.toString()})()`)).concat(await evaluate(c, `(${pageCheckNarga.toString()})()`))
     .concat(await evaluate(c, `(${pageCheckDeviljho.toString()})()`))
+    .concat(await evaluate(c, `(${pageCheckKhezu.toString()})()`))
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})()`))
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em001_02', 'Gold Rathian')`))
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em001_04', 'Dreadqueen')`))
