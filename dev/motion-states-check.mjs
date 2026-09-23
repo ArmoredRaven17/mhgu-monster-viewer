@@ -99,6 +99,18 @@ async function pageCheck(){
   await play(...REST); await frames(3);
   const user0 = drawn();
   check(user0 && user0[1] === true && user0[2] === false, 'at rest the head is intact (user)', user0);
+  // HIS JOINTS ARE ALWAYS SWOLLEN (render/motion-states.js JOINT_SCALE): the class's gate is `(variant == 5) ?
+  // (enraged ? 2 : 1) : isEnraged`, so Savage's is never 0 and gid 200 / 201 sit at the grown scales while he lives
+  // (states-em043_00.md 2.2) -- where Deviljho's ramp up only while enraged
+  {
+    const SK = await import('/render/skeleton.js');
+    const bone = gid => (SK.gidBonesOf(V.mounted.main).find(x => x.gid === gid) || {}).node;
+    await frames(16);
+    const b200 = bone(200), b201 = bone(201);
+    const near = (v, t) => Math.abs(v - t) < 2e-3;
+    check(b200 && b201 && near(b200.scale.x, 1.5) && near(b200.scale.y, 7) && near(b201.scale.x, 3) && near(b201.scale.y, 6.5),
+          'alive and calm, his joints 200 / 201 are still swollen', b200 && [b200.scale.x, b200.scale.y, b201.scale.x, b201.scale.y]);
+  }
 
   // 1. the head break with the head intact: the 1st break, u 1000 at frame 0, back to intact after
   fired.length = 0;
@@ -613,6 +625,21 @@ async function pageCheckDeviljho(){
   await play(...REST); await frames(3);
   const nAfter = puffs.length; await steps(70);
   check(S.rage === false && puffs.length === nAfter && same(drawn(), user0), 'another motion, the user calm: rage off, no more puffs, the body calm', { rage: S.rage, d: drawn() });
+
+  // THE JOINTS THAT SWELL (JOINT_SCALE): while enraged gid 200 goes to (1.5, 7, 1) and gid 201 to (3, 6.5, 1), each
+  // axis a rate a frame, 12 frames either way -- the ROM's 0xe7eda8 in the pass before the joint build
+  const SK = await import('/render/skeleton.js');
+  const boneOf = gid => (SK.gidBonesOf(V.mounted.main).find(x => x.gid === gid) || {}).node;
+  const near = (v, t) => Math.abs(v - t) < 2e-3;
+  const b200 = boneOf(200), b201 = boneOf(201);
+  check(b200 && b201 && near(b200.scale.x, 1) && near(b200.scale.y, 1) && near(b201.scale.x, 1),
+        'calm: joints 200 and 201 are at rest scale', b200 && [b200.scale.x, b200.scale.y, b201.scale.x, b201.scale.y]);
+  await play('0', 'Motion[5]'); await frames(16);
+  check(near(b200.scale.x, 1.5) && near(b200.scale.y, 7) && near(b201.scale.x, 3) && near(b201.scale.y, 6.5),
+        'L0 Motion[5]: both joints swollen to the scales the ROM ramps them to', [b200.scale.x, b200.scale.y, b201.scale.x, b201.scale.y]);
+  await play(...REST); await frames(16);
+  check(near(b200.scale.x, 1) && near(b200.scale.y, 1) && near(b201.scale.x, 1) && near(b201.scale.y, 1),
+        'another motion, the user calm: both back to 1 in 12 frames', [b200.scale.x, b200.scale.y, b201.scale.x, b201.scale.y]);
 
   // THE SEVER WHILE ENRAGED: the tail's enraged severed set (12), from the same motion
   rageBox.checked = true; await rageBox.onchange({ target: rageBox }); await frames(3);

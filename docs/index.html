@@ -1306,7 +1306,7 @@ import { gidBonesOf } from './render/skeleton.js';
 import { loadMaterialsDb } from './render/materials-db.js';
 import { createBackground } from './render/background.js';
 import { createFloorGrid } from './render/grid.js';
-import { MotionStates, RAGE_BY_LEVEL, RAGE_PUFF, shellTailInput } from './render/motion-states.js';
+import { MotionStates, RAGE_BY_LEVEL, RAGE_PUFF, JOINT_SCALE, JointScale, shellTailInput } from './render/motion-states.js';
 import { pickVariantsFor } from './render/shells.js';
 import { CUT_TAIL, CutTail } from './render/tail-option.js';
 import { setEyeGlow, updateEyeGlow } from './render/eye-glow.js';
@@ -7217,6 +7217,29 @@ function rockInput(){
 // motion is over (another clip, the bind pose) the display goes back to the user's choices -- a play-once clip held on
 // its last frame is still showing its motion. `state` is never written: the Parts panel, the Enraged checkbox and the
 // saved view stay the user's.
+// THE JOINTS THAT SWELL (render/motion-states.js JOINT_SCALE): Deviljho's class scales two joints while its gate is
+// on -- enraged for Deviljho, all his life for Savage -- ramping each axis a frame and clamping at the target. The ROM
+// does it between the motion advance and the joint build, so it runs here, after the clip has been advanced and
+// before the frame is drawn, and it writes the bones' own scale exactly as the ROM writes the joint record's (+0x70).
+let jointScale = null, jointScaleFor = null, jointScaleBones = null;
+function stepJointScale(){
+  const spec = JOINT_SCALE[state.id];
+  if (!spec || !mounted.main){ jointScale = null; jointScaleFor = null; jointScaleBones = null; return; }
+  if (jointScaleFor !== state.id || !jointScaleBones || jointScaleBones.root !== mounted.main){
+    jointScale = new JointScale(spec);
+    jointScaleFor = state.id;
+    const by = new Map();
+    for (const b of gidBonesOf(mounted.main)) if (!by.has(b.gid)) by.set(b.gid, b.node);
+    jointScaleBones = { root: mounted.main, by };
+  }
+  // the ROM's gate: `r1 != 0 and not dead` (0xe7eddc), where r1 is the rage flag for Deviljho and never 0 for Savage
+  const grown = !motionStates.dead() && (spec.while === 'alive' || motionStates.rage(state.rage));
+  for (const [gid, x, y, z] of jointScale.step(grown)){
+    const node = jointScaleBones.by.get(gid);
+    if (node) node.scale.set(x, y, z);
+  }
+}
+
 function driveMotionStates(){
   const act = pose.action;
   const clipName = act && act.getClip ? act.getClip().name : null;
@@ -7242,6 +7265,7 @@ function driveMotionStates(){
     setEffectRage(motionStates.rage(state.rage));
     if (rt){ if (r.entry) rt.restartRage(); else rt.setRage(motionStates.rage(state.rage)); }
   }
+  stepJointScale();
   stepCutTail(r, rt);
   syncRageRecords(rt);
   if (rt){

@@ -391,6 +391,52 @@ export const RAGE_BY_LEVEL = {
   em037_00: { levels: N_HEAD.calm, records: [['em037_00u', 1120], ['em037_00u', 1121]] },
 };
 
+// THE JOINTS THAT SWELL, as the game swells them (E:\offline\decode\notes\states-em043_00.md 2.2, read and ROM-run by
+// the Deviljho decode agent). Deviljho's class scales two joints through vtable +0x2a0 -> 0xe7eda8, which runs in the
+// +0x24 pass between the motion advance and the joint build -- so it is part of the pose the frame is drawn with, and
+// it lands on the joint record's own scale field (+0x70, written by 0x94a834). Both joints carry skin weights in the
+// model (421 vertices on gid 200, 356 on gid 201), so this is a visible swell.
+//
+// Each axis walks toward its target by its own rate a frame (the ROM's step 1.0 = [e+0x1c]), the growing side floored
+// at 1 and the shrinking side capped at the target, so either way takes 12 frames (0xe7edf0..0xe7eee4; the literals
+// 0.0416667 / 0.5 / 0.166667 / 0.458333 at 0xe7ef48). z is 1 from the spawn and never ramps.
+//
+// WHO GROWS: the ROM's gate is `r1 = (variant == 5) ? (enraged ? 2 : 1) : isEnraged`, then `r1 != 0 and not dead`
+// (0xe7eddc). So Deviljho (variant 0) swells while ENRAGED, and Savage (variant 5) -- whose r1 is never 0 -- is
+// swollen ALL HIS LIFE and only shrinks at death.
+export const JOINT_SCALE = {
+  // the rates are the ROM's own literals at 0xe7ef48..0xe7ef5c, not the fractions they are near: accumulated in
+  // float32 they carry the value past the target on the 12th frame, where the clamp holds it
+  em043_00: { while: 'rage',  joints: [{ gid: 200, to: [1.5, 7.0], rate: [0.0416667, 0.5] },
+                                       { gid: 201, to: [3.0, 6.5], rate: [0.166667, 0.458333] }] },
+  em043_05: { while: 'alive', joints: [{ gid: 200, to: [1.5, 7.0], rate: [0.0416667, 0.5] },
+                                       { gid: 201, to: [3.0, 6.5], rate: [0.166667, 0.458333] }] },
+};
+
+// The ramp itself, one per mounted monster: step() moves each joint's x and y toward the target (grown) or back to 1,
+// and returns [[gid, x, y, z], ...] for the caller to write onto the bones.
+export class JointScale {
+  constructor(spec){
+    this.spec = spec || null;
+    this.at = this.spec ? this.spec.joints.map(() => [1, 1]) : [];
+  }
+  step(grown, frames = 1){
+    const out = [];
+    if (!this.spec) return out;
+    this.spec.joints.forEach((j, i) => {
+      const v = this.at[i];
+      for (let k = 0; k < 2; k++){
+        const target = grown ? j.to[k] : 1;
+        const d = Math.fround(j.rate[k] * frames);
+        // the ROM accumulates in float32 (vadd.f32 / vsub.f32) and clamps at the target either way
+        v[k] = v[k] < target ? Math.min(target, Math.fround(v[k] + d)) : Math.max(target, Math.fround(v[k] - d));
+      }
+      out.push([j.gid, v[0], v[1], 1]);
+    });
+    return out;
+  }
+}
+
 // THE SHARED RAGE PUFF (states-em001.md 2.3). 0xa41b8, in every +0x28 pass: alive, not in the sleep hold or the rest
 // (0x81bb0(e, 1)), vtable +0x2d8 == 1 and enraged, it counts P+0x5c6c down with 0x7206c (at or below 0 it fires at once;
 // else 1 less, firing when that reaches 0) and each time it fires sets 30.0 again and -- when the class leaves e+0xb7d2 at
@@ -486,6 +532,7 @@ export class MotionStates {
   // the rage puff's gates the motion shows (RAGE_PUFF): paused in the sleep hold, zeroed calm and tired
   puffOff(){ return !!(this.cur && this.cur.spec.puffOff); }
   tired(){ return !!(this.cur && this.cur.spec.tired); }
+  dead(){ return !!(this.cur && this.cur.spec.dead); }
 
   // Once a frame, after the clip has been advanced. monId; list; clip: the motion's bare slot name (a _start/_loop pair
   // is one motion) or null; frame: its frame at 60 a second, counted over the whole slot; at: { loopStart, loopEnd,
