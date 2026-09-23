@@ -695,6 +695,56 @@ async function pageCheckDeviljho(){
   rageBox.checked = false; await rageBox.onchange({ target: rageBox });
   await play(...REST); await frames(3);
 
+  // HIS SHELLS (the Shell Agent's decode in shells.js; dev/shells-deviljho-check.mjs checks the data against his
+  // files). His rocks ARE Savage's -- the two .shl are the same bytes but for the name digit inside them -- so they
+  // throw the same three rocks and request the same records. His breath is his own, and the interesting part is what
+  // his rage does NOT do to it.
+  const SH = await import('/render/shells.js');
+  if (SH.SHELL_DATA[MON]){
+    const host = S.host, request0 = host.requestEffect.bind(host);
+    const reqLog = [];
+    let lastPick = null;
+    const pickIn = S.rockInput;
+    check(typeof pickIn === 'function', 'the viewer hands the schedule its shell inputs');
+    if (pickIn) S.rockInput = () => (lastPick = pickIn());
+    host.requestEffect = (...a) => {
+      const r = request0(...a);
+      reqLog.push({ name: String((a[2] && a[2].path) || '').split(String.fromCharCode(92)).pop().split('/').pop(),
+                    key: a[2] && a[2].key, variant: lastPick && lastPick.variant });
+      return r;
+    };
+    const named = n => reqLog.filter(r => r.name === n);
+    // THE ROCKS, L2 Motion[24]: each play takes the next of the three (which one the AI throws is not read), the
+    // flying rock u 0, its contacts u 10, the bouncing one's bounces u 20
+    await play('2', 'Motion[24]');
+    await frames(3 * dur('2', 'Motion[24]') + 240);
+    const flying = named('cm202_200');
+    check(flying.length >= 3 && same(flying.slice(0, 3).map(r => r.variant), ['shell00_0', 'shell00_8', 'shell54_0']),
+          'L2 Motion[24] played three times: a rock each play -- flat, lob, bouncing (u 0)', flying);
+    check(named('cm202_250').length >= 1, 'a rock lands on the grid floor (u 10)', named('cm202_250').length);
+    check(named('cm202_001').length >= 1, 'the bouncing rock bounces (u 20)', named('cm202_001').length);
+    // THE BREATH, L2 Motion[25] at 130: shell04 mode 0, u 60 -- and THE SAME ENRAGED, because his command streams
+    // never reach the enraged action: the op-0x6f value is his rage flag itself, 0 or 1, never the 2 the streams
+    // switch on (0xe80e4c). Savage, on the same clip, swaps to his longer mode 2 (u 70).
+    reqLog.length = 0;
+    await play('2', 'Motion[25]'); await frames(dur('2', 'Motion[25]') + 20);
+    const calmBreath = named('em043_00_004_s').map(r => r.key);
+    check(calmBreath.length >= 1 && calmBreath.every(k => k === 60), 'L2 Motion[25] calm: the breath (u 60)', calmBreath);
+    reqLog.length = 0;
+    rageBox.checked = true; await rageBox.onchange({ target: rageBox }); await frames(3);
+    await play('2', 'Motion[25]'); await frames(dur('2', 'Motion[25]') + 20);
+    check(same(named('em043_00_004_s').map(r => r.key), calmBreath),
+          'L2 Motion[25] enraged: the same breath, where Savage takes his own longer one', { calm: calmBreath, enraged: named('em043_00_004_s').map(r => r.key) });
+    rageBox.checked = false; await rageBox.onchange({ target: rageBox }); await frames(3);
+    // THE SECOND BREATH, L2 Motion[41] at 86: shell55 mode 0, u 60 as well (Savage's is 1700 long at u 70)
+    reqLog.length = 0;
+    await play('2', 'Motion[41]'); await frames(dur('2', 'Motion[41]') + 20);
+    check(named('em043_00_004_s').some(r => r.key === 60), 'L2 Motion[41]: the second breath too (shell55 mode 0, u 60)', reqLog.map(r => [r.key, r.name]));
+    host.requestEffect = request0;
+    if (pickIn) S.rockInput = pickIn;
+    await play(...REST); await frames(3);
+  }
+
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
     const [list, clip] = k.split('|');
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'), 'the table\'s ' + k + ' is a clip he carries');

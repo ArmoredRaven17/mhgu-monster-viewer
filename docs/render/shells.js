@@ -27,6 +27,16 @@
 //     Three things the ROM takes from the game are NOT READ and come in as explicit inputs, with no default:
 //     which rock (the AI's pick of command stream 36 / 56 / 57), the target the launch pitch is aimed at (enemy
 //     block +0x1d0) and the stage the flight collides with (0xc30b30; here a horizontal plane at a given height).
+//   * DEVILJHO (em043_00): the same class as Savage's with the variant byte 0, his own shell ids 0xd3 / 0xd5 / 0xd6 /
+//     0xd7 (0xe727d0) and files. His rocks are Savage's: the .shl of shell00 and shell54 are the same bytes but for the
+//     names inside them, and their spawner reads no variant byte, so the same modes fly the same way (shell00 0 / 8 and
+//     shell54 0, thrown on L2 Motion[23] / [24]; shell54 4, the held rock, is unread as his brother's is). His breath
+//     differs: shell04 has one mode, 0, a 1000-long beam with u 60, because the spawn's variant branch (0xe78b34) sends
+//     variant 0 to mode 0 unless the state byte P+0x5e08's bit 5 is set, which nothing in his class or command streams
+//     does; shell55 mode 0 is 1000 long with u 60 too, where Savage's are 1200 / 1700 with u 60 / u 70. And his command
+//     streams never reach the enraged breath action: the op-0x6f value is `isEnraged ? 2 : 1` only for variant 5
+//     (0xe80e4c), so (7, 0x06) / (7, 0x07) serve both states (`pick: 'always'`) and Savage's (7, 0x31) / (7, 0x32) are
+//     not his. Its inputs are Savage's rocks' -- the AI's pick, the target, the stage -- and nothing else.
 //   * NARGACUGA'S TAIL SPIKES (em037_00; notes E:\offline\decode\notes\shells-em037.md): shell00 is a base00 shell
 //     like Savage's rock, thrown in L2 Motion[8] when it passes 46.0 -- 3 or 5 spikes at once, one per mode, made by
 //     the spawner 0xe48fc8 -- and flown and landed by the same base00 code, with its own reader (0xe59050: flags from
@@ -90,6 +100,9 @@
 //   * base55's extra end test 0xc99a4: [[owner+0x1428]+0x5ea7] > 0 ends the shell (meaning not read).
 //   * hit, sound and the unit's own draw: not visual here (hit vtable +0x140, sound 0x3fffcc / 0x42d29c).
 //   * the effect's liveness is the caller's (input.effectAlive); without it the effect counts as alive.
+//   * Deviljho: as Savage's rocks; what his breath's state gate P+0x5e08 bit 5 would mean if anything set it (nothing
+//     in his path does, so both modes behind it -- which his files leave empty -- are out of reach); his (7, 0x34) and
+//     (7, 0x93) / (7, 0x94) chains, which only another action's code reaches.
 //   * rocks: the monster's own turn while the frame is below 50 (0x76c08(e, 0x60, 0)) and so its facing at 114 --
 //     input.owner.y instead; the rock hitting a hunter (hit slot +0x13ae, type 2 at the hit position) -- the viewer
 //     has no hunters, so every contact is the stage query's; an inactive owner ending the flight (0x4a0f38); the
@@ -149,6 +162,119 @@ const nmls = (acc, a, b) => f(f(a * b) - acc);       // vnmls.f32: d = n*m - d
 // past the end reads 0 / 0.0 / the zero vector). `ef` is the rShellEffectParam list (listId, uniqueId); `scale` is
 // ShellScale. Values are the files' own, em043_05.arc.
 export const SHELL_DATA = {
+  // DEVILJHO (em043_00): the family's class uEm043_00 with the variant byte +0xb5f5 = 0, where Savage Deviljho
+  // (em043_05) is variant 5. The ctor 0xe727d0 gives variant 0 the global shells 0xd3 / 0xd4 / 0xd5 / 0xd6 / 0xd7 at
+  // enemy +0xcac4 / +0xcac8 / +0xcacc / +0xcad0 / +0xcad4 (0xe727f0..0xe72840), where variant 5 gets 0xd8..0xdc; the
+  // table 0x175c3e8 (12 bytes an entry: class DTI, setup DTI, resource) gives the two variants the same five classes
+  // down the line -- uShellEm043_sp_00 / sp_01 / sp_04 / sp_54 / sp_55, DTIs 0x188c8e8 / 0x188c908 / 0x188c928 /
+  // 0x188c948 / 0x188c968 -- and changes only which .shl each loads: his five resources run 0x8a26 / 0x8a27 / 0x8a28 /
+  // 0x8a29 / 0x8a2a where Savage's run 0x8a2b..0x8a2f. 0xd4 is the shell01 class, and it is out of the table below
+  // because it draws nothing, not because it is absent: its .shl is in both .arc (em043_00_shell01\em043_00_01, 2618
+  // bytes, 44 differing bytes from Savage's, every one the name digit) with five modes, and not one of those five
+  // EffectParams names a (list, key) in either monster -- the reading other monsters' shell01 mode 0 gets above.
+  // Values: the files' own, C:\MHGU-Extract\scratch-em\em043_00\em043_00.arc. His shell00 and shell54 .shl are
+  // Savage's file byte for byte but for the name strings inside them (136 and 72 differing bytes, every one a '0'
+  // where his says '5'), so the ShellCmnParam and ShellInfoList below are the same values his brother's are; shell04
+  // and shell55 differ (one mode, and their own lengths).
+  em043_00: {
+    name: 'Deviljho',
+    // every em043_00 .shl names EffectLists[0] = effect\pel\em\em043_00u and nothing else, as Savage's name his
+    lists: { 0: { list: 'u', pel: 'em043_00u' } },
+    shells: {
+      // THE ROCKS (uShellEm043_sp_00, base00; Savage's shell00 notes apply): the same cmn and the same mode values, the
+      // same effect keys for the modes his actions throw (u 0 flying, u 10 at a contact). Modes 1..7 and 9..15 are not
+      // transcribed -- no read command stream plays them, and the command table is Savage's file byte for byte
+      // (em043_00_cmdtbl.emc, the same md5 in both .arc).
+      shell00: {
+        id: 0xd3, cls: 'uShellEm043_sp_00', base: 'base00', folder: 'shell\\em\\em043_00_shell00',
+        cmn: { ints: [4], floats: [72.0, 216.0], vecs: [[0.0, 200.0, 60.0], [0.0, -80.0, 300.0]] },
+        modes: {
+          // em043_00_00_ef000 / _sh000
+          0: { scale: 1.0, ef: [[0, 0], [0, 10], [0, 10], [0, 10]],
+               sh: { ints: [], floats: [50.0, 12.5], vecs: [[0.0, -0.75, 0.0]] } },
+          // em043_00_00_ef008 / _sh008
+          8: { scale: 1.0, ef: [[0, 0], [0, 10], [0, 10], [0, 10]],
+               sh: { ints: [], floats: [50.0, 0.0], vecs: [[0.0, -0.75, 0.0]] } },
+        },
+      },
+      // THE BREATH (uShellEm043_sp_04, base04). One mode: em043_00_04_sh000 / _ef000, beam 1000.0 with u 60 -- where
+      // Savage has modes 1 and 2 (1200.0 with u 60, 1700.0 with u 70). The spawn 0xe78a24 reads the variant at
+      // 0xe78b34: variant 5 goes to its mode-1 / 2 branch, and variant 0 must first pass 0xa1f0c(e, 0x20) -- bit 5 of
+      // the state byte P+0x5e08, which nothing in this monster's class or command streams sets (read by the states
+      // agent, 2026-09-23) -- so it always takes 0xe78c98, mode 0.
+      shell04: {
+        id: 0xd5, cls: 'uShellEm043_sp_04', base: 'base04', folder: 'shell\\em\\em043_00_shell04',
+        modes: {
+          0: { scale: 1.0, ef: [[0, 60], [999, -1]],
+               sh: { ints: [3, 6, 0, 0, -1], floats: [1000.0, 98.0, 200.0], vecs: [[0.0, -60.0, 60.0], [20.0, 0.0, 0.0]] } },
+        },
+      },
+      // THE BOUNCING ROCK (uShellEm043_sp_54, base54): the same cmn and mode values as Savage's, its own effect keys
+      // for mode 4 (u 30 / 40 / 50 where his are u 40 / 50 / 100); mode 0's are the same u 0 / 10 / 20.
+      shell54: {
+        id: 0xd6, cls: 'uShellEm043_sp_54', base: 'base54', folder: 'shell\\em\\em043_00_shell54',
+        cmn: { ints: [4, 2], floats: [240.0, 0.0, 120.0, 24.0, 0.8, 0.3], vecs: [[0.0, 200.0, 60.0], [0.0, -80.0, 300.0]] },
+        modes: {
+          // em043_00_54_ef000 / _sh000
+          0: { scale: 1.0, ef: [[0, 0], [0, 10], [0, 10], [0, 10], [0, 20], [0, 20]],
+               sh: { ints: [], floats: [50.0, 12.5], vecs: [[0.0, -0.75, 0.0]] } },
+          // em043_00_54_ef004 / _sh004: starts HELD at the joint until the motion passes 124
+          4: { scale: 1.0, ef: [[0, 30], [0, 40], [0, 40], [0, 40], [0, 50], [0, 50]],
+               sh: { ints: [], floats: [50.0, 12.5], vecs: [[0.0, -0.75, 0.0]] } },
+        },
+      },
+      // THE SECOND BREATH (uShellEm043_sp_55, base55): em043_00_55_sh000 / _ef000, beam 1000.0 with u 60 (Savage's is
+      // 1700.0 with u 70). Its spawn 0xe7af24's variant branch only writes the byte e+0xb5f8 (2 or 6 instead of his 3,
+      // 0xe7af34..0xe7af6c: not a shell field), so the shell is made the same way.
+      shell55: {
+        id: 0xd7, cls: 'uShellEm043_sp_55', base: 'base55', folder: 'shell\\em\\em043_00_shell55',
+        modes: {
+          0: { scale: 1.0, ef: [[0, 60], [999, -1]],
+               sh: { ints: [3, -1], floats: [1000.0, 42.0, 100.0], vecs: [[0.0, -120.0, 80.0], [0.0, 0.0, 0.0]] } },
+        },
+      },
+    },
+    // THE ACTIONS: Savage's, from the same status-7 switch (0xe7b1d4, table 0xe7b200) and the same command table
+    // (em043_00_cmdtbl.emc is one file, in both .arc). What differs is which of them his command streams can issue:
+    // the op-0x6f switch value (enemy vtable +0x214 = 0xe80d28, arg 1 = 0xe80e30) is `isEnraged ? 2 : 1` only for
+    // variant 5 -- at 0xe80e4c..0xe80e50 variant 0 takes the enraged flag itself, 0 or 1, and never 2 -- while the
+    // streams that pick the breath read `switch (v1) { case 2: the rage action; default: the calm one }` (group 1
+    // stream 3 on L2 M25, stream 8 on L2 M26). So this monster always takes the 'calm' entries, enraged or not
+    // (`pick: 'always'`), and Savage's (7, 0x31) / (7, 0x32) are not listed: no stream of his can reach them.
+    actions: [
+      // 0xe78a24(e, r1, r2): phase 0 setMotion 0x219 (r1 0) / 0x21a (r1 1), blend 6 (r2 != 2); phase 1 spawns shell04
+      // when the motion passes 130.0 (r1 0) / 136.0 (r1 1) -- mode 0 for this variant (above)
+      { action: [7, 0x06], code: 0xe78a24, args: [0, 0], list: '2', clip: 'Motion[25]', frame: 130.0, shell: 'shell04', mode: 0, pick: 'always' },
+      { action: [7, 0x07], code: 0xe78a24, args: [1, 0], list: '2', clip: 'Motion[26]', frame: 136.0, shell: 'shell04', mode: 0, pick: 'always' },
+      // chained from 0xe77650 when its motion passes 130 (0xe7796c); starts M26 at max(int(prev - 130) + 38, 0)
+      { action: [7, 0x34], code: 0xe78a24, args: [1, 2], list: '2', clip: 'Motion[26]', frame: 136.0, shell: 'shell04', mode: 0, pick: 'chain' },
+      // 0xe7af24(e, r1): setMotion 0x229 (r1 0) / 0x22a (r1 1), blend 2; spawns shell55 mode 0 when the motion passes
+      // 86.0 (0xe7b0fc..0xe7b184). Chained from 0xe7a9f8's end: 0xe7ae28(e, 0) == 1 ? (7, 0x93) : (7, 0x94) (0xe7ad50)
+      { action: [7, 0x93], code: 0xe7af24, args: [0], list: '2', clip: 'Motion[41]', frame: 86.0, shell: 'shell55', mode: 0, pick: 'chain' },
+      { action: [7, 0x94], code: 0xe7af24, args: [1], list: '2', clip: 'Motion[42]', frame: 86.0, shell: 'shell55', mode: 0, pick: 'chain' },
+      // THE ROCKS: 0xe78e34(e, r1, index, kind, sub) and its picker 0xe78fec, neither of which reads the variant byte,
+      // so the modes and frames are Savage's. pick 'rock' (the command table's group 1 streams 36 / 56 / 57, which of
+      // them the AI takes is NOT READ: input.rock.variant chooses, rockActionFor); pick 'unread': no read stream plays
+      // it, only a forced input.action.
+      { action: [7, 0x08], code: 0xe78e34, args: [0, 0, 0, 0], list: '2', clip: 'Motion[24]', frame: 114.0, shell: 'shell00', mode: 0, pick: 'rock', variant: 'shell00_0' },
+      { action: [7, 0x09], code: 0xe78e34, args: [1, 0, 0, 0], list: '2', clip: 'Motion[23]', frame: 114.0, shell: 'shell00', mode: 0, pick: 'rock', variant: 'shell00_0' },
+      { action: [7, 0x13], code: 0xe78e34, args: [2, 0, 0, 0], list: '2', clip: 'Motion[24]', frame: 114.0, shell: 'shell00', mode: 0, pick: 'rock', variant: 'shell00_0' },
+      { action: [7, 0x14], code: 0xe78e34, args: [3, 0, 0, 0], list: '2', clip: 'Motion[23]', frame: 114.0, shell: 'shell00', mode: 0, pick: 'rock', variant: 'shell00_0' },
+      { action: [7, 0x4e], code: 0xe78e34, args: [0, 0, 2, 0], list: '2', clip: 'Motion[24]', frame: 114.0, shell: 'shell00', mode: 8, pick: 'rock', variant: 'shell00_8' },
+      { action: [7, 0x4f], code: 0xe78e34, args: [1, 0, 2, 0], list: '2', clip: 'Motion[23]', frame: 114.0, shell: 'shell00', mode: 8, pick: 'rock', variant: 'shell00_8' },
+      { action: [7, 0x50], code: 0xe78e34, args: [2, 0, 2, 0], list: '2', clip: 'Motion[24]', frame: 114.0, shell: 'shell00', mode: 8, pick: 'rock', variant: 'shell00_8' },
+      { action: [7, 0x51], code: 0xe78e34, args: [3, 0, 2, 0], list: '2', clip: 'Motion[23]', frame: 114.0, shell: 'shell00', mode: 8, pick: 'rock', variant: 'shell00_8' },
+      { action: [7, 0x5e], code: 0xe78e34, args: [0, 0, 3, 0], list: '2', clip: 'Motion[24]', frame: 114.0, shell: 'shell54', mode: 0, pick: 'rock', variant: 'shell54_0' },
+      { action: [7, 0x5f], code: 0xe78e34, args: [1, 0, 3, 0], list: '2', clip: 'Motion[23]', frame: 114.0, shell: 'shell54', mode: 0, pick: 'rock', variant: 'shell54_0' },
+      { action: [7, 0x60], code: 0xe78e34, args: [2, 0, 3, 0], list: '2', clip: 'Motion[24]', frame: 114.0, shell: 'shell54', mode: 0, pick: 'rock', variant: 'shell54_0' },
+      { action: [7, 0x61], code: 0xe78e34, args: [3, 0, 3, 0], list: '2', clip: 'Motion[23]', frame: 114.0, shell: 'shell54', mode: 0, pick: 'rock', variant: 'shell54_0' },
+      // (7, 0x7e..0x81) (0xe7bbd8..0xe7bc2c -> 0xe7c084): kind 3, sub 1 -> shell54 mode 0x161f27c[4] = 4, at 108.0
+      { action: [7, 0x7e], code: 0xe78e34, args: [0, 0, 3, 1], list: '2', clip: 'Motion[24]', frame: 108.0, shell: 'shell54', mode: 4, pick: 'unread' },
+      { action: [7, 0x7f], code: 0xe78e34, args: [1, 0, 3, 1], list: '2', clip: 'Motion[23]', frame: 108.0, shell: 'shell54', mode: 4, pick: 'unread' },
+      { action: [7, 0x80], code: 0xe78e34, args: [2, 0, 3, 1], list: '2', clip: 'Motion[24]', frame: 108.0, shell: 'shell54', mode: 4, pick: 'unread' },
+      { action: [7, 0x81], code: 0xe78e34, args: [3, 0, 3, 1], list: '2', clip: 'Motion[23]', frame: 108.0, shell: 'shell54', mode: 4, pick: 'unread' },
+    ],
+  },
   em043_05: {
     name: 'Savage Deviljho',
     // the monster's effect lists by listId: the .shl EffectLists (rProofEffectList), index 0 in every em043_05 .shl
@@ -1699,6 +1825,10 @@ export function actionFor(monId, list, clip, rage, force){
   if (!D) return null;
   const cands = D.actions.filter(a => a.list === String(list) && playsClip(a, clip));
   if (force) return cands.find(a => a.action[0] === force[0] && a.action[1] === force[1]) || null;
+  // `always`: a clip whose streams cannot reach the enraged branch, so one entry serves both states -- Deviljho's
+  // breath, where the op-0x6f value is his enraged flag itself (0 or 1, never the 2 the streams switch on: 0xe80e4c)
+  const always = cands.filter(a => a.pick === 'always');
+  if (always.length === 1) return always[0];
   const byRage = cands.filter(a => a.pick === (rage ? 'rage' : 'calm'));
   if (byRage.length === 1) return byRage[0];
   const chained = cands.filter(a => a.pick === 'chain');

@@ -1,4 +1,6 @@
-// Savage Deviljho's rock shells in render/shells.js -- shell00 modes 0 / 8, shell54 modes 0 / 4 -- against the ROM.
+// Savage Deviljho's rock shells in render/shells.js -- shell00 modes 0 / 8, shell54 modes 0 / 4 -- against the ROM,
+// and Deviljho's (em043_00), which are the same rocks: his shell00 and shell54 .shl are Savage's file byte for byte but
+// for the name digit inside it, and their spawner 0xe78e34 / picker 0xe78fec read no variant byte.
 //
 //   1. THE DECODE'S REFERENCE FLIGHTS (E:\offline\decode\notes\shells-em043.md section 9.10): every value it lists,
 //      float32 bit patterns where it gives them and its printed digits elsewhere; the hit / bounce moves and points,
@@ -79,13 +81,14 @@ const ROM_SHA256 = {
 
 // ---- a scenario through stepShells, as the viewer steps it: one step per pose frame 0, 1, 2 ... -------------------
 function fly(sc, opts = {}){
-  const st = createShellState('em043_05');
+  const mon = opts.mon || 'em043_05';
+  const st = createShellState(mon);
   const clip = sc.clip || 'Motion[24]';
   const joints = opts.joints || (() => gid => gid === 4 ? sc.m : null);
   const rec = { spawnStep: null, S: null, lines: [], moves: [], endMove: null, endStep: null, removedStep: null, refused: [], outs: [] };
   const steps = opts.steps || ((sc.motion ? sc.motion.spawn : 114) + 2 + sc.frames);
   for (let step = 0; step < steps; step++){
-    const input = { monId: 'em043_05', list: '2', clip: opts.clipAt ? opts.clipAt(step) : clip, frame: step, joints: joints(step),
+    const input = { monId: mon, list: '2', clip: opts.clipAt ? opts.clipAt(step) : clip, frame: step, joints: joints(step),
                     rock: opts.rock ? opts.rock(step) : { variant: sc.variant || null, target: { x: sc.T[0], y: sc.T[1], z: sc.T[2] }, floorY: sc.floor },
                     owner: opts.owner ? opts.owner(step) : { x: sc.oX || 0, y: sc.oY || 0, z: 0 } };
     if (sc.force) input.action = sc.force;
@@ -259,6 +262,28 @@ for (const [name, rec] of Object.entries(runs)){
 }
 const pr = process.argv.indexOf('--print');
 if (pr > 0 && runs[process.argv[pr + 1]]) process.stdout.write(runs[process.argv[pr + 1]].text);
+
+// Deviljho's rocks (em043_00): the same flights from his own data -- his ids, folders and u.pel, the same cmn and mode
+// values (his .shl are Savage's bytes but for the name digit: dev/shells-deviljho-check.mjs section 1)
+{
+  // the held rock is the one flight whose effect keys differ: em043_00_54_ef004 names u 30 / 40 / 50 where Savage's
+  // _ef004 names u 40 / 50 / 100. Every other mode's keys are the same in both .arc, so every other flight is his too.
+  const HELD_KEY = { 40: 30, 50: 40, 100: 50 };
+  let same = 0;
+  for (const [name, sc] of Object.entries(SC)){
+    const r = fly(sc, { mon: 'em043_00' });
+    const want = name === 'H4' ? runs[name].text.replace(/key=(\d+)/g, (m, k) => 'key=' + (HELD_KEY[+k] != null ? HELD_KEY[+k] : +k))
+                               : runs[name].text;
+    if (r.text === want){ same++; continue; }
+    const a = r.text.split('\n'), b = want.split('\n'), i = a.findIndex((x, j) => x !== b[j]);
+    check(`${name}: Deviljho's flight is Savage's`, false, `line ${i + 1}:\n   jho ${a[i]}\n   sav ${b[i]}`);
+  }
+  check(`Deviljho (em043_00) throws the same rocks: all ${Object.keys(SC).length} flights move for move Savage's (the held rock with his own keys)`,
+        same === Object.keys(SC).length, `${same} of ${Object.keys(SC).length}`);
+  const r = fly(SC.A, { mon: 'em043_00' }), st = r.S && r.S.start;
+  check('Deviljho\'s rock starts his own list: u 0 of em043_00u, from shell id 0xd3', !!st && st.pel === 'em043_00u' && st.key === 0 && r.S.globalId === 0xd3,
+        st && `${st.pel} u ${st.key} id 0x${(r.S.globalId || 0).toString(16)}`);
+}
 
 // ---- 3. the module's contract ----------------------------------------------------------------------------------------
 console.log('== 3. spawn test, inputs not read, ending, clip change');
