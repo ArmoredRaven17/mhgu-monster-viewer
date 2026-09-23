@@ -76,7 +76,15 @@ registerNative(NVN_SET_STORAGE, (m, c) => { m.svc.gpuSetStorage(c.r[0] >>> 0, c.
 registerNative(NVN_INITIALIZE, (m, c) => { c.r[0] = m.svc.gpuInitialize(c.r[0] >>> 0, c.r[1] >>> 0) >>> 0; });
 registerNative(NVN_MAP, (m, c) => { c.r[0] = m.svc.gpuMap(c.r[0] >>> 0) >>> 0; });
 registerNative(POOL_ALLOC, (m, c) => { c.r[0] = m.svc.gpuPoolAlloc(c.r[1] >>> 0, c.r[2] >>> 0, c.r[0] >>> 0) >>> 0; });
-registerNative(POOL_FREE, (m, c) => { c.r[0] = m.svc.gpuStub('gpu_pool_free', c.r[0] >>> 0) >>> 0; });
+// The pool's free (its vtable +0x34) is free(self, offset) -- r0 is the pool, R1 IS THE BLOCK. The stub is kept so a
+// check replays the service calls in the game's order, and the block is handed back to the stand-in's own free list:
+// the ROM does call this (0x8676fc..0x86770c, the buffer's finalize, and the model draws' own), and treating it as a
+// no-op made pool 5 a one-way bump -- Rathian went dark with 'GPU pool 5 stand-in exhausted' 101 motions into one
+// runtime, and cParticleNodeInfinite made it far likelier by taking its own VB/IB per play.
+registerNative(POOL_FREE, (m, c) => {
+  m.svc.gpuStub('gpu_pool_free', c.r[0] >>> 0);
+  c.r[0] = (m.svc.gpuPoolFree ? m.svc.gpuPoolFree(c.r[1] >>> 0) : 0) >>> 0;
+});
 // RECORD A'S DRAW (sGpuParticle record vtable 0x178e160 slot 3, 0xb918c4, with its fog features, slot 8 0xb913fc) runs
 // LIFTED (lifted-gpu.js; effects-node.md 5.2-5.4): the pass and sort key, technique, input layout, states, constant
 // buffers and the copies of its staging into the mapped buffers. What it hands the GPU, the indexed draw
@@ -195,14 +203,38 @@ export function installRequests(m, malloc){
   // efx/proofunit.py build_gpu_particle does: pool 5 ([0x189f148 + 0x14], vtable +0x1c alloc / +0x34 free, +0x58 base,
   // +0x5b0 an opaque NVN pool), the device ([0x211f998] + 0x90) and the NVN proc pointers
   {
-    const gpu = state.gpu = { storage: new Map(), buffers: new Map(), base: malloc(POOL_BYTES), cursor: 0 };
+    const gpu = state.gpu = { storage: new Map(), buffers: new Map(), base: malloc(POOL_BYTES), cursor: 0,
+                              live: new Map(), freed: new Map(), peak: 0 };
     gpu.cursor = gpu.base;
+    // A BLOCK THE GAME HAS FREED IS HANDED BACK OUT. The real pool 5 is an NVN memory pool the engine sub-allocates
+    // and releases; this stand-in is a bump allocator over emulated memory, and until its free did anything the pool
+    // only ever grew -- every effect that played took its slab for good, so a long enough session ran the viewer out
+    // and every effect of the monster stopped at once. Blocks go back on a list keyed by size and alignment and are
+    // reused exactly, which is enough because the engine asks for the same few shapes over and over; the cursor still
+    // only rises for a shape never seen before, so `peak` is the real high-water mark.
     m.svc.gpuPoolAlloc = (size, align) => {
       align = Math.max(align, 1);
+      const key = size + ':' + align;
+      const reuse = gpu.freed.get(key);
+      if (reuse && reuse.length){ const got = reuse.pop(); gpu.live.set(got, key); return got; }
       const at = Math.ceil(gpu.cursor / align) * align;
       gpu.cursor = at + size;
       if (gpu.cursor > gpu.base + POOL_BYTES) throw new Unverified('GPU pool 5 stand-in exhausted');
+      gpu.peak = Math.max(gpu.peak, gpu.cursor - gpu.base);
+      gpu.live.set(at, key);
       return at;
+    };
+    // the ROM frees by the value it was given; a host that keeps offsets rather than addresses is accepted too
+    m.svc.gpuPoolFree = p => {
+      p = p >>> 0;
+      const at = gpu.live.has(p) ? p : (gpu.live.has((gpu.base + p) >>> 0) ? (gpu.base + p) >>> 0 : 0);
+      if (!at) return 0;                                  // not one of ours (or freed twice): leave it alone
+      const key = gpu.live.get(at);
+      gpu.live.delete(at);
+      let list = gpu.freed.get(key);
+      if (!list) gpu.freed.set(key, list = []);
+      list.push(at);
+      return 0;
     };
     m.svc.gpuSetStorage = (builder, pool, offset, size) => { gpu.storage.set(builder, [pool, offset, size]); };
     m.svc.gpuInitialize = (buffer, builder) => { gpu.buffers.set(buffer, gpu.base + gpu.storage.get(builder)[1]); return 1; };
