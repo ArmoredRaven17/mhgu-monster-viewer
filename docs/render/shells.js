@@ -1780,6 +1780,260 @@ export const SHELL_DATA = {
     ],
     postures: { '4|Motion[25]': 3, '4|Motion[26]': 3, '4|Motion[27]': 3 },
   },
+  // KHEZU (em003_00): class uEm003_00, vtable 0x17958f0. Its five global shells are written at enemy +0xcac4 ..
+  // +0xcad4 by vtable slot 86 (0xd20544) when the em byte +0xb5f4 is 3 and the variant +0xb5f5 is 0: 0x65 / 0x66 /
+  // 0x67 / 0x68 / 0x69. The class table 0x175c3e8 (12 bytes an entry: class DTI, setup DTI, resource) gives them
+  // uShellEm003_sp_00 / sp_01 / sp_03 / sp_05 / sp_13 (DTIs 0x188bca8 / 0x188bcc8 / 0x188bce8 / 0x188bd08 /
+  // 0x188bd28) over uShellEmBase00 / 01 / 03 / 05 / 13, with resources 0x89be..0x89c2; the ctors are 0xd2143c /
+  // 0xd218a4 / 0xd21af0 / 0xd21d08 / 0xd22070 and each class overrides only its reader (+0x14c) and a slot or two.
+  // Values: the files' own, C:\MHGU-Extract\scratch-em\em003_00\em003_00.arc. Every .shl names ShellScale 1.0 in
+  // every ShellInfoList entry and no ShellCmnParam; EffectLists[0] is effect\pel\em\em003_00u in all five, and
+  // shell01 alone also names [1] = em003_00c.
+  //
+  // WHAT IS WIRED HERE: shell03, the ground lightning (base03 below). Its 21 modes are one attack's fan -- the .shl
+  // gives each a Y offset in degrees, a speed and a life -- and the action's index picks a triple of them. The
+  // other four shells' files are transcribed but no action is listed for them yet: base01, base05 and base13 are
+  // not translated, and Khezu's shell00 runs base00 through his own reader (0xd2145c), which is not read yet.
+  //
+  // THE ACTIONS. The status switch 0xd1f658 (status byte +0x73e0) sends status 7 to the number switch 0xd1c920
+  // (number byte +0x73e1, table 0xd1c94c). Six numbers reach one handler, 0xd16e08, each with its own index: phase 0
+  // plays L2 Motion[3] (motion 0x203, setMotion0 0xafe84 with blend 8), phase 1 arms a hit record at 160.0 and, when
+  // the motion passes 176.0 (0xb0974 -> 0x72714), makes that index's bolts (the table at 0xd16f30). Which number the
+  // AI issues is NOT READ, so the viewer names it (pick 'ai', input.rock.variant). The command table
+  // (enemy\cmd_tbl\em003_00_cmdtbl.emc, op 0x00 = do action) issues five of the six: (7, 0x0e), (7, 0x35), (7, 0x46),
+  // (7, 0x47) and (7, 0x4d) -- all from group 1 streams 10 and 15. (7, 0x05) is in neither the streams nor any chain
+  // the class makes (0x768c8 call sites), so its modes 0 / 1 / 2 are listed but never picked.
+  em003_00: {
+    name: 'Khezu',
+    // the monster's effect lists by listId: the .shl EffectLists (rProofEffectList). shell01 carries its own pair.
+    lists: { 0: { list: 'u', pel: 'em003_00u' } },
+    shells: {
+      // shell00: global id 0x65, uShellEm003_sp_00 : uShellEmBase00 (reader 0xd2145c), folder shell\em\em003_00_shell00
+      shell00: {
+        id: 0x65, cls: 'uShellEm003_sp_00', base: 'base00', reader: 0xd2145c, folder: 'shell\\em\\em003_00_shell00',
+        modes: {
+          // em003_00_00_ef000 / _sh000
+          0: { scale: 1.0, ef: [[0, 90], [0, 93], [0, 92], [0, 93]],
+               sh: { ints: [3], floats: [0.0, 0.0, 2000.0], vecs: [[0.0, 0.0, 0.0], [0.0, -2.0, 0.0]] } },
+          // em003_00_00_ef001 / _sh001
+          1: { scale: 1.0, ef: [[0, 60], [999, -1], [999, -1], [999, -1]],
+               sh: { ints: [3], floats: [0.0, 0.0, 72.0], vecs: [[0.0, 0.0, 0.0], [0.0, -1.75, 0.0]] } },
+        },
+      },
+      // shell01: global id 0x66, uShellEm003_sp_01 : uShellEmBase01 (reader 0xd218c4), folder shell\em\em003_00_shell01
+      shell01: {
+        id: 0x66, cls: 'uShellEm003_sp_01', base: 'base01', reader: 0xd218c4, folder: 'shell\\em\\em003_00_shell01',
+        lists: { 0: { list: 'u', pel: 'em003_00u' }, 1: { list: 'c', pel: 'em003_00c' } },
+        modes: {
+          // em003_00_01_ef000 / _sh000
+          0: { scale: 1.0, ef: [[0, 61], [999, -1]],
+               sh: { ints: [-1, -1, -1, -1, -1], floats: [], vecs: [] } },
+          // em003_00_01_ef001 / _sh001
+          1: { scale: 1.0, ef: [[0, 31], [999, -1]],
+               sh: { ints: [0, -1, -1, -1, -1], floats: [], vecs: [] } },
+          // em003_00_01_ef002 / _sh002
+          2: { scale: 1.0, ef: [[0, 31], [999, -1]],
+               sh: { ints: [0, -1, -1, -1, -1], floats: [], vecs: [] } },
+          // em003_00_01_ef003 / _sh003
+          3: { scale: 1.0, ef: [[1, 30], [999, -1]],
+               sh: { ints: [0, -1, 0, -1, 0], floats: [], vecs: [] } },
+          // em003_00_01_ef004 / _sh004
+          4: { scale: 1.0, ef: [[1, 31], [999, -1]],
+               sh: { ints: [0, -1, 0, -1, 0], floats: [], vecs: [] } },
+          // em003_00_01_ef005 / _sh005
+          5: { scale: 1.0, ef: [[0, 120], [999, -1]],
+               sh: { ints: [-1, -1, -1, -1, -1], floats: [], vecs: [] } },
+          // em003_00_01_ef006 / _sh006
+          6: { scale: 1.0, ef: [[999, -1], [999, -1]],
+               sh: { ints: [-1, -1, -1, -1, -1], floats: [], vecs: [] } },
+        },
+      },
+      // shell03: global id 0x67, uShellEm003_sp_03 : uShellEmBase03 (reader 0xd21b10), folder shell\em\em003_00_shell03
+      shell03: {
+        id: 0x67, cls: 'uShellEm003_sp_03', base: 'base03', reader: 0xd21b10, folder: 'shell\\em\\em003_00_shell03',
+        modes: {
+          // em003_00_03_ef000 / _sh000
+          0: { scale: 1.0, ef: [[0, 0]],
+               sh: { ints: [3, 0], floats: [20.0, 40.0, 120.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_03_ef001 / _sh001
+          1: { scale: 1.0, ef: [[0, 0]],
+               sh: { ints: [3, 0], floats: [0.0, 40.0, 120.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_03_ef002 / _sh002
+          2: { scale: 1.0, ef: [[0, 0]],
+               sh: { ints: [3, 0], floats: [-20.0, 40.0, 120.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_03_ef003 / _sh003
+          3: { scale: 1.0, ef: [[0, 0]],
+               sh: { ints: [3, 0], floats: [10.0, 40.0, 120.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_03_ef004 / _sh004
+          4: { scale: 1.0, ef: [[0, 0]],
+               sh: { ints: [3, 0], floats: [0.0, 40.0, 120.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_03_ef005 / _sh005
+          5: { scale: 1.0, ef: [[0, 0]],
+               sh: { ints: [3, 0], floats: [-10.0, 40.0, 120.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_03_ef006 / _sh006
+          6: { scale: 1.0, ef: [[0, 0]],
+               sh: { ints: [3, -1], floats: [20.0, 40.0, 120.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_03_ef007 / _sh007
+          7: { scale: 1.0, ef: [[0, 0]],
+               sh: { ints: [3, -1], floats: [0.0, 40.0, 120.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_03_ef008 / _sh008
+          8: { scale: 1.0, ef: [[0, 0]],
+               sh: { ints: [3, -1], floats: [-20.0, 40.0, 120.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_03_ef009 / _sh009
+          9: { scale: 1.0, ef: [[0, 0]],
+               sh: { ints: [3, -1], floats: [10.0, 40.0, 120.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_03_ef010 / _sh010
+          10: { scale: 1.0, ef: [[0, 0]],
+               sh: { ints: [3, -1], floats: [0.0, 40.0, 120.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_03_ef011 / _sh011
+          11: { scale: 1.0, ef: [[0, 0]],
+               sh: { ints: [3, -1], floats: [-10.0, 40.0, 120.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_03_ef012 / _sh012
+          12: { scale: 1.0, ef: [[0, 0]],
+               sh: { ints: [3, -1], floats: [55.0, 40.0, 120.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_03_ef013 / _sh013
+          13: { scale: 1.0, ef: [[0, 0]],
+               sh: { ints: [3, -1], floats: [0.0, 40.0, 120.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_03_ef014 / _sh014
+          14: { scale: 1.0, ef: [[0, 0]],
+               sh: { ints: [3, -1], floats: [-55.0, 40.0, 120.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_03_ef015 / _sh015
+          15: { scale: 1.0, ef: [[0, 0]],
+               sh: { ints: [3, -1], floats: [55.0, 40.0, 72.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_03_ef016 / _sh016
+          16: { scale: 1.0, ef: [[0, 0]],
+               sh: { ints: [3, -1], floats: [0.0, 40.0, 72.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_03_ef017 / _sh017
+          17: { scale: 1.0, ef: [[0, 0]],
+               sh: { ints: [3, -1], floats: [-55.0, 40.0, 72.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_03_ef018 / _sh018
+          18: { scale: 1.0, ef: [[0, 0]],
+               sh: { ints: [3, -1], floats: [33.0, 40.0, 72.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_03_ef019 / _sh019
+          19: { scale: 1.0, ef: [[0, 0]],
+               sh: { ints: [3, -1], floats: [-33.0, 40.0, 72.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_03_ef020 / _sh020
+          20: { scale: 1.0, ef: [[0, 0]],
+               sh: { ints: [3, 0], floats: [0.0, 40.0, 120.0], vecs: [[0.0, 0.0, 0.0]] } },
+        },
+      },
+      // shell05: global id 0x68, uShellEm003_sp_05 : uShellEmBase05 (reader 0xd21d28), folder shell\em\em003_00_shell05
+      shell05: {
+        id: 0x68, cls: 'uShellEm003_sp_05', base: 'base05', reader: 0xd21d28, folder: 'shell\\em\\em003_00_shell05',
+        modes: {
+          // em003_00_05_ef000 / _sh000
+          0: { scale: 1.0, ef: [[0, 30]],
+               sh: { ints: [], floats: [180.0], vecs: [] } },
+          // em003_00_05_ef001 / _sh001
+          1: { scale: 1.0, ef: [[0, 30]],
+               sh: { ints: [], floats: [180.0], vecs: [] } },
+        },
+      },
+      // shell13: global id 0x69, uShellEm003_sp_13 : uShellEmBase13 (reader 0xd220a4), folder shell\em\em003_00_shell13
+      shell13: {
+        id: 0x69, cls: 'uShellEm003_sp_13', base: 'base13', reader: 0xd220a4, folder: 'shell\\em\\em003_00_shell13',
+        modes: {
+          // em003_00_13_ef000 / _sh000
+          0: { scale: 1.0, ef: [[0, 30]],
+               sh: { ints: [0, 0, -1], floats: [11.25, 0.0125, -0.3, 1000.0, 3000.0, 180.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef001 / _sh001
+          1: { scale: 1.0, ef: [[0, 30]],
+               sh: { ints: [0, 0, -1], floats: [11.25, 0.0125, -0.3, 1000.0, 3000.0, 180.0, 300.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef002 / _sh002
+          2: { scale: 1.0, ef: [[0, 30]],
+               sh: { ints: [0, 0, -1], floats: [11.25, 0.0125, -0.3, 1000.0, 3000.0, 180.0, 0.0, 60.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef003 / _sh003
+          3: { scale: 1.0, ef: [[0, 30]],
+               sh: { ints: [0, 0, -1], floats: [11.25, 0.0125, -0.3, 1000.0, 3000.0, 180.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef004 / _sh004
+          4: { scale: 1.0, ef: [[0, 30]],
+               sh: { ints: [0, 0, -1], floats: [11.25, 0.0125, -0.3, 1000.0, 3000.0, 180.0, 0.0, 240.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef005 / _sh005
+          5: { scale: 1.0, ef: [[0, 30]],
+               sh: { ints: [0, 0, -1], floats: [11.25, 0.0125, -0.3, 1000.0, 3000.0, 180.0, 120.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef006 / _sh006
+          6: { scale: 1.0, ef: [[0, 32]],
+               sh: { ints: [0, 0, -1], floats: [11.25, 0.0125, -0.3, 1000.0, 3000.0, 180.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef007 / _sh007
+          7: { scale: 1.0, ef: [[0, 32]],
+               sh: { ints: [0, 0, -1], floats: [11.25, 0.0125, -0.3, 1000.0, 3000.0, 180.0, 300.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef008 / _sh008
+          8: { scale: 1.0, ef: [[0, 32]],
+               sh: { ints: [0, 0, -1], floats: [11.25, 0.0125, -0.3, 1000.0, 3000.0, 180.0, 0.0, 60.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef009 / _sh009
+          9: { scale: 1.0, ef: [[0, 32]],
+               sh: { ints: [0, 0, -1], floats: [11.25, 0.0125, -0.3, 1000.0, 3000.0, 180.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef010 / _sh010
+          10: { scale: 1.0, ef: [[0, 32]],
+               sh: { ints: [0, 0, -1], floats: [11.25, 0.0125, -0.3, 1000.0, 3000.0, 180.0, 0.0, 240.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef011 / _sh011
+          11: { scale: 1.0, ef: [[0, 32]],
+               sh: { ints: [0, 0, -1], floats: [11.25, 0.0125, -0.3, 1000.0, 3000.0, 180.0, 120.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef012 / _sh012
+          12: { scale: 1.0, ef: [[0, 30]],
+               sh: { ints: [0, -1, -1], floats: [12.0, 0.02, -0.3, 0.0, 2000.0, 180.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef013 / _sh013
+          13: { scale: 1.0, ef: [[0, 30]],
+               sh: { ints: [0, -1, -1], floats: [12.0, 0.02, -0.3, 300.0, 2000.0, 180.0, 30.0, 140.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef014 / _sh014
+          14: { scale: 1.0, ef: [[0, 30]],
+               sh: { ints: [0, -1, -1], floats: [12.0, 0.02, -0.3, 300.0, 2000.0, 180.0, 200.0, 330.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef015 / _sh015
+          15: { scale: 1.0, ef: [[0, 30]],
+               sh: { ints: [0, -1, -1], floats: [12.0, 0.02, -0.3, 300.0, 2000.0, 180.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef016 / _sh016
+          16: { scale: 1.0, ef: [[0, 30]],
+               sh: { ints: [0, -1, -1], floats: [12.0, 0.02, -0.3, 300.0, 2000.0, 180.0, 150.0, 330.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef017 / _sh017
+          17: { scale: 1.0, ef: [[0, 30]],
+               sh: { ints: [0, -1, -1], floats: [12.0, 0.02, -0.3, 300.0, 2000.0, 180.0, 30.0, 180.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef018 / _sh018
+          18: { scale: 1.0, ef: [[0, 32]],
+               sh: { ints: [0, -1, -1], floats: [12.0, 0.02, -0.3, 0.0, 2000.0, 180.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef019 / _sh019
+          19: { scale: 1.0, ef: [[0, 32]],
+               sh: { ints: [0, -1, -1], floats: [12.0, 0.02, -0.3, 300.0, 2000.0, 180.0, 30.0, 140.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef020 / _sh020
+          20: { scale: 1.0, ef: [[0, 32]],
+               sh: { ints: [0, -1, -1], floats: [12.0, 0.02, -0.3, 300.0, 2000.0, 180.0, 200.0, 330.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef021 / _sh021
+          21: { scale: 1.0, ef: [[0, 32]],
+               sh: { ints: [0, -1, -1], floats: [12.0, 0.02, -0.3, 300.0, 2000.0, 180.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef022 / _sh022
+          22: { scale: 1.0, ef: [[0, 32]],
+               sh: { ints: [0, -1, -1], floats: [12.0, 0.02, -0.3, 300.0, 2000.0, 180.0, 150.0, 330.0], vecs: [[0.0, 0.0, 0.0]] } },
+          // em003_00_13_ef023 / _sh023
+          23: { scale: 1.0, ef: [[0, 32]],
+               sh: { ints: [0, -1, -1], floats: [12.0, 0.02, -0.3, 300.0, 2000.0, 180.0, 30.0, 180.0], vecs: [[0.0, 0.0, 0.0]] } },
+        },
+      },
+    },
+    actions: [
+      // THE LIGHTNING (uShellEm003_sp_03, base03). One action, one index, one triple of modes, all at 176.0 of
+      // L2 Motion[3]. `modes` is what 0xd16e08's index table 0xd16f30 reaches with this action's number: the two
+      // branches it also has (`tst [+0x73e8], #3` at 0xd16f88 and 0xd1741c, the action number's low bits) are never
+      // zero for the numbers that arrive here -- 0x05 & 3 = 1 and 0x47 & 3 = 3 -- so modes 3 / 4 / 5 and 9 / 10 / 11
+      // cannot be made by any action, and are transcribed above but not listed.
+      { action: [7, 0x05], code: 0xd16e08, args: [0], list: '2', clip: 'Motion[3]', frame: 176.0, shell: 'shell03',
+        modes: [0, 1, 2], spawner: 0xd16e08, pick: 'unread' },
+      { action: [7, 0x0e], code: 0xd16e08, args: [4], list: '2', clip: 'Motion[3]', frame: 176.0, shell: 'shell03',
+        modes: [12, 13, 14], spawner: 0xd16e08, pick: 'ai', variant: '7:0x0e' },
+      // index 1 makes no shell: its case in the frame-176 table is the one that goes straight to the tail (0xd17df8)
+      { action: [7, 0x35], code: 0xd16e08, args: [1], list: '2', clip: 'Motion[3]', frame: 176.0, shell: 'shell03',
+        modes: [], spawner: 0xd16e08, pick: 'ai', variant: '7:0x35' },
+      // index 2 makes one bolt down the middle, mode 20 -- the only mode any action reaches whose sh int 1 is not -1,
+      // so it is the only one that takes base03's second ground path (climb03)
+      { action: [7, 0x46], code: 0xd16e08, args: [2], list: '2', clip: 'Motion[3]', frame: 176.0, shell: 'shell03',
+        modes: [20], spawner: 0xd16e08, pick: 'ai', variant: '7:0x46' },
+      { action: [7, 0x47], code: 0xd16e08, args: [3], list: '2', clip: 'Motion[3]', frame: 176.0, shell: 'shell03',
+        modes: [6, 7, 8], spawner: 0xd16e08, pick: 'ai', variant: '7:0x47' },
+      // index 5 then sets phase 3 and plays L2 Motion[3] again from frame 40 (0xd17e30..0xd17e54), which makes modes
+      // 18 and 19 at 176.0 of that second play (0xd17130..0xd172cc). The viewer has no action phase, so only the
+      // first wave is listed; the second is NOT MODELLED.
+      { action: [7, 0x4d], code: 0xd16e08, args: [5], list: '2', clip: 'Motion[3]', frame: 176.0, shell: 'shell03',
+        modes: [15, 16, 17], spawner: 0xd16e08, pick: 'ai', variant: '7:0x4d' },
+    ],
+  },
 };
 
 // The siblings run Rathian's class code on the clips they share with her, so her action entries are theirs (in front of
@@ -2529,6 +2783,182 @@ function spawnRock(state, D, a, J, ctx, got){
   S.effect = S.start ? { param: 0, key: S.start.key, kind: 'flight' } : null;
   if (S.start) S.effects[0].started = true;
   return S;
+}
+
+// ---- base03 (uShellEmBase03): the bolt that runs along the ground ------------------------------------------------
+// KHEZU's shell03 (uShellEm003_sp_03). ctor 0x3fd830 (over base00's 0x3f8a04), init 0x3fd9d8 (base00's 0x3f8b80 runs
+// first), state-1 move 0x3fdce4 (its vtable +0x158; +0x24 is base00's own 0x3f96a0, which dispatches by the state
+// byte and keeps base00's ending), the ground follow 0x3fdf18, end 0x3f9ef4. The bolt is aimed by its file's fan
+// angle, launched at its file's speed, dropped onto the ground under the joint, and then walks the floor until its
+// timer runs out.
+//
+// THE STAGE. Every query is the plane stand-in's (stageQuery): the init asks the segment 500 below to 500 above the
+// joint point (+0x1678 / +0x1674) and every move asks 250 either side of the stepped point (+0x1680 / +0x167c) --
+// all four 500.0 / 250.0 from the ctor (0x3fd884..0x3fd8ac) -- plus, on the second ground path (climb03), two probes
+// 3000 either way and one wall segment. NOT TRANSCRIBED, because a horizontal plane cannot answer them: the forward
+// query the move makes when the ground one misses (0x3fe7f8, mask 0x20 -- a wall), the sloped branch (0x3fe8c4, when
+// the surface normal leans along the heading) and the climb (0x3fe220, a wall with the ground more than 150.0 above
+// or below it); each of the three throws where the ROM would branch, so nothing silently takes another path.
+function params03(def, mode){          // sp_03's reader 0xd21b10 (vtable +0x14c)
+  const sh = mode.sh;
+  return { joint: sh.ints[0],                        // +0x15dc: sh int 0 (base00's init reads it, 0x3f8d58)
+           ground: sh.ints[1],                       // +0x1664 bit 0 = (sh int 1 != -1): the other ground path
+           fanDeg: f(sh.floats[0]),                  // +0x15f0: the Y offset in degrees (0x3f9cc4 makes the word)
+           speed: f(sh.floats[1]),                   // +0x15f4: the launch speed along +Z (0x3f91a0, again 0x3fdc90)
+           life: f(sh.floats[2]),                    // +0x15fc -> the timer +0x162c (0x3f8cc0)
+           vec: (sh.vecs[0] || ZERO3).map(f),        // +0x1610: the offset from the joint (0x3f8e40)
+           reach: f(500.0), follow: f(250.0) };      // +0x1674 / +0x1678 and +0x167c / +0x1680 (ctor 0x3fd830)
+}
+
+// base00's init 0x3f8b80 as sp_03's reader runs it -- its flag word +0x15e8 is never written, so every test there is
+// clear: the joint gives the point, the owner gives the angle words, the offset turns with the joint -- and then
+// base03's own init 0x3fd9d8. `got` = the inputs that are not read (the owner's angle words); the floor is ctx's.
+function init03(S, def, J, got, ctx){
+  const k = S.k = params03(def, S.mode);
+  const M = jointMatrix(J, k.joint);                     // 0xc15a4 (0x3f8d70)
+  if (!M) return false;
+  const p = launchPoint(M, k.vec);                       // 0x3f8e60..0x3f8ecc: the offset in the joint's rotation
+  // the angle words: the owner block's X / Y and 0 (0x3f8c70..0x3f8c94), each with the reader's degree offset added
+  // as a u16 -- X from +0x15ec (0 here, 0x3f9378) and Y from +0x15f0, the fan angle (0x3f9cc4); both uxth before the
+  // add (0x3f9588 / 0x3f9ed8), and the add itself is a plain 32-bit store (0x3f8fec / 0x3f9034)
+  const dX = u16(s32(mla(0.5, 0.0, DEG_TO_U16))), dY = u16(s32(mla(0.5, k.fanDeg, DEG_TO_U16)));
+  S.angles = [(got.ownerX + dX) >>> 0, (got.ownerY + dY) >>> 0, 0];
+  S.timer = k.life;                                      // +0x162c = +0x15fc (0x3f8cc0)
+  S.position = p;                                        // +0x40: the joint point plus the offset (0x3f913c)
+  S.anchor = p.slice();                                  // +0x1000 (0x3f916c)
+  S.gravity = ZERO3.slice();                             // +0x1020: base00's +0x170 turns +0x161c, which sp_03 never writes
+  S.velocity = launchVelocity(0.0, k.speed, S.angles);   // 0x3f91a0: (0, +0x15f8 = 0, +0x15f4) turned by the words
+  // base03's init: the ground under the spawn point, 500 either way (0x3fda70..0x3fdafc)
+  const A = [p[0], f(p[1] - k.reach), p[2]], B = [p[0], f(p[1] + k.reach), p[2]];
+  const hit = stageQuery(A, B, ctx.floorY);
+  S.launch = { point: p.slice(), angles: S.angles.slice(), query: [A, B], ground: hit ? hit.point.slice() : null };
+  if (!hit) return false;                                // 0x3fdb30: vtable +0x148 with 1 -- no ground, no bolt
+  S.position = [p[0], hit.point[1], p[2]];               // 0x3fdb08: y = the contact's
+  S.anchor = S.position.slice();                         // +0x1000..+0x100c (0x3fdb48..0x3fdb70)
+  // the flags' bit 2 is clear (nothing sets it here), so the timer stays the file's (0x3fdb7c..0x3fdb90), and the
+  // velocity is made again from the angle words with the X word taken as 0 (0x3fdc68..0x3fdc98, 0x3f95a4)
+  S.velocity = launchVelocity(0.0, k.speed, [0, S.angles[1], S.angles[2]]);
+  S.launchVelocity = S.velocity.slice();                 // +0x1690..+0x1698, what the ground follow rescales
+  S.launch.velocity = S.velocity.slice();
+  return true;
+}
+
+// the ground under the shell, every move: 0x3fdf18 with the flags' bit 0 clear (sh int 1 == -1). Returns the ROM's
+// own code -- 0x11 when it found ground (the only one a plane can give), 0x22 when it did not -- which the move
+// hands to the hit record (0x3feb38; not visual: the shell has no hit slot here, byte +0x13ae = 0xff).
+function follow03(S, ctx){
+  const k = S.k, p = S.position;
+  const A = [p[0], f(p[1] - k.follow), p[2]], B = [p[0], f(p[1] + k.follow), p[2]];
+  const hit = stageQuery(A, B, ctx.floorY);              // 0x3fe690..0x3fe728, mask 0x10
+  if (!hit) return 0x22;                                 // 0x3fe7f8's forward query cannot hit a horizontal plane
+  // 0x3fe758..0x3fe7ec: the heading from the Y word against the normal the query wrote (+0x16c0 = the result
+  // record's +0x20). The literal the heading leans by is 0.0 (0x3feb08), so the two terms are sin and cos.
+  const rad = f(u16(S.angles[1]) * U16_TO_RAD), sn = sinf(rad), cs = cosf(rad);
+  const n = hit.normal;
+  const h8 = mla(sn, cs, 0.0), h0 = mls(cs, sn, 0.0);
+  let d = f(n[1] * 0.0); d = mla(d, n[0], h8); d = mla(d, n[2], h0);
+  if (d !== 0) throw new Error('shells.js: a base03 bolt on a leaning surface (0x3fe8c4, not transcribed)');
+  const s4 = f(h0 * d), s0 = f(h8 * d);
+  let s16 = f(s0 * s0); s16 = mla(s16, n[1], n[1]); s16 = mla(s16, s4, s4);
+  let s20 = mla(n[1], s0, 0.0); s20 = mla(s20, s4, 0.0);
+  S.angles = [0, S.angles[1], S.angles[2]];              // 0x3fe7e0 / 0x3fea00: the X word is set to 0
+  let c = f(s20 / sqrtf(s16));                           // 0x3fe9fc / 0x3fea18
+  // the sign trick at 0x3fea2c (c > 0) and 0x3fea48: min(c, 1) and -min(-c, 1)
+  c = c > 0 ? f(Math.min(c, 1.0)) : f(-Math.min(f(-c), 1.0));
+  const factor = f(mla(f(90.0), acosf(c), f(-RAD_TO_DEG)) / f(90.0));   // 0x3fea64..0x3feaac
+  S.velocity = S.launchVelocity.map(v => f(v * factor));                 // +0x1010..+0x1018 = +0x1690.. times it
+  S.position = [S.position[0], hit.point[1], S.position[2]];             // 0x3feadc: only y is taken
+  S.events.push({ ev: 'ground', point: hit.point.slice(), factor });
+  return 0x11;
+}
+
+// the other ground path, taken when the file's sh int 1 is not -1 (flags +0x1664 bit 0): 0x3fdfcc -> 0x3fe074,
+// entered while the state word +0x16d0 is 0. Before the follow it probes the ground under the new point and under
+// the old one (3000 either way, mask 0x10: 0x3fe180 / 0x3fe1bc, their answers going to the shell's own hit record
+// +0x1060, which nothing on this path reads), then asks whether a wall stands between them -- the segment from the
+// old point to the new, both raised 40.0, mask 0x20 with bit 6 of the query flags cleared (0x3fe204). A horizontal
+// plane cannot answer that one: both ends are at the same height, so it never hits, and the shell follows the
+// ground exactly as the other modes do (0x3fe21c joins them at 0x3fe688). NOT TRANSCRIBED: what the ROM does when
+// it does hit and the two ground heights differ by more than 150.0 (0x3fe220..0x3fe23c) -- the bolt climbs.
+function climb03(S, ctx){
+  const p = S.position, a = S.anchor, up = f(3000.0), down = f(-3000.0), lift = f(40.0);
+  stageQuery([p[0], f(p[1] + down), p[2]], [p[0], f(p[1] + up), p[2]], ctx.floorY);      // 0x3fe180
+  stageQuery([a[0], f(a[1] + down), a[2]], [a[0], f(a[1] + up), a[2]], ctx.floorY);      // 0x3fe1bc
+  const wall = stageQuery([p[0], f(p[1] + lift), p[2]], [a[0], f(a[1] + lift), a[2]], ctx.floorY);
+  if (wall) throw new Error('shells.js: a base03 bolt met a wall (0x3fe220, not transcribed)');
+  return follow03(S, ctx);
+}
+
+// base03's state-1 move 0x3fdce4 (sp_03's vtable +0x158)
+function move03(S, ctx){
+  S.anchor = S.position.slice();                         // +0x1000..+0x100c (0x3fdd00..0x3fdd2c)
+  stepFlight(S, ctx.dt);                                 // 0x539224: the acceleration is zero here
+  // 0x3fdf74: which ground path, by the flags' bit 0 (the reader sets it from sh int 1)
+  S.ground = (S.k.ground === -1 ? follow03 : climb03)(S, ctx);      // 0x3fdf18
+  // 0x3fdd54: the file's life is above 0, so the timer decides (0x3f9814 counts +0x162c down by the shell's dt and
+  // returns 1 at 0). The life <= 0 path (0x3fdd84) reads hit-slot bytes +0x13ad / +0x1465: NOT READ.
+  if (!(S.k.life > 0)) throw new Error('shells.js: a base03 bolt with life ' + S.k.life + ' (0x3fdd84, not transcribed)');
+  const T = S.timer;
+  if (!(T > 0)){ S.timer = 0; return 'end'; }
+  const t = f(T - ctx.dt);
+  S.timer = (0 >= t) ? 0 : t;
+  return t > 0 ? 'keep' : 'end';
+}
+
+// one bolt's step (vtable +0x24 = base00's 0x3f96a0: state 1 -> sp_03's +0x158, state 0xfe -> base00's 0x3f986c)
+function stepBolt(S, ctx, input, D, out){
+  S.events = [];
+  S.place = null;                                        // the shell never places its effect (no 0x329c9c / 0x329d04)
+  const alive = h => input.effectAlive ? !!input.effectAlive(S, h.param, h) : true;
+  if (S.effect && !S.effect.gone && !alive(S.effect)) S.effect.gone = true;     // 0x3f96ac
+  if (S.state === 1){
+    S.moves++;
+    const r = move03(S, ctx);
+    if (r === 'end'){                                    // vtable +0x148 with 0 (0x3f9ef4)
+      end(S);
+      if (S.stop) S.events.push({ ev: 'stop', param: 0, key: S.stop.key, flag: 0 });
+      out.ended.push(S);
+    }
+  } else if (S.state === 0xfe){                          // base00's ending 0x3f986c: wait for the effect
+    const T = S.timer;
+    if (!(T > 0)){ S.timer = 0; S.state = 0xff; }
+    else {
+      const t = f(T - ctx.dt);
+      S.timer = (0 >= t) ? 0 : t;
+      if (t <= 0) S.state = 0xff;
+      else if (!(S.effect && !S.effect.gone)) S.state = 0xff;
+    }
+  }
+}
+
+// the bolts one lightning action makes, all in the same step: 0xd16e08's index table 0xd16f30 names the modes
+function spawnBolts(state, D, a, J, ctx, got, out){
+  const def = D.shells[a.shell], lists = def.lists || D.lists, made = [];
+  for (const m of a.modes){
+    const mode = def.modes[m];
+    if (!mode) continue;                                 // a mode with no ShellInfoList entry
+    const S = { id: state.nextId++, monId: state.monId, shell: a.shell, cls: def.cls, globalId: def.id, base: def.base,
+                mode, modeIndex: m, action: a.action, spawnFrame: a.frame, motion: ctx.motion, state: 1,
+                position: null, prevPosition: null, anchor: null, angles: null, velocity: null, gravity: null,
+                launchVelocity: null, timer: 0, moves: 0, ground: 0, launch: null, events: [], folder: def.folder,
+                effect: null, effect2: null, start: null, place: null, stop: null };
+    S.effects = mode.ef.map(([listId, key], param) => ({ param, listId, list: (lists[listId] || {}).list || null, key, started: false }));
+    if (!init03(S, def, J, got, ctx)) continue;          // the init's own refusal deletes the shell
+    S.prevPosition = S.position.slice();
+    S.start = rockRequest(D, mode, 0, S.position, 'flight', lists);   // 0x3f9298..0x3f9304, at +0x40
+    S.effect = S.start ? { param: 0, key: S.start.key, kind: 'flight' } : null;
+    if (S.start) S.effects[0].started = true;
+    made.push(S);
+  }
+  return made;
+}
+
+// what a bolt's spawn reads from the game and this module does not: the owner's angle words and the stage's floor
+function boltInputs(input){
+  const o = input.owner, r = input.rock;
+  if (!o || !Number.isFinite(o.y)) return { why: 'no owner facing (input.owner.y)' };
+  if (!r || !Number.isFinite(r.floorY)) return { why: 'no floor (input.rock.floorY)' };
+  return { ownerX: (o.x || 0) >>> 0, ownerY: o.y >>> 0 };
 }
 
 // ---- Nargacuga's tail spikes: base00 with uShellEm037_sp_00's own reader, init path and landing ------------------------
@@ -3617,6 +4047,11 @@ export function stepShells(state, input){
       const got = spikeInputs(input, a.spawnArgs[1]);
       if (got.why) out.refused.push({ action: a.action, shell: a.shell, modes: a.modes.slice(), why: got.why });
       else for (const S of spawnSpikes(state, D, a, state.prevJoints, ctx, got)){ out.spawned.push(S); state.shells.push(S); }
+    } else if (passed && a.spawner === 0xd16e08){
+      // Khezu's lightning: the action's index makes its whole triple in this step, each bolt inited here and moved below
+      const got = boltInputs(input);
+      if (got.why) out.refused.push({ action: a.action, shell: a.shell, modes: (a.modes || []).slice(), why: got.why });
+      else for (const S of spawnBolts(state, D, a, state.prevJoints, ctx, got, out)){ out.spawned.push(S); state.shells.push(S); }
     } else if (passed && isRockAction(D, a)){
       const got = rockInputs(input);
       if (got.why) out.refused.push({ action: a.action, shell: a.shell, mode: a.mode, why: got.why });
@@ -3638,7 +4073,8 @@ export function stepShells(state, input){
   // explosion timer; Savage's and Nargacuga's shells make none that are stepped)
   for (let i = 0; i < state.shells.length; i++){
     const S = state.shells[i], last = i === state.shells.length - 1;
-    if (S.base === 'base00' || S.base === 'base54') stepRock(S, J, ctx, input, D, out);
+    if (S.base === 'base03') stepBolt(S, ctx, input, D, out);
+    else if (S.base === 'base00' || S.base === 'base54') stepRock(S, J, ctx, input, D, out);
     else if (S.base === 'base01' || S.base === 'base11') step011(S, ctx, input, D, out);
     else stepBreath(S, J, ctx, input, D, out);
     if (last) break;
