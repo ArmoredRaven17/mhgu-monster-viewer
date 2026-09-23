@@ -60,6 +60,15 @@
 //     em-2 variant-4 paths (0x15 as the mask's modes; 0x1f -> shell01 0x1b, or 0x11 above quest 6; 0x22..0x24 -> 0x1d /
 //     0x34 / 0x36, no ground fire), and sp_01's end create (0xd0eb20) makes 0x1c / 0x12 / 0x1e / 0x35 / 0x37 when those
 //     end. Its input: input.questLevel (the 0x1f landing).
+//   * RATHALOS (em002_00): the same class with em byte 2 and variant byte 0, its shell ids 0x57 / 0x5d (0xd09918) and
+//     files, EffectLists (c = em002_00c, u = em002_00u). Its lists 0..3 are Rathian's files, so her hover turns and dust
+//     rows are its, with the flight dust of its own L4 M25..M27; its fireballs are the Rathalos modes the family's
+//     helpers give em 2 variant 0: 0 / 4 (L2 M5 / M18), 0xc (L4 M22), L4 M29's shots 0xd / 0x10..0x12 / 0xe / 0x13 /
+//     0x14 / 0xf (one to three per action, the phase counting them in P+0x1a2 over the looping clip), 0x15 / 0x16 / 0x20
+//     (the take-off) and 0x17 (L4 M45, aimed on X and Y). None of them is in the landing's mask, so each lands as
+//     Rathian's do (shell01 1 and the ground fire 2; mode 0x20 also 0x13) and its third shell id 0x19d is never used. Its
+//     L2 M13 puffs are shell01 10..12 at either rank; its L2 M1 puffs (5 / 4 / 3, G 0x28..0x26) have no files here, so
+//     that clip draws nothing and is not listed. It needs no input of its own.
 //
 // UNITS AND FRAMES. Positions are GAME units in world space (the viewer's world is game units / 100: live.js
 // MT_TO_VIEW). Joint matrices are the game's: 16 floats in memory order (row-vector convention, rows = axes, row 3 =
@@ -98,10 +107,11 @@
 //     ends at move 1 with no effect and no child) -- not listed; the take-offs (L4 M13 f6: shell00 21 / 22 / 32 / 33 no
 //     files, or shell01 0, which draws nothing).
 //   * Dreadking: as Rathian; (7, 0x02)'s turn in its phase 1 (0xcfde84..0xcfde90: input.owner.y instead); who issues
-//     (7, 0x27) / (7, 0x28) / (7, 0x33) / (7, 0x34) (no stream calls them); how often an L4 M29 attack repeats (P+0x1a2:
-//     every shot is 0x1d); creates made and deleted by their init for want of files ((7, 0x42) 9..11, (7, 0x4a) / (7, 0x5a) /
-//     (7, 0x5b) / (7, 0xef) 24 / 25, (7, 0x70) 37, (1, 0xff) 16) and the helpers whose frames are actiontune floats past
-//     its six (L9 M7's dust, (7, 0xf2)): not listed.
+//     (7, 0x27) / (7, 0x28) / (7, 0x33) / (7, 0x34) (no stream calls them); creates made and deleted by their init for want
+//     of files ((7, 0x42) 9..11, (7, 0x4a) / (7, 0x5a) / (7, 0x5b) / (7, 0xef) 24 / 25, (7, 0x70) 37, (1, 0xff) 16) and the
+//     helpers whose frames are actiontune floats past its six (L9 M7's dust, (7, 0xf2)): not listed.
+//   * Rathalos: as Rathian; what ends its L4 M45 attack, which throws one fireball on every pass of frame 44 while it
+//     lasts; its L2 M1 puffs (no files: the shells the ROM makes there start nothing) and the flight moves' own travel.
 const f = Math.fround;
 
 // ---- ROM constants (float literals as stored) -------------------------------------------------------------------
@@ -1180,21 +1190,25 @@ export const SHELL_DATA = {
       { action: [7, 0x2e], code: 0xd00118, args: [0, 1], list: '4', clip: 'Motion[22]', partners: [], spawns: [{ at: 0xd0ac20, kind: 'first', frames: [82.0], shell: 'shell00', modes: [0x1d] }], op24: 'else', pick: 'ai', variant: '7:0x2e' },
       { action: [7, 0x30], code: 0xd00118, args: [1, 0], list: '4', clip: 'Motion[22]', partners: [], spawns: [{ at: 0xd0ac20, kind: 'first', frames: [82.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x30' },
       { action: [7, 0x41], code: 0xd00118, args: [1, 1], list: '4', clip: 'Motion[22]', partners: [], spawns: [{ at: 0xd0ac20, kind: 'first', frames: [82.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x41' },
-      // L4 M29 (after L4 M28): 0xd004cc(e, r1, r2, r3) -> 0xd0ae28: passes 40 (0xd0b08c) -> shell00 0x1d for em 2 variant 4
-      // (0xd0af84..0xd0af98; else by r1 and the count P+0x1a2, 0xd0af04..0xd0af50); r2 1: shell01 0. (7, 0x27) / (7, 0x28) /
-      // (7, 0x33) / (7, 0x34) sit in streams no op 0x14 calls (who issues them: NOT READ).
-      { action: [7, 0x24], code: 0xd004cc, args: [0, 0, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell00', modes: [0x1d] }], op24: 'else', pick: 'ai', variant: '7:0x24' },
-      { action: [7, 0x26], code: 0xd004cc, args: [1, 0, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell00', modes: [0x1d] }], op24: 'else', pick: 'ai', variant: '7:0x26' },
-      { action: [7, 0x27], code: 0xd004cc, args: [2, 0, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell00', modes: [0x1d] }], pick: 'ai', variant: '7:0x27' },
-      { action: [7, 0x28], code: 0xd004cc, args: [3, 0, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell00', modes: [0x1d] }], pick: 'ai', variant: '7:0x28' },
-      { action: [7, 0x3b], code: 0xd004cc, args: [4, 0, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell00', modes: [0x1d] }], op24: 'else', pick: 'ai', variant: '7:0x3b' },
-      { action: [7, 0x65], code: 0xd004cc, args: [6, 0, 1], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell00', modes: [0x1d] }], pick: 'ai', variant: '7:0x65' },
-      { action: [7, 0x67], code: 0xd004cc, args: [0, 0, 1], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell00', modes: [0x1d] }], pick: 'ai', variant: '7:0x67' },
-      { action: [7, 0x31], code: 0xd004cc, args: [0, 1, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x31' },
-      { action: [7, 0x32], code: 0xd004cc, args: [1, 1, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x32' },
-      { action: [7, 0x33], code: 0xd004cc, args: [2, 1, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell01', modes: [0] }], pick: 'ai', variant: '7:0x33' },
-      { action: [7, 0x34], code: 0xd004cc, args: [3, 1, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell01', modes: [0] }], pick: 'ai', variant: '7:0x34' },
-      { action: [7, 0x3c], code: 0xd004cc, args: [4, 1, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'first', frames: [40.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x3c' },
+      // L4 M29 (after L4 M28), THE SHOTS: 0xd004cc(e, r1, r2, r3) -> 0xd0ae28 at frame 40 (0xd0b08c) -> shell00 0x1d for
+      // em 2 variant 4 (0xd0af84..0xd0af98; the other variants take the mode by r1 and P+0x1a2, 0xd0af04..0xd0af50), or
+      // shell01 0 with r2 1. The phase plays the clip, which loops at its frame 0, and repeats while P+0x1a2 -- zeroed at
+      // the phase's start (0xd005fc), raised after each create (0xd0b054..0xd0b064) -- is under the action's count (table
+      // 0x15927f8[r1 - 1] = 3 / 1 / 3 / 3 for r1 1..4, else 1: 0xd00610..0xd00630, 0xd00710..0xd0071c), so `modes` is one
+      // entry per shot (ROM-run with the clip looping). (7, 0x27) / (7, 0x28) / (7, 0x33) / (7, 0x34) sit in streams no op
+      // 0x14 calls (who issues them: NOT READ).
+      { action: [7, 0x24], code: 0xd004cc, args: [0, 0, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell00', modes: [0x1d] }], op24: 'else', pick: 'ai', variant: '7:0x24' },
+      { action: [7, 0x26], code: 0xd004cc, args: [1, 0, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell00', modes: [0x1d, 0x1d, 0x1d] }], op24: 'else', pick: 'ai', variant: '7:0x26' },
+      { action: [7, 0x27], code: 0xd004cc, args: [2, 0, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell00', modes: [0x1d] }], pick: 'ai', variant: '7:0x27' },
+      { action: [7, 0x28], code: 0xd004cc, args: [3, 0, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell00', modes: [0x1d, 0x1d, 0x1d] }], pick: 'ai', variant: '7:0x28' },
+      { action: [7, 0x3b], code: 0xd004cc, args: [4, 0, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell00', modes: [0x1d, 0x1d, 0x1d] }], op24: 'else', pick: 'ai', variant: '7:0x3b' },
+      { action: [7, 0x65], code: 0xd004cc, args: [6, 0, 1], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell00', modes: [0x1d] }], pick: 'ai', variant: '7:0x65' },
+      { action: [7, 0x67], code: 0xd004cc, args: [0, 0, 1], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell00', modes: [0x1d] }], pick: 'ai', variant: '7:0x67' },
+      { action: [7, 0x31], code: 0xd004cc, args: [0, 1, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x31' },
+      { action: [7, 0x32], code: 0xd004cc, args: [1, 1, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell01', modes: [0, 0, 0] }], op24: 'if', pick: 'ai', variant: '7:0x32' },
+      { action: [7, 0x33], code: 0xd004cc, args: [2, 1, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell01', modes: [0] }], pick: 'ai', variant: '7:0x33' },
+      { action: [7, 0x34], code: 0xd004cc, args: [3, 1, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell01', modes: [0, 0, 0] }], pick: 'ai', variant: '7:0x34' },
+      { action: [7, 0x3c], code: 0xd004cc, args: [4, 1, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell01', modes: [0, 0, 0] }], op24: 'if', pick: 'ai', variant: '7:0x3c' },
       // L4 M32 (the take-off, after L4 M31): 0xcf3ff0(e, r1, r2, r3) -> 0xd0c0dc(e, kind, sub): passes 6 (0xd0c0fc / 0xd0c1ac)
       // -> kind 1 / 2: shell00 0x20 with sub 1 (0xd0c158), else 0x15 (0xd0c32c); kind 5 / 6: 0x21 for variant 4
       // (0xd0c1c0..0xd0c1f8, else 0x16); kind 3 / 4: shell01 0 (0xd0c244). (9, 3) / (9, 4) = status 9's 0xcee4e4 / 0xcee4f4.
@@ -1257,6 +1271,177 @@ export const SHELL_DATA = {
     // dk\posture_probe.py): posture 3 on every frame of these three clips.
     postures: { '4|Motion[25]': 3, '4|Motion[26]': 3, '4|Motion[27]': 3 },
   },
+
+  // RATHALOS (em002_00): Rathian's class uEm001_00 with em byte +0xb5f4 = 2, variant +0xb5f5 = 0. 0xd09918 keeps the
+  // global shells 0x57 / 0x5d / 0x19d at enemy +0xcac4 / +0xcac8 / +0xcacc (0xd09994..0xd099b0); table 0x175c3e8 names
+  // Rathian's classes for the first two (uShellEm001_sp_00 / sp_01) with this monster's .shl (resources 0x89aa / 0x89b0).
+  // 0x19d, the explosion timer's id, has no entry there and no .shl in the .arc -- and no mode of its shell00 is in the
+  // landing's mask (0x227f000f over mode - 8: modes 8..11, 24..30, 33, 37), the only thing that makes one, so it never
+  // does. Values: the files' own, C:\MHGU-Extract\scratch-em\em002_00\em002_00.arc, shell\em\em002_00_shellNN
+  // (ShellInfoList 15 / 11, ShellScale 1.0).
+  em002_00: {
+    name: 'Rathalos',
+    em: 2, variant: 0,                               // enemy +0xb5f4 / +0xb5f5
+    // both em002_00 .shl files name EffectLists[0] = effect\pel\em\em002_00c and [1] = effect\pel\em\em002_00u, the rest
+    // null (as its siblings': the c list is this family's, the u list the monster's own)
+    lists: { 0: { list: 'c', pel: 'em002_00c' }, 1: { list: 'u', pel: 'em002_00u' } },
+    shells: {
+      // THE FIREBALLS (uShellEm001_sp_00, base00; Rathian's shell00 notes apply). Modes 0 / 4 (L2 M5 / M18, as Rathian's
+      // 0 / 4: aimed, flags 1), 12 (L4 M22, aimed), 13..20 (L4 M29's shots, unaimed: X 30..50 degrees), 15 (aimed), 21 /
+      // 22 (the take-off, unaimed) and 32 ((9, 3)'s, unaimed), 23 (L4 M45, aimed on X and Y: flags 1 | 2). None is in the
+      // landing's mask, so every landing takes the plain path (shell01 1 and the ground fire 2; mode 32 also 19).
+      shell00: {
+        id: 0x57, cls: 'uShellEm001_sp_00', base: 'base00', folder: 'shell\\em\\em002_00_shell00', reader: 0xd0d988,
+        modes: {
+          0: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+             sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 60.0, 180.0, -45.0, 45.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 200.0, 200.0]] } },
+          4: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+             sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 60.0, 180.0, 0.0, 90.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 260.0, 400.0]] } },
+          12: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 60.0, 180.0, -30.0, 50.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 400.0, 100.0]] } },
+          13: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [50.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          14: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [50.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          15: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, 0, -1, -1, -1, -1], floats: [0.0, 0.0, 50.0, 216.0, 10.0, 90.0, 50.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 50.0, 350.0]] } },
+          16: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [50.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          17: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [43.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          18: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [43.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          19: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [50.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          20: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [50.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          21: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [40.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          22: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [30.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+          23: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, 0, 0, -1, -1, -1], floats: [0.0, 0.0, 50.0, 216.0, -70.0, 70.0, 50.0, 30.0, 150.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 500.0]] } },
+          32: { scale: 1.0, ef: [[0, 0], [0, 2], [0, 1], [0, 2]], hit: [0],
+              sh: { ints: [3, -1, 1, -1, -1, -1, -1, -1], floats: [40.0, 0.0, 60.0, 180.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0.0, -80.0, 80.0], [0.0, 0.0, 0.0]] } },
+        },
+        // em002_00_00_hitdata (HDS, 2 records)
+        hitdata: [[0, 99], [0, 99]],
+      },
+      // GROUND FIRE, DUST, PUFFS, HIT VOLUMES (uShellEm001_sp_01, base01; params011). Rathian's 1 (the landing's), 2 (the
+      // ground fire), 13..15 (the hover / flight dust) and 19 / 20 (mode 32's landing and the L4 M17 dust); 10..12 are
+      // this monster's L2 M13 puffs on joint 4; 0 is the no-fire actions' hit volume, which draws nothing. Its 3..9 and
+      // 38..40 (Rathian's explosion and L2 M1 puff modes) have no files here: the L2 M1 puffs its code makes are deleted
+      // by their init, so that clip draws nothing.
+      shell01: {
+        id: 0x5d, cls: 'uShellEm001_sp_01', base: 'base01', folder: 'shell\\em\\em002_00_shell01', reader: 0xd0e6a0,
+        modes: {
+          0: { scale: 1.0, ef: [[999, -1], [999, -1]], hit: [8, -1],
+             sh: { ints: [0, 3, 0, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 190.0]] } },
+          1: { scale: 1.0, ef: [[999, -1], [999, -1]], hit: [0, 2],
+             sh: { ints: [-1, -1, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          2: { scale: 1.0, ef: [[0, 3], [999, -1]], hit: [7, -1],
+             sh: { ints: [-1, -1, -1, 0, 0, -1, -1, -1, -1], floats: [200.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          10: { scale: 1.0, ef: [[1, 60], [999, -1]], hit: [11, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[-100.0, -20.0, 80.0]] } },
+          11: { scale: 1.0, ef: [[1, 60], [999, -1]], hit: [11, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[80.0, 0.0, 100.0]] } },
+          12: { scale: 1.0, ef: [[1, 60], [999, -1]], hit: [11, -1],
+              sh: { ints: [0, 4, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[200.0, -130.0, 100.0]] } },
+          13: { scale: 1.0, ef: [[0, 30], [999, -1]], hit: [-1, 12],
+              sh: { ints: [-1, -1, -1, 0, -1, 0, -1, -1, 0], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 100.0]] } },
+          14: { scale: 1.0, ef: [[0, 31], [999, -1]], hit: [-1, 13],
+              sh: { ints: [-1, -1, -1, 0, -1, 0, -1, -1, 0], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          15: { scale: 1.0, ef: [[0, 31], [999, -1]], hit: [-1, 14],
+              sh: { ints: [-1, -1, -1, 0, -1, 0, -1, -1, 0], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          19: { scale: 1.0, ef: [[999, -1], [999, -1]], hit: [16, -1],
+              sh: { ints: [-1, -1, -1, -1, -1, -1, -1, -1, -1], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+          20: { scale: 1.0, ef: [[0, 31], [999, -1]], hit: [-1, 15],
+              sh: { ints: [-1, -1, -1, 0, -1, 0, -1, -1, 0], floats: [0.0, 0.0, 0.0], vecs: [[0.0, 0.0, 0.0]] } },
+        },
+        // em002_00_01_hitdata (HDS, 17 records): (s16 +0 delay, s16 +2 duration) by record, for input.hitLife
+        hitdata: [[10, 10], [10, 10], [0, 10], [10, 20], [6, 16], [6, 16], [6, 16], [8, 172], [6, 5], [2, 10], [2, 10],
+                  [0, 10], [14, 10], [14, 10], [14, 10], [14, 10], [10, 10]],
+      },
+    },
+    // THE ACTIONS. Rathian's hover turns and dust rows are this monster's too (after this table), with its own flight dust
+    // rows; its fire actions are its own -- the same case bodies and spawn helpers as its siblings', whose em / variant
+    // branches give em 2 variant 0 these modes, on the clips its lists have (L2 = em001_00_2.lmt; L4 = em002_00_4.lmt:
+    // the Rathalos slots, no L4 M8 / M16 / M18 / M38 / M65 and no list 9). Read to their helpers and run on the ROM
+    // (arun.py: every drawing create below at its frame). Not listed: L2 M1's puffs ((7, 0x4d) / (7, 0x75) -> shell01
+    // 5 / 4 / 3, G rank 0x28 / 0x27 / 0x26, and their no-fire twins (7, 0x00) / (7, 0x74)) -- em002_00_01 has no such
+    // modes, so the shells the ROM makes there read -1 / 0.0 / the zero vector, start nothing and end at their first
+    // move: that clip draws nothing. The op24 marks: the command table's op-0x24 branch of every called site (op24.py,
+    // and the check's --emc pass).
+    actions: [
+      // L2 M5 / M18: (7, 0x02) / (7, 0x0f) = 0xcfddec(e, 0 / 1) and (7, 0x0a) / (7, 0x0b) = 0xcfef64(e, 0 / 1), as
+      // Rathian's (the blend partners too); 0xd0a134 makes shell00 0 for em 2 variant 0 (its em-2 variant-4 branch
+      // 0xd0a200..0xd0a244 is Dreadking's), 0xd0a614 mode 4 (0xd0a6e0..0xd0a724 likewise)
+      { action: [7, 0x02], code: 0xcfddec, args: [0], list: '2', clip: 'Motion[5]', partners: ['Motion[15]', 'Motion[16]'], spawner: 0xd0a134, spawnArgs: [0], frames: [78.0], shell: 'shell00', modes: [0], op24: 'else', pick: 'ai', variant: '7:0x02' },
+      { action: [7, 0x0f], code: 0xcfddec, args: [1], list: '2', clip: 'Motion[5]', partners: ['Motion[15]', 'Motion[16]'], spawner: 0xd0a134, spawnArgs: [1], frames: [78.0], shell: 'shell01', modes: [0], op24: 'if', pick: 'ai', variant: '7:0x0f' },
+      { action: [7, 0x0a], code: 0xcfef64, args: [0], list: '2', clip: 'Motion[18]', partners: ['Motion[17]'], spawner: 0xd0a614, spawnArgs: [0], frames: [80.0], shell: 'shell00', modes: [4], op24: 'else', pick: 'ai', variant: '7:0x0a' },
+      { action: [7, 0x0b], code: 0xcfef64, args: [1], list: '2', clip: 'Motion[18]', partners: ['Motion[17]'], spawner: 0xd0a614, spawnArgs: [1], frames: [80.0], shell: 'shell01', modes: [0], op24: 'if', pick: 'ai', variant: '7:0x0b' },
+      // L2 M13: (7, 0x4e) / (7, 0x11) = 0xcff1b0(e, 1 / 0) -> 0xd0a818: its G-rank puffs 0x29..0x2b are em 2 variants
+      // 1 / 2 only (0xd0a864 / 0xd0a950 / 0xd0aa3c), so this monster throws 12 / 11 / 10 at either rank
+      { action: [7, 0x4e], code: 0xcff1b0, args: [1], list: '2', clip: 'Motion[13]', partners: [], spawns: [{ at: 0xd0a818, kind: 'first', frames: [82.0, 78.0, 74.0], shell: 'shell01', modes: [12, 11, 10] }], pick: 'ai', variant: '7:0x4e' },
+      { action: [7, 0x11], code: 0xcff1b0, args: [0], list: '2', clip: 'Motion[13]', partners: [], spawns: [], pick: 'ai', variant: '7:0x11' },
+      // L4 M22: (7, 0x23) / (7, 0x2e) = 0xd00118(e, 0, 0 / 1) -> 0xd0ac20: passes 82 (0xd0adfc) -> shell00 0xc
+      // (0xd0ad20..0xd0ad34 is the em-2 variant-4 branch); (7, 0x30) / (7, 0x41) = 0xd00118(e, 1, 0 / 1): shell01 0
+      { action: [7, 0x23], code: 0xd00118, args: [0, 0], list: '4', clip: 'Motion[22]', partners: [], spawns: [{ at: 0xd0ac20, kind: 'first', frames: [82.0], shell: 'shell00', modes: [0xc] }], op24: 'else', pick: 'ai', variant: '7:0x23' },
+      { action: [7, 0x2e], code: 0xd00118, args: [0, 1], list: '4', clip: 'Motion[22]', partners: [], spawns: [{ at: 0xd0ac20, kind: 'first', frames: [82.0], shell: 'shell00', modes: [0xc] }], op24: 'else', pick: 'ai', variant: '7:0x2e' },
+      { action: [7, 0x30], code: 0xd00118, args: [1, 0], list: '4', clip: 'Motion[22]', partners: [], spawns: [{ at: 0xd0ac20, kind: 'first', frames: [82.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x30' },
+      { action: [7, 0x41], code: 0xd00118, args: [1, 1], list: '4', clip: 'Motion[22]', partners: [], spawns: [{ at: 0xd0ac20, kind: 'first', frames: [82.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x41' },
+      // L4 M29 (after L4 M28), THE SHOTS: 0xd004cc(e, r1, r2, r3) -> 0xd0ae28 at frame 40 (0xd0b08c). The phase plays the
+      // clip, which loops at its frame 0 (em002_00_4.lmt), and repeats while P+0x1a2 -- zeroed at the phase's start
+      // (0xd005fc) and raised by one after each create (0xd0b054..0xd0b064) -- is under the action's count: table
+      // 0x15927f8[r1 - 1] = 3 / 1 / 3 / 3 for r1 1..4, else 1 (0xd00610..0xd00630, 0xd00710..0xd0071c). The mode is
+      // 0xd0ae28's: r3 1 -> 0xf; else by r1 (0xd0af04's table) -- 0 -> 0xd, 2 -> 0xe, 3 -> 0x13, 4 -> 0x14, and r1 1 ->
+      // 0x10 / 0x11 / 0x12 by P+0x1a2 (0xd0af30..0xd0af4c). One `modes` entry per shot (ROM-run with the clip looping).
+      // r2 1 makes shell01 0 instead, counted the same way. (7, 0x27) / (7, 0x28) / (7, 0x33) / (7, 0x34) sit in streams
+      // no op 0x14 calls (who issues them: NOT READ).
+      { action: [7, 0x24], code: 0xd004cc, args: [0, 0, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell00', modes: [0xd] }], op24: 'else', pick: 'ai', variant: '7:0x24' },
+      { action: [7, 0x26], code: 0xd004cc, args: [1, 0, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell00', modes: [0x10, 0x11, 0x12] }], op24: 'else', pick: 'ai', variant: '7:0x26' },
+      { action: [7, 0x27], code: 0xd004cc, args: [2, 0, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell00', modes: [0xe] }], pick: 'ai', variant: '7:0x27' },
+      { action: [7, 0x28], code: 0xd004cc, args: [3, 0, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell00', modes: [0x13, 0x13, 0x13] }], pick: 'ai', variant: '7:0x28' },
+      { action: [7, 0x3b], code: 0xd004cc, args: [4, 0, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell00', modes: [0x14, 0x14, 0x14] }], op24: 'else', pick: 'ai', variant: '7:0x3b' },
+      { action: [7, 0x65], code: 0xd004cc, args: [6, 0, 1], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell00', modes: [0xf] }], pick: 'ai', variant: '7:0x65' },
+      { action: [7, 0x67], code: 0xd004cc, args: [0, 0, 1], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell00', modes: [0xf] }], pick: 'ai', variant: '7:0x67' },
+      { action: [7, 0x31], code: 0xd004cc, args: [0, 1, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x31' },
+      { action: [7, 0x32], code: 0xd004cc, args: [1, 1, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell01', modes: [0, 0, 0] }], op24: 'if', pick: 'ai', variant: '7:0x32' },
+      { action: [7, 0x33], code: 0xd004cc, args: [2, 1, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell01', modes: [0] }], pick: 'ai', variant: '7:0x33' },
+      { action: [7, 0x34], code: 0xd004cc, args: [3, 1, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell01', modes: [0, 0, 0] }], pick: 'ai', variant: '7:0x34' },
+      { action: [7, 0x3c], code: 0xd004cc, args: [4, 1, 0], list: '4', clip: 'Motion[29]', partners: [], spawns: [{ at: 0xd0ae28, kind: 'shots', frames: [40.0], shell: 'shell01', modes: [0, 0, 0] }], op24: 'if', pick: 'ai', variant: '7:0x3c' },
+      // L4 M32 (the take-off, after L4 M31): 0xcf3ff0(e, r1, r2, r3) -> 0xd0c0dc(e, kind, sub): passes 6 (0xd0c0fc /
+      // 0xd0c1ac) -> kind 1 / 2: shell00 0x20 with sub 1 (0xd0c158), else 0x15 (0xd0c32c); kind 5 / 6: 0x16 (0xd0c2e4;
+      // 0x21 is the variant-4 branch 0xd0c1c0..0xd0c1f8); kind 3 / 4: shell01 0 (0xd0c244). The em byte picks this
+      // monster's take-off clips L4 M31..M34 (0xcf4034..0xcf4074; em 1 takes L4 M12..M15). (9, 3) / (9, 4) = status 9's
+      // 0xcee4e4 / 0xcee4f4.
+      { action: [7, 0x03], code: 0xcf3ff0, args: [0, 1, 0], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell00', modes: [0x15] }], op24: 'else', pick: 'ai', variant: '7:0x03' },
+      { action: [7, 0x29], code: 0xcf3ff0, args: [1, 1, 0], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell00', modes: [0x15] }], pick: 'ai', variant: '7:0x29' },
+      { action: [7, 0x2b], code: 0xcf3ff0, args: [0, 2, 0], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell00', modes: [0x15] }], op24: 'else', pick: 'ai', variant: '7:0x2b' },
+      { action: [7, 0x2c], code: 0xcf3ff0, args: [1, 2, 0], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell00', modes: [0x15] }], op24: 'else', pick: 'ai', variant: '7:0x2c' },
+      { action: [7, 0x48], code: 0xcf3ff0, args: [1, 5, 0], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell00', modes: [0x16] }], op24: 'else', pick: 'ai', variant: '7:0x48' },
+      { action: [7, 0x49], code: 0xcf3ff0, args: [1, 6, 0], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell00', modes: [0x16] }], op24: 'else', pick: 'ai', variant: '7:0x49' },
+      { action: [9, 0x03], code: 0xcf3ff0, args: [0, 1, 1], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell00', modes: [0x20] }], pick: 'ai', variant: '9:0x03' },
+      { action: [7, 0x35], code: 0xcf3ff0, args: [0, 3, 0], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x35' },
+      { action: [7, 0x36], code: 0xcf3ff0, args: [1, 3, 0], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x36' },
+      { action: [7, 0x37], code: 0xcf3ff0, args: [0, 4, 0], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x37' },
+      { action: [7, 0x38], code: 0xcf3ff0, args: [1, 4, 0], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell01', modes: [0] }], op24: 'if', pick: 'ai', variant: '7:0x38' },
+      { action: [9, 0x04], code: 0xcf3ff0, args: [0, 3, 1], list: '4', clip: 'Motion[32]', partners: [], spawns: [{ at: 0xd0c0dc, kind: 'first', frames: [6.0], shell: 'shell01', modes: [0] }], pick: 'ai', variant: '9:0x04' },
+      // L4 M45: (3, 0x4d) = status 3's 0xcef548 -> 0xcf5210(e, 0xa, 1) -> 0xd09f54: passes 44 (0xd0a060) -> shell00 0x17,
+      // the fireball aimed on X and Y from the owner's point. Its helper counts nothing, and the clip loops at frame 0
+      // (em002_00_4.lmt), so the game throws one on every pass of 44 while the action lasts (its end: NOT READ).
+      { action: [3, 0x4d], code: 0xcf5210, args: [0xa, 1], list: '4', clip: 'Motion[45]', partners: [], spawns: [{ at: 0xd09f54, kind: 'first', frames: [44.0], shell: 'shell00', modes: [0x17] }], pick: 'ai', variant: '3:0x4d' },
+    ],
+    // THE FLIGHT DUST: its own L4 M25 / M26 / M27, as Dreadking's (the per-frame handler's bodies 0xcf1f74 / 0xcf1f30 /
+    // 0xcf1f54 and 0xcf2424, shell01 mode 15 every 16 frames at the owner's ground); Rathian's rows follow (the share).
+    dust: [
+      { ids: [0x419], at: 0xcf1f74, period: 16.0, posture: 3, mode: 15 },
+      { ids: [0x41a], at: 0xcf1f30, period: 16.0, from: 70.0, posture: 3, mode: 15 },
+      { ids: [0x41b], at: 0xcf1f54, period: 16.0, until: 38.0, posture: 3, mode: 15 },
+    ],
+    // P+0x1ba while they play: 3, as Dreadking's (the same sites; ROM-run for every action that plays them, dk\posture_probe.py)
+    postures: { '4|Motion[25]': 3, '4|Motion[26]': 3, '4|Motion[27]': 3 },
+  },
 };
 
 // The siblings run Rathian's class code on the clips they share with her, so her action entries are theirs (in front of
@@ -1277,6 +1462,14 @@ for (const [id, own] of [['em001_02', []], ['em001_04', ['7:0x77', '7:0x7b', '7:
 // postures added; its fire actions are its own.
 {
   const D = SHELL_DATA.em002_04, R = SHELL_DATA.em001_00;
+  D.actions = R.actions.filter(a => a.pick === 'hover').concat(D.actions);
+  D.dust = R.dust.concat(D.dust);
+  D.postures = Object.assign({}, R.postures, D.postures);
+}
+// Rathalos (em002_00) shares the same of Rathian's: her hover turns on the L1 clips its lists take from her files, her
+// dust rows and posture read, with its own flight dust rows and postures added.
+{
+  const D = SHELL_DATA.em002_00, R = SHELL_DATA.em001_00;
   D.actions = R.actions.filter(a => a.pick === 'hover').concat(D.actions);
   D.dust = R.dust.concat(D.dust);
   D.postures = Object.assign({}, R.postures, D.postures);
@@ -1348,9 +1541,11 @@ export function variantActionFor(monId, list, clip, variant){
 // '7:0x33', '7:0x34', '7:0x3c'; L4 Motion[32]: '7:0x03', '7:0x29', '7:0x2b', '7:0x2c', '7:0x48', '7:0x49', '9:0x03', '9:0x04'
 // / '7:0x29', '9:0x03', '7:0x35', '7:0x36', '7:0x37', '7:0x38', '9:0x04'; L4 Motion[38]: '7:0x43', '7:0x45', '7:0x46',
 // '7:0xf5' / '7:0x45'; L4 Motion[18]: '7:0xec', '7:0xf9' / '7:0xf9'; L4 Motion[45]: '3:0x4d'; L9 Motion[1]: '7:0xfa',
-// '7:0xfb' / '7:0xfb'; L9 Motion[4] / [5]: '7:0xed', '7:0xee', '7:0xf6', '7:0xf7', '7:0xf8'. Any other clip: [] (its
-// shells, if any, need no pick -- Rathian's landing dust, Dreadking's flight dust). `clip` may carry a _start / _loop
-// suffix.
+// '7:0xfb' / '7:0xfb'; L9 Motion[4] / [5]: '7:0xed', '7:0xee', '7:0xf6', '7:0xf7', '7:0xf8'. Rathalos (em002_00), not
+// tired / tired: L2 Motion[5]: '7:0x02' / '7:0x0f'; L2 Motion[18]: '7:0x0a' / '7:0x0b'; L2 Motion[13]: '7:0x4e', '7:0x11'
+// either way; L4 Motion[22]: '7:0x23', '7:0x2e' / '7:0x30', '7:0x41'; L4 Motion[29] and L4 Motion[32]: Dreadking's lists;
+// L4 Motion[45]: '3:0x4d'; L2 Motion[1]: none (its puffs have no files). Any other clip: [] (its shells, if any, need no
+// pick -- Rathian's landing dust, the Rathalos line's flight dust). `clip` may carry a _start / _loop suffix.
 export function pickVariantsFor(monId, list, clip, opts){
   const D = SHELL_DATA[monId];
   if (!D || !clip) return [];
@@ -2871,6 +3066,15 @@ function spawnVar001(state, D, a, ctx, input, out){
         if (!(q >= sp.quest)) continue;
       }
       F.forEach((x, j) => { if (pass001(state, x)) create001(state, D, a, ctx, out, sp.shell, sp.modes[j], x); });
+    } else if (sp.kind === 'shots'){
+      // L4 M29's shots (0xd004cc's phase, helper 0xd0ae28): the clip loops at its frame 0 and each pass of the helper's
+      // frame makes the next shot, P+0x1a2 counting them (raised at 0xd0b054..0xd0b064, zeroed when the phase starts at
+      // 0xd005fc) until the action's count (0xd00710..0xd0071c, table 0x15927f8[r1 - 1] = 3 / 1 / 3 / 3, else 1), and
+      // 0xd0ae28 reads the counter for its mode (r1 1: 0x10 / 0x11 / 0x12). `modes` is one entry per shot, so the count
+      // is its length; state.shots counts them here -- the clip's own loop is not a new action, so only a change of clip
+      // clears it (stepShells)
+      const j = state.shots;
+      if (j < sp.modes.length && pass001(state, F[0])){ state.shots = j + 1; create001(state, D, a, ctx, out, sp.shell, sp.modes[j], F[0]); }
     } else if (sp.kind === 'seq'){
       const j = state.seq;
       if (j < F.length && pass001(state, F[j])){ state.seq = j + 1; create001(state, D, a, ctx, out, sp.shell, sp.modes[j], F[j]); }
@@ -2885,9 +3089,10 @@ function spawnVar001(state, D, a, ctx, input, out){
 // ---- the step ------------------------------------------------------------------------------------------------------
 export function createShellState(monId){
   // acc5c58: Rathian's block +0x5c58, the 16-frame dust period of 0xcf2424 (who else resets it: NOT READ; 0 here);
-  // poison: Dreadqueen's ctl+0xa0 / +0xa4 (poison001), null at the setup; seq: 0xd01988's phase (spawnVar001)
+  // poison: Dreadqueen's ctl+0xa0 / +0xa4 (poison001), null at the setup; seq: 0xd01988's phase (spawnVar001); shots:
+  // the Rathalos line's L4 M29 shot counter P+0x1a2, which its phase zeroes (spawnVar001's `shots`)
   return { monId, data: SHELL_DATA[monId] || null, motion: null, action: null, hist: null, prevJoints: null,
-           shells: [], nextId: 1, frames: 0, acc5c58: 0, poison: { older: null, newer: null }, seq: 0 };
+           shells: [], nextId: 1, frames: 0, acc5c58: 0, poison: { older: null, newer: null }, seq: 0, shots: 0 };
 }
 
 // a frame within 0.0005 under an integer is that integer (0x94ef64..0x94ef94, the motion advance; 0x72854 the test)
@@ -2933,7 +3138,8 @@ function snapFrame(x){
 //          the tail sever; default false),
 //          DREADKING (em002_04) reads Rathian's inputs, and questLevel? for its 0x1f fireballs' landing (0xd0e19c: > 6 ->
 //          shell01 0x11, else 0x1b; without it that landing's shell01 is refused -- the fireball and its contact effect
-//          are not), and posture 3 on its L4 Motion[25..27] (its SHELL_DATA postures: the flight dust),
+//          are not), and posture 3 on its L4 Motion[25..27] (its SHELL_DATA postures: the flight dust). RATHALOS
+//          (em002_00) reads Rathian's inputs and nothing of its own,
 //          effectAlive?: (shell, param, handle) => bool }
 // returns { spawned, started, ended, removed, alive, refused, created }. spawned / ended / removed / alive are shells;
 // each carries `start` (spawned: the effect request), `place` (each moving step: what 0x329c9c / 0x329d04 give the
@@ -2957,8 +3163,8 @@ function snapFrame(x){
 // in out.started (effect2) and its creates in its events ({ ev: 'create', stepped: true, child }); `camera` events are
 // 0x43ac04's requests. out.created stays for shells made and not stepped (Nargacuga's drop), none for Rathian. Her
 // siblings' shells the same way (their starts name 'em001_00c' or their own 'em001_02u' / 'em001_04u'; Dreadking's
-// 'em002_00c' / 'em002_04u', its sp_01 end creates in the ending shell's events); a poison the newest two push out is in
-// out.ended (its stop) the step it is retired.
+// 'em002_00c' / 'em002_04u' and Rathalos's 'em002_00c' / 'em002_00u', Dreadking's sp_01 end creates in the ending shell's
+// events); a poison the newest two push out is in out.ended (its stop) the step it is retired.
 export function stepShells(state, input){
   const out = { spawned: [], started: [], ended: [], removed: [], alive: [], refused: [], created: [] };
   const D = state.data;
@@ -2989,6 +3195,7 @@ export function stepShells(state, input){
   // id, so a live shell is not ended by it).
   let fresh = false;
   const back = !!(state.hist && frame < state.hist[1]);
+  const newMotion = ctx.motion !== state.motion;
   // the wrap of a clip the game plays once is the end of that play: its `atEnd` shells (endWrap001), made before the
   // action's state is reset below and on the joints of the play's last frame. The action is the one the step below
   // resolves (the clip has not changed): the table's own, or the variant the viewer named
@@ -3003,6 +3210,9 @@ export function stepShells(state, input){
   }
   state.loopStart = input.loopStart == null ? null : snapFrame(input.loopStart);
   if (fresh) state.seq = 0;
+  // P+0x1a2, the L4 M29 shot counter: its action's phase zeroes it when it begins (0xd005fc) and the clip loops inside
+  // that phase, so a new clip clears it here and a wrap does not
+  if (newMotion) state.shots = 0;
   // Dreadqueen's poison handles: vtable +0x1dc (0xcee250, every move before the action main) drops one whose unit left
   // states 1 / 2 -- here a shell removed in an earlier step (0xcee374..0xcee3c4)
   for (const k of ['older', 'newer']) if (state.poison[k] && state.poison[k].state === 0xff) state.poison[k] = null;

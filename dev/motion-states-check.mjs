@@ -746,7 +746,29 @@ async function pageCheckRathian(MON = 'em001_00', LABEL = 'Rathian'){
   const named = (n, clip) => reqLog.filter(r => r.name === n && (!clip || r.clip === clip));
   // a record by its key AND its file: the same key can sit in both pel lists (u 20 is em002_04_007, c 20 em001_00_004)
   const keyed = (key, name, clip) => reqLog.filter(r => r.key === key && (!name || r.name === name) && (!clip || r.clip === clip));
-  if (MON === 'em002_04'){
+  if (MON === 'em002_00'){
+  // RATHALOS'S SHELLS (shells.js): his fireballs take the Rath line's own records -- c 0 the flight, c 1 its floor
+  // contact, c 3 the ground fire, u 60 the L2 Motion[13] puffs -- with his own modes.
+  // L2 Motion[5]: 7:0x02, shell00 mode 0 -- one fireball, then its landing and the fire it leaves
+  await play('2', 'Motion[5]'); await frames(dur('2', 'Motion[5]') + 20);
+  const fb = named('em001_00_003', 'Motion[5]');
+  check(fb.length >= 1 && fb[0].variant === '7:0x02', 'L2 Motion[5]: the fireball (c 0), 7:0x02', fb);
+  check(named('em001_00_006').length >= 1 && named('em001_00_008').length >= 1, 'it lands on the grid floor: c 1 and the fire (c 3)',
+        { c1: named('em001_00_006').length, c3: named('em001_00_008').length });
+  // L2 Motion[13]: 7:0x4e -- the three puffs (shell01 10 / 11 / 12, u 60), at either rank: his G modes are em 2
+  // variants 1 / 2 only
+  reqLog.length = 0;
+  await play('2', 'Motion[13]'); await frames(dur('2', 'Motion[13]') + 20);
+  const puffs = named('em001_02_006', 'Motion[13]');
+  check(puffs.length === 3 && puffs.every(r => r.variant === '7:0x4e'), 'L2 Motion[13]: three puffs (u 60), 7:0x4e', puffs.map(r => [r.key, r.frame]));
+  // L4 Motion[29] fires in SHOTS, not one a loop: the phase repeats the clip while P+0x1a2 is under the action's
+  // count (table 0x15927f8), so (7, 0x24) makes ONE fireball however long the clip loops
+  reqLog.length = 0;
+  // ONE play: the viewer takes the next pick each loop, so a second round is a different action, not a second shot
+  await play('4', 'Motion[29]_loop'); await frames(dur('4', 'Motion[29]_loop') - 10);
+  const shots = named('em001_00_003', 'Motion[29]_loop');
+  check(shots.length === 1 && shots[0].variant === '7:0x24', 'L4 Motion[29]: (7, 0x24) makes one shot in its play', shots.map(r => [r.variant, r.frame]));
+  } else if (MON === 'em002_04'){
   // DREADKING'S SHELLS (the Shell Agent's decode in shells.js; every mode's records are its .shl EffectParam slots,
   // list 0 = em002_00c, list 1 = em002_04u). One play a clip, so each takes its FIRST pick.
   // L2 Motion[5]: 7:0x02 -- the fireball shell00 mode 0x1d, whose creation record is u 20 (em002_04_007), at frame 78
@@ -859,6 +881,7 @@ async function main(){
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})()`))
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em001_02', 'Gold Rathian')`))
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em001_04', 'Dreadqueen')`))
+    .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em002_00', 'Rathalos')`))
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em002_04', 'Dreadking')`));
   let fail = 0;
   for (const [ok, label, detail] of res){

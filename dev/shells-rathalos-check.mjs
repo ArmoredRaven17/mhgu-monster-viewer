@@ -1,6 +1,6 @@
-// The Rathalos line's shells in render/shells.js -- Dreadking Rathalos (em002_04), which runs Rathian's class uEm001_00
-// with the em byte +0xb5f4 = 2, the variant byte +0xb5f5 = 4, its own shell ids (0xd09918: 0x59 / 0x5f / 0x64) and files
-// -- against the ROM.
+// The Rathalos line's shells in render/shells.js -- RATHALOS (em002_00) and DREADKING RATHALOS (em002_04), which run
+// Rathian's class uEm001_00 with the em byte +0xb5f4 = 2 and the variant byte +0xb5f5 = 0 / 4, their own shell ids
+// (0xd09918: 0x57 / 0x5d and 0x59 / 0x5f / 0x64) and files -- against the ROM.
 //
 //   1. THE FILES: SHELL_DATA.em002_04 against the values read from its own .arc, as the reference JSON carries them (vdata.py:
 //      every ShellInfoList mode's sh ints / floats / vecs, ef, hit ints; the hitdata records): bit for bit.
@@ -34,7 +34,7 @@ import { createShellState, stepShells, pickVariantsFor, variantActionFor, SHELL_
 
 const REF = process.env.RATHALOS_REF || String.raw`C:\MHGU-Extract\efx\agents\rathian-variants-scratch\rathalos-dk-reference.json`;
 const ref = JSON.parse(readFileSync(REF, 'utf8'));
-const MONS = ['em002_04'];
+const MONS = ['em002_00', 'em002_04'];
 
 const f = Math.fround;
 const DV = new DataView(new ArrayBuffer(4));
@@ -62,6 +62,10 @@ console.log(`== 1. SHELL_DATA against the monster's own files (${REF})`);
 for (const mon of MONS){
   const D = SHELL_DATA[mon], F = ref.files[mon];
   for (const [fo, name] of [['00', 'shell00'], ['01', 'shell01'], ['11', 'shell11']]){
+    if (!D.shells[name]){        // Rathalos has no shell11: no .shl in its .arc, no class for id 0x19d
+      check(`${mon} has no ${name}: its .arc has none either`, !F[fo] || !Object.keys(F[fo].modes).length, JSON.stringify(F[fo] && Object.keys(F[fo].modes)));
+      continue;
+    }
     const want = F[fo].modes, got = D.shells[name].modes;
     const bad = [];
     const keys = [...new Set([...Object.keys(want), ...Object.keys(got)])].sort((a, b) => a - b);
@@ -76,6 +80,18 @@ for (const mon of MONS){
     check(`${mon} ${name}: ${keys.length} modes = the files (sh ints / floats / vecs, ef, hit, scale 1.0)`, bad.length === 0, bad.join('; '));
   }
   check(`${mon} shell01 hitdata = ${mon}_01_hitdata (${F['01'].hitdata.length} records)`, JSON.stringify(D.shells.shell01.hitdata) === JSON.stringify(F['01'].hitdata));
+  check(`${mon} shell00 hitdata = ${mon}_00_hitdata (${F['00'].hitdata.length} records)`,
+        !D.shells.shell00.hitdata || JSON.stringify(D.shells.shell00.hitdata) === JSON.stringify(F['00'].hitdata));
+}
+{
+  const L = SHELL_DATA.em002_00;
+  check('ids (0xd09918, em 2 variant 0: 0xd09994..0xd099b0) 0x57 / 0x5d; em byte 2, variant byte 0; lists c em002_00c + u em002_00u; no shell11 (id 0x19d has no class, and no mode of its shell00 is in the landing mask)',
+        L.shells.shell00.id === 0x57 && L.shells.shell01.id === 0x5d && !L.shells.shell11 && L.em === 2 && L.variant === 0 &&
+        L.lists[0].pel === 'em002_00c' && L.lists[1].pel === 'em002_00u' &&
+        Object.keys(L.shells.shell00.modes).every(m => { const m8 = (Number(m) - 8) >>> 0; return !(m8 <= 0x1d && ((0x227f000f >>> m8) & 1) === 1); }));
+  check('Rathalos has no actiontune and no fifth .dtp break row (no poison): SHELL_DATA has neither',
+        ref.files.em002_00.actiontune.floats.length === 0 && ref.files.em002_00.actiontune.ints.length === 0 &&
+        ref.files.em002_00.dtp_break_rows.length === 4 && !L.tune && !L.poison);
 }
 {
   const K = SHELL_DATA.em002_04;
@@ -104,6 +120,9 @@ function jointsOf(J){
 // effectAlive (step, S, param, h) }
 function run(sc, opts = {}){
   const mon = opts.monId || sc.monster;
+  // a scenario the ROM ran with the clip looping (its .lmt loop frame 0, the phase repeating): the viewer plays it the
+  // same way, frame = step % the clip's frames
+  if (sc.loop && opts.loop === undefined && sc.loop_frames){ opts = Object.assign({ loop: sc.loop_frames[0] }, opts); }
   const st = createShellState(mon);
   const inp = sc.inputs;
   const own = Object.assign({}, inp.owner, opts.owner || {});
@@ -326,6 +345,15 @@ function flightCheck(sc){
 }
 for (const sc of scenarios){
   if (sc.kind === 'flight'){ flightCheck(sc); continue; }
+  if (sc.name === 'RLB3'){
+    // L2 M1's puffs: em002_00_01 has no modes 38..40 (or 3..5), so the three shells the ROM makes read -1 / 0.0 / the
+    // zero vector, start nothing and end at their first move -- the clip draws nothing and SHELL_DATA lists no action
+    const r = run(sc, { steps: 120 });
+    check(`${sc.name} em002_00 (7, 0x4d) L2 Motion[1]: the ROM's three shells (modes ${sc.shells.map(x => x.mode).join(' ')}) start nothing; the viewer lists no pick for the clip and makes none`,
+          sc.shells.every(x => x.events_init.length === 0 && x.moves.length === 1) && r.shells.length === 0 &&
+          pickVariantsFor('em002_00', '2', 'Motion[1]').length === 0, `${r.shells.length} shells`);
+    continue;
+  }
   const rec = runs[sc.name] = run(sc);
   const want = sc.shells.filter(s => !deletedAtInit(s)), dead = sc.shells.filter(deletedAtInit);
   const PEL = pelOf(sc.monster);
@@ -397,7 +425,8 @@ console.log('== 3. the landings\' em-2 branches and sp_01\'s end create');
       const made = q.shells.filter(x => x.S.creator == null);
       check(`L9 M1 looping at ${rate} frames a step: one shell00 0x1f per loop, on the wrap (its last sample ${made[0] ? made[0].pairCur : '-'}), with the ROM's spawn state`,
             made.length === 2 && made.every(x => x.S.modeIndex === 0x1f && x.text.split('\n')[0] === want[0]),
-            `${made.length} shells at ${made.map(x => x.pairCur).join(' ')}` + (made[0] ? `\n     js  ${made[0].text.split('\n')[0]}\n     rom ${want[0]}` : ''));
+            `${made.length} shells at ${made.map(x => x.pairCur).join(' ')}` +
+            (made[0] && made[0].text.split('\n')[0] !== want[0] ? `\n     js  ${made[0].text.split('\n')[0]}\n     rom ${want[0]}` : ''));
     }
     const half = run(N.KF13, { steps: 200, loop: 60 });          // a play that never nears the end: no shell
     check('a play that goes back well before the end (frames 0..59) makes none: its last sample plus its advance is under 126 (the clip\'s last frame)',
@@ -413,6 +442,17 @@ console.log('== 3. the landings\' em-2 branches and sp_01\'s end create');
 console.log('== 4. picks, inputs, gates');
 {
   const cases = {
+    em002_00: [
+      ['2', 'Motion[5]', ['7:0x02'], ['7:0x0f']], ['2', 'Motion[18]', ['7:0x0a'], ['7:0x0b']],
+      ['2', 'Motion[13]', ['7:0x4e', '7:0x11'], ['7:0x4e', '7:0x11']], ['2', 'Motion[1]', [], []],
+      ['4', 'Motion[22]', ['7:0x23', '7:0x2e'], ['7:0x30', '7:0x41']],
+      ['4', 'Motion[29]', ['7:0x24', '7:0x26', '7:0x27', '7:0x28', '7:0x3b', '7:0x65', '7:0x67', '7:0x33', '7:0x34'],
+                          ['7:0x27', '7:0x28', '7:0x65', '7:0x67', '7:0x31', '7:0x32', '7:0x33', '7:0x34', '7:0x3c']],
+      ['4', 'Motion[32]', ['7:0x03', '7:0x29', '7:0x2b', '7:0x2c', '7:0x48', '7:0x49', '9:0x03', '9:0x04'],
+                          ['7:0x29', '9:0x03', '7:0x35', '7:0x36', '7:0x37', '7:0x38', '9:0x04']],
+      ['4', 'Motion[45]', ['3:0x4d'], ['3:0x4d']],
+      ['4', 'Motion[17]', [], []], ['4', 'Motion[25]', [], []], ['4', 'Motion[36]', [], []], ['2', 'Motion[12]', [], []],
+    ],
     em002_04: [
       ['2', 'Motion[5]', ['7:0x02'], ['7:0x0f']], ['2', 'Motion[18]', ['7:0x0a'], ['7:0x0b']],
       ['2', 'Motion[1]', ['7:0x4d', '7:0x75', '7:0x00', '7:0x74'], ['7:0x4d', '7:0x75', '7:0x00', '7:0x74']],
@@ -477,11 +517,20 @@ console.log('== 4. picks, inputs, gates');
   const L9 = run(N.KF13, { steps: 140 });
   check('L9 M1 (7, 0xfa): shell00 0x1f at the motion\'s end, frame 126', eq(L9.shells.filter(r => r.S.creator == null).map(r => `${r.S.modeIndex}@${r.pairCur}`), ['31@126']));
   // what the schedule reads: the pel names of the starts
-  const pels = Object.values(runs).flatMap(r => r.shells.flatMap(x => x.S.starts || (x.S.start ? [x.S.start] : []))).map(s => s.pel);
-  check('every start names em002_00c or em002_04u', pels.length > 0 && pels.every(p => ['em002_00c', 'em002_04u'].includes(p)), [...new Set(pels)].join(' '));
+  const pels = Object.values(runs).flatMap(r => r.shells.flatMap(x => (x.S.starts || (x.S.start ? [x.S.start] : [])).map(q => x.S.monId + ' ' + q.pel)));
+  const own = new Set(MONS.flatMap(m => [m + ' ' + SHELL_DATA[m].lists[0].pel, m + ' ' + SHELL_DATA[m].lists[1].pel]));
+  check(`every start names its monster's own lists (${[...own].join(', ')})`, pels.length > 0 && pels.every(x => own.has(x)), [...new Set(pels)].filter(x => !own.has(x)).join(' '));
   // the records the viewer can request: every mode its actions, dust rows, landings (floor contacts: the plane stand-in has
   // no steep or hunter contact), shell11 and end creates make, its init effects (shell00 param 0, shell01 params 0 / 1)
   // and a fireball's floor-contact param 2; every start of the reference runs is one of them
+  for (const mon of MONS){
+    const D = SHELL_DATA[mon], R = SHELL_DATA.em001_00, hov = D.actions.filter(a => a.pick === 'hover');
+    const own = D.dust.filter(r => !R.dust.includes(r));
+    check(`${mon}: Rathian's hover turns and dust rows are its (plus the three flight rows), her postures plus L4 M25..M27 = 3`,
+          hov.length > 0 && hov.every(a => R.actions.includes(a)) && R.dust.every(r => D.dust.includes(r)) &&
+          D.dust.length === R.dust.length + 3 && own.every(r => r.mode === 15 && r.posture === 3 && r.period === 16) &&
+          ['25', '26', '27'].every(m => D.postures[`4|Motion[${m}]`] === 3) && D.postures['2|Motion[12]'] === 1);
+  }
   const K = SHELL_DATA.em002_04, reach = { shell00: new Set(), shell01: new Set(), shell11: new Set() };
   for (const a of K.actions) for (const sp of (a.spawns || [])) for (const m of [...(sp.modes || []), ...(sp.modesG || [])]) reach[sp.shell].add(m);
   for (const a of K.actions) if (a.shell && a.modes) for (const m of a.modes) reach[a.shell].add(m);
@@ -500,9 +549,32 @@ console.log('== 4. picks, inputs, gates');
   const add = (sh, m, params) => { const md = K.shells[sh].modes[m]; if (md) for (const i of params){ const e = md.ef[i]; if (e && e[0] !== 999 && e[1] >= 0 && K.lists[e[0]]) need.add(K.lists[e[0]].pel + '|' + e[1]); } };
   for (const m of reach.shell00) add('shell00', m, [0, 2]);
   for (const m of reach.shell01) add('shell01', m, [0, 1]);
-  const got = new Set(Object.values(runs).flatMap(r => r.shells.flatMap(x => [...(x.S.starts || []), ...x.moves.flatMap(mv => mv.events.filter(e => e.ev === 'start').map(e => e.start))])).map(q => q.pel + '|' + q.key));
+  // the same for Rathalos, whose records go in its own docs/effects/em002_00.json
+  {
+    const L = SHELL_DATA.em002_00, rr = { shell00: new Set(), shell01: new Set() };
+    for (const a of L.actions) for (const sp of (a.spawns || [])) for (const m of [...(sp.modes || []), ...(sp.modesG || [])]) rr[sp.shell].add(m);
+    for (const a of L.actions) if (a.shell && a.modes) for (const m of a.modes) rr[a.shell].add(m);
+    for (const r of L.dust) rr.shell01.add(r.mode);
+    for (const m of [...rr.shell00]){ rr.shell01.add(1); rr.shell01.add(2); if (m === 0x20) rr.shell01.add(0x13); }
+    const needL = new Set();
+    const addL = (sh, m, params) => { const md = L.shells[sh].modes[m]; if (md) for (const i of params){ const e = md.ef[i]; if (e && e[0] !== 999 && e[1] >= 0 && L.lists[e[0]]) needL.add(L.lists[e[0]].pel + '|' + e[1]); } };
+    for (const m of rr.shell00) addL('shell00', m, [0, 2]);
+    for (const m of rr.shell01) addL('shell01', m, [0, 1]);
+    const gotL = new Set(Object.values(runs).filter((r, i) => true).flatMap(r => r.shells.filter(x => x.S.monId === 'em002_00')
+      .flatMap(x => [...(x.S.starts || []), ...x.moves.flatMap(mv => mv.events.filter(e => e.ev === 'start').map(e => e.start))])).map(q => q.pel + '|' + q.key));
+    const orderL = [...needL].sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
+    check(`Rathalos: the records the viewer can request: ${needL.size}; every start of its reference runs is one of them (${gotL.size} seen)`,
+          [...gotL].every(k => needL.has(k)), [...gotL].filter(k => !needL.has(k)).join(' '));
+    try {
+      const J = JSON.parse(readFileSync(new URL('../docs/effects/em002_00.json', import.meta.url), 'utf8'));
+      const have = new Set((J.effects || []).filter(e => e.when === 'shell' && e.record).map(e => e.record.pel + '|' + e.record.key));
+      console.log(`INFO docs/effects/em002_00.json 'shell' records: ${orderL.map(k => k + (have.has(k) ? ' yes' : ' MISSING')).join(', ')}`);
+    } catch (e) { console.log(`INFO docs/effects/em002_00.json not read (${e.code || e.message}); the records its shells request: ${orderL.join(', ')}`); }
+  }
+  const got = new Set(Object.values(runs).flatMap(r => r.shells.filter(x => x.S.monId === 'em002_04')
+    .flatMap(x => [...(x.S.starts || []), ...x.moves.flatMap(mv => mv.events.filter(e => e.ev === 'start').map(e => e.start))])).map(q => q.pel + '|' + q.key));
   const order = [...need].sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
-  check(`the records the viewer can request: ${need.size}; every start of the reference runs is one of them (${got.size} seen)`, [...got].every(k => need.has(k)),
+  check(`Dreadking: the records the viewer can request: ${need.size}; every start of its reference runs is one of them (${got.size} seen)`, [...got].every(k => need.has(k)),
         [...got].filter(k => !need.has(k)).join(' '));
   try {
     const J = JSON.parse(readFileSync(new URL('../docs/effects/em002_04.json', import.meta.url), 'utf8'));
@@ -530,6 +602,10 @@ ctl('the target (KF12, x + 1)', N.KF12, { target: [N.KF12.inputs.target[0] + 1, 
 ctl('the owner words (KB3, Z + 0x100)', N.KB3, { owner: { Z: N.KB3.inputs.owner.Z + 0x100 } });
 ctl('the owner position (KF12, x + 1)', N.KF12, { owner: { pos: [N.KF12.inputs.owner.pos[0] + 1, N.KF12.inputs.owner.pos[1], N.KF12.inputs.owner.pos[2]] } });
 ctl('the monster (KF1 run as Dreadqueen)', N.KF1, { monId: 'em001_04' });
+ctl('the monster (RLF1 run as Dreadking)', N.RLF1, { monId: 'em002_04' });
+ctl('facing (RLF3, Y + 1)', N.RLF3, { owner: { Y: N.RLF3.inputs.owner.Y + 1 } });
+ctl('the action (RLF5 as 7:0x28, the same clip\'s other shots)', N.RLF5, { variant: '7:0x28' });
+ctl('the floor (RLF6, +1)', N.RLF6, { floor: N.RLF6.inputs.floorY + 1 });
 {
   const r = run(N.KD3, { steps: N.KD3.frames + 1, clip: 'Motion[26]' });
   const made = r.shells.filter(x => x.S.creator == null).map(x => x.pairCur);
@@ -693,7 +769,8 @@ print(json.dumps(out))
 `;
 if (process.argv.includes('--emc')){
   console.log('== 7. the op-0x24 branch of every status-7 pick action, from the monster\'s own command table');
-  const files = { em002_04: String.raw`C:\MHGU-Extract\scratch-em\em002_04\enemy\cmd_tbl\em001_00_cmdtbl.emc` };
+  const files = { em002_00: String.raw`C:\MHGU-Extract\scratch-em\em002_00\enemy\cmd_tbl\em001_00_cmdtbl.emc`,
+                  em002_04: String.raw`C:\MHGU-Extract\scratch-em\em002_04\enemy\cmd_tbl\em001_00_cmdtbl.emc` };
   const dir = mkdtempSync(join(tmpdir(), 'shells-rathalos-emc-'));
   const py = join(dir, 'emcbranch.py');
   writeFileSync(py, EMC_PY);
@@ -708,14 +785,16 @@ if (process.argv.includes('--emc')){
       return b.length === 1 && b[0] !== 'none' ? b[0] : undefined;
     };
     const where = (id, n) => (E[id][n] || []).map(x => `${x.at}${x.called ? '' : ' (uncalled)'} ${x.branch}`).join(', ');
-    const seen = new Set();
-    for (const a of SHELL_DATA.em002_04.actions.filter(x => x.action[0] === 7 && x.pick === 'ai')){
-      if (seen.has(a.variant)) continue;
-      seen.add(a.variant);
-      const n = a.action[1], b = branchOf('em002_04', n);
-      const want = b === 'no stream' ? undefined : b;
-      check(`(7, 0x${n.toString(16).padStart(2, '0')}) ${a.variant}: op24 ${a.op24 || 'none'} = the command table's (${b || 'mixed / none'})`,
-            a.op24 === want, where('em002_04', n) || 'issued by no stream');
+    for (const mon of MONS){
+      const seen = new Set();
+      for (const a of SHELL_DATA[mon].actions.filter(x => x.action[0] === 7 && x.pick === 'ai')){
+        if (seen.has(a.variant)) continue;
+        seen.add(a.variant);
+        const n = a.action[1], b = branchOf(mon, n);
+        const want = b === 'no stream' ? undefined : b;
+        check(`${mon} (7, 0x${n.toString(16).padStart(2, '0')}) ${a.variant}: op24 ${a.op24 || 'none'} = the command table's (${b || 'mixed / none'})`,
+              a.op24 === want, where(mon, n) || 'issued by no stream');
+      }
     }
   }
 }

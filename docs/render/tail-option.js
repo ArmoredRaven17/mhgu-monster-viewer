@@ -32,6 +32,9 @@ export const CUT_TAIL = {
   em001_02: { piece: 'em001_02_tail', joint: 143, above: 20, landing: ['em001_02u', 905] },
   // Dreadqueen: descriptor 0x1595284 (0x7805 = em001_04_tail), the same option motion; her tail is cut only once broken
   em001_04: { piece: 'em001_04_tail', joint: 143, above: 20, landing: ['em001_04u', 905] },
+  // Rathalos: the same class and sever call (joint 143, breaks-em001.md 4.3), his own model (em002_00_tail) and
+  // landing record, the same option motion; his tail has no break, so it is cut from intact (set 11 -> 12)
+  em002_00: { piece: 'em002_00_tail', joint: 143, above: 20, landing: ['em002_00u', 905] },
   // Dreadking: the same class and sever call (joint 143), his own model (descriptor 0x15954e8 +0x04: 0x784d =
   // em002_04_tail) and landing record, the same option motion (+0xb4 0x77ed); his tail too is cut only once broken
   em002_04: { piece: 'em002_04_tail', joint: 143, above: 20, landing: ['em002_04u', 905] },

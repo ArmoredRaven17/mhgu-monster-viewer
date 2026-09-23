@@ -270,6 +270,12 @@ export const MOTION_STATES = {
   // DREADQUEEN RATHIAN (variant 4): the same from her own u.pel, with a deviant's tail (deviantTail below) -- hers breaks
   // before it can be cut. Her list 4's own state motion, the air rage entry (4, 0x16) L4 Motion[7], is not listed: see RAGE.
   em001_04: deviantTail(rathLine('em001_04u'), 'em001_04u'),
+  // RATHALOS (em002_00): the same class as em 2 variant 0. His lists 0..3 are Rathian's very files (clip for clip), his
+  // .mpm carries the line's set numbers with his own groups -- 9 / 10 back is 10 / 11 where Rathian's is 10 / 102 -- and
+  // his tail has the two states hers does: 11 intact, 12 severed (no break row, and no u 1036 in his u.pel). The ailment
+  // records are his own em002_00c, the breaks, sever and rage puff his em002_00u. What is his own is the air rage entry
+  // (em2Air): command group 6 issues (4, 0xb) for em 2 whatever the variant.
+  em002_00: em2Air(rathLine('em002_00u', 'em002_00c')),
   // DREADKING RATHALOS (em002_04): the same class as em 2 variant 4 (states-em002_04.md). Rathian's lists 0..3 -- her very
   // files -- so every state clip above is his; his ailment records come from Rathalos's em002_00c, whose state records are
   // byte for byte Rathian's; his breaks, sever and rage puff from em002_04u (the same keys, the back on joint 2 and the
@@ -299,10 +305,19 @@ function deviantTail(t, u){
   return t;
 }
 
-// Dreadking's table: the Rath line's from em002_04u and Rathalos's c.pel, a deviant's tail, and the air rage entry above.
-function dreadking(){
-  const t = deviantTail(rathLine('em002_04u', 'em002_00c'), 'em002_04u');
+// THE em 2 AIR RAGE ENTRY: command group 6's first action in the air is (4, 0xb) for em 2 -- L1 Motion[3] from frame 0
+// (0xcfbaa8; states-em002_04.md 2.2), whatever the variant, since the op-0x91 switch reads the em byte alone. It is the
+// clip the plain air roar (4, 0xa) also plays, as L0 Motion[4] on the ground is also the plain roar: both are shown as
+// the entry. The em 1 monsters never take (4, 0xb) -- Rathian lands first, Gold and Dreadqueen play L4 Motion[7], and
+// neither clip is theirs alone (see RAGE above).
+function em2Air(t){
   t['1|Motion[3]'] = { rage: true };
+  return t;
+}
+
+// Dreadking's table: the Rath line's from em002_04u and Rathalos's c.pel, a deviant's tail, and the air rage entry.
+function dreadking(){
+  const t = em2Air(deviantTail(rathLine('em002_04u', 'em002_00c'), 'em002_04u'));
   return t;
 }
 
@@ -330,6 +345,8 @@ export const RAGE_PUFF = {
   // Dreadking: the same shared puff and the same pick on joint 4 -- run on em002_04's own model and lists, 0xd08afc gives
   // puff-pick-em001.md's table for L0 Motion[4] frame for frame, and for L1 Motion[3] (his air rage entry) u 1120 over
   // f0-6, f22-30, f79-216, f240-262, f281-284 and u 1121 between (states-em002_04.md 2.3)
+  // Rathalos: the same shared puff and the same pick on joint 4, his own records
+  em002_00: { period: 30, joint: 4, records: [['em002_00u', 1120], ['em002_00u', 1121]], pick: rathianPuffPick },
   em002_04: { period: 30, joint: 4, records: [['em002_04u', 1120], ['em002_04u', 1121]], pick: rathianPuffPick },
 };
 
