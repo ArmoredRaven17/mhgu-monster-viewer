@@ -3679,7 +3679,46 @@ export function setClipFor(monId, groups){
 // -- `on: 'drawn'` -- which the Heated control already decides. Not modelled: the molten state cooling on its own
 // timer (the viewer holds it while Heated is on), and the parts following the 360-frame cool-down (they go with
 // the toggle, as Valstrax's do).
+// GLAVENUS (uEm080_00) runs THREE of these machines a frame, right before its part driver -- the angry layer
+// (0x100967c), the tail heat and the throat heat (0x10098fc, 0x1009d44). The angry one is translated here; the
+// two heat ones are the Tail row's "(Heated)" items and the Throat row, which the panel already carries.
+//
+// ITS TRIGGER IS RAGE, mirrored into a byte the machine reads: 0xffe4e0 is `bl 0x81670 (isEnraged) / strb r0,
+// [enemy+0xcaca]` every frame, and every state below tests that byte. The machine's own state byte is at
+// enemy+0xcac9 with a 7-way jump table (0x10096a0), its material controller at [enemy+0xcb3c], and the frame
+// count of the clip it is waiting on at enemy+0xcacc:
+//
+//   0  0x10096c8  rage: clear slots 0..3, then slot 0 = [ctrl+0x10] (angry_Change) and slot 1 = [ctrl+0x14]
+//                 (angry_Loop), BOTH times zeroed; remember Change's frames; -> 1
+//   1  0x100978c  calm -> 4. Else wait until slot 0's time reaches those frames, then -> 2
+//   2  0x10097cc  calm -> 4. Else CLEAR SLOT 0 -- the Change is dropped and the Loop plays on -> 3
+//   3  0x10097f4  enraged: stay. calm -> 4
+//   4  0x1009808  slot 0 = [ctrl+0x18] (angry_End), time zeroed, remember its frames -> 5
+//   5  0x1009860  wait out End's frames (or cut it short if rage returns) -> 6
+//   6  0x10098b0  clear slots 0..3 -> 0
+//
+// So the ROM runs TWO SLOTS: the Change (or the End) in slot 0 over a Loop that runs in slot 1 from the rage's
+// first frame until the machine goes idle, and is never restarted in between. `under` is that slot-1 clip. The
+// clips do not fight over a parameter -- angry_Change and angry_End write fDiffuseColor and fTransparency
+// (0 -> 1 over 200 frames, 1 -> 0 over 400), angry_Loop writes fUVTransform2 and fUVTransform3, the lava flow --
+// so the layering is only about both running at once, which is what the fade-in needs.
+//
+// THE LAYER'S SHIPPED fTransparency IS 1, measured in the viewer against Savage's Gekikou decal (shipped 0) as
+// the control. That is what holds the glow lit through stage 2, where nothing writes transparency at all --
+// stepMaterialAnim restores the shipped values every frame and then applies the running slots, as the ROM
+// rebuilds its constant buffer -- and it is why the machine has to clear to those values at the end rather than
+// hold End's last frame: `settle: 'rest'` with no `rest` clip, the ROM's state 6.
+//
+// The parts follow the same display: XfB__A1__m01_angry is carried by parts 20 (body), 21, 22, 31 (head), 23,
+// 33 (neck) and 24, 34 (back) -- em080_04's XfB__A1__m01_blood by those plus 32 -- and the part driver
+// (0x1009ff0, the base; 0x100acf8 for Hellblade off 0x100acf4's tail call) picks its glow sets from a display
+// flag, NOT from 0x81670, which it never calls. Whatever raises that flag is NOT READ: the sets and this
+// machine agree on when the layer is there, so the Enraged control drives both, which is what the panel does.
 export const ROM_STAGE_CLIPS = {
+  em080_00: { mats: ['XfB__A1__m01_angry'], clips: ['angry_Change', 'angry_Loop', 'angry_End'],
+              under: 'angry_Loop', settle: 'rest' },
+  em080_04: { mats: ['XfB__A1__m01_blood'], clips: ['angry_Change', 'angry_Loop', 'angry_End'],
+              under: 'angry_Loop', settle: 'rest' },
   em027_00: { mats: ['XfBAN_W_0__m01_effect01', 'XfBAN_W_0__m02_effect02', 'XfB__m03_Bombmode'],
               clips: ['Effect_Start', 'Effect_Loop', 'Effect_End'] },
   em049_00: ['XfB_0__m01_lav01', 'XfB_0__m02_lav02', 'XfB_0__m03_lav03', 'XfB_0__m04_lav04', 'XfB_0__m05_lav05',
@@ -3723,7 +3762,9 @@ function matsDrawn(root, s){
   return false;
 }
 function newStageMachine(root, tbl){
-  const s = { tbl, mats: tbl.mats, rest: tbl.rest || null, stage: 0, clip: null, t0: 0, tLast: -Infinity, frames: {} };
+  // tOn: the second the machine left idle -- slot 1's clock, which the ROM does not restart between stages
+  const s = { tbl, mats: tbl.mats, rest: tbl.rest || null, stage: 0, clip: null, t0: 0, tOn: null,
+              tLast: -Infinity, frames: {} };
   // each clip's frame count, off the first cached material carrying it (0xe102c4 tries +0x14, +0x18, +0x1c)
   for (const nm of tbl.clips){
     for (const mat of tbl.mats){
@@ -3741,18 +3782,20 @@ function newStageMachine(root, tbl){
   return s;
 }
 function stepOneStage(s, tSec, state, root){
-  if (!(tSec >= s.tLast)) return { mats: s.mats, rest: s.rest, clip: s.clip, t0: tSec - (s.tLast - s.t0) };
+  if (!(tSec >= s.tLast)) return { mats: s.mats, rest: s.rest, clip: s.clip, t0: tSec - (s.tLast - s.t0),
+                                   tbl: s.tbl, tOn: typeof s.tOn === 'number' ? tSec - (s.tLast - s.tOn) : null };
   s.tLast = tSec;
   const ran = () => (tSec - s.t0) * MAT_FPS >= (s.frames[s.clip] || 0);
   const set = (i, stage) => { s.clip = s.tbl.clips[i]; s.t0 = tSec; s.stage = stage; };
   const on = s.tbl.on === 'drawn' ? matsDrawn(root, s) : state === 'enraged';
-  if (s.stage === 0){ if (on) set(0, 1); }
+  if (s.stage === 0){ if (on){ s.tOn = tSec; set(0, 1); } }
   else if (s.stage === 1){ if (ran()) set(1, 2); }
   else if (s.stage === 2){ if (!on) set(2, 3); }
   // back on while the end runs: Agnaktor goes straight to the loop (`reheat: 'loop'`, 0xec2328)
   else if (on && s.tbl.reheat === 'loop') set(1, 2);
   else if (ran()){
     s.stage = 0;
+    s.tOn = null;                                   // slot 1 stops with the rest of them (the ROM's state 6)
     // the end's last frame is held (Teostra, Valstrax), or the rest clip takes the slot (`settle: 'rest'`)
     if (s.tbl.settle === 'rest') s.clip = null;
   }
@@ -4378,6 +4421,21 @@ function clipPicker(state, monId, tState, prev, levelClip, stage){
     // clip (`rest: 'auto'`, Valstrax clears none).
     const machine = stage && rom && stage.find(s => s.mats.indexOf(rom.name) >= 0);
     if (machine){
+      // A MACHINE WITH AN `under` CLIP RUNS TWO SLOTS, as Glavenus's does: its own clip in slot 0 and the
+      // `under` one in slot 1 from the machine's first frame, never restarted between stages. Where the
+      // machine's own clip IS the under clip -- the stage the ROM spends with slot 0 cleared -- only slot 1
+      // goes back, so the loop keeps the clock it started on instead of jumping.
+      const under = machine.tbl && machine.tbl.under;
+      const both = [];
+      if (machine.clip && !(under && sameClip(machine.clip, under))){
+        const j = clips.findIndex(c => sameClip(c.name, machine.clip));
+        if (j >= 0) both.push([j, machine.t0]);
+      }
+      if (under && typeof machine.tOn === 'number'){
+        const u = clips.findIndex(c => sameClip(c.name, under));
+        if (u >= 0) both.push([u, machine.tOn]);
+      }
+      if (both.length) return both;
       if (!machine.clip){
         if (machine.rest === 'auto') return clips.findIndex(c => c.auto);
         // a NAMED rest clip -- Agnaktor's cool_Loop, the ROM's state 0
