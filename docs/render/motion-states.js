@@ -572,18 +572,41 @@ export class JointScale {
 export const CLIP_POSTURE = {
   // KHEZU: built by a phase-aware dataflow over uEm003_00, since the handler re-runs every frame and switches on
   // P+0x1a1 -- a posture set in phase 0 is still in force when a later phase plays its motion. Only the motions that
-  // leave the ground are listed; everything else is posture 0.
+  // leave the ground are listed; everything else is posture 0. 112 of his 132 clips are settled (82 from the class,
+  // 23 from its scripts, 7 measured); the 20 that are not are named in the note, eight of them provably never played.
+  //   FIVE OF THESE WERE MISSING AT FIRST and it showed -- Raven, 2026-09-23: "we have some wall animations that
+  //   don't add the wall". 2|Motion[43] / [59] / [60] / [61] / [66] are all [5, 6], and the dataflow had been
+  //   carrying the POSTURE across basic blocks while re-seeding the MOTION at each one: his wall and ceiling attack
+  //   handlers end in a 19-way switch on the clip currently playing that plays them all through one shared tail, so
+  //   only the fall-through arm was recorded.
   em003_00: {
-    '0|Motion[26]': 5, '0|Motion[50]': 1, '0|Motion[53]': 6, '0|Motion[54]': 6, '0|Motion[56]': 6,
+    '0|Motion[26]': 5, '0|Motion[50]': 1, '0|Motion[53]': 6, '0|Motion[54]': 6, '0|Motion[55]': 6,
+    '0|Motion[56]': 6,
     '1|Motion[1]': 1, '1|Motion[2]': 1, '1|Motion[6]': 1,
     '2|Motion[7]': 6, '2|Motion[8]': 6, '2|Motion[9]': 6, '2|Motion[14]': 1, '2|Motion[28]': [5, 6],
     '2|Motion[29]': 6, '2|Motion[33]': 5, '2|Motion[36]': 5, '2|Motion[39]': 1, '2|Motion[40]': 1,
-    '2|Motion[48]': 6, '2|Motion[50]': 6, '2|Motion[51]': 5, '2|Motion[55]': 6, '2|Motion[63]': 1,
-    '2|Motion[67]': [5, 6], '2|Motion[69]': 6, '2|Motion[71]': 6, '2|Motion[72]': 6, '2|Motion[73]': 6,
-    '2|Motion[75]': 6,
-    '3|Motion[36]': 6,
-    '5|Motion[1]': [5, 6], '5|Motion[4]': 6, '5|Motion[5]': [5, 6], '5|Motion[8]': 1, '5|Motion[36]': 6,
+    '2|Motion[43]': [5, 6], '2|Motion[48]': 6, '2|Motion[50]': 6, '2|Motion[51]': 5, '2|Motion[55]': 6,
+    '2|Motion[58]': 1, '2|Motion[59]': [5, 6], '2|Motion[60]': [5, 6], '2|Motion[61]': [5, 6], '2|Motion[63]': 1,
+    '2|Motion[66]': [5, 6], '2|Motion[67]': [5, 6], '2|Motion[69]': 6, '2|Motion[71]': 6, '2|Motion[72]': 6,
+    '2|Motion[73]': 6, '2|Motion[75]': 6,
+    '3|Motion[10]': 1, '3|Motion[36]': 6,
+    '5|Motion[1]': [5, 6], '5|Motion[4]': 6, '5|Motion[5]': [5, 6], '5|Motion[8]': 1, '5|Motion[36]': [5, 6],
     '5|Motion[37]': [5, 6], '5|Motion[38]': 5,
+  },
+  // SHOGUN CEANATAUR: he uses the ceiling, and he JUMPS ONTO IT rather than climbing -- which is why he has posture 6
+  // and no posture 5 at all. Raven, 2026-09-23: "He uses the ceiling, but jumps directly onto it". His attach
+  // (0xdc7578) crouches and launches on L5 Motion[2], waits on the shared ceiling gate 0xbf224 for 620.0 of
+  // clearance, then takes posture 6, plays L5 Motion[7] and SNAPS both his position and his pinned plane to the
+  // ceiling. That clearance is a literal at the call site, not a .dtb field (620.0 his, 580.0 Khezu's own jump), and
+  // TenjoOfs -- which reads 0 for him -- has exactly ONE caller in the whole ROM: Khezu's wall-to-ceiling REACH
+  // decision. A monster with no wall posture never makes that decision, so his 0 means "not applicable".
+  //   POSTURE 4 IS HIS BURROW (L2 Motion[15] / [16] drop to -774 and back; the .dtb calls that slot MoguriBaseOfs).
+  //   The viewer has no plane for it and shows none.
+  em020_00: {
+    '0|Motion[19]': 4, '0|Motion[20]': 4,
+    '2|Motion[15]': 4, '2|Motion[16]': 4, '2|Motion[27]': 6, '2|Motion[76]': 6,
+    '3|Motion[13]': 1,
+    '5|Motion[1]': 6, '5|Motion[4]': 6, '5|Motion[7]': 6, '5|Motion[8]': 6,
   },
 };
 // HOW HIGH THE CEILING IS, in GAME units above the monster's floor. THIS IS A VIEWER CHOICE, and the ROM says so:

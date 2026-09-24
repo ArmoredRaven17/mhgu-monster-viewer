@@ -7232,8 +7232,15 @@ function stepBox(base){
 //   the plane's own height is free, and the viewer's is whatever the box is set to.
 const _mountE = new THREE.Euler(), _mountQ0 = new THREE.Quaternion();
 let mountedOn = null, _mountY0 = 0, _mountZ0 = 0;
+// THE MOUNT IS PER MONSTER UNTIL ITS CLIPS ARE MEASURED. The plane is shown for anyone whose posture table says so,
+// but turning the monster onto it needs one more thing checked: WHICH WAY ITS CEILING CLIPS ARE AUTHORED. Khezu's sit
+// at root Y +178.9 and hang below the plane once the engine's roll of 180 is applied; SHOGUN CEANATAUR'S SIT AT
+// -230.3, the opposite sign, so the same transform would put him inside the ceiling instead of under it. Until his
+// own clips are measured he gets the plane and not the turn -- a monster shown upright beside its ceiling is honest,
+// one buried in it is not.
+const MOUNT_OK = new Set(['em003_00']);
 function stepMount(want){
-  const on = want.includes(6) ? 6 : want.includes(5) ? 5 : 0;
+  const on = MOUNT_OK.has(state.id) ? (want.includes(6) ? 6 : want.includes(5) ? 5 : 0) : 0;
   const main = mounted.main;
   if (!main) return;
   if (on === 0){
