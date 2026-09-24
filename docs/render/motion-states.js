@@ -234,9 +234,24 @@ export const MOTION_STATES = {
     // TIRED: the idle (0, 2) is L0 Motion[15]; drool c 1104 every 48 while not enraged, and -- calm and tired -- the
     // shared puff's countdown is zeroed (0xa4338).
     '0|Motion[15]': { rage: false, tired: true, every: [['em003_00c', 1104], 48] },
-    // ASLEEP: (10, 0x1d) L3 Motion[14] falls asleep and (10, 0x1e) holds L0 Motion[19]; the hold has the zzz c 1102
-    // every 90 and pauses the puff. L3 Motion[14] is not listed: with no eye set it changes nothing and fires nothing.
+    // HE HAS THREE SLEEPS, NOT ONE. Raven, 2026-09-24: "Khezu has a standing sleep animation, I didn't see bubbles" --
+    // and he was looking at a real gap. 0xbd4f0, the shared "fall asleep" that raises P+0x522, has TWO call sites in
+    // his class, which his command table pairs as the ground and ceiling branches of one stream (g1 s102 sleep,
+    // g1 s103 settle):
+    //   (1, 0x0b)  ground sleep   L0 M30 -> hold L0 Motion[31] -> L0 M32
+    //   (3, 0x52)  ceiling sleep  L2 M8  -> hold L0 Motion[55] -> L2 M9      (posture 6, on the ceiling)
+    //   (10,0x1e)  the AILMENT sleep, the one we had: L3 M14 -> hold L0 Motion[19] -> L0 M20 -> L3 M17
+    // All three fire the zzz, and the ROM gets there by two different routes: the natural pair through P+0x522, the
+    // ailment through its action number being in the mode-1 set at 0xa3e68. HIS THREE RESTS FIRE NOTHING -- (1,0x29)
+    // L0 Motion[57], (3,0x4c) L0 Motion[53] and (1,0x25) L0 Motion[18] -- because the ROM separates rest from sleep
+    // by the 0xbd4f0 call and not by the clip, so they are deliberately absent here rather than missing.
+    //   WORTH CARRYING TO EVERY MONSTER AFTER HIM: sleeping is THREE mechanisms, not one. P+0x522 gives the zzz AND
+    //   the shut eyes; the status-10 number set gives the zzz ALONE; P+0x5e08 bit 0 gives the eyes alone (what raises
+    //   that bit is NOT READ). A state wired from only one of them will not look asleep both ways. Khezu has no eye
+    //   set at all, so only the zzz shows on him.
     '0|Motion[19]': { every: [['em003_00c', 1102], 90], puffOff: true },
+    '0|Motion[31]': { every: [['em003_00c', 1102], 90], puffOff: true },
+    '0|Motion[55]': { every: [['em003_00c', 1102], 90], puffOff: true },
     // PARALYSIS: (10, 0x1f) holds L3 Motion[13]; c 1101 every 60, first at once. L3 Motion[13] is also the shock
     // trap's hold (c 1105 every 42): shown as paralysis, as Rathian's same motion is.
     '3|Motion[13]': { every: [['em003_00c', 1101], 60] },
