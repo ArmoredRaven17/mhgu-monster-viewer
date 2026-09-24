@@ -20,6 +20,10 @@
 // All at the viewer's step, one frame a 1/60 s; the game's own step for the option is NOT READ (with 2 the descent
 // takes 16 steps of the same easing, not 32).
 export const CUT_TAIL = {
+  // Silverwind Nargacuga: the same option code and joint 143, HIS OWN model -- em037_04_tail carries 172 silver
+  // vertices Nargacuga's does not (both its groups 0 and 100 are drawn) -- on em001_00_option Motion[1], spawned
+  // at the world position of joint 143. (states-em037_04.md 0)
+  em037_04: { piece: 'em037_04_tail', joint: 143, above: 20, landing: ['em037_04u', 905] },
   // Diablos: the same option code, but JOINT 144 rather than the Rath line's 143 -- his sever hook passes kind
   // 0x91 (0xc2274 at 0xd32724) where Basarios passes 0x8f and Savage 0x8e, and u 900 names joint 144. His
   // uEnemyOption slot 0 resolves em007_00_tail (descriptor table[114] = 0x159abc4) and +0xb4 = 0x77ed is the same

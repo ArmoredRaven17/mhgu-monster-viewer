@@ -203,6 +203,85 @@ export const MOTION_STATES = {
     '3|Motion[12]':  { dead: true, settled: true },
     '3|Motion[20]':  { dead: true },
   },
+  // SILVERWIND NARGACUGA (em037_04): E:/offline/decode/notes/states-em037_04.md, read and ROM-run by the
+  // Silverwind decode agent (2026-09-24). He is `uEm037_00` with e+0xb5f5 = 4, and the agent unpacked his .arc
+  // entry by entry: his COMMAND TABLE, ALL FIVE MOTION LISTS, ALL FIVE CLIP-EFFECT PSLs and em037_00c.pel are
+  // BYTE-IDENTICAL to Nargacuga's -- the ailment pel is literally Nargacuga's file shipped inside his own archive,
+  // which is why his ailment records below are keyed `em037_00c`. So this table is Nargacuga's with the three
+  // things that are actually his changed, and every record renamed to em037_04u where the file is his.
+  //   WHAT IS HIS: (1) his wing reaction routes through (10, 0x14) only on an ODD break level (vtable +0x23c =
+  //   0xe48b48, variant-4 only), so every EVEN depletion after the break gives a short L3 Motion[2] flinch that
+  //   changes nothing -- the viewer shows the break, as Nargacuga's does. (2) RAGE SHOWS ON HIS HEAD ONLY: he has
+  //   no group 13, and his .mpm sets 15/16/17 are BYTE-IDENTICAL to 12/13/14, so his silver tail geometry is
+  //   permanent and the enraged tail sets draw exactly what is already on screen. N_TAIL is still used, because
+  //   applying them is what the ROM does; it simply cannot be seen. (3) His cut tail carries 172 silver vertices
+  //   Nargacuga's does not.
+  //   NO RAGE_PUFF. His vtable +0x2a4 is the base stub, but the shared block never runs at all: his setup writes
+  //   e+0xb7d2 = 0 (0xe474a8) and 0xa41b8 tests that byte before every request, so the period-30 countdown ticks
+  //   and asks for nothing. Rage is the HELD trail request below (RAGE_BY_LEVEL), as Nargacuga's is.
+  em037_04: {
+    // THE HEAD: its 2nd depletion raises part 0 to level 2 -- the only head row -- and (10, 7) plays L3 Motion[2];
+    // set 4 -> 5 calm, 6 -> 7 enraged (group 1 off, 2 on, and group 4 off as well while enraged), firing u 1001
+    // (cm202_060 on joint 2, pos (0, 15, 50), scale 0.75). The 1st depletion plays the same motion and shows
+    // nothing. L3 Motion[2] is worked hard -- it is also the even-level wing flinch, the shock trap's start and
+    // the exhaust status -- and the head break is the only one of the four with anything to see.
+    '3|Motion[2]':  { levels: N_HEAD, fire: [null, ['em037_04u', 1001]] },
+    // THE WINGS (dtt parts 2 / 6): the 1st depletion is the break. Wing A set 8 -> 9, u 1010 (joint 7), reaction
+    // L3 Motion[10] -> [11] (held 240) -> [12]; wing B set 10 -> 11, u 1030 (joint 11, scale 1.25), L3 Motion[7]
+    // -> [8] (held 120) -> [9]. The held and closing clips keep the broken wing. These six are also the stun's
+    // (10, 0x20) chain: shown as the breaks, as Nargacuga's are.
+    '3|Motion[10]': { levels: [[8], [9]], fire: [null, ['em037_04u', 1010]] },
+    '3|Motion[11]': { levels: [[8], [9]], fire: [null, null] },
+    '3|Motion[12]': { levels: [[8], [9]], fire: [null, null] },
+    '3|Motion[7]':  { levels: [[10], [11]], fire: [null, ['em037_04u', 1030]] },
+    '3|Motion[8]':  { levels: [[10], [11]], fire: [null, null] },
+    '3|Motion[9]':  { levels: [[10], [11]], fire: [null, null] },
+    // THE TAIL: part 3's 2nd depletion, level 2: set 12 -> 13 (groups 14 off, 15 off, 16 on), u 1016 on JOINT 143
+    // at scale 1.3; reaction L3 Motion[1] from frame 0.
+    '3|Motion[1]':  { levels: N_TAIL, fire: [null, ['em037_04u', 1016], null] },
+    // THE SEVER: part 3's second counter (300) runs out with the tail at level 3 AND him enraged or tired ->
+    // (10, 0x72), then L3 Motion[4] -> [5]. Set 13 -> 14 (groups 16 and 17 on; 14, 15, 18 and 101 off) and u 900
+    // on joint 143. HIS CUT TAIL IS HIS OWN MODEL, em037_04_tail, and it is staged, so `drops` is real.
+    // The script's -180 degree turn over L3 Motion[4] f52..122 is not in the clip and is not shown. A
+    // variant-4-only 0xac030(e, P+0x40 + (50, 0, 50), 100, 0) fires with the sever and is NOT READ.
+    '3|Motion[4]':  { levels: N_TAIL, at: 2, fire: [null, null, ['em037_04u', 900]], drops: true },
+    '3|Motion[5]':  { levels: N_TAIL, at: 2, fire: [null, null, null] },
+    // RAGE: command group 6 starts with a HOP and then the roar. The flag flips at FRAME 0 OF THE HOP, not of the
+    // roar -- Nargacuga's note could not say which hop, and this one names both: (2, 0xd) / (2, 0x38) is
+    // L0 Motion[35] and (2, 0xe) / (2, 0x3a) is L0 Motion[37]. All three show rage, so the hop a player sees is
+    // enraged from its first frame as the game has it. Head and tail take their enraged sets at the user's levels
+    // and the trails are requested (RAGE_BY_LEVEL). No material changes; his x1.2 motion rate is not shown.
+    '0|Motion[35]': { rage: true, tables: [N_HEAD, N_TAIL] },
+    '0|Motion[37]': { rage: true, tables: [N_HEAD, N_TAIL] },
+    '0|Motion[26]': { rage: true, tables: [N_HEAD, N_TAIL] },
+    // THE TAIL'S SPIKES WHILE CALM: L2 Motion[4] / [5] / [21] / [6] show the tail in its enraged set calm as well.
+    // On him that is invisible -- 15/16/17 are the same bytes as 12/13/14 -- but it is what the ROM applies.
+    '2|Motion[4]':  { tables: [N_TAIL], show: 'enraged' },
+    '2|Motion[5]':  { tables: [N_TAIL], show: 'enraged' },
+    '2|Motion[21]': { tables: [N_TAIL], show: 'enraged' },
+    '2|Motion[6]':  { tables: [N_TAIL], show: 'enraged' },
+    // TIRED: the idle (0, 2) is L0 Motion[30]; drool c 1104 every 48 while not enraged (stamina timer 3600).
+    '0|Motion[30]': { rage: false, tables: [N_HEAD, N_TAIL], every: [['em037_00c', 1104], 48] },
+    // ASLEEP: (10, 0x1d) L0 Motion[22] -> (10, 0x1e) L0 Motion[20] (hold) -> (10, 0x44) L0 Motion[21]. Eye set 1
+    // -> 2 (groups 5 and 6 on, both lids drawn) from L0 Motion[22] frame 0; zzz c 1102 every 90 in the hold. The
+    // rage trails keep running -- the class holds nothing off. L0 Motion[22] / [20] are also capture's clips.
+    '0|Motion[22]': { sets: [2] },
+    '0|Motion[20]': { sets: [2], every: [['em037_00c', 1102], 90] },
+    '0|Motion[21]': { sets: [2] },
+    // PARALYSIS: (10, 0x1f) holds L3 Motion[13]; c 1101 every 60, first at once. L3 Motion[13] is also the shock
+    // trap's hold (c 1105 every 42): shown as paralysis, as Nargacuga's is.
+    '3|Motion[13]': { every: [['em037_00c', 1101], 60] },
+    // THE STUN, sided, held into ONE handle across its chain (c 1103 on joint 2, pos (0, 0, 50), scale 0.9). Its
+    // six clips are the wing-break chains above, which carry the break -- so the hold sits on the two that are
+    // only ever the stun's hold.
+    '3|Motion[3]':  { hold: ['em037_00c', 1103] },
+    // DEATH: L3 Motion[6] is the one clip nothing but death plays -- every status-11 number but 1, 7, 0x10 and
+    // 0x12 -- and L3 Motion[18] takes (11, 7) and (11, 0x12). The break sets and the sever STAY, the rage pair
+    // reverts (status-11 clears the flag and the part pass re-reads it the same frame) and THE EYES SHUT FOR GOOD
+    // (P+0x5d02 = 1, timer 0xffff). L3 Motion[14] -> [15] is the fall that ends in L3 Motion[6].
+    '3|Motion[6]':  { dead: true, tables: [N_HEAD, N_TAIL], sets: [2] },
+    '3|Motion[18]': { dead: true, tables: [N_HEAD, N_TAIL], sets: [2] },
+  },
   // DIABLOS (em007_00): E:/offline/decode/notes/states-em007_00.md, read and ROM-run by the Diablos decode agent
   // (2026-09-24). He is the first BURROWER we have wired -- posture 4, which reuses his ground clips underground --
   // and the first monster whose rage-puff pick is LIVE rather than a stub (RAGE_PUFF below).
@@ -648,6 +727,9 @@ export const RAGE_PARTS = {
 };
 
 export const RAGE_BY_LEVEL = {
+  // SILVERWIND: the same held trails, his own records. u 1120 while the head is below level 2 and u 1121 once it
+  // breaks -- requested once at the hop's frame 0, swapped once if the head breaks mid-rage, stopped at rage end.
+  em037_04: { levels: N_HEAD.calm, records: [['em037_04u', 1120], ['em037_04u', 1121]] },
   em037_00: { levels: N_HEAD.calm, records: [['em037_00u', 1120], ['em037_00u', 1121]] },
 };
 
