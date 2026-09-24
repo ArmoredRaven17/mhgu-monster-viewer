@@ -2058,6 +2058,36 @@ export const SHELL_DATA = {
         shell: 'shell01', mode: 3, spawner: 0xd13e98, pick: 'ai', variant: '7:0x40' },
       { action: [7, 0x4c], code: 0xd13e98, args: [1, 3, 1], list: '2', clip: 'Motion[64]', frame: 96.0,
         shell: 'shell01', mode: 3, spawner: 0xd13e98, pick: 'ai', variant: '7:0x4c' },
+      // the four he leaves around himself (spawnRing01). The ROM makes them on the second play of L2 Motion[37] its
+      // own sequence sets up; the viewer has no action phase, so the frame and the clip are what the table gives and
+      // it shows them on any play of that clip.
+      { action: [7, 0x52], code: 0xd1b6c4, args: [], list: '2', clip: 'Motion[37]', frame: 114.0,
+        shell: 'shell01', modes: [5, 6, 6, 6], spawner: 0xd1b6c4, pick: 'ai', variant: '7:0x52' },
+      // THE DRIPS (uShellEm003_sp_00 over base00). (7, 0x01) drops them from his joint 3 on L2 Motion[8] on a clock
+      // of its own, not a frame: three 32.0 apart once the motion is past 70.0, a fourth at 264.0, then one every
+      // 40.0 for as long as the clip runs (0xd168fc / 0xd16a2c / 0xd16b1c). (7, 0x41) is the same handler with its
+      // other index, which drops none. (7, 0x33) drops one mode 1 when L2 Motion[75] passes 106.0, and that one's
+      // landing leaves a shell01 (his u 61). The streams issue all three (group 1 streams 2 and 48).
+      { action: [7, 0x01], code: 0xd1683c, args: [0], list: '2', clip: 'Motion[8]', frame: 70.0,
+        shell: 'shell00', mode: 0, spawner: 0xd1683c, pick: 'ai', variant: '7:0x01' },
+      { action: [7, 0x41], code: 0xd1683c, args: [1], list: '2', clip: 'Motion[8]', frame: 70.0,
+        shell: 'shell00', mode: 0, spawner: 0xd1683c, pick: 'ai', variant: '7:0x41' },
+      { action: [7, 0x33], code: 0xd1ae18, args: [], list: '2', clip: 'Motion[75]', frame: 106.0,
+        shell: 'shell00', mode: 1, spawner: 0xd1ae18, pick: 'ai', variant: '7:0x33' },
+    ],
+    // HIS PER-FRAME HANDLER, the enemy's vtable +0x208 (0xd1fef8), which runs after his action code whatever the
+    // action is: a switch on the motion id (0xb0944), and each case its own frames (0xb0974). Every one of them
+    // leaves a shell01 mode 4 -- his c 31 -- at his own point and angle words (0xd2043c..0xd20464), while the action
+    // status +0x73e0 is not 0xb and his height over the ground is within the row's limit (block +0x44 vs +0x5b4 plus
+    // 1400.0 or 99999.0). Motion 0x524 (L5 Motion[36]) is in the switch too but only asks whether the motion passed
+    // 66.0 and returns (0xd20064..0xd20070): it makes nothing. NOT READ: what status 0xb is -- the viewer has no
+    // action status, so the rows fire whatever it plays.
+    perFrame: [
+      { ids: [0x102], frames: [8.0, 86.0, 160.0], maxH: 1400.0, mode: 4 },     // L1 Motion[2]  (0xd20074)
+      { ids: [0x103], frames: [42.0, 102.0, 156.0], maxH: 1400.0, mode: 4 },   // L1 Motion[3]  (0xd2026c)
+      { ids: [0x104], frames: [16.0], maxH: 99999.0, mode: 4 },                // L1 Motion[4]  (0xd1ff34; its 2.0 arms a hit record)
+      { ids: [0x30b], frames: [8.0], maxH: 99999.0, mode: 4 },                 // L3 Motion[11] (0xd20184)
+      { ids: [0x312], frames: [268.0], maxH: 99999.0, mode: 4 },               // L3 Motion[18] (0xd20380)
     ],
   },
 };
@@ -3242,6 +3272,26 @@ function spawnOrbs(state, D, a, ctx, own, out){
   return [S];
 }
 
+// (7, 0x52)'s four: 0xd1b6c4 plays L2 Motion[37], then Motion[38], then Motion[37] again from frame 72, and at 114.0
+// of that second play it makes four shell01 at once -- one mode 5 (his u 120) and three mode 6, which name no record.
+// Their point is the unit's own position plus (-100, 125, 100) times the size the enemy keeps at +0x60..+0x68 (which
+// 0xa5db8 fills from 0xbe518, the block's +0x1ac x +0x1b0), the x and z turned by his facing (0xd1b924..0xd1b9a4);
+// their angle words are that facing plus 0x1c00 and then 0x2000 apart.
+function spawnRing01(state, D, a, ctx, own, out){
+  const sc = f(own.size[0] * own.size[1]);                     // 0xbe518 -> enemy +0x60 / +0x64 / +0x68
+  const r = f(u16(own.ownerY) * U16_TO_RAD), sn = sinf(r), cs = cosf(r);
+  const ax = f(sc * f(-100.0)), az = f(sc * f(100.0)), P = own.ownerPos;
+  const at = [f(mla(f(ax * cs), az, sn) + P[0]), mla(P[1], sc, f(125.0)), f(mls(f(az * cs), ax, sn) + P[2])];
+  const made = [];
+  a.modes.forEach((m, i) => {
+    const S = make001(state, D, 'shell01', { id: D.shells.shell01.id, mode: m, position: at.slice(),
+                                             angles: [0, (own.ownerY + 0x1c00 + 0x2000 * i) >>> 0, 0],
+                                             action: a.action, frame: a.frame }, own, state.prevJoints, ctx, null);
+    if (S) made.push(S);
+  });
+  return made;
+}
+
 // the shell01 one of his ACTIONS makes (as against the one a shell of his makes): the action fills a setup with the
 // mode and nothing else -- 0xd13e98's create at 0xd14038 writes no point and no angle words -- and base01 places it
 // from the owner itself, so the viewer needs his position, his facing and his ground.
@@ -3293,6 +3343,124 @@ function stepOrb(S, ctx, input, D, out){
       else if (!(S.effect && !S.effect.gone)) S.state = 0xff;
     }
   }
+}
+
+
+// ---- Khezu's drips: uShellEm003_sp_00 over base00 -------------------------------------------------------------------
+// The same base as Savage's rocks and Rathian's fireballs, through his own reader (0xd2145c), which maps it very
+// differently: no flag word at all (+0x15e8 is never written), so base00's init takes none of the paths the thrown
+// things take -- no setup point, no aim, no launch angles. The shell starts at a joint, at rest, and falls under the
+// file's own gravity vector until it reaches the ground.
+function params00k(def, mode){         // sp_00's reader 0xd2145c (vtable +0x14c)
+  const sh = mode.sh;
+  return { joint: sh.ints[0],                        // +0x15dc: sh int 0
+           flags: 0,                                 // +0x15e8: never written, so every test in the init is clear
+           vz: f(sh.floats[0]), vy: f(sh.floats[1]), // +0x15f4 / +0x15f8: both 0.0 in his files -- it is dropped
+           flight: f(sh.floats[2]),                  // +0x15fc -> the timer +0x162c
+           vec: (sh.vecs[0] || ZERO3).map(f),        // +0x1610: the offset from the joint
+           gravity: (sh.vecs[1] || ZERO3).map(f),    // +0x161c: the fall, turned by the Y word (vtable +0x170)
+           ends: mode.sh.ints[0] };                  // (byte +0x15c1 / +0x15c3 = 1 only for mode 1: 0x4a0ee4)
+}
+
+// base00's init 0x3f8b80 as his reader runs it: the joint gives the point (flag 0x10 clear), the offset turns with
+// the joint (flag 8 clear), the angle words are the owner's own X and Y with the reader's degree offsets -- both the
+// ctor's zeros (0x3f9378 / 0x3f9cc4) -- and the velocity is (0, +0x15f8, +0x15f4) turned by them.
+function init00k(S, def, J, got){
+  const k = S.k = params00k(def, S.mode);
+  const M = jointMatrix(J, k.joint);                     // 0xc15a4 (0x3f8d70)
+  if (!M) return false;
+  const p = launchPoint(M, k.vec);                       // 0x3f8e60..0x3f8ecc
+  const dX = u16(s32(mla(0.5, 0.0, DEG_TO_U16))), dY = u16(s32(mla(0.5, 0.0, DEG_TO_U16)));
+  S.angles = [(got.ownerX + dX) >>> 0, (got.ownerY + dY) >>> 0, 0];
+  S.timer = k.flight;                                    // +0x162c = +0x15fc (0x3f8cc0)
+  S.position = p;                                        // +0x40 (0x3f913c)
+  S.anchor = p.slice();                                  // +0x1000
+  S.gravity = gravityOf(k.gravity, S.angles[1]);         // +0x1020 (vtable +0x170 = 0x3f9f98 on +0x161c)
+  S.velocity = launchVelocity(k.vy, k.vz, S.angles);     // 0x3f91a0
+  S.launch = { point: p.slice(), angles: S.angles.slice(), velocity: S.velocity.slice(), gravity: S.gravity.slice(),
+               timer: S.timer };
+  return true;
+}
+
+// sp_00's own landing, vtable +0x150 = 0xd215a4, by the hit type: type 0 starts EffectParam 1 (+0x15cc), type 1
+// EffectParam 2 (+0x15d0) and type 2 EffectParam 3 (+0x15d4). Types 0 and 1 also ask 0xd21660 for a child and then
+// end the shell (0xd21628: +0x10f0 = the contact's y, vtable +0x148 with 0); type 2 ends it only for the mode whose
+// byte +0x15c1 the reader set, which is mode 1. 0xd21660 makes that child only when the type is 1 AND the shell's
+// mode is 1: a shell01 mode 0 at the contact -- his u 61.
+function landing00k(S, D, hit, ctx){
+  const param = [1, 2, 3][hit.type];
+  if (param != null) contactStart(S, D, param, hit.point, 'landing');
+  if (hit.type === 1 && S.modeIndex === 1 && ctx && ctx.create)
+    ctx.create(S, 'shell01', { id: D.shells.shell01.id, mode: 0, position: hit.point.slice(), angles: [0, 0, 0],
+                               action: S.action, frame: S.spawnFrame });
+  return hit.type === 2 ? (S.modeIndex === 1) : true;    // whether the shell ends here
+}
+
+// the drips one of his actions makes. (7, 0x01) -- 0xd1683c on L2 Motion[8] -- is not a frame test but a timer: once
+// the motion is past 70.0 (0xb0968 with mode 1: cur >= 70) the action's own clock [+0x1428]+0x1bc gathers the frame
+// delta, and every 32.0 of it drops one drip, three in all (the counter +0x1a2, `cmp #2` at 0xd16924). At 264.0 it
+// drops a fourth, clears the clock and moves to its second phase (0xd16a50), where every 40.0 drops another for as
+// long as the motion lasts (0xd16b1c). (7, 0x33) -- 0xd1ae18 on L2 Motion[75] -- is the plain one: one drip when the
+// motion passes 106.0. Only the index 0 of (7, 0x01) drops anything (`cmp r5, #0`), so (7, 0x41) makes none.
+function stepDrips(state, D, a, ctx, got, out, prev, cur){
+  const made = [];
+  const drop = mode => {
+    const S = spawnDrip(state, D, a, mode, state.prevJoints, ctx, got);
+    if (S) made.push(S);
+  };
+  if (a.spawner === 0xd1ae18){                           // (7, 0x33): the single drip
+    if (!(cur < a.frame) && prev < a.frame) drop(a.mode);
+    return made;
+  }
+  const d = state.drip || (state.drip = { clock: f(0.0), count: 0, phase: 1 });
+  if (a.args[0] !== 0) return made;                      // (7, 0x41): the same clip, no drip
+  if (d.phase === 1){
+    if (!(cur < f(264.0))){                              // 0xd16a2c: cur >= 264 -- the fourth, then the second phase
+      d.phase = 2; d.clock = f(0.0);
+      drop(a.mode);
+      return made;
+    }
+    if (!(cur < f(70.0)) && d.count <= 2){               // 0xd168fc: cur >= 70, and at most three
+      d.clock = f(d.clock + ctx.dt);                     // 0x7264c -> 0x539d48
+      if (!(d.clock < f(32.0))){ d.count++; d.clock = f(0.0); drop(a.mode); }
+    }
+    return made;
+  }
+  d.clock = f(d.clock + ctx.dt);                         // 0xd16b1c: every 40.0 while the motion runs
+  if (!(d.clock < f(40.0))){ d.clock = f(0.0); drop(a.mode); }
+  return made;
+}
+
+// his per-frame handler (0xd1fef8), run after the action code as the ROM runs it (enemy vtable +0x208)
+function perFrame003(state, D, ctx, input, out, fresh){
+  const m = /^Motion\[(\d+)\]$/.exec(input.clip || ''), L = String(input.list);
+  if (!m || !/^\d+$/.test(L)) return;
+  const mid = (Number(L) << 8) | Number(m[1]);                 // 0xb0944: the motion id, (list << 8) | slot
+  const row = D.perFrame.find(r => r.ids.includes(mid));
+  if (!row || fresh || !state.hist) return;
+  if (!row.frames.some(F => pass001(state, f(F)))) return;      // 0xb0974 on each of the case's frames
+  const own = ctx.own001, why = missing001(own, { facing: true, pos: true, ground: true });
+  if (why){ out.refused.push({ perFrame: mid, shell: 'shell01', mode: row.mode, why }); return; }
+  if (!(own.ownerPos[1] <= f(own.ground + f(row.maxH)))) return;   // 0xd203bc..0xd203d0
+  ctx.create({ id: null, events: [], moves: null }, 'shell01',
+             { id: D.shells.shell01.id, mode: row.mode, position: own.ownerPos.slice(), angles: ownerWords001(own) }, []);
+}
+
+function spawnDrip(state, D, a, m, J, ctx, got){
+  const def = D.shells[a.shell], mode = def.modes[m], lists = def.lists || D.lists;
+  if (!mode) return null;
+  const S = { id: state.nextId++, monId: state.monId, shell: a.shell, cls: def.cls, globalId: def.id, base: def.base,
+              mode, modeIndex: m, action: a.action, spawnFrame: a.frame, motion: ctx.motion, state: 1,
+              position: null, prevPosition: null, anchor: null, angles: null, velocity: null, gravity: null, trail: null,
+              timer: 0, moves: 0, bounces: 0, held: false, launch: null, events: [], folder: def.folder,
+              effect: null, effect2: null, start: null, place: null, stop: null };
+  S.effects = mode.ef.map(([listId, key], param) => ({ param, listId, list: (lists[listId] || {}).list || null, key, started: false }));
+  if (!init00k(S, def, J, got)) return null;
+  S.prevPosition = S.position.slice();
+  S.start = rockRequest(D, mode, 0, S.position, 'flight', lists);   // 0x3f9298: EffectParam 0 on the shell itself
+  S.effect = S.start ? { param: 0, key: S.start.key, kind: 'flight' } : null;
+  if (S.start) S.effects[0].started = true;
+  return S;
 }
 
 // ---- Nargacuga's tail spikes: base00 with uShellEm037_sp_00's own reader, init path and landing ------------------------
@@ -3448,7 +3616,7 @@ function dropShell01(S, D, point){
 }
 
 // vtable +0x150 by class, where the class has its own
-const LANDING = { uShellEm037_sp_00: landing37, uShellEm001_sp_00: landing001 };
+const LANDING = { uShellEm037_sp_00: landing37, uShellEm001_sp_00: landing001, uShellEm003_sp_00: landing00k };
 
 // 0xe48fc8(e, xIdx, kind): the setups of an action's shells. off = s32(mla(0.5, [0x169dc74 + 4 xIdx], 182.04445)); X =
 // the owner's X word + u16(off) (uxtah, 32-bit); Y, Z = the owner's words through vcvt.f32.u32 then vcvt.u32.f32 (exact
@@ -4371,7 +4539,7 @@ export function stepShells(state, input){
     fresh = true;
   }
   state.loopStart = input.loopStart == null ? null : snapFrame(input.loopStart);
-  if (fresh) state.seq = 0;
+  if (fresh){ state.seq = 0; state.drip = null; }
   // P+0x1a2, the L4 M29 shot counter: its action's phase zeroes it when it begins (0xd005fc) and the clip loops inside
   // that phase, so a new clip clears it here and a wrap does not
   if (newMotion) state.shots = 0;
@@ -4396,11 +4564,21 @@ export function stepShells(state, input){
     // 0x72b1c: cur >= f && prev < f; after the motion looped (0x7294c): (loopStart <= f && cur >= f) || prev < f
     const passed = prev <= cur ? (!(cur < F) && prev < F)
                                : ((state.loopStart != null && state.loopStart <= F && !(cur < F)) || prev < F);
-    if (passed && a.spawner === 0xe48fc8){
+    if (a.spawner === 0xd1683c || a.spawner === 0xd1ae18){
+      // Khezu's drips: a clock of the action's own, not a frame test (stepDrips)
+      const own = owner001(input), why = missing001(own, { facing: true, floor: true });
+      if (why) out.refused.push({ action: a.action, shell: a.shell, mode: a.mode, why });
+      else for (const S of stepDrips(state, D, a, ctx, own, out, prev, cur)){ out.spawned.push(S); state.shells.push(S); }
+    } else if (passed && a.spawner === 0xe48fc8){
       // Nargacuga's spawner: every shell of the action in this step, each inited here and moved below
       const got = spikeInputs(input, a.spawnArgs[1]);
       if (got.why) out.refused.push({ action: a.action, shell: a.shell, modes: a.modes.slice(), why: got.why });
       else for (const S of spawnSpikes(state, D, a, state.prevJoints, ctx, got)){ out.spawned.push(S); state.shells.push(S); }
+    } else if (passed && a.spawner === 0xd1b6c4){
+      // the four round him: his own point, his size and his facing
+      const own = owner001(input), why = missing001(own, { facing: true, pos: true, ground: true });
+      if (why) out.refused.push({ action: a.action, shell: a.shell, modes: a.modes.slice(), why });
+      else for (const S of spawnRing01(state, D, a, ctx, own, out)){ out.spawned.push(S); state.shells.push(S); }
     } else if (passed && a.spawner === 0xd13e98){
       // Khezu's ground patch: base01 places it from the owner, so his position, facing and ground are read
       const own = owner001(input), why = missing001(own, { facing: true, pos: true, ground: true });
@@ -4430,6 +4608,7 @@ export function stepShells(state, input){
   }
   // Rathian's per-frame handler (its landing dust), run from the enemy's vtable +0x28 after its move: still line 4
   if (D.dust) dust001(state, D, ctx, input, out, fresh, a);
+  if (D.perFrame) perFrame003(state, D, ctx, input, out, fresh);
   ctx.frameSeen = state.hist ? state.hist[1] : null;               // F[k-1], for a held rock (0xb09a4)
   // 2. line 18, the shells, in the order they were made: each one's move (vtable +0x24) on this frame's joints. The
   // walker 0xc04728 reads a unit's next pointer (+0x14) before it runs the unit (0xc047a4) and 0xc03670 appends a new unit

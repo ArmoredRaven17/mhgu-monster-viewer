@@ -410,5 +410,150 @@ console.log('== 8. shell01: his reader over the base Rathian\'s shells already r
         (noGround.find(o => o.refused.length) || { refused: [{}] }).refused[0].why);
 }
 
+// ---- 9. his drips, through his own shell00 reader over base00 -------------------------------------------------------
+console.log('== 9. the drips: his shell00 reader, his clock, his landing');
+{
+  const play = (clip, variant, steps) => {
+    const st = createShellState('em003_00');
+    const made = [], stepsOf = new Map(), started = [], created = [];
+    for (let k = 0; k < steps; k++){
+      const out = stepShells(st, { monId: 'em003_00', list: '2', clip, frame: k, joints: () => J,
+                                   rock: { variant, target: { x: 0, y: 0, z: 2100 }, floorY: FLOOR },
+                                   owner: { x: 0, y: 0, z: 0 }, ownerPos: { x: 0, y: 0, z: 0 }, ground: FLOOR,
+                                   hitLife: true });
+      for (const S of out.spawned){
+        if (S.shell === 'shell00'){ made.push({ k, S }); stepsOf.set(S.id, []); }
+        else created.push({ k, shell: S.shell, mode: S.modeIndex, start: S.start && S.start.key });
+      }
+      for (const { S } of made) if (S.state === 1) stepsOf.get(S.id).push({ pos: S.position.slice(), vel: S.velocity.slice() });
+      for (const x of out.started) started.push({ k, key: x.start.key, pel: x.start.pel, kind: x.start.kind });
+    }
+    return { made, stepsOf, started, created };
+  };
+  // the clock: which frames of L2 Motion[8] drop a drip, against the ROM's own run
+  const romDrip = ref.shell00_runs.find(x => x.action.indexOf('(7,0x01)') === 0);
+  const r01 = play('Motion[8]', '7:0x01', 400);
+  check('(7, 0x01) drops its drips on the ROM\'s own clock -- three 32 apart past 70.0, one at 264.0, then every ' +
+        '40.0 -- not on a frame test', eq(r01.made.map(x => x.k - 1), romDrip.rows.map(r => r.k)),
+        r01.made.map(x => x.k - 1).join(', ') + ' vs ' + romDrip.rows.map(r => r.k).join(', '));
+  check('(7, 0x41) is the same handler with its other index and drops none, as in the ROM',
+        play('Motion[8]', '7:0x41', 400).made.length === 0 &&
+        ref.shell00_runs.find(x => x.action.indexOf('(7,0x41)') === 0).rows.length === 0);
+  // the fall, step for step
+  const romFall = romDrip.rows[0], first = r01.made[0];
+  const got = r01.stepsOf.get(first.S.id);
+  let bad = null;
+  for (let i = 0; i < romFall.steps.length && i < got.length; i++){
+    const w = romFall.steps[i];
+    if (w.state !== 1) break;
+    if (!sameF(got[i].pos, w.pos) || !sameF(got[i].vel, w.vel)){
+      bad = 'step ' + (i + 1) + ': ' + fmt(got[i].pos) + ' vs ' + fmt(w.pos) + ', ' + fmt(got[i].vel) + ' vs ' + fmt(w.vel);
+      break;
+    }
+  }
+  check('a drip falls exactly as the ROM drops it: from his joint 3, at rest, under the file\'s own gravity vector',
+        bad === null && got.length > 20, bad || got.length + ' moves');
+  check('and it lands on the ROM\'s own move, leaving its contact record u 92 (its EffectParam 2, the floor type)',
+        r01.started.length > 0 && r01.started[0].pel === 'em003_00u' && r01.started[0].key === 92 &&
+        r01.started[0].k - first.k === romFall.steps.findIndex(x => x.state !== 1),
+        r01.started.slice(0, 1).map(x => x.pel + ' ' + x.key + ' at move ' + (x.k - first.k)).join(''));
+  // the single drip and its child
+  const romOne = ref.shell00_runs.find(x => x.action.indexOf('(7,0x33)') === 0).rows[0];
+  const r33 = play('Motion[75]', '7:0x33', 200);
+  check('(7, 0x33) drops one mode 1 when L2 Motion[75] passes 106.0, as the ROM does',
+        r33.made.length === 1 && r33.made[0].S.modeIndex === 1 && r33.made[0].k - 1 === romOne.k,
+        r33.made.map(x => 'mode ' + x.S.modeIndex + ' at f' + (x.k - 1)).join(', '));
+  check('its landing leaves a shell01 mode 0 -- his u 61 -- on the ROM\'s own move, and mode 1 starts no contact ' +
+        'record of its own (its EffectParams 1..3 are all (999, -1))',
+        r33.created.length === 1 && r33.created[0].shell === 'shell01' && r33.created[0].mode === 0 &&
+        r33.created[0].start === 61 && r33.created[0].k - r33.made[0].k === romOne.steps.findIndex(x => x.state !== 1) &&
+        r33.started.every(x => x.kind !== 'landing'),
+        r33.created.map(c => c.shell + ' mode ' + c.mode + ' u ' + c.start + ' at move ' + (c.k - r33.made[0].k)).join(''));
+  check('the records his drips ask for are u 90 while they fall and u 92 where they land; u 93 is the wall and the ' +
+        'hunter (EffectParams 1 and 3), which this stage cannot answer',
+        r01.made[0].S.start.key === 90 && r01.started[0].key === 92 &&
+        JSON.stringify(D.shells.shell00.modes[0].ef) === JSON.stringify([[0, 90], [0, 93], [0, 92], [0, 93]]),
+        'u ' + r01.made[0].S.start.key + ' then u ' + r01.started[0].key);
+}
+
+// ---- 10. his per-frame handler: the c 31 rows ------------------------------------------------------------------
+console.log('== 10. the handler that runs whatever he is doing (enemy vtable +0x208)');
+{
+  const rowsOf = (list, clip, steps) => {
+    const st = createShellState('em003_00'), made = [];
+    for (let k = 0; k < steps; k++){
+      const out = stepShells(st, { monId: 'em003_00', list, clip, frame: k, joints: () => J,
+                                   rock: { variant: null, target: { x: 0, y: 0, z: 2100 }, floorY: FLOOR },
+                                   owner: { x: 0, y: 0, z: 0 }, ownerPos: { x: 0, y: 0, z: 0 }, ground: FLOOR,
+                                   hitLife: true });
+      for (const S of out.spawned) made.push({ k: k - 1, mode: S.modeIndex, key: S.start && S.start.key,
+                                               pel: S.start && S.start.pel, pos: S.position.slice() });
+    }
+    return made;
+  };
+  const CLIPS = { '0x102': ['1', 'Motion[2]'], '0x103': ['1', 'Motion[3]'], '0x104': ['1', 'Motion[4]'],
+                  '0x30b': ['3', 'Motion[11]'], '0x312': ['3', 'Motion[18]'], '0x524': ['5', 'Motion[36]'] };
+  let bad = null, rows = 0;
+  for (const run of ref.perframe_runs){
+    const [list, clip] = CLIPS[run.motion];
+    const got = rowsOf(list, clip, 300);
+    if (!eq(got.map(x => x.k), run.rows.map(x => x.frame)) || !got.every(x => x.mode === 4))
+      bad = bad || (run.motion + ': ' + got.map(x => x.k + ' m' + x.mode).join(', ') + ' vs ' +
+                    run.rows.map(x => x.frame + ' m' + x.mode).join(', '));
+    rows += run.rows.length;
+  }
+  check('his six per-frame motions leave a shell01 mode 4 at the ROM\'s own frames -- ' + rows + ' in all, and none ' +
+        'at all for L5 Motion[36], whose case only asks and returns', bad === null, bad || '');
+  const one = rowsOf('1', 'Motion[2]', 300)[0];
+  check('and each of them asks for c 31 (cm200_040), from shell01\'s own second EffectList',
+        !!one && one.pel === 'em003_00c' && one.key === 31, one ? one.pel + ' ' + one.key : 'nothing');
+  const noGround = (() => {
+    const st = createShellState('em003_00'), out = [];
+    for (let k = 0; k < 20; k++) out.push(stepShells(st, { monId: 'em003_00', list: '1', clip: 'Motion[2]', frame: k,
+      joints: () => J, rock: { variant: null, target: { x: 0, y: 0, z: 2100 } }, owner: { x: 0, y: 0, z: 0 },
+      ownerPos: { x: 0, y: 0, z: 0 }, hitLife: true }));
+    return out;
+  })();
+  check('control no ground: the handler makes nothing and says which input it wanted',
+        noGround.every(o => o.spawned.length === 0) && noGround.some(o => o.refused.length),
+        (noGround.find(o => o.refused.length) || { refused: [{}] }).refused[0].why);
+}
+
+// ---- 11. the four he leaves around himself (u 120) ----------------------------------------------------------------
+console.log('== 11. (7, 0x52): four shell01 at once');
+{
+  const ring = (P, oY, size) => {
+    const st = createShellState('em003_00'), made = [];
+    for (let k = 0; k < 140; k++){
+      const out = stepShells(st, { monId: 'em003_00', list: '2', clip: 'Motion[37]', frame: k, joints: () => J,
+                                   rock: { variant: '7:0x52', target: { x: 0, y: 0, z: 2100 }, floorY: FLOOR },
+                                   owner: { x: 0, y: oY, z: 0 }, ownerPos: { x: P[0], y: P[1], z: P[2] },
+                                   ground: FLOOR, hitLife: true, size: size || [1, 1] });
+      for (const S of out.spawned) made.push({ k, mode: S.modeIndex, pos: S.position.slice(), ang: S.angles.slice(),
+                                               key: S.start && S.start.key, pel: S.start && S.start.pel });
+    }
+    return made;
+  };
+  const a = D.actions.find(x => x.action[1] === 0x52);
+  const r = ring([0, 0, 0], 0);
+  check('it makes four at once -- one mode 5 and three mode 6 -- at 114.0 of L2 Motion[37]',
+        r.length === 4 && eq(r.map(x => x.mode), [5, 6, 6, 6]) && r.every(x => x.k === 115) && eq(a.modes, [5, 6, 6, 6]),
+        r.map(x => 'm' + x.mode).join(', '));
+  check('their point is his own plus (-100, 125, 100) times his size, x and z turned by his facing -- the ROM\'s ' +
+        'numbers at three owner poses', sameF(r[0].pos, [-100, 125, 100]) &&
+        sameF(ring([100, 50, 200], 0)[0].pos, [0, 175, 300]) &&
+        sameF(ring([100, 50, 200], 0x4000)[0].pos, [200, 175, 300]) &&
+        sameF(ring([0, 0, 0], 0, [2, 1])[0].pos, [-200, 250, 200]),
+        fmt(r[0].pos) + ' / ' + fmt(ring([100, 50, 200], 0x4000)[0].pos) + ' / ' + fmt(ring([0, 0, 0], 0, [2, 1])[0].pos));
+  check('their angle words are his facing plus 0x1c00 and then 0x2000 apart',
+        eq(r.map(x => x.ang[1] >>> 0), [0x1c00, 0x3c00, 0x5c00, 0x7c00]) &&
+        eq(ring([0, 0, 0], 0x4000).map(x => x.ang[1] >>> 0), [0x5c00, 0x7c00, 0x9c00, 0xbc00]),
+        r.map(x => '0x' + (x.ang[1] >>> 0).toString(16)).join(' '));
+  check('only the mode 5 names a record -- u 120 (em003_00_020) -- and the three mode 6 name none at all',
+        r[0].pel === 'em003_00u' && r[0].key === 120 && r.slice(1).every(x => x.key == null) &&
+        JSON.stringify(D.shells.shell01.modes[6].ef) === JSON.stringify([[999, -1], [999, -1]]),
+        r.map(x => x.key == null ? '-' : 'u ' + x.key).join(', '));
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);
