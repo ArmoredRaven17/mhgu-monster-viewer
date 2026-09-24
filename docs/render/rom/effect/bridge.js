@@ -170,8 +170,10 @@ native(0x9b1f1c, (m, p) => { C.effectBaseCtor(m, p); return p; }, A1, 'r0');
 //   (0xb082e0 -> 0xcc86e8 -> 0xb01aa0) writes 0xFFFFFFFF there, meaning "never submitted", and the two sites that
 //   ever stamp it (0x87af3c, 0x8ae2a4) write [0x211d120] + [0x211d124] -- the device's frame counter plus the frames
 //   in flight, i.e. "free me once the GPU has passed the frame I was last drawn in". Nothing on the effect path
-//   stamps it, so the value stays -1, the test is true, and the buffer is destroyed at once: 0xbbf5b8 and its drain
-//   (0xbbdc34, from the device's frame end 0xbbd8ac) are dead code here rather than something the viewer skips.
+//   stamps it, so an undrawn buffer keeps -1 and is destroyed at once. A DRAWN one is stamped, and then only a
+//   RUNNING frame counter makes it come due -- proof.js unitFrame advances 0x211d120 once a frame for exactly this
+//   reason. With it running, 0xbbf5b8 and its drain (0xbbdc34, from the device's frame end 0xbbd8ac) stay dead code
+//   here rather than something the viewer skips; with it parked at 0 every drawn buffer deferred and leaked.
 //   THE COMPARE MUST BE `| 0`, NOT toS32: toS32 is the SATURATING float->int conversion (vcvt.s32.f32), which turns
 //   0xFFFFFFFF into 2147483647 and sends every buffer down the deferred branch. That cost an afternoon.
 registerNative(0xb01c44, (m, c) => {
@@ -180,7 +182,7 @@ registerNative(0xb01c44, (m, c) => {
   m.w32((obj + 8) >>> 0, n);
   if (n !== 0){ clobber(c); c.r[0] = (obj + 8) >>> 0; return; }
   if ((m.u32((obj + 4) >>> 0) | 0) >= (m.u32(0x211d120) | 0))
-    throw new Unverified('0xb01cc4 release through 0xbbf5b8, which is not read');
+    throw new Unverified('0xb01cc4 release through 0xbbf5b8, which is not read (stamp ' + (m.u32((obj + 4) >>> 0) | 0) + ' vs device frame ' + (m.u32(0x211d120) | 0) + ', in flight ' + (m.u32(0x211d124) | 0) + ')');
   const rc = liftedCall(m, m.u32((m.u32(obj) + 4) >>> 0), [obj]);
   clobber(c); c.r[0] = rc.r[0] >>> 0;
 });

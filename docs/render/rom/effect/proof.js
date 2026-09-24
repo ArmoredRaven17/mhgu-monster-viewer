@@ -219,7 +219,18 @@ export function installRequests(m, malloc){
       if (reuse && reuse.length){ const got = reuse.pop(); gpu.live.set(got, key); return got; }
       const at = Math.ceil(gpu.cursor / align) * align;
       gpu.cursor = at + size;
-      if (gpu.cursor > gpu.base + POOL_BYTES) throw new Unverified('GPU pool 5 stand-in exhausted');
+      if (gpu.cursor > gpu.base + POOL_BYTES){
+        // the refusal says WHAT ran the pool out, because the two causes need opposite fixes: blocks still held
+        // (a free the runtime is not reaching) against blocks on the free lists in shapes nobody asks for again
+        // (fragmentation -- this stand-in reuses a block only at its exact size and alignment)
+        const tally = m2 => { const t = new Map(); for (const k of m2) t.set(k, (t.get(k) || 0) + 1);
+          return [...t].sort((a, b) => b[1] * +b[0].split(':')[0] - a[1] * +a[0].split(':')[0]).slice(0, 4)
+                 .map(([k, n]) => k + ' x' + n).join(', '); };
+        const idle = [...gpu.freed].flatMap(([k, l]) => l.map(() => k));
+        throw new Unverified('GPU pool 5 stand-in exhausted: ' + Math.round(gpu.cursor - gpu.base >> 10) + ' KB of ' +
+          (POOL_BYTES >> 10) + ' KB, ' + gpu.live.size + ' blocks held (' + tally(gpu.live.values()) + '), ' +
+          idle.length + ' free (' + tally(idle) + '), free called ' + (gpu.freeCalls || 0) + ' times, ' + (gpu.freeMiss || 0) + ' on a block not ours');
+      }
       gpu.peak = Math.max(gpu.peak, gpu.cursor - gpu.base);
       gpu.live.set(at, key);
       return at;
@@ -227,8 +238,9 @@ export function installRequests(m, malloc){
     // the ROM frees by the value it was given; a host that keeps offsets rather than addresses is accepted too
     m.svc.gpuPoolFree = p => {
       p = p >>> 0;
+      gpu.freeCalls = (gpu.freeCalls || 0) + 1;
       const at = gpu.live.has(p) ? p : (gpu.live.has((gpu.base + p) >>> 0) ? (gpu.base + p) >>> 0 : 0);
-      if (!at) return 0;                                  // not one of ours (or freed twice): leave it alone
+      if (!at){ gpu.freeMiss = (gpu.freeMiss || 0) + 1; return 0; }   // not ours (or freed twice): leave it alone
       const key = gpu.live.get(at);
       gpu.live.delete(at);
       let list = gpu.freed.get(key);
@@ -341,13 +353,35 @@ export class ProofRequest {
   finished(){ return (this.m.u32(this.core + 0xc) & 7) === 3 && this.effects().length === 0; }
 }
 
-// THE UNIT MANAGER'S SIDE OF A UNIT'S END, which the harness's runs never needed. A unit in state 3 gets
-// nothing from either pass below, so taking it off the list changes nothing a pass does; the game's manager
-// deletes it. release() takes a request off the passes altogether -- its core and the effects it has made --
-// for an effect the viewer stops: how the game ends a running effect (a fade, a kill) is not read.
+// THE UNIT MANAGER'S SIDE OF A UNIT'S END. A unit in state 3 gets nothing from either pass below, so taking it
+// off the list changes nothing a pass does -- but the game's manager DELETES it, and the delete is not
+// bookkeeping: an effect's sGpuParticle records own GPU pool 5 blocks (0x86772c takes one, the finalize at
+// 0x8676c8 gives it back), so a viewer that only dropped the unit never returned them. Barioth ran the pool out
+// 80 motions into one runtime with 54 blocks held and none free, and because live.js fails a monster's WHOLE
+// effect set at the first refusal, that reads as the effects simply stopping -- which is what Raven saw on Khezu
+// ("effects also play one or two times then stop rendering"). 400 units reach state 3 in one of his soaks.
+//   SLOT 0, not slot 1. uMHProofEffect's vtable holds the complete destructor at slot 0 (0x43bc0) and the
+// DELETING one at slot 1 (0x43c7c) -- the latter ends in the allocator's free (0x7a75a0's vtable +0x34) on the
+// object itself, and this runtime's heap is a bump allocator with nothing to free into. The destructor is the
+// half that releases what the object owns; the heap half is deliberately not run, and is said so here rather
+// than faked. Both are lifted (lift-effects.sh), recorded by efx/proofunit.py's unit pass, which now ends a
+// state-3 unit the same way -- that is where the vectors for them come from.
+// release() takes a request off the passes altogether -- its core and the effects it has made -- for an effect
+// the viewer stops: how the game ends a running effect (a fade, a kill) is not read.
 export function pruneUnits(m, state){
-  state.units = state.units.filter(([u]) => (m.u32(u + 0xc) & 7) !== 3);
+  // A FRAME LATE, deliberately. The unit is off the passes as soon as it reaches state 3, but things around it
+  // still read it on that frame: schedule.step() drops a finished request straight after this call and
+  // Request.finished() reads the core's state and its effect array to decide -- so destroying the core here read
+  // its own freed memory the next step and walked off into an image page the export does not carry. The game has
+  // no such race (its manager deletes on its own pass, after everyone else has had the frame); waiting one frame
+  // is how that ordering is kept without guessing at the manager.
+  const keep = [], dead = [];
+  for (const e of state.units) ((m.u32(e[0] + 0xc) & 7) !== 3 ? keep : dead).push(e);
+  state.units = keep;
+  for (const [u] of state.dying || []) destroyUnit(m, u);     // last frame's, now that nothing reads them
+  state.dying = dead;
 }
+export function destroyUnit(m, u){ liftedCall(m, vslot(m, u, 0), [u]); }
 // A STOP REQUEST, the way a monster's own code ends a running effect -- Teostra's aura when its switch goes
 // off (0xe1108c): 0x329c40(core, 0), which asks the core to stop (vtable +0x9c, 7) unless it is already
 // stopping. The effect runs on to its own end (32 frames for the aura) and the core then dies as a
@@ -359,6 +393,7 @@ export function stopRequest(m, request){
 export function releaseRequest(state, request){
   const gone = new Set([request.core, ...request.effects()]);
   state.units = state.units.filter(([u]) => !gone.has(u));
+  for (const u of gone) destroyUnit(request.m, u);
 }
 
 // One frame of the unit passes over every unit the requests registered (proofunit.py unit_frame).
@@ -367,6 +402,18 @@ export function releaseRequest(state, request){
 // passes: 'all', or 'move' alone -- for units made between the passes when none ran before them (host.js unitFrame)
 export function unitFrame(m, state, between, passes = 'all'){
   state.filters = [];
+  // THE DEVICE'S FRAME COUNTER (0x211d120) RUNS, because the ROM's own arithmetic is relative to it and a counter
+  // that never moves makes that arithmetic meaningless. A GPU buffer's +4 is a fence stamp: the draw writes
+  // [0x211d120] + [0x211d124] into it (0x87af3c, 0x8ae2a4) and the release destroys the buffer at once only when
+  // the stamp is BELOW the counter (0xb01cac, bridge.js) -- "free me once the GPU has passed the frame I was last
+  // drawn in". Left at 0, every buffer the viewer had drawn stamped 0, 0 >= 0 was true, and each went down the
+  // deferred-destruction path (0xbbf5b8) the viewer does not read -- so an effect's buffers could never be
+  // released. Advanced once a frame, as the device advances it, a buffer last drawn on an earlier frame is due and
+  // the ROM destroys it here, which is the path the game takes and the one that is translated.
+  //   efx/proofunit.py's unit_frame advances it in the same place, so a recording and the viewer read the same
+  // number on the same frame. [0x211d124], the frames in flight, is left at 0: nothing here reads it and the
+  // game's value is not read.
+  if (passes === 'all') m.w32(0x211d120, (m.u32(0x211d120) + 1) >>> 0);
   if (passes === 'all') for (const [u] of state.units.slice()){             // update pass
     m.wf32(u + 0x1c, DT);
     const w = m.u32(u + 0xc);
