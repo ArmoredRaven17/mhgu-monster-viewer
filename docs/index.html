@@ -7209,6 +7209,45 @@ function stepBox(base){
   const want = Array.isArray(p) ? p : [p];
   box.wall.set(boxForced.wall === null ? want.includes(5) : boxForced.wall);
   box.ceiling.set(boxForced.ceiling === null ? want.includes(6) : boxForced.ceiling);
+  stepMount(want);
+}
+
+// AND THE MONSTER GOES ONTO THE SURFACE (E:\offline\decode\notes\posture-mount.md). Showing the plane is not enough:
+// the cling clips are authored SURFACE-LOCAL, so the engine -- not the animation -- puts the monster on the surface
+// and turns it. Raven, 2026-09-23, looking at a ceiling clip played on the floor: "Khezu doesn't automatically mount
+// onto the ceiling".
+//   THE ROM'S OWN TRANSFORM, read rather than guessed. The unit's rotation is three u16 angles composed as
+//   Ry(yaw) . Rx(pitch) . Rz(roll), and its origin is pinned to the surface each frame (0xbf284: P+0x44 = P+0x5b4,
+//   for postures 0, 3, 4 and 6 -- the origin sits EXACTLY ON the plane, offset zero).
+//     CEILING (6): the class sets pitch and roll to 0 and the per-frame tilt pass 0xbdf54 derives them from the
+//       surface normal; for a downward normal that is pitch 0, ROLL 180. Khezu's .dtb tilt record is mode 0, the raw
+//       normal unblended, so he takes the whole flip. The clip's own root Y (148..230) then hangs him below the plane.
+//     WALL (5): hard-coded, because the tilt formula is degenerate when the normal is horizontal -- 0xbdf54 returns
+//       early for posture 5. The shared setter writes PITCH -90 (0xbc8fc) and Khezu's class ROLL 180 (0xd145f4), with
+//       the yaw the wall's outward normal: head up, belly out.
+//   THE 430 IS NOT A PLACEMENT. TenjoOfs + 30 is the REACH the monster can attach across (0xd13884), never a height;
+//   the plane's own height is free, and the viewer's is whatever the box is set to.
+const _mountE = new THREE.Euler(), _mountQ0 = new THREE.Quaternion();
+let mountedOn = null, _mountY0 = 0;
+function stepMount(want){
+  const on = want.includes(6) ? 6 : want.includes(5) ? 5 : 0;
+  const main = mounted.main;
+  if (!main) return;
+  if (on === 0){
+    if (mountedOn !== null){ main.quaternion.copy(_mountQ0); main.position.y = _mountY0; mountedOn = null; }
+    return;
+  }
+  if (mountedOn === null){ _mountQ0.copy(main.quaternion); _mountY0 = main.position.y; }   // to go back to
+  mountedOn = on;
+  // the wall's outward normal is +z here (the wallZ plane), so its yaw is 0; a placed wall keeps that until the
+  // viewer lets a wall be turned
+  const yaw = 0;
+  _mountE.set(on === 5 ? -Math.PI / 2 : 0, yaw, Math.PI, 'YXZ');
+  main.quaternion.setFromEuler(_mountE);
+  // the origin goes ONTO the plane for a ceiling (0xbf284 pins postures 0/3/4/6 to it); a WALL pins nothing -- the
+  // ROM only clamps its height between the floor and the ceiling -- so a wall clip keeps the height it had
+  const s = world.scale.y || 1;
+  main.position.y = on === 6 ? (box.ceiling.info().y - world.position.y) / s : _mountY0;
 }
 
 // THE CUT TAIL (render/tail-option.js; tail-option-em043.md). A sever's frame 0 drops the monster's tail piece at its

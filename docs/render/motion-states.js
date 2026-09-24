@@ -586,14 +586,16 @@ export const CLIP_POSTURE = {
     '5|Motion[37]': [5, 6], '5|Motion[38]': 5,
   },
 };
-// HOW FAR THE CEILING IS, in GAME units above the monster's own base plane, from the monster's dtbase.dtb rather than
-// from the look of it: Khezu's TenjoOfs is 400.0 and his posture-5 handler (0xd13884) attaches him to the ceiling
-// when P+0x44 reaches P+0x980 - (TenjoOfs + 30) x size. So 430 is the reach, and the surface sits there. His own
-// ceiling clips agree in shape but not in absolute height -- they are authored surface-local, carrying no height of
-// their own; the ones that do carry it sit at 369..578 and the highest point he ever authors is 838.2 (L3 Motion[36]).
-// Shogun Ceanataur cannot size this: his TenjoOfs is 0 and his wall and ceiling slots are all zero -- he never takes
-// posture 5 at all.
-export const CEILING_ABOVE_GAME = 430;
+// HOW HIGH THE CEILING IS, in GAME units above the monster's floor. THIS IS A VIEWER CHOICE, and the ROM says so:
+// the engine pins a ceiling monster's origin exactly ON the surface (0xbf284: P+0x44 = P+0x5b4, offset zero) and the
+// surface's own height is the stage's, not the monster's. TenjoOfs + 30 = 430 is the REACH the monster can attach
+// across (0xd13884), never a placement -- an earlier version of this file put the plane 430 above the FLOOR, which
+// is the wrong reference twice over and drew the plane through Khezu's chest.
+// So the number here is measured from his own animation instead: 838.2 is the highest point any clip of his authors
+// (L3 Motion[36]), the top of a climb, and his other transitions sit at 369..578. A ceiling there is one his own
+// motions reach. Raven, 2026-09-23: "As for height, we see how high Khezu or Shogun can jump up" -- and Shogun
+// cannot answer it (TenjoOfs 0, no posture 5 at all), so this is Khezu's measurement.
+export const CEILING_ABOVE_GAME = 838;
 export const postureOf = (monId, list, clip) => {
   const t = CLIP_POSTURE[monId];
   const p = t && t[list + '|' + clip];
