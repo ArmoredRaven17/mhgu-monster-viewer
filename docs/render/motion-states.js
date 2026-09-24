@@ -559,6 +559,47 @@ export class JointScale {
 // so the first rage's first puff comes at once. Each is a one-shot (end mode 0) nothing stops. period: frames; joint:
 // the joint number whose rotation the pick reads; records: [id 0, id 1]; pick(q): the class's +0x2a4 on that joint's
 // local quaternion [x, y, z, w].
+// WHICH SURFACE A MOTION ASSUMES (E:\offline\decode\notes\posture-em003_00.md, read and ROM-run by the posture decode
+// agent, 2026-09-23). The game keeps a posture at P+0x1ba and it is not cosmetic: it picks the surface the monster is
+// pinned to, and a part break taken in one of them is not the ground reaction at all. THE ROM NAMES THE POSTURES
+// ITSELF -- the setter 0xbc7f4 indexes its offset out of the monster's dtbase.dtb by posture group, and that file's
+// property list (rodata 0x154ff44) reads PushHitStandOfs / PushHitFlyOfs / PushHitKabeOfs / FlyOfs / SwimTopOfs /
+// SwimBottomOfs / TenjoOfs / MoguriBaseOfs. Kabe is wall, tenjo is ceiling, moguri is burrowing.
+//   0 ground, 1 airborne, 5 WALL, 6 CEILING. A clip listed as both 5 and 6 is one animation the engine plays against
+//   either surface; the viewer shows both planes for it.
+// The viewer has only a floor to stand on, so a wall or ceiling motion plays in mid-air until its plane is shown --
+// which is what this table is for (index.html's box), and what render/shells.js's stage stand-in answers against.
+export const CLIP_POSTURE = {
+  // KHEZU: built by a phase-aware dataflow over uEm003_00, since the handler re-runs every frame and switches on
+  // P+0x1a1 -- a posture set in phase 0 is still in force when a later phase plays its motion. Only the motions that
+  // leave the ground are listed; everything else is posture 0.
+  em003_00: {
+    '0|Motion[26]': 5, '0|Motion[50]': 1, '0|Motion[53]': 6, '0|Motion[54]': 6, '0|Motion[56]': 6,
+    '1|Motion[1]': 1, '1|Motion[2]': 1, '1|Motion[6]': 1,
+    '2|Motion[7]': 6, '2|Motion[8]': 6, '2|Motion[9]': 6, '2|Motion[14]': 1, '2|Motion[28]': [5, 6],
+    '2|Motion[29]': 6, '2|Motion[33]': 5, '2|Motion[36]': 5, '2|Motion[39]': 1, '2|Motion[40]': 1,
+    '2|Motion[48]': 6, '2|Motion[50]': 6, '2|Motion[51]': 5, '2|Motion[55]': 6, '2|Motion[63]': 1,
+    '2|Motion[67]': [5, 6], '2|Motion[69]': 6, '2|Motion[71]': 6, '2|Motion[72]': 6, '2|Motion[73]': 6,
+    '2|Motion[75]': 6,
+    '3|Motion[36]': 6,
+    '5|Motion[1]': [5, 6], '5|Motion[4]': 6, '5|Motion[5]': [5, 6], '5|Motion[8]': 1, '5|Motion[36]': 6,
+    '5|Motion[37]': [5, 6], '5|Motion[38]': 5,
+  },
+};
+// HOW FAR THE CEILING IS, in GAME units above the monster's own base plane, from the monster's dtbase.dtb rather than
+// from the look of it: Khezu's TenjoOfs is 400.0 and his posture-5 handler (0xd13884) attaches him to the ceiling
+// when P+0x44 reaches P+0x980 - (TenjoOfs + 30) x size. So 430 is the reach, and the surface sits there. His own
+// ceiling clips agree in shape but not in absolute height -- they are authored surface-local, carrying no height of
+// their own; the ones that do carry it sit at 369..578 and the highest point he ever authors is 838.2 (L3 Motion[36]).
+// Shogun Ceanataur cannot size this: his TenjoOfs is 0 and his wall and ceiling slots are all zero -- he never takes
+// posture 5 at all.
+export const CEILING_ABOVE_GAME = 430;
+export const postureOf = (monId, list, clip) => {
+  const t = CLIP_POSTURE[monId];
+  const p = t && t[list + '|' + clip];
+  return p == null ? 0 : p;
+};
+
 export const RAGE_PUFF = {
   // BASARIOS: the same shape again -- vtable +0x2a4 is the base stub, so 0xa425c turns the 0 into id 1 and the
   // request is always u 1121. His two records are NOT identical, unlike Khezu's and Deviljho's (1120 is scale 1 at

@@ -1305,8 +1305,9 @@ import { PoseDriver } from './render/pose.js';
 import { gidBonesOf } from './render/skeleton.js';
 import { loadMaterialsDb } from './render/materials-db.js';
 import { createBackground } from './render/background.js';
-import { createFloorGrid } from './render/grid.js';
-import { MotionStates, RAGE_BY_LEVEL, RAGE_PUFF, JOINT_SCALE, JointScale, shellTailInput } from './render/motion-states.js';
+import { createFloorGrid, createGrid } from './render/grid.js';
+import { MotionStates, RAGE_BY_LEVEL, RAGE_PUFF, JOINT_SCALE, JointScale, shellTailInput,
+         postureOf, CEILING_ABOVE_GAME } from './render/motion-states.js';
 import { pickVariantsFor } from './render/shells.js';
 import { CUT_TAIL, CutTail } from './render/tail-option.js';
 import { setEyeGlow, updateEyeGlow } from './render/eye-glow.js';
@@ -2436,6 +2437,27 @@ function paintFloorGrid(){
 }
 gridBtn.onclick = () => { floorGridOn = !floorGridOn; paintFloorGrid(); saveState(); };
 paintFloorGrid();
+
+// ---- THE OTHER TWO SIDES OF THE BOX (render/grid.js) ---------------------------------------------
+// Raven, 2026-09-23: "The wall and ceiling don't need to be too complex, we are simply making a box... We hide the
+// wall and ceiling, when we need to display a monster on the wall, we show the wall grid, if we need a ceiling we
+// show the ceiling." Khezu clings to walls and hangs from ceilings, and with only a floor his motions play in mid
+// air. Both are OFF unless asked for, and neither is wired to a clip yet: which of his motions assume which surface
+// is being read from the ROM (the posture P+0x1ba), and until that table exists the planes are placed by hand.
+//   WHERE THEY SIT IS NOT SETTLED. Raven: "first let's get it working then worry about polishing things, since it
+// would help for me to see where Khezu is on the wall before finalizing its placement." So the wall starts at the
+// monster's own origin in z and the ceiling at a height given here, and what he sees against them is what decides
+// the real numbers. The ceiling's height is a PLACEHOLDER until the jump is measured, not a value from the game.
+// THE CEILING'S HEIGHT IS THE ROM'S, not a guess: his dtbase.dtb TenjoOfs is 400 and his own handler attaches him
+// to the ceiling within TenjoOfs + 30 = 430 game units of it, times his size. Game units are viewer metres x 100.
+const box = {
+  wall: createGrid({ scene, kind: 'wallZ', centre: monsterCenter, reach: monsterReach,
+                     at: () => box.at.wall === null ? monsterTravel(_travel).z : box.at.wall }),
+  ceiling: createGrid({ scene, kind: 'ceiling', centre: monsterCenter, reach: monsterReach,
+                        at: () => monsterFloorY() + (box.at.ceiling === null
+                             ? CEILING_ABOVE_GAME * 0.01 * (world.scale.x || 1) : box.at.ceiling) }),
+  at: { wall: null, ceiling: null },
+};
 
 // the Camera panel's controls: the lens, the turntable (the bar's steps, with a direction), the mode,
 // the fly speed, the tracking and two orbit behaviours of the controls themselves
@@ -7116,6 +7138,22 @@ function syncRageRecords(rt){
   for (const [pel, k] of RAGE_BY_LEVEL[state.id].records) rt.holdRage(pel, k, off.includes(pel + '|' + k));
 }
 
+// THE BOX FOLLOWS THE MOTION (render/motion-states.js CLIP_POSTURE). A clip the game plays on a wall or a ceiling
+// shows that plane and nothing else; a ground clip shows neither. Raven, 2026-09-23: "We hide the wall and ceiling,
+// when we need to display a monster on the wall, we show the wall grid, if we need a ceiling we show the ceiling."
+// A clip the ROM plays against either surface (Khezu's L2 Motion[28], L2 Motion[67], L5 Motion[1] / [5] / [37])
+// shows both, because which one the engine picked is its own state and not in the animation.
+// __view.box(which, true/false) forces one until the next clip change; a number places it and keeps it placed.
+let boxForced = { wall: null, ceiling: null }, boxClip = null;
+function stepBox(base){
+  const key = state.id + '|' + state.list + '|' + base;
+  if (key !== boxClip){ boxClip = key; boxForced = { wall: null, ceiling: null }; }
+  const p = base ? postureOf(state.id, state.list, base) : 0;
+  const want = Array.isArray(p) ? p : [p];
+  box.wall.set(boxForced.wall === null ? want.includes(5) : boxForced.wall);
+  box.ceiling.set(boxForced.ceiling === null ? want.includes(6) : boxForced.ceiling);
+}
+
 // THE CUT TAIL (render/tail-option.js; tail-option-em043.md). A sever's frame 0 drops the monster's tail piece at its
 // joint 142 and flies it on its own clock -- k, the frames the sever motion has advanced since then -- to G, the
 // monster's position on the grid floor (+20 S), where it lands (u 905 at k = 42) and stays, drawn at the ROM's own
@@ -7271,6 +7309,7 @@ function driveMotionStates(){
     setEffectRage(motionStates.rage(state.rage));
     if (rt){ if (r.entry) rt.restartRage(); else rt.setRage(motionStates.rage(state.rage)); }
   }
+  stepBox(base);
   stepJointScale();
   stepCutTail(r, rt);
   syncRageRecords(rt);
@@ -7480,6 +7519,17 @@ window.__view.effects = async (on, only) => {
   return { on: effectMountsEnabled(), mounted: effectMountsLive() };
 };
 window.__view.effectsAvailable = () => effectMountsFor(state.id);
+// __view.box('wall', true) / ('ceiling', true) shows one; a number places it instead of the default (the wall's own
+// z, the ceiling's height above the floor, both in metres); __view.box() reports both.
+window.__view.box = (which, on) => {
+  if (which === undefined) return { wall: box.wall.info(), ceiling: box.ceiling.info(), at: { ...box.at } };
+  const g = box[which];
+  if (!g) throw new Error('box: wall or ceiling');
+  if (typeof on === 'number'){ box.at[which] = on; g.set(true); }        // a number PLACES it and keeps it placed
+  else { boxForced[which] = (on === null || on === undefined) ? null : !!on; g.set(!!on); }   // true/false until the clip changes
+  renderer.render(scene, camera);
+  return box[which].info();
+};
 // the cut tail as it flies (render/tail-option.js): J, G (game units) and the frame it is on
 window.__view.cutTail = () => cutTail && { J: cutTail.tail.J, G: cutTail.tail.G, k: cutTail.tail.k, qa: cutTail.tail.qa,
                                             pose: cutTail.tail.pose(), floor: monsterFloorY() };
