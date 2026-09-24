@@ -912,6 +912,135 @@ async function pageCheckBasarios(){
   return out;
 }
 
+// BARIOTH (em042_00): what his motions show, against E:\offline\decode\notes\states-em042_00.md. Two things here no
+// earlier monster has. HIS RAGE HOLDS TWO MESH PAIRS for as long as he is angry -- the part pass re-applies them from
+// isEnraged every frame, so they outlive the rage clip and every motion after it (RAGE_PARTS, not a motion's sets) --
+// and HIS BREAK REACTIONS ARE THREE-MOTION CHAINS whose six clips the ROM also uses for the sided stun.
+async function pageCheckBarioth(){
+  const out = [];
+  const check = (ok, label, detail) => out.push([!!ok, 'Barioth: ' + label, detail === undefined ? '' : JSON.stringify(detail)]);
+  const V = window.__view;
+  const M = await import('/render/monster.js');
+  const MS = await import('/render/motion-states.js');
+  const frames = n => new Promise(r => { let k = 0; const f = () => (++k >= n ? r() : requestAnimationFrame(f)); requestAnimationFrame(f); });
+  const until = async (test, n = 600) => { for (let i = 0; i < n; i++){ if (test()) return true; await frames(1); } return false; };
+  V.pose.clock.getDelta = () => 1 / 60;
+  const MON = 'em042_00';
+  const monSel = document.getElementById('monSel'), listSel = document.getElementById('monList'), clipSel = document.getElementById('monClip');
+  if (![...monSel.options].some(o => o.value === MON)) monSel.add(new Option(MON, MON));
+  monSel.value = MON; await monSel.onchange();
+  check(V.state.id === MON && V.mounted.main, 'mounted', V.state.id);
+  await V.effects(false); await V.effects(true);
+  const rt = () => M.effectRuntimeInstance();
+  check(await until(() => rt() && rt().monsterId === MON && rt().schedule), 'the effect runtime is up');
+  const fx = rt(), S = fx.schedule;
+  const fired = [];
+  const f0 = fx.fire.bind(fx); fx.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
+  const puffs = [];
+  const s0 = S.start.bind(S);
+  S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
+  // the schedule must actually HOLD the state records -- a table that names them means nothing if
+  // docs/effects/<mon>.json never staged them, and that reads as every state silently doing nothing
+  const byWhen = {};
+  for (const e of S.entries) byWhen[e.when] = (byWhen[e.when] || 0) + 1;
+  check(byWhen.event >= 10 && byWhen.ragePuff === 2, 'the schedule holds his state records: 10 event and 2 ragePuff', byWhen);
+  const MONSTER = V.MON.monsters.find(e => e.id === MON);
+  const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => MONSTER.partIds.includes(p))) : null; };
+  const isSet = (d, n) => (MONSTER.groups[n] || []).filter(([g]) => MONSTER.partIds.includes(g)).every(([g, on]) => d[g] === on);
+  const listOf = id => MONSTER.lists.find(l => l.id === id);
+  // a motion may be one clip or a _start/_loop pair, so the bare slot name is resolved to whichever option the
+  // list actually carries -- setting clipSel.value to a name no option has changes nothing and the play SILENTLY
+  // does not happen, which read here as every state record failing to fire
+  const play = async (list, clip) => {
+    if (V.state.list !== list){ listSel.value = list; await listSel.onchange(); await frames(2); }
+    const o = [...clipSel.options].find(x => x.value === clip || x.value === clip + '_start' || x.value === clip + '_loop');
+    if (!o){ check(false, 'the list has a clip for ' + list + '|' + clip); return false; }
+    clipSel.value = o.value; await clipSel.onchange();
+    return until(() => V.pose.action && V.pose.action.getClip().name === o.value, 300);
+  };
+  const steps = async n => { const a = S.frame; await until(() => S.frame - a >= n, 20 * n + 200); };
+  const count = (arr, k) => arr.filter(x => x === k).length;
+  const REST = ['0', 'Motion[1]'];
+  const rageBox = document.getElementById('monRage');
+  V.state.loop = true;
+  await play(REST[0], REST[1]); await frames(3);
+
+  // THE RAGE PAIR. Calm he draws sets 3 and 6; enraged, 4 and 7 -- and the swap must HOLD on a motion that is not
+  // the rage clip, which is the whole reason RAGE_PARTS exists rather than a `sets` on L0 Motion[4].
+  const RP = MS.RAGE_PARTS[MON];
+  check(RP && RP.calm.join() === '3,6' && RP.enraged.join() === '4,7', 'RAGE_PARTS: calm sets 3 and 6, enraged 4 and 7', RP);
+  const calm0 = drawn();
+  check(calm0 && RP.calm.every(n => isSet(calm0, n)), 'calm at rest: the calm eye and body meshes (sets 3, 6)', calm0);
+  rageBox.checked = true; await rageBox.onchange({ target: rageBox }); await frames(4);
+  const hot = drawn();
+  check(hot && RP.enraged.every(n => isSet(hot, n)), 'ENRAGED: both pairs swap (sets 4, 7)', hot);
+  await play('0', 'Motion[5]'); await frames(4);
+  check(RP.enraged.every(n => isSet(drawn(), n)), 'and they HOLD on another motion entirely -- the part pass re-reads isEnraged every frame', drawn());
+  await play('3', 'Motion[15]'); await frames(4);
+  check(RP.calm.every(n => isSet(drawn(), n)), 'DEATH (L3 Motion[15]) with the user still enraged: the calm pair is back, because death clears the flag', drawn());
+  await play(REST[0], REST[1]); await frames(4);
+  check(RP.enraged.every(n => isSet(drawn(), n)), 'off the death motion: enraged again, as the user has it', drawn());
+
+  // THE PUFF: always u 1121 (+0x2a4 is the base stub), at once then every 30
+  check(S.puff && S.puff.period === 30 && S.puff.records.length === 2, 'the rage puff is set up, every 30, two records', S.puff ? { p: S.puff.period, n: S.puff.records.length } : null);
+  puffs.length = 0; await steps(95);
+  const gaps = puffs.slice(1).map((p, i) => p.step - puffs[i].step);
+  check(puffs.length >= 3 && gaps.every(g => g === 30), 'the puff comes at once, then every 30 steps', { n: puffs.length, gaps });
+  check(puffs.length > 0 && puffs.every(p => p.key === 1121), 'every puff is u 1121: key 1120 is never asked for', puffs.map(p => p.key));
+  rageBox.checked = false; await rageBox.onchange({ target: rageBox }); await frames(4);
+  check(RP.calm.every(n => isSet(drawn(), n)), 'rage off: the calm pair again', drawn());
+
+  // TIRED: the same clip as his combat idle, so nothing on the model says it -- the drool and the zeroed puff do
+  fired.length = 0;
+  await play('0', 'Motion[2]'); await frames(3); await steps(2);
+  check(S.rage === false && count(fired, 1104) === 1, 'L0 Motion[2] (tired): rage off, drool c 1104 at once', fired);
+  await steps(50);
+  check(count(fired, 1104) === 2, 'the drool again 48 steps on', fired);
+
+  // ASLEEP: eyes shut on all three of his sleep clips, the zzz every 90 on the hold, and the puff paused there
+  await play('3', 'Motion[12]'); await frames(4);
+  check(isSet(drawn(), 1), 'L3 Motion[12] (lying down): HIS EYES SHUT (set 1)', drawn());
+  fired.length = 0; puffs.length = 0;
+  await play('0', 'Motion[19]'); await frames(4); await steps(2);
+  check(isSet(drawn(), 1) && count(fired, 1102) === 1, 'L0 Motion[19] (the sleep hold): eyes shut and the zzz c 1102 at once', fired);
+  await steps(95);
+  check(count(fired, 1102) === 2, 'the zzz again 90 steps on', fired);
+  check(puffs.length === 0, 'and the puff is PAUSED in the sleep hold', puffs.length);
+  await play('0', 'Motion[20]'); await frames(4);
+  check(isSet(drawn(), 1), 'L0 Motion[20] (getting up): still shut', drawn());
+
+  // PARALYSIS, whose hold the shock trap shares
+  fired.length = 0;
+  await play('3', 'Motion[11]_loop'); await frames(3); await steps(2);
+  check(count(fired, 1101) === 1, 'L3 Motion[11] (paralysed): c 1101 at once', fired);
+  await steps(65);
+  check(count(fired, 1101) === 2, 'and again 60 steps on', fired);
+
+  // THE STUN, held into one handle across the chain
+  const evReqs2 = key => S.entries.filter(e => e.when === 'event' && e.def.record.key === key)
+    .map(e => e.requests.map(q => q.stopped ? 's' : 'r').join('')).join('|');
+  await play('3', 'Motion[5]_loop'); await frames(4); await steps(2);
+  const stun = evReqs2(1103);
+  check(stun.includes('r'), 'L3 Motion[5] (the stun hold): c 1103 held, not fired -- one request kept running', stun);
+  await play(REST[0], REST[1]); await frames(6);
+  check(!evReqs2(1103).includes('r'), 'and off the chain it is stopped', evReqs2(1103));
+
+  // THE tune+0x44 STATUS: L3 Motion[2] requests c 1109 ONCE at frame 0
+  fired.length = 0;
+  await play('3', 'Motion[2]'); await frames(4); await steps(60);
+  check(count(fired, 1109) === 1, 'L3 Motion[2] (the exhaust status): c 1109 once, not repeated', fired);
+
+  await play(REST[0], REST[1]); await frames(3);
+  for (const k of Object.keys(MS.MOTION_STATES[MON])){
+    const parts = k.split('|'), list = parts[0], clip = parts[1];
+    check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
+          'the table entry ' + k + ' is a clip he carries');
+  }
+  S.start = s0;
+  check(!fx.failed, 'the effect runtime never stopped', fx.failed);
+  return out;
+}
+
 // KHEZU (em003_00): what his motions show, against E:\offline\decode\notes\states-em003_00.md. He is the plainest
 // state machine we have wired -- the base break reaction, no joint scaling, no sever -- with two things no other
 // monster does: HIS BREAKS ADD GEOMETRY (the damage overlays are OFF at rest and each break turns one ON), and he
@@ -1459,6 +1588,7 @@ async function main(){
     .concat(await evaluate(c, `(${pageCheckDeviljho.toString()})()`))
     .concat(await evaluate(c, `(${pageCheckKhezu.toString()})()`))
     .concat(await evaluate(c, `(${pageCheckBasarios.toString()})()`))
+    .concat(await evaluate(c, `(${pageCheckBarioth.toString()})()`))
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})()`))
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em001_02', 'Gold Rathian')`))
     .concat(await evaluate(c, `(${pageCheckRathian.toString()})('em001_04', 'Dreadqueen')`))

@@ -203,6 +203,68 @@ export const MOTION_STATES = {
     '3|Motion[12]':  { dead: true, settled: true },
     '3|Motion[20]':  { dead: true },
   },
+  // BARIOTH (em042_00): E:\offline\decode\notes\states-em042_00.md, read and ROM-run by the Barioth decode agent
+  // (2026-09-24). Every change below lands on FRAME 0 of the motion named, except the rage pair, which the part pass
+  // re-applies from isEnraged every frame -- so it is not a motion's set at all and lives in RAGE_PARTS.
+  //   HIS BREAK REACTIONS ARE THREE MOTIONS, not one: a wing-arm break plays L3 M3 (or M4) -> 240 frames of L3 M5
+  //   (M6) -> L3 M7 (M8), and the ROM uses the SAME six clips for the stun, sided (direction 1 takes M4/M6/M8,
+  //   direction 2 M3/M5/M7). One motion can show one thing, so the break's set change sits on the first clip of each
+  //   chain -- that is where the ROM applies it and where it is visible -- and the stun's held stars sit on the hold
+  //   and recovery clips, where a player sees them. The sharing is the ROM's, not a choice made here.
+  em042_00: {
+    // THE HEAD: (10, 7) with part 0 plays L3 Motion[1]. LEVEL 1 SHOWS NOTHING AT ALL -- only level 2 has a .mpm row --
+    // so levels 0 and 1 keep set 12 and fire nothing; level 2 takes set 13 (group 2 off, 3 on) and fires u 1001
+    // (cm202_060 on joint 4, offset (0, -70, 30) at 0.5x).
+    '3|Motion[1]':  { levels: [[12], [12], [13]], fire: [null, null, ['em042_00u', 1001]] },
+    // THE +X WING-ARM (part 2) at level 1: set 14 -> 15 (group 10 off, 11 on), firing u 1010 -- the same file on
+    // JOINT 60, offset (0, 0, -300) at 0.8x. Part 5 (the +X hind leg) plays the same chain and changes nothing.
+    '3|Motion[3]':  { levels: [[14], [15]], fire: [null, ['em042_00u', 1010]] },
+    // THE -X WING-ARM (part 3) at level 1: set 16 -> 17 (group 12 off, 13 on), firing u 1015 on JOINT 70. Part 6 (the
+    // -X hind leg) plays it and changes nothing.
+    '3|Motion[4]':  { levels: [[16], [17]], fire: [null, ['em042_00u', 1015]] },
+    // THE STUN, the only sided reaction he has ((10, 0x20), section 6.2): c 1103 (cm200_003 on joint 3, offset
+    // (0, 0, 50) at 1.1x) into ONE held handle across the chain, stopped when it clears.
+    '3|Motion[5]':  { hold: ['em042_00c', 1103] },
+    '3|Motion[6]':  { hold: ['em042_00c', 1103] },
+    '3|Motion[7]':  { hold: ['em042_00c', 1103] },
+    '3|Motion[8]':  { hold: ['em042_00c', 1103] },
+    // THE TAIL SEVER: part 7's SECOND counter (base 380, once) -> (10, 0x72) on L3 Motion[13]. Set 18 -> 19 (group 14
+    // on, 101 off) and u 900 (cm202_062 on joint 144 at 1x). Part 7's first counter is a durability with no .dtp row,
+    // so there is no broken level -- only the sever. No cut-tail model is staged for him, so `drops` is left off
+    // rather than set to something that would silently do nothing.
+    '3|Motion[13]': { levels: [[18], [19]], fire: [null, ['em042_00u', 900]] },
+    // RAGE: command group 6's tail issues (1, 0) -- L0 Motion[4] from frame 0. The two mesh pairs it swaps are in
+    // RAGE_PARTS, because the ROM holds them for as long as isEnraged is true, not for the length of this clip.
+    '0|Motion[4]':  { rage: true },
+    // TIRED: the tired idle (0, 2) is L0 Motion[2] -- the SAME clip as his combat idle, so nothing on the model says
+    // it -- with drool c 1104 every 48 (cm200_006 on joint 3, pos (0, -30, 80) at 1.2x) and, calm and tired, the
+    // shared puff's countdown zeroed.
+    '0|Motion[2]':  { rage: false, tired: true, every: [['em042_00c', 1104], 48] },
+    // ASLEEP: (10, 0x1d) L3 Motion[12] lies down, (10, 0x1e) holds L0 Motion[19], then L0 Motion[20] -> L3 Motion[14]
+    // gets up. His eyes DO shut -- eye set 2 -> set 1, the lid mesh drawn -- while P+0x5d02 is up, and the hold has
+    // the zzz c 1102 every 90 and pauses the puff. L3 Motion[12] and L0 Motion[19] are also CAPTURE's clips
+    // ((11, 0x10)), which does not raise P+0x5d02; sleep is what they are shown as. L3 Motion[14] is left out
+    // entirely: it is the wake-up and it is shared with the paralysis, stun and shock-trap recoveries.
+    '3|Motion[12]': { sets: [1] },
+    '0|Motion[19]': { sets: [1], every: [['em042_00c', 1102], 90], puffOff: true },
+    '0|Motion[20]': { sets: [1] },
+    // PARALYSIS: (10, 0x1f) holds L3 Motion[11]; c 1101 every 60 (cm200_001 on joint 1 at 6x), first at once.
+    // L3 Motion[11] is also the SHOCK TRAP's hold ((10, 0x6e), c 1105 every 42 at 5x): shown as paralysis, as
+    // Khezu's, Basarios's and Rathian's shared hold is.
+    '3|Motion[11]': { every: [['em042_00c', 1101], 60] },
+    // THE tune+0x44 STATUS (INFERRED exhaust): (10, 0x1b) plays L3 Motion[2], which requests c 1109 once at frame 0
+    // (cm200_008 on joint 3, offset (0, -10, 70) at 1.5x). L3 Motion[2] is worked hard by the ROM -- it is also the
+    // head depletion while TIRED or ENRAGED ((10, 0x14) / (10, 0xe), whose set change L3 Motion[1] above shows) and
+    // the shock trap's first motion -- so the one thing it shows here is the status only it carries.
+    '3|Motion[2]':  { start: [['em042_00c', 1109]] },
+    // DEATH: L3 Motion[15] on the ground for (11, 0) and every number the table does not name (it is also the end of
+    // the fall, after L3 M9 -> M10 -> M8), and L3 Motion[18] for (11, 7) / (11, 0x12). Death shows nothing of its
+    // own: the break sets and the sever stay as the user has them and his eyes stay open. What it DOES do is clear
+    // the rage flag, which the part pass re-reads the same frame -- so the rage pair reverts, which `dead` gives for
+    // nothing (it forces the shown rage false, and RAGE_PARTS follows the shown rage).
+    '3|Motion[15]': { dead: true },
+    '3|Motion[18]': { dead: true },
+  },
   // KHEZU (em003_00): E:\offline\decode\notes\states-em003_00.md, read and ROM-run by the Khezu decode agent
   // (2026-09-23). His class uEm003_00 (vtable 0x17958f0) overrides almost none of the shared state machinery: the
   // break reaction is the plain (10, 7) because +0x23c is the base stub, there is no joint scaling (+0x2a0), no
@@ -515,6 +577,17 @@ function dreadking(){
 // RAGE RECORDS BY A PART'S LEVEL: Nargacuga's class requests its rage trails itself (+0x1d0 0xe49ec0, table 0x169dc88) --
 // u 1120 (both rows) while the head is below break level 2, u 1121 (one row) from it; the break swaps them while
 // enraged (0xe488b4 / 0xe48828). levels: the part's sets per level (calm); records: the record shown at each level.
+// THE .mpm SETS A MONSTER HOLDS WHILE ENRAGED. A motion's own `sets` last exactly as long as that motion, which is
+// right for a break or a shut eye, and WRONG for a rage swap: the part pass re-applies those from isEnraged on every
+// frame the monster is angry, so they outlive the rage entry clip and every motion after it. Barioth is the first
+// monster we have wired that does this (states-em042_00.md 2.1): his +0x210 part pass reads isEnraged and applies eye
+// set 3 -> 4 (group 8 off, 9 on) and body set 6 -> 7 (group 4 off, 5 on), holding both until the flag clears -- and
+// death clears the flag, so the calm pair comes back there for nothing.
+// calm / enraged: the set numbers applied in each state, before any motion's own sets, which go over them.
+export const RAGE_PARTS = {
+  em042_00: { calm: [3, 6], enraged: [4, 7] },
+};
+
 export const RAGE_BY_LEVEL = {
   em037_00: { levels: N_HEAD.calm, records: [['em037_00u', 1120], ['em037_00u', 1121]] },
 };
@@ -633,6 +706,49 @@ export const CLIP_POSTURE = {
 // (L3 Motion[36]), the top of a climb, and his other transitions sit at 369..578. A ceiling there is one his own
 // motions reach. Raven, 2026-09-23: "As for height, we see how high Khezu or Shogun can jump up" -- and Shogun
 // cannot answer it (TenjoOfs 0, no posture 5 at all), so this is Khezu's measurement.
+// THE CLIPS WHOSE POSTURE IS NOT READ, with the reason for each. A clip that leaves the ground and is in neither
+// this nor CLIP_POSTURE is a GAP, and dev/posture-coverage.mjs fails on it: it measures every clip the monster
+// carries out of the animation itself, so a wall or ceiling motion nobody decoded cannot pass unnoticed the way it
+// could when the only check walked the table's own entries (Raven, 2026-09-24: "if we cannot tell which motions are
+// wall or ceiling, then the soaks are not doing their job").
+//   Khezu's twenty, from E:/offline/decode/notes/posture-em003_00.md 11.2. Eight of them the game never plays --
+// each is the SECOND id handed to 0xb00b4 / 0xb0174, and his vtable +0x3d8 is the base no-op 0x6c180, so the id is
+// discarded; they are in the viewer only because the .lmt carries them. The other twelve are played by something
+// outside the class's setMotion sites and the 45 censused scripts, and what that is has not been found.
+export const POSTURE_UNREAD = {
+  em003_00: {
+    '0|Motion[51]': 'never played: the discarded second id of 0|Motion[53] (0xd14e98)',
+    '0|Motion[52]': 'never played: the discarded second id of 0|Motion[54] (0xd14fa4)',
+    '2|Motion[34]': 'never played: the discarded second id of 2|Motion[33] (0xd19b10)',
+    '2|Motion[35]': 'never played: the discarded second id of 2|Motion[33] (0xd19b4c)',
+    '2|Motion[49]': 'never played: the discarded second id of 2|Motion[50] (0xd1d430)',
+    '2|Motion[54]': 'never played: the discarded second id of 2|Motion[55] (0xd14ccc / 0xd1d24c)',
+    '2|Motion[68]': 'never played: the discarded second id of 2|Motion[69] (0xd1d784)',
+    '2|Motion[70]': 'never played: the discarded second id of 2|Motion[71] (0xd15308)',
+    '2|Motion[6]':  'leaves the surface for ground height; suspected 5 or 6 at its start, not read',
+    '2|Motion[53]': 'ends flat against a vertical face; tested at 0xd18720 / 0xd188d4 inside the posture-5 fn 0xd18608, never set',
+    '2|Motion[57]': 'tested at 0xd18738 / 0xd188ec in the same posture-5 fn, never set',
+    '2|Motion[62]': 'tested at 0xd1872c / 0xd188e0 in the same posture-5 fn, never set',
+    '2|Motion[45]': 'sideways, the shape of the posture-6 climb set; no reference in uEm003_00 or the 45 scripts',
+    '2|Motion[46]': 'ditto, the high half of the M46 / M47 pair',
+    '2|Motion[47]': 'ditto, the low half',
+    '5|Motion[6]':  'root pose numerically identical to 5|Motion[1]_loop, which is [5, 6]; nothing plays it',
+    '5|Motion[7]':  'ditto',
+    '5|Motion[39]': 'ditto',
+    '5|Motion[40]': 'ditto',
+    '3|Motion[22]': 'root on the floor between 3|M21 and the pitfall set; no censused script plays it, ground is the safe guess',
+    // FOUND BY dev/posture-coverage.mjs, not by the hand pass: three clips whose root signature matches a posture
+    // the table already places. The first two START at a surface stand-off and END at ground height -- the shape
+    // 2|Motion[6] has, a LEAVE-THE-SURFACE transition, which is a posture that CHANGES during the clip and which
+    // one entry cannot express. Each is set from three sites in the class (0xd17e70 / 0xd18144 / 0xd1bc7c and
+    // 0xd0f91c / 0xd19ed8 / 0xd1bd6c), each right after a write to the phase byte P+0x1a1, so settling them needs
+    // the same phase-aware dataflow the table was built with -- not done.
+    '2|Motion[13]': 'starts at 166.6, the posture-6 signature of 2|Motion[29], and ends at 300.5, ground height: a leave-the-surface transition, not read',
+    '2|Motion[38]': 'starts at 166.6 and ends at 300.5: the same transition shape, not read',
+    'Special|Motion 28': 'root 178.9, the cling stand-off 2|M28 / 2|M33 / 2|M36 share; the Special list is not one the class names, not read',
+  },
+};
+
 export const CEILING_ABOVE_GAME = 838;
 export const postureOf = (monId, list, clip) => {
   const t = CLIP_POSTURE[monId];
@@ -641,6 +757,10 @@ export const postureOf = (monId, list, clip) => {
 };
 
 export const RAGE_PUFF = {
+  // BARIOTH: vtable +0x2a4 is the base stub 0x6bf64 again, so 0xa425c turns its 0 into id 1 and the request is
+  // always u 1121; key 1120 is never asked for. His two records are BYTE-IDENTICAL (both cm200_007 on joint 3, pos
+  // (0, -20, 60), rot 0, scale 1, mode 1, subMode 0, end 0, axisMask 3), so the difference could not show anyway.
+  em042_00: { period: 30, joint: 3, records: [['em042_00u', 1120], ['em042_00u', 1121]], pick: () => 0 },
   // BASARIOS: the same shape again -- vtable +0x2a4 is the base stub, so 0xa425c turns the 0 into id 1 and the
   // request is always u 1121. His two records are NOT identical, unlike Khezu's and Deviljho's (1120 is scale 1 at
   // (0, -40, 30), 1121 scale 0.6 at (0, -40, 35)), but only 1121 is ever reached, so the difference never shows.
@@ -760,6 +880,10 @@ export class MotionStates {
     const prev = this.cur;
     const rageBefore = this.rage(user.rage), setsBefore = this.setsKey(), clipsBefore = this.clipsKey();
     const holdsBefore = this.holds(), eyesBefore = this.eyesOff();
+    // AFTER setsBefore, not before it. showParts needs the monster and the user's rage even with no motion spec
+    // active, but taking the new rage first made setsKey() already reflect it, so `parts` never flipped and
+    // index.html never re-applied them -- the monster kept the pair of the state it had just left.
+    this.monId = monId; this.userRage = !!user.rage;
     const out = { parts: false, rage: false, entry: false, fire: [], clips: false, settled: false, drop: false,
                   holdOn: [], holdOff: [], eyesOff: [], eyesOn: [] };
     if (!spec) this.cur = null;
@@ -840,7 +964,10 @@ export class MotionStates {
   // the rage the display shows: the motion's while it plays (on at a rage entry, off in death), else the user's
   rage(userRage){ const o = this.rageOverride(); return o === null ? !!userRage : o; }
   rageOverride(){ return this.cur && this.cur.rage !== null && this.cur.rage !== undefined ? this.cur.rage : null; }
-  setsKey(){ return this.cur && this.cur.sets ? this.cur.sets.join(',') : ''; }
+  // the rage the parts are shown in is part of the key: with RAGE_PARTS the same motion draws differently
+  // calm and enraged, and index.html only re-applies the parts when this changes
+  setsKey(){ return (RAGE_PARTS[this.monId] ? (this.rage(this.userRage) ? 'R:' : 'C:') : '') +
+                    (this.cur && this.cur.sets ? this.cur.sets.join(',') : ''); }
   clipsKey(){ return this.cur && this.cur.spec.clips ? this.cur.key + '@' + this.cur.t0 : ''; }
   // the material clips the motion shows, for render/monster.js stepMatAnim: [{ mats, clip, rest, t0 }], each played
   // from t0 on the materials' clock and held at its end; a settled one is at its end already
@@ -856,6 +983,10 @@ export class MotionStates {
   showParts(drawn, table){
     this.userDrawn = new Map(drawn);
     this.table = table;
+    // the sets rage holds go on FIRST, so a break or a shut eye the motion carries goes over them
+    const rp = RAGE_PARTS[this.monId];
+    if (rp) for (const s of (this.rage(this.userRage) ? rp.enraged : rp.calm))
+      for (const [p, v] of (table && table[s]) || []) drawn.set(p, v);
     if (!this.cur || !this.cur.sets) return;
     for (const s of this.cur.sets) for (const [p, v] of (table && table[s]) || []) drawn.set(p, v);
   }
