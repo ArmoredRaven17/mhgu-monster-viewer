@@ -151,7 +151,11 @@ try {
     for (const x of r.rows){
       if (x.listed === null || x.listed === 'no table') continue;
       const ps = Array.isArray(x.listed) ? x.listed : [x.listed];
-      if (ps.every(p => p === 0)) continue;       // ground is not a family worth matching
+      // A POSTURE LIST CONTAINING 0 IS NOT A FAMILY. A list means the clip is genuinely played at more than one
+      // posture, and for Diablos that is the burrow REUSING his ground clips -- so [0, 4]'s signature is just his
+      // standing pose, and taking it as a family made every ordinary ground clip in the monster match it.
+      // Only a clip that is exclusively off the ground (Khezu's 5, 6, [5, 6]) says what that surface looks like.
+      if (ps.some(p => p === 0)) continue;
       const e = sigOf.get(x.sig) || { postures: new Set(), from: [] };
       for (const p of ps) e.postures.add(p);
       e.from.push(x.key);

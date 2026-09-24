@@ -20,6 +20,11 @@
 // All at the viewer's step, one frame a 1/60 s; the game's own step for the option is NOT READ (with 2 the descent
 // takes 16 steps of the same easing, not 32).
 export const CUT_TAIL = {
+  // Diablos: the same option code, but JOINT 144 rather than the Rath line's 143 -- his sever hook passes kind
+  // 0x91 (0xc2274 at 0xd32724) where Basarios passes 0x8f and Savage 0x8e, and u 900 names joint 144. His
+  // uEnemyOption slot 0 resolves em007_00_tail (descriptor table[114] = 0x159abc4) and +0xb4 = 0x77ed is the same
+  // option motion list Rathian uses, so the piece flies on her poses. (states-em007_00.md 3.4)
+  em007_00: { piece: 'em007_00_tail', joint: 144, above: 20, landing: ['em007_00u', 905] },
   em043_05: { piece: 'em043_05_tail', joint: 142, above: 20, landing: ['em043_05u', 905] },
   // Deviljho: the same class, the same sever call and joint 142, his own model and landing record
   // (states-em043_00.md 4: the cut tail is the only part of the sever that differs from Savage)

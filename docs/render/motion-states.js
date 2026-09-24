@@ -203,6 +203,65 @@ export const MOTION_STATES = {
     '3|Motion[12]':  { dead: true, settled: true },
     '3|Motion[20]':  { dead: true },
   },
+  // DIABLOS (em007_00): E:/offline/decode/notes/states-em007_00.md, read and ROM-run by the Diablos decode agent
+  // (2026-09-24). He is the first BURROWER we have wired -- posture 4, which reuses his ground clips underground --
+  // and the first monster whose rage-puff pick is LIVE rather than a stub (RAGE_PUFF below).
+  //   HIS MOTIONS ARE SHARED HARD. L3 Motion[2] is the back break AND the exhaust status; L3 M3..M8 are the
+  //   hind-leg trips AND the sided stun; L3 Motion[13] is the paralysis hold AND the shock trap's. One motion can
+  //   show one thing, so each row below says which of its roles it shows, and the ROM's sharing is named.
+  em007_00: {
+    // THE HORNS, (10, 0x14) with part 6 on L3 Motion[22]: TWO levels, and the sets are CUMULATIVE -- level 1 takes
+    // set 3 -> 4 (group 102 out, 2 in, one horn), level 2 takes that AND set 5 -> 6 (group 103 out, 3 in, both).
+    // Each level fires its own record: u 1030 at the +X horn (offset (80, 80, 150)) and u 1031 at the -X
+    // (offset (-90, 90, 150)), both cm202_060 on joint 3 at 0.7.
+    '3|Motion[22]': { levels: [[3, 5], [4, 5], [4, 6]],
+                      fire: [null, ['em007_00u', 1030], ['em007_00u', 1031]] },
+    // THE BACK / WING, (10, 7) with part 0 on L3 Motion[2]: one level, set 7 -> 8 (group 104 out, 6 in), firing
+    // u 1000 (cm202_060 on joint 1, offset (0, 100, 0), scale 1). THE SAME MOTION is the tune+0x44 status
+    // ((10, 0x1b), c 1109 once at frame 0) and any other part's depletion, which change nothing; the break is
+    // what it shows, because the break is the only one of the three with anything to see.
+    '3|Motion[2]':  { levels: [[7], [8]], fire: [null, ['em007_00u', 1000]] },
+    // THE TAIL SEVER: part 7's SECOND counter (base 500, once) -> (10, 0x72) on L3 Motion[15]. Set 9 -> 10
+    // (group 101 out, 4 in) and u 900 (cm202_062 on JOINT 144 -- not the Rath line's 143). AND HE DROPS IT: his
+    // uEnemyOption slot 0 resolves em007_00_tail (descriptor table[114] = 0x159abc4) and the model is staged, so
+    // `drops` is real here where Basarios's would have done nothing.
+    '3|Motion[15]': { levels: [[9], [10]], fire: [null, ['em007_00u', 900]], drops: true },
+    // RAGE: the gauge -> command group 6 stream 0 -> (1, 6), playing L0 Motion[22] from frame 0. NOTHING ON THE
+    // MODEL CHANGES with it -- no part set, no eye, no joint scaling (+0x2a0 is the base `bx lr`) and no material
+    // of his own (the material machine in his part pass is Bloodbath's). The shared puff is all rage shows.
+    '0|Motion[22]': { rage: true },
+    // TIRED: the tired idle (0, 2) is L0 Motion[14]; drool c 1104 every 48 while not enraged -- his carries a
+    // rotation, (70, 0, 0) -- and, calm and tired, the puff's countdown is zeroed.
+    '0|Motion[14]': { rage: false, tired: true, every: [['em007_00c', 1104], 48] },
+    // ASLEEP: (10, 0x1d) L3 Motion[14] lies down, (10, 0x1e) holds L0 Motion[19], then L0 Motion[20] ->
+    // L3 Motion[16] gets up. His eyes shut -- eye set 2 -> set 1 (group 5 off, group 1 on) -- while P+0x5d02 is
+    // up, and the hold has the zzz c 1102 every 90 and pauses the puff.
+    '3|Motion[14]': { sets: [1] },
+    '0|Motion[19]': { sets: [1], every: [['em007_00c', 1102], 90], puffOff: true },
+    '0|Motion[20]': { sets: [1] },
+    // PARALYSIS: (10, 0x1f) holds L3 Motion[13]; c 1101 every 60 (cm200_001 on joint 1 at scale 5), first at once.
+    // L3 Motion[13] is also the SHOCK TRAP's hold ((10, 0x6e) after L3 Motion[9] to frame 60, c 1105 every 42 at
+    // the same scale): shown as paralysis, as Khezu's, Basarios's, Barioth's and Rathian's shared hold is.
+    '3|Motion[13]': { every: [['em007_00c', 1101], 60] },
+    // THE STUN, sided: (10, 0x20) plays L3 M4 -> M6 -> M8, or M3 -> M5 -> M7 for direction 2, then L3 M16. One
+    // held handle of c 1103 (cm200_003 on joint 3 at 0.8) across the chain, stopped when it clears. These six
+    // clips are ALSO the hind-leg trips ((10, 0x14) with part 3 or 4), which the model does not show at all --
+    // so the stun is the only thing they have to show.
+    '3|Motion[3]':  { hold: ['em007_00c', 1103] },
+    '3|Motion[4]':  { hold: ['em007_00c', 1103] },
+    '3|Motion[5]':  { hold: ['em007_00c', 1103] },
+    '3|Motion[6]':  { hold: ['em007_00c', 1103] },
+    '3|Motion[7]':  { hold: ['em007_00c', 1103] },
+    '3|Motion[8]':  { hold: ['em007_00c', 1103] },
+    // DEATH: L3 Motion[17] on the ground for (11, 0) and every number the table does not name; L3 Motion[12] at
+    // the end of the fall ((11, 1), after L3 M10 -> M11); and L3 Motion[20] for the BURROWED death ((11, 3)),
+    // which he surfaces from first (L3 M21 -> M20). Death shows nothing of its own: the break sets and the sever
+    // stay as the user has them, his eyes stay open (death does not raise P+0x5d02) and there is no material to
+    // change. The two that begin past their transition are settled.
+    '3|Motion[17]': { dead: true },
+    '3|Motion[12]': { dead: true, settled: true },
+    '3|Motion[20]': { dead: true, settled: true },
+  },
   // BARIOTH (em042_00): E:\offline\decode\notes\states-em042_00.md, read and ROM-run by the Barioth decode agent
   // (2026-09-24). Every change below lands on FRAME 0 of the motion named, except the rage pair, which the part pass
   // re-applies from isEnraged every frame -- so it is not a motion's set at all and lives in RAGE_PARTS.
@@ -681,6 +740,21 @@ export const CLIP_POSTURE = {
     '5|Motion[1]': [5, 6], '5|Motion[4]': 6, '5|Motion[5]': [5, 6], '5|Motion[8]': 1, '5|Motion[36]': [5, 6],
     '5|Motion[37]': [5, 6], '5|Motion[38]': 5,
   },
+  // DIABLOS: the first BURROWER wired. 72 of the 100 clips docs/monsters.json carries have a posture; only the
+  // ones that are not plain ground are listed, as Khezu's are. He uses 0, 1, 3 and 4 -- NO wall and NO ceiling.
+  //   POSTURE 4 IS THE BURROW (the .dtb calls that slot MoguriBaseOfs) and a LIST means the clip is genuinely
+  //   played at more than one posture: the burrow reuses his ground clips underground, which is the whole point
+  //   of it. THE VIEWER DRAWS NO PLANE FOR 4 OR 3 -- index.html's box has a wall and a ceiling only -- so these
+  //   entries change nothing on screen yet; they are here because the posture is what the clip is, and because
+  //   dev/posture-coverage.mjs needs them to tell a placed clip from a missed one.
+  em007_00: {
+    '0|Motion[1]': [0, 4], '0|Motion[5]': [0, 4], '0|Motion[7]': [0, 4], '0|Motion[24]': [0, 4],
+    '0|Motion[32]': 1,
+    '1|Motion[1]': [0, 1], '1|Motion[4]': [0, 1], '1|Motion[16]': [0, 1], '1|Motion[17]': [0, 3],
+    '1|Motion[19]': [0, 1],
+    '2|Motion[18]': 4,
+    '3|Motion[19]': [0, 4], '3|Motion[21]': 4,
+  },
   // SHOGUN CEANATAUR: he uses the ceiling, and he JUMPS ONTO IT rather than climbing -- which is why he has posture 6
   // and no posture 5 at all. Raven, 2026-09-23: "He uses the ceiling, but jumps directly onto it". His attach
   // (0xdc7578) crouches and launches on L5 Motion[2], waits on the shared ceiling gate 0xbf224 for 620.0 of
@@ -716,6 +790,15 @@ export const CLIP_POSTURE = {
 // discarded; they are in the viewer only because the .lmt carries them. The other twelve are played by something
 // outside the class's setMotion sites and the 45 censused scripts, and what that is has not been found.
 export const POSTURE_UNREAD = {
+  // DIABLOS's 28. Every one is a clip no class site and no script reaches on a path the dataflow could follow,
+  // and none of them is a state clip (states-em007_00.md 7.1).
+  em007_00: Object.fromEntries([
+    '0|Motion[3]', '0|Motion[9]', '0|Motion[10]', '0|Motion[11]', '0|Motion[12]', '0|Motion[13]',
+    '0|Motion[21]', '0|Motion[39]', '0|Motion[41]', '0|Motion[42]', '0|Motion[43]',
+    '1|Motion[2]', '1|Motion[3]', '1|Motion[5]', '1|Motion[6]', '1|Motion[7]', '1|Motion[8]', '1|Motion[9]',
+    '1|Motion[10]', '1|Motion[11]', '1|Motion[12]', '1|Motion[14]', '1|Motion[15]', '1|Motion[18]',
+    '1|Motion[20]', '2|Motion[3]', '3|Motion[27]', '3|Motion[28]',
+  ].map(k => [k, 'no class site and no script reaches it on a path the dataflow could follow'])),
   em003_00: {
     '0|Motion[51]': 'never played: the discarded second id of 0|Motion[53] (0xd14e98)',
     '0|Motion[52]': 'never played: the discarded second id of 0|Motion[54] (0xd14fa4)',
@@ -757,6 +840,14 @@ export const postureOf = (monId, list, clip) => {
 };
 
 export const RAGE_PUFF = {
+  // DIABLOS: HIS PICK IS LIVE, the first one that is. vtable +0x2a4 = 0xd451f0 is BYTE-IDENTICAL to Rathian's
+  // 0xd08afc, and his setup writes P+0x5d04 = 4 -- the same joint she reads -- so rathianPuffPick answers for him
+  // unchanged. u 1120 and 1121 differ: same file and joint 3, pos (0, -40, 60) against (0, -40, 80), scale 0.9.
+  //   Their file is `effect\em\em007\em007_04_001`, the VARIANT's path, and it is the only em007_04_* path
+  //   anywhere in em007_00u.pel; em007_04u.pel's own 1120 / 1121 name the same file, joint and offsets at scale
+  //   1.0, so the two variants share one puff effect that happens to carry the variant's name. Why it is named
+  //   that way is NOT READ, and nothing about the effect is monster-specific.
+  em007_00: { period: 30, joint: 4, records: [['em007_00u', 1120], ['em007_00u', 1121]], pick: rathianPuffPick },
   // BARIOTH: vtable +0x2a4 is the base stub 0x6bf64 again, so 0xa425c turns its 0 into id 1 and the request is
   // always u 1121; key 1120 is never asked for. His two records are BYTE-IDENTICAL (both cm200_007 on joint 3, pos
   // (0, -20, 60), rot 0, scale 1, mode 1, subMode 0, end 0, axisMask 3), so the difference could not show anyway.
