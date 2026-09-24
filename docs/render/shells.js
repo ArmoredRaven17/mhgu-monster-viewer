@@ -2048,6 +2048,16 @@ export const SHELL_DATA = {
         shell: 'shell13', spawner: 0xd18ee0, pick: 'ai', variant: '7:0x42' },
       { action: [7, 0x43], code: 0xd18ee0, args: [1, 1], list: '2', clip: 'Motion[61]', frame: 114.0,
         shell: 'shell13', spawner: 0xd18ee0, pick: 'chain' },
+      // THE GROUND PATCH (uShellEm003_sp_01 over base01). 0xd13e98 plays L2 Motion[64] (motion 0x240) and at 96.0
+      // makes one shell01 mode 3, its c 30: the setup carries the mode and nothing else, so base01's own flag-0x80
+      // path (the reader's sh int 2) puts it at the monster's feet -- his position and facing, at his ground. The
+      // streams issue (7, 0x40) and (7, 0x4c) (group 1 stream 62); (7, 0x3c) is in neither.
+      { action: [7, 0x3c], code: 0xd13e98, args: [1, 1, 1], list: '2', clip: 'Motion[64]', frame: 96.0,
+        shell: 'shell01', mode: 3, spawner: 0xd13e98, pick: 'unread' },
+      { action: [7, 0x40], code: 0xd13e98, args: [1, 2, 1], list: '2', clip: 'Motion[64]', frame: 96.0,
+        shell: 'shell01', mode: 3, spawner: 0xd13e98, pick: 'ai', variant: '7:0x40' },
+      { action: [7, 0x4c], code: 0xd13e98, args: [1, 3, 1], list: '2', clip: 'Motion[64]', frame: 96.0,
+        shell: 'shell01', mode: 3, spawner: 0xd13e98, pick: 'ai', variant: '7:0x4c' },
     ],
   },
 };
@@ -3189,6 +3199,8 @@ function move13(S, ctx, D){
 //
 // NOT LISTED: (7, 0x32), the other orb action (0xd1a488) -- it throws modes 12..17 from three points of its own at
 // two different frames, and its own spawner is not transcribed.
+// 0x169ba40, the table sp_13's landing reads with the orb's own mode: which shell01 it leaves behind
+const ORB_CHILD_MODE = [1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2];
 const ORB_SLOT_MODE = [0, 3, 5, 4, 2, 1];                    // 0xd194bc's six case bodies (0xd194d4, 0xd194ec, ...)
 const ORB_SLOT_POINT = [[43.0, 878.0, 564.0], [30.0, 841.0, -536.0], [-240.0, 832.0, -470.0],
                         [389.0, 880.0, -366.0], [-282.0, 910.0, 472.0], [468.0, 866.0, 299.0]];
@@ -3230,6 +3242,17 @@ function spawnOrbs(state, D, a, ctx, own, out){
   return [S];
 }
 
+// the shell01 one of his ACTIONS makes (as against the one a shell of his makes): the action fills a setup with the
+// mode and nothing else -- 0xd13e98's create at 0xd14038 writes no point and no angle words -- and base01 places it
+// from the owner itself, so the viewer needs his position, his facing and his ground.
+function spawnShell01(state, D, a, ctx, own, out){
+  const def = D.shells.shell01;
+  const setup = { id: def.id, mode: a.mode, position: [f(0.0), f(0.0), f(0.0)], angles: [0, 0, 0],
+                  action: a.action, frame: a.frame };
+  const S = make001(state, D, 'shell01', setup, own, state.prevJoints, ctx, null);
+  return S ? [S] : [];
+}
+
 // one orb's step (vtable +0x24 = 0x40500c: state 2 -> +0x158 = 0x405164, state 1 -> +0x15c = 0x405160,
 // which is a bare `bx lr`, and state 0xfe -> the dispatcher's own countdown at 0x4050b4)
 const own13 = input => owner001(input);
@@ -3242,13 +3265,15 @@ function stepOrb(S, ctx, input, D, out){
     S.moves++;
     const r = move13(S, ctx, D);
     if (r === 'contact'){
-      // Khezu's own landing, sp_13's vtable +0x150 (0xd22268): it makes a shell01 -- mode 1 below quest rank 2 and
-      // mode 2 above (its u 31). base01 through his reader (0xd218c4) is NOT TRANSCRIBED, so the shell is reported
-      // and not stepped, and its effect is not started here.
-      const child = own13(input).rank > 1 ? 2 : 1;
-      S.events.push({ ev: 'create', stepped: false, shell: 'shell01', id: D.shells.shell01.id, mode: child,
-                      position: S.position.slice(), why: 'base01 with uShellEm003_sp_01 (0xd218c4) is not transcribed' });
-      out.created.push({ shell: S, create: S.events[S.events.length - 1] });
+      // Khezu's own landing, sp_13's vtable +0x150 (0xd22268): while the orb is in state 2 and the contact is not
+      // type 2, it makes a shell01 at the contact point -- the mode from its own table (0x169ba40, indexed by the
+      // orb's mode: 1 for 0..5 and 12..17, 2 for 6..11 and 18..23), the angle words zero (the globals it copies into
+      // the setup's +0x20 and +0x30 are both the zero vector), the owner its own
+      const hit = S.events.find(e => e.ev === 'hit');
+      const child = ORB_CHILD_MODE[S.modeIndex];
+      if (hit && hit.type !== 2 && child != null && ctx.create)
+        ctx.create(S, 'shell01', { id: D.shells.shell01.id, mode: child, position: hit.point.slice(),
+                                   angles: [0, 0, 0], action: S.action, frame: S.spawnFrame });
     }
     if (r === 'end' || r === 'contact'){
       // base13's end 0x405af0: the effect is stopped, the state goes to 0xfe and +0x1638 becomes 30 x 60 frames
@@ -3629,6 +3654,23 @@ function params011(sh){
            up: f(500.0), down: f(500.0), maxH: f(900.0) };
 }
 
+// KHEZU's sp_01 reader 0xd218c4: the same base, a different map. It names no joint, no timer, no vec and no radius,
+// so those stay base01's ctor values (0xd218a4 -> the base ctor: +0x15e4 = -1, +0x1608 / +0x160c the zero vector,
+// +0x15fc = 1.0, +0x15f4 = +0x15f8 = 500.0, +0x1604 = 900.0), and its flag bits come from sh ints 0..4 -- 4, 8,
+// 0x80, 0x800, 0x1000 (0xd21934..0xd219d8). It does write +0x15f8, the snap's downward reach, from ShellCmnParam
+// float 0 (0x4a2264) -- and no em003_00 .shl carries a ShellCmnParam, so that is 0.0, which the init reads as 1e6.
+// em003_00: mode 0 / 5 / 6 flags 0, modes 1 / 2 flags 4, modes 3 / 4 flags 0x1084 (the same paths as her 13..15, 20).
+function params01k(sh){
+  const I = i => !sh ? -1 : i < sh.ints.length ? sh.ints[i] : 0;
+  const flags = (I(0) !== -1 ? 4 : 0) | (I(1) !== -1 ? 8 : 0) | (I(2) !== -1 ? 0x80 : 0) |
+                (I(3) !== -1 ? 0x800 : 0) | (I(4) !== -1 ? 0x1000 : 0);
+  return { flags, joint: -1, timer: f(0.0), f1600: f(0.0), f15fc: f(1.0), vec: [0, 0, 0],
+           up: f(500.0), down: f(0.0), maxH: f(900.0) };
+}
+
+// which reader a base01 shell runs, by the class the table gives it
+const READERS01 = { 0xd218c4: params01k };
+
 // sp_11's reader 0xd0ee8c (notes 7): none of base01's fields (flags 0, timer 0, +0x1608 the ctor's zero vector); +0x1664 =
 // [owner+0xcac8] (the shell01 id); a 4-float table (+0x1654, count +0x1658 = 4) = sh floats [0x169b744[k]]
 function params11(def, mode){
@@ -3860,7 +3902,8 @@ function make001(state, D, name, setup, got, J, ctx, creator){
               position: null, prevPosition: null, anchor: null, angles: null, velocity: null, gravity: null, trail: null,
               timer: 0, elapsed: 0, moves: 0, bounces: 0, held: false, launch: null, events: [], initEvents: [],
               effect: null, effect2: null, start: null, starts: [], place: null, stop: null, stops: [], slots: null };
-  S.effects = (mode ? mode.ef : []).map(([listId, key], param) => ({ param, listId, list: (D.lists[listId] || {}).list || null, key, started: false }));
+  const lists001 = def.lists || D.lists;                 // the shell's own .shl EffectLists when its class names them
+  S.effects = (mode ? mode.ef : []).map(([listId, key], param) => ({ param, listId, list: (lists001[listId] || {}).list || null, key, started: false }));
   if (def.base === 'base00'){
     if (!mode || !init001(S, J, got)) return null;
     // EffectParam 0 at +0x40: requester parent the shell (+0xfd0), ShellScale, no rotation; handle -> +0x1624
@@ -3869,7 +3912,8 @@ function make001(state, D, name, setup, got, J, ctx, creator){
     if (S.start){ S.effects[0].started = true; S.starts.push(S.start); S.initEvents.push({ ev: 'start', param: 0, start: S.start }); }
     else S.initEvents.push({ ev: 'refused', param: 0, listId: mode.ef[0] ? mode.ef[0][0] : null, key: mode.ef[0] ? mode.ef[0][1] : null });
   } else {
-    const k = S.k = def.base === 'base11' ? params11(def, mode) : params011(mode ? mode.sh : null);
+    const k = S.k = def.base === 'base11' ? params11(def, mode)
+                  : (READERS01[def.reader] || params011)(mode ? mode.sh : null);
     if (!init011(S, k, setup, got, J, ctx.stage)) return null;
     if (def.base === 'base11'){
       S.timer = f(k.table[k.table.length - 1] + 10.0);  // 0x402fd8: +0x1614 = the last time + 10.0 (+0x165c = -1: no motion-speed divide)
@@ -3882,7 +3926,7 @@ function make001(state, D, name, setup, got, J, ctx, creator){
     for (const param of [0, 1]){
       const p = mode && mode.ef[param];
       if (!p) continue;
-      const rq = rockRequest(D, mode, param, S.position, 'init');
+      const rq = rockRequest(D, mode, param, S.position, 'init', def.lists || D.lists);
       if (!rq){ S.initEvents.push({ ev: 'refused', param, listId: p[0], key: p[1] }); continue; }
       S.initEvents.push({ ev: 'start', param, start: rq });
       S.starts.push(rq);
@@ -4296,7 +4340,7 @@ export function stepShells(state, input){
   const J = typeof input.joints === 'function' ? input.joints : (() => null);
   // Rathian: the owner block its code reads (inputs, owner001), and the shells its shells make (0x48b884 during a move in
   // line 18: inited at once on this frame's joints, appended at the tail of the line, reported in out.spawned)
-  if (D.dust){
+  {
     ctx.own001 = owner001(input);
     ctx.create = (creator, name, setup, events = creator.events) => {
       const def = D.shells[name], full = Object.assign({ id: def.id }, setup);
@@ -4357,6 +4401,11 @@ export function stepShells(state, input){
       const got = spikeInputs(input, a.spawnArgs[1]);
       if (got.why) out.refused.push({ action: a.action, shell: a.shell, modes: a.modes.slice(), why: got.why });
       else for (const S of spawnSpikes(state, D, a, state.prevJoints, ctx, got)){ out.spawned.push(S); state.shells.push(S); }
+    } else if (passed && a.spawner === 0xd13e98){
+      // Khezu's ground patch: base01 places it from the owner, so his position, facing and ground are read
+      const own = owner001(input), why = missing001(own, { facing: true, pos: true, ground: true });
+      if (why) out.refused.push({ action: a.action, shell: a.shell, mode: a.mode, why });
+      else for (const S of spawnShell01(state, D, a, ctx, own, out)){ out.spawned.push(S); state.shells.push(S); }
     } else if (passed && a.spawner === 0xd18ee0){
       // Khezu's orb: one shell13, the ring slot picking its mode and its point
       const own = owner001(input), why = missing001(own, { facing: true, target: true, pos: true });

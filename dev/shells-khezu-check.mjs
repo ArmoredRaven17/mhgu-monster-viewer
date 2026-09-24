@@ -210,9 +210,11 @@ function orb(target, rank, steps, variant = '7:0x3f'){
     const out = stepShells(st, { monId: 'em003_00', list: '2', clip: 'Motion[61]', frame: k, joints: () => J,
                                  rock: { variant, target: { x: target[0], y: target[1], z: target[2] }, floorY: FLOOR },
                                  owner: { x: 0, y: 0, z: 0 }, ownerPos: { x: 0, y: 0, z: 0 }, rank, size: [1, 1] });
-    for (const S of out.spawned){ made.push(S); stepsOf.set(S.id, []); }
+    for (const S of out.spawned){
+      if (S.shell === 'shell13'){ made.push(S); stepsOf.set(S.id, []); }
+      else created.push({ k, shell: S.shell, mode: S.modeIndex, pos: S.position.slice(), start: S.start && S.start.key });
+    }
     for (const S of made) if (S.state !== 0xff) stepsOf.get(S.id).push({ state: S.state, pos: S.position.slice(), vel: S.velocity.slice(), ang: S.angles.slice() });
-    for (const c of out.created) created.push({ k, shell: c.create.shell, mode: c.create.mode });
     for (const x of out.refused) refused.push(x);
   }
   return { made, stepsOf, created, refused };
@@ -342,6 +344,70 @@ console.log('== 7. the stage stand-in gains a wall: where the lightning stops');
         free.length === 3 && free.every(S => S.moves >= 120), free.map(S => S.moves).join(', '));
   check('the wall answers only a 0x20 query and the floor only a 0x10 one: a bolt on the near side still finds ground',
         free[1].position[1] === FLOOR, String(free[1].position[1]));
+}
+
+// ---- 8. his shell01, through his own reader over base01 ------------------------------------------------------------
+console.log('== 8. shell01: his reader over the base Rathian\'s shells already run');
+{
+  // what his reader makes of each mode (0xd218c4: bits 4 / 8 / 0x80 / 0x800 / 0x1000 from sh ints 0..4)
+  const want = { 0: 0, 1: 4, 2: 4, 3: 0x1084, 4: 0x1084, 5: 0, 6: 0 };
+  const got = {};
+  for (const m of Object.keys(D.shells.shell01.modes)){
+    const sh = D.shells.shell01.modes[m].sh, I = i => i < sh.ints.length ? sh.ints[i] : 0;
+    got[m] = (I(0) !== -1 ? 4 : 0) | (I(1) !== -1 ? 8 : 0) | (I(2) !== -1 ? 0x80 : 0) |
+             (I(3) !== -1 ? 0x800 : 0) | (I(4) !== -1 ? 0x1000 : 0);
+  }
+  check('his seven shell01 modes read as flags 0 / 4 / 0x1084 -- the same base01 paths Rathian\'s 13..15 and 20 take',
+        JSON.stringify(got) === JSON.stringify(want), Object.entries(got).map(([m, v]) => m + ':' + '0x' + v.toString(16)).join(' '));
+
+  // the ground patch the action makes at his feet
+  const patch = (ownerPos, variant) => {
+    const st = createShellState('em003_00');
+    const made = [], refused = [];
+    for (let k = 0; k < 140; k++){
+      const out = stepShells(st, { monId: 'em003_00', list: '2', clip: 'Motion[64]', frame: k, joints: () => J,
+                                   rock: { variant, target: { x: 0, y: 0, z: 2100 }, floorY: FLOOR },
+                                   owner: { x: 0, y: 0, z: 0 }, ownerPos: { x: ownerPos[0], y: ownerPos[1], z: ownerPos[2] },
+                                   ground: 0.0, hitLife: true });
+      made.push(...out.spawned); refused.push(...out.refused);
+    }
+    return { made, refused };
+  };
+  check('the two the streams issue on L2 Motion[64] are his to name; (7, 0x3c) is not',
+        eq(pickVariantsFor('em003_00', '2', 'Motion[64]'), ['7:0x40', '7:0x4c']),
+        pickVariantsFor('em003_00', '2', 'Motion[64]').join(', '));
+  let bad = null;
+  for (const run of ref.shell01_runs){
+    const r = patch(run.ownerPos, '7:0x40');
+    const S = r.made[0];
+    if (!S || S.modeIndex !== run.mode || S.spawnFrame !== run.frame || !sameF(S.position, run.pos))
+      bad = bad || ('owner ' + fmt(run.ownerPos) + ': ' + (S ? 'mode ' + S.modeIndex + ' at ' + fmt(S.position) : 'nothing') +
+                    ' vs mode ' + run.mode + ' at ' + fmt(run.pos));
+  }
+  check('at 96.0 of L2 Motion[64] he leaves one shell01 mode 3 where the ROM leaves it -- at his own feet, ' +
+        'wherever he stands (base01\'s flag-0x80 path, his reader\'s sh int 2)', bad === null, bad || '');
+  const one = patch([100, 0, 200], '7:0x40').made[0];
+  check('and it asks for his c.pel record, c 30 (cm200_040), which only shell01\'s own EffectLists name',
+        !!one && !!one.start && one.start.pel === 'em003_00c' && one.start.key === 30,
+        one && one.start ? one.start.pel + ' ' + one.start.key : 'nothing started');
+  // the orb's child, now a real shell01 rather than a report
+  const orbRun = orb(r13.meta.target, 1, 200);
+  const kid = orbRun.created[0];
+  check('the orb\'s landing leaves a real shell01 now -- its mode from sp_13\'s own table (0x169ba40) -- and that ' +
+        'shell asks for u 31',
+        !!kid && kid.shell === 'shell01' && kid.mode === 1 && !!kid.start && kid.start === 31,
+        kid ? kid.shell + ' mode ' + kid.mode + ' key ' + kid.start : 'nothing');
+  // controls
+  const noGround = (() => {
+    const st = createShellState('em003_00'), out = [];
+    for (let k = 0; k < 140; k++) out.push(stepShells(st, { monId: 'em003_00', list: '2', clip: 'Motion[64]', frame: k,
+      joints: () => J, rock: { variant: '7:0x40', target: { x: 0, y: 0, z: 2100 } }, owner: { x: 0, y: 0, z: 0 },
+      ownerPos: { x: 0, y: 0, z: 0 }, hitLife: true }));
+    return out;
+  })();
+  check('control no ground and no floor: no patch, and the refusal names the input',
+        noGround.every(o => o.spawned.length === 0) && noGround.some(o => o.refused.length),
+        (noGround.find(o => o.refused.length) || { refused: [{}] }).refused[0].why);
 }
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
