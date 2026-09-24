@@ -2452,7 +2452,10 @@ paintFloorGrid();
 // to the ceiling within TenjoOfs + 30 = 430 game units of it, times his size. Game units are viewer metres x 100.
 const box = {
   wall: createGrid({ scene, kind: 'wallZ', centre: monsterCenter, reach: monsterReach,
-                     at: () => box.at.wall === null ? monsterTravel(_travel).z : box.at.wall }),
+                     // A WALL DOES NOT FOLLOW THE MONSTER. It followed his travel at first, which meant he could never
+                     // be on it -- the plane moved with him and he stood 2 m out from it. A surface is fixed and the
+                     // monster is put against it, which is the way round the game has it.
+                     at: () => box.at.wall === null ? 0 : box.at.wall }),
   ceiling: createGrid({ scene, kind: 'ceiling', centre: monsterCenter, reach: monsterReach,
                         at: () => monsterFloorY() + (box.at.ceiling === null
                              ? CEILING_ABOVE_GAME * 0.01 * (world.scale.x || 1) : box.at.ceiling) }),
@@ -7228,26 +7231,31 @@ function stepBox(base){
 //   THE 430 IS NOT A PLACEMENT. TenjoOfs + 30 is the REACH the monster can attach across (0xd13884), never a height;
 //   the plane's own height is free, and the viewer's is whatever the box is set to.
 const _mountE = new THREE.Euler(), _mountQ0 = new THREE.Quaternion();
-let mountedOn = null, _mountY0 = 0;
+let mountedOn = null, _mountY0 = 0, _mountZ0 = 0;
 function stepMount(want){
   const on = want.includes(6) ? 6 : want.includes(5) ? 5 : 0;
   const main = mounted.main;
   if (!main) return;
   if (on === 0){
-    if (mountedOn !== null){ main.quaternion.copy(_mountQ0); main.position.y = _mountY0; mountedOn = null; }
+    if (mountedOn !== null){
+      main.quaternion.copy(_mountQ0); main.position.y = _mountY0; main.position.z = _mountZ0; mountedOn = null;
+    }
     return;
   }
-  if (mountedOn === null){ _mountQ0.copy(main.quaternion); _mountY0 = main.position.y; }   // to go back to
+  if (mountedOn === null){ _mountQ0.copy(main.quaternion); _mountY0 = main.position.y; _mountZ0 = main.position.z; }
   mountedOn = on;
   // the wall's outward normal is +z here (the wallZ plane), so its yaw is 0; a placed wall keeps that until the
   // viewer lets a wall be turned
   const yaw = 0;
   _mountE.set(on === 5 ? -Math.PI / 2 : 0, yaw, Math.PI, 'YXZ');
   main.quaternion.setFromEuler(_mountE);
-  // the origin goes ONTO the plane for a ceiling (0xbf284 pins postures 0/3/4/6 to it); a WALL pins nothing -- the
-  // ROM only clamps its height between the floor and the ceiling -- so a wall clip keeps the height it had
+  // THE ORIGIN GOES ONTO THE PLANE. The ROM pins a ceiling monster's origin exactly to the surface (0xbf284:
+  // P+0x44 = P+0x5b4 for postures 0/3/4/6, offset zero) and leaves a WALL monster's HEIGHT free -- it only clamps it
+  // between the floor and the ceiling -- but he is still ON the wall in the wall's own axis. So a ceiling clip takes
+  // the plane's height and a wall clip takes the plane's z, and each keeps what it stood at in the other.
   const s = world.scale.y || 1;
   main.position.y = on === 6 ? (box.ceiling.info().y - world.position.y) / s : _mountY0;
+  main.position.z = on === 5 ? (box.wall.info().at - world.position.z) / s : _mountZ0;
 }
 
 // THE CUT TAIL (render/tail-option.js; tail-option-em043.md). A sever's frame 0 drops the monster's tail piece at its
@@ -7345,9 +7353,16 @@ function rockInput(){
   const yaw = rt.schedule.ownerYaw16() * 2 * Math.PI / 65536;
   const ahead = TARGET_AHEAD_BY_MON[state.id] || TARGET_AHEAD;
   const picks = rockPlays.names;
+  // THE WALL THE SHELLS ASK ABOUT IS THE ONE ON SCREEN. render/shells.js's stage stand-in answers a wall query when
+  // the viewer supplies a plane, and Khezu's base03 casts one every move -- so the box's wall is handed over while it
+  // is shown, in game units, with `facing` the side he is on (the plane's own outward normal, +z for a wallZ).
+  // Raven, 2026-09-23: "I suspected we would need the planes in place for the monster code to work as the ROM has it."
+  // He is right, and it is not only display: with no wall the query could never hit, which is why shell03 mode 20's
+  // climb branch was unreachable and untranscribed until one existed.
+  const wall = box.wall.on ? { axis: 'z', at: box.wall.info().at / 0.01, facing: 1 } : undefined;
   return { variant: picks.length ? picks[Math.max(0, rockPlays.n) % picks.length] : null,
            target: { x: P.position[0] + ahead * Math.sin(yaw), y, z: P.position[2] + ahead * Math.cos(yaw) },
-           floorY: y };
+           floorY: y, wall };
 }
 
 // PARTS AND STATES IN A MOTION (render/motion-states.js). Raven, 2026-09-21: "Animations that involve part breaks or
