@@ -2510,19 +2510,55 @@ function stepFlight(S, dt){
 
 // 0x183490's front and the stage, for the segment from the previous point B (anchor + off) to the new A (position +
 // off). The ROM's own part: |A - B|^2 below 2^-23 is not queried (0x183560..0x18358c). The rest -- 0xc30b30, the
-// stage's collision core -- is NOT READ; THE PLANE STAND-IN answers for it (the viewer's floor at floorY, not a ROM
-// value): hit iff B.y >= y0 > A.y; contact c = B + t (A - B) per axis with t = (B.y - y0) / (B.y - A.y), c.y = y0;
-// normal (0, 1, 0), attribute 0x10 (the ROM's own value for a hit with no attribute record, 0x183628). No floor
-// given this step: nothing to hit.
-function stageQuery(A, B, floorY){
+// stage's collision core -- is NOT READ; THE PLANE STAND-IN answers for it, from the viewer's own inputs (not ROM
+// values), one plane per mask bit the caller asks with:
+//   * mask 0x10, the FLOOR (input.rock.floorY): hit iff B.y >= y0 > A.y; contact c = B + t (A - B) per axis with
+//     t = (B.y - y0) / (B.y - A.y), c.y = y0; normal (0, 1, 0); attribute 0x10 (the ROM's own value for a hit with
+//     no attribute record, 0x183628).
+//   * mask 0x20, a WALL (input.rock.wall = { axis: 'x' | 'z', at, facing: 1 | -1, floorY }, game units): the same
+//     test in that horizontal axis -- hit iff facing (B[axis] - at) >= 0 > facing (A[axis] - at), contact the
+//     crossing point, normal the axis times facing; attribute 0x20, which the shells DO read (hitType's & 0x22,
+//     0x43addc). Its own floorY, when the caller gives one, is the ground BEYOND it -- a ledge, which is what lets a
+//     ground query answer two heights and so what makes base03's climb reachable at all. Which side a segment is on
+//     is taken from B, its older end (the stand-in's rule: every query that matters here is vertical, both ends on
+//     one side).
+// A query that asks for both (mask 0x30: the rocks' and the orb's 0x43ac8c) takes whichever plane the segment
+// reaches first from B -- the stand-in's own rule, the ROM's core being unread. A CEILING is not modelled: which
+// attribute the stage gives a downward-facing surface is not read either.
+// No plane for a bit this step: nothing to hit for it.
+function stageQuery(A, B, stage, mask){
   const dy = f(A[1] - B[1]), dx = f(A[0] - B[0]), dz = f(A[2] - B[2]);
   let d2 = f(dy * dy); d2 = mla(d2, dx, dx); d2 = mla(d2, dz, dz);
   if (d2 < SEG_EPS) return null;
-  if (floorY == null) return null;
-  const y0 = floorY;
-  if (!(B[1] >= y0 && A[1] < y0)) return null;
-  const t = f(f(B[1] - y0) / f(B[1] - A[1]));
-  return { point: [f(B[0] + f(t * f(A[0] - B[0]))), y0, f(B[2] + f(t * f(A[2] - B[2])))], normal: [0, 1, 0], attr: 0x10 };
+  const st = (stage && typeof stage === 'object') ? stage : { floorY: stage, wall: null };
+  const at = (P, t, i, v) => { const c = [0, 1, 2].map(j => f(B[j] + f(t * f(P[j] - B[j])))); c[i] = v; return c; };
+  const w0 = st.wall;
+  const y0 = (w0 && w0.floorY != null && f(w0.facing * f(B[w0.axis] - w0.at)) < 0) ? w0.floorY : st.floorY;
+  let best = null;
+  if ((mask & 0x10) && y0 != null && B[1] >= y0 && A[1] < y0){
+    const t = f(f(B[1] - y0) / f(B[1] - A[1]));
+    best = { t, point: at(A, t, 1, y0), normal: [0, 1, 0], attr: 0x10 };
+  }
+  const w = st.wall;
+  if ((mask & 0x20) && w){
+    const i = w.axis, sgn = w.facing;
+    const b = f(sgn * f(B[i] - w.at)), a = f(sgn * f(A[i] - w.at));
+    if (b >= 0 && a < 0){
+      const t = f(f(B[i] - w.at) / f(B[i] - A[i]));
+      const n = [0, 0, 0]; n[i] = sgn;
+      if (!best || t < best.t) best = { t, point: at(A, t, i, w.at), normal: n, attr: 0x20 };
+    }
+  }
+  return best;
+}
+
+// the stage the viewer answers with this step: its floor and, when it gives one, its wall
+function stageOf(input){
+  const r = input.rock, w = r && r.wall;
+  const floorY = r && Number.isFinite(r.floorY) ? f(r.floorY) : null;
+  if (!w || !Number.isFinite(w.at)) return { floorY, wall: null };
+  return { floorY, wall: { axis: (w.axis === 'x' || w.axis === 0) ? 0 : 2, at: f(w.at), facing: w.facing < 0 ? -1 : 1,
+                           floorY: Number.isFinite(w.floorY) ? f(w.floorY) : null } };
 }
 
 // 0x43addc..0x43ae58, the hit type: attribute & 0x22 -> 0; else 1, and 0 when the surface's angle from level
@@ -2537,9 +2573,9 @@ function hitType(attr, n){
 // connected, type 2 at the hit position -- needs a hunter and never runs here; so the stage query: +0x15c2 == 0 ->
 // mask 0x30, +0x15c3 == 0 -> 0x4a1e84 (base00: A = +0x40, B = +0x1000) or 0x4a1f68 (base54: both plus off) ->
 // 0x183490; a nonzero return is a hit, typed as above.
-function collide(S, off, floorY){
+function collide(S, off, stage){
   const add = P => [f(P[0] + off[0]), f(P[1] + off[1]), f(P[2] + off[2])];
-  const q = off ? stageQuery(add(S.position), add(S.anchor), floorY) : stageQuery(S.position, S.anchor, floorY);
+  const q = off ? stageQuery(add(S.position), add(S.anchor), stage, 0x30) : stageQuery(S.position, S.anchor, stage, 0x30);
   return q ? { point: q.point, normal: q.normal, attr: q.attr, type: hitType(q.attr, q.normal) } : null;
 }
 
@@ -2693,7 +2729,7 @@ function move00(S, ctx, D){
   }
   const r = flightTimer(S, k.flight, ctx.dt);
   if (r !== 'query') return r;
-  const hit = collide(S, null, ctx.floorY);             // vtable +0x168 = 0x3f99e0
+  const hit = collide(S, null, ctx.stage);             // vtable +0x168 = 0x3f99e0
   if (!hit) return 'keep';
   S.events.push({ ev: 'hit', point: hit.point, type: hit.type });
   (LANDING[S.cls] || landing)(S, D, hit, ctx);          // vtable +0x150: base00's 0x3f8878 unless the class has its own
@@ -2715,7 +2751,7 @@ function move54(S, J, ctx, D){
       if (M) S.position = launchPoint(M, k.vec);        // no lift; the velocity keeps integrating
     } else S.held = false;                              // release: byte +7 = 1 (0x42b6a4 re-aims into the setup; nothing reads it, 9.9)
   }
-  const hit = collide(S, S.offset, ctx.floorY);         // 0x42bdd0: off = &+0x1660
+  const hit = collide(S, S.offset, ctx.stage);         // 0x42bdd0: off = &+0x1660
   if (!hit) return 'keep';
   S.events.push({ ev: 'hit', point: hit.point, type: hit.type });
   if (hit.type === 1 && S.bounces < k.bounces){ bounce(S, D, hit); return 'keep'; }
@@ -2846,7 +2882,7 @@ function init03(S, def, J, got, ctx){
   S.velocity = launchVelocity(0.0, k.speed, S.angles);   // 0x3f91a0: (0, +0x15f8 = 0, +0x15f4) turned by the words
   // base03's init: the ground under the spawn point, 500 either way (0x3fda70..0x3fdafc)
   const A = [p[0], f(p[1] - k.reach), p[2]], B = [p[0], f(p[1] + k.reach), p[2]];
-  const hit = stageQuery(A, B, ctx.floorY);
+  const hit = stageQuery(A, B, ctx.stage, 0x10);                   // 0x3fdafc
   S.launch = { point: p.slice(), angles: S.angles.slice(), query: [A, B], ground: hit ? hit.point.slice() : null };
   if (!hit) return false;                                // 0x3fdb30: vtable +0x148 with 1 -- no ground, no bolt
   S.position = [p[0], hit.point[1], p[2]];               // 0x3fdb08: y = the contact's
@@ -2860,13 +2896,24 @@ function init03(S, def, J, got, ctx){
 }
 
 // the ground under the shell, every move: 0x3fdf18 with the flags' bit 0 clear (sh int 1 == -1). Returns the ROM's
-// own code -- 0x11 when it found ground (the only one a plane can give), 0x22 when it did not -- which the move
-// hands to the hit record (0x3feb38; not visual: the shell has no hit slot here, byte +0x13ae = 0xff).
+// own code -- 0x11 when it found ground, 0x22 when it did not -- which the move hands to the hit record (0x3feb38;
+// not visual here, the shell having no hit slot, byte +0x13ae = 0xff), and that record ends the shell for any code
+// but 0x11 (0x3febe0: `cmp r5, #0x11`, else the class's vtable +0x150 with 0, which is sp_03's 0xd21bf8).
 function follow03(S, ctx){
-  const k = S.k, p = S.position;
+  const k = S.k, p = S.position, a = S.anchor;
   const A = [p[0], f(p[1] - k.follow), p[2]], B = [p[0], f(p[1] + k.follow), p[2]];
-  const hit = stageQuery(A, B, ctx.floorY);              // 0x3fe690..0x3fe728, mask 0x10
-  if (!hit) return 0x22;                                 // 0x3fe7f8's forward query cannot hit a horizontal plane
+  const hit = stageQuery(A, B, ctx.stage, 0x10);         // 0x3fe690..0x3fe728, mask 0x10
+  if (!hit){
+    // 0x3fe7f8..0x3fe8c0: no ground under it, so it asks what stands between the old point and the new one -- both
+    // raised 40.0, mask 0x20 -- and takes that contact's x and z (never its y) before giving the same 0x22 back
+    const lift = f(40.0);
+    const w = stageQuery([p[0], f(p[1] + lift), p[2]], [a[0], f(a[1] + lift), a[2]], ctx.stage, 0x20);
+    if (w){
+      S.position = [w.point[0], p[1], w.point[2]];       // 0x3fe8a8..0x3fe8bc
+      S.events.push({ ev: 'wall', point: w.point.slice(), step: null });
+    }
+    return 0x22;
+  }
   // 0x3fe758..0x3fe7ec: the heading from the Y word against the normal the query wrote (+0x16c0 = the result
   // record's +0x20). The literal the heading leans by is 0.0 (0x3feb08), so the two terms are sin and cos.
   const rad = f(u16(S.angles[1]) * U16_TO_RAD), sn = sinf(rad), cs = cosf(rad);
@@ -2892,17 +2939,24 @@ function follow03(S, ctx){
 // entered while the state word +0x16d0 is 0. Before the follow it probes the ground under the new point and under
 // the old one (3000 either way, mask 0x10: 0x3fe180 / 0x3fe1bc, their answers going to the shell's own hit record
 // +0x1060, which nothing on this path reads), then asks whether a wall stands between them -- the segment from the
-// old point to the new, both raised 40.0, mask 0x20 with bit 6 of the query flags cleared (0x3fe204). A horizontal
-// plane cannot answer that one: both ends are at the same height, so it never hits, and the shell follows the
-// ground exactly as the other modes do (0x3fe21c joins them at 0x3fe688). NOT TRANSCRIBED: what the ROM does when
-// it does hit and the two ground heights differ by more than 150.0 (0x3fe220..0x3fe23c) -- the bolt climbs.
+// old point to the new, both raised 40.0, mask 0x20 with bit 6 of the query flags cleared (0x3fe204). No wall, or a
+// wall with the ground no more than 150.0 higher or lower across it, and the shell follows the ground exactly as
+// the other modes do (0x3fe21c / 0x3fe23c join them at 0x3fe688). Past that step the bolt gives up: the fields the
+// ROM would climb on are this class's zeros -- +0x16a8 has none of the bits 0x10408 and +0x16b0 not bit 0x40, both
+// from base03's ctor (0x3fd830) -- so 0x3fe670..0x3fe684 returns 0 instead of a contact, and the move hands that 0
+// to 0x3feb38, whose vtable +0x150 (sp_03's 0xd21bf8) ends the shell when it is 0.
 function climb03(S, ctx){
   const p = S.position, a = S.anchor, up = f(3000.0), down = f(-3000.0), lift = f(40.0);
-  stageQuery([p[0], f(p[1] + down), p[2]], [p[0], f(p[1] + up), p[2]], ctx.floorY);      // 0x3fe180
-  stageQuery([a[0], f(a[1] + down), a[2]], [a[0], f(a[1] + up), a[2]], ctx.floorY);      // 0x3fe1bc
-  const wall = stageQuery([p[0], f(p[1] + lift), p[2]], [a[0], f(a[1] + lift), a[2]], ctx.floorY);
-  if (wall) throw new Error('shells.js: a base03 bolt met a wall (0x3fe220, not transcribed)');
-  return follow03(S, ctx);
+  const gNew = stageQuery([p[0], f(p[1] + down), p[2]], [p[0], f(p[1] + up), p[2]], ctx.stage, 0x10);   // 0x3fe180
+  const gOld = stageQuery([a[0], f(a[1] + down), a[2]], [a[0], f(a[1] + up), a[2]], ctx.stage, 0x10);   // 0x3fe1bc
+  const wall = stageQuery([p[0], f(p[1] + lift), p[2]], [a[0], f(a[1] + lift), a[2]], ctx.stage, 0x20);
+  if (!wall) return follow03(S, ctx);                    // 0x3fe21c
+  // 0x3fe220..0x3fe23c: the step the wall stands on, from the two probes' own contact heights
+  const yNew = gNew ? gNew.point[1] : f(0.0), yOld = gOld ? gOld.point[1] : f(0.0);
+  const step = f(Math.abs(f(yNew - yOld)));
+  if (!(step > f(150.0))) return follow03(S, ctx);
+  S.events.push({ ev: 'wall', point: wall.point.slice(), step });
+  return 0;                                              // 0x3fe67c: a code that is not 0x11, so the move ends it
 }
 
 // base03's state-1 move 0x3fdce4 (sp_03's vtable +0x158)
@@ -2911,6 +2965,10 @@ function move03(S, ctx){
   stepFlight(S, ctx.dt);                                 // 0x539224: the acceleration is zero here
   // 0x3fdf74: which ground path, by the flags' bit 0 (the reader sets it from sh int 1)
   S.ground = (S.k.ground === -1 ? follow03 : climb03)(S, ctx);      // 0x3fdf18
+  // anything but 0x11 -- a wall it stopped at, a step it would have climbed -- ends the shell: the move runs its
+  // timer first and then hands the code to 0x3feb38, whose `cmp r5, #0x11` (0x3febe0) sends everything else to the
+  // class's vtable +0x150 with 0, and sp_03's (0xd21bf8) ends the shell on a 0
+  const stopped = S.ground !== 0x11;
   // 0x3fdd54: the file's life is above 0, so the timer decides (0x3f9814 counts +0x162c down by the shell's dt and
   // returns 1 at 0). The life <= 0 path (0x3fdd84) reads hit-slot bytes +0x13ad / +0x1465: NOT READ.
   if (!(S.k.life > 0)) throw new Error('shells.js: a base03 bolt with life ' + S.k.life + ' (0x3fdd84, not transcribed)');
@@ -2918,7 +2976,7 @@ function move03(S, ctx){
   if (!(T > 0)){ S.timer = 0; return 'end'; }
   const t = f(T - ctx.dt);
   S.timer = (0 >= t) ? 0 : t;
-  return t > 0 ? 'keep' : 'end';
+  return (t > 0 && !stopped) ? 'keep' : 'end';
 }
 
 // one bolt's step (vtable +0x24 = base00's 0x3f96a0: state 1 -> sp_03's +0x158, state 0xfe -> base00's 0x3f986c)
@@ -3113,7 +3171,7 @@ function move13(S, ctx, D){
   const t = f(T - ctx.dt);
   S.lifetime = (0 >= t) ? 0 : t;
   if (!(t > 0)) return 'end';
-  const hit = collide(S, null, ctx.floorY);                    // 0x43ac6c / 0x43ac8c, the same query the rocks make
+  const hit = collide(S, null, ctx.stage);                    // 0x43ac6c / 0x43ac8c, the same query the rocks make
   if (!hit) return 'keep';
   S.events.push({ ev: 'hit', point: hit.point, type: hit.type });
   return 'contact';                                            // vtable +0x150: the class's own landing
@@ -3621,7 +3679,7 @@ function groundAngles(A, n){
 
 // base01's init 0x3fa498 (notes 6.2) with the reader's params k; setup = { position (+0x10..), angles (+0x30..+0x38) }.
 // Returns false where the init deletes the shell (0x3fae84).
-function init011(S, k, setup, got, J, floorY){
+function init011(S, k, setup, got, J, stage){
   if (k.flags & 0x800) throw new Error('shells.js: base01 flag 0x800 (+0x1650 x 0xbec34): not transcribed (no em001_00 mode)');
   let A = setup.angles.map(w => w >>> 0);               // +0xfe8..+0xff0 = setup +0x30..+0x38 (0x3fa594..0x3fa5a8)
   const v = k.vec;
@@ -3657,7 +3715,7 @@ function init011(S, k, setup, got, J, floorY){
       // the ground snap (0x3faaf8..0x3faba0): query 0x183490 (mask 0x10) from +0x15f4 above down to +0x15f8 below (0 ->
       // 1e6), result -> +0x1060; no hit -> deleted; a hit -> y = the hit's y
       const up = k.up !== 0 ? k.up : f(1000000.0), dn = k.down !== 0 ? k.down : f(1000000.0);
-      const q = stageQuery([pos[0], f(pos[1] - dn), pos[2]], [pos[0], f(pos[1] + up), pos[2]], floorY);
+      const q = stageQuery([pos[0], f(pos[1] - dn), pos[2]], [pos[0], f(pos[1] + up), pos[2]], stage, 0x10);
       if (!q) return false;
       pos[1] = q.point[1];
       if (k.flags & 8) A = groundAngles(A, q.normal);    // then 0x4a211c (byte +0x159c from the attribute: not visual)
@@ -3812,7 +3870,7 @@ function make001(state, D, name, setup, got, J, ctx, creator){
     else S.initEvents.push({ ev: 'refused', param: 0, listId: mode.ef[0] ? mode.ef[0][0] : null, key: mode.ef[0] ? mode.ef[0][1] : null });
   } else {
     const k = S.k = def.base === 'base11' ? params11(def, mode) : params011(mode ? mode.sh : null);
-    if (!init011(S, k, setup, got, J, ctx.floorY)) return null;
+    if (!init011(S, k, setup, got, J, ctx.stage)) return null;
     if (def.base === 'base11'){
       S.timer = f(k.table[k.table.length - 1] + 10.0);  // 0x402fd8: +0x1614 = the last time + 10.0 (+0x165c = -1: no motion-speed divide)
       S.next = 0;                                        // +0x1660
@@ -4233,6 +4291,7 @@ export function stepShells(state, input){
                 owner: input.owner || { x: 0, z: 0 }, motion: input.clip ? input.monId + '|' + input.list + '|' + input.clip : null,
                 // the rocks: this step's stage floor, the owner's motion id (u16 +0x4b4), the frame its action code saw
                 floorY: input.rock && Number.isFinite(input.rock.floorY) ? f(input.rock.floorY) : null,
+                stage: stageOf(input),
                 ownerMotion: input.clip ? motionIdOf(input.list, input.clip) : null, frameSeen: null };
   const J = typeof input.joints === 'function' ? input.joints : (() => null);
   // Rathian: the owner block its code reads (inputs, owner001), and the shells its shells make (0x48b884 during a move in

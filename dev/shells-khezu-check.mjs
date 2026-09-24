@@ -289,5 +289,60 @@ function orb(target, rank, steps, variant = '7:0x3f'){
         sideways.made[0].modeIndex + ' from ' + fmt(sideways.made[0].launch.point));
 }
 
+// ---- 7. the wall, and what the bolts do at it ---------------------------------------------------------------------
+console.log('== 7. the stage stand-in gains a wall: where the lightning stops');
+{
+  const W = ref.wall;
+  const wall = { axis: W.axis === 0 ? 'x' : 'z', at: W.at, facing: W.facing, floorY: W.floorY };
+  const withWall = (variant, steps, w) => {
+    const st = createShellState('em003_00');
+    const made = [], stepsOf = new Map();
+    for (let k = 0; k < steps; k++){
+      const out = stepShells(st, { monId: 'em003_00', list: '2', clip: 'Motion[3]', frame: k, joints: () => J,
+                                   rock: { variant, target: { x: 0, y: 0, z: 2000 }, floorY: FLOOR, wall: w },
+                                   owner: { x: 0, y: 0 } });
+      for (const S of out.spawned){ made.push(S); stepsOf.set(S.id, []); }
+      for (const S of made) if (S.state !== 0xff) stepsOf.get(S.id).push({ state: S.state, pos: S.position.slice(), ev: S.events.map(e => e.ev) });
+    }
+    return { made, stepsOf };
+  };
+  let checked = 0, bad = null, skipped = 0;
+  for (const run of ref.wall_runs){
+    const num = parseInt(run.action.match(/0x([0-9a-f]+)\)/)[1], 16);
+    const a = D.actions.find(x => x.action[1] === num && x.shell === 'shell03');
+    if (!a || !a.variant || a.modes.indexOf(run.mode) < 0){ skipped++; continue; }
+    const r = withWall(a.variant, 177 + run.steps.length + 2, wall);
+    const S = r.made.find(x => x.modeIndex === run.mode), got = S && r.stepsOf.get(S.id);
+    if (!S){ bad = bad || ('mode ' + run.mode + ': no bolt'); continue; }
+    for (let i = 0; i < run.steps.length && i < got.length; i++){
+      const w = run.steps[i], g = got[i];
+      if (!sameF(g.pos, w.pos) || (w.state === 1) !== (g.state === 1)){
+        bad = bad || ('mode ' + run.mode + ' step ' + (i + 1) + ': ' + fmt(g.pos) + ' vs ' + fmt(w.pos) +
+                      ', alive ' + (g.state === 1) + ' vs ' + (w.state === 1));
+        break;
+      }
+    }
+    checked++;
+  }
+  check('with a wall across their path, every bolt the viewer can make stops where the ROM stops it -- ' + checked +
+        ' runs, step for step (' + skipped + ' of the recorded runs skipped: the second wave the viewer has no phase for)',
+        bad === null, bad || '');
+  // the climb branch: only mode 20 takes it, and only a wall with a step over 150 reaches it
+  const t20 = withWall('7:0x46', 210, wall), twenty = t20.made[0];
+  const t20steps = twenty ? t20.stepsOf.get(twenty.id) : [];
+  check('mode 20 reaches base03\'s second ground path and gives up at the step (0x3fe220: more than 150.0 across the wall)',
+        !!twenty && twenty.state !== 1 && t20steps.some(x => x.ev.indexOf('wall') >= 0),
+        twenty ? 'ended after ' + twenty.moves + ' moves at ' + fmt(twenty.position) : 'no bolt');
+  const low = withWall('7:0x46', 210, { axis: 'z', at: W.at, facing: W.facing, floorY: f(FLOOR + 100.0) }).made[0];
+  check('a wall with only a small step behind it does not stop it: the follow carries on (0x3fe23c)',
+        !!low && low.moves > 12, low ? low.moves + ' moves, ended ' + (low.state !== 1) : 'no bolt');
+  // and with no wall at all, nothing changes
+  const free = withWall('7:0x47', 177 + 130, null).made;
+  check('with no wall in the input the bolts run their whole life, as they did before the stand-in had one',
+        free.length === 3 && free.every(S => S.moves >= 120), free.map(S => S.moves).join(', '));
+  check('the wall answers only a 0x20 query and the floor only a 0x10 one: a bolt on the near side still finds ground',
+        free[1].position[1] === FLOOR, String(free[1].position[1]));
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);
