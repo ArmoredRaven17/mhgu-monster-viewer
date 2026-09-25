@@ -414,10 +414,25 @@ export function unitFrame(m, state, between, passes = 'all'){
   // number on the same frame. [0x211d124], the frames in flight, is left at 0: nothing here reads it and the
   // game's value is not read.
   if (passes === 'all') m.w32(0x211d120, (m.u32(0x211d120) + 1) >>> 0);
-  if (passes === 'all') for (const [u] of state.units.slice()){             // update pass
+  if (passes === 'all') for (const [u] of state.units.slice()){             // update pass (0xc044c4)
     m.wf32(u + 0x1c, DT);
     const w = m.u32(u + 0xc);
     if ((w & 7) === 1){ m.w32(u + 0xc, ((w & ~7) | 2) >>> 0); liftedCall(m, vslot(m, u, 0x18), [u]); }
+    if ((m.u32(u + 0xc) & 0x407) === 0x402) liftedCall(m, vslot(m, u, 0x24), [u]);
+  }
+  // PASS 2 (0xc04848), which calls +0x24 AGAIN. The ROM runs THREE unit passes -- their order within a frame is
+  // their profiler ids (0xcc861c: 1, 2, 3) -- and this one was not modelled here or in efx/proofunit.py. It has
+  // to be, because +0x24 (0x43168) both WALKS the core's effect array, calling each entry's vtable +0x128 at
+  // 0x329904, and REAPS it, clearing any entry whose state (+0xc & 7) is not 1 or 2 (0x328ea8 from 0x431d4).
+  // An effect created and destroyed inside ONE frame leaves a state-3 corpse that the next walk reaches, and by
+  // then its destructor has wound the vtable back down to the base cUnit 0x17828bc, whose group ends at +0x120 --
+  // so +0x128 reads 0, `blx 0` runs the static initialisers, they re-register DTIs and the registry walk at
+  // 0x7abfb8 never returns. Under the recorder that reads as "instruction budget exhausted" at pc 0 and no budget
+  // finishes it (400M instructions, 40 minutes, on Gravios's u 241).
+  //   It is here as well as in the recorder ON PURPOSE: the byte-exact checks compare what this produces against
+  // what the recorder produced, so a pass in one and not the other would make every vector set disagree with the
+  // runtime that is supposed to reproduce it. Raven, 2026-09-25: "we want to be as close to the ROM as possible."
+  if (passes === 'all') for (const [u] of state.units.slice()){
     if ((m.u32(u + 0xc) & 0x407) === 0x402) liftedCall(m, vslot(m, u, 0x24), [u]);
   }
   if (between) between();
