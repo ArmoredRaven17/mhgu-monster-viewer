@@ -265,6 +265,93 @@ const H_HIP_DEAD  = { calm: H_HIP,  enraged: [[22], [23]] };
 const H_TAIL      = [[24], [25], [26]];                            // intact, broken, severed
 const H_TAIL_DEAD = { calm: H_TAIL, enraged: [[28], [29], [27]] };
 
+// THE MALFESTIO LINE. uEm079_00 runs BOTH monsters, branching on e+0xb5f5 == 4 at 27 sites, and what those sites
+// change is the stealth machine -- not one state visual. Read against the ROM rather than assumed
+// (states-em079_04.md 1.3): the status-10 dispatcher returns the same script for every number, part and direction
+// except two Nightcloak-only numbers; the status-11 death dispatcher is identical for every number; the action
+// main returns the same motion for every (status, number) at postures 0, 1 and 3; the .mpm is byte-for-byte the
+// same nineteen sets; the .dtp break rows are a BYTE-IDENTICAL FILE; and Nightcloak's COMMON pel *is*
+// em079_00c -- the ROM's own resource descriptor names effect\pel\em\em079_00c for both. So the table is one
+// function of the u.pel, and the c.pel is not a parameter because there is only ever one.
+//   The BREAK RECORDS differ only in their payloads (Nightcloak's wings sit 30 units higher, his tail record
+// carries an offset Malfestio's does not), which live in the records and not here.
+function malfestio(u){
+  return {
+    // THE HEAD (part 0) at level 2: calm set 5 -> 6, enraged 7 -> 8 (group 1 off, 11 on, 101 off), firing u 1001
+    // (cm202_060 on joint 3 at 1x). Levels 0 and 1 keep the intact set and fire nothing -- there is no key 1000.
+    '3|Motion[1]':  { levels: M_HEAD, fire: [null, null, [u, 1001]] },
+    // L3 Motion[2] IS FOUR THINGS, so it CYCLES through them -- each play shows the next, the mechanism Rathian's
+    // back and wings use. The ROM plays this one clip for the -X wing (part 2), the +X wing (part 3), the tail
+    // (part 5) and the tune+0x44 exhaust status (10, 0x1b); a motion can only show one thing at a time, and
+    // cycling shows all four across four plays rather than picking one and hiding three.
+    //   -X WING (part 2) level 1: set 11 -> 12 (group 3 off, 13 on, 103 off), u 1010 on JOINT 133. +X WING
+    // (part 3) level 1: set 9 -> 10 (group 2 off, 12 on, 102 off), u 1015 on JOINT 132. TAIL (part 5) needs TWO
+    // depletions -- no key 1025 -- so level 1 shows nothing and level 2 takes set 17 -> 18 (group 4 off, 14 on,
+    // 104 off) with u 1026 on JOINT 141. Part 1 (the body) plays this clip too and changes nothing.
+    //   On NIGHTCLOAK the tail's level 2 also raises P+0x3b4 bit 15, which takes a 35-unit capsule at joint 141
+    // out of the hunter hit test -- a hit-zone fact, not a set, and not this table's to show.
+    '3|Motion[2]':  { cycle: [{ levels: [[11], [12]], fire: [null, [u, 1010]] },
+                              { levels: [[9], [10]], fire: [null, [u, 1015]] },
+                              { levels: [[17], [17], [18]], fire: [null, null, [u, 1026]] },
+                              { start: [['em079_00c', 1109]] }] },
+    // THE STUN, (10, 0x20), sided: direction 1 takes L3 M4 -> M6 -> M8, direction 2 takes L3 M3 -> M5 -> M7.
+    // c 1103 into ONE held handle across both chains. The same six clips are the LEG depletion (part 4), which has
+    // no .dtp row and shows nothing, so the stun is all they carry that can be seen.
+    '3|Motion[3]':  { hold: ['em079_00c', 1103] },
+    '3|Motion[4]':  { hold: ['em079_00c', 1103] },
+    '3|Motion[5]':  { hold: ['em079_00c', 1103] },
+    '3|Motion[6]':  { hold: ['em079_00c', 1103] },
+    '3|Motion[7]':  { hold: ['em079_00c', 1103] },
+    '3|Motion[8]':  { hold: ['em079_00c', 1103] },
+    // RAGE: (1, 9) -- L0 Motion[4] from frame 0, the 4.45 s roar. The head pair swaps to its enraged half and the
+    // glowing eyes come on. Rage also STOPS two per-frame joint writes (vtable +0x2a0 ids 0x84 / 0x85, written
+    // only while calm), which is not a set and is not shown here.
+    '0|Motion[4]':  { rage: true, tables: [M_HEAD] },
+    // TIRED: its own clip, L0 Motion[14] (5.35 s). vtable +0x1c8 is LIVE on this class -- the first wired monster
+    // whose eye applier has a third slot -- so tiredness SHOWS: eye set 1 -> set 4 (group 7 on). Drool c 1104
+    // every 48. Nightcloak additionally holds [u, 100] while tired AND cloaked (his vtable +0x208); the cloak is
+    // not a state this viewer has, so that one is exported and not shown.
+    '0|Motion[14]': { rage: false, tired: true, sets: [4], tables: [M_HEAD], every: [['em079_00c', 1104], 48] },
+    // ASLEEP: (10, 0x1d) L3 M14 lies down, (10, 0x1e) holds L3 M15, then L3 M16 -> L3 M22 gets up. Eye set 1 -> 2
+    // (group 5 off, 6 on) while P+0x5d02 is up, the zzz c 1102 every 90, and the puff paused. L3 Motion[15] is
+    // also the CAPTURE clip, where the eyes close at once -- the same thing this shows.
+    '3|Motion[14]': { sets: [2] },
+    '3|Motion[15]': { sets: [2], every: [['em079_00c', 1102], 90], puffOff: true },
+    // PARALYSIS: (10, 0x1f) holds L3 Motion[13]; eye set 1 -> 3 (groups 5, 7, 8 on) for the whole hold with the
+    // idle blink suspended, c 1101 every 60. L3 Motion[13] is also the SHOCK TRAP's hold ((10, 0x6e), c 1105
+    // every 42), which shows the same eye set: paralysis is what it is shown as.
+    '3|Motion[13]': { sets: [3], every: [['em079_00c', 1101], 60] },
+    // EYE SET 3 WITH NO AILMENT: L0 Motion[18] and L0 Motion[20] carry it on their own.
+    '0|Motion[18]': { sets: [3] },
+    '0|Motion[20]': { sets: [3] },
+    // DEATH: L3 M17 for (11, 0) and every status-11 number the table does not name, L3 M12 at the end of the fall,
+    // L3 M20 for (11, 7) / (11, 0x12). The break sets stay and the rage pair REVERTS -- the status-11 setAction
+    // clears the rage flag and the part pass re-reads it the same frame, which is why each death carries `tables`.
+    //   THEIR EYES CLOSE ON DEATH and this table cannot place it: 0xbd594(e, -1) at FRAME 286 of L3 M17, 140 of
+    // L3 M12 and 110 of L3 M20, not at frame 0. No monster decoded before this class closes its eyes on death at
+    // all. Written down rather than approximated with a frame-0 set that would shut them too early.
+    '3|Motion[17]': { dead: true, tables: [M_HEAD] },
+    '3|Motion[12]': { dead: true, settled: true, tables: [M_HEAD] },
+    '3|Motion[20]': { dead: true, tables: [M_HEAD] },
+  };
+}
+// NIGHTCLOAK (em079_04): Malfestio's table from his own u.pel, plus the one thing his variant adds that a motion
+// can show -- ENTERING STATUS 11 CANCELS THE CLOAK. His vtable +0x204 fires u 200 and sets e+0xcb00 = 1 on the
+// death branch (states-em079_04.md 7.4), so each death motion requests it once at frame 0.
+//   What is NOT here, because the viewer has no cloak state: the stealth machine itself (em079_04.mrl's three
+// extra materials and six clip names, draw slots 0/1/3 swapped and restored, e+0xcb44 the eye), the tired-while-
+// cloaked handle [u, 100], and the (10, 0xe8) branch's own cloak cancel. Malfestio ships none of that -- his .mrl
+// has five materials and no stealth clip names at all -- so it is Nightcloak's alone and it is exported, not shown.
+//   His two Nightcloak-only reaction numbers, (10, 0xaf) and (10, 0xe8) for reaction code P+0x3ae = 27, play
+// L3 M4 -> M6 -> M8 (or L3 M10 -> M11 -> M6 -> M8 in postures 1 and 3) and change nothing on the model. What
+// reaction 27 IS was NOT READ.
+function nightcloak(){
+  const t = malfestio('em079_04u');
+  for (const k of ['3|Motion[17]', '3|Motion[12]', '3|Motion[20]'])
+    t[k] = Object.assign({}, t[k], { start: [['em079_04u', 200]] });
+  return t;
+}
+
 export const MOTION_STATES = {
   // BASARIOS (em004_00): E:\offline\decode\notes\states-em004_00.md, read and ROM-run by the Basarios decode agent
   // (2026-09-23). His class uEm004_00 (vtable 0x1797c8c) IS ALSO GRAVIOS -- every state function branches on
@@ -2605,6 +2692,8 @@ export const MOTION_STATES = {
     '3|Motion[10]': { dead: true, settled: true },
     '3|Motion[14]': { dead: true },
   },
+  em079_00: malfestio('em079_00u'),
+  em079_04: nightcloak(),
 };
 
 // Rathian's table with a DEVIANT'S TAIL: three states where hers has two. The driver's variant-4 branch (0xcf2a14..
@@ -3035,6 +3124,13 @@ export const RAGE_PUFF = {
   // +0x208 is a single `bx lr`, so unlike Alatreon there is no second puff hiding there.
   // (states-em085_00.md 0, 4.3)
   em085_00: { period: 30, joint: 4, records: [['em085_00u', 1120], ['em085_00u', 1121]], pick: () => 0 },
+  // MALFESTIO: period 30 on JOINT 4, offset (0, -50, 0), scale (0.25, 0.5, 0.5). vtable +0x2a4 is the base
+  // stub 0x6bf64, so the request is always key 1121 and 1120 is never asked for; his two records are
+  // byte-identical anyway. The class writes neither e+0xb7d2 nor e+0xb7d3, so the puff and the drool both run.
+  em079_00: { period: 30, joint: 4, records: [['em079_00u', 1120], ['em079_00u', 1121]], pick: () => 0 },
+  // NIGHTCLOAK: the same puff from his own u.pel. His 1120 and 1121 are byte-identical to each other AND to
+  // Malfestio's, +0x2a4 is the base stub, and the class writes neither e+0xb7d2 nor e+0xb7d3 on either branch.
+  em079_04: { period: 30, joint: 4, records: [['em079_04u', 1120], ['em079_04u', 1121]], pick: () => 0 },
 };
 
 // THE TAIL AS THE SHELLS READ IT (shells.js: Dreadqueen's poison, 0xd09b84(e, 0x10)): part 7's break level (byte P+0x3bc +
