@@ -63,6 +63,43 @@ export const CUT_TAIL = {
   // (enemy\em081\em081_04\mod\em081_04_tail, Group[0], 310 vertices) and his own landing record, on the same
   // em001_00_option Motion[1] (0.917 s) every staged cut tail flies on. (states-em081_04.md 0)
   em081_04: { piece: 'em081_04_tail', joint: 136, above: 20, landing: ['em081_04u', 905] },
+  // GRAVIOS: his sever hook passes kind 0x8f, the same as Basarios's, and u 900 names JOINT 143 (the Rath line's
+  // sever joint); descriptor table[113] = 0x159aaf8 has uEnemyOption slot 0 and em005_00.arc ships em005_00_tail
+  // plus em001_00_option.lmt, so the piece flies on Rathian's option poses. Basarios has the same option slot but
+  // no staged model, which is why he is not here. (states-em005_00.md 3.4)
+  em005_00: { piece: 'em005_00_tail', joint: 143, above: 20, landing: ['em005_00u', 905] },
+  // BARROTH: his sever hook passes kind 3 for the head and the tail one names JOINT 142; descriptor 0x159b3bc
+  // has BOTH option words non-negative, so he has TWO pieces -- `em044_00_tail` in slot 0, wired here, and
+  // `em044_00_head` in slot 1, which his head-break reaction (10, 0x72) with part 0 spawns and which this
+  // table has nowhere to put: it carries one `piece` per monster. Raised rather than dropped silently.
+  // (states-em044_00.md 0, 3.4)
+  em044_00: { piece: 'em044_00_tail', joint: 142, above: 20, landing: ['em044_00u', 905] },
+  // ROYAL LUDROTH: sever kind 0x8e and u 900 names JOINT 143; descriptor [0x172ba68][39] = 0x1597000 has
+  // word[1] = 0x7c30 != -1, and em047_00_tail.glb is staged. (states-em047_00.md 3.4)
+  em047_00: { piece: 'em047_00_tail', joint: 143, above: 20, landing: ['em047_00u', 905] },
+  // ALATREON: sever kind 0x8e and u 900 names JOINT 144; his descriptor's slot 0 exists and
+  // em050_00_tail.glb is staged. His tail has no .dtp row at all, so there is no broken level -- only
+  // the sever. (states-em050_00.md 0, 4.4)
+  em050_00: { piece: 'em050_00_tail', joint: 144, above: 20, landing: ['em050_00u', 905] },
+  // BRACHYDIOS: u 900 names JOINT 143 and descriptor 0x1597a5c (class index 52) has word[1] != -1, so
+  // uEnemyOption slot 0 exists; em063_00_tail.glb is staged and his monsters.json entry carries the option
+  // list. Raging Brachydios shares the class and the sever, and differs only in u 900's scale.
+  // (states-em063_00.md 3.5)
+  em063_00: { piece: 'em063_00_tail', joint: 143, above: 20, landing: ['em063_00u', 905] },
+  // SEREGIOS: sever kind 0x91 (as Diablos and Glavenus pass) and u 900 names JOINT 144; descriptor
+  // [0x172ba68 + 4*62] = 0x1598254 has word[1] != -1, so uEnemyOption slot 0 exists, and em077_00.arc ships
+  // em077_00_tail plus the Rath line's em001_00_option.lmt -- so the piece flies on Rathian's option poses.
+  // His tail has NO .dtp row: there is no broken level, only the sever. (states-em077_00.md 4.4)
+  em077_00: { piece: 'em077_00_tail', joint: 144, above: 20, landing: ['em077_00u', 905] },
+  // GLAVENUS: sever kind 0x91 (as Diablos passes) and u 900 names JOINT 145; descriptor [0x172ba68][64] =
+  // 0x15983ec has word[1] != -1, and em080_00.arc ships his OWN em080_00_option.lmt rather than the Rath
+  // line's, so the piece flies on his own option poses. (states-em080_00.md 0, 3.4)
+  em080_00: { piece: 'em080_00_tail', joint: 145, above: 20, landing: ['em080_00u', 905] },
+  // HELLBLADE GLAVENUS: the same sever call and the same JOINT 145 -- `em080_04_bodydata.bdd` records 36 and 41
+  // are the only ones carrying capsule mask 0x0001, byte for byte as Glavenus's are -- but HIS OWN cut-tail
+  // model, which is staged. His sever is UNGATED where Glavenus's needs the tail hot and already broken:
+  // `vtable +0x230` returns 1 for part 6 unconditionally. (states-em080_04.md 0, 3.4)
+  em080_04: { piece: 'em080_04_tail', joint: 145, above: 20, landing: ['em080_04u', 905] },
 };
 
 // The root curves of em001_00_option motion 1, frames 0..54, as the ROM's own evaluator 0xafb70c gives them
