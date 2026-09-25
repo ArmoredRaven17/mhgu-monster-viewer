@@ -630,4 +630,11 @@ const CODE = new Map([
   [0x939278, (m, model, joint) => jointMatrix(m, model, joint)],
   [0xa56c10, generatorFramePrep], [0xa574c4, (m, gen) => liftedCall(m, 0xa574c4, [gen]).r[0]],   // lifted-particles.js
   [0xa91c48, modelPostPass], [0xa77fb4, nothing], [0xaaebb0, polylinePostPass],
+  // vtable +0xd4, the effect's TEARDOWN, reached when startEffect's factory returns 0 (construct.js follows the
+  // ROM's caller 0x9baad4 -> 0x9bab88). 0x9bb794 takes the owner alone -- `mov r4, r0` and nothing reads r1..r3 --
+  // and walks the list at owner+0x1f0 calling each entry's vtable +4, nulls it, then the +0x1f4 / +0x1d8 block
+  // through 0xae8380. It was already LIFTED (lifted-proof.js, vectors in 5452 sets) and merely absent from this
+  // table, so the dispatch threw where the translation existed. The address is not assumed: vcall reads it out of
+  // the object's own vtable. (Redhelm Arzuros em060_04 key 120, L0 Motion[22], 2026-09-25.)
+  [0x9bb794, (m, owner) => liftedCall(m, 0x9bb794, [owner]).r[0]],
 ]);

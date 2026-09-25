@@ -530,5 +530,25 @@
     }
    }
   }
+ },
+ "cm202_021": {
+  "tex": [
+   "tex/efb57b4fbd165c97.webp"
+  ],
+  "mats": {
+   "XfBA1__m00_": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
  }
 }
