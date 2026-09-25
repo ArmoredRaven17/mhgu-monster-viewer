@@ -194,6 +194,11 @@ const GENERATOR_TYPES = {
   // generic 0xa55db4 and this vtable (GOT 0x183c8e0 -> 0x178932c + 8), its alloc 0xa82538 the same 0x1d0.
   // It draws nothing itself (+0x54 bx lr); its post (+0x50 0xa8262c) submits requests (effects-filter.md).
   9: { got: 0x183c8e0 },                         // vtable 0x1789334
+  // genType 15, cParticleGeneratorPolygonStrip -- the one generator class below whose NAME the ROM pins
+  // outright: the factory's type-15 arm 0x9bb0b0 allocates through 0xaa8c00 and constructs with 0xaa8c3c,
+  // which stores *(0x183c9a4) + 8 = 0x1789b34; that vtable's getDTI 0xaae0a0 reaches MtDTI 0x211cb5c, and
+  // the registration at 0xaae138 builds that MtDTI with the rodata string "cParticleGeneratorPolygonStrip".
+  15: { got: 0x183c9a4, name: 'PolygonStrip' }, // vtable 0x1789b34
 };
 // Undecoded generator types (anything not in GENERATOR_TYPES, and not the cParticleNode branch) the factory meets and skips, kept so the omission is
 // reportable rather than silent. genType -> how many rows were skipped. (Soulseer's eye flame em082_04_004 has
@@ -710,6 +715,17 @@ function transformType2(m, g){                                 // 0xa56d14
 // are the shared 0xa56960 and 0xa56d14, registered already.
 function initType9(m, g, owner, row, index){                   // 0xa825c8
   return liftedCall(m, 0xa825c8, [g, owner, row, index]).r[0];
+}
+// Slots 6, 8 and 15 for genType 15, cParticleGeneratorPolygonStrip (vtable 0x1789b34), each the lifted ROM
+// routine. Its transform is its OWN 0xaa8df8, not the shared 0xa56d14 that types 2 and 9 take.
+function initPolygonStrip(m, g, owner, row, index){            // 0xaa8c90
+  return liftedCall(m, 0xaa8c90, [g, owner, row, index]).r[0];
+}
+function startPolygonStrip(m, g){                              // 0xaa8cc8
+  return liftedCall(m, 0xaa8cc8, [g]).r[0];
+}
+function transformPolygonStrip(m, g){                          // 0xaa8df8
+  return liftedCall(m, 0xaa8df8, [g]).r[0];
 }
 function startType9(m, g){                                     // 0xa825f4
   return liftedCall(m, 0xa825f4, [g]).r[0];
@@ -1230,6 +1246,7 @@ registerCode(0xa56960, generatorSeedStart);
 registerCode(0xa91b80, transformModel); registerCode(0xa783a8, transformLiteBillboard); registerCode(0xaaea38, transformLitePolyline);
 registerCode(0xa99558, initType2); registerCode(0xa99590, startType2); registerCode(0xa56d14, transformType2);
 registerCode(0xa825c8, initType9); registerCode(0xa825f4, startType9);
+registerCode(0xaa8c90, initPolygonStrip); registerCode(0xaa8cc8, startPolygonStrip); registerCode(0xaa8df8, transformPolygonStrip);
 // cParticleNode (vtable 0x1789ebc, effects-node.md 1): the slots the start reaches through its own dispatch -- 6 init
 // 0xaed19c, 7 pool 0xaecd44, 8 start 0xaed2b8, 9 arm 0xaed79c, 15 its record in sGpuParticle 0xaedaac (must return 1) --
 // each the lifted ROM routine. Its move, post pass, draw and stop are reached from lifted code.
