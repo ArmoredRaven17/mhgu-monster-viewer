@@ -823,6 +823,183 @@ export const MOTION_STATES = {
     '3|Motion[12]': { dead: true },
     '3|Motion[20]': { dead: true },
   },
+  // ASTALOS (em081_00): E:\offline\decode\notes\states-em081_00.md, read and ROM-run by the Astalos decode agent
+  // (2026-09-24). Every change below lands on FRAME 0 of the motion named; the break and sever sets are re-applied
+  // every frame by the part pass from the break levels, as Barioth's are.
+  //   HIS RAGE CHANGES NOTHING ON HIM. The part pass never reads isEnraged, the eye applier never reads it, and this
+  //   variant has no material animation at all -- uEm081_00 runs BOTH Astalos and Boltreaver, forking on e+0xb5f5,
+  //   and all ten material-clip call sites are in the variant-4 arm. So there is no RAGE_PARTS row and no rage set
+  //   below: the shared puff is the whole of what his rage shows.
+  //   WHAT DOES CHANGE HIS MODEL IS THE CHARGE, and it is not a motion state. Three bytes -- crest e+0xcb01, wings
+  //   +0xcb02, tail +0xcb03 -- which the part pass re-applies EVERY FRAME from gauges, not from any clip. THE VIEWER
+  //   ALREADY FOLLOWS THAT: part-review.json gives him a three-rung level axis (Uncharged / Charging / Fully
+  //   Charged) and every charge row picks its half from the rung. What this table cannot do is follow it -- `levels`
+  //   here is indexed by BREAK level alone -- so the ladders below are written at the UNCHARGED rung, the tier he
+  //   spawns at, and a break played while the user has selected a charged rung shows the plain broken mesh.
+  //   THE MIDDLE TIER IS REAL, contrary to what states-em081_00.md concluded: 0x1013468 writes tier 1 at 0x10141c4
+  //   for 41 status-7 attacks, through a pointer rather than an immediate, which is why the first scan reported the
+  //   `case 1` arm (the nine XfB__A1_tikuden sets) as unreachable. ROM-RUN: (7,0x7a) leaves the tail at tier 1.
+  //   (effects-em081_00-charge.md, 2026-09-25.)
+  //   FOUR BREAKABLE PARTS, TWO PLAIN REACTION CLIPS. (10, 7) plays L3 Motion[1] for the crest and L3 Motion[2] for
+  //   the back AND both wingtalons, so the wings have no plain motion of their own. Their charged route (10, 0x14)
+  //   splits by PART first -- part 3 to L3 M3 -> M5 -> M7, part 2 to L3 M4 -> M6 -> M8 -- with the hit direction
+  //   able to swap the two; the pairing below is that default, read from the dispatcher.
+  //   The sets on them are the PLAIN ladders: the charged ones (18 -> 19, 24 -> 25) would draw a charged wing on a
+  //   monster whose crest and membranes are plain, which the ROM never produces, and their broken halves are
+  //   identical anyway -- sets 19 and 25 name groups 56 and 57, and em081_00.mod's mesh table has neither.
+  em081_00: {
+    // THE CREST (part 0), (10, 7) -> L3 Motion[1]. It takes TWO depletions and LEVEL 1 SHOWS NOTHING AT ALL --
+    // em081_00u has no key 1000 -- so levels 0 and 1 keep set 3 and fire nothing; level 2 takes set 4 (group 10 off,
+    // 20 on, 101 off) and fires u 1001 (cm202_060 on joint 131, offset (0, 125, 50) at 0.75x).
+    // THE TAIL CHARGING ARC, and the answer to "some tail attacks have no effects". His charge effects are NOT
+    // clip bindings -- no PSL bit names them -- so nothing the motion-binding pipeline does can reach them. The
+    // class requests them itself through vtable +0x1d0 = 0x101aeac into its own table 0x16a2054, and they resolve
+    // in the pel's UNIQUE array: request id 1013 -> key 202 -> em081_00_000 row mask 0x80, driven by the per-frame
+    // handler 0x1017d84 while the TAIL is at charge tier 1, and stopped gracefully (0x329c40(h, 0)) at the next
+    // action start. These five clips are the tail-charging attacks, ROM-RUN: (7,0x7a) and (7,0xa0) L2 M3,
+    // (7,0x7b) and (7,0xa1) L2 M4, (7,0x87) L2 M23, (7,0x99) and (7,0xa2) L2 M24, (7,0xc7) L4 M62.
+    //   `hold` rather than `start` because that is the shape the ROM has: one request kept while the tier holds,
+    // ended when the action changes -- not a one-shot at frame 0. (effects-em081_00-charge.md, 2026-09-25.)
+    //   em081_00_000.efl is ONE file sliced by row mask -- 0x20/0x40/0x80 are the crest / wings / tail charging
+    // arcs, 0x01/0x02/0x04 the three charged sets, 0x07 all three -- so the same file serves nine records.
+    '2|Motion[3]':  { hold: ['em081_00u', 202] },
+    '2|Motion[4]':  { hold: ['em081_00u', 202] },
+    '2|Motion[23]': { hold: ['em081_00u', 202] },
+    '2|Motion[24]': { hold: ['em081_00u', 202] },
+    '4|Motion[62]': { hold: ['em081_00u', 202] },
+    '3|Motion[1]':  { levels: [[3], [3], [4]], fire: [null, null, ['em081_00u', 1001]] },
+    // THE BACK (part 1) at level 1: set 9 -> 10 (group 11 off, 21 on), firing u 1005 (cm202_060 on joint 2, offset
+    // (0, 50, 0) at 1.5x). L3 Motion[2] is the hardest-worked clip he has: it is ALSO both wingtalons' plain
+    // reaction, the crest's and the tail's charged reaction, the tail-base and tail durability hits, and the
+    // tune+0x44 status (10, 0x1b), whose c 1109 is the one thing this row cannot also show. The back is what it
+    // shows because the back is the only break with nowhere else to go.
+    '3|Motion[2]':  { levels: [[9], [10]], fire: [null, ['em081_00u', 1005]] },
+    // THE -X WINGTALON (part 3) at level 1: set 20 -> 21 (groups 14, 17 and 107 off, 27 on), firing u 1015 on
+    // JOINT 133 (cm202_060 at 1x). PART 3 DEFAULTS TO THE M3 CHAIN and part 2 to the M4 chain -- the status-10
+    // dispatcher reads part first and lets the hit DIRECTION swap them (part 3 dir != 1 and part 2 dir 2 both take
+    // 0x17ed2c8 -> M3 -> M5 -> M7; part 2 dir != 2 and part 3 dir 1 take 0x17ed2a0 -> M4 -> M6 -> M8), so the
+    // pairing below is the ROM's default, not a choice made here. (states-em081_04.md, whose read of the same
+    // class's dispatcher names the per-part default states-em081_00.md leaves out.)
+    '3|Motion[3]':  { levels: [[20], [21]], fire: [null, ['em081_00u', 1015]] },
+    // THE +X WINGTALON (part 2) at level 1: set 14 -> 15 (groups 13, 16 and 106 off, 26 on), firing u 1010 on
+    // JOINT 132 (cm202_060 at 1x).
+    '3|Motion[4]':  { levels: [[14], [15]], fire: [null, ['em081_00u', 1010]] },
+    // THE STUN, (10, 0x20) -- sided the same way the charged wingtalon reaction is, and sharing its six clips:
+    // c 1103 (cm200_003 on joint 3, offset (0, 0, 100) at 0.9x) into ONE held handle across the hold and recovery
+    // clips of both chains, which is where a player sees the stars.
+    '3|Motion[5]':  { hold: ['em081_00c', 1103] },
+    '3|Motion[6]':  { hold: ['em081_00c', 1103] },
+    '3|Motion[7]':  { hold: ['em081_00c', 1103] },
+    '3|Motion[8]':  { hold: ['em081_00c', 1103] },
+    // THE TAIL SEVER: part 7's SECOND counter (base 450, once) -> (10, 0x72) on L3 Motion[15]. Set 26 -> 27 (group
+    // 19 off, 29 on, 109 off) and u 900 (cm202_060 on JOINT 136 at 1x). Part 7's first counter is a durability with
+    // no .dtp row, so he has no broken tail level -- only the sever. He DOES drop a cut tail (CUT_TAIL below).
+    '3|Motion[15]': { levels: [[26], [27]], fire: [null, ['em081_00u', 900]], drops: true },
+    // RAGE: command group 6's tail issues (1, 0) -- L0 Motion[4] from frame 0. Nothing on the model follows it.
+    '0|Motion[4]':  { rage: true },
+    // TIRED: unlike Barioth, his tired idle (0, 2) is its OWN clip, L0 Motion[14], so the clip itself says it --
+    // with drool c 1104 every 48 (cm200_006 on joint 4, offset (0, -50, 10) at 1x).
+    '0|Motion[14]': { rage: false, tired: true, every: [['em081_00c', 1104], 48] },
+    // ASLEEP: (10, 0x1d) L3 Motion[14] lies down, (10, 0x1e) holds L0 Motion[19], then L0 Motion[20] -> L3 Motion[16]
+    // gets up. His eyes DO shut -- eye set 2 -> set 1 (group 1 on, 2 off, 52 off, the lid drawn) -- while P+0x5d02 is
+    // up, and the hold has the zzz c 1102 every 90 and pauses the puff. L3 Motion[16] is left out entirely: it is the
+    // wake-up, and it is shared with the paralysis, stun and shock-trap recoveries.
+    '3|Motion[14]': { sets: [1] },
+    '0|Motion[19]': { sets: [1], every: [['em081_00c', 1102], 90], puffOff: true },
+    '0|Motion[20]': { sets: [1] },
+    // PARALYSIS: (10, 0x1f) holds L3 Motion[13]; c 1101 every 60 (cm200_001 on joint 0 at 5x), first at once.
+    // L3 Motion[13] is also the SHOCK TRAP's hold ((10, 0x6e), c 1105 every 42 at the same scale): shown as
+    // paralysis, as Khezu's, Basarios's, Rathian's and Barioth's shared hold is.
+    '3|Motion[13]': { every: [['em081_00c', 1101], 60] },
+    // DEATH: L3 Motion[17] for (11, 0) and every number the status-11 table does not name, L3 Motion[12] at the end
+    // of the fall (L3 M10 -> M11 -> M12), and L3 Motion[20] for (11, 7) / (11, 0x12). Death shows nothing of its own
+    // -- the break sets and the sever stay as the user has them, and his eyes stay open, since death does not raise
+    // P+0x5d02 -- but it does clear the rage, and the class's own hook zeroes all three charge bytes.
+    '3|Motion[17]': { dead: true },
+    '3|Motion[12]': { dead: true, settled: true },
+    '3|Motion[20]': { dead: true, settled: true },
+  },
+  // BOLTREAVER ASTALOS (em081_04): E:\offline\decode\notes\states-em081_04.md, read and ROM-run by the Boltreaver
+  // decode agent (2026-09-24), written as a diff against Astalos's note. Same class, uEm081_00, forking on
+  // e+0xb5f5 = 4; the .dtp rows are identical to Astalos's and his COMMON pel IS em081_00c, byte for byte in both
+  // arcs and named for both monsters by the ROM's own resource descriptor -- so every ailment record below is
+  // literally Astalos's record, while the breaks, the sever and the puff are his own em081_04u.
+  //   HE SPAWNS CHARGED, and that is what makes his table differ from Astalos's rather than repeat it. The family
+  // mechanic is a three-region charge (head e+0xcb01, wings +0xcb02, tail +0xcb03) that the part pass re-reads
+  // every frame. Astalos's has two levels, 0 and 2, and he spawns at 0; Boltreaver's has three, 0 / 2 / 4, and he
+  // spawns at 2 on all three regions -- so the sets below are his CHARGED ladders (head 7/8, +X wing 18/19, -X
+  // wing 24/25, tail 30/31, eye 32), where Astalos's table carries the plain ones.
+  //   WHAT IS NOT SHOWN, and why. His charge transitions are real and visible -- (1, 0x12) on L0 M32 takes every
+  // region to 4 and every charged material's clip slot 0 from clip 0 to clip 1; (1, 0x11) on L3 M16 recharges to 2;
+  // a hit on a level-4 region knocks it to 2 and fires u 310; and going tired or dying wipes all three back to 0.
+  // None of it is here. THE VIEWER DOES CARRY A CHARGE CONTROL -- part-review.json gives him a FIVE-rung level axis
+  // (Uncharged / Charging / Charged / Overcharging / Overcharged), one per ROM tier 0..4: his own 0 / 2 / 4 plus the
+  // two transitional ones. But it is the USER's control, and a motion that moved it would be taking it from them;
+  // `levels` here is indexed by break level alone and cannot read the rung either. So the ladders below are written
+  // at the rung he SPAWNS at, tier 2 `Charged`, and a break played at another rung shows that rung's mesh broken.
+  em081_04: {
+    // THE HEAD (part 0), (10, 7) -> L3 Motion[1]. Two depletions, and level 1 shows nothing at all -- em081_04u has
+    // no key 1000 -- so levels 0 and 1 keep set 7 and fire nothing; level 2 takes set 8 (group 10 off, 20 on, and
+    // 30/31/40/41/50/51/101 off) and fires u 1001 (cm202_060 on joint 131, offset (0, 125, 50) at 0.75x). Set 7/8
+    // rather than Astalos's 3/4 because he is charged: the break sets are 3 -> 4 uncharged, 7 -> 8 charged.
+    '3|Motion[1]':  { levels: [[7], [7], [8]], fire: [null, null, ['em081_04u', 1001]] },
+    // THE BODY/NECK (part 1) at level 1: set 9 -> 10 (group 11 off, 21 on), firing u 1005 (cm202_060 on joint 2,
+    // offset (0, 50, 0) at 1.5x). The neck has no charged pair, so this ladder is the same as Astalos's. As on
+    // Astalos, L3 Motion[2] is the hardest-worked clip he has -- it is also both wings' plain reaction, the head's
+    // and the tail's charged reaction, the tail-base and tail durability hits, and the tune+0x44 status (10, 0x1b),
+    // whose c 1109 is the one thing this row cannot also show.
+    '3|Motion[2]':  { levels: [[9], [10]], fire: [null, ['em081_04u', 1005]] },
+    // THE WINGS. The status-10 dispatcher splits the (10, 0x14) chains by PART first and lets the hit direction
+    // swap them: part 3 (dir != 1) and part 2 (dir 2) take 0x17ed2c8 -> M3 -> M5 -> M7, part 2 (dir != 2) and part 3
+    // (dir 1) take 0x17ed2a0 -> M4 -> M6 -> M8. So -X is Motion[3] and +X is Motion[4], which is the ROM's default
+    // rather than a pairing chosen here -- and Astalos's table carries the same one, from this same dispatcher.
+    //   -X WINGTALON (part 3) at level 1: sets 24 -> 25 (groups 14, 17 and 107 off, 27 on, 34/44/47 off), u 1015 on
+    // JOINT 133. Charged ladder 24/25, where Astalos's plain one is 20/21.
+    '3|Motion[3]':  { levels: [[24], [25]], fire: [null, ['em081_04u', 1015]] },
+    //   +X WINGTALON (part 2) at level 1: sets 18 -> 19 (groups 13, 16 and 106 off, 26 on, 33/43/46 off), u 1010 on
+    // JOINT 132. Charged ladder 18/19, where Astalos's plain one is 14/15.
+    '3|Motion[4]':  { levels: [[18], [19]], fire: [null, ['em081_04u', 1010]] },
+    // THE STUN, (10, 0x20) -- the same six clips the charged wing reaction uses, sided the same way: c 1103 from
+    // Astalos's c.pel (cm200_003 on joint 3, offset (0, 0, 100) at 0.9x, axisMask 1) into ONE held handle across
+    // the hold and recovery clips of both chains.
+    '3|Motion[5]':  { hold: ['em081_00c', 1103] },
+    '3|Motion[6]':  { hold: ['em081_00c', 1103] },
+    '3|Motion[7]':  { hold: ['em081_00c', 1103] },
+    '3|Motion[8]':  { hold: ['em081_00c', 1103] },
+    // THE TAIL SEVER: part 7's SECOND counter (base 450, once) -> (10, 0x72), a 148..245 degree turn and then
+    // L3 Motion[15]. Sets 30 -> 31 (group 19 off, 29 on, 58 on, 39/49/59 and 109 off) and u 900 (cm202_060 on
+    // JOINT 136 at 1x). Charged ladder 30/31, where Astalos's plain one is 26/27. No .dtp row on part 7, so there
+    // is no broken tail level -- only the sever. He drops a cut tail (CUT_TAIL below).
+    '3|Motion[15]': { levels: [[30], [31]], fire: [null, ['em081_04u', 900]], drops: true },
+    // RAGE: command group 6's tail issues (1, 0) -- L0 Motion[4] from frame 0, from a command stream byte-identical
+    // to Astalos's. Nothing on the model follows it: the part pass never reads isEnraged. (What rage DOES do is
+    // charge him to level 4 through the group's later (1, 0x12), which is the charge, not the rage.)
+    '0|Motion[4]':  { rage: true },
+    // TIRED: the tired idle (0, 2) is its own clip, L0 Motion[14] (stamina timer 2400), with Astalos's drool
+    // c 1104 every 48 (cm200_006 on joint 4, offset (0, -50, 10) at 1x) while not enraged. The charge wipe that
+    // lands with it is not shown -- see the note above.
+    '0|Motion[14]': { rage: false, tired: true, every: [['em081_00c', 1104], 48] },
+    // ASLEEP: (10, 0x1d) L3 Motion[14] lies down, (10, 0x1e) holds L0 Motion[19], then L0 Motion[20] -> L3
+    // Motion[16] gets up. His eyes shut -- eye set 32 (charged) or 2 (plain) -> set 1, group 1 on and 2 and 52 off,
+    // the lid drawn -- while P+0x5d02 is up, and the hold has the zzz c 1102 every 90 and pauses the puff. L3
+    // Motion[16] is left out: it is the wake-up, shared with the paralysis, stun and shock-trap recoveries AND
+    // with the (1, 0x11) recharge action.
+    '3|Motion[14]': { sets: [1] },
+    '0|Motion[19]': { sets: [1], every: [['em081_00c', 1102], 90], puffOff: true },
+    '0|Motion[20]': { sets: [1] },
+    // PARALYSIS: (10, 0x1f) holds L3 Motion[13]; c 1101 every 60 (cm200_001 on joint 0 at 5x), first at once.
+    // L3 Motion[13] is also the SHOCK TRAP's hold ((10, 0x6e), c 1105 every 42 at the same scale): shown as
+    // paralysis, as every monster wired before him is.
+    '3|Motion[13]': { every: [['em081_00c', 1101], 60] },
+    // DEATH: L3 Motion[17] for (11, 0) and every status-11 number the table does not name, L3 Motion[12] at the end
+    // of the fall (L3 M10 -> M11 -> M12), and L3 Motion[20] for (11, 7) / (11, 0x12). The break sets and the sever
+    // stay as the user has them and his eyes stay open (death does not raise P+0x5d02); the rage goes off, and the
+    // charge is wiped the same frame -- which is not shown, as above. L3 Motion[20] is also the pit ailments'
+    // clip; death is what it shows.
+    '3|Motion[17]': { dead: true },
+    '3|Motion[12]': { dead: true, settled: true },
+    '3|Motion[20]': { dead: true, settled: true },
+  },
 };
 
 // Rathian's table with a DEVIANT'S TAIL: three states where hers has two. The driver's variant-4 branch (0xcf2a14..
@@ -1122,6 +1299,20 @@ export const RAGE_PUFF = {
   // non-uniform puff scale recorded. The class writes neither e+0xb7d2 nor e+0xb7d3 anywhere in
   // 0xdb3ef8..0xdc15bc, so the puff and the drool both run. (states-em019_00.md 4.3)
   em019_00: { period: 30, joint: 1, records: [['em019_00u', 1120], ['em019_00u', 1121]], pick: () => 0 },
+  // ASTALOS: period 30 on JOINT 4, and his vtable +0x2a4 is NOT overridden -- it is the base stub 0x6bf64
+  // (mov r0,#0 / bx lr), so 0xa425c turns that 0 into u id 1 and the request is always key 1121; 1120 is never
+  // asked for. `pick: () => 0` is what selects 1121 here, because schedule.js does the ROM's own inversion
+  // (records[pick() === 1 ? 0 : 1]). His two records are byte-identical anyway (both cm200_007, joint 4, pos 0,
+  // rot 0, scale (0.75, 1.3, 1.3), mode 0, angOrder 0) -- note the NON-UNIFORM scale and angOrder 0, where
+  // Barioth's puff is uniform and angOrder 4. The class writes neither e+0xb7d2 nor e+0xb7d3 (only e+0xb7d1 = 1),
+  // so 0xa41b8's block runs and both the puff and the drool fire.
+  em081_00: { period: 30, joint: 4, records: [['em081_00u', 1120], ['em081_00u', 1121]], pick: () => 0 },
+  // BOLTREAVER: the same shape as Astalos's -- period 30 on JOINT 4, vtable +0x2a4 the base stub 0x6bf64, so
+  // 0xa425c turns its 0 into u id 1 and the request is always key 1121; 1120 is never asked for. His 1120 and 1121
+  // are byte-identical too (cm200_007, joint 4, pos 0, rot 0, scale (0.75, 1.3, 1.3), mode 0, angOrder 0), so the
+  // difference could not show. The class writes neither e+0xb7d2 nor e+0xb7d3, so 0xa41b8's block runs and both the
+  // puff and the drool fire. `pick: () => 0` selects 1121, because schedule.js does the ROM's own inversion.
+  em081_04: { period: 30, joint: 4, records: [['em081_04u', 1120], ['em081_04u', 1121]], pick: () => 0 },
 };
 
 // THE TAIL AS THE SHELLS READ IT (shells.js: Dreadqueen's poison, 0xd09b84(e, 0x10)): part 7's break level (byte P+0x3bc +

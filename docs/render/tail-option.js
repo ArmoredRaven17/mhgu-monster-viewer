@@ -53,6 +53,16 @@ export const CUT_TAIL = {
   // Dreadking: the same class and sever call (joint 143), his own model (descriptor 0x15954e8 +0x04: 0x784d =
   // em002_04_tail) and landing record, the same option motion (+0xb4 0x77ed); his tail too is cut only once broken
   em002_04: { piece: 'em002_04_tail', joint: 143, above: 20, landing: ['em002_04u', 905] },
+  // ASTALOS: his sever hook passes kind 0x8a (0xc2274 at 0x10127f4, where Barioth and Basarios pass 0x8f, Savage
+  // 0x8e and Diablos 0x91), and u 900 names JOINT 136 -- the joint the sever record sits on, and the one whose
+  // bodydata capsule (record 3, mask 0x0001) the sever bit takes away. Descriptor table[66] = 0x1598584 has
+  // uEnemyOption slot 0 (word [1] = 32606 != -1) and em081_00.arc ships em081_00_tail plus em001_00_option.lmt,
+  // so the piece flies on Rathian's option poses like every other staged cut tail. (states-em081_00.md 3.4)
+  em081_00: { piece: 'em081_00_tail', joint: 136, above: 20, landing: ['em081_00u', 905] },
+  // BOLTREAVER: the same class, the same sever hook and kind 0x8a, the same JOINT 136, his OWN model
+  // (enemy\em081\em081_04\mod\em081_04_tail, Group[0], 310 vertices) and his own landing record, on the same
+  // em001_00_option Motion[1] (0.917 s) every staged cut tail flies on. (states-em081_04.md 0)
+  em081_04: { piece: 'em081_04_tail', joint: 136, above: 20, landing: ['em081_04u', 905] },
 };
 
 // The root curves of em001_00_option motion 1, frames 0..54, as the ROM's own evaluator 0xafb70c gives them

@@ -1098,6 +1098,19 @@ function factory(m, owner){
     m.w32(owner + 0x1d8, w0); m.w32(owner + 0x1dc, w1);
     m.w32(owner + 0x1e0, ((w2 & 0xffff0000) | ((w2 + 1) & 0xffff)) >>> 0); m.w32(owner + 0x1e4, w3);
   }
+  // ZERO GENERATORS IS A REAL OUTCOME IN THE ROM, AND THIS THROW IS WRONG. 0x9bb30c tests the count, and on zero
+  // it sets bit 24 of owner+0xf0 (0x9bb320..0x9bb32c) and returns 0; the caller at 0x9baad4 then calls vtable
+  // +0xd4 and returns 0 -- the effect simply does not build. MEASURED on Gravios's u 241, whose MASK1 (payload
+  // +0x48 = 0x02) selects no row of em005_00_001: three separate recordings of that record all reach 0x9bb30c
+  // and never reach 0x9bb330, where u 240 (mask 0x01) and u 251 (mask 0x08) on the SAME file and the SAME clips
+  // reach both -- so they take the `bne` with a non-zero count and 241 falls through. Six keys fire that file and
+  // only 241 selects nothing, which is the "one efl split across row masks" shape with an empty share.
+  //   NOT CHANGED YET, on purpose: making this return 0 means startEffect returns 0 and host.start stops treating
+  // that as an error, which is a whole-runtime behaviour change and has to be re-verified across every monster
+  // the three sessions have wired. Left throwing so the refusal stays loud until that pass is run.
+  //   AND WHEN IT IS: the ROM does not merely return 0, it SETS BIT 24 OF owner+0xf0 first. Returning 0 without
+  // setting it would replace one invented behaviour with another, so read who consumes +0xf0 before landing it --
+  // resetFrame below already masks that word with 0xe0ffffcc, which clears bit 24, so at least one reader exists.
   if ((m.u32(owner + 0x1e0) & 0xffff) === 0) throw new Unverified('0x9bb320 no generators built');
   return 1;
 }
