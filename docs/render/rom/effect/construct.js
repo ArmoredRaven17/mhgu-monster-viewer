@@ -1005,9 +1005,20 @@ function nodeInit(m, inst){
   const owner = m.u32(inst + 0x100);
   const base = m.u32(owner + 0x1b8);
   m.w32(inst + 0x114, n);
+  // THE START DELAY, with its random range (0xae8a40..0xae8a8c). pp+0x64 packs a base delay in the low half and
+  // a RANGE in the high half; with the range zero the delay is just the base, which is all this used to do. With
+  // a range the ROM takes the next word of the same 4096-entry random table the block above draws from -- indexed
+  // by the counter at inst+0x114 AFTER the increment, masked to 12 bits (`bfc r2, #0xc, #0x14`) -- and reduces it
+  // modulo range + 1 (`udiv` then `mls`, so unsigned remainder), giving base + rnd % (range + 1). The owner's
+  // +0x1b8 is added and the result stored as a u16, as before.
+  //   Until now the range arm threw, which refused the whole effect: Gammoth's L0 Motion[33] and five of
+  // Elderfrost's motions (Effects session, 2026-09-25). It is an unimplemented feature rather than an
+  // untranslated routine -- the ROM is right here and reads in twelve instructions.
   const w64 = m.u32(pp + 0x64);
-  if (w64 >>> 16) throw new Unverified('0xae8a68 node start delay with a random range');
-  m.w16(inst + 0x11c, ((w64 & 0xffff) + base) & 0xffff);
+  const range = w64 >>> 16;
+  let delay = w64 & 0xffff;
+  if (range) delay = (delay + (m.u32(rnd + 4 * (n & 0xfff)) % (range + 1))) >>> 0;
+  m.w16(inst + 0x11c, (delay + base) & 0xffff);
 }
 
 // ---- the start routine ---------------------------------------------------------------------------
@@ -1105,13 +1116,14 @@ function factory(m, owner){
   // and never reach 0x9bb330, where u 240 (mask 0x01) and u 251 (mask 0x08) on the SAME file and the SAME clips
   // reach both -- so they take the `bne` with a non-zero count and 241 falls through. Six keys fire that file and
   // only 241 selects nothing, which is the "one efl split across row masks" shape with an empty share.
-  //   NOT CHANGED YET, on purpose: making this return 0 means startEffect returns 0 and host.start stops treating
-  // that as an error, which is a whole-runtime behaviour change and has to be re-verified across every monster
-  // the three sessions have wired. Left throwing so the refusal stays loud until that pass is run.
-  //   AND WHEN IT IS: the ROM does not merely return 0, it SETS BIT 24 OF owner+0xf0 first. Returning 0 without
-  // setting it would replace one invented behaviour with another, so read who consumes +0xf0 before landing it --
-  // resetFrame below already masks that word with 0xe0ffffcc, which clears bit 24, so at least one reader exists.
-  if ((m.u32(owner + 0x1e0) & 0xffff) === 0) throw new Unverified('0x9bb320 no generators built');
+  //   So this does what the ROM does: set bit 24 and return 0. The BIT MATTERS as much as the return -- returning
+  // 0 without setting it would swap one invented behaviour for another -- and it has a reader: resetFrame below
+  // masks owner+0xf0 with 0xe0ffffcc, which clears bit 24, so the next start begins with it clear as the ROM
+  // leaves it.
+  if ((m.u32(owner + 0x1e0) & 0xffff) === 0){
+    m.w32(owner + 0xf0, (m.u32(owner + 0xf0) | 0x1000000) >>> 0);           // 0x9bb320..0x9bb32c
+    return 0;
+  }
   return 1;
 }
 
@@ -1215,7 +1227,13 @@ export function startEffect(m, owner){
   vcall(m, owner, 0x80);
   const rl = m.u32(owner + 0xf4);
   if (rl === 0 || m.u16(rl + 0x74) === 0) throw new Unverified('0x9baba0 start without an effect list');
-  if (factory(m, owner) === 0) throw new Unverified('0x9bab88 factory failed');
+  // AN EFFECT THAT BUILDS NO GENERATORS IS A NORMAL OUTCOME, NOT A FAULT. The ROM's caller tests the factory's
+  // return at 0x9baad0 and on 0 branches to 0x9bab88, which calls vtable +0xd4 and returns 0 -- the effect simply
+  // does not build. Gravios's u 241 is the case: its MASK1 (payload +0x48 = 0x02) selects no row of
+  // em005_00_001, where u 240 (0x01) and u 251 (0x08) fire the same file on the same clips and build fine, so six
+  // keys split one .efl and 241's share is empty. Three recordings of it reach 0x9bb30c and never 0x9bb330.
+  // Throwing here refused the whole monster over an effect the game itself draws nothing for.
+  if (factory(m, owner) === 0){ vcall(m, owner, 0xd4); return 0; }
   if (poolSetup(m, owner) === 0) throw new Unverified('0x9bab88 pool setup failed');
   if (nodeSetup(m, owner) === 0) throw new Unverified('0x9bab88 node setup failed');
   m.w32(owner + 0x1c0, 0);

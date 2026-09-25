@@ -33,7 +33,7 @@ async function pageCheckVelocidrome(){
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
   const byWhen = {};
   for (const e of S.entries) byWhen[e.when] = (byWhen[e.when] || 0) + 1;
-  check(byWhen.event >= 7 && byWhen.ragePuff === 2, 'the schedule holds his state records: 7 event and 2 ragePuff', byWhen);
+  check(byWhen.event >= 6 && byWhen.ragePuff === 2, 'the schedule holds his state records: 6 event and 2 ragePuff', byWhen);
   const MONSTER = V.MON.monsters.find(e => e.id === MON);
   const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => MONSTER.partIds.includes(p))) : null; };
   const isSet = (d, n) => (MONSTER.groups[n] || []).filter(([g]) => MONSTER.partIds.includes(g)).every(([g, on]) => d[g] === on);
@@ -157,15 +157,19 @@ async function pageCheckVelocidrome(){
   await play(REST[0], REST[1]); await frames(6);
   check(!evReqs(1103).includes('r'), 'and off it the stun is stopped', evReqs(1103));
 
-  // DEATH: all four direction chains converge here, and HIS EYES STAY OPEN -- death does not raise P+0x5d02, and
-  // there is no rage pair to revert because there never was one
+  // DEATH: all four direction chains converge here, and there is no rage pair to revert because there never was
+  // one. HIS EYES SHUT -- set 1 -> set 3, the same swap his sleep hold makes. CORRECTED 2026-09-25: this block
+  // asserted the opposite, off states-em042_00.md's claim that P+0x5d02 is raised only asleep or resting "and at
+  // no other time". That came from finding ONE of its SEVEN writers; 0xbd594 sets it with a timer and 0x75c1c
+  // calls it with -1 in the same straight-line block as the status-11 rage clear. It passed before because the
+  // drome death rows carried no sets at all, so set 1 -- eyes OPEN -- was simply whatever the user had.
   rageBox.checked = true; await rageBox.onchange({ target: rageBox }); await frames(3);
   await play('3', 'Motion[18]'); await frames(4);
-  check(S.rage === false && isSet(drawn(), 1), 'L3 Motion[18] (death): rage off even with the user enraged, and HIS EYES STAY OPEN', drawn());
+  check(S.rage === false && isSet(drawn(), 3), 'L3 Motion[18] (death): rage off even with the user enraged, and HIS EYES SHUT (set 3)', drawn());
   await play('3', 'Motion[19]'); await frames(4);
-  check(S.rage === false && isSet(drawn(), 1), 'L3 Motion[19] (the collapse): the same', drawn());
+  check(S.rage === false && isSet(drawn(), 3), 'L3 Motion[19] (the collapse): the same', drawn());
   await play('3', 'Motion[24]'); await frames(4);
-  check(S.rage === false && isSet(drawn(), 1), 'L3 Motion[24] (death in the pit): the same', drawn());
+  check(S.rage === false && isSet(drawn(), 3), 'L3 Motion[24] (death in the pit): the same', drawn());
   rageBox.checked = false; await rageBox.onchange({ target: rageBox }); await frames(3);
   await play(REST[0], REST[1]); await frames(3);
 

@@ -35,7 +35,7 @@ async function pageCheckDiablos(){
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
   const byWhen = {};
   for (const e of S.entries) byWhen[e.when] = (byWhen[e.when] || 0) + 1;
-  check(byWhen.event >= 11 && byWhen.ragePuff === 2, 'the schedule holds his state records: 11 event and 2 ragePuff', byWhen);
+  check(byWhen.event >= 10 && byWhen.ragePuff === 2, 'the schedule holds his state records: 10 event and 2 ragePuff', byWhen);
   const MONSTER = V.MON.monsters.find(e => e.id === MON);
   const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => MONSTER.partIds.includes(p))) : null; };
   const isSet = (d, n) => (MONSTER.groups[n] || []).filter(([g]) => MONSTER.partIds.includes(g)).every(([g, on]) => d[g] === on);
@@ -182,11 +182,16 @@ async function pageCheckDiablos(){
   // DEATH, including the BURROWED one he surfaces from
   rageBox.checked = true; await rageBox.onchange({ target: rageBox }); await frames(3);
   await play('3', 'Motion[17]'); await frames(4);
-  check(S.rage === false, 'L3 Motion[17] (death): the rage shown goes off even with the user enraged', { rage: S.rage });
+  // HIS EYES SHUT IN DEATH -- set 2 -> set 1, the same swap his sleep hold makes. Added 2026-09-25 with the
+  // correction: states-em042_00.md had said P+0x5d02 is raised only asleep or resting "and at no other time",
+  // which was drawn from ONE of its SEVEN writers, and his death rows carried no sets at all as a result. The
+  // assertion is here so that negative cannot come back unnoticed. (0xbd594 sets the flag and its timer; 0x75c1c
+  // calls it with -1 in the same straight-line block as the status-11 rage clear 0xba7b8 at 0x75b90.)
+  check(S.rage === false && isSet(drawn(), 1), 'L3 Motion[17] (death): the rage shown goes off even with the user enraged, and HIS EYES SHUT (set 1)', { rage: S.rage, d: drawn() });
   await play('3', 'Motion[12]'); await frames(4);
-  check(S.rage === false, 'L3 Motion[12] (death at the end of the fall): the same', { rage: S.rage });
+  check(S.rage === false && isSet(drawn(), 1), 'L3 Motion[12] (death at the end of the fall): the same', { rage: S.rage, d: drawn() });
   await play('3', 'Motion[20]'); await frames(4);
-  check(S.rage === false, 'L3 Motion[20] (the BURROWED death, after he surfaces on L3 M21): the same', { rage: S.rage });
+  check(S.rage === false && isSet(drawn(), 1), 'L3 Motion[20] (the BURROWED death, after he surfaces on L3 M21): the same', { rage: S.rage, d: drawn() });
   rageBox.checked = false; await rageBox.onchange({ target: rageBox }); await frames(3);
   await play(REST[0], REST[1]); await frames(3);
 

@@ -194,9 +194,16 @@ function dromeLine(u, c){
     // death is what it shows. Death shows NOTHING of its own: the break set stays as the user has it, THE EYES
     // STAY OPEN (death does not raise P+0x5d02) and there is no rage pair to revert because there never was one.
     // L3 Motion[19] begins past the collapse, so it is settled.
-    '3|Motion[18]': { dead: true },
-    '3|Motion[19]': { dead: true, settled: true },
-    '3|Motion[24]': { dead: true },
+    // THE LID IS DRAWN IN DEATH, corrected 2026-09-25. states-em042_00.md said P+0x5d02 is raised only
+    // asleep or resting "and at no other time -- in particular not at death", and that negative came from
+    // finding ONE of its SEVEN writers in the shared enemy code (0x6e714, 0x6f538, 0xae3d0, 0xaf068,
+    // 0xb9de0, 0xba9d0, 0xbd598). 0xbd594 sets the flag and its timer at P+0x5d00, and 0x75c1c calls it
+    // with -1 in the same straight-line block as the status-11 rage clear 0xba7b8 at 0x75b90. Three decodes
+    // agree (Barioth re-read, Zinogre, Lagombi) and Raven had seen it on Savage. NOT READ: the `tst sb, #2`
+    // guard at 0x75be0, so which death numbers skip it is open.
+    '3|Motion[18]': { dead: true, sets: [3] },
+    '3|Motion[19]': { dead: true, settled: true, sets: [3] },
+    '3|Motion[24]': { dead: true, sets: [3] },
   };
 }
 
@@ -404,9 +411,16 @@ export const MOTION_STATES = {
     // end of the fall ((11, 1), after L3 M10 -> L3 M11), and L3 Motion[20] for (11, 7) / (11, 0x12). Death shows
     // NOTHING of its own on him: the break sets stay as the user has them, his eyes stay open (death does not raise
     // P+0x5d02) and there is no material to change. L3 Motion[12] begins past the fall's landing, so it is settled.
-    '3|Motion[17]':  { dead: true },
-    '3|Motion[12]':  { dead: true, settled: true },
-    '3|Motion[20]':  { dead: true },
+    // THE LID IS DRAWN IN DEATH, corrected 2026-09-25. states-em042_00.md said P+0x5d02 is raised only
+    // asleep or resting "and at no other time -- in particular not at death", and that negative came from
+    // finding ONE of its SEVEN writers in the shared enemy code (0x6e714, 0x6f538, 0xae3d0, 0xaf068,
+    // 0xb9de0, 0xba9d0, 0xbd598). 0xbd594 sets the flag and its timer at P+0x5d00, and 0x75c1c calls it
+    // with -1 in the same straight-line block as the status-11 rage clear 0xba7b8 at 0x75b90. Three decodes
+    // agree (Barioth re-read, Zinogre, Lagombi) and Raven had seen it on Savage. NOT READ: the `tst sb, #2`
+    // guard at 0x75be0, so which death numbers skip it is open.
+    '3|Motion[17]':  { dead: true, sets: [1] },
+    '3|Motion[12]':  { dead: true, sets: [1], settled: true },
+    '3|Motion[20]':  { dead: true, sets: [1] },
   },
   // SILVERWIND NARGACUGA (em037_04): E:/offline/decode/notes/states-em037_04.md, read and ROM-run by the
   // Silverwind decode agent (2026-09-24). He is `uEm037_00` with e+0xb5f5 = 4, and the agent unpacked his .arc
@@ -542,9 +556,16 @@ export const MOTION_STATES = {
     // which he surfaces from first (L3 M21 -> M20). Death shows nothing of its own: the break sets and the sever
     // stay as the user has them, his eyes stay open (death does not raise P+0x5d02) and there is no material to
     // change. The two that begin past their transition are settled.
-    '3|Motion[17]': { dead: true },
-    '3|Motion[12]': { dead: true, settled: true },
-    '3|Motion[20]': { dead: true, settled: true },
+    // THE LID IS DRAWN IN DEATH, corrected 2026-09-25. states-em042_00.md said P+0x5d02 is raised only
+    // asleep or resting "and at no other time -- in particular not at death", and that negative came from
+    // finding ONE of its SEVEN writers in the shared enemy code (0x6e714, 0x6f538, 0xae3d0, 0xaf068,
+    // 0xb9de0, 0xba9d0, 0xbd598). 0xbd594 sets the flag and its timer at P+0x5d00, and 0x75c1c calls it
+    // with -1 in the same straight-line block as the status-11 rage clear 0xba7b8 at 0x75b90. Three decodes
+    // agree (Barioth re-read, Zinogre, Lagombi) and Raven had seen it on Savage. NOT READ: the `tst sb, #2`
+    // guard at 0x75be0, so which death numbers skip it is open.
+    '3|Motion[17]': { dead: true, sets: [1] },
+    '3|Motion[12]': { dead: true, sets: [1], settled: true },
+    '3|Motion[20]': { dead: true, sets: [1], settled: true },
   },
   // BARIOTH (em042_00): E:\offline\decode\notes\states-em042_00.md, read and ROM-run by the Barioth decode agent
   // (2026-09-24). Every change below lands on FRAME 0 of the motion named, except the rage pair, which the part pass
@@ -601,12 +622,21 @@ export const MOTION_STATES = {
     // the shock trap's first motion -- so the one thing it shows here is the status only it carries.
     '3|Motion[2]':  { start: [['em042_00c', 1109]] },
     // DEATH: L3 Motion[15] on the ground for (11, 0) and every number the table does not name (it is also the end of
-    // the fall, after L3 M9 -> M10 -> M8), and L3 Motion[18] for (11, 7) / (11, 0x12). Death shows nothing of its
-    // own: the break sets and the sever stay as the user has them and his eyes stay open. What it DOES do is clear
-    // the rage flag, which the part pass re-reads the same frame -- so the rage pair reverts, which `dead` gives for
-    // nothing (it forces the shown rage false, and RAGE_PARTS follows the shown rage).
-    '3|Motion[15]': { dead: true },
-    '3|Motion[18]': { dead: true },
+    // the fall, after L3 M9 -> M10 -> M8), and L3 Motion[18] for (11, 7) / (11, 0x12). The break sets and the sever
+    // stay as the user has them, and the rage flag is cleared -- the part pass re-reads it the same frame, so the
+    // rage pair reverts, which `dead` gives for nothing.
+    //   HIS EYES SHUT, CORRECTED 2026-09-25, and the earlier claim that they stay open was mine and was wrong.
+    // states-em042_00.md said P+0x5d02 is raised "whenever 0x81bb0(e, 0) == 1 ... and at no other time -- in
+    // particular not at death", which was a conclusion drawn from finding ONE writer (0xae3d0). There are SEVEN in
+    // the shared enemy code -- 0x6e714, 0x6f538, 0xae3d0, 0xaf068, 0xb9de0, 0xba9d0 and 0xbd598 -- and 0xbd594 is
+    // the one that matters: it sets P+0x5d02 = 1 and the timer at P+0x5d00, and 0x75c1c calls it with -1. That call
+    // sits in the SAME straight-line block as 0xba7b8 at 0x75b90, which the note itself attributes to the status-11
+    // setAction, with no branch between them. Two other decode agents read the same code independently on Zinogre
+    // and Lagombi and both said status 11 raises the lid; three readings agree and the note's negative did not
+    // survive being checked. NOT READ: the `tst sb, #2` at 0x75be0 that guards the call, so which death numbers
+    // skip it is unknown -- set 1 is what the ROM writes on the path that was read.
+    '3|Motion[15]': { dead: true, sets: [1] },
+    '3|Motion[18]': { dead: true, sets: [1] },
   },
   // KHEZU (em003_00): E:\offline\decode\notes\states-em003_00.md, read and ROM-run by the Khezu decode agent
   // (2026-09-23). His class uEm003_00 (vtable 0x17958f0) overrides almost none of the shared state machinery: the
@@ -2748,6 +2778,73 @@ export const MOTION_STATES = {
     '3|Motion[12]': { dead: true, settled: true },
     '3|Motion[20]': { dead: true, settled: true },
   },
+  // PLESIOTH (em010_00): E:\offline\decode\notes\states-em010_00.md, read and ROM-run by the Plesioth decode
+  // agent (2026-09-25). Every change lands on FRAME 0 of the motion named.
+  //   NOTHING HE SHOWS IS DRIVEN BY RAGE, TIREDNESS OR SLEEP. The part pass reads the four break levels and
+  // nothing else, and the class never calls 0x71398 at all -- so the eye applier is dead and HE HAS NO LID. His
+  // sleep hold changes nothing on the model, which is why it carries no `sets` where every other monster's does.
+  //   HIS FINS BREAK BY MATERIAL, NOT BY MESH, and this table does not have to say so. The part pass rewrites the
+  // alpha-test reference at mat+0x14 from the .mrl's 20/255 to 150/255 to erode the fin membranes, which live
+  // inside an always-on group -- a threshold, not a group swap, and `sets` could never express it. The viewer
+  // already does that write: render/monster.js ROM_BREAK_ALPHA carries em010_00 with {part 7, m50_wing_l, ref 150}
+  // and {part 9, m51_wing_r, ref 150}, and applyBreakAlpha() drives it off the parts DRAWN rather than off any
+  // table. Groups 7 and 9 are exactly what the broken fin sets below turn on, so drawing set 9 or set 10 raises
+  // the reference on its own. Recorded here only so the next reader does not go hunting for a mesh swap.
+  //   ALL FOUR BREAKS NEED LEVEL 2. Level 1 shows nothing at all on any of them.
+  em010_00: {
+    // L3 Motion[2] IS THREE THINGS -- the head (part 0), the back and dorsal fin (part 2), and the tune+0x44
+    // exhaust status (10, 0x1b) -- so it CYCLES, one per play, as Malfestio's L3 M2 does. It is also the shock
+    // trap's first 52 frames, which shows nothing of its own.
+    //   HEAD at level 2: set 0 -> 5 (group 2 off, 3 on; 222 v -> 417 v), u 1001 on JOINT 3.
+    //   BACK at level 2: set 1 -> 6 (group 4 off, 5 on), u 1011 on JOINT 134, and the m52_hire prim goes away.
+    '3|Motion[2]':  { cycle: [{ levels: [[0], [0], [5]], fire: [null, null, ['em010_00u', 1001]] },
+                              { levels: [[1], [1], [6]], fire: [null, null, ['em010_00u', 1011]] },
+                              { start: [['em010_00c', 1109]] }] },
+    // L3 Motion[1] IS BOTH PECTORAL FINS -- (10, 7) plays it for parts 1, 3, 4 and 7, and only 3 and 4 have a .dtp
+    // row -- so it cycles through the two of them.
+    //   +X FIN at level 2: set 3 -> 9 (group 6 off, 7 on; 50 v -> 85 v), u 1016 on JOINT 7. Drawing group 7 is
+    // what raises material 50's alpha reference to 150 through ROM_BREAK_ALPHA.
+    //   -X FIN at level 2: set 4 -> 10 (group 8 off, 9 on; 48 v -> 85 v), u 1021 on JOINT 13, group 9 likewise
+    // raising material 51's.
+    '3|Motion[1]':  { cycle: [{ levels: [[3], [3], [9]], fire: [null, null, ['em010_00u', 1016]] },
+                              { levels: [[4], [4], [10]], fire: [null, null, ['em010_00u', 1021]] }] },
+    // THE STUN, (10, 0x20) -- his ONLY sided reaction, and it is FOUR clips a side rather than three: direction 1
+    // takes L3 M6 -> M7 -> M20 -> M8, direction 2 takes L3 M3 -> M4 -> M19 -> M5. c 1103 (cm200_003 on joint 3,
+    // offset (0, 0, 20) at 0.6x, axisMask 1) into ONE held handle across all eight. The same eight clips are the
+    // hind-leg depletion at an even break level, which shows nothing because parts 5 and 6 have no .dtp row.
+    '3|Motion[6]':  { hold: ['em010_00c', 1103] },
+    '3|Motion[7]':  { hold: ['em010_00c', 1103] },
+    '3|Motion[20]': { hold: ['em010_00c', 1103] },
+    '3|Motion[8]':  { hold: ['em010_00c', 1103] },
+    '3|Motion[3]':  { hold: ['em010_00c', 1103] },
+    '3|Motion[4]':  { hold: ['em010_00c', 1103] },
+    '3|Motion[19]': { hold: ['em010_00c', 1103] },
+    '3|Motion[5]':  { hold: ['em010_00c', 1103] },
+    // RAGE: EMC group 6 issues (1, 2) on land -- L0 Motion[6] from frame 0 -- and (6, 5) submerged, which ends in
+    // L0 Motion[22]. Nothing on the model follows either; the puff is the whole of it.
+    '0|Motion[6]':  { rage: true },
+    '0|Motion[22]': { rage: true },
+    // TIRED: L0 Motion[1], which is ALSO his peaceful idle (0, 0) -- not his combat idle. So the clip itself says
+    // nothing and the drool is the whole signal: c 1104 every 48 (cm200_006 on joint 3, pos (0, 30, 70) at 1x).
+    '0|Motion[1]':  { rage: false, tired: true, every: [['em010_00c', 1104], 48] },
+    // ASLEEP: (10, 0x1d) L3 Motion[10] lies down, (10, 0x1e) holds L3 Motion[17], then L0 M38 -> L3 M11 gets up.
+    // NO `sets`: he has no lid and the eye applier is dead, so sleep shows nothing on him at all. The zzz c 1102
+    // every 90 (cm200_002 on joint 3, offset (0, 80, 130) at 2x) and the puff paused are the whole of it.
+    '3|Motion[17]': { every: [['em010_00c', 1102], 90], puffOff: true },
+    // PARALYSIS: (10, 0x1f) holds L3 Motion[9]; c 1101 every 60 (cm200_001 on joint 1 at 5x), first at once.
+    // L3 Motion[9] is also the SHOCK TRAP's hold ((10, 0x6e), c 1105 every 42 on the same joint at 4x): shown as
+    // paralysis, as every monster wired before him is.
+    '3|Motion[9]':  { every: [['em010_00c', 1101], 60] },
+    // DEATH: L3 Motion[12] for (11, 0) direction 1 and for every status-11 number the table does not name,
+    // L3 Motion[13] for (11, 0) direction 2, and L3 Motion[16] for (11, 7) / (11, 0x12). The break sets AND both
+    // raised alpha references stay -- the part pass re-applies them every frame -- and nothing else changes,
+    // because nothing else was ever driven by a state.
+    //   (11, 2) IS UNREACHABLE HERE: it asks for L3 M23 -> L3 M24 and NEITHER SLOT EXISTS in his .lmt, so no
+    // motion is listed for it rather than one being guessed.
+    '3|Motion[12]': { dead: true },
+    '3|Motion[13]': { dead: true },
+    '3|Motion[16]': { dead: true, settled: true },
+  },
 };
 
 // Rathian's table with a DEVIANT'S TAIL: three states where hers has two. The driver's variant-4 branch (0xcf2a14..
@@ -3190,6 +3287,9 @@ export const RAGE_PUFF = {
   // offset, but scale 1.0 on 1120 against 0.7 on 1121. The ROM shows the 0.7 one, so the stubbed pick is a
   // visible choice here rather than a distinction without one.
   em008_00: { period: 30, joint: 4, records: [['em008_00u', 1120], ['em008_00u', 1121]], pick: () => 0 },
+  // PLESIOTH: period 30 on JOINT 3, offset (0, 0, 40), scale (0.4, 0.9, 0.9). +0x2a4 is the base stub, so
+  // always key 1121; e+0xb7d2 is never written, so the puff and the drool both run.
+  em010_00: { period: 30, joint: 3, records: [['em010_00u', 1120], ['em010_00u', 1121]], pick: () => 0 },
 };
 
 // THE TAIL AS THE SHELLS READ IT (shells.js: Dreadqueen's poison, 0xd09b84(e, 0x10)): part 7's break level (byte P+0x3bc +

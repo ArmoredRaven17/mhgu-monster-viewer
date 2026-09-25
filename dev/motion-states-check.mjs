@@ -886,19 +886,30 @@ async function pageCheckBasarios(){
   await play(...REST); await frames(3);
   check(!evReqs(1103).includes('r'), 'the stun over: c 1103 stopped', evReqs(1103));
 
-  // DEATH: L3 Motion[17] on the ground, L3 Motion[12] at the end of a fall, L3 Motion[20] for the other kinds. Rage
-  // is cleared and the breaks stay -- and HIS EYES STAY OPEN, where every other monster we have wired shuts them.
+  // DEATH: L3 Motion[17] on the ground, L3 Motion[12] at the end of a fall, L3 Motion[20] for the other kinds.
+  // Rage is cleared, the breaks stay, AND HIS EYES SHUT -- set 2 -> set 1, the same swap his sleep hold makes.
+  //   CORRECTED 2026-09-25: this block asserted "HIS EYES STAY OPEN, where every other monster we have wired
+  // shuts them", and that oddity was the tell. It came from states-em042_00.md's claim that P+0x5d02 is raised
+  // only asleep or resting "and at no other time", which was drawn from ONE of its SEVEN writers in the shared
+  // enemy code; 0xbd594 sets the flag and its timer at P+0x5d00, and 0x75c1c calls it with -1 in the same
+  // straight-line block as the status-11 rage clear 0xba7b8 at 0x75b90. Three decodes agree (Barioth re-read,
+  // Zinogre, Lagombi) and Raven had already seen it on Savage.
   check(await pickBy('Belly', 'Broken'), 'the Belly row set to Broken (a break to keep through death)');
   const userDead0 = drawn();
   rageBox.checked = true; await rageBox.onchange({ target: rageBox }); await frames(3);
   await play('3', 'Motion[17]'); await frames(3);
   const nD = puffs.length; await steps(40);
   check(S.rage === false && puffs.length === nD, 'L3 Motion[17] (death): rage off and no puff, though the user is enraged', { rage: S.rage, more: puffs.length - nD });
-  check(same(drawn(), userDead0) && isSet(drawn(), 2), "death keeps the user's broken chest AND LEAVES HIS EYES OPEN", drawn());
+  // the chest is compared PART BY PART rather than with same(), because death now moves the eye group too: the
+  // break must survive death AND the lid must come on, and one assertion mixing them would hide either
+  const eyeParts = new Set((MONSTER.groups[1] || []).map(([g]) => String(g)));
+  check(Object.keys(userDead0).every(k => eyeParts.has(k) || drawn()[k] === userDead0[k]),
+        "death keeps the user's broken chest", drawn());
+  check(isSet(drawn(), 1), 'and HIS EYES SHUT: set 1, the lid drawn, as his sleep hold does', drawn());
   await play('3', 'Motion[12]'); await frames(3);
-  check(S.rage === false && isSet(drawn(), 2), 'L3 Motion[12] (the fall\'s end): the same', drawn());
+  check(S.rage === false && isSet(drawn(), 1), 'L3 Motion[12] (the fall\'s end): the same', drawn());
   await play('3', 'Motion[20]'); await frames(3);
-  check(S.rage === false && isSet(drawn(), 2), 'L3 Motion[20] (the other death kinds): the same', drawn());
+  check(S.rage === false && isSet(drawn(), 1), 'L3 Motion[20] (the other death kinds): the same', drawn());
   rageBox.checked = false; await rageBox.onchange({ target: rageBox });
   await pickBy('Belly', 'Intact');
   await play(...REST); await frames(3);
@@ -983,6 +994,14 @@ async function pageCheckBarioth(){
   check(RP.enraged.every(n => isSet(drawn(), n)), 'and they HOLD on another motion entirely -- the part pass re-reads isEnraged every frame', drawn());
   await play('3', 'Motion[15]'); await frames(4);
   check(RP.calm.every(n => isSet(drawn(), n)), 'DEATH (L3 Motion[15]) with the user still enraged: the calm pair is back, because death clears the flag', drawn());
+  // HIS EYES SHUT IN DEATH, and this assertion exists because the table said the opposite until 2026-09-25. The
+  // note behind it had found ONE writer of P+0x5d02 (0xae3d0, the sleep/rest one) and concluded "at no other
+  // time"; there are seven, and 0xbd594 -- called from 0x75c1c with timer -1, in the same straight-line block as
+  // the status-11 rage clear at 0x75b90 -- raises it at death. Two other decodes read the same code on Zinogre
+  // and Lagombi and agreed. Pinned here so the negative cannot come back unnoticed.
+  check(isSet(drawn(), 1), 'and his eyes SHUT in death: set 1, the lid mesh drawn, as the sleep clips do', drawn());
+  await play('3', 'Motion[18]'); await frames(4);
+  check(isSet(drawn(), 1), 'the same on L3 Motion[18], his other death clip', drawn());
   await play(REST[0], REST[1]); await frames(4);
   check(RP.enraged.every(n => isSet(drawn(), n)), 'off the death motion: enraged again, as the user has it', drawn());
 

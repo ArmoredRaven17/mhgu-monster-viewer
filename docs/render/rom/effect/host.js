@@ -233,6 +233,13 @@ export class EffectHost {
       }
     }
   }
+  // STILL THROWS HERE, and deliberately, now that startEffect can return 0 for an effect that builds no
+  // generators. This path is the host's own -- a PLAIN effect, not a monster's record -- and it has no ROM caller
+  // to handle a 0: the record path goes through requestEffect into lifted ROM code, where 0x9baad0 tests the
+  // return and 0x9bab88 tears the effect down, which is the handling that makes a 0 safe there. Returning false
+  // here would leave a torn-down effect in the schedule's entries for the step to walk, which is the corpse
+  // shape we already have one of. If a plain effect ever legitimately builds nothing, drop its entry here rather
+  // than pass the 0 up.
   start(owner){ if (startEffect(this.m, owner) !== 1) throw new Error('effect start failed'); }
   // An effect started the way a monster's request starts it, from its record's 160 payload bytes, hung
   // from parent (placement states 0..2): parent mode 3, root joint, row masks, the list set -- which starts
