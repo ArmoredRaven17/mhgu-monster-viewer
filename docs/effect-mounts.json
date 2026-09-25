@@ -3,6 +3,10 @@
  "_about_autoOnRage": "Monsters whose effect runtime auto-mounts when the monster is shown (not only under the inspection switch). Named for rage because that was the first use; the per-effect `when` (docs/effects/<id>.json, schedule.js) decides timing -- em084_00 (Nakarkos) mounts here to carry a `calm` charge aura that runs while NOT enraged. IT ALSO GATES THE RAGE STATE ITSELF: index.html's driveMotionStates only calls setEffectRage / rt.setRage for a monster on this list, so a monster with a rage row in MOTION_STATES or a RAGE_PUFF entry must be listed even when it already mounts through its clip effects (em003_00, Khezu, did not and his puff never ran).",
  "_autoOnRage": [
   "em014_00",
+  "em019_00",
+  "em034_00",
+  "em016_00",
+  "em015_00",
   "em037_04",
   "em007_00",
   "em042_00",

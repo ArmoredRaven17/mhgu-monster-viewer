@@ -422,8 +422,22 @@ export function unitFrame(m, state, between, passes = 'all'){
   }
   // PASS 2 (0xc04848), which calls +0x24 AGAIN. The ROM runs THREE unit passes -- their order within a frame is
   // their profiler ids (0xcc861c: 1, 2, 3) -- and this one was not modelled here or in efx/proofunit.py. It has
-  // to be, because +0x24 (0x43168) both WALKS the core's effect array, calling each entry's vtable +0x128 at
-  // 0x329904, and REAPS it, clearing any entry whose state (+0xc & 7) is not 1 or 2 (0x328ea8 from 0x431d4).
+  // to be, because +0x24 (0x43168) REACHES BOTH a walk of the core's effect array, which calls each entry's vtable
+  // +0x128, and a reap of it -- and the walk comes first.
+  //   READ OUT PROPERLY 2026-09-25, in two goes, and the second corrects the first. 0x43168 does neither job
+  // itself: it is the CORE'S FRAME STEP (clock +0x1ac / +0x1b0 from +0x1c, then a stop through the handle at
+  // +0x140), and at 0x431d4 it calls 0x328ea8 when byte +0x1a0 has bit 1 set. Inside 0x328ea8, in this order:
+  //     the DISPATCH on byte [core+0x30] through vtable +0x90 / +0x94 / +0x98 -- which is how 0x329874 runs, and
+  //       its loop at 0x3298ec reads core+0x150 + 4i and does `ldr r1,[r1,#0x128]` / `blx r1` at 0x329900 (that
+  //       function has no direct callers; it is only ever reached through this vtable)
+  //     then the REAP at 0x328fa0, gated on byte [core+0x158]: for each i it reads core+0x154 + 4i, and where the
+  //       entry's state `(+0xc & 7) - 1` is 2 or more -- i.e. not 1 and not 2 -- it clears the slot, shuffles the
+  //       tail down and decrements the count at core+0x15c (0x329010).
+  //   An intermediate version of this comment claimed 0x328ea8 was "a state machine, not a reap" and that the
+  // reap did not exist. That was wrong and is the reason this now cites line numbers. STILL NOT READ: the walk
+  // reads core+0x150 + 4i for the +0x128 call and core+0x154 + 4i for a +0x88 call, while the reap only touches
+  // the +0x154 words -- whether those are one array read at two offsets or two arrays is not established here,
+  // and it is the obvious place to look for why the hold-175 case below still dies.
   // An effect created and destroyed inside ONE frame leaves a state-3 corpse that the next walk reaches, and by
   // then its destructor has wound the vtable back down to the base cUnit 0x17828bc, whose group ends at +0x120 --
   // so +0x128 reads 0, `blx 0` runs the static initialisers, they re-register DTIs and the registry walk at

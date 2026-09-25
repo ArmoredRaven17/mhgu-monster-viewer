@@ -63,6 +63,25 @@ export function fminnm(a, b){
   return a < b ? a : b;
 }
 
+// NEON VMAX.F32 / VMIN.F32 (ARM FPMax / FPMin), which are NOT the pair above: where VMAXNM / VMINNM return the
+// NUMBER when one operand is a NaN, these return a NaN whenever either operand is one. Zeros still order, so
+// FPMax(+0, -0) is +0 and FPMin(+0, -0) is -0. NEON's standard mode also flushes denormals to zero; that is NOT
+// modelled here, as it is nowhere else in this CPU, so a denormal operand differs from the hardware.
+//   A D register below d16 is its two single-precision lanes s2k and s2k+1, and the lifter writes both even when
+// the ROM goes on to read only one: 0xa7b22c, the first site the effects reach, is `vmin.f32 d0, d0, d1` clamping
+// s0 against a literal in s2 and then storing s0 alone. Found through Daimyo Hermitaur's records, 2026-09-25 --
+// the lift refused the whole run with `Unsupported: vmin.f32 d0, d0, d1` until this existed.
+export function fmax(a, b){
+  if (Number.isNaN(a) || Number.isNaN(b)) return NaN;
+  if (a === 0 && b === 0) return (Object.is(a, -0) && Object.is(b, -0)) ? -0 : 0;
+  return a > b ? a : b;
+}
+export function fmin(a, b){
+  if (Number.isNaN(a) || Number.isNaN(b)) return NaN;
+  if (a === 0 && b === 0) return (Object.is(a, 0) && Object.is(b, 0)) ? 0 : -0;
+  return a < b ? a : b;
+}
+
 // VCMP / VCMPE into the FPSCR flags (copied to NZCV by VMRS).
 export function fcmp(c, a, b){
   if (Number.isNaN(a) || Number.isNaN(b)){ c.fN = 0; c.fZ = 0; c.fC = 1; c.fV = 1; }

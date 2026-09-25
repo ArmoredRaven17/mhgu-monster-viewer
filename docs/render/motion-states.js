@@ -147,6 +147,67 @@ function rathLine(u, c = 'em001_00c'){
     '3|Motion[12]': { dead: true, sets: [1] },
   };
 }
+// THE -DROME LINE (em014_00 Velocidrome, em015_00 Gendrome, em016_00 Iodrome, em034_00 Giadrome) --
+// E:\offline\decode\notes\states-em014_00.md, read and ROM-run by the Velocidrome decode agent (2026-09-25).
+// ONE FUNCTION, because the ROM has ONE class: a sweep of main.rodata finds 62 uEm* class strings and
+// uEm015_00 / uEm016_00 / uEm034_00 are not among them -- `uEm014_00` IS all four -- and each sibling's arc
+// carries em014_00_0/2/3.lmt by path, byte for byte (efx/family_census.py). The class's three em-number switches
+// (the EMC pack call, Iodrome's attack remap, the Iodrome / Giadrome shell registration) touch no state visual at
+// all, so every reaction below resolves to the same clip on all four and only the .pel the records come from
+// differs. u: the monster's own u.pel, c: its c.pel.
+//   RAGE CHANGES NOTHING ON THE MODEL. The part pass never reads isEnraged -- no mesh pair, no eye set, no joint
+//   scaling, no material -- so there is no rage state to apply and none to revert. The shared puff is the whole
+//   of what rage shows.
+function dromeLine(u, c){
+  return {
+    // THE HEAD, and it is the only break: (10, 7) plays L3 Motion[15] whatever the part, state or direction.
+    // LEVELS 1 AND 2 SHOW NOTHING -- durability 90 over three depletions, and the .dtp row is at LEVEL 3 -- where
+    // set 2 becomes set 4 (group 102 off, 2 on) and u 1002 fires (cm202_060 on joint 2, offset (0, 25, 5), scale
+    // 0.3). L3 Motion[15] is worked hard: it is ALSO the tune+0x44 status ((10, 0x1b), c 1109 once at frame 0) and
+    // the shock trap's start ((10, 0x6e)). Two of the three have something to show, so they take turns on each
+    // play, the Rath line's shape; the shock trap's start shows nothing of its own and is not in the rotation.
+    '3|Motion[15]': { cycle: [{ levels: [[2], [2], [2], [4]], fire: [null, null, null, [u, 1002]] },
+                              { start: [[c, 1109]] }] },
+    // RAGE: the gauge (300) -> command group 6 stream 0 -> (1, 0x17), playing L0 Motion[9] from frame 0. Nothing
+    // on the model changes with it, so the puff below is all of it.
+    '0|Motion[9]':  { rage: true },
+    // TIRED: the tired idle (0, 2) is L0 Motion[33]; drool c 1104 every 48 while not enraged (timer 4500), and,
+    // calm and tired, the shared puff's countdown is zeroed.
+    '0|Motion[33]': { rage: false, tired: true, every: [[c, 1104], 48] },
+    // ASLEEP: (10, 0x1d) holds L3 Motion[17], (10, 0x1e) holds L0 Motion[19], then (10, 0x44) L3 Motion[14] gets
+    // up. HIS EYES ARE A REAL MESH SWAP -- eye set 1 -> set 3, group 3 off and 1 on, the shut-eye mesh drawn --
+    // while P+0x5d02 is up, and the hold carries the zzz c 1102 every 90 and pauses the puff. These two clips are
+    // also CAPTURE's ((11, 0x10)), which reuses them; sleep is what they are shown as.
+    '3|Motion[17]': { sets: [3] },
+    '0|Motion[19]': { sets: [3], every: [[c, 1102], 90], puffOff: true },
+    // PARALYSIS: (10, 0x1f) holds L3 Motion[16]; c 1101 every 60 (cm200_001 on joint 1 at scale 2), first at once.
+    // L3 Motion[16] is also the SHOCK TRAP's hold (c 1105 every 42 at 1.5): shown as paralysis, as every monster
+    // wired so far shows its shared hold.
+    '3|Motion[16]': { every: [[c, 1101], 60] },
+    // THE STUN: (10, 0x20) holds L3 Motion[20] -- ONE clip, with no left/right split, because the .dtb direction
+    // mode at index 9 is 0 on all four where Barioth's and Diablos's are sided. One held handle of c 1103
+    // (cm200_003 on joint 2, offset (0, -30, 30), scale 0.45), stopped when it clears.
+    '3|Motion[20]': { hold: [c, 1103] },
+    // DEATH: all four direction chains -- the .dtb mode-3 four-way split on where the killing hit came from --
+    // converge on L3 Motion[18] -> L3 Motion[19], and every death number the table does not name takes direction
+    // 4's. L3 Motion[24] is death in the pit ((11, 7) and (11, 0x12)); it is also the pit's ailment clip, and
+    // death is what it shows. Death shows NOTHING of its own: the break set stays as the user has it, THE EYES
+    // STAY OPEN (death does not raise P+0x5d02) and there is no rage pair to revert because there never was one.
+    // L3 Motion[19] begins past the collapse, so it is settled.
+    '3|Motion[18]': { dead: true },
+    '3|Motion[19]': { dead: true, settled: true },
+    '3|Motion[24]': { dead: true },
+  };
+}
+
+// DAIMYO HERMITAUR (em019_00): his specs, because ONE reaction clip pair is played by both claws and by the
+// tune+0x44 status (states-em019_00.md 3.3, 6). Each claw's only .dtp row is at LEVEL 2, so the first depletion
+// of a claw changes nothing and fires nothing and level 1 below repeats level 0's set with `fire: null` -- the
+// same shape Gravios's back and Barioth's head already use.
+const D_CLAW_P  = { levels: [[1], [1], [2]], fire: [null, null, ['em019_00u', 1026]] };
+const D_CLAW_M  = { levels: [[3], [3], [4]], fire: [null, null, ['em019_00u', 1031]] };
+const D_EXHAUST = { start: [['em019_00c', 1109]] };
+
 export const MOTION_STATES = {
   // BASARIOS (em004_00): E:\offline\decode\notes\states-em004_00.md, read and ROM-run by the Basarios decode agent
   // (2026-09-23). His class uEm004_00 (vtable 0x1797c8c) IS ALSO GRAVIOS -- every state function branches on
@@ -680,52 +741,87 @@ export const MOTION_STATES = {
   //   effects and the INFERRED blind timer they cut is not shown (5.2). L4 Motion[31] -> [32] follow the ground roar as
   //   the attack (7, 0x29), with rage already on from L0 Motion[4].
   em002_04: dreadking(),
-  // VELOCIDROME (em014_00): E:/offline/decode/notes/states-em014_00.md, read and ROM-run by the Velocidrome
-  // decode agent (2026-09-25). HE IS THE WHOLE FAMILY'S CLASS: a sweep of main.rodata finds 62 uEm* class strings
-  // and uEm015_00 / uEm016_00 / uEm034_00 are not among them -- `uEm014_00` IS Velocidrome, Gendrome, Iodrome and
-  // Giadrome, and its three em-number switches (the EMC pack call, the attack remap, the shell registration) touch
-  // no state visual at all. So every row below is literally the same code for all four, and the siblings differ
-  // only in .dtt / .dtp / .pel numbers.
-  //   HIS RAGE CHANGES NOTHING ON THE MODEL. The part pass never reads isEnraged -- no mesh pair, no eye set, no
-  //   joint scaling, no material -- so there is no rage state to apply and none to revert. The shared puff is the
-  //   whole of what rage shows.
-  em014_00: {
-    // THE HEAD, and it is his only break: (10, 7) plays L3 Motion[15] whatever the part, state or direction.
-    // LEVELS 1 AND 2 SHOW NOTHING -- durability 90 over three depletions, and the .dtp row is at LEVEL 3 -- where
-    // set 2 becomes set 4 (group 102 off, 2 on) and u 1002 fires (cm202_060 on joint 2, offset (0, 25, 5), scale
-    // 0.3). L3 Motion[15] is worked hard: it is also the tune+0x44 status ((10, 0x1b), c 1109 once at frame 0) and
-    // the shock trap's start ((10, 0x6e)), and the break is the only one of the three with anything to see.
-    '3|Motion[15]': { levels: [[2], [2], [2], [4]],
-                      fire: [null, null, null, ['em014_00u', 1002]] },
-    // RAGE: the gauge (300) -> command group 6 stream 0 -> (1, 0x17), playing L0 Motion[9] from frame 0. Nothing
-    // on the model changes with it, so the puff below is all of it.
-    '0|Motion[9]':  { rage: true },
-    // TIRED: the tired idle (0, 2) is L0 Motion[33]; drool c 1104 every 48 while not enraged (timer 4500), and,
-    // calm and tired, the shared puff's countdown is zeroed.
-    '0|Motion[33]': { rage: false, tired: true, every: [['em014_00c', 1104], 48] },
-    // ASLEEP: (10, 0x1d) holds L3 Motion[17], (10, 0x1e) holds L0 Motion[19], then (10, 0x44) L3 Motion[14] gets
-    // up. HIS EYES ARE A REAL MESH SWAP -- eye set 1 -> set 3, group 3 off and 1 on, the shut-eye mesh drawn --
-    // while P+0x5d02 is up, and the hold carries the zzz c 1102 every 90 and pauses the puff. These two clips are
-    // also CAPTURE's ((11, 0x10)), which reuses them; sleep is what they are shown as.
-    '3|Motion[17]': { sets: [3] },
-    '0|Motion[19]': { sets: [3], every: [['em014_00c', 1102], 90], puffOff: true },
-    // PARALYSIS: (10, 0x1f) holds L3 Motion[16]; c 1101 every 60 (cm200_001 on joint 1 at scale 2), first at once.
-    // L3 Motion[16] is also the SHOCK TRAP's hold (c 1105 every 42 at 1.5): shown as paralysis, as every monster
-    // wired so far shows its shared hold.
-    '3|Motion[16]': { every: [['em014_00c', 1101], 60] },
-    // THE STUN: (10, 0x20) holds L3 Motion[20] -- ONE clip, with no left/right split, because his .dtb direction
-    // mode at index 9 is 0 where Barioth's and Diablos's are sided. One held handle of c 1103 (cm200_003 on joint
-    // 2, offset (0, -30, 30), scale 0.45), stopped when it clears.
-    '3|Motion[20]': { hold: ['em014_00c', 1103] },
-    // DEATH: all four direction chains -- the .dtb mode-3 four-way split on where the killing hit came from --
-    // converge on L3 Motion[18] -> L3 Motion[19], and every death number the table does not name takes direction
-    // 4's. L3 Motion[24] is death in the pit ((11, 7) and (11, 0x12)); it is also the pit's ailment clip, and
-    // death is what it shows. Death shows NOTHING of its own on him: the break set stays as the user has it, HIS
-    // EYES STAY OPEN (death does not raise P+0x5d02) and there is no rage pair to revert because there never was
-    // one. L3 Motion[19] begins past the collapse, so it is settled.
-    '3|Motion[18]': { dead: true },
-    '3|Motion[19]': { dead: true, settled: true },
-    '3|Motion[24]': { dead: true },
+  // THE -DROME LINE: Velocidrome, Gendrome, Iodrome and Giadrome, from dromeLine() above -- ONE call each, because
+  // the ROM has ONE class for the four of them and the rows below are literally the same code on all four.
+  em014_00: dromeLine('em014_00u', 'em014_00c'),
+  // GENDROME: the only sibling with no list 4 at all (the viewer's lists: 41 / 21 / 26 clips on 0 / 2 / 3, the same
+  // counts as Velocidrome's, which is what byte-identical .lmt files look like from this side). His u 1002 is
+  // joint 2 like Velocidrome's; his own c 1101 / 1102 / 1103 / 1104 / 1109 are the same five cm200_* records.
+  em015_00: dromeLine('em015_00u', 'em015_00c'),
+  // IODROME: his u 1002 sits on JOINT 103 where the other three use joint 2 (states-em014_00.md 1.10) -- that is
+  // inside the record, which the runtime reads, so nothing here changes for it. His attack remap is the one em-number
+  // branch in the class that a break can reach (breakLevel(0) picks different attacks for him), but it selects
+  // ACTIONS, not visuals, and the viewer plays clips the user picks.
+  em016_00: dromeLine('em016_00u', 'em016_00c'),
+  // GIADROME: no difference from Velocidrome's half of the class in anything the states read.
+  em034_00: dromeLine('em034_00u', 'em034_00c'),
+  // DAIMYO HERMITAUR (em019_00): E:\offline\decode\notes\states-em019_00.md, read and ROM-run by the Daimyo
+  // decode agent (2026-09-24). HIS SHELL IS THE FIRST PART WE HAVE WIRED WITH A ROW AT BOTH LEVEL 1 AND LEVEL 2,
+  // each with its own record and its own mesh set: durability 320 depleted twice, 640 damage in all, and the
+  // swappable shell geometry goes 209 verts (set 5) -> 150 (set 6) -> 87 (set 7). He SWAPS geometry rather than
+  // adding it -- every break turns an intact group off and a smaller broken group on -- and groups 0 and 100 keep
+  // shell-bound geometry at every level, so the shell is never removed, only replaced by a smaller broken version.
+  //   NOTHING HE SHOWS IS RE-APPLIED FROM A LIVE STATE FLAG: his part pass (vtable +0x210 = 0xdb6804) reads only
+  //   break levels, so unlike Barioth nothing reverts when rage ends or when he dies. He has NO EYE MESH at all --
+  //   the class never calls 0x71398, so e+0xb610/+0xb614/+0xb618 stay at the base -1 and the shared eye applier's
+  //   setVisibleGroup(e, -1) is a no-op -- so sleep shuts nothing on him, and there is no sever and no cut model
+  //   (every .dtt part has second-counter limit 0 and base -1).
+  em019_00: {
+    // THE SHELL (dtt part 2), the one break with a ladder: (10, 7) plays L3 Motion[1] for parts 0, 1, 2, 7 and by
+    // default, and only part 2 has rows -- level 1 is set 5 -> 6 (group 3 on, 103 off) firing u 1010 (cm202_060 on
+    // joint 143 at (50, 80, -50)), level 2 is set 6 -> 7 (4 on too, 104 off) firing u 1011 (joint 200 at
+    // (0, 0, -50), scale 1.3). A depletion of the head, body, legs or claw-arms plays the same clip and changes
+    // nothing, which is why the ladder is all this row carries.
+    '3|Motion[1]':  { levels: [[5], [6], [7]],
+                      fire: [null, ['em019_00u', 1010], ['em019_00u', 1011]] },
+    // THE TWO CLAWS both play L3 M2 -> L3 M3 ((10, 7), script 0x17ae050, blend 4) and so does the tune+0x44 status
+    // ((10, 0x1b), the same script). One hit depletes one part, so each play shows the next of them, in the parts'
+    // order -- the Rath line's shape. L3 M2 is ALSO the shock trap's start (to frame 40, (10, 0x6e)), which shows
+    // nothing of its own and so is not in the rotation.
+    '3|Motion[2]':  { cycle: [D_CLAW_P, D_CLAW_M, D_EXHAUST] },
+    // RAGE: the gauge (600) -> command group 6 stream 0 -> (1, 3), the 4.05 s roar, playing L0 Motion[3] from
+    // frame 0. Nothing on the model changes with it -- the part pass never reads isEnraged, +0x2a0 is the base
+    // `bx lr` so there is no joint scaling, and the .mrl has no clip names -- so the puff is the whole of it.
+    // THE NOTE'S OWN CAVEAT, kept: L0 Motion[3] is BOTH the rage roar and the ailment-RECOVERY clip ((10, 0x2a),
+    // (10, 0x2b), (10, 0x70) and more, all through script 0x17adfa0). A clip alone is never the state; the action
+    // is, and the viewer has only the clip. Shown as the roar, because that is the one with something to show.
+    '0|Motion[3]':  { rage: true },
+    // TIRED: his tired idle is its OWN PAIR, unlike Barioth's, whose tired idle was his combat idle -- (0, 2) ->
+    // 0xdb6d4c plays L0 Motion[31] as the entry and then loops L0 Motion[24] (and skips the entry if M24 is
+    // already playing). Drool c 1104 every 48 while not enraged (timer 6000), and, calm and tired, the shared
+    // puff's countdown is zeroed. Both clips carry it because the user may play either; the ROM's one countdown
+    // runs across the hand-off where the viewer's restarts at each clip's frame 0.
+    '0|Motion[31]': { rage: false, tired: true, every: [['em019_00c', 1104], 48] },
+    '0|Motion[24]': { rage: false, tired: true, every: [['em019_00c', 1104], 48] },
+    // ASLEEP: (10, 0x1d) plays L3 M11, (10, 0x1e) holds L0 M16, (10, 0x44) gets up with L0 M17. NO LID -- his eyes
+    // stay open -- so the hold shows only the zzz c 1102 every 90 and the paused puff. L3 M11 -> L0 M16 is also
+    // CAPTURE's ((11, 0x10)); sleep is what they are shown as.
+    '0|Motion[16]': { every: [['em019_00c', 1102], 90], puffOff: true },
+    // PARALYSIS: (10, 0x1f) holds L3 Motion[10]; c 1101 every 60 (cm200_001 on joint 1 at scale 5), first at once.
+    // L3 M10 is also the SHOCK TRAP's hold (c 1105 every 42 at the same scale): shown as paralysis, as every
+    // monster wired so far shows its shared hold.
+    '3|Motion[10]': { every: [['em019_00c', 1101], 60] },
+    // THE STUN, and it is the ONLY sided reaction he has: (10, 0x20) plays L3 M4 -> M6 (held) -> M8 for direction 2
+    // and L3 M5 -> M7 -> M9 for direction 1. One held handle of c 1103 (cm200_003 on JOINT 0, offset (0, 0, 100),
+    // axisMask 1), stopped when it clears. The same six clips are the leg-pairs' depletion reactions (parts 3 and
+    // 4), which have no .dtp row and so change no mesh and fire nothing -- the stun is the one with something to
+    // show.
+    '3|Motion[4]':  { hold: ['em019_00c', 1103] },
+    '3|Motion[6]':  { hold: ['em019_00c', 1103] },
+    '3|Motion[8]':  { hold: ['em019_00c', 1103] },
+    '3|Motion[5]':  { hold: ['em019_00c', 1103] },
+    '3|Motion[7]':  { hold: ['em019_00c', 1103] },
+    '3|Motion[9]':  { hold: ['em019_00c', 1103] },
+    // DEATH: L3 Motion[12] is his DEATH-ONLY clip -- (11, 0) and every number the table does not name, 6.617 s to
+    // its end -- and L3 Motion[20] is death in the pit ((11, 7) and (11, 0x12)), which is also the pit's ailment
+    // clip, as Velocidrome's L3 M24 is. Death shows nothing of its own on him: the part pass keeps re-applying the
+    // break sets every frame while he is dead so THE BREAKS STAY, there is no lid to close, and nothing is
+    // selected from the rage flag so the status-11 rage clear has no visible consequence.
+    //   L3 M13 -> L3 M14 is death from the air ((11, 1)) and is NOT wired: those two clips are shared with FIVE
+    //   knockdown actions ((10, 8), (10, 0x25), (10, 0x96), (10, 0x9d), (10, 0xb5)) and one death, and a knockdown
+    //   does not clear rage. Left to the user rather than shown as death on the strength of one case in six.
+    '3|Motion[12]': { dead: true },
+    '3|Motion[20]': { dead: true },
   },
 };
 
@@ -1013,6 +1109,19 @@ export const RAGE_PUFF = {
   // not show anyway. THE CLASS NEVER WRITES e+0xb7d2 -- no such immediate anywhere in 0xd8e188..0xd960e4 -- so
   // the base constructor's 1 stands and the puff RUNS. He is not a Silverwind case.
   em014_00: { period: 30, joint: 2, records: [['em014_00u', 1120], ['em014_00u', 1121]], pick: () => 0 },
+  // HIS THREE SIBLINGS run the same class, so the same stub pick and the same always-1121, and each carries its own
+  // byte-identical 1120 / 1121 pair on JOINT 2 -- only the offset and scale differ, and only 1121 is ever built:
+  // Gendrome (0, 0, 25) at (0.2, 0.5, 0.5), Iodrome (0, 0, 30) at (0.2, 0.4, 0.4), Giadrome (0, 0, 50) at
+  // (0.1, 0.4, 0.4), which is Velocidrome's exactly. (states-em014_00.md 4.3, 8)
+  em015_00: { period: 30, joint: 2, records: [['em015_00u', 1120], ['em015_00u', 1121]], pick: () => 0 },
+  em016_00: { period: 30, joint: 2, records: [['em016_00u', 1120], ['em016_00u', 1121]], pick: () => 0 },
+  em034_00: { period: 30, joint: 2, records: [['em034_00u', 1120], ['em034_00u', 1121]], pick: () => 0 },
+  // DAIMYO HERMITAUR: the same stub shape -- vtable +0x2a4 is the base 0x6bf64, so 0xa425c turns its 0 into id 1
+  // and the request is always u 1121; his 1120 and 1121 are byte-identical, and they are HIS OWN effect rather
+  // than the shared cm200_007: em019_00_003 on joint 1 at (0, 0, 50), scale (0.5, 0.9, 0.9) -- the first
+  // non-uniform puff scale recorded. The class writes neither e+0xb7d2 nor e+0xb7d3 anywhere in
+  // 0xdb3ef8..0xdc15bc, so the puff and the drool both run. (states-em019_00.md 4.3)
+  em019_00: { period: 30, joint: 1, records: [['em019_00u', 1120], ['em019_00u', 1121]], pick: () => 0 },
 };
 
 // THE TAIL AS THE SHELLS READ IT (shells.js: Dreadqueen's poison, 0xd09b84(e, 0x10)): part 7's break level (byte P+0x3bc +

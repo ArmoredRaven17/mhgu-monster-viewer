@@ -4,7 +4,16 @@ _Generated 2026-09-17 from `scratch-effects-em/effect` (efl / pel / psl). A deco
 
 ## How to read this
 
-- **genType** = the efl generator/emitter type. The ROM-translated effect runtime lifts **0, 1, 5** only. **2, 9, 15, 20, 25 are NOT lifted** — any effect built on them throws `Unverified` and does not render today. (Supported genType is necessary, not sufficient: a 0/1/5 effect can still hit an unlifted function on some branch and throw — so “renderable” below means *eligible*, not guaranteed.)
+- **genType** = the efl generator/emitter type. **CORRECTED 2026-09-25, and the counts below have NOT been
+  regenerated since:** the runtime now builds **0 (LiteBillboard), 1 (LitePolyline), 2, 5 (Model), 9 (the screen
+  filter), 15 (cParticleGeneratorPolygonStrip) and 25 (cParticleNode)** — read from
+  `docs/render/rom/effect/construct.js` `GENERATOR_TYPES` and its cParticleNode branch, not from this file's
+  history. What it still refuses: **cParticleNodeInfinite** (a type-25 row with word 3 & 0xf0) and any type not in
+  that table. So the “unsupp” column below is the 2026-09-17 reading and OVER-COUNTS: a monster listed as
+  unsupported there may be buildable now, and the way to find out is `efx/effects_triage.py` or
+  `efx/add_effects.py <monster>`, which read the current code. (Supported genType is necessary, not sufficient: an
+  effect on a supported type can still reach an unlifted function on some branch and throw — so “renderable” below
+  means *eligible*, not guaranteed.)
 - **Effects (render / unsupp)** = generator entries across the variant’s `.efl` files, split into renderable (0/1/5) vs unsupported.
 - **Anim-bound** = PSL scheduled motion slots — how many attack animations actually fire effects.
 - **Named models** = monster-named effect models (`em###_##_NNN`) referenced by the efls — usually the variant’s own effect geometry, but sometimes borrowed from another monster’s set (e.g. Gravios pulls in `em010_00_000`). Most are particle geometry; a *solid* one driven by a shell is a held/thrown object (e.g. Tetsucabra’s boulder `em066_00_001`).

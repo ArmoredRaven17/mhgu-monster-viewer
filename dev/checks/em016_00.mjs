@@ -1,23 +1,21 @@
-// Velocidrome's page check, loaded by dev/motion-states-check.mjs from dev/checks/. One file per monster, because
+// Iodrome's page check, loaded by dev/motion-states-check.mjs from dev/checks/. One file per monster, because
 // three Effects sessions run at once. The runner serialises `pageCheck` with .toString() and evaluates it IN THE
 // PAGE, so it must not close over anything in this module -- everything it needs it imports inside itself.
-//
-// HE IS THE WHOLE -DROME FAMILY'S CLASS (states-em014_00.md): uEm015_00 / uEm016_00 / uEm034_00 do not exist as
-// class strings, and uEm014_00's three em-number switches touch no state visual -- so when Gendrome, Iodrome and
-// Giadrome are wired, this check is the template and only their numbers change.
-// Two things here no earlier monster has: HIS BREAK SHOWS NOTHING UNTIL LEVEL 3 (durability 90 over three
-// depletions, the .dtp row at level 3), and HIS RAGE CHANGES NOTHING ON THE MODEL AT ALL -- the part pass never
-// reads isEnraged -- so the shared puff is the whole of it and death has nothing to revert.
-async function pageCheckVelocidrome(){
+// IODROME, from Velocidrome's check by substitution (uEm014_00 is both). The ONE decoded difference that reaches
+// a record: HIS u 1002 SITS ON JOINT 103 where the other three use joint 2 (states-em014_00.md 1.10). That is
+// inside the record and the runtime reads it, so the assertion here is unchanged -- it is noted so a later
+// reader does not take the identical assertions for a copy that was never checked. His attack remap on
+// breakLevel(0) is the class's only em-number branch a break can reach, and it picks ACTIONS, not visuals.
+async function pageCheckIodrome(){
   const out = [];
-  const check = (ok, label, detail) => out.push([!!ok, 'Velocidrome: ' + label, detail === undefined ? '' : JSON.stringify(detail)]);
+  const check = (ok, label, detail) => out.push([!!ok, 'Iodrome: ' + label, detail === undefined ? '' : JSON.stringify(detail)]);
   const V = window.__view;
   const M = await import('/render/monster.js');
   const MS = await import('/render/motion-states.js');
   const frames = n => new Promise(r => { let k = 0; const f = () => (++k >= n ? r() : requestAnimationFrame(f)); requestAnimationFrame(f); });
   const until = async (test, n = 600) => { for (let i = 0; i < n; i++){ if (test()) return true; await frames(1); } return false; };
   V.pose.clock.getDelta = () => 1 / 60;
-  const MON = 'em014_00';
+  const MON = 'em016_00';
   const monSel = document.getElementById('monSel'), listSel = document.getElementById('monList'), clipSel = document.getElementById('monClip');
   if (![...monSel.options].some(o => o.value === MON)) monSel.add(new Option(MON, MON));
   monSel.value = MON; await monSel.onchange();
@@ -33,7 +31,7 @@ async function pageCheckVelocidrome(){
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
   const byWhen = {};
   for (const e of S.entries) byWhen[e.when] = (byWhen[e.when] || 0) + 1;
-  check(byWhen.event >= 7 && byWhen.ragePuff === 2, 'the schedule holds his state records: 7 event and 2 ragePuff', byWhen);
+  check(byWhen.event >= 6 && byWhen.ragePuff === 2, 'the schedule holds his state records: 6 event and 2 ragePuff', byWhen);
   const MONSTER = V.MON.monsters.find(e => e.id === MON);
   const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => MONSTER.partIds.includes(p))) : null; };
   const isSet = (d, n) => (MONSTER.groups[n] || []).filter(([g]) => MONSTER.partIds.includes(g)).every(([g, on]) => d[g] === on);
@@ -179,4 +177,4 @@ async function pageCheckVelocidrome(){
   return out;
 }
 
-export const pageCheck = pageCheckVelocidrome;
+export const pageCheck = pageCheckIodrome;

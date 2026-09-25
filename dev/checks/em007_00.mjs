@@ -54,12 +54,33 @@ async function pageCheckDiablos(){
   // that is L3 Motion[2], his back break, which fired u 1000 into the middle of the horn-break assertion.
   const play = async (list, clip) => {
     if (V.state.list !== list){ listSel.value = list; await listSel.onchange(); }
-    const o = [...clipSel.options].find(x => x.value === clip || x.value === clip + '_start' || x.value === clip + '_loop');
+    // THREE ORDERED LOOKUPS, not one `find` with three disjuncts: `find` walks the OPTIONS and returns the first
+    // that matches ANY of them, so for a split motion it hands back the `_start` whatever order the disjuncts are
+    // written in. The harness loops whatever clip is selected and does not advance a `_start` into its `_loop`, so
+    // dwelling in a short `_start` restarts the motion -- and its countdowns -- every few frames, which makes a
+    // timed record over-fire and an `every:` assertion pass for the wrong reason. The `_loop` segment is also the
+    // right one to dwell in: it sets loopSeg, which motionStates.step treats as the motion GOING ON rather than
+    // starting over, and its frame 0 still opens the spec. (dev/checks/em014_00.mjs; Session C, 2026-09-25.)
+    const opts = [...clipSel.options];
+    const o = opts.find(x => x.value === clip) || opts.find(x => x.value === clip + '_loop') || opts.find(x => x.value === clip + '_start');
     if (!o){ check(false, 'the list has a clip for ' + list + '|' + clip); return false; }
     clipSel.value = o.value; await clipSel.onchange();
     return until(() => V.pose.action && V.pose.action.getClip().name === o.value, 300);
   };
   const steps = async n => { const a = S.frame; await until(() => S.frame - a >= n, 20 * n + 200); };
+  // TWO CLOCKS, and they are not the same one. `every:` countdowns in motion-states.step are measured in CLIP
+  // frames (`d = frame - prev.frame`), while the rage puff's cadence in schedule.js is measured in SCHEDULE
+  // frames -- and this harness advances one clip frame per two schedule steps. So `steps(period + 2)` waits about
+  // HALF a period: the second fire never comes, and the assertion only passed because the old play() picked a
+  // short `_start` clip that the harness restarted every few frames, re-opening the spec and firing the record
+  // again. Preferring `_loop` removes that accident and exposes the wrong clock. (Session C, 2026-09-25.)
+  // So: anything motion-states.step drives waits in clipSteps; the puff's cadence stays on steps.
+  const clipFrame = () => (V.pose.action ? Math.round(V.pose.action.time * 60) : -1);
+  const clipSteps = async n => {
+    let acc = 0, prev = clipFrame();
+    await until(() => { const c = clipFrame(); acc += c >= prev ? c - prev : Math.max(0, c); prev = c; return acc >= n; },
+                80 * n + 600);
+  };
   const count = (arr, k) => arr.filter(x => x === k).length;
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   const REST = ['0', 'Motion[2]'];
@@ -132,7 +153,7 @@ async function pageCheckDiablos(){
   fired.length = 0;
   await play('0', 'Motion[14]'); await frames(3); await steps(2);
   check(S.rage === false && count(fired, 1104) === 1, 'L0 Motion[14] (tired): rage off, drool c 1104 at once', fired);
-  await steps(50);
+  await clipSteps(50);
   check(count(fired, 1104) === 2, 'the drool again 48 steps on', fired);
 
   // ASLEEP: his eyes DO shut
@@ -141,7 +162,7 @@ async function pageCheckDiablos(){
   fired.length = 0; puffs.length = 0;
   await play('0', 'Motion[19]'); await frames(4); await steps(2);
   check(isSet(drawn(), 1) && count(fired, 1102) === 1, 'L0 Motion[19] (the sleep hold): eyes shut and the zzz c 1102 at once', fired);
-  await steps(95);
+  await clipSteps(95);
   check(count(fired, 1102) === 2, 'the zzz again 90 steps on', fired);
   check(puffs.length === 0, 'and the puff is PAUSED in the sleep hold', puffs.length);
 
@@ -149,7 +170,7 @@ async function pageCheckDiablos(){
   fired.length = 0;
   await play('3', 'Motion[13]_loop'); await frames(3); await steps(2);
   check(count(fired, 1101) === 1, 'L3 Motion[13] (paralysed): c 1101 at once', fired);
-  await steps(65);
+  await clipSteps(65);
   check(count(fired, 1101) === 2, 'and again 60 steps on', fired);
   const evReqs = key => S.entries.filter(e => e.when === 'event' && e.def.record.key === key)
     .map(e => e.requests.map(q => q.stopped ? 's' : 'r').join('')).join('|');
