@@ -943,7 +943,12 @@ async function pageCheckBarioth(){
   // docs/effects/<mon>.json never staged them, and that reads as every state silently doing nothing
   const byWhen = {};
   for (const e of S.entries) byWhen[e.when] = (byWhen[e.when] || 0) + 1;
-  check(byWhen.event >= 10 && byWhen.ragePuff === 2, 'the schedule holds his state records: 10 event and 2 ragePuff', byWhen);
+  // NINE, NOT TEN, since c 1105 came out: his shock trap SHARES the paralysis hold L3 Motion[16], so his table
+  // never names that record and nothing could ever request it. It was staged by hand before --states derived the
+  // set from the table, and it sat in the schedule as an entry nothing fires. (Effects session C found it dead in
+  // fourteen monsters, 2026-09-25; this floor is the one that could not be lowered from there, because Barioth's
+  // check still lives in this shared runner rather than in dev/checks/.)
+  check(byWhen.event >= 9 && byWhen.ragePuff === 2, 'the schedule holds his state records: 9 event and 2 ragePuff', byWhen);
   const MONSTER = V.MON.monsters.find(e => e.id === MON);
   const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => MONSTER.partIds.includes(p))) : null; };
   const isSet = (d, n) => (MONSTER.groups[n] || []).filter(([g]) => MONSTER.partIds.includes(g)).every(([g, on]) => d[g] === on);

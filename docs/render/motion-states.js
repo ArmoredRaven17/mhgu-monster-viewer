@@ -2694,6 +2694,60 @@ export const MOTION_STATES = {
   },
   em079_00: malfestio('em079_00u'),
   em079_04: nightcloak(),
+  // YIAN KUT-KU (em008_00): E:\offline\decode\notes\states-em008_00.md, read and ROM-run by the Kut-Ku decode
+  // agent (2026-09-24). Every change lands on FRAME 0 of the motion named.
+  //   ONE BREAKABLE PART AND NOTHING ELSE MOVES. His .dtp has a single row -- the head, at level 2 at both ranks --
+  // and seven other parts take depletion reactions that change nothing because they have no row. Rage changes
+  // nothing either: the part pass never reads isEnraged, the eye applier never does, there is no material clip,
+  // and vtable +0x2a0 is not gated on rage. So the puff is the whole of what his rage shows, as Astalos's is.
+  //   HIS EARS ARE A JOINT TRANSFORM, NOT A SET, and are not here. vtable +0x2a0 = 0xd50dec rotates joints 132,
+  // 133 and 134 every frame from a counter that eases up to 60.0 while the combat byte is 1 and the low-HP test
+  // is unmet (or the action is (1,2)/(1,3)), and eases back otherwise. This table swaps mesh groups; it has no
+  // way to drive a joint, and JOINT_SCALE is a scale rather than a rotation. Written down rather than skipped.
+  //   NO SEVER AND NO CUT TAIL -- four independent facts in 3.4 -- so no CUT_TAIL entry and no sever motion.
+  em008_00: {
+    // THE HEAD (part 6), (10, 7) -> L3 Motion[1]. Two depletions, and level 1 shows nothing at all: his .dtp row is
+    // at level 2, and key 1030 -- what level 1 would ask for -- is absent. Level 2 takes set 2 -> 4 (group 2 off,
+    // 3 on) and fires u 1031 (cm202_060 on joint 3, offset (0, 120, -30) at 0.8x).
+    '3|Motion[1]':  { levels: [[2], [2], [4]], fire: [null, null, ['em008_00u', 1031]] },
+    // THE tune+0x44 STATUS (INFERRED exhaust), (10, 0x1b) on L3 Motion[2]: c 1109 once at frame 0 (cm200_008 on
+    // joint 3, offset (0, 15, 90) at 1.5x). L3 Motion[2] is also the body depletion (part 0) and the tail
+    // depletion (part 7) -- a different script on the same clip -- and neither of those shows anything, so the
+    // status is the only thing this clip carries that can be seen. No cycle needed, unlike Malfestio's L3 M2.
+    '3|Motion[2]':  { start: [['em008_00c', 1109]] },
+    // THE STUN, (10, 0x20) -> L3 M4 -> M6 -> M8. NOT SIDED: his .dtb direction table is zero at every index, so
+    // there is one chain rather than Barioth's and Malfestio's two, and L3 M3/M5/M7 is only the +X leg depletion
+    // (which shows nothing). c 1103 (cm200_003 on joint 3, offset (0, 0, 60) at 0.9x) into ONE held handle.
+    '3|Motion[4]':  { hold: ['em008_00c', 1103] },
+    '3|Motion[6]':  { hold: ['em008_00c', 1103] },
+    '3|Motion[8]':  { hold: ['em008_00c', 1103] },
+    // RAGE: command group 6's tail issues (1, 0x21) -- L0 Motion[101] from frame 0. Nothing on the model.
+    '0|Motion[101]': { rage: true },
+    // TIRED: his own clip, L0 Motion[14], not the combat idle -- so the clip itself says it. Drool c 1104 every 48
+    // (cm200_006 on joint 3, pos (0, 15, 90), rot (90, 0, 0) at 1x).
+    '0|Motion[14]': { rage: false, tired: true, every: [['em008_00c', 1104], 48] },
+    // ASLEEP: (10, 0x1d) L3 Motion[14] lies down, (10, 0x1e) holds L0 Motion[19], then L0 M20 -> L3 M16 gets up.
+    // Eye set 1 -> set 3: group 4 off (the 18-vertex eyeball) and group 1 on (the 40-vertex closed-eye mesh),
+    // while P+0x5d02 is up.
+    //   THE ZZZ FIRES ONCE HERE, not on a countdown, because ITS PERIOD IS NOT READ. The note gives periods for
+    // c 1101 (60) and c 1104 (48) and none for c 1102, and every other monster's 90 is THEIR value, not his --
+    // importing it would be presenting another monster's number as his. `start` shows the record the ROM really
+    // requests at the hold's frame 0 and claims nothing about a repeat. Upgrade to `every` when the period is read.
+    '3|Motion[14]': { sets: [3] },
+    '0|Motion[19]': { sets: [3], start: [['em008_00c', 1102]], puffOff: true },
+    '0|Motion[20]': { sets: [3] },
+    // PARALYSIS: (10, 0x1f) holds L3 Motion[13]; c 1101 every 60 (cm200_001 on joint 1 at 5x), first at once.
+    // L3 Motion[13] is also the SHOCK TRAP's hold ((10, 0x6e), c 1105 on the same joint and scale): shown as
+    // paralysis, as every monster wired before him is.
+    '3|Motion[13]': { every: [['em008_00c', 1101], 60] },
+    // DEATH: L3 Motion[17] for (11, 0) and every status-11 number the table does not name, L3 Motion[12] at the
+    // end of the fall (L3 M10 -> M11 -> M12, which NEVER reaches L3 M17), and L3 Motion[20] for (11, 7) /
+    // (11, 0x12). The break set stays -- the part pass re-applies it every frame -- his eyes stay open because
+    // death does not raise P+0x5d02, and NOTHING reverts, because rage changed nothing to revert.
+    '3|Motion[17]': { dead: true },
+    '3|Motion[12]': { dead: true, settled: true },
+    '3|Motion[20]': { dead: true, settled: true },
+  },
 };
 
 // Rathian's table with a DEVIANT'S TAIL: three states where hers has two. The driver's variant-4 branch (0xcf2a14..
@@ -3131,6 +3185,11 @@ export const RAGE_PUFF = {
   // NIGHTCLOAK: the same puff from his own u.pel. His 1120 and 1121 are byte-identical to each other AND to
   // Malfestio's, +0x2a4 is the base stub, and the class writes neither e+0xb7d2 nor e+0xb7d3 on either branch.
   em079_04: { period: 30, joint: 4, records: [['em079_04u', 1120], ['em079_04u', 1121]], pick: () => 0 },
+  // YIAN KUT-KU: period 30 on JOINT 4, offset (0, -40, 80). +0x2a4 is the base stub, so it is always key
+  // 1121 -- and unlike every monster wired before him HIS TWO RECORDS DIFFER: same file, same joint, same
+  // offset, but scale 1.0 on 1120 against 0.7 on 1121. The ROM shows the 0.7 one, so the stubbed pick is a
+  // visible choice here rather than a distinction without one.
+  em008_00: { period: 30, joint: 4, records: [['em008_00u', 1120], ['em008_00u', 1121]], pick: () => 0 },
 };
 
 // THE TAIL AS THE SHELLS READ IT (shells.js: Dreadqueen's poison, 0xd09b84(e, 0x10)): part 7's break level (byte P+0x3bc +
