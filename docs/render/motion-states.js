@@ -3085,6 +3085,187 @@ export const POSTURE_UNREAD = {
   },
 };
 
+// THE TURN THE ENGINE MAKES, WHICH THE CLIP DOES NOT CARRY. Raven, 2026-09-27: "when monsters 'turn' the app
+// forces them to remain looking forward"; then, when the pose path turned out to be passing rotation through
+// untouched, "If you know the engine impacts animations then we need to replicate this behavior".
+//
+// MEASURED FIRST, because the viewer was not the culprit: a monster's root track is copied onto its skeleton
+// rotation and all -- a clip with a net turn in it (Rathian's L0 Motion[26]_start, -41.8 degrees) draws at
+// -44.0 -- and the clips simply do not carry one. Net first-key-to-last-key is about zero on 32 of Rathian's
+// 36 L0 clips and on ALL 18 of her L2 clips, however far they swing in between (L2 Motion[3] sweeps 114
+// degrees and comes home). `reference.quaternion` does not exist on a single clip. The body is animated; the
+// UNIT is turned, and the two are separate in the game as they are here.
+//
+// THE OP. An action script is a run of 24-byte entries and op 0x0a is the turn. Its parameter block:
+//     +0x00  f32  first frame        +0x04  f32  last frame
+//     +0x08  s32  angle in the ROM's u16 units, 0x8000 = 180 degrees, SIGNED (negative turns left)
+//     +0x0c  u32  (list << 8) | motion
+// 118 distinct turns in 60 scripts, angles +-180, +-90, +135, +-60 and one -140. NONE on list 2: attacks are
+// not turned this way, they are steered by the AI toward its target, and that has no angle in the data to
+// replay -- so an attack that swings the monster round in the game does not here, and will not until someone
+// reads the steering.
+//
+// WHOSE SCRIPT IS WHOSE, read rather than assumed. A script -> the .data slot that lists it (its class's
+// action table) -> the code that materialises that table (the binary is PIC: `ldr rX,[pc,#imm]` then
+// `add rY, pc, rX`) -> the em id string that code names. 36 of the 60 land within 2 KB of a name; a
+// candidate 171 KB away names a different class and is thrown out. The other 24 are named by their CLIPS
+// instead -- the scripts run in class order, so an unnamed one lies between two named ones and only a
+// monster in that window whose .lmt can hold every clip it turns, to the frame the window ends at, can own
+// it. That settles Nargacuga: between em033_00 and em038_00 only em037_00 and em037_04 hold L3 M33 to frame
+// 144 and L3 M4 to 122, and those two are one class. A CLASS SCRIPT SERVES ITS VARIANTS (uEm043_00 is
+// Deviljho and Savage), so the entry goes to every monster of the class whose own clips can hold it.
+//
+// CHECKED against the two turns the decode notes already record, both matching to the frame: Rathian's tail
+// sever, +180 over L3 Motion[15] f148..245 (script 0x1794a8c, named em001_00 by code 136 bytes away), and
+// Nargacuga's, -180 over L3 Motion[4] f52..122 (script 0x17bced8).
+//
+// WHAT IS NOT READ: how the angle is spread across the window. The op gives an angle and a first and last
+// frame and nothing else, so the turn here runs LINEARLY between them; whether the engine eases it is in the
+// op's handler, which has not been found. Everything else -- the angle, its sign, the frames, the clip and
+// the owner -- is off the ROM.
+//
+// The 14 scripts still unnamed, with their turns, so they can be placed later rather than guessed now:
+//   0x179eea8  L3M33 +180 f40-70
+//   0x17aee48  L3M15 -180 f82-156
+//   0x17bba84  L3M30 +180 f40-70
+//   0x17c300c  L3M26 +180 f64-104; L3M19 -90 f140-160; L3M30 -90 f250-290
+//   0x17c44b0  L3M13 -180 f94-140; L3M3 -90 f58-118; L3M3 -90 f58-118
+//   0x17c6958  L3M13 -180 f94-140; L3M3 -90 f58-118; L3M3 -90 f58-118
+//   0x17ca27c  L3M28 +90 f8-40; L3M4 +90 f90-170
+//   0x17cca5c  L3M55 +180 f10-30
+//   0x17d6e64  L3M33 +180 f104-154
+//   0x17ea130  L3M28 +180 f40-70
+//   0x17f1b64  L3M8 +60 f82-98; L3M4 -60 f82-98; L3M16 +60 f114-146; L3M4 -60 f82-98; L3M8 +60 f82-98
+//   0x17f7e78  L3M35 -180 f46-60; L3M3 +180 f0-38; L3M17 -90 f0-62; L3M3 +180 f0-38; L3M3 +180 f0-38; L3M3 +180 f0-38
+//   0x181a4e4  L3M2 +90 f0-31; L3M2 -90 f0-31; L3M2 +180 f0-31; L3M2 +90 f0-31; L3M2 -90 f0-31; L3M2 +180 f0-31; L3M2 +90 f0-41; L3M2 -90 f0-41; L3M2 -180 f0-41
+//   0x181b980  L3M3 +135 f0-30
+export const CLIP_TURN = {
+  // 0x1794a8c
+  em001_00: { '3|Motion[15]': { deg: 180, from: 148, to: 245 }, '3|Motion[28]': { deg: 180, from: 40, to: 70 } },
+  // 0x1794a8c
+  em001_02: { '3|Motion[15]': { deg: 180, from: 148, to: 245 }, '3|Motion[28]': { deg: 180, from: 40, to: 70 } },
+  // 0x1794a8c
+  em001_04: { '3|Motion[15]': { deg: 180, from: 148, to: 245 }, '3|Motion[28]': { deg: 180, from: 40, to: 70 } },
+  // 0x1798884
+  em004_00: { '3|Motion[15]': { deg: 180, from: 148, to: 244 }, '3|Motion[28]': { deg: 90, from: 34, to: 80 } },
+  // 0x179a23c
+  em007_00: { '3|Motion[15]': { deg: 180, from: 148, to: 244 }, '3|Motion[31]': { deg: 180, from: 40, to: 70 } },
+  // 0x179a23c
+  em007_04: { '3|Motion[15]': { deg: 180, from: 148, to: 244 }, '3|Motion[31]': { deg: 180, from: 40, to: 70 }, '9|Motion[17]': { deg: -140, from: 198, to: 222 } },
+  // 0x179ba40
+  em008_00: { '3|Motion[28]': { deg: 180, from: 40, to: 70 } },
+  // 0x179d3c8
+  em009_00: { '3|Motion[28]': { deg: 180, from: 40, to: 70 } },
+  // 0x17a6a28
+  em013_00: { '3|Motion[23]': { deg: 90, from: 18, to: 38 }, '3|Motion[24]': { deg: -90, from: 26, to: 56 } },
+  // 0x17a6a28
+  em013_01: { '3|Motion[23]': { deg: 90, from: 18, to: 38 }, '3|Motion[24]': { deg: -90, from: 26, to: 56 } },
+  // 0x17a6a28
+  em013_02: { '3|Motion[23]': { deg: 90, from: 18, to: 38 }, '3|Motion[24]': { deg: -90, from: 26, to: 56 } },
+  // 0x17aacd0
+  em017_00: { '3|Motion[28]': { deg: 180, from: 40, to: 70 } },
+  // 0x17ac8fc
+  em018_00: { '3|Motion[15]': { deg: 180, from: 148, to: 245 }, '3|Motion[28]': { deg: 180, from: 40, to: 70 } },
+  // 0x17ac8fc
+  em018_04: { '3|Motion[15]': { deg: 180, from: 148, to: 245 }, '3|Motion[28]': { deg: 180, from: 40, to: 70 } },
+  // 0x17adf24
+  em019_00: { '3|Motion[15]': { deg: -180, from: 82, to: 156 } },
+  // 0x17adf24
+  em019_04: { '3|Motion[15]': { deg: -180, from: 82, to: 156 } },
+  // 0x17b0868
+  em021_00: { '3|Motion[23]': { deg: -180, from: 55, to: 95 } },
+  // 0x17b1aec
+  em022_00: { '3|Motion[24]': { deg: -180, from: 55, to: 95 } },
+  // 0x17b2d34
+  em023_00: { '3|Motion[29]': { deg: -180, from: 55, to: 95 } },
+  // 0x17b2d34
+  em023_05: { '3|Motion[29]': { deg: -180, from: 55, to: 95 } },
+  // 0x17b4314
+  em024_00: { '3|Motion[9]': { deg: -180, from: 0, to: 104 }, '3|Motion[55]': { deg: -180, from: 4, to: 24 } },
+  // 0x17b71b8
+  em027_00: { '3|Motion[9]': { deg: -180, from: 0, to: 104 }, '3|Motion[55]': { deg: -180, from: 0, to: 40 } },
+  // 0x17b93f4
+  em032_00: { '3|Motion[2]': { deg: 180, from: 4, to: 13 }, '3|Motion[4]': { deg: -180, from: 52, to: 122 }, '3|Motion[33]': { deg: -180, from: 110, to: 144 } },
+  // 0x17b93f4
+  em032_04: { '3|Motion[2]': { deg: 180, from: 4, to: 13 }, '3|Motion[4]': { deg: -180, from: 52, to: 122 }, '3|Motion[33]': { deg: -180, from: 110, to: 144 } },
+  // 0x17baa44
+  em033_00: { '3|Motion[15]': { deg: -180, from: 94, to: 208 } },
+  // 0x17bced8
+  em037_00: { '3|Motion[4]': { deg: -180, from: 52, to: 122 }, '3|Motion[33]': { deg: -180, from: 110, to: 144 } },
+  // 0x17bced8
+  em037_04: { '3|Motion[4]': { deg: -180, from: 52, to: 122 }, '3|Motion[33]': { deg: -180, from: 110, to: 144 } },
+  // 0x17be268
+  em038_00: { '3|Motion[15]': { deg: -180, from: 94, to: 208 } },
+  // 0x17bf514
+  em042_00: { '3|Motion[13]': { deg: 90, from: 140, to: 220 }, '3|Motion[31]': { deg: -180, from: 110, to: 144 } },
+  // 0x17c0848
+  em043_00: { '3|Motion[15]': { deg: -90, from: 140, to: 160 }, '3|Motion[23]': { deg: -90, from: 80, to: 160 }, '3|Motion[24]': { deg: 90, from: 80, to: 160 }, '3|Motion[31]': { deg: 180, from: 64, to: 104 } },
+  // 0x17c0848
+  em043_05: { '3|Motion[15]': { deg: -90, from: 140, to: 160 }, '3|Motion[23]': { deg: -90, from: 80, to: 160 }, '3|Motion[24]': { deg: 90, from: 80, to: 160 }, '3|Motion[31]': { deg: 180, from: 64, to: 104 } },
+  // 0x17c1e4c
+  em044_00: { '3|Motion[3]': { deg: -90, from: 90, to: 121 }, '3|Motion[4]': { deg: 90, from: 92, to: 122 }, '3|Motion[12]': { deg: -90, from: 204, to: 244 }, '3|Motion[16]': { deg: -90, from: 110, to: 120 }, '3|Motion[26]': { deg: 180, from: 64, to: 104 } },
+  // 0x17c58c0
+  em047_00: { '3|Motion[13]': { deg: -180, from: 94, to: 140 } },
+  // 0x17c7bb0
+  em050_00: { '3|Motion[13]': { deg: -180, from: 76, to: 142 }, '3|Motion[55]': { deg: -180, from: 4, to: 24 } },
+  // 0x17c901c
+  em055_00: { '3|Motion[3]': { deg: 90, from: 80, to: 140 }, '3|Motion[4]': { deg: -90, from: 80, to: 140 }, '3|Motion[31]': { deg: 180, from: 74, to: 120 } },
+  // 0x17cb4d0
+  em057_00: { '3|Motion[19]': { deg: 90, from: 50, to: 70 }, '3|Motion[24]': { deg: 180, from: 52, to: 80 } },
+  // 0x17cb4d0
+  em057_04: { '3|Motion[19]': { deg: 90, from: 50, to: 70 }, '3|Motion[24]': { deg: 180, from: 52, to: 80 } },
+  // 0x17d60ac
+  em060_00: { '3|Motion[28]': { deg: 180, from: 104, to: 154 } },
+  // 0x17d60ac
+  em060_04: { '3|Motion[28]': { deg: 180, from: 104, to: 154 } },
+  // 0x17d87ec
+  em061_00: { '3|Motion[25]': { deg: 180, from: 104, to: 154 } },
+  // 0x17d87ec
+  em061_04: { '3|Motion[25]': { deg: 180, from: 104, to: 154 } },
+  // 0x17d9dc8
+  em063_00: { '3|Motion[2]': { deg: -90, from: 90, to: 120 }, '3|Motion[3]': { deg: 90, from: 90, to: 120 }, '3|Motion[22]': { deg: -90, from: 204, to: 244 }, '3|Motion[31]': { deg: 180, from: 64, to: 104 } },
+  // 0x17d9dc8
+  em063_05: { '3|Motion[2]': { deg: -90, from: 90, to: 120 }, '3|Motion[3]': { deg: 90, from: 90, to: 120 }, '3|Motion[22]': { deg: -90, from: 204, to: 244 }, '3|Motion[31]': { deg: 180, from: 64, to: 104 } },
+  // 0x17db30c
+  em065_00: { '0|Motion[16]': { deg: -180, from: 0, to: 30 } },
+  // 0x17e88dc
+  em077_00: { '3|Motion[15]': { deg: 180, from: 148, to: 245 }, '3|Motion[28]': { deg: 180, from: 40, to: 70 } },
+  // 0x17eb830
+  em080_00: { '3|Motion[11]': { deg: 90, from: 50, to: 80 }, '3|Motion[15]': { deg: -90, from: 140, to: 160 }, '3|Motion[23]': { deg: -90, from: 80, to: 160 }, '3|Motion[24]': { deg: 90, from: 80, to: 140 }, '3|Motion[45]': { deg: 180, from: 64, to: 104 } },
+  // 0x17eb830
+  em080_04: { '3|Motion[11]': { deg: 90, from: 50, to: 80 }, '3|Motion[15]': { deg: -90, from: 140, to: 160 }, '3|Motion[23]': { deg: -90, from: 80, to: 160 }, '3|Motion[24]': { deg: 90, from: 80, to: 140 }, '3|Motion[45]': { deg: 180, from: 64, to: 104 }, '9|Motion[20]': { deg: -90, from: 140, to: 160 } },
+  // 0x17ecf70
+  em081_00: { '3|Motion[15]': { deg: 180, from: 148, to: 245 }, '3|Motion[28]': { deg: 180, from: 40, to: 70 } },
+  // 0x17ecf70
+  em081_04: { '3|Motion[15]': { deg: 180, from: 148, to: 245 }, '3|Motion[28]': { deg: 180, from: 40, to: 70 } },
+  // 0x17eeeac
+  em082_00: { '3|Motion[13]': { deg: 180, from: 52, to: 68 }, '3|Motion[23]': { deg: 180, from: 46, to: 90 } },
+  // 0x17eeeac
+  em082_04: { '3|Motion[13]': { deg: 180, from: 52, to: 68 }, '3|Motion[23]': { deg: 180, from: 46, to: 90 } },
+  // 0x17f9080
+  em086_00: { '3|Motion[21]': { deg: 90, from: 120, to: 170 }, '3|Motion[36]': { deg: 90, from: 110, to: 138 }, '3|Motion[37]': { deg: 90, from: 60, to: 78 } },
+  // 0x180bf74
+  ems002_00: { '3|Motion[3]': { deg: 135, from: 0, to: 30 } },
+  // 0x180bbdc, 0x180c164
+  ems003_00: { '3|Motion[3]': { deg: 135, from: 0, to: 30 }, '3|Motion[4]': { deg: 135, from: 0, to: 30 } },
+  // 0x18104bc
+  ems016_00: { '3|Motion[3]': { deg: 135, from: 0, to: 30 } },
+  // 0x1815c0c
+  ems034_00: { '3|Motion[2]': { deg: 90, from: 0, to: 31 } },
+  // 0x1816834
+  ems035_00: { '3|Motion[3]': { deg: 180, from: 0, to: 38 } },
+  // 0x1818f70
+  ems044_00: { '3|Motion[2]': { deg: -180, from: 68, to: 98 } },
+};
+// The turn a clip has reached at `frame`, in degrees; 0 where the ROM turns nothing.
+export function turnAt(monId, list, clip, frame){
+  const t = CLIP_TURN[monId] && CLIP_TURN[monId][list + '|' + clip];
+  if (!t) return 0;
+  if (!(frame > t.from)) return 0;
+  if (frame >= t.to) return t.deg;
+  return t.deg * (frame - t.from) / (t.to - t.from);
+}
+
 export const CEILING_ABOVE_GAME = 838;
 export const postureOf = (monId, list, clip) => {
   const t = CLIP_POSTURE[monId];

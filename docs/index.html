@@ -1307,7 +1307,7 @@ import { loadMaterialsDb } from './render/materials-db.js';
 import { createBackground } from './render/background.js';
 import { createFloorGrid, createGrid } from './render/grid.js';
 import { MotionStates, RAGE_BY_LEVEL, RAGE_PUFF, JOINT_SCALE, JointScale, shellTailInput,
-         postureOf, CEILING_ABOVE_GAME } from './render/motion-states.js';
+         postureOf, turnAt, CEILING_ABOVE_GAME } from './render/motion-states.js';
 import { pickVariantsFor } from './render/shells.js';
 import { CUT_TAIL, CutTail } from './render/tail-option.js';
 import { setEyeGlow, updateEyeGlow } from './render/eye-glow.js';
@@ -7215,6 +7215,19 @@ function stepBox(base){
   stepMount(want);
 }
 
+// THE UNIT TURNS WHILE THE CLIP PLAYS (render/motion-states.js CLIP_TURN, op 0x0a). The clip animates the
+// body and the engine turns the unit; with only the clip the monster shuffles and ends up facing exactly where
+// it started, which is what Raven saw. The yaw is the turn the op has reached at this frame and it is held at
+// the full angle once the window is past, so a motion held on its last frame stays turned -- the game leaves
+// the unit where the turn put it. A mount takes it as its own yaw instead (stepMount), since a wall or ceiling
+// clip is pinned to a plane and cannot also be spun freely.
+let turnYaw = 0;
+function stepTurn(base, frame){
+  turnYaw = base ? turnAt(state.id, state.list, base, frame) * Math.PI / 180 : 0;
+  const main = mounted.main;
+  if (main && mountedOn === null) main.rotation.y = turnYaw;
+}
+
 // AND THE MONSTER GOES ONTO THE SURFACE (E:\offline\decode\notes\posture-mount.md). Showing the plane is not enough:
 // the cling clips are authored SURFACE-LOCAL, so the engine -- not the animation -- puts the monster on the surface
 // and turns it. Raven, 2026-09-23, looking at a ceiling clip played on the floor: "Khezu doesn't automatically mount
@@ -7252,8 +7265,8 @@ function stepMount(want){
   if (mountedOn === null){ _mountQ0.copy(main.quaternion); _mountY0 = main.position.y; _mountZ0 = main.position.z; }
   mountedOn = on;
   // the wall's outward normal is +z here (the wallZ plane), so its yaw is 0; a placed wall keeps that until the
-  // viewer lets a wall be turned
-  const yaw = 0;
+  // viewer lets a wall be turned -- and the clip's own turn (stepTurn) rides on top of it
+  const yaw = turnYaw;
   _mountE.set(on === 5 ? -Math.PI / 2 : 0, yaw, Math.PI, 'YXZ');
   main.quaternion.setFromEuler(_mountE);
   // THE ORIGIN GOES ONTO THE PLANE. The ROM pins a ceiling monster's origin exactly to the surface (0xbf284:
@@ -7427,6 +7440,7 @@ function driveMotionStates(){
     setEffectRage(motionStates.rage(state.rage));
     if (rt){ if (r.entry) rt.restartRage(); else rt.setRage(motionStates.rage(state.rage)); }
   }
+  stepTurn(base, act ? act.time * 60 + loopStart : 0);
   stepBox(base);
   stepJointScale();
   stepCutTail(r, rt);
