@@ -1767,6 +1767,45 @@ function monsterTravel(out){
 // clip is never a restart, so seeking back is a seek.
 const loopShift = new THREE.Vector3();         // the hip's X/Z over one pass of the playing clip, scene units
 const lastInLoop = new THREE.Vector3();        // the in-loop travel of the last frame drawn
+// AND THE TURN CARRIES OVER, exactly as the walk above does. A _start/_loop pair is ONE motion -- the frame
+// numbering already treats it as one (loopStart) and so does render/motion-states.js -- but each half is a
+// clip of its own, so the yaw the _start accumulated used to be thrown away when the _loop took over and the
+// monster snapped back square. Raven, 2026-09-27: "Chain the start/loop pair and carry the yaw". The game has
+// no such seam: the root's turn lands on the UNIT and the next motion starts from the facing it left.
+//   ONLY ACROSS THAT SEAM, and this is the difference from the walk. The travel accumulates for ever -- each
+//   loop of a walk cycle moves the monster on -- but a clip's ROTATION is not folded into the unit by the
+//   game. If it were, op 0x0a would have nothing to do on the clips that already turn by themselves
+//   (Seregios' L0 Motion[51] authors -177 degrees in its own track), and the engine would not need a separate
+//   angle at all. Carrying it across every clip change and loop restart is what the first cut of this did,
+//   and it sent the monster spinning: several hundred degrees deep after a few passes of a turn clip, with
+//   every idle's authored few degrees of residual piling up on top.
+//   `last` is the clip's own yaw at the last frame drawn, `carry` what a _start handed to its _loop, and
+//   `from` the list|clip that was playing, so the seam can be recognised.
+const clipTurn = { last: 0, carry: 0, from: null };
+const _yawFwd = new THREE.Vector3();
+// the playing clip's own yaw right now, off the proxy's root -- the mirror of inLoopTravel
+function clipYawNow(){
+  const root = pose.proxyBones && pose.proxyBones.get(0);
+  if (!root) return 0;
+  root.updateWorldMatrix(true, false);
+  _yawFwd.set(0, 0, 1).transformDirection(root.matrixWorld);
+  return Math.atan2(_yawFwd.x, _yawFwd.z);
+}
+const wrapPi = a => Math.atan2(Math.sin(a), Math.cos(a));
+// the clip's yaw at its FIRST frame, sampled the way measureLoopShift samples the travel, and leaving the
+// clip where it found it. Measured whatever the Anchor is set to: the anchor pins x/z and never touched
+// rotation. Only the first frame is wanted -- the seam is "where does this clip begin", and nothing here
+// accumulates a clip's total.
+function clipFirstYaw(){
+  const act = pose.action;
+  if (!act || !pose.proxyBones || !(act.getClip().duration > 0.001)) return 0;
+  const was = act.time;
+  act.time = 0; pose.mixer.update(0);
+  const a = clipYawNow();
+  act.time = was; pose.mixer.update(0);
+  return a;
+}
+function forgetClipTurn(){ clipTurn.last = 0; clipTurn.carry = 0; clipTurn.from = null; }
 let carryAction = null, carryTime = 0;
 function shiftWorld(dx, dz){
   if (!dx && !dz) return;
@@ -4866,6 +4905,7 @@ async function mount(){
     if (mounted.main && mounted.main.userData.gagEyes) mountGagEyes(mounted.main, null);
     clearMounts();
     world.position.x = 0; world.position.z = 0; lastInLoop.set(0, 0, 0);   // a new monster starts at the origin
+    forgetClipTurn();                                                      // ...facing front, as it did
     forgetTravel();
     world.add(main); mounted.main = main;
     for (const [name, g] of extra){ world.add(g); mounted[name] = g; }
@@ -6415,6 +6455,12 @@ async function play(){
   // the new clip's first frame goes where the old clip's last drawn one was (THE WALK CARRIES OVER)
   { const first = measureLoopShift(); shiftWorld(lastInLoop.x - first.x, lastInLoop.z - first.z); lastInLoop.copy(first);
     carryAction = pose.action; carryTime = pose.action ? pose.action.time : 0; }
+  // THE TURN CARRIES OVER: the new clip's first frame faces where the last drawn frame faced, so a _start
+  // hands its turn to its _loop instead of snapping back
+  { const first = clipFirstYaw();
+    const pair = /_loop$/.test(c.clip) && clipTurn.from === l.id + '|' + c.clip.replace(/_loop$/, '_start');
+    clipTurn.carry = pair ? clipTurn.carry + wrapPi(clipTurn.last - first) : 0;
+    clipTurn.last = first; clipTurn.from = l.id + '|' + c.clip; }
   await playAttached(l, c);
   stepAttached();
   // every clip, list and lock change comes through here, and the severed pieces stand on the new floor
@@ -7223,7 +7269,7 @@ function stepBox(base){
 // clip is pinned to a plane and cannot also be spun freely.
 let turnYaw = 0;
 function stepTurn(base, frame){
-  turnYaw = base ? turnAt(state.id, state.list, base, frame) * Math.PI / 180 : 0;
+  turnYaw = (base ? turnAt(state.id, state.list, base, frame) * Math.PI / 180 : 0) + clipTurn.carry;
   const main = mounted.main;
   if (main && mountedOn === null) main.rotation.y = turnYaw;
 }
@@ -7471,6 +7517,7 @@ renderer.setAnimationLoop(() => {
   if (carryLoop()) pose.step(poseRoots());   // a pass started over: the world group moved on, so lay the bones again
   followTravel();                          // the orbit camera rides the monster's travel
   inLoopTravel(lastInLoop);
+  clipTurn.last = clipYawNow();
   driveClipEffects();
   driveMotionStates();
   driveZoneFrameMode();
