@@ -1767,6 +1767,10 @@ function monsterTravel(out){
 // clip is never a restart, so seeking back is a seek.
 const loopShift = new THREE.Vector3();         // the hip's X/Z over one pass of the playing clip, scene units
 const lastInLoop = new THREE.Vector3();        // the in-loop travel of the last frame drawn
+// hoisted above play(): it places the steering target while the first monster loads (see stepTurn)
+const STEER = { on: true, rate: 3 };
+let steerYaw = 0, steerWant = 0;
+const wrapPi = a => Math.atan2(Math.sin(a), Math.cos(a));
 // THERE IS NO YAW TO CARRY BETWEEN CLIPS, and a _start/_loop seam is no exception. This briefly carried one
 // (2026-09-27) on a reading that turned out to be wrong, so the measurement is kept here to stop it being
 // re-tried: NODE 00's ROTATION DOES NOT ORIENT THE BODY. Measured on the proxy itself over Seregios'
@@ -4875,6 +4879,7 @@ async function mount(){
     if (mounted.main && mounted.main.userData.gagEyes) mountGagEyes(mounted.main, null);
     clearMounts();
     world.position.x = 0; world.position.z = 0; lastInLoop.set(0, 0, 0);   // a new monster starts at the origin
+    steerYaw = 0; steerWant = 0;                                           // ...facing front, as it did
     forgetTravel();
     world.add(main); mounted.main = main;
     for (const [name, g] of extra){ world.add(g); mounted[name] = g; }
@@ -6424,6 +6429,7 @@ async function play(){
   // the new clip's first frame goes where the old clip's last drawn one was (THE WALK CARRIES OVER)
   { const first = measureLoopShift(); shiftWorld(lastInLoop.x - first.x, lastInLoop.z - first.z); lastInLoop.copy(first);
     carryAction = pose.action; carryTime = pose.action ? pose.action.time : 0; }
+  placeSteerTarget();          // the steering test: a new clip puts its target down (STEER)
   await playAttached(l, c);
   stepAttached();
   // every clip, list and lock change comes through here, and the severed pieces stand on the new floor
@@ -7231,10 +7237,56 @@ function stepBox(base){
 // the unit where the turn put it. A mount takes it as its own yaw instead (stepMount), since a wall or ceiling
 // clip is pinned to a plane and cannot also be spun freely.
 let turnYaw = 0;
+// THE STEERING, AND A TEST TARGET TO STEER AT. Raven, 2026-09-27: "Try giving a target for the turn animations,
+// that helped with attack effects", then "We will need to know if the monster is turning left or right for the
+// correct placement".
+//   THE ROM'S OWN STEERING (0x76e50, and its applier just above at 0x76e20), which is what this follows:
+//     p    = [enemy+0x1428]
+//     want = atan2f(p[0x1d0] - p[0x40], p[0x1d8] - p[0x48]) * 10430.378 + 0.5   -- the bearing to the TARGET,
+//            +0x1d0 / +0x1d8 being the same target point the shells already read
+//     d    = uxth(want - p[0x54]); if (d > 0x8000) d = uxth(p[0x54] - want)     -- the short way round
+//     if (d >= cap) d = cap                                                      -- a per-ACTION cap, not per
+//            monster: the 12 call sites pass 0x1555, 0x2aab, 0x4000, 0x5555, 0xe000 = 30, 60, 90, 120, 315 deg
+//     p[0x200] = d, and the applier adds a scaled part of it to the yaw p[0x54] each frame.
+//   TWO VIEWER STAND-INS, both flagged because the ROM does not give them here:
+//     * WHERE THE TARGET IS. The game aims at a hunter; the viewer has none, and the existing stand-in
+//       (TARGET_AHEAD) sits along the monster's OWN facing, so steering at it can never turn him -- which is
+//       exactly what Raven was seeing. So the target is placed off to one side when a clip starts and stays
+//       put in the world while he turns onto it. WHICH SIDE AND HOW FAR IS THE CLIP'S OWN: node 00's yaw
+//       track, its net where it has one and its furthest excursion where it comes home. That is why
+//       Motion[44] and Motion[46] place to opposite sides -- they peak at -48.6 and +48.6 -- and it is read
+//       off the .lmt rather than chosen.
+//     * HOW FAST. The ROM's cap is a budget its applier spends over frames and that spend is NOT READ, so the
+//       rate here is a plain degrees-a-frame stand-in. __view.steer(rate) changes it, __view.steer(false)
+//       turns the whole test off.
+// the clip's own root swing: its net if it ends turned, else the furthest it reaches. Sign is the side.
+function clipRootSwing(){
+  const act = pose.action;
+  const trk = act && act.getClip().tracks.find(t => t.name === '00.quaternion');
+  if (!trk || trk.values.length < 8) return 0;
+  const v = trk.values, n = v.length / 4;
+  const yawAt = i => { const o = i * 4;
+    return Math.atan2(2 * (v[o] * v[o + 2] + v[o + 3] * v[o + 1]), 1 - 2 * (v[o] * v[o] + v[o + 1] * v[o + 1])); };
+  const first = yawAt(0), net = wrapPi(yawAt(n - 1) - first);
+  let peak = 0;
+  for (let i = 1; i < n; i++){ const d = wrapPi(yawAt(i) - first); if (Math.abs(d) > Math.abs(peak)) peak = d; }
+  // A CLIP THAT ENDS TURNED gives its net; one that comes home gives its furthest reach, but only if that is
+  // turn-sized. Without the floor an idle places a target too -- Seregios' Motion[1]_loop sways 17.8 degrees
+  // and was turning him by it. 25 degrees separates his idles from the clips Raven named as turns, whose
+  // reach is 42 or more.
+  if (Math.abs(net) > 5 * Math.PI / 180) return net;
+  return Math.abs(peak) > 25 * Math.PI / 180 ? peak : 0;
+}
+// a new clip puts the target down again, at the bearing that clip's own root reaches
+function placeSteerTarget(){ steerWant = STEER.on ? steerYaw + clipRootSwing() : steerYaw; }
 function stepTurn(base, frame){
   turnYaw = base ? turnAt(state.id, state.list, base, frame) * Math.PI / 180 : 0;
+  if (STEER.on){
+    const d = wrapPi(steerWant - steerYaw), step = STEER.rate * Math.PI / 180;
+    steerYaw += Math.abs(d) <= step ? d : Math.sign(d) * step;   // the ROM's clamp, its spend not read
+  }
   const main = mounted.main;
-  if (main && mountedOn === null) main.rotation.y = turnYaw;
+  if (main && mountedOn === null) main.rotation.y = turnYaw + steerYaw;
 }
 
 // AND THE MONSTER GOES ONTO THE SURFACE (E:\offline\decode\notes\posture-mount.md). Showing the plane is not enough:
@@ -7662,6 +7714,17 @@ window.__view.effects = async (on, only) => {
 window.__view.effectsAvailable = () => effectMountsFor(state.id);
 // __view.box('wall', true) / ('ceiling', true) shows one; a number places it instead of the default (the wall's own
 // z, the ceiling's height above the floor, both in metres); __view.box() reports both.
+// __view.steer(3) sets the test's degrees a frame, __view.steer(false) turns it off, __view.steer() reports.
+// The rate is a viewer stand-in: the ROM caps the turn per action (30/60/90/120/315 degrees) but how its applier
+// spends that cap over frames is not read.
+window.__view.steer = r => {
+  if (r === undefined) return { ...STEER, yaw: +(steerYaw * 180 / Math.PI).toFixed(1),
+                                want: +(steerWant * 180 / Math.PI).toFixed(1) };
+  if (r === false || r === true){ STEER.on = !!r; if (!r){ steerYaw = 0; steerWant = 0; } }
+  else { STEER.rate = +r || 3; STEER.on = true; }
+  placeSteerTarget();
+  return { ...STEER };
+};
 window.__view.box = (which, on) => {
   if (which === undefined) return { wall: box.wall.info(), ceiling: box.ceiling.info(), at: { ...box.at } };
   const g = box[which];
