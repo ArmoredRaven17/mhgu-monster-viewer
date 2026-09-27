@@ -1769,7 +1769,7 @@ const loopShift = new THREE.Vector3();         // the hip's X/Z over one pass of
 const lastInLoop = new THREE.Vector3();        // the in-loop travel of the last frame drawn
 // hoisted above play(): it places the steering target while the first monster loads (see stepTurn)
 const STEER = { on: true, rate: 3 };
-let rootYaw0 = 0;
+let steerBase = 0, steerDelta = 0, steerProg = 0;
 const _yawFwd = new THREE.Vector3();   // scratch for reading node 00's yaw
 let steerYaw = 0, steerWant = 0;
 const wrapPi = a => Math.atan2(Math.sin(a), Math.cos(a));
@@ -1811,7 +1811,8 @@ function carryLoop(){
   const act = pose.action;
   const restarted = !!act && act === carryAction && !act.paused && act.timeScale > 0 && pose.anchorXZ === false
                     && act.time + 1e-6 < carryTime;
-  if (restarted) shiftWorld(loopShift.x, loopShift.z);
+  // a pass that started over puts the turn's target down again, so a looping turn keeps turning (STEER)
+  if (restarted){ shiftWorld(loopShift.x, loopShift.z); placeSteerTarget(); }
   carryAction = act; carryTime = act ? act.time : 0;
   return restarted;
 }
@@ -7271,23 +7272,50 @@ let turnYaw = 0;
 // The target moves with the animation and the monster turns through the whole clip instead of snapping to an
 // offset: a clip whose root comes home turns out and back, and an idle, whose root barely moves, does not turn
 // at all -- no threshold needed.
-//   node 00's world yaw includes the rotation we put on the proxy, so that is taken back off to read the
-// clip's own.
-function rawRootYaw(){
-  const root = pose.proxyBones && pose.proxyBones.get(0), scn = pose.mixer && pose.mixer.getRoot();
-  if (!root || !scn) return 0;
-  root.updateWorldMatrix(true, false);
-  _yawFwd.set(0, 0, 1).transformDirection(root.matrixWorld);
-  return wrapPi(Math.atan2(_yawFwd.x, _yawFwd.z) - scn.rotation.y);
+//   AND IT IS PUT DOWN AGAIN EVERY PASS. Raven, 2026-09-27: "we need to find which animations turn and set a
+// target when the turn animations starts. When the animation loops, it needs the target to move so we end up
+// turning each time." A target placed once is a fixed point and he holds at it; re-placed each pass, ahead of
+// wherever he now faces, he turns again with every loop -- a monster turning after a hunter who keeps moving.
+//   WHICH ANIMATIONS TURN, AND BY HOW MUCH, IS THE CLIP'S OWN. node 00's yaw track: its net where the clip
+// ends turned, its furthest reach where it comes home. That is the animation's own account of the turn it was
+// authored for, so Motion[44] and Motion[46] turn opposite ways off their own -48.6 and +48.6 and an idle,
+// whose root barely moves, is left alone. Nothing here picks an angle.
+function clipRootSwing(){
+  const act = pose.action;
+  const trk = act && act.getClip().tracks.find(t => t.name === '00.quaternion');
+  if (!trk || trk.values.length < 8) return 0;
+  const v = trk.values, n = v.length / 4;
+  const yawAt = i => { const o = i * 4;
+    return Math.atan2(2 * (v[o] * v[o + 2] + v[o + 3] * v[o + 1]), 1 - 2 * (v[o] * v[o] + v[o + 1] * v[o + 1])); };
+  // A TURN ENDS TURNED -- Raven's own test, 2026-09-27: "If the monster turned, it would not end up back in
+  // the same position". So it is the NET that decides, first key to last, and the reach is not consulted at
+  // all. Bringing the reach in was what made this useless: it called 32 of Seregios' 47 L0 clips turns and 31
+  // of his 34 L2 attacks, because a clip that leans out and comes home reaches just as far as one that turns.
+  //   THE CUT IS THE DATA'S OWN. His L0 nets run 3.8, 4.2, 5.1 ... 12.2, 15.0 and then jump straight to 26.0,
+  // 29.3, 29.5, 31.0, 31.2, 43.7, 47.4, 52.2, 74.2, 177.0. Everything below 15 is sway and everything above 26
+  // is a turn, so the threshold goes in the gap. It leaves twelve L0 turns, among them the mirrored pairs
+  // Motion[44] / Motion[46] and Motion[43] / Motion[45] -- left and right of the same turn, which is what a
+  // turn set should look like -- and rejects Motion[35] (net 3.8, reach -44.6), which leans and comes home.
+  const first = yawAt(0), net = wrapPi(yawAt(n - 1) - first);
+  return Math.abs(net) > 20 * Math.PI / 180 ? net : 0;
 }
-// a new clip: the target starts where the monster is, and moves from there as the clip's root does
-function placeSteerTarget(){ rootYaw0 = rawRootYaw(); steerWant = steerYaw; }
+// every pass -- a new clip, and every loop of it -- puts the target down again, that far round from here
+function placeSteerTarget(){
+  steerBase = steerYaw;
+  steerDelta = STEER.on ? clipRootSwing() : 0;
+  steerProg = 0;
+}
 function stepTurn(base, frame){
   turnYaw = base ? turnAt(state.id, state.list, base, frame) * Math.PI / 180 : 0;
-  if (STEER.on){
-    steerWant = wrapPi(rawRootYaw() - rootYaw0);                 // the target, moved to this frame's bearing
-    const d = wrapPi(steerWant - steerYaw), step = STEER.rate * Math.PI / 180;
-    steerYaw += Math.abs(d) <= step ? d : Math.sign(d) * step;   // the ROM's clamp, its spend not read
+  if (STEER.on && steerDelta){
+    // ACROSS THE PASS, not at its start: turning it in a few frames and holding is what made him sit at a
+    // fixed angle. The progress only ever goes forward, so a clip held on its last frame stays turned.
+    const act = pose.action, dur = act ? act.getClip().duration : 0;
+    if (act && dur > 0.001) steerProg = Math.max(steerProg, Math.min(act.time / dur, 1));
+    steerWant = steerBase + steerDelta;
+    const want = steerBase + steerDelta * steerProg;
+    const d = wrapPi(want - steerYaw), step = STEER.rate * Math.PI / 180;
+    steerYaw += Math.abs(d) <= step ? d : Math.sign(d) * step;   // the ROM's own per-frame clamp
   }
   // THE TURN GOES ON THE PROXY, NOT ON THE MONSTER'S GROUP. render/pose.js poses every bone by WORLD matrix --
   // `inv(node.parent.matrixWorld) * proxy.matrixWorld` -- so whatever is on the group is divided straight back
