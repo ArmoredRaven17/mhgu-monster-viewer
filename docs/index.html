@@ -1769,6 +1769,8 @@ const loopShift = new THREE.Vector3();         // the hip's X/Z over one pass of
 const lastInLoop = new THREE.Vector3();        // the in-loop travel of the last frame drawn
 // hoisted above play(): it places the steering target while the first monster loads (see stepTurn)
 const STEER = { on: true, rate: 3 };
+let rootYaw0 = 0;
+const _yawFwd = new THREE.Vector3();   // scratch for reading node 00's yaw
 let steerYaw = 0, steerWant = 0;
 const wrapPi = a => Math.atan2(Math.sin(a), Math.cos(a));
 // THERE IS NO YAW TO CARRY BETWEEN CLIPS, and a _start/_loop seam is no exception. This briefly carried one
@@ -7259,29 +7261,31 @@ let turnYaw = 0;
 //     * HOW FAST. The ROM's cap is a budget its applier spends over frames and that spend is NOT READ, so the
 //       rate here is a plain degrees-a-frame stand-in. __view.steer(rate) changes it, __view.steer(false)
 //       turns the whole test off.
-// the clip's own root swing: its net if it ends turned, else the furthest it reaches. Sign is the side.
-function clipRootSwing(){
-  const act = pose.action;
-  const trk = act && act.getClip().tracks.find(t => t.name === '00.quaternion');
-  if (!trk || trk.values.length < 8) return 0;
-  const v = trk.values, n = v.length / 4;
-  const yawAt = i => { const o = i * 4;
-    return Math.atan2(2 * (v[o] * v[o + 2] + v[o + 3] * v[o + 1]), 1 - 2 * (v[o] * v[o] + v[o + 1] * v[o + 1])); };
-  const first = yawAt(0), net = wrapPi(yawAt(n - 1) - first);
-  let peak = 0;
-  for (let i = 1; i < n; i++){ const d = wrapPi(yawAt(i) - first); if (Math.abs(d) > Math.abs(peak)) peak = d; }
-  // A CLIP THAT ENDS TURNED gives its net; one that comes home gives its furthest reach, but only if that is
-  // turn-sized. Without the floor an idle places a target too -- Seregios' Motion[1]_loop sways 17.8 degrees
-  // and was turning him by it. 25 degrees separates his idles from the clips Raven named as turns, whose
-  // reach is 42 or more.
-  if (Math.abs(net) > 5 * Math.PI / 180) return net;
-  return Math.abs(peak) > 25 * Math.PI / 180 ? peak : 0;
+// THE TARGET MOVES. Raven, 2026-09-27: "What we need is the target to move for the turn animations", "So, not
+// a static location" -- a target planted once and steered onto just displaces him to a bearing and holds it,
+// which is what he saw ("the monster is looking at a 45 degree angle at all times").
+//   WHERE IT MOVES TO IS THE ROM'S. Node 00 is "the one the game's unit position follows", and its yaw over a
+// clip IS the unit's facing over that clip -- the body is authored counter-rotated against it, which is why
+// the root can sweep 177 degrees with the body dead still (measured on the proxy, Seregios L0 Motion[51]).
+// So the bearing to the target at frame t is node 00's own yaw at t, relative to where it stood at frame 0.
+// The target moves with the animation and the monster turns through the whole clip instead of snapping to an
+// offset: a clip whose root comes home turns out and back, and an idle, whose root barely moves, does not turn
+// at all -- no threshold needed.
+//   node 00's world yaw includes the rotation we put on the proxy, so that is taken back off to read the
+// clip's own.
+function rawRootYaw(){
+  const root = pose.proxyBones && pose.proxyBones.get(0), scn = pose.mixer && pose.mixer.getRoot();
+  if (!root || !scn) return 0;
+  root.updateWorldMatrix(true, false);
+  _yawFwd.set(0, 0, 1).transformDirection(root.matrixWorld);
+  return wrapPi(Math.atan2(_yawFwd.x, _yawFwd.z) - scn.rotation.y);
 }
-// a new clip puts the target down again, at the bearing that clip's own root reaches
-function placeSteerTarget(){ steerWant = STEER.on ? steerYaw + clipRootSwing() : steerYaw; }
+// a new clip: the target starts where the monster is, and moves from there as the clip's root does
+function placeSteerTarget(){ rootYaw0 = rawRootYaw(); steerWant = steerYaw; }
 function stepTurn(base, frame){
   turnYaw = base ? turnAt(state.id, state.list, base, frame) * Math.PI / 180 : 0;
   if (STEER.on){
+    steerWant = wrapPi(rawRootYaw() - rootYaw0);                 // the target, moved to this frame's bearing
     const d = wrapPi(steerWant - steerYaw), step = STEER.rate * Math.PI / 180;
     steerYaw += Math.abs(d) <= step ? d : Math.sign(d) * step;   // the ROM's clamp, its spend not read
   }
