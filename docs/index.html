@@ -7285,8 +7285,14 @@ function stepTurn(base, frame){
     const d = wrapPi(steerWant - steerYaw), step = STEER.rate * Math.PI / 180;
     steerYaw += Math.abs(d) <= step ? d : Math.sign(d) * step;   // the ROM's clamp, its spend not read
   }
-  const main = mounted.main;
-  if (main && mountedOn === null) main.rotation.y = turnYaw + steerYaw;
+  // THE TURN GOES ON THE PROXY, NOT ON THE MONSTER'S GROUP. render/pose.js poses every bone by WORLD matrix --
+  // `inv(node.parent.matrixWorld) * proxy.matrixWorld` -- so whatever is on the group is divided straight back
+  // out on the next pose step and the body never moves. Measured: driving the group to 169.9 degrees through
+  // Seregios' L3 Motion[28] left his facing at -88.2, the -86 it started at. Rotating the PROXY instead puts
+  // the turn inside the matrices that are copied, so it reaches the body. anchorProxy only ever writes the
+  // proxy's position, so a rotation set here survives it.
+  const scn = pose.mixer && pose.mixer.getRoot();
+  if (scn) scn.rotation.y = turnYaw + steerYaw;
 }
 
 // AND THE MONSTER GOES ONTO THE SURFACE (E:\offline\decode\notes\posture-mount.md). Showing the plane is not enough:
