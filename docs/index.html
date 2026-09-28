@@ -1307,7 +1307,7 @@ import { loadMaterialsDb } from './render/materials-db.js';
 import { createBackground } from './render/background.js';
 import { createFloorGrid, createGrid } from './render/grid.js';
 import { MotionStates, RAGE_BY_LEVEL, RAGE_PUFF, JOINT_SCALE, JointScale, shellTailInput,
-         postureOf, turnAt, CEILING_ABOVE_GAME } from './render/motion-states.js';
+         postureOf, turnAt, setClipTurns, turnLeanOf, CEILING_ABOVE_GAME } from './render/motion-states.js';
 import { pickVariantsFor } from './render/shells.js';
 import { CUT_TAIL, CutTail } from './render/tail-option.js';
 import { setEyeGlow, updateEyeGlow } from './render/eye-glow.js';
@@ -1526,6 +1526,7 @@ function resolveOptionKey(opts, key, where, stateOn){
 // The ROM's undamaged part sets, applied on top of PartsDisp all-on so part BREAKS are not drawn
 // alongside the intact parts they replace. See ROM_REST_SETS in render/monster.js.
 setRestSets(await loadJson('part-rest.json').catch(() => ({ sets: {}, defaultSet: {} })));
+setClipTurns(await loadJson('clip-turns.json').catch(() => ({ turns: {} })));
   await loadEffectMounts('effect-mounts.json');
 // Monsters whose attack CLIPS carry effects (CLIP_EFFECTS): their runtime mounts whenever they are shown, so
 // driveClipEffects() can start those effects from the clip's frame.
@@ -7280,33 +7281,14 @@ let turnYaw = 0;
 // ends turned, its furthest reach where it comes home. That is the animation's own account of the turn it was
 // authored for, so Motion[44] and Motion[46] turn opposite ways off their own -48.6 and +48.6 and an idle,
 // whose root barely moves, is left alone. Nothing here picks an angle.
+// The lean this clip was authored around, from the turn table (render/motion-states.js CLIP_TURNS, built
+// from docs/clip-turns.json). It used to be measured here every time a clip was picked, which meant the rule
+// lived in two places and could not be reviewed; the table is generated through the same clipFor the viewer
+// plays and ships with the pairs marked.
 function clipRootSwing(){
   const act = pose.action;
-  const trk = act && act.getClip().tracks.find(t => t.name === '00.quaternion');
-  if (!trk || trk.values.length < 8) return 0;
-  const v = trk.values, n = v.length / 4;
-  const yawAt = i => { const o = i * 4;
-    return Math.atan2(2 * (v[o] * v[o + 2] + v[o + 3] * v[o + 1]), 1 - 2 * (v[o] * v[o] + v[o + 1] * v[o + 1])); };
-  // A TURN ANIMATION LEANS OUT AND COMES HOME. Raven, 2026-09-27: "Review L0, M9-10 they look like turns" --
-  // and both are exactly that, 95 frames each, reaching -40.9 and +29.9 and ending back where they began.
-  // That is the shape, because the CLIP is the body turning while the ENGINE carries the heading: the net is
-  // near zero by design, and keying on the net (the previous rule here) threw away every real turn.
-  //   THE SHAPE, and what each part is for:
-  //     reach over 25 deg   the lean is turn-sized -- an idle's sway is 17.8 (Motion[1]_loop)
-  //     net under 15 deg    it comes home; a clip that ends turned is repositioning, not turning
-  //     under 120 frames    a turn is short; Motion[4] (305f) and Motion[15] (475f) lean as far but are not
-  //   On Seregios' L0 that leaves ten, and they fall into MIRRORED PAIRS OF EQUAL LENGTH -- M9/M10 at 95
-  //   frames, M11/M12 at 49, M41/M42 at 51 -- left and right of one turn, which is corroboration the shape is
-  //   the right one and not a threshold fitted to taste.
-  //   THE AMOUNT IS THE REACH: the lean the animation was authored around, which is the "X distance" the
-  //   target moves. The net cannot supply it -- it is zero on every one of these.
-  const first = yawAt(0), net = wrapPi(yawAt(n - 1) - first);
-  let peak = 0;
-  for (let i = 1; i < n; i++){ const d = wrapPi(yawAt(i) - first); if (Math.abs(d) > Math.abs(peak)) peak = d; }
-  const frames = act.getClip().duration * 60;
-  if (Math.abs(peak) <= 25 * Math.PI / 180) return 0;
-  if (Math.abs(net) >= 15 * Math.PI / 180) return 0;
-  return frames < 120 ? peak : 0;
+  const name = act && act.getClip() && act.getClip().name;
+  return name ? turnLeanOf(state.id, state.list, name) * Math.PI / 180 : 0;
 }
 // Every pass puts the target down again, that far round from where he now faces -- so a looping turn keeps
 // turning. A NEW ANIMATION STARTS HIM FACING FRONT AGAIN (Raven, 2026-09-27: "When moving to a new animation,
@@ -7785,6 +7767,10 @@ window.__view.steer = r => {
   placeSteerTarget(true);
   return { ...STEER };
 };
+// clipFor retargets a motion onto the model by global bone id, so it -- not the raw motion file -- is
+// the clip the viewer plays. Exposed so docs/clip-turns.json can be regenerated against what is actually
+// played rather than off the raw motion files, whose node 00 is in another basis.
+window.__view.clipFor = clipFor;
 window.__view.box = (which, on) => {
   if (which === undefined) return { wall: box.wall.info(), ceiling: box.ceiling.info(), at: { ...box.at } };
   const g = box[which];

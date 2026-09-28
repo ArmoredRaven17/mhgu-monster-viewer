@@ -3266,6 +3266,23 @@ export function turnAt(monId, list, clip, frame){
   return t.deg * (frame - t.from) / (t.to - t.from);
 }
 
+// WHICH ANIMATIONS TURN (docs/clip-turns.json, loaded at start-up). A turn animation is the BODY turning
+// while the ENGINE carries the heading, so in the clip node 00 leans out and comes home -- the net is near
+// zero by design, which is why keying on the net threw away every real turn. The shape that finds them:
+// reach over 25 degrees, net under 15, under 120 frames. `deg` is that lean, and it is how far the viewer
+// moves the turn target; `pair` names the clip of the same list and length leaning the other way.
+//   MEASURED THROUGH clipFor, the retarget the viewer plays, not off the raw motion file -- that reads node
+// 00 in another basis and is wrong by over 100 degrees (Seregios' Motion[51]: -32.5 raw against -177 played).
+//   THE RULE IS THE VIEWER'S, NOT THE ROM'S. The ROM's own mark for a turn is in the action layer and has not
+// been read; 160 mirrored pairs across 72 monsters say the shape describes something real, but that is
+// corroboration, not a source.
+export let CLIP_TURNS = {};
+export function setClipTurns(t){ CLIP_TURNS = (t && t.turns) || t || {}; }
+// the lean a clip was authored around, in degrees, or 0 where the clip is not a turn
+export function turnLeanOf(monId, list, clip){
+  const e = CLIP_TURNS[monId] && CLIP_TURNS[monId][list + '|' + clip];
+  return e ? e.deg : 0;
+}
 export const CEILING_ABOVE_GAME = 838;
 export const postureOf = (monId, list, clip) => {
   const t = CLIP_POSTURE[monId];
