@@ -1307,7 +1307,7 @@ import { loadMaterialsDb } from './render/materials-db.js';
 import { createBackground } from './render/background.js';
 import { createFloorGrid, createGrid } from './render/grid.js';
 import { MotionStates, RAGE_BY_LEVEL, RAGE_PUFF, JOINT_SCALE, JointScale, shellTailInput,
-         postureOf, turnAt, setClipTurns, turnLeanOf, CEILING_ABOVE_GAME } from './render/motion-states.js';
+         postureOf, turnAt, CEILING_ABOVE_GAME } from './render/motion-states.js';
 import { pickVariantsFor } from './render/shells.js';
 import { CUT_TAIL, CutTail } from './render/tail-option.js';
 import { setEyeGlow, updateEyeGlow } from './render/eye-glow.js';
@@ -1526,7 +1526,6 @@ function resolveOptionKey(opts, key, where, stateOn){
 // The ROM's undamaged part sets, applied on top of PartsDisp all-on so part BREAKS are not drawn
 // alongside the intact parts they replace. See ROM_REST_SETS in render/monster.js.
 setRestSets(await loadJson('part-rest.json').catch(() => ({ sets: {}, defaultSet: {} })));
-setClipTurns(await loadJson('clip-turns.json').catch(() => ({ turns: {} })));
   await loadEffectMounts('effect-mounts.json');
 // Monsters whose attack CLIPS carry effects (CLIP_EFFECTS): their runtime mounts whenever they are shown, so
 // driveClipEffects() can start those effects from the clip's frame.
@@ -1768,12 +1767,6 @@ function monsterTravel(out){
 // clip is never a restart, so seeking back is a seek.
 const loopShift = new THREE.Vector3();         // the hip's X/Z over one pass of the playing clip, scene units
 const lastInLoop = new THREE.Vector3();        // the in-loop travel of the last frame drawn
-// hoisted above play(): it places the steering target while the first monster loads (see stepTurn)
-const STEER = { on: true, rate: 3 };
-let steerBase = 0, steerDelta = 0, steerProg = 0;
-const _yawFwd = new THREE.Vector3();   // scratch for reading node 00's yaw
-let steerYaw = 0, steerWant = 0;
-const wrapPi = a => Math.atan2(Math.sin(a), Math.cos(a));
 // THERE IS NO YAW TO CARRY BETWEEN CLIPS, and a _start/_loop seam is no exception. This briefly carried one
 // (2026-09-27) on a reading that turned out to be wrong, so the measurement is kept here to stop it being
 // re-tried: NODE 00's ROTATION DOES NOT ORIENT THE BODY. Measured on the proxy itself over Seregios'
@@ -1812,8 +1805,7 @@ function carryLoop(){
   const act = pose.action;
   const restarted = !!act && act === carryAction && !act.paused && act.timeScale > 0 && pose.anchorXZ === false
                     && act.time + 1e-6 < carryTime;
-  // a pass that started over puts the turn's target down again, so a looping turn keeps turning (STEER)
-  if (restarted){ shiftWorld(loopShift.x, loopShift.z); placeSteerTarget(false); }
+  if (restarted) shiftWorld(loopShift.x, loopShift.z);
   carryAction = act; carryTime = act ? act.time : 0;
   return restarted;
 }
@@ -4883,7 +4875,6 @@ async function mount(){
     if (mounted.main && mounted.main.userData.gagEyes) mountGagEyes(mounted.main, null);
     clearMounts();
     world.position.x = 0; world.position.z = 0; lastInLoop.set(0, 0, 0);   // a new monster starts at the origin
-    steerYaw = 0; steerWant = 0;                                           // ...facing front, as it did
     forgetTravel();
     world.add(main); mounted.main = main;
     for (const [name, g] of extra){ world.add(g); mounted[name] = g; }
@@ -6433,7 +6424,6 @@ async function play(){
   // the new clip's first frame goes where the old clip's last drawn one was (THE WALK CARRIES OVER)
   { const first = measureLoopShift(); shiftWorld(lastInLoop.x - first.x, lastInLoop.z - first.z); lastInLoop.copy(first);
     carryAction = pose.action; carryTime = pose.action ? pose.action.time : 0; }
-  placeSteerTarget(true);      // a new clip: face front again, then put its target down (STEER)
   await playAttached(l, c);
   stepAttached();
   // every clip, list and lock change comes through here, and the severed pieces stand on the new floor
@@ -7241,78 +7231,21 @@ function stepBox(base){
 // the unit where the turn put it. A mount takes it as its own yaw instead (stepMount), since a wall or ceiling
 // clip is pinned to a plane and cannot also be spun freely.
 let turnYaw = 0;
-// THE STEERING, AND A TEST TARGET TO STEER AT. Raven, 2026-09-27: "Try giving a target for the turn animations,
-// that helped with attack effects", then "We will need to know if the monster is turning left or right for the
-// correct placement".
-//   THE ROM'S OWN STEERING (0x76e50, and its applier just above at 0x76e20), which is what this follows:
-//     p    = [enemy+0x1428]
-//     want = atan2f(p[0x1d0] - p[0x40], p[0x1d8] - p[0x48]) * 10430.378 + 0.5   -- the bearing to the TARGET,
-//            +0x1d0 / +0x1d8 being the same target point the shells already read
-//     d    = uxth(want - p[0x54]); if (d > 0x8000) d = uxth(p[0x54] - want)     -- the short way round
-//     if (d >= cap) d = cap                                                      -- a per-ACTION cap, not per
-//            monster: the 12 call sites pass 0x1555, 0x2aab, 0x4000, 0x5555, 0xe000 = 30, 60, 90, 120, 315 deg
-//     p[0x200] = d, and the applier adds a scaled part of it to the yaw p[0x54] each frame.
-//   TWO VIEWER STAND-INS, both flagged because the ROM does not give them here:
-//     * WHERE THE TARGET IS. The game aims at a hunter; the viewer has none, and the existing stand-in
-//       (TARGET_AHEAD) sits along the monster's OWN facing, so steering at it can never turn him -- which is
-//       exactly what Raven was seeing. So the target is placed off to one side when a clip starts and stays
-//       put in the world while he turns onto it. WHICH SIDE AND HOW FAR IS THE CLIP'S OWN: node 00's yaw
-//       track, its net where it has one and its furthest excursion where it comes home. That is why
-//       Motion[44] and Motion[46] place to opposite sides -- they peak at -48.6 and +48.6 -- and it is read
-//       off the .lmt rather than chosen.
-//     * HOW FAST. The ROM's cap is a budget its applier spends over frames and that spend is NOT READ, so the
-//       rate here is a plain degrees-a-frame stand-in. __view.steer(rate) changes it, __view.steer(false)
-//       turns the whole test off.
-// THE TARGET MOVES. Raven, 2026-09-27: "What we need is the target to move for the turn animations", "So, not
-// a static location" -- a target planted once and steered onto just displaces him to a bearing and holds it,
-// which is what he saw ("the monster is looking at a 45 degree angle at all times").
-//   WHERE IT MOVES TO IS THE ROM'S. Node 00 is "the one the game's unit position follows", and its yaw over a
-// clip IS the unit's facing over that clip -- the body is authored counter-rotated against it, which is why
-// the root can sweep 177 degrees with the body dead still (measured on the proxy, Seregios L0 Motion[51]).
-// So the bearing to the target at frame t is node 00's own yaw at t, relative to where it stood at frame 0.
-// The target moves with the animation and the monster turns through the whole clip instead of snapping to an
-// offset: a clip whose root comes home turns out and back, and an idle, whose root barely moves, does not turn
-// at all -- no threshold needed.
-//   AND IT IS PUT DOWN AGAIN EVERY PASS. Raven, 2026-09-27: "we need to find which animations turn and set a
-// target when the turn animations starts. When the animation loops, it needs the target to move so we end up
-// turning each time." A target placed once is a fixed point and he holds at it; re-placed each pass, ahead of
-// wherever he now faces, he turns again with every loop -- a monster turning after a hunter who keeps moving.
-//   WHICH ANIMATIONS TURN, AND BY HOW MUCH, IS THE CLIP'S OWN. node 00's yaw track: its net where the clip
-// ends turned, its furthest reach where it comes home. That is the animation's own account of the turn it was
-// authored for, so Motion[44] and Motion[46] turn opposite ways off their own -48.6 and +48.6 and an idle,
-// whose root barely moves, is left alone. Nothing here picks an angle.
-// The lean this clip was authored around, from the turn table (render/motion-states.js CLIP_TURNS, built
-// from docs/clip-turns.json). It used to be measured here every time a clip was picked, which meant the rule
-// lived in two places and could not be reviewed; the table is generated through the same clipFor the viewer
-// plays and ships with the pairs marked.
-function clipRootSwing(){
-  const act = pose.action;
-  const name = act && act.getClip() && act.getClip().name;
-  return name ? turnLeanOf(state.id, state.list, name) * Math.PI / 180 : 0;
-}
-// Every pass puts the target down again, that far round from where he now faces -- so a looping turn keeps
-// turning. A NEW ANIMATION STARTS HIM FACING FRONT AGAIN (Raven, 2026-09-27: "When moving to a new animation,
-// we should reset the orientation"): the turn a clip built up belongs to that clip, and carrying it into the
-// next one just leaves him further round every time you pick something from the list. A loop of the SAME clip
-// is not a new animation and does carry.
-function placeSteerTarget(fresh){
-  if (fresh){ steerYaw = 0; }
-  steerBase = steerYaw;
-  steerDelta = STEER.on ? clipRootSwing() : 0;
-  steerProg = 0;
-}
+// THE STEERING TEST IS GONE (2026-09-28). It turned a monster toward a target placed from its own animation.
+// Raven: "Remove the steering code for now, I am not quite happy where it is at currently", his intent having
+// been "to let the monsters move around more like how they would in game".
+//   WHAT STOPPED IT WAS DIRECTION, not plumbing. He judged Rathian's L0 Motion[10] right (its longest root
+// swing is negative and she turns right) and L0 Motion[11] wrong (a SINGLE swing, also negative, but her head
+// goes LEFT). Same sign, opposite answers, and M11 has no second swing to read differently -- so a clip's own
+// rotation does not encode which way its turn goes. Four statistics were tried and all give that same sign:
+// the first swing, the largest, the longest, and the BODY's own axis, which tracks node 00 almost exactly and
+// so adds nothing.
+//   THE MEASUREMENT SURVIVES in docs/clip-turns.json and render/motion-states.js CLIP_TURNS: which clips
+// mirror, by how much, how far they travel, every row from that monster's own animation. What is missing is
+// the LABEL and the DIRECTION, and both live in the ROM's action layer -- a turn animation is the motion a
+// turn ACTION plays. Re-wiring is turnLeanOf() and a target; the angle's SIGN is the part not to trust.
 function stepTurn(base, frame){
   turnYaw = base ? turnAt(state.id, state.list, base, frame) * Math.PI / 180 : 0;
-  if (STEER.on && steerDelta){
-    // ACROSS THE PASS, not at its start: turning it in a few frames and holding is what made him sit at a
-    // fixed angle. The progress only ever goes forward, so a clip held on its last frame stays turned.
-    const act = pose.action, dur = act ? act.getClip().duration : 0;
-    if (act && dur > 0.001) steerProg = Math.max(steerProg, Math.min(act.time / dur, 1));
-    steerWant = steerBase + steerDelta;
-    const want = steerBase + steerDelta * steerProg;
-    const d = wrapPi(want - steerYaw), step = STEER.rate * Math.PI / 180;
-    steerYaw += Math.abs(d) <= step ? d : Math.sign(d) * step;   // the ROM's own per-frame clamp
-  }
   // THE TURN GOES ON THE PROXY, NOT ON THE MONSTER'S GROUP. render/pose.js poses every bone by WORLD matrix --
   // `inv(node.parent.matrixWorld) * proxy.matrixWorld` -- so whatever is on the group is divided straight back
   // out on the next pose step and the body never moves. Measured: driving the group to 169.9 degrees through
@@ -7328,7 +7261,7 @@ function stepTurn(base, frame){
   //   across every clip: the root tracks are 00.position, 00.quaternion and reference.position).
   const scn = pose.mixer && pose.mixer.getRoot();
   const ref = scn && (scn.getObjectByName('reference') || scn);
-  if (ref) ref.rotation.y = turnYaw + steerYaw;
+  if (ref) ref.rotation.y = turnYaw;
 }
 
 // AND THE MONSTER GOES ONTO THE SURFACE (E:\offline\decode\notes\posture-mount.md). Showing the plane is not enough:
@@ -7756,19 +7689,8 @@ window.__view.effects = async (on, only) => {
 window.__view.effectsAvailable = () => effectMountsFor(state.id);
 // __view.box('wall', true) / ('ceiling', true) shows one; a number places it instead of the default (the wall's own
 // z, the ceiling's height above the floor, both in metres); __view.box() reports both.
-// __view.steer(3) sets the test's degrees a frame, __view.steer(false) turns it off, __view.steer() reports.
-// The rate is a viewer stand-in: the ROM caps the turn per action (30/60/90/120/315 degrees) but how its applier
-// spends that cap over frames is not read.
-window.__view.steer = r => {
-  if (r === undefined) return { ...STEER, yaw: +(steerYaw * 180 / Math.PI).toFixed(1),
-                                want: +(steerWant * 180 / Math.PI).toFixed(1) };
-  if (r === false || r === true){ STEER.on = !!r; if (!r){ steerYaw = 0; steerWant = 0; } }
-  else { STEER.rate = +r || 3; STEER.on = true; }
-  placeSteerTarget(true);
-  return { ...STEER };
-};
-// clipFor retargets a motion onto the model by global bone id, so it -- not the raw motion file -- is
-// the clip the viewer plays. Exposed so docs/clip-turns.json can be regenerated against what is actually
+// clipFor retargets a motion onto the model by global bone id, so it -- not the raw motion file -- is the
+// clip the viewer plays. Exposed so docs/clip-turns.json can be regenerated against what is actually
 // played rather than off the raw motion files, whose node 00 is in another basis.
 window.__view.clipFor = clipFor;
 window.__view.box = (which, on) => {

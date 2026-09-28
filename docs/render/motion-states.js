@@ -3266,7 +3266,12 @@ export function turnAt(monId, list, clip, frame){
   return t.deg * (frame - t.from) / (t.to - t.from);
 }
 
-// WHICH ANIMATIONS TURN (docs/clip-turns.json, loaded at start-up). A turn animation is the BODY turning
+// WHICH ANIMATIONS TURN (docs/clip-turns.json). NOTHING LOADS IT RIGHT NOW: the viewer's steering test was
+// removed on 2026-09-28 and it was the only caller, so CLIP_TURNS is empty and turnLeanOf() answers 0 until
+// something calls setClipTurns() again. The table is kept because the MEASUREMENT is sound and the file is
+// generated; what it cannot tell you is the DIRECTION -- see the note above stepTurn in index.html, where
+// Rathian's L0 Motion[10] and Motion[11] lean the same way on screen and turn opposite ways.
+//   A turn animation is the BODY turning
 // while the ENGINE carries the heading, so in the clip node 00 leans out and comes home -- the net is near
 // zero by design, which is why keying on the net threw away every real turn. The shape that finds them:
 // reach over 25 degrees, net under 15, under 120 frames. `deg` is that lean, and it is how far the viewer
