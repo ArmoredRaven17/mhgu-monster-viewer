@@ -7287,17 +7287,26 @@ function clipRootSwing(){
   const v = trk.values, n = v.length / 4;
   const yawAt = i => { const o = i * 4;
     return Math.atan2(2 * (v[o] * v[o + 2] + v[o + 3] * v[o + 1]), 1 - 2 * (v[o] * v[o] + v[o + 1] * v[o + 1])); };
-  // A TURN ENDS TURNED -- Raven's own test, 2026-09-27: "If the monster turned, it would not end up back in
-  // the same position". So it is the NET that decides, first key to last, and the reach is not consulted at
-  // all. Bringing the reach in was what made this useless: it called 32 of Seregios' 47 L0 clips turns and 31
-  // of his 34 L2 attacks, because a clip that leans out and comes home reaches just as far as one that turns.
-  //   THE CUT IS THE DATA'S OWN. His L0 nets run 3.8, 4.2, 5.1 ... 12.2, 15.0 and then jump straight to 26.0,
-  // 29.3, 29.5, 31.0, 31.2, 43.7, 47.4, 52.2, 74.2, 177.0. Everything below 15 is sway and everything above 26
-  // is a turn, so the threshold goes in the gap. It leaves twelve L0 turns, among them the mirrored pairs
-  // Motion[44] / Motion[46] and Motion[43] / Motion[45] -- left and right of the same turn, which is what a
-  // turn set should look like -- and rejects Motion[35] (net 3.8, reach -44.6), which leans and comes home.
+  // A TURN ANIMATION LEANS OUT AND COMES HOME. Raven, 2026-09-27: "Review L0, M9-10 they look like turns" --
+  // and both are exactly that, 95 frames each, reaching -40.9 and +29.9 and ending back where they began.
+  // That is the shape, because the CLIP is the body turning while the ENGINE carries the heading: the net is
+  // near zero by design, and keying on the net (the previous rule here) threw away every real turn.
+  //   THE SHAPE, and what each part is for:
+  //     reach over 25 deg   the lean is turn-sized -- an idle's sway is 17.8 (Motion[1]_loop)
+  //     net under 15 deg    it comes home; a clip that ends turned is repositioning, not turning
+  //     under 120 frames    a turn is short; Motion[4] (305f) and Motion[15] (475f) lean as far but are not
+  //   On Seregios' L0 that leaves ten, and they fall into MIRRORED PAIRS OF EQUAL LENGTH -- M9/M10 at 95
+  //   frames, M11/M12 at 49, M41/M42 at 51 -- left and right of one turn, which is corroboration the shape is
+  //   the right one and not a threshold fitted to taste.
+  //   THE AMOUNT IS THE REACH: the lean the animation was authored around, which is the "X distance" the
+  //   target moves. The net cannot supply it -- it is zero on every one of these.
   const first = yawAt(0), net = wrapPi(yawAt(n - 1) - first);
-  return Math.abs(net) > 20 * Math.PI / 180 ? net : 0;
+  let peak = 0;
+  for (let i = 1; i < n; i++){ const d = wrapPi(yawAt(i) - first); if (Math.abs(d) > Math.abs(peak)) peak = d; }
+  const frames = act.getClip().duration * 60;
+  if (Math.abs(peak) <= 25 * Math.PI / 180) return 0;
+  if (Math.abs(net) >= 15 * Math.PI / 180) return 0;
+  return frames < 120 ? peak : 0;
 }
 // every pass -- a new clip, and every loop of it -- puts the target down again, that far round from here
 function placeSteerTarget(){
