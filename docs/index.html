@@ -7323,8 +7323,16 @@ function stepTurn(base, frame){
   // Seregios' L3 Motion[28] left his facing at -88.2, the -86 it started at. Rotating the PROXY instead puts
   // the turn inside the matrices that are copied, so it reaches the body. anchorProxy only ever writes the
   // proxy's position, so a rotation set here survives it.
+  //   AND IT PIVOTS ON THE `reference` NODE, not on the proxy scene. Rotating the SCENE turns the monster
+  //   about the scene's origin, which anchorProxy pins at world x=z=0 while the clip's own travel carries the
+  //   monster away from it -- so a clip that travels orbits that distant point instead of turning. Raven,
+  //   2026-09-27: "Tail cut animation causes the model to swirl around the tail". `reference` is the node the
+  //   clip's travel is authored on and node 00's parent, so a rotation there turns the monster about where he
+  //   actually is, and it survives the mixer because no clip carries a reference.quaternion track (checked
+  //   across every clip: the root tracks are 00.position, 00.quaternion and reference.position).
   const scn = pose.mixer && pose.mixer.getRoot();
-  if (scn) scn.rotation.y = turnYaw + steerYaw;
+  const ref = scn && (scn.getObjectByName('reference') || scn);
+  if (ref) ref.rotation.y = turnYaw + steerYaw;
 }
 
 // AND THE MONSTER GOES ONTO THE SURFACE (E:\offline\decode\notes\posture-mount.md). Showing the plane is not enough:
