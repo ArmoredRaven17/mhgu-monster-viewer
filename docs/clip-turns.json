@@ -1,7 +1,19 @@
 {
- "_about": "Turn animations, measured through the viewer's own clipFor -- the clip it PLAYS, retargeted onto the model by global bone id. NOT the raw motion file: its node 00 track is in another basis and gave angles wrong by over 100 degrees (Seregios' Motion[51] read -32.5 there against -177 played). A turn animation is the BODY turning while the engine carries the heading, so node 00 leans out and comes home. What qualifies: the lean gets past 25 degrees, the net is under 15, the clip is under 120 frames, and it TRAVELS UNDER 2 METRES -- without that last one a walk or a charge came through, whose body sways as far as a turn leans (Rathian's Motion[7]_loop travels 16.8m). `deg` is THE FIRST SWING past 15 degrees, followed to its extreme, NOT the largest excursion: a turn clip can swing twice, and Seregios' Motion[35] (left then right) and Motion[36] (right then left) are a true mirror pair that the largest-excursion reading made lean the same way. `pair` is the clip of the same list and length leaning the other way. REGENERATE through window.__view.clipFor over every monster's lists (scratchpad/vgen.js). THE RULE IS THE VIEWER'S, NOT THE ROM'S -- the ROM's own mark for a turn is in the action layer and is not read; the mirrored pairs are corroboration, not a source.",
+ "_about": "Turn animations, measured per monster through the viewer's own clipFor -- the clip it PLAYS, retargeted onto the model by global bone id, NOT the raw motion file (node 00 is in another basis there and reads over 100 degrees out). NOTHING HERE IS CARRIED BETWEEN MONSTERS: list/motion numbers identify a slot on one monster only, so every row is measured from that monster's own animation. A turn animation is the BODY turning while the engine carries the heading, so node 00 leans out and comes home: net under 15 degrees, under 120 frames, and travel under 2 metres (without that a walk or a charge comes through -- Rathian's Motion[7]_loop travels 16.8m). `deg` is THE LONGEST SWING, taken to its extreme. Not the first: a turn clip winds up before it turns, and Rathian's Motion[10] runs +12 for three samples then -20 for seven -- Raven, 2026-09-28: 'L0M10 turns to her right, but she rotates to her left', the viewer having followed the wind-up. Not the biggest either: that made Seregios' Motion[35] and Motion[36] lean the same way when they mirror. POSITIVE IS THE MONSTER'S LEFT, negative its right, confirmed against Rathian's Motion[10] on screen. A lean over 25 degrees stands alone; a gentler one is kept only if another clip of the same list and length leans the other way (`pair`) -- no threshold separates Rathian's 17-20 degree turns from Seregios' 17.8 degree idle sway, but a turn has a mirror and an idle does not. THE LABEL IS STILL THE VIEWER'S, NOT THE ROM'S: the ROM's own mark for a turn is in the action layer and is not read, and mirrored pairs also exist for reactions such as stuns, which this cannot tell apart.",
  "turns": {
   "em001_00": {
+   "0|Motion[9]": {
+    "deg": 17.2,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[10]"
+   },
+   "0|Motion[10]": {
+    "deg": -20.3,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[9]"
+   },
    "0|Motion[11]": {
     "deg": -41.5,
     "frames": 49,
@@ -13,6 +25,11 @@
     "frames": 49,
     "travel": 0.71,
     "pair": "Motion[11]"
+   },
+   "1|Motion[25]": {
+    "deg": 29.1,
+    "frames": 105,
+    "travel": 0
    },
    "3|Motion[5]_loop": {
     "deg": 26.8,
@@ -26,8 +43,20 @@
     "travel": 0.2,
     "pair": "Motion[5]_loop"
    },
+   "3|Motion[7]": {
+    "deg": 10.8,
+    "frames": 83,
+    "travel": 0.94,
+    "pair": "Motion[8]"
+   },
+   "3|Motion[8]": {
+    "deg": -10.8,
+    "frames": 83,
+    "travel": 0.95,
+    "pair": "Motion[7]"
+   },
    "3|Motion[23]_loop": {
-    "deg": -121.8,
+    "deg": -134.5,
     "frames": 66,
     "travel": 0.03
    },
@@ -38,6 +67,18 @@
    }
   },
   "em001_02": {
+   "0|Motion[9]": {
+    "deg": 17.2,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[10]"
+   },
+   "0|Motion[10]": {
+    "deg": -20.3,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[9]"
+   },
    "0|Motion[11]": {
     "deg": -41.5,
     "frames": 49,
@@ -49,6 +90,11 @@
     "frames": 49,
     "travel": 0.71,
     "pair": "Motion[11]"
+   },
+   "1|Motion[25]": {
+    "deg": 29.1,
+    "frames": 105,
+    "travel": 0
    },
    "3|Motion[5]_loop": {
     "deg": 26.8,
@@ -62,8 +108,20 @@
     "travel": 0.2,
     "pair": "Motion[5]_loop"
    },
+   "3|Motion[7]": {
+    "deg": 10.8,
+    "frames": 83,
+    "travel": 0.94,
+    "pair": "Motion[8]"
+   },
+   "3|Motion[8]": {
+    "deg": -10.8,
+    "frames": 83,
+    "travel": 0.95,
+    "pair": "Motion[7]"
+   },
    "3|Motion[23]_loop": {
-    "deg": -121.8,
+    "deg": -134.5,
     "frames": 66,
     "travel": 0.03
    },
@@ -74,6 +132,18 @@
    }
   },
   "em001_04": {
+   "0|Motion[9]": {
+    "deg": 17.2,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[10]"
+   },
+   "0|Motion[10]": {
+    "deg": -20.3,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[9]"
+   },
    "0|Motion[11]": {
     "deg": -41.5,
     "frames": 49,
@@ -85,6 +155,11 @@
     "frames": 49,
     "travel": 0.71,
     "pair": "Motion[11]"
+   },
+   "1|Motion[25]": {
+    "deg": 29.1,
+    "frames": 105,
+    "travel": 0
    },
    "3|Motion[5]_loop": {
     "deg": 26.8,
@@ -98,8 +173,20 @@
     "travel": 0.2,
     "pair": "Motion[5]_loop"
    },
+   "3|Motion[7]": {
+    "deg": 10.8,
+    "frames": 83,
+    "travel": 0.94,
+    "pair": "Motion[8]"
+   },
+   "3|Motion[8]": {
+    "deg": -10.8,
+    "frames": 83,
+    "travel": 0.95,
+    "pair": "Motion[7]"
+   },
    "3|Motion[23]_loop": {
-    "deg": -121.8,
+    "deg": -134.5,
     "frames": 66,
     "travel": 0.03
    },
@@ -110,6 +197,18 @@
    }
   },
   "em002_00": {
+   "0|Motion[9]": {
+    "deg": 17.2,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[10]"
+   },
+   "0|Motion[10]": {
+    "deg": -20.3,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[9]"
+   },
    "0|Motion[11]": {
     "deg": -41.5,
     "frames": 49,
@@ -121,6 +220,11 @@
     "frames": 49,
     "travel": 0.71,
     "pair": "Motion[11]"
+   },
+   "1|Motion[25]": {
+    "deg": 29.1,
+    "frames": 105,
+    "travel": 0
    },
    "3|Motion[5]_loop": {
     "deg": 26.8,
@@ -134,13 +238,37 @@
     "travel": 0.2,
     "pair": "Motion[5]_loop"
    },
+   "3|Motion[7]": {
+    "deg": 10.8,
+    "frames": 83,
+    "travel": 0.94,
+    "pair": "Motion[8]"
+   },
+   "3|Motion[8]": {
+    "deg": -10.8,
+    "frames": 83,
+    "travel": 0.95,
+    "pair": "Motion[7]"
+   },
    "3|Motion[23]_loop": {
-    "deg": -121.8,
+    "deg": -134.5,
     "frames": 66,
     "travel": 0.03
    }
   },
   "em002_02": {
+   "0|Motion[9]": {
+    "deg": 17.2,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[10]"
+   },
+   "0|Motion[10]": {
+    "deg": -20.3,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[9]"
+   },
    "0|Motion[11]": {
     "deg": -41.5,
     "frames": 49,
@@ -152,6 +280,11 @@
     "frames": 49,
     "travel": 0.71,
     "pair": "Motion[11]"
+   },
+   "1|Motion[25]": {
+    "deg": 29.1,
+    "frames": 105,
+    "travel": 0
    },
    "3|Motion[5]_loop": {
     "deg": 26.8,
@@ -165,13 +298,37 @@
     "travel": 0.2,
     "pair": "Motion[5]_loop"
    },
+   "3|Motion[7]": {
+    "deg": 10.8,
+    "frames": 83,
+    "travel": 0.94,
+    "pair": "Motion[8]"
+   },
+   "3|Motion[8]": {
+    "deg": -10.8,
+    "frames": 83,
+    "travel": 0.95,
+    "pair": "Motion[7]"
+   },
    "3|Motion[23]_loop": {
-    "deg": -121.8,
+    "deg": -134.5,
     "frames": 66,
     "travel": 0.03
    }
   },
   "em002_04": {
+   "0|Motion[9]": {
+    "deg": 17.2,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[10]"
+   },
+   "0|Motion[10]": {
+    "deg": -20.3,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[9]"
+   },
    "0|Motion[11]": {
     "deg": -41.5,
     "frames": 49,
@@ -183,6 +340,11 @@
     "frames": 49,
     "travel": 0.71,
     "pair": "Motion[11]"
+   },
+   "1|Motion[25]": {
+    "deg": 29.1,
+    "frames": 105,
+    "travel": 0
    },
    "3|Motion[5]_loop": {
     "deg": 26.8,
@@ -196,13 +358,37 @@
     "travel": 0.2,
     "pair": "Motion[5]_loop"
    },
+   "3|Motion[7]": {
+    "deg": 10.8,
+    "frames": 83,
+    "travel": 0.94,
+    "pair": "Motion[8]"
+   },
+   "3|Motion[8]": {
+    "deg": -10.8,
+    "frames": 83,
+    "travel": 0.95,
+    "pair": "Motion[7]"
+   },
    "3|Motion[23]_loop": {
-    "deg": -121.8,
+    "deg": -134.5,
     "frames": 66,
     "travel": 0.03
    }
   },
   "em003_00": {
+   "0|Motion[8]": {
+    "deg": 11.4,
+    "frames": 49,
+    "travel": 0.38,
+    "pair": "Motion[9]"
+   },
+   "0|Motion[9]": {
+    "deg": -11.9,
+    "frames": 49,
+    "travel": 0.5,
+    "pair": "Motion[8]"
+   },
    "0|Motion[12]": {
     "deg": 28.1,
     "frames": 49,
@@ -246,6 +432,30 @@
     "frames": 81,
     "travel": 0,
     "pair": "Motion[5]_loop"
+   },
+   "5|Motion[6]": {
+    "deg": 27.4,
+    "frames": 87,
+    "travel": 0.64,
+    "pair": "Motion[7]"
+   },
+   "5|Motion[7]": {
+    "deg": -27.4,
+    "frames": 87,
+    "travel": 0.64,
+    "pair": "Motion[6]"
+   },
+   "5|Motion[39]": {
+    "deg": 16,
+    "frames": 41,
+    "travel": 0.09,
+    "pair": "Motion[40]"
+   },
+   "5|Motion[40]": {
+    "deg": -15.7,
+    "frames": 41,
+    "travel": 0.02,
+    "pair": "Motion[39]"
    }
   },
   "em004_00": {
@@ -286,8 +496,20 @@
     "travel": 0.2,
     "pair": "Motion[5]_loop"
    },
+   "3|Motion[7]": {
+    "deg": 11,
+    "frames": 83,
+    "travel": 0.94,
+    "pair": "Motion[8]"
+   },
+   "3|Motion[8]": {
+    "deg": -11,
+    "frames": 83,
+    "travel": 0.94,
+    "pair": "Motion[7]"
+   },
    "3|Motion[23]_loop": {
-    "deg": -121.8,
+    "deg": -134.5,
     "frames": 66,
     "travel": 0.03
    }
@@ -330,13 +552,37 @@
     "travel": 0.2,
     "pair": "Motion[5]_loop"
    },
+   "3|Motion[7]": {
+    "deg": 11,
+    "frames": 83,
+    "travel": 0.94,
+    "pair": "Motion[8]"
+   },
+   "3|Motion[8]": {
+    "deg": -11,
+    "frames": 83,
+    "travel": 0.94,
+    "pair": "Motion[7]"
+   },
    "3|Motion[23]_loop": {
-    "deg": -121.8,
+    "deg": -134.5,
     "frames": 66,
     "travel": 0.03
    }
   },
   "em007_00": {
+   "0|Motion[9]": {
+    "deg": 17.2,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[10]"
+   },
+   "0|Motion[10]": {
+    "deg": -20.3,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[9]"
+   },
    "0|Motion[11]": {
     "deg": -41.5,
     "frames": 49,
@@ -366,13 +612,37 @@
     "travel": 0.2,
     "pair": "Motion[5]_loop"
    },
+   "3|Motion[7]": {
+    "deg": 10.8,
+    "frames": 83,
+    "travel": 0.94,
+    "pair": "Motion[8]"
+   },
+   "3|Motion[8]": {
+    "deg": -10.8,
+    "frames": 83,
+    "travel": 0.95,
+    "pair": "Motion[7]"
+   },
    "3|Motion[27]_loop": {
-    "deg": -121.8,
+    "deg": -134.5,
     "frames": 66,
     "travel": 0.03
    }
   },
   "em007_04": {
+   "0|Motion[9]": {
+    "deg": 17.2,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[10]"
+   },
+   "0|Motion[10]": {
+    "deg": -20.3,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[9]"
+   },
    "0|Motion[11]": {
     "deg": -41.5,
     "frames": 49,
@@ -402,13 +672,37 @@
     "travel": 0.2,
     "pair": "Motion[5]_loop"
    },
+   "3|Motion[7]": {
+    "deg": 10.8,
+    "frames": 83,
+    "travel": 0.94,
+    "pair": "Motion[8]"
+   },
+   "3|Motion[8]": {
+    "deg": -10.8,
+    "frames": 83,
+    "travel": 0.95,
+    "pair": "Motion[7]"
+   },
    "3|Motion[27]_loop": {
-    "deg": -121.8,
+    "deg": -134.5,
     "frames": 66,
     "travel": 0.03
    }
   },
   "em008_00": {
+   "0|Motion[9]": {
+    "deg": 17.2,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[10]"
+   },
+   "0|Motion[10]": {
+    "deg": -17.8,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[9]"
+   },
    "0|Motion[11]": {
     "deg": -45.8,
     "frames": 49,
@@ -431,6 +725,11 @@
     "travel": 0.48,
     "pair": "Motion[117]"
    },
+   "1|Motion[25]": {
+    "deg": 29.1,
+    "frames": 105,
+    "travel": 0
+   },
    "3|Motion[5]_loop": {
     "deg": 26.8,
     "frames": 81,
@@ -443,13 +742,37 @@
     "travel": 0.2,
     "pair": "Motion[5]_loop"
    },
+   "3|Motion[7]": {
+    "deg": 10.3,
+    "frames": 83,
+    "travel": 0.94,
+    "pair": "Motion[8]"
+   },
+   "3|Motion[8]": {
+    "deg": -10.8,
+    "frames": 83,
+    "travel": 0.95,
+    "pair": "Motion[7]"
+   },
    "3|Motion[23]_loop": {
-    "deg": -121.8,
+    "deg": -134.5,
     "frames": 66,
     "travel": 0.03
    }
   },
   "em009_00": {
+   "0|Motion[9]": {
+    "deg": 17.2,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[10]"
+   },
+   "0|Motion[10]": {
+    "deg": -17.8,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[9]"
+   },
    "0|Motion[11]": {
     "deg": -45.8,
     "frames": 49,
@@ -467,6 +790,11 @@
     "travel": 0.48,
     "pair": "Motion[117]"
    },
+   "1|Motion[25]": {
+    "deg": 29.1,
+    "frames": 105,
+    "travel": 0
+   },
    "3|Motion[5]_loop": {
     "deg": 26.8,
     "frames": 81,
@@ -479,8 +807,20 @@
     "travel": 0.2,
     "pair": "Motion[5]_loop"
    },
+   "3|Motion[7]": {
+    "deg": 10.3,
+    "frames": 83,
+    "travel": 0.94,
+    "pair": "Motion[8]"
+   },
+   "3|Motion[8]": {
+    "deg": -10.8,
+    "frames": 83,
+    "travel": 0.95,
+    "pair": "Motion[7]"
+   },
    "3|Motion[23]_loop": {
-    "deg": -121.8,
+    "deg": -134.5,
     "frames": 66,
     "travel": 0.03
    },
@@ -491,27 +831,29 @@
    }
   },
   "em010_00": {
-   "0|Motion[32]_start": {
-    "deg": 27,
-    "frames": 50,
-    "travel": 0
+   "0|Motion[9]": {
+    "deg": -15.4,
+    "frames": 71,
+    "travel": 0.44,
+    "pair": "Motion[10]"
    },
-   "3|Motion[12]": {
-    "deg": -54,
-    "frames": 109,
-    "travel": 1.32,
-    "pair": "Motion[13]"
+   "0|Motion[10]": {
+    "deg": 16.3,
+    "frames": 71,
+    "travel": 0.44,
+    "pair": "Motion[9]"
    },
-   "3|Motion[13]": {
-    "deg": 54,
-    "frames": 109,
-    "travel": 1.32,
-    "pair": "Motion[12]"
+   "0|Motion[28]_loop": {
+    "deg": 14.2,
+    "frames": 89,
+    "travel": 0.41,
+    "pair": "Motion[29]_loop"
    },
-   "3|Motion[30]": {
-    "deg": 26.2,
-    "frames": 107,
-    "travel": 1.27
+   "0|Motion[29]_loop": {
+    "deg": -14.2,
+    "frames": 89,
+    "travel": 0.41,
+    "pair": "Motion[28]_loop"
    },
    "3|Motion[34]": {
     "deg": 36.5,
@@ -520,6 +862,18 @@
    }
   },
   "em011_00": {
+   "0|Motion[11]": {
+    "deg": 19,
+    "frames": 37,
+    "travel": 1.26,
+    "pair": "Motion[12]"
+   },
+   "0|Motion[12]": {
+    "deg": -19,
+    "frames": 37,
+    "travel": 1.26,
+    "pair": "Motion[11]"
+   },
    "0|Motion[14]": {
     "deg": -92,
     "frames": 63,
@@ -535,10 +889,23 @@
    "3|Motion[1]": {
     "deg": -25.1,
     "frames": 49,
-    "travel": 0.27
+    "travel": 0.27,
+    "pair": "Motion[2]"
+   },
+   "3|Motion[2]": {
+    "deg": 25,
+    "frames": 49,
+    "travel": 0.26,
+    "pair": "Motion[1]"
    }
   },
   "em014_00": {
+   "0|Motion[10]": {
+    "deg": -13.8,
+    "frames": 53,
+    "travel": 0.13,
+    "pair": "Motion[37]"
+   },
    "0|Motion[23]": {
     "deg": 85.7,
     "frames": 61,
@@ -551,6 +918,12 @@
     "travel": 0.53,
     "pair": "Motion[23]"
    },
+   "0|Motion[37]": {
+    "deg": 12.3,
+    "frames": 53,
+    "travel": 0.58,
+    "pair": "Motion[10]"
+   },
    "2|Motion[11]": {
     "deg": 38.5,
     "frames": 89,
@@ -561,10 +934,11 @@
     "frames": 39,
     "travel": 0.78
    },
-   "2|Motion[25]": {
-    "deg": 34.8,
-    "frames": 73,
-    "travel": 1.26
+   "3|Motion[14]": {
+    "deg": -18.8,
+    "frames": 91,
+    "travel": 2,
+    "pair": "Motion[101]_loop"
    },
    "3|Motion[15]": {
     "deg": 28.4,
@@ -580,9 +954,21 @@
     "deg": 35.7,
     "frames": 41,
     "travel": 0.47
+   },
+   "3|Motion[101]_loop": {
+    "deg": 18,
+    "frames": 91,
+    "travel": 0.14,
+    "pair": "Motion[14]"
    }
   },
   "em015_00": {
+   "0|Motion[10]": {
+    "deg": -13.8,
+    "frames": 53,
+    "travel": 0.13,
+    "pair": "Motion[37]"
+   },
    "0|Motion[23]": {
     "deg": 85.7,
     "frames": 61,
@@ -595,6 +981,12 @@
     "travel": 0.53,
     "pair": "Motion[23]"
    },
+   "0|Motion[37]": {
+    "deg": 12.3,
+    "frames": 53,
+    "travel": 0.58,
+    "pair": "Motion[10]"
+   },
    "2|Motion[11]": {
     "deg": 38.5,
     "frames": 89,
@@ -605,10 +997,11 @@
     "frames": 39,
     "travel": 0.78
    },
-   "2|Motion[25]": {
-    "deg": 34.8,
-    "frames": 73,
-    "travel": 1.26
+   "3|Motion[14]": {
+    "deg": -18.8,
+    "frames": 91,
+    "travel": 2,
+    "pair": "Motion[101]_loop"
    },
    "3|Motion[15]": {
     "deg": 28.4,
@@ -624,9 +1017,21 @@
     "deg": 35.7,
     "frames": 41,
     "travel": 0.47
+   },
+   "3|Motion[101]_loop": {
+    "deg": 18,
+    "frames": 91,
+    "travel": 0.14,
+    "pair": "Motion[14]"
    }
   },
   "em016_00": {
+   "0|Motion[10]": {
+    "deg": -13.8,
+    "frames": 53,
+    "travel": 0.13,
+    "pair": "Motion[37]"
+   },
    "0|Motion[23]": {
     "deg": 85.7,
     "frames": 61,
@@ -639,6 +1044,12 @@
     "travel": 0.53,
     "pair": "Motion[23]"
    },
+   "0|Motion[37]": {
+    "deg": 12.3,
+    "frames": 53,
+    "travel": 0.58,
+    "pair": "Motion[10]"
+   },
    "2|Motion[11]": {
     "deg": 38.5,
     "frames": 89,
@@ -649,10 +1060,11 @@
     "frames": 39,
     "travel": 0.78
    },
-   "2|Motion[25]": {
-    "deg": 34.8,
-    "frames": 73,
-    "travel": 1.26
+   "3|Motion[14]": {
+    "deg": -18.8,
+    "frames": 91,
+    "travel": 2,
+    "pair": "Motion[101]_loop"
    },
    "3|Motion[15]": {
     "deg": 28.4,
@@ -668,30 +1080,31 @@
     "deg": 35.7,
     "frames": 41,
     "travel": 0.47
+   },
+   "3|Motion[101]_loop": {
+    "deg": 18,
+    "frames": 91,
+    "travel": 0.14,
+    "pair": "Motion[14]"
    }
   },
   "em017_00": {
+   "0|Motion[9]": {
+    "deg": -15.4,
+    "frames": 71,
+    "travel": 0.44,
+    "pair": "Motion[10]"
+   },
+   "0|Motion[10]": {
+    "deg": 16.3,
+    "frames": 71,
+    "travel": 0.44,
+    "pair": "Motion[9]"
+   },
    "2|Motion[22]_start": {
     "deg": 36,
     "frames": 92,
     "travel": 0.79
-   },
-   "3|Motion[21]": {
-    "deg": -54,
-    "frames": 109,
-    "travel": 1.32,
-    "pair": "Motion[22]"
-   },
-   "3|Motion[22]": {
-    "deg": 54,
-    "frames": 109,
-    "travel": 1.32,
-    "pair": "Motion[21]"
-   },
-   "3|Motion[25]": {
-    "deg": 26.2,
-    "frames": 107,
-    "travel": 1.27
    },
    "3|Motion[29]": {
     "deg": 36.5,
@@ -703,6 +1116,18 @@
     "frames": 20,
     "travel": 0.17
    },
+   "4|Motion[18]_loop": {
+    "deg": 14.2,
+    "frames": 91,
+    "travel": 0.41,
+    "pair": "Motion[19]_loop"
+   },
+   "4|Motion[19]_loop": {
+    "deg": -14.2,
+    "frames": 91,
+    "travel": 0.41,
+    "pair": "Motion[18]_loop"
+   },
    "4|Motion[31]_start": {
     "deg": 165.6,
     "frames": 100,
@@ -710,6 +1135,18 @@
    }
   },
   "em018_00": {
+   "0|Motion[9]": {
+    "deg": 17.2,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[10]"
+   },
+   "0|Motion[10]": {
+    "deg": -17.8,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[9]"
+   },
    "0|Motion[11]": {
     "deg": -45.8,
     "frames": 49,
@@ -732,6 +1169,11 @@
     "travel": 0.48,
     "pair": "Motion[117]"
    },
+   "1|Motion[25]": {
+    "deg": 29.1,
+    "frames": 105,
+    "travel": 0
+   },
    "3|Motion[5]_loop": {
     "deg": 26.8,
     "frames": 81,
@@ -744,18 +1186,42 @@
     "travel": 0.2,
     "pair": "Motion[5]_loop"
    },
+   "3|Motion[7]": {
+    "deg": 10.3,
+    "frames": 83,
+    "travel": 0.94,
+    "pair": "Motion[8]"
+   },
+   "3|Motion[8]": {
+    "deg": -10.8,
+    "frames": 83,
+    "travel": 0.95,
+    "pair": "Motion[7]"
+   },
    "3|Motion[23]_loop": {
-    "deg": -121.8,
+    "deg": -134.5,
     "frames": 66,
     "travel": 0.03
    },
    "4|Motion[65]_start": {
-    "deg": -177.5,
+    "deg": 175.8,
     "frames": 100,
     "travel": 0
    }
   },
   "em018_04": {
+   "0|Motion[9]": {
+    "deg": 17.2,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[10]"
+   },
+   "0|Motion[10]": {
+    "deg": -17.8,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[9]"
+   },
    "0|Motion[11]": {
     "deg": -45.8,
     "frames": 49,
@@ -778,6 +1244,11 @@
     "travel": 0.48,
     "pair": "Motion[117]"
    },
+   "1|Motion[25]": {
+    "deg": 29.1,
+    "frames": 105,
+    "travel": 0
+   },
    "3|Motion[5]_loop": {
     "deg": 26.8,
     "frames": 81,
@@ -790,53 +1261,404 @@
     "travel": 0.2,
     "pair": "Motion[5]_loop"
    },
+   "3|Motion[7]": {
+    "deg": 10.3,
+    "frames": 83,
+    "travel": 0.94,
+    "pair": "Motion[8]"
+   },
+   "3|Motion[8]": {
+    "deg": -10.8,
+    "frames": 83,
+    "travel": 0.95,
+    "pair": "Motion[7]"
+   },
    "3|Motion[23]_loop": {
-    "deg": -121.8,
+    "deg": -134.5,
     "frames": 66,
     "travel": 0.03
    },
    "4|Motion[65]_start": {
-    "deg": -177.5,
+    "deg": 175.8,
     "frames": 100,
     "travel": 0
+   },
+   "9|Motion[1]": {
+    "deg": -17.6,
+    "frames": 101,
+    "travel": 1.21,
+    "pair": "Motion[2]"
+   },
+   "9|Motion[2]": {
+    "deg": 21.3,
+    "frames": 101,
+    "travel": 1.2,
+    "pair": "Motion[1]"
    }
   },
   "em019_00": {
-   "3|Motion[2]_start": {
-    "deg": 29.6,
-    "frames": 106,
-    "travel": 1.79
-   }
-  },
-  "em019_04": {
+   "0|Motion[9]": {
+    "deg": 10.3,
+    "frames": 103,
+    "travel": 0,
+    "pair": "Motion[10]"
+   },
+   "0|Motion[10]": {
+    "deg": -10.6,
+    "frames": 103,
+    "travel": 0,
+    "pair": "Motion[9]"
+   },
+   "0|Motion[11]": {
+    "deg": 10.8,
+    "frames": 73,
+    "travel": 0,
+    "pair": "Motion[12]"
+   },
+   "0|Motion[12]": {
+    "deg": -10.8,
+    "frames": 73,
+    "travel": 0,
+    "pair": "Motion[11]"
+   },
+   "2|Motion[1]": {
+    "deg": -14.1,
+    "frames": 37,
+    "travel": 0.43,
+    "pair": "Motion[7]"
+   },
+   "2|Motion[7]": {
+    "deg": 14.1,
+    "frames": 37,
+    "travel": 0.43,
+    "pair": "Motion[1]"
+   },
    "3|Motion[2]_start": {
     "deg": 29.6,
     "frames": 106,
     "travel": 1.79
    },
-   "9|Motion[15]": {
-    "deg": -25.9,
-    "frames": 69,
-    "travel": 0.53
+   "3|Motion[6]_loop": {
+    "deg": -11.6,
+    "frames": 103,
+    "travel": 0,
+    "pair": "Motion[7]_loop"
+   },
+   "3|Motion[7]_loop": {
+    "deg": 11.6,
+    "frames": 103,
+    "travel": 0,
+    "pair": "Motion[6]_loop"
+   },
+   "3|Motion[27]": {
+    "deg": -25.5,
+    "frames": 47,
+    "travel": 1.83
+   },
+   "3|Motion[28]": {
+    "deg": 39.5,
+    "frames": 103,
+    "travel": 1.61,
+    "pair": "Motion[35]"
+   },
+   "3|Motion[35]": {
+    "deg": -12.6,
+    "frames": 103,
+    "travel": 0.64,
+    "pair": "Motion[28]"
+   }
+  },
+  "em019_04": {
+   "0|Motion[9]": {
+    "deg": 10.3,
+    "frames": 103,
+    "travel": 0,
+    "pair": "Motion[10]"
+   },
+   "0|Motion[10]": {
+    "deg": -10.6,
+    "frames": 103,
+    "travel": 0,
+    "pair": "Motion[9]"
+   },
+   "0|Motion[11]": {
+    "deg": 10.8,
+    "frames": 73,
+    "travel": 0,
+    "pair": "Motion[12]"
+   },
+   "0|Motion[12]": {
+    "deg": -10.8,
+    "frames": 73,
+    "travel": 0,
+    "pair": "Motion[11]"
+   },
+   "2|Motion[1]": {
+    "deg": -14.1,
+    "frames": 37,
+    "travel": 0.43,
+    "pair": "Motion[7]"
+   },
+   "2|Motion[7]": {
+    "deg": 14.1,
+    "frames": 37,
+    "travel": 0.43,
+    "pair": "Motion[1]"
+   },
+   "3|Motion[2]_start": {
+    "deg": 29.6,
+    "frames": 106,
+    "travel": 1.79
+   },
+   "3|Motion[6]_loop": {
+    "deg": -11.6,
+    "frames": 103,
+    "travel": 0,
+    "pair": "Motion[7]_loop"
+   },
+   "3|Motion[7]_loop": {
+    "deg": 11.6,
+    "frames": 103,
+    "travel": 0,
+    "pair": "Motion[6]_loop"
+   },
+   "3|Motion[27]": {
+    "deg": -25.5,
+    "frames": 47,
+    "travel": 1.83
+   },
+   "3|Motion[28]": {
+    "deg": 39.5,
+    "frames": 103,
+    "travel": 1.61,
+    "pair": "Motion[35]"
+   },
+   "3|Motion[35]": {
+    "deg": -12.6,
+    "frames": 103,
+    "travel": 0.64,
+    "pair": "Motion[28]"
    }
   },
   "em020_00": {
+   "0|Motion[9]": {
+    "deg": 10.3,
+    "frames": 103,
+    "travel": 0,
+    "pair": "Motion[10]"
+   },
+   "0|Motion[10]": {
+    "deg": -10.6,
+    "frames": 103,
+    "travel": 0,
+    "pair": "Motion[9]"
+   },
+   "0|Motion[11]": {
+    "deg": 10.8,
+    "frames": 73,
+    "travel": 0,
+    "pair": "Motion[12]"
+   },
+   "0|Motion[12]": {
+    "deg": -10.8,
+    "frames": 73,
+    "travel": 0,
+    "pair": "Motion[11]"
+   },
+   "2|Motion[1]": {
+    "deg": -14.1,
+    "frames": 37,
+    "travel": 0.43,
+    "pair": "Motion[7]"
+   },
+   "2|Motion[7]": {
+    "deg": 14.1,
+    "frames": 37,
+    "travel": 0.43,
+    "pair": "Motion[1]"
+   },
+   "2|Motion[71]": {
+    "deg": -18.6,
+    "frames": 81,
+    "travel": 1.44,
+    "pair": "Motion[72]"
+   },
+   "2|Motion[72]": {
+    "deg": 18.6,
+    "frames": 81,
+    "travel": 1.44,
+    "pair": "Motion[71]"
+   },
    "3|Motion[2]_start": {
     "deg": 29.6,
     "frames": 106,
     "travel": 1.79
+   },
+   "3|Motion[6]_loop": {
+    "deg": -11.6,
+    "frames": 103,
+    "travel": 0,
+    "pair": "Motion[7]_loop"
+   },
+   "3|Motion[7]_loop": {
+    "deg": 11.6,
+    "frames": 103,
+    "travel": 0,
+    "pair": "Motion[6]_loop"
+   },
+   "3|Motion[27]": {
+    "deg": -25.5,
+    "frames": 47,
+    "travel": 1.83
+   },
+   "3|Motion[28]": {
+    "deg": 39.5,
+    "frames": 103,
+    "travel": 1.61,
+    "pair": "Motion[35]"
+   },
+   "3|Motion[35]": {
+    "deg": -12.6,
+    "frames": 103,
+    "travel": 0.64,
+    "pair": "Motion[28]"
+   },
+   "5|Motion[5]": {
+    "deg": 10.6,
+    "frames": 113,
+    "travel": 0,
+    "pair": "Motion[6]"
+   },
+   "5|Motion[6]": {
+    "deg": -10.6,
+    "frames": 113,
+    "travel": 0,
+    "pair": "Motion[5]"
    }
   },
   "em020_04": {
+   "0|Motion[9]": {
+    "deg": 10.3,
+    "frames": 103,
+    "travel": 0,
+    "pair": "Motion[10]"
+   },
+   "0|Motion[10]": {
+    "deg": -10.6,
+    "frames": 103,
+    "travel": 0,
+    "pair": "Motion[9]"
+   },
+   "0|Motion[11]": {
+    "deg": 10.8,
+    "frames": 73,
+    "travel": 0,
+    "pair": "Motion[12]"
+   },
+   "0|Motion[12]": {
+    "deg": -10.8,
+    "frames": 73,
+    "travel": 0,
+    "pair": "Motion[11]"
+   },
+   "2|Motion[1]": {
+    "deg": -14.1,
+    "frames": 37,
+    "travel": 0.43,
+    "pair": "Motion[7]"
+   },
+   "2|Motion[7]": {
+    "deg": 14.1,
+    "frames": 37,
+    "travel": 0.43,
+    "pair": "Motion[1]"
+   },
+   "2|Motion[71]": {
+    "deg": -18.6,
+    "frames": 81,
+    "travel": 1.44,
+    "pair": "Motion[72]"
+   },
+   "2|Motion[72]": {
+    "deg": 18.6,
+    "frames": 81,
+    "travel": 1.44,
+    "pair": "Motion[71]"
+   },
    "3|Motion[2]_start": {
     "deg": 29.6,
     "frames": 106,
     "travel": 1.79
+   },
+   "3|Motion[6]_loop": {
+    "deg": -11.6,
+    "frames": 103,
+    "travel": 0,
+    "pair": "Motion[7]_loop"
+   },
+   "3|Motion[7]_loop": {
+    "deg": 11.6,
+    "frames": 103,
+    "travel": 0,
+    "pair": "Motion[6]_loop"
+   },
+   "3|Motion[27]": {
+    "deg": -25.5,
+    "frames": 47,
+    "travel": 1.83
+   },
+   "3|Motion[28]": {
+    "deg": 39.5,
+    "frames": 103,
+    "travel": 1.61,
+    "pair": "Motion[35]"
+   },
+   "3|Motion[35]": {
+    "deg": -12.6,
+    "frames": 103,
+    "travel": 0.64,
+    "pair": "Motion[28]"
+   },
+   "5|Motion[5]": {
+    "deg": 10.6,
+    "frames": 113,
+    "travel": 0,
+    "pair": "Motion[6]"
+   },
+   "5|Motion[6]": {
+    "deg": -10.6,
+    "frames": 113,
+    "travel": 0,
+    "pair": "Motion[5]"
+   },
+   "9|Motion[11]": {
+    "deg": -24.1,
+    "frames": 33,
+    "travel": 1.53,
+    "pair": "Motion[12]"
+   },
+   "9|Motion[12]": {
+    "deg": 24.1,
+    "frames": 33,
+    "travel": 1.53,
+    "pair": "Motion[11]"
    },
    "9|Motion[18]": {
     "deg": 38.8,
     "frames": 45,
     "travel": 0.58
+   },
+   "9|Motion[27]": {
+    "deg": -23.4,
+    "frames": 97,
+    "travel": 1.47,
+    "pair": "Motion[29]"
+   },
+   "9|Motion[29]": {
+    "deg": 23.4,
+    "frames": 97,
+    "travel": 1.47,
+    "pair": "Motion[27]"
    }
   },
   "em021_00": {
@@ -858,7 +1680,7 @@
     "travel": 0.41
    },
    "0|Motion[12]_start": {
-    "deg": -174.9,
+    "deg": -178.2,
     "frames": 78,
     "travel": 0
    },
@@ -895,12 +1717,17 @@
     "travel": 0.63
    },
    "3|Motion[7]_start": {
-    "deg": 42.9,
+    "deg": -31.7,
     "frames": 108,
     "travel": 0.92
    },
+   "3|Motion[13]": {
+    "deg": 177.6,
+    "frames": 61,
+    "travel": 1.07
+   },
    "3|Motion[14]_loop": {
-    "deg": -177.2,
+    "deg": 173.6,
     "frames": 119,
     "travel": 0.08
    },
@@ -915,7 +1742,7 @@
     "travel": 0.99
    },
    "5|Motion[15]_loop": {
-    "deg": -67.2,
+    "deg": 26.9,
     "frames": 20,
     "travel": 0
    },
@@ -944,7 +1771,7 @@
     "pair": "Motion[5]"
    },
    "0|Motion[38]_start": {
-    "deg": -39.8,
+    "deg": 49.1,
     "frames": 32,
     "travel": 0
    },
@@ -952,6 +1779,23 @@
     "deg": -45.4,
     "frames": 20,
     "travel": 0
+   },
+   "0|Motion[39]": {
+    "deg": -18.1,
+    "frames": 77,
+    "travel": 1.01,
+    "pair": "Motion[42]"
+   },
+   "0|Motion[42]": {
+    "deg": 13.7,
+    "frames": 77,
+    "travel": 1,
+    "pair": "Motion[39]"
+   },
+   "0|Motion[44]_start": {
+    "deg": -53.3,
+    "frames": 26,
+    "travel": 0.52
    },
    "0|Motion[46]": {
     "deg": 74.9,
@@ -971,14 +1815,16 @@
     "travel": 1.52
    },
    "2|Motion[5]": {
-    "deg": -29.7,
+    "deg": 19.6,
     "frames": 91,
-    "travel": 1.11
+    "travel": 1.11,
+    "pair": "Motion[6]"
    },
    "2|Motion[6]": {
     "deg": -36.2,
     "frames": 91,
-    "travel": 1.12
+    "travel": 1.12,
+    "pair": "Motion[5]"
    },
    "3|Motion[6]": {
     "deg": -25.4,
@@ -986,7 +1832,7 @@
     "travel": 0.56
    },
    "3|Motion[10]_start": {
-    "deg": 42.9,
+    "deg": -31.7,
     "frames": 108,
     "travel": 0.92
    },
@@ -1019,6 +1865,18 @@
     "travel": 0.07,
     "pair": "Motion[10]"
    },
+   "0|Motion[12]": {
+    "deg": -14.7,
+    "frames": 47,
+    "travel": 0.25,
+    "pair": "Motion[14]"
+   },
+   "0|Motion[14]": {
+    "deg": 11.1,
+    "frames": 47,
+    "travel": 0.25,
+    "pair": "Motion[12]"
+   },
    "0|Motion[34]_loop": {
     "deg": 179.2,
     "frames": 15,
@@ -1030,7 +1888,7 @@
     "travel": 1.85
    },
    "0|Motion[41]_start": {
-    "deg": -39.8,
+    "deg": 49.1,
     "frames": 32,
     "travel": 0
    },
@@ -1039,20 +1897,50 @@
     "frames": 20,
     "travel": 0
    },
+   "0|Motion[42]": {
+    "deg": -18.1,
+    "frames": 77,
+    "travel": 1.01,
+    "pair": "Motion[45]"
+   },
+   "0|Motion[45]": {
+    "deg": 13.7,
+    "frames": 77,
+    "travel": 1,
+    "pair": "Motion[42]"
+   },
+   "0|Motion[47]_start": {
+    "deg": -53.3,
+    "frames": 26,
+    "travel": 0.52
+   },
    "2|Motion[3]_start": {
     "deg": -33.5,
     "frames": 32,
-    "travel": 1.15
+    "travel": 1.15,
+    "pair": "Motion[5]_start"
+   },
+   "2|Motion[5]_start": {
+    "deg": 19.7,
+    "frames": 32,
+    "travel": 0.55,
+    "pair": "Motion[3]_start"
    },
    "2|Motion[18]_start": {
     "deg": -57.6,
     "frames": 36,
-    "travel": 1.05
+    "travel": 1.05,
+    "pair": "Motion[26]_start"
    },
    "2|Motion[19]_start": {
     "deg": -57.6,
     "frames": 36,
     "travel": 1.05
+   },
+   "2|Motion[21]_start": {
+    "deg": -29.3,
+    "frames": 116,
+    "travel": 1.14
    },
    "2|Motion[22]_start": {
     "deg": 40.4,
@@ -1065,6 +1953,12 @@
     "frames": 76,
     "travel": 1.41,
     "pair": "Motion[22]_start"
+   },
+   "2|Motion[26]_start": {
+    "deg": 10.3,
+    "frames": 36,
+    "travel": 0.3,
+    "pair": "Motion[18]_start"
    },
    "2|Motion[27]_loop": {
     "deg": -26.8,
@@ -1089,7 +1983,7 @@
     "travel": 0.58
    },
    "3|Motion[15]_start": {
-    "deg": 42.9,
+    "deg": -31.7,
     "frames": 108,
     "travel": 0.92
    },
@@ -1097,11 +1991,6 @@
     "deg": 58.3,
     "frames": 61,
     "travel": 0.46
-   },
-   "3|Motion[24]": {
-    "deg": -28.1,
-    "frames": 115,
-    "travel": 0.03
    }
   },
   "em023_05": {
@@ -1117,6 +2006,18 @@
     "travel": 0.07,
     "pair": "Motion[10]"
    },
+   "0|Motion[12]": {
+    "deg": -14.7,
+    "frames": 47,
+    "travel": 0.25,
+    "pair": "Motion[14]"
+   },
+   "0|Motion[14]": {
+    "deg": 11.1,
+    "frames": 47,
+    "travel": 0.25,
+    "pair": "Motion[12]"
+   },
    "0|Motion[34]_loop": {
     "deg": 179.2,
     "frames": 15,
@@ -1128,7 +2029,7 @@
     "travel": 1.85
    },
    "0|Motion[41]_start": {
-    "deg": -39.8,
+    "deg": 49.1,
     "frames": 32,
     "travel": 0
    },
@@ -1137,20 +2038,50 @@
     "frames": 20,
     "travel": 0
    },
+   "0|Motion[42]": {
+    "deg": -18.1,
+    "frames": 77,
+    "travel": 1.01,
+    "pair": "Motion[45]"
+   },
+   "0|Motion[45]": {
+    "deg": 13.7,
+    "frames": 77,
+    "travel": 1,
+    "pair": "Motion[42]"
+   },
+   "0|Motion[47]_start": {
+    "deg": -53.3,
+    "frames": 26,
+    "travel": 0.52
+   },
    "2|Motion[3]_start": {
     "deg": -33.5,
     "frames": 32,
-    "travel": 1.15
+    "travel": 1.15,
+    "pair": "Motion[5]_start"
+   },
+   "2|Motion[5]_start": {
+    "deg": 19.7,
+    "frames": 32,
+    "travel": 0.55,
+    "pair": "Motion[3]_start"
    },
    "2|Motion[18]_start": {
     "deg": -57.6,
     "frames": 36,
-    "travel": 1.05
+    "travel": 1.05,
+    "pair": "Motion[26]_start"
    },
    "2|Motion[19]_start": {
     "deg": -57.6,
     "frames": 36,
     "travel": 1.05
+   },
+   "2|Motion[21]_start": {
+    "deg": -29.3,
+    "frames": 116,
+    "travel": 1.14
    },
    "2|Motion[22]_start": {
     "deg": 40.4,
@@ -1163,6 +2094,12 @@
     "frames": 76,
     "travel": 1.41,
     "pair": "Motion[22]_start"
+   },
+   "2|Motion[26]_start": {
+    "deg": 10.3,
+    "frames": 36,
+    "travel": 0.3,
+    "pair": "Motion[18]_start"
    },
    "2|Motion[27]_loop": {
     "deg": -26.8,
@@ -1187,7 +2124,7 @@
     "travel": 0.58
    },
    "3|Motion[15]_start": {
-    "deg": 42.9,
+    "deg": -31.7,
     "frames": 108,
     "travel": 0.92
    },
@@ -1195,23 +2132,20 @@
     "deg": 58.3,
     "frames": 61,
     "travel": 0.46
-   },
-   "3|Motion[24]": {
-    "deg": -28.1,
-    "frames": 115,
-    "travel": 0.03
    }
   },
   "em024_00": {
    "0|Motion[12]": {
     "deg": 32.7,
     "frames": 93,
-    "travel": 0.78
+    "travel": 0.78,
+    "pair": "Motion[13]"
    },
-   "0|Motion[26]": {
-    "deg": 179.1,
-    "frames": 115,
-    "travel": 0.54
+   "0|Motion[13]": {
+    "deg": -21.2,
+    "frames": 93,
+    "travel": 0.78,
+    "pair": "Motion[12]"
    },
    "1|Motion[8]": {
     "deg": 36.5,
@@ -1257,12 +2191,14 @@
    "0|Motion[12]": {
     "deg": 32.7,
     "frames": 93,
-    "travel": 0.78
+    "travel": 0.78,
+    "pair": "Motion[13]"
    },
-   "0|Motion[26]": {
-    "deg": 179.1,
-    "frames": 115,
-    "travel": 0.54
+   "0|Motion[13]": {
+    "deg": -21.2,
+    "frames": 93,
+    "travel": 0.78,
+    "pair": "Motion[12]"
    },
    "1|Motion[8]": {
     "deg": 36.5,
@@ -1306,7 +2242,7 @@
     "pair": "Motion[2]"
    },
    "3|Motion[4]": {
-    "deg": 25.4,
+    "deg": -27.2,
     "frames": 55,
     "travel": 0.49
    },
@@ -1317,15 +2253,39 @@
    }
   },
   "em032_00": {
+   "0|Motion[4]": {
+    "deg": -12,
+    "frames": 77,
+    "travel": 0.54,
+    "pair": "Motion[5]"
+   },
+   "0|Motion[5]": {
+    "deg": 12,
+    "frames": 77,
+    "travel": 0.54,
+    "pair": "Motion[4]"
+   },
+   "0|Motion[6]": {
+    "deg": -11.4,
+    "frames": 63,
+    "travel": 0.7,
+    "pair": "Motion[7]"
+   },
    "0|Motion[7]": {
     "deg": 35.6,
     "frames": 63,
-    "travel": 0.48
+    "travel": 0.48,
+    "pair": "Motion[6]"
    },
    "0|Motion[39]_loop": {
     "deg": 71.1,
     "frames": 40,
     "travel": 0.75
+   },
+   "0|Motion[47]_loop": {
+    "deg": -174.2,
+    "frames": 30,
+    "travel": 0.9
    },
    "0|Motion[55]_loop": {
     "deg": 76,
@@ -1343,7 +2303,7 @@
     "travel": 0.45
    },
    "2|Motion[23]": {
-    "deg": 28.9,
+    "deg": -59.2,
     "frames": 49,
     "travel": 0
    },
@@ -1358,6 +2318,18 @@
     "frames": 81,
     "travel": 0.33,
     "pair": "Motion[8]_loop"
+   },
+   "3|Motion[16]": {
+    "deg": 20.7,
+    "frames": 111,
+    "travel": 0.41,
+    "pair": "Motion[17]_loop"
+   },
+   "3|Motion[17]_loop": {
+    "deg": -26.3,
+    "frames": 111,
+    "travel": 0.28,
+    "pair": "Motion[16]"
    },
    "3|Motion[28]": {
     "deg": -35,
@@ -1366,15 +2338,39 @@
    }
   },
   "em032_04": {
+   "0|Motion[4]": {
+    "deg": -12,
+    "frames": 77,
+    "travel": 0.54,
+    "pair": "Motion[5]"
+   },
+   "0|Motion[5]": {
+    "deg": 12,
+    "frames": 77,
+    "travel": 0.54,
+    "pair": "Motion[4]"
+   },
+   "0|Motion[6]": {
+    "deg": -11.4,
+    "frames": 63,
+    "travel": 0.7,
+    "pair": "Motion[7]"
+   },
    "0|Motion[7]": {
     "deg": 35.6,
     "frames": 63,
-    "travel": 0.48
+    "travel": 0.48,
+    "pair": "Motion[6]"
    },
    "0|Motion[39]_loop": {
     "deg": 71.1,
     "frames": 40,
     "travel": 0.75
+   },
+   "0|Motion[47]_loop": {
+    "deg": -174.2,
+    "frames": 30,
+    "travel": 0.9
    },
    "0|Motion[55]_loop": {
     "deg": 76,
@@ -1392,7 +2388,7 @@
     "travel": 0.45
    },
    "2|Motion[23]": {
-    "deg": 28.9,
+    "deg": -59.2,
     "frames": 49,
     "travel": 0
    },
@@ -1408,6 +2404,18 @@
     "travel": 0.33,
     "pair": "Motion[8]_loop"
    },
+   "3|Motion[16]": {
+    "deg": 20.7,
+    "frames": 111,
+    "travel": 0.41,
+    "pair": "Motion[17]_loop"
+   },
+   "3|Motion[17]_loop": {
+    "deg": -26.3,
+    "frames": 111,
+    "travel": 0.28,
+    "pair": "Motion[16]"
+   },
    "3|Motion[28]": {
     "deg": -35,
     "frames": 41,
@@ -1415,6 +2423,12 @@
    }
   },
   "em034_00": {
+   "0|Motion[10]": {
+    "deg": -13.8,
+    "frames": 53,
+    "travel": 0.13,
+    "pair": "Motion[37]"
+   },
    "0|Motion[23]": {
     "deg": 85.7,
     "frames": 61,
@@ -1427,6 +2441,12 @@
     "travel": 0.53,
     "pair": "Motion[23]"
    },
+   "0|Motion[37]": {
+    "deg": 12.3,
+    "frames": 53,
+    "travel": 0.58,
+    "pair": "Motion[10]"
+   },
    "2|Motion[11]": {
     "deg": 38.5,
     "frames": 89,
@@ -1437,10 +2457,11 @@
     "frames": 39,
     "travel": 0.78
    },
-   "2|Motion[25]": {
-    "deg": 34.8,
-    "frames": 73,
-    "travel": 1.26
+   "3|Motion[14]": {
+    "deg": -18.8,
+    "frames": 91,
+    "travel": 2,
+    "pair": "Motion[101]_loop"
    },
    "3|Motion[15]": {
     "deg": 28.4,
@@ -1456,25 +2477,38 @@
     "deg": 35.7,
     "frames": 41,
     "travel": 0.47
+   },
+   "3|Motion[101]_loop": {
+    "deg": 18,
+    "frames": 91,
+    "travel": 0.14,
+    "pair": "Motion[14]"
    }
   },
   "em036_00": {
-   "3|Motion[12]": {
-    "deg": -54,
-    "frames": 109,
-    "travel": 1.32,
-    "pair": "Motion[13]"
+   "0|Motion[9]": {
+    "deg": -15.4,
+    "frames": 71,
+    "travel": 0.44,
+    "pair": "Motion[10]"
    },
-   "3|Motion[13]": {
-    "deg": 54,
-    "frames": 109,
-    "travel": 1.32,
-    "pair": "Motion[12]"
+   "0|Motion[10]": {
+    "deg": 16.3,
+    "frames": 71,
+    "travel": 0.44,
+    "pair": "Motion[9]"
    },
-   "3|Motion[28]": {
-    "deg": 26.2,
-    "frames": 107,
-    "travel": 1.27
+   "0|Motion[28]_loop": {
+    "deg": 14.2,
+    "frames": 89,
+    "travel": 0.41,
+    "pair": "Motion[29]_loop"
+   },
+   "0|Motion[29]_loop": {
+    "deg": -14.2,
+    "frames": 89,
+    "travel": 0.41,
+    "pair": "Motion[28]_loop"
    },
    "3|Motion[31]": {
     "deg": 36.5,
@@ -1483,10 +2517,29 @@
    }
   },
   "em037_00": {
+   "0|Motion[4]": {
+    "deg": -12,
+    "frames": 77,
+    "travel": 0.54,
+    "pair": "Motion[5]"
+   },
+   "0|Motion[5]": {
+    "deg": 12,
+    "frames": 77,
+    "travel": 0.54,
+    "pair": "Motion[4]"
+   },
+   "0|Motion[6]": {
+    "deg": -11.4,
+    "frames": 63,
+    "travel": 0.7,
+    "pair": "Motion[7]"
+   },
    "0|Motion[7]": {
     "deg": 35.6,
     "frames": 63,
-    "travel": 0.48
+    "travel": 0.48,
+    "pair": "Motion[6]"
    },
    "2|Motion[5]_loop": {
     "deg": -31.5,
@@ -1497,6 +2550,18 @@
     "deg": -54.5,
     "frames": 48,
     "travel": 0.96
+   },
+   "2|Motion[9]_loop": {
+    "deg": -12.4,
+    "frames": 74,
+    "travel": 0,
+    "pair": "Motion[13]_loop"
+   },
+   "2|Motion[13]_loop": {
+    "deg": 12.4,
+    "frames": 74,
+    "travel": 0,
+    "pair": "Motion[9]_loop"
    },
    "2|Motion[16]": {
     "deg": 32.6,
@@ -1519,6 +2584,18 @@
     "frames": 81,
     "travel": 0.33,
     "pair": "Motion[8]_loop"
+   },
+   "3|Motion[16]": {
+    "deg": 20.7,
+    "frames": 111,
+    "travel": 0.41,
+    "pair": "Motion[17]_loop"
+   },
+   "3|Motion[17]_loop": {
+    "deg": -26.3,
+    "frames": 111,
+    "travel": 0.28,
+    "pair": "Motion[16]"
    },
    "3|Motion[28]": {
     "deg": -35,
@@ -1527,10 +2604,29 @@
    }
   },
   "em037_04": {
+   "0|Motion[4]": {
+    "deg": -12,
+    "frames": 77,
+    "travel": 0.54,
+    "pair": "Motion[5]"
+   },
+   "0|Motion[5]": {
+    "deg": 12,
+    "frames": 77,
+    "travel": 0.54,
+    "pair": "Motion[4]"
+   },
+   "0|Motion[6]": {
+    "deg": -11.4,
+    "frames": 63,
+    "travel": 0.7,
+    "pair": "Motion[7]"
+   },
    "0|Motion[7]": {
     "deg": 35.6,
     "frames": 63,
-    "travel": 0.48
+    "travel": 0.48,
+    "pair": "Motion[6]"
    },
    "2|Motion[5]_loop": {
     "deg": -31.5,
@@ -1541,6 +2637,18 @@
     "deg": -54.5,
     "frames": 48,
     "travel": 0.96
+   },
+   "2|Motion[9]_loop": {
+    "deg": -12.4,
+    "frames": 74,
+    "travel": 0,
+    "pair": "Motion[13]_loop"
+   },
+   "2|Motion[13]_loop": {
+    "deg": 12.4,
+    "frames": 74,
+    "travel": 0,
+    "pair": "Motion[9]_loop"
    },
    "2|Motion[16]": {
     "deg": 32.6,
@@ -1563,6 +2671,18 @@
     "frames": 81,
     "travel": 0.33,
     "pair": "Motion[8]_loop"
+   },
+   "3|Motion[16]": {
+    "deg": 20.7,
+    "frames": 111,
+    "travel": 0.41,
+    "pair": "Motion[17]_loop"
+   },
+   "3|Motion[17]_loop": {
+    "deg": -26.3,
+    "frames": 111,
+    "travel": 0.28,
+    "pair": "Motion[16]"
    },
    "3|Motion[28]": {
     "deg": -35,
@@ -1584,16 +2704,19 @@
     "travel": 1.64
    },
    "0|Motion[12]": {
-    "deg": -60,
+    "deg": 38.8,
     "frames": 117,
-    "travel": 1.57,
-    "pair": "Motion[13]"
+    "travel": 1.57
    },
    "0|Motion[13]": {
     "deg": 92.3,
     "frames": 117,
-    "travel": 1.25,
-    "pair": "Motion[12]"
+    "travel": 1.25
+   },
+   "0|Motion[40]": {
+    "deg": -40.4,
+    "frames": 93,
+    "travel": 1.99
    },
    "0|Motion[44]_loop": {
     "deg": -52.6,
@@ -1628,16 +2751,19 @@
     "travel": 1.64
    },
    "0|Motion[12]": {
-    "deg": -60,
+    "deg": 38.8,
     "frames": 117,
-    "travel": 1.57,
-    "pair": "Motion[13]"
+    "travel": 1.57
    },
    "0|Motion[13]": {
     "deg": 92.3,
     "frames": 117,
-    "travel": 1.25,
-    "pair": "Motion[12]"
+    "travel": 1.25
+   },
+   "0|Motion[40]": {
+    "deg": -40.4,
+    "frames": 93,
+    "travel": 1.99
    },
    "0|Motion[44]_loop": {
     "deg": -52.6,
@@ -1675,6 +2801,18 @@
     "deg": 25.8,
     "frames": 93,
     "travel": 1.94
+   },
+   "3|Motion[17]_loop": {
+    "deg": 22.8,
+    "frames": 81,
+    "travel": 0.44,
+    "pair": "Motion[18]_loop"
+   },
+   "3|Motion[18]_loop": {
+    "deg": -22.8,
+    "frames": 81,
+    "travel": 0.44,
+    "pair": "Motion[17]_loop"
    }
   },
   "em057_04": {
@@ -1687,6 +2825,18 @@
     "deg": 25.8,
     "frames": 93,
     "travel": 1.94
+   },
+   "3|Motion[17]_loop": {
+    "deg": 22.8,
+    "frames": 81,
+    "travel": 0.44,
+    "pair": "Motion[18]_loop"
+   },
+   "3|Motion[18]_loop": {
+    "deg": -22.8,
+    "frames": 81,
+    "travel": 0.44,
+    "pair": "Motion[17]_loop"
    }
   },
   "em058_00": {
@@ -1697,6 +2847,18 @@
    }
   },
   "em060_00": {
+   "0|Motion[8]": {
+    "deg": 18,
+    "frames": 53,
+    "travel": 0.11,
+    "pair": "Motion[9]"
+   },
+   "0|Motion[9]": {
+    "deg": -17.5,
+    "frames": 53,
+    "travel": 0.09,
+    "pair": "Motion[8]"
+   },
    "0|Motion[10]": {
     "deg": 26.4,
     "frames": 95,
@@ -1709,8 +2871,20 @@
     "travel": 0.08,
     "pair": "Motion[10]"
    },
+   "0|Motion[14]": {
+    "deg": 19.4,
+    "frames": 49,
+    "travel": 0.2,
+    "pair": "Motion[15]"
+   },
+   "0|Motion[15]": {
+    "deg": -19.7,
+    "frames": 49,
+    "travel": 0.14,
+    "pair": "Motion[14]"
+   },
    "2|Motion[10]_start": {
-    "deg": 148.6,
+    "deg": -25.6,
     "frames": 96,
     "travel": 0.54
    },
@@ -1723,9 +2897,33 @@
     "deg": 25.5,
     "frames": 85,
     "travel": 1.91
+   },
+   "2|Motion[20]": {
+    "deg": 14.2,
+    "frames": 105,
+    "travel": 0.72,
+    "pair": "Motion[21]"
+   },
+   "2|Motion[21]": {
+    "deg": -14.7,
+    "frames": 105,
+    "travel": 0.66,
+    "pair": "Motion[20]"
    }
   },
   "em060_04": {
+   "0|Motion[8]": {
+    "deg": 18,
+    "frames": 53,
+    "travel": 0.11,
+    "pair": "Motion[9]"
+   },
+   "0|Motion[9]": {
+    "deg": -17.5,
+    "frames": 53,
+    "travel": 0.09,
+    "pair": "Motion[8]"
+   },
    "0|Motion[10]": {
     "deg": 26.4,
     "frames": 95,
@@ -1738,8 +2936,20 @@
     "travel": 0.08,
     "pair": "Motion[10]"
    },
+   "0|Motion[14]": {
+    "deg": 19.4,
+    "frames": 49,
+    "travel": 0.2,
+    "pair": "Motion[15]"
+   },
+   "0|Motion[15]": {
+    "deg": -19.7,
+    "frames": 49,
+    "travel": 0.14,
+    "pair": "Motion[14]"
+   },
    "2|Motion[10]_start": {
-    "deg": 148.6,
+    "deg": -25.6,
     "frames": 96,
     "travel": 0.54
    },
@@ -1753,10 +2963,17 @@
     "frames": 85,
     "travel": 1.91
    },
-   "9|Motion[2]": {
-    "deg": 178.5,
-    "frames": 89,
-    "travel": 0.52
+   "2|Motion[20]": {
+    "deg": 14.2,
+    "frames": 105,
+    "travel": 0.72,
+    "pair": "Motion[21]"
+   },
+   "2|Motion[21]": {
+    "deg": -14.7,
+    "frames": 105,
+    "travel": 0.66,
+    "pair": "Motion[20]"
    },
    "9|Motion[3]_loop": {
     "deg": 30.4,
@@ -1770,37 +2987,82 @@
    }
   },
   "em061_00": {
+   "0|Motion[12]": {
+    "deg": 19.8,
+    "frames": 49,
+    "travel": 0.2,
+    "pair": "Motion[13]"
+   },
+   "0|Motion[13]": {
+    "deg": -19.6,
+    "frames": 49,
+    "travel": 0.14,
+    "pair": "Motion[12]"
+   },
    "0|Motion[42]_loop": {
     "deg": 154.4,
     "frames": 20,
     "travel": 0
    },
+   "0|Motion[60]": {
+    "deg": 18,
+    "frames": 53,
+    "travel": 0.11,
+    "pair": "Motion[61]"
+   },
+   "0|Motion[61]": {
+    "deg": -17.5,
+    "frames": 53,
+    "travel": 0.09,
+    "pair": "Motion[60]"
+   },
+   "0|Motion[62]": {
+    "deg": 24.4,
+    "frames": 95,
+    "travel": 0.05,
+    "pair": "Motion[63]"
+   },
    "0|Motion[63]": {
     "deg": -26.9,
     "frames": 95,
-    "travel": 0.08
+    "travel": 0.08,
+    "pair": "Motion[62]"
+   },
+   "2|Motion[12]": {
+    "deg": 20.4,
+    "frames": 85,
+    "travel": 1.91,
+    "pair": "Motion[13]"
    },
    "2|Motion[13]": {
-    "deg": 25.5,
+    "deg": -15,
     "frames": 85,
-    "travel": 1.91
+    "travel": 1.91,
+    "pair": "Motion[12]"
+   },
+   "2|Motion[14]": {
+    "deg": 14.2,
+    "frames": 105,
+    "travel": 0.72,
+    "pair": "Motion[15]"
+   },
+   "2|Motion[15]": {
+    "deg": -14.7,
+    "frames": 105,
+    "travel": 0.65,
+    "pair": "Motion[14]"
    },
    "2|Motion[30]": {
-    "deg": 34.3,
+    "deg": -52.7,
     "frames": 99,
     "travel": 1,
     "pair": "Motion[31]"
    },
    "2|Motion[31]": {
-    "deg": -36.2,
+    "deg": 52.7,
     "frames": 99,
     "travel": 1,
     "pair": "Motion[30]"
-   },
-   "2|Motion[52]": {
-    "deg": 178.7,
-    "frames": 89,
-    "travel": 0.52
    },
    "2|Motion[53]_loop": {
     "deg": 30.4,
@@ -1808,50 +3070,95 @@
     "travel": 0
    },
    "2|Motion[64]": {
-    "deg": -36.1,
+    "deg": 53.2,
     "frames": 87,
     "travel": 0.97,
     "pair": "Motion[65]"
    },
    "2|Motion[65]": {
-    "deg": 36.2,
+    "deg": -53.1,
     "frames": 87,
     "travel": 0.97,
     "pair": "Motion[64]"
    }
   },
   "em061_04": {
+   "0|Motion[12]": {
+    "deg": 19.8,
+    "frames": 49,
+    "travel": 0.2,
+    "pair": "Motion[13]"
+   },
+   "0|Motion[13]": {
+    "deg": -19.6,
+    "frames": 49,
+    "travel": 0.14,
+    "pair": "Motion[12]"
+   },
    "0|Motion[42]_loop": {
     "deg": 154.4,
     "frames": 20,
     "travel": 0
    },
+   "0|Motion[60]": {
+    "deg": 18,
+    "frames": 53,
+    "travel": 0.11,
+    "pair": "Motion[61]"
+   },
+   "0|Motion[61]": {
+    "deg": -17.5,
+    "frames": 53,
+    "travel": 0.09,
+    "pair": "Motion[60]"
+   },
+   "0|Motion[62]": {
+    "deg": 24.4,
+    "frames": 95,
+    "travel": 0.05,
+    "pair": "Motion[63]"
+   },
    "0|Motion[63]": {
     "deg": -26.9,
     "frames": 95,
-    "travel": 0.08
+    "travel": 0.08,
+    "pair": "Motion[62]"
+   },
+   "2|Motion[12]": {
+    "deg": 20.4,
+    "frames": 85,
+    "travel": 1.91,
+    "pair": "Motion[13]"
    },
    "2|Motion[13]": {
-    "deg": 25.5,
+    "deg": -15,
     "frames": 85,
-    "travel": 1.91
+    "travel": 1.91,
+    "pair": "Motion[12]"
+   },
+   "2|Motion[14]": {
+    "deg": 14.2,
+    "frames": 105,
+    "travel": 0.72,
+    "pair": "Motion[15]"
+   },
+   "2|Motion[15]": {
+    "deg": -14.7,
+    "frames": 105,
+    "travel": 0.65,
+    "pair": "Motion[14]"
    },
    "2|Motion[30]": {
-    "deg": 34.3,
+    "deg": -52.7,
     "frames": 99,
     "travel": 1,
     "pair": "Motion[31]"
    },
    "2|Motion[31]": {
-    "deg": -36.2,
+    "deg": 52.7,
     "frames": 99,
     "travel": 1,
     "pair": "Motion[30]"
-   },
-   "2|Motion[52]": {
-    "deg": 178.7,
-    "frames": 89,
-    "travel": 0.52
    },
    "2|Motion[53]_loop": {
     "deg": 30.4,
@@ -1859,19 +3166,31 @@
     "travel": 0
    },
    "2|Motion[64]": {
-    "deg": -36.1,
+    "deg": 53.2,
     "frames": 87,
     "travel": 0.97,
     "pair": "Motion[65]"
    },
    "2|Motion[65]": {
-    "deg": 36.2,
+    "deg": -53.1,
     "frames": 87,
     "travel": 0.97,
     "pair": "Motion[64]"
    }
   },
   "em062_00": {
+   "0|Motion[8]": {
+    "deg": 18,
+    "frames": 53,
+    "travel": 0.11,
+    "pair": "Motion[9]"
+   },
+   "0|Motion[9]": {
+    "deg": -17.5,
+    "frames": 53,
+    "travel": 0.09,
+    "pair": "Motion[8]"
+   },
    "0|Motion[10]": {
     "deg": 26.4,
     "frames": 95,
@@ -1884,10 +3203,27 @@
     "travel": 0.08,
     "pair": "Motion[10]"
    },
+   "0|Motion[14]": {
+    "deg": 15.5,
+    "frames": 49,
+    "travel": 0.2,
+    "pair": "Motion[15]"
+   },
+   "0|Motion[15]": {
+    "deg": -15.5,
+    "frames": 49,
+    "travel": 0.2,
+    "pair": "Motion[14]"
+   },
    "0|Motion[42]_loop": {
     "deg": 51,
     "frames": 20,
     "travel": 0
+   },
+   "2|Motion[23]": {
+    "deg": -51.5,
+    "frames": 69,
+    "travel": 1.82
    }
   },
   "em063_00": {
@@ -1895,6 +3231,23 @@
     "deg": -32.5,
     "frames": 77,
     "travel": 1.51
+   },
+   "0|Motion[8]": {
+    "deg": -31.4,
+    "frames": 77,
+    "travel": 1.77
+   },
+   "0|Motion[12]": {
+    "deg": 24.3,
+    "frames": 91,
+    "travel": 1.21,
+    "pair": "Motion[13]"
+   },
+   "0|Motion[13]": {
+    "deg": -24.3,
+    "frames": 91,
+    "travel": 1.21,
+    "pair": "Motion[12]"
    },
    "0|Motion[19]": {
     "deg": -70.6,
@@ -1917,6 +3270,18 @@
     "deg": 32.7,
     "frames": 28,
     "travel": 0
+   },
+   "3|Motion[20]_loop": {
+    "deg": -24.1,
+    "frames": 71,
+    "travel": 0.46,
+    "pair": "Motion[21]_loop"
+   },
+   "3|Motion[21]_loop": {
+    "deg": 24.1,
+    "frames": 71,
+    "travel": 0.46,
+    "pair": "Motion[20]_loop"
    },
    "3|Motion[32]_start": {
     "deg": -45.3,
@@ -1930,6 +3295,23 @@
     "frames": 77,
     "travel": 1.51
    },
+   "0|Motion[8]": {
+    "deg": -31.4,
+    "frames": 77,
+    "travel": 1.77
+   },
+   "0|Motion[12]": {
+    "deg": 24.3,
+    "frames": 91,
+    "travel": 1.21,
+    "pair": "Motion[13]"
+   },
+   "0|Motion[13]": {
+    "deg": -24.3,
+    "frames": 91,
+    "travel": 1.21,
+    "pair": "Motion[12]"
+   },
    "0|Motion[19]": {
     "deg": -70.6,
     "frames": 105,
@@ -1952,6 +3334,18 @@
     "frames": 28,
     "travel": 0
    },
+   "3|Motion[20]_loop": {
+    "deg": -24.1,
+    "frames": 71,
+    "travel": 0.46,
+    "pair": "Motion[21]_loop"
+   },
+   "3|Motion[21]_loop": {
+    "deg": 24.1,
+    "frames": 71,
+    "travel": 0.46,
+    "pair": "Motion[20]_loop"
+   },
    "3|Motion[32]_start": {
     "deg": -45.3,
     "frames": 70,
@@ -1962,12 +3356,26 @@
    "0|Motion[3]": {
     "deg": -48.1,
     "frames": 95,
-    "travel": 0.17
+    "travel": 0.17,
+    "pair": "Motion[4]"
+   },
+   "0|Motion[4]": {
+    "deg": 20.4,
+    "frames": 95,
+    "travel": 0.05,
+    "pair": "Motion[3]"
    },
    "0|Motion[5]": {
     "deg": -29.8,
     "frames": 73,
-    "travel": 0.72
+    "travel": 0.72,
+    "pair": "Motion[6]"
+   },
+   "0|Motion[6]": {
+    "deg": 12.3,
+    "frames": 73,
+    "travel": 0.61,
+    "pair": "Motion[5]"
    },
    "0|Motion[10]": {
     "deg": -29.5,
@@ -1994,20 +3402,10 @@
     "frames": 24,
     "travel": 0.72
    },
-   "2|Motion[108]_loop": {
-    "deg": -44.1,
-    "frames": 72,
-    "travel": 0.76
-   },
    "2|Motion[109]": {
     "deg": -53.3,
     "frames": 55,
     "travel": 1.23
-   },
-   "2|Motion[117]_start": {
-    "deg": -171.7,
-    "frames": 70,
-    "travel": 0.35
    },
    "3|Motion[13]": {
     "deg": 60.4,
@@ -2023,11 +3421,6 @@
     "deg": -61,
     "frames": 81,
     "travel": 0.45
-   },
-   "5|Motion[33]": {
-    "deg": -170.8,
-    "frames": 35,
-    "travel": 0.04
    },
    "5|Motion[59]_loop": {
     "deg": -67.6,
@@ -2096,6 +3489,18 @@
     "deg": 25.7,
     "frames": 113,
     "travel": 1.03
+   },
+   "4|Motion[21]": {
+    "deg": 23.1,
+    "frames": 43,
+    "travel": 0.79,
+    "pair": "Motion[22]"
+   },
+   "4|Motion[22]": {
+    "deg": -23.1,
+    "frames": 43,
+    "travel": 0.79,
+    "pair": "Motion[21]"
    }
   },
   "em066_04": {
@@ -2160,10 +3565,29 @@
     "frames": 113,
     "travel": 1.03
    },
+   "4|Motion[21]": {
+    "deg": 23.1,
+    "frames": 43,
+    "travel": 0.79,
+    "pair": "Motion[22]"
+   },
+   "4|Motion[22]": {
+    "deg": -23.1,
+    "frames": 43,
+    "travel": 0.79,
+    "pair": "Motion[21]"
+   },
+   "9|Motion[4]": {
+    "deg": -10.1,
+    "frames": 43,
+    "travel": 1.23,
+    "pair": "Motion[5]"
+   },
    "9|Motion[5]": {
     "deg": 49.8,
     "frames": 43,
-    "travel": 1.43
+    "travel": 1.43,
+    "pair": "Motion[4]"
    },
    "9|Motion[7]_start": {
     "deg": -42.3,
@@ -2229,9 +3653,21 @@
     "travel": 0.52
    },
    "3|Motion[107]_loop": {
-    "deg": 37.6,
+    "deg": -138.7,
     "frames": 75,
     "travel": 0.27
+   },
+   "4|Motion[7]": {
+    "deg": -14.3,
+    "frames": 87,
+    "travel": 0.85,
+    "pair": "Motion[8]"
+   },
+   "4|Motion[8]": {
+    "deg": 14.5,
+    "frames": 87,
+    "travel": 0.85,
+    "pair": "Motion[7]"
    },
    "4|Motion[31]": {
     "deg": -34.7,
@@ -2272,14 +3708,14 @@
     "pair": "Motion[61]"
    },
    "2|Motion[60]_start": {
-    "deg": -30.2,
+    "deg": 31.2,
     "frames": 54,
     "travel": 1.54
    },
-   "3|Motion[10]_start": {
-    "deg": 161.3,
-    "frames": 74,
-    "travel": 0.79
+   "2|Motion[76]": {
+    "deg": 38.5,
+    "frames": 81,
+    "travel": 1.53
    },
    "4|Motion[13]": {
     "deg": 180,
@@ -2288,17 +3724,10 @@
    }
   },
   "em071_00": {
-   "0|Motion[12]": {
-    "deg": -25.1,
-    "frames": 97,
-    "travel": 1.67,
-    "pair": "Motion[13]"
-   },
    "0|Motion[13]": {
     "deg": 29.9,
     "frames": 97,
-    "travel": 1.66,
-    "pair": "Motion[12]"
+    "travel": 1.66
    },
    "0|Motion[25]": {
     "deg": 47.7,
@@ -2312,20 +3741,63 @@
     "travel": 1.61,
     "pair": "Motion[25]"
    },
-   "0|Motion[33]_loop": {
-    "deg": 48.1,
-    "frames": 20,
-    "travel": 0
-   },
    "0|Motion[36]": {
     "deg": -176.6,
     "frames": 61,
     "travel": 1.67
    },
+   "0|Motion[60]": {
+    "deg": -18.5,
+    "frames": 65,
+    "travel": 0.46,
+    "pair": "Motion[66]"
+   },
+   "0|Motion[63]": {
+    "deg": -49,
+    "frames": 79,
+    "travel": 1.02,
+    "pair": "Motion[64]"
+   },
+   "0|Motion[64]": {
+    "deg": 53.5,
+    "frames": 79,
+    "travel": 1.01,
+    "pair": "Motion[63]"
+   },
+   "0|Motion[66]": {
+    "deg": 13.1,
+    "frames": 65,
+    "travel": 0.39,
+    "pair": "Motion[60]"
+   },
    "2|Motion[10]_loop": {
     "deg": -25.3,
     "frames": 36,
     "travel": 0.48
+   },
+   "2|Motion[18]": {
+    "deg": -49,
+    "frames": 79,
+    "travel": 1.02,
+    "pair": "Motion[19]"
+   },
+   "2|Motion[19]": {
+    "deg": 53.5,
+    "frames": 79,
+    "travel": 1.01,
+    "pair": "Motion[18]"
+   },
+   "3|Motion[4]_loop": {
+    "deg": 24.1,
+    "frames": 81,
+    "travel": 0.2,
+    "pair": "Motion[10]_loop"
+   },
+   "3|Motion[10]_loop": {
+    "deg": -24.1,
+    "frames": 81,
+    "travel": 0.2,
+    "pair": "Motion[4]_loop"
    },
    "3|Motion[36]_loop": {
     "deg": 55.9,
@@ -2334,17 +3806,10 @@
    }
   },
   "em071_05": {
-   "0|Motion[12]": {
-    "deg": -25.1,
-    "frames": 97,
-    "travel": 1.67,
-    "pair": "Motion[13]"
-   },
    "0|Motion[13]": {
     "deg": 29.9,
     "frames": 97,
-    "travel": 1.66,
-    "pair": "Motion[12]"
+    "travel": 1.66
    },
    "0|Motion[25]": {
     "deg": 47.7,
@@ -2358,20 +3823,63 @@
     "travel": 1.61,
     "pair": "Motion[25]"
    },
-   "0|Motion[33]_loop": {
-    "deg": 48.1,
-    "frames": 20,
-    "travel": 0
-   },
    "0|Motion[36]": {
     "deg": -176.6,
     "frames": 61,
     "travel": 1.67
    },
+   "0|Motion[60]": {
+    "deg": -18.5,
+    "frames": 65,
+    "travel": 0.46,
+    "pair": "Motion[66]"
+   },
+   "0|Motion[63]": {
+    "deg": -49,
+    "frames": 79,
+    "travel": 1.02,
+    "pair": "Motion[64]"
+   },
+   "0|Motion[64]": {
+    "deg": 53.5,
+    "frames": 79,
+    "travel": 1.01,
+    "pair": "Motion[63]"
+   },
+   "0|Motion[66]": {
+    "deg": 13.1,
+    "frames": 65,
+    "travel": 0.39,
+    "pair": "Motion[60]"
+   },
    "2|Motion[10]_loop": {
     "deg": -25.3,
     "frames": 36,
     "travel": 0.48
+   },
+   "2|Motion[18]": {
+    "deg": -49,
+    "frames": 79,
+    "travel": 1.02,
+    "pair": "Motion[19]"
+   },
+   "2|Motion[19]": {
+    "deg": 53.5,
+    "frames": 79,
+    "travel": 1.01,
+    "pair": "Motion[18]"
+   },
+   "3|Motion[4]_loop": {
+    "deg": 24.1,
+    "frames": 81,
+    "travel": 0.2,
+    "pair": "Motion[10]_loop"
+   },
+   "3|Motion[10]_loop": {
+    "deg": -24.1,
+    "frames": 81,
+    "travel": 0.2,
+    "pair": "Motion[4]_loop"
    },
    "3|Motion[36]_loop": {
     "deg": 55.9,
@@ -2380,17 +3888,10 @@
    }
   },
   "em072_00": {
-   "0|Motion[12]": {
-    "deg": -25.1,
-    "frames": 97,
-    "travel": 1.67,
-    "pair": "Motion[13]"
-   },
    "0|Motion[13]": {
     "deg": 29.9,
     "frames": 97,
-    "travel": 1.66,
-    "pair": "Motion[12]"
+    "travel": 1.66
    },
    "0|Motion[25]": {
     "deg": 47.7,
@@ -2404,20 +3905,63 @@
     "travel": 1.61,
     "pair": "Motion[25]"
    },
-   "0|Motion[33]_loop": {
-    "deg": 48.1,
-    "frames": 20,
-    "travel": 0
-   },
    "0|Motion[36]": {
     "deg": -176.6,
     "frames": 61,
     "travel": 1.67
    },
+   "0|Motion[60]": {
+    "deg": -18.5,
+    "frames": 65,
+    "travel": 0.46,
+    "pair": "Motion[66]"
+   },
+   "0|Motion[63]": {
+    "deg": -49,
+    "frames": 79,
+    "travel": 1.02,
+    "pair": "Motion[64]"
+   },
+   "0|Motion[64]": {
+    "deg": 53.5,
+    "frames": 79,
+    "travel": 1.01,
+    "pair": "Motion[63]"
+   },
+   "0|Motion[66]": {
+    "deg": 13.1,
+    "frames": 65,
+    "travel": 0.39,
+    "pair": "Motion[60]"
+   },
    "2|Motion[10]_loop": {
     "deg": -25.3,
     "frames": 36,
     "travel": 0.48
+   },
+   "2|Motion[18]": {
+    "deg": -49,
+    "frames": 79,
+    "travel": 1.02,
+    "pair": "Motion[19]"
+   },
+   "2|Motion[19]": {
+    "deg": 53.5,
+    "frames": 79,
+    "travel": 1.01,
+    "pair": "Motion[18]"
+   },
+   "3|Motion[4]_loop": {
+    "deg": 24.1,
+    "frames": 81,
+    "travel": 0.2,
+    "pair": "Motion[10]_loop"
+   },
+   "3|Motion[10]_loop": {
+    "deg": -24.1,
+    "frames": 81,
+    "travel": 0.2,
+    "pair": "Motion[4]_loop"
    },
    "3|Motion[36]_loop": {
     "deg": 55.9,
@@ -2462,6 +4006,18 @@
     "travel": 0,
     "pair": "Motion[18]"
    },
+   "1|Motion[29]": {
+    "deg": 20,
+    "frames": 83,
+    "travel": 1.28,
+    "pair": "Motion[30]"
+   },
+   "1|Motion[30]": {
+    "deg": -20,
+    "frames": 83,
+    "travel": 1.28,
+    "pair": "Motion[29]"
+   },
    "3|Motion[62]_start": {
     "deg": 165.1,
     "frames": 74,
@@ -2505,13 +4061,18 @@
     "travel": 0.99,
     "pair": "Motion[35]"
    },
+   "1|Motion[52]": {
+    "deg": 29.1,
+    "frames": 105,
+    "travel": 0
+   },
    "1|Motion[76]": {
     "deg": -27.2,
     "frames": 59,
     "travel": 0.89
    },
    "2|Motion[29]": {
-    "deg": -175.4,
+    "deg": 173.1,
     "frames": 45,
     "travel": 0.7
    },
@@ -2520,13 +4081,37 @@
     "frames": 99,
     "travel": 0.91
    },
+   "3|Motion[5]_loop": {
+    "deg": 24.6,
+    "frames": 81,
+    "travel": 0.2,
+    "pair": "Motion[6]_loop"
+   },
+   "3|Motion[6]_loop": {
+    "deg": -24.6,
+    "frames": 81,
+    "travel": 0.2,
+    "pair": "Motion[5]_loop"
+   },
    "3|Motion[23]_loop": {
-    "deg": -121.8,
+    "deg": -134.5,
     "frames": 66,
     "travel": 0.03
    }
   },
   "em079_00": {
+   "0|Motion[9]": {
+    "deg": 19.7,
+    "frames": 101,
+    "travel": 0.33,
+    "pair": "Motion[10]"
+   },
+   "0|Motion[10]": {
+    "deg": -24,
+    "frames": 101,
+    "travel": 0.33,
+    "pair": "Motion[9]"
+   },
    "0|Motion[11]": {
     "deg": 25.3,
     "frames": 75,
@@ -2557,7 +4142,8 @@
    "2|Motion[10]": {
     "deg": -34.6,
     "frames": 19,
-    "travel": 0.49
+    "travel": 0.49,
+    "pair": "Motion[34]"
    },
    "2|Motion[16]": {
     "deg": 34.1,
@@ -2576,6 +4162,12 @@
     "travel": 0.2,
     "pair": "Motion[27]"
    },
+   "2|Motion[34]": {
+    "deg": 21.1,
+    "frames": 19,
+    "travel": 0.19,
+    "pair": "Motion[10]"
+   },
    "3|Motion[5]_loop": {
     "deg": 26.8,
     "frames": 81,
@@ -2588,18 +4180,42 @@
     "travel": 0.1,
     "pair": "Motion[5]_loop"
    },
+   "3|Motion[8]": {
+    "deg": -12.9,
+    "frames": 83,
+    "travel": 0.72,
+    "pair": "Motion[16]"
+   },
    "3|Motion[10]_loop": {
-    "deg": -107.9,
+    "deg": -121.1,
     "frames": 62,
     "travel": 0.06
    },
+   "3|Motion[16]": {
+    "deg": 11.4,
+    "frames": 83,
+    "travel": 0.36,
+    "pair": "Motion[8]"
+   },
    "3|Motion[24]_loop": {
-    "deg": -108.7,
+    "deg": -121,
     "frames": 66,
     "travel": 0.07
    }
   },
   "em079_04": {
+   "0|Motion[9]": {
+    "deg": 19.7,
+    "frames": 101,
+    "travel": 0.33,
+    "pair": "Motion[10]"
+   },
+   "0|Motion[10]": {
+    "deg": -24,
+    "frames": 101,
+    "travel": 0.33,
+    "pair": "Motion[9]"
+   },
    "0|Motion[11]": {
     "deg": 25.3,
     "frames": 75,
@@ -2630,7 +4246,8 @@
    "2|Motion[10]": {
     "deg": -34.6,
     "frames": 19,
-    "travel": 0.49
+    "travel": 0.49,
+    "pair": "Motion[34]"
    },
    "2|Motion[16]": {
     "deg": 34.1,
@@ -2649,6 +4266,12 @@
     "travel": 0.2,
     "pair": "Motion[27]"
    },
+   "2|Motion[34]": {
+    "deg": 21.1,
+    "frames": 19,
+    "travel": 0.19,
+    "pair": "Motion[10]"
+   },
    "3|Motion[5]_loop": {
     "deg": 26.8,
     "frames": 81,
@@ -2661,13 +4284,25 @@
     "travel": 0.1,
     "pair": "Motion[5]_loop"
    },
+   "3|Motion[8]": {
+    "deg": -12.9,
+    "frames": 83,
+    "travel": 0.72,
+    "pair": "Motion[16]"
+   },
    "3|Motion[10]_loop": {
-    "deg": -107.9,
+    "deg": -121.1,
     "frames": 62,
     "travel": 0.06
    },
+   "3|Motion[16]": {
+    "deg": 11.4,
+    "frames": 83,
+    "travel": 0.36,
+    "pair": "Motion[8]"
+   },
    "3|Motion[24]_loop": {
-    "deg": -108.7,
+    "deg": -121,
     "frames": 66,
     "travel": 0.07
    }
@@ -2676,7 +4311,14 @@
    "0|Motion[10]": {
     "deg": -25.7,
     "frames": 89,
-    "travel": 1.82
+    "travel": 1.82,
+    "pair": "Motion[11]"
+   },
+   "0|Motion[11]": {
+    "deg": 21.4,
+    "frames": 89,
+    "travel": 1.71,
+    "pair": "Motion[10]"
    },
    "0|Motion[12]": {
     "deg": -70.1,
@@ -2688,10 +4330,27 @@
     "frames": 36,
     "travel": 0.48
    },
-   "3|Motion[20]_loop": {
-    "deg": 27.5,
-    "frames": 111,
-    "travel": 0.3
+   "0|Motion[37]": {
+    "deg": -40.4,
+    "frames": 93,
+    "travel": 1.99
+   },
+   "2|Motion[18]": {
+    "deg": 64.2,
+    "frames": 109,
+    "travel": 1.89
+   },
+   "3|Motion[5]_loop": {
+    "deg": -24.4,
+    "frames": 109,
+    "travel": 0.32,
+    "pair": "Motion[6]_loop"
+   },
+   "3|Motion[6]_loop": {
+    "deg": 24.4,
+    "frames": 109,
+    "travel": 0.32,
+    "pair": "Motion[5]_loop"
    },
    "3|Motion[32]_start": {
     "deg": -41.9,
@@ -2708,7 +4367,14 @@
    "0|Motion[10]": {
     "deg": -25.7,
     "frames": 89,
-    "travel": 1.82
+    "travel": 1.82,
+    "pair": "Motion[11]"
+   },
+   "0|Motion[11]": {
+    "deg": 21.4,
+    "frames": 89,
+    "travel": 1.71,
+    "pair": "Motion[10]"
    },
    "0|Motion[12]": {
     "deg": -70.1,
@@ -2720,10 +4386,27 @@
     "frames": 36,
     "travel": 0.48
    },
-   "3|Motion[20]_loop": {
-    "deg": 27.5,
-    "frames": 111,
-    "travel": 0.3
+   "0|Motion[37]": {
+    "deg": -40.4,
+    "frames": 93,
+    "travel": 1.99
+   },
+   "2|Motion[18]": {
+    "deg": 64.2,
+    "frames": 109,
+    "travel": 1.89
+   },
+   "3|Motion[5]_loop": {
+    "deg": -24.4,
+    "frames": 109,
+    "travel": 0.32,
+    "pair": "Motion[6]_loop"
+   },
+   "3|Motion[6]_loop": {
+    "deg": 24.4,
+    "frames": 109,
+    "travel": 0.32,
+    "pair": "Motion[5]_loop"
    },
    "3|Motion[32]_start": {
     "deg": -41.9,
@@ -2737,6 +4420,18 @@
    }
   },
   "em081_00": {
+   "0|Motion[9]": {
+    "deg": 17.2,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[10]"
+   },
+   "0|Motion[10]": {
+    "deg": -20.3,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[9]"
+   },
    "0|Motion[11]": {
     "deg": -41.5,
     "frames": 49,
@@ -2749,14 +4444,19 @@
     "travel": 0.71,
     "pair": "Motion[11]"
    },
+   "1|Motion[25]": {
+    "deg": 29.1,
+    "frames": 105,
+    "travel": 0
+   },
    "2|Motion[51]": {
-    "deg": -26.3,
+    "deg": 10.6,
     "frames": 59,
     "travel": 1.13,
     "pair": "Motion[52]"
    },
    "2|Motion[52]": {
-    "deg": 26.4,
+    "deg": -10.6,
     "frames": 59,
     "travel": 1.13,
     "pair": "Motion[51]"
@@ -2773,8 +4473,20 @@
     "travel": 0.2,
     "pair": "Motion[5]_loop"
    },
+   "3|Motion[7]": {
+    "deg": 10.5,
+    "frames": 83,
+    "travel": 0.94,
+    "pair": "Motion[8]"
+   },
+   "3|Motion[8]": {
+    "deg": -10.5,
+    "frames": 83,
+    "travel": 0.92,
+    "pair": "Motion[7]"
+   },
    "3|Motion[23]_loop": {
-    "deg": -121.8,
+    "deg": -134.5,
     "frames": 66,
     "travel": 0.03
    },
@@ -2790,6 +4502,18 @@
    }
   },
   "em081_04": {
+   "0|Motion[9]": {
+    "deg": 17.2,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[10]"
+   },
+   "0|Motion[10]": {
+    "deg": -20.3,
+    "frames": 101,
+    "travel": 0.41,
+    "pair": "Motion[9]"
+   },
    "0|Motion[11]": {
     "deg": -41.5,
     "frames": 49,
@@ -2802,14 +4526,19 @@
     "travel": 0.71,
     "pair": "Motion[11]"
    },
+   "1|Motion[25]": {
+    "deg": 29.1,
+    "frames": 105,
+    "travel": 0
+   },
    "2|Motion[51]": {
-    "deg": -26.3,
+    "deg": 10.6,
     "frames": 59,
     "travel": 1.13,
     "pair": "Motion[52]"
    },
    "2|Motion[52]": {
-    "deg": 26.4,
+    "deg": -10.6,
     "frames": 59,
     "travel": 1.13,
     "pair": "Motion[51]"
@@ -2826,8 +4555,20 @@
     "travel": 0.2,
     "pair": "Motion[5]_loop"
    },
+   "3|Motion[7]": {
+    "deg": 10.5,
+    "frames": 83,
+    "travel": 0.94,
+    "pair": "Motion[8]"
+   },
+   "3|Motion[8]": {
+    "deg": -10.5,
+    "frames": 83,
+    "travel": 0.92,
+    "pair": "Motion[7]"
+   },
    "3|Motion[23]_loop": {
-    "deg": -121.8,
+    "deg": -134.5,
     "frames": 66,
     "travel": 0.03
    },
@@ -2842,7 +4583,7 @@
     "travel": 0.21
    },
    "9|Motion[6]": {
-    "deg": -33,
+    "deg": 178.7,
     "frames": 109,
     "travel": 1.22
    }
@@ -2852,6 +4593,18 @@
     "deg": 33.5,
     "frames": 57,
     "travel": 1.89
+   },
+   "0|Motion[10]": {
+    "deg": 10.2,
+    "frames": 55,
+    "travel": 0.44,
+    "pair": "Motion[11]"
+   },
+   "0|Motion[11]": {
+    "deg": -10.1,
+    "frames": 55,
+    "travel": 0.44,
+    "pair": "Motion[10]"
    },
    "2|Motion[41]": {
     "deg": 42.7,
@@ -2864,14 +4617,9 @@
     "travel": 0
    },
    "3|Motion[3]": {
-    "deg": -175.9,
+    "deg": 171.5,
     "frames": 37,
     "travel": 0.34
-   },
-   "3|Motion[5]": {
-    "deg": 26.4,
-    "frames": 91,
-    "travel": 0.79
    },
    "3|Motion[13]_loop": {
     "deg": -28.4,
@@ -2890,11 +4638,6 @@
    }
   },
   "em086_00": {
-   "0|Motion[15]": {
-    "deg": 31.2,
-    "frames": 97,
-    "travel": 1.31
-   },
    "0|Motion[16]": {
     "deg": 39.4,
     "frames": 97,
@@ -2918,21 +4661,47 @@
     "travel": 0.51
    },
    "2|Motion[24]": {
-    "deg": 30.2,
+    "deg": 10.6,
     "frames": 37,
     "travel": 1.94,
     "pair": "Motion[25]"
    },
    "2|Motion[25]": {
-    "deg": -30.2,
+    "deg": -10.6,
     "frames": 37,
     "travel": 1.94,
     "pair": "Motion[24]"
+   },
+   "3|Motion[6]_loop": {
+    "deg": 24.1,
+    "frames": 81,
+    "travel": 0.2,
+    "pair": "Motion[10]_loop"
+   },
+   "3|Motion[10]_loop": {
+    "deg": -24.1,
+    "frames": 81,
+    "travel": 0.2,
+    "pair": "Motion[6]_loop"
    },
    "3|Motion[29]_loop": {
     "deg": 58.4,
     "frames": 61,
     "travel": 0.03
+   }
+  },
+  "em088_00": {
+   "2|Motion[5]_start": {
+    "deg": 12.2,
+    "frames": 34,
+    "travel": 1.06,
+    "pair": "Motion[7]_start"
+   },
+   "2|Motion[7]_start": {
+    "deg": -12.2,
+    "frames": 34,
+    "travel": 1.06,
+    "pair": "Motion[5]_start"
    }
   }
  }
