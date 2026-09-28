@@ -1812,7 +1812,7 @@ function carryLoop(){
   const restarted = !!act && act === carryAction && !act.paused && act.timeScale > 0 && pose.anchorXZ === false
                     && act.time + 1e-6 < carryTime;
   // a pass that started over puts the turn's target down again, so a looping turn keeps turning (STEER)
-  if (restarted){ shiftWorld(loopShift.x, loopShift.z); placeSteerTarget(); }
+  if (restarted){ shiftWorld(loopShift.x, loopShift.z); placeSteerTarget(false); }
   carryAction = act; carryTime = act ? act.time : 0;
   return restarted;
 }
@@ -6432,7 +6432,7 @@ async function play(){
   // the new clip's first frame goes where the old clip's last drawn one was (THE WALK CARRIES OVER)
   { const first = measureLoopShift(); shiftWorld(lastInLoop.x - first.x, lastInLoop.z - first.z); lastInLoop.copy(first);
     carryAction = pose.action; carryTime = pose.action ? pose.action.time : 0; }
-  placeSteerTarget();          // the steering test: a new clip puts its target down (STEER)
+  placeSteerTarget(true);      // a new clip: face front again, then put its target down (STEER)
   await playAttached(l, c);
   stepAttached();
   // every clip, list and lock change comes through here, and the severed pieces stand on the new floor
@@ -7308,8 +7308,13 @@ function clipRootSwing(){
   if (Math.abs(net) >= 15 * Math.PI / 180) return 0;
   return frames < 120 ? peak : 0;
 }
-// every pass -- a new clip, and every loop of it -- puts the target down again, that far round from here
-function placeSteerTarget(){
+// Every pass puts the target down again, that far round from where he now faces -- so a looping turn keeps
+// turning. A NEW ANIMATION STARTS HIM FACING FRONT AGAIN (Raven, 2026-09-27: "When moving to a new animation,
+// we should reset the orientation"): the turn a clip built up belongs to that clip, and carrying it into the
+// next one just leaves him further round every time you pick something from the list. A loop of the SAME clip
+// is not a new animation and does carry.
+function placeSteerTarget(fresh){
+  if (fresh){ steerYaw = 0; }
   steerBase = steerYaw;
   steerDelta = STEER.on ? clipRootSwing() : 0;
   steerProg = 0;
@@ -7777,7 +7782,7 @@ window.__view.steer = r => {
                                 want: +(steerWant * 180 / Math.PI).toFixed(1) };
   if (r === false || r === true){ STEER.on = !!r; if (!r){ steerYaw = 0; steerWant = 0; } }
   else { STEER.rate = +r || 3; STEER.on = true; }
-  placeSteerTarget();
+  placeSteerTarget(true);
   return { ...STEER };
 };
 window.__view.box = (which, on) => {
