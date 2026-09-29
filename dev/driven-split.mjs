@@ -31,6 +31,23 @@ const EFFECTS = path.join(DOCS, 'effects');
 
 const { MOTION_STATES, RAGE_BY_LEVEL, RAGE_PUFF } = await import(pathToFileURL(path.join(DOCS, 'render/motion-states.js')).href);
 const { SHELL_DATA } = await import(pathToFileURL(path.join(DOCS, 'render/shells.js')).href);
+// monster.js imports three.js, which does not resolve outside the browser, so CLIP_EFFECTS is sliced
+// out of its source and evaluated on its own. Brace-matched rather than regexed: the table is tens of
+// thousands of characters and a non-greedy match would stop at the first nested close.
+const CLIP_EFFECTS = (() => {
+  const src = fs.readFileSync(path.join(DOCS, 'render/monster.js'), 'utf8');
+  const at = src.indexOf('export const CLIP_EFFECTS = {');
+  if (at < 0) throw new Error('CLIP_EFFECTS not found in monster.js');
+  const open = src.indexOf('{', at);
+  let depth = 0, end = -1;
+  for (let i = open; i < src.length; i++) {
+    const c = src[i];
+    if (c === '{') depth++;
+    else if (c === '}') { depth--; if (depth === 0) { end = i; break; } }
+  }
+  if (end < 0) throw new Error('CLIP_EFFECTS braces unbalanced');
+  return Function('return ' + src.slice(open, end + 1))();
+})();
 const { CUT_TAIL } = await import(pathToFileURL(path.join(DOCS, 'render/tail-option.js')).href);
 const SS = await import(pathToFileURL(path.join(DOCS, 'render/rom/effect/shared-states.js')).href);
 
@@ -67,6 +84,84 @@ function walkPairs(node, out = []) {
   return out;
 }
 
+// ---- REACHABILITY -------------------------------------------------------------------------------
+// The layer rule below ("every `when` except 'event' is driven by its own layer") was too generous
+// twice over, and both were found the same way: a record is named by a table, and is still never
+// fired. Two tests replace the trust.
+//
+// SHELLS. A `shell` record is driven only if BOTH hold:
+//   (a) THE MODE IS REACHABLE -- some ACTION names that (shell, mode). Not merely that the mode is
+//       transcribed in the entry's `shells` block: em001_00 transcribes shell01 modes 13, 14, 15 and
+//       20, and no action names any of them, so c 30 and c 31 are loaded and never fire (Render).
+//       Modes reached indirectly count: an action's `modes`, and each `spawns[]` entry's `modes`
+//       (the 'seq' form, where one action spawns several modes at several frames).
+//   (b) THE EF PARAMETER IS SELECTABLE. Param 0 is the flight, always started. Params 1/2/3 are the
+//       landing chosen by hit type -- `landing()` does `[1,2,3][hit.type]` and `hitType()` returns
+//       ONLY 0 or 1, so PARAM 3 IS NEVER SELECTED. (Type 2 is a hit on a hunter; the viewer has no
+//       hunters. That is the viewer's limitation, not the ROM's, and it is why em001_00 u 36 never
+//       fires.) Params 4/5 are the bounces, reachable only where the shell bounces at all.
+// The spawner must also have a branch in stepShells: Basarios showed an entry can name a spawner
+// address the runtime has no case for, in which case nothing spawns however good the data is.
+const SPAWNER_SRC = fs.readFileSync(path.join(DOCS, 'render/shells.js'), 'utf8');
+const SPAWNERS = new Set([...SPAWNER_SRC.matchAll(/a\.spawner === (0x[0-9a-f]+)/g)].map(m => parseInt(m[1], 16)));
+
+function shellReach(D) {
+  const modes = new Set(), spawners = new Set();
+  for (const a of D.actions || []) {
+    const add = (shell, list) => { for (const mo of list || []) modes.add((shell || a.shell) + ':' + mo); };
+    add(a.shell, a.modes);
+    for (const sp of a.spawns || []) add(sp.shell, sp.modes);
+    if (a.spawner != null) spawners.add(a.spawner);
+  }
+  return { modes, spawners };
+}
+// Where a (pel,key) is named in the shells block, and whether any of those places can fire it.
+function shellDriven(D, pel, key) {
+  if (!D) return { ok: false, why: 'no SHELL_DATA entry' };
+  const { modes, spawners } = shellReach(D);
+  const listPel = id => (D.lists && D.lists[id] && D.lists[id].pel) || null;
+  const seen = [];
+  for (const [name, sh] of Object.entries(D.shells || {})) {
+    for (const [mode, def] of Object.entries(sh.modes || {})) {
+      (def.ef || []).forEach((e, i) => {
+        if (!Array.isArray(e) || listPel(e[0]) !== pel || e[1] !== key) return;
+        const reachable = modes.has(name + ':' + mode);
+        const selectable = i === 0 || i === 1 || i === 2 || i >= 4;   // param 3 is never selected
+        seen.push({ name, mode, i, reachable, selectable });
+      });
+    }
+  }
+  if (!seen.length) return { ok: false, why: 'named by no shell mode' };
+  if (seen.some(s => s.reachable && s.selectable)) return { ok: true };
+  if (!seen.some(s => s.reachable)) {
+    const at = seen.map(s => s.name + ' mode ' + s.mode).join(', ');
+    return { ok: false, why: 'no action reaches ' + at };
+  }
+  const at = seen.filter(s => s.reachable).map(s => 'ef param ' + s.i).join(', ');
+  return { ok: false, why: at + ' never selected (hit type 2 = a hit on a hunter; none in the viewer)' };
+}
+
+// CLIPS. A `clip` record is driven only if the clip it is bound to exists in monsters.json for that
+// list. CLIP_EFFECTS is generated from the PSL and a clip can be named there that the viewer's own
+// glb does not carry, in which case nothing ever plays it.
+const MONS = JSON.parse(fs.readFileSync(path.join(DOCS, 'monsters.json'), 'utf8')).monsters;
+function clipsOf(id) {
+  const e = MONS.find(x => x.id === id);
+  const out = new Set();
+  for (const L of (e && e.lists) || []) for (const c of L.clips || []) out.add(L.id + '|' + c.clip);
+  return out;
+}
+function clipDriven(id, ceEntry, have) {
+  if (!ceEntry) return { ok: false, why: 'no CLIP_EFFECTS binding' };
+  const mm = /^L(\d+) (.+)$/.exec(ceEntry);
+  if (!mm) return { ok: true };                       // an unrecognised key shape: do not invent a failure
+  const [, list, clip] = mm;
+  const base = clip.replace(/_(start|loop)$/, '');
+  if (have.has(list + '|' + clip) || have.has(list + '|' + base)
+      || have.has(list + '|' + base + '_start')) return { ok: true };
+  return { ok: false, why: 'clip ' + ceEntry + ' is not in monsters.json' };
+}
+
 const only = process.argv.slice(2).filter(a => !a.startsWith('--'));
 const undrivenOnly = process.argv.includes('--undriven');
 const ids = (only.length ? only : fs.readdirSync(EFFECTS).filter(f => f.endsWith('.json')).map(f => f.slice(0, -5)))
@@ -100,6 +195,15 @@ for (const id of ids) {
   }
   const eventDupes = new Set(Object.keys(eventPairs).filter(k => eventPairs[k] > 1));
 
+  // the CLIP_EFFECTS key that names each clip record, by (efl basename, key)
+  const ce = CLIP_EFFECTS[id] || {};
+  const clipOwner = {};
+  for (const [clipKey, spec] of Object.entries(ce))
+    for (const b of (spec && spec.bits) || [])
+      clipOwner[(b.efl || '').replace(/\.efl$/, '') + '|' + b.key] = clipKey;
+  const clipKeyOf = r => clipOwner[(r.efl || '').split('/').pop().replace(/\.efl$/, '') + '|' + r.record.key];
+  const haveClips = clipsOf(id);
+
   const byWhen = {};
   const undriven = [];
   let hyperCount = 0, driven = 0;
@@ -115,15 +219,22 @@ for (const id of ids) {
     // viewer behind it -- so it, and only it, has to be matched against the driver tables.
     // (An earlier version listed four layers by hand and let `rage`, `rageStart` and `calm` fall through
     // to the state check, which called 16 driven records undriven.)
-    let how = null;
-    if (r.when !== 'event') how = r.when;
+    let how = null, why = '';
+    if (r.when === 'shell') {
+      const v = shellDriven(SHELL_DATA[id], pel, key);
+      if (v.ok) how = 'shell'; else why = v.why;
+    } else if (r.when === 'clip') {
+      const v = clipDriven(id, clipKeyOf(r), haveClips);
+      if (v.ok) how = 'clip'; else why = v.why;
+    } else if (r.when !== 'event') how = r.when;
     else if (named.has(pel + '|' + key)) how = eventDupes.has(pel + '|' + key) ? 'state(AMBIGUOUS)' : 'state';
     else if (PANEL.has(key)) how = 'panel';
     if (how) driven++;
     else {
       if (HYPER.has(key)) hyperCount++;
       undriven.push({ pel, key, efl: (r.efl || '').split('/').pop(),
-                      why: HYPER.has(key) ? 'hyper' : RUNTIME_ONLY.has(key) ? 'runtime, no control' : '' });
+                      why: why || (HYPER.has(key) ? 'hyper'
+                                 : RUNTIME_ONLY.has(key) ? 'runtime, no control' : '') });
     }
   }
   const dupes = [...seen].filter(([, n]) => n > 1).map(([k]) => k);
