@@ -157,10 +157,14 @@ function shellDriven(D, pel, key, mon) {
 // list. CLIP_EFFECTS is generated from the PSL and a clip can be named there that the viewer's own
 // glb does not carry, in which case nothing ever plays it.
 const MONS = JSON.parse(fs.readFileSync(path.join(DOCS, 'monsters.json'), 'utf8')).monsters;
+// Indexed by the clip's BASE name, so any split variant counts. Checking for `base + '_start'` alone
+// missed every clip that ships only as `_loop` -- em002_00 L4 Motion[29] is `Motion[29]_loop`, and that
+// one omission made all 93 "clip missing" records false negatives.
 function clipsOf(id) {
   const e = MONS.find(x => x.id === id);
   const out = new Set();
-  for (const L of (e && e.lists) || []) for (const c of L.clips || []) out.add(L.id + '|' + c.clip);
+  for (const L of (e && e.lists) || [])
+    for (const c of L.clips || []) out.add(L.id + '|' + c.clip.replace(/_(start|loop)$/, ''));
   return out;
 }
 function clipDriven(id, ceEntry, have) {
@@ -171,8 +175,7 @@ function clipDriven(id, ceEntry, have) {
   if (!mm) return { ok: true };                       // an unrecognised key shape: do not invent a failure
   const [, list, clip] = mm;
   const base = clip.replace(/_(start|loop)$/, '');
-  if (have.has(list + '|' + clip) || have.has(list + '|' + base)
-      || have.has(list + '|' + base + '_start')) return { ok: true };
+  if (have.has(list + '|' + base)) return { ok: true };
   return { ok: false, why: 'clip ' + ceEntry + ' is not in monsters.json' };
 }
 
