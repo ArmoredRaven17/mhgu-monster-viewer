@@ -88,6 +88,18 @@ for (const id of ids) {
     ...walkPairs(SHELL_DATA[id]),
   ]);
 
+  // (pel, key) is not a record's identity -- 45 groups tree-wide share one. It only MISLEADS where two
+  // records both fall to the pair match, i.e. two `event` records with the same pair: a driver naming it
+  // fires one of them and would credit both. Measured: no such group exists today (the 45 are 34
+  // clip+shell, 6 clip+event, 3 clip+rage, 2 clip+rageStart, and the non-event half of each is credited
+  // by its own layer, never by the pair). Flagged rather than trusted, so it is caught if one appears.
+  const eventPairs = {};
+  for (const r of recs) if (r.when === 'event') {
+    const k = r.record.pel + '|' + r.record.key;
+    eventPairs[k] = (eventPairs[k] || 0) + 1;
+  }
+  const eventDupes = new Set(Object.keys(eventPairs).filter(k => eventPairs[k] > 1));
+
   const byWhen = {};
   const undriven = [];
   let hyperCount = 0, driven = 0;
@@ -96,11 +108,16 @@ for (const id of ids) {
     const { pel, key } = r.record;
     seen.set(pel + '|' + key, (seen.get(pel + '|' + key) || 0) + 1);
     byWhen[r.when] = (byWhen[r.when] || 0) + 1;
+    // EVERY `when` EXCEPT 'event' IS DRIVEN BY ITS OWN LAYER. The export writes a record's `when` from
+    // whatever names it, so a clip / shell / ragePuff / rage / rageStart / calm record is there because
+    // that layer named it. 'event' is the broad one -- it holds both records a viewer state table names
+    // AND shared-band records exported because the ROM's shared code fires them with nothing in the
+    // viewer behind it -- so it, and only it, has to be matched against the driver tables.
+    // (An earlier version listed four layers by hand and let `rage`, `rageStart` and `calm` fall through
+    // to the state check, which called 16 driven records undriven.)
     let how = null;
-    if (r.when === 'clip') how = 'clip';
-    else if (r.when === 'shell') how = 'shell';
-    else if (r.when === 'ragePuff') how = 'ragePuff';
-    else if (named.has(pel + '|' + key)) how = 'state';
+    if (r.when !== 'event') how = r.when;
+    else if (named.has(pel + '|' + key)) how = eventDupes.has(pel + '|' + key) ? 'state(AMBIGUOUS)' : 'state';
     else if (PANEL.has(key)) how = 'panel';
     if (how) driven++;
     else {
