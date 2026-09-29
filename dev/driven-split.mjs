@@ -116,10 +116,14 @@ function shellReach(D) {
   return { modes, spawners };
 }
 // Where a (pel,key) is named in the shells block, and whether any of those places can fire it.
-function shellDriven(D, pel, key) {
+function shellDriven(D, pel, key, mon) {
   if (!D) return { ok: false, why: 'no SHELL_DATA entry' };
   const { modes, spawners } = shellReach(D);
-  const listPel = id => (D.lists && D.lists[id] && D.lists[id].pel) || null;
+  // THE DEFAULT LIST MAP. Most entries carry `lists`, but several (em037_00, em003_00) omit it and rely
+  // on the default {0: u, 1: c}. Resolving to null there matched nothing and reported four of
+  // Nargacuga's spike records as "named by no shell mode" -- a matching bug wearing a finding's clothes.
+  const listPel = id => (D.lists && D.lists[id] && D.lists[id].pel)
+                     || (id === 0 ? mon + 'u' : id === 1 ? mon + 'c' : null);
   const seen = [];
   for (const [name, sh] of Object.entries(D.shells || {})) {
     for (const [mode, def] of Object.entries(sh.modes || {})) {
@@ -132,12 +136,20 @@ function shellDriven(D, pel, key) {
     }
   }
   if (!seen.length) return { ok: false, why: 'named by no shell mode' };
-  if (seen.some(s => s.reachable && s.selectable)) return { ok: true };
-  if (!seen.some(s => s.reachable)) {
-    const at = seen.map(s => s.name + ' mode ' + s.mode).join(', ');
-    return { ok: false, why: 'no action reaches ' + at };
+  // MODE REACHABILITY IS NOT STATICALLY DECIDABLE, and claiming it was cost a wrong re-report.
+  // `ctx.create` (shells.js, "the shells its shells make", 0x48b884) spawns a SECOND GENERATION whose
+  // mode is computed at runtime, so a record can fire on a mode no action row names: Render watched
+  // one shell00 mode-8 action on em001_00 L4 Motion[16] produce u 31 / u 32 / u 33 / u 34, which live
+  // on shell01 modes 6 / 7 / 8 / 9. An enumeration over action modes cannot see that generation and
+  // produced seven false negatives on Rathian alone.
+  // So `reachable` is reported as a NOTE and never decides. Only the ef-parameter test decides, because
+  // that one IS sound statically: `landing()` does [1,2,3][hit.type] and `hitType()` returns only 0 or 1.
+  if (seen.some(s => s.selectable)) {
+    const unreached = seen.filter(s => !s.reachable).map(s => s.name + ' mode ' + s.mode);
+    return { ok: true, note: unreached.length && unreached.length === seen.length
+      ? 'no action row names ' + unreached.join(', ') + ' (may be a second-generation spawn)' : '' };
   }
-  const at = seen.filter(s => s.reachable).map(s => 'ef param ' + s.i).join(', ');
+  const at = seen.map(s => 'ef param ' + s.i).join(', ');
   return { ok: false, why: at + ' never selected (hit type 2 = a hit on a hunter; none in the viewer)' };
 }
 
@@ -152,7 +164,9 @@ function clipsOf(id) {
   return out;
 }
 function clipDriven(id, ceEntry, have) {
-  if (!ceEntry) return { ok: false, why: 'no CLIP_EFFECTS binding' };
+  // No CLIP_EFFECTS bit found for this (efl, key) is NOT proof that nothing fires it -- a family member's
+  // table can name it, and the match is on the efl basename. Reported as a note, never counted undriven.
+  if (!ceEntry) return { ok: true, note: 'no CLIP_EFFECTS binding found (not checked further)' };
   const mm = /^L(\d+) (.+)$/.exec(ceEntry);
   if (!mm) return { ok: true };                       // an unrecognised key shape: do not invent a failure
   const [, list, clip] = mm;
@@ -221,7 +235,7 @@ for (const id of ids) {
     // to the state check, which called 16 driven records undriven.)
     let how = null, why = '';
     if (r.when === 'shell') {
-      const v = shellDriven(SHELL_DATA[id], pel, key);
+      const v = shellDriven(SHELL_DATA[id], pel, key, id);
       if (v.ok) how = 'shell'; else why = v.why;
     } else if (r.when === 'clip') {
       const v = clipDriven(id, clipKeyOf(r), haveClips);
