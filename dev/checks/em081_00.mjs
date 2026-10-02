@@ -32,14 +32,15 @@ async function pageCheckAstalos(){
   check(await until(() => rt() && rt().monsterId === MON && rt().schedule), 'the effect runtime is up');
   const fx = rt(), S = fx.schedule;
   const fired = [];
-  const f0 = fx.fire.bind(fx); fx.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
+  // the schedule's fire (live.js fire() passes through to it): the tired drool fires there directly (schedule.js stepDrool)
+  const f0 = fx.schedule.fire.bind(fx.schedule); fx.schedule.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
   const puffs = [];
   const s0 = S.start.bind(S);
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
   const byWhen = {};
   for (const e of S.entries) byWhen[e.when] = (byWhen[e.when] || 0) + 1;
-  check(byWhen.event === 21 && byWhen.ragePuff === 2,
-        'the schedule holds his state records: 21 event and 2 ragePuff', byWhen);
+  check(byWhen.event === 20 && byWhen.ragePuff === 2,
+        'the schedule holds his state records: 20 event and 2 ragePuff', byWhen);
   const MONSTER = V.MON.monsters.find(e => e.id === MON);
   const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => MONSTER.partIds.includes(p))) : null; };
   const isSet = (d, n) => (MONSTER.groups[n] || []).filter(([g]) => MONSTER.partIds.includes(g)).every(([g, on]) => d[g] === on);
@@ -115,8 +116,11 @@ async function pageCheckAstalos(){
   await play('3', 'Motion[1]'); await frames(3);
   check(fired.length === 0 && isSet(drawn(), 3),
         'L3 Motion[1] (the CREST) at the default level: set 3 kept and NOTHING fired -- level 1 has no record', { fired, d: drawn() });
-  const crest = MS.MOTION_STATES[MON]['3|Motion[1]'];
-  check(crest && crest.levels.length === 3 && same(crest.levels, [[3], [3], [4]]) &&
+  // THE ROW IS A CYCLE NOW: its second arm is the charged crest's discharge (u 300, gated to level 2 -- motion-states.js
+  // em081_00's charge note), so the break is the FIRST arm. Read as the bare row it threw on `.levels` and stopped the
+  // whole motion-states run before any later monster's page check (found 2026-09-30).
+  const row = MS.MOTION_STATES[MON]['3|Motion[1]'], crest = row && (row.cycle ? row.cycle[0] : row);
+  check(crest && crest.levels && crest.levels.length === 3 && same(crest.levels, [[3], [3], [4]]) &&
         crest.fire[0] === null && crest.fire[1] === null && same(crest.fire[2], ['em081_00u', 1001]),
         'and the table gives him THREE crest levels, with set 4 and u 1001 only at level 2', crest && crest.levels);
 
@@ -154,8 +158,12 @@ async function pageCheckAstalos(){
   fired.length = 0;
   await play('0', 'Motion[14]'); await frames(3); await steps(2);
   check(S.rage === false && count(fired, 1104) === 1, 'L0 Motion[14] (tired): rage off, drool c 1104 at once', fired);
-  await clipSteps(50);
-  check(count(fired, 1104) === 2, 'the drool again 48 CLIP frames on', fired);
+  // THE DROOL IS ON THE UNIT'S CLOCK, like the puff (schedule.js stepDrool, TIRED_DROOL): 0xa41b8 counts P+0x5c70 down by
+  // [unit+0x1c] x 1.0 a frame (0x7206c -> 0x539d5c, s0 = 1.0 at 0xa42d8) -- the unit's frames, not the clip's -- so it is
+  // waited for in schedule `steps`, not `clipSteps`. The countdown keeps its leftover across motions: only the reset
+  // (0xba0f4) and rage (0xa42a8) zero it, so tiredness drools at once after rage and then every 48, not at every play.
+  await steps(50);
+  check(count(fired, 1104) === 2, 'the drool again 48 steps on', fired);
 
   // ASLEEP: his eyes DO shut
   await play('3', 'Motion[14]'); await frames(4);

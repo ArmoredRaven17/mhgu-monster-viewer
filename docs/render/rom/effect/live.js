@@ -30,14 +30,15 @@
 // Interfaces the draws never select (FFogVTF, FAlphaTest, ...) run their own bodies (no fog, no alpha test).
 import * as THREE from 'three';
 import { EffectHost } from './host.js';
-import { linkPrimitive, linkProgram, GPU_PARTICLE, alphaTestOf, cbUniforms, FORMATS } from './primshader.js';
+import { linkPrimitive, linkProgram, GPU_PARTICLE, INF_PARTICLE, alphaTestOf, cbUniforms, FORMATS } from './primshader.js';
 import { linkMaterial } from './modelshader.js';
 import { EffectSchedule } from './schedule.js';
-import { SHELL_DATA } from '../../shells.js';
+import { SharedStates, SHARED_STATES } from './shared-states.js';
+import { SHELL_DATA, BEAM_SHOWCASE, BEAM_TYPES } from '../../shells.js';
 import { rank as rankFilters, constants as filterConstants, FilterPass } from './filter.js';
 import { loadJson, getTexture, loadGlb } from '../../assets.js';
 import { gidBonesOf } from '../../skeleton.js';
-import { RAGE_PUFF } from '../../motion-states.js';
+import { RAGE_PUFF, TIRED_DROOL, TIRED_DROOL_PERIOD } from '../../motion-states.js';
 import { getSHCoef } from '../ambient.js';
 
 const MT_TO_VIEW = 0.01;
@@ -63,6 +64,51 @@ async function loadShared(){
 }
 
 export async function liveEffectsFor(monsterId){
+  const r = await fetch('effects/' + monsterId + '.json?v=' + Date.now());
+  const def = r.ok ? await r.json() : null;
+  if (def && monsterId === BEAM_SHOWCASE.monId) await addBeamShowcase(def);
+  return def;
+}
+// THE BEAM SHOWCASE (Basarios's Special 'Beam Test', render/shells.js): his runtime also carries every beam type's
+// records -- its beam and its impact, the `shell` records each monster's own json exports (efx: add_effects.export, the
+// UNIQUE array) -- and their resources, so that entry can start any of them. A record not exported is named.
+async function addBeamShowcase(def){
+  const want = new Map();
+  // each type's beam and impact, and its children's records (Plesioth's / Ukanlos's base00 children, beam-types `child`)
+  const recsOf = t => [t.beam, t.impact].concat(t.child ? Object.values(t.child.modes).flatMap(m => m.ef)
+    .filter(([lid, key]) => lid <= 7 && key >= 0).map(([, key]) => [t.child.pel, key]) : []);
+  for (const t of BEAM_TYPES) for (const r of recsOf(t)) if (r && t.mon !== def.monster) {
+    if (!want.has(t.mon)) want.set(t.mon, new Set());
+    want.get(t.mon).add(r[0] + '|' + r[1]);
+  }
+  const have = new Set(def.effects.filter(e => e.record).map(e => e.record.pel + '|' + e.record.key + '|' + e.when));
+  const missing = [];
+  for (const [mon, keys] of want){
+    const d = await liveEffectsForPlain(mon);
+    if (!d){ missing.push(mon + ' (no json)'); continue; }
+    const got = new Set();
+    for (const e of d.effects){
+      const id = e.record && e.record.pel + '|' + e.record.key;
+      if (e.when !== 'shell' || !id || !keys.has(id) || have.has(id + '|shell')) continue;
+      def.effects.push(e); have.add(id + '|shell'); got.add(id);
+    }
+    // A RECORD EXPORTED UNDER ANOTHER `when`: the export keeps one entry per (pel, key, array), so a UNIQUE record a
+    // clip bit already exported (Rajang's em023_00u 210, a clip record) has no `shell` twin. Its ONE entry for the key
+    // is taken as a shell record (a copy); a key with more than one entry (another array) is not guessed at.
+    for (const id of keys){
+      if (got.has(id) || have.has(id + '|shell')) continue;
+      const same = d.effects.filter(e => e.record && e.record.pel + '|' + e.record.key === id);
+      if (same.length === 1){ def.effects.push(Object.assign({}, same[0], { when: 'shell' })); have.add(id + '|shell'); got.add(id); }
+    }
+    for (const [k, v] of Object.entries(d.resources || {})){
+      const slot = def.resources[k] || (def.resources[k] = {});
+      for (const [kk, vv] of Object.entries(v)) if (!(kk in slot)) slot[kk] = vv;
+    }
+    for (const id of keys) if (!got.has(id) && !have.has(id + '|shell')) missing.push(id);
+  }
+  if (missing.length) console.warn('beam showcase: records not exported as shell records: ' + missing.join(', '));
+}
+async function liveEffectsForPlain(monsterId){
   const r = await fetch('effects/' + monsterId + '.json?v=' + Date.now());
   return r.ok ? r.json() : null;
 }
@@ -269,6 +315,16 @@ export class LiveEffects {
     // the monster's SHELLS (render/shells.js), when its shells are decoded: stepped by the schedule, from this
     // step's joints in the game's convention (writeJoints keeps them in gameJoints)
     this.schedule.useShells(this.def.monster, gid => this.gameJoints.get(gid) || null);
+    // THE SHARED-STATE EFFECTS (shared-states.js): the ailment / mark / dung / alert / blast records the
+    // game's SHARED ENEMY CODE requests, not the monster's class. They are clip-independent, so they are
+    // driven here rather than from a MOTION_STATES row.
+    //   The c.pel is the FAMILY'S, not the monster's -- Gold Rathian's records live in em001_00c -- so it
+    // is READ off an exported shared record. Building it as <monster>+'c' is the mistake that once counted
+    // every sibling's shared records as unwired.
+    const sharedKeys = new Set(Object.keys(SHARED_STATES).map(n => SHARED_STATES[n].key));
+    const sharedEntry = this.effects.find(e => e.def && e.def.record && sharedKeys.has(e.def.record.key));
+    this.sharedStates = sharedEntry
+      ? new SharedStates(this.schedule, sharedEntry.def.record.pel) : null;
     // the monster's RAGE PUFF (render/motion-states.js RAGE_PUFF): its pick reads a joint's rotation as the motion leaves it
     // -- the bone's own quaternion, relative to its parent, the joint record's +0x60 (0x539e60)
     const puff = RAGE_PUFF[def.monster];
@@ -277,6 +333,10 @@ export class LiveEffects {
       this.schedule.setRagePuff({ period: puff.period, records: puff.records,
                                   pick: () => puff.pick(node ? [node.quaternion.x, node.quaternion.y, node.quaternion.z, node.quaternion.w] : null) });
     }
+    // the monster's TIRED DROOL (render/motion-states.js TIRED_DROOL): 0xa41b8's other branch, over any clip while the
+    // monster shows exhausted (a tired idle, or the user's Exhausted state) -- gated by puffGates like the puff
+    const drool = TIRED_DROOL[def.monster];
+    if (drool) this.schedule.setTiredDrool({ period: TIRED_DROOL_PERIOD, record: drool });
     // the heap after the mount's own allocations (draw system, effects, parent, any auto-started effect) -- kept to
     // read the growth since the mount (frame() no longer rewinds to it: see there)
     this.heapBase = host.heap;
@@ -353,6 +413,24 @@ export class LiveEffects {
       }
     }
   }
+
+  // A SHARED STATE on or off (shared-states.js SHARED_STATES): poisoned, marked, dung, shallow and the
+  // rest. The record is requested at once and then on the ROM's own countdown for that state.
+  setSharedState(name, on){
+    if (this.failed || !this.sharedStates) return false;
+    try { return this.sharedStates.set(name, on); } catch (e){ this.fail(e); return false; }
+  }
+  // one blast proc on a part (0..7): one request of c 1130 + part, at that part's joint
+  blastPart(part){
+    if (this.failed || !this.sharedStates) return [];
+    try { return this.sharedStates.blast(part); } catch (e){ this.fail(e); return []; }
+  }
+  // the combat byte moving: 0 -> 2 fires c 1200, 2 -> 0 fires c 1201, and 2 -> 1 fires NOTHING
+  setCombat(from, to){
+    if (this.failed || !this.sharedStates) return [];
+    try { return this.sharedStates.combat(from, to); } catch (e){ this.fail(e); return []; }
+  }
+  sharedStateStats(){ return this.sharedStates ? this.sharedStates.stats() : null; }
 
   // The viewer's Enraged state: the effects that start or stop with it (schedule.js).
   setRage(on){
@@ -453,12 +531,21 @@ export class LiveEffects {
   unhookAfterRender(){
     if (this.hookedScene){ this.hookedScene.onAfterRender = this.hookedPrev; this.hookedScene = null; this.hookedPrev = null; }
   }
+  // THE ERROR HANDLER MUST NOT THROW. `gpuMeshes` is assigned BY INDEX (`this.gpuMeshes[k] = mesh` in the draw
+  // loop), so a draw the loop skips leaves a HOLE while length still counts it -- a sparse array. Holes are
+  // already known behaviour one level down, where the ordering pass filters them out (`.filter(x => x.mesh)`),
+  // but this handler dereferenced every slot. On Valstrax (em086_00) L1 Motion[4] that threw
+  // `Cannot set properties of undefined (setting 'visible')` out of fail() itself, which propagated through
+  // frame() and onBeforeRender into three's render loop and killed the page: the live soak reported
+  // "23 motions played, 0 refused" for a 100-motion monster -- the refusal that started it never recorded, and
+  // the other 77 motions never ran. A handler that hides the meshes has nothing to hide for a slot with no mesh.
+  // (2026-09-26.)
   fail(e){
     this.failed = String(e && e.message || e);
     this.stats.failed = this.failed;
-    for (const mesh of this.meshes) mesh.visible = false;
-    for (const mesh of this.modelMeshes) mesh.visible = false;
-    for (const mesh of this.gpuMeshes) mesh.visible = false;
+    for (const mesh of this.meshes) if (mesh) mesh.visible = false;
+    for (const mesh of this.modelMeshes) if (mesh) mesh.visible = false;
+    for (const mesh of this.gpuMeshes) if (mesh) mesh.visible = false;
     console.warn('live effects stopped: ' + this.failed);
   }
 
@@ -478,6 +565,9 @@ export class LiveEffects {
     this.last = now;
     if (this.acc >= STEP) this.writeJoints();
     while (this.acc >= STEP){
+      // BEFORE the schedule, as the ROM's own order has it: the shared ailment pass runs in the enemy
+      // update, ahead of the effects' (the same reason schedule.js walks the PSL before the unit passes).
+      if (this.sharedStates) this.sharedStates.step();
       this.schedule.step();                                    // every request's core and effect
       this.acc -= STEP;
       this.stats.steps++;
@@ -504,9 +594,9 @@ export class LiveEffects {
       // inside a block still in use, overwritten, and 0x43168 called address 0 from 0x4319c -- after 24 motions, never
       // alone. With the rewind off (free() still recycling blocks) the same run is clean and the heap grows ~33 KB a
       // play (6.9 MB over Rathian's 103 motions twice); the effect memory is sparse pages and nothing sits above it.
-      for (const mesh of this.meshes) mesh.visible = false;
-      for (const mesh of this.modelMeshes) mesh.visible = false;
-      for (const mesh of this.gpuMeshes) mesh.visible = false;
+      for (const mesh of this.meshes) if (mesh) mesh.visible = false;
+      for (const mesh of this.modelMeshes) if (mesh) mesh.visible = false;
+      for (const mesh of this.gpuMeshes) if (mesh) mesh.visible = false;   // sparse: see fail()
       this.stats.prims = this.stats.models = this.stats.gpu = 0;
       return;
     }
@@ -825,7 +915,12 @@ export class LiveEffects {
       // still lacks three things the decode named -- glsl.py has no op37 (`%`, which FInfParticleTexturePattern uses),
       // primshader.js names attributes `a_` + semantic so the layout's two Attribute elements collide, and
       // gpu-shaders.json carries no InfParticle programs. Until those land the node runs and draws nothing.
-      if (d.technique !== 'TGPUParticle'){
+      //   THEY HAVE LANDED (the Armor Viewer agent's GL side, 2026-10-01: op37 and the rest in glsl.py, the repeated
+      // semantic in primshader.js, the InfParticle programs merged into gpu-shaders.json): TInfParticle draws through
+      // INF_PARTICLE. A program that will not link -- a variant no log exported yet -- skips that node (counted as
+      // '<technique> (unlinked)') instead of stopping the monster; TGPUParticle still throws as before.
+      const entry = d.technique === 'TGPUParticle' ? GPU_PARTICLE : d.technique === 'TInfParticle' ? INF_PARTICLE : null;
+      if (!entry){
         this.stats.skippedTechnique = (this.stats.skippedTechnique || 0) + 1;
         (this.skippedTechniques || (this.skippedTechniques = new Set())).add(d.technique);
         const hide = this.gpuMeshes[k];
@@ -837,8 +932,22 @@ export class LiveEffects {
       const alphaTest = alphaTestOf(d.layout);
       const key = 'gpu|' + d.inputLayout + '|' + Object.keys(d.features).sort().map(f => d.features[f]).join(',') + '|' +
                   (alphaTest ? alphaTest.func + ':' + alphaTest.ref : 'none');
-      let p = this.programs.get(key);
-      if (!p){ p = linkProgram(this.gpuShaders, d.inputLayout, d.features, GPU_PARTICLE, alphaTest); p.label = 'node ' + d.inputLayout; this.programs.set(key, p); }
+      const pkey = (entry === INF_PARTICLE ? 'inf|' : '') + key;
+      let p = this.programs.get(pkey);
+      if (p === undefined){
+        if (entry === INF_PARTICLE){
+          try { p = linkProgram(this.gpuShaders, d.inputLayout, d.features, entry, alphaTest); }
+          catch (e){ p = null; (this.unlinked || (this.unlinked = new Set())).add(String(e && e.message || e)); }
+        } else p = linkProgram(this.gpuShaders, d.inputLayout, d.features, entry, alphaTest);
+        if (p) p.label = 'node ' + d.inputLayout;
+        this.programs.set(pkey, p);
+      }
+      if (!p){
+        this.stats.skippedTechnique = (this.stats.skippedTechnique || 0) + 1;
+        (this.skippedTechniques || (this.skippedTechniques = new Set())).add(d.technique + ' (unlinked)');
+        if (this.gpuMeshes[k]) this.gpuMeshes[k].visible = false;
+        continue;
+      }
       let mesh = this.gpuMeshes[k];
       if (!mesh){
         mesh = new THREE.Mesh(new THREE.BufferGeometry(), null);
@@ -856,7 +965,7 @@ export class LiveEffects {
       const u = mat.uniforms;
       for (const [name, { type, value }] of Object.entries(cbUniforms(this.gpuShaders, d.cb))){
         if (VIEW_BUFFER.test(name)) continue;                      // the renderer's (the header)
-        const v = type === 'float' ? value[0] : type === 'vec2' ? new THREE.Vector2(...value) : type === 'vec3' ? new THREE.Vector3(...value)
+        const v = type === 'float' || type === 'int' ? value[0] : type === 'vec2' ? new THREE.Vector2(...value) : type === 'vec3' ? new THREE.Vector3(...value)
                 : type === 'vec4' ? new THREE.Vector4(...value) : type === 'mat4' ? new THREE.Matrix4().fromArray(value) : null;
         if (v !== null) u[name] = { value: v };
       }
@@ -864,9 +973,11 @@ export class LiveEffects {
       u.tBaseMap = { value: this.texture(d.textures.tBaseMap) };
       applyState(mat, this.gpuShaders, d.blend, d.depth, d.raster);
       mesh.renderOrder = 1000 + k;                     // until order() places it among the batches
-      mesh.visible = !!(u.tBaseMap.value || !/BaseMap/.test(d.features.FGPUParticleSample || ''));
+      // a node that samples its base map waits for it (FInfParticleSampleAlbedo samples tBaseMap too)
+      const reads = entry === INF_PARTICLE ? /Albedo|BaseMap/.test(d.features.FInfParticleSample || '') : /BaseMap/.test(d.features.FGPUParticleSample || '');
+      mesh.visible = !!(u.tBaseMap.value || !reads);
     }
-    for (let k = draws.length; k < this.gpuMeshes.length; k++) this.gpuMeshes[k].visible = false;
+    for (let k = draws.length; k < this.gpuMeshes.length; k++) if (this.gpuMeshes[k]) this.gpuMeshes[k].visible = false;
   }
 
   // every effect draw in the order the game's sorted command list runs them (commandKey above), ties by submission
@@ -896,7 +1007,7 @@ export class LiveEffects {
   detach(){
     if (this.group.parent) this.group.parent.remove(this.group);
     for (const mesh of this.meshes){ mesh.geometry.dispose(); if (mesh.material) mesh.material.dispose(); this.scene.remove(mesh); }
-    for (const mesh of this.gpuMeshes){ mesh.geometry.dispose(); if (mesh.material) mesh.material.dispose(); this.scene.remove(mesh); }
+    for (const mesh of this.gpuMeshes){ if (!mesh) continue; mesh.geometry.dispose(); if (mesh.material) mesh.material.dispose(); this.scene.remove(mesh); }
     this.gpuMeshes.length = 0;
     for (const mesh of this.modelMeshes){ if (mesh.material) mesh.material.dispose(); this.scene.remove(mesh); }   // the geometry is the glb's
     this.meshes.length = 0;

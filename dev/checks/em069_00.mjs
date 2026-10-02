@@ -29,7 +29,8 @@ async function pageCheckSeltasQueen(){
   check(await until(() => rt() && rt().monsterId === MON && rt().schedule), 'the effect runtime is up');
   const fx = rt(), S = fx.schedule;
   const fired = [];
-  const f0 = fx.fire.bind(fx); fx.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
+  // the schedule's fire (live.js fire() passes through to it): the tired drool fires there directly (schedule.js stepDrool)
+  const f0 = fx.schedule.fire.bind(fx.schedule); fx.schedule.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
   const puffs = [];
   const s0 = S.start.bind(S);
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };

@@ -28,7 +28,8 @@ async function pageCheckBarroth(){
   check(await until(() => rt() && rt().monsterId === MON && rt().schedule), 'the effect runtime is up');
   const fx = rt(), S = fx.schedule;
   const fired = [];
-  const f0 = fx.fire.bind(fx); fx.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
+  // the schedule's fire (live.js fire() passes through to it): the tired drool fires there directly (schedule.js stepDrool)
+  const f0 = fx.schedule.fire.bind(fx.schedule); fx.schedule.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
   const puffs = [];
   const s0 = S.start.bind(S);
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
@@ -177,6 +178,8 @@ async function pageCheckBarroth(){
   for (const clip of ['Motion[12]', 'Motion[20]']){
     await play('3', clip); await frames(4);
     check(S.rage === false, 'L3 ' + clip + ' (death): the rage shown goes off', { rage: S.rage });
+    check(isSet(drawn(), 1),
+          'and HIS EYES SHUT at death (set 1): 0xbd594 raises P+0x5d02 with the timer at P+0x5d00 and 0x75c1c calls it with -1 in the status-11 block. A check that does not assert this passes while showing the wrong thing, which is how it survived so long', drawn());
   }
   if (rageBox){ rageBox.checked = false; await rageBox.onchange({ target: rageBox }); await frames(3); }
   await play(REST[0], REST[1]); await frames(3);

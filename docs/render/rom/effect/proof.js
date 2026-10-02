@@ -204,33 +204,61 @@ export function installRequests(m, malloc){
   // +0x5b0 an opaque NVN pool), the device ([0x211f998] + 0x90) and the NVN proc pointers
   {
     const gpu = state.gpu = { storage: new Map(), buffers: new Map(), base: malloc(POOL_BYTES), cursor: 0,
-                              live: new Map(), freed: new Map(), peak: 0 };
+                              live: new Map(), holes: [], peak: 0 };
     gpu.cursor = gpu.base;
-    // A BLOCK THE GAME HAS FREED IS HANDED BACK OUT. The real pool 5 is an NVN memory pool the engine sub-allocates
-    // and releases; this stand-in is a bump allocator over emulated memory, and until its free did anything the pool
-    // only ever grew -- every effect that played took its slab for good, so a long enough session ran the viewer out
-    // and every effect of the monster stopped at once. Blocks go back on a list keyed by size and alignment and are
-    // reused exactly, which is enough because the engine asks for the same few shapes over and over; the cursor still
-    // only rises for a shape never seen before, so `peak` is the real high-water mark.
+    // A FREED BLOCK'S MEMORY IS HANDED BACK OUT -- TO WHATEVER ASKS NEXT. The real pool 5 is an NVN memory pool the engine
+    // sub-allocates and releases; this stand-in sub-allocates emulated memory. Until its free did anything the pool only
+    // ever grew (fixed 2026-09-24). Then a freed block went on a list keyed by its exact size and alignment and was
+    // reused only by that same shape, so a session that plays effects of MANY shapes still climbs toward 'exhausted' --
+    // and live.js fails a monster's WHOLE effect set at the first refusal. Found chasing Raven's "effects eventually stop
+    // rendering ... if the animation is kept on loop long enough" (2026-10-01), though not shown to be his case: on
+    // Basarios's Beam Test, another beam type every play, the cursor climbed from the 1152 KB sGpuParticle's ctor takes
+    // to 1432 KB with 10 freed blocks idle in shapes nobody asked for again, and went flat once the 44 types had all
+    // played; a sequence of ever-new shapes exhausts it (dev/rom-map.md trap 44). Now a
+    // freed block becomes a HOLE, merged with any free neighbour, and an allocation takes the first hole it fits (address
+    // order) before the cursor rises; a hole that reaches the cursor gives its space back to it. `peak` is still the
+    // high-water mark. Nothing the ROM does depends on which address it is handed (the recorder's own stand-in,
+    // efx/proofunit.py, is a plain bump; the checks replay its answers).
+    const alignUp = (a, al) => Math.ceil(a / al) * al;
+    const addHole = (lo, hi) => {
+      const H = gpu.holes;
+      let i = 0;
+      while (i < H.length && H[i][0] < lo) i++;
+      H.splice(i, 0, [lo, hi]);
+      if (i + 1 < H.length && H[i][1] === H[i + 1][0]){ H[i][1] = H[i + 1][1]; H.splice(i + 1, 1); }
+      if (i > 0 && H[i - 1][1] === H[i][0]){ H[i - 1][1] = H[i][1]; H.splice(i, 1); }
+      const top = H[H.length - 1];
+      if (top && top[1] === gpu.cursor){ gpu.cursor = top[0]; H.pop(); }
+    };
     m.svc.gpuPoolAlloc = (size, align) => {
       align = Math.max(align, 1);
       const key = size + ':' + align;
-      const reuse = gpu.freed.get(key);
-      if (reuse && reuse.length){ const got = reuse.pop(); gpu.live.set(got, key); return got; }
-      const at = Math.ceil(gpu.cursor / align) * align;
-      gpu.cursor = at + size;
-      if (gpu.cursor > gpu.base + POOL_BYTES){
-        // the refusal says WHAT ran the pool out, because the two causes need opposite fixes: blocks still held
-        // (a free the runtime is not reaching) against blocks on the free lists in shapes nobody asks for again
-        // (fragmentation -- this stand-in reuses a block only at its exact size and alignment)
+      for (let i = 0; i < gpu.holes.length; i++){                    // first fit, in address order
+        const [lo, hi] = gpu.holes[i], at = alignUp(lo, align);
+        if (at + size > hi) continue;
+        const rest = [];
+        if (at > lo) rest.push([lo, at]);
+        if (at + size < hi) rest.push([at + size, hi]);
+        gpu.holes.splice(i, 1, ...rest);
+        gpu.live.set(at, key);
+        return at;
+      }
+      const at = alignUp(gpu.cursor, align);
+      if (at + size > gpu.base + POOL_BYTES){
+        // the refusal says WHAT ran the pool out, because the two causes need opposite fixes: blocks still held (a free
+        // the runtime is not reaching) against free space too broken up for the block asked
         const tally = m2 => { const t = new Map(); for (const k of m2) t.set(k, (t.get(k) || 0) + 1);
           return [...t].sort((a, b) => b[1] * +b[0].split(':')[0] - a[1] * +a[0].split(':')[0]).slice(0, 4)
                  .map(([k, n]) => k + ' x' + n).join(', '); };
-        const idle = [...gpu.freed].flatMap(([k, l]) => l.map(() => k));
-        throw new Unverified('GPU pool 5 stand-in exhausted: ' + Math.round(gpu.cursor - gpu.base >> 10) + ' KB of ' +
-          (POOL_BYTES >> 10) + ' KB, ' + gpu.live.size + ' blocks held (' + tally(gpu.live.values()) + '), ' +
-          idle.length + ' free (' + tally(idle) + '), free called ' + (gpu.freeCalls || 0) + ' times, ' + (gpu.freeMiss || 0) + ' on a block not ours');
+        const holeBytes = gpu.holes.reduce((n, [lo, hi]) => n + hi - lo, 0), big = gpu.holes.reduce((n, [lo, hi]) => Math.max(n, hi - lo), 0);
+        throw new Unverified('GPU pool 5 stand-in exhausted asking ' + key + ': ' + Math.round(gpu.cursor - gpu.base >> 10) + ' KB of ' +
+          (POOL_BYTES >> 10) + ' KB to the cursor, ' + gpu.live.size + ' blocks held (' + tally(gpu.live.values()) + '), ' +
+          gpu.holes.length + ' holes below it (' + (holeBytes >> 10) + ' KB, the largest ' + big + ' bytes), free called ' +
+          (gpu.freeCalls || 0) + ' times, ' + (gpu.freeMiss || 0) + ' on a block not ours');
       }
+      const was = gpu.cursor;
+      gpu.cursor = at + size;
+      if (at > was) addHole(was, at);                                  // the alignment's gap, free to the next fit
       gpu.peak = Math.max(gpu.peak, gpu.cursor - gpu.base);
       gpu.live.set(at, key);
       return at;
@@ -241,11 +269,9 @@ export function installRequests(m, malloc){
       gpu.freeCalls = (gpu.freeCalls || 0) + 1;
       const at = gpu.live.has(p) ? p : (gpu.live.has((gpu.base + p) >>> 0) ? (gpu.base + p) >>> 0 : 0);
       if (!at){ gpu.freeMiss = (gpu.freeMiss || 0) + 1; return 0; }   // not ours (or freed twice): leave it alone
-      const key = gpu.live.get(at);
+      const size = +gpu.live.get(at).split(':')[0];
       gpu.live.delete(at);
-      let list = gpu.freed.get(key);
-      if (!list) gpu.freed.set(key, list = []);
-      list.push(at);
+      addHole(at, at + size);
       return 0;
     };
     m.svc.gpuSetStorage = (builder, pool, offset, size) => { gpu.storage.set(builder, [pool, offset, size]); };

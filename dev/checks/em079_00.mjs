@@ -27,14 +27,15 @@ async function pageCheckMalfestio(){
   check(await until(() => rt() && rt().monsterId === MON && rt().schedule), 'the effect runtime is up');
   const fx = rt(), S = fx.schedule;
   const fired = [];
-  const f0 = fx.fire.bind(fx); fx.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
+  // the schedule's fire (live.js fire() passes through to it): the tired drool fires there directly (schedule.js stepDrool)
+  const f0 = fx.schedule.fire.bind(fx.schedule); fx.schedule.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
   const puffs = [];
   const s0 = S.start.bind(S);
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
   const byWhen = {};
   for (const e of S.entries) byWhen[e.when] = (byWhen[e.when] || 0) + 1;
-  check(byWhen.event === 10 && byWhen.ragePuff === 2,
-        'the schedule holds his state records: 10 event and 2 ragePuff', byWhen);
+  check(byWhen.event === 9 && byWhen.ragePuff === 2,
+        'the schedule holds his state records: 9 event and 2 ragePuff', byWhen);
   const MONSTER = V.MON.monsters.find(e => e.id === MON);
   const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => MONSTER.partIds.includes(p))) : null; };
   const isSet = (d, n) => (MONSTER.groups[n] || []).filter(([g]) => MONSTER.partIds.includes(g)).every(([g, on]) => d[g] === on);

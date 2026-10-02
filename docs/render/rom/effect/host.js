@@ -275,6 +275,16 @@ export class EffectHost {
     liftedCall(m, 0x329c9c, [q.core, v, 0]);
     liftedCall(m, 0x329d04, [q.core, v + 0x10, 0]);
   }
+  // A BEAM'S DRAWN LENGTH (base02 flag bit 2, its placement 0x3fc540..0x3fc5e8): every unit of the handle -- [core +
+  // 0x150 + 4i], i < [core + 0x15c] -- gets the scale (sx, sy, sz, 0) at +0x60..+0x6c.
+  scaleRequestUnits(q, s){
+    const m = this.m, n = m.u32(q.core + 0x15c);
+    for (let i = 0; i < n; i++){
+      const u = m.u32(q.core + 0x150 + 4 * i);
+      if (!u) continue;
+      m.wf32(u + 0x60, s[0]); m.wf32(u + 0x64, s[1]); m.wf32(u + 0x68, s[2]); m.w32(u + 0x6c, 0);
+    }
+  }
   // units the passes no longer act on (state 3) off the list; a request off the passes altogether (proof.js)
   pruneUnits(){ if (this.requests) pruneUnits(this.m, this.requests); }
   // Take a request off the unit passes (proof.js). Called on a request that has already been stopped and
@@ -291,8 +301,13 @@ export class EffectHost {
   // 0x8a4b88 -> 0x7c3a38), position zero, identity quaternion, unit scale, the matrices composed from
   // those. +0xf0 stays 0 as the constructor leaves it: a request's placement then takes the position,
   // not the world matrix (0x31f6b4). efx/parent.py builds the same object.
-  createParent(jointNumbers){
+  // opts.model: does this parent own a model resource? A MONSTER does (default); a SHELL does not --
+  // its arc holds no rModel at all -- and the difference decides how its effects are placed. Explicit
+  // rather than inferred from jointNumbers.length, because "no joints" is true of both a shell and a
+  // monster whose records all sit at joint -1.
+  createParent(jointNumbers, opts){
     const m = this.m;
+    const withModel = !opts || opts.model !== false;
     const P = this.malloc(0x32b4), VT = this.malloc(0x400), TABLE = this.malloc(0x100);   // P: the real cUnit size
     const ARRAY = this.malloc(0xa0 * jointNumbers.length);
     m.w32(VT + 0x54, 0x939278);
@@ -309,6 +324,19 @@ export class EffectHost {
     // zero, so +0x1068 = 0 and the draw setup (0x41c74) takes the real 0x41cac path, not the float path the
     // old too-small (0x1000) stand-in forced by letting these reads fall into the vtable. See efx/parent.py.
     m.w32(P + 0x1050, 0xff08ff00); m.w32(P + 0x1054, 0x000000ff);
+    // cUnit's MODEL RESOURCE at +0xf0. The placement 0x31d16c TESTS it (0x31f6b4: `ldr r0,[r6,#0xf0];
+    // cmp r0,#0; beq 0x31f788`) and nothing dereferences it, so a block of zeros stands for the resource.
+    // With it, a space-1 record (payload +0x38 == 1) takes the joint's matrix at 0x31f6c0 and its offset
+    // is rotated and scaled by that joint; without it the ROM falls back to the unit's bare +0x40 position
+    // plus the RAW offset (0x31f788: three vadd.f32, no rotation, no scale). A live monster always has a
+    // model, so the fallback is not the game's path for a monster-parented record -- it is what an empty
+    // stand-in produced, and every recording made before 2026-09-29 took it. Rathian alone had 16 such
+    // records: 11 at a real joint drew at the BODY ORIGIN, and the 5 at joint -1 ignored the monster's
+    // rotation and size, which only shows once writeJoints hands the parent a real pose.
+    // Found by the Armor Viewer agent; the monster half re-recorded with efx/parent.py's PARENT_MODEL=1.
+    // NOT for a shell's parent: a shell has no rModel, so 0 is correct there and the fallback is the
+    // ROM's real path for shell-spawned records (schedule.js hangs those from the shell, not the monster).
+    if (withModel) m.w32(P + 0xf0, this.malloc(0x100));
     const parent = { object: P, vtable: VT, table: TABLE, array: ARRAY, joints: jointNumbers.slice(),
                      position: [0, 0, 0], quaternion: [0, 0, 0, 1], scale: 1 };
     this.composeParent(parent);
@@ -316,6 +344,9 @@ export class EffectHost {
   }
   // the parent unit's own scale (uCoord +0x60..+0x68): a monster's size, which a request's effect takes
   setParentScale(parent, s){ parent.scale = s; this.composeParent(parent); }
+  // the parent unit's WORLD matrix +0xb0 as composeParent last wrote it (16 floats, row vectors, game units) -- an enemy's
+  // vtable +0x54 with index -1 (0xc156c), the "owner matrix" a beam with joint -1 or flag bit 0 aims by (shells.js)
+  parentWorld(parent){ const m = this.m; return Array.from({ length: 16 }, (_, i) => m.f32(parent.object + 0xb0 + 4 * i)); }
   // the parent unit's placement: position [x, y, z] in game units, quaternion [x, y, z, w], a uniform scale
   setParentPose(parent, { position, quaternion, scale }){
     parent.position = position.slice(); parent.quaternion = quaternion.slice(); parent.scale = scale;

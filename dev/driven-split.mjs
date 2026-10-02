@@ -29,7 +29,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DOCS = path.join(HERE, '..', 'docs');
 const EFFECTS = path.join(DOCS, 'effects');
 
-const { MOTION_STATES, RAGE_BY_LEVEL, RAGE_PUFF } = await import(pathToFileURL(path.join(DOCS, 'render/motion-states.js')).href);
+const { MOTION_STATES, RAGE_BY_LEVEL, RAGE_PUFF, CHARGE_EFFECTS, TIRED_DROOL } = await import(pathToFileURL(path.join(DOCS, 'render/motion-states.js')).href);
 const { SHELL_DATA } = await import(pathToFileURL(path.join(DOCS, 'render/shells.js')).href);
 // monster.js imports three.js, which does not resolve outside the browser, so CLIP_EFFECTS is sliced
 // out of its source and evaluated on its own. Brace-matched rather than regexed: the table is tens of
@@ -53,7 +53,15 @@ const SS = await import(pathToFileURL(path.join(DOCS, 'render/rom/effect/shared-
 
 // The shared-state panel's own bands, from shared-states.js rather than from a list written here.
 const BLAST = new Set(Array.from({ length: SS.BLAST_PARTS }, (_, i) => SS.BLAST_PART_BASE + i));
-const HYPER = new Set([SS.HYPER_GROUP0, ...SS.HYPER_GROUP1, ...SS.HYPER_BURSTS]);
+// THE HYPER BAND IS 1301..1320, NOT THE THREE CONSTANTS. `HYPER_GROUP0` / `HYPER_GROUP1` / `HYPER_BURSTS`
+// are what `Hyper.set()` DRIVES -- a different question from which keys are hyper -- and they cover only
+// 1301-1304 and 1311-1314. shared-states.js states the band itself: "the 318 records (keys 1301..1320, 44
+// monsters) ARE exported and stay exported", and the export holds exactly 318 in 1301..1320, which is the
+// check that the band and not the constants is the right source. Building the set from the constants
+// reported 6 records (1305 x3, 1315 x3) as ordinary undriven work when they are hyper and deliberately
+// never fired. Same shape as the `length === 2` walker bug: the tool's set narrower than the documented
+// reality, and nothing errors -- the number is just quietly wrong.
+const HYPER = new Set(Array.from({ length: 20 }, (_, i) => 1301 + i));
 // THE PANEL IS WHAT THE UI ACTUALLY OFFERS, not what SHARED_STATES contains. index.html's
 // SHARED_TOGGLES is the only thing that calls setSharedState, and it lists c1100 and c1108 alone.
 // Two traps this avoids, both found by checking instead of assuming:
@@ -75,7 +83,20 @@ const RUNTIME_ONLY = new Set([...BLAST, ...Object.values(SS.SHARED_STATES || {})
 function walkPairs(node, out = []) {
   if (!node || typeof node !== 'object') return out;
   if (Array.isArray(node)) {
-    if (node.length === 2 && typeof node[0] === 'string' && typeof node[1] === 'number'
+    // A row may NAME ITS ARRAY: ['<pel>', <key>, '<ARRAY>'] -- a .pel holds the same key in SEQUENCE and
+    // in UNIQUE and they can be different effects (em007_04u 200 is cm202_035 in SEQUENCE and his own
+    // em007_04_000 in UNIQUE), so a row that fires the non-default one has to say so. Accepting only
+    // length 2 read those rows as no row at all: em057_04u 250 has been written in that form for a while
+    // and was counted undriven the whole time. The third element is required to be a STRING so a
+    // ['<pel>', <key>, <number>] form, if one ever appears, does not silently match here.
+    // The pair below is keyed `pel|key` with the array dropped, which is NOT the cross-crediting hazard it
+    // looks like: `named` is consulted only for `when === 'event'` records (see the layer rule below), and
+    // the runtime agrees -- schedule.fire(pel, key) also matches on `when === 'event'`. So a SEQUENCE
+    // record exported as `clip` and a UNIQUE record exported as `event` on ONE key, which em007_00c 30 / 40
+    // and em007_04u 230 are about to be, cannot credit each other in either place. Two *event* records on
+    // one key would be ambiguous, and `eventDupes` already flags that as state(AMBIGUOUS).
+    if ((node.length === 2 || (node.length === 3 && typeof node[2] === 'string'))
+        && typeof node[0] === 'string' && typeof node[1] === 'number'
         && /^(em|cm)\w+$/.test(node[0])) out.push(node[0] + '|' + node[1]);
     for (const v of node) walkPairs(v, out);
     return out;
@@ -196,6 +217,14 @@ for (const id of ids) {
     ...walkPairs(MOTION_STATES[id]),
     ...walkPairs(RAGE_BY_LEVEL[id]),
     ...walkPairs(RAGE_PUFF[id]),
+    // TIRED_DROOL: c 1104, 0xa41b8's calm branch -- driven by the schedule over any clip while the monster shows
+    // exhausted (the Exhausted state or a tired idle row), no longer by an `every` on the row itself
+    ...walkPairs(TIRED_DROOL && TIRED_DROOL[id] ? [TIRED_DROOL[id]] : undefined),
+    // CHARGE_EFFECTS: records a class holds while a charge TIER is up rather than while a clip plays.
+    // step() diffs them and returns them as holdOn / holdOff / fire like any other, so they are driven
+    // in exactly the same sense as a MOTION_STATES row -- and have to be counted here or they read as
+    // undriven while the viewer is in fact running them.
+    ...walkPairs(CHARGE_EFFECTS && CHARGE_EFFECTS[id]),
     ...walkPairs(CUT_TAIL && CUT_TAIL[id]),
     ...walkPairs(SHELL_DATA[id]),
   ]);

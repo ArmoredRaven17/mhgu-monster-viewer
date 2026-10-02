@@ -165,8 +165,28 @@ export class EffectSchedule {
   // counted in the step, once a 1/60 s, as the +0x28 pass counts it once a frame.
   setRagePuff(spec){ this.puff = spec ? { period: spec.period, records: spec.records, pick: spec.pick, left: 0, paused: false, tired: false } : null; }
   // the gates the motion shows: paused -- the sleep hold or the rest (0x81bb0(e, 1)), where 0xa41b8 returns before its
-  // countdowns; tired -- calm and tired, where it zeroes this one (0xa4338..0xa434c)
-  puffGates(paused, tired){ if (this.puff){ this.puff.paused = !!paused; this.puff.tired = !!tired; } }
+  // countdowns; tired -- calm and tired, where it zeroes this one (0xa4338..0xa434c). The drool reads the same two.
+  puffGates(paused, tired){
+    this.gates = { paused: !!paused, tired: !!tired };
+    if (this.puff){ this.puff.paused = !!paused; this.puff.tired = !!tired; }
+  }
+
+  // THE TIRED DROOL (0xa41b8's calm branch; render/motion-states.js TIRED_DROOL): spec { period, record: [pel, key] }.
+  // Over whatever clip runs, as the ROM counts it: enraged, the countdown P+0x5c70 is zeroed (0xa42a4 -> 0xa4348);
+  // calm and tired, 0x7206c counts it down and each time it fires it is set to the period again and c id 4 is requested
+  // (0xa42d0..0xa4334); calm and not tired, nothing. Zeroed by the reset and while enraged, so tiredness drools at once.
+  setTiredDrool(spec){ this.drool = spec ? { period: spec.period, record: spec.record, left: 0 } : null; }
+  stepDrool(){
+    const D = this.drool, G = this.gates || { paused: false, tired: false };
+    if (!D || G.paused) return;
+    if (this.rage){ D.left = 0; return; }
+    if (!G.tired) return;
+    let fire;                                                       // 0x7206c, as the puff's
+    if (D.left <= 0){ D.left = 0; fire = true; } else { D.left -= 1; fire = D.left <= 0; }
+    if (!fire) return;
+    D.left = D.period;                                              // 48.0 (0xa42fc..0xa4308)
+    this.fire(D.record[0], D.record[1]);                            // vtable +0x1cc, c id 4 (0xa431c..0xa4330)
+  }
   stepPuff(){
     const P = this.puff;
     if (!P || P.paused) return;
@@ -195,6 +215,7 @@ export class EffectSchedule {
     this.frame = (this.frame || 0) + 1;
     this.walk();
     this.stepPuff();                  // the +0x28 pass's request, ahead of the effects' own passes
+    this.stepDrool();                 // the same handler's other branch (0xa41b8): rage and tiredness exclude each other
     this.host.unitFrame(this.shells ? () => this.stepShells() : undefined);
     for (const e of this.entries) if (!e.def.record) this.host.move(e.owner);
     this.host.pruneUnits();
@@ -205,7 +226,14 @@ export class EffectSchedule {
   // motion), `frame` is its frame at 60 per second, `motion` its CLIP_EFFECTS schedule ({ frames, bits }) or null,
   // `start` the frame the clip starts and loops from (0, or where a _loop clip sits in its motion). The walk reads
   // it once per step. No clip (key null) is a motion too: the one before it is over.
-  setClip(key, frame, motion, start = 0){ this.clip = { key, frame, motion: motion || null, start }; }
+  // `mask`: the enemy's enable word for this motion start (render/psl-mask.js; enemy +0x13f4, which the walker's copy of
+  // the block takes as its mask -- 0x31cc88 -> 0x40780 -> 0xca52c), or null for a monster whose word is not read yet:
+  // then every listed bit is acted on, as before.
+  // `play`: a token that changes when the viewer starts the motion over as ANOTHER action (index.html playNow) -- a new
+  // motion start to the walk, as a new setMotion is; null keeps a replay a loop, as before.
+  // `loop`: the frame is in the motion's LOOP (a _loop clip, or a Special entry's folded cycle) -- so a loop starting at 0
+  // (a motion shipped as a _loop piece alone) still reads as a loop to the shells, not as the action issued again
+  setClip(key, frame, motion, start = 0, mask = null, play = null, loop = false){ this.clip = { key, frame, motion: motion || null, start, mask, play, loop: !!loop }; }
 
   // 0x31ca58, once per step -- see the header
   walk(){
@@ -213,9 +241,10 @@ export class EffectSchedule {
     for (let i = 0; i < WALK_BITS; i++){ const a = this.words + 4 * i; m.w32(a, m.u32(a) & 0xfff0); }
     if (!c) return;
     const notify = bits => { for (let i = 0; i < WALK_BITS; i++){ const a = this.words + 4 * i; m.w32(a, (m.u32(a) | bits) >>> 0); } };
-    if (c.key !== W.motion){
+    const id = c.key == null ? null : (c.play != null ? c.key + '#' + c.play : c.key);
+    if (id !== W.motion){
       notify(4);
-      W.motion = c.key; W.data = c.motion; W.values = 0; W.last = c.start;
+      W.motion = id; W.data = c.motion; W.values = 0; W.last = c.start;
       return;
     }
     const prev = W.last, cur = c.frame;
@@ -228,16 +257,19 @@ export class EffectSchedule {
       this.walkFrames(c.start, Math.ceil(cur) - c.start);
     } else if (W.data) this.walkFrames(Math.ceil(prev), Math.ceil(cur) - Math.ceil(prev));
   }
-  // 0x31cd70: `count` frames from `f` (wrapping to 0 at the slot's last frame), each bit's edge acted on
+  // 0x31cd70: `count` frames from `f` (wrapping to 0 at the slot's last frame), each bit's edge acted on -- only the bits
+  // the enable word has (0x31ce64: `tst [copy+0], 1 << bit`); the values are kept whole, as +0xbc keeps the run's word
   walkFrames(f, count){
     if (count < 1) return;
     const m = this.host.m, W = this.walker, { frames, bits } = W.data;
+    const mask = this.clip ? this.clip.mask : null;
     const n = Math.min(count, WALK_FRAMES_MAX);
     for (let k = 0; k < n; k++){
       if (k > 0 && ++f >= frames - 1) f = 0;
       let now = 0;
       for (const b of bits) if (b.on.some(([from, to]) => f >= from && f < to)) now |= 1 << b.bit;
       for (const b of bits){
+        if (mask != null && !((mask >>> b.bit) & 1)) continue;
         const was = (W.values >>> b.bit) & 1, is = (now >>> b.bit) & 1, word = this.words + 4 * b.bit;
         if (was && is) m.w32(word, (m.u32(word) | 1) >>> 0);
         else if (was) m.w32(word, (m.u32(word) | 2) >>> 0);
@@ -306,9 +338,11 @@ export class EffectSchedule {
     // end at their first move, as the ROM-run harness shows them
     const P = this.parent && this.parent.position;
     const out = stepShells(S.state, { monId: S.monId, list, clip, frame: c && clip ? c.frame : 0,
-                                      loopStart: c && c.start ? c.start : null, joints: S.joints, rage: this.rage,
+                                      loopStart: c && (c.start || c.loop) ? c.start : null, joints: S.joints, rage: this.rage,
                                       rock, owner: rock ? { x: 0, y: this.ownerYaw16(), z: 0 } : undefined,
                                       ownerPos: P ? { x: P[0], y: P[1], z: P[2] } : undefined, hitLife: true,
+                                      // the unit's world matrix +0xb0 (0xc156c with -1): a beam's owner matrix
+                                      ownerMatrix: this.parent ? this.host.parentWorld(this.parent) : undefined,
                                       // the free-running timer Rathian's hover dust pulses on (vtable +0x1dc 0xcee250: every
                                       // 100 moves since her setup; shared-state-effects.md) -- counted here from the mount,
                                       // a viewer stand-in for its phase
@@ -320,16 +354,33 @@ export class EffectSchedule {
                                       effectAlive: (sh, param, h) => param === 0 ? alive(sh) : reqAlive(h && h.request) });
     // a breath shell's effect is placed (0x329c9c / 0x329d04, below); a rock's is bound to the shell, which keeps its own
     // position and angles -- the parent carries both (host.setParentAngles: 0x539cd4 -> 0x8a4dfc)
+    // the parent's scale is the shell unit's own +0x60 (host.composeParent) -- the ShellScale its requester carries, unless
+    // the shell's class sets its unit's size itself (shells.js unitScale: Ukanlos's beam children, 0x43ab74)
+    const scaleOf = sh => sh.unitScale != null ? sh.unitScale : sh.start.requester.scale[0];
     const pose = sh => sh.angles && !sh.place
-      ? this.host.setParentAngles(sh.parent, { position: sh.position, angles: sh.angles, scale: sh.start.requester.scale[0] })
-      : this.host.setParentPose(sh.parent, { position: sh.position, quaternion: [0, 0, 0, 1], scale: sh.start.requester.scale[0] });
+      ? this.host.setParentAngles(sh.parent, { position: sh.position, angles: sh.angles, scale: scaleOf(sh) })
+      : this.host.setParentPose(sh.parent, { position: sh.position, quaternion: [0, 0, 0, 1], scale: scaleOf(sh) });
+    // a tally of what the shells did, for the dev soaks (dev/effect-live-soak.mjs): every shell spawned, and every spawn
+    // the module refused with its reason (out.refused -- nothing else reads it; the last 50 kept)
+    const T = this.shellTally || (this.shellTally = { spawned: 0, beams: [], refused: [] });
+    T.spawned += out.spawned.length;
+    for (const sh of out.spawned) if (sh.base === 'base02g' || sh.base === 'base02')
+      T.beams.push(((sh.type && sh.type.id) || (sh.cls + ':' + sh.modeIndex)) + (sh.setupAngles ? '@0x' + (sh.setupAngles[0] & 0xffff).toString(16) : '') +
+                   (c ? '#f' + Math.round(c.frame) : ''));
+    for (const r of out.refused) T.refused.push(r.why || JSON.stringify(r));
+    if (T.beams.length > 50) T.beams.splice(0, T.beams.length - 50);
+    if (T.refused.length > 50) T.refused.splice(0, T.refused.length - 50);
     // a spawned shell's init starts its _ef param 0 on itself (0x4a10c8 / 0x4a11e4): the 'shell' record with that key,
     // hung from the shell (a parent with no joints: its model interface) with the requester the ROM fills
     for (const sh of out.spawned){
       if (!sh.start){ sh.request = null; continue; }
       const e = this.entries.find(x => x.when === 'shell' && x.def.record && x.def.record.pel === sh.start.pel && x.def.record.key === sh.start.key);
       if (!e){ sh.request = null; continue; }                   // no such record exported: the effect is not there
-      sh.parent = this.host.createParent([]);
+      // model: false -- a shell owns NO rModel (its arc folders hold .shl/.sep and no 58a15856), so the
+      // placement's +0xf0 test at 0x31f6b4 fails for it and the ROM's own path is the fallback at
+      // 0x31f788: the shell's position plus the raw offset. Giving a shell parent a model would move
+      // every shell-spawned record, which are correct as they stand.
+      sh.parent = this.host.createParent([], { model: false });
       if (sh.position) pose(sh);
       const r = e.def.record;
       sh.request = this.host.requestEffect(e.owner, sh.parent, { index: r.index, key: r.key, path: r.path, payload: hex(r.payload) },
@@ -341,6 +392,16 @@ export class EffectSchedule {
     for (const sh of out.alive){
       if (sh.parent && sh.position) pose(sh);
       if (sh.place && sh.request && alive(sh)) this.host.placeRequest(sh.request, sh.place.position, sh.place.rotationDeg);
+      // a beam's drawn length (base02 flag bit 2, 0x3fc540..0x3fc5e8): its effect's units scaled to (1, 1, length / 100)
+      if (sh.scaleZ != null && sh.request && alive(sh)) this.host.scaleRequestUnits(sh.request, [1, 1, sh.scaleZ]);
+      // a beam's impact (its step's ef param 1, 0x3fd3c8..0x3fd41c): re-placed at the hit every frame
+      if (sh.place2 && sh.effect2 && sh.effect2.request && reqAlive(sh.effect2.request))
+        this.host.placeRequest(sh.effect2.request, sh.place2.position, sh.place2.rotationDeg);
+    }
+    // a beam's impact handle dropped (no hit this frame, 0x3fc198..0x3fc1b8; or the beam's end, 0x3fc698)
+    for (const sh of out.alive.concat(out.ended)){
+      if (sh.stop2 && sh.stop2.request && reqAlive(sh.stop2.request) && !sh.stop2.request.stopped) this.host.stopRequest(sh.stop2.request);
+      if (sh.stop2) sh.stop2 = null;
     }
     // a rock's bounce / landing effect: started by its move at the contact point (placed: placement mode 3), hung from
     // the shell's parent; the handle keeps the request, so the rock's ending waits for it (shells.js effect2)

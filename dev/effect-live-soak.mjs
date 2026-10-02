@@ -6,6 +6,7 @@
 // would stop on -- live.js fail() stops every effect of the monster at the first one.
 //
 //   node dev/effect-live-soak.mjs <monster> [motion key ...] [--url http://localhost:3000] [--swiftshader] [--camera sweep] [--rage] [--wiring] [--rock <variant>]
+//        [--beam-state '{"tired":true,"rage":true,"rank":4,"parts":{"headBroken":true}}']
 //
 // Without --url it serves docs/ itself (dev/serve.py on a free port). Each motion is played whole, twice (a motion the
 // viewer splits: its _start once, then its _loop twice), with the viewer's clip loop on; after a refusal the runtime is
@@ -39,6 +40,13 @@ const camera = opt('--camera') || 'fit';
 const rage = flag('--rage');
 const wiring = flag('--wiring');
 const rockVariant = opt('--rock');
+// --beam-state <json>: the state a beam on its own monster is fired in (render/beam-spawns.js `when`; index.html beamState),
+// merged over the viewer's own for the shells' step -- the pick is --rock's
+const beamStateOpt = opt('--beam-state');
+// --viewer-inputs: the viewer's own shell inputs (index.html rockInput: its pick, the target ahead, the floor, the wall)
+// installed as driveClipEffects installs them in the viewer -- which this soak, stepping frames itself, never runs; without
+// it (and without --rock) a soak's shells get no input.rock at all
+const viewerInputs = flag('--viewer-inputs');
 const [monster, ...only] = argv;
 if (!monster){ console.log('usage: node dev/effect-live-soak.mjs <monster> [motion key ...] [--url <viewer>] [--swiftshader]'); process.exit(2); }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -67,7 +75,7 @@ const evaluate = (c, expression) => c.send('Runtime.evaluate', { expression, awa
   .then(r => { if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception ? r.exceptionDetails.exception.description : r.exceptionDetails.text); return r.result.value; });
 
 // Runs IN THE PAGE (serialised): the soak, started and left running; window.__soak holds its progress.
-function pageSoak(MONID, ONLY, CAMERA, RAGE, WIRING, ROCK){
+function pageSoak(MONID, ONLY, CAMERA, RAGE, WIRING, ROCK, BEAMSTATE, VIEWERINPUTS){
   window.__soak = { status: 'starting', results: [], t0: performance.now() };
   (async () => {
     const S = window.__soak;
@@ -87,11 +95,15 @@ function pageSoak(MONID, ONLY, CAMERA, RAGE, WIRING, ROCK){
       if (RAGE && fx) fx.setRage(true);
       // the viewer's own shell inputs (index.html rockInput: the target ahead on the grid floor, the floor), the pick
       // fixed; a page without that hook: the unit's own height as the floor, 2000 ahead
-      const setRock = rt => { if (ROCK && rt && rt.schedule) rt.schedule.rockInput = V.rockInput
+      const setRock = rt => { if (!ROCK && VIEWERINPUTS && rt && rt.schedule && V.rockInput){ rt.schedule.rockInput = () => V.rockInput(); return; }
+        if (ROCK && rt && rt.schedule) rt.schedule.rockInput = V.rockInput
         ? () => { const r = V.rockInput(); return r && { ...r, variant: ROCK }; }
         : () => { const p = rt.parent.position; return { variant: ROCK, target: { x: p[0], y: p[1], z: p[2] + 2000 }, floorY: p[1] }; }; };
       // and the rest of the viewer's shell inputs (index.html shellExtra: a quest level stand-in, the tail as shown)
-      const setExtra = rt => { if (rt && rt.schedule && V.shellExtra) rt.schedule.shellExtra = V.shellExtra; };
+      const setExtra = rt => { if (rt && rt.schedule && V.shellExtra) rt.schedule.shellExtra = !BEAMSTATE ? V.shellExtra : () => {
+        const x = V.shellExtra(), b = x.beamState || {};
+        return { ...x, beamState: { ...b, ...BEAMSTATE, parts: { ...(b.parts || {}), ...(BEAMSTATE.parts || {}) } } };
+      }; };
       setRock(fx); setExtra(fx);
       const sched = M.CLIP_EFFECTS[MONID] || {};
       // a monster with no clip effects (its effects are auras) plays its first clip for 600 frames instead: '(idle)'
@@ -151,21 +163,30 @@ function pageSoak(MONID, ONLY, CAMERA, RAGE, WIRING, ROCK){
         if (!parts.length){ S.results.push({ key, skip: !list ? 'no list carries it' : 'no clip' }); continue; }
         if (!fx || fx.failed){ await V.effects(false); await V.effects(true); fx = M.effectRuntimeInstance(); if (RAGE && fx) fx.setRage(true); setRock(fx); setExtra(fx); }
         const starts0 = fx.schedule.starts, regrouped0 = fx.stats.regrouped || 0;
+        fx.schedule.shellTally = { spawned: 0, beams: [], refused: [] };     // this motion's shells (schedule.js stepShells)
         let frames = 0, fail = null, maxRun = 0, drew = 0;
         if (V.state.list !== list.id){ listSel.value = list.id; await listSel.onchange(); }
         for (const [clipName, passes] of parts){
           clipSel.value = clipName; await clipSel.onchange();
-          const n = Math.round(list.clips.find(x => x.clip === clipName).dur * 60) * passes;
+          // a _start piece stops a step short of its end: the clip loop is on, and a clip of 91.98 frames stepped 92 times
+          // wraps to frame 0 -- a new play to the shells -- before the _loop piece starts, whose jump back to 92 re-crosses
+          // every spawn frame of the _start (a second beam / fireball that the viewer, playing _start into _loop, never makes)
+          const dur60 = list.clips.find(x => x.clip === clipName).dur * 60;
+          const n = clipName.endsWith('_start') ? Math.max(1, Math.ceil(dur60 - 1e-6) - 1) : Math.round(dur60) * passes;
           // index.html driveClipEffects, as it is: the bare slot name, a _loop clip offset by its _start's length
           let splitOffset = 0;
           if (clipName.endsWith('_loop')){ const sib = list.clips.find(x => x.clip === base + '_start'); if (sib) splitOffset = Math.round(sib.dur * 60); }
+          // ...and a Special entry with loop cycles, its motion's own frame folded into the loop (monster.js foldLoopFrame)
+          const fold = M.loopFoldOf ? M.loopFoldOf(MONID, list.id, clipName, (list.clips.find(x => x.clip === clipName) || {}).pieces) : null;
           for (let f = 0; f < n; f++){
             pose.step([V.mounted.main]);
             const act = pose.action;
             const nm = act && act.getClip ? act.getClip().name : null;
             const b = nm ? nm.replace(/_(start|loop)$/, '') : null;
-            fx.schedule.setClip(act ? V.state.id + '|' + V.state.list + '|' + b : null, act ? act.time * 60 + splitOffset : 0,
-                                b ? M.clipEffectsFor(V.state.id, b, V.state.list) : null, splitOffset);
+            let frame = act ? act.time * 60 + splitOffset : 0, start = splitOffset, loopSeg = !!(nm && nm.endsWith('_loop'));
+            if (act && fold){ const r = M.foldLoopFrame(act.time * 60, fold.S, fold.L); frame = r.frame; start = r.loopStart || 0; if (r.loopStart != null) loopSeg = true; }
+            fx.schedule.setClip(act ? V.state.id + '|' + V.state.list + '|' + b : null, frame,
+                                b ? M.clipEffectsFor(V.state.id, b, V.state.list) : null, start, null, null, loopSeg);
             placeCamera();
             fx.last = null; fx.acc = 1 / 60 + 1e-9;          // exactly one effect step in this render
             V.renderer.render(V.scene, V.camera);
@@ -178,7 +199,9 @@ function pageSoak(MONID, ONLY, CAMERA, RAGE, WIRING, ROCK){
           }
           if (fail) break;
         }
-        S.results.push({ key, frames, starts: fx.schedule.starts - starts0, maxRun, drew, regrouped: (fx.stats.regrouped || 0) - regrouped0, fail });
+        const tally = fx.schedule.shellTally || { spawned: 0, beams: [], refused: [] };
+        S.results.push({ key, frames, starts: fx.schedule.starts - starts0, maxRun, drew, regrouped: (fx.stats.regrouped || 0) - regrouped0, fail,
+                         shells: tally.spawned, beams: tally.beams.slice(), shellRefused: [...new Set(tally.refused)] });
       }
       S.status = 'done';
     } catch (e){ S.status = 'error: ' + (e && e.stack || e); }
@@ -234,7 +257,7 @@ async function main(){
   }
   await evaluate(c, '__view.renderer.setAnimationLoop(null), true');      // only the soak steps from here on
   soaking = true;
-  console.log(await evaluate(c, `(${pageSoak.toString()})(${JSON.stringify(monster)}, ${JSON.stringify(only)}, ${JSON.stringify(camera)}, ${JSON.stringify(rage)}, ${JSON.stringify(wiring)}, ${JSON.stringify(rockVariant)})`), monster, 'in', site, 'camera', camera, rage ? 'enraged' : '');
+  console.log(await evaluate(c, `(${pageSoak.toString()})(${JSON.stringify(monster)}, ${JSON.stringify(only)}, ${JSON.stringify(camera)}, ${JSON.stringify(rage)}, ${JSON.stringify(wiring)}, ${JSON.stringify(rockVariant)}, ${beamStateOpt ? JSON.stringify(JSON.parse(beamStateOpt)) : 'null'}, ${JSON.stringify(viewerInputs)})`), monster, 'in', site, 'camera', camera, rage ? 'enraged' : '');
   let shown = 0, refused = 0, S;
   for (;;){
     await sleep(2000);
@@ -243,7 +266,9 @@ async function main(){
       if (r.skip) console.log(`  ${r.key}: not played (${r.skip})`);
       else {
         if (r.fail) refused++;
-        console.log(`  ${r.key}: ${r.frames} frames, ${r.starts} started, up to ${r.maxRun} running, ${r.drew} draws` + (r.regrouped ? `, ${r.regrouped} model draws on a regrouped mesh` : '') + (r.fail ? `  REFUSED: ${r.fail}` : ''));
+        console.log(`  ${r.key}: ${r.frames} frames, ${r.starts} started, up to ${r.maxRun} running, ${r.drew} draws` + (r.regrouped ? `, ${r.regrouped} model draws on a regrouped mesh` : '') + (r.fail ? `  REFUSED: ${r.fail}` : '') +
+                    (r.shells ? `, ${r.shells} shells` + (r.beams && r.beams.length ? ` (beams: ${r.beams.join(' ')})` : '') : '') +
+                    (r.shellRefused && r.shellRefused.length ? `  SHELL REFUSED: ${r.shellRefused.join(' | ')}` : ''));
       }
     }
     shown = S.results.length;

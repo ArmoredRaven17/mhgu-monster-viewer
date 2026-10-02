@@ -31,7 +31,8 @@ async function pageCheckPlesioth(){
   check(await until(() => rt() && rt().monsterId === MON && rt().schedule), 'the effect runtime is up');
   const fx = rt(), S = fx.schedule;
   const fired = [];
-  const f0 = fx.fire.bind(fx); fx.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
+  // the schedule's fire (live.js fire() passes through to it): the tired drool fires there directly (schedule.js stepDrool)
+  const f0 = fx.schedule.fire.bind(fx.schedule); fx.schedule.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
   const puffs = [];
   const s0 = S.start.bind(S);
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
@@ -118,15 +119,19 @@ async function pageCheckPlesioth(){
   check(P && P.joint === 3, 'his puff is on JOINT 3, not the joint 4 every monster before him used', P && P.joint);
   await play('0', 'Motion[22]'); await frames(4);
   check(S.rage === true, 'L0 Motion[22] (the submerged rage entry): rage on there too', { rage: S.rage });
-  await play('0', 'Motion[1]'); await frames(3);
 
-  // TIRED -- on a clip that is ALSO his peaceful idle, so the drool is the whole signal
+  // TIRED -- on a clip that is ALSO his peaceful idle, so the drool is the whole signal. Played straight from the rage
+  // entry: rage zeroed the countdown, so this first tired play drools at once (a replay of it would not: see below).
+  // THE DROOL IS ON THE UNIT'S CLOCK, like the puff (schedule.js stepDrool, TIRED_DROOL): 0xa41b8 counts P+0x5c70 down by
+  // [unit+0x1c] x 1.0 a frame (0x7206c -> 0x539d5c, s0 = 1.0 at 0xa42d8) -- the unit's frames, not the clip's -- so it is
+  // waited for in schedule `steps`, not `clipSteps`. The countdown keeps its leftover across motions: only the reset
+  // (0xba0f4) and rage (0xa42a8) zero it, so tiredness drools at once after rage and then every 48, not at every play.
   fired.length = 0;
   await play('0', 'Motion[1]'); await frames(3); await steps(2);
   check(S.rage === false && count(fired, 1104) === 1,
         'L0 Motion[1] (tired -- and also his peaceful idle, so nothing on the clip says it): drool c 1104 at once', fired);
-  await clipSteps(50);
-  check(count(fired, 1104) === 2, 'the drool again 48 CLIP frames on', fired);
+  await steps(50);
+  check(count(fired, 1104) === 2, 'the drool again 48 steps on', fired);
 
   // ASLEEP -- and HE HAS NO LID, so this is the first sleep hold that shows nothing on the model
   fired.length = 0; puffs.length = 0;

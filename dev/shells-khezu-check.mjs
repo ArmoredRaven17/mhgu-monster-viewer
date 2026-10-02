@@ -63,7 +63,13 @@ const D = SHELL_DATA.em003_00;
     check(`${name}: all ${Object.keys(w).length} modes of the .arc (sh ints / floats / vecs, ef, ShellScale 1.0)`,
           bad.length === 0 && Object.keys(g).length === Object.keys(w).length, bad.join('; '));
   }
-  check('no .shl names a ShellCmnParam, so no shell carries one', Object.values(D.shells).every(v => !v.cmn));
+  // WAS "no .shl names a ShellCmnParam, so no shell carries one" -- true of the listing it was checked against
+  // (efx/shellef.py load(), one resource per path), false of the arc: em003_00_01.shl ends `rFreeUseParam
+  // shell\em\em003_00_shell01\em003_00_01`, a FUP at its own path, which that listing dropped. The other four .shl
+  // files end `null`. Read 2026-09-30 with shellef.load_typed (dev/rom-map.md traps).
+  check('shell01 alone carries a ShellCmnParam -- the FUP em003_00_01, float 0 = 1400.0 (its snap\'s downward reach)',
+        !!D.shells.shell01.cmn && sameF(D.shells.shell01.cmn.floats, [1400.0]) && D.shells.shell01.cmn.ints.length === 0 &&
+        Object.entries(D.shells).every(([n, v]) => n === 'shell01' || !v.cmn));
 }
 
 // ---- 2. the actions ----------------------------------------------------------------------------------------------

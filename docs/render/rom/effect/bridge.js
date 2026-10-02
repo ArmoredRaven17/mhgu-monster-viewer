@@ -147,6 +147,36 @@ native(0xa81ed4, () => 0x211c66c, [], 'r0');
 // 0xa981a8 (`ldr r0, [pc, r0]` of GOT 0x1836364 -> the type's DTI 0x211c9ec, on the same exported page). The same type
 // check reaches it from Raging Brachydios' cm202_070 (c 70: L0 Motion[50] / [51]).
 native(0xa981a8, () => 0x211c9ec, [], 'r0');
+// cParticleNode's getDTI, the third of the same shape and reached the same way. Its vtable 0x1789ebc slot 5
+// / +0x14 is the ROM thunk 0xaf266c (`ldr r0,[pc,#4]; ldr r0,[pc,r0]; bx lr`), whose .data variable 0x1832438
+// holds the type's DTI 0x211cd5c -- the same DTI construct.js names when it builds a type-25 row through
+// 0xaece5c/0xaece98. Its sibling cParticleNodeInfinite answers 0x211cd7c from 0xaf2694 and is not reached yet.
+// The caller is again the type check at 0x440d4 (getDTI, then compare [DTI+4]); no recorded run had asked a
+// NODE for its type before Congalala, whose em021_00_000 gas records stopped every effect he has with
+// `call to 0xaf266c, which is not translated`. (2026-09-25.)
+native(0xaf266c, () => 0x211cd5c, [], 'r0');
+// The fourth and fifth of the same shape, both reached by the same 0x440d4 type check, both 2026-09-26:
+//   * 0xaf2694 is slot 5 / +0x14 of vtable 0x1789f20 -- cParticleNodeInfinite, the sibling the comment above
+//     said was "not reached yet". SHAGARU MAGALA reaches it (em072_00, L2 Motion[49], key 290 on Gore's own
+//     em071_00_017.efl), which stopped every effect he has.
+//   * 0xaa8978 is slot 5 / +0x14 of vtable 0x1789834 -- a generator class between Model's 0x1789734 and
+//     NodeInfinite's; its NAME is NOT READ, only its vtable and its DTI. MIZUTSUNE reaches it (em082_00) on
+//     eleven motions across L2 and L3.
+// Both DTIs are read from the thunk's own .data variable, not from the comment above: `ldr r0,[pc,#4]` takes the
+// literal at fn+12, and `ldr r0,[pc,r0]` resolves against pc = fn+12, giving 0x183ca0c and 0x183c95c. The METHOD
+// was validated by reproducing all three known answers exactly -- 0xa81ed4 -> 0x211c66c, 0xa981a8 -> 0x211c9ec,
+// 0xaf266c -> 0x211cd5c -- because a first attempt that was 4 bytes off returned plausible VTABLE addresses
+// (0x1789f18, 0x178982c) rather than DTIs, which would have answered the type check with a wrong type silently.
+// The 0xaf2694 value also independently matches what the comment above had recorded for it.
+native(0xaf2694, () => 0x211cd7c, [], 'r0');
+native(0xaa8978, () => 0x211ca8c, [], 'r0');
+// The sixth, and it is the SAME record still walking further: 0x43f38 is an isKindOf, not an equality test --
+// 0x44124 compares the exact DTI type id and 0x4413c follows DTI+0x10 up the PARENT CHAIN on a mismatch, falling
+// out at 0x447a4. Registering 0xaf2694 let the check ask the question; the answer then took the parent walk, which
+// no recording had covered (every prior run matched exactly at the first compare). Recording Shagaru covered the
+// walk, and the walk asks the NEXT generator in the chain for its type -- 0xaba21c, slot 5 / +0x14 of vtable
+// 0x1789bb4, DTI 0x211cbac. Class name NOT READ. (em072_00 L2 Motion[49], key 290, 2026-09-26.)
+native(0xaba21c, () => 0x211cbac, [], 'r0');
 
 // ---- a monster's effect request, whole (proof.js ProofRequest; efx/proofunit.py) -------------------------
 // uMHProofEffect's move (0x327188) ends in uEffect's own move, and its owner matrix (vtable +0x50, 0x3273e8)

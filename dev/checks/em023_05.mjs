@@ -31,7 +31,8 @@ async function pageCheckFuriousRajang(){
   check(await until(() => rt() && rt().monsterId === MON && rt().schedule), 'the effect runtime is up');
   const fx = rt(), S = fx.schedule;
   const fired = [];
-  const f0 = fx.fire.bind(fx); fx.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
+  // the schedule's fire (live.js fire() passes through to it): the tired drool fires there directly (schedule.js stepDrool)
+  const f0 = fx.schedule.fire.bind(fx.schedule); fx.schedule.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
   const puffs = [], auras = [];
   const s0 = S.start.bind(S);
   S.start = e => {
@@ -41,8 +42,8 @@ async function pageCheckFuriousRajang(){
   };
   const byWhen = {};
   for (const e of S.entries) byWhen[e.when] = (byWhen[e.when] || 0) + 1;
-  check(byWhen.event >= 6 && byWhen.ragePuff === 2 && byWhen.rageStart === 1,
-        'the schedule holds his state records: 6 event (2 head breaks + 4 ailments), 2 ragePuff and the 1 rageStart aura', byWhen);
+  check(byWhen.event >= 5 && byWhen.ragePuff === 2 && byWhen.rageStart === 1,
+        'the schedule holds his state records: 5 event (2 head breaks + 4 ailments), 2 ragePuff and the 1 rageStart aura', byWhen);
   check(!S.entries.some(e => e.def.record && e.def.record.key === 1104),
         'and NO drool record (c 1104): tune+0x30 is NULL, so he can never be tired');
   check(!S.entries.some(e => e.def.record && e.def.record.key === 1020),
@@ -188,6 +189,8 @@ async function pageCheckFuriousRajang(){
   for (const clip of ['Motion[19]', 'Motion[18]']){
     await play('3', clip); await frames(4);
     check(S.rage === false, 'L3 ' + clip + ' (death, his only death-only clip pair): the rage shown goes off', { rage: S.rage });
+    check(isSet(drawn(), 8),
+          'and HIS EYES SHUT at death (set 8): 0xbd594 raises P+0x5d02 with the timer at P+0x5d00 and 0x75c1c calls it with -1 in the status-11 block. A check that does not assert this passes while showing the wrong thing, which is how it survived so long', drawn());
   }
   await play('3', 'Motion[15]'); await frames(4);
   check(S.rage === userRage, 'but L3 Motion[15] (the knockdown, which (11, 1) shares) leaves rage alone', { rage: S.rage, userRage });

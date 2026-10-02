@@ -31,7 +31,8 @@ async function pageCheckGravios(){
   check(await until(() => rt() && rt().monsterId === MON && rt().schedule), 'the effect runtime is up');
   const fx = rt(), S = fx.schedule;
   const fired = [];
-  const f0 = fx.fire.bind(fx); fx.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
+  // the schedule's fire (live.js fire() passes through to it): the tired drool fires there directly (schedule.js stepDrool)
+  const f0 = fx.schedule.fire.bind(fx.schedule); fx.schedule.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
   const puffs = [];
   const s0 = S.start.bind(S);
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
@@ -178,9 +179,17 @@ async function pageCheckGravios(){
   // EVERY BREAK STAYS THROUGH DEATH, because the part pass re-applies all nine sets every frame
   await play('3', 'Motion[17]'); await frames(4);
   const dDead = drawn();
+  // TWO ASSERTIONS, NOT ONE. These used to be a single `check` that also required the eyes to stay OPEN, so when
+  // the eye half turned out to be wrong the break half went down with it and the failure read as if the breaks
+  // had moved. Splitting them means neither can hide the other. (The same bundling hid Basarios's for a while.)
   check(isSet(dDead, 4) && isSet(dDead, 6) && isSet(dDead, 8) && isSet(dDead, 10) && isSet(dDead, 12) &&
-        isSet(dDead, 14) && isSet(dDead, 16) && isSet(dDead, 18) && isSet(dDead, 20) && isSet(dDead, 2),
-        'L3 Motion[17] (death) with everything broken: every break and the sever STAY, and his eyes stay OPEN (set 2)', dDead);
+        isSet(dDead, 14) && isSet(dDead, 16) && isSet(dDead, 18) && isSet(dDead, 20),
+        'L3 Motion[17] (death) with everything broken: every break and the sever STAY -- the part pass re-applies ' +
+        'all nine sets every frame', dDead);
+  check(isSet(dDead, 1),
+        'and HIS EYES SHUT (set 1): 0xbd594 raises P+0x5d02 with the timer at P+0x5d00 and 0x75c1c calls it with ' +
+        '-1 in the status-11 block. states-em042_00.md 8 said death does not raise it, from having found only the ' +
+        'sleep writer of seven; the Lagombi and Zinogre decodes read it independently and agreed', dDead);
 
   // back to intact
   for (const row of [['2,3', 'Intact'], ['4,5', 'Intact'], ['6,7', 'Intact'], ['8,9+10,11', 'Intact'],

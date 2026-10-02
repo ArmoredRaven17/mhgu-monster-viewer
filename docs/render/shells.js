@@ -135,7 +135,19 @@
 //   * Silver Rathalos: as Rathian; the class's tracked aim pitch ctl+0x18 (0xcee0a0..0xcee184), which (7, 0x70)'s helper
 //     uses in place of its 0x71c when the target is nearer than 1400 -- that shell is refused instead; (7, 0xf5) and
 //     (3, 0x4d), whose modes 31 / 23 it has no files for: not listed.
+import { BEAM_TYPES, BEAM_MODES } from './beam-types.js';
+import { beamIdsOf } from './beam-groups.js';
+import { BEAM_SPAWNS, beamRowsFor } from './beam-spawns.js';
+export { BEAM_TYPES };
 const f = Math.fround;
+
+// THE BEAM SHOWCASE (a test, Raven 2026-09-30: "use M27 as an example for the types of beams we have data for ... Before
+// we move onto other monsters, I want to ensure the various beams work", then "Make this test animation a List - Special
+// animation" and "Then make the L2 M27 use the correct animation"). Basarios's Special-list entry 'Beam Test'
+// (render/monster.js ROM_ANIMATIONS: L2 Motion[27], whole) fires, one per play, every beam look the ROM's arcs hold
+// (render/beam-types.js) through the beam base's own runtime (spawnBeam / step02g below); his L2 Motion[27] itself keeps
+// his own beam. His effect set always carries the other monsters' beam records for it (live.js addBeamShowcase).
+export const BEAM_SHOWCASE = { monId: 'em004_00', list: 'Special', clip: 'Beam Test', frame: 142 };
 
 // ---- ROM constants (float literals as stored) -------------------------------------------------------------------
 const RAD_TO_U16 = f(10430.3779296875);      // 0x4622f983 = 65536 / 2pi (0x3ff8cc, 0x3ffec0)
@@ -1825,6 +1837,9 @@ export const SHELL_DATA = {
       shell01: {
         id: 0x66, cls: 'uShellEm003_sp_01', base: 'base01', reader: 0xd218c4, folder: 'shell\\em\\em003_00_shell01',
         lists: { 0: { list: 'u', pel: 'em003_00u' }, 1: { list: 'c', pel: 'em003_00c' } },
+        // ITS COMMON PARAMS, the FUP `em003_00_01` that shares the .shl's path (found 2026-09-30; efx/shellef.py load()
+        // had dropped it): float 0 = 1400.0, the snap's downward reach +0x15f8 (params01k, 0xd219e4)
+        cmn: { ints: [], floats: [1400.0], vecs: [] },
         modes: {
           // em003_00_01_ef000 / _sh000
           0: { scale: 1.0, ef: [[0, 61], [999, -1]],
@@ -2090,7 +2105,321 @@ export const SHELL_DATA = {
       { ids: [0x312], frames: [268.0], maxH: 99999.0, mode: 4 },               // L3 Motion[18] (0xd20380)
     ],
   },
+
+  // ---- em004_00 Basarios ---------------------------------------------------------------------------
+  //
+  // WHICH SHELLS ARE HIS, from code, not from the class names. The assignment is uEm004_00's own function
+  // 0xd2e538: `ldrb r0,[unit+0xb5f4]` (the em number), `cmp r0,#4` -> Basarios, `cmp r0,#5` -> Gravios,
+  // anything else returns without assigning. Basarios takes 0x6a / 0x6b / 0x6c into slots 0xcac4 / 0xcac8 /
+  // 0xcacc and leaves 0xcad0 at the 0x19d unset sentinel; Gravios takes 0x6d / 0x6e / 0x6f into slots 1/2/3
+  // and leaves slot 0 unset. That is exactly why em004_00's arc carries shell00/01/02 and no shell13, while
+  // em005_00's carries shell01/02/13 and no shell00 -- the code and the two arcs agree, independently.
+  //
+  // THE CLASS NAMES ARE CROSSED AND SAY NOTHING ABOUT OWNERSHIP. Basarios's shell02 is class
+  // uShellEm005_sp_02 (named for Gravios) and Gravios's shell01 is class uShellEm004_sp_01 (named for
+  // Basarios). They share the class and differ only by the global id's resource in the table at 0x175c3e8:
+  // 0x6c res 0x89ba (Basarios shell02) vs 0x6e res 0x89bc (Gravios shell02); 0x6b res 0x89b9 vs 0x6d 0x89bb.
+  //
+  // `base` IS THE DTI PARENT, NOT THE sp_NN SUFFIX. uShellEm004_sp_00 and _sp_01 both derive from
+  // uShellEmBase13; uShellEm005_sp_02 derives from uShellEmBase02. FLAG FOR WHOEVER OWNS em003_00 ABOVE:
+  // by the same DTI read, uShellEm003_sp_00 and _sp_01 BOTH have parent uShellEmBase11 (which itself derives
+  // from uShellEmBase01), not Base00 and Base01 as that entry's comment says. I have not touched it.
+  // `reader` is vtable +0x14c -- confirmed by recovering em003_00's two published readers (0xd2145c,
+  // 0xd218c4) from that slot before using it here.
+  //
+  // WHAT THE PROJECTILE IS. None of the three folders holds an rModel or any body of its own -- they hold
+  // only _efNNN / _shNNN / _sndNNN / _hitNNN / _hitdata / _hitsize and the .shl. The shell object draws
+  // NOTHING; the effect records ARE the visible projectile. By the requester this file already decodes,
+  // ef param 0 is the flight effect (started once at spawn and carried on the shell, kind 'flight'), params
+  // 1/2/3 are the landing effect chosen by hit.type, and 4/5 are the first and later bounce. So:
+  //     shell00  ef [u 160, u 162, u 162]  -> u 160 IS THE FIREBALL IN FLIGHT; u 162 is the impact flash,
+  //                                          the same key on both landing types, no bounce entries.
+  //     shell01  mode 0 -> u 161 in flight;  mode 1 -> c 0 in flight (no landing entry on either).
+  //     shell02  mode 1 -> u 130 in flight.
+  // The flight effect is requested ONCE and travels with the shell -- it is NOT re-requested per frame, so
+  // there is no repeat to carry here.
+  //
+  // WHERE THEY SPAWN (uEm004_00 code range 0xd222f8..0xd319e4, bounded per CRO module):
+  //   shell00 modes 0,1,2,3  L4 Motion[5],  frames 76, 74, 90, 80  -- fn 0xd283fc. NOT a loop: r5 is the
+  //                          ACTION'S OWN ARGUMENT (`mov r5,r1` at 0xd28408, r1 set by the stub), so one
+  //                          action spawns ONE mode, at the u16 frame table[r5] at 0x162286c. r5 == 4 spawns
+  //                          nothing. (7,0x04)->0, (7,0x0b)->1, (7,0x16)->2, (7,0x17)->3.
+  //   shell00 mode 4         frame 76 -- fn 0xd299e4. NOT READ: that function sets no motion, so the clip is
+  //                          whatever the action set before it. Its two actions (7,0x12) / (7,0x13) are
+  //                          absent from em004_00_cmdtbl, so nothing issues them on Basarios anyway.
+  //   shell00 modes 5,6,7 OR 8,9,10   L4 Motion[20], frames 60, 104, 134 -- fn 0xd2ba08; `cmp r5,#0` picks
+  //                          8/9/10 when equal and 5/6/7 otherwise, and r5 is again the action's argument
+  //                          (`mov r5,r1` at 0xd2ba14): (7,0x4e) passes 0 -> 8/9/10, (7,0x58) passes 1 ->
+  //                          5/6/7. Each of those two actions spawns all THREE of its triple.
+  //   shell01 mode 1         fn 0xd2329c (`mov r2,#1` at 0xd233e0, sites 0xd233c8 / 0xd234e0); also 0xd306ec.
+  //   shell02 mode 1         RESOLVED -- IT DOES SPAWN, and my earlier "no spawn site" was wrong. The error
+  //                          was NOT the packing: the +8 word IS the raw mode here, shown by em005_00's
+  //                          shell02 folder holding ef001..ef012, a superset of every value the four sites
+  //                          write (3/7/8/9 at 0xd28a40, 10 or 11 at 0xd2a7d0, 4 or 12 at 0xd2ae14) -- the
+  //                          packed reading would leave ef007..ef012 unexplained. The error was that I never
+  //                          resolved the ONE site whose mode is in a register: the stmib r1,{r0,sb} at
+  //                          0xd29570, where sb is set to 1 at 0xd28d6c. See the (7,0x0e) / (7,0x32) rows
+  //                          below. Of the four sites only that one tests the em number, and its test is the
+  //                          Basarios branch. Correcting a figure on the way past: 0xd28a40 gives 3/7/8/9,
+  //                          not the 2/3/8/9 I first reported -- mov r3,#7 / movwne r3,#9 / mov r2,#3 /
+  //                          movwne r2,#8 / tst r5,#1 / moveq r3,r2, two conditions and four outcomes. The
+  //                          other three sites write modes only em005_00's folder holds: they are Gravios's.
+  // The request struct the sites build is 0x30 bytes: +0x04 the global shell id from the slot, +0x08 the
+  // mode, +0x0c the parent unit, +0x10/+0x14/+0x18 the parent's position read straight from unit +0x40/+0x44/
+  // +0x48, +0x2e 0xffff; enqueued with 0x48b884.
+  //
+  // THE FLIGHT NUMBERS -- part read, and the read KILLS the obvious shortcut. base13's reader 0xd304ac is a
+  // flat run of accessor calls whose destinations are:
+  //     0x4a22f0 idx 0 -> +0x15c8      0x4a22f0 idx 1 -> +0x15d4      0x4a22f0 idx 2 -> +0x15cc
+  //     0x4a23f4 idx 0 -> +0x15d8      0x4a2224 idx 0 -> +0x15dc
+  //     0x4a2470 idx 0 -> +0x15ec (int, vcvt to float)    idx 2 -> +0x15f0 (same)    idx 1 -> +0x15e8 (int)
+  //     0x4a24f8 idx 0 -> +0x15fc (float, stored directly)
+  // DO NOT borrow params04's layout for this class. params04 (base04) comments +0x15cc as the life timer; in
+  // base13 the switch at 0x4041f4 selects +0x15cc / +0x15d0 / +0x15d4 by a 0/1/2 argument and immediately
+  // DEREFERENCES the result (`ldr r7,[r0] / cmp r7,#0 / beq`), and the ctor at 0x404388 zeroes +0x15c8/cc/d0/d4
+  // while setting +0x15d8/dc/e4/e8 to -1. So the first three fields the reader fills are effect HANDLES, not
+  // scalars, and base13 is not base04-shaped. The flight scalars can only be +0x15e8 / +0x15ec / +0x15f0 /
+  // +0x15fc.
+  // ---- shell00's PARAMETER SET, settled -------------------------------------------------------------
+  // What each field MEANS is base13's, fixed by its consumers and already decoded in this file as
+  // params13() / launch13 / thrown13 / stepOrb (from KHEZU's sp_13 reader 0xd220a4). What each field
+  // HOLDS is per shell class, from its own reader. Those are different questions and both were needed.
+  //
+  // The attribution was tested against a known answer before being used: Khezu's reader writes floats
+  // idx 0 -> +0x15ec, 2 -> +0x15f4, 1 -> +0x160c, 4 -> +0x1600, 3 -> +0x15fc, 5 -> +0x15f8, 7 -> +0x1608,
+  // 6 -> +0x1604, which is exactly params13's F(0) speed0, F(2) gravity, F(1) speedPer, F(4) far,
+  // F(3) near, F(5) life, F(7) limitB, F(6) limitA -- 8 of 8 -- and its int calls are the 3 that params13
+  // turns into the `sh.ints[i] !== -1` flag bits. So 0x4a2470 is getInt and 0x4a24f8 is getFloat.
+  //
+  // uShellEm004_sp_00's reader 0xd304ac, read to its `pop {r4, pc}` at 0xd30668, maps shell00's .sh as:
+  //     getEffect idx 0,1,2 -> +0x15c8 / +0x15d4 / +0x15cc   the three ef handles
+  //     acc 0x4a23f4 idx 0  -> +0x15d8      acc 0x4a2224 idx 0 -> +0x15dc
+  //     getFloat 0 -> +0x15fc NEAR      getInt 0 -> +0x15ec SPEED0
+  //     getFloat 1 -> +0x1600 FAR       getInt 2 -> +0x15f0 (launch13's f15f0)
+  //     getFloat 2 -> +0x1604 limitA    getInt 1 -> +0x15e8 optional id, -1 = none
+  //     getFloat 3 -> +0x15f4 GRAVITY
+  //     getFloat 4 -> +0x15f8 LIFE
+  //     acc 0x4a2584 idx 0,1,2 -> +0x1618 / +0x1610 / +0x161c
+  // giving, from the .sh values below:
+  //     modes 0-4    speed0 5 / -10 / 5 / -5 / 0    gravity 35.0   life  0.0   near 144.0  far 0.0
+  //     modes 5-7    speed0 0, f15f0 -35 / -1 / 30  gravity 48.0   life -5.0   near 144.0  far 0.0
+  //     modes 8-10   as 5-7 but life 0.0
+  //
+  // NEAR 144 / FAR 0: THE CLAMP IS UNGUARDED, so the transcription is faithful and shell00 does NOT travel.
+  // At 0x40561c, thrown13's two clamps run with no test of far and no branch around them --
+  //     vldr s4,[r5,#0x1600] FAR / vldr s2,[r5,#0x15fc] NEAR
+  //     vcmpe s2,s0 / vselgt s0,s2,s0    -> s0 = max(d, NEAR)
+  //     vcmpe s0,s4 / vselgt s26,s4,s0   -> s26 = min(., FAR)
+  // so with near 144 and far 0 the distance collapses to 0 and the thrown point IS the shell's own
+  // position. shell00 is emitted at the body rather than lobbed at a point ahead -- which fits u 160
+  // building every row of its .efl, and fits Effects' measurement of 1-to-35-frame rows.
+  // STILL OPEN, narrowly: this is ONE site. The base13 notes list flag branches (0x200 / 0x40 / 0x10) of the
+  // aim and the thrown point as NOT TRANSCRIBED, and 0x405648 branches to 0x4059a8, which I have not
+  // followed. "Unguarded here" is not yet "unguarded on every path".
+  // Incidental, and it closes the angle mistake below properly: the DEG_TO_U16 constant at 0x405658 belongs
+  // to the OTHER branch from 0x40564c, which reads +0x162c, an angle field. The degree path and the speed
+  // field are different branches of one function -- which is how +0x15ec got mislabelled in the first place.
+  // EARLIER AND WRONG, kept so the mistake stays visible: this block first said base13's sh held two spread
+  // angles and no trajectory, from one site (0x405f5c) applying DEG_TO_U16 to +0x15ec. That was read
+  // without checking what this file already knew about base13, and it is wrong -- +0x15ec is the launch
+  // speed, and the degree limits live at +0x1604 / +0x1608. What survived from it: +0x15fc / +0x1600 as a
+  // min/max distance pair, reached independently from the clamp at 0x40561c, which params13 calls near/far.
+  em004_00: {
+    name: 'Basarios',
+    lists: { 0: { list: 'u', pel: 'em004_00u' }, 1: { list: 'c', pel: 'em004_00c' } },
+    // EVERY ENTRY MUST CARRY `actions`, even empty: pickVariantsFor / pickFor / rockActionFor dereference
+    // D.actions directly, so an entry without it throws on any play of the monster (the `!D` guard covers a
+    // monster with NO entry, not an entry missing a key).
+    //
+    // `r5` IS THE ACTION'S OWN ARGUMENT, not a loop counter -- `mov r5, r1` at both 0xd28408 and 0xd2ba14,
+    // where r1 is the constant the four-instruction stub passes. So each action spawns ONE mode from
+    // fn 0xd283fc (not four), and picks ONE of the two triples from fn 0xd2ba08. Read from the status-7
+    // table at 0xd2c944 the same way the fireball actions were, and cross-checked against em004_00_cmdtbl:
+    // every action below appears in it as an issued `00 07 NN`.
+    //
+    // LEFT OUT ON PURPOSE, named rather than half-filled:
+    //   (7,0x12) / (7,0x13) -> fn 0xd299e4, shell00 mode 4, frame 76. That function sets NO motion, so the
+    //        clip is whatever the action set before it -- unread. Neither number appears in em004_00_cmdtbl
+    //        either, so nothing issues them on Basarios.
+    //   (7,0x11) -> fn 0xd288b8(e, 1): L2 Motion[24] blended with Motion[25] / [26] by the target's pitch (0xd28984,
+    //        partner 0x219 above, 0x21a below), shell02 at f118 in mode 3 / 8 (flag bit 0 of [+0xcac0]+0x24 clear,
+    //        calm / enraged) or 7 / 9 (set) -- 0xd28a38..0xd28a60, no em test. ISSUED on Basarios (g1 s23 / s68, the
+    //        op-0x24 else of op 0x6e's default: the stream called before this one was not s23), and IT DRAWS NOTHING
+    //        ON HIM, read 2026-09-30: his .shl's ShellInfoList holds mode 1 alone (entries 2..12 null, where
+    //        Gravios's holds ef001..ef012), getEffect 0x4a22f0 returns 0 for a null entry (0x4a2348), the reader
+    //        stores that in +0x1644 (0xd30aa8), and the activation 0x3fbaf8 makes no effect when +0x1644 is null
+    //        (0x3fbb30). His PSL has no block for L2 M24..M26 either. (7,0x0c) = 0xd288b8(e, 0), its op-0x24 twin,
+    //        spawns nothing (phase 1 `cmp r1,#1`, 0xd289d8).
+    //   (7,0x34) -> fn 0xd2a714 (L4 Motion[59], f134, mode 10 / 11: null on him the same way; issued in g1 s40),
+    //        (7,0x39) (7,0x3a) (7,0x47) -> fn 0xd2a8c4 (L4 Motion[60], mode 4 / 12; none issued). His lists carry no
+    //        L4 Motion[59] / [60].
+    actions: [
+      // fn 0xd283fc: phase 0 sets L4 Motion[5] (movw r1,#0x405, blend 6.0), phase 1 spawns one shell at
+      // frame table[r5] (u16 table at 0x162286c). r5 == 4 spawns nothing.
+      { action: [7, 0x04], code: 0xd283fc, args: [0], list: '4', clip: 'Motion[5]',  partners: [], frame: 76, shell: 'shell00', mode: 0, modes: [0],
+        spawns: [{ at: 0xd28494, kind: 'each', frames: [76.0], shell: 'shell00', mode: 0, modes: [0] }], spawner: 0xd283fc, pick: 'ai', variant: '7:0x04' },
+      { action: [7, 0x0b], code: 0xd283fc, args: [1], list: '4', clip: 'Motion[5]',  partners: [], frame: 74, shell: 'shell00', mode: 1, modes: [1],
+        spawns: [{ at: 0xd28494, kind: 'each', frames: [74.0], shell: 'shell00', mode: 1, modes: [1] }], spawner: 0xd283fc, pick: 'ai', variant: '7:0x0b' },
+      { action: [7, 0x16], code: 0xd283fc, args: [2], list: '4', clip: 'Motion[5]',  partners: [], frame: 90, shell: 'shell00', mode: 2, modes: [2],
+        spawns: [{ at: 0xd28494, kind: 'each', frames: [90.0], shell: 'shell00', mode: 2, modes: [2] }], spawner: 0xd283fc, pick: 'ai', variant: '7:0x16' },
+      { action: [7, 0x17], code: 0xd283fc, args: [3], list: '4', clip: 'Motion[5]',  partners: [], frame: 80, shell: 'shell00', mode: 3, modes: [3],
+        spawns: [{ at: 0xd28494, kind: 'each', frames: [80.0], shell: 'shell00', mode: 3, modes: [3] }], spawner: 0xd283fc, pick: 'ai', variant: '7:0x17' },
+      // fn 0xd2ba08: phase 0 sets L4 Motion[20] (movw r1,#0x414, blend 4.0), then THREE spawns at three
+      // frames from three alloc sites. `mov r0,#5 / movweq r0,#8` etc: r5 == 0 gives 8/9/10, else 5/6/7.
+      // One row per action with a `seq` spawn, the shape em001_00's (7,0x42) already uses for one action
+      // with three timed spawns -- so one variant string resolves to all three, in order.
+      { action: [7, 0x4e], code: 0xd2ba08, args: [0], list: '4', clip: 'Motion[20]', partners: [], frame: 60, shell: 'shell00', modes: [8, 9, 10],
+        spawns: [{ at: 0xd2bb3c, kind: 'seq', frames: [60.0, 104.0, 134.0], shell: 'shell00', modes: [8, 9, 10] }], spawner: 0xd2ba08, pick: 'ai', variant: '7:0x4e' },
+      { action: [7, 0x58], code: 0xd2ba08, args: [1], list: '4', clip: 'Motion[20]', partners: [], frame: 60, shell: 'shell00', modes: [5, 6, 7],
+        spawns: [{ at: 0xd2bb3c, kind: 'seq', frames: [60.0, 104.0, 134.0], shell: 'shell00', modes: [5, 6, 7] }], spawner: 0xd2ba08, pick: 'ai', variant: '7:0x58' },
+      // SHELL02, and it carries u 130. fn 0xd28bb4 phase 1 (phase byte [[unit+0x1428]+0x1a1]: 0 -> 0xd28c0c,
+      // 1 -> 0xd28d28, 2 -> 0xd28cdc) waits for frame 142.0 and then, at 0xd28d6c, sets the mode to 1 BEFORE
+      // testing the monster: `mov sb,#1 / ldrb r0,[r4,#0xb5f4] / cmp r0,#4 / beq 0xd29294`. Basarios takes
+      // that branch with sb still 1, nothing writes sb between there and the `stmib r1,{r0,sb}` at 0xd29570,
+      // and +8 is the raw mode. Mode 1 is exactly the one mode em004_00's shell02 folder holds (ef001).
+      // THE CLIP IS A BLEND (read 2026-09-30; an earlier note here called Motion[27] the function's only setMotion).
+      // Phase 0 plays what it classified (P+0x1a2, 0xd29100..0xd291d4): class 2 -> Motion[27] alone (0x21b, 0xd2917c);
+      // class 0 (target above) -> Motion[27] blended with Motion[28] (0x21c, 0xd29130); class 1 (below) -> with
+      // Motion[29] (0x21d, 0xd29198) -- the 0xb03f8 blend at 0xd296b4, blend 4.0, Motion[27]'s weight
+      // 1 - min(|pitch word|, 0x31c7) / 12743 (0xd2927c holds -12743.0; 0x31c7 = 70 degrees). So Motion[28] and [29]
+      // are the beam aimed up and down, and they carry the beam as partners (193 frames each, like Motion[27]).
+      // Motion[27]_start is 176 frames, so 142 is inside it.
+      //   THE ARGS: (7,0x0e) = 0xd28bb4(e, 1, 0) (stub 0xd2ce04), (7,0x32) = (e, 1, 1) (0xd2cf78), (7,0x0d) = (e, 0, 0)
+      // (0xd2cdf8). r1 is phase 1's spawn gate (0xd28d28 `cmp r1,#1 / bne 0xd295bc`): (7,0x0d) plays the same clip and
+      // NEVER FIRES -- the charge glow, then nothing (and when tired the PSL's u 251 sputter). r2 picks the follow-up
+      // motion phase 2 plays (0xd295d0; L2 Motion[33] / [34] for class 0 on r2 0). Issued (em004_00_cmdtbl g1, walked
+      // with emc.py): (7,0x0e) s15..s20, s22, s37, s62; (7,0x32) s23 / s24 / s68 / s69, always op 0x24's else (not
+      // tired); (7,0x0d) s22 / s23 as op 0x24's if (tired) and in s15 / s16 / s37 by op 0x02, a percentage draw
+      // (rand % 100: 0x85758..0x8578c) -- 85 / 15, 82 / 18, 40 / 60, 64 / 36 against (7,0x0e). So 0x0e and 0x0d are
+      // issued tired or not (no `op24`), 0x32 only when not tired. In s23 / s68 the choice of 0x32 over (7,0x11)
+      // (above) is op 0x6e: the stream op 0x14 called before this one (+0x73b2, which the call op 0x83e1c ->
+      // 0x85628 shifts down from +0x73b0) is s23 itself.
+      { action: [7, 0x0e], code: 0xd28bb4, args: [1, 0], list: '2', clip: 'Motion[27]', partners: ['Motion[28]', 'Motion[29]'], frame: 142, shell: 'shell02', mode: 1, modes: [1],
+        spawns: [{ at: 0xd29558, kind: 'each', frames: [142.0], shell: 'shell02', mode: 1, modes: [1] }], spawner: 0xd28bb4, pick: 'ai', variant: '7:0x0e' },
+      { action: [7, 0x32], code: 0xd28bb4, args: [1, 1], list: '2', clip: 'Motion[27]', partners: ['Motion[28]', 'Motion[29]'], frame: 142, shell: 'shell02', mode: 1, modes: [1],
+        spawns: [{ at: 0xd29558, kind: 'each', frames: [142.0], shell: 'shell02', mode: 1, modes: [1] }], spawner: 0xd28bb4, pick: 'ai', op24: 'else', variant: '7:0x32' },
+      { action: [7, 0x0d], code: 0xd28bb4, args: [0, 0], list: '2', clip: 'Motion[27]', partners: ['Motion[28]', 'Motion[29]'], frames: [], modes: [],
+        spawns: [], spawner: 0xd28bb4, pick: 'ai', variant: '7:0x0d' },
+    ],
+    shells: {
+      // shell00: global id 0x6a, uShellEm004_sp_00 : uShellEmBase13 (reader 0xd304ac)
+      shell00: {
+        id: 0x6a, cls: 'uShellEm004_sp_00', base: 'base00', reader: 0xd304ac, folder: 'shell\\em\\em004_00_shell00',
+        // THE COMMON PARAMS EXIST (2026-09-30): the ShellCmnParam FUP `em004_00_00` shares its .shl's path, and
+        // efx/shellef.py load() -- a dict keyed by path -- kept the .shl and dropped it, which is where "he has no
+        // common FUP" came from (dev/rom-map.md traps). Read with the arc's own entries: ints [3], nothing else.
+        cmn: { ints: [3], floats: [], vecs: [] },
+        modes: {
+          0:  { scale: 1.0, ef: [[0, 160], [0, 162], [0, 162]],
+                sh: { ints: [5, -1, 0],    floats: [144.0, 0.0, 0.0, 35.0, 0.0], vecs: [[0.0, 0.0, 0.0], [0.0, -50.0, 10.0], [0.0, -0.4, 0.0]] } },
+          1:  { scale: 1.0, ef: [[0, 160], [0, 162], [0, 162]],
+                sh: { ints: [-10, -1, 0],  floats: [144.0, 0.0, 0.0, 35.0, 0.0], vecs: [[0.0, 0.0, 0.0], [0.0, -50.0, 10.0], [0.0, -0.4, 0.0]] } },
+          2:  { scale: 1.0, ef: [[0, 160], [0, 162], [0, 162]],
+                sh: { ints: [5, -1, 0],    floats: [144.0, 0.0, 0.0, 35.0, 0.0], vecs: [[0.0, 0.0, 0.0], [0.0, -50.0, 10.0], [0.0, -0.4, 0.0]] } },
+          3:  { scale: 1.0, ef: [[0, 160], [0, 162], [0, 162]],
+                sh: { ints: [-5, -1, 0],   floats: [144.0, 0.0, 0.0, 35.0, 0.0], vecs: [[0.0, 0.0, 0.0], [0.0, -50.0, 10.0], [0.0, -0.4, 0.0]] } },
+          4:  { scale: 1.0, ef: [[0, 160], [0, 162], [0, 162]],
+                sh: { ints: [0, 0, 0],     floats: [144.0, 10.0, 90.0, 35.0, 0.0], vecs: [[0.0, 0.0, 0.0], [0.0, -50.0, 10.0], [0.0, -0.4, 0.0]] } },
+          5:  { scale: 1.0, ef: [[0, 160], [0, 162], [0, 162]],
+                sh: { ints: [0, -1, -35],  floats: [144.0, 0.0, 0.0, 48.0, -5.0], vecs: [[0.0, 0.0, 0.0], [-65.0, 65.0, 90.0], [0.0, -1.4, 0.0]] } },
+          6:  { scale: 1.0, ef: [[0, 160], [0, 162], [0, 162]],
+                sh: { ints: [0, -1, -1],   floats: [144.0, 0.0, 0.0, 48.0, -5.0], vecs: [[0.0, 0.0, 0.0], [-10.0, 65.0, 90.0], [0.0, -1.4, 0.0]] } },
+          7:  { scale: 1.0, ef: [[0, 160], [0, 162], [0, 162]],
+                sh: { ints: [0, -1, 30],   floats: [144.0, 0.0, 0.0, 48.0, -5.0], vecs: [[0.0, 0.0, 0.0], [-65.0, 65.0, 90.0], [0.0, -1.4, 0.0]] } },
+          8:  { scale: 1.0, ef: [[0, 160], [0, 162], [0, 162]],
+                sh: { ints: [0, -1, -35],  floats: [144.0, 0.0, 0.0, 48.0, 0.0],  vecs: [[0.0, 0.0, 0.0], [-65.0, 65.0, 90.0], [0.0, -1.4, 0.0]] } },
+          9:  { scale: 1.0, ef: [[0, 160], [0, 162], [0, 162]],
+                sh: { ints: [0, -1, -1],   floats: [144.0, 0.0, 0.0, 48.0, 0.0],  vecs: [[0.0, 0.0, 0.0], [-10.0, 65.0, 90.0], [0.0, -1.4, 0.0]] } },
+          10: { scale: 1.0, ef: [[0, 160], [0, 162], [0, 162]],
+                sh: { ints: [0, -1, 30],   floats: [144.0, 0.0, 0.0, 48.0, 0.0],  vecs: [[0.0, 0.0, 0.0], [-65.0, 65.0, 90.0], [0.0, -1.4, 0.0]] } },
+        },
+      },
+      // shell01: global id 0x6b, uShellEm004_sp_01, base01 by vtable (240/288 slots match em003_00's
+      // shell01), reader 0xd308dc. NO ACTION SPAWNS IT -- it is SECOND GENERATION: shell00's landing
+      // (its vtable +0x150 = 0xd3066c) allocates a request at 0xd306e4, loads the shell01 class id from
+      // +0xcac8 at 0xd306ec, and writes MODE 0 into +8 at 0xd30708, on contact type 1 (cmp r3,#1). So
+      // mode 0 -> ef000 -> u 161 is fired when a shell00 lands, not by any command. The other two contact
+      // types branch to 0xd30798 (type 0) and 0xd307b4 (type 2) and are NOT READ; mode 1 is c 0 and one
+      // of those is the likely source.
+      shell01: {
+        id: 0x6b, cls: 'uShellEm004_sp_01', base: 'base01', reader: 0xd308dc, folder: 'shell\\em\\em004_00_shell01',
+        // `hit`: the HitParam int 0 his reader takes through accA (0x4a23f4) into +0x15d8. EMC read the folder
+        // 2026-09-30: em004_00_01_hit000 / _hit001 are the SAME FUP type as the _sh### files (496f8f22), both
+        // 24 bytes with nInt=1 / nFloat=0 / nVec=0 and an exact length check -- ints [0] and [1]. So one hit
+        // record per mode, indexed by the mode number.
+        modes: {
+          0: { scale: 1.0, ef: [[0, 161]], hit: [0], sh: { ints: [0, 0, -1],   floats: [], vecs: [] } },
+          1: { scale: 1.0, ef: [[1, 0]],   hit: [1], sh: { ints: [-1, -1, 0],  floats: [], vecs: [] } },
+        },
+        // em004_00_01_hitdata (HDS, 2 records of 0x38 bytes from +0x10): (s16 +0 delay, s16 +2 duration) by
+        // record, for input.hitLife -- the same shape as every other base01 shell's. EMC read the loader
+        // 0x488fd0 rather than inferring the base: magic at 0x489004, version 0x20160209 at 0x48901c, buffer
+        // to [r4+0x64], then `addne r0,r0,#0x10 / strne r0,[r4+0x68]`, so the records start at file + 0x10;
+        // the file is 128 bytes and 0x10 + 2 * 0x38 = 0x80 exactly, which makes the 2 a read count rather
+        // than a corroborated one. The fields are the consumer's at 0x168a68..0x168a84 (notes shells-em001.md
+        // 449), counted down by 0x168d30 = slotStep.
+        //   HOW LONG THE SHELL THEN LIVES IS STILL NOT READ, and it is not delay + duration by arithmetic:
+        // who runs 0x168d30 and when in the frame, and the step it uses (the global [0x211f764]+0x68 or the
+        // owner's speed by slot +0x31 bit 1), are both UNREAD -- so the viewer counts these down by its own
+        // frame step (ctx.dt, stepShells' hit pass), the labelled stand-in every other shell already uses.
+        hitdata: [[6, 10], [14, 10]],
+      },
+      // shell02: global id 0x6c, uShellEm005_sp_02 : uShellEmBase02 (reader 0xd30a90). The arc holds ef001
+      // and sh001 ONLY -- there is no mode 0 in this folder, and the modes the slot-2 code asks for are not 1.
+      shell02: {
+        id: 0x6c, cls: 'uShellEm005_sp_02', base: 'base02', reader: 0xd30a90, folder: 'shell\\em\\em004_00_shell02',
+        // ITS COMMON PARAMS, the FUP `em004_00_02` that shares the .shl's path (see shell00's): int 0 the JOINT (3,
+        // into +0x1658), float 0 the RAY LENGTH (7200, +0x165c, read by +0x160 0x3fd288), float 1 the origin's
+        // push along the joint's second row (-50, +0x168c, 0xd30b84), vec 0 the origin's offset in the joint's
+        // space ((0, -30, 80), +0x1678, 0x3fca58..). Gravios's em005_00_02 has -40 where this has -50.
+        cmn: { ints: [3], floats: [7200.0, -50.0], vecs: [[0.0, -30.0, 80.0]] },
+        modes: {
+          1: { scale: 1.0, ef: [[0, 130]], sh: { ints: [], floats: [76.0], vecs: [[0.0, 0.0, 0.0]] } },
+        },
+      },
+    },
+  },
+
+  // ---- em005_00 Gravios: HIS BEAM ON BASARIOS'S CLASS PATH (dev/beams/em005_00.md, READ 2026-09-30) -------------------
+  // The same class code (uEm004_00, em byte 5) and the same spawner 0xd28bb4 as em004_00's shell02 above -- its phase 0
+  // (class, partners, the aim) and its f142 gate are Basarios's, read there -- with Gravios's own id (0x6e, slot
+  // [e+0xcacc] filled by 0xd2e538) and mode: sb = (r2 == 1 ? 2 : 1) | (ctl+0x24 bit 0) << 2 (0xd28d7c..0xd29290), bit 0 =
+  // the head broken (part 5 at .dtp row 3's level; rebuilt at every action start by 0xd22a14 -- the model's broken head
+  // mesh, part 3: render/motion-states.js SHELL_PARTS). Modes 1 / 2 / 5 / 6 are behaviour code 1 (0x169bbb0), the class
+  // path make02 / step02 transcribes. His other beams (codes 2 / 3) are render/beam-spawns.js rows on base02g.
+  // His arc em005_00_02 (efx shellef, read 2026-09-30): cmn joint 3, ray 7200, push -40, offset (0, -30, 80); every ef
+  // record names list slot 1, his u pel. Issued (em005_00_cmdtbl g1): (7, 0xe) s15..s20, s22, s37, s62, s67; (7, 0x32) s23,
+  // s24, s68, s69; (7, 0xd) (no beam) s15..s20, s22..s24, s29, s37, s67..s69 -- which op-0x24 arm each sits in is not read
+  // for him, so no `op24` here.
+  em005_00: {
+    name: 'Gravios',
+    lists: { 0: { list: 'u', pel: 'em005_00u' }, 1: { list: 'u', pel: 'em005_00u' } },
+    actions: [
+      { action: [7, 0x0e], code: 0xd28bb4, args: [1, 0], list: '2', clip: 'Motion[27]', partners: ['Motion[28]', 'Motion[29]'], frame: 142, shell: 'shell02', mode: 1, modes: [1],
+        spawns: [{ at: 0xd29558, kind: 'each', frames: [142.0], shell: 'shell02', mode: 1, modes: [1], headModes: [5] }], spawner: 0xd28bb4, pick: 'ai', variant: '7:0x0e' },
+      { action: [7, 0x32], code: 0xd28bb4, args: [1, 1], list: '2', clip: 'Motion[27]', partners: ['Motion[28]', 'Motion[29]'], frame: 142, shell: 'shell02', mode: 2, modes: [2],
+        spawns: [{ at: 0xd29558, kind: 'each', frames: [142.0], shell: 'shell02', mode: 2, modes: [2], headModes: [6] }], spawner: 0xd28bb4, pick: 'ai', variant: '7:0x32' },
+      { action: [7, 0x0d], code: 0xd28bb4, args: [0, 0], list: '2', clip: 'Motion[27]', partners: ['Motion[28]', 'Motion[29]'], frames: [], modes: [],
+        spawns: [], spawner: 0xd28bb4, pick: 'ai', variant: '7:0x0d' },
+    ],
+    shells: {
+      shell02: {
+        id: 0x6e, cls: 'uShellEm005_sp_02', base: 'base02', reader: 0xd30a90, folder: 'shell\\em\\em005_00_shell02',
+        cmn: { ints: [3], floats: [7200.0, -40.0], vecs: [[0.0, -30.0, 80.0]] },
+        modes: {
+          1: { scale: 1.0, ef: [[1, 130]], sh: { ints: [], floats: [76.0], vecs: [[0.0, 0.0, 0.0]] } },
+          2: { scale: 1.0, ef: [[1, 130]], sh: { ints: [], floats: [76.0], vecs: [[0.0, 0.0, 0.0]] } },
+          5: { scale: 1.0, ef: [[1, 131]], sh: { ints: [], floats: [40.0], vecs: [[0.0, 0.0, 0.0]] } },
+          6: { scale: 1.0, ef: [[1, 131]], sh: { ints: [], floats: [40.0], vecs: [[0.0, 0.0, 0.0]] } },
+        },
+      },
+    },
+  },
 };
+// A monster whose only transcribed shells are its BEAMS (render/beam-spawns.js) gets a bare entry, so the schedule steps
+// its shells: no actions, no other shell; its beams spawn from their rows (stepShells, spawnBeamReal)
+for (const mon of Object.keys(BEAM_SPAWNS))
+  if (!SHELL_DATA[mon]) SHELL_DATA[mon] = { lists: { 0: { list: 'u', pel: mon + 'u' } }, shells: {}, actions: [], beamsOnly: true };
 
 // The siblings run Rathian's class code on the clips they share with her, so her action entries are theirs (in front of
 // their own; Dreadqueen's own L4 M65 entries replace hers), and so are the per-frame handler's dust rows and the posture
@@ -2165,7 +2494,19 @@ export function rockActionFor(monId, list, clip, variant){
 export function variantActionFor(monId, list, clip, variant){
   const D = SHELL_DATA[monId];
   if (!D || !variant) return null;
+  if (/^beam:\d+$/.test(variant)) return beamShowcaseAction(monId, list, clip, +variant.slice(5));
   return D.actions.find(a => (a.pick === 'rock' || a.pick === 'ai' || a.pick === 'hover') && a.variant === variant && a.list === String(list) && playsClip(a, clip)) || null;
+}
+// the showcase's play: the beam type the variant names, fired at BEAM_SHOWCASE.frame of the 'Beam Test' entry
+// (the 'Beam Test' entry, or one of its per-monster groups -- render/beam-groups.js)
+const showcaseIds = (monId, list, clip) => monId === BEAM_SHOWCASE.monId && String(list) === BEAM_SHOWCASE.list
+                                           ? beamIdsOf(String(clip).replace(/_(start|loop)$/, '')) : null;
+const isShowcaseClip = (monId, list, clip) => !!showcaseIds(monId, list, clip);
+function beamShowcaseAction(monId, list, clip, i){
+  const t = BEAM_TYPES[i], ids = showcaseIds(monId, list, clip);
+  if (!t || !ids || !ids.includes(i)) return null;
+  return { action: [7, 0x0e], code: 'beam', type: t, index: i, list: String(list), clip: String(clip).replace(/_(start|loop)$/, ''),
+           partners: [], frames: [BEAM_SHOWCASE.frame], modes: [], spawns: [], pick: 'beam', variant: 'beam:' + i };
 }
 
 // The variants a clip's shells can be thrown with, in a fixed order (the actions table's), for the viewer to name one
@@ -2204,10 +2545,17 @@ export function variantActionFor(monId, list, clip, variant){
 export function pickVariantsFor(monId, list, clip, opts){
   const D = SHELL_DATA[monId];
   if (!D || !clip) return [];
+  // the beam showcase: every beam type in turn, one per play of Basarios's Special 'Beam Test' (a group's entry, its own)
+  const beamIds = showcaseIds(monId, list, clip);
+  if (beamIds) return beamIds.map(i => 'beam:' + i);
+  // a clip carrying several beam rows on its own monster (render/beam-spawns.js): one pick per play, in the rows' order --
+  // the rows whose `when` holds in the state the viewer shows (opts: index.html beamState, the same the step reads)
+  const rowsHere = beamRowsFor(monId, list, clip, opts);
+  if (rowsHere.length > 1) return [...new Set(rowsHere.map(r => r.variant))];
   const base = String(clip).replace(/_(start|loop)$/, '');
   const branch = opts && opts.tired && !opts.rage ? 'if' : 'else';
   const names = [];
-  for (const a of D.actions)
+  for (const a of D.actions || [])                       // an entry may carry no actions yet (em004_00)
     if ((a.pick === 'rock' || a.pick === 'ai') && a.variant && a.list === String(list) && playsClip(a, base) &&
         (!a.op24 || a.op24 === branch) && !names.includes(a.variant)) names.push(a.variant);
   return names;
@@ -2646,6 +2994,38 @@ function params00(def, mode, idx){
            gravity: sh.vecs[0].map(f) };                      // +0x161c: &sh vec 0
 }
 
+// em004_00 shell00's reader 0xd304ac (Basarios, uShellEm004_sp_00; vtable +0x14c) --
+// dev/em004-shell00-spec.md 2. params00 above is ANOTHER class's reader (0xe82304): the runtime name ->
+// object offset half is shared, the .sh INDEX half is not, and it wants a `cmn` block Basarios has no file
+// for anywhere in his arc. So he reads his own. His base is base00 by vtable slot comparison, 256/288
+// identical with Khezu's shell00 (the DTI parent says uShellEmBase13 and is wrong for behaviour); only the
+// reader +0x14c and the landing +0x150 are his own overrides on the shell's path.
+function params04r(def, mode){
+  const sh = mode.sh, c = def.cmn;
+  return { joint: c && c.ints.length ? c.ints[0] : -1,  // +0x15dc: accB(0) 0x4a2224 at 0xd30514 -> str at 0xd30520: the
+                                                        // common int 0 -- JOINT 3. "He has no common FUP" came from a
+                                                        // loader that dropped it (dev/rom-map.md traps); a class with
+                                                        // none takes the null path 0x4a225c, -1
+           flight: f(sh.floats[0]),                     // +0x15fc: sh float 0, 144.0 every mode, in FRAMES (0xd3052c)
+           // +0x15e8: BASE00'S CTOR WRITES ZERO -- `mov r5,#0` / `str r5,[r4,#0x15e8]` in 0x3f8a04
+           // (EMC, 2026-09-30). The 0xffffffff this once read was 0x3fa348, which is inside BASE01's ctor
+           // 0x3fa2f8 (`mvn r4,#0`); base01 really does start all-ones and base00 does not, and that
+           // asymmetry is what made the earlier value wrong. His reader then adjusts BIT 0 alone (0xd30594,
+           // `mov r3,r1` preserving the rest): set iff ints[1] != -1.
+           //   So his word is 0 on modes 0-3 and 5-10, 1 on mode 4 -- and bit 0x10 is CLEAR, so he does NOT
+           // take the request-position arm. Transcribing 0xfffffffe put him at the world origin plus
+           // (0,-50,10), which is below the floor and is why his shell could never land.
+           flags: (sh.ints[1] !== -1 ? 1 : 0),
+           vz: f(sh.floats[3]), vy: f(sh.floats[4]),    // +0x15f4 / +0x15f8 (0xd305f4 / 0xd30610)
+           vec: sh.vecs[1].map(f),                      // +0x1610: accVec(1) (0xd30644)
+           gravity: sh.vecs[2].map(f) };                // +0x161c: accVec(2) (0xd3065c)
+}
+// which reader base00's init runs, by class. Absent = params00, which is what every monster transcribed
+// before em004 uses; this table only ever adds a class, so no existing shell changes reader.
+const READER00 = { uShellEm004_sp_00: (def, mode) => params04r(def, mode),
+                   // the beam children (makeChild02g): Plesioth's 0xd6c55c, Ukanlos's 0xe63400
+                   uShellEm010_sp_00: (def, mode) => params010c(def, mode), uShellEm038_sp_00: (def, mode) => params038c(def, mode) };
+
 // sp_54's reader 0xe82e8c
 function params54(def, mode, idx){
   const c = def.cmn, sh = mode.sh, late = (idx & 0xfc) === 4;
@@ -2666,27 +3046,104 @@ function params54(def, mode, idx){
 
 // base00 init 0x3f8b80 with the reader's aim. J = the joint matrices built for the previous pose; `got` = the inputs
 // that are not read (target, owner angles).
+// the joint-matrix launch point, for the aim arms that need it before the base point is picked
+function p0(J, k, got){
+  const M = jointMatrix(J, k.joint);
+  return M ? launchPoint(M, k.vec) : (got.ownerPos ? got.ownerPos.slice() : [0, 0, 0]);
+}
+
 function init00(S, def, J, got){
-  const k = S.k = params00(def, S.mode, S.modeIndex);
-  const M = jointMatrix(J, k.joint);                    // 0xc15a4 (reader 0xe820a4, init 0x3f8d70)
-  if (!M) return false;
-  const p = launchPoint(M, k.vec);
-  // the aim by mode (0xe82120..: 0x4a0ee4 = the mode): 8..15 the lob, 0..3 the linear offset; 4..7 (0xe82178, the
-  // direct angle) is not transcribed -- no read stream plays those modes
-  let d;
-  if (S.modeIndex >= 8 && S.modeIndex <= 15) d = aimBallistic(p, got.target, got.ownerX, f(50.0), f(0.75));
-  else if (S.modeIndex <= 3) d = aimLinear(p, got.target);
-  else return false;
-  const setup = [(got.ownerX + d) >>> 0, got.ownerY, 0];  // setup +0x20 = X + d, +0x24 = Y, +0x28 = 0 (0xe82204..)
-  // flag 0x20: the angle words are the setup's (0x3f8c9c); the init then adds 0 to X and Y (0x3f9378 / vtable +0x16c:
-  // flag bits 0 / 1 clear, the degree offsets +0x15ec / +0x15f0 are 0 from the ctor)
+  const k = S.k = (READER00[S.cls] || params00)(def, S.mode, S.modeIndex);
+  // THE PLACEMENT IS A FLAG TEST (0x3f8cb8: `tst [shell+0x15e8], #0x10`), not the joint path unconditionally.
+  // CLEAR -> 0x3f8d70, the joint matrix and the reader's vec, which is what every monster transcribed before
+  // em004 takes (the reference's word is 0x20 | 0x40, bit 0x10 clear). SET -> 0x3f8d88, and the position is
+  // the REQUEST's +0x10/14/18 verbatim, with neither the joint path nor the owner path at 0x3f8da0 running.
+  // Basarios's bit is SET (em004-shell00-spec.md 3, 5), and his joint is -1, so taking the joint path would
+  // place him at the model root through the viewer's own fallback -- a wrong shell rather than a refusal.
+  let p, d = 0, setup;
+  if (k.flags & 0x10){
+    if (!got.requestPos) return false;                  // the caller names the refusal (spawn04)
+    p = got.requestPos.map(f);
+    // NOBODY TAKES THIS ARM TODAY. base00's ctor writes ZERO to the flags word (0x3f8a04), so bit 0x10 is
+    // clear on every monster now transcribed, and the position comes from the joint test below instead.
+    // It is kept rather than deleted because it IS the ROM's other arm -- a class whose reader sets 0x10
+    // lands here -- but read it as unexercised: the bit 3 and bit 7 remarks below describe a path no
+    // monster in the viewer has yet taken, and Basarios, for whom they were written, does not take it.
+    // (EMC 2026-09-30, dev/em004-shell00-spec.md 3b; bits 0x20 and 0x10 are DIFFERENT selections --
+    // 0x20 picks the angle words at +0xfe8, 0x10 picks the position base, and only 0x10 governs here.)
+    // THE OFFSET IS ADDED AFTER THE PLACEMENT (0x3f8fb0: vldr [r4,#0x40] / vadd / vstr), and two flag bits
+    // shape it (em004-shell00-spec.md 3, EMC 2026-09-30):
+    //   BIT 3 (0x3f8e68). CLEAR: the offset is turned by the matrix rows -- which is what launchPoint does
+    //     on the joint path below. SET (0x3f8ed0): turned by the u16 ANGLE WORDS the 0x20 arm parked at
+    //     +0xfe8, which are the REQUEST's +0x20 vec3 (0x3f8ca4), x 0.0001 ~ 2pi/65536, through sinf / cosf.
+    //   BIT 7 (0x3f8f9c and 0x3f9118, one per rotation path, so it applies either way): the offset scaled
+    //     by the monster's size (bl 0xbe518 = block +0x1ac x +0x1b0).
+    // The rotation is written out rather than short-circuited on Basarios's zero angle: the words come from
+    // the REQUEST, and the next class to take this arm will not have them zero.
+    const A = got.requestAngles || [0, 0, 0];
+    // THE ANGLE WORDS ARE CHOSEN BEFORE THIS ARM, by 0x20 alone (0x3f8c60..0x3f8cac; dev/rom-map.md base00 rows, read
+    // 2026-09-30): SET -> the setup's +0x20 (the request's words); CLEAR -> the owner's X (0 with 0x200) and Y, Z 0. This
+    // arm took the request's words whatever 0x20 said, unexercised until Ukanlos's beam children (flags 0x50) took it.
+    setup = (k.flags & 0x20) ? [A[0] >>> 0, A[1] >>> 0, A[2] >>> 0]
+                             : [(k.flags & 0x200) ? 0 : (got.ownerX >>> 0), got.ownerY >>> 0, 0];
+    let o = k.vec.slice();
+    if (k.flags & 8){
+      const yaw = f(u16(setup[1]) * 0.0001), c = cosf(yaw), sn = sinf(yaw);
+      o = [f(mla(f(o[0] * c), o[2], sn)), o[1], f(f(o[2] * c) - f(o[0] * sn))];
+    }
+    if (k.flags & 0x80){ const sz = got.size == null ? 1 : f(got.size); o = o.map(x => f(x * sz)); }
+    p = [f(p[0] + o[0]), f(p[1] + o[1]), f(p[2] + o[2])];
+    // THE ANGLES: `setup` above (0x20 -> the request's words, 0x3f8c9c -> +0xfe8; else the owner's). The aim-by-mode
+    // below is the OTHER class's reader (0xe82120, beside its reader 0xe82304) and his mode indices mean nothing to it;
+    // em004-shell00-spec.md 8 records that his init has not been scanned for vz / vy. So NO AIM IS APPLIED
+    // here, and that is a named gap rather than a default: if his shell points the wrong way on screen,
+    // this is the line.
+  } else {
+    // THE ANGLES (0x3f8c60..0x3f8cac), the two arms init37 already transcribes for this base: flag 0x20 ->
+    // the setup's words; CLEAR -> the owner's X (0 when 0x200 is set), Y, 0. Every monster transcribed
+    // before em004 has 0x20 SET, because their reader builds it; his word is 0, so he takes the clear arm.
+    if (k.flags & 0x20){
+      // the aim by mode (0xe82120..: 0x4a0ee4 = the mode): 8..15 the lob, 0..3 the linear offset; 4..7
+      // (0xe82178, the direct angle) is not transcribed -- no read stream plays those modes
+      if (S.modeIndex >= 8 && S.modeIndex <= 15) d = aimBallistic(p0(J, k, got), got.target, got.ownerX, f(50.0), f(0.75));
+      else if (S.modeIndex <= 3) d = aimLinear(p0(J, k, got), got.target);
+      else return false;
+      setup = [(got.ownerX + d) >>> 0, got.ownerY, 0]; // setup +0x20 = X + d, +0x24 = Y, +0x28 = 0 (0xe82204..)
+    } else {
+      setup = [(k.flags & 0x200) ? 0 : got.ownerX, got.ownerY, 0];
+    }
+    // THE BASE POINT (the joint test at 0x3f8d60), reached whenever bit 0x10 is clear -- which is every
+    // base00 monster, the ctor writing zero:
+    //   joint >= 0  -> the joint's world matrix (0xc15a4 at 0x3f8d70), offset through its 3x3
+    //   joint == -1 -> THE OWNER'S OWN POSITION +0x40/+0x44/+0x48 (0x3f8e20), with the offset turned by the
+    //     angle words and added (0x3f9140..0x3f9168). The viewer did not model this arm: jointMatrix(J, -1)
+    //     falls back to gid 0, the model root, which is not the ROM's behaviour on any path.
+    if (k.joint === -1){
+      if (!got.ownerPos) return false;                  // named by the caller (spawn04)
+      const yaw = f(u16(setup[1]) * U16_TO_RAD), cs = cosf(yaw), sn = sinf(yaw);
+      const sc = (k.flags & 0x80) ? (got.size == null ? 1 : f(got.size)) : 1;   // 0xbe518, only with bit 0x80
+      const a = f(k.vec[0] * sc), b = f(k.vec[2] * sc), P = got.ownerPos;
+      p = [f(P[0] + mla(f(a * cs), b, sn)), f(P[1] + f(k.vec[1] * sc)), f(mls(f(b * cs), a, sn) + P[2])];
+    } else {
+      const M = jointMatrix(J, k.joint);                // 0xc15a4 (reader 0xe820a4, init 0x3f8d70)
+      if (!M) return false;
+      p = launchPoint(M, k.vec);
+    }
+  }
+  // flag 0x20: the angle words are the setup's (0x3f8c9c); the init then adds the degree offsets, each a u16 added to its
+  // word by a plain 32-bit store (0x3f8fec / 0x3f9034): X from +0x15ec (0x3f9378, flag bit 0 clear), Y from +0x15f0
+  // (vtable +0x16c: base00's 0x3f9cc4 with bit 1 clear, or a class's own -- ANGLE16C). Every reader before the beam
+  // children leaves both at the ctor's 0 (or sets bit 0 / 1, whose aiming arms these are not), so for them it adds 0.
   S.angles = setup.slice();
+  if (!(k.flags & 1)) S.angles[0] = (S.angles[0] + u16(s32(mla(0.5, f(k.degX || 0), DEG_TO_U16)))) >>> 0;
+  if (!(k.flags & 2)) S.angles[1] = (S.angles[1] + (ANGLE16C[S.cls] ? ANGLE16C[S.cls](S, k, got, def)
+                                                                  : u16(s32(mla(0.5, f(k.degY || 0), DEG_TO_U16))))) >>> 0;
   S.timer = k.flight;                                   // +0x162c = +0x15fc
   S.position = p;                                       // +0x40 = row 3 + offset (0x3f8d74, 0x3f9140..0x3f9168)
   S.anchor = p.slice();                                 // +0x1000 (0x3f916c..0x3f918c)
   S.gravity = gravityOf(k.gravity, S.angles[1]);        // +0x1020
   S.velocity = launchVelocity(k.vy, k.vz, S.angles);    // +0x1010
-  S.launch = { point: p.slice(), target: got.target.slice(), aim: d, setup, angles: S.angles.slice(),
+  S.launch = { point: p.slice(), target: got.target ? got.target.slice() : null, aim: d, setup, angles: S.angles.slice(),
                position: S.position.slice(), anchor: S.anchor.slice(), velocity: S.velocity.slice(),
                gravity: S.gravity.slice(), timer: S.timer };
   return true;
@@ -2802,7 +3259,10 @@ function move54(S, J, ctx, D){
 // one rock's move this step (vtable +0x24: base00 0x3f96a0, base54 0x42b874)
 function stepRock(S, J, ctx, input, D, out){
   S.events = [];
-  S.place = null;                                       // the shell never places its effect (no 0x329c9c / 0x329d04)
+  S.place = null;                                       // the shell never places its effect (no 0x329c9c / 0x329d04)...
+  // ...but a maker may: Plesioth's beam places its child's (0xd6c680 / 0xd6c6cc -> 0x329c9c / 0x329d04), and the
+  // effect keeps that placement until the next one
+  if (S.follow) S.place = { param: 0, position: S.follow.position.slice(), rotationDeg: S.follow.rotationDeg.slice() };
   const alive = h => input.effectAlive ? !!input.effectAlive(S, h.param, h) : true;
   // a handle whose unit left states 1 / 2 is dropped first (0x3f96ac..0x3f9700, 0x42b880..0x42b8e4)
   if (S.effect && !S.effect.gone && !alive(S.effect)) S.effect.gone = true;
@@ -2845,9 +3305,12 @@ function rockInputs(input){
 
 // the owner's motion id (enemy u16 +0x4b4) of a List 2 clip: 0x200 + its slot (0x217 = Motion[23], 0x219 = Motion[25],
 // 0x229 = Motion[41]: sections 4 and 6); null otherwise (only 0x217 / 0x218 are ever compared)
+// (any numbered list: (list << 8) | slot, as setMotion's r1 -- a beam on its own monster ends on another motion through
+// +0x170 on whatever list it plays; the rocks' compares are list 2's and read the same as before. A Special entry, which is
+// no ROM list, has none)
 function motionIdOf(list, clip){
   const m = /^Motion\[(\d+)\]$/.exec(clip || '');
-  return String(list) === '2' && m ? 0x200 + Number(m[1]) : null;
+  return /^\d$/.test(String(list)) && m ? (Number(list) << 8) + Number(m[1]) : null;
 }
 
 const isRockAction = (D, a) => { const d = D.shells[a.shell]; return !!d && (d.base === 'base00' || d.base === 'base54'); };
@@ -2857,7 +3320,8 @@ const isRockAction = (D, a) => { const d = D.shells[a.shell]; return !!d && (d.b
 const shellJoint = (def, mode) => def.base === 'base01' ? (def.reader === 0xd0e6a0 && mode.sh.ints[0] !== -1 ? mode.sh.ints[1] : null)
                                 : def.base === 'base11' ? null : def.cmn ? def.cmn.ints[0] : mode.sh.ints[0];
 // the effect lists a shell's requests name: its own .shl's when the data gives them per shell, else the monster's
-const listsOf = (D, S) => (D.shells[S.shell] && D.shells[S.shell].lists) || D.lists;
+// (a shell that carries its own -- a beam child, another monster's -- takes those)
+const listsOf = (D, S) => S.lists || (D.shells[S.shell] && D.shells[S.shell].lists) || D.lists;
 
 function spawnRock(state, D, a, J, ctx, got){
   const def = D.shells[a.shell], mode = def && def.modes[a.mode];
@@ -2875,6 +3339,930 @@ function spawnRock(state, D, a, J, ctx, got){
   S.effect = S.start ? { param: 0, key: S.start.key, kind: 'flight' } : null;
   if (S.start) S.effects[0].started = true;
   return S;
+}
+
+// ---- base02 (uShellEmBase02, vtable 0x174e660): the base 19 shell classes share ---------------------
+// dev/em004-shell02-spec.md. NOT base00: where base00's path slots are 0x3f8xxx/0x3f9xxx, this base's are
+// 0x3fcxxx/0x3fdxxx, and its SLOT NUMBERS MEAN DIFFERENT THINGS -- +0x150 is base00's landing and this
+// base's ENDING (0x3fc610, an effects countdown tail-called from the per-frame entry's state-0xfe branch).
+// Its per-frame entry is +0x24 = 0x3fbdc8: drop the handles at +0x1600 / +0x1604 whose units left states
+// 1..2, then state 0xfe -> [+0x150], state 1 -> the move 0x3fbe60 ([+0x168], 0x3fc070 -> [+0x158],
+// 0x3fc1c8, 0x3fc378, [+0x16c], [+0x170]).
+//
+// THE READER IS PER CLASS, THE FIELD OFFSETS ARE THE BASE'S -- the same split as READER00 / READERS01, and
+// the reason this is written as the base's runtime: the base serves Gravios's shell02 and sixteen other
+// classes, each of which should cost a reader here rather than a rewrite.
+//
+// em004_00 / em005_00 shell02's reader is 0xd30a90 (uShellEm005_sp_02, to its pop at 0xd30b80). Its ten
+// fields, with the accessor set EMC fixed against params00's and params03's published maps:
+//   getEffect(_ef,0)   -> +0x1644     _snd.getInt(0)  -> +0x164c      _snd.getInt(1) -> +0x1650 (as float)
+//   accA(_hit,0)       -> +0x1654     cmn.getInt(0)   -> +0x1658 (the JOINT, read by 0xd30b84 at 0xd30c80)
+//   cmn.getFloat(0)    -> +0x165c     cmn.getFloat(1) -> +0x168c      cmn.getVec(0)  -> +0x1678
+//   _sh.getFloat(0)    -> +0x1660     _sh.getVec(0)   -> +0x1680 (read by the base at 0x3fc814)
+// HIS COMMON PARAMS EXIST -- the FUP `em004_00_02` that shares the .shl's path, which efx/shellef.py load() dropped
+// (dev/rom-map.md traps): joint 3, ray 7200, push -50, offset (0, -30, 80) (SHELL_DATA `cmn`). An index a file lacks
+// takes its accessor's read null path: int 0x4a2224 -> 0x4a225c `mvn r0,#0` = -1; float 0x4a2264 -> 0x4a229c, the
+// literal 0x4a22a4 = 0.0; vec 0x4a22a8 -> 0x4a22e0 -> slot 0x1831a78 -> 0x19176b0, the engine's shared empty vector.
+function params02b(def, mode){
+  const c = def.cmn || { ints: [], floats: [], vecs: [] }, sh = mode.sh;
+  const cI = i => i < c.ints.length ? c.ints[i] : -1;
+  const cF = i => i < c.floats.length ? f(c.floats[i]) : f(0);
+  const cV = i => i < c.vecs.length ? c.vecs[i].map(f) : [0, 0, 0];
+  const F = i => i < sh.floats.length ? f(sh.floats[i]) : f(0);
+  const V = i => i < sh.vecs.length ? sh.vecs[i].map(f) : [0, 0, 0];
+  return { joint: cI(0),           // +0x1658 (0xd30afc): the joint the origin hangs from (0x3fc848) and the abort check reads
+           length: cF(0),          // +0x165c (0xd30b10): the ray's length, through +0x160 0x3fd288
+           push: cF(1),            // +0x168c (0xd30b28): +0x13c's push of the origin along the joint's second row
+           offset: cV(0),          // +0x1678 (0xd30b40): the origin's offset in the joint's space (0x3fca58..)
+           life: F(0),             // +0x1660 (0xd30b58): the shell's life, copied to +0x15cc by 0x3fb9bc
+           angles: V(0) };         // +0x1680 (0xd30b74): x / y in degrees, made words at 0x3fc804.. (x 182.0444)
+}
+const READERS02 = { 0xd30a90: params02b };
+
+// em004_00's two shell00 spawners: 0xd283fc (ONE mode, the action's own r5, its frame from the u16 table
+// at 0x162286c; r5 == 4 spawns nothing) and 0xd2ba08 (three in sequence, r5 == 0 choosing modes 8/9/10 and
+// otherwise 5/6/7) -- dev/em004-shell00-spec.md 5 and 9. Both build the same 0x30-byte request at
+// 0xd28480..0xd28518 and enqueue it with 0x48b884.
+//
+// NOTHING IS PLACED HERE YET, AND THAT IS THE ROM'S FAULT LINE, NOT A GAP IN THE VIEWER. His flags word has
+// bit 0x10 SET (spec 3), so init00 takes 0x3f8d88 and the shell's position IS the request's +0x10/14/18
+// verbatim -- no joint, no owner matrix, nothing this module can derive. That vec3 comes from the fixed
+// pointer [0xb095a8] and the spec marks its VALUES unread ("runtime-relocated and I have not resolved them
+// to values"). The aim is a second unread: init00's aim-by-mode above is the OTHER class's reader
+// (0xe82120, beside 0xe82304), and the spec's 8 says his init has not been scanned for vz / vy, so running
+// it would be one monster's aim on another's modes.
+// So each due spawn is refused by name. Both values are EMC's to read; when they land, this function makes
+// the shell through spawnRock with `requestPos` in `got` and nothing else here changes.
+// THE TWO VECTORS THE SPAWNER PUTS IN THE REQUEST, as read. Both are fixed -- neither is indexed by the
+// mode (em004-shell00-spec.md 5) -- and both resolve to zero:
+//   +0x10/14/18 THE POSITION. The chain is the PIC offset literal 0xb095a8 at 0xd28550, `ldr r0,[pc,r0]`
+//     with pc = 0xd284d0 -> the slot 0x1831a78 -> the pointer 0x19176b0, which is in main's .bss. EMC ran
+//     main's 2,334 static initialisers under the emulator and read (0,0,0); Effects' static chain agrees.
+//     CAVEAT, and it stays until someone sees this on screen: a write into that buffer at ARC LOAD would
+//     also read zero in an emulator that does not load the arc, and neither of them can exclude it.
+//     What settles it is his anatomy -- his rest pose spans about X +/-683, Y -386..39, Z -653..531 in GAME
+//     units, so the origin plus an offset of tens of units is inside his body, which is where a gas
+//     emission belongs. It is the offset that carries the placement here, not the base point.
+//   +0x20/24/28 THE ANGLE WORDS, via the 0x20 arm into +0xfe8: the slot 0x18321b0 -> 0x1620e60 -> (0,0,0),
+//     corroborated by shells.js's own spawner37 comment naming that address as the zero vector. So bit 3's
+//     rotation is an identity FOR HIM; it is implemented properly all the same.
+const REQ04_POS = [0, 0, 0];
+const REQ04_ANG = [0, 0, 0];
+
+function spawn04(state, D, a, ctx, input, out){
+  const own = owner001(input);
+  for (const sp of a.spawns){
+    const frames = sp.frames || [], modes = sp.modes || (sp.mode != null ? [sp.mode] : []);
+    const due = [];
+    if (sp.kind === 'each') frames.forEach((F, j) => { if (pass001(state, F)) due.push([modes[j] != null ? modes[j] : modes[0], F]); });
+    else if (sp.kind === 'seq'){
+      const j = state.seq;
+      if (j < frames.length && pass001(state, frames[j])){ state.seq = j + 1; due.push([modes[j], frames[j]]); }
+    } else throw new Error('shells.js: em004_00 spawn kind ' + sp.kind);
+    for (const [mode, F] of due){
+      if (own.ownerPos == null){
+        out.refused.push({ action: a.action, shell: sp.shell, mode, frame: F,
+                           why: 'em004_00 shell00: no owner position (input.ownerPos), which is his base point '
+                              + 'now that bit 0x10 is known clear -- the joint is -1, so 0x3f8e20 applies' });
+        continue;
+      }
+      const S = spawnRock(state, D, { ...a, shell: sp.shell, mode, frame: F }, state.prevJoints, ctx,
+                          { requestPos: REQ04_POS.slice(), requestAngles: REQ04_ANG.slice(),
+                            ownerPos: own.ownerPos.slice(), size: f(own.size[0] * own.size[1]),
+                            target: null, ownerX: own.ownerX, ownerY: own.ownerY });
+      if (S){ out.spawned.push(S); state.shells.push(S); }
+      else out.refused.push({ action: a.action, shell: sp.shell, mode, frame: F, why: 'em004_00 shell00: the init refused' });
+    }
+  }
+}
+
+// em004_00 / em005_00 shell02's spawner 0xd28bb4 (EMC, dev/em004-shell02-spec.md 2): phase 1, after the
+// frame test at 0xd28d54 (142.0), `mov sb,#1` at 0xd28d6c then `cmp [+0xb5f4],#4` -- Basarios keeps mode 1;
+// Gravios falls through and recomputes it from the [+0xcac0]+0x24 flag bits. The spawn at 0xd29570 writes
+// the class id and the mode, and 0xd2958c..0xd295a0 puts THE OWNER'S OWN +0x40/+0x44/+0x48 into the
+// request's +0x10/14/18 -- the monster's position at spawn time, which the viewer hands shells as ownerPos.
+//
+// THE AIM, request +0x20 (read 2026-09-30). Phase 0 (the action's first update) raises the target 100
+// (0xd28c20: P+0x1d4 += 100.0) and CLASSIFIES it into P+0x1a2 (0xd28f94..0xd290fc) in the owner's frame, against a
+// point v0 x size above the owner (v0 = (0, 330, 0): the constant at 0x2123650, read in the initialised image): class 2
+// when the target is behind it (the forward component < 0), or below it by no more than 330 x size, or below it and
+// within 700 x size; otherwise 1 or 0 by its pitch word (0xd290f4: <= 0x8000 -> 1). At the spawn (0xd292a0) class 2
+// leaves the aim 0; class 0 / 1 aims (0xd292ac..0xd29540): the pitch word to the target from JOINT 3 in the owner's
+// vertical plane, less the head's own pitch word (the owner's forward and up rows against joint 3's forward row),
+// clamped to -0x38d .. +0x1555 around the head. The owner's rotation is the tilt 0xd29708 (the monster's up vector
+// against the world's: identity on the viewer's flat floor) times the matrix of its quaternion, which the viewer
+// rebuilds from the yaw word it keeps (the monster never pitches or rolls here) -- both stand-ins, named.
+const V0_02 = [f(0.0), f(330.0), f(0.0)];       // 0x2123650 (.bss, filled at boot; read under the emulator)
+function owner02(own){                          // the owner's rows: tilt (identity) x its quaternion's matrix (0xd28e8c..)
+  const y = f(f(own.ownerY & 0xffff) * U16_TO_RAD);
+  const qy = sinf(f(y * f(0.5))), qw = cosf(f(y * f(0.5)));
+  const qy2 = f(qy + qy), yy = f(qy * qy2), yw = f(qy2 * qw);
+  return [[f(1 - yy), 0, f(0 - yw)], [0, f(1), 0], [yw, 0, f(1 - yy)]];     // rows 0 (right), 1 (up), 2 (forward)
+}
+const dot3r = (r, d) => mla(mla(f(r[1] * d[1]), r[0], d[0]), r[2], d[2]);   // the vmul / vmla order the ROM uses
+function class02(own){                          // phase 0's P+0x1a2
+  const M = owner02(own), size = f(own.size[0] * own.size[1]);
+  const T = [own.target[0], f(own.target[1] + f(100.0)), own.target[2]];
+  const v = V0_02.map(x => f(size * x));
+  const ref = [0, 1, 2].map(k => f(mla(mla(f(v[1] * M[1][k]), v[0], M[0][k]), v[2], M[2][k]) + own.ownerPos[k]));
+  const d = [f(T[0] - ref[0]), f(T[1] - ref[1]), f(T[2] - ref[2])];
+  const fwd = dot3r(M[2], d);
+  if (fwd < 0) return 2;
+  const up = dot3r(M[1], d);
+  if (!(up > 0)){
+    if (up >= f(-f(V0_02[1] * size))) return 2;
+    if (mla(f(fwd * fwd), up, up) <= f(f(size * f(700.0)) * f(size * f(700.0)))) return 2;
+  }
+  const lat = dot3r(M[0], d);                   // less v1 = the shared empty vector (0x1831a78): nothing
+  const w = u16(s32(mla(f(0.5), atan2f(f(-up), sqrtf(mla(f(fwd * fwd), lat, lat))), RAD_TO_U16)));
+  return w <= 0x8000 ? 1 : 0;
+}
+function aim02(own, J3){                        // the spawn's request +0x20 for class 0 / 1 (0xd292ac..0xd29540)
+  const M = owner02(own), T = [own.target[0], f(own.target[1] + f(100.0)), own.target[2]];
+  const jr2 = [J3[8], J3[9], J3[10]], jp = [J3[12], J3[13], J3[14]];
+  const headF = dot3r(M[2], jr2), headU = dot3r(M[1], jr2);
+  const d = [f(T[0] - jp[0]), f(T[1] - jp[1]), f(T[2] - jp[2])];
+  const fwd = dot3r(M[2], d), up = dot3r(M[1], d);
+  const wt = s32(mla(f(0.5), atan2f(f(-up), sqrtf(f(fwd * fwd))), RAD_TO_U16));
+  const wh = s32(mla(f(0.5), atan2f(f(-headU), sqrtf(f(headF * headF))), RAD_TO_U16));
+  const r1 = wt - wh, x = u16(r1 + 0x38d);
+  let r6 = 0xfc73;
+  if (x < 0x8c71) r6 = 0x1555;
+  if (x <= 0x18e2) r6 = r1;
+  return u16(r6 + wh);
+}
+// THE PARTNER CLIP NAMES THE CLASS. The viewer plays Motion[28] / [29] at full weight, which phase 0 gives only for a
+// target 70 degrees or more above (class 0) / below (class 1) its reference point (the blend: SHELL_DATA em004_00's
+// shell02 rows). The viewer's own target lies on the floor 2100 ahead, which the monster's height over that floor
+// puts about 16 degrees below the reference point (measured 2026-09-30: owner y 292.6, floor -92.5): class 1 with
+// Motion[27] at ~77% -- shown at full weight, the beam aimed by the target as it is (at f142 the clamp holds it
+// about 0.5 degrees below level, joint 3's forward row pointing 29.5 degrees up). A PARTNER at full weight is a
+// target no such floor point gives, so on a partner clip the target handed to phase 0 and to the aim is the viewer's
+// target's forward distance from the reference point, raised or lowered to exactly 70 degrees: the nearest target the
+// pose allows. Where beyond 70 the game's target would be the pose cannot say; 70 is the viewer's choice, and the
+// aim clamps the beam to -5 .. +30 degrees around the head wherever it is (aim02).
+const PARTNER02 = { 0x21c: 0, 0x21d: 1 };      // L2 Motion[28]: above, L2 Motion[29]: below
+function partnerTarget02(own, motion){
+  const cls = PARTNER02[motion];
+  if (cls == null) return null;
+  const M = owner02(own), size = f(own.size[0] * own.size[1]);
+  const v = V0_02.map(x => f(size * x));
+  const ref = [0, 1, 2].map(k => f(mla(mla(f(v[1] * M[1][k]), v[0], M[0][k]), v[2], M[2][k]) + own.ownerPos[k]));
+  const T0 = [own.target[0], f(own.target[1] + f(100.0)), own.target[2]];
+  const fwd = dot3r(M[2], [f(T0[0] - ref[0]), f(T0[1] - ref[1]), f(T0[2] - ref[2])]);
+  const up = (cls === 0 ? 1 : -1) * fwd * Math.tan(0x31c7 * U16_TO_RAD);
+  const T = [0, 1, 2].map(k => ref[k] + fwd * M[2][k] + up * M[1][k]);
+  return { cls, target: [f(T[0]), f(T[1] - 100.0), f(T[2])] };          // less the 100 phase 0 adds back
+}
+function spawn02b(state, D, a, ctx, input, out){
+  let own = owner001(input);
+  let why = !own.ownerPos ? 'no owner position (input.ownerPos), the spawn point (0xd2958c)'
+          : !own.facing ? 'no owner facing (input.owner.y), the frame its class and aim are taken in'
+          : !own.target ? 'no target (input.rock.target), which phase 0 classifies (0xd28f94)' : null;
+  const pt = why ? null : partnerTarget02(own, ctx.ownerMotion);
+  if (pt) own = Object.assign({}, own, { target: pt.target });
+  if (!why && state.cls02 == null) state.cls02 = class02(own);          // phase 0: once, as the action begins
+  if (!why && pt && state.cls02 !== pt.cls) why = 'the partner clip\'s target classified ' + state.cls02 + ', not ' + pt.cls;
+  // Gravios (em 5): the head-broken mode in place of the intact one (sb | ctl+0x24 bit 0 << 2), as the model shows the head
+  const head = !!(input.beamState && input.beamState.parts && input.beamState.parts.headBroken);
+  for (const sp of (a.spawns || [])){
+    const frames = sp.frames || [], modes = (head && sp.headModes) || sp.modes || (sp.mode != null ? [sp.mode] : []);
+    frames.forEach((F, j) => {
+      if (!pass001(state, F)) return;
+      const mode = modes[j] != null ? modes[j] : modes[0];
+      const def = D.shells[sp.shell], m = def && def.modes[mode];
+      if (!m) return;
+      if (why){ out.refused.push({ action: a.action, shell: sp.shell, mode, frame: F, why: 'em004_00 shell02: ' + why }); return; }
+      const J3 = jointMatrix(state.prevJoints, 3);                       // 0xc15a4: an unmapped gid reads gid 0
+      const aim = state.cls02 <= 1 ? aim02(own, J3) : 0;
+      const S = make02(state, D, sp.shell, mode, own, state.prevJoints, aim, ctx.ownerMotion, a.action, F);
+      if (S.refused){ out.refused.push({ action: a.action, shell: sp.shell, mode, frame: F, why: S.refused }); return; }
+      out.spawned.push(S); state.shells.push(S);
+    });
+  }
+}
+
+// ---- base02: init, activation, move, ending (em004_00 / em005_00 shell02, u 130: the FIRE BEAM) -----------------------
+// Read 2026-09-30, ROM-run under the emulator on the em004_00 arc (scratchpad bshell/b02run.py: kharness's scaffolding
+// with the ShellCmnParam getters answered from the real FUP), which is how each link below was checked.
+//   init  = vtable +0x13c 0xd30b84: 0x3fb9bc (the reader; +0x15d4 = the owner's motion id, +0x15cc = life, state 1),
+//           then the base's 0x3fc750 -- the ORIGIN +0x15e0 = the joint's position (0xc164c) + the cmn offset in the
+//           joint's space, and the RAY: +0x40 = origin + (the angle words' forward x length) x the aim matrix, +0x1000
+//           (the anchor) = origin + (+0x167c, the shared empty vector) -- then its own body pushes the origin by the cmn
+//           float 1 along the joint's second row. The aim matrix is the class's +0x15c (0xd30e30) for a code-1 mode
+//           (table 0x169bbb0: modes 1 2 5 6): the owner's rotation made angles (0x7c3a38), the request's +0x20 added to
+//           the pitch (x 2pi/65536), rebuilt (0xd31104..). The length is +0x160 (0x3fd288): the cmn float 0, scaled by
+//           (+0x1664 - +0x15d0) / +0x1664 where +0x1664 is set (the ctor's 0 here), and 1.0 where it comes out 0.
+//   activation = vtable +0x18 0x3fbaf8 (the unit manager's state 1 -> 2): +0x168 first, then ITS EFFECT -- _ef param 0
+//           (+0x1644) started at the origin with the rotation override (+0x14 |= 2) from the origin toward +0x40
+//           (pitch, yaw, and a roll atan2(-dx, dy)), kept at +0x1600.
+//   move  = vtable +0x24 0x3fbdc8 -> 0x3fbe60, per frame: +0x168 (0xd30cec: END when the joint's position is more than
+//           250 x size from the origin), the stage query 0x3fc070 (whose hit only feeds +0x1648's effect and bit 2's
+//           position copy: neither is his -- below), 0x3fc378 (the effect RE-PLACED at the origin, pitch / yaw toward
+//           +0x40 and roll = the owner's Z word P+0x58), then the life +0x15cc counted down by the owner's rate x dt (END
+//           at 0) and END when the owner's motion is no longer +0x15d4 (+0x170 0x3fd4c4).
+//   end   = vtable +0x148 0x3fc698(0): both handles stopped gracefully (0x43b058), state 0xfe, +0x15cc = 30 x 60; the
+//           ending +0x150 0x3fc610 counts it down and waits for the handles (the per-frame entry drops a dead one).
+// WHAT IS NOT TRANSCRIBED, BY NAME -- every one inert on this monster's data, each refused where it would matter:
+//   * flags +0x1674 bits 0 / 1 / 2 / 3 (the owner-matrix arm 0x3fcac0, the X-angle turn 0x232118, the position copy
+//     0x3fd300 and the length stretch 0x3fc540, the other direction 0x3fcd3c): the base ctor stores 0 (0x3fb940) and
+//     his reader writes nothing there;
+//   * the step's own effect (+0x1648, _ef param 1, created at 0x3fd424): his reader fills +0x1644 alone;
+//   * the joint -1 arm (the owner's +0x40 and its vtable +0x54 matrix): his joint is 3;
+//   * the other behaviour codes of +0x15c (2: an angle from request +0x20 alone; 3 / 4: a normalisation) -- his mode is
+//     code 1; and the hit capsules (0x3fc1c8) and the sound link (+0x16c: 0x4eeed0 with the _snd id 201, ROM-run).
+// Stand-ins, also named: the owner's rotation is rebuilt from the yaw word (no tilt, pitch or roll), its rate is ctx.speed.
+function make02(state, D, name, modeIndex, own, J, aim, motionId, action, F){
+  const def = D.shells[name], mode = def.modes[modeIndex];
+  const k = READERS02[def.reader];
+  if (!k) return { refused: 'no base02 reader for 0x' + (def.reader || 0).toString(16) };
+  const p = k(def, mode);
+  const code = [1, 1, 2, 4, 1, 1, 2, 2, 2, 3, 3, 4][modeIndex - 1];          // 0x169bbb0 by mode - 1
+  if (code !== 1) return { refused: 'base02 behaviour code ' + code + ' (mode ' + modeIndex + ') is not transcribed: only code 1' };
+  if (p.joint === -1) return { refused: "base02's joint -1 arm (the owner's +0x40 and vtable +0x54 matrix) is not transcribed" };
+  const S = { id: state.nextId++, monId: state.monId, shell: name, cls: def.cls, globalId: def.id, base: 'base02',
+              mode, modeIndex, action, spawnFrame: F, state: 1, position: null, anchor: null, origin: null, angles: null,
+              timer: 0, life: p.life, motionId, activated: false, p, effect: null, effect2: null, start: null, place: null,
+              stop: null };
+  const Jm = J(p.joint) || J(0);                                               // 0xc15a4 / 0xc164c: an unmapped joint is joint 0's
+  const o = p.offset;
+  // 0x3fc848..: the joint's position, then the offset in its space (the vmul / vmla order of 0x3fca58..0x3fcabc)
+  const origin = [0, 1, 2].map(i => f(mla(mla(f(o[1] * Jm[4 + i]), o[0], Jm[i]), o[2], Jm[8 + i]) + Jm[12 + i]));
+  // the aim matrix (+0x15c, code 1): the owner's rows made angles (0x7c3a38), request +0x20 onto the pitch, rebuilt
+  const M = owner02(own);
+  const ex = f(-asinf(M[2][1])), ey = f(-atan2f(f(-M[2][0]), M[2][2])), ez = f(-atan2f(f(-M[0][1]), M[1][1]));
+  const x = mla(ex, f(aim), U16_TO_RAD);
+  const sx = sinf(x), sy = sinf(ey), sz = sinf(ez), cx = cosf(x), cy = cosf(ey), cz = cosf(ez), sxy = f(sx * sy);
+  const A = [[mla(f(cy * cz), sxy, sz), f(sz * cx), mls(f(f(sx * sz) * cy), sy, cz)],
+             [mls(f(sy * f(sx * cz)), sz, cy), f(cx * cz), mla(f(f(sx * cy) * cz), sy, sz)],
+             [f(sy * cx), f(-sx), f(cx * cy)]];
+  // the length, +0x160 (0x3fd288): +0x1664 is the ctor's 0 here, so the cmn float as it is, 1.0 where that is 0
+  const L = p.length === 0 ? f(1) : p.length;
+  // the angle words (0x3fc804..: degrees x 182.0444, +0.5, truncated), the forward of those angles x L (0x3fcbc8..)
+  const wx = u16(s32(mla(f(0.5), p.angles[0], DEG_TO_U16))), wy = u16(s32(mla(f(0.5), p.angles[1], DEG_TO_U16)));
+  const ax = f(f(wx) * U16_TO_RAD), ay = f(f(wy) * U16_TO_RAD);
+  const s29 = mla(f(L * cosf(ax)), sinf(ax), 0);
+  const dy = mls(f(cosf(ax) * 0), L, sinf(ax)), dz = mls(f(s29 * cosf(ay)), sinf(ay), 0), dx = mla(f(cosf(ay) * 0), sinf(ay), s29);
+  S.position = [0, 1, 2].map(i => f(mla(mla(f(dy * A[1][i]), A[0][i], dx), dz, A[2][i]) + origin[i]));   // +0x40
+  S.anchor = origin.slice();                                                  // +0x1000: origin + the empty vector
+  // 0xd30b84's body, after the base's: the origin pushed along the joint's second row by the cmn float 1
+  S.origin = [0, 1, 2].map(i => mla(origin[i], p.push, Jm[4 + i]));
+  S.folder = def.folder;
+  S.effects = mode.ef.map(([listId, key], param) => ({ param, listId, list: (D.lists[listId] || {}).list || null, key, started: false }));
+  return S;
+}
+function angles02(S){                           // pitch, yaw and the activation's roll, from the origin toward +0x40
+  const d = [f(S.position[0] - S.origin[0]), f(S.position[1] - S.origin[1]), f(S.position[2] - S.origin[2])];
+  const word = a => u16(s32(mla(f(0.5), a, RAD_TO_U16)));
+  return { pitch: word(atan2f(f(-d[1]), sqrtf(mla(f(d[2] * d[2]), d[0], d[0])))), yaw: word(atan2f(d[0], d[2])),
+           roll: word(atan2f(f(-d[0]), d[1])) };
+}
+function far02(S, J, own){                      // +0x168 0xd30cec: the joint more than 250 x size from the origin
+  const jm = J(S.p.joint) || J(0), o = S.origin;
+  const dy = f(jm[13] - o[1]), dx = f(jm[12] - o[0]), dz = f(jm[14] - o[2]);
+  const r = f(f(own.size[0] * own.size[1]) * f(250.0));
+  return mla(mla(f(dy * dy), dx, dx), dz, dz) > f(r * r);
+}
+function end02(S, out){                          // vtable +0x148(0) 0x3fc698
+  if ((S.state & 0xfe) === 0xfe) return;
+  S.state = 0xfe;
+  S.life = ENDING_FRAMES;                                                       // +0x15cc: the life becomes the cap
+  S.stop = (S.effect && !S.effect.gone) ? { param: 0, request: 0, key: S.effect.key } : null;   // 0x43b058 -> 0x329c40(h, 0)
+  out.ended.push(S);
+}
+function step02(S, J, ctx, input, D, out){
+  const alive = p => (input.effectAlive ? !!input.effectAlive(S, p) : true);
+  const own = owner001(input);
+  if (!S.activated){                           // vtable +0x18 0x3fbaf8, run once by the unit manager as the unit goes live
+    S.activated = true;
+    if (far02(S, J, own)) end02(S, out);                                        // its +0x168 first
+    const a = angles02(S), p = S.mode.ef[0], L = p && D.lists[p[0]];           // then the effect, whatever +0x168 did
+    if (p && p[0] <= 7 && p[1] >= 0 && L){
+      S.start = { param: 0, listId: p[0], list: L.list, pel: L.pel, key: p[1],
+                  requester: { position: S.origin.slice(),
+                               rotationDeg: [f(a.pitch * U16_TO_DEG), f(a.yaw * U16_TO_DEG), f(a.roll * U16_TO_DEG)],
+                               scale: [f(S.mode.scale), f(S.mode.scale), f(S.mode.scale)], parent: 'shell',
+                               flags14: 0x40000002, flags1c: 3, type8: 3 } };
+      S.effect = { param: 0, key: p[1] };
+      S.effects[0].started = true;
+    }
+  }
+  // vtable +0x24 0x3fbdc8: a handle whose unit left states 1 / 2 is dropped, then the state byte decides
+  if (S.effect && !S.effect.gone && S.start && !alive(0)) S.effect.gone = true;
+  const live = () => !!(S.effect && !S.effect.gone);
+  if (S.state === 0xfe){                                                        // +0x150 0x3fc610, the ending
+    S.place = null;
+    const T = S.life;
+    if (!(T > 0)){ S.life = 0; S.state = 0xff; return; }
+    const n = f(T - ctx.dt);
+    S.life = f(0) >= n ? f(0) : n;
+    if (!(n > 0) || !live()) S.state = 0xff;
+    return;
+  }
+  if (S.state !== 1) return;
+  // the move 0x3fbe60: +0x168, the stage query, the hit sweep, the placement, the sound, the life
+  if (far02(S, J, own)) end02(S, out);                                          // 0xd30cec -- and the chain goes on
+  const a = angles02(S);                                                        // 0x3fc378: at the origin, while held
+  S.place = live() ? { param: 0, position: S.origin.slice(),
+                       rotationDeg: [f(a.pitch * U16_TO_DEG), f(a.yaw * U16_TO_DEG), f(f(own.ownerZ >>> 0) * U16_TO_DEG)] } : null;
+  const T = S.life;                                                             // +0x15cc (0x3fbfc8..0x3fc048)
+  if (!(T > 0)){ S.life = 0; end02(S, out); return; }
+  const n = mls(T, ctx.speed, ctx.dt);                                          // the owner's rate x the frame delta
+  S.life = f(0) >= n ? f(0) : n;
+  if (!(n > 0)){ end02(S, out); return; }
+  if (ctx.ownerMotion != null && ctx.ownerMotion !== S.motionId) end02(S, out); // +0x170 0x3fd4c4: another motion
+}
+
+// ---- the BEAM SHOWCASE on the beam base's own runtime (base02g; 'Beam Test', BEAM_SHOWCASE above) ------------------
+// Every beam class but Basarios / Gravios's leaves the direction hook +0x15c the base's `bx lr` (0x3fd53c) and +0x168 the
+// ray builder 0x3fc750 itself (base vtable 0x174e660), so a generic beam is REBUILT EVERY FRAME from its joint's matrix:
+// origin = the joint + the offset (sh vec 0) in its space, the ray along the angle words (sh vec 1) x the length (+0x160)
+// turned by that matrix (0x3fcb60..0x3fce58; flag bit 0 swaps in the owner's matrix 0x3fcac0, bit 1 turns the origin
+// frame by the X word 0x232118), the anchor = origin + +0x167c turned the same way. The move 0x3fbe60 then queries the
+// stage from the anchor to the ray's end (0x3fc070: A +0x40, B +0x1000 -- INFERRED for this base, the endpoints being
+// 0x43ac8c's +0x15c3 arm, read for base00) and on a hit runs the step +0x158 (0x3fd2d8): flag bit 2 cuts the ray at the
+// hit, and ef param 1 (+0x1648) starts at the hit point (0x4a10c8 / 0x4a11e4, its rotation override 0x43b08c's -- raw
+// radians on the start) and is re-placed there every frame at (x deg, 0, z deg); no hit and that handle is dropped
+// (vt+0x40, stopped gracefully here: named). The placement 0x3fc378 puts ef param 0 at the origin toward +0x40 (roll the
+// owner's Z word) and, with bit 2, scales its units to (1, 1, length / 100.0) (0x3fc540..0x3fc5e8, [h+0x150+4i]
+// +0x60..+0x6c). +0x15d0 (the growth, = +0x1664 at the base init 0x3fb9bc) counts down by the frame delta (0x3fbf8c), the
+// life +0x15cc (= +0x1660) by the owner's rate (0x3fbfc8), ended at 0 or on another motion (+0x170); the end / ending are
+// the base's (0x3fc698 / 0x3fc610).
+//   THE STAND-IN, named: the showcase fires every type from BASARIOS -- the origin his beam's own (joint 3 + his cmn
+// offset, pushed), aimed at the viewer's floor target, rebuilt every frame -- because a type's joint number, offset and
+// angles belong to ITS monster's skeleton. What each type keeps is its own: the length and its growth or ramp, the
+// life, the ground cut, the impact and both effect records. Its angles / offset / owner-matrix flags and flag bit 3 (a
+// later direction, 0x3fcd3c / 0x3fcec8, unread) are left out -- all direction, which the stand-in replaces anyway. A class
+// whose own code changes more than direction says so in its entry (`notRead`).
+function spawnBeam(state, D, a, ctx, input, out){
+  if (!pass001(state, f(BEAM_SHOWCASE.frame))) return;
+  const own = owner001(input), t = a.type;
+  const why = !own.ownerPos ? 'no owner position (input.ownerPos)' : !own.facing ? 'no owner facing (input.owner.y)'
+            : !own.target ? 'no target (input.rock.target)' : null;
+  if (why){ out.refused.push({ action: a.action, beam: t.id, why: 'beam showcase: ' + why }); return; }
+  // ONE BEAM A PLAY, the showcase's own rule (named): a type's life can run to 5000 frames (Alatreon's; Kushala's and the
+  // Shogun's 2000) and M27 replayed is the same motion to +0x170, so the one before is ended here, as a new action would
+  for (const P of state.shells) if (P.base === 'base02g' && P.state === 1) end02g(P, out);
+  const S = { id: state.nextId++, monId: state.monId, shell: 'beam', cls: t.cls, base: 'base02g', type: t, action: a.action,
+              spawnFrame: BEAM_SHOWCASE.frame, state: 1, activated: false, motionId: ctx.ownerMotion,
+              life: f(t.life), grow: f(t.growth), position: null, anchor: null, origin: null, prevEnd: null,
+              target: own.target.slice(), effect: null, effect2: null, start: null, place: null, place2: null, stop: null,
+              stop2: null, scaleZ: null, effects: [], hit: null };
+  const ch = t.child;
+  if (ch && ch.kind === 'follow') S.p10 = { child: null, hit: false, point: null, type: null };   // Plesioth's +0x1690..
+  if (ch && ch.kind === 'ukanlos') S.u38 = { counter: 0, timer: f(ch.delays[0]) };              // +0x168d = 0, +0x1698 = [+0x169c][0]
+  ray02g(S, D, state.prevJoints);
+  out.spawned.push(S); state.shells.push(S);
+  // Ukanlos's tables (0xe63d74): a count at or below 5 (4 for modes 3 / 4) ends the shell at its init (vt+0x148(1))
+  if (S.u38 && !(ch.count > (t.mode === 3 || t.mode === 4 ? 4 : 5))) end02g(S, out);
+}
+// A BEAM ITS OWN MONSTER FIRES (render/beam-spawns.js): the row's type, on the base02g runtime with the monster's own ray
+// (ray02real), from the joints the action code saw (state.prevJoints) -- no stand-in, and no one-beam rule (the ROM's own
+// actions decide how many live). `setup` = the angle words the spawner wrote (+0x20..): the row's literal, or the word its
+// spawner computes (beamSetup); only the direction hooks read them.
+function spawnBeamReal(state, D, row, ctx, input, out){
+  const t = BEAM_MODES.find(x => x.id === row.type);              // its exact mode (BEAM_TYPES keeps one per look)
+  if (!t){ out.refused.push({ action: row.action, beam: row.type, why: 'no beam mode ' + row.type + ' in render/beam-types.js' }); return; }
+  const own = owner001(input);
+  const su = beamSetup(state, row, input, own);
+  if (su.why){ out.refused.push({ action: row.action, beam: t.id, why: 'beam on its monster: ' + su.why }); return; }
+  const S = { id: state.nextId++, monId: state.monId, shell: 'beam', cls: t.cls, base: 'base02g', type: t, real: true,
+              action: row.action, spawnFrame: row.atStart ? 0 : row.frame, state: 1, activated: false, motionId: ctx.ownerMotion,
+              leave: row.leave || null, left: false,
+              life: f(t.life), grow: f(t.growth), position: null, anchor: null, origin: null, prevEnd: null,
+              target: own.target ? own.target.slice() : null, setupAngles: su.words,
+              effect: null, effect2: null, start: null, place: null, place2: null, stop: null, stop2: null, scaleZ: null,
+              effects: [], hit: null };
+  const ch = t.child;
+  if (ch && ch.kind === 'follow') S.p10 = { child: null, hit: false, point: null, type: null };
+  if (ch && ch.kind === 'ukanlos') S.u38 = { counter: 0, timer: f(ch.delays[0]) };
+  // an arm's beam (Nakarkos): the arm's own joints as its action code saw them (state.prevArm, kept like prevJoints)
+  if (row.arm) S.arm = row.arm;
+  const J0 = row.arm ? (state.prevArm && state.prevArm[row.arm]) : state.prevJoints;
+  if (!J0){ out.refused.push({ action: row.action, beam: t.id, why: 'beam on its monster: no joints for the ' + row.arm + ' arm (input.attachedJoints)' }); return; }
+  const why = ray02real(S, J0, own);
+  if (why){ out.refused.push({ action: row.action, beam: t.id, why: 'beam on its monster: ' + why }); return; }
+  out.spawned.push(S); state.shells.push(S);
+  if (S.u38 && !(ch.count > (t.mode === 3 || t.mode === 4 ? 4 : 5))) end02g(S, out);
+}
+// the stand-in origin: Basarios's own shell02 origin (make02's -- joint 3 + his cmn offset in its space, pushed along its
+// second row by his cmn float 1)
+function showcaseOrigin(D, J){
+  const c = D.shells.shell02.cmn, Jm = jointMatrix(J, c.ints[0]), o = c.vecs[0];
+  const origin = [0, 1, 2].map(i => f(mla(mla(f(o[1] * Jm[4 + i]), o[0], Jm[i]), o[2], Jm[8 + i]) + Jm[12 + i]));
+  return [0, 1, 2].map(i => mla(origin[i], f(c.floats[1]), Jm[4 + i]));
+}
+// +0x160: the base's 0x3fd288 (the length, times (+0x1664 - +0x15d0) / +0x1664 while it grows; 1.0 where it comes out 0)
+// or a Fatalis's own 0xd8bf20 (500.0 above its +0x1690, the full length below its +0x168c, a ramp between)
+function length02g(S){
+  const t = S.type;
+  if (t.ramp){
+    const [lo, hi] = t.ramp, life = S.life, L = f(t.length);
+    if (life < lo) return L;
+    if (life > hi) return f(500.0);
+    return mla(f(500.0), f(f(hi - life) / f(hi - lo)), f(L + f(-500.0)));
+  }
+  let L = f(t.length);
+  if (t.growth !== 0) L = f(L * f(f(f(t.growth) - S.grow) / f(t.growth)));
+  return L === 0 ? f(1.0) : L;
+}
+// +0x168 = 0x3fc750 on the base: the ray rebuilt from this frame's pose (in the stand-in's frame: see above)
+function ray02g(S, D, J){
+  S.prevEnd = S.position ? S.position.slice() : null;                       // +0x1620: the end before this rebuild
+  const o = showcaseOrigin(D, J), T = S.target;
+  const n = norm3([f(T[0] - o[0]), f(T[1] - o[1]), f(T[2] - o[2])]), L = length02g(S);
+  S.origin = o; S.anchor = o.slice();
+  S.position = [0, 1, 2].map(i => mla(o[i], n[i], L));
+  if (S.type.flatEnd) S.position[1] = S.anchor[1];                         // Akantor's +0x168 0xe3e73c: modes other than 5 / 6
+}
+// ---- THE BEAM ON ITS OWN MONSTER: base02's ray builder +0x168 = 0x3fc750 IN FULL, flag bit 3's arm 0x3fcd3c and its pitch
+// 0x3fcec8, read 2026-09-30 (dev/rom-map.md) -- the showcase above stands Basarios's mouth and the floor target in for all of
+// it; a beam its own monster fires (BEAM_SPAWNS) is built here, from that monster's joints, with its type's inputs as its
+// class's reader puts them (render/beam-types.js `ray`; efx readermap.py runs every reader with tagged getters):
+//   origin = the joint's position (0xc164c; joint -1: the owner's +0x40) + the offset [+0x1678] through Mo's rows; Mo = Md =
+//   the joint's matrix (0xc15a4, twice; joint -1: the owner's, vtable +0x54 = 0xc156c(-1) = the unit's +0xb0); flag bit 1
+//   turns Mo by the X word (0x232118); flag bit 0 (with a joint) takes the owner's matrix for Md. The angle words come from
+//   the DEGREE vec [+0x1680] (x and y; z unused). End +0x40 = origin + (0, 0, L) turned about X then Y, through Md's rows;
+//   anchor +0x1000 = origin + [+0x167c] turned the same way, through Mo's rows. With flag bit 3, once +0x1660 - +0x15cc >=
+//   +0x1668: the same turns by the owner's X word + 0x3fcec8's pitch and its Y word, in WORLD space -- no matrix at all.
+// 0x232118(M, word): rows 1 and 2 turned about the local X axis by the word (row 0 recomputed as row0 + 0 row1 + 0 row2)
+function turnX232118(M, word){
+  const a = f(u16(word) * U16_TO_RAD), s = sinf(a), c = cosf(a), z = f(0), out = M.slice();
+  for (let i = 0; i < 3; i++){
+    const r0 = M[i], r1 = M[4 + i], r2 = M[8 + i], p = f(r0 * z);
+    out[i] = mla(mla(r0, r1, z), r2, z);
+    out[4 + i] = mla(mla(p, c, r1), s, r2);
+    out[8 + i] = mla(mls(p, r1, s), c, r2);
+  }
+  return out;
+}
+// 0x3fcec8: the pitch word, relative to the owner's X word, from A = the owner block's +0x40 + [+0x1684] to B = its target
+// +0x1d0 + [+0x1688] -- clamped into [+0x166c, +0x1670] degrees on the 16-bit circle, the nearer bound outside. The block's
+// +0x40 / +0x1d0 are taken as the owner's position and the viewer's target (owner001): which points they are in the block
+// is INFERRED from the row, not read.
+function pitch3fcec8(r, own){
+  if (!own.ownerPos || !own.target) return 0;                                    // no owner: 0 (0x3fd004)
+  const A = [0, 1, 2].map(i => f(own.ownerPos[i] + f(r.b3a[i]))), B = [0, 1, 2].map(i => f(own.target[i] + f(r.b3b[i])));
+  const dz = f(B[2] - A[2]), dx = f(B[0] - A[0]), dy = f(B[1] - A[1]);
+  const p = atan2f(f(-dy), sqrtf(mla(f(dz * dz), dx, dx)));
+  const lo = s32(mla(0.5, f(r.b3lo), DEG_TO_U16)), hi = s32(mla(0.5, f(r.b3hi), DEG_TO_U16)), pw = s32(mla(0.5, p, RAD_TO_U16));
+  const d = (pw - (own.ownerX | 0)) | 0, span = u16(hi - lo), rel = u16(d - lo);
+  return u16(rel <= span ? d : ((0x8000 | (span >>> 1)) > rel ? hi : lo));
+}
+// 0x3fc750 (+ 0x3fcd3c): the ray, from this frame's joints; null, or the refusal's reason
+function ray02real(S, J, own){
+  const t = S.type, r = t.ray;
+  S.prevEnd = S.position ? S.position.slice() : null;                           // +0x1620: the end before this rebuild
+  const X = s32(mla(0.5, f(r.angles[0]), DEG_TO_U16)), Y = s32(mla(0.5, f(r.angles[1]), DEG_TO_U16));
+  let base, Mo, Md;
+  if (r.joint !== -1){
+    const Jm = jointMatrix(J, r.joint);
+    if (!Jm) return 'no matrix for joint ' + r.joint;
+    base = [Jm[12], Jm[13], Jm[14]].map(f); Mo = Jm.map(f); Md = Jm.map(f);    // 0xc164c, 0xc15a4 x2
+  } else {
+    if (!own.ownerPos || !own.ownerMatrix) return 'joint -1 without the owner position / matrix (input.ownerMatrix)';
+    base = own.ownerPos.slice(); Mo = own.ownerMatrix.slice(); Md = own.ownerMatrix.slice();
+  }
+  if (t.flags & 2) Mo = turnX232118(Mo, X);                                      // 0x3fca1c
+  const o = r.offset.map(f);
+  const origin = [0, 1, 2].map(i => f(mla(mla(f(o[1] * Mo[4 + i]), o[0], Mo[i]), o[2], Mo[8 + i]) + base[i]));
+  if ((t.flags & 1) && r.joint !== -1){                                          // 0x3fcac0..0x3fcb5c
+    if (!own.ownerMatrix) return 'flag bit 0 without the owner matrix (input.ownerMatrix)';
+    Md = own.ownerMatrix.slice();
+  }
+  const hook = DIR_HOOK02[t.cls];                                                // +0x15c(shell, &Md) (0x3fcb60)
+  if (hook){ const why = hook(S, Md); if (typeof why === 'string') return why; }
+  const L = length02g(S);                                                         // +0x160
+  let ax, ay, world = false;
+  if ((t.flags & 8) && f(f(t.life) - S.life) >= f(r.b3start)){                  // 0x3fcb84..0x3fcbc4 -> 0x3fcd3c
+    const d = pitch3fcec8(r, own);
+    ax = f(u16((own.ownerX + d) >>> 0) * U16_TO_RAD); ay = f(u16(own.ownerY) * U16_TO_RAD); world = true;
+  } else { ax = f(u16(X) * U16_TO_RAD); ay = f(u16(Y) * U16_TO_RAD); }
+  const v = r.anchor.map(f), sx = sinf(ax), cx = cosf(ax), sy = sinf(ay), cy = cosf(ay), z0 = f(0);
+  const z1 = mla(f(v[2] * cx), v[1], sx), y1 = mls(f(v[1] * cx), v[2], sx);      // [+0x167c] about X...
+  const x2 = mla(f(v[0] * cy), sy, z1), z2 = mls(f(z1 * cy), v[0], sy);          // ...then Y
+  const fz1 = mla(f(L * cx), sx, z0), fy1 = mls(f(cx * z0), L, sx);              // (0, 0, L) about X...
+  const fx2 = mla(f(cy * z0), sy, fz1), fz2 = mls(f(fz1 * cy), sy, z0);          // ...then Y
+  const fwd = world ? [fx2, fy1, fz2] : [0, 1, 2].map(i => mla(mla(f(fy1 * Md[4 + i]), fx2, Md[i]), fz2, Md[8 + i]));
+  const anc = world ? [x2, y1, z2] : [0, 1, 2].map(i => mla(mla(f(y1 * Mo[4 + i]), x2, Mo[i]), z2, Mo[8 + i]));
+  S.origin = origin;
+  S.position = [0, 1, 2].map(i => f(fwd[i] + origin[i]));                        // +0x40
+  S.anchor = [0, 1, 2].map(i => f(anc[i] + origin[i]));                          // +0x1000
+  if (t.flatEnd) S.position[1] = S.anchor[1];                                     // Akantor's +0x168 0xe3e73c (not modes 5 / 6)
+  return null;
+}
+// THE CLASSES' OWN +0x15c (the direction hook the ray builder calls on Md; the base's is `bx lr`). Both rebuild Md as a
+// unit rotation (translation 0) with a pitch from the SPAWN SETUP's X angle word (+0x20 of the setup, a u16 -- what the
+// spawner wrote there: S.setupAngles), so each needs it.
+//   Plesioth 0xd6cd38: modes 2, 4, 13, 17, 19 and 28 keep Md; any other: yaw = atan2(Md[8], Md[10]) (the forward row's
+//   heading), pitch = the setup word -> rows (cy, ca 0, sa 0 cy - sy), (sa sy - cy 0, ca, sa cy + sy 0), (sy ca, -sa, ca cy).
+//   The Fatalis line 0xd8bdfc / 0xd8cb4c / 0xd8d7b8 (one code): Md's Euler (0x7c3a38) with the setup word added to x, back
+//   to a matrix.
+const DIR_HOOK02 = {
+  uShellEm010_sp_02: (S, Md) => {
+    if ([2, 4, 13, 17, 19, 28].includes(S.type.mode)) return;
+    if (!S.setupAngles) return 'Plesioth\'s +0x15c without the spawn setup\'s angle words';
+    const yaw = atan2f(Md[8], Md[10]), ax = f(u16(S.setupAngles[0]) * U16_TO_RAD), z = f(0);
+    const sa = sinf(ax), sy = sinf(yaw), ca = cosf(ax), cy = cosf(yaw), s24 = f(sa * sy);
+    const out = [mla(cy, s24, z), f(ca * z), f(f(f(sa * z) * cy) - sy), 0,               // vnmls: (n m) - d
+                 mls(s24, cy, z), ca, mla(f(sa * cy), sy, z), 0,
+                 f(sy * ca), f(-sa), f(ca * cy), 0,
+                 0, 0, 0, f(1)];
+    for (let i = 0; i < 16; i++) Md[i] = out[i];
+  },
+  uShellEm013_00_02: (S, Md) => dirHook013(S, Md),
+  uShellEm013_01_02: (S, Md) => dirHook013(S, Md),
+  uShellEm013_02_02: (S, Md) => dirHook013(S, Md),
+  uShellEm005_sp_02: (S, Md) => dirHook005(S, Md),
+};
+// Basarios / Gravios's +0x15c 0xd30e30 (read 2026-09-30 to its pop at 0xd311e4): mode - 1 > 0xb keeps Md; else the
+// behaviour code 0x169bbb0[mode - 1] (modes 1,2,5,6 -> 1; 3,7,8,9 -> 2; 10,11 -> 3; 4,12 -> 4). Code 1 is the owner's
+// rotation with the setup word added to its pitch -- the class path (make02), which never builds its ray here: those modes'
+// +0x168 is the far check 0xd30cec, not this builder. Code 2 (0xd30e98): Md's Euler 0x7c37d0 -- x = -asin(-Md[6]), y =
+// -atan2(Md[2], Md[10]) -- with x REPLACED by the setup word (u16 x 2pi/65536) and z = 0, rebuilt (0xd30f04..0xd30f80; the
+// translation zeroed). Codes 3 / 4 (0xd30f88): row 2 as four floats, normalised.
+const CODE02 = [1, 1, 2, 4, 1, 1, 2, 2, 2, 3, 3, 4];             // 0x169bbb0 by mode - 1
+function dirHook005(S, Md){
+  const m = S.type.mode, code = m >= 1 && m <= 12 ? CODE02[m - 1] : null;
+  if (code == null) return;
+  if (code === 1) return "Basarios / Gravios's +0x15c code 1 belongs to the class path (make02), not the base's ray builder";
+  if (code === 3 || code === 4){
+    let s = f(Md[9] * Md[9]); s = mla(s, Md[8], Md[8]); s = mla(s, Md[10], Md[10]); s = mla(s, Md[11], Md[11]);
+    const inv = f(f(1) / sqrtf(s));
+    Md[8] = f(Md[8] * inv); Md[9] = f(inv * Md[9]); Md[10] = f(inv * Md[10]); Md[11] = f(inv * Md[11]);
+    return;
+  }
+  if (!S.setupAngles) return "Gravios's +0x15c code 2 without the spawn setup's angle word";
+  // 0x7c37d0's y (only y survives): the gimbal arms (Md[6] >= 1 / <= -1) give -atan2(-Md[1], Md[0]) / -atan2(Md[1], Md[0])
+  const y = !(Md[6] < 1.0) ? f(-atan2f(f(-Md[1]), Md[0])) : !(Md[6] > -1.0) ? f(-atan2f(Md[1], Md[0])) : f(-atan2f(Md[2], Md[10]));
+  const x = f(f(u16(S.setupAngles[0])) * U16_TO_RAD), z = f(0);
+  const sx = sinf(x), sy = sinf(y), sz = sinf(z), cx = cosf(x), cy = cosf(y), cz = cosf(z);
+  const syz = f(sy * sz), sycz = f(sy * cz);
+  const out = [f(cy * cz), f(sz * cy), f(-sy), 0,
+               mls(f(sx * sycz), sz, cx), mla(f(cx * cz), sx, syz), f(sx * cy), 0,
+               mla(f(cx * sycz), sx, sz), mls(f(syz * cx), sx, cz), f(cx * cy), 0,
+               0, 0, 0, f(1)];
+  for (let i = 0; i < 16; i++) Md[i] = out[i];
+}
+
+// THE +0x20 WORDS THE SPAWNERS COMPUTE (render/beam-spawns.js `aim`), each where its spawner computes it:
+//   Plesioth (0xd67f44 / 0xd68db4 / 0xd69200; read 2026-09-30 at 0xd67fd8..0xd680dc, literals 0xd6835c..0xd68384): at the
+//   step crossing f22, the point = joint 0x68's position (0xc164c) with y + (-150.0); d = the target (P+0x1d0) - point;
+//   p = atan2(-dy, sqrt(dz^2 + dx^2)) as a word (x 10430.378, + 0.5, truncated) u; 0x1556 <= u < 0x8000 -> +29.998 degrees,
+//   0x8001 <= u < 0xeaab -> 330.002, else u x 360/65536; above 180 less 360; kept in degrees (e+0xcae8, which phase 0 zeroes);
+//   at the spawn +0x20 = s32(0.5 + that x 182.044) (0xd682a0..0xd6830c).
+//   The Fatalis (0xd81e80, read to its pop at 0xd82018): at the spawn, v = (0, 250, 800) x size (0xbe518 = block +0x1ac x
+//   +0x1b0) turned by the owner's Z word, then X, then Y; M = P+0x40 + v; d = (the target + (0, 380, 0)) - M; the pitch word
+//   w; u = u16(w): below 0x4000, u > 0x18e4 -> 0x18e4; from 0x4000, u < 0x10000 - 0x18e4 -> that; else w.
+//   Gravios (0xd288b8 phase 0, read at 0xd2891c..0xd28b04): the pitch word w from P+0x40 to the target; w <= 0x8000 ->
+//   min(w, 0x31c7) (partner M26), else 0x10000 - min(0x10000 - w, 0x31c7) (M25) -- kept in ctl+0xc and stored at f118
+//   (0xd28aa0). A PARTNER CLIP NAMES ITS SIDE, as Basarios's do (partnerTarget02): the viewer plays M25 / M26 at full
+//   weight, which the blend (M24's weight 1 - min(|w|, 0x31c7) / 12743) gives only at the clamp, so there the word is it.
+function beamAimStep(state, row, input, fresh){
+  const a = row.aim, own = owner001(input);
+  if (!state.beamAim) state.beamAim = {};
+  if (a.kind === 'em010_00 f22' && !fresh && state.prevJoints && pass001(state, f(a.frame))) state.beamAim[a.kind] = aim010(state, a, own);
+  if (a.kind === 'em005_00 0xd288b8' && fresh) state.beamAim[a.kind] = aim005(a, own, input.clip);
+}
+function beamSetup(state, row, input, own){
+  if (row.setup) return { words: row.setup.map(w => w >>> 0) };
+  const a = row.aim;
+  if (!a) return { words: null };
+  if (a.kind === 'em013_00 0xd81e80'){ const w = aim013(a, own); return typeof w === 'string' ? { why: w } : { words: [w] }; }
+  const v = state.beamAim ? state.beamAim[a.kind] : undefined;
+  if (typeof v === 'string') return { why: v };
+  if (a.kind === 'em010_00 f22')                                   // never taken this play: phase 0's zero
+    return { words: [u16(s32(mla(f(0.5), v == null ? f(0) : v, DEG_TO_U16)))] };
+  if (a.kind === 'em005_00 0xd288b8') return v == null ? { why: "Gravios's phase-0 pitch was not taken this play" } : { words: [v] };
+  return { why: 'no transcription of the aim ' + a.kind };
+}
+function aim010(state, a, own){
+  const Jm = jointMatrix(state.prevJoints, a.joint);
+  if (!Jm) return 'no matrix for joint 0x' + a.joint.toString(16);
+  if (!own.target) return 'no target (input.rock.target)';
+  const px = f(Jm[12]), py = f(f(a.y) + f(Jm[13])), pz = f(Jm[14]);
+  const dz = f(own.target[2] - pz), dx = f(own.target[0] - px), dy = f(own.target[1] - py);
+  const p = atan2f(f(-dy), sqrtf(mla(f(dz * dz), dx, dx)));
+  const u = u16(s32(mla(f(0.5), p, RAD_TO_U16)));
+  let deg;
+  if (((u - 0x1556) >>> 0) < 0x6aaa) deg = f(29.9981689453125);                  // 0xd6807c..0xd68090
+  else deg = ((u - 0x8001) >>> 0) < 0x6aaa ? f(330.0018310546875) : f(f(u) * U16_TO_DEG);
+  return deg > f(180.0) ? f(deg + f(-360.0)) : deg;                                // 0xd680bc..0xd680d8
+}
+function aim013(a, own){
+  if (!own.ownerPos || !own.target) return 'the Fatalis aim 0xd81e80 without the owner position / target';
+  const size = f(own.size[0] * own.size[1]);
+  const vx = f(size * f(a.v[0])), vy = f(size * f(a.v[1])), vz = f(size * f(a.v[2]));
+  const zr = f(f(u16(own.ownerZ)) * U16_TO_RAD), xr = f(f(u16(own.ownerX)) * U16_TO_RAD), yr = f(f(u16(own.ownerY)) * U16_TO_RAD);
+  const sZ = sinf(zr), cZ = cosf(zr), sX = sinf(xr), cX = cosf(xr), sY = sinf(yr), cY = cosf(yr);
+  const A = mla(f(vy * cZ), vx, sZ), B = mls(f(vx * cZ), vy, sZ), C = mla(f(vz * cX), A, sX);   // 0xd81f28..0xd81f58
+  const P = own.ownerPos, T = own.target;
+  const Mx = f(P[0] + mla(f(B * cY), C, sY)), Mz = f(mls(f(C * cY), B, sY) + P[2]), My = f(mls(f(A * cX), vz, sX) + P[1]);
+  const dz = f(T[2] - Mz), dx = f(T[0] - Mx), dy = f(f(T[1] + f(a.raise)) - My);
+  const w = s32(mla(f(0.5), atan2f(f(-dy), sqrtf(mla(f(dz * dz), dx, dx))), RAD_TO_U16)), u = u16(w), L = a.limit;
+  let r2 = u < 0x10000 - L ? 1 : 0, r7 = 0x10000 - L;
+  if (u < 0x4000){ r2 = u > L ? 1 : 0; r7 = L; }
+  return u16(r2 === 0 ? w : r7);
+}
+// for the dev checks (against the research agents' ROM-runs): a row's aim on given inputs -- Plesioth's as at its f22
+// (joints: gid -> matrix) through to the spawn's word, the Fatalis's and Gravios's as at their spawn / phase 0
+export function aimForCheck(aim, own, joints, clip){
+  const o = Object.assign({ size: [f(1), f(1)], ownerX: 0, ownerY: 0, ownerZ: 0 }, own);
+  if (aim.kind === 'em010_00 f22'){
+    const deg = aim010({ prevJoints: gid => (joints && joints[gid]) || null }, aim, o);
+    return typeof deg === 'string' ? deg : u16(s32(mla(f(0.5), deg, DEG_TO_U16)));
+  }
+  if (aim.kind === 'em013_00 0xd81e80') return aim013(aim, o);
+  if (aim.kind === 'em005_00 0xd288b8') return aim005(aim, o, clip);
+  return 'no aim ' + aim.kind;
+}
+function aim005(a, own, clip){
+  const base = String(clip || '').replace(/_(start|loop)$/, '');
+  if (a.partners && a.partners[base] != null) return a.partners[base];
+  if (!own.ownerPos || !own.target) return "Gravios's phase-0 pitch without the owner position / target";
+  const P = own.ownerPos, T = own.target;
+  const dz = f(T[2] - P[2]), dx = f(T[0] - P[0]), dy = f(T[1] - P[1]);
+  const w = u16(s32(mla(f(0.5), atan2f(f(-dy), sqrtf(mla(f(dz * dz), dx, dx))), RAD_TO_U16)));
+  return w <= 0x8000 ? Math.min(w, 0x31c7) : 0x10000 - Math.min(0x10000 - w, 0x31c7);
+}
+function dirHook013(S, Md){
+  if (!S.setupAngles) return 'the Fatalis +0x15c without the spawn setup\'s angle words';
+  const e = eulerOf(Md), x = mla(e.x, f(u16(S.setupAngles[0])), U16_TO_RAD);
+  const sx = sinf(x), sy = sinf(e.y), sz = sinf(e.z), cx = cosf(x), cy = cosf(e.y), cz = cosf(e.z);
+  const out = [mla(f(cy * cz), f(sx * sy), sz), f(sz * cx), mls(f(f(sx * sz) * cy), sy, cz), 0,
+               mls(f(sy * f(sx * cz)), sz, cy), f(cx * cz), mla(f(f(sx * cy) * cz), sy, sz), 0,
+               f(sy * cx), f(-sx), f(cx * cy), 0,
+               0, 0, 0, f(1)];
+  for (let i = 0; i < 16; i++) Md[i] = out[i];
+}
+// THE CLASSES' OWN +0x170 (the end on another motion): Daimyo 0xdcdd18 takes the owner's motion as the spawn's when it is
+// 0x236 / 0x237 / 0x239 (L2 M54 / M55 / M57), Nibelsnarf 0xeeb410 when it is 0x210 + one of {0, 1, 2, 3, 9, 10, 19} (mask
+// 0x8060f) -- the beam lives on through them -- then the base's check 0x3fd4c4
+const MOTION_ADOPT02 = {
+  uShellEm019_sp_02: m => m === 0x236 || m === 0x237 || m === 0x239,
+  uShellEm056_sp_02: m => m - 0x210 >= 0 && m - 0x210 <= 0x13 && ((0x8060f >>> (m - 0x210)) & 1) === 1,
+};
+// for the dev checks (efx raycheck.py / raycheck.mjs: 0x3fc750 on the ROM against this, bit for bit)
+export function rayForCheck(type, lifeLeft, joints, own, setupAngles){
+  const S = { type, life: f(lifeLeft), grow: f(0), position: null, setupAngles: setupAngles || null };
+  const why = ray02real(S, gid => joints[gid] || null, own);
+  return why ? { why } : { origin: S.origin, end: S.position, anchor: S.anchor };
+}
+function end02g(S, out){                        // +0x148 0x3fc698(0): both handles stopped gracefully (0x43b058)
+  if ((S.state & 0xfe) === 0xfe) return;
+  if (S.p10 && S.p10.child){ endChild(S.p10.child, out); S.p10.child = null; }  // its +0x164 (0x3fc6ec -> Plesioth's 0xd6ce8c)
+  S.state = 0xfe; S.life = ENDING_FRAMES;
+  S.stop = (S.effect && !S.effect.gone) ? { param: 0, request: 0, key: S.effect.key } : null;
+  if (S.effect2){ S.stop2 = S.effect2; S.effect2 = null; }
+  S.place2 = null;
+  out.ended.push(S);
+}
+function step02g(S, J, ctx, input, D, out){
+  const t = S.type, own = owner001(input);
+  const alive = p => (input.effectAlive ? !!input.effectAlive(S, p) : true);
+  // +0x168: the showcase's stand-in, or the beam's own ray on its own monster (a ray it cannot build is refused by name)
+  const rebuild = () => {
+    if (!S.real){ ray02g(S, D, J); return true; }
+    const why = ray02real(S, J, own);
+    if (why){ out.refused.push({ action: S.action, beam: t.id, why: 'beam on its monster: ' + why }); end02g(S, out); return false; }
+    return true;
+  };
+  if (!S.activated){                             // vtable +0x18 0x3fbaf8: +0x168, then ef param 0 toward +0x40
+    S.activated = true;
+    if (!rebuild()) return;
+    // the requester 0x4a10c8 fills: +0x40 = the mode's ShellScale x3 (render/beam-types.js `scale`, the .shl's ShellInfoList;
+    // 1.0 but for Boltreaver's 1.2 and Nakarkos's 1.3 / 2.0 / 2.3), which the shell unit's +0x60 -- its effects' parent -- is
+    const a = angles02(S), [pel, key] = t.beam, sc = f(t.scale == null ? 1 : t.scale);
+    S.start = { param: 0, listId: 0, list: 'u', pel, key,
+                requester: { position: S.origin.slice(),
+                             rotationDeg: [f(a.pitch * U16_TO_DEG), f(a.yaw * U16_TO_DEG), f(a.roll * U16_TO_DEG)],
+                             scale: [sc, sc, sc], parent: 'shell', flags14: 0x40000002, flags1c: 3, type8: 3 } };
+    S.effect = { param: 0, key };
+  }
+  if (S.effect && !S.effect.gone && S.start && !alive(0)) S.effect.gone = true;
+  const live = () => !!(S.effect && !S.effect.gone);
+  if (S.state === 0xfe){                                                        // the ending 0x3fc610
+    S.place = null; S.scaleZ = null;
+    const T = S.life;
+    if (!(T > 0)){ S.life = 0; S.state = 0xff; return; }
+    const n = f(T - ctx.dt);
+    S.life = f(0) >= n ? f(0) : n;
+    if (!(n > 0) || !live()) S.state = 0xff;
+    return;
+  }
+  if (S.state !== 1) return;
+  // the move 0x3fbe60: +0x168 (the rebuild), the stage query and its step, the placement, the growth, the life
+  if (!rebuild()) return;
+  const hit = stageQuery(S.position, S.anchor, ctx.stage, 0x30);
+  S.hit = hit ? { point: hit.point.slice(), type: hitType(hit.attr, hit.normal) } : null;
+  if (hit){
+    const type = S.hit.type, P = S.position, q = hit.point;
+    const gate = t.stepGate == null ||                                          // Alatreon's step 0xecfdb8
+      mla(mla(f(f(q[1] - P[1]) * f(q[1] - P[1])), f(q[0] - P[0]), f(q[0] - P[0])), f(q[2] - P[2]), f(q[2] - P[2])) < f(f(t.stepGate) * f(t.stepGate));
+    if (S.p10) S.p10.type = type;                                               // +0x1640, the query's (kept on a miss)
+    if (S.u38) hit038(S, type, q, out, ctx);                                    // Ukanlos's own +0x158 0xe647cc, in its place
+    else if (gate){
+      if (type !== 2 && (t.flags & 4)) S.position = q.slice();                 // 0x3fd2f8..0x3fd330: the ray cut at the hit
+      if (t.impact){
+        const e = impactAngles02(type, S.prevEnd || S.position, S.position, hit.normal);     // 0x43b08c
+        if (!S.effect2){                                                        // 0x3fd424..0x3fd4ac: started at the hit
+          const [pel, key] = t.impact;
+          out.started.push({ shell: S, start: { param: 1, listId: 0, list: 'u', pel, key,
+            requester: { position: q.slice(), rotationDeg: [e.x, e.y, e.z], scale: S.start.requester.scale.slice(), parent: 'shell',
+                         flags14: 0x40000002, flags1c: 3, type8: 3 } } });
+          S.effect2 = { param: 1, key };
+        } else S.place2 = { param: 1, position: q.slice(), rotationDeg: [f(e.x * RAD_TO_DEG), 0, f(e.z * RAD_TO_DEG)] };
+      }
+      if (S.p10){ S.p10.hit = true; S.p10.point = q.slice(); }                // Plesioth's step 0xd6cce8, after the base's
+    }
+  } else if (S.effect2){                                                        // 0x3fc198..0x3fc1b8: no hit, the handle dropped
+    S.stop2 = S.effect2; S.effect2 = null; S.place2 = null;
+  }
+  const a = angles02(S);                                                        // 0x3fc378
+  S.place = live() ? { param: 0, position: S.origin.slice(),
+                       rotationDeg: [f(a.pitch * U16_TO_DEG), f(a.yaw * U16_TO_DEG), f(f(own.ownerZ >>> 0) * U16_TO_DEG)] } : null;
+  if (t.flags & 4){                                                             // 0x3fc540..0x3fc5e8: the drawn length
+    const d = [f(S.origin[0] - S.position[0]), f(S.origin[1] - S.position[1]), f(S.origin[2] - S.position[2])];
+    S.scaleZ = f(sqrtf(mla(mla(f(d[1] * d[1]), d[0], d[0]), d[2], d[2])) / f(100.0));
+  }
+  if (S.grow > 0){ const g = f(S.grow - ctx.dt); S.grow = g > 0 ? g : f(0); } // +0x15d0 (0x3fbf8c..0x3fbfc4)
+  const T = S.life;                                                             // +0x15cc
+  if (!(T > 0)){ S.life = 0; end02g(S, out); return; }
+  const n = mls(T, ctx.speed, ctx.dt);
+  S.life = f(0) >= n ? f(0) : n;
+  if (!(n > 0)){ end02g(S, out); return; }
+  const adopt = MOTION_ADOPT02[t.cls];                                          // a class's own +0x170, first
+  if (adopt && ctx.ownerMotion != null && adopt(ctx.ownerMotion)) S.motionId = ctx.ownerMotion;
+  // +0x170: another motion -- the clip's, or the one the action itself set where the viewer's clip plays on (S.left)
+  if (S.left || (ctx.ownerMotion != null && ctx.ownerMotion !== S.motionId)){ end02g(S, out); return; }
+  move154g(S, ctx, out);                                                        // else the class's +0x154 (0x3fc030)
+}
+// 0x43b08c(shell, out, type, query, old end, new end): the impact's rotation -- the frame (0x232530) of fwd = (sin a, 0,
+// cos a), a the yaw word from the old ray end to the new one (a floor hit, type 1), or (0, 1, 0) (type 0), and up = the
+// surface normal (query +0x20); its Euler angles (0x7c3a38), in radians
+function impactAngles02(type, A, B, n){
+  const w = u16(s32(mla(f(0.5), atan2f(f(B[0] - A[0]), f(B[2] - A[2])), RAD_TO_U16)));
+  const r = f(f(w) * U16_TO_RAD), s = sinf(r), c = cosf(r);
+  return eulerOf(frameFrom(type === 0 ? [0, 1, 0] : [s, 0, c], n));
+}
+
+// ---- THE BEAM CHILDREN: the base00 shells two beam classes make at their hit (read 2026-09-30; dev/rom-map.md, the
+// beam-base rows: Em010 / Em038 detail, uShellEm010_sp_00, Em038_sp_00, base00's ctor and angle order) ----------------
+// PLESIOTH (uShellEm010_sp_02; only the modes whose sh int 2 != -1 -- 15 and 17 -- through its reader 0xd6caf0's
+// +0x168c): its step 0xd6cce8 runs the base step and marks the hit (+0x1694 = 1, +0x16a0.. = the point), and its +0x154
+// 0xd6c970 -- every move the beam lives through -- keeps ONE child 0x7c (uShellEm010_sp_00) mode 0 there: made on the
+// first hit frame (setup +0x10 the point, +0x20 the beam's angle words +0xfe8 as this move rebuilt them), then moved to
+// the point (0xd6c680) and turned with the beam (0xd6c6cc) on every hit frame; a child whose unit is gone is dropped, hit
+// type 3 ends it, and the beam's end ends it with the beam (+0x164 0xd6ce8c, called by the end 0x3fc698 at 0x3fc6ec).
+// UKANLOS (uShellEm038_sp_02): its +0x158 0xe647cc REPLACES the base step -- no cut, no impact re-placed each frame. On
+// a FLOOR hit with its timer +0x1698 run out (+0x154 0xe63b5c counts it down by the frame delta, clamped at 0) it starts
+// ef 1 ANEW at the hit (no rotation; the handle +0x1604 is overwritten, the one before left running) and, by the tables
+// of 0xe63d74, throws a child 0xce (uShellEm038_sp_00) of the next table mode from the hit, then takes the next delay:
+// modes 0 / 1 / 2 / 5 / 6 / 7 fire six times, each with a child; modes 3 / 4 fire an impact every time, a child on the
+// even counts below 10 (each followed by the delay), and from count 10 on an impact on EVERY floor-hit frame.
+// THE CHILDREN ARE base00 SHELLS run by stepRock: init00 with the readers below (READER00), their own init / +0x16c /
+// landing (CHILD_INIT, ANGLE16C, LANDING). Their data is the ROM's (render/beam-types.js `child`, generated from the
+// arcs), their effects their monster's u.pel (each child .shl names that one EffectList).
+// uShellEm010_sp_00's reader 0xd6c55c: ef 0 -> +0x15c8, hit 0 -> +0x15d8; flags +0x15e8 = 0x800 / 0x10 / 0x20 from sh ints
+// 0 / 1 / 2 != -1 (with the bytes +0x1660 / +0x1661 = ints 1 / 2 != -1: follow the point, take the angles), | 0x40; the
+// flight +0x15fc = sh float 0. Nothing else: base00's ctor 0x3f8a04 leaves the joint -1, the speeds and degree offsets 0
+// and the vec pointers on the shared empty vec3. 0x800 has no test in base00's own code (a bounded negative, the map's).
+function params010c(def, mode){
+  const sh = mode.sh, I = i => i < sh.ints.length ? sh.ints[i] : -1;
+  return { joint: -1, flight: f(sh.floats.length ? sh.floats[0] : 0),
+           flags: (I(0) !== -1 ? 0x800 : 0) | (I(1) !== -1 ? 0x10 : 0) | (I(2) !== -1 ? 0x20 : 0) | 0x40,
+           follow: I(1) !== -1, turn: I(2) !== -1,
+           vz: f(0), vy: f(0), degX: f(0), degY: f(0), vec: ZERO3.slice(), gravity: ZERO3.slice() };
+}
+// uShellEm038_sp_00's reader 0xe63400: ef 0..3 -> +0x15c8 / +0x15cc / +0x15d4 / +0x15d0 (2 and 3 SWAPPED against base00's
+// order -- its landing reads them back by type); hit 0 -> +0x15d8; sh int 0 -> the joint +0x15dc, int 1 -> +0x15e4 (the
+// floor landing's 0x43ac04 id); flags 0x40 | 0x10 (int 2 != -1) | 0x20 (int 3 != -1); sh floats 0..4 -> vz +0x15f4, vy
+// +0x15f8, the flight +0x15fc, the X / Y degree offsets +0x15ec / +0x15f0; vecs 0 / 1 -> the offset +0x1610 / the gravity
+// +0x161c; cmn int 0 -> +0x1660 (no reader of it is on this path)
+function params038c(def, mode){
+  const sh = mode.sh, I = i => i < sh.ints.length ? sh.ints[i] : -1, F = i => i < sh.floats.length ? f(sh.floats[i]) : f(0);
+  const V = i => i < sh.vecs.length ? sh.vecs[i].map(f) : ZERO3.slice();
+  return { joint: I(0), flight: F(2), flags: 0x40 | (I(2) !== -1 ? 0x10 : 0) | (I(3) !== -1 ? 0x20 : 0),
+           vz: F(0), vy: F(1), degX: F(3), degY: F(4), vec: V(0), gravity: V(1) };
+}
+// THE RANDOM u16 (0x3f76d8 -> 0x7c9234): the ROM's xorshift128 step on the generator's four words, then uxth. The game
+// seeds it at run time and the seed is NOT read (dev/rom-map.md), so the four words are a VIEWER STAND-IN (the textbook
+// xorshift128 seeds), one generator per shells state -- the same draws each time the monster is mounted, in the ROM's
+// order.
+const RNG_SEED = [123456789, 362436069, 521288629, 88675123];
+function rng16(state){
+  const r = state.rng || (state.rng = RNG_SEED.slice());
+  let t = (r[0] ^ (r[0] << 15)) >>> 0;
+  t = (t ^ (t >>> 4)) >>> 0;
+  const d = r[3], n = (t ^ d ^ (d >>> 21)) >>> 0;
+  r[0] = r[1]; r[1] = r[2]; r[2] = d; r[3] = n;
+  return n & 0xffff;
+}
+// a class's own +0x16c over base00's 0x3f9cc4 (the Y degree offset as a u16, flag bit 1 clear): Ukanlos's child 0xe635e0
+// adds, on modes 4, 5 and 8..22 (mask 0x7fff30), (r & 0x3ff - 512) x 0.002 x cmn float 0 degrees -- the first draw
+const ANGLE16C = {
+  uShellEm038_sp_00: (S, k, got, def) => {
+    const base = u16(s32(mla(0.5, k.degY, DEG_TO_U16)));
+    if (!(S.modeIndex <= 0x16 && ((0x7fff30 >>> S.modeIndex) & 1))) return base;
+    const r = f(f((got.rng() & 0x3ff) - 512) * f(0.002));
+    return u16(base + s32(mla(0.5, f(f(def.cmn.floats[0]) * r), DEG_TO_U16)));
+  },
+};
+// a class's own init after base00's (its +0x13c, which calls 0x3f8b80 first)
+const CHILD_INIT = {
+  uShellEm010_sp_00: S => { S.gravity[1] = f(0.01); },                  // 0xd6c518: +0x1024 = 0x3c23d70a
+  // 0xe63240: the size of the shell's own unit, +0x60..+0x68 (0x43ab74) -- modes 8..17 cmn f1 + f2 x r, 18..22 f3 + f4 x r,
+  // r = (r16 & 0x3ff - 512) x 0.002, the second draw -- the uniform scale its effects hang from (the schedule poses the
+  // parent with it). Then a stage query at +0x40 whose Y places sound 0xd7 alone: nothing to draw.
+  uShellEm038_sp_00: (S, k, got, def) => {
+    const m = S.modeIndex, c = def.cmn.floats, lo = m >= 8 && m <= 17 ? 1 : m >= 18 && m <= 22 ? 3 : -1;
+    if (lo < 0) return;
+    const r = f(f((got.rng() & 0x3ff) - 512) * f(0.002));
+    S.unitScale = mla(f(c[lo]), f(c[lo + 1]), r);
+  },
+};
+// a beam's child (0x48b884 during the beam's move): made and inited at once, reported in out.spawned and stepped in the
+// same walk unless its maker was the last unit (stepShells' ctx.makeChild02g). `ch` = the type's render/beam-types.js
+// `child`, `point` the setup's +0x10, `words` its +0x20 angle words.
+function makeChild02g(state, beam, ch, modeIdx, point, words, ctx){
+  const mode = ch.modes[modeIdx];
+  if (!mode) throw new Error('shells.js: beam child ' + ch.cls + ' mode ' + modeIdx + ' has no data (render/beam-types.js)');
+  const lists = { 0: { list: 'u', pel: ch.pel } };
+  const def = { cls: ch.cls, cmn: ch.cmn || null, lists };
+  const S = { id: state.nextId++, monId: state.monId, shell: 'beamChild', cls: ch.cls, globalId: ch.id, base: 'base00',
+              mode, modeIndex: modeIdx, action: beam.action, spawnFrame: null, motion: ctx.motion, state: 1, lists, def,
+              position: null, prevPosition: null, anchor: null, angles: null, velocity: null, gravity: null, trail: null,
+              timer: 0, moves: 0, bounces: 0, held: false, launch: null, events: [], folder: null, maker: beam.id,
+              effect: null, effect2: null, start: null, place: null, stop: null, unitScale: null, follow: null };
+  S.effects = mode.ef.map(([listId, key], param) => ({ param, listId, list: (lists[listId] || {}).list || null, key, started: false }));
+  const own = ctx.own001;
+  const got = { requestPos: point.slice(), requestAngles: words.map(w => w >>> 0), ownerX: own.ownerX, ownerY: own.ownerY,
+                rng: () => rng16(state) };
+  if (!init00(S, def, null, got)) return null;
+  if (CHILD_INIT[ch.cls]) CHILD_INIT[ch.cls](S, S.k, got, def);
+  S.prevPosition = S.position.slice();
+  S.start = rockRequest(null, mode, 0, S.position, 'flight', lists);      // EffectParam 0 on the shell -> +0x1624
+  S.effect = S.start ? { param: 0, key: S.start.key, kind: 'flight' } : null;
+  if (S.start) S.effects[0].started = true;
+  return S;
+}
+// 0xd6c680 / 0xd6c6cc: Plesioth's child moved to the point (with +0x1660) and turned with the beam's words (with +0x1661),
+// its flight effect placed there -- 0x329c9c, and 0x329d04 with the words x 360 / 65536 (0xd6c76c), in degrees
+function follow010(C, point, words){
+  const k = C.k;
+  if (k.follow) C.position = point.map(f);
+  if (k.turn) C.angles = words.map(w => w >>> 0);
+  C.follow = { position: C.position.slice(), rotationDeg: k.turn ? words.map(w => f(f(w >>> 0) * U16_TO_DEG)) : [0, 0, 0] };
+}
+// a child ended by its maker (its vtable +0x148 with 0, base00's 0x3f9ef4)
+function endChild(C, out){
+  if (C.state !== 1) return;
+  end(C);
+  out.ended.push(C);
+}
+// Ukanlos's +0x158 0xe647cc, in place of the base step (the stage query's hit callback)
+function hit038(S, type, q, out, ctx){
+  const t = S.type, ch = t.child, U = S.u38;
+  if (type !== 1) return;                                                 // 0xe647e4: the floor only
+  if (!(U.timer <= 0)) return;                                            // 0xe64814 / 0xe64998: +0x1698 > 0 waits
+  const three = t.mode === 3 || t.mode === 4, c = U.counter;              // +0x168c outside mask 0xe7
+  if (!three && c > 5) return;                                            // 0xe64830
+  if (t.impact){                                                          // ef 1 anew at the hit (0x4a10c8 / 0x4a11e4)
+    const [pel, key] = t.impact;
+    out.started.push({ shell: S, start: { param: 1, listId: 0, list: 'u', pel, key,
+      requester: { position: q.slice(), rotationDeg: null, scale: [1, 1, 1], parent: 'shell', flags14: 0x40000000, flags1c: 3, type8: 3 } } });
+    S.effect2 = { param: 1, key };                                        // +0x1604 overwritten
+  }
+  const make = !three || ((c & 1) === 0 && c < 10);
+  if (make) ctx.makeChild02g(S, ch, three ? ch.childModes[c >> 1] : ch.childModes[c], q, [0, 0, 0]);   // setup +0x20: a zero vec3
+  U.counter = (c + 1) & 0xff;
+  if (three){ if (make && U.counter <= 9) U.timer = f(ch.delays[U.counter >> 1]); }   // 0xe64b04..0xe64b2c
+  else if (U.counter <= 5) U.timer = f(ch.delays[U.counter]);                         // 0xe64968..0xe6498c
+}
+// the class's +0x154, each move the beam lives through (after the life and +0x170)
+function move154g(S, ctx, out){
+  if (S.u38){                                                             // Ukanlos 0xe63b5c: the delay counted down
+    const T = S.u38.timer;
+    if (T > 0){ const n = f(T - ctx.dt); S.u38.timer = f(0) >= n ? f(0) : n; } else S.u38.timer = f(0);
+  }
+  if (S.p10){                                                             // Plesioth 0xd6c970
+    const P = S.p10;
+    if (P.hit){                                                           // +0x168c (the mode's) and +0x1694 (this move's hit)
+      const a = angles02(S), words = [a.pitch, a.yaw, a.roll];            // +0xfe8.. as this move rebuilt them (0x3fbf70..)
+      if (P.child) follow010(P.child, P.point, words);
+      else P.child = ctx.makeChild02g(S, S.type.child, S.type.child.mode, P.point, words);
+    }
+    P.hit = false;                                                        // +0x1694 = 0
+    if (P.child && P.child.state === 0xff) P.child = null;                // its unit gone (not in states 1 / 2)
+    if (P.type === 3 && P.child){ endChild(P.child, out); P.child = null; }   // +0x1640 == 3: its vtable +0x148(0)
+  }
+}
+// uShellEm038_sp_00's landing 0xe63714: by the hit type, ef +0x15cc (type 0) / +0x15d0 (type 1) / +0x15d4 (type 2) -- its
+// reader's ef params 1 / 3 / 2 -- at the contact (0x3f8970); types 0 / 1 first 0x43ac04 with +0x15e0 / +0x15e4 (a camera
+// shake by id), and type 1 on modes <= 3 with an owner 0xac030 (not these modes); the caller then ends the shell
+function landing038(S, D, hit){
+  const param = [1, 3, 2][hit.type];
+  if (param) contactStart(S, D, param, hit.point, 'landing');
 }
 
 // ---- base03 (uShellEmBase03): the bolt that runs along the ground ------------------------------------------------
@@ -3616,7 +5004,61 @@ function dropShell01(S, D, point){
 }
 
 // vtable +0x150 by class, where the class has its own
-const LANDING = { uShellEm037_sp_00: landing37, uShellEm001_sp_00: landing001, uShellEm003_sp_00: landing00k };
+// em004_00 shell00's landing 0xd3066c (his vtable +0x150, replacing base00's 0x3f8878 entirely) --
+// dev/em004-shell00-spec.md 7. The contact type in r3 picks the arm, and the EffectParam it starts is NOT
+// base00's [1,2,3][type]:
+//   type 0 (0xd30798): effect handle +0x15cc = getEffect(2) -> _ef param 2, no shell
+//   type 1 (0xd30694): a 0x40 request (0x3fa2bc) carrying SHELL01's class id from [owner+0xcac8] and MODE 0
+//                      in +8 (0xd30708), enqueued with 0x48b884 -- the second generation, and it is u 161
+//   type 2 (0xd307b4): effect handle +0x15d4 = getEffect(1) -> _ef param 1, no shell
+// then the common tail 0xd307bc calls 0x3f8970 with that param and ends the shell through [vtable+0x148].
+// Effects reports hitType() yields only 0 or 1 in the viewer -- type 2 needs a hunter -- so the type-1 arm
+// is the reachable one and type 2's effect is a refusal the viewer cannot lift.
+function landing04(S, D, hit, ctx){
+  const param = hit.type === 0 ? 2 : hit.type === 2 ? 1 : null;      // type 1 starts no _ef param of its own
+  // THE SECOND GENERATION IS STILL REFUSED, BUT FOR A DIFFERENT REASON THAN IT FIRST APPEARED.
+  // The type-1 arm makes shell01 mode 0 -- u 161 -- through ctx.create -> make001 -> init011. That first
+  // threw on base01 flag 0x800, and EMC's read of his own reader 0xd308dc shows WHY THAT WAS AN ARTEFACT:
+  // params011 (em001_00's sp_01 reader) builds 0x800 from `ints[7] != -1`, his sh000 holds three ints, an
+  // index past a file's end reads 0, and 0 != -1 set the bit spuriously. With params04s01 above -- his own
+  // map, keyed into READERS01 -- his word is 0x0c on mode 0 and 0x80 on mode 1, and 0x800 is never built.
+  //   WHAT STILL BLOCKS IT is the next refusal along, and this one is real: his reader does not write the
+  // joint, so +0x15e4 keeps base01's ctor -1, and init011 refuses that by name -- "base01 on the owner's
+  // own matrix (+0x15e4 == -1, 0x3fa8e4): not transcribed". The three arms his word DOES select (bits 2, 3
+  // and 7) are all transcribed; it is the placement that is not. So the shell is refused on 0x3fa8e4, which
+  // is a ROM read owed, not a viewer gap -- and his reader is in place for the moment it lands.
+  // TYPE 1 MAKES THE SECOND GENERATION -- shell01 mode 0, his u 161 (spec 7a, EMC 2026-09-30, read at
+  // 0xd30694 after 0x43ac04 / 0x4a0f38 / 0x4a0f00). The 0x40 request (0x3fa2bc at 0xd306e4) is filled
+  // +0x04 = [owner+0xcac8] (shell01's global id, 0x6b on Basarios), +0x08 = 0 (mode 0, 0xd30708),
+  // +0x0c = the owner, +0x10/14/18 = [r5]/[r5+4]/[r5+8] where r5 is the landing's SECOND argument (mov r5,r1
+  // at 0xd30670) -- THE CONTACT POINT, 0xd30728..0xd3073c -- and +0x30/34/38 = THIS shell's own
+  // +0xfe8/+0xfec/+0xff0 (0xd30744..0xd30750), so the child inherits the PARENT SHELL's angle words, not the
+  // owner's. NEITHER vector is left at the allocator's default, which is exactly what had to be read before
+  // this could be asked for at all: defaulting +0x10 would have put u 161 at [[enemy+0x1428]+0x40], a value
+  // the viewer has no input for. His site and Nargacuga's 0xe593d8 agree -- both overwrite +0x10 with the
+  // contact -- but that agreement is a result here, not an assumption carried across.
+  //   +0xcac8 IS SHELL01'S SLOT ON THIS CLASS ONLY (EMC): on uEm032_00 the two slots are swapped relative to
+  // the shell numbers (+0xcac4 the base01 shell, +0xcac8 the base00 one, 0xe20334). Read the assignment per
+  // class. Here it is named by shell, not by offset, so nothing carries.
+  //   THE LANDING IS REACHED, measured before this was lifted (L4 Motion[5], no wall): shell00 spawns at
+  // y 202..206 with the owner at y ~300 and the floor at -1.38 (game units), flies +z, and crosses the floor
+  // 48 steps later -- anchor y 10.66 against position y -1.94 -- giving type 1 at (74.33, -1.38, 1309.22) on
+  // both shells of the clip. An earlier note here said the landing "is never entered"; that was a BROKEN
+  // INSTRUMENT, not a result -- schedule.js's stepShells() wrapper does not `return out`, so a harness
+  // reading refusals from its return value reads undefined every step (rom-map's trap). Read the shells:
+  // stepRock clears S.events each step and move00 pushes the hit into it before calling this.
+  //   mode 0's flags are 0x0c, so init011 then takes base01's ground snap (0x3faaf8, query 0x183490) and the
+  // child's final y is the floor under that contact point.
+  if (hit.type === 1 && ctx && ctx.create)
+    ctx.create(S, 'shell01', { id: D.shells.shell01.id, mode: 0, position: hit.point.slice(),
+                               angles: S.angles.slice(), action: S.action, frame: S.spawnFrame });
+  if (param != null) contactStart(S, D, param, hit.point, 'landing');
+}
+
+const LANDING = { uShellEm037_sp_00: landing37, uShellEm001_sp_00: landing001, uShellEm003_sp_00: landing00k,
+                  uShellEm004_sp_00: landing04,
+                  // the beam children: Ukanlos's 0xe63714; Plesioth's +0x150 0xd6c790 is `bx lr`
+                  uShellEm038_sp_00: landing038, uShellEm010_sp_00: () => {} };
 
 // 0xe48fc8(e, xIdx, kind): the setups of an action's shells. off = s32(mla(0.5, [0x169dc74 + 4 xIdx], 182.04445)); X =
 // the owner's X word + u16(off) (uxtah, 32-bit); Y, Z = the owner's words through vcvt.f32.u32 then vcvt.u32.f32 (exact
@@ -3826,18 +5268,49 @@ function params011(sh){
 // so those stay base01's ctor values (0xd218a4 -> the base ctor: +0x15e4 = -1, +0x1608 / +0x160c the zero vector,
 // +0x15fc = 1.0, +0x15f4 = +0x15f8 = 500.0, +0x1604 = 900.0), and its flag bits come from sh ints 0..4 -- 4, 8,
 // 0x80, 0x800, 0x1000 (0xd21934..0xd219d8). It does write +0x15f8, the snap's downward reach, from ShellCmnParam
-// float 0 (0x4a2264) -- and no em003_00 .shl carries a ShellCmnParam, so that is 0.0, which the init reads as 1e6.
+// float 0 (0x4a2264 at 0xd219e4 -> 0xd219f0) -- 1400.0 on Khezu (the FUP `em003_00_01`, which shares the .shl's path;
+// the null path 0.0, which the init reads as 1e6, only where a shell has none). THIS SAID "no em003_00 .shl carries a
+// ShellCmnParam, so that is 0.0" until 2026-09-30: the listing it rested on was efx/shellef.py load(), which keeps one
+// resource per path and dropped the FUP (dev/rom-map.md traps). Every Khezu shell01 snapped down from any height.
 // em003_00: mode 0 / 5 / 6 flags 0, modes 1 / 2 flags 4, modes 3 / 4 flags 0x1084 (the same paths as her 13..15, 20).
-function params01k(sh){
+function params01k(sh, def){
   const I = i => !sh ? -1 : i < sh.ints.length ? sh.ints[i] : 0;
+  const c = def && def.cmn, cF = i => c && i < c.floats.length ? f(c.floats[i]) : f(0.0);   // 0x4a229c: null -> 0.0
   const flags = (I(0) !== -1 ? 4 : 0) | (I(1) !== -1 ? 8 : 0) | (I(2) !== -1 ? 0x80 : 0) |
                 (I(3) !== -1 ? 0x800 : 0) | (I(4) !== -1 ? 0x1000 : 0);
   return { flags, joint: -1, timer: f(0.0), f1600: f(0.0), f15fc: f(1.0), vec: [0, 0, 0],
-           up: f(500.0), down: f(0.0), maxH: f(900.0) };
+           up: f(500.0), down: cF(0), maxH: f(900.0) };
 }
 
-// which reader a base01 shell runs, by the class the table gives it
-const READERS01 = { 0xd218c4: params01k };
+// em004_00 / em005_00 shell01's reader 0xd308dc (uShellEm004_sp_01, to its pop at 0xd3098c) --
+// dev/em004-shell01-spec.md. A SHORTER Khezu: the same three flag bits from _sh ints 0 / 1 / 2 and nothing
+// after them -- his reader RETURNS where Khezu's goes on to build 0x800 and 0x1000 from ints 3 and 4.
+//   getEffect(_ef, 0) -> +0x15c8     accA(_hit, 0) -> +0x15d8
+//   getInt(_sh, 0) -> bit 2 (0xd30934)   getInt(_sh, 1) -> bit 3 (0xd3095c)   getInt(_sh, 2) -> bit 7 (0xd30980)
+// Everything else takes base01's ctor values. THE CTOR IS 0x3fa2f8 (its `push {r4, lr}`), not 0x3fa348 --
+// that address is mid-function, and reading from it hides the two registers the stores use. Read in full:
+// `mvn r4,#0` -> +0x15e8 / +0x15e4 / +0x15e0 / +0x15dc / +0x15d8 = -1 (0x3fa348..0x3fa36c); `mov r1,#0`
+// at 0x3fa328 -> +0x15d4 / +0x15d0 / +0x15cc / +0x15c8, the FLAGS word +0x15ec (0x3fa374), **THE TIMER
+// +0x15f0 (0x3fa37c)** and +0x1600 (0x3fa3a0) all ZERO; `movw lr,#0 / movt lr,#0x43fa` = 500.0 ->
+// +0x15f4 (0x3fa384) and +0x15f8 (0x3fa38c); `mov ip,#0x3f800000` -> +0x15fc = 1.0 (0x3fa398);
+// `movt r3,#0x4461` = 900.0 -> +0x1604 (0x3fa3ac); +0x1608 / +0x160c the shared zero vector (0x3fa3b8).
+// So `timer: 0.0` below is READ, not an assumption -- and it is what makes a base01 shell of his live only
+// while a hit slot is on (move011's T <= 0 arm). Unlike Khezu's, his reader does not write +0x15f8, so its
+// 500.0 stands. From the arc: mode 0 ints [0, 0, -1] -> 0x0c, mode 1 ints [-1, -1, 0] -> 0x80.
+//   WHY THIS MATTERS BEYOND ONE SHELL: run through params011 (em001_00's sp_01 reader) his three ints make
+// index 7 read past the end of the file, which is 0, and 0 != -1 sets flag 0x800 SPURIOUSLY -- the bit his
+// own reader cannot build at all. That is what made init011's 0x800 refusal fire on him.
+function params04s01(sh){
+  const I = i => !sh ? -1 : i < sh.ints.length ? sh.ints[i] : 0;
+  const flags = (I(0) !== -1 ? 4 : 0) | (I(1) !== -1 ? 8 : 0) | (I(2) !== -1 ? 0x80 : 0);
+  return { flags, joint: -1, timer: f(0.0), f1600: f(0.0), f15fc: f(1.0), vec: [0, 0, 0],
+           up: f(500.0), down: f(500.0), maxH: f(900.0) };   // timer 0.0: the ctor's, read at 0x3fa328 / 0x3fa37c
+}
+
+// which reader a base01 shell runs, by the class the table gives it. Keyed on the READER address, so
+// Gravios's shell01 -- the same class, the same vtable, the same reader, differing only in id and resource
+// (0x6d / 0x89bb against 0x6b / 0x89b9) -- takes the same entry with no second line.
+const READERS01 = { 0xd218c4: params01k, 0xd308dc: params04s01 };
 
 // sp_11's reader 0xd0ee8c (notes 7): none of base01's fields (flags 0, timer 0, +0x1608 the ctor's zero vector); +0x1664 =
 // [owner+0xcac8] (the shell01 id); a 4-float table (+0x1654, count +0x1658 = 4) = sh floats [0x169b744[k]]
@@ -4033,9 +5506,22 @@ function step011(S, ctx, input, D, out){
 // input: input.hitLife true -> each slot counts down once per step after every shell's move (the hit manager's pass,
 // INFERRED order), by dt -- a shell made and moved in a step ends at move delay + duration + 2 (+ 1 for a shell made by the
 // last unit of line 18, which first moves the next step). Without it, the ROM-run harness's life: the end at move 1.
-function slotsOf011(def, mode){
+function slotsOf011(def, mode, refused){
   const out = [];
-  if (!mode || !mode.hit || !def.hitdata) return out;
+  if (!mode || !mode.hit) return out;
+  // A MODE THAT NAMES A HIT RECORD WITH NO hitdata TABLE IS A NAMED GAP, NOT AN EMPTY SLOT LIST. The slot's
+  // life is (delay, duration) from the shell's HDS, and a base01 shell whose reader leaves +0x15f0 at the
+  // ctor's 0 lives ONLY as long as a slot is on (move011's T <= 0 arm) -- so defaulting the pair here would
+  // silently decide how long the shell exists. em004_00's shell01 is the one shell in this state: its
+  // _hit000 / _hit001 are read (records 0 and 1) and its _hitdata is not.
+  if (!def.hitdata){
+    if (refused && mode.hit.some(x => x != null && x >= 0))
+      refused.push({ shell: def.folder, mode: mode.ef && mode.ef[0] ? mode.ef[0][1] : null,
+                     why: 'a base01 mode names a hit record but the shell has no hitdata table: the HDS record '
+                        + 'fields (s16 delay, s16 duration) are unread, and they decide how long the shell lives '
+                        + 'when its timer +0x15f0 is the ctor 0' });
+    return out;
+  }
   for (const slot of [0, 1]){
     const idx = mode.hit[slot];
     if (idx == null || idx < 0 || !def.hitdata[idx]) continue;
@@ -4081,7 +5567,7 @@ function make001(state, D, name, setup, got, J, ctx, creator){
     else S.initEvents.push({ ev: 'refused', param: 0, listId: mode.ef[0] ? mode.ef[0][0] : null, key: mode.ef[0] ? mode.ef[0][1] : null });
   } else {
     const k = S.k = def.base === 'base11' ? params11(def, mode)
-                  : (READERS01[def.reader] || params011)(mode ? mode.sh : null);
+                  : (READERS01[def.reader] || params011)(mode ? mode.sh : null, def);   // def: its ShellCmnParam (params01k)
     if (!init011(S, k, setup, got, J, ctx.stage)) return null;
     if (def.base === 'base11'){
       S.timer = f(k.table[k.table.length - 1] + 10.0);  // 0x402fd8: +0x1614 = the last time + 10.0 (+0x165c = -1: no motion-speed divide)
@@ -4103,7 +5589,7 @@ function make001(state, D, name, setup, got, J, ctx, creator){
     }
     S.start = S.starts[0] || null;
     // the hit registration (vtable +0x158): the slots, counted only with input.hitLife
-    if (got.hitLife) S.slots = slotsOf011(def, mode);
+    if (got.hitLife) S.slots = slotsOf011(def, mode, ctx && ctx.out ? ctx.out.refused : null);
   }
   S.prevPosition = S.position.slice();
   return S;
@@ -4128,6 +5614,8 @@ function owner001(input){
            target: t && fin(t.x) && fin(t.y) && fin(t.z) ? [f(t.x), f(t.y), f(t.z)] : null,
            floorY: r && fin(r.floorY) ? f(r.floorY) : null,
            ground: fin(input.ground) ? f(input.ground) : (r && fin(r.floorY) ? f(r.floorY) : null),
+           // the unit's world matrix +0xb0 (0xc156c(-1)): base02's owner matrix (ray02real)
+           ownerMatrix: Array.isArray(input.ownerMatrix) && input.ownerMatrix.length === 16 ? input.ownerMatrix.map(f) : null,
            size: [f(sz[0]), f(sz[1])], base: f(input.baseScale == null ? 1 : input.baseScale), y5c: f(input.y5c == null ? 0 : input.y5c),
            rank: input.rank == null ? 5 : input.rank, hitLife: !!input.hitLife,
            questLevel: fin(input.questLevel) ? input.questLevel >>> 0 : null,
@@ -4517,6 +6005,12 @@ export function stepShells(state, input){
                             angles: full.angles.slice(), child: S2 ? S2.id : null, deleted: !S2 });
       if (S2){ state.shells.push(S2); out.spawned.push(S2); }
     };
+    // a beam's children (makeChild02g), made the same way during the beam's move
+    ctx.makeChild02g = (creator, ch, m, point, words) => {
+      const S2 = makeChild02g(state, creator, ch, m, point, words, ctx);
+      if (S2){ state.shells.push(S2); out.spawned.push(S2); }
+      return S2;
+    };
   }
   const frame = input.clip ? snapFrame(input.frame) : 0;
   // THE MOTION. A new clip is a new motion id. A frame that went back is either the motion's own loop -- a _loop
@@ -4532,6 +6026,10 @@ export function stepShells(state, input){
   const endAct = back && input.loopStart == null && state.hist && state.prevJoints
     ? (state.action || (input.action ? null : variantActionFor(input.monId, input.list, input.clip, input.rock && input.rock.variant))) : null;
   if (endAct && (endAct.spawns || []).some(sp => sp.atEnd)) endWrap001(state, D, endAct, ctx, out);
+  // a replay of a clip the game plays once is that action issued again (fresh, below): a beam whose action leaves its
+  // motion (`leave`) is gone by then -- another motion comes between two plays (Rustrazor's actions begin on L9 M2 / M5
+  // and L2 M73; Shogun's ends into action (0, 8), L5 M1) and ends it by +0x170, if nothing did earlier
+  if (ctx.motion === state.motion && back && input.loopStart == null) for (const S of state.shells) if (S.leave) S.left = true;
   if (ctx.motion !== state.motion || (back && input.loopStart == null)){
     state.motion = ctx.motion;
     state.action = ctx.motion ? actionFor(input.monId, input.list, input.clip, !!input.rage, input.action) : null;
@@ -4539,7 +6037,7 @@ export function stepShells(state, input){
     fresh = true;
   }
   state.loopStart = input.loopStart == null ? null : snapFrame(input.loopStart);
-  if (fresh){ state.seq = 0; state.drip = null; }
+  if (fresh){ state.seq = 0; state.drip = null; state.cls02 = null; }   // cls02: base02's phase-0 class (P+0x1a2)
   // P+0x1a2, the L4 M29 shot counter: its action's phase zeroes it when it begins (0xd005fc) and the clip loops inside
   // that phase, so a new clip clears it here and a wrap does not
   if (newMotion) state.shots = 0;
@@ -4556,6 +6054,18 @@ export function stepShells(state, input){
   } else if (a && !fresh && state.prevJoints && HELPERS001.has(a.spawner)){
     // Rathian's spawn helpers: their own tests on the same frame pair, one shell per call (spawn001)
     spawn001(state, D, a, ctx, input, out);
+  } else if (a && !fresh && state.prevJoints && a.code === 'beam'){
+    // the beam showcase ('Beam Test'): the beam base's own runtime for the type this play names (spawnBeam)
+    spawnBeam(state, D, a, ctx, input, out);
+  } else if (a && !fresh && state.prevJoints && a.code === 0xd28bb4){
+    // em004_00 / em005_00 shell02 (u 130), spawner 0xd28bb4 on L2 Motion[27] f142. Dispatched ahead of the
+    // generic arm for the same reason shell00 is: that arm is em001_00's.
+    spawn02b(state, D, a, ctx, input, out);
+  } else if (a && !fresh && state.prevJoints && (a.code === 0xd283fc || a.code === 0xd2ba08)){
+    // em004_00's shell00 spawners, before the generic `a.spawns` arm below: that arm is Rathian's
+    // (create001 runs HER readers params001 / params011 and make001), and Basarios's rows would otherwise
+    // fall into it and be built by another monster's code. His shell02 rows (0xd28bb4) are untouched.
+    spawn04(state, D, a, ctx, input, out);
   } else if (a && !fresh && state.prevJoints && a.spawns){
     // her siblings' other helpers (spawnVar001)
     spawnVar001(state, D, a, ctx, input, out);
@@ -4606,6 +6116,38 @@ export function stepShells(state, input){
       if (S){ out.spawned.push(S); state.shells.push(S); }
     }
   }
+  // THE BEAMS ON THEIR OWN MONSTERS (render/beam-spawns.js): a row of this clip -- among those whose `when` holds in the
+  // state the viewer shows (input.beamState: index.html, the same object the play's pick was made with) -- whose frame the
+  // frame pair the action code saw crosses (pass001, as every spawner here), or for an `atStart` row the clip's first step
+  // (the request the action's first update makes, beside its setMotion); the rows the play's pick names when the clip
+  // carries several. A computed +0x20 (`aim`) is taken where its spawner takes it (beamAimStep).
+  if (input.clip){
+    // (no state given -- a replay of an older capture -- reads as the defaults: not tired, calm, owner001's rank)
+    const rows = beamRowsFor(input.monId, input.list, input.clip, Object.assign({ rank: input.rank == null ? 5 : input.rank }, input.beamState || {}));
+    const v = input.rock && input.rock.variant;
+    const pick = new Set(rows.map(r => r.variant)).size > 1 ? rows.filter(r => r.variant === v) : rows;   // one pick: all
+    // A WRAP OF A MOTION ITS ACTION LEAVES is that action played again (Raven, 2026-10-01: "I have noticed effects
+    // eventually stop rendering", "If the animation is kept on loop long enough"): a row with `leave` belongs to an
+    // action that sets its next motion at `leave` -- the game never sees that motion loop -- so the viewer's loop of the
+    // clip is a replay, as the replay of a clip the game plays once already is (fresh, above), and the first-update spawn
+    // is made again on the step after the wrap. Without it Rustrazor's L9 M31 / M33 beam fired on the first pass only.
+    const rearm = !fresh && back && pick.some(r => r.atStart && r.leave);
+    if (fresh || rearm){ state.beamFirst = pick.some(r => r.atStart); state.beamAim = {}; }
+    for (const row of pick) if (row.aim) beamAimStep(state, row, input, fresh || rearm);
+    if (!fresh && state.prevJoints){
+      // the action leaving the motion (a row's `leave`) first, for the beams of its EARLIER updates, on the frame pair this
+      // update sees: a mode-1 test passes once the frame has reached F (0x72b04; after a wrap, 0x72904); the ended flag
+      // rises on the update that reaches the motion's length, which a looping motion shows as the wrap (0x94f374)
+      const [p0, p1] = state.hist;
+      for (const S of state.shells)
+        if (S.leave && S.state === 1 && !S.left && (p1 < p0 || (S.leave.frame != null && !(p1 < S.leave.frame)))) S.left = true;
+      // ...then this update's spawns (a re-armed first update waits for the step after the wrap, as a fresh one does)
+      const first = state.beamFirst && !rearm;
+      if (first) state.beamFirst = false;
+      for (const row of pick)
+        if (row.atStart ? first : pass001(state, f(row.frame))) spawnBeamReal(state, D, row, ctx, input, out);
+    }
+  }
   // Rathian's per-frame handler (its landing dust), run from the enemy's vtable +0x28 after its move: still line 4
   if (D.dust) dust001(state, D, ctx, input, out, fresh, a);
   if (D.perFrame) perFrame003(state, D, ctx, input, out, fresh);
@@ -4620,6 +6162,8 @@ export function stepShells(state, input){
     else if (S.base === 'base13') stepOrb(S, ctx, input, D, out);
     else if (S.base === 'base00' || S.base === 'base54') stepRock(S, J, ctx, input, D, out);
     else if (S.base === 'base01' || S.base === 'base11') step011(S, ctx, input, D, out);
+    else if (S.base === 'base02') step02(S, J, ctx, input, D, out);
+    else if (S.base === 'base02g') step02g(S, S.arm ? armJoints(input, S.arm) : J, ctx, input, D, out);
     else stepBreath(S, J, ctx, input, D, out);
     if (last) break;
   }
@@ -4639,7 +6183,26 @@ export function stepShells(state, input){
     if (g != null) state.prevJoints(g);
   }
   state.prevJoints(0);
+  // ...and the joints this monster's beam rows read (render/beam-spawns.js: the type's ray joint, an aim's joint), and an
+  // attached body's (Nakarkos's arms, input.attachedJoints) the same way, for the rows it fires
+  const AJ = input.attachedJoints || null;
+  state.prevArm = {};
+  if (AJ) for (const side of Object.keys(AJ)){
+    const s2 = new Map(), Jf = armJoints(input, side);
+    state.prevArm[side] = gid => { if (!s2.has(gid)){ const m = Jf(gid); s2.set(gid, m ? Array.from(m) : null); } return s2.get(gid); };
+  }
+  for (const r of BEAM_SPAWNS[state.monId] || []){
+    const t = BEAM_MODES.find(x => x.id === r.type), PJ = r.arm ? state.prevArm[r.arm] : state.prevJoints;
+    if (!PJ) continue;
+    if (t && t.ray && t.ray.joint >= 0) PJ(t.ray.joint);
+    if (r.aim && r.aim.joint != null) PJ(r.aim.joint);
+  }
   return out;
+}
+// an attached body's joints by gid, as the viewer hands them (input.attachedJoints[side]: the game's 16-float matrices)
+function armJoints(input, side){
+  const f0 = input.attachedJoints && input.attachedJoints[side];
+  return gid => (f0 ? f0(gid) : null);
 }
 
 // one breath shell's move this step (base04 0x3ff938, base55 0x42cb28): Savage's shell04 / shell55
@@ -4665,6 +6228,11 @@ function stepBreath(S, J, ctx, input, D, out){
 function spawn(state, D, a, J, ctx){
   const def = D.shells[a.shell], mode = def && def.modes[a.mode];
   if (!mode) return null;                                             // no ShellInfoList entry for the mode
+  // base13 does NOT belong on this path: the init below is base04's or base55's, and running either on an
+  // orb would not refuse -- it would make a WRONG shell. Khezu's base13 shells are made by spawnOrbs, keyed
+  // on `a.spawner === 0xd18ee0`; there is no such branch for em004_00's spawners (0xd283fc / 0xd2ba08), so
+  // its actions would otherwise fall through to here. Refuse until a base13 spawner exists for them.
+  if (def.base === 'base13') return null;
   const S = { id: state.nextId++, monId: state.monId, shell: a.shell, cls: def.cls, globalId: def.id, base: def.base,
               mode, modeIndex: a.mode, action: a.action, spawnFrame: a.frame, motion: ctx.motion, state: 1,
               position: null, prevPosition: null, anchor: null, angles: null, trail: null, timer: 0,

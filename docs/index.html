@@ -313,6 +313,10 @@ header #bar .btn.tiny{margin-right:0}
 #flyHint{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);max-width:calc(100% - 32px);
   white-space:nowrap;font-size:12px;line-height:1.4;color:var(--text);background:rgba(0,0,0,.55);
   border:1px solid var(--line);border-radius:8px;padding:6px 12px;pointer-events:none}
+/* the beam showcase's label: which beam type Basarios's Special 'Beam Test' is firing on this play */
+#beamLabel{position:absolute;top:44px;left:50%;transform:translateX(-50%);max-width:calc(100% - 32px);
+  white-space:normal;text-align:center;font-size:12px;line-height:1.4;color:var(--text);background:rgba(0,0,0,.6);
+  border:1px solid var(--line);border-radius:8px;padding:6px 12px;pointer-events:none}
 #orbitLock{display:inline-flex;align-items:center;gap:6px}
 #orbitLock img{width:14px;height:14px;display:block}
 /* the monster's own icon, from the set the sibling apps share */
@@ -611,12 +615,35 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <div class="panel-body">
           <div id="monGroups"></div>
           <label class="chk switch" id="monRageRow" hidden><input type="checkbox" id="monRage"><span class="toggle"></span>Enraged</label>
+          <!-- EXHAUSTED (render/motion-states.js TIRED_DROOL). Raven, 2026-09-30: "We are missing the Exhausted state,
+               outside of some animations and the effect showing the status, which impacts some animations". A state the
+               ROM reads over every clip (P+0x505, 0x81614): the drool c 1104 every 48 frames, the rage puff's countdown
+               zeroed, the PSL bits 12-14 in place of 6-8 (0xca170) and the command table's tired arms (op 0x24). The game
+               never has it with rage (0xbcd20, 0x76224), so the two toggles exclude each other. -->
+          <label class="chk switch" id="monTiredRow" hidden title="P+0x505 in {2, 3} (0x81614): drool c 1104 every 48 frames on any clip, the rage puff held, the tired PSL bits and the command table's tired arms. Never together with Enraged (0xbcd20, 0x76224)."><input type="checkbox" id="monTired"><span class="toggle"></span>Exhausted</label>
           <label class="chk switch" id="monChargeRow" hidden><input type="checkbox" id="monCharge"><span class="toggle"></span>Discharge</label>
           <!-- HEATED is an ARMOUR state, not an AI one, so it is independent of Enraged and Charged
                rather than exclusive with them. Agnaktor wears molten armour that cools: every one of
                its part rows offers the same break twice, once with its XfB_0__m0N_lavNN meshes and
                once without. Offered only where a review row asks for it. -->
           <label class="chk switch" id="monHeatedRow" hidden><input type="checkbox" id="monHeated"><span class="toggle"></span>Heated</label>
+          <!-- THE SHARED-STATE EFFECTS (render/rom/effect/shared-states.js): records the game's SHARED
+               ENEMY CODE requests, not the monster's class, so every monster holding them gets the same
+               switches. They are CLIP-INDEPENDENT -- the ROM plays them over whatever clip runs, on a
+               countdown of its own -- which is why they are toggles and not part rows.
+               LABELLED BY RECORD ID ON PURPOSE. Raven, 2026-09-28: "We do not fabricate or invent
+               anything when pulling info from the ROM ... You however don't label unless I ask you to do
+               so." Every descriptive name for these is the decode note's own inference -- it writes
+               "(INFERRED poison)", "(INFERRED paint mark)", "(INFERRED dung)", "(INFERRED lying in
+               shallow water)" -- so the switch said the id that was read and the tooltip the gate that
+               was read, and names were left for Raven.
+               NAMED BY RAVEN, 2026-09-28: "C1100 is Poisoned", "C1108 is Dung Bombed". Those are his
+               labels for the users, not a decode result -- the code still keys these states by record
+               id, and the tooltips still carry only what the ROM was read to say. -->
+          <div id="monSharedRow" hidden>
+            <label class="chk switch" title="c 1100 — requested while ailment bit 2 of P+0x5e08 is set, at once then every 90 frames, for 3600. Plays over whatever clip runs. The note infers poison; that is not read."><input type="checkbox" id="monC1100"><span class="toggle"></span>Poisoned</label>
+            <label class="chk switch" title="c 1108 — requested while the timer P+0x5d24 runs, at once then every 36 frames, for 3600. No clip of its own. The note infers dung from the record's brown colour word; that is not read."><input type="checkbox" id="monC1108"><span class="toggle"></span>Dung Bombed</label>
+          </div>
           <div class="field" id="monRageLevelRow" hidden><label for="monRageLevel">Rage</label>
             <select id="monRageLevel"></select></div>
           <!-- A LEVEL AXIS WITH MORE THAN TWO VALUES, declared per monster in part-review.json's
@@ -843,6 +870,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <div id="viewport"></div>
       <div id="loading">Loading...</div>
       <div id="flyHint" hidden>Click to look around &middot; WASD move &middot; Q/E up/down &middot; Shift fast &middot; Esc frees the mouse</div>
+      <div id="beamLabel" hidden></div>
       <!-- The hit-zone chart floats over the render rather than living in the sidebar, where ten
            numeric columns could not fit a 300px column (Raven, 2026-09-05: "Hit Zone Map, I want
            displayed in a window in the Render Area, but it can be hidden by a toggle in the Hit
@@ -1306,9 +1334,10 @@ import { gidBonesOf } from './render/skeleton.js';
 import { loadMaterialsDb } from './render/materials-db.js';
 import { createBackground } from './render/background.js';
 import { createFloorGrid, createGrid } from './render/grid.js';
-import { MotionStates, RAGE_BY_LEVEL, RAGE_PUFF, JOINT_SCALE, JointScale, shellTailInput,
+import { MotionStates, MOTION_STATES, RAGE_BY_LEVEL, RAGE_PUFF, TIRED_DROOL, JOINT_SCALE, JointScale, shellTailInput, shellPartsInput,
          postureOf, turnAt, CEILING_ABOVE_GAME } from './render/motion-states.js';
-import { pickVariantsFor } from './render/shells.js';
+import { pickVariantsFor, BEAM_TYPES } from './render/shells.js';
+import { pslMask, clipActionFor, ACTION_EFFECTS, actionName, actionOf } from './render/psl-mask.js';
 import { CUT_TAIL, CutTail } from './render/tail-option.js';
 import { setEyeGlow, updateEyeGlow } from './render/eye-glow.js';
 import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
@@ -1330,7 +1359,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          setProxyVisible, proxyCount, enrageParts, ROM_SPAWN_CLIP,
          ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels, levelClipFor, setClipFor,
          attachedBodyOf, attachedClipFor, partnerBodyOf, composeClip, sequenceClipFor, seqFrames,
-         FULL_ANIM_LIST, romAnimationsOf,
+         FULL_ANIM_LIST, romAnimationsOf, romAnimationMotion, piecesOf, foldLoopFrame, loopFoldOf,
          stepEarFold, stepTailSwell, stepHornRaise, stepRageFur, romFormsOf,
          GAG_EYES, gagEyesOf, setGagEyes, mountGagEyes,
          monsterMats,
@@ -1368,7 +1397,8 @@ for (const m of MON.monsters){
   if (!anims.length) continue;
   const clips = [];
   for (const an of anims){
-    const pieces = an.pieces.map(([lid, cn]) => {
+    // the chain with its loop cycles (render/monster.js piecesOf: an entry's `loops`)
+    const pieces = piecesOf(an).map(([lid, cn]) => {
       const l = (m.lists || []).find(x => String(x.id) === String(lid));
       const c = l && (l.clips || []).find(x => x.clip === cn);
       return c ? { list: l, clip: cn, dur: c.dur } : null;
@@ -2987,7 +3017,7 @@ function applyCameraState(c){
 }
 // The Parts panel's state controls as a monster opens on them: Enraged, Charged, Heated, the Rage
 // ladder, the level axis and the variant. resetMonsterState() puts them back on a monster change.
-const STATE_DEFAULTS = { rage: false, charged: false, heated: true, rageLevel: 0, level: 0, variant: 0, size: 0 };
+const STATE_DEFAULTS = { rage: false, tired: false, charged: false, heated: true, rageLevel: 0, level: 0, variant: 0, size: 0 };
 // GROUND LOWEST BONE IS OFF for monsters, and saved as `groundLock` so a view saved while it defaulted on
 // opens with it off. Raven, 2026-09-13: "We may not need to 'ground lowest bone' any more", then "keep the
 // checkbox in Debug for now". It pins the lowest bone to the BIND pose's lowest bone every frame -- a fix
@@ -3045,7 +3075,17 @@ let synthPicked = {};
 // em001_00). That is a FIXED before/after render, so part-review.json's defaults must stand aside
 // for it -- otherwise reviewing Rathian would silently change what the scene shoots.
 let groupsExplicit = false;
-const pose = new PoseDriver({ frame: world, onError: msg => noteError(msg) });
+// THE MOUNT FRAME: the frame the main pose driver writes every bone in (render/pose.js `frame`). The posture mount
+// (stepMount) turns and lifts THIS, not the monster's group: pose.js poses each bone by WORLD matrix, so whatever is on
+// the group is divided back out on the next step (stepTurn's note). On the group, the mount moved only the DRAWN mesh --
+// a skinned mesh's own transform rides on top of its bones -- and left the bones, which every effect and shell reads
+// (render/rom/effect/live.js writeJoints), where the un-mounted body would be: Khezu's effects on his ceiling clips,
+// Shogun's water beam (Raven, 2026-10-01: "Review Shogun's water beams"). Given exactly the transform the group used to
+// get, the drawn result is the same and the bones go with it.
+const mountFrame = new THREE.Group();
+mountFrame.name = 'mountFrame';
+world.add(mountFrame);
+const pose = new PoseDriver({ frame: mountFrame, onError: msg => noteError(msg) });
 const monSel = document.getElementById('monSel'), monFilter = document.getElementById('monFilter'),
       monListSel = document.getElementById('monList'), monClipSel = document.getElementById('monClip'),
       monGroupsEl = document.getElementById('monGroups'), monAbout = document.getElementById('monAbout'),
@@ -6136,6 +6176,9 @@ function applyRage(){
   // the checkbox is the control only where there is no ladder
   document.getElementById('monRageRow').hidden = !has || ladder.length > 0;
   document.getElementById('monRage').checked = !!state.rage;
+  paintTired();
+  // the SHARED-STATE row appears per monster, once the effect runtime has built its SharedStates
+  if (window.__refreshSharedRow) window.__refreshSharedRow();
   // ...and its label is reviewable as the ladder's is: part-review `rage.name`. Raven, 2026-09-16: "Change Raging
   // Brachy's Enraged Toggle to Red slime" -- its enrage is what turns the slime red (ROM_MEAT_SWITCH em063_05).
   {
@@ -6226,6 +6269,7 @@ function applyRage(){
       state.rage = !!lv.rage[state.level | 0];
       document.getElementById('monRageRow').hidden = true;
       document.getElementById('monRage').checked = !!state.rage;
+      paintTired();
     }
   }
   if (!canCharge && state.charged) state.charged = false;
@@ -6265,6 +6309,25 @@ function levelMatState(){
   const lv = (reviewFor(state.id) || {}).levels;
   if (!lv || !Array.isArray(lv.mat)) return null;
   return lv.mat[state.level | 0] === 'tired' ? 'tired' : null;
+}
+// EXHAUSTED, as the whole viewer reads it (render/motion-states.js TIRED_DROOL): the Exhausted toggle, or a state rung
+// that IS exhaustion (Mizutsune's and Soulseer's "State: Exhausted", whose rung is then the control and the toggle is
+// hidden -- one control per state, as the rung already is for their Enraged).
+function exhausted(){ return !!state.tired || levelMatState() === 'tired'; }
+function tiredRung(){
+  const lv = (reviewFor(state.id) || {}).levels;
+  return !!(lv && Array.isArray(lv.mat) && lv.mat.includes('tired'));
+}
+// Offered where the monster's exhaustion has something to show: a tired idle and its drool, read per monster
+// (TIRED_DROOL). A monster without one -- Akantor never tires (stamina forced 0), several drools the notes could not
+// settle -- keeps the state off rather than a toggle that changes nothing.
+function paintTired(){
+  const row = document.getElementById('monTiredRow');
+  const can = !!TIRED_DROOL[state.id] && !tiredRung();
+  if (!can) state.tired = false;
+  if (state.rage) state.tired = false;                       // never both (0xbcd20, 0x76224)
+  row.hidden = !can;
+  document.getElementById('monTired').checked = !!state.tired;
 }
 // The clip the chosen rung names, or null for No Rage / a monster with no ladder.
 function levelClip(){
@@ -6717,8 +6780,51 @@ document.getElementById('monHeatTable').onchange = async e => {
 };
 document.getElementById('monBounceT').onchange = async e => { state.deflectT = e.target.value; await applyHeat(); applyGap(); saveState(); };
 document.getElementById('monGag').onchange = e => { state.gagEyes = e.target.checked; paintGagEyes(); saveState(); };
+// THE SHARED-STATE TOGGLES -> shared-states.js, through the live runtime. Each one turns a state on and
+// the ROM's own countdown does the rest: the record is requested AT ONCE (0x720a4 fires an already
+// expired timer) and then on that state's period for as long as the toggle is on.
+//   The row is shown only when the monster actually HAS the records -- the shared code requests them from
+// its own c.pel, and a monster whose pel lacks them would offer a switch that does nothing.
+// c 1106 and c 1500 are NOT offered: Raven checked them against the game on 2026-09-28. A paintball is
+// thrown once, not repeatedly, and c 1500 goes with STEPPING in shallow water rather than the lying
+// gate the decode reads — and either way a loop that runs with no walking is wrong. See shared-states.js.
+const SHARED_TOGGLES = { monC1100: 'c1100', monC1108: 'c1108' };
+for (const id of Object.keys(SHARED_TOGGLES)){
+  const el = document.getElementById(id);
+  if (el) el.onchange = e => {
+    const rt = effectRuntimeInstance();
+    if (rt && rt.setSharedState) rt.setSharedState(SHARED_TOGGLES[id], e.target.checked);
+  };
+}
+// shown per monster: the row appears when the effect runtime built a SharedStates for it
+function refreshSharedRow(){
+  const row = document.getElementById('monSharedRow');
+  if (!row) return;
+  const rt = effectRuntimeInstance();
+  row.hidden = !(rt && rt.sharedStates);
+  if (row.hidden) for (const id of Object.keys(SHARED_TOGGLES)){
+    const el = document.getElementById(id); if (el) el.checked = false;
+  }
+}
+window.__refreshSharedRow = refreshSharedRow;
+
+// EXHAUSTED (paintTired): turning it on takes rage off through rage's own control, so the parts and materials follow
+// exactly as unticking Enraged makes them; everything exhaustion changes is read per frame from motionStates.tired().
+document.getElementById('monTired').onchange = e => {
+  state.tired = e.target.checked;
+  if (state.tired && state.rage){
+    const lvRow = document.getElementById('monRageLevelRow'), lvSel = document.getElementById('monRageLevel');
+    const box = document.getElementById('monRage');
+    if (!lvRow.hidden){ lvSel.value = String([...lvSel.options].map(o => +o.value).sort((a, b) => a - b)[0] || 0); lvSel.onchange({ target: lvSel }); }
+    else { box.checked = false; box.onchange({ target: box }); }
+  }
+  paintTired();
+  saveState();
+};
 document.getElementById('monRage').onchange = e => {
   state.rage = e.target.checked;
+  if (state.rage) state.tired = false;                     // never both (0xbcd20, 0x76224)
+  paintTired();
   // BOTH MAY BE ON. They used to be one state at a time on the reading that Khezu's Angry and Taiden branches
   // are two values of one byte at enemy+0x48 -- but that byte has a value for both, 3, reached by charging
   // while angry (0xd1ed40). Raven, 2026-09-15: "we can have Enraged and Discharge states at the same time".
@@ -6744,6 +6850,8 @@ document.getElementById('monRage').onchange = e => {
 document.getElementById('monRageLevel').onchange = e => {
   state.rageLevel = +e.target.value | 0;
   state.rage = state.rageLevel > 0;
+  if (state.rage) state.tired = false;                     // never both (0xbcd20, 0x76224)
+  paintTired();
   markStateChange();
   // ALWAYS recompute, not only where ROM_RAGE_SET has an entry: the rung owns the effect's parts
   // whether or not the ROM switches anything else on rage, and Bloodbath has no ROM_RAGE_SET row.
@@ -7071,6 +7179,7 @@ function applySet(o){
   if (dt === 'f25' || dt === 'f27') state.deflectT = dt;
   if (typeof o.proxy === 'boolean') state.proxy = o.proxy;
   if (typeof o.rage === 'boolean') state.rage = o.rage;
+  if (typeof o.tired === 'boolean') state.tired = o.tired && !state.rage;     // never both (0xbcd20, 0x76224)
   if (typeof o.charged === 'boolean') state.charged = o.charged;
   if (typeof o.rageLevel === 'number') state.rageLevel = Math.max(0, o.rageLevel | 0);
   // clamped against the monster's own rung count when the control is built, as rageLevel is
@@ -7171,6 +7280,51 @@ function animAdvance(){
   // clamps whatever it gets to MAX_STEPS anyway, so a long frame costs at most four steps.
   return d > 0 ? Math.min(d, 0.25) : 0;
 }
+// WHICH ACTION A PLAY IS, AND WHAT THE MONSTER'S CODE DOES WITH IT (render/psl-mask.js). The game plays a motion as an
+// ACTION, and for a monster whose enable word is read (PSL_MASK_MONSTERS) the action decides which of the motion's PSL
+// bits fire -- enemy +0x13f4, built at the motion's start by the class's vtable +0x13c -- and which records the action's
+// own code asks for at a frame (ACTION_EFFECTS). The viewer plays clips, so each play is given an action the way the
+// shells' picks already are:
+//   * a Special entry that is one whole motion names its action (render/monster.js ROM_ANIMATIONS `action`, and its
+//     op-0x24 twin `tired` while the motion shows the monster exhausted and calm) -- Basarios's gases;
+//   * a clip whose shells take a pick takes that play's pick (rockInput: one play, one action, for both);
+//   * else the clip's actions in turn (psl-mask.js CLIP_ACTIONS), the next each play.
+// The word is LATCHED at the play's start, as the ROM builds it at setMotion (0x7256c) and a state change mid-motion
+// waits for the next one; the state is the one the motion starts in -- its MOTION_STATES row's rage / tired, else the
+// user's -- read the way motionStates.step reads a row.
+const plays = { key: null, frame: 0, n: -1, action: null, mask: null, motion: null, token: 0 };
+function playNow(act, base, frame, loopSeg, loopStart = 0){
+  if (!act || !base){ plays.key = null; return null; }
+  const key = state.id + '|' + state.list + '|' + base;
+  const prevFrame = plays.frame;
+  plays.frame = frame;
+  // a _loop clip's wrap is the motion going on (the ROM loops at the motion's loop frame inside one action), not a play
+  // (after a wrap the frames passed are the loop's own, from its start)
+  if (key === plays.key && (frame >= prevFrame || loopSeg))
+    return Object.assign({}, plays, { prevFrame: frame >= prevFrame ? prevFrame : loopStart - 1e-6 });
+  plays.n = key === plays.key ? plays.n + 1 : 0;
+  plays.key = key;
+  let list = state.list, clip = base;
+  const an = state.list === FULL_ANIM_LIST.id ? romAnimationMotion(state.id, base) : null;
+  if (an){ list = an.motion[0]; clip = an.motion[1]; }
+  const slot = +((/^Motion\[(\d+)\]$/.exec(clip) || [])[1]);
+  const row = (MOTION_STATES[state.id] || {})[list + '|' + clip] || null;
+  const rage = row && row.rage === true ? true : (row && (row.rage === false || row.dead)) ? false : !!state.rage;
+  const tired = !rage && (!!(row && row.tired) || exhausted());
+  let action = null;
+  if (an) action = (tired && an.tired) ? an.tired : (an.action || null);
+  else {
+    const ri = rockInput();                              // the shells' pick for this play (counts the play itself)
+    action = (ri && ri.variant) ? actionOf(ri.variant) : clipActionFor(state.id, list, clip, plays.n, { tired, rage });
+  }
+  if (actionName(action) !== actionName(plays.action) || !plays.motion || plays.motion.clip !== clip || plays.motion.list !== list)
+    plays.token++;                                       // another action: to the walker, another motion start
+  plays.motion = { list, clip, slot };
+  plays.action = action;
+  plays.mask = Number.isFinite(slot) ? pslMask(state.id, list, slot, action, { rage, tired }) : null;
+  return Object.assign({}, plays, { prevFrame: frame });
+}
+
 function driveClipEffects(){
   const rt = effectRuntimeInstance();
   if (rt) rt.advance = animAdvance();               // the effects step on the animation, not on wall time
@@ -7189,10 +7343,24 @@ function driveClipEffects(){
     const sib = ((listOf(entry()) || {}).clips || []).find(c => c.clip === base + '_start');
     if (sib) splitOffset = Math.round(sib.dur * 60);
   }
-  rt.schedule.setClip(act ? state.id + '|' + state.list + '|' + base : null, act ? act.time * 60 + splitOffset : 0,
-                      base ? clipEffectsFor(state.id, base, state.list) : null, splitOffset);
   if (!rt.schedule.rockInput) rt.schedule.rockInput = rockInput;
   if (!rt.schedule.shellExtra) rt.schedule.shellExtra = shellExtra;
+  let frame = act ? act.time * 60 + splitOffset : 0, loopSeg = !!(clipName && clipName.endsWith('_loop'));
+  // a Special entry that is one whole motion played with loop cycles: the motion's own frame, folded into its loop
+  // (render/monster.js foldLoopFrame) -- each cycle is the motion looping, not a new play
+  const curClip = base ? ((listOf(entry()) || {}).clips || []).find(c => c.clip === base) : null;
+  const fold = act && curClip ? loopFoldOf(state.id, state.list, base, curClip.pieces) : null;
+  if (fold){ const r = foldLoopFrame(act.time * 60, fold.S, fold.L); frame = r.frame; if (r.loopStart != null){ splitOffset = r.loopStart; loopSeg = true; } }
+  const play = playNow(act, base, frame, loopSeg, splitOffset);
+  // the enable word (null: a monster whose word is not read -- every listed bit, as before) and, with it, the play's
+  // token: a new action is a new motion start to the walker (0x7256c flags the sequence +0xc0 |= 4)
+  const mask = play ? play.mask : null;
+  rt.schedule.setClip(act ? state.id + '|' + state.list + '|' + base : null, frame,
+                      base ? clipEffectsFor(state.id, base, state.list) : null, splitOffset, mask, mask != null ? play.token : null, loopSeg);
+  // the action's own requests at a frame of its motion (ACTION_EFFECTS: the frame passed this step)
+  const ae = play && play.action && play.motion && (ACTION_EFFECTS[state.id] || {})[play.motion.list + '|' + play.motion.clip];
+  const rec = ae && ae.by[actionName(play.action)];
+  if (rec && play.prevFrame < ae.frame && frame >= ae.frame) rt.fire(rec[0], rec[1]);
 }
 
 // RAGE RECORDS THAT FOLLOW A PART (render/motion-states.js RAGE_BY_LEVEL): Nargacuga's trails, one record while its head
@@ -7280,38 +7448,58 @@ function stepTurn(base, frame){
 //   THE 430 IS NOT A PLACEMENT. TenjoOfs + 30 is the REACH the monster can attach across (0xd13884), never a height;
 //   the plane's own height is free, and the viewer's is whatever the box is set to.
 const _mountE = new THREE.Euler(), _mountQ0 = new THREE.Quaternion();
-let mountedOn = null, _mountY0 = 0, _mountZ0 = 0;
-// THE MOUNT IS PER MONSTER UNTIL ITS CLIPS ARE MEASURED. The plane is shown for anyone whose posture table says so,
-// but turning the monster onto it needs one more thing checked: WHICH WAY ITS CEILING CLIPS ARE AUTHORED. Khezu's sit
-// at root Y +178.9 and hang below the plane once the engine's roll of 180 is applied; SHOGUN CEANATAUR'S SIT AT
-// -230.3, the opposite sign, so the same transform would put him inside the ceiling instead of under it. Until his
-// own clips are measured he gets the plane and not the turn -- a monster shown upright beside its ceiling is honest,
-// one buried in it is not.
-const MOUNT_OK = new Set(['em003_00']);
+let mountedOn = null, mountedBones = false, _mountY0 = 0, _mountZ0 = 0;
+// THE MOUNT IS PER MONSTER: the plane is shown for anyone whose posture table says so, and turning the monster onto it
+// is the engine's TILT PASS 0xbdf54, whose mode is the monster's own (.dtb tilt record, efx/agents/mount-scratch/
+// tiltrec.py -> e+0x7470). Khezu's sit at root Y +178.9 and hang below the plane once the engine's roll of 180 is
+// applied; SHOGUN CEANATAUR'S SIT AT -230.3, the opposite sign -- and the ROM says why (read 2026-10-01):
+//   Khezu, mode 0: the surface's own normal (e+0x1080, the ceiling record's (0, -1, 0) installed at posture 6) -> roll 180.
+//   Shogun, mode 1 (0xbe048..0xbe33c): the normal is FITTED to three points -- his sample points (180, 0, 150) and
+//     (-180, 0, 150) (scaled by his size, turned by his facing, each probed to the surface or left on the plane P+0x5b4)
+//     and the unit's own position -- as (c - p0) x (p1 - p0), which points UP on any flat surface, floor or ceiling.
+//     The ceiling's normal is never read, so the tilt pass keeps the roll 0 his class writes on attaching (0xdc7844):
+//     the engine pins his origin to the ceiling (0xbf284) and does NOT turn him -- his clips are authored hanging.
+// Raven, 2026-10-01: "Review Shogun's water beams, keep in mind Water Beam animations" -- shown upright on the floor his
+// L2 Motion[27] beam, fired straight down from his shell (joint 143, its 180-degree angle word), stopped in the floor an
+// arm's length below him; hung from the ceiling it crosses the whole box to the floor.
+// `bones`: the mount goes on mountFrame, the frame the pose driver writes the bones in, so the drawn body AND its
+// bones -- every effect and shell reads them -- go onto the surface together. Khezu keeps the group-level mount he was
+// reviewed with: under three.js's attached bind mode a skinned mesh ignores its own group's transform, so that one
+// never moved his drawn body or his bones, and changing what his ceiling clips show is a change to put to Raven.
+const MOUNT = { em003_00: { roll: true, bones: false }, em020_00: { roll: false, bones: true } };
 function stepMount(want){
-  const on = MOUNT_OK.has(state.id) ? (want.includes(6) ? 6 : want.includes(5) ? 5 : 0) : 0;
+  const style = MOUNT[state.id] || null;
+  const on = style ? (want.includes(6) ? 6 : want.includes(5) ? 5 : 0) : 0;
   const main = mounted.main;
   if (!main) return;
-  if (on === 0){
-    if (mountedOn !== null){
-      main.quaternion.copy(_mountQ0); main.position.y = _mountY0; main.position.z = _mountZ0; mountedOn = null;
-    }
-    return;
+  // a monster's mount goes on the bones' frame (mountFrame, at rest the identity) or on its group, as MOUNT says
+  const off = () => {
+    if (mountedOn === null) return;
+    if (mountedBones){ mountFrame.quaternion.identity(); mountFrame.position.set(0, 0, 0); }
+    else { main.quaternion.copy(_mountQ0); main.position.y = _mountY0; main.position.z = _mountZ0; }
+    mountedOn = null;
+  };
+  if (on === 0 || (mountedOn !== null && mountedBones !== !!style.bones)) off();
+  if (on === 0) return;
+  if (mountedOn === null){
+    mountedBones = !!style.bones;
+    if (!mountedBones){ _mountQ0.copy(main.quaternion); _mountY0 = main.position.y; _mountZ0 = main.position.z; }
   }
-  if (mountedOn === null){ _mountQ0.copy(main.quaternion); _mountY0 = main.position.y; _mountZ0 = main.position.z; }
   mountedOn = on;
+  const F = mountedBones ? mountFrame : main;
   // the wall's outward normal is +z here (the wallZ plane), so its yaw is 0; a placed wall keeps that until the
-  // viewer lets a wall be turned -- and the clip's own turn (stepTurn) rides on top of it
-  const yaw = turnYaw;
-  _mountE.set(on === 5 ? -Math.PI / 2 : 0, yaw, Math.PI, 'YXZ');
-  main.quaternion.setFromEuler(_mountE);
+  // viewer lets a wall be turned -- and the clip's own turn (stepTurn) rides on top of it. On the bones' frame the turn is
+  // already in the proxy the bones copy (stepTurn), so the frame takes none of it.
+  const yaw = mountedBones ? 0 : turnYaw;
+  _mountE.set(on === 5 ? -Math.PI / 2 : 0, yaw, style.roll ? Math.PI : 0, 'YXZ');
+  F.quaternion.setFromEuler(_mountE);
   // THE ORIGIN GOES ONTO THE PLANE. The ROM pins a ceiling monster's origin exactly to the surface (0xbf284:
   // P+0x44 = P+0x5b4 for postures 0/3/4/6, offset zero) and leaves a WALL monster's HEIGHT free -- it only clamps it
   // between the floor and the ceiling -- but he is still ON the wall in the wall's own axis. So a ceiling clip takes
   // the plane's height and a wall clip takes the plane's z, and each keeps what it stood at in the other.
   const s = world.scale.y || 1;
-  main.position.y = on === 6 ? (box.ceiling.info().y - world.position.y) / s : _mountY0;
-  main.position.z = on === 5 ? (box.wall.info().at - world.position.z) / s : _mountZ0;
+  F.position.y = on === 6 ? (box.ceiling.info().y - world.position.y) / s : (mountedBones ? 0 : _mountY0);
+  F.position.z = on === 5 ? (box.wall.info().at - world.position.z) / s : (mountedBones ? 0 : _mountZ0);
 }
 
 // THE CUT TAIL (render/tail-option.js; tail-option-em043.md). A sever's frame 0 drops the monster's tail piece at its
@@ -7388,21 +7576,64 @@ const SHELL_QUEST_LEVEL = 10;
 // above it, and his breath picks its mode the same way. G goes with the quest level above it.
 const SHELL_QUEST_RANK = 5;
 function shellExtra(){
-  return { questLevel: SHELL_QUEST_LEVEL, rank: SHELL_QUEST_RANK,
+  return { questLevel: SHELL_QUEST_LEVEL, rank: SHELL_QUEST_RANK, beamState: beamState(), attachedJoints: attachedJointsInput(),
            ...shellTailInput(state.id, mounted.main && mounted.main.userData.partsDrawn) };
 }
+// THE ATTACHED BODIES' JOINTS, by side -- Nakarkos's arms fire most of his beams from their own joints (render/beam-spawns.js
+// `arm`) -- in the convention the effect runtime hands the body's (render/rom/effect/live.js writeJoints): the bone's world
+// matrix, its translation in game units (/ 0.01), read when the shells step. A partner body (Seltas) is not an arm.
+function attachedJointsInput(){
+  let out;
+  for (const [name, a] of attached){
+    if (a.partner || !a.spec || !mounted[name]) continue;
+    const side = a.spec.listPrefix === 'l_' ? 'left' : a.spec.listPrefix === 'r_' ? 'right' : name;
+    const bones = gidBonesOf(mounted[name]);
+    (out || (out = {}))[side] = gid => {
+      const b = bones.find(x => x.gid === gid);
+      if (!b || !b.node) return null;
+      const el = b.node.matrixWorld.elements.slice();
+      el[12] /= 0.01; el[13] /= 0.01; el[14] /= 0.01;
+      return el.map(Math.fround);
+    };
+  }
+  return out;
+}
+// THE STATE A BEAM ON ITS OWN MONSTER IS FIRED IN (render/beam-spawns.js `when`): exhaustion and rage as the motion shows
+// them, the quest rank above, and the parts the model shows (render/motion-states.js SHELL_PARTS) -- one object for both
+// the play's pick (rockInput) and the shells' own step (shellExtra), so the two never disagree
+function beamState(){
+  return { tired: motionStates.tired(), rage: motionStates.rage(state.rage), rank: SHELL_QUEST_RANK,
+           parts: shellPartsInput(state.id, mounted.main && mounted.main.userData.partsDrawn) };
+}
 const rockPlays = { key: null, time: 0, n: -1, names: [] };
+// the beam showcase's label: the type this play of Basarios's Special 'Beam Test' fires (render/beam-types.js), or hidden.
+// The Beam Test's alone -- a beam on its own monster shows no label (Raven, 2026-10-01: "For beams outside of the Beam
+// Test animation, we don't need the display saying what beam it is")
+const beamLabel = document.getElementById('beamLabel');
+let beamLabelShown = null;
+function paintBeamLabel(variant){
+  const m = /^beam:(\d+)$/.exec(variant || ''), t = m && BEAM_TYPES[+m[1]];
+  const text = !t ? null : 'Beam Test ' + (+m[1] + 1) + ' / ' + BEAM_TYPES.length + ': ' + t.name + ' (' + t.id + ') -- beam u ' + t.beam[1] +
+    (t.impact ? ', impact u ' + t.impact[1] : '') + ' -- life ' + t.life + ', length ' + t.length +
+    (t.growth ? ', grows over ' + t.growth : '') + (t.ramp ? ', ramps ' + t.ramp.join('..') : '') + ((t.flags & 4) ? ', cut at the ground' : '') +
+    (t.notRead ? ' -- not transcribed: ' + t.notRead : '');
+  if (text === beamLabelShown) return;
+  beamLabelShown = text;
+  beamLabel.hidden = !text;
+  beamLabel.textContent = text || '';
+}
 function rockInput(){
   const act = pose.action, clipName = act && act.getClip ? act.getClip().name : null;
   // the choices the monster's state leaves: Rathian's tired twins (no fireball) only while tired and not enraged (the
   // command table's op 0x24 on 0x81634, shells-em001.md) -- as the motion shows those states
-  const names = clipName ? pickVariantsFor(state.id, state.list, clipName, { tired: motionStates.tired(), rage: motionStates.rage(state.rage) }) : [];
+  const names = clipName ? pickVariantsFor(state.id, state.list, clipName, beamState()) : [];
   if (names.length){
     const key = state.id + '|' + state.list + '|' + clipName;
     if (names.join() !== rockPlays.names.join()) rockPlays.n = -1;             // another monster's picks: from its first
     if (key !== rockPlays.key || act.time < rockPlays.time) rockPlays.n++;       // a new play of a throw
     rockPlays.key = key; rockPlays.time = act.time; rockPlays.names = names;
   } else rockPlays.key = null;
+  paintBeamLabel(names.length ? names[Math.max(0, rockPlays.n) % names.length] : null);
   const rt = effectRuntimeInstance(), P = rt && rt.parent;
   if (!P || !rt.schedule) return null;
   const y = monsterFloorY() / 0.01;
@@ -7415,7 +7646,17 @@ function rockInput(){
   // Raven, 2026-09-23: "I suspected we would need the planes in place for the monster code to work as the ROM has it."
   // He is right, and it is not only display: with no wall the query could never hit, which is why shell03 mode 20's
   // climb branch was unreachable and untranscribed until one existed.
-  const wall = box.wall.on ? { axis: 'z', at: box.wall.info().at / 0.01, facing: 1 } : undefined;
+  //   `facing` IS COMPUTED, not a constant (2026-09-30). It was `+1` here, which the sentence above already
+  // said it should not be, and a constant +1 makes the wall UNHITTABLE for anything travelling +z: shells.js
+  // stageQuery's wall arm needs `sgn*(prev - at) >= 0` and `sgn*(new - at) < 0`, i.e. a crossing in -z, so a
+  // +z shell passes through the plane at every wall position. Effects measured it without a browser, with a
+  // control -- one captured Basarios flight (em004_00, L4 Motion[5], 7:0x04) replayed through shellplan at
+  // facing +1 is BYTE-IDENTICAL to no wall at all, and at facing -1 it hits at frame 56 and fires u 162.
+  // His fireball flies +z (z = 45 -> 5050 over ~143 frames), so with a constant +1 his burst was not merely
+  // undriven, it was unreachable. +1 was right only because the wall had always been placed behind a
+  // wall-clinging Khezu, which is the side the owner is on in that case and in no other.
+  const wallAt = box.wall.on ? box.wall.info().at / 0.01 : 0;
+  const wall = box.wall.on ? { axis: 'z', at: wallAt, facing: P.position[2] >= wallAt ? 1 : -1 } : undefined;
   return { variant: picks.length ? picks[Math.max(0, rockPlays.n) % picks.length] : null,
            target: { x: P.position[0] + ahead * Math.sin(yaw), y, z: P.position[2] + ahead * Math.cos(yaw) },
            floorY: y, wall };
@@ -7464,7 +7705,13 @@ function driveMotionStates(){
   const loopSeg = !!(clipName && clipName.endsWith('_loop'));
   const loopEnd = act ? loopStart + act.getClip().duration * 60 : 0;
   const r = motionStates.step(state.id, state.list, base, act ? act.time * 60 + loopStart : 0,
-                              { loopStart, loopEnd, loopSeg }, { rage: !!state.rage }, now);
+                              { loopStart, loopEnd, loopSeg },
+                              // `level` is the charge rung (render/motion-states.js CHARGE_EFFECTS): the
+                              // records a class holds while a charge TIER is up rather than while a clip
+                              // plays, so they are diffed in step() and come back as holdOn / holdOff / fire
+                              // like any other, and nothing new is needed here to apply them.
+                              // `tired`: the Exhausted state (exhausted()), held over every clip as P+0x505 is
+                              { rage: !!state.rage, level: state.level | 0, tired: exhausted() }, now);
   if (r.parts) applyPartState();
   // a change the motion begins after (death, well into its fall) is shown with its transitions over
   if (r.rage){ markStateChange(); if (r.settled) tStateChanged = -1e9; }

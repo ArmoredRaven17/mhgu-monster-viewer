@@ -531,12 +531,717 @@
    }
   }
  },
+ "cm202_022_g": {
+  "tex": [
+   "tex/f5699c8ba59a853b.webp",
+   "tex/7433f8957de835d6.webp"
+  ],
+  "mats": {
+   "XfB_W_cm202_020vb": {
+    "state": {
+     "bs": "BSSolid",
+     "ds": "DSZTestWrite",
+     "rs": "RSMesh",
+     "bias": 0,
+     "cull": "back",
+     "blend": "opaque"
+    },
+    "t": {
+     "albedo": 1
+    }
+   },
+   "XfBA1__cm202_022b": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMesh",
+     "bias": 0,
+     "cull": "back",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 2
+    }
+   }
+  }
+ },
+ "cm125_001": {
+  "tex": [
+   "tex/bca812a4cf899214.webp"
+  ],
+  "mats": {
+   "XfBAW_cm120_006v": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm100_010": {
+  "tex": [
+   "tex/c935a96cf2a4f890.webp",
+   "tex/842fc314a0c5a760.webp",
+   "tex/30762580e6a90958.webp"
+  ],
+  "mats": {
+   "XfBAW_cm100_011v": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   },
+   "XfBAW_cm100_010v": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 2
+    }
+   },
+   "#94ade0c3": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 3
+    }
+   }
+  }
+ },
+ "em063_00_000": {
+  "tex": [
+   "tex/767ea352fbbe4e6f.webp"
+  ],
+  "mats": {
+   "XfBAW_1__m00_": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm102_003": {
+  "tex": [
+   "tex/d8f499a4c4d57ea7.webp"
+  ],
+  "mats": {
+   "XfBA1__cm102_001": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm120_002": {
+  "tex": [
+   "tex/5192b96025108b56.webp"
+  ],
+  "mats": {
+   "XfBA1__cm102_000": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm202_020_g": {
+  "tex": [
+   "tex/f5699c8ba59a853b.webp"
+  ],
+  "mats": {
+   "XfB_W_cm202_020vb": {
+    "state": {
+     "bs": "BSSolid",
+     "ds": "DSZTestWrite",
+     "rs": "RSMesh",
+     "bias": 0,
+     "cull": "back",
+     "blend": "opaque"
+    },
+    "t": {
+     "albedo": 1
+    }
+   },
+   "XfB_W_0__m00_": {
+    "state": {
+     "bs": "BSSolid",
+     "ds": "DSZTestWrite",
+     "rs": "RSMesh",
+     "bias": 0,
+     "cull": "back",
+     "blend": "opaque"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm120_016": {
+  "tex": [
+   "tex/67aa3e363afa73c2.webp"
+  ],
+  "mats": {
+   "XfBAW_cm101__000v": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm120_022": {
+  "tex": [
+   "tex/c801bfbe5804b05e.webp"
+  ],
+  "mats": {
+   "XfBAW_cm120_022v": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   },
+   "XfBAW_cm120_022vb": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMesh",
+     "bias": 0,
+     "cull": "back",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm150_001": {
+  "tex": [
+   "tex/6d410e818204a2b3.webp"
+  ],
+  "mats": {
+   "XfBA1__cm100_009": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "em070_00_000": {
+  "tex": [
+   "tex/087a570f5757ae78.webp"
+  ],
+  "mats": {
+   "#eda71633": {
+    "state": {
+     "bs": "BSSolid",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "opaque"
+    },
+    "t": {
+     "albedo": 1
+    }
+   },
+   "XfBA1__m00_": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm202_003": {
+  "tex": [
+   "tex/e09de2cdc2db445e.webp"
+  ],
+  "mats": {
+   "XfBAW_1__m00_": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm202_010": {
+  "tex": [
+   "tex/83abf25709d04d20.webp"
+  ],
+  "mats": {
+   "XfBA1__m00_2": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
  "cm202_021": {
   "tex": [
    "tex/efb57b4fbd165c97.webp"
   ],
   "mats": {
    "XfBA1__m00_": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm018_000": {
+  "tex": [
+   "tex/9654adaedf36c3fc.webp"
+  ],
+  "mats": {
+   "XfBAW_0__m00_2": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm200_107": {
+  "tex": [
+   "tex/3f0ec1ed1581051e.webp"
+  ],
+  "mats": {
+   "XfB_0__m00_": {
+    "state": {
+     "bs": "BSSolid",
+     "ds": "DSZTestWrite",
+     "rs": "RSMesh",
+     "bias": 0,
+     "cull": "back",
+     "blend": "opaque"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm100_008": {
+  "tex": [
+   "tex/9146f5d2a3f704be.webp"
+  ],
+  "mats": {
+   "XfBA1__cm130_105b": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMesh",
+     "bias": 0,
+     "cull": "back",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm190_000": {
+  "tex": [
+   "tex/e1dd5e324c60033d.webp",
+   "tex/bcfa9134e23de4f4.webp",
+   "tex/4c3d7eac8b2f926c.webp",
+   "tex/6d410e818204a2b3.webp"
+  ],
+  "mats": {
+   "XfB_0__cm190_000b": {
+    "state": {
+     "bs": "BSSolid",
+     "ds": "DSZTestWrite",
+     "rs": "RSMesh",
+     "bias": 0,
+     "cull": "back",
+     "blend": "opaque"
+    },
+    "t": {
+     "albedo": 1
+    }
+   },
+   "XfBAW_cm190_001vb": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 2
+    }
+   },
+   "XfBA1__cm150_000": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 3
+    }
+   },
+   "XfBA1__100_009b": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMesh",
+     "bias": 0,
+     "cull": "back",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 4
+    }
+   }
+  }
+ },
+ "cm202_041": {
+  "tex": [
+   "tex/6814882989c2c45e.webp",
+   "tex/67aa3e363afa73c2.webp",
+   "tex/747025fe5dab3cf3.webp"
+  ],
+  "mats": {
+   "#61eac1ba": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMesh",
+     "bias": 0,
+     "cull": "back",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   },
+   "#813e69ea": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMesh",
+     "bias": 0,
+     "cull": "back",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 2
+    }
+   },
+   "XfBAW_cm202_061av": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMesh",
+     "bias": 0,
+     "cull": "back",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 3
+    }
+   }
+  }
+ },
+ "cm120_034": {
+  "tex": [
+   "tex/66699cabf59d9256.webp"
+  ],
+  "mats": {
+   "XfBAW_cm090_009v": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm202_040": {
+  "tex": [
+   "tex/900230bc544b2b3d.webp"
+  ],
+  "mats": {
+   "XfBA1__m00_47": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   },
+   "XfBA1__m00_": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   },
+   "XfBA1__m00_48": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMesh",
+     "bias": 0,
+     "cull": "back",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm010_000": {
+  "tex": [
+   "tex/9654adaedf36c3fc.webp"
+  ],
+  "mats": {
+   "XfBAW_0__m00_": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm120_001": {
+  "tex": [
+   "tex/2c02607f47418e78.webp",
+   "tex/5192b96025108b56.webp",
+   "tex/ce575a8db98e2d39.webp"
+  ],
+  "mats": {
+   "XfBA1__cm120_001": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   },
+   "XfBAW_1__cm102_000v": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 2
+    }
+   },
+   "XfBA1__cm100_000": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 3
+    }
+   }
+  }
+ },
+ "cm120_009": {
+  "tex": [
+   "tex/254f305bfb34763d.webp"
+  ],
+  "mats": {
+   "XfBA1__cm100_000": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMeshCN",
+     "bias": 0,
+     "cull": "none",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm206_000": {
+  "tex": [
+   "tex/ae868985bdc2524c.webp"
+  ],
+  "mats": {
+   "XfBAW_1__m00_": {
+    "state": {
+     "bs": "BSBlendAlpha",
+     "ds": "DSZTestWrite",
+     "rs": "RSMesh",
+     "bias": 0,
+     "cull": "back",
+     "blend": "blend"
+    },
+    "t": {
+     "albedo": 1
+    }
+   }
+  }
+ },
+ "cm206_001": {
+  "tex": [
+   "tex/015a4c6ee0cd5cd4.webp"
+  ],
+  "mats": {
+   "XfBAW_1__m00_": {
     "state": {
      "bs": "BSBlendAlpha",
      "ds": "DSZTestWrite",

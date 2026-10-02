@@ -1,0 +1,3809 @@
+{
+ "_about": "Map areas drawn as the game's own geometry (render/area.js). Built by build-map-areas.py, which carries the notes; the stage vertex normals come from mod-stage-normals.py. Vertex colour is a multiplier with 127 = 1.0, hence vcolScale.",
+ "areas": [
+  {
+   "id": "m17a01",
+   "map": 17,
+   "name": "Forlorn Arena",
+   "area": "a01",
+   "vcolScale": 2.007874,
+   "groundY": -3.1422,
+   "models": [
+    {
+     "name": "m17a01d",
+     "glb": "models/areas/m17a01/m17a01d.glb",
+     "tex": [
+      "areas/m17a01/enkei2_BM.webp",
+      "areas/m17a01/kumo1_BM.webp",
+      "areas/m17a01/kabe1_BM.webp",
+      "areas/m17a01/kabe2_BM.webp",
+      "areas/m17a01/koware_BM.webp",
+      "areas/m17a01/jimen_BM.webp",
+      "areas/m17a01/kabe3_BM.webp",
+      "areas/m17a01/jimen3_BM.webp",
+      "areas/m17a01/jimen4_BM.webp",
+      "areas/m17a01/kabe4_BM.webp",
+      "areas/m17a01/jimen5_BM.webp",
+      "areas/m17a01/kumo2_BM.webp",
+      "areas/m17a01/enkei_BM.webp",
+      "areas/m17a01/kiri_BM.webp"
+     ],
+     "mats": {
+      "XfBAW_1__m00_3": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 1
+       },
+       "state": {
+        "bs": "BSBlendAlpha",
+        "ds": "DSZTest",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "blend"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         0.7,
+         0.7,
+         0.7,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8f900000"
+      },
+      "XfB_W_0__m00_8": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 2
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c800000"
+      },
+      "XfBAW_1__m00_7": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 2
+       },
+       "state": {
+        "bs": "BSBlendAlpha",
+        "ds": "DSZTest",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "blend"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         0.7,
+         0.7,
+         0.7,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8f900000"
+      },
+      "XfBAW_1__m00_6": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 13
+       },
+       "state": {
+        "bs": "BSBlendAlpha",
+        "ds": "DSZTest",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "blend"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8f900000"
+      },
+      "XfBAW_1__m00_2": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 14
+       },
+       "state": {
+        "bs": "BSAddAlpha",
+        "ds": "DSZTest",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "add"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8f900000"
+      },
+      "XfB_W_0__m00_4": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 3
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c800000"
+      },
+      "XfB_W_0__m00_4_2": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 3
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMeshBias3",
+        "bias": -96,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c830000"
+      },
+      "XfB_W_0__m00_7": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 3
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c800000"
+      },
+      "XfB_W_0__m00_12": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 1
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c800000"
+      },
+      "XfB_W_0__m00_3": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 4
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c800000"
+      },
+      "XfB_W_0__m00_13": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 5
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c800000"
+      },
+      "XfBAW_1__m00_17": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 14
+       },
+       "state": {
+        "bs": "BSBlendAlpha",
+        "ds": "DSZTest",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "blend"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         0.6,
+         0.6,
+         0.6,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8f900000"
+      },
+      "XfBAW_1__m00_10": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 14
+       },
+       "state": {
+        "bs": "BSBlendAlpha",
+        "ds": "DSZTest",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "blend"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         0.6,
+         0.6,
+         0.6,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8f900000"
+      },
+      "XfBAW_1__m00_14_2": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 14
+       },
+       "state": {
+        "bs": "BSBlendAlpha",
+        "ds": "DSZTest",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "blend"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8f900000"
+      },
+      "XfBAW_1__m00_11": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 14
+       },
+       "state": {
+        "bs": "BSAddAlpha",
+        "ds": "DSZTest",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "add"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": [
+         [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0
+         ],
+         [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0
+         ],
+         [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0
+         ]
+        ]
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         0.6,
+         0.6,
+         0.6,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8f900000"
+      },
+      "XfBAW_1__m00_13": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 14
+       },
+       "state": {
+        "bs": "BSAddAlpha",
+        "ds": "DSZTest",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "add"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         0.6,
+         0.6,
+         0.6,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8f900000"
+      },
+      "XfBAW_1__m00_16": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 14
+       },
+       "state": {
+        "bs": "BSAddAlpha",
+        "ds": "DSZTest",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "add"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         0.6,
+         0.6,
+         0.6,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8f900000"
+      },
+      "XfBAW_1__m00_8": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 14
+       },
+       "state": {
+        "bs": "BSBlendAlpha",
+        "ds": "DSZTest",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "blend"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         0.6,
+         0.6,
+         0.6,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8f900000"
+      },
+      "XfBAW_1__m00_9": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 14
+       },
+       "state": {
+        "bs": "BSBlendAlpha",
+        "ds": "DSZTest",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "blend"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         0.6,
+         0.6,
+         0.6,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8f900000"
+      },
+      "XfBAW_1__m00_12": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 14
+       },
+       "state": {
+        "bs": "BSBlendAlpha",
+        "ds": "DSZTest",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "blend"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         0.6,
+         0.6,
+         0.6,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8f900000"
+      },
+      "XfBAW_1__m00_15": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 14
+       },
+       "state": {
+        "bs": "BSBlendAlpha",
+        "ds": "DSZTest",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "blend"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         0.6,
+         0.6,
+         0.6,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8f900000"
+      },
+      "XfBAW_1__m00_18": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 14
+       },
+       "state": {
+        "bs": "BSBlendAlpha",
+        "ds": "DSZTest",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "blend"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         0.6,
+         0.6,
+         0.6,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8f900000"
+      },
+      "XfBAW_1__m00_": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 14
+       },
+       "state": {
+        "bs": "BSAddAlpha",
+        "ds": "DSZTest",
+        "rs": "RSMeshBias12",
+        "bias": -512,
+        "cull": "back",
+        "blend": "add"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         0.7,
+         0.7,
+         0.7,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8f9c0000"
+      },
+      "XfB_W_0__m00_6": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 1
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c800000"
+      },
+      "XfB_W_0__m00_15": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 5
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c800000"
+      },
+      "XfB_W_0__m00_17": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 5
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c800000"
+      },
+      "XfB_W_0__m00_16": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 4
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c800000"
+      },
+      "XfB_W_0__m00_20": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 5
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMeshBias12",
+        "bias": -512,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c8c0000"
+      },
+      "XfB_W_0__m00_19": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 5
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c800000"
+      },
+      "XfB_W_0__m00_3_3": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 4
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMeshBias7",
+        "bias": -224,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c870000"
+      },
+      "XfB_W_0__m00_18": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 6
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMeshBias8",
+        "bias": -256,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c880000"
+      },
+      "XfB_W_0__m00_14": {
+       "cls": "Std",
+       "t": {
+        "albedo": 5
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "vertexDisplacement": false,
+        "occlusion": false,
+        "bump": false,
+        "albedo": "Map",
+        "uvAlbedoMap": "UVPrimary",
+        "transp": "Alpha",
+        "shininess": false,
+        "lighting": false,
+        "brdf": false,
+        "diffuse": "VertexColorPLS",
+        "ambient": "SH",
+        "spec": "Map",
+        "reflect": "GlobalCubeMap",
+        "uvSpecularMap": "UVPrimary",
+        "channelSpecularMap": false,
+        "fresnel": "Schlick",
+        "emission": "Constant",
+        "distortion": false,
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         0.89,
+         0.89,
+         0.89
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c800000"
+      },
+      "XfB_W_0__m00_11": {
+       "cls": "Std",
+       "t": {
+        "albedo": 7
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "vertexDisplacement": false,
+        "occlusion": false,
+        "bump": false,
+        "albedo": "Map",
+        "uvAlbedoMap": "UVPrimary",
+        "transp": "Alpha",
+        "shininess": false,
+        "lighting": false,
+        "brdf": false,
+        "diffuse": "VertexColorPLS",
+        "ambient": "SH",
+        "spec": "Map",
+        "reflect": "GlobalCubeMap",
+        "uvSpecularMap": "UVPrimary",
+        "channelSpecularMap": false,
+        "fresnel": "Schlick",
+        "emission": "Constant",
+        "distortion": false,
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         0.89,
+         0.89,
+         0.89
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c800000"
+      },
+      "XfB_W_0__m00_10": {
+       "cls": "Std",
+       "t": {
+        "albedo": 6
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "vertexDisplacement": false,
+        "occlusion": false,
+        "bump": false,
+        "albedo": "Map",
+        "uvAlbedoMap": "UVPrimary",
+        "transp": "Alpha",
+        "shininess": false,
+        "lighting": false,
+        "brdf": false,
+        "diffuse": "VertexColorPLS",
+        "ambient": "SH",
+        "spec": "Map",
+        "reflect": "GlobalCubeMap",
+        "uvSpecularMap": "UVPrimary",
+        "channelSpecularMap": false,
+        "fresnel": "Schlick",
+        "emission": "Constant",
+        "distortion": false,
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         0.89,
+         0.89,
+         0.89
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c800000"
+      },
+      "XfBAW_1__m00_1": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 12
+       },
+       "state": {
+        "bs": "BSBlendAlpha",
+        "ds": "DSZTest",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "blend"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         0.8,
+         0.8,
+         0.8,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8f900000"
+      },
+      "XfBAW_1__m00_5": {
+       "cls": "ConstantFog",
+       "t": {
+        "albedo": 13
+       },
+       "state": {
+        "bs": "BSBlendAlpha",
+        "ds": "DSZTest",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "blend"
+       },
+       "feat": {
+        "albedo": "MapConstant",
+        "constantColor": false,
+        "constantOutput": "Lite",
+        "transp": "AlphaConstant",
+        "ambient": "SH",
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.5,
+         0.5,
+         0.5
+        ],
+        "constant": [
+         0.8,
+         0.8,
+         0.8,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8f900000"
+      },
+      "XfB_W_0__m00_26": {
+       "cls": "Std",
+       "t": {
+        "albedo": 10
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "vertexDisplacement": false,
+        "occlusion": false,
+        "bump": false,
+        "albedo": "Map",
+        "uvAlbedoMap": "UVPrimary",
+        "transp": "Alpha",
+        "shininess": false,
+        "lighting": false,
+        "brdf": false,
+        "diffuse": "VertexColorPLS",
+        "ambient": "SH",
+        "spec": "Map",
+        "reflect": "GlobalCubeMap",
+        "uvSpecularMap": "UVPrimary",
+        "channelSpecularMap": false,
+        "fresnel": "Schlick",
+        "emission": "Constant",
+        "distortion": false,
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         0.89,
+         0.89,
+         0.89
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c800000"
+      },
+      "XfB_W_0__m00_27": {
+       "cls": "Std",
+       "t": {
+        "albedo": 11
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "vertexDisplacement": false,
+        "occlusion": false,
+        "bump": false,
+        "albedo": "Map",
+        "uvAlbedoMap": "UVPrimary",
+        "transp": "Alpha",
+        "shininess": false,
+        "lighting": false,
+        "brdf": false,
+        "diffuse": "VertexColorPLS",
+        "ambient": "SH",
+        "spec": "Map",
+        "reflect": "GlobalCubeMap",
+        "uvSpecularMap": "UVPrimary",
+        "channelSpecularMap": false,
+        "fresnel": "Schlick",
+        "emission": "Constant",
+        "distortion": false,
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         0.89,
+         0.89,
+         0.89
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c800000"
+      },
+      "XfB_W_0__m00_23": {
+       "cls": "Std",
+       "t": {
+        "albedo": 9
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "vertexDisplacement": false,
+        "occlusion": false,
+        "bump": false,
+        "albedo": "Map",
+        "uvAlbedoMap": "UVPrimary",
+        "transp": "Alpha",
+        "shininess": false,
+        "lighting": false,
+        "brdf": false,
+        "diffuse": "VertexColorPLS",
+        "ambient": "SH",
+        "spec": "Map",
+        "reflect": "GlobalCubeMap",
+        "uvSpecularMap": "UVPrimary",
+        "channelSpecularMap": false,
+        "fresnel": "Schlick",
+        "emission": "Constant",
+        "distortion": false,
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         0.89,
+         0.89,
+         0.89
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c800000"
+      },
+      "XfB_W_0__m00_28": {
+       "cls": "Std",
+       "t": {
+        "albedo": 8
+       },
+       "state": {
+        "bs": "BSSolid",
+        "ds": "DSZTestWrite",
+        "rs": "RSMesh",
+        "bias": 0,
+        "cull": "back",
+        "blend": "opaque"
+       },
+       "feat": {
+        "vertexDisplacement": false,
+        "occlusion": false,
+        "bump": false,
+        "albedo": "Map",
+        "uvAlbedoMap": "UVPrimary",
+        "transp": "Alpha",
+        "shininess": false,
+        "lighting": false,
+        "brdf": false,
+        "diffuse": "VertexColorPLS",
+        "ambient": "SH",
+        "spec": "Map",
+        "reflect": "GlobalCubeMap",
+        "uvSpecularMap": "UVPrimary",
+        "channelSpecularMap": false,
+        "fresnel": "Schlick",
+        "emission": "Constant",
+        "distortion": false,
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         0.89,
+         0.89,
+         0.89
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8c800000"
+      },
+      "XfBAW_1__m00_23": {
+       "cls": "Std",
+       "t": {
+        "albedo": 8
+       },
+       "state": {
+        "bs": "BSBlendAlpha",
+        "ds": "DSZTest",
+        "rs": "RSMeshBias4",
+        "bias": -128,
+        "cull": "back",
+        "blend": "blend"
+       },
+       "feat": {
+        "vertexDisplacement": false,
+        "occlusion": false,
+        "bump": false,
+        "albedo": "Map",
+        "uvAlbedoMap": "UVPrimary",
+        "transp": "Alpha",
+        "shininess": false,
+        "lighting": false,
+        "brdf": false,
+        "diffuse": "VertexColorPLS",
+        "ambient": "SH",
+        "spec": "Map",
+        "reflect": "GlobalCubeMap",
+        "uvSpecularMap": "UVPrimary",
+        "channelSpecularMap": false,
+        "fresnel": "Schlick",
+        "emission": "Constant",
+        "distortion": false,
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         0.89,
+         0.89,
+         0.89
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8f940000"
+      },
+      "XfBAW_1__m00_22": {
+       "cls": "Std",
+       "t": {
+        "albedo": 11
+       },
+       "state": {
+        "bs": "BSBlendAlpha",
+        "ds": "DSZTest",
+        "rs": "RSMeshBias8",
+        "bias": -256,
+        "cull": "back",
+        "blend": "blend"
+       },
+       "feat": {
+        "vertexDisplacement": false,
+        "occlusion": false,
+        "bump": false,
+        "albedo": "Map",
+        "uvAlbedoMap": "UVPrimary",
+        "transp": "Alpha",
+        "shininess": false,
+        "lighting": false,
+        "brdf": false,
+        "diffuse": "VertexColorPLS",
+        "ambient": "SH",
+        "spec": "Map",
+        "reflect": "GlobalCubeMap",
+        "uvSpecularMap": "UVPrimary",
+        "channelSpecularMap": false,
+        "fresnel": "Schlick",
+        "emission": "Constant",
+        "distortion": false,
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         0.89,
+         0.89,
+         0.89
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8f980000"
+      },
+      "XfBAW_1__m00_24": {
+       "cls": "Std",
+       "t": {
+        "albedo": 9
+       },
+       "state": {
+        "bs": "BSBlendAlpha",
+        "ds": "DSZTest",
+        "rs": "RSMeshBias4",
+        "bias": -128,
+        "cull": "back",
+        "blend": "blend"
+       },
+       "feat": {
+        "vertexDisplacement": false,
+        "occlusion": false,
+        "bump": false,
+        "albedo": "Map",
+        "uvAlbedoMap": "UVPrimary",
+        "transp": "Alpha",
+        "shininess": false,
+        "lighting": false,
+        "brdf": false,
+        "diffuse": "VertexColorPLS",
+        "ambient": "SH",
+        "spec": "Map",
+        "reflect": "GlobalCubeMap",
+        "uvSpecularMap": "UVPrimary",
+        "channelSpecularMap": false,
+        "fresnel": "Schlick",
+        "emission": "Constant",
+        "distortion": false,
+        "uvxf": [
+         "Offset",
+         "Offset2",
+         false,
+         "Offset3"
+        ]
+       },
+       "cbm": {
+        "diffuse": [
+         0.89,
+         0.89,
+         0.89
+        ],
+        "transparency": 1.0,
+        "reflective": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "volume": 10.0,
+        "uv": null
+       },
+       "glob": {
+        "clip": 0.0,
+        "albedo": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "fresnel": 1.0,
+        "fresnelSchlickRGB": [
+         1.0,
+         1.0,
+         1.0
+        ],
+        "specular": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "shininess": 16.0,
+        "emission": [
+         0.0,
+         0.0,
+         0.0
+        ],
+        "constant": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "flags": 13,
+       "fb": "8f940000"
+      }
+     },
+     "prims": 45,
+     "verts": 40930,
+     "normals": 0
+    }
+   ],
+   "env": {
+    "lights": {
+     "pl": [
+      {
+       "unit": "PL01-InfiniteLight",
+       "kind": "inf",
+       "group": 0,
+       "color": [
+        2.0,
+        2.0,
+        2.0,
+        0.0
+       ],
+       "balance": -0.1,
+       "dir": [
+        -0.576,
+        0.6005,
+        -0.5547,
+        0.0
+       ],
+       "shadow": true
+      },
+      {
+       "unit": "PL02-InfiniteLight",
+       "kind": "inf",
+       "group": 0,
+       "color": [
+        0.74,
+        0.86,
+        0.74,
+        0.0
+       ],
+       "balance": -0.3,
+       "dir": [
+        0.3713,
+        -0.8447,
+        0.3855,
+        0.0
+       ],
+       "shadow": false
+      },
+      {
+       "unit": "PL03-HemiSphereLight",
+       "kind": "hemi",
+       "group": 0,
+       "color": [
+        0.27,
+        0.33,
+        0.3,
+        0.0
+       ],
+       "balance": 0.0,
+       "dir": [
+        -0.576,
+        0.6005,
+        -0.5547,
+        0.0
+       ],
+       "shadow": false,
+       "revColor": [
+        0.049,
+        0.051,
+        0.049,
+        0.0
+       ]
+      }
+     ],
+     "em": [
+      {
+       "unit": "EM01-InfiniteLight",
+       "kind": "inf",
+       "group": 1,
+       "color": [
+        1.8,
+        1.8,
+        1.8,
+        0.0
+       ],
+       "balance": -0.3,
+       "dir": [
+        -0.576,
+        0.6005,
+        -0.5547,
+        0.0
+       ],
+       "shadow": true
+      },
+      {
+       "unit": "EM02-InfiniteLight",
+       "kind": "inf",
+       "group": 1,
+       "color": [
+        0.6,
+        0.6,
+        0.6,
+        0.0
+       ],
+       "balance": -0.3,
+       "dir": [
+        0.3713,
+        -0.8447,
+        0.3855,
+        0.0
+       ],
+       "shadow": false
+      },
+      {
+       "unit": "EM03-HemiSphereLight",
+       "kind": "hemi",
+       "group": 1,
+       "color": [
+        0.2,
+        0.2,
+        0.2,
+        0.0
+       ],
+       "balance": 0.0,
+       "dir": [
+        -0.576,
+        0.6005,
+        -0.5547,
+        0.0
+       ],
+       "shadow": false,
+       "revColor": [
+        0.11,
+        0.11,
+        0.09,
+        0.0
+       ]
+      }
+     ]
+    },
+    "fog": {
+     "distanceType": 1,
+     "startM": 5.0,
+     "endM": 45.0,
+     "density": [
+      [
+       0,
+       0.45
+      ],
+      [
+       31,
+       0.65
+      ],
+      [
+       100,
+       0.45
+      ],
+      [
+       300,
+       0.7
+      ],
+      [
+       400,
+       0.7
+      ],
+      [
+       600,
+       0.45
+      ]
+     ],
+     "color": [
+      [
+       0,
+       [
+        0.28,
+        0.4,
+        0.52,
+        0.0
+       ]
+      ],
+      [
+       31,
+       [
+        0.3,
+        0.368,
+        0.5,
+        0.0
+       ]
+      ],
+      [
+       100,
+       [
+        0.28,
+        0.4,
+        0.52,
+        0.0
+       ]
+      ],
+      [
+       300,
+       [
+        0.04,
+        0.088,
+        0.12,
+        0.0
+       ]
+      ],
+      [
+       400,
+       [
+        0.04,
+        0.088,
+        0.12,
+        0.0
+       ]
+      ],
+      [
+       600,
+       [
+        0.28,
+        0.4,
+        0.52,
+        0.0
+       ]
+      ]
+     ]
+    },
+    "ambient": {
+     "color": [
+      0.3968,
+      0.416,
+      0.224,
+      0.0
+     ],
+     "mode": 3,
+     "envCube": "system\\texture\\DefaultCube_CM"
+    },
+    "bloom": {
+     "threshold": 0.9,
+     "blurCount": 1,
+     "color": [
+      [
+       0,
+       [
+        0.68,
+        0.8,
+        0.92,
+        0.0
+       ]
+      ],
+      [
+       100,
+       [
+        0.68,
+        0.8,
+        0.92,
+        0.0
+       ]
+      ],
+      [
+       225,
+       [
+        0.68,
+        0.8,
+        0.92,
+        0.0
+       ]
+      ],
+      [
+       250,
+       [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+       ]
+      ],
+      [
+       300,
+       [
+        0.68,
+        0.8,
+        0.92,
+        0.0
+       ]
+      ],
+      [
+       400,
+       [
+        0.68,
+        0.8,
+        0.92,
+        0.0
+       ]
+      ],
+      [
+       600,
+       [
+        0.68,
+        0.8,
+        0.92,
+        0.0
+       ]
+      ]
+     ]
+    },
+    "weather": {
+     "Weather-state1-start": 0.0,
+     "Weather-state1-end": 100.0,
+     "Weather-change1-2-start": 100.0,
+     "Weather-change1-2-end": 300.0,
+     "Weather-state2-start": 300.0,
+     "Weather-state2-end": 400.0,
+     "Weather-change2-1-start": 400.0,
+     "Weather-change2-1-end": 600.0
+    },
+    "lightSets": {
+     "light1-inf1-Balance": -0.1,
+     "light1-inf2-Balance": -0.2,
+     "light1-inf1-Color": [
+      1.3,
+      1.3,
+      1.3,
+      0.0
+     ],
+     "light1-inf2-Color": [
+      0.74,
+      0.86,
+      0.74,
+      0.0
+     ],
+     "light1-hemi-Color": [
+      0.18,
+      0.2118,
+      0.22,
+      0.0
+     ],
+     "light1-hemi-RevColor": [
+      0.1575,
+      0.15,
+      0.1425,
+      0.0
+     ],
+     "light2-inf1-Balance": -0.1,
+     "light2-inf2-Balance": -0.2,
+     "light2-inf1-Color": [
+      0.8,
+      0.8,
+      0.8,
+      0.0
+     ],
+     "light2-inf2-Color": [
+      0.45,
+      0.55,
+      0.45,
+      0.0
+     ],
+     "light2-hemi-Color": [
+      0.18,
+      0.2118,
+      0.22,
+      0.0
+     ],
+     "light2-hemi-RevColor": [
+      0.105,
+      0.1,
+      0.095,
+      0.0
+     ]
+    },
+    "units": [
+     "Root",
+     "PL01-InfiniteLight",
+     "PL02-InfiniteLight",
+     "PL03-HemiSphereLight",
+     "EM01-InfiniteLight",
+     "EM02-InfiniteLight",
+     "EM03-HemiSphereLight",
+     "ColorFog",
+     "BloomFilter",
+     "MhFilter",
+     "MhFilter_bottom",
+     "ColorCorrect",
+     "StageDataSet",
+     "StableShadow",
+     "AmbientLight"
+    ]
+   },
+   "placements": [],
+   "note": "Raven's test case, 2026-09-24. Map 17 has only this area and its camp, and the whole area is ONE model: the sky shell, the cloud sea, the scenery rings, the mist banks and the arena floor are all primitives of m17a01d.mod, drawn at the origin. No placement .sdl."
+  }
+ ]
+}

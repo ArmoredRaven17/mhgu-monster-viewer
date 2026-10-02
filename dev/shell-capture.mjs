@@ -26,8 +26,16 @@ const argv = process.argv.slice(2);
 const opt = (name, d) => { const i = argv.indexOf(name); return i >= 0 ? argv.splice(i, 2)[1] : d; };
 let site = opt('--url', null);
 const STEPS = +opt('--steps', '0');
+// --wall <metres>: PLACE the viewer's own wall at that z before the clip runs. Not a new feature and not a
+// change to the wall -- `window.__view.box('wall', <number>)` already places it and keeps it placed, and
+// index.html already hands `box.wall` to the shell step as the stage's plane. It is here because a landing's
+// hit TYPE decides which effect fires, and the type comes from the surface: a floor is type 1 and a wall is
+// type 0 (attr 0x20, and hitType returns 0 for attr & 0x22). On Basarios that is the whole difference between
+// the lingering fire (shell01, u 161) and the burst (u 162) -- with no wall in the stage, u 162 CANNOT be
+// reached at all, the same shape as shell03 mode 20's climb branch being unreachable until a wall existed.
+const WALL = opt('--wall', null);
 const [MON, LIST, CLIP, VARIANT, OUT] = argv;
-if (!OUT) throw new Error('usage: node dev/shell-capture.mjs <monster> <list> <clip> <variant> <out json> [--steps n]');
+if (!OUT) throw new Error('usage: node dev/shell-capture.mjs <monster> <list> <clip> <variant> <out json> [--steps n] [--wall metres]');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const freePort = () => new Promise(r => { const s = net.createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => r(p)); }); });
 async function json(url){
@@ -44,7 +52,7 @@ const evaluate = (c, expression) => c.send('Runtime.evaluate', { expression, awa
   .then(r => { if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception ? r.exceptionDetails.exception.description : r.exceptionDetails.text); return r.result.value; });
 
 // IN THE PAGE: play the clip once (its loop off) for its length + 300 steps (or N), logging each step's shell inputs
-async function pageCapture(MONID, LISTID, CLIPNAME, VAR, N){
+async function pageCapture(MONID, LISTID, CLIPNAME, VAR, N, WALLAT){
   const V = window.__view;
   const M = await import('/render/monster.js');
   const monSel = document.getElementById('monSel'), listSel = document.getElementById('monList'), clipSel = document.getElementById('monClip');
@@ -52,10 +60,16 @@ async function pageCapture(MONID, LISTID, CLIPNAME, VAR, N){
     if (![...monSel.options].some(o => o.value === MONID)) monSel.add(new Option(MONID, MONID));
     monSel.value = MONID; await monSel.onchange();
   }
+  if (WALLAT != null) V.box('wall', WALLAT);             // a NUMBER places it and keeps it placed across clip changes
   V.state.loop = false;                                  // one play, held on its last frame
   await V.effects(false); await V.effects(true);
   const fx = M.effectRuntimeInstance();
-  if (!fx || !fx.schedule || !fx.schedule.shells) return { error: 'no shells for ' + MONID };
+  // A monster with no shells still has ANIMATED JOINTS worth capturing: an effect placed on a joint the clip
+  // swings into gimbal lock takes a branch (0x7c3638's m[2] <= -1 arm at 0x7c36d8) that no rest-pose recording
+  // reaches. With variant '-' the shell inputs are left null and only the joints, frame and owner are logged,
+  // so this works for any monster. (Astalos L0 Motion[18], whose rage puff on joint 4 hits it, 2026-09-25.)
+  if (!fx || !fx.schedule) return { error: 'no effect runtime for ' + MONID };
+  if (!fx.schedule.shells && VAR !== '-') return { error: 'no shells for ' + MONID + " -- pass '-' as the variant to capture joints alone" };
   const S = fx.schedule;
   // THE INPUTS ONLY: no effect runs here (a refusal would stop the page's effects, and with them the steps) -- each step
   // the pose is advanced, live.js writeJoints lays the joints the shells read (gameJoints: every mapped bone), and the
@@ -73,6 +87,8 @@ async function pageCapture(MONID, LISTID, CLIPNAME, VAR, N){
   if (CLIPNAME.endsWith('_loop')){ const sib = list.clips.find(x => x.clip === base + '_start'); if (sib) splitOffset = Math.round(sib.dur * 60); }
   const clipDef = list.clips.find(x => x.clip === CLIPNAME);
   if (!clipDef) return { error: 'no clip ' + CLIPNAME + ' in list ' + LISTID };
+  // a Special entry with loop cycles: the motion's own frame, folded into its loop, as index.html driveClipEffects hands it
+  const fold = M.loopFoldOf ? M.loopFoldOf(MONID, LISTID, CLIPNAME, clipDef.pieces) : null;
   const steps0 = N || Math.round(clipDef.dur * 60) + 300;
   for (let f = 0; f < steps0; f++){
     pose.step([V.mounted.main]);
@@ -87,8 +103,10 @@ async function pageCapture(MONID, LISTID, CLIPNAME, VAR, N){
     const joints = {};
     for (const [gid, m] of fx.gameJoints) joints[gid] = Array.from(m);
     const extra = V.shellExtra ? V.shellExtra() : {};
-    steps.push({ list: act ? V.state.list : null, clip: act ? b : null, frame: act ? act.time * 60 + splitOffset : 0,
-                 loopStart: act && splitOffset ? splitOffset : null, rage: false, rock, extra,
+    let frame = act ? act.time * 60 + splitOffset : 0, loopStart = act && (splitOffset || (nm && nm.endsWith('_loop'))) ? splitOffset : null;
+    if (act && fold){ const r = M.foldLoopFrame(act.time * 60, fold.S, fold.L); frame = r.frame; loopStart = r.loopStart; }
+    steps.push({ list: act ? V.state.list : null, clip: act ? b : null, frame,
+                 loopStart, rage: false, rock, extra,
                  owner: rock ? { x: 0, y: S.ownerYaw16(), z: 0 } : null, ownerPos: { x: P[0], y: P[1], z: P[2] }, joints });
   }
   // kept in the page and fetched in slices: every joint of every step is several MB, too much for one reply
@@ -124,7 +142,7 @@ async function main(){
   }
   // the viewer's own loop stopped, so nothing else steps the effects
   await evaluate(c, 'window.__view.renderer.setAnimationLoop(null), true');
-  const res = await evaluate(c, `(${pageCapture.toString()})(${JSON.stringify(MON)}, ${JSON.stringify(LIST)}, ${JSON.stringify(CLIP)}, ${JSON.stringify(VARIANT)}, ${STEPS})`);
+  const res = await evaluate(c, `(${pageCapture.toString()})(${JSON.stringify(MON)}, ${JSON.stringify(LIST)}, ${JSON.stringify(CLIP)}, ${JSON.stringify(VARIANT)}, ${STEPS}, ${WALL == null ? 'null' : +WALL})`);
   if (res.error) throw new Error(res.error);
   const steps = [];
   for (let i = 0; i < res.n; i += 50)

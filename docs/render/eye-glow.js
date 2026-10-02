@@ -24,6 +24,31 @@ const HI = 2.2, LO = 0.3;
 
 let pairs = [];   // [{ ray, eye }] -- each glow ray with the eyeball of the same face state
 
+// A SMALL, HAND-SET forward nudge for the glow -- the one place this module is deliberately not
+// ROM-faithful. This eye glow is a dormant MH-Tri feature MHGU never actually renders (Tri lit it
+// in dark caves; MHGU has none), so there is no in-game placement to match. Raven, 2026-09-18:
+// "since this isn't something 'in game' technically but a part of a previous generation, we can
+// manually adjust this one effect", "it just needs a small shift forward". In the calm (brow-lowered)
+// face the brow clips the additive ray; in the enraged (brow-raised) face it does not. We push the ray
+// a hair toward the camera in view space so it draws OVER the brow. Where nothing occludes it (enraged)
+// a depth push changes nothing, so this needs no per-state gating. Tune live with window.__eyeShift(v)
+// -- a per-effect cosmetic value, NOT a ROM one.
+const SHIFT = { value: 0.1 };   // view-space units toward the camera
+function installShift(mat){
+  if (mat.userData._eyeShift) return;
+  mat.userData._eyeShift = true;
+  const prev = mat.onBeforeCompile, prevKey = mat.customProgramCacheKey;
+  mat.onBeforeCompile = function(sh, renderer){
+    if (prev) prev.call(this, sh, renderer);
+    sh.uniforms.uEyeShift = SHIFT;
+    sh.vertexShader = 'uniform float uEyeShift;\n' + sh.vertexShader.replace(
+      '#include <project_vertex>',
+      'vec4 mvPosition = vec4( transformed, 1.0 );\n\tmvPosition = modelViewMatrix * mvPosition;\n\tmvPosition.z += uEyeShift;\n\tgl_Position = projectionMatrix * mvPosition;');
+  };
+  mat.customProgramCacheKey = function(){ return (prevKey ? prevKey.call(this) : '') + '|eyeglow-shift-v1'; };
+  mat.needsUpdate = true;
+}
+
 // Call after each mount. `root` is the object the monster's meshes hang under (stage.world).
 export function setEyeGlow(monId, root){
   pairs = [];
@@ -32,10 +57,9 @@ export function setEyeGlow(monId, root){
   const rays = [], eyes = [];
   root.traverse(o => {
     if (!o.isMesh || o.userData.proxy || !o.material) return;
-    // Leave the ROM's own material state alone -- its RSMeshBias (a toward-camera depth bias,
-    // recomputed per camera by setBiasUnitsPerStep) and DSZTestWrite depth-write are what place this
-    // deep glow shape on the surface; earlier attempts to drop them here only pushed it deeper.
-    if (o.material.name === spec.ray){ o.material.transparent = true; rays.push(o); }
+    // Keep the ROM's own material state (RSMeshBias depth bias + DSZTestWrite) as-is; on top of it
+    // installShift adds the small hand-set view-space nudge that lifts the calm glow over the brow.
+    if (o.material.name === spec.ray){ o.material.transparent = true; installShift(o.material); rays.push(o); }
     else if (o.material.name === spec.eye) eyes.push(o);
   });
   // The ROM lists the calm face-state meshes before the enraged ones (calm eye prim 14 < enraged 15,
@@ -57,4 +81,9 @@ export function updateEyeGlow(lights){
     // only this face state's glow (the ROM swap), and only once the scene is dark enough (the ramp)
     ray.visible = eye.visible && op > 0.002;
   }
+}
+
+// Live tuning for the hand-set forward nudge above (Raven dials this one effect by eye).
+if (typeof window !== 'undefined'){
+  window.__eyeShift = (v) => { if (v !== undefined) SHIFT.value = +v; return SHIFT.value; };
 }

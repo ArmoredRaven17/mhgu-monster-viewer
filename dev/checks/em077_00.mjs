@@ -31,7 +31,8 @@ async function pageCheckSeregios(){
   check(await until(() => rt() && rt().monsterId === MON && rt().schedule), 'the effect runtime is up');
   const fx = rt(), S = fx.schedule;
   const fired = [];
-  const f0 = fx.fire.bind(fx); fx.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
+  // the schedule's fire (live.js fire() passes through to it): the tired drool fires there directly (schedule.js stepDrool)
+  const f0 = fx.schedule.fire.bind(fx.schedule); fx.schedule.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
   const puffs = [];
   const s0 = S.start.bind(S);
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
@@ -143,11 +144,19 @@ async function pageCheckSeregios(){
   await play(REST[0], REST[1]); await frames(3);
   check(isSet(drawn(), 2) && isSet(drawn(), 3), 'off the rage clip it is flat again -- there is no fade and no window', drawn());
 
-  // THE NOTICE
+  // THE NOTICE: removed 2026-09-27. (2, 9) is the right action but L0 M5 is a locomotion clip that ten of his
+  // actions play, so c 1200 there fired on every walk. Assert it is GONE, so nothing puts it back by accident.
   await play(LAND[0], LAND[1]); await frames(2);
   fired.length = 0;
   await play('0', 'Motion[5]'); await frames(3);
-  check(same(fired, [1200]), 'L0 Motion[5] ((2, 9), the notice): c 1200 once at frame 0', fired);
+  check(fired.length === 0, 'L0 Motion[5] (the walk (2, 9) reaches): NOTHING fires -- the notice c 1200 is ' +
+        'deliberately unwired, the clip is shared by ten actions', fired);
+  // c 1200 STAYS in the schedule: it is a real record in em077_00c.pel and the schedule is built from the .pel,
+  // not from this table. What must not come back is a MOTION_STATES row firing it off a clip.
+  check(S.entries.some(e => e.def.record.key === 1200) && !JSON.stringify(MS.MOTION_STATES[MON]).includes('1200'),
+        'and c 1200 is still a schedule entry (it is a real record) but NO motion row requests it',
+        { inSchedule: S.entries.filter(e => e.def.record.key === 1200).length,
+          inTable: JSON.stringify(MS.MOTION_STATES[MON]).includes('1200') });
 
   // TIRED: his own idle clip, with the 70-degree drool
   await play(REST[0], REST[1]); await frames(3);
@@ -195,13 +204,13 @@ async function pageCheckSeregios(){
   await play(REST[0], REST[1]); await frames(6);
   check(!evReqs(1103).includes('r'), 'and off the chain it is stopped', evReqs(1103));
 
-  // DEATH: the rage appearance reverts on the same frame, and his eyes stay open
+  // DEATH: the rage appearance reverts on the same frame, and the lid is drawn
   const rageBox = document.getElementById('monRage');
   if (rageBox && !rageBox.checked){ rageBox.checked = true; await rageBox.onchange({ target: rageBox }); await frames(3); }
   await play('3', 'Motion[17]'); await frames(4);
   check(S.rage === false, 'L3 Motion[17] (death, (11, 0) and every unnamed number): the rage shown goes off', { rage: S.rage });
-  check(isSet(drawn(), 2) && isSet(drawn(), 3) && !isSet(drawn(), 13),
-        'so the calm sets come back the same frame -- and his eyes STAY OPEN, death never raising P+0x5d02', drawn());
+  check(isSet(drawn(), 2) && isSet(drawn(), 3) && isSet(drawn(), 13),
+        'so the calm sets come back the same frame -- and HIS EYES SHUT: ' + 'the lid IS drawn -- `0xbd594` sets `P+0x5d02` with the timer at `P+0x5d00` and `0x75c1c` calls it with -1 in the status-11 block, which states-em042_00.md 8 missed by finding only the sleep writer', drawn());
   if (rageBox){ rageBox.checked = false; await rageBox.onchange({ target: rageBox }); await frames(3); }
   await play(REST[0], REST[1]); await frames(3);
 

@@ -70,7 +70,8 @@ async function pageCheck(){
   const fired = [], calls = [];
   // each logged as it returns, with the rage requests it left: 'r' running, 's' stopped (running out)
   const wrap = (name, log) => { const f = fx[name].bind(fx); fx[name] = (...a) => { const r = f(...a); log(a); return r; }; };
-  wrap('fire', a => fired.push(a[1]));
+  // the schedule's fire (see the other page checks): the tired drool fires there, not through fx.fire
+  { const f0 = fx.schedule.fire.bind(fx.schedule); fx.schedule.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; }; }
   wrap('restartRage', () => calls.push('restart ' + rageReqs()));
   wrap('setRage', a => calls.push('setRage ' + a[0]));
   const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => [1, 2, 4, 5, 6, 7, 8, 9, 12, 101].includes(p))) : null; };
@@ -397,7 +398,9 @@ async function pageCheckNarga(){
   check(await until(() => rt() && rt().monsterId === MON && rt().schedule), 'the effect runtime is up');
   const fx = rt();
   const fired = [];
-  const f0 = fx.fire.bind(fx); fx.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
+  // THE SCHEDULE'S fire, not the runtime's: live.js fire() is a pass-through to it, and the tired drool (schedule.js
+  // stepDrool, TIRED_DROOL) fires there directly, over any clip, as the ROM's 0xa41b8 does -- a hook on fx.fire never saw it
+  const f0 = fx.schedule.fire.bind(fx.schedule); fx.schedule.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
   const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 101].includes(p))) : null; };
   const reqs = key => fx.schedule.entries.filter(e => e.def.record && e.def.record.key === key && (e.when === 'rage' || e.when === 'event')).map(e => e.requests.map(q => q.stopped ? 's' : 'r').join('')).join('|');
   const listOf = id => V.MON.monsters.find(e => e.id === MON).lists.find(l => l.id === id);
@@ -556,7 +559,9 @@ async function pageCheckDeviljho(){
   const fx = rt(), S = fx.schedule;
   check(S.puff && S.puff.period === 30 && S.entries.filter(e => e.when === 'ragePuff').length === 2, 'the rage puff is set up: every 30, u 1120 / 1121', S.puff && S.puff.period);
   const fired = [];
-  const f0 = fx.fire.bind(fx); fx.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
+  // THE SCHEDULE'S fire, not the runtime's: live.js fire() is a pass-through to it, and the tired drool (schedule.js
+  // stepDrool, TIRED_DROOL) fires there directly, over any clip, as the ROM's 0xa41b8 does -- a hook on fx.fire never saw it
+  const f0 = fx.schedule.fire.bind(fx.schedule); fx.schedule.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
   const puffs = [];
   const s0 = S.start.bind(S);
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
@@ -777,7 +782,9 @@ async function pageCheckBasarios(){
   const fx = rt(), S = fx.schedule;
   check(S.puff && S.puff.period === 30, 'the rage puff is set up, every 30', S.puff && S.puff.period);
   const fired = [];
-  const f0 = fx.fire.bind(fx); fx.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
+  // THE SCHEDULE'S fire, not the runtime's: live.js fire() is a pass-through to it, and the tired drool (schedule.js
+  // stepDrool, TIRED_DROOL) fires there directly, over any clip, as the ROM's 0xa41b8 does -- a hook on fx.fire never saw it
+  const f0 = fx.schedule.fire.bind(fx.schedule); fx.schedule.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
   const puffs = [];
   const s0 = S.start.bind(S);
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
@@ -946,7 +953,9 @@ async function pageCheckBarioth(){
   check(await until(() => rt() && rt().monsterId === MON && rt().schedule), 'the effect runtime is up');
   const fx = rt(), S = fx.schedule;
   const fired = [];
-  const f0 = fx.fire.bind(fx); fx.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
+  // THE SCHEDULE'S fire, not the runtime's: live.js fire() is a pass-through to it, and the tired drool (schedule.js
+  // stepDrool, TIRED_DROOL) fires there directly, over any clip, as the ROM's 0xa41b8 does -- a hook on fx.fire never saw it
+  const f0 = fx.schedule.fire.bind(fx.schedule); fx.schedule.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
   const puffs = [];
   const s0 = S.start.bind(S);
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
@@ -1089,7 +1098,9 @@ async function pageCheckKhezu(){
   const fx = rt(), S = fx.schedule;
   check(S.puff && S.puff.period === 30, 'the rage puff is set up, every 30', S.puff && S.puff.period);
   const fired = [];
-  const f0 = fx.fire.bind(fx); fx.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
+  // THE SCHEDULE'S fire, not the runtime's: live.js fire() is a pass-through to it, and the tired drool (schedule.js
+  // stepDrool, TIRED_DROOL) fires there directly, over any clip, as the ROM's 0xa41b8 does -- a hook on fx.fire never saw it
+  const f0 = fx.schedule.fire.bind(fx.schedule); fx.schedule.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
   const puffs = [];
   const s0 = S.start.bind(S);
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
@@ -1256,7 +1267,9 @@ async function pageCheckRathian(MON = 'em001_00', LABEL = 'Rathian'){
   const fx = rt(), S = fx.schedule;
   check(S.puff && S.puff.period === 30 && S.entries.filter(e => e.when === 'ragePuff').length === 2, 'the rage puff is set up: every 30, u 1120 / 1121', S.puff && S.puff.period);
   const fired = [];
-  const f0 = fx.fire.bind(fx); fx.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
+  // THE SCHEDULE'S fire, not the runtime's: live.js fire() is a pass-through to it, and the tired drool (schedule.js
+  // stepDrool, TIRED_DROOL) fires there directly, over any clip, as the ROM's 0xa41b8 does -- a hook on fx.fire never saw it
+  const f0 = fx.schedule.fire.bind(fx.schedule); fx.schedule.fire = (pel, key) => { const r = f0(pel, key); fired.push(key); return r; };
   // every puff the schedule starts: its key, the step, and the pick recomputed from joint 4's bone at that moment
   const j4 = (SK.gidBonesOf(V.mounted.main).find(b => b.gid === 4) || {}).node;
   check(!!j4, 'joint 4 has a bone', !!j4);
