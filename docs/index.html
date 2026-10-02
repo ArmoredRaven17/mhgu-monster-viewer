@@ -5634,6 +5634,7 @@ function paintZonePick(){
     zoneShape.userData.copies = picked.copies;
     zoneShape.userData.off = picked.off;
     zoneShape.userData.special = picked.special;
+    zoneShape.userData.conditional = picked.conditional;
     scene.add(zoneShape);
   }
   paintZoneColour();
@@ -5678,6 +5679,15 @@ document.getElementById('monZoneCol').onchange = e => { state.zoneColour = e.tar
 // low bit a type path takes (0x03 for types 8/69, 0x18 for 9, 0x04 for 37-47) only those types can count it. Here
 // that is Seltas Queen's radius-280 sphere (0x0109) and Chaotic Gore Magala's radius-300 one (0x12), plus every
 // bone-255 record (0x12), which the drawing could not place anyway. So any bit of 0x152 leaves a shape out.
+// NOR A CONDITIONAL SHAPE (flag bit 15). Raven, 2026-10-01: "Kushala has a duplicate head capsule", "The larger capsule
+// being tied to 'head' is a bit confusing for the users", "Likely tied to the Wind Aura". Bit 15 makes 0x16bc54 count a
+// shape only while params +0x5dec > 0 (and the attack has [attack+0x30] & 4); Kushala's class sets that every frame
+// from its vtable +0x2a8 0xdfc814 (the tail at 0xdfcadc, 0xc02e4) unless P+0x1bb is 0 or 0xff -- a level his own code
+// raises, drops by 3 and clears (0xdef8f4 / 0xdef778 / 0xdef790 ...), INFERRED to be his wind aura. So his radius-300
+// sphere on joint 2 is Head only while the wind is up. Teostra's eight bit-15 shapes are exact twins of plain shapes in
+// the same row, which still draw; Congalala's four are already left out as cross-slot copies. The heat map drops it too
+// (build-hitzones.py, Raven: "Update[d] Kushala's heat map": 206 of his vertices left Head).
+const zoneConditional = f => (f & 0x8000) !== 0;
 const zoneNeverCounted = f => (f & 0x1f) === 0 && (f & 0x140) !== 0;
 const zoneSpecialOnly = f => (f & 0x152) !== 0 && !zoneNeverCounted(f);
 function zoneShapesFor(rec, pick){
@@ -5692,18 +5702,19 @@ function zoneShapesFor(rec, pick){
   }
   const col = pick.kind === 'slot' ? 0 : 1;            // a capsule row's slot, or its part record
   const rows = [], seen = new Set();
-  let copies = 0;
+  let copies = 0, conditional = 0;
   for (const c of live){
     if (c[col] !== pick.index) continue;
     const k = shapeKey(c);
     if (pick.kind === 'slot' && slotsOf.get(k).size > 1){ copies++; continue; }
+    if (zoneConditional(flags[rec.capsules.indexOf(c)] || 0)){ conditional++; continue; }
     if (seen.has(k)) continue;
     seen.add(k);
     rows.push(c);
   }
   const off = rec.capsules.filter((c, i) => c[col] === pick.index && zoneNeverCounted(flags[i] || 0)).length;
   const special = rec.capsules.filter((c, i) => c[col] === pick.index && zoneSpecialOnly(flags[i] || 0)).length;
-  return { rows, copies, off, special };
+  return { rows, copies, off, special, conditional };
 }
 // THE CAPSULE DROPDOWN lists the damage table's zones, every slot the grids list, under the same names. Raven,
 // 2026-09-17: "Only show the Hit Zone regions from the table, no need for the Extracts". Rebuilt with the chart, so a
@@ -8064,7 +8075,7 @@ window.__view.zones = (kind, index) => {
   if (zoneShape) mounted.main.updateMatrixWorld(true);
   const drawn = zoneShape ? { placed: zoneShape.userData.placed, skipped: zoneShape.userData.skipped,
                               copiesLeftOut: zoneShape.userData.copies, neverCountedLeftOut: zoneShape.userData.off,
-                              specialOnlyLeftOut: zoneShape.userData.special,
+                              specialOnlyLeftOut: zoneShape.userData.special, conditionalLeftOut: zoneShape.userData.conditional,
                               capsules: zoneShape.userData.readback() } : null;
   const colour = { choice: state.zoneColour, menu: document.getElementById('monZoneCol').value,
                    drawn: zoneShape ? zoneShape.userData.colour : null, rgb: zoneShape ? zoneShape.userData.getColor() : null };
