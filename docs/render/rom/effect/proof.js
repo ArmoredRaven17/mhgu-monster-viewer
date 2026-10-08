@@ -177,7 +177,13 @@ export function installRequests(m, malloc){
     for (let i = 0; i < 0xf0; i++) bytes[i] = m.rawByte(req + i);
     state.filters.push({ bytes, param });
   };
-  m.svc.handleValid = () => 1;
+  // A HANDLE TO A DELETED UNIT IS INVALID: the core's step (0x328ea8 -> 0x31d028) asks the parent handle's vt+0 every
+  // step and, on 0, sets block +0x3c |= 2, clears the handle (+0xf0) and ends itself through vt+0x9c(core, 1) -- how
+  // an effect whose shell is deleted ends in the game (Boltreaver's u 40, which base14 never stops). goneParents holds
+  // the parents the schedule has deleted (host.parentGone); every other handle answers 1, as before. The handle's own
+  // vt+0 is the engine's (the unit's liveness: INFERRED from the shape); its consumer above is READ.
+  state.goneParents = new Set();
+  m.svc.handleValid = h => (h && state.goneParents.has(m.u32(h + 8) >>> 0)) ? 0 : 1;
   // the handle's own parent (ProofRequest stores it at handle +8, which only this service reads), so requests hung
   // from different parents -- the monster's and a shell's -- each get theirs (efx/proofunit.py does the same)
   m.svc.handleUnit = h => (h && m.u32(h + 8)) || state.handleParent;
@@ -412,8 +418,10 @@ export function destroyUnit(m, u){ liftedCall(m, vslot(m, u, 0), [u]); }
 // off (0xe1108c): 0x329c40(core, 0), which asks the core to stop (vtable +0x9c, 7) unless it is already
 // stopping. The effect runs on to its own end (32 frames for the aura) and the core then dies as a
 // one-shot does, so the request stays in the passes until finished().
-export function stopRequest(m, request){
-  liftedCall(m, 0x329c40, [request.core, 0]);
+// 0x329c40(h, flag): 0 the graceful stop every end makes; 1 the one base01's 0x20 switch makes of a shell's other handles
+// (0x3fb3a4, shells.js switch01; what flag 1 does to the drawn effect runs as the ROM's own routine, lifted)
+export function stopRequest(m, request, flag = 0){
+  liftedCall(m, 0x329c40, [request.core, flag]);
   request.stopped = true;
 }
 export function releaseRequest(state, request){

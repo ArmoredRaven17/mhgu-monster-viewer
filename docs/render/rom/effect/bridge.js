@@ -64,8 +64,36 @@ native(0x320ed4, (m, ...a) => spawn.eulerMatrix(m, ...a), A3, null);
 // against the recorded vectors (dev/effect-check.mjs) and, every branch, against the ROM's own routine run under
 // the emulator over 264 flag x distance cases, NaN included (efx/fadegrid.py -> dev/effect-fadegrid.mjs). Flag bit 29 turns the fade on: 0 up to +0x10, rising to 1
 // at +0x14 (bit 30: stays 0), 1 up to +0x18, falling to 0 at +0x1c (bit 31: 0 from +0x18), 0 beyond +0x1c.
-// Bit 7 multiplies in an angle factor (0xca6988) no recording reaches: refused.
+// Bit 7 multiplies in an ANGLE FACTOR, 0xca6988 -- translated from its instructions 2026-10-05, when Nakarkos's cannon beam
+// (u 101, em084_00_062_s) was the first record to reach it (Raven: "The beam itself still isn't firing").
 const F = Math.fround;
+// 0xca6988(p, a = r1, b = r2): the angle between a and b (b normalized at 0xca69ec unless its length is under 0x34000000,
+// FLT_EPSILON -- then taken as is), acos of the dot clamped to [-1, 1] (0x13ecc5c), mapped 1 up to p+0x20, falling to 0 at
+// p+0x24 (0 beyond); with p+2 bit 0 the same for -dot, kept by min (p+3 bit 0x10) or max. 0xca6874 leaves r1 / r2 as its
+// caller passed them.
+function angleFactor(m, p, a, b){
+  const bx = m.f32(b), by = m.f32(b + 4), bz = m.f32(b + 8);
+  const len = F(Math.sqrt(F(F(F(by * by) + F(bx * bx)) + F(bz * bz))));
+  let nx = bx, ny = by, nz = bz;
+  if (!(len < F(1.1920928955078125e-7))){ const k = F(1 / len); nx = F(k * bx); ny = F(k * by); nz = F(k * bz); }   // bpl: >=, unordered
+  const ax = m.f32(a), ay = m.f32(a + 4), az = m.f32(a + 8);
+  const lo = m.f32(p + 0x20), hi = m.f32(p + 0x24);
+  const ramp = c => {                                               // 0xca6a28..0xca6a8c / 0xca6ab8..0xca6b1c
+    const t = F(Math.acos(c < -1 ? -1 : c > 1 ? 1 : c));            // bmi keeps -1.0; vmovgt clamps to 1.0
+    if (t <= lo) return 1;                                          // bls (not unordered)
+    if (t >= hi) return 0;                                          // bge -> the literal 0.0
+    return F(1 - F(F(t - lo) / F(hi - lo)));
+  };
+  const dot = F(F(F(ny * ay) + F(nx * ax)) + F(nz * az));          // s2 = s20*y; vmla s22*x; vmla s18*z
+  let s16 = ramp(dot);
+  if (m.u8(p + 2) & 1){                                             // 0xca6a90: the opposite direction too
+    const neg = F(F(F(-F(nx * ax)) - F(ny * ay)) - F(nz * az));     // vnmla / vmls: -(x) - y, then - z
+    const s0 = ramp(neg);
+    if (m.u8(p + 3) & 0x10){ if (s16 > s0) s16 = s0; }              // vmovgt: the lesser
+    else if (!(s16 >= s0)) s16 = s0;                                // bpl skips: the greater
+  }
+  return s16;
+}
 export function distanceFade(m, p, v1, v2, mul, d){
   let s16 = 1.0;
   const flags = m.u32(p);
@@ -88,7 +116,7 @@ export function distanceFade(m, p, v1, v2, mul, d){
       }
     }
   }
-  if (flags & 0x80) throw new Unverified('0xca6908 distance fade with the angle factor 0xca6988');
+  if (flags & 0x80) s16 = F(s16 * angleFactor(m, p, v1, v2));      // 0xca6908..0xca6910
   const f28 = m.f32(p + 0x28);                                      // 0xca6914
   const s0 = F(F(f28 + F(s16 * F(1 - f28))) * 256);
   return Math.imul(toS32(s0) | 0, mul | 0) >> 8;                    // vcvt.s32.f32, mul, asr #8
@@ -238,7 +266,45 @@ export const HANDLE_VALID = 0x7e001004, HANDLE_GET = 0x7e001008;
 // stand-in keeps nothing and answers 0 (efx/parent.py ADD_EFFECT)
 export const PARENT_ADD_EFFECT = 0x7e001010;
 native(PARENT_ADD_EFFECT, () => 0, [], 'r0');
-native(HANDLE_VALID, (m) => m.svc.handleValid(), [], 'r0');
+// the parent unit's +0xa8 / +0xac, which the effect's ground ray asks before it casts (0x42744's arm 0x427e8: `blx` at
+// 0x42890 / 0x428a4) -- the harness's stand-ins answer 0 (efx/parent.py parent_vfn_a8 / _ac); for a standing monster the
+// game's +0xa8 is 0 or 4, both of which give the reach 100 (0xaa2d0), and +0xac only feeds the traversal
+// (dev/effect-ground-ray.md 4.1)
+export const PARENT_VFN_A8 = 0x7e001014, PARENT_VFN_AC = 0x7e001018;
+native(PARENT_VFN_A8, () => 0, [], 'r0');
+native(PARENT_VFN_AC, () => 0, [], 'r0');
+// 0x18154c, THE GROUND RAY (dev/effect-ground-ray.md, READ; 2026-10-07 for Boltreaver's u 605 on L9 Motion[22]: payload
+// +0x5c bit 4 -> core +0xec 0x10). A vertical ray from B.y + 10000 down through A = B - (0, 2000, 0); the game's traversal
+// of sCollision is not run here -- the viewer has ONE floor plane (m.svc.stageRay(): the stand-in floor, game units, as
+// the shells' stage), which the ray crosses once when it lies below the start, and one hit is taken with no reach or
+// ceiling test (0x181774..0x1817c4). Writes as 0x18154c does: *[sp] the chosen height (on a miss list +0x54 = A.y); the
+// hit block [sp+4] (0x181138 / 0x1817c8..: bytes +0..+6 and the words +8 / +0xc / +0x10 from the polygon -- a plain floor's
+// attribute words are NOT READ, taken as 0 --, +0x14 the water height -100000, +0x18 the next hit below (none: the chosen
+// height itself; on a miss the header's A.y), +0x20.. the normal (0, 1, 0) INFERRED); the above block [sp+0xc] (+4 = 0:
+// nothing above; +0x40 = +100000). Returns 1 on a hit, 0 on none -- 0x42744 then reads the unit's +0x10f0 (the bit-clear
+// answer). The recorder answers the same, its floor at 0.0 (efx/proofunit.py 'stage_ray').
+registerNative(0x18154c, (m, c) => {
+  const F = Math.fround, A = c.r[1] >>> 0, B = c.r[2] >>> 0;
+  const sw = k => m.u32((c.r[13] + 4 * k) >>> 0);
+  const outY = sw(0), hit = sw(1), above = sw(3);
+  const ay = m.f32(A + 4), by = m.f32(B + 4);
+  const floor = m.svc.stageRay ? m.svc.stageRay([c.r[0] >>> 0, A, B, c.r[3] >>> 0]) : null;
+  const got = floor != null && Number.isFinite(floor) && F(floor) < F(by + 10000);
+  const h = got ? F(floor) : ay;
+  if (outY) m.wf32(outY, h);
+  if (hit){
+    for (let k = 0; k < 7; k++) m.w8(hit + k, 0);
+    m.w32(hit + 8, 0); m.w32(hit + 0xc, 0); m.w32(hit + 0x10, 0);
+    m.wf32(hit + 0x14, -100000); m.wf32(hit + 0x18, h);
+    m.wf32(hit + 0x20, 0); m.wf32(hit + 0x24, 1); m.wf32(hit + 0x28, 0); m.w32(hit + 0x2c, 0);
+  }
+  if (above){ m.w8(above + 4, 0); m.wf32(above + 0x40, 100000); }
+  clobber(c);
+  c.r[0] = got ? 1 : 0;
+});
+// the parent handle's vt+0, asked every step by the core (0x31d028 from 0x328ea8): 0 once its unit is deleted -- the core
+// then sets block +0x3c |= 2, drops the handle and ends through vt+0x9c(core, 1) (proof.js handleValid)
+native(HANDLE_VALID, (m, h) => m.svc.handleValid(h), A1, 'r0');
 native(HANDLE_GET, (m, h) => m.svc.handleUnit(h), A1, 'r0');           // the handle's own parent (proof.js)
 // The resource manager's load (vtable +0x30) a request's state machine calls for its record's path
 // (0x323b40): the host answers with the list it loaded (m.svc.requestLoad).

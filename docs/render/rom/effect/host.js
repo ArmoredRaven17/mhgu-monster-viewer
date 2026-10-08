@@ -33,7 +33,7 @@ import { invoke } from './cpu.js';
 import * as modeldraw from './modeldraw.js';
 import './prim.js';
 import { proofStart, installRequests, ProofRequest, unitFrame, pruneUnits, releaseRequest, stopRequest, AREA } from './proof.js';
-import { PARENT_GETDTI, PARENT_ADD_EFFECT, RESMGR_RELEASE, MATERIAL_VM, liftedCall } from './bridge.js';
+import { PARENT_GETDTI, PARENT_ADD_EFFECT, PARENT_VFN_A8, PARENT_VFN_AC, RESMGR_RELEASE, MATERIAL_VM, liftedCall } from './bridge.js';
 
 const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 const u32bytes = v => new Uint8Array(new Uint32Array([v >>> 0]).buffer);
@@ -123,7 +123,10 @@ export class EffectHost {
       primDraw: (args, stack) => host.primDraw(args, stack),
       drawEnd: () => host.primDrawEnd(),
       gpuMeshDraw: args => host.gpuMeshDraw(args),
+      // the ground ray 0x18154c's one floor plane (bridge.js), game units: live.js sets it from the viewer's floor each frame
+      stageRay: () => host.stageFloorY,
     };
+    this.stageFloorY = 0;
     this.allocator = allocator;
   }
 
@@ -285,13 +288,31 @@ export class EffectHost {
       m.wf32(u + 0x60, s[0]); m.wf32(u + 0x64, s[1]); m.wf32(u + 0x68, s[2]); m.w32(u + 0x6c, 0);
     }
   }
+  // A SHELL THAT WRITES ITS EFFECT'S UNITS ITSELF (Boltreaver's base14, 0x406b20..0x406d34; render/shells.js move14): every unit
+  // of the handle -- [core + 0x150 + 4i], i < [core + 0x15c] -- gets +0x40.. = the position (w 0), its rotation through 0x8a4dfc
+  // (radians), and, unless scaleZ is null, +0x68 = scaleZ (+0x6c 0); +0x60 / +0x64 are left as they are.
+  placeUnits(q, position, rotationRad, scaleZ){
+    const m = this.m, n = m.u32(q.core + 0x15c), v = this.malloc(0x10);
+    for (let k = 0; k < 3; k++) m.wf32(v + 4 * k, rotationRad[k]);
+    m.w32(v + 12, 0);
+    for (let i = 0; i < n; i++){
+      const u = m.u32(q.core + 0x150 + 4 * i);
+      if (!u) continue;
+      for (let k = 0; k < 3; k++) m.wf32(u + 0x40 + 4 * k, position[k]);
+      m.w32(u + 0x4c, 0);
+      liftedCall(m, 0x8a4dfc, [u, v]);
+      if (scaleZ != null){ m.wf32(u + 0x68, scaleZ); m.w32(u + 0x6c, 0); }
+    }
+  }
   // units the passes no longer act on (state 3) off the list; a request off the passes altogether (proof.js)
   pruneUnits(){ if (this.requests) pruneUnits(this.m, this.requests); }
   // Take a request off the unit passes (proof.js). Called on a request that has already been stopped and
   // stepped to death (schedule.js), so its particles are gone and their pool slots freed -- releasing it
   // outright while still emitting is what filled the slot pool and hit 0x418d4 (see stopClip).
   releaseRequest(request){ releaseRequest(this.requests, request); }
-  stopRequest(request){ stopRequest(this.m, request); }
+  stopRequest(request, flag = 0){ stopRequest(this.m, request, flag); }
+  // the parent unit deleted (a shell's, schedule.js): every request hung from it sees its handle go invalid (proof.js)
+  parentGone(parent){ if (this.requests && parent) this.requests.goneParents.add(parent.object >>> 0); }
 
   // A parent unit for joint-bound nodes: 0x939278 at vtable +0x54, a live unit's +0xc, the joint
   // number -> index table at +0x498 and the joint array at +0x494 (0xa0 bytes each, the world matrix
@@ -313,6 +334,7 @@ export class EffectHost {
     m.w32(VT + 0x54, 0x939278);
     m.w32(VT + 0x14, PARENT_GETDTI);
     m.w32(VT + 0x10c, PARENT_ADD_EFFECT);                  // a request's effect hands itself to its parent (0x43cac)
+    m.w32(VT + 0xa8, PARENT_VFN_A8); m.w32(VT + 0xac, PARENT_VFN_AC);   // the ground ray's two questions (0x42890 / 0x428a4)
     m.w32(P, VT);
     m.w32(P + 0xc, 0xf4ff9);
     m.load(TABLE, new Uint8Array(0x100).fill(0xff));
@@ -403,6 +425,10 @@ export class EffectHost {
     m.w16(VIEW + 0x16a, passMask);
     m.w32(VIEW + 0xd7c, CAM);
     this.setCamera(camera);
+    // the game's camera for mode-4 placements, from this camera: its eye, looking along its -Z (world row 2)
+    const w = camera.world || IDENTITY, p = camera.position || [0, 0, 0];
+    this.installGameCamera({ eye: p.slice(0, 3), target: [p[0] - w[8] * 1000, p[1] - w[9] * 1000, p[2] - w[10] * 1000],
+                             up: [w[4], w[5], w[6]] });
     m.w32(0x211f8b4, SYS);
     m.load(SYS, this.drawSystem);                           // the constructor's fields
     m.w32(SYS + 0x2c, PRIM);
@@ -442,6 +468,40 @@ export class EffectHost {
     m.w32(REG + 4, TEXSETS); m.w32(REG + 8, 256);
     m.w32(SYS + 0x54, 1); m.w32(SYS + 0x58, REG);
     this.VBUF = this.malloc(0x100000); this.IBUF = this.malloc(0x40000);
+  }
+  // THE GAME'S CAMERA AND HUNTER, for effect placement MODE 4 (dev/effect-placement-mode4.md, READ; Raven, 2026-10-05:
+  // "Add the three charge states" -- Nakarkos's u 94 / 95 / 96 are mode 4). A mode-4 record is placed against the
+  // camera of the first active sCamera viewport its payload +0x86 names (0x31d298..0x31d398): eye + offset in the
+  // camera's basis, every frame (0x31f1ac..), and its range test (core vt+0x68 0x328d9c, payload +0x58) measures from
+  // the unit 0x42aac finds -- [[0x187ea38] + 0x1c + 4 * [[0x18858a8] + 0x30]] (0x275dc0, 0x3f772c), its +0x40 -- or,
+  // with none, the camera's eye. Laid out here as the ROM reads them:
+  //   *0x211f504 = G, the sCamera singleton (0xdf0); viewport 0 active (G+0x60 = 1) with its camera at G+0x54
+  //   the camera: a uQuestCamera's vtable (0x1729d0c, whose +0x4c is 0x1c33c: the look-at from +0x40 eye, +0x60
+  //               target, +0x50 up) -- the ROM's own getter, so the matrix is the ROM's from the three vectors
+  //   *0x18858a8 -> its +0x30 = 0 (player index 0); *0x187ea38 -> +0x1c = the hunter, its +0x40 the position
+  // The viewer's camera IS the game's here (live.js setGameCamera each frame, before the units step), and the hunter
+  // is the viewer's invisible target (index.html rockInput). Which unit the manager at 0x187ea38 holds is INFERRED (the
+  // local hunter); the viewport camera's writer is NOT READ.
+  installGameCamera({ eye = [0, 0, 1000], target = [0, 0, 0], up = [0, 1, 0], hunter = [0, 0, 2100] } = {}){
+    const m = this.m;
+    const G = this.SCAMERA = this.malloc(0xdf0), C = this.GAMECAM = this.malloc(0xb00);
+    const IDX = this.malloc(0x40), MGR = this.malloc(0x40), H = this.HUNTER = this.malloc(0x100);
+    m.w32(0x211f504, G);
+    m.w8(G + 0x60, 1);
+    m.w32(G + 0x54, C);
+    m.w32(C, 0x1729d0c);
+    m.w32(0x18858a8, IDX); m.w32(IDX + 0x30, 0);
+    m.w32(0x187ea38, MGR); m.w32(MGR + 0x1c, H);
+    this.setGameCamera({ eye, target, up, hunter });
+  }
+  setGameCamera({ eye, target, up, hunter }){
+    const m = this.m, C = this.GAMECAM;
+    if (!C) return;
+    const v4 = (a, v) => { for (let k = 0; k < 3; k++) m.wf32(a + 4 * k, v[k]); m.wf32(a + 12, 0); };
+    if (eye) v4(C + 0x40, eye);
+    if (up) v4(C + 0x50, up);
+    if (target) v4(C + 0x60, target);
+    if (hunter) v4(this.HUNTER + 0x40, hunter);
   }
   setCamera({ position, view, world }){
     const m = this.m, CAM = this.CAM;

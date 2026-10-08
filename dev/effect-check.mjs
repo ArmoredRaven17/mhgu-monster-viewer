@@ -316,6 +316,13 @@ function servicesFor(v, problems, m, known = () => true){
         m.load(unit + 0xc, [v & 0xff, (v >>> 8) & 0xff, (v >>> 16) & 0xff, v >>> 24]);
       }
     },
+    // the ground ray 0x18154c (efx/proofunit.py stage_ray; bridge.js): the floor the recorder answered with -- the
+    // native makes the same writes from it (stack locals, the caller's own frame)
+    stageRay(args){
+      const s = next('stage_ray');
+      for (const k of [1, 2]) if ((args[k] >>> 0) !== s[1][k]) problems.push('stage_ray r' + k + ' 0x' + (args[k] >>> 0).toString(16) + ', game 0x' + s[1][k].toString(16));
+      return s[2][2].floor;
+    },
     // a type-9 generator's screen-filter request (0xb8f05c): the 0xf0 bytes it submits, as the game submitted them
     filterSubmit(mgr, req, param){
       const s = next('filter_submit');

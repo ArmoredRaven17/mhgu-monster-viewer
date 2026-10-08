@@ -62,17 +62,95 @@ function em004(motion, action){
   return 0;
 }
 
-export const CLASS_MASK = { em004_00: em004 };
+// NAKARKOS (em084_00), uEm084_00 vtable +0x13c = 0x106cae8 (body vtable 0x17f11fc; +0xf0 is the base 0xca52c), READ
+// whole (0x106cae8..0x106cbb0) and emulated, identical words (dev/em084-psl-mask.md; Raven, 2026-10-05: "I see a 'bone
+// debris' effect that is playing around the main body, we might have the wrong effect in its place"). It calls 0xca170
+// first, then by motion id:
+//   * L3 M63 (0x33f): bits 15-19 always (u 220 / u 221 / u 215 on his em084_00_3.psl slot 63);
+//   * L2 M23 (0x217), status 7, number n <= 7 with n != 2 (mask 0xfb, table 0x159bff0): n 0..5 -> bits 15-17 (c 135),
+//     n 6 / 7 -> bits 18-20 (u 205 / u 206); any other action -> nothing. (That (7, 6) / (7, 7) play L2 M23 is INFERRED
+//     from their turn table.)
+//   * L0 M1 (0x001): bits 15-17 only while the action is (13, 0) AND its phase byte P+0x1a1 == 4 -- the hold buried
+//     after his dive (0x107a250 phase 3 -> 4 sets L0 M1; phase 5 re-sets it with the bits off; "buried" INFERRED from
+//     posture 4). Bit 15 is c 140 (em084_00_008), the debris pulse: OFF on the idle and on every other L0 M1 play. The
+//     viewer shows no buried hold, so it never passes phase 4.
+//   * every other motion: nothing over the base -- every c 135 binding elsewhere sits on bits 0-5, always on.
+// It reads no stance, charge flag, tentacle form or map (emulated control: changing E+0xcac4 / E+0xcadc / the form
+// bytes left every word identical; the action and the phase byte changed it). BODY lists only: the tentacles' l_N / r_N
+// run their own method (0x107f0e4, dev/em084-psl-mask.md 6), not wired -- pslMask returns null for them.
+const EM084_L2M23 = n => (n <= 7 && ((0xfb >>> n) & 1)) ? (n >= 6 ? 0x1c0000 : 0x38000) : 0;
+function em084(motion, action, state){
+  if (motion === 0x33f) return 0xf8000;
+  if (motion === 0x217) return action && action[0] === 7 ? EM084_L2M23(action[1]) : 0;
+  if (motion === 0x001) return action && action[0] === 13 && action[1] === 0 && state.phase === 4 ? 0x38000 : 0;
+  return 0;
+}
+
+// BOLTREAVER ASTALOS (em081_04), uEm081_00 vtable +0x13c = 0x1019eb4: 0xca170, then `ldrb [e+0xb5f5]` (the variant byte)
+// and `popne` at 0x1019ecc -- every variant but 0 (Astalos) returns with the BASE word alone; the charge bits that follow
+// (+0xcb01..) are Astalos's. So his clips fire bits 0-5 always and the calm / enraged / tired-calm groups by state, and
+// nothing above bit 14 (dev/em081_04-effects-census.md; Raven, 2026-10-07: "Find and add all of Boltreaver's effects").
+// His CLIP_EFFECTS was generated from the blocks' FILE masks, which the game overwrites: 102 switched-on bits outside them
+// were never bound, and the state groups fired in every state.
+const em081_04 = () => 0;
+
+// BLOODBATH DIABLOS (em007_04), uEm007_00 vtable +0x13c = 0xd4532c (vtable 0x17994cc; +0xf0 is the base 0xca52c), READ
+// whole (0xd4532c..0xd45524, literal pool 0xd45528) and emulated, identical words (dev/em007_04-list9-census.md 1.1;
+// Raven, 2026-10-08: "Look into Bloodbath's List 9 animation effects"). It calls 0xca170 first, then:
+//   * EVERY motion (0xd4533c..0xd45374): vt+0x370(e, 1) = 0xa3bf4, P+0x3b4 bit 0 -- the tail severed (the sever 0xc2274
+//     sets it) -- ORs bits 18-20 (0x1c0000), else bits 15-17 (0x38000). The viewer reads it from the parts SHOWN: his part
+//     pass vt+0x210 0xd36e50 draws set 0xb on the same test (0xd37044..0xd37068, variant 4; set 0xa intact), and set 11
+//     is part 4 (monsters.json em007_04 groups[11], the Tail row's Broken -- render/motion-states.js SHELL_TAIL): state.severed.
+//   * motion <= 0x20e (0xd4541c): L0 M5 / L0 M7 with P+0x1ba == 0 -> bits 24-26. P+0x1ba is the POSTURE: the setter
+//     0xbc7f4 stores its argument there (0xbc97c), the spawn init 0xb8b98 writes 0 (0xb8e84). The plays set it before the
+//     motion (setMotion builds the word, so the new posture is the one read): L0 M5 at posture 0 from 0xd393fc (0xd39478,
+//     then 0xd39560) and at 4 from 0xd3b908 (0xd3b95c -> 0xd3b970); L0 M7 at 0 from 0xd39c40 (0xd39c98 -> 0xd39cac) and
+//     0xd419dc (0xd41a10 -> 0xd41a24), at 4 from 0xd3b9fc (0xd3ba88 -> 0xd3baa0, the burrow with u 1400) and 0xd3c4a0
+//     (0xd3c4fc -> 0xd3c510). state.posture (CLIP_ACTIONS `posture`: each play the next).
+//   * 0x20f..0x21f (table 0xd4539c, 17 words, bounded by `cmp r1,#0x10`), status 7 only (e+0x73e0), number e+0x73e1:
+//       L2 M15 (0xd453e0): 0xb4..0xb8 -> T1[n - 0xb4] (0x169bd20, 5 words: `cmp r1,#4`), bits 0-5 CLEARED (bfc);
+//       L2 M19 (0xd454cc): 0xb7 / 0xb8 -> bits 30-31, bits 0-5 CLEARED (bic 0xc000003f);
+//       L2 M22 (0xd45494): 0x67 -> bit 21 on variant 4 (Bloodbath; variant 0 returns at 0xd454c0 with the tail bits only);
+//       L2 M31 (0xd45458): as L9 M11;  the other 13 motions: nothing more.
+//   * L3 M20 (0x314, 0xd454fc): vt+0x3f4 = 0x7fed4 (action group 11 or 14, or (12, 0xff)) -> bit 23, else bit 22. The
+//     action is the play's (CLIP_ACTIONS): the scripts that play L3 M20 are (10, 0x63 / 0x65 / 0x66 / 0x7d / 0x7f / 0x80)
+//     and (11, 3 / 7 / 0x12 / 0x22) (script table 0x179a330.., efx/agents/diablos-scratch/scrpost7.txt).
+//   * L9 M11 (0x90b, 0xd4544c -> 0xd45458): status 7, 0xb5..0xb8 -> T2[n - 0xb5] (0x1592818, 4 words: `cmp r1,#3`), bits
+//     0-5 CLEARED.  Every other motion: the base and the tail bits.
+// A clearing arm returns { set, clear }; pslMask applies it over the base word in the ROM's order (OR, then clear).
+const EM007_T1 = [0x8000000, 0x30000000, 0x30000000, 0xc0000000, 0xc0000000];     // 0x169bd20, (7, 0xb4..0xb8)
+const EM007_T2 = [0x30000000, 0x30000000, 0xc0000000, 0xc0000000];                 // 0x1592818, (7, 0xb5..0xb8)
+const vt3f4 = a => !!a && (a[0] === 11 || a[0] === 14 || (a[0] === 12 && a[1] === 0xff));   // 0x7fed4
+function em007_04(motion, action, state){
+  const tail = state.severed ? 0x1c0000 : 0x38000;
+  const n = action && action[0] === 7 ? action[1] : -1;
+  if (motion <= 0x20e)
+    return tail | ((motion === 5 || motion === 7) && (state.posture | 0) === 0 ? 0x7000000 : 0);
+  if (motion === 0x20f)
+    return n >= 0xb4 && n <= 0xb8 ? { set: tail | EM007_T1[n - 0xb4], clear: 0x3f } : tail;
+  if (motion === 0x213)
+    return n === 0xb7 || n === 0xb8 ? { set: tail | 0xc0000000, clear: 0x3f } : tail;
+  if (motion === 0x216) return tail | (n === 0x67 ? 0x200000 : 0);
+  if (motion === 0x21f || motion === 0x90b)
+    return n >= 0xb5 && n <= 0xb8 ? { set: tail | EM007_T2[n - 0xb5], clear: 0x3f } : tail;
+  if (motion === 0x314) return tail | (vt3f4(action) ? 0x800000 : 0x400000);
+  return tail;
+}
+
+export const CLASS_MASK = { em004_00: em004, em084_00: em084, em081_04, em007_04 };
 // the monsters whose clip effects follow the enable word (their CLIP_EFFECTS carry the whole block; add_effects.py
 // reads this line)
-export const PSL_MASK_MONSTERS = ['em004_00'];
+export const PSL_MASK_MONSTERS = ['em004_00', 'em084_00', 'em081_04', 'em007_04'];
 
 // The word for one motion start, or null for a monster not yet read (the caller then fires the listed bits as before).
 export function pslMask(monId, list, slot, action, state){
   const cls = CLASS_MASK[monId];
-  if (!cls) return null;
+  // a list that is not the body's (Nakarkos's tentacles, l_N / r_N): their own class's method, not this one
+  if (!cls || !/^\d+$/.test(String(list))) return null;
   const motion = ((Number(list) & 0xf) << 8) | (slot & 0xff);
-  return (baseMask(state) | cls(motion, action || null, state || {})) >>> 0;
+  const r = cls(motion, action || null, state || {});
+  if (r && typeof r === 'object') return ((baseMask(state) | r.set) & ~r.clear) >>> 0;   // an arm that clears (bfc / bic)
+  return (baseMask(state) | r) >>> 0;
 }
 
 // WHICH ACTION A PLAY OF A CLIP IS, where the enable word depends on it and nothing else in the viewer names one (a clip
@@ -94,6 +172,39 @@ export const CLIP_ACTIONS = {
       { action: [7, 0x05], tired: [7, 0x0f] },
       { action: [7, 0x15], tired: [7, 0x10] },
     ],
+  },
+  // NAKARKOS, L2 Motion[23]: the actions that play it (dev/em084-psl-mask.md 5; (7, 0/1/3/4/5) from the clip trace,
+  // (7, 6) / (7, 7) from their turn table, INFERRED) -- each play the next: c 135 for the first five, u 205 / u 206 for
+  // the last two, as the class's word gives them (never all three at once, which the viewer used to fire).
+  em084_00: {
+    '2|Motion[23]': [
+      { action: [7, 0x00] }, { action: [7, 0x01] }, { action: [7, 0x03] }, { action: [7, 0x04] },
+      { action: [7, 0x05] }, { action: [7, 0x06] }, { action: [7, 0x07] },
+    ],
+  },
+  // BLOODBATH DIABLOS (em007_04): the plays of each motion his enable word (0xd4532c, above) keys on an action or the
+  // posture. Group 7 from the action main under unicorn, variant 4 (actprobe7.py; phase 1 by the same probe with
+  // P+0x1a1 = 1 and the frame gates answered -- efx/agents/diablos-scratch, 2026-10-08):
+  //   L9 M11 (0xd421d8, phase 0): (7, 0x5a / 0x6f / 0x70 / 0x71 / 0x73 / 0x8a / 0x8d) -- the base word; (7, 0xb5) -> T2
+  //     bits 28-29 (u 911), (7, 0xb7) -> 30-31 (u 912), both with bits 0-5 cleared (u 750 / u 380 off). (7, 0x5a)
+  //     stands for the seven base plays.
+  //   L2 M31: phase 1 of that body for every selector but 0 (0xd422d0 -> 0xd42314, start 40): (7, 0x5a) base, (7, 0xb5)
+  //     / (7, 0xb7) T2.
+  //   L2 M15: (7, 0x03) and ~40 others, base (start 0, 0xd3db1c); (7, 0xb4) T1[0] bit 27 (start 0); (7, 0xb6) / (7, 0xb8)
+  //     T1 bits 28-29 / 30-31 (0xd3cd40 phase 0, setMotionL START 98 -- the viewer plays the clip from 0).
+  //   L2 M19: (7, 0x83) base (0xd42cd8); (7, 0xb8) bits 30-31 (0xd3cd40 phase 1, 0xd3dc38).
+  //   L3 M20: the death scripts (11, 3 / 7 / 0x12 / 0x22) -> bit 23, the status-10 ones (10, 0x63 / 0x65 / 0x66 / 0x7d /
+  //     0x7f / 0x80) -> bit 22 (vt+0x3f4 = 0x7fed4; scrpost7.txt); one entry stands for each.
+  //   L0 M5 / L0 M7: no action decides it, the POSTURE does (P+0x1ba, set before the motion): `posture` 0 -- (7, 0x6a)
+  //     0xd419dc, 0xd39c40, 0xd393fc -- fires bits 24-26; 4 -- the burrow, 0xd3b908 / 0xd3b9fc / 0xd3c4a0 -- does not.
+  em007_04: {
+    '9|Motion[11]': [{ action: [7, 0x5a] }, { action: [7, 0xb5] }, { action: [7, 0xb7] }],
+    '2|Motion[31]': [{ action: [7, 0x5a] }, { action: [7, 0xb5] }, { action: [7, 0xb7] }],
+    '2|Motion[15]': [{ action: [7, 0x03] }, { action: [7, 0xb4] }, { action: [7, 0xb6] }, { action: [7, 0xb8] }],
+    '2|Motion[19]': [{ action: [7, 0x83] }, { action: [7, 0xb8] }],
+    '3|Motion[20]': [{ action: [10, 0x63] }, { action: [11, 0x03] }],
+    '0|Motion[5]':  [{ action: null, posture: 0 }, { action: null, posture: 4 }],
+    '0|Motion[7]':  [{ action: null, posture: 0 }, { action: null, posture: 4 }],
   },
 };
 
@@ -124,4 +235,11 @@ export function clipActionFor(monId, list, clip, n, { tired = false, rage = fals
   if (!a || !a.length) return null;
   const e = a[((n | 0) % a.length + a.length) % a.length];
   return (tired && !rage && e.tired) ? e.tired : e.action;
+}
+// the posture a play starts in (P+0x1ba), where the enable word reads it and the play's entry names it (Bloodbath's
+// L0 M5 / M7); undefined elsewhere -- the class then reads its spawn value 0 (0xb8e84)
+export function clipPostureFor(monId, list, clip, n){
+  const t = CLIP_ACTIONS[monId], a = t && t[String(list) + '|' + String(clip).replace(/_(start|loop)$/, '')];
+  if (!a || !a.length) return undefined;
+  return a[((n | 0) % a.length + a.length) % a.length].posture;
 }

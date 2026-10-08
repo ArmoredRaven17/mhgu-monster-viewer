@@ -47,6 +47,9 @@ const beamStateOpt = opt('--beam-state');
 // installed as driveClipEffects installs them in the viewer -- which this soak, stepping frames itself, never runs; without
 // it (and without --rock) a soak's shells get no input.rock at all
 const viewerInputs = flag('--viewer-inputs');
+// --part <row>=<option>: one part row of the panel set before the soak (its data-row and an option's value or label, as
+// dev/shell-capture.mjs --part) -- the parts shown feed the shells' and the enable word's inputs (Bloodbath's tail severed)
+const partOpt = opt('--part');
 const [monster, ...only] = argv;
 if (!monster){ console.log('usage: node dev/effect-live-soak.mjs <monster> [motion key ...] [--url <viewer>] [--swiftshader]'); process.exit(2); }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -75,7 +78,7 @@ const evaluate = (c, expression) => c.send('Runtime.evaluate', { expression, awa
   .then(r => { if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception ? r.exceptionDetails.exception.description : r.exceptionDetails.text); return r.result.value; });
 
 // Runs IN THE PAGE (serialised): the soak, started and left running; window.__soak holds its progress.
-function pageSoak(MONID, ONLY, CAMERA, RAGE, WIRING, ROCK, BEAMSTATE, VIEWERINPUTS){
+function pageSoak(MONID, ONLY, CAMERA, RAGE, WIRING, ROCK, BEAMSTATE, VIEWERINPUTS, PARTSPEC){
   window.__soak = { status: 'starting', results: [], t0: performance.now() };
   (async () => {
     const S = window.__soak;
@@ -88,6 +91,13 @@ function pageSoak(MONID, ONLY, CAMERA, RAGE, WIRING, ROCK, BEAMSTATE, VIEWERINPU
       if (V.state.id !== MONID){
         if (![...monSel.options].some(o => o.value === MONID)) monSel.add(new Option(MONID, MONID));
         monSel.value = MONID; await monSel.onchange();
+      }
+      if (PARTSPEC){
+        const i = PARTSPEC.lastIndexOf('='), row = PARTSPEC.slice(0, i), want = PARTSPEC.slice(i + 1);
+        const sel = [...document.querySelectorAll('#monGroups .field')].filter(x => x.dataset.row === row).map(x => x.querySelector('select'))[0];
+        const o = sel && [...sel.options].find(x => x.value === want || x.textContent === want);
+        if (!o) throw new Error('no part row ' + row + ' option ' + want);
+        sel.value = o.value; if (sel.onchange) await sel.onchange();
       }
       V.state.loop = true;                                   // the clip loop on: the second pass walks the loop
       await V.effects(false); await V.effects(true);
@@ -194,13 +204,16 @@ function pageSoak(MONID, ONLY, CAMERA, RAGE, WIRING, ROCK, BEAMSTATE, VIEWERINPU
             if (WIRING && (f % 15) === 7) readWiring(fx);
             maxRun = Math.max(maxRun, fx.stats.running || 0);
             drew += (fx.stats.prims || 0) + (fx.stats.models || 0) + (fx.stats.gpu || 0);
-            if (fx.failed){ fail = fx.failed; break; }
+            // the requests alive when it refused (pel:key, when, frames since started) -- which record reached the path
+            if (fx.failed){ fail = fx.failed; S.aliveAtFail = fx.schedule.entries.filter(e => e.def.record && e.requests.length)
+              .map(e => e.def.record.pel + ':' + e.def.record.key + '(' + e.when + ')x' + e.requests.length); break; }
             if ((f & 15) === 15) await yieldTask();
           }
           if (fail) break;
         }
         const tally = fx.schedule.shellTally || { spawned: 0, beams: [], refused: [] };
         S.results.push({ key, frames, starts: fx.schedule.starts - starts0, maxRun, drew, regrouped: (fx.stats.regrouped || 0) - regrouped0, fail,
+                         aliveAtFail: fail ? S.aliveAtFail : undefined,
                          shells: tally.spawned, beams: tally.beams.slice(), shellRefused: [...new Set(tally.refused)] });
       }
       S.status = 'done';
@@ -257,7 +270,7 @@ async function main(){
   }
   await evaluate(c, '__view.renderer.setAnimationLoop(null), true');      // only the soak steps from here on
   soaking = true;
-  console.log(await evaluate(c, `(${pageSoak.toString()})(${JSON.stringify(monster)}, ${JSON.stringify(only)}, ${JSON.stringify(camera)}, ${JSON.stringify(rage)}, ${JSON.stringify(wiring)}, ${JSON.stringify(rockVariant)}, ${beamStateOpt ? JSON.stringify(JSON.parse(beamStateOpt)) : 'null'}, ${JSON.stringify(viewerInputs)})`), monster, 'in', site, 'camera', camera, rage ? 'enraged' : '');
+  console.log(await evaluate(c, `(${pageSoak.toString()})(${JSON.stringify(monster)}, ${JSON.stringify(only)}, ${JSON.stringify(camera)}, ${JSON.stringify(rage)}, ${JSON.stringify(wiring)}, ${JSON.stringify(rockVariant)}, ${beamStateOpt ? JSON.stringify(JSON.parse(beamStateOpt)) : 'null'}, ${JSON.stringify(viewerInputs)}, ${JSON.stringify(partOpt || null)})`), monster, 'in', site, 'camera', camera, rage ? 'enraged' : '');
   let shown = 0, refused = 0, S;
   for (;;){
     await sleep(2000);
@@ -266,7 +279,7 @@ async function main(){
       if (r.skip) console.log(`  ${r.key}: not played (${r.skip})`);
       else {
         if (r.fail) refused++;
-        console.log(`  ${r.key}: ${r.frames} frames, ${r.starts} started, up to ${r.maxRun} running, ${r.drew} draws` + (r.regrouped ? `, ${r.regrouped} model draws on a regrouped mesh` : '') + (r.fail ? `  REFUSED: ${r.fail}` : '') +
+        console.log(`  ${r.key}: ${r.frames} frames, ${r.starts} started, up to ${r.maxRun} running, ${r.drew} draws` + (r.regrouped ? `, ${r.regrouped} model draws on a regrouped mesh` : '') + (r.fail ? `  REFUSED: ${r.fail}` + (r.aliveAtFail ? ` [alive: ${r.aliveAtFail.join(' ')}]` : '') : '') +
                     (r.shells ? `, ${r.shells} shells` + (r.beams && r.beams.length ? ` (beams: ${r.beams.join(' ')})` : '') : '') +
                     (r.shellRefused && r.shellRefused.length ? `  SHELL REFUSED: ${r.shellRefused.join(' | ')}` : ''));
       }

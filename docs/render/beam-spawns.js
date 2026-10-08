@@ -162,13 +162,24 @@ export const BEAM_SPAWNS = {
   // KUSHALA DAORA (uEm024_00; dev/beams/em024_00.md, READ): 0xdf8c28 for every issued action -- L2 M1 to f40, then L2 M8
   // (L2 M27 blended with M8 for (7, 0x1a)), 0xb1 at f24 of it: mode 1 when he was enraged at the action start (ctl+0x2c)
   // AND the stage byte e+0x1053 is 3, 14 or 20 (ctl+0x2d), else mode 0. The viewer has no stage: enraged, both picks play.
+  // THE STAGES ARE THE SNOW MAPS (decoded 2026-10-05; Raven: "Then decode them"; dev/beams/em024_00.md section 5): e+0x1053
+  // is the quest's map number, cQuestData mMapNo (+0x10) % 100 % 28, stored by the shared enemy setup before his reset
+  // tests it -- 3 Arctic Ridge, 14 Frozen Seaway, 20 Polar Field (names from the quests' own text; Lao-Shan Lung's 26 and
+  // Nakarkos's 21 the controls). Mode 1 draws the same beam and impact .efl as mode 0 under another row mask (MASK1 2).
+  //   WHERE THEY END (2026-10-05; Raven: "Kushala has tornados he casts that persist, Alatreon has ice breath effects that
+  // persist as well" -- those are other shells; the BEAM ends): Kushala's beam phase (0xdf8d28) sets L2 M5 when M8 (or the
+  // M27 + M8 blend) ENDS -- its first pass, 30 + 256 frames; Alatreon's phase 2 (0xec89b0) sets L2 M12 when M11 ends, 32
+  // + 256 frames (0xb09c8, the layer's ended flag on the first wrap). Neither class overrides base02's +0x170.
+  //   NOT GIVEN A `leave`: both beams fire inside the _start piece (f24 of 30, f22 of 32), and the viewer replays a _start
+  // piece on its own rather than running on into its loop -- so the end at the motion's end landed on every replay and the
+  // beam flashed for 6 frames (measured headless). Until the pieces play as one motion the beam keeps its own life.
   em024_00: [
     { list: '2', clip: 'Motion[8]',  frame: 24, type: 'em024_00:0', action: [7, 0x15], when: { rage: false } },
-    { list: '2', clip: 'Motion[8]',  frame: 24, type: 'em024_00:0', action: [7, 0x15], when: { rage: true } },     // any other stage
-    { list: '2', clip: 'Motion[8]',  frame: 24, type: 'em024_00:1', action: [7, 0x15], variant: '7:0x15 stage', when: { rage: true } },   // stage 3 / 14 / 20
+    { list: '2', clip: 'Motion[8]',  frame: 24, type: 'em024_00:0', action: [7, 0x15], when: { rage: true } },     // any other map
+    { list: '2', clip: 'Motion[8]',  frame: 24, type: 'em024_00:1', action: [7, 0x15], variant: '7:0x15 snow maps', when: { rage: true } },   // Arctic Ridge / Frozen Seaway / Polar Field
     { list: '2', clip: 'Motion[27]', frame: 24, type: 'em024_00:0', action: [7, 0x1a], when: { rage: false } },
-    { list: '2', clip: 'Motion[27]', frame: 24, type: 'em024_00:0', action: [7, 0x1a], when: { rage: true } },    // any other stage
-    { list: '2', clip: 'Motion[27]', frame: 24, type: 'em024_00:1', action: [7, 0x1a], variant: '7:0x1a stage', when: { rage: true } },  // stage 3 / 14 / 20
+    { list: '2', clip: 'Motion[27]', frame: 24, type: 'em024_00:0', action: [7, 0x1a], when: { rage: true } },    // any other map
+    { list: '2', clip: 'Motion[27]', frame: 24, type: 'em024_00:1', action: [7, 0x1a], variant: '7:0x1a snow maps', when: { rage: true } },  // Arctic Ridge / Frozen Seaway / Polar Field
   ],
   // AKANTOR (uEm033_00; dev/beams/em033_00.md, READ): 0xc2. (7, 4) L2 M5 blended with M22 / M23: f152 mode 1 (f112 mode 0 and
   // f152's mode 2 start no effect); (7, 0xf) L2 M14 blended with M24 / M25: f172 mode 3 -- at questRank >= 5 the remap
@@ -258,19 +269,46 @@ export const BEAM_SPAWNS = {
   // viewer plays an arm's clip only beside the body clip of the same name (index.html playAttached), and of the arm beam
   // clips only L2 M86 has one: body (7, 0x44) / (7, 0x45) play body L2 M86 and order BOTH arms to (7, 0x21) -- idx 1, left
   // 1 / G 56, right 8 / G 57 -- and body (7, 0x4a) / (7, 0x4b) the same clip with both arms (7, 0x22) -- idx 6, left 25 /
-  // G 58, right 26 / G 59; f146 (tune float 7). NOT HERE, by name: the arm beams on arm clips no body clip shares (L2 M1 /
-  // M2 / M5 / M6 / M13 / M14 / M28 / M50 / M51 -- the tentacle lists are hidden, Raven 2026-09-13), and idx 2 (modes 2 / 9),
-  // which no caller passes.
+  // G 58, right 26 / G 59; f146 (tune float 7). THE ARMS' OWN CLIPS (the tentacle lists shown again, Raven, 2026-10-05:
+  // "Unhide them, we will better handle them when I do animation review"): on l_2 / r_2, the side the list's own -- arm
+  // (7, 0x0c) M5 (blended with M6) f200 idx 0; (7, 0x0d) left M13 / right M14 f88 idx 3 (the arm's (2, 3) spawns the same
+  // there); (7, 0x2a) M28 f294 idx 4 -- modes from 0x107ca4c's tables by side and rank. Every arm action is ORDERED by body
+  // code (the arms run no command streams; dev/em084-arm-pairings.md, READ and driven): (7, 0x0c) by body (7, 0x9b) left /
+  // (7, 0x69) right, (7, 0x0d) by (7, 0x9c) / (7, 0x6a) and by the turn (2, 0xb) as (2, 3), (7, 0x2a) by (7, 0x6f) /
+  // (7, 0x70). NOT HERE, by name: arm (7, 0x0f) / (7, 0x10) / (7, 0x11) / (7, 0x12) / (7, 0x26) / (7, 0x2c) -- NOTHING
+  // ISSUES THEM (the body's 0x107f4c8 funnels hooked over every status x number in both stances, EMC, the arm's own
+  // transitions, direct writes; controls: every issuer above). (7, 0x0f)'s rows (M5 f156, modes 20 / 21 / 54 / 55) were
+  // here until 2026-10-05 and, keyed on M5, fired a second beam during (7, 0x0c), which the game never does. And idx 2
+  // (modes 2 / 9), which no caller passes.
+  // BY STANCE (Raven, 2026-10-05: "The tentacle beams should be tied to his current state as well", then "Stance"): each
+  // beam fires only in the stance the body action that orders it runs in -- the stance is set at that action's start
+  // (0x1066c14 -> 0x1065c60, the per-action table in build/hitzone-states/state-decodes.md): arm (7, 0x0c) M5 / M6 and
+  // (7, 0x0d) M13 / M14 are ordered by (7, 0x9b / 0x69) and (7, 0x9c / 0x6a), and (2, 3) by the turn (2, 0xb) -- all
+  // stance 1; the L2 M86 beams by (7, 0x44 / 0x4a) and the body's L0 M63 beam by (7, 0x43) -- stance 2. `when.stance` is
+  // the viewer's stance (index.html auraStance: the clip's, sticky). NOT GATED, by name: the M28 beams (7, 0x2a), ordered by
+  // (7, 0x6f) / (7, 0x70), which KEEP the stance they start in (dev/em084-arm-pairings.md).
   em084_00: [
-    { list: '0', clip: 'Motion[63]', frame: 146, type: 'em084_00:14', action: [7, 0x43] },
-    { list: '2', clip: 'Motion[86]', frame: 146, type: 'em084_00:1',  action: [7, 0x44], arm: 'left',  when: { rank: 'low' } },
-    { list: '2', clip: 'Motion[86]', frame: 146, type: 'em084_00:8',  action: [7, 0x44], arm: 'right', when: { rank: 'low' } },
-    { list: '2', clip: 'Motion[86]', frame: 146, type: 'em084_00:56', action: [7, 0x44], arm: 'left',  when: { rank: 'G' } },
-    { list: '2', clip: 'Motion[86]', frame: 146, type: 'em084_00:57', action: [7, 0x44], arm: 'right', when: { rank: 'G' } },
-    { list: '2', clip: 'Motion[86]', frame: 146, type: 'em084_00:25', action: [7, 0x4a], arm: 'left',  when: { rank: 'low' } },
-    { list: '2', clip: 'Motion[86]', frame: 146, type: 'em084_00:26', action: [7, 0x4a], arm: 'right', when: { rank: 'low' } },
-    { list: '2', clip: 'Motion[86]', frame: 146, type: 'em084_00:58', action: [7, 0x4a], arm: 'left',  when: { rank: 'G' } },
-    { list: '2', clip: 'Motion[86]', frame: 146, type: 'em084_00:59', action: [7, 0x4a], arm: 'right', when: { rank: 'G' } },
+    { list: '0', clip: 'Motion[63]', frame: 146, type: 'em084_00:14', action: [7, 0x43], when: { stance: 2 } },
+    { list: '2', clip: 'Motion[86]', frame: 146, type: 'em084_00:1',  action: [7, 0x44], arm: 'left',  when: { stance: 2, rank: 'low' } },
+    { list: '2', clip: 'Motion[86]', frame: 146, type: 'em084_00:8',  action: [7, 0x44], arm: 'right', when: { stance: 2, rank: 'low' } },
+    { list: '2', clip: 'Motion[86]', frame: 146, type: 'em084_00:56', action: [7, 0x44], arm: 'left',  when: { stance: 2, rank: 'G' } },
+    { list: '2', clip: 'Motion[86]', frame: 146, type: 'em084_00:57', action: [7, 0x44], arm: 'right', when: { stance: 2, rank: 'G' } },
+    { list: '2', clip: 'Motion[86]', frame: 146, type: 'em084_00:25', action: [7, 0x4a], arm: 'left',  when: { stance: 2, rank: 'low' } },
+    { list: '2', clip: 'Motion[86]', frame: 146, type: 'em084_00:26', action: [7, 0x4a], arm: 'right', when: { stance: 2, rank: 'low' } },
+    { list: '2', clip: 'Motion[86]', frame: 146, type: 'em084_00:58', action: [7, 0x4a], arm: 'left',  when: { stance: 2, rank: 'G' } },
+    { list: '2', clip: 'Motion[86]', frame: 146, type: 'em084_00:59', action: [7, 0x4a], arm: 'right', when: { stance: 2, rank: 'G' } },
+    { list: 'l_2', clip: 'Motion[5]',  partners: ['Motion[6]'], frame: 200, type: 'em084_00:0',  action: [7, 0x0c], arm: 'left',  when: { stance: 1, rank: 'low' } },
+    { list: 'l_2', clip: 'Motion[5]',  partners: ['Motion[6]'], frame: 200, type: 'em084_00:50', action: [7, 0x0c], arm: 'left',  when: { stance: 1, rank: 'G' } },
+    { list: 'l_2', clip: 'Motion[13]', frame: 88,  type: 'em084_00:3',  action: [7, 0x0d], arm: 'left',  when: { stance: 1, rank: 'low' } },
+    { list: 'l_2', clip: 'Motion[13]', frame: 88,  type: 'em084_00:52', action: [7, 0x0d], arm: 'left',  when: { stance: 1, rank: 'G' } },
+    { list: 'l_2', clip: 'Motion[28]', frame: 294, type: 'em084_00:4',  action: [7, 0x2a], arm: 'left',  when: { rank: 'low' } },
+    { list: 'l_2', clip: 'Motion[28]', frame: 294, type: 'em084_00:60', action: [7, 0x2a], arm: 'left',  when: { rank: 'G' } },
+    { list: 'r_2', clip: 'Motion[5]',  partners: ['Motion[6]'], frame: 200, type: 'em084_00:7',  action: [7, 0x0c], arm: 'right', when: { stance: 1, rank: 'low' } },
+    { list: 'r_2', clip: 'Motion[5]',  partners: ['Motion[6]'], frame: 200, type: 'em084_00:51', action: [7, 0x0c], arm: 'right', when: { stance: 1, rank: 'G' } },
+    { list: 'r_2', clip: 'Motion[14]', frame: 88,  type: 'em084_00:10', action: [7, 0x0d], arm: 'right', when: { stance: 1, rank: 'low' } },
+    { list: 'r_2', clip: 'Motion[14]', frame: 88,  type: 'em084_00:53', action: [7, 0x0d], arm: 'right', when: { stance: 1, rank: 'G' } },
+    { list: 'r_2', clip: 'Motion[28]', frame: 294, type: 'em084_00:11', action: [7, 0x2a], arm: 'right', when: { rank: 'low' } },
+    { list: 'r_2', clip: 'Motion[28]', frame: 294, type: 'em084_00:61', action: [7, 0x2a], arm: 'right', when: { rank: 'G' } },
   ],
 };
 const actionName = a => a[0] + ':0x' + a[1].toString(16).padStart(2, '0');
@@ -281,6 +319,7 @@ function whenHolds(w, o){
   if (!w || !o) return true;
   if (w.tired != null && !!o.tired !== w.tired) return false;
   if (w.rage != null && !!o.rage !== w.rage) return false;
+  if (w.stance != null && o.stance != null && o.stance !== w.stance) return false;   // Nakarkos's stance (index.html)
   if (w.rank === 'G' && !(o.rank > 4)) return false;
   if (w.rank === 'low' && !(o.rank <= 4)) return false;
   if (w.part) for (const [k, v] of Object.entries(w.part)) if (!!(o.parts && o.parts[k]) !== v) return false;

@@ -3013,10 +3013,14 @@
    "name": "State",
    "rungs": [
     "Calm",
-    "Charging",
+    "Charge 1",
+    "Charge 2",
+    "Charge 3",
     "Enraged"
    ],
    "rage": [
+    false,
+    false,
     false,
     false,
     true
@@ -3036,16 +3040,16 @@
    "3,4,13,14,20,24,113,114": {
     "name": "Face Plate",
     "state": "level",
-    "default": "3,4,113,114|3,4,20,24,113,114|3,4,20,24,113,114",
+    "default": "3,4,113,114|3,4,20,24,113,114|3,4,20,24,113,114|3,4,20,24,113,114|3,4,20,24,113,114",
     "order": [
-     "3,4,113,114|3,4,20,24,113,114|3,4,20,24,113,114",
-     "4,13,114|4,13,20,24,114|4,13,20,24,114",
-     "13,14|13,14,20|13,14,20"
+     "3,4,113,114|3,4,20,24,113,114|3,4,20,24,113,114|3,4,20,24,113,114|3,4,20,24,113,114",
+     "4,13,114|4,13,20,24,114|4,13,20,24,114|4,13,20,24,114|4,13,20,24,114",
+     "13,14|13,14,20|13,14,20|13,14,20|13,14,20"
     ],
     "options": {
-     "3,4,113,114|3,4,20,24,113,114|3,4,20,24,113,114": "Intact",
-     "4,13,114|4,13,20,24,114|4,13,20,24,114": "Cracked",
-     "13,14|13,14,20|13,14,20": "Broken"
+     "3,4,113,114|3,4,20,24,113,114|3,4,20,24,113,114|3,4,20,24,113,114|3,4,20,24,113,114": "Intact",
+     "4,13,114|4,13,20,24,114|4,13,20,24,114|4,13,20,24,114|4,13,20,24,114": "Cracked",
+     "13,14|13,14,20|13,14,20|13,14,20|13,14,20": "Broken"
     }
    },
    "5,15,25": {
@@ -3715,7 +3719,7 @@
  },
  "em049_00": {
   "reviewed": "2026-09-11",
-  "note": "Reviewed by Raven: nine rows, eight of them doubled by a HEATED/COOLED state. 'H = Heated, C = Cooled' and 'We will want a Heated: Toggle'. A NEW CONTROL, the third state axis after Rage and Charged. Agnaktor wears molten armour that cools, so every break row offers the same break TWICE -- once with its lava meshes and once without -- which is why each has four options and the tail has six. Written as \"cooled|heated\" keys with \"state\": \"heated\", collapsing each row to Intact / Broken (and the tail to Intact / Broken / Severed) with the toggle choosing the form. THE MATERIALS DIVIDE IT EXACTLY. Six lava materials, XfB_0__m01_lav01 through m06_lav06, and every heated half is precisely the option drawing them: head m04 (parts 4, 6, 8), back m06 (9, 11), chest m05 (12, 14), front legs m02/m01 (15,17 and 18,20), rear legs m02/m01 (21,23 and 24,26), tail m03 (27, 29). Nothing was read off the render. HEATED DEFAULTS ON and is INDEPENDENT of Enraged and Charged -- it is an armour state, not an AI one, so it clears neither and neither clears it. It also does not touch the material swap or the clip table, so its handler rebuilds rows only. THE CONTROL IS GATED ON THE REVIEW FILE, not on the data: nothing in the ROM marks this state, only the lava materials on the meshes, and reading 'has a lav* material' as 'has a heated state' would be an inference. A row saying so is a person saying so. Eyes is the only plain row -- part 50 is XfB_0__m07_eye at 18v, part 1 the covering patch. NOTE Raven's list named 'Front Left Leg' twice, at positions 5 and 9; nine rows exist and his tenth entry is the Tail, so the duplicate is a slip and position 9 is the Tail. The four leg rows are taken in his order: 15,16,17 front left; 18,19,20 front right; 21,22,23 rear left; 24,25,26 rear right. Their materials pair as m02/m01 front and m02/m01 rear, which does not disambiguate left from right, so the naming rests on his order alone -- flagged, not verified. **'HEATED' IS RAVEN'S LABEL FOR THE USER, NOT A ROM STATE NAME.** He said so plainly, 2026-09-12: 'Heated may not be used in game, it was more to make it clear to the users since when he digs, goes into lava or is hit with Fire weapons, the cooled lava armor heats up.' **The ROM's own word is `maguma`** -- magma -- on the clips `maguma_Change`, `maguma_Loop` and `maguma_End`, against `cool_Loop` for the dormant state. So the axis this file declares is a VIEWER construct standing in for a condition the game reaches from AI: digging, entering lava, or taking fire damage. That matters twice over. First, it is one more case of a control named from the render rather than decoded, like Kelbi's Gender. Second, **a gameplay trigger is exactly the shape that reaches a clip by hash from an AI state**, which monster.js already names as the one part of the material-animation chain the ROM does not hand us -- so the real fix for this monster and the general fix for clip selection are the same problem. **The lava is a LAYER, not a swap:** 17 lava parts drawn OVER 17 rock/body parts, the rock carrying no clips at all, the lava additive (BSAddAlpha, depthWrite false). When Heated is ticked the overlay meshes ARE drawn; they sit in `cool_Loop` because `cool` matches REST_NAME, and additive with nothing to add reads as absent.",
+  "note": "Reviewed by Raven: nine rows, eight of them doubled by a HEATED/COOLED state. 'H = Heated, C = Cooled' and 'We will want a Heated: Toggle'. A NEW CONTROL, the third state axis after Rage and Charged. Agnaktor wears molten armour that cools, so every break row offers the same break TWICE -- once with its lava meshes and once without -- which is why each has four options and the tail has six. Written as \"cooled|heated\" keys with \"state\": \"heated\", collapsing each row to Intact / Broken (and the tail to Intact / Broken / Severed) with the toggle choosing the form. THE MATERIALS DIVIDE IT EXACTLY. Six lava materials, XfB_0__m01_lav01 through m06_lav06, and every heated half is precisely the option drawing them: head m04 (parts 4, 6, 8), back m06 (9, 11), chest m05 (12, 14), front legs m02/m01 (15,17 and 18,20), rear legs m02/m01 (21,23 and 24,26), tail m03 (27, 29). Nothing was read off the render. HEATED DEFAULTS ON and is INDEPENDENT of Enraged and Charged -- it is an armour state, not an AI one, so it clears neither and neither clears it. It also does not touch the material swap or the clip table, so its handler rebuilds rows only. THE CONTROL IS GATED ON THE REVIEW FILE, not on the data: nothing in the ROM marks this state, only the lava materials on the meshes, and reading 'has a lav* material' as 'has a heated state' would be an inference. A row saying so is a person saying so. Eyes is the only plain row -- part 50 is XfB_0__m07_eye at 18v, part 1 the covering patch. NOTE Raven's list named 'Front Left Leg' twice, at positions 5 and 9; nine rows exist and his tenth entry is the Tail, so the duplicate is a slip and position 9 is the Tail. The four leg rows are taken in his order: 15,16,17 front left; 18,19,20 front right; 21,22,23 rear left; 24,25,26 rear right. Their materials pair as m02/m01 front and m02/m01 rear, which does not disambiguate left from right, so the naming rests on his order alone -- flagged, not verified. **'HEATED' IS RAVEN'S LABEL FOR THE USER, NOT A ROM STATE NAME.** He said so plainly, 2026-09-12: 'Heated may not be used in game, it was more to make it clear to the users since when he digs, goes into lava or is hit with Fire weapons, the cooled lava armor heats up.' **The ROM's own word is `maguma`** -- magma -- on the clips `maguma_Change`, `maguma_Loop` and `maguma_End`, against `cool_Loop` for the dormant state. So the axis this file declares is a VIEWER construct standing in for a condition the game reaches from AI: digging, entering lava, or taking fire damage. That matters twice over. First, it is one more case of a control named from the render rather than decoded, like Kelbi's Gender. Second, **a gameplay trigger is exactly the shape that reaches a clip by hash from an AI state**, which monster.js already names as the one part of the material-animation chain the ROM does not hand us -- so the real fix for this monster and the general fix for clip selection are the same problem. **The lava is a LAYER, not a swap:** 17 lava parts drawn OVER 17 rock/body parts, the rock carrying no clips at all, the lava additive (BSAddAlpha, depthWrite false). When Heated is ticked the overlay meshes ARE drawn; they sit in `cool_Loop` because `cool` matches REST_NAME, and additive with nothing to add reads as absent. **2026-10-07, PER-REGION HEAT, FOLLOWING THE GAME** (Raven: 'Follow the game'; dev/em049-heat.md). The ROM's part driver 0xec1cec draws every slot's HEATED group (rock + lava overlay) in play whatever its heat, and the cooled group only in death / capture (vt+0x3f4: action group 11 / 14 / (12, 0xff)) with that slot cooled. So the rows below keep choosing the FORM -- Intact / Broken / Severed -- and the cooled|heated pairing now chooses the drawn half only for the death clip (L3 M12, the one clip group 11 plays alone); everywhere else the heated half is drawn (index.html applyPartState). The old sentence above, 'When Heated is ticked the overlay meshes ARE drawn', is now true whatever Heated says. Heat itself is six regions -- head, chest, back, tail and the two leg pairs that share m01 / m02 (Front Right + Rear Right on m01, Front Left + Rear Left on m02) -- each running the game's machine on its own lava material (maguma_Change 120 f, maguma_Loop, maguma_End 360 f, cool_Loop). The Heated toggle drives all six, the Beam heated toggle the head and chest, and the heating clips (render/motion-states.js HEAT_CLIPS) drive their regions while they play; a hot region is on the soft hit-zone table.",
   "rows": {
    "1,50": {
     "name": "Eyes",

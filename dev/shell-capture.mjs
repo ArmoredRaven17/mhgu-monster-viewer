@@ -34,8 +34,18 @@ const STEPS = +opt('--steps', '0');
 // the lingering fire (shell01, u 161) and the burst (u 162) -- with no wall in the stage, u 162 CANNOT be
 // reached at all, the same shape as shell03 mode 20's climb branch being unreachable until a wall existed.
 const WALL = opt('--wall', null);
+// --arm-form <group>: set every attached body's form dropdown (Nakarkos's tentacles) to that group before the clip runs
+// -- the form picks which shells an arm action makes (render/shells.js arm084; g2 / g4 / g5 / g3 = forms 0..3)
+const ARMFORM = opt('--arm-form', null);
+// --level <rung>: the viewer's charge rung (state.level) for the capture -- Boltreaver's wing slams and tail slam spawn by his
+// charge tier (index.html shellChargeTier, render/shells.js spawn081)
+const LEVEL = opt('--level', null);
+// --part <row>=<option>: set one part row of the panel (its data-row, e.g. '4,101', and an option's value or label, e.g.
+// 'Broken') before the clip runs -- the parts shown are what the shells' inputs read (index.html shellExtra: Bloodbath's
+// shell07 spawns by the tail severed, render/motion-states.js SHELL_TAIL em007_04 part 4)
+const PART = opt('--part', null);
 const [MON, LIST, CLIP, VARIANT, OUT] = argv;
-if (!OUT) throw new Error('usage: node dev/shell-capture.mjs <monster> <list> <clip> <variant> <out json> [--steps n] [--wall metres]');
+if (!OUT) throw new Error('usage: node dev/shell-capture.mjs <monster> <list> <clip> <variant> <out json> [--steps n] [--wall metres] [--arm-form group]');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const freePort = () => new Promise(r => { const s = net.createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => r(p)); }); });
 async function json(url){
@@ -52,7 +62,7 @@ const evaluate = (c, expression) => c.send('Runtime.evaluate', { expression, awa
   .then(r => { if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception ? r.exceptionDetails.exception.description : r.exceptionDetails.text); return r.result.value; });
 
 // IN THE PAGE: play the clip once (its loop off) for its length + 300 steps (or N), logging each step's shell inputs
-async function pageCapture(MONID, LISTID, CLIPNAME, VAR, N, WALLAT){
+async function pageCapture(MONID, LISTID, CLIPNAME, VAR, N, WALLAT, ARMG, LVL, PARTSPEC){
   const V = window.__view;
   const M = await import('/render/monster.js');
   const monSel = document.getElementById('monSel'), listSel = document.getElementById('monList'), clipSel = document.getElementById('monClip');
@@ -61,7 +71,18 @@ async function pageCapture(MONID, LISTID, CLIPNAME, VAR, N, WALLAT){
     monSel.value = MONID; await monSel.onchange();
   }
   if (WALLAT != null) V.box('wall', WALLAT);             // a NUMBER places it and keeps it placed across clip changes
-  V.state.loop = false;                                  // one play, held on its last frame
+  if (ARMG != null) for (const sel of document.querySelectorAll('[data-row^="attached:"] select')){
+    sel.value = String(ARMG); if (sel.onchange) sel.onchange();
+  }
+  if (LVL != null) V.state.level = LVL;
+  if (PARTSPEC){
+    const i = PARTSPEC.lastIndexOf('='), row = PARTSPEC.slice(0, i), want = PARTSPEC.slice(i + 1);
+    const sel = [...document.querySelectorAll('#monGroups .field')].filter(x => x.dataset.row === row).map(x => x.querySelector('select'))[0];
+    const o = sel && [...sel.options].find(x => x.value === want || x.textContent === want);
+    if (!o) return { error: 'no part row ' + row + ' option ' + want };
+    sel.value = o.value; if (sel.onchange) await sel.onchange();
+  }
+  V.state.loop = false;                                 // one play, held on its last frame
   await V.effects(false); await V.effects(true);
   const fx = M.effectRuntimeInstance();
   // A monster with no shells still has ANIMATED JOINTS worth capturing: an effect placed on a joint the clip
@@ -93,6 +114,9 @@ async function pageCapture(MONID, LISTID, CLIPNAME, VAR, N, WALLAT){
   for (let f = 0; f < steps0; f++){
     pose.step([V.mounted.main]);
     V.mounted.main.updateMatrixWorld(true);
+    // the attached bodies (Nakarkos's tentacles) are posed after the body, as the render loop does -- without it every
+    // capture recorded their bind pose (an arm's joint 12 at y 735 behind him, where the viewer has it near the ground ahead)
+    if (V.stepAttached) V.stepAttached();
     fx.writeJoints();
     const act = pose.action;
     const nm = act && act.getClip ? act.getClip().name : null;
@@ -103,6 +127,19 @@ async function pageCapture(MONID, LISTID, CLIPNAME, VAR, N, WALLAT){
     const joints = {};
     for (const [gid, m] of fx.gameJoints) joints[gid] = Array.from(m);
     const extra = V.shellExtra ? V.shellExtra() : {};
+    // THE ATTACHED BODIES' JOINTS (Nakarkos's arms: index.html attachedJointsInput, a function per side) do not survive
+    // JSON -- every arm-owned shell then refused "no arm joints" on the replay. Kept as each side's gid -> matrix map,
+    // every gid its model has; efx/shellplan.mjs --inputs turns them back into lookups (2026-10-06)
+    if (extra.attachedJoints){
+      const aj = {};
+      for (const [side, fn] of Object.entries(extra.attachedJoints)){
+        if (typeof fn !== 'function') continue;
+        const o = {};
+        for (let g = 0; g < 256; g++){ const m = fn(g); if (m) o[g] = Array.from(m); }
+        aj[side] = o;
+      }
+      extra.attachedJoints = aj;
+    }
     let frame = act ? act.time * 60 + splitOffset : 0, loopStart = act && (splitOffset || (nm && nm.endsWith('_loop'))) ? splitOffset : null;
     if (act && fold){ const r = M.foldLoopFrame(act.time * 60, fold.S, fold.L); frame = r.frame; loopStart = r.loopStart; }
     steps.push({ list: act ? V.state.list : null, clip: act ? b : null, frame,
@@ -142,7 +179,7 @@ async function main(){
   }
   // the viewer's own loop stopped, so nothing else steps the effects
   await evaluate(c, 'window.__view.renderer.setAnimationLoop(null), true');
-  const res = await evaluate(c, `(${pageCapture.toString()})(${JSON.stringify(MON)}, ${JSON.stringify(LIST)}, ${JSON.stringify(CLIP)}, ${JSON.stringify(VARIANT)}, ${STEPS}, ${WALL == null ? 'null' : +WALL})`);
+  const res = await evaluate(c, `(${pageCapture.toString()})(${JSON.stringify(MON)}, ${JSON.stringify(LIST)}, ${JSON.stringify(CLIP)}, ${JSON.stringify(VARIANT)}, ${STEPS}, ${WALL == null ? 'null' : +WALL}, ${ARMFORM == null ? 'null' : +ARMFORM}, ${LEVEL == null ? 'null' : +LEVEL}, ${JSON.stringify(PART)})`);
   if (res.error) throw new Error(res.error);
   const steps = [];
   for (let i = 0; i < res.n; i += 50)

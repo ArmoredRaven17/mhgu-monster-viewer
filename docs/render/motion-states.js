@@ -3410,8 +3410,10 @@ export const MOTION_STATES = {
     //   AND NOT KNOWN AT ALL: whether the game ever sets group 6 indices 14/17/24/27/38/39/50 on either
     // monster. That is a command-stream question (group 4 stream 0, the walker parse) and has not been run,
     // so this is NOT claimed to be reachable in play -- it is claimed to be what the code does when it is.
-    '0|Motion[1]': { cycle: [{ hold: ['em007_00c', 30] }, { hold: ['em007_00c', 40] },
-                             { hold: ['em007_04u', 230] }] },
+    // (the array named, 2026-10-08: these keys are also SEQUENCE records -- c 30 is L0 M7 bit 26's cm202_000 once his
+    // enable word is read -- and add_effects.py's export refuses a key held in two arrays without one)
+    '0|Motion[1]': { cycle: [{ hold: ['em007_00c', 30, 'UNIQUE'] }, { hold: ['em007_00c', 40, 'UNIQUE'] },
+                             { hold: ['em007_04u', 230, 'UNIQUE'] }] },
   },
   // BARIOTH (em042_00): E:\offline\decode\notes\states-em042_00.md, read and ROM-run by the Barioth decode agent
   // (2026-09-24). Every change below lands on FRAME 0 of the motion named, except the rage pair, which the part pass
@@ -4621,6 +4623,15 @@ export const CLIP_POSTURE = {
     '3|Motion[10]': 1, '3|Motion[36]': 6,
     '5|Motion[1]': [5, 6], '5|Motion[4]': 6, '5|Motion[5]': [5, 6], '5|Motion[8]': 1, '5|Motion[36]': [5, 6],
     '5|Motion[37]': [5, 6], '5|Motion[38]': 5,
+    // THE TURN CLIPS, READ 2026-10-05 (Raven: "Khezu is not being moved to the ceiling for some animations still ... they
+    // most likely expect him to already be on the ceiling from an earlier animation"; posture-em003_00.md section 13 "The
+    // FwMove clips"): the shared turn player 0x7a258.. -> 0x772b4 takes its motion ids from data tables (rodata
+    // 0x169b774..0x169ba33), which is why the dataflow never saw them; every caller sets the posture on the same update.
+    // Wall / ceiling turn pair 0x1795f08 / 0x1795f00 ((3,0x55) posture 5 at 0xd13a50; (3,0x5c) / (3,0x1b) posture 6 at
+    // 0xd1602c / 0xd15b90); (7,0x12) 0xd18608 posture 5 at 0xd18664 (2|M62 only on an r1 no caller passes); (8,0)
+    // 0xd1cfdc posture 6 at 0xd1d040 (2|M46 is that site's discarded side clip, never played).
+    '2|Motion[47]': 6, '2|Motion[53]': 5, '2|Motion[57]': 5, '2|Motion[62]': 5,
+    '5|Motion[6]': [5, 6], '5|Motion[7]': [5, 6], '5|Motion[39]': [5, 6], '5|Motion[40]': [5, 6],
   },
   // DIABLOS: the first BURROWER wired. 72 of the 100 clips docs/monsters.json carries have a posture; only the
   // ones that are not plain ground are listed, as Khezu's are. He uses 0, 1, 3 and 4 -- NO wall and NO ceiling.
@@ -4933,8 +4944,25 @@ export function turnLeanOf(monId, list, clip){
   const e = CLIP_TURNS[monId] && CLIP_TURNS[monId][list + '|' + clip];
   return e ? e.deg : 0;
 }
-export const CEILING_ABOVE_GAME = 838;
+// RAISED TO THE CEILINGS OF HIS OWN HUNTING GROUNDS (Raven, 2026-10-05: "The ones that do, the floor grid is too close, so
+// we need a higher ceiling" -- hung from 838 his head went through the floor). The game's ceiling is the area's: the
+// ground probe's topmost 0x10 polygon above him (rom-map "Walls and ceilings"; posture-mount.md 10). Measured over the
+// collision of the maps his quests use (quest files: Arctic Ridge 3, Marshlands 7, Arena 9, Frozen Seaway 14,
+// F. Slayground 15), floor -> flat 0x10 ceiling, median per area: m07a03d 1440, m07a07d 1500, m07a09d 1500, m14a05d
+// 1483, m14a06d 1489, m15a01d 1500, m03a09d 1151, m14a01d 2232 -- 1500 is his ceiling. Still a choice between areas
+// (the arena has none); Shogun's grounds spread from 210 to 4572 and his clips hang shallow.
+export const CEILING_ABOVE_GAME = 1500;
+// RAVEN'S CALLS ON REVIEW (2026-10-05: "Reviewing the animations, we can simply set an animation as ceiling or wall if
+// needed"). A clip set here takes that surface whatever CLIP_POSTURE says -- 5 wall, 6 ceiling, [5, 6] either (both
+// planes), 0 floor -- for clips whose surface the game data leaves open (Khezu: only 2|M6, 2|M45 and 3|M22 still have no
+// player; posture-em003_00.md section 13). Keys as CLIP_POSTURE's: 'list|Motion[N]'.
+// Each entry carries Raven's word beside it; nothing goes in without it.
+export const CLIP_POSTURE_REVIEW = {
+};
 export const postureOf = (monId, list, clip) => {
+  const r = CLIP_POSTURE_REVIEW[monId];
+  const q = r && r[list + '|' + clip];
+  if (q != null) return q;
   const t = CLIP_POSTURE[monId];
   const p = t && t[list + '|' + clip];
   return p == null ? 0 : p;
@@ -5246,6 +5274,11 @@ export const SHELL_TAIL = {
   // Dreadking: the same poison path (his shell data carries the break row), his own .mpm -- set 12 draws part 13 broken,
   // set 13 part 8 severed (states-em002_04.md 3.2), where Dreadqueen's draw 12 and 8
   em002_04: { severed: 8, broken: 13, level: 2 },
+  // Bloodbath Diablos: his part pass (uEm007_00 vt+0x210 = 0xd36e50, variant 4) draws set 0xb on vt+0x370(e, 1) -- the
+  // sever bit -- and set 0xa otherwise (0xd37044..0xd37068); set 11 draws part 4 (monsters.json em007_04 groups[11], the
+  // Tail row's "Broken", which sheds the tail piece). His enable word (psl-mask.js em007_04: bits 15-17 / 18-20) and his
+  // shell07 spawns (0xd41d1c) read the same bit. No break level: nothing of his reads part 7's.
+  em007_04: { severed: 4 },
 };
 export function shellTailInput(monId, drawn){
   const t = SHELL_TAIL[monId];
@@ -5410,6 +5443,21 @@ export const CHARGE_EFFECTS = {
     4: { start: [['em081_04u', 240, 'UNIQUE']],
          hold:  [['em081_04u', 230, 'UNIQUE'], ['em081_04u', 231, 'UNIQUE'], ['em081_04u', 232, 'UNIQUE'], ['em081_04u', 241, 'UNIQUE']] },
   },
+  // NAKARKOS: the cannon charge, three rungs (Raven, 2026-10-05: "Split into 3 rungs", then "Add the three charge states";
+  // part-review em084_00 State: Calm / Charge 1 / Charge 2 / Charge 3 / Enraged). READ, emulated: the level machine
+  // 0x1067ed4 runs at every action start (dev/em084-class-effects.md 2) and holds ONE pair at a time -- handles
+  // E+0x26300 / +0x26304, the old pair stopped (0x329c40(h, 0)) before the next starts: level 1 u 90 + u 94 (ids 1001 /
+  // 1002, set on (7, 0x32), L2 M81, the charge), level 2 u 91 + u 95 (1003 / 1004, the next action start), level 3 u 92
+  // + u 96 (1005 / 1006, on (1, 0x41)). No rank, rage, tired, part or area test. Levels 4 / 5 (a shot at level 2 / 3)
+  // keep the pair, and the shot itself stops it at L2 M82 f285 (0x106d8f4) -- the viewer's rung is the level held, so a
+  // rung keeps its pair over every clip until the rung changes. u 90 was exported `when: 'rage'` by export_effects.py's
+  // default, which is not a read (note 2); it is an event record like the rest. Ids -> keys: table 0x16a2858
+  // {-1, 90, 94, 91, 95, 92, 96}, all UNIQUE.
+  em084_00: {
+    1: { hold: [['em084_00u', 90, 'UNIQUE'], ['em084_00u', 94, 'UNIQUE']] },
+    2: { hold: [['em084_00u', 91, 'UNIQUE'], ['em084_00u', 95, 'UNIQUE']] },
+    3: { hold: [['em084_00u', 92, 'UNIQUE'], ['em084_00u', 96, 'UNIQUE']] },
+  },
   em081_00: {
     // id 1001 -> u 220 (em081_00_019, joint 0) is the one-shot burst -- the note: "never [stops] -- no
     // handle is kept, it runs to its own end". id 1002 -> u 221 (em081_00_000 mask 0x07, all three charged
@@ -5419,6 +5467,72 @@ export const CHARGE_EFFECTS = {
          hold:  [['em081_00u', 210], ['em081_00u', 211], ['em081_00u', 212], ['em081_00u', 221]] },
   },
 };
+
+// ---- CLIPS THAT HEAT A REGION (Agnaktor) -----------------------------------------------------------
+// Raven, 2026-10-06: "His mouth and chest should heat up when he fires the beam", and "we can also have the animation
+// revert back to unheated when it finishes". dev/em049-heat.md 2a / 2b / 6: every heater in uEm049_00 is a write of 3
+// (heating) to a slot's state, so a clip here turns its regions on from its frame while the motion plays, over the
+// user's Heated / Beam heated toggles, and render/monster.js's region machines play the transition (maguma_Change,
+// or maguma_Loop when already molten or cooling). When the motion is over -- another clip, a loop's wrap back past
+// the frame, or a play-once clip held on its last frame -- the region goes back to the toggles, through maguma_End.
+//   THE GAME DOES NOT COOL AT THE CLIP'S END: a heated slot runs heating 120 frames, then molten for 1800 (30 s,
+// 30 x tune int 0 / 1 = 900 half-steps), then cooling 360 (maguma_End), whatever plays meanwhile (note 3, 6). The
+// viewer reverts at the clip's end by Raven's choice, which is recorded here so it is not taken for the game's.
+//   <monId>: { '<list>|Motion[N]': [[region, fromFrame], ...] }, regions as render/monster.js ROM_HEAT_REGIONS.
+// WHAT IS WIRED is the clips every action playing them heats (the note's census; the action -> clip pairing re-run with
+// efx/agents/notice-scratch/probe.py + cephadrome-scratch/scr.py, 2026-10-07, H). NOT WIRED, each with its reason:
+//   L2 M6   the heaters (3, 1/3/5/6), (6, 3/4/6/8/0xf), (13, 4) share it with (7, 6/7/8/0x22/0x2b/0x2c), not heaters
+//   L2 M18  (13, 2) heats; (6, 1) plays it too and does not
+//   L0 M1   the lava-dive family heats on it, but it is also the idle (0, 0) / (0, 7) / (1, 0x47) -- the note: "wire it
+//           only if Raven confirms"
+//   L3 M14  the reheat action (1, 8..0x46) heats a per-number SUBSET of the six regions; the clip cannot say which
+//   L3 M21 / L3 M15   (10, 0xa / 0x38 / 0x5c) / (10, 0x60) heat all at the action start (vt+0x204), but L3 M21 is also
+//           death (11, 3) and L3 M15 is also (10, 0x67)
+//   L2 M30 is two actions: (7, 0x38) heats the head at f100, the tired (7, 0x39) from f1 (held every tick) -- wired as
+//           the beam (f100); the clip alone cannot tell the tired one
+//   the in-lava hold (E+0x1068 bit 6, what sets it NOT READ) and the follow-on clips M23 / M25 / M29 (the heat is
+//           written at f0 of the clip before them).
+const ALL_REGIONS_F0 = ['head', 'chest', 'legsM01', 'legsM02', 'back', 'tail'].map(r => [r, 0]);
+export const HEAT_CLIPS = {
+  em049_00: {
+    // THE BEAMS (note 2a, R + H): chest at f0 (phase 0, the setMotion tick), head at f100 (0xb0968(E, 0, 0, 100.0),
+    // 0xeba4b4..0xeba4e0) -- 20 frames before the beam leaves at f120. Sites 0xeba44c / 0xeba4d8 (L2 M4: (7, 4),
+    // (7, 0x1f), (7, 0x20)), 0xebce04 / 0xebce50 (L2 M11: (7, 0x25)), 0xebec5c / 0xebece0 (L2 M30: (7, 0x38)).
+    '2|Motion[4]':  [['chest', 0], ['head', 100]],
+    '2|Motion[11]': [['chest', 0], ['head', 100]],
+    '2|Motion[30]': [['chest', 0], ['head', 100]],
+    // THE TIRED NO-BEAM (7, 0x16): chest f0, head written every tick from f1 (0xebf318, 0xebf36c; 0xebf364 phase-1 tail)
+    '2|Motion[12]': [['chest', 0], ['head', 1]],
+    // THE LONG BEAMS (7, 0xa) L2 M28 and (7, 0x21) L2 M27: all eight slots at f0, after setMotion 0xebb81c
+    // (0xebb82c..0xebb8ac, R + H)
+    '2|Motion[27]': ALL_REGIONS_F0,
+    '2|Motion[28]': ALL_REGIONS_F0,
+    // HEAD ONLY (note 2b, H; the stores R): L2 M13 at f58 (0xebadd8) -- (7, 9) / (7, 0x27) here, (7, 0x1d / 0x1e /
+    // 0x28 / 0x29) by the note; L2 M14 / M15 / M16 at f56 -- (7, 0x35) / (7, 0x3b), (7, 0x3c), (7, 0x3d)
+    '2|Motion[13]': [['head', 58]],
+    '2|Motion[14]': [['head', 56]],
+    '2|Motion[15]': [['head', 56]],
+    '2|Motion[16]': [['head', 56]],
+    // ALL SIX AT f0 (note 2b, H; the stores R from 0xebb9e8..): L2 M24 (7, 0xb / 0x10..0x13 / 0x17..0x1c / 0x23 /
+    // 0x24), L2 M21 (7, 0xc / 0xd), L2 M17 (7, 0xe), L2 M20 (7, 0xf); L2 M19 (6, 2) / (12, 0) / (13, 5) -- every
+    // action playing it heats, H only with the outside calls stubbed
+    '2|Motion[24]': ALL_REGIONS_F0,
+    '2|Motion[21]': ALL_REGIONS_F0,
+    '2|Motion[17]': ALL_REGIONS_F0,
+    '2|Motion[20]': ALL_REGIONS_F0,
+    '2|Motion[19]': ALL_REGIONS_F0,
+  },
+};
+// The regions a motion heats at this frame: a Set, empty where it heats none. `ended`: the motion is over (a play-once
+// clip held on its last frame), and the regions go back to the toggles.
+export function clipHeat(monId, list, clip, frame, ended){
+  const t = monId && HEAT_CLIPS[monId];
+  const spec = t && clip != null ? t[list + '|' + clip] : null;
+  const out = new Set();
+  if (!spec || ended) return out;
+  for (const [r, f] of spec) if (frame >= f) out.add(r);
+  return out;
+}
 
 export class MotionStates {
   constructor(){ this.cur = null; this.userDrawn = null; this.table = null; this.plays = new Map(); this.chargeLevel = 0; }

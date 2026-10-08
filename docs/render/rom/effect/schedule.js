@@ -322,6 +322,12 @@ export class EffectSchedule {
   }
   stepShells(){
     const S = this.shells, c = this.clip, m = this.host.m;
+    // A SHELL DELETED THE MOVE AFTER ITS END: its parent unit is gone, so every request still hung from it ends through
+    // its own handle test (0x328ea8 -> 0x31d028 -> vt+0x9c(core, 1); proof.js handleValid). Applied to base14 alone, the
+    // one base whose deletion is read with an effect still running on it (dev/em081-shells-spec.md 5b: the end
+    // 0x3f9ef4 stops only +0x1624 and the shell is deleted on the next move -- u 40 is never stopped by the shell).
+    for (const p of this.goneNext || []) this.host.parentGone(p);
+    this.goneNext = [];
     let list = null, clip = null;
     if (c && c.key){ const k = c.key.split('|'); list = k[1]; clip = k.slice(2).join('|'); }
     // the handle's unit in state 1 or 2 (0x3ff958). A shell spawned this step has not had its request started yet --
@@ -413,9 +419,33 @@ export class EffectSchedule {
                                         undefined, start.requester);
       e.requests.push(q);
       this.starts++;
-      if (sh.effect2) sh.effect2.request = q;
+      if (start.kind === 'switch' && sh.effect3) sh.effect3.request = q;   // base01's 0x20 switch: its +0x162c handle
+      else if (start.kind === 'end' && sh.effect4) sh.effect4.request = q;  // base01's end start of +0x15d4 (Boltreaver's 04_01): +0x1630
+      else if (sh.effect2) sh.effect2.request = q;
+    }
+    // A SHELL'S OWN EFFECT STOPPED GRACEFULLY MID-LIFE (Boltreaver's base14 stops u 41 at its delay, 0x406a34: 0x329c40(h, 0))
+    for (const sh of out.alive) if (sh.stopNow && sh.request && alive(sh) && !sh.request.stopped) this.host.stopRequest(sh.request);
+    // ...and its units written by the shell itself, after the move's start (base14: u 40's every unit placed at the bolt's
+    // anchor, turned by its words, stretched in z to the head; shells.js move14 / host.placeUnits)
+    for (const sh of out.alive)
+      if (sh.units14 && sh.effect2 && sh.effect2.request && reqAlive(sh.effect2.request))
+        this.host.placeUnits(sh.effect2.request, sh.units14.position, sh.units14.rotationRad, sh.units14.scaleZ);
+    // base01's 0x20 SWITCH stops the shell's own effect at once (0x43b058(h, 1) -> 0x329c40(h, 1); shells.js switch01): its
+    // flag-1 stop events, applied once each, to the request they name
+    for (const sh of out.alive){
+      if (!sh.events) continue;
+      for (const ev of sh.events){
+        if (ev.ev !== 'stop' || ev.flag !== 1 || ev.__applied) continue;
+        ev.__applied = true;
+        const q = ev.param === 0 ? sh.request : null;
+        if (q && alive(sh) && !q.stopped) this.host.stopRequest(q, 1);
+      }
     }
     for (const sh of out.ended) if (sh.stop && sh.request && alive(sh) && !sh.request.stopped) this.host.stopRequest(sh.request);
+    for (const sh of out.ended) if (sh.base === 'base14' && sh.parent) this.goneNext.push(sh.parent);
+    // ...and the switch's own handle at the shell's end (base01's end stops +0x162c too, gracefully)
+    for (const sh of out.ended) if (sh.effect3 && sh.effect3.request && reqAlive(sh.effect3.request) && !sh.effect3.request.stopped)
+      this.host.stopRequest(sh.effect3.request);
   }
   // the monster's facing as the u16 angle a unit keeps (+0x54; forward = (sin Y, 0, cos Y)), from its parent's
   // quaternion; the float-to-u16 rounding is the viewer's (the unit's own word is not kept here)

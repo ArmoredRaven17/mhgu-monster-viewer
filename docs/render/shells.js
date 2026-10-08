@@ -2420,6 +2420,552 @@ export const SHELL_DATA = {
 // its shells: no actions, no other shell; its beams spawn from their rows (stepShells, spawnBeamReal)
 for (const mon of Object.keys(BEAM_SPAWNS))
   if (!SHELL_DATA[mon]) SHELL_DATA[mon] = { lists: { 0: { list: 'u', pel: mon + 'u' } }, shells: {}, actions: [], beamsOnly: true };
+// NAKARKOS'S AURA (Raven, 2026-10-05: "Still missing Nakarkos's blue miasma effect"): shell06, uShellEm084_sp_06, id 0x16f,
+// base06 -- the files' values (dev/em084-shell06-aura.md 9a, READ; dev/em084-shells-spec.md 4c). Mode 0 the body (joint 1,
+// 800 ahead on his facing), 5 / 6 the tentacle sockets (joints 200 / 203, (0, -150, -300) in the joint's axes); each
+// starts its ef 0, u 40 / u 41 / u 42 (em084_00_002, em084_00u UNIQUE). Held every frame by the manager 0x106aa48 (aura084).
+SHELL_DATA.em084_00.shells.shell06 = {
+  id: 0x16f, cls: 'uShellEm084_sp_06', base: 'base06', reader: 0x1089c08, folder: 'shell\\em\\em084_00_shell06',
+  modes: {
+    0: { scale: 1.0, ef: [[0, 40]], sh: { ints: [1, 0, 0],     floats: [0.0, 30.0], vecs: [[0, 0, 800], [0, 0, 0]] } },
+    5: { scale: 1.0, ef: [[0, 41]], sh: { ints: [200, -1, 0],  floats: [0.0, 30.0], vecs: [[0, -150, -300], [0, 0, 0]] } },
+    6: { scale: 1.0, ef: [[0, 42]], sh: { ints: [203, -1, 0],  floats: [0.0, 30.0], vecs: [[0, -150, -300], [0, 0, 0]] } },
+  },
+};
+SHELL_DATA.em084_00.aura084 = true;
+// NAKARKOS'S CANNON (Raven, 2026-10-05: "List 2, Motion 82 does not fire the beam"): shell31, uShellEm084_sp_31, id 0x172,
+// base31 -- the files' values (dev/em084-shell31-cannon.md 3 / 5a, READ). Two shells a shot, the odd mode first: the odd
+// (u 101, em084_00_062_s) 1000 ahead of joint 0 on his facing, the even (u 100, em084_00_064) 1075 ahead, turned sideways
+// by its vec1 / vec2 (the frame u 100 is drawn in, INFERRED). Modes 2..5 sweep the yaw +-0.35 deg a frame over shell
+// frames 240..412. floats: life, sweep from, sweep to, hit re-arm; vecs 0..4: the point, A, B (the rotation's segment),
+// the start angles (deg), the sweep (deg / frame).
+SHELL_DATA.em084_00.shells.shell31 = {
+  id: 0x172, cls: 'uShellEm084_sp_31', base: 'base31', reader: 0x108ae98, folder: 'shell\\em\\em084_00_shell31',
+  modes: {
+    0: { scale: 1.0, ef: [[0, 100]], sh: { ints: [0], floats: [1000, 0, 0, 0],     vecs: [[0, 0, 1075], [180, 0, 0], [-180, 0, 0], [0, 0, 0], [0, 0, 0]] } },
+    1: { scale: 1.0, ef: [[0, 101]], sh: { ints: [0], floats: [1000, 0, 0, 120],   vecs: [[0, 0, 1000], [0, 0, 0], [0, 0, 20000], [0, 0, 0], [0, 0, 0]] } },
+    2: { scale: 1.0, ef: [[0, 100]], sh: { ints: [0], floats: [1000, 240, 412, 0], vecs: [[0, 0, 1075], [180, 0, 0], [-180, 0, 0], [0, 0, 0], [0, 0.35, 0]] } },
+    3: { scale: 1.0, ef: [[0, 101]], sh: { ints: [0], floats: [1000, 240, 412, 120], vecs: [[0, 0, 1000], [0, 0, 0], [0, 0, 20000], [0, 0, 0], [0, 0.35, 0]] } },
+    4: { scale: 1.0, ef: [[0, 100]], sh: { ints: [0], floats: [1000, 240, 412, 0], vecs: [[0, 0, 1075], [180, 0, 0], [-180, 0, 0], [0, 0, 0], [0, -0.35, 0]] } },
+    5: { scale: 1.0, ef: [[0, 101]], sh: { ints: [0], floats: [1000, 240, 412, 120], vecs: [[0, 0, 1000], [0, 0, 0], [0, 0, 20000], [0, 0, 0], [0, -0.35, 0]] } },
+  },
+};
+// THE SHOT, 0x10767c0 (dev/em084-shell31-cannon.md 1, READ): the status-7 switch 0x1073a74 gives (7, 0x33 / 0x34 / 0x35 /
+// 0x3c / 0x3d / 0x3e) r5 0 / 1 / 2 / 3 / 1 / 2; phase 1 -- the FIRST pass of L2 M82 only -- spawns the pair at frame 282
+// (tune float 0xb), the odd mode first (0x106f820, a 16-byte setup: owner and mode). M82 repeats its loop count (tune int
+// 0xc / 0xd / 0xe: 3 / 1 / 4 passes) and L2 M83 starts at motion frame 540 / 380 / 620 -- the motion change that ends both
+// shells (base31's +0x160c test). The viewer loops M82, so `leave` (that frame) ends them on the shell's own clock.
+// No rank, rage or stance test. NOT MODELLED, by name: (7, 0x33) / (7, 0x3c)'s body turn toward the target over f0..180
+// (the shell takes the facing at f282, as every turn shells.js does not run); (7, 0x3c)'s rate 1.3 (tune 0xf0).
+SHELL_DATA.em084_00.cannon084 = [
+  { variant: '7:0x33', action: [7, 0x33], modes: [1, 0], leave: 540 },
+  { variant: '7:0x34', action: [7, 0x34], modes: [3, 2], leave: 620 },
+  { variant: '7:0x35', action: [7, 0x35], modes: [5, 4], leave: 620 },
+  { variant: '7:0x3c', action: [7, 0x3c], modes: [1, 0], leave: 380 },
+  { variant: '7:0x3d', action: [7, 0x3d], modes: [3, 2], leave: 620 },
+  { variant: '7:0x3e', action: [7, 0x3e], modes: [5, 4], leave: 620 },
+];
+// NAKARKOS'S TENTACLE-FORM SHELLS, PHASE 1 (Raven, 2026-10-06: "Okay, now move onto the Tentacle Form effects";
+// dev/em084-shells-spec.md 1 / 5 / 6 / 8, READ; the arm requests 0x107cb9c / 0x107cc68, sp_13's reader / landing and the
+// base13 paths his flags take were read 2026-10-06 for this phase -- dev/rom-map.md "Nakarkos -- the tentacle-form shells,
+// phase 1"). Every one of these .shl lists em084_00u then em084_00u_r, so ef list slot 1 = em084_00u_r -- BOTH arms' shells
+// name u_r keys (never u_l). The files' values, em084_00.arc shell\em\em084_00_shellNN (scratchpad naka_shells/arcmodes.json
+// and hitdump.py): only the modes arm (7, 0x1b) Motion[93] and its second generation reach.
+SHELL_DATA.em084_00.lists[1] = { list: 'u_r', pel: 'em084_00u_r' };
+// shell01: global id 0x16d, uShellEm084_sp_01 (vtable 0x17f6a94), base01 by the setup DTI; its own reader 0x10891dc
+// (params084s01) and end create +0x154 0x1089384 (endCreate084). `hit` = the _hit### FUP int 0 the reader takes into
+// +0x15d8 (accA 0x4a23f4), a record of em084_00_01_hitdata (HDS v0x20160209, 14 records of 0x38 bytes from +0x10, 800 bytes:
+// the s16 delay / duration slotsOf011 reads) -- the em004_00 shell01 convention (dev/rom-map.md row "em004 shell01 hit").
+// Every phase-1 mode's timer (float 0) is 0.0, so each lives while its hit slot is on (move011).
+SHELL_DATA.em084_00.shells.shell01 = {
+  id: 0x16d, cls: 'uShellEm084_sp_01', base: 'base01', reader: 0x10891dc, folder: 'shell\\em\\em084_00_shell01',
+  modes: {
+    // 2: shell11 0's creates (0x108a330): ground snap only (int 3); u_r 10
+    2: { scale: 1.0, ef: [[1, 10], [999, -1]], hit: [2], sh: { ints: [-1, -1, -1, 0, -1, -1, -1], floats: [0.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+    // 3: (7, 0x1b) form 0 -- at the ARM's joint 12 (int 0 / int 1); u_r 0
+    3: { scale: 1.0, ef: [[1, 0], [999, -1]], hit: [1], sh: { ints: [0, 12, -1, -1, -1, -1, -1], floats: [0.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+    // 4: (7, 0x1b) form 2 -- (-700, 0, -300) through the arm's joint 12, snapped to the ground, angled by its normal; u_r 20
+    4: { scale: 1.0, ef: [[1, 20], [999, -1]], hit: [3], sh: { ints: [0, 12, -1, 0, 0, -1, -1], floats: [0.0], vecs: [[-700, 0, -300], [0, 0, 0]] } },
+    // 5: mode 4's end create; u_r 21
+    5: { scale: 1.0, ef: [[1, 21], [999, -1]], hit: [4], sh: { ints: [-1, -1, -1, -1, -1, -1, -1], floats: [0.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+    // 6: shell13 2..5's landing child (0x108ac50, table 0x16a2e00); u_r 31
+    6: { scale: 1.3, ef: [[1, 31], [999, -1]], hit: [5], sh: { ints: [-1, -1, -1, -1, -1, -1, -1], floats: [0.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+    // 7: mode 6's end create; u_r 32
+    7: { scale: 1.3, ef: [[1, 32], [999, -1]], hit: [6], sh: { ints: [-1, -1, -1, -1, -1, -1, -1], floats: [0.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+    // PHASE 2 (dev/em084-shells-spec.md 5 / 6 / 8, dev/em084-phase2-bases.md 2 / 3; the files' values, hit int 0 from _hit###):
+    // 15..62 the strikes -- flags 0x2f (ints 0, 2, 3, 4, 6: the ARM's joint 12 (int 1), the vec turned by the words, the ground
+    // snap and angles, 0x20), timer 120, ef u_r 13 at the init and u_r 14 by the 0x20 switch at hit record 8's onset (100, 10),
+    // sh vec 1 the degrees added to the words; 43 / 46 / 70..72 / 76..78 flags 0x0f, timer 300, u_r 24, record 9 (4, 450), their
+    // end creates 44 / 45 (endCreate084): flags 0, timer 300, u_r 25, record 10 (4, 10), at the parent's point and words
+    15: { scale: 0.800000011920929, ef: [[1, 13], [1, 14]], hit: [8], sh: { ints: [0, 12, 0, 0, 0, -1, 0], floats: [120.0], vecs: [[-500, 0, 400], [0, -60, 0]] } },
+    16: { scale: 0.800000011920929, ef: [[1, 13], [1, 14]], hit: [8], sh: { ints: [0, 12, 0, 0, 0, -1, 0], floats: [120.0], vecs: [[0, 0, 900], [0, 0, 0]] } },
+    17: { scale: 0.800000011920929, ef: [[1, 13], [1, 14]], hit: [8], sh: { ints: [0, 12, 0, 0, 0, -1, 0], floats: [120.0], vecs: [[500, 0, 400], [0, 60, 0]] } },
+    22: { scale: 1, ef: [[1, 13], [1, 14]], hit: [8], sh: { ints: [0, 12, 0, 0, 0, -1, 0], floats: [120.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+    23: { scale: 1, ef: [[1, 13], [1, 14]], hit: [8], sh: { ints: [0, 12, 0, 0, 0, -1, 0], floats: [120.0], vecs: [[0, 0, 0], [0, 40, 0]] } },
+    24: { scale: 1, ef: [[1, 13], [1, 14]], hit: [8], sh: { ints: [0, 12, 0, 0, 0, -1, 0], floats: [120.0], vecs: [[0, 0, 0], [0, 75, 0]] } },
+    29: { scale: 0.800000011920929, ef: [[1, 13], [1, 14]], hit: [8], sh: { ints: [0, 12, 0, 0, 0, -1, 0], floats: [120.0], vecs: [[-500, 0, 400], [0, -60, 0]] } },
+    30: { scale: 0.800000011920929, ef: [[1, 13], [1, 14]], hit: [8], sh: { ints: [0, 12, 0, 0, 0, -1, 0], floats: [120.0], vecs: [[0, 0, 900], [0, 0, 0]] } },
+    31: { scale: 0.800000011920929, ef: [[1, 13], [1, 14]], hit: [8], sh: { ints: [0, 12, 0, 0, 0, -1, 0], floats: [120.0], vecs: [[500, 0, 400], [0, 60, 0]] } },
+    36: { scale: 1, ef: [[1, 13], [1, 14]], hit: [8], sh: { ints: [0, 12, 0, 0, 0, -1, 0], floats: [120.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+    37: { scale: 1, ef: [[1, 13], [1, 14]], hit: [8], sh: { ints: [0, 12, 0, 0, 0, -1, 0], floats: [120.0], vecs: [[0, 0, 0], [0, -45, 0]] } },
+    38: { scale: 1, ef: [[1, 13], [1, 14]], hit: [8], sh: { ints: [0, 12, 0, 0, 0, -1, 0], floats: [120.0], vecs: [[0, 0, 0], [0, -75, 0]] } },
+    43: { scale: 1.100000023841858, ef: [[1, 24], [999, -1]], hit: [9], sh: { ints: [0, 12, 0, 0, 0, -1, -1], floats: [300.0], vecs: [[300, 100, -300], [0, 90, 0]] } },
+    44: { scale: 1.100000023841858, ef: [[1, 25], [999, -1]], hit: [10], sh: { ints: [-1, -1, -1, -1, -1, -1, -1], floats: [300.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+    45: { scale: 0.8999999761581421, ef: [[1, 25], [999, -1]], hit: [10], sh: { ints: [-1, -1, -1, -1, -1, -1, -1], floats: [300.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+    46: { scale: 1.100000023841858, ef: [[1, 24], [999, -1]], hit: [9], sh: { ints: [0, 12, 0, 0, 0, -1, -1], floats: [300.0], vecs: [[300, 100, -300], [0, 90, 0]] } },
+    48: { scale: 1, ef: [[1, 13], [1, 14]], hit: [8], sh: { ints: [0, 12, 0, 0, 0, -1, 0], floats: [120.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+    51: { scale: 1, ef: [[1, 13], [1, 14]], hit: [8], sh: { ints: [0, 12, 0, 0, 0, -1, 0], floats: [120.0], vecs: [[0, 0, 0], [0, 90, 0]] } },
+    52: { scale: 1, ef: [[1, 13], [1, 14]], hit: [8], sh: { ints: [0, 12, 0, 0, 0, -1, 0], floats: [120.0], vecs: [[0, 0, 0], [0, 45, 0]] } },
+    53: { scale: 1, ef: [[1, 13], [1, 14]], hit: [8], sh: { ints: [0, 12, 0, 0, 0, -1, 0], floats: [120.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+    57: { scale: 1, ef: [[1, 13], [1, 14]], hit: [8], sh: { ints: [0, 12, 0, 0, 0, -1, 0], floats: [120.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+    60: { scale: 1, ef: [[1, 13], [1, 14]], hit: [8], sh: { ints: [0, 12, 0, 0, 0, -1, 0], floats: [120.0], vecs: [[0, 0, 0], [0, -90, 0]] } },
+    61: { scale: 1, ef: [[1, 13], [1, 14]], hit: [8], sh: { ints: [0, 12, 0, 0, 0, -1, 0], floats: [120.0], vecs: [[0, 0, 0], [0, -45, 0]] } },
+    62: { scale: 1, ef: [[1, 13], [1, 14]], hit: [8], sh: { ints: [0, 12, 0, 0, 0, -1, 0], floats: [120.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+    70: { scale: 0.8999999761581421, ef: [[1, 24], [999, -1]], hit: [9], sh: { ints: [0, 12, 0, 0, 0, -1, -1], floats: [300.0], vecs: [[0, 20, 0], [0, -30, 0]] } },
+    71: { scale: 0.8999999761581421, ef: [[1, 24], [999, -1]], hit: [9], sh: { ints: [0, 12, 0, 0, 0, -1, -1], floats: [300.0], vecs: [[0, 20, 0], [0, -60, 0]] } },
+    72: { scale: 0.8999999761581421, ef: [[1, 24], [999, -1]], hit: [9], sh: { ints: [0, 12, 0, 0, 0, -1, -1], floats: [300.0], vecs: [[0, 20, 0], [0, -90, 0]] } },
+    76: { scale: 0.8999999761581421, ef: [[1, 24], [999, -1]], hit: [9], sh: { ints: [0, 12, 0, 0, 0, -1, -1], floats: [300.0], vecs: [[0, 20, 0], [0, 30, 0]] } },
+    77: { scale: 0.8999999761581421, ef: [[1, 24], [999, -1]], hit: [9], sh: { ints: [0, 12, 0, 0, 0, -1, -1], floats: [300.0], vecs: [[0, 20, 0], [0, 60, 0]] } },
+    78: { scale: 0.8999999761581421, ef: [[1, 24], [999, -1]], hit: [9], sh: { ints: [0, 12, 0, 0, 0, -1, -1], floats: [300.0], vecs: [[0, 20, 0], [0, 90, 0]] } },
+  },
+  hitdata: [[10, 60], [4, 6], [0, 40], [4, 450], [4, 10], [10, 150], [0, 10], [10, 60], [100, 10], [4, 450], [4, 10], [10, 60],
+            [120, 10000], [120, 10000]],
+};
+// shell00: global id 0x16c, uShellEm084_sp_00 (vtable 0x17f6918), base00 by the setup DTI; its own reader 0x1088c5c
+// (params084s00) and landing +0x150 0x1088e38 (landing084). PHASE 2 (dev/em084-phase2-bases.md 1, READ). `hit` = _hit### FUP
+// int 0 -> +0x15d8, a record of em084_00_00_hitdata (HDS v0x20160209, 4 x 0x38 B: the s16 delay / duration), which base00's
+// vt +0x164 0x3f9aec registers as SLOT 0 ONLY. Modes 11..59 (the arm's form-3 lobs): the ARM's joint 12, flags 8, degX / degY
+// the climb and the fan, vz 22..30, flight 0.0 -- so each lives while its slot is on (record 2, (0, 200): flightTimer) and
+// lands well before (I, by arithmetic: 45..50 deg up, gravity 0.5); u_r 30 flying, u_r 35 at the contact, shell01 6 on the
+// stage. Modes 0..8 (the rank pair, (7, 0xb) / (7, 0x25)), 1 (shell11 modes 2..4's fall) and 65 / 66 (the body's record
+// table) are the files' values; no row here makes them yet.
+SHELL_DATA.em084_00.shells.shell00 = {
+  id: 0x16c, cls: 'uShellEm084_sp_00', base: 'base00', reader: 0x1088c5c, folder: 'shell\\em\\em084_00_shell00',
+  modes: {
+    0: { scale: 1, ef: [[0, 1], [0, 2], [999, -1], [0, 2]], hit: [0], sh: { ints: [12, -1, -1, 0], floats: [0.0, 2.0, 0.0, 50.0, 500.0], vecs: [[-40, -30, 400], [0, 0, 0]] } },
+    1: { scale: 1.5, ef: [[0, 1], [0, 2], [999, -1], [0, 2]], hit: [1], sh: { ints: [-1, 0, -1, 0], floats: [0.0, 0.0, 0.0, 0.0, 1000.0], vecs: [[0, 7000, 0], [0, -1.2000000476837158, 0]] } },
+    2: { scale: 1.5, ef: [[0, 1], [0, 2], [999, -1], [0, 2]], hit: [0], sh: { ints: [12, -1, -1, 0], floats: [0.0, 0.0, 0.0, 50.0, 500.0], vecs: [[0, -30, 0], [0, 0, 0]] } },
+    3: { scale: 1, ef: [[0, 1], [0, 2], [999, -1], [0, 2]], hit: [0], sh: { ints: [12, -1, -1, 0], floats: [0.0, -1.0, 0.0, 50.0, 500.0], vecs: [[40, -50, 400], [0, 0, 0]] } },
+    4: { scale: 1.5, ef: [[0, 1], [0, 2], [999, -1], [0, 2]], hit: [0], sh: { ints: [12, -1, -1, 0], floats: [0.0, 0.0, 0.0, 50.0, 500.0], vecs: [[0, -30, 0], [0, 0, 0]] } },
+    5: { scale: 2, ef: [[0, 4], [0, 5], [999, -1], [0, 5]], hit: [0], sh: { ints: [12, -1, -1, 0], floats: [0.0, 2.0, 0.0, 50.0, 500.0], vecs: [[-40, -30, 400], [0, 0, 0]] } },
+    6: { scale: 2, ef: [[0, 4], [0, 5], [999, -1], [0, 5]], hit: [0], sh: { ints: [12, -1, -1, 0], floats: [0.0, 0.0, 0.0, 50.0, 500.0], vecs: [[0, -30, 0], [0, 0, 0]] } },
+    7: { scale: 2, ef: [[0, 4], [0, 5], [999, -1], [0, 5]], hit: [0], sh: { ints: [12, -1, -1, 0], floats: [0.0, -1.0, 0.0, 50.0, 500.0], vecs: [[40, -50, 400], [0, 0, 0]] } },
+    8: { scale: 2, ef: [[0, 4], [0, 5], [999, -1], [0, 5]], hit: [0], sh: { ints: [12, -1, -1, 0], floats: [0.0, 0.0, 0.0, 50.0, 500.0], vecs: [[0, -30, 0], [0, 0, 0]] } },
+    11: { scale: 1, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-45.0, 120.0, 0.0, 22.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    12: { scale: 1, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-45.0, 70.0, 0.0, 22.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    13: { scale: 1, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-45.0, 20.0, 0.0, 22.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    18: { scale: 1, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-50.0, 90.0, 0.0, 30.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    19: { scale: 1, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-50.0, 90.0, 0.0, 30.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    20: { scale: 1, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-50.0, 90.0, 0.0, 30.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    25: { scale: 1, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-45.0, -120.0, 0.0, 22.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    26: { scale: 1, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-45.0, -70.0, 0.0, 22.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    27: { scale: 1, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-45.0, -20.0, 0.0, 22.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    32: { scale: 1, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-50.0, -90.0, 0.0, 30.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    33: { scale: 1, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-50.0, -90.0, 0.0, 30.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    34: { scale: 1, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-50.0, -90.0, 0.0, 30.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    40: { scale: 1.2000000476837158, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-45.0, 180.0, 0.0, 27.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    41: { scale: 1.2000000476837158, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-45.0, 90.0, 0.0, 22.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    42: { scale: 1.2000000476837158, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-45.0, 20.0, 0.0, 22.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    45: { scale: 1.2000000476837158, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-50.0, -30.0, 0.0, 26.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    46: { scale: 1.2000000476837158, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-50.0, -30.0, 0.0, 30.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    47: { scale: 1.2000000476837158, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-50.0, -140.0, 0.0, 30.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    52: { scale: 1.2000000476837158, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-45.0, -180.0, 0.0, 27.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    53: { scale: 1.2000000476837158, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-45.0, -90.0, 0.0, 22.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    54: { scale: 1.2000000476837158, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-45.0, -20.0, 0.0, 22.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    57: { scale: 1.2000000476837158, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-50.0, 30.0, 0.0, 30.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    58: { scale: 1.2000000476837158, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-50.0, 30.0, 0.0, 30.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    59: { scale: 1.2000000476837158, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [2], sh: { ints: [12, -1, -1, 0], floats: [-50.0, 140.0, 0.0, 30.0, 0.0], vecs: [[0, 0, 0], [0, -0.5, 0]] } },
+    65: { scale: 0.8999999761581421, ef: [[0, 10], [999, -1], [0, 2], [0, 2]], hit: [3], sh: { ints: [212, -1, -1, -1], floats: [0.0, -105.0, 2.0, 50.0, 0.0], vecs: [[130, 0, 0], [0, -0.20000000298023224, 0]] } },
+    66: { scale: 0.8999999761581421, ef: [[0, 10], [999, -1], [0, 2], [0, 2]], hit: [3], sh: { ints: [213, -1, -1, -1], floats: [0.0, 105.0, 2.0, 50.0, 0.0], vecs: [[-130, 0, 0], [0, -0.15000000596046448, 0]] } },
+  },
+  hitdata: [[0, 300], [0, 300], [0, 200], [0, 300]],
+};
+// shell11: global id 0x170, uShellEm084_sp_11 (vtable 0x17f6ee8): setup DTI base01, vtable base11's init 0x402fd8 and +0x150
+// 0x40308c (shells.js `base11`); its own reader 0x108a04c (params11n) and create +0x168 0x108a330 (create11n). Mode 0 only
+// (form 1): int 0 the count, floats 0..2 the times, vecs 0..2 the offsets (vecs 3..19 are the file's zero vectors). Its ef 0
+// (u_r 10) goes to +0x1664, which only modes 2..4's create starts -- the init starts nothing (+0x15c8 stays the ctor's 0).
+SHELL_DATA.em084_00.shells.shell11 = {
+  id: 0x170, cls: 'uShellEm084_sp_11', base: 'base11', reader: 0x108a04c, folder: 'shell\\em\\em084_00_shell11',
+  modes: {
+    0: { scale: 1.0, ef: [[1, 10]], hit: [], sh: { ints: [3, 0, 12, -1, -1], floats: [0.0, 12.0, 24.0, 0.0],
+         vecs: [[0, 0, 0], [700, 0, 700], [1400, 0, 1400], ...Array.from({ length: 17 }, () => [0, 0, 0])] } },
+  },
+};
+// shell13: global id 0x171, uShellEm084_sp_13 (vtable 0x17f705c), base13 (every slot base13's but the reader 0x108a954 and
+// the landing +0x150 0x108aba8). Modes 2..5 (form 3): the ARM's joint 12, flags 4 | 0x200, vec 1 (0, 0, 1000) turned by the
+// BODY's angle words plus vec 2's degrees (yaw 0 / 90 / 180 / 270: four directions), +0x1610 300 the scatter. u_r 30 flying,
+// u_r 35 at a type 0 / 2 contact (ef 2 / 3), nothing of its own on the floor (ef 1 is (999, -1)) -- there shell01 6.
+SHELL_DATA.em084_00.shells.shell13 = {
+  id: 0x171, cls: 'uShellEm084_sp_13', base: 'base13', reader: 0x108a954, folder: 'shell\\em\\em084_00_shell13',
+  modes: Object.fromEntries([[2, 0.0], [3, 90.0], [4, 180.0], [5, 270.0]].map(([m, yaw]) => [m, {
+    scale: 0.8, ef: [[1, 30], [999, -1], [1, 35], [1, 35]], hit: [0],
+    sh: { ints: [12, -1, 0, 0, -1, -1], floats: [14.0, 600.0, 500.0, 1200.0, 800.0, 300.0], vecs: [[0, 0, 0], [0, 0, 1000], [0, yaw, 0]] } }])),
+};
+// THE ARM'S SPAWN (dev/em084-shells-spec.md 5, READ; every row also driven there): arm action (7, 0x1b) plays
+// the arm's own motion 0x25d = l_2 / r_2 Motion[93] and at tune float 4 (the BODY's em084_00_actiontune through
+// [arm+0xcadc]) = 246 of that clip makes, by the arm's FORM byte +0xcb30 copied at its phase 0: 0 -> shell01 3 (0x108693c,
+// 0x107c628 idx 0), 1 -> shell11 0 (0x1086a5c, 0x107cb9c), 2 -> shell01 4 (0x1086a78, idx 1), 3 -> shell13 2, 3, 4, 5
+// (0x1086aa4, 0x107cc68, request +0x30 = 1..4); 0xff -> nothing (the driver: no spawn). Both arms alike (idx 0 / 1 give 3 / 4
+// for kind 1 and 2). Ordered by body (7, 0x59) / (7, 0x5c) (left) and (7, 0x54) / (7, 0x5b) (right) (render/monster.js
+// ROM_ARM_PAIRS '2|Motion[93]'). `list` is the arm list without its l_ / r_ prefix, which names the side.
+SHELL_DATA.em084_00.arm084 = [
+  { action: [7, 0x1b], list: '2', clip: 'Motion[93]', tune: 4, frame: 246.0,
+    forms: { 0: { shell: 'shell01', modes: [3] }, 1: { shell: 'shell11', modes: [0] }, 2: { shell: 'shell01', modes: [4] },
+             3: { shell: 'shell13', modes: [2, 3, 4, 5] } } },
+];
+// THE ARM'S OTHER FORM-CHOSEN ROWS, PHASE 2 (Raven, 2026-10-06: "Okay, now move onto the Tentacle Form effects";
+// dev/em084-shells-spec.md 5, READ statically, every row also driven there (5c); dev/em084-phase2-bases.md for what the bases do
+// with the values). `spawns` = the row's gates in order, each a crossing of its frame on the arm's OWN clip (0xb0974 / 0xb0968
+// op 0: pass001); per form the shell and its modes by kind -- `left` = kind 1 (k1, E+0xcc00), `right` = kind 2 (k2) -- several
+// modes at one gate made in that order (0x107c0cc / 0x107c628 per index). A form a row does not list makes nothing there (the
+// driver: no spawn). No rank test: 0x107c0cc's idx 11..47 and 0x107c628 are rank-independent (spec 2), so SHELL_QUEST_RANK
+// changes none of these. shell00 requests: +0x10 / +0x20 the zero vector, +0x2e 0xffff, the arm as owner; shell01 requests
+// (0x107c628): +0x10 the arm's block position, +0x30.. its angle words, +0x3c 0xffff (arm084 builds both).
+// `both`: (7, 0x17) / (7, 0x18) are ordered to BOTH arms at once by the body's (7, 0x37 / 0x3a / 0x46 / 0x48) / (7, 0x38 / 0x3b /
+// 0x47 / 0x49), the body playing L2 M101 then M102 (dev/em084-arm-pairings.md 3): each arm by its own form, k1 at frame 30 and
+// k2 at 56 of EVERY pass of M102 (0x1086068: the arm re-blends at each pass's end, the clip restarting at 0) until the body
+// plays L2 M103 -- in the viewer, every loop of Motion[102]_loop, on the body's list 2 or either arm's l_2 / r_2 (both show
+// the body and both arms on M102). Phase 0 (M101) makes nothing.
+// NAMED, NOT MODELLED: the BLENDS -- (7, 9) plays M9 blended with M10 (0xb03f8, weight 0x107de38(arm, 0)), (7, 0x23) M62 with
+// M65 (0x107de38(arm, 3)), (7, 0x17) / (7, 0x18) M102 with M104 (weights from the body's tune per pass, 0x161f29c / 0x16a2dcc;
+// the arm's yaw word +0xcb08 = (1 - w) x (+90 k1 / -90 k2), 0x1086460, which the arm unit's angle words would carry and the
+// viewer's attached frame does not); the viewer plays the primary clip, whose frames the gates test. The speed windows
+// (0xb07b4) between the gates of (7, 9) / (7, 0xa) / (7, 0x23) / (7, 0x24). (7, 0x27) / (7, 0x28), the same code as (7, 0x23) /
+// (7, 0x24), have no issuer (dev/em084-arm-pairings.md 4): these rows are (7, 0x23) / (7, 0x24)'s.
+SHELL_DATA.em084_00.arm084.push(
+  // (7, 9) <- left (7, 0x97), right (7, 0x65): M9 f110 (0x1084c94..cac form 1, 0x1084d18..d30 form 3)
+  { action: [7, 0x09], list: '2', clip: 'Motion[9]', spawns: [
+    { frame: 110.0, forms: { 1: { shell: 'shell01', left: [29, 30, 31], right: [15, 16, 17] },
+                             3: { shell: 'shell00', left: [25, 26, 27], right: [11, 12, 13] } } }] },
+  // (7, 0xa) <- left (7, 0x98), right (7, 0x66): M21 f190 / 235 / 280, one mode each (0x1084fdc..101c, 0x10850cc..10c)
+  { action: [7, 0x0a], list: '2', clip: 'Motion[21]', spawns: [190.0, 235.0, 280.0].map((frame, i) => (
+    { frame, forms: { 1: { shell: 'shell01', left: [36 + i], right: [22 + i] }, 3: { shell: 'shell00', left: [32 + i], right: [18 + i] } } })) },
+  // (7, 0x17) / (7, 0x18) <- both arms: M102 (0x1086400 form 1, 0x1086440 form 2, 0x1086420 form 3)
+  { action: [7, 0x17], also: [[7, 0x18]], list: '2', clip: 'Motion[102]', both: true, spawns: [
+    { side: 'left', frame: 30.0, forms: { 1: { shell: 'shell01', left: [48] }, 2: { shell: 'shell01', left: [43] }, 3: { shell: 'shell00', left: [42] } } },
+    { side: 'right', frame: 56.0, forms: { 1: { shell: 'shell01', right: [57] }, 2: { shell: 'shell01', right: [46] }, 3: { shell: 'shell00', right: [54] } } }] },
+  // (7, 0x23) <- left (7, 0xfb), right (7, 0xc9): M62 f146, the literal (0x1087278..738c, 0x108738c, 0x1087350..368)
+  { action: [7, 0x23], list: '2', clip: 'Motion[62]', spawns: [
+    { frame: 146.0, forms: { 1: { shell: 'shell01', left: [29, 30, 31], right: [15, 16, 17] }, 2: { shell: 'shell01', left: [43], right: [46] },
+                             3: { shell: 'shell00', left: [40, 41, 42], right: [52, 53, 54] } } }] },
+  // (7, 0x24) <- left (7, 0xfc), right (7, 0xca): M74 f360 / 390 / 420, one mode each (0x10876d8..778, 0x1087738..778, 0x10875a4..5e4)
+  { action: [7, 0x24], list: '2', clip: 'Motion[74]', spawns: [360.0, 390.0, 420.0].map((frame, i) => ({ frame, forms: {
+    1: { shell: 'shell01', left: [51 + i], right: [60 + i] }, 2: { shell: 'shell01', left: [70 + i], right: [76 + i] },
+    3: { shell: 'shell00', left: [45 + i], right: [57 + i] } } })) },
+);
+// BOLTREAVER ASTALOS (em081_04) -- HIS SHELLS (Raven, 2026-10-07: "Find and add all of Boltreaver's effects"; the census
+// dev/em081_04-effects-census.md group D, the spec dev/em081-shells-spec.md, READ statically and emulated; dev/rom-map.md
+// "Boltreaver -- his shells"). Class uEm081_00, variant byte +0xb5f5 = 4: ids 0x150..0x157 (0x1019c1c, vt +0x158). Every .shl
+// of his names em081_04u (list 0); shell01's alone names em081_00c second (list 1: c 30 / 31 / 32). The files' values,
+// em081_04.arc shell\em\em081_04_shellNN (the spec's shldump2.py; scratchpad bolt_shl.txt). Until 2026-10-08 this entry was
+// the bare beams-only one the loop above makes (his beams stay render/beam-spawns.js rows).
+SHELL_DATA.em081_04.name = 'Boltreaver Astalos';
+SHELL_DATA.em081_04.lists[1] = { list: 'c', pel: 'em081_00c' };
+delete SHELL_DATA.em081_04.beamsOnly;
+// shell01: global id 0x151, uShellEm081_sp_01 (vtable 0x17ee00c), base01; its own reader +0x14c 0x1033eb0 (params081s01;
+// +0x13c 0x1033e20 / +0x150 0x10340c0 / +0x154 0x1034128 only touch modes 26 / 27, which draw nothing: spec 2b). `hit` = the
+// _hit### FUP int 0 (accA -> +0x15d8), a record of em081_04_01_hitdata (HDS v0x20160209, 18 x 0x38 B: s16 delay, duration).
+// Every mode here has timer 0.0, so each lives while its hit slot is on (move011). Modes: 11 / 12 / 13 the per-frame handler's
+// landings (c 30 / 32 / 31, list 1); 0 / 1 the wing slams (u 10 at joint 9 / 13), 5 the landing (u 11), 20 (7, 0x88)'s
+// (u 10 at joint 138); 29 / 30 shell11's spiral (u 81 / u 80). The files' other modes (2..4, 7, 8, 16, 17, 21, 22, 26, 27,
+// 34) carry no effect and are not listed.
+SHELL_DATA.em081_04.shells.shell01 = {
+  id: 0x151, cls: 'uShellEm081_sp_01', base: 'base01', reader: 0x1033eb0, folder: 'shell\\em\\em081_04_shell01',
+  lists: { 0: { list: 'u', pel: 'em081_04u' }, 1: { list: 'c', pel: 'em081_00c' } },
+  modes: {
+    0:  { scale: 0.800000011920929, ef: [[0, 10], [999, -1]], hit: [0], sh: { ints: [0, 9, -1, -1, -1, -1, -1, -1, -1], floats: [0.0], vecs: [[-300, 0, -50], [0, 0, 0]] } },
+    1:  { scale: 0.800000011920929, ef: [[0, 10], [999, -1]], hit: [0], sh: { ints: [0, 13, -1, -1, -1, -1, -1, -1, -1], floats: [0.0], vecs: [[300, 0, -50], [0, 0, 0]] } },
+    5:  { scale: 1.0, ef: [[0, 11], [999, -1]], hit: [0], sh: { ints: [0, 9, -1, -1, -1, -1, -1, -1, -1], floats: [0.0], vecs: [[-95, -85, 105], [0, 0, 0]] } },
+    11: { scale: 1.0, ef: [[1, 30], [999, -1]], hit: [4], sh: { ints: [-1, -1, -1, 0, -1, -1, -1, 0, -1], floats: [0.0], vecs: [[0, 0, 100], [0, 0, 0]] } },
+    12: { scale: 1.0, ef: [[1, 32], [999, -1]], hit: [5], sh: { ints: [-1, -1, -1, 0, -1, -1, -1, 0, -1], floats: [0.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+    13: { scale: 1.0, ef: [[1, 31], [999, -1]], hit: [6], sh: { ints: [-1, -1, -1, 0, -1, -1, -1, 0, -1], floats: [0.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+    20: { scale: 0.8999999761581421, ef: [[0, 10], [999, -1]], hit: [9], sh: { ints: [0, 138, -1, -1, -1, -1, -1, -1, -1], floats: [0.0], vecs: [[0, -50, 100], [0, 0, 0]] } },
+    29: { scale: 2.200000047683716, ef: [[0, 81], [999, -1]], hit: [13], sh: { ints: [-1, -1, -1, -1, -1, -1, -1, -1, -1], floats: [0.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+    30: { scale: 1.399999976158142, ef: [[0, 80], [999, -1]], hit: [14], sh: { ints: [-1, -1, -1, -1, -1, -1, -1, -1, -1], floats: [0.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+  },
+  hitdata: [[0, 6], [0, 15], [0, 15], [0, 12], [0, 10], [0, 10], [0, 10], [0, 15], [0, 15], [0, 10], [60, 10], [60, 10], [0, 15],
+            [0, 10], [0, 15], [0, 15], [0, 440], [0, 500]],
+};
+// THE PER-FRAME HANDLER'S LANDINGS (spec 2a, READ): uEm081_00's vt +0x28 = 0xc9e7c (b 0xae32c), run every step after the
+// move (the walker 0xc04728: +0x24, +0x2c, +0x28), reaches vt +0x1a8 = 0x102f44c: a switch on the playing motion id [e+0x4b4],
+// each case a frame gate 0xb09b0(e, F) (0x72714 mode 0, channel 1: the viewer's pass001 stands in for the channel, rom-map's
+// open row) and, on a crossing, vt +0x1b0 = 0x102f840(e, sel): sel 4 -> shell01 11 (c 30), 3 -> 12 (c 32), 1 -> 13 (c 31) at
+// the owner block's point +0x40.. with its words +0x50.. (0x3fa2bc(0x40), +0x3c 0xffff); no variant, rank or state test, and
+// no 900 test in the spawner (the shell's init has it: init011's 0x80 arm). Several frames per motion (jump tables 0x102f4c8
+// / 0x102f540, literals 0x102f754..0x102f760 = 40 / 88 / 56 / 72): one shell per crossing. `ids` = (list << 8) | slot.
+SHELL_DATA.em081_04.perFrame081 = [
+  { ids: [0x018, 0x01b, 0x01e], frames: [14], sel: 3, mode: 12 },
+  { ids: [0x101], frames: [8], sel: 4, mode: 11 },
+  { ids: [0x102, 0x10b, 0x10c], frames: [10], sel: 4, mode: 11 },
+  { ids: [0x10f], frames: [15], sel: 4, mode: 11 },
+  { ids: [0x111], frames: [2], sel: 3, mode: 12 },
+  { ids: [0x113, 0x114], frames: [4], sel: 3, mode: 12 },
+  { ids: [0x419], frames: [8, 24, 40, 56, 72, 88], sel: 3, mode: 12 },
+  { ids: [0x41a], frames: [88], sel: 3, mode: 12 },
+  { ids: [0x41b], frames: [14, 40], sel: 3, mode: 12 },
+  { ids: [0x420], frames: [4], sel: 1, mode: 13 },
+  { ids: [0x422, 0x440], frames: [4], sel: 3, mode: 12 },
+];
+// shell00: global id 0x150, uShellEm081_sp_00 (vtable 0x17ede90), base00; its reader +0x14c 0x1032d38 (params081s00) and
+// landing +0x150 0x1032ed0 (landing081s00, LANDING). The u 26 modes only: every one flies (flight 60 / 200 / 300 > 0), so its
+// life is its flight timer and no hit slot is read -- `hit` is left out because the hitdata his shell00 loads is NOT READ (its
+// folder has none; the arc's em081_00_shell00 holds one: spec 1 / 8). NOT LISTED: modes 2 / 8 (no effect of their own, flight
+// 0.0 -- a life on that unread hitdata; their landing child would be shell15 3, u 25), 3 / 4 / 9..11 (no effect, no shell15
+// child), 13 (u 52: no record).
+SHELL_DATA.em081_04.shells.shell00 = {
+  id: 0x150, cls: 'uShellEm081_sp_00', base: 'base00', reader: 0x1032d38, folder: 'shell\\em\\em081_04_shell00',
+  modes: Object.fromEntries([[0, 50, 60, 60, 0], [1, 50, 60, 60, 0], [6, 45, 60, 200, 0], [7, 45, 60, 200, 0], [17, 50, 60, 60, 0],
+                             [18, 50, 60, 60, 0], [19, 45, 60, 200, 0], [20, 45, 60, 200, 0], [22, 80, 120, 300, 20], [23, 80, 120, 300, 20]]
+    .map(([m, degX, vz, flight, y]) => [m, { scale: 1.0, ef: [[0, 26], [999, -1], [999, -1], [999, -1]],
+      sh: { ints: [3, -1], floats: [degX, 0.0, vz, flight, 0.0, 0.0], vecs: [[0, y, 0], [0, 0, 0]] } }])),
+};
+// shell15: global id 0x156, uShellEm081_sp_15 (vtable 0x17ee2f8), base15 (spec 3b: base03 + its own init 0x40714c, move 0x4072f0,
+// +0x174); its reader 0x1034638 (params081s15), +0x174 0x10348b0 (the corner child, CHILD15). u 25 on every listed mode. The
+// files' modes 13 / 14 (u 50: no record) are not listed.
+SHELL_DATA.em081_04.shells.shell15 = {
+  id: 0x156, cls: 'uShellEm081_sp_15', base: 'base15', reader: 0x1034638, folder: 'shell\\em\\em081_04_shell15',
+  modes: {
+    0:  { scale: 2.0, ef: [[0, 25], [999, -1], [999, -1]], sh: { ints: [-1, 0, 0, -1, -1], floats: [0.0, 3.0, 300.0, 1200.0, 1200.0, 5.0, 1.5, 0.0, 50.0, 500.0, 500.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+    1:  { scale: 2.0, ef: [[0, 25], [999, -1], [999, -1]], sh: { ints: [-1, 0, 0, -1, 3], floats: [0.0, 4.0, 292.0, 1400.0, 1400.0, 5.0, 1.0, 1400.0, 60.0, 500.0, 500.0], vecs: [[0, 0, 1], [0, 0, 0]] } },
+    2:  { scale: 2.0, ef: [[0, 25], [999, -1], [999, -1]], sh: { ints: [-1, 0, 0, 0, 3], floats: [0.0, 4.0, 292.0, 1400.0, 1400.0, 5.0, 1.0, 1400.0, 60.0, 500.0, 500.0], vecs: [[0, 0, 1], [0, 0, 0]] } },
+    3:  { scale: 1.0, ef: [[0, 25], [999, -1], [999, -1]], sh: { ints: [-1, 0, 0, -1, -1], floats: [0.0, 20.0, 45.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 500.0, 500.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+    6:  { scale: 2.0, ef: [[0, 25], [999, -1], [999, -1]], sh: { ints: [-1, 0, 0, -1, -1], floats: [0.0, 40.0, 30.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 500.0, 500.0], vecs: [[0, 0, 1.5], [0, 0, 0]] } },
+    7:  { scale: 2.0, ef: [[0, 25], [999, -1], [999, -1]], sh: { ints: [-1, 0, 0, -1, -1], floats: [0.0, 40.0, 30.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 500.0, 500.0], vecs: [[0, 0, 1.5], [0, 0, 0]] } },
+    9:  { scale: 1.5, ef: [[0, 25], [999, -1], [999, -1]], sh: { ints: [-1, 0, 0, 0, 0], floats: [30.0, 20.0, 300.0, 0.0, 0.0, 15.0, 0.5, 0.0, 0.0, 500.0, 500.0], vecs: [[0, 0, 1], [300, 0, 30]] } },
+    10: { scale: 1.5, ef: [[0, 25], [999, -1], [999, -1]], sh: { ints: [-1, 0, 0, -1, 0], floats: [-30.0, 20.0, 300.0, 0.0, 0.0, 15.0, 0.5, 0.0, 0.0, 500.0, 500.0], vecs: [[0, 0, 1], [-300, 0, 30]] } },
+    11: { scale: 1.5, ef: [[0, 25], [999, -1], [999, -1]], sh: { ints: [-1, 0, 0, 0, 0], floats: [22.0, 20.0, 300.0, 0.0, 0.0, 15.0, 0.5, 0.0, 0.0, 500.0, 500.0], vecs: [[0, 0, 1], [300, 0, 30]] } },
+    12: { scale: 1.5, ef: [[0, 25], [999, -1], [999, -1]], sh: { ints: [-1, 0, 0, -1, 0], floats: [-22.0, 20.0, 300.0, 0.0, 0.0, 15.0, 0.5, 0.0, 0.0, 500.0, 500.0], vecs: [[0, 0, 1], [-300, 0, 30]] } },
+    17: { scale: 2.0, ef: [[0, 25], [999, -1], [999, -1]], sh: { ints: [-1, 0, 0, -1, -1], floats: [0.0, 40.0, 30.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 500.0, 500.0], vecs: [[0, 0, 1.5], [0, 0, 0]] } },
+    18: { scale: 2.0, ef: [[0, 25], [999, -1], [999, -1]], sh: { ints: [-1, 0, 0, -1, -1], floats: [0.0, 40.0, 30.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 500.0, 500.0], vecs: [[0, 0, 1.5], [0, 0, 0]] } },
+    20: { scale: 1.5, ef: [[0, 25], [999, -1], [999, -1]], sh: { ints: [-1, 0, 0, -1, 0], floats: [23.0, 0.800000011920929, 300.0, 0.0, 0.0, 15.0, 10.0, 0.0, 0.0, 500.0, 500.0], vecs: [[0, 0, 1], [160, 0, 0]] } },
+    21: { scale: 1.5, ef: [[0, 25], [999, -1], [999, -1]], sh: { ints: [-1, 0, 0, 0, 0], floats: [-23.0, 1.0, 300.0, 0.0, 0.0, 15.0, 10.0, 0.0, 0.0, 500.0, 500.0], vecs: [[0, 0, 1], [-160, 0, 0]] } },
+    22: { scale: 1.5, ef: [[0, 25], [999, -1], [999, -1]], sh: { ints: [-1, 0, 0, -1, 0], floats: [23.0, 20.0, 300.0, 0.0, 0.0, 15.0, 0.5, 0.0, 0.0, 500.0, 500.0], vecs: [[0, 0, 1], [160, 0, 0]] } },
+    23: { scale: 1.5, ef: [[0, 25], [999, -1], [999, -1]], sh: { ints: [-1, 0, 0, 0, 0], floats: [-23.0, 20.0, 300.0, 0.0, 0.0, 15.0, 0.5, 0.0, 0.0, 500.0, 500.0], vecs: [[0, 0, 1], [-160, 0, 0]] } },
+  },
+};
+// shell14: global id 0x155, uShellEm081_sp_14 (vtable 0x17ee17c), base14 (spec 5b: base00 + its own init 0x405e90 and move
+// 0x406704); its reader 0x1034260 (params081s14). ef 0 (999) -> +0x1660, ef 1 u 40 -> +0x1668 (started at the delay), ef 2 u 41 ->
+// +0x1664 (started at the init). Modes 4 / 5 (rank < 5) and 10 / 11 (0x3a8430 >= 5); the files' 6..9 carry no effect.
+SHELL_DATA.em081_04.shells.shell14 = {
+  id: 0x155, cls: 'uShellEm081_sp_14', base: 'base14', reader: 0x1034260, folder: 'shell\\em\\em081_04_shell14',
+  modes: Object.fromEntries([[4, 1.0, 90], [5, 1.5, 50], [10, 1.0, 90], [11, 1.0, 50]].map(([m, scale, end]) => [m, { scale,
+    ef: [[999, -1], [0, 40], [0, 41]], sh: { ints: [138, -1, -1, 0], floats: [-4.0, 180.0, 80.0, 20.0, end, 20.0, 0.0, 700.0, -700.0, 500.0, 30.0],
+    vecs: [[0, 0, 0]] } }])),
+};
+// shell50: global id 0x157, uShellEm081_04_50 (vtable 0x17edd08), base50 (spec 4a: base00 + its own ctor 0x427c3c, init 0x428078,
+// move 0x4286b0); its reader 0x10323c4 (params081s50), +0x150 0x10327c4 (a contact) and +0x174 0x1032c10 (the time-out): both
+// make the children 0x1032858. u 60 on the type-0 modes, u 70 on the type -1 modes 6 / 7. The files' 2 / 4 carry no effect.
+// sh ints [joint, type, aim X, aim Y, from p, 0x200, 8, 0x80, 0x800, 0x20, camera], floats [degX, degY, X lo, X hi, Y lo, Y hi,
+// scale from, scale to, time, distance, f10, extra, -, v0, v1, v2], vecs [offset, from, aim offset].
+SHELL_DATA.em081_04.shells.shell50 = {
+  id: 0x157, cls: 'uShellEm081_04_50', base: 'base50', reader: 0x10323c4, folder: 'shell\\em\\em081_04_shell50',
+  modes: {
+    0:  { scale: 1.5, ef: [[0, 60], [999, -1], [999, -1], [999, -1]], hit: [2], sh: { ints: [3, 0, 0, 0, 0, -1, -1, -1, 0, -1, -1], floats: [0.0, 0.0, -40.0, 5.0, -5.0, 5.0, 4.0, 0.10000000149011612, 1.2999999523162842, 0.0, 0.0, 0.0, 0.0, 100.0, 1000.0, 20000.0], vecs: [[0, -150, 200], [0, 0, 0], [0, 0, 0]] } },
+    1:  { scale: 1.5, ef: [[0, 60], [999, -1], [999, -1], [999, -1]], hit: [2], sh: { ints: [3, 0, -1, -1, -1, -1, -1, -1, 0, -1, -1], floats: [9.5, 0.0, 0.0, 0.0, -10.0, 10.0, 4.0, 0.10000000149011612, 1.2999999523162842, 0.0, 0.0, 0.0, 0.0, 100.0, 1000.0, 20000.0], vecs: [[0, -130, 280], [0, 0, 0], [0, 0, 0]] } },
+    3:  { scale: 1.5, ef: [[0, 60], [999, -1], [999, -1], [999, -1]], hit: [2], sh: { ints: [3, 0, 0, 0, 0, -1, -1, -1, 0, -1, -1], floats: [5.0, 0.0, -5.0, 5.0, -5.0, 5.0, 2.5999999046325684, 0.10000000149011612, 1.2999999523162842, 0.0, 0.0, 0.0, 0.0, 100.0, 1000.0, 20000.0], vecs: [[0, -100, 230], [0, 0, 0], [0, 0, 0]] } },
+    5:  { scale: 1.5, ef: [[0, 60], [999, -1], [999, -1], [999, -1]], hit: [2], sh: { ints: [3, 0, -1, -1, -1, -1, -1, -1, 0, -1, -1], floats: [3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.5999999046325684, 0.10000000149011612, 1.2999999523162842, 0.0, 0.0, 0.0, 0.0, 100.0, 1000.0, 20000.0], vecs: [[0, 0, 230], [0, 0, 0], [0, 0, 0]] } },
+    6:  { scale: 1.0, ef: [[0, 70], [999, -1], [999, -1], [999, -1]], hit: [2], sh: { ints: [0, -1, -1, -1, -1, -1, -1, -1, 0, -1, 9], floats: [25.0, 0.0, 0.0, 0.0, 0.0, 0.0, 8.0, 0.05000000074505806, 1.7999999523162842, 1500.0, -1.0, 0.10000000149011612, 0.0, 0.0, 0.0, 0.0], vecs: [[0, -500, 250], [0, 0, 0], [0, 0, 0]] } },
+    7:  { scale: 1.0, ef: [[0, 70], [999, -1], [999, -1], [999, -1]], hit: [2], sh: { ints: [0, -1, -1, -1, -1, -1, -1, -1, 0, -1, 9], floats: [20.0, 0.0, 0.0, 0.0, 0.0, 0.0, 8.0, 0.05000000074505806, 2.0, 1300.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0], vecs: [[0, -620, -200], [0, 0, 0], [0, 0, 0]] } },
+    8:  { scale: 1.5, ef: [[0, 60], [999, -1], [999, -1], [999, -1]], hit: [2], sh: { ints: [3, 0, 0, -1, 0, -1, -1, -1, 0, -1, -1], floats: [0.0, 0.0, -5.0, 5.0, -5.0, 5.0, 4.0, 0.10000000149011612, 1.2999999523162842, 0.0, 0.0, 0.0, 0.0, 100.0, 1000.0, 20000.0], vecs: [[0, -150, 200], [0, 0, 0], [0, 0, 0]] } },
+    9:  { scale: 1.5, ef: [[0, 60], [999, -1], [999, -1], [999, -1]], hit: [2], sh: { ints: [3, 0, 0, -1, -1, -1, -1, -1, 0, -1, -1], floats: [9.5, 0.0, -100.0, 50.0, -10.0, 10.0, 4.0, 0.10000000149011612, 1.2999999523162842, 0.0, 0.0, 0.0, 0.0, 100.0, 1000.0, 20000.0], vecs: [[0, -110, 100], [0, 0, 0], [0, 0, 0]] } },
+    11: { scale: 1.0, ef: [[0, 60], [999, -1], [999, -1], [999, -1]], hit: [2], sh: { ints: [3, 0, -1, -1, 0, -1, -1, -1, 0, -1, -1], floats: [5.0, 40.0, 0.0, 0.0, 0.0, 0.0, 3.5, 0.10000000149011612, 1.2999999523162842, 0.0, 0.0, 0.0, 0.0, 100.0, 1000.0, 20000.0], vecs: [[0, -120, 70], [0, 0, 0], [0, 0, 0]] } },
+    12: { scale: 1.0, ef: [[0, 60], [999, -1], [999, -1], [999, -1]], hit: [2], sh: { ints: [3, 0, -1, -1, 0, -1, -1, -1, 0, -1, -1], floats: [4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.5, 0.10000000149011612, 1.2999999523162842, 0.0, 0.0, 0.0, 0.0, 100.0, 1000.0, 20000.0], vecs: [[0, -150, 120], [0, 0, 0], [0, 0, 0]] } },
+    13: { scale: 1.0, ef: [[0, 60], [999, -1], [999, -1], [999, -1]], hit: [2], sh: { ints: [3, 0, -1, -1, 0, -1, -1, -1, 0, -1, -1], floats: [6.0, -40.0, 0.0, 0.0, 0.0, 0.0, 3.5, 0.10000000149011612, 1.2999999523162842, 0.0, 0.0, 0.0, 0.0, 100.0, 1000.0, 20000.0], vecs: [[0, -150, 0], [0, 0, 0], [0, 0, 0]] } },
+  },
+  hitdata: [[0, 999], [0, 999], [0, 999]],
+};
+// shell01_02: global id 0x152, uShellEm081_04_01 (vtable 0x17ed8a8; FOLDER shell01_02 -- rom-map trap), base01; its reader
+// 0x10312ac (params081s0102) and +0x150 0x10314e8 (the growth and hold, move081s0102); base01's end starts its ef 1 (+0x15d4).
+// Mode 0 (u 64, then u 63 at its end) after a u 60 shell50; 7 / 8 (u 73, then u 74) after shell50 7 / 6. The file's mode 1 has
+// no files.
+SHELL_DATA.em081_04.shells.shell01_02 = {
+  id: 0x152, cls: 'uShellEm081_04_01', base: 'base01', reader: 0x10312ac, folder: 'shell\\em\\em081_04_shell01_02',
+  modes: {
+    0: { scale: 1.0, ef: [[0, 64], [0, 63]], hit: [0], sh: { ints: [-1, -1, -1, -1, -1, -1, -1, -1, -1], floats: [3.0, 2.0, 0.5], vecs: [[0, 0, 0], [0, 0, 0]] } },
+    7: { scale: 0.75, ef: [[0, 73], [0, 74]], hit: [1], sh: { ints: [-1, -1, -1, -1, -1, -1, -1, -1, -1], floats: [0.014999999664723873, 1.5, 3.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+    8: { scale: 0.75, ef: [[0, 73], [0, 74]], hit: [2], sh: { ints: [-1, -1, -1, -1, -1, -1, -1, -1, -1], floats: [0.014999999664723873, 1.5, 4.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+  },
+  hitdata: [[0, 500], [0, 999], [0, 999]],
+};
+// HIS ACTIONS' SHELLS (spec 7, every status-7 action run under unicorn through the class's handler 0x1023a6c with the real gates,
+// spawners and actiontune: scratchpad bolt/all_r{5,3}_c{0,2,4}.txt). One row per BEHAVIOUR on a clip -- `action` plus the
+// actions (`also`) that make exactly the same shells there -- each a viewer pick (pick 'ai': which action the AI issues is NOT
+// READ; pickVariantsFor lists the rows, a play shows the next). `spawns`: each a crossing of `frame` on the clip (0xb0968 /
+// 0xb0974 op 0 on the action code's frame pair: pass001), making `shell` `modes` in order. A clip's blend partners (0xb04d0:
+// L2 M48 with L2 M33 / M35; the weight e+0xcad4 is NOT READ) play the primary's frames. Actions that play the clip and make
+// no shell with an effect are not rows (named per clip); their plays would show nothing of these.
+//   L2 M48 (body 0x102979c, spawner 0x1030024): (7, 0x7e) makes shell00 2 (no effect, flight 0: not listed above).
+//   L4 M29 (0x102d380 / 0x1030cc8, L4 M28 -> L4 M29 at f44): (7, 0x97) shell00 8 (not listed), (7, 0x9d..0x9f) 9..11 (no effect).
+//   L4 M22 (0x102990c): (7, 0xab) shell00 8 (not listed), (7, 0xb8..0xba) 9..11 (no effect).
+//   L9 M10 / M17 (f64; the actions set M10 / M17 from 58 or 0 after L9 M9 / M12..M16 / M19: spec 7): one row per mode.
+SHELL_DATA.em081_04.actions.push(
+  ...[[0x7c, 0], [0x7d, 1], [0xda, 17], [0xdb, 18]].map(([n, m]) => ({ action: [7, n], code: 'em081', list: '2', clip: 'Motion[48]',
+    partners: ['Motion[33]', 'Motion[35]'], pick: 'ai', variant: '7:0x' + n.toString(16), spawns: [{ frame: 78, shell: 'shell00', modes: [m] }] })),
+  ...[[0x95, 6], [0x96, 7]].map(([n, m]) => ({ action: [7, n], code: 'em081', list: '4', clip: 'Motion[29]', pick: 'ai',
+    variant: '7:0x' + n.toString(16), spawns: [{ frame: 44, shell: 'shell00', modes: [m] }] })),
+  ...[[0xa9, 6], [0xaa, 7], [0xdc, 19], [0xdd, 20]].map(([n, m]) => ({ action: [7, n], code: 'em081', list: '4', clip: 'Motion[22]',
+    pick: 'ai', variant: '7:0x' + n.toString(16), spawns: [{ frame: 82, shell: 'shell00', modes: [m] }] })),
+  { action: [7, 0xe0], also: [[7, 0xe6], [7, 0xe7]], code: 'em081', list: '9', clip: 'Motion[10]', pick: 'ai', variant: '7:0xe0',
+    spawns: [{ frame: 64, shell: 'shell00', modes: [22] }] },
+  { action: [7, 0xe2], also: [[7, 0xea], [7, 0xeb]], code: 'em081', list: '9', clip: 'Motion[10]', pick: 'ai', variant: '7:0xe2',
+    spawns: [{ frame: 64, shell: 'shell00', modes: [23] }] },
+  { action: [7, 0xef], also: [[7, 0xf0], [7, 0xf3]], code: 'em081', list: '9', clip: 'Motion[17]', pick: 'ai', variant: '7:0xef',
+    spawns: [{ frame: 64, shell: 'shell00', modes: [22] }] },
+);
+// PHASE 3 (spec 5): shell01 0 / 1 (u 10) on the wing slams, 5 (u 11) on the landing, 20 (u 10) and shell14 (u 40 / u 41) on L2 M23.
+//   L2 M27 / M28 f72 (0x1030024's siblings 0x10306cc / 0x10308f8, gate 0xb0974(e, 72.0)): the wing-slam bodies 0x1025ce4 /
+// 0x1026304 / 0x10266d4 call them only when ([e+0xcb02] | 1) != 1 -- THE WINGS' CHARGE TIER (`wing`: input.chargeTier, the
+// viewer's charge rung, index.html shellExtra); (7, 0x8e) / (7, 0x90) (0x102cde0 / 0x102d028) every time. (7, 0x8d) / (7, 0x8f)
+// (the same bodies, excluded by the spawners' number masks) and (7, 0x3c) (L2 M27 from 94) make none. (7, 0x40) / (7, 0x42) and
+// (7, 0x41) / (7, 0x43) play L2 M51 / M52 first and M27 / M28 from 48: the viewer's M27 / M28 from 0 crosses 72 the same.
+//   L2 M42 f32 (0x102fdd8(e, 5)): (7, 0x77) / (7, 0xc0) (0x1026acc r1 2) and (7, 0xbf) (0x10285d4), after L2 M49 and the landing
+// wait 0x78b78 (I: NOT READ; the viewer plays M42 alone); (7, 0x75) / (7, 0xbe) (r1 1) make none.
+//   L2 M23 f90 (0x103034c from 0x102cc34): (7, 0x87) shell14 4 / 10, (7, 0x88) shell01 20 then shell14 5 / 11 -- by 0x3a8430 < 5
+// (`modesG` above rank 4: the viewer's SHELL_QUEST_RANK, its byte's meaning NOT READ); (7, 0xbb) none.
+SHELL_DATA.em081_04.actions.push(
+  { action: [7, 0x3a], also: [[7, 0x40], [7, 0x42], [7, 0x44], [7, 0x46], [7, 0x48]], code: 'em081', list: '2', clip: 'Motion[27]', pick: 'ai',
+    variant: '7:0x3a', spawns: [{ frame: 72, shell: 'shell01', modes: [0], wing: true }] },
+  { action: [7, 0x8e], code: 'em081', list: '2', clip: 'Motion[27]', pick: 'ai', variant: '7:0x8e', spawns: [{ frame: 72, shell: 'shell01', modes: [0] }] },
+  { action: [7, 0x3b], also: [[7, 0x41], [7, 0x43], [7, 0x45], [7, 0x47], [7, 0x49]], code: 'em081', list: '2', clip: 'Motion[28]', pick: 'ai',
+    variant: '7:0x3b', spawns: [{ frame: 72, shell: 'shell01', modes: [1], wing: true }] },
+  { action: [7, 0x90], code: 'em081', list: '2', clip: 'Motion[28]', pick: 'ai', variant: '7:0x90', spawns: [{ frame: 72, shell: 'shell01', modes: [1] }] },
+  { action: [7, 0x77], also: [[7, 0xc0], [7, 0xbf]], code: 'em081', list: '2', clip: 'Motion[42]', pick: 'ai', variant: '7:0x77',
+    spawns: [{ frame: 32, shell: 'shell01', modes: [5] }] },
+  { action: [7, 0x87], code: 'em081', list: '2', clip: 'Motion[23]', pick: 'ai', variant: '7:0x87',
+    spawns: [{ frame: 90, shell: 'shell14', modes: [4], modesG: [10] }] },
+  { action: [7, 0x88], code: 'em081', list: '2', clip: 'Motion[23]', pick: 'ai', variant: '7:0x88',
+    spawns: [{ frame: 90, shell: 'shell01', modes: [20] }, { frame: 90, shell: 'shell14', modes: [5], modesG: [11] }] },
+);
+// PHASE 4 (spec 4 / 7): shell50 (u 60 / u 70) by 0x102ff4c (the base50 setup 0x427c00: +0x10 / +0x20 zero vectors, +0x2e 0xffff,
+// +0x30 = -1.0 -- unread by base00 on his flags), in the submit order the emulation shows ((7, 0xcb) / (7, 0xd3): shell50 first,
+// then shell00 17).
+SHELL_DATA.em081_04.actions.push(
+  { action: [7, 0xcb], code: 'em081', list: '2', clip: 'Motion[48]', partners: ['Motion[33]', 'Motion[35]'], pick: 'ai', variant: '7:0xcb',
+    spawns: [{ frame: 82, shell: 'shell50', modes: [0] }, { frame: 82, shell: 'shell00', modes: [17] }] },
+  { action: [7, 0xd3], code: 'em081', list: '2', clip: 'Motion[48]', partners: ['Motion[33]', 'Motion[35]'], pick: 'ai', variant: '7:0xd3',
+    spawns: [{ frame: 82, shell: 'shell50', modes: [8] }, { frame: 82, shell: 'shell00', modes: [17] }] },
+  { action: [7, 0xd4], code: 'em081', list: '4', clip: 'Motion[22]', pick: 'ai', variant: '7:0xd4', spawns: [{ frame: 82, shell: 'shell50', modes: [1] }] },
+  { action: [7, 0xd5], code: 'em081', list: '4', clip: 'Motion[22]', pick: 'ai', variant: '7:0xd5', spawns: [{ frame: 82, shell: 'shell50', modes: [9] }] },
+  { action: [7, 0xe1], also: [[7, 0xe8], [7, 0xe9]], code: 'em081', list: '9', clip: 'Motion[10]', pick: 'ai', variant: '7:0xe1',
+    spawns: [{ frame: 64, shell: 'shell50', modes: [3] }] },
+  { action: [7, 0xe3], also: [[7, 0xec], [7, 0xed]], code: 'em081', list: '9', clip: 'Motion[10]', pick: 'ai', variant: '7:0xe3',
+    spawns: [{ frame: 64, shell: 'shell50', modes: [5] }] },
+  { action: [7, 0xf1], also: [[7, 0xf2], [7, 0xf4]], code: 'em081', list: '9', clip: 'Motion[17]', pick: 'ai', variant: '7:0xf1',
+    spawns: [{ frame: 64, shell: 'shell50', modes: [3] }] },
+  // (7, 0xee) 0x102ac08 (r1 1: `cmp r5, #1` always true) on L9 M3: three shells at 100 / 144 / 188
+  { action: [7, 0xee], code: 'em081', list: '9', clip: 'Motion[3]', pick: 'ai', variant: '7:0xee',
+    spawns: [{ frame: 100, shell: 'shell50', modes: [13] }, { frame: 144, shell: 'shell50', modes: [12] }, { frame: 188, shell: 'shell50', modes: [11] }] },
+  { action: [7, 0xcf], code: 'em081', list: '9', clip: 'Motion[20]', pick: 'ai', variant: '7:0xcf', spawns: [{ frame: 140, shell: 'shell50', modes: [6] }] },
+  { action: [7, 0xdf], code: 'em081', list: '9', clip: 'Motion[8]', pick: 'ai', variant: '7:0xdf', spawns: [{ frame: 46, shell: 'shell50', modes: [7] }] },
+);
+// shell11: global id 0x154, uShellEm081_04_11 (vtable 0x17edb94), base11 (base01's setup; base11's init 0x402fd8 and +0x150 tick
+// 0x40308c); its reader 0x1031978 (params081s11), +0x150 0x1032120 (the joint follow, move011) and +0x168 0x1031f28 (create081s11).
+// No EffectLists: a carrier of shell01 29 / 30. Mode 6 only (spec 6): joint 138, 20 strikes at shell times 72..270, points vec 0 /
+// vec 1 then the spiral (+40 deg, +60 a point).
+SHELL_DATA.em081_04.shells.shell11 = {
+  id: 0x154, cls: 'uShellEm081_04_11', base: 'base11', reader: 0x1031978, folder: 'shell\\em\\em081_04_shell11',
+  modes: {
+    6: { scale: 1.0, ef: [], hit: [], sh: { ints: [138, 0, 20, 2], floats: [72.0, 84.0, 96.0, 108.0, 120.0, 122.0, 134.0, 146.0, 158.0, 170.0,
+         181.0, 192.0, 202.0, 210.0, 220.0, 230.0, 240.0, 250.0, 260.0, 270.0, 40.0, 60.0],
+         vecs: [[0, 0, 0], [0, 0, 600], ...Array.from({ length: 19 }, () => [0, 0, 0])] } },
+  },
+};
+// PHASE 5 (spec 6): (7, 0xc7) on L4 M62 (0xafce8; then M63, M64) at f40 -- shell11 6 at the Overcharged tail only (`tail`)
+SHELL_DATA.em081_04.actions.push(
+  { action: [7, 0xc7], code: 'em081', list: '4', clip: 'Motion[62]', pick: 'ai', variant: '7:0xc7', spawns: [{ frame: 40, shell: 'shell11', modes: [6], tail: true }] },
+);
+// BLOODBATH DIABLOS (em007_04) -- HIS LIST 9 SHELLS (Raven, 2026-10-08: "Look into Bloodbath's List 9 animation effects";
+// dev/em007_04-list9-census.md 5, dev/em007-shells-spec.md 2b-2d, dev/rom-map.md uEm007_00 and "Bloodbath -- List 9 effects").
+// Class uEm007_00, variant byte +0xb5f5 = 4. The .shl lists: shell01 em007_04u (list 0) and em007_00c (list 1); shell07
+// em007_04u. Values from em007_04.arc shell\em\em007_04_shellNN (the files' own; FUP 496f8f22, HDS v0x20160209).
+//   THE SPAWNS (group 7 arms 0xd34304..; each a frame crossing 0xb0974 at an action-tune float, em007_04_actiontune.fup):
+// shell01 0x71 (all four sites fill one 0x3fa2bc(0x40) request: +4 0x71, +8 the mode, +0xc the enemy, +0x10.. the ENEMY's own
+// +0x40 / +0x44 / +0x48, +0x20.. a GOT vec3, +0x30.. the enemy's words +0xfe8 / +0xfec / +0xff0, +0x3c 0xffff or [P+0xb0a]):
+//   (7, 0x62) 0xd411e8: L9 M16, tune 27 = f116, mode 0 (0xd41334 `stmib r1,{r0,r6}`, r6 = 0 at 0xd412d8; submit 0xd413bc) -- u 100
+//   (7, 0xa0) / (7, 0xa1) (arms r1 0 / 1, 0xd34ccc / 0xd34cd4): L9 M22 / L9 M23 (0xd4459c), 0xd446dc at tune 0x74 = f154, mode 5
+//     / 6 (`mov #6 / movweq #5` on r1 == 0, 0xd44738); submit 0xd447cc -- u 120. (7, 0xa2) / (7, 0xa3) reach the same spawner
+//     in their M22 / M23 phase (0xd449ac), on the same clips: these rows stand for them.
+//   (7, 0xc8) 0xd44bf0 phase 4: L9 M30 (0xd44dec), tune 0x7c = f10, mode 7 (0xd44e50; submit 0xd44ee0) -- u 300.
+//   NOT LISTED, named: (7, 0x69) / (7, 0x6b) L9 M7 f160 mode 3 (0xd4179c): its ef is (999, -1), no record -- nothing to draw --
+// and its flags are 0x804, base01's 0x800 arm (+0x1650 x 0xbec34), which init011 does not transcribe (params007s01 refuses it).
+// u 300's second site 0xd3d1a0 ((7, 0xb4 / 0xb6 / 0xb8), L2 M15 tune 137 = f24, phase 2 of 0xd3cd40) is not List 9: not here.
+const SHELL007 = {
+  name: 'Bloodbath Diablos',
+  lists: { 0: { list: 'u', pel: 'em007_04u' }, 1: { list: 'c', pel: 'em007_00c' } },
+  actions: [
+    { action: [7, 0x62], code: 'em007', list: '9', clip: 'Motion[16]', pick: 'ai', variant: '7:0x62', spawns: [{ frame: 116, shell: 'shell01', modes: [0] }] },
+    { action: [7, 0xa0], also: [[7, 0xa2]], code: 'em007', list: '9', clip: 'Motion[22]', pick: 'ai', variant: '7:0xa0', spawns: [{ frame: 154, shell: 'shell01', modes: [5] }] },
+    { action: [7, 0xa1], also: [[7, 0xa3]], code: 'em007', list: '9', clip: 'Motion[23]', pick: 'ai', variant: '7:0xa1', spawns: [{ frame: 154, shell: 'shell01', modes: [6] }] },
+    { action: [7, 0xc8], code: 'em007', list: '9', clip: 'Motion[30]', pick: 'ai', variant: '7:0xc8', spawns: [{ frame: 10, shell: 'shell01', modes: [7] }] },
+    // shell07 0x72 (base07, dev/em007-base07-spec.md 6): 0xd41b48 sets L9 M10 at phase 0 (0xd41bac) and in phase 1 makes three
+    // at tune floats 24 / 25 / 26 = f128 / f132 / f134 (0xd41de8 / 0xd41e94 / 0xd41f3c), each mode from 0x169bc60 (`modes`,
+    // tail intact) or 0x169bc78 (`severed`) plus 6 where the arm's r1 is 0 (0xd41d4c): (7, 0x77) / (7, 0x7a) r1 1, (7, 0x79) /
+    // (7, 0x7b) r1 0 (arms 0xd34b40..0xd34b6c). One row per pair (their r2 decides nothing here). (7, 0x78) / (7, 0x75) /
+    // (7, 0x76) play L9 M10 from f180 / f194, past the gates: no shell07.
+    ...[[0x77, 0x7a, 0], [0x79, 0x7b, 6]].map(([n, n2, r6]) => ({ action: [7, n], also: [[7, n2]], code: 'em007', list: '9', clip: 'Motion[10]',
+      pick: 'ai', variant: '7:0x' + n.toString(16),
+      spawns: [128, 132, 134].map((frame, i) => ({ frame, shell: 'shell07', modes: [i + r6], severed: [3 + i + r6] })) })),
+  ],
+  shells: {
+    // shell01: global id 0x71, uShellEm007_04_01 (vtable 0x179a978), base01 (89/92 slots against uShellEm004_sp_01; its own
+    // +0x14c the reader 0xd46770, id-switched at 0xd467d4: params007s01). Landing: base01's +0x150 (UNREAD -- spec 2b), not
+    // modelled. `hit` = the _hit### FUP int 0; hitdata = em007_04_01_hitdata (9 x 0x38 B: s16 delay, duration).
+    shell01: {
+      id: 0x71, cls: 'uShellEm007_04_01', base: 'base01', reader: 0xd46770, folder: 'shell\\em\\em007_04_shell01',
+      lists: { 0: { list: 'u', pel: 'em007_04u' }, 1: { list: 'c', pel: 'em007_00c' } },
+      modes: {
+        0: { scale: 1.0, ef: [[0, 100]], hit: [0], sh: { ints: [-1, 0, 0, -1, -1], floats: [0.0], vecs: [[-400, 0, 600], [0, 0, 0]] } },
+        5: { scale: 1.0, ef: [[0, 120]], hit: [4], sh: { ints: [-1, 0, 0, -1, -1], floats: [0.0], vecs: [[600, 0, 100], [0, -80, 0]] } },
+        6: { scale: 1.0, ef: [[0, 120]], hit: [4], sh: { ints: [-1, 0, 0, -1, -1], floats: [0.0], vecs: [[-600, 0, 100], [0, 80, 0]] } },
+        7: { scale: 1.100000023841858, ef: [[0, 300]], hit: [8], sh: { ints: [-1, -1, -1, -1, -1], floats: [0.0], vecs: [[0, 0, 0], [0, 0, 0]] } },
+      },
+      hitdata: [[0, 20], [14, 10], [14, 10], [14, 10], [0, 30], [0, 30], [0, 30], [0, 20], [50, 10]],
+    },
+    // shell07: global id 0x72, uShellEm007_04_07 (vtable 0x179aae8, 89 slots), base07 (setup cSetupParamEmBase07, 0x30; res
+    // 0x89c5); its own +0x14c the reader 0xd46a94 (params07) and +0x28 0xd46c40 (the ground marker, not modelled). The files'
+    // ef: u 0 the flight, u 1 every landing (modes 0..2, 6..8, tail intact); u 10 / u 11 (3..5, 9..11, severed). sh: ints
+    // [joint, cam0, cam1, keep-words, size, 0x43ab74], floats [F, H], vecs [start, target]. hitdata (30, 999) x 2 (hit side).
+    shell07: {
+      id: 0x72, cls: 'uShellEm007_04_07', base: 'base07', reader: 0xd46a94, folder: 'shell\\em\\em007_04_shell07',
+      lists: { 0: { list: 'u', pel: 'em007_04u' } },
+      modes: Object.fromEntries([
+        [0, 70, 1000, [0, 0, -650], [-600, 0, 0]], [1, 75, 1050, [0, 0, -700], [100, 0, -750]], [2, 80, 1200, [0, 0, -700], [550, 0, 150]],
+        [3, 72, 1000, [0, 0, -700], [-400, 0, 0]], [4, 75, 1050, [0, 0, -700], [0, 0, -700]], [5, 85, 1200, [0, 0, -700], [400, 0, 0]],
+        [6, 72, 800, [0, 0, -700], [-350, 0, -380]], [7, 75, 1000, [0, 0, -700], [0, 0, -680]], [8, 90, 1200, [0, 0, -700], [500, 0, -700]],
+        [9, 72, 800, [0, 0, -700], [-600, 0, -750]], [10, 75, 1000, [0, 0, -700], [0, 0, -800]], [11, 90, 1200, [0, 0, -700], [600, 0, -1000]],
+      ].map(([m, F, H, v0, v1]) => {
+        const intact = m < 3 || (m >= 6 && m < 9), a = intact ? 0 : 10;
+        return [m, { scale: intact ? 1.2000000476837158 : 1.0, ef: [[0, a], [0, a + 1], [0, a + 1], [0, a + 1]], hit: [intact ? 0 : 1],
+                     sh: { ints: [-1, -1, m < 3 ? 0 : -1, 0, 0, -1], floats: [F, H], vecs: [v0, v1] } }];
+      })),
+      hitdata: [[30, 999], [30, 999]],
+    },
+  },
+};
+SHELL_DATA.em007_04 = SHELL007;
+// THE STANCE A CLIP SHOWS, for the aura (Raven, 2026-10-05, of how the viewer picks it: "Follow the clip"). The game sets
+// his stance E+0xcac4 at each action's start (0x1066c14 -> 0x1065c60, the per-action table in
+// build/hitzone-states/state-decodes.md: 1, 2 or keep), and the clips each action plays are traced
+// (build/hitzone-states/nak-clips.json); a clip every one of whose actions runs in ONE stance names it (26 of his 30
+// traced clips), and the idles name theirs as his idle chooser picks them (L0 M1 in stance 1, L0 M50 in stance 2 --
+// 0x107fe34 reads the same byte for the arms). L0 M67 and L3 M63 play in both: they keep the last stance shown, as does
+// every untraced clip. Derived from the read table, not read for each clip.
+export const AURA084_STANCE = {
+  '0|Motion[1]': 1, '0|Motion[4]': 1, '0|Motion[5]': 1, '0|Motion[8]': 1, '0|Motion[9]': 1, '0|Motion[14]': 1,
+  '0|Motion[17]': 1, '0|Motion[18]': 1, '0|Motion[40]': 1, '2|Motion[23]': 1, '2|Motion[24]': 1, '3|Motion[4]': 1,
+  '3|Motion[13]': 1,
+  '0|Motion[50]': 2, '0|Motion[41]': 2, '0|Motion[59]': 2, '0|Motion[63]': 2, '0|Motion[66]': 2, '2|Motion[81]': 2,
+  '2|Motion[82]': 2, '2|Motion[85]': 2, '2|Motion[86]': 2, '2|Motion[101]': 2, '3|Motion[9]': 2, '3|Motion[10]': 2,
+  '3|Motion[16]': 2, '3|Motion[50]': 2, '3|Motion[62]': 2,
+};
+// THE MANAGER'S "CASE A" ACTIONS, where a clip names one (dev/em084-shell06-aura.md 9d): the charge (7, 0x32) L2 M81 sets
+// the charge flag; the shots (7, 0x33..) L2 M82 / M83; group 11, L3 M63; (10, 0x5f) L3 M16 / M9 / M10; (10, 0x6a) L3 M76..78
+// and M23..25; (10, 0xaf) L3 M64..66. NOT HERE, by name: L3 M4 / L0 M17 (group 13, also other actions), L3 M50 / L3 M1
+// ((10, 0x14 / 0x72), also (1, 0x3a)) and (10, 0x0d) (its clip not known) -- a clip that more than one action plays
+// cannot say which; and E+0xcb14 == 2 (after (6, 2) / (6, 4)), which no clip says.
+export const AURA084_CASE_A = new Set(['2|Motion[81]', '2|Motion[82]', '2|Motion[83]', '3|Motion[63]', '3|Motion[16]', '3|Motion[9]',
+  '3|Motion[10]', '3|Motion[76]', '3|Motion[77]', '3|Motion[78]', '3|Motion[23]', '3|Motion[24]', '3|Motion[25]', '3|Motion[64]',
+  '3|Motion[65]', '3|Motion[66]']);
 
 // The siblings run Rathian's class code on the clips they share with her, so her action entries are theirs (in front of
 // their own; Dreadqueen's own L4 M65 entries replace hers), and so are the per-frame handler's dust rows and the posture
@@ -2552,6 +3098,8 @@ export function pickVariantsFor(monId, list, clip, opts){
   // the rows whose `when` holds in the state the viewer shows (opts: index.html beamState, the same the step reads)
   const rowsHere = beamRowsFor(monId, list, clip, opts);
   if (rowsHere.length > 1) return [...new Set(rowsHere.map(r => r.variant))];
+  // Nakarkos's cannon: one of the six shot actions a play of L2 M82 (SHELL_DATA.em084_00.cannon084)
+  if (D.cannon084 && String(list) === '2' && String(clip).replace(/_(start|loop)$/, '') === 'Motion[82]') return D.cannon084.map(r => r.variant);
   const base = String(clip).replace(/_(start|loop)$/, '');
   const branch = opts && opts.tired && !opts.rage ? 'if' : 'else';
   const names = [];
@@ -3020,11 +3568,40 @@ function params04r(def, mode){
            vec: sh.vecs[1].map(f),                      // +0x1610: accVec(1) (0xd30644)
            gravity: sh.vecs[2].map(f) };                // +0x161c: accVec(2) (0xd3065c)
 }
+// NAKARKOS's sp_00 reader 0x1088c5c (uShellEm084_sp_00; READ, dev/em084-phase2-bases.md 1a, agrees with
+// dev/em084-shells-spec.md 8): ef 0..3 -> +0x15c8 / +0x15cc / +0x15d0 / +0x15d4 (the start; the landing's by type 0 / 1 / 2);
+// hit 0 -> +0x15d8; int 0 -> the joint +0x15dc; the flags +0x15e8 (base00's ctor 0) bfc / orrne per bit: bit 3 = int 3 != -1
+// (0x1088d18), 0x10 = int 1 (0x1088d40), 0x20 = int 2 (0x1088d68); floats 0 / 1 / 3 / 2 / 4 -> degX +0x15ec / degY +0x15f0 /
+// vz +0x15f4 / vy +0x15f8 / flight +0x15fc; vec 0 -> +0x1610, vec 1 -> the gravity +0x161c; +0x1614 = 0 (0x1088e20: read only
+// inside the bit-0 / bit-1 aim arms, which his flags never take). Modes 0 / 2..8 and 11..59: joint 12 (the ARM's), flags 8;
+// mode 1: flags 0x18; 65 / 66: joint 212 / 213 (the body's), flags 0.
+function params084s00(def, mode){
+  const sh = mode.sh, I = i => i < sh.ints.length ? sh.ints[i] : -1, F = i => i < sh.floats.length ? f(sh.floats[i]) : f(0);
+  const V = i => i < sh.vecs.length ? sh.vecs[i].map(f) : ZERO3.slice();
+  return { joint: I(0), flags: (I(3) !== -1 ? 8 : 0) | (I(1) !== -1 ? 0x10 : 0) | (I(2) !== -1 ? 0x20 : 0),
+           degX: F(0), degY: F(1), vz: F(3), vy: F(2), flight: F(4), vec: V(0), gravity: V(1) };
+}
 // which reader base00's init runs, by class. Absent = params00, which is what every monster transcribed
 // before em004 uses; this table only ever adds a class, so no existing shell changes reader.
 const READER00 = { uShellEm004_sp_00: (def, mode) => params04r(def, mode),
+                   // Nakarkos's arm lobs (phase 2): his reader 0x1088c5c
+                   uShellEm084_sp_00: (def, mode) => params084s00(def, mode),
                    // the beam children (makeChild02g): Plesioth's 0xd6c55c, Ukanlos's 0xe63400
-                   uShellEm010_sp_00: (def, mode) => params010c(def, mode), uShellEm038_sp_00: (def, mode) => params038c(def, mode) };
+                   uShellEm010_sp_00: (def, mode) => params010c(def, mode), uShellEm038_sp_00: (def, mode) => params038c(def, mode),
+                   // Boltreaver's sp_00 0x1032d38
+                   uShellEm081_sp_00: (def, mode) => params081s00(def, mode) };
+// BOLTREAVER's sp_00 reader 0x1032d38 (uShellEm081_sp_00; READ, dev/em081-shells-spec.md 3a): ef 0..3 -> +0x15c8..+0x15d4; hit 0
+// -> +0x15d8; int 0 -> the joint +0x15dc; flags +0x15e8 (base00's ctor 0): bic #0x45, bit 0 = int 1 != -1, then | 0x44 ALWAYS;
+// floats 0..5 -> degX +0x15ec, degY +0x15f0, vz +0x15f4, flight +0x15fc, X lo / hi +0x1600 / +0x1604; vy +0x15f8 not written (the
+// ctor's 0); vec 0 -> the offset +0x1610, vec 1 -> +0x1618 (read only by the bit-0 / bit-1 aim arms: modes 3 / 4 / 9 / 10, none
+// of them listed); gravity +0x161c not written (the shared zero vector). 0x40: the move keeps the words; 0x4 is tested only inside
+// the aim arms (0x3f93e4, 0x3f9d30) -- so the u 26 modes take init00's plain path: the joint's point, the owner's words + degX.
+function params081s00(def, mode){
+  const sh = mode.sh, I = i => i < sh.ints.length ? sh.ints[i] : -1, F = i => i < sh.floats.length ? f(sh.floats[i]) : f(0);
+  const V = i => i < sh.vecs.length ? sh.vecs[i].map(f) : ZERO3.slice();
+  return { joint: I(0), flags: (I(1) !== -1 ? 1 : 0) | 0x44, degX: F(0), degY: F(1), vz: F(2), vy: f(0), flight: F(3),
+           xLo: F(4), xHi: F(5), vec: V(0), aimOff: V(1), gravity: ZERO3.slice() };
+}
 
 // sp_54's reader 0xe82e8c
 function params54(def, mode, idx){
@@ -3086,13 +3663,15 @@ function init00(S, def, J, got){
     // arm took the request's words whatever 0x20 said, unexercised until Ukanlos's beam children (flags 0x50) took it.
     setup = (k.flags & 0x20) ? [A[0] >>> 0, A[1] >>> 0, A[2] >>> 0]
                              : [(k.flags & 0x200) ? 0 : (got.ownerX >>> 0), got.ownerY >>> 0, 0];
-    let o = k.vec.slice();
-    if (k.flags & 8){
-      const yaw = f(u16(setup[1]) * 0.0001), c = cosf(yaw), sn = sinf(yaw);
-      o = [f(mla(f(o[0] * c), o[2], sn)), o[1], f(f(o[2] * c) - f(o[0] * sn))];
+    // BIT 3 SET: the offset is rotXYZ by the angle words, made after the degree offsets below (bit3Offset00; Nakarkos phase 2,
+    // dev/em084-phase2-bases.md 1b.4 / 4b.3, READ: the X-Y-Z turn by all three words x U16_TO_RAD, not a yaw by 0.0001 --
+    // that yaw was this comment's own reading, never exercised: no reader before his sets 0x10 with bit 3)
+    if (k.flags & 8) S.base00 = p.slice();
+    else {
+      let o = k.vec.slice();
+      if (k.flags & 0x80){ const sz = got.size == null ? 1 : f(got.size); o = o.map(x => f(x * sz)); }
+      p = [f(p[0] + o[0]), f(p[1] + o[1]), f(p[2] + o[2])];
     }
-    if (k.flags & 0x80){ const sz = got.size == null ? 1 : f(got.size); o = o.map(x => f(x * sz)); }
-    p = [f(p[0] + o[0]), f(p[1] + o[1]), f(p[2] + o[2])];
     // THE ANGLES: `setup` above (0x20 -> the request's words, 0x3f8c9c -> +0xfe8; else the owner's). The aim-by-mode
     // below is the OTHER class's reader (0xe82120, beside its reader 0xe82304) and his mode indices mean nothing to it;
     // em004-shell00-spec.md 8 records that his init has not been scanned for vz / vy. So NO AIM IS APPLIED
@@ -3118,7 +3697,14 @@ function init00(S, def, J, got){
     //   joint == -1 -> THE OWNER'S OWN POSITION +0x40/+0x44/+0x48 (0x3f8e20), with the offset turned by the
     //     angle words and added (0x3f9140..0x3f9168). The viewer did not model this arm: jointMatrix(J, -1)
     //     falls back to gid 0, the model root, which is not the ROM's behaviour on any path.
-    if (k.joint === -1){
+    // BIT 3 SET (0x3f8e68 -> 0x3f8ed0; Nakarkos phase 2, dev/em084-phase2-bases.md 1b.4, READ): on either arm the base point
+    // alone here -- the joint's row 3 or the owner's +0x40 -- and the offset rotXYZ by the angle words AFTER the degree
+    // offsets (bit3Offset00). No reader before his sets bit 3, so every other shell takes the arms below as before.
+    if (k.flags & 8){
+      if (k.joint === -1){ if (!got.ownerPos) return false; S.base00 = got.ownerPos.slice(); }
+      else { const M = jointMatrix(J, k.joint); if (!M) return false; S.base00 = [M[12], M[13], M[14]]; }
+      p = S.base00.slice();
+    } else if (k.joint === -1){
       if (!got.ownerPos) return false;                  // named by the caller (spawn04)
       const yaw = f(u16(setup[1]) * U16_TO_RAD), cs = cosf(yaw), sn = sinf(yaw);
       const sc = (k.flags & 0x80) ? (got.size == null ? 1 : f(got.size)) : 1;   // 0xbe518, only with bit 0x80
@@ -3138,6 +3724,7 @@ function init00(S, def, J, got){
   if (!(k.flags & 1)) S.angles[0] = (S.angles[0] + u16(s32(mla(0.5, f(k.degX || 0), DEG_TO_U16)))) >>> 0;
   if (!(k.flags & 2)) S.angles[1] = (S.angles[1] + (ANGLE16C[S.cls] ? ANGLE16C[S.cls](S, k, got, def)
                                                                   : u16(s32(mla(0.5, f(k.degY || 0), DEG_TO_U16))))) >>> 0;
+  if (S.base00){ p = bit3Offset00(S, k, got, setup); delete S.base00; }
   S.timer = k.flight;                                   // +0x162c = +0x15fc
   S.position = p;                                       // +0x40 = row 3 + offset (0x3f8d74, 0x3f9140..0x3f9168)
   S.anchor = p.slice();                                 // +0x1000 (0x3f916c..0x3f918c)
@@ -3147,6 +3734,21 @@ function init00(S, def, J, got){
                position: S.position.slice(), anchor: S.anchor.slice(), velocity: S.velocity.slice(),
                gravity: S.gravity.slice(), timer: S.timer };
   return true;
+}
+
+// base00's offset with flag bit 3 SET (0x3f8ed0..0x3f8f8c, and 0x3f903c..0x3f9134; Nakarkos phase 2,
+// dev/em084-phase2-bases.md 1b.4, READ, the operation order compared term by term with rotXYZ): the vec turned X, Y, Z by
+// the angle words -- the words AFTER the degree offsets when (flags & 0x108) == 8 (0x3f903c: the recomputed offset is the
+// one added at 0x3f9140); with 0x100 also set, the first pass's, made with the words before them -- times the owner's
+// size (0xbe518) only with 0x80, added to the base point (the joint's row 3, the owner's +0x40, or the request's point)
+function bit3Offset00(S, k, got, setup){
+  let o = rotXYZ(k.vec, (k.flags & 0x100) ? setup : S.angles);
+  if (k.flags & 0x80){
+    const sz = got.size == null ? 1 : Array.isArray(got.size) ? size001(got) : f(got.size);
+    o = o.map(x => f(x * sz));
+  }
+  const B = S.base00;
+  return [f(B[0] + o[0]), f(B[1] + o[1]), f(B[2] + o[2])];
 }
 
 // base54 init 0x42aecc (its aim 0x42b6a4 runs right after the reader)
@@ -3175,9 +3777,13 @@ function init54(S, def, J, got){
 
 // the flight timer (base00 0x3f9760..0x3f97f8 on +0x162c, base54 0x42b9a8..0x42ba00 on +0x1634): 'query' goes on to
 // the collision, 'end' ends the shell. A flight time <= 0 takes another branch (0x3f97bc / 0x42ba04: the hit-slot
-// bytes +0x13ad / +0x1465), not transcribed -- every transcribed mode's is positive.
+// bytes +0x13ad / +0x1465) -- every mode transcribed before Nakarkos's shell00 11..59 / 65 / 66 has it positive.
+// base00's branch IS read (Nakarkos phase 2, dev/em084-phase2-bases.md 1c, unicorn agrees): flight <= 0 (or NaN, vcmpe /
+// ble) skips the timer -- the flight step has already run -- and goes on to the collide while hit slot 0 or 1 is on (bytes
+// +0x13ad / +0x1465: S.slots, input.hitLife), else ends on this move (vt +0x148(0)). base54's 0x42ba04 is still not read.
 function flightTimer(S, flight, dt){
-  if (!(flight > 0)) throw new Error('shells.js: a rock with flight time ' + flight + ' (0x3f97bc / 0x42ba04, not transcribed)');
+  if (!(flight > 0) && S.base === 'base00') return (S.slots && S.slots.some(sl => sl.on)) ? 'query' : 'end';
+  if (!(flight > 0)) throw new Error('shells.js: a rock with flight time ' + flight + ' (0x42ba04, not transcribed)');
   const T = S.timer;
   if (!(T > 0)){ S.timer = 0; return 'end'; }                       // ble
   const t = f(T - dt);
@@ -3269,7 +3875,7 @@ function stepRock(S, J, ctx, input, D, out){
   if (S.effect2 && !S.effect2.gone && !alive(S.effect2)) S.effect2.gone = true;
   if (S.state === 1){
     S.moves++;
-    const r = S.base === 'base00' ? move00(S, ctx, D) : move54(S, J, ctx, D);
+    const r = S.base === 'base00' ? move00(S, ctx, D) : S.base === 'base07' ? move07(S, ctx, D) : move54(S, J, ctx, D);
     for (const e of S.events){
       if (e.ev === 'start') out.started.push({ shell: S, start: e.start });
       // a shell the move created (0x48b884) that is not stepped here (Nargacuga's drop); Rathian's are stepped shells,
@@ -3317,8 +3923,11 @@ const isRockAction = (D, a) => { const d = D.shells[a.shell]; return !!d && (d.b
 // the joint a shell's init reads (base01 -- Nargacuga's shell01 -- reads none)
 // (Rathian's base01, reader 0xd0e6a0: the joint +0x15e4 = int 1 when flag 1 (int 0 != -1) is set -- modes 0 and 44..46;
 // base11 reads none)
-const shellJoint = (def, mode) => def.base === 'base01' ? (def.reader === 0xd0e6a0 && mode.sh.ints[0] !== -1 ? mode.sh.ints[1] : null)
-                                : def.base === 'base11' ? null : def.cmn ? def.cmn.ints[0] : mode.sh.ints[0];
+// (Boltreaver's sp_01 reader 0x1033eb0: the same -- joint int 1 when int 0 != -1)
+const shellJoint = (def, mode) => def.base === 'base01' ? ((def.reader === 0xd0e6a0 || def.reader === 0x1033eb0) && mode.sh.ints[0] !== -1 ? mode.sh.ints[1] : null)
+                                : def.cls === 'uShellEm081_04_11' ? mode.sh.ints[0]      // (its spawner's point and its follow: joint 138)
+                                : def.base === 'base07' ? null                            // (Bloodbath's shell07: the owner's +0x40, int 0 = -1)
+                                : def.base === 'base11' || def.base === 'base15' ? null : def.cmn ? def.cmn.ints[0] : mode.sh.ints[0];
 // the effect lists a shell's requests name: its own .shl's when the data gives them per shell, else the monster's
 // (a shell that carries its own -- a beam child, another monster's -- takes those)
 const listsOf = (D, S) => S.lists || (D.shells[S.shell] && D.shells[S.shell].lists) || D.lists;
@@ -4601,7 +5210,8 @@ function move13(S, ctx, D){
   if (!(t > 0)) return 'end';
   const hit = collide(S, null, ctx.stage);                    // 0x43ac6c / 0x43ac8c, the same query the rocks make
   if (!hit) return 'keep';
-  S.events.push({ ev: 'hit', point: hit.point, type: hit.type });
+  // (a class landing that reads the query's result -- Nakarkos's 0x43b1a0 reads its normal -- gets it on the event)
+  S.events.push(LANDING13[S.cls] ? { ev: 'hit', point: hit.point, type: hit.type, normal: hit.normal } : { ev: 'hit', point: hit.point, type: hit.type });
   return 'contact';                                            // vtable +0x150: the class's own landing
 }
 
@@ -4691,6 +5301,134 @@ function spawnShell01(state, D, a, ctx, own, out){
   return S ? [S] : [];
 }
 
+// ---- NAKARKOS's shell13 (uShellEm084_sp_13 over base13): the arm's form-3 lobs, (7, 0x1b) -----------------------------------
+// READ 2026-10-06 (dev/rom-map.md "Nakarkos -- the tentacle-form shells, phase 1"). His reader 0x108a954 maps base13's fields
+// differently from Khezu's (params13), and his flags take base13 paths Khezu's never do -- the JOINT path of the init
+// (+0x15e4 != -1, 0x4045ec) and the thrown point's 0x200 / 4 arm (0x40564c..0x405980) -- so his shell is built here, on the
+// same move (move13) and state machine (stepOrb), with his own init, thrown point, launch and landing.
+// the reader 0x108a954: ef 0 / 1 / 2 / 3 -> +0x15c8 / +0x15d0 / +0x15cc / +0x15d4; hit 0 -> +0x15d8; int 0 -> +0x15e4 (the
+// joint); flags +0x15e0 (bfc / orrne, the ctor's 0 under them): bit 1 = int 1, bit 2 = int 2, 0x200 = int 3; int 4 -> +0x15e8;
+// floats 0..5 -> +0x15ec (speed), +0x15f0 (the arc's height), +0x15f8 (life), +0x1600 (far), +0x15fc (near), +0x1610 (the
+// scatter); +0x162c = &vec 1, +0x1628 = &vec 2, +0x161c = +0x1620 = &vec 0; int 5 != -1 -> byte +0x1670 (the target slot).
+// Everything else the ctor 0x404350's: +0x15ec..+0x1617 cleared (0x13ecbb4, 0x2c bytes) -- so +0x15f4 (gravity), +0x1604 /
+// +0x1608 (the aim limits), +0x160c (speed per unit) and +0x1614 are 0 -- +0x1618 = 1.0, +0x1630 the zero vector.
+function params13n(def, mode){
+  const sh = mode.sh, I = i => i < sh.ints.length ? sh.ints[i] : 0, F = i => i < sh.floats.length ? f(sh.floats[i]) : f(0.0);
+  const V = i => (sh.vecs[i] || ZERO3).map(f);
+  return { joint: I(0), flags: (I(1) !== -1 ? 2 : 0) | (I(2) !== -1 ? 4 : 0) | (I(3) !== -1 ? 0x200 : 0), i15e8: I(4),
+           speed0: F(0), f15f0: F(1), life: F(2), far: F(3), near: F(4), f1610: F(5),
+           gravity: f(0.0), speedPer: f(0.0), limitA: f(0.0), limitB: f(0.0), y1614: f(0.0),
+           vec: V(0), v162c: V(1), v1628: V(2), slot: I(5) !== -1 ? I(5) : 0 };
+}
+// 0x4057c4..0x405840: the scatter's two digits, from the request's +0x30 (+0x1640: 1..4 from 0x107cc68) and the OWNER's
+// halfword +0x73e8: r0 = (+0x1640 x 0x41c64e6d + 0x3039) & 0x7fffffff, r1 = ((r0 % 10) x 0x41c64e6d + 0x3039) & 0x7fffffff,
+// both + h; the radius digit r0 % 100, the angle word ((r1 % 100) << 16) / 100.
+function scatter13n(arg, h){
+  const A = 0x41c64e6d, C = 0x3039;
+  let r0 = (Math.imul(arg, A) + C) & 0x7fffffff;
+  let r1 = (Math.imul(r0 % 10, A) + C) & 0x7fffffff;
+  r1 = (r1 + h) >>> 0; r0 = (r0 + h) >>> 0;
+  return { radius: r0 % 100, word: Math.floor(((r1 % 100) << 16) / 100) & 0xffff };
+}
+// +0x168 = 0x405500 with flags 0x200 and 4 (0x40564c..0x405980): vec 1 turned by the angle words plus vec 2's degrees (Z, X,
+// then Y: 0x43ae70's order, turnByWords) from the shell's own point; the words are [owner+0xcadc]'s when the owner's em byte
+// +0xb5f4 is 0x63 -- the arm's is (0x107b3dc writes it), so they are the BODY's (+0xcadc the body: INFERRED from the arm
+// reading the body's actiontune and variant byte through it) -- else the owner's own. Then the scatter: up to +0x1610 x
+// (radius digit) / 100 at the angle word. The point is then re-measured from the shell: its bearing, its distance clamped to
+// [+0x15fc, +0x1600], at the shell's own height (+0x44 + 0.0; the target's y it read is overwritten). No target is read.
+function thrown13n(S){
+  const k = S.k, P = S.position, W = S.words13;
+  const d = k.v1628.map(x => s32(mla(0.5, x, DEG_TO_U16)));
+  const A = [u16(W[0] + d[0]), u16(W[1] + d[1]), u16(W[2] + d[2])];
+  const t = turnByWords(k.v162c, A);
+  const sx = f(P[0] + t[0]), sz = f(P[2] + t[2]);
+  const sc = scatter13n(S.arg13, S.h73e8);
+  const rr = f(f(k.f1610 * f(sc.radius)) / 100.0);
+  const ra = f(f(sc.word) * U16_TO_RAD), sa = sinf(ra), ca = cosf(ra);
+  const x2 = f(sx + mla(f(sa * rr), ca, 0.0)), z2 = f(sz + mls(f(ca * rr), sa, 0.0));
+  const w = u16(s32(mla(0.5, atan2f(f(x2 - P[0]), f(z2 - P[2])), RAD_TO_U16)));
+  const dx = f(x2 - P[0]), dz = f(z2 - P[2]);
+  let dist = sqrtf(mla(mla(0.0, dx, dx), dz, dz));
+  dist = k.near > dist ? k.near : dist;
+  dist = dist > k.far ? k.far : dist;
+  const rw = f(f(w) * U16_TO_RAD), sw = sinf(rw), cw = cosf(rw);
+  return [f(P[0] + mla(f(sw * dist), cw, 0.0)), f(P[1] + 0.0), f(P[2] + mls(f(cw * dist), sw, 0.0))];
+}
+// 0x404dc8, the launch, with his +0x15f0 > 0 and +0x15f4 = 0: the drop is clamped to <= 0 (0x404eb4..0x404ec4) and the
+// fall is the one that peaks +0x15f0 above the start -- g = -((sqrt(2h) + sqrt(2(h - dy))) / t)^2 (0x404f04..0x404f4c)
+function launch13n(S){
+  const k = S.k, T = thrown13n(S), P = S.position;
+  const dx = f(P[0] - T[0]), dz = f(P[2] - T[2]);
+  const dy0 = f(T[1] - P[1]);
+  const dy = k.f15f0 > 0 ? (dy0 > 0 ? f(0.0) : dy0) : dy0;
+  const dist = sqrtf(mla(mla(0.0, dx, dx), dz, dz));
+  const speed = mla(k.speed0, k.speedPer, dist);
+  const t = f(dist / speed);
+  let g = k.gravity;
+  if (k.f15f0 > 0 && k.gravity === 0){
+    const a = sqrtf(f(k.f15f0 + k.f15f0)), h2 = f(k.f15f0 - dy), b = sqrtf(f(h2 + h2));
+    const q = f(f(a + b) / t);
+    g = f(-f(q * q));
+  }
+  const vy = f(mla(dy, f(f(t * t) * g), f(-0.5)) / t);
+  return { velocity: [f(0.0), vy, speed], acceleration: [f(0.0), g, f(0.0)], thrown: T, dist, speed, t };
+}
+// base13's init 0x4044d8 on his path: setup +0x20.. -> +0x1650, +0x30 -> +0x1640, angle words 0, life +0x1638 = +0x15f8;
+// the joint path (0x4045ec): +0x40 = the OWNER's joint int 0 row 3 (0xc15a4 on the arm); flag 0x80 clear: the two points
+// [+0x161c] / [+0x1620] (both vec 0) meet at 0.5, turned by that joint's 3x3 (flag 2 clear, 0x4047b0) and added -- no size
+// (flag 8 clear); +0x16c (0x405a88) the Y word toward the thrown point; the launch, its velocity turned by that word; +0x1630
+// (the ctor's zero vector) turns it by nothing; then the second pair of points at the pitch ratio +0x163c, which -- both
+// points being vec 0 -- moves +0x40 by m - m (0x404c08..0x404c48, transcribed as the ROM adds it); ef 0 at +0x40; state 2.
+function init13n(S, J, setup){
+  const k = S.k;
+  S.centre = setup.centre.slice();                             // +0x1650 (read only by the thrown point's other arms)
+  S.arg13 = setup.arg >>> 0;                                   // +0x1640
+  S.lifetime = k.life;
+  S.angles = [0, 0, 0];
+  const M = jointMatrix(J, k.joint);
+  if (!M) return false;
+  const v = k.vec;
+  const mid = [0, 1, 2].map(i => mla(v[i], f(v[i] - v[i]), 0.5));
+  const turn = p => [mla(mla(f(M[4] * p[1]), M[0], p[0]), M[8], p[2]), mla(mla(f(M[5] * p[1]), M[1], p[0]), M[9], p[2]),
+                     mla(mla(f(M[6] * p[1]), M[2], p[0]), M[10], p[2])];
+  const m = turn(mid);
+  let pos = [f(m[0] + f(M[12])), f(m[1] + f(M[13])), f(m[2] + f(M[14]))];
+  S.position = pos;
+  const T = thrown13n(S);
+  const a = wordOf(f(T[0] - pos[0]), f(T[2] - pos[2]));        // vtable +0x16c
+  const L = launch13n(S);
+  const rad = f(u16(a) * U16_TO_RAD), sn = sinf(rad), cs = cosf(rad);
+  S.velocity = [f(L.velocity[2] * sn), L.velocity[1], f(L.velocity[2] * cs)];
+  S.gravity = L.acceleration.slice();
+  pos = [0, 1, 2].map(i => f(m[i] + f(pos[i] - m[i])));       // 0x404c08..0x404c48
+  S.position = pos;
+  S.anchor = pos.slice();
+  S.aim = a;
+  S.launch = { point: pos.slice(), thrown: L.thrown.slice(), aim: a, dist: L.dist, speed: L.speed, t: L.t,
+               velocity: S.velocity.slice(), gravity: S.gravity.slice(), life: S.lifetime };
+  S.timer = f(0.0);
+  return true;
+}
+// sp_13's landing +0x150 = 0x108aba8(shell, &point, &result, type) (READ 2026-10-06), only in state 2: type 0 -> ef +0x15cc
+// (ef 2), type 2 -> +0x15d4 (ef 3), type 1 -> +0x15d0 (ef 1) after 0x43b1a0 turns the ground normal and the Y word +0xfec
+// into angle words +0x167c..+0x1684 (groundAngles) and 0x108ac50 makes, with the owner active and the mode <= 0x16 in mask
+// 0x7fbf3f, shell01 of mode table 0x16a2e00[mode] (2..5 -> 6, the others 0) at the point with those words (+0x3c = the
+// shell's +0x13dc, the owner its own); then base13's landing effect 0x4042bc (the param at the point, handle +0x1678) and
+// vt +0x148 (the end)
+const CHILD13N = [0, 0, 6, 6, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+function landing13n(S, D, ctx, out){
+  const hit = S.events.find(e => e.ev === 'hit');
+  if (!hit) return;
+  const m = S.modeIndex, param = hit.type === 0 ? 2 : hit.type === 2 ? 3 : 1;
+  if (hit.type === 1 && m <= 0x16 && ((0x7fbf3f >>> m) & 1) && ctx.create)
+    ctx.create(S, 'shell01', { mode: CHILD13N[m], position: hit.point.slice(), angles: groundAngles(S.angles, hit.normal) });
+  if (!S.mode.ef[param]) return;
+  const rq = rockRequest(D, S.mode, param, hit.point, 'landing', listsOf(D, S));
+  S.events.push(rq ? { ev: 'start', param, kind: 'landing', start: rq } : { ev: 'refused', param, kind: 'landing' });
+  if (rq){ S.effect2 = { param, key: rq.key, kind: 'landing', move: S.moves }; out.started.push({ shell: S, start: rq }); }
+}
+const LANDING13 = { uShellEm084_sp_13: landing13n };
+
 // one orb's step (vtable +0x24 = 0x40500c: state 2 -> +0x158 = 0x405164, state 1 -> +0x15c = 0x405160,
 // which is a bare `bx lr`, and state 0xfe -> the dispatcher's own countdown at 0x4050b4)
 const own13 = input => owner001(input);
@@ -4699,10 +5437,13 @@ function stepOrb(S, ctx, input, D, out){
   S.place = null;
   const alive = h => input.effectAlive ? !!input.effectAlive(S, h.param, h) : true;
   if (S.effect && !S.effect.gone && !alive(S.effect)) S.effect.gone = true;
+  // the landing effect's handle +0x1678 the same way (0x405050..0x40507c); only a class landing that starts one sets it
+  if (S.effect2 && !S.effect2.gone && !alive(S.effect2)) S.effect2.gone = true;
   if (S.state === 2){                                    // base13 flies in state 2 (its init 0x404d9c), not 1
     S.moves++;
     const r = move13(S, ctx, D);
-    if (r === 'contact'){
+    if (r === 'contact' && LANDING13[S.cls]) LANDING13[S.cls](S, D, ctx, out);   // a class's own landing (Nakarkos's)
+    else if (r === 'contact'){
       // Khezu's own landing, sp_13's vtable +0x150 (0xd22268): while the orb is in state 2 and the contact is not
       // type 2, it makes a shell01 at the contact point -- the mode from its own table (0x169ba40, indexed by the
       // orb's mode: 1 for 0..5 and 12..17, 2 for 6..11 and 18..23), the angle words zero (the globals it copies into
@@ -4728,7 +5469,8 @@ function stepOrb(S, ctx, input, D, out){
       const t = f(T - ctx.dt);
       S.lifetime = (0 >= t) ? 0 : t;
       if (t <= 0) S.state = 0xff;
-      else if (!(S.effect && !S.effect.gone)) S.state = 0xff;
+      // both handles +0x1674 / +0x1678 gone (0x4050f4 `orrs`); a shell whose landing started no effect waits for its flight's
+      else if (!(S.effect && !S.effect.gone) && !(S.effect2 && !S.effect2.gone)) S.state = 0xff;
     }
   }
 }
@@ -5055,10 +5797,683 @@ function landing04(S, D, hit, ctx){
   if (param != null) contactStart(S, D, param, hit.point, 'landing');
 }
 
+// NAKARKOS's sp_00 landing, vtable +0x150 = 0x1088e38(shell, &point, &result, type) (READ, dev/em084-phase2-bases.md 1d;
+// spec 6). Only in state 1 (the move calls it there). Type 1 (the stage) FIRST makes a shell01 by the mode -- jump table
+// 0x1088e9c: 0, 2..8, 65, 66 -> 0; 1 -> 1; 11..13, 18..20, 25..27, 32..34, 40..42, 45..47, 52..54, 57..59 -> 6; any other
+// none -- with the 0x40-byte request 0x3fa2bc: id 0x16d, the contact at +0x10, the zero vector at +0x20, THIS shell's angle
+// words at +0x30.. (move00 rewrote them from the velocity this move: flag 0x40 clear), +0x3c = +0x13dc, the owner
+// 0x4a0f00(shell) -- the arm for an arm's lob -- and 0x48b884 (the init at once). Then, every type, its own ef at the
+// contact (0x3f8970): type 0 +0x15cc (param 1), type 1 +0x15d0 (param 2), type 2 +0x15d4 (param 3); the caller ends it.
+const CHILD084 = new Map([0, 2, 3, 4, 5, 6, 7, 8, 65, 66].map(m => [m, 0]).concat([[1, 1]],
+  [11, 12, 13, 18, 19, 20, 25, 26, 27, 32, 33, 34, 40, 41, 42, 45, 46, 47, 52, 53, 54, 57, 58, 59].map(m => [m, 6])));
+function landing084(S, D, hit, ctx){
+  if (hit.type === 1 && CHILD084.has(S.modeIndex) && ctx && ctx.create)
+    ctx.create(S, 'shell01', { id: D.shells.shell01.id, mode: CHILD084.get(S.modeIndex), position: hit.point.slice(),
+                               angles: S.angles.map(w => w >>> 0), action: S.action, frame: S.spawnFrame });
+  const param = [1, 2, 3][hit.type];
+  if (param != null) contactStart(S, D, param, hit.point, 'landing');
+}
+
 const LANDING = { uShellEm037_sp_00: landing37, uShellEm001_sp_00: landing001, uShellEm003_sp_00: landing00k,
-                  uShellEm004_sp_00: landing04,
+                  uShellEm004_sp_00: landing04, uShellEm084_sp_00: landing084,
                   // the beam children: Ukanlos's 0xe63714; Plesioth's +0x150 0xd6c790 is `bx lr`
-                  uShellEm038_sp_00: landing038, uShellEm010_sp_00: () => {} };
+                  uShellEm038_sp_00: landing038, uShellEm010_sp_00: () => {}, uShellEm081_sp_00: landing081s00 };
+
+// BOLTREAVER's sp_00 landing, vtable +0x150 = 0x1032ed0(shell, &point, result, type) (READ, dev/em081-shells-spec.md 3a; base00's
+// collide 0x3f99e0 calls it on a stage contact, 0x3f9ad4): byte +0x15c0 = 1; THE POSITION = THE CONTACT; type 1 (the floor) ->
+// ef +0x15d0 and 0x1032f74, the children; types 0 / 2 -> ef +0x15cc / +0x15d4 and 0x1033a90 (shell01 2 / 3 / 4 only: no effect,
+// not made here); then 0x3f8970(shell, ef, point) -- (999, -1) on every u 26 mode, nothing -- and the caller's end (u 26 stopped
+// gracefully). 0x1032f74 (R emulated, owner active 0x4a0f38; table 0x1032fb8 on the shell's own mode): shell15 requests
+// (0x3fd7e0(0x50): id [e+0xcbc4], the mode, owner the enemy, +0x10.. the contact, +0x20.. THIS shell00's words +0xfe8.., +0x2e
+// = +0x13dc, +0x30.. zero) in order, then a shell01 2 / 3 / 4 (no effect: not made here).
+const CHILD081S00 = { 0: [0], 6: [0], 1: [1, 2], 7: [1, 2], 2: [3], 8: [3], 13: [13, 14], 17: [9, 10], 19: [9, 10],
+                      18: [11, 12], 20: [11, 12], 22: [20, 21], 23: [22, 23] };
+function landing081s00(S, D, hit, ctx){
+  S.position = hit.point.slice();
+  if (hit.type === 1 && ctx && ctx.make15)
+    for (const m of CHILD081S00[S.modeIndex] || []) ctx.make15(S, m, hit.point, S.angles.map(w => w >>> 0));
+  const param = [1, 2, 3][hit.type];
+  if (param != null) contactStart(S, D, param, hit.point, 'landing');
+}
+
+// ---- BASE15 (uShellEmBase15): Boltreaver's zigzag (shell15, u 25) --------------------------------------------------------------
+// dev/em081-shells-spec.md 3b, READ by the helper agent (scratchpad bolt15: static, then unicorn -- the init chain 36 / 36 against
+// this reading, run_full_init.py; the move bit-exact against its Python model over 1,635 steps, run_move.py, whose `step` /
+// `amplitude` / `lateral` this transcribes operation for operation). The chain: sp_15 0x10345a0 -> base15 0x40714c -> base03
+// 0x3fd9d8 -> base00 0x3f8b80, then the move 0x4072f0..0x407bd4 through base00's dispatcher 0x3f96a0 (state 1), and base00's end
+// 0x3f9ef4 / ending 0x3f986c.
+// the reader 0x1034638: ef 0 -> +0x15c8 (u 25); flags +0x15e8 = 0xc8 | 0x10 (int 1) | 0x20 (int 2) -- 0xf8 on every mode of his;
+// float 0 fan +0x15f0, 1 speed +0x15f4, 2 life +0x15fc; vec 1 -> the offset +0x1610 (vec 0 -> +0x161c, the gravity: base15's move
+// never reads it); int 4 `every` +0x1700, int 3 the side +0x1704; floats 4 hi +0x1708, 3 lo +0x170c, 5 A +0x1710, 6 acc +0x1714,
+// 7 f7 +0x1718, 8 pause +0x171c; floats 9 / 10 -> +0x167c / +0x1680 (base03's follow reach: base15's move replaces that move)
+function params081s15(mode){
+  const sh = mode.sh, I = i => i < sh.ints.length ? sh.ints[i] : -1, F = i => i < sh.floats.length ? f(sh.floats[i]) : f(0);
+  const V = i => i < sh.vecs.length ? sh.vecs[i].map(f) : ZERO3.slice();
+  return { flags: 0xc8 | (I(1) !== -1 ? 0x10 : 0) | (I(2) !== -1 ? 0x20 : 0), fan: F(0), speed: F(1), life: F(2), off: V(1),
+           every: I(4), side: I(3), hi: F(4), lo: F(3), A: F(5), acc: F(6), f7: F(7), pause: F(8) };
+}
+// the xorshift 0x7ac4a0 seeded by 0x7c91a0 (run_move.py xs_seed / xs_step, emulated against the ROM)
+function xsSeed15(seed){
+  let r4 = (seed ^ 0x00ac9365) >>> 0, s0 = 0x075bcd15, s1 = 0x159a55e5, s2 = 0x1f123bb5, s3 = 0x05491333;
+  for (let i = 0; i < 100; i++){
+    s0 = s1; s1 = s2; s2 = s3;
+    let r3 = (r4 ^ (0x65ac9365 >>> (r4 & 3))) >>> 0;
+    let r6 = (s2 ^ (s2 >>> 21)) >>> 0;
+    r4 = (r3 ^ (r3 >>> 3) ^ (r3 >>> 4) ^ (r3 << 3) ^ (r3 << 4)) >>> 0;
+    r3 = (r4 ^ (r4 << 15)) >>> 0;
+    r6 = (r6 ^ r3) >>> 0;
+    s3 = (r6 ^ (r3 >>> 4)) >>> 0;
+  }
+  return [s0, s1, s2, s3];
+}
+function xsStep15(st){
+  const [a, b, c, d] = st;
+  let t = (a ^ (a << 15)) >>> 0; t = (t ^ (t >>> 4)) >>> 0; t = (t ^ d) >>> 0; t = (t ^ (d >>> 21)) >>> 0;
+  st[0] = b; st[1] = c; st[2] = d; st[3] = t;
+  return t;
+}
+// drawAmplitude (the count +0x1740; amp = f7 (or hi) on every `every`-th draw, else lo + (hi - lo) x the RNG's fraction): half
+// +0x1734. For every mode of his lo == hi, so the RNG never changes a value; it is run all the same
+function amplitude15(S){
+  const k = S.k;
+  S.count = (S.count + 1) >>> 0;
+  let a;
+  if (k.every >= 1 && S.count % k.every === 0) a = k.f7 > 0 ? k.f7 : k.hi;
+  else a = mla(k.lo, f(k.hi - k.lo), f(f(xsStep15(S.rng)) * f(2 ** -32)));
+  S.half = f(a * f(0.5));
+}
+// the placement: track + (off, 0, 0) turned by the words +0x1748..+0x1750 (0, the OWNER's Y word, 0); track.y follows
+function lateral15(S){
+  const [wX, wY, wZ] = S.w15, K = U16_TO_RAD;
+  const sX = sinf(f(wX * K)), cX = cosf(f(wX * K)), sY = sinf(f(wY * K)), cY = cosf(f(wY * K)), sZ = sinf(f(wZ * K)), cZ = cosf(f(wZ * K));
+  const off = S.off;
+  const a = f(f(sX * 0.0) + f(cX * 0.0)), b = f(f(cX * 0.0) - f(sX * 0.0));
+  const c = mla(f(off * cY), a, sY);
+  const x = mls(f(c * cZ), b, sZ), y = mla(f(b * cZ), c, sZ), z = mls(f(a * cY), off, sY);
+  const T = S.track;
+  S.position = [f(T[0] + x), f(T[1] + y), f(z + T[2])];
+  T[1] = S.position[1];
+}
+const norm15 = v => { const l = sqrtf(mla(mla(f(v[1] * v[1]), v[0], v[0]), v[2], v[2]));
+                      if (l < SEG_EPS) return v.slice(); const r = f(1.0 / l); return [f(r * v[0]), f(r * v[1]), f(r * v[2])]; };
+// the init (sp_15 0x10345a0 -> base15 0x40714c -> base03 0x3fd9d8 -> base00 0x3f8b80) on a request { point, words }: base00 with
+// flags 0xf8 -- 0x20 the request's words, Y += the fan (0x3f9cc4, bit 1 clear; X += 0), 0x10 the request's point, bit 3 the offset
+// rotXYZ(vec 1, the post-offset words), 0x80 times the owner's size (0xbe518); u 25 (ef 0) STARTS HERE, at this pre-snap point;
+// base03: the ground 500 either way (mask 0x10), a miss -> vt +0x148(1) (u 25 stopped at once, the shell deleted at birth: null
+// here), a hit -> y = the hit's; the velocity launchVelocity(0, speed, [0, Y, Z]) (the X word dropped); base15: +0x174c = the
+// owner block's Y word, the track = the snapped point, vlat = A (negated when int 3 != -1), the RNG seeded by u16(owner +0x73e8)
+// (+ 0x12345678 when int 3 != -1; the action setter's draw, NOT READ: H73E8_STANDIN), the first amplitude, sub-state 1
+function init15(S, req, own, stage){
+  const k = S.k = params081s15(S.mode);
+  const dY = u16(s32(mla(0.5, k.fan, DEG_TO_U16)));
+  const W = [req.words[0] >>> 0, (req.words[1] + dY) >>> 0, req.words[2] >>> 0];
+  const sz = size001(own), o = rotXYZ(k.off, W).map(x => f(x * sz));
+  const p = [f(req.point[0] + o[0]), f(req.point[1] + o[1]), f(req.point[2] + o[2])];
+  S.startPoint = p.slice();
+  const q = stageQuery([p[0], f(p[1] - 500.0), p[2]], [p[0], f(p[1] + 500.0), p[2]], stage, 0x10);
+  if (!q) return false;
+  S.position = [p[0], q.point[1], p[2]];
+  S.anchor = S.position.slice();
+  S.angles = W;
+  S.velocity = launchVelocity(0.0, k.speed, [0, W[1], W[2]]);
+  S.timer = k.life;
+  S.w15 = [0, own.ownerY & 0xffff, 0];                    // +0x1748 / +0x174c / +0x1750
+  S.track = S.position.slice();
+  S.off = f(0.0); S.vlat = k.side !== -1 ? f(-k.A) : k.A; S.delay = f(0.0); S.count = 0; S.sub = 1;
+  S.heading = [0, 0, 0];                                  // +0x1754 / +0x1758 / +0x175c
+  S.rng = xsSeed15(((H73E8_STANDIN & 0xffff) + (k.side !== -1 ? 0x12345678 : 0)) >>> 0);
+  amplitude15(S);
+  return true;
+}
+// the move 0x4072f0 (run_move.py step): 'end' when the timer runs out (0x3f9814); `child` the corner's vt +0x174
+function move15(S, dt, child){
+  const k = S.k, sgn = S.vlat > 0 ? f(1.0) : f(-1.0);
+  if (S.sub === 1){
+    const p = S.position;
+    S.anchor = [f(p[0] + 0.0), f(p[1] + 1.0), f(p[2] + 0.0)];
+    let go;
+    if (!(S.delay > 0)){ S.delay = f(0.0); go = true; }
+    else { const t = f(S.delay - dt); S.delay = f(0.0) >= t ? f(0.0) : t; go = !(t > 0); }
+    if (go){
+      S.sub = 0;
+      const [wX, wY, wZ] = S.w15, K = U16_TO_RAD, A = k.A, vy = f(0.0), sp = k.speed;
+      const sZ = sinf(f(wZ * K)), cZ = cosf(f(wZ * K)), sX = sinf(f(wX * K)), cX = cosf(f(wX * K));
+      const x = f(-f(sgn * A));
+      const y1 = mla(f(vy * cZ), x, sZ), x1 = mls(f(x * cZ), vy, sZ);
+      const z2 = mla(f(sp * cX), y1, sX), y2 = mls(f(y1 * cX), sp, sX);
+      const sY = sinf(f(wY * K)), cY = cosf(f(wY * K));
+      const x3 = mla(f(x1 * cY), z2, sY), z3 = mls(f(z2 * cY), x1, sY);
+      const hY = u16(s32(mla(0.5, atan2f(x3, z3), RAD_TO_U16)));
+      const hX = u16(s32(mla(0.5, atan2f(f(-y2), sqrtf(mla(f(z3 * z3), x3, x3))), RAD_TO_U16)));
+      S.heading[0] = hX; S.heading[1] = hY;
+      S.angles = [hX, hY, S.angles[2]];
+      const n = norm15(S.velocity);
+      S.velocity = [f(sp * n[0]), f(sp * n[1]), f(sp * n[2])];
+      S.vlat = f(A * f(-sgn));
+      amplitude15(S);
+      S.events.push({ ev: 'turn', heading: [hX, hY] });
+    }
+    lateral15(S);
+  } else {
+    S.anchor = S.position.slice();
+    const v = S.velocity, T = S.track;
+    for (let i = 0; i < 3; i++) T[i] = mla(T[i], dt, v[i]);
+    S.off = mla(S.off, S.vlat, dt);
+    if (k.speed === 0) return 'keep';                     // no place, no timer (no mode of his)
+    const ratio = f(k.A / k.speed);
+    S.vlat = mla(S.vlat, sgn, f(f(sinf(atanf(ratio)) * k.acc) * dt));
+    const n = norm15(v), c = f(cosf(atanf(ratio)) * k.acc);
+    const a = [f(n[0] * c), f(n[1] * c), f(n[2] * c)];
+    S.velocity = [mla(v[0], dt, a[0]), mla(v[1], dt, a[1]), mla(v[2], a[2], dt)];
+    if (f(sgn * S.off) > S.half){
+      S.off = f(sgn * S.half);
+      if (k.pause > 0){ S.delay = k.pause; child(S); S.sub = 1; }       // vt +0x174 BEFORE the placement: +0x40 is last frame's
+      else { S.vlat = f(-S.vlat); amplitude15(S); }
+    }
+    lateral15(S);
+  }
+  const T = S.timer;                                      // 0x3f9814
+  if (!(T > 0)){ S.timer = 0; return 'end'; }
+  const t = f(T - dt); S.timer = f(0.0) >= t ? f(0.0) : t;
+  return t <= 0 ? 'end' : 'keep';
+}
+// sp_15's +0x174 = 0x10348b0 (emulated, table 0x10348e0): own mode 0 -> 6; 1 / 2 -> 7; 9 / 11 -> 17; 10 / 12 -> 18; others none.
+// The request: id [e+0xcbc4], owner the enemy, +0x10.. = the shell's +0x40 as of the previous frame, +0x20.. = +0x1754 /
+// +0x1758 / +0x175c (the finished leg's heading), +0x2e = +0x13dc -- reached only with pause > 0 (modes 0 / 1 / 2)
+const CHILD15 = { 0: 6, 1: 7, 2: 7, 9: 17, 11: 17, 10: 18, 12: 18 };
+// one shell15's step (base00's dispatcher 0x3f96a0: state 1 -> the move, 0xfe -> the ending 0x3f986c)
+function step15(S, ctx, input, D, out){
+  S.events = [];
+  S.place = null;                                         // u 25 rides the shell (no 0x329c9c / 0x329d04 in the move)
+  const alive = h => input.effectAlive ? !!input.effectAlive(S, h.param, h) : true;
+  if (S.effect && !S.effect.gone && !alive(S.effect)) S.effect.gone = true;
+  if (S.state === 1){
+    S.moves++;
+    const r = move15(S, ctx.dt, P => {
+      const m = CHILD15[P.modeIndex];
+      if (m != null && ctx.make15) ctx.make15(P, m, P.position, [P.heading[0], P.heading[1], P.heading[2]]);
+    });
+    if (r === 'end'){
+      end(S);
+      if (S.stop) S.events.push({ ev: 'stop', param: 0, key: S.stop.key, flag: 0 });
+      out.ended.push(S);
+    }
+  } else if (S.state === 0xfe){
+    const T = S.timer;
+    if (!(T > 0)){ S.timer = 0; S.state = 0xff; }
+    else {
+      const t = f(T - ctx.dt);
+      S.timer = (0 >= t) ? 0 : t;
+      if (t <= 0) S.state = 0xff;
+      else if (!(S.effect && !S.effect.gone)) S.state = 0xff;
+    }
+  }
+}
+// a shell15 made by its creator's move (line 18: inited at once, at the tail of the line, out.spawned)
+function make15(state, D, creator, m, point, words, own, ctx){
+  const def = D.shells.shell15, mode = def.modes[m];
+  if (!mode) return null;                                 // a mode not listed (13 / 14: u 50, no record)
+  const S = { id: state.nextId++, monId: state.monId, shell: 'shell15', cls: def.cls, globalId: def.id, base: 'base15', mode,
+              modeIndex: m, motion: ctx.motion, state: 1, folder: def.folder, creator: creator.id, createdAtMove: creator.moves,
+              position: null, anchor: null, angles: null, velocity: null, timer: 0, moves: 0, events: [], effect: null,
+              start: null, place: null, stop: null };
+  S.effects = mode.ef.map(([listId, key], param) => ({ param, listId, list: (D.lists[listId] || {}).list || null, key, started: false }));
+  S.k = params081s15(mode);
+  if (!init15(S, { point, words }, own, ctx.stage)) return null;
+  S.prevPosition = S.position.slice();
+  S.start = rockRequest(D, mode, 0, S.startPoint, 'flight');     // at the pre-snap point (the init's order: run_full_init.py)
+  S.effect = S.start ? { param: 0, key: S.start.key, kind: 'flight' } : null;
+  if (S.start) S.effects[0].started = true;
+  return S;
+}
+// BOLTREAVER's action spawns (SHELL_DATA.em081_04.actions, `code: 'em081'`), line 4 on the action code's frame pair and the
+// previous pose's joints: shell00 by the enemy-side spawners (0x1030024 / 0x1030cc8 / 0x102fd04 / 0x1031080: a 0x3f883c(0x30)
+// setup, owner the enemy, the request's vectors unread by base00 on flags 0x44); the others as their phases add them
+function spawn081(state, D, a, ctx, input, out){
+  const own = ctx.own001;
+  for (const sp of a.spawns){
+    if (!pass001(state, f(sp.frame))) continue;
+    if (sp.shell === 'shell00'){
+      const why = missing001(own, { facing: true, floor: true });
+      if (why){ out.refused.push({ action: a.action, shell: 'shell00', modes: sp.modes.slice(), why }); continue; }
+      for (const m of sp.modes){
+        const S = make081s00(state, D, m, state.prevJoints, own, ctx, a.action, sp.frame);
+        if (S){ state.shells.push(S); out.spawned.push(S); }
+        else out.refused.push({ action: a.action, shell: 'shell00', mode: m, why: 'no matrix for joint ' + D.shells.shell00.modes[m].sh.ints[0] });
+      }
+    } else if (sp.shell === 'shell01'){
+      // 0x10306cc / 0x10308f8 / 0x102fdd8 / 0x102fa88: 0x3fa2bc(0x40), id [e+0xcbb0], owner e, +0x10.. = block +0x40.., +0x20 zero,
+      // +0x30.. = block +0x50 / +0x54 / +0x58, +0x3c = block halfword +0xb0a; base01's joint path reads none of the vectors
+      if (sp.wing){
+        const t = input.chargeTier;
+        if (!Number.isFinite(t)){ out.refused.push({ action: a.action, shell: 'shell01', modes: sp.modes.slice(), why: 'the wing slam reads the wings\' charge tier [e+0xcb02]: no input.chargeTier' }); continue; }
+        if (((t | 0) | 1) === 1) continue;                  // 0x1025eb8..0x1025ecc: tier 0 / 1 -> no shell
+      }
+      const why = missing001(own, { facing: true });
+      if (why){ out.refused.push({ action: a.action, shell: 'shell01', modes: sp.modes.slice(), why }); continue; }
+      for (const m of sp.modes){
+        const S = make001(state, D, 'shell01', { id: D.shells.shell01.id, mode: m, position: own.ownerPos ? own.ownerPos.slice() : [0, 0, 0],
+                                                 angles: [own.ownerX >>> 0, own.ownerY >>> 0, own.ownerZ >>> 0], action: a.action, frame: sp.frame },
+                          own, state.prevJoints, ctx, null);
+        if (S){ state.shells.push(S); out.spawned.push(S); }
+      }
+    } else if (sp.shell === 'shell50'){
+      for (const m of sp.modes){
+        const k = params081s50(D.shells.shell50.modes[m]);
+        const why = missing001(own, { facing: true, floor: true, target: !!(k.flags & 3), pos: !!(k.flags & 3) && !(k.flags & 4) });
+        if (why){ out.refused.push({ action: a.action, shell: 'shell50', mode: m, why }); continue; }
+        const S = make50(state, D, m, state.prevJoints, own, ctx, a.action, sp.frame);
+        if (S){ state.shells.push(S); out.spawned.push(S); }
+        else out.refused.push({ action: a.action, shell: 'shell50', mode: m, why: 'no matrix for joint ' + k.joint });
+      }
+    } else if (sp.shell === 'shell11'){
+      // 0x103047c (from (7, 0xc7)'s body 0x10289e8): THE TAIL'S CHARGE TIER [e+0xcb03] -- 4 -> shell11 6; 2 -> shell01 22, 0 ->
+      // shell01 21 (no effect: not made here). The request (0x3fa2bc(0x40)): id [e+0xcbbc], mode 6, owner e, +0x10.. = the three
+      // words the block's vtable +0xd4 returns for 0x8a (INFERRED joint 138's position: the previous pose's, line 4), +0x20 zero,
+      // +0x30.. = block +0x50 / +0x54 / +0x58, +0x3c 0xffff
+      const t = input.chargeTier;
+      if (!Number.isFinite(t)){ out.refused.push({ action: a.action, shell: 'shell11', modes: sp.modes.slice(), why: 'the tail slam reads the tail\'s charge tier [e+0xcb03]: no input.chargeTier' }); continue; }
+      if ((t | 0) !== 4) continue;
+      const why = missing001(own, { facing: true });
+      if (why){ out.refused.push({ action: a.action, shell: 'shell11', modes: sp.modes.slice(), why }); continue; }
+      for (const m of sp.modes){
+        const def = D.shells.shell11, M = jointMatrix(state.prevJoints, def.modes[m].sh.ints[0]);
+        if (!M){ out.refused.push({ action: a.action, shell: 'shell11', mode: m, why: 'no matrix for joint ' + def.modes[m].sh.ints[0] }); continue; }
+        const S = make001(state, D, 'shell11', { id: def.id, mode: m, position: [f(M[12]), f(M[13]), f(M[14])],
+                                                 angles: [own.ownerX >>> 0, own.ownerY >>> 0, own.ownerZ >>> 0], action: a.action, frame: sp.frame },
+                          own, state.prevJoints, ctx, null);
+        if (S){ state.shells.push(S); out.spawned.push(S); }
+      }
+    } else if (sp.shell === 'shell14'){
+      const why = missing001(own, { facing: true, floor: true });
+      if (why){ out.refused.push({ action: a.action, shell: 'shell14', modes: sp.modes.slice(), why }); continue; }
+      for (const m of (sp.modesG && own.rank > 4 ? sp.modesG : sp.modes)){
+        const r = make14(state, D, m, state.prevJoints, own, ctx, a.action, sp.frame);
+        if (r.S){ state.shells.push(r.S); out.spawned.push(r.S); }
+        else out.refused.push({ action: a.action, shell: 'shell14', mode: m, why: r.why });
+      }
+    } else throw new Error('shells.js: em081 spawn of ' + sp.shell + ' not transcribed');
+  }
+}
+// BLOODBATH's action spawns (SHELL_DATA.em007_04.actions, `code: 'em007'`), line 4 on the action code's frame pair: shell01 0x71
+// by the four sites above (one 0x3fa2bc(0x40) request each: +0x10.. the ENEMY's own +0x40.. -- input.ownerPos, as em004's
+// 0xd2958c is taken --, +0x30.. its words e+0xfe8.. -- the low halves, ownerWords001 --; base01 reads no other field on these
+// flags); make001 runs his reader (params007s01) and base01's init011
+function spawn007(state, D, a, ctx, input, out){
+  const own = ctx.own001;
+  for (const sp of a.spawns){
+    if (!pass001(state, f(sp.frame))) continue;
+    if (sp.shell === 'shell01'){
+      // (a mode with flag 0x4 snaps to the ground in init011 -- the stage's floor -- and is deleted without one)
+      const snaps = sp.modes.some(m => D.shells.shell01.modes[m] && (params007s01(D.shells.shell01.modes[m].sh).flags & 4));
+      const why = missing001(own, { facing: true, pos: true, floor: snaps });
+      if (why){ out.refused.push({ action: a.action, shell: 'shell01', modes: sp.modes.slice(), why }); continue; }
+      for (const m of sp.modes){
+        const S = make001(state, D, 'shell01', { id: D.shells.shell01.id, mode: m, position: own.ownerPos.slice(), angles: ownerWords001(own),
+                                                 action: a.action, frame: sp.frame }, own, state.prevJoints, ctx, null);
+        if (S){ state.shells.push(S); out.spawned.push(S); }
+      }
+    } else if (sp.shell === 'shell07'){
+      // 0xd41b48 phase 1: vt +0x370(e, 1) -- the tail severed (P+0x3b4 bit 0: input.tailSevered, the parts shown) -- picks
+      // the table 0x169bc78 (`severed`) over 0x169bc60 (`modes`); 0x402014(0x30): +4 0x72, +8 the mode, +0xc the enemy, +0x10..
+      // a GOT vec3 and +0x20 [P+0xb0a], neither read by base07's init on his flags (dev/em007-base07-spec.md 3, 6)
+      const modes = own.tailSevered ? sp.severed : sp.modes;
+      const why = missing001(own, { facing: true, pos: true });
+      if (why){ out.refused.push({ action: a.action, shell: 'shell07', modes: modes.slice(), why }); continue; }
+      for (const m of modes){
+        const r = make07(state, D, m, own, ctx, a.action, sp.frame);
+        if (r.S){ state.shells.push(r.S); out.spawned.push(r.S); }
+        else if (r.why) out.refused.push({ action: a.action, shell: 'shell07', mode: m, why: r.why });
+      }
+    } else throw new Error('shells.js: em007 spawn of ' + sp.shell + ' not transcribed');
+  }
+}
+// ---- BASE07 (uShellEmBase07): Bloodbath's L9 M10 debris (shell07 0x72) ---------------------------------------------------
+// dev/em007-base07-spec.md (READ end to end, 2026-10-08). uShellEm007_04_07's reader 0xd46a94: ef 0..3 -> +0x15c8 / +0x15cc /
+// +0x15d0 / +0x15d4 (the flight, the landing's types 0 / 1 / 2); hit 0 -> +0x15d8; int 0 the joint +0x15dc; ints 1 / 2 the
+// landings' camera ids (0x43ac04: an event only, not modelled); flags +0x15e8 = 0x2 (int 3 != -1: keep the words) | 0x4 (int 4:
+// the vecs x the owner's size 0xbe518) | 0x8 (int 5: 0x43ab74, NOT READ -- refused); float 0 the flight F +0x15ec, float 1 the
+// height H +0x15f0; vec 0 / vec 1 (+0x15f4 / +0x15f8) the start offset / the target offset. Not modelled, named: the hit side
+// (+0x160 0x402c98), and the class's +0x28 0xd46c40 -> 0x43b2b0 (a pooled ground marker each frame: INFERRED a shadow).
+function params07(mode){
+  const sh = mode.sh, I = i => i < sh.ints.length ? sh.ints[i] : -1, F = i => i < sh.floats.length ? f(sh.floats[i]) : f(0);
+  const V = i => i < sh.vecs.length ? sh.vecs[i].map(f) : [0, 0, 0];
+  return { joint: I(0), flags: (I(3) !== -1 ? 2 : 0) | (I(4) !== -1 ? 4 : 0) | (I(5) !== -1 ? 8 : 0), F: F(0), H: F(1),
+           v0: V(0), v1: V(1) };
+}
+// base07's turn of a vector by the owner's words (u16 halves, x 9.58738e-05): Z, then X, then Y, each product rounded
+// (0x4024ec..0x4025ac; the same for vec 1 at 0x40268c..0x40274c)
+function turn07(v, W){
+  const Z = f(u16(W[2]) * U16_TO_RAD), X = f(u16(W[0]) * U16_TO_RAD), Y = f(u16(W[1]) * U16_TO_RAD);
+  const sZ = sinf(Z), cZ = cosf(Z), sX = sinf(X), cX = cosf(X), sY = sinf(Y), cY = cosf(Y);
+  const [x, y, z] = v;
+  const a = mla(f(y * cZ), x, sZ), b = mls(f(x * cZ), y, sZ);
+  const c = mla(f(z * cX), a, sX);
+  return [mla(f(b * cY), c, sY), mls(f(a * cX), z, sX), mls(f(c * cY), b, sY)];
+}
+// base07's init 0x4022a8 (spec 3): P = the owner's own +0x40.. (joint -1; bit 0 never set) + vec 0 (x size when 0x4) turned;
+// T = P + vec 1 (the same) turned; velocity (dx / F, H / (F x 0.5 x 0.5), dz / F) with dx / dz the rounded T - P; gravity y =
+// H / (h x (h x -0.5)) in double, h = F x 0.5; the words the owner's; life +0x1600 = F + F; ef 0 at +0x40 on the shell.
+// `own` = owner001's; returns { S } or { why } (or { S: null } where the init returns 0: F <= 0)
+function make07(state, D, m, own, ctx, action, frame){
+  const def = D.shells.shell07, mode = def.modes[m];
+  if (!mode) return { why: 'uShellEm007_04_07: mode ' + m + ' not in SHELL_DATA (not transcribed)' };
+  const k = params07(mode);
+  if (k.flags & 8) return { why: 'base07 flag 0x8 (0x43ab74 at the end of the init): not read' };
+  if (k.joint !== -1) return { why: 'base07 on a joint (+0x15dc ' + k.joint + ', 0xc15a4): not transcribed (no Bloodbath mode names one)' };
+  if (!(k.F > 0)) return { S: null };                                        // 0x402390: F <= 0 -> the init returns 0
+  const W = ownerWords001(own), size = f(own.size[0] * own.size[1]);        // 0xbe518 = block +0x1ac x +0x1b0
+  const sc = v => (k.flags & 4) ? v.map(x => f(x * size)) : v;
+  const O = own.ownerPos, d0 = turn07(sc(k.v0), W);
+  const P = [f(O[0] + d0[0]), f(d0[1] + O[1]), f(d0[2] + O[2])];
+  const d1 = turn07(sc(k.v1), W);
+  const T = [f(d1[0] + P[0]), f(P[1] + d1[1]), f(P[2] + d1[2])];          // +0x1610.. (0x402760..0x402784)
+  const dx = f(T[0] - P[0]), dz = f(T[2] - P[2]);
+  const h = f(k.F * 0.5);
+  const vy = f(k.H / f(h * 0.5));                                            // +0x1014
+  const g = f(k.H / (h * (h * -0.5)));                                       // +0x1024: vmul.f64 x2, vdiv.f64, vcvt.f32.f64
+  const S = { id: state.nextId++, monId: state.monId, shell: 'shell07', cls: def.cls, globalId: def.id, base: 'base07', mode,
+              modeIndex: m, action: action || null, spawnFrame: frame == null ? null : frame, motion: ctx.motion, state: 1,
+              folder: def.folder, position: P, prevPosition: P.slice(), anchor: P.slice(), angles: W.slice(), k, target: T,
+              velocity: [f(dx / k.F), vy, f(dz / k.F)], gravity: [0, g, 0],
+              timer: f(k.F + k.F), moves: 0, events: [], effect: null, effect2: null, start: null, place: null, stop: null };
+  S.effects = mode.ef.map(([listId, key], param) => ({ param, listId, list: (D.lists[listId] || {}).list || null, key, started: false }));
+  S.start = rockRequest(D, mode, 0, S.position, 'flight', listsOf(D, S));  // 0x402840..0x4028a8: ef 0 at +0x40 -> +0x1604
+  S.effect = S.start ? { param: 0, key: S.start.key, kind: 'flight' } : null;
+  if (S.start) S.effects[0].started = true;
+  return { S };
+}
+// base07's state-1 step (vt +0x158 = 0x402a1c, spec 4): +0x15c 0x402bac -- the previous point, 0x539224 (stepFlight's
+// arithmetic), the words from the velocity unless 0x2 --; the life; the rocks' query 0x43ac8c and, on a hit, the landing
+// 0x402050: ef 1 / 2 / 3 by the type at the contact (base00's `landing`), then the end
+function move07(S, ctx, D){
+  S.anchor = S.position.slice();
+  stepFlight(S, ctx.dt);
+  if (!(S.k.flags & 2)){                                // 0x402c00..0x402c88
+    const [vx, vy, vz] = S.velocity;
+    const hz = sqrtf(mla(f(vz * vz), vx, vx));
+    S.angles = [u16(s32(mla(0.5, atan2f(f(-vy), hz), RAD_TO_U16))), u16(s32(mla(0.5, atan2f(vx, vz), RAD_TO_U16))), S.angles[2]];
+  }
+  const T = S.timer;
+  if (!(T > 0)){ S.timer = 0; return 'end'; }            // 0x402a60 ble
+  const t = f(T - ctx.dt);
+  S.timer = (0 >= t) ? 0 : t;                            // vselge
+  if (t <= 0) return 'end';                              // 0x402a88 bls
+  const hit = collide(S, null, ctx.stage);
+  if (!hit) return 'keep';
+  S.events.push({ ev: 'hit', point: hit.point, type: hit.type });
+  landing(S, D, hit);
+  return 'end';
+}
+// ---- BASE14 (uShellEmBase14): Boltreaver's ground bolt (shell14, u 41 then u 40) -----------------------------------------------
+// dev/em081-shells-spec.md 5b (READ, the helper agent's bolt14: static + unicorn run14.py) and the move 0x406704 read again here
+// (scratchpad bolt/b14.txt): the reader 0x1034260 -- hit 0 -> +0x15d8; int 0 the joint +0x15dc (138); flags +0x15e8 = 0x100 iff int
+// 3 != -1 (its only flag); floats 0 / 1 / 2 -> degX / degY / speed; vec 0 -> +0x1610; ef 0 / 1 / 2 -> +0x1660 / +0x1668 / +0x1664;
+// int 1 -> +0x166c (-1), int 2 -> +0x1670; floats 3 delay +0x1674, 4 travel end +0x1678, 5 +0x167c, 6 +0x1684, 9 the length unit
+// +0x1680, 7 / 8 the query's reach +0x1688 / +0x168c, 10 the lift +0x1690.
+function params081s14(mode){
+  const sh = mode.sh, I = i => i < sh.ints.length ? sh.ints[i] : -1, F = i => i < sh.floats.length ? f(sh.floats[i]) : f(0);
+  return { joint: I(0), flags: I(3) !== -1 ? 0x100 : 0, degX: F(0), degY: F(1), speed: F(2), vec: (sh.vecs[0] || ZERO3).map(f),
+           i166c: I(1), delay: F(3), travel: F(4), f167c: F(5), f1684: F(6), unit: F(9), reachHi: F(7), reachLo: F(8), lift: F(10) };
+}
+// the init 0x405e90 (spec 5b; unicorn run14.py): P = the joint's position (0xc164c); with 0x100 + vec 0 turned Z, X, Y by the owner's
+// words (zero on his modes); velocity (0, 0, speed) turned X by degX, then Y by degY; words = the owner's +0x50..; the ground
+// query 0x183490 (mask 0x10) from P + reachLo to P + reachHi ON ALL THREE AXES, and only the contact's y taken (the return is not
+// tested: on a miss the ROM reads stack garbage -- refused here by name); words = 0x43b1a0 (the ground angles); position += (0,
+// lift, 0) turned Z, X, Y by the words; velocity turned Z, X, Y by the words; the X / Y words from the velocity (atan2); anchor =
+// position; life +0x162c = f4 + f5 + f6; u 41 (ef 2) starts at the position; delay +0x1698 = f3
+function make14(state, D, m, J, own, ctx, action, frame){
+  const def = D.shells.shell14, mode = def.modes[m];
+  if (!mode) return { why: 'shell14 mode ' + m + ' not in SHELL_DATA' };
+  const k = params081s14(mode), M = jointMatrix(J, k.joint);
+  if (!M) return { why: 'no matrix for joint ' + k.joint };
+  const ow = [own.ownerX >>> 0, own.ownerY >>> 0, own.ownerZ >>> 0];
+  let P = [f(M[12]), f(M[13]), f(M[14])];
+  if (k.flags & 0x100){ const o = turnByWords(k.vec, ow); P = [f(P[0] + o[0]), f(P[1] + o[1]), f(P[2] + o[2])]; }
+  let v = launchVelocity(0.0, k.speed, [wordOfDeg(k.degX), wordOfDeg(k.degY), 0]);
+  const A = [f(P[0] + k.reachLo), f(P[1] + k.reachLo), f(P[2] + k.reachLo)], B = [f(P[0] + k.reachHi), f(P[1] + k.reachHi), f(P[2] + k.reachHi)];
+  const q = stageQuery(A, B, ctx.stage, 0x10);
+  if (!q) return { why: 'base14 init: no ground within ' + k.reachHi + ' of joint ' + k.joint + ' (0x183490\'s return is not tested: the ROM reads stack garbage)' };
+  let W = groundAngles(ow, q.normal);
+  const lift = turnByWords([0, k.lift, 0], W);
+  const pos = [f(P[0] + lift[0]), f(f(q.point[1]) + lift[1]), f(P[2] + lift[2])];
+  v = turnByWords(v, W);
+  W = [u16(s32(mla(0.5, atan2f(f(-v[1]), sqrtf(mla(f(v[2] * v[2]), v[0], v[0]))), RAD_TO_U16))), u16(s32(mla(0.5, atan2f(v[0], v[2]), RAD_TO_U16))), W[2]];
+  const S = { id: state.nextId++, monId: state.monId, shell: 'shell14', cls: def.cls, globalId: def.id, base: 'base14', mode, modeIndex: m,
+              action, spawnFrame: frame, motion: ctx.motion, state: 1, folder: def.folder, k, position: pos, prevPosition: pos.slice(),
+              anchor: pos.slice(), angles: W, velocity: v, timer: f(f(k.travel + k.f167c) + k.f1684), elapsed: f(0.0), delay: k.delay,
+              done: false, moves: 0, events: [], effect: null, effect2: null, start: null, place: null, stop: null, units14: null };
+  S.effects = mode.ef.map(([listId, key], param) => ({ param, listId, list: (D.lists[listId] || {}).list || null, key, started: false }));
+  S.start = rockRequest(D, mode, 2, pos, 'flight');         // u 41 (ef 2) -> +0x16a4
+  S.effect = S.start ? { param: 2, key: S.start.key, kind: 'flight' } : null;
+  if (S.start) S.effects[2].started = true;
+  return { S };
+}
+// the move 0x406704 (state 1 through base00's dispatcher)
+function move14(S, ctx, D, out){
+  const k = S.k, dt = ctx.dt;
+  S.elapsed = f(dt + S.elapsed);                           // +0x1694
+  const T = S.timer;                                       // 0x3f9814 == 1 -> vt +0x148(0)
+  if (!(T > 0)){ S.timer = 0; return 'end'; }
+  { const t = f(T - dt); S.timer = f(0.0) >= t ? f(0.0) : t; if (t <= 0) return 'end'; }
+  if (!(S.elapsed < k.travel)) S.done = true;              // +0x16a8 = 1 (and +0x169c, ef 0's handle: never set on his modes)
+  if (!S.done && S.delay === 0) S.position = [0, 1, 2].map(i => mla(S.position[i], dt, S.velocity[i]));
+  if (S.elapsed < S.delay) return 'keep';                  // bmi 0x406ddc
+  if (S.delay !== 0){
+    // at the position: u 40 (ef 1 -> +0x16a0) with the rotation override (+0x14 |= 0x40000002, +0x30.. = the X / Y words in
+    // degrees, +0x38 0) and +0x40 / +0x44 = 1.5, +0x48 = 0 (0x40692c..0x406998); ef 0 (+0x1660) is 0 on his modes; u 41 (+0x16a4)
+    // stopped gracefully (0x329c40(h, 0)); delay = 0; vt +0x164 (the hit: not visual)
+    const p = S.mode.ef[1];
+    const L = p && p[0] <= 7 && p[1] >= 0 ? D.lists[p[0]] : null;
+    if (L){
+      const rq = { param: 1, listId: p[0], list: L.list, pel: L.pel, key: p[1], kind: 'bolt',
+                   requester: { position: S.position.slice(), rotationDeg: [f(f(S.angles[0] >>> 0) * U16_TO_DEG), f(f(S.angles[1] >>> 0) * U16_TO_DEG), 0],
+                                scale: [f(1.5), f(1.5), f(0.0)], parent: 'shell', flags14: 0x40000002, flags1c: 3, type8: 3 } };
+      S.events.push({ ev: 'start', param: 1, kind: 'bolt', start: rq });
+      S.effect2 = { param: 1, key: p[1], kind: 'bolt', move: S.moves };
+      S.effects[1].started = true;
+      out.started.push({ shell: S, start: rq });
+    }
+    if (S.effect && !S.effect.gone){ S.events.push({ ev: 'stop', param: S.effect.param, key: S.effect.key, flag: 0, early: true }); S.stopNow = true; S.effect = null; }
+    S.delay = f(0.0);
+  }
+  // +0x167c past the travel: the anchor moved by +0x16b0 (the ctor's zero vector) and an end on a negative dot with it -- never
+  // on his modes (0x406a58..0x406b1c)
+  // u 40's units (0x406b20..0x406d34), every move once it runs: +0x40.. = the ANCHOR (w 0), 0x8a4dfc(unit, (X word, Y word) x
+  // 9.58738e-05 rad), and -- +0x166c == -1 and the travel over: no scale write, the length frozen -- else +0x68 = |position -
+  // anchor| / +0x1680 (+0x6c 0)
+  if (S.effect2){
+    const frozen = k.i166c === -1 && !(S.elapsed < k.travel);
+    let z = null;
+    if (!frozen){
+      const d = [f(S.position[0] - S.anchor[0]), f(S.position[1] - S.anchor[1]), f(S.position[2] - S.anchor[2])];
+      z = f(sqrtf(mla(mla(f(d[1] * d[1]), d[0], d[0]), d[2], d[2])) / k.unit);
+    }
+    S.units14 = { position: S.anchor.slice(), rotationRad: [f(f(S.angles[0] >>> 0) * U16_TO_RAD), f(f(S.angles[1] >>> 0) * U16_TO_RAD), 0],
+                  scaleZ: z };
+  }
+  return 'keep';
+}
+// one shell14's step: base00's dispatcher 0x3f96a0 (state 1 -> the move; 0xfe -> the ending 0x3f986c, which waits for +0x1624 /
+// +0x1628 -- neither is set here, so it is deleted on the next move). The end 0x3f9ef4 stops only +0x1624 (ef 0: none): u 40 is
+// NEVER stopped by the shell, and what it does once its parent shell is deleted is NOT READ (spec 8) -- the viewer leaves its request
+// running where its units were last placed
+function step14(S, ctx, input, D, out){
+  S.events = []; S.place = null; S.units14 = null; S.stopNow = false;
+  if (S.state === 1){
+    S.moves++;
+    if (move14(S, ctx, D, out) === 'end'){ S.state = 0xfe; S.stop = null; out.ended.push(S); }
+  } else if (S.state === 0xfe) S.state = 0xff;
+}
+
+// ---- BASE50 (uShellEmBase50): Boltreaver's eased slide (shell50, u 60 / u 70) ----------------------------------------------------
+// dev/em081-shells-spec.md 4a, READ (and the move 0x4286b0, the slides 0x4283b8 / 0x4281a8 and the lerps 0x428660 / 0x428688 read
+// again here, instruction for instruction: armdis). THE CLOCK'S DIVISOR [[0x211f764]+0x38] IS NOT READ (no store to it in a
+// GOT-slot census of 96 sites; INFERRED frames per second, the clock then in seconds -- 1.3 s for most u 60 modes): A NAMED
+// STAND-IN, 60, the viewer's step rate. shell01_02's hold divides by the same field and takes the same stand-in.
+const CLOCK081_DIVISOR = f(60.0);
+// 04_50's reader 0x10323c4 (over base50's ctor 0x427c3c: +0x1664 = 0, +0x1668 = 1.0, +0x166c = 20.0, +0x1670 = 10.0, the rest 0):
+// ef 0..3 -> +0x15c8..+0x15d4; hit 0 -> +0x15d8; int 0 the joint +0x15dc; flags +0x15e8 (bits 5 / 6 cleared first): bit 0 = int 2,
+// 0x2 = int 3, 0x4 = int 4, 0x200 = int 5, 0x8 = int 6, 0x80 = int 7, 0x800 = int 8, 0x20 = int 9 (each != -1), | 0x40 always;
+// +0x15e4 = int 10 (the camera 0x43ac04: not visual); +0x1660 = int 1 (the motion type); floats 0 degX, 1 degY, 2 / 3 the X clamp,
+// 4 / 5 the Y clamp, 6 / 7 the scale from / to, 9 the distance +0x166c, 8 the time +0x1670, 10 +0x1674, 11 the extra time +0x1678,
+// 13 / 14 / 15 the speeds +0x167c / +0x1680 / +0x1684; vecs 0 / 1 / 2 -> the offset +0x1610, the aim-from +0x1614, the aim offset
+// +0x1618. vz +0x15f4 / vy +0x15f8 / flight +0x15fc are not written (0).
+function params081s50(mode){
+  const sh = mode.sh, I = i => i < sh.ints.length ? sh.ints[i] : -1, F = i => i < sh.floats.length ? f(sh.floats[i]) : f(0);
+  const V = i => i < sh.vecs.length ? sh.vecs[i].map(f) : ZERO3.slice();
+  const flags = (I(2) !== -1 ? 1 : 0) | (I(3) !== -1 ? 2 : 0) | (I(4) !== -1 ? 4 : 0) | (I(5) !== -1 ? 0x200 : 0) | (I(6) !== -1 ? 8 : 0) |
+                (I(7) !== -1 ? 0x80 : 0) | (I(8) !== -1 ? 0x800 : 0) | (I(9) !== -1 ? 0x20 : 0) | 0x40;
+  return { joint: I(0), type: I(1), flags, camera: I(10), xDeg: F(0), yDeg: F(1), xLo: F(2), xHi: F(3), yLo: F(4), yHi: F(5),
+           from: V(1), aimOff: V(2), vec: V(0), s0: F(6), s1: F(7), dist: F(9), T: F(8), f10: F(10), extra: F(11),
+           v0: F(13), v1: F(14), v2: F(15) };
+}
+// the init 0x428078: base00's 0x3f8b80 with these flags -- the angle words the owner's X / Y and 0 (0x20 / 0x200 clear); the joint's
+// point plus the offset through its 3x3 (launchPoint, bit 3 / 0x10 clear); X += the X adjust (bit 0: the aim at the target, from p
+// with bit 2, else from the owner's point -- xAdjust37), Y += the Y adjust (bit 1 likewise -- yAdjust37); ef 0 at +0x40 into +0x1624
+// -- then base50's: the speeds by the type (0: v0 / v1 / v2 as read; -1: q = distance / time, v0 = q - f10 q, v2 = q + f10 q), the
+// start point +0x16a0 = +0x40, the clock 0, the velocity launchVelocity(0, v0, words) (unused by the move), state 1
+function make50(state, D, m, J, own, ctx, action, frame){
+  const def = D.shells.shell50, mode = def.modes[m];
+  if (!mode) return null;
+  const k = params081s50(mode), M = jointMatrix(J, k.joint);
+  if (!M) return null;
+  const p = launchPoint(M, k.vec);
+  const got = Object.assign({}, own);
+  const A = [(k.flags & 0x200) ? 0 : own.ownerX >>> 0, own.ownerY >>> 0, 0];
+  A[0] = (A[0] + xAdjust37(k, p, got)) >>> 0;
+  A[1] = (A[1] + yAdjust37(k, p, got)) >>> 0;
+  let v0 = k.v0, v1 = k.v1, v2 = k.v2;
+  if (k.type === -1){ const q = f(k.dist / k.T); v0 = mls(q, k.f10, q); v2 = mla(q, k.f10, q); v1 = f(0); }
+  else if (k.type !== 0){ v0 = f(0); v1 = f(0); v2 = f(0); }
+  const S = { id: state.nextId++, monId: state.monId, shell: 'shell50', cls: def.cls, globalId: def.id, base: 'base50', mode, modeIndex: m,
+              action, spawnFrame: frame, motion: ctx.motion, state: 1, folder: def.folder, k, position: p, prevPosition: p.slice(),
+              anchor: p.slice(), angles: A, start50: p.slice(), clock: f(0.0), speeds: [v0, v1, v2], velocity: launchVelocity(0.0, v0, A),
+              unitScale: null, timer: 0, moves: 0, events: [], effect: null, effect2: null, start: null, place: null, stop: null, slots: null };
+  S.effects = mode.ef.map(([listId, key], param) => ({ param, listId, list: (D.lists[listId] || {}).list || null, key, started: false }));
+  S.start = rockRequest(D, mode, 0, p, 'flight');
+  S.effect = S.start ? { param: 0, key: S.start.key, kind: 'flight' } : null;
+  if (S.start) S.effects[0].started = true;
+  if (own.hitLife) S.slots = slotsOf011(def, mode, ctx.out ? ctx.out.refused : null).filter(sl => sl.slot === 0);
+  return S;
+}
+// the slides: 0x4283b8 (type 0, eased: v0 -> v1 over the first half, v1 -> v2 over the second) and 0x4281a8 (type -1, linear v0 ->
+// v2), then the position = the start + (0, 0, d) turned X, Y, Z by the words (rotXYZ: 0x4284f0..0x428604 term for term), +0x4c 0,
+// and the scale vt +0x178 = 0x428660 (from + (to - from) t; x the owner's size with flag 0x400, which his reader cannot set) ->
+// 0x43ab74: the unit's +0x60.. (unitScale)
+function slide50(S){
+  const k = S.k, [v0, v1, v2] = S.speeds, tau = S.clock, T = k.T, r = f(tau / T), t = r < 1 ? r : f(1.0);
+  let d;
+  if (k.type === 0){
+    if (t < 0.5){ const v = mla(v0, f(t + t), f(v1 - v0)); S.v1698 = v; d = f(f(tau * f(v0 + v)) * 0.5); }
+    else if (r < 1){
+      const s4 = mls(tau, T, 0.5), s6 = f(f(t + -0.5) * 2), v = mla(v1, s6, f(v2 - v1)); S.v1698 = v;
+      d = mla(f(f(f(v + v1) * s4) * 0.5), f(T * f(v0 + v1)), 0.25);
+    } else d = f(f(T * f(v2 + f(v0 + f(v1 + v1)))) * 0.25);
+  } else {
+    if (tau < T){ const v = mla(v0, f(v2 - v0), t); S.v1698 = v; d = f(f(f(v + v0) * tau) * 0.5); }
+    else d = f(f(T * f(v2 + v0)) * 0.5);
+  }
+  const o = rotXYZ([f(d * 0), f(d * 0), d], S.angles);
+  S.position = [f(S.start50[0] + o[0]), f(S.start50[1] + o[1]), f(o[2] + S.start50[2])];
+  S.unitScale = mla(k.s0, f(k.s1 - k.s0), t);
+}
+// 0x1032858 (R emulated): shell50 mode in mask 0x3b2b (0, 1, 3, 5, 8, 9, 11..13) -> shell01_02 0; 6 -> shell01_02 8 (+ shell01 27);
+// 7 -> shell01_02 7 (+ shell01 26) -- each 0x3fa2bc(0x40): id [e+0xcbb4], owner the enemy, +0x10.. = THIS shell's +0x40, +0x20 zero,
+// +0x30.. its words, +0x3c 0xffff; the shell01 26 / 27 (sp_01's mode that writes its position to the owner, e+0xb5fa..: no
+// effect) are not made here
+function children50(S, ctx){
+  const m = S.modeIndex, mode02 = ((0x3b2b >>> m) & 1) && m < 14 ? 0 : m === 6 ? 8 : m === 7 ? 7 : null;
+  if (mode02 != null && ctx.create) ctx.create(S, 'shell01_02', { mode: mode02, position: S.position.slice(), angles: S.angles.map(w => w >>> 0) });
+}
+// the move 0x4286b0 (state 1 through base00's dispatcher): the clock += dt / [[0x211f764]+0x38] (0x539d48), anchor = position, the
+// slide by the type; past time + extra -> vt +0x174 (0x1032c10: byte +0x15c0, the children, 0x43ac04) and the end; else, a hit
+// slot on (+0x13ad / +0x1465), base00's collide 0x3f99e0 (mask 0x30, anchor -> position) and on a contact vt +0x150 = 0x10327c4:
+// type 0 / 1 -> ef +0x15cc / +0x15d0 (999 on his modes) at the point, the children, 0x43ac04, the end; type 2 -> ef +0x15d4 only;
+// with no slot on, the end
+function move50(S, ctx, D){
+  S.clock = mla(S.clock, ctx.dt, f(1.0 / CLOCK081_DIVISOR));
+  S.anchor = S.position.slice();
+  if (S.k.type === 0 || S.k.type === -1) slide50(S);
+  if (S.clock > f(S.k.T + S.k.extra)){ S.events.push({ ev: 'timeout' }); children50(S, ctx); return 'end'; }
+  if (!(S.slots && S.slots.some(sl => sl.on))) return 'end';
+  const hit = collide(S, null, ctx.stage);
+  if (!hit) return 'keep';
+  S.events.push({ ev: 'hit', point: hit.point, type: hit.type });
+  const param = [1, 2, 3][hit.type];
+  if (param != null) contactStart(S, D, param, hit.point, 'landing');
+  if (hit.type === 2) return 'keep';
+  children50(S, ctx);
+  return 'end';
+}
+// one shell50's step: the end is base00's 0x3f9ef4 (u 60 / u 70 stopped gracefully, the ending 0x3f986c waits for it)
+function step50(S, ctx, input, D, out){
+  S.events = []; S.place = null;
+  const alive = h => input.effectAlive ? !!input.effectAlive(S, h.param, h) : true;
+  if (S.effect && !S.effect.gone && !alive(S.effect)) S.effect.gone = true;
+  if (S.effect2 && !S.effect2.gone && !alive(S.effect2)) S.effect2.gone = true;
+  if (S.state === 1){
+    S.moves++;
+    if (move50(S, ctx, D) === 'end'){
+      end(S);
+      if (S.stop) S.events.push({ ev: 'stop', param: 0, key: S.stop.key, flag: 0 });
+      out.ended.push(S);
+    }
+  } else if (S.state === 0xfe){
+    const T = S.timer;
+    if (!(T > 0)){ S.timer = 0; S.state = 0xff; }
+    else {
+      const t = f(T - ctx.dt); S.timer = (0 >= t) ? 0 : t;
+      if (t <= 0) S.state = 0xff;
+      else if (!(S.effect && !S.effect.gone) && !(S.effect2 && !S.effect2.gone)) S.state = 0xff;
+    }
+  }
+}
+// 04_01's reader 0x10312ac (over its ctor 0x1031254: base01's, then +0x1654 / +0x1658 / +0x165c = -1.0, +0x1660 / +0x1664 = 0): ef 0
+// -> +0x15c8, EF 1 -> +0x15d4 (the END's start, base01 0x3fb2fc..0x3fb36c); hit 0 -> +0x15d8; the flags bit 0 int 0, 0x2 int 2, 0x80
+// int 3, 0x800 int 4, 0x4 int 5, 0x8 int 6, 0x1000 int 7, 0x20 int 8, then | 0x100; +0x15e4 int 1; vec 0 / 1 -> +0x1608 / +0x160c;
+// floats 0 / 1 / 2 -> the rate +0x1654, the size +0x1658, the hold +0x165c. The timer +0x15f0 is not written (0). His modes: 0x100.
+function params081s0102(sh){
+  const I = i => !sh ? -1 : i < sh.ints.length ? sh.ints[i] : 0, F = i => !sh ? 0 : i < sh.floats.length ? f(sh.floats[i]) : 0;
+  const V = i => !sh ? [0, 0, 0] : i < sh.vecs.length ? sh.vecs[i].map(f) : [0, 0, 0];
+  const flags = (I(0) !== -1 ? 1 : 0) | (I(2) !== -1 ? 2 : 0) | (I(3) !== -1 ? 0x80 : 0) | (I(4) !== -1 ? 0x800 : 0) |
+                (I(5) !== -1 ? 4 : 0) | (I(6) !== -1 ? 8 : 0) | (I(7) !== -1 ? 0x1000 : 0) | (I(8) !== -1 ? 0x20 : 0) | 0x100;
+  const why = !sh ? 'uShellEm081_04_01: a mode SHELL_DATA does not carry (not transcribed)' : null;
+  return { flags, joint: I(1), timer: f(0.0), f1600: f(0.0), f15fc: f(1.0), vec: V(0), deg: V(1), up: f(500.0), down: f(500.0),
+           maxH: f(900.0), why, rate: F(0), size: F(1), hold: F(2), efAt: { 0x15c8: 0, 0x15cc: null, 0x15d0: null, 0x15d4: 1 } };
+}
+// 04_01's +0x150 = 0x10314e8, every move (base01's move calls it last): while the rate and the size are non-zero and +0x1660 < 1:
+// +0x1660 += dt x rate (kept unclamped) and 0x43ab74(shell, 0.0 + size x min(+0x1660, 1)) -- the unit's scale; else, while +0x1664
+// < the hold: +0x1664 += [[0x211f764]+0x68] / [[0x211f764]+0x38] (the frame step dt over the unread divisor: CLOCK081_DIVISOR);
+// at the hold, vt +0x148(0) -- the end
+function move081s0102(S, ctx){
+  const k = S.k;
+  if (k.rate !== 0 && k.size !== 0 && S.g1660 < 1){
+    S.g1660 = mla(S.g1660, ctx.dt, k.rate);
+    S.unitScale = mla(f(0.0), k.size, S.g1660 < 1 ? S.g1660 : f(1.0));
+    return 'keep';
+  }
+  if (S.h1664 < k.hold){ S.h1664 = f(S.h1664 + f(ctx.dt / CLOCK081_DIVISOR)); return 'keep'; }
+  return 'end';
+}
+// a shell00 of his: base00's init 0x3f8b80 (init00 with params081s00) on the previous pose's joints, ef 0 (u 26) at +0x40 into
+// +0x1624; its life is the flight timer (every listed mode flies), so no hit slot is registered here
+function make081s00(state, D, m, J, own, ctx, action, frame){
+  const def = D.shells.shell00, mode = def.modes[m];
+  if (!mode) return null;
+  const S = { id: state.nextId++, monId: state.monId, shell: 'shell00', cls: def.cls, globalId: def.id, base: def.base,
+              mode, modeIndex: m, action, spawnFrame: frame, motion: ctx.motion, state: 1,
+              position: null, prevPosition: null, anchor: null, angles: null, velocity: null, gravity: null, trail: null,
+              timer: 0, moves: 0, bounces: 0, held: false, launch: null, events: [], folder: def.folder,
+              effect: null, effect2: null, start: null, place: null, stop: null, slots: null };
+  S.effects = mode.ef.map(([listId, key], param) => ({ param, listId, list: (D.lists[listId] || {}).list || null, key, started: false }));
+  if (!init00(S, def, J, own)) return null;
+  S.prevPosition = S.position.slice();
+  S.start = rockRequest(D, mode, 0, S.position, 'flight');
+  S.effect = S.start ? { param: 0, key: S.start.key, kind: 'flight' } : null;
+  if (S.start) S.effects[0].started = true;
+  return S;
+}
 
 // 0xe48fc8(e, xIdx, kind): the setups of an action's shells. off = s32(mla(0.5, [0x169dc74 + 4 xIdx], 182.04445)); X =
 // the owner's X word + u16(off) (uxtah, 32-bit); Y, Z = the owner's words through vcvt.f32.u32 then vcvt.u32.f32 (exact
@@ -5310,7 +6725,68 @@ function params04s01(sh){
 // which reader a base01 shell runs, by the class the table gives it. Keyed on the READER address, so
 // Gravios's shell01 -- the same class, the same vtable, the same reader, differing only in id and resource
 // (0x6d / 0x89bb against 0x6b / 0x89b9) -- takes the same entry with no second line.
-const READERS01 = { 0xd218c4: params01k, 0xd308dc: params04s01 };
+const READERS01 = { 0xd218c4: params01k, 0xd308dc: params04s01, 0x10891dc: params084s01, 0x1033eb0: params081s01,
+                    0x10312ac: params081s0102, 0xd46770: params007s01 };
+
+// BLOODBATH's sp_01 reader 0xd46770 (uShellEm007_04_01; READ, dev/em007-shells-spec.md 2b), its 0x71 side (0xd467d4 `cmp r5,#0x71`;
+// Diablos's 0x70 takes another map after 0xd468d8 and is not here): getEffect(0) -> +0x15c8 (no ef 1); accA(hit, 0) -> +0x15d8;
+// +0x15ec bit 0 CLEARED (bfc #0,#1 -- so the joint path of init011 is never taken); each int != -1 (cmn #1 / bfc / orrne):
+// int 0 -> +0x15e4 (the joint), int 1 -> bit 2 (0x4), int 2 -> bit 3 (0x8), int 3 -> bit 11 (0x800), int 4 -> bit 7 (0x80);
+// float 0 -> +0x15f0 (the timer); vec 0 -> +0x1608, vec 1 -> +0x160c (the degrees base01's init adds to the words: init011
+// `deg`). The ctor's +0x15f4 / +0x15f8 = 500, +0x15fc = 1.0, +0x1604 = 900 stand. An index past the file is getInt's null
+// path, -1 (0x4a225c). Mode 3's 0x800 (base01's +0x1650 x 0xbec34 arm) is not transcribed: refused by name, not thrown.
+function params007s01(sh){
+  const I = i => !sh ? -1 : i < sh.ints.length ? sh.ints[i] : -1, F = i => !sh ? 0 : i < sh.floats.length ? f(sh.floats[i]) : 0;
+  const V = i => !sh ? [0, 0, 0] : i < sh.vecs.length ? sh.vecs[i].map(f) : [0, 0, 0];
+  const flags = (I(1) !== -1 ? 4 : 0) | (I(2) !== -1 ? 8 : 0) | (I(3) !== -1 ? 0x800 : 0) | (I(4) !== -1 ? 0x80 : 0);
+  const why = !sh ? 'uShellEm007_04_01: a mode SHELL_DATA does not carry (not transcribed)'
+            : (flags & 0x800) ? 'uShellEm007_04_01: base01 flag 0x800 (+0x1650 x 0xbec34) not transcribed' : null;
+  return { flags, joint: I(0), timer: F(0), f1600: f(0.0), f15fc: f(1.0), vec: V(0), deg: V(1),
+           up: f(500.0), down: f(500.0), maxH: f(900.0), why, efAt: { 0x15c8: 0, 0x15cc: null, 0x15d0: null } };
+}
+
+// BOLTREAVER's sp_01 reader 0x1033eb0 (uShellEm081_sp_01; READ, dev/em081-shells-spec.md 2b): over base01's ctor (flags
+// +0x15ec 0, timer 0, +0x15f4 = +0x15f8 = 500, +0x1604 = 900): ef 0 -> +0x15c8, ef 1 -> +0x15d0; hit 0 -> +0x15d8; the flags by
+// bfc / orrne, each from an int != -1 -- bit 0 = int 0, 0x2 = int 2, 0x80 = int 3, 0x800 = int 4, 0x4 = int 5, 0x8 = int 6,
+// 0x20 = int 8 -- and 0x1000 = (int 7 == 0) (orreq: base01's init tests it once, `+0x15ed` bit 4 at 0x3fae20, the hit side's
+// byte +0x15ac: not visual); +0x15e4 (the joint) = int 1; +0x1610 = int 7 (the hit group, not visual); +0x15f0 (the timer) =
+// float 0; +0x1608 = &vec 0, +0x160c = &vec 1 (the degrees base01's init adds to the words: init011 `deg`). Its ef 1 is at
+// +0x15d0 (the 0x20 switch's only; no effect mode of his sets 0x20), as Nakarkos's is (`efAt`).
+function params081s01(sh){
+  const I = i => !sh ? -1 : i < sh.ints.length ? sh.ints[i] : 0, F = i => !sh ? 0 : i < sh.floats.length ? f(sh.floats[i]) : 0;
+  const V = i => !sh ? [0, 0, 0] : i < sh.vecs.length ? sh.vecs[i].map(f) : [0, 0, 0];
+  const flags = (I(0) !== -1 ? 1 : 0) | (I(2) !== -1 ? 2 : 0) | (I(3) !== -1 ? 0x80 : 0) | (I(4) !== -1 ? 0x800 : 0) |
+                (I(5) !== -1 ? 4 : 0) | (I(6) !== -1 ? 8 : 0) | (I(7) === 0 ? 0x1000 : 0) | (I(8) !== -1 ? 0x20 : 0);
+  // every mode his spawners make with an effect is in SHELL_DATA; a mode with no data here is one not transcribed
+  const why = !sh ? 'uShellEm081_sp_01: a mode SHELL_DATA does not carry (not transcribed)' : null;
+  return { flags, joint: I(1), timer: F(0), f1600: f(0.0), f15fc: f(1.0), vec: V(0), deg: V(1),
+           up: f(500.0), down: f(500.0), maxH: f(900.0), why,
+           efAt: { 0x15c8: 0, 0x15cc: null, 0x15d0: 1 } };
+}
+
+// NAKARKOS's sp_01 reader 0x10891dc (uShellEm084_sp_01; READ 2026-10-06, dev/em084-shells-spec.md 8): getEffect 0 / 1 ->
+// +0x15c8 / +0x15d0; accA(hit, 0) -> +0x15d8; then each flag bit cleared and set from an int (bfc / orrne, the rest the
+// ctor's 0): bit 0 = int 0, bit 1 = int 2, bit 2 = int 3, bit 3 = int 4, 0x800 = int 5, 0x20 = int 6; +0x15e4 (the joint) =
+// int 1; +0x15f0 (the timer) = float 0; +0x1608 = &vec 0, +0x160c = &vec 1. The ctor's +0x15f4 / +0x15f8 = 500.0, +0x15fc =
+// 1.0, +0x1604 = 900.0 stand. PHASE 2 (dev/em084-phase2-bases.md 2 / 3, READ) transcribes the two base01 paths its values
+// meet, which phase 1 refused by name: bit 0x20 (int 6 != -1: modes 15..38, 48, 51..53, 57, 60..62, 82..85) -> the move's
+// vt +0x164 0x3fb3a4, the effect switch at the hit's onset (switch01); and vec 1 (+0x160c), the degrees base01's init adds to
+// each angle word (init011, `deg`). ITS EF 1 IS AT +0x15d0, NOT +0x15cc (0x1089208): base01's init starts +0x15c8 and
+// +0x15cc only (0x3fad08..0x3fadf8), so for this reader ef 1 is never started at the init -- only by the switch (`efAt`).
+function params084s01(sh){
+  const I = i => !sh ? -1 : i < sh.ints.length ? sh.ints[i] : 0, F = i => !sh ? 0 : i < sh.floats.length ? f(sh.floats[i]) : 0;
+  const V = i => !sh ? [0, 0, 0] : i < sh.vecs.length ? sh.vecs[i].map(f) : [0, 0, 0];
+  const flags = (I(0) !== -1 ? 1 : 0) | (I(2) !== -1 ? 2 : 0) | (I(3) !== -1 ? 4 : 0) | (I(4) !== -1 ? 8 : 0) |
+                (I(5) !== -1 ? 0x800 : 0) | (I(6) !== -1 ? 0x20 : 0);
+  const deg = V(1);
+  // every shell01 mode his code makes has files in the arc (dev/em084-shells-spec.md 7), so a mode with no data here is one
+  // not transcribed yet, never a no-file shell
+  const why = !sh ? 'uShellEm084_sp_01: a mode the arc has and SHELL_DATA does not (not transcribed)' : null;
+  return { flags, joint: I(1), timer: F(0), f1600: f(0.0), f15fc: f(1.0), vec: V(0), deg,
+           up: f(500.0), down: f(500.0), maxH: f(900.0), why,
+           // which ef param each handle-start field holds: +0x15c8 = ef 0, +0x15cc = none (the ctor's 0), +0x15d0 = ef 1
+           efAt: { 0x15c8: 0, 0x15cc: null, 0x15d0: 1 } };
+}
 
 // sp_11's reader 0xd0ee8c (notes 7): none of base01's fields (flags 0, timer 0, +0x1608 the ctor's zero vector); +0x1664 =
 // [owner+0xcac8] (the shell01 id); a 4-float table (+0x1654, count +0x1658 = 4) = sh floats [0x169b744[k]]
@@ -5318,6 +6794,68 @@ function params11(def, mode){
   const F = i => i < mode.sh.floats.length ? f(mode.sh.floats[i]) : 0;
   return { flags: 0, joint: -1, timer: 0, f1600: 0, f15fc: 0, vec: [0, 0, 0], up: f(500.0), down: f(500.0), maxH: f(900.0),
            table: def.times.map(F) };
+}
+
+// NAKARKOS's sp_11 reader 0x108a04c (READ 2026-10-06; dev/em084-shells-spec.md 6): ef 0 -> +0x1664 (only the create of modes
+// 2..4 starts it; base01's +0x15c8 stays the ctor's 0, so the init starts nothing); flags +0x15ec bit 0 = int 1, bit 1 = int 3;
+// +0x15e4 = int 2 (the joint); the count +0x1658 = int 0 and the times +0x1654[k]: (k + 1) x float 3 for modes 2..4
+// (0x108a1f8..), float k for mode 0 (0x108a258..), none for any other mode; the OWNER's angle words +0xfe8.. -> +0x1668..
+// +0x1670; the base point +0x1680 = joint int 2's position (0xc164c, at this init -- the previous pose's joints, line 4) or,
+// int 2 = -1, the owner's +0x40..; byte +0x1690 = int 4 != -1 (its reader not followed: no phase-1 mode sets it). `got` = the
+// owner block (the ARM's for an arm spawn), J its joints.
+function params11n(def, mode, got, J, modeIndex){
+  const sh = mode.sh, I = i => i < sh.ints.length ? sh.ints[i] : 0, F = i => i < sh.floats.length ? f(sh.floats[i]) : 0;
+  const n = I(0) >= 1 ? I(0) : 0, table = [];
+  if (modeIndex >= 2 && modeIndex <= 4) for (let k = 0; k < n; k++) table.push(f(f(k + 1) * F(3)));
+  else if (modeIndex === 0) for (let k = 0; k < n; k++) table.push(F(k));
+  else for (let k = 0; k < n; k++) table.push(f(0.0));                       // the allocation's cleared entries (0x13ecbb4)
+  const joint = I(2);
+  let base;
+  if (joint !== -1){
+    const M = jointMatrix(J, joint);
+    if (!M) return { why: 'no matrix for joint ' + joint };
+    base = [f(M[12]), f(M[13]), f(M[14])];
+  } else {
+    if (!got.ownerPos) return { why: 'no owner position' };
+    base = got.ownerPos.slice();
+  }
+  return { flags: (I(1) !== -1 ? 1 : 0) | (I(3) !== -1 ? 2 : 0), joint, timer: 0, f1600: 0, f15fc: f(1.0), vec: [0, 0, 0],
+           up: f(500.0), down: f(500.0), maxH: f(900.0), table, base,
+           words: [got.ownerX >>> 0, got.ownerY >>> 0, got.ownerZ >>> 0], b1690: I(4) !== -1 };
+}
+// which reader a base11 shell runs, by its reader address (absent: Rathian's params11)
+const READERS11 = { 0x108a04c: params11n, 0x1031978: params081s11 };
+// BOLTREAVER's 04_11 reader 0x1031978 (uShellEm081_04_11; READ, dev/em081-shells-spec.md 6; the spiral 0x1031d28 read again here,
+// instruction for instruction): over base11's ctor (+0x1654 / +0x1658 0, +0x165c -1, +0x1660 0) and the factory's +0x1664 = -1,
+// +0x1668 / +0x166c 0 -- the joint +0x15e4 = int 0 (138); +0x1664 = int 1; the count +0x1658 = int 2 (20); the times +0x1654[k] =
+// float k; the points +0x1668[k]: +0x1664 == -1 -> sh vec k, == 0 -> 0x1031d28: m = int 3 (2); k < m: vec k; then from the last
+// vec's (x, z) -- its length the radius, acosf(its normalised x . unit X 0x19176e0) the angle -- each next point angle += float 20 x
+// 0.017453292 (0x3c8efa35), radius += float 21, x = r cos, y 0, z = r sin. No base01 field is written (flags 0, timer 0, vec 0).
+function params081s11(def, mode){
+  const sh = mode.sh, I = i => i < sh.ints.length ? sh.ints[i] : -1, F = i => i < sh.floats.length ? f(sh.floats[i]) : f(0);
+  const V = i => i < sh.vecs.length ? sh.vecs[i].map(f) : [0, 0, 0];
+  const n = I(2) >= 1 ? I(2) : 0, table = [], points = [];
+  for (let k = 0; k < n; k++) table.push(F(k));
+  if (I(1) === -1) for (let k = 0; k < n; k++) points.push(V(k));
+  else if (I(1) === 0){
+    const m = I(3), step = f(F(20) * f(0.01745329238474369)), dr = F(21);
+    let ang = f(0), r = f(0);
+    for (let k = 0; k < n; k++){
+      if (k < m){ points.push(V(k)); continue; }
+      if (k === m){
+        let [x, , z] = points[m - 1] || [0, 0, 0];
+        const s22 = mla(mla(f(0), x, x), z, z), len = sqrtf(s22);
+        let dot;
+        if (len < SEG_EPS) dot = f(x);                      // (unnormalised: the dot with unit X is x)
+        else { const inv = f(1.0 / len); z = f(z * inv); x = f(x * inv); dot = mla(mla(f(f(inv * 0) * 0), x, 1), z, 0); }
+        ang = acosf(dot); r = sqrtf(s22);
+      }
+      ang = f(step + ang); r = f(dr + r);
+      points.push([f(r * cosf(ang)), 0, f(r * sinf(ang))]);
+    }
+  }
+  return { flags: 0, joint: I(0), timer: 0, f1600: 0, f15fc: f(1.0), vec: [0, 0, 0], up: f(500.0), down: f(500.0), maxH: f(900.0),
+           table, points };
 }
 
 // the X-Y-Z turn of a vector by the three angle words (their low halves x 9.58738e-05), as base01 computes it
@@ -5378,9 +6916,12 @@ function init011(S, k, setup, got, J, stage){
     pos = [f(P[0] + mla(f(a * cs), b, sn)), mla(got.ground, v[1], sc), f(mls(f(b * cs), a, sn) + P[2])];
     if (!(f(P[1] - got.ground) < k.maxH)) return false;
   } else {
-    // the words += u16(s32(0.5 + [+0x160c] x 182.04445)) (uxtah): [+0x160c] is the ctor's zero vector, + 0
-    const add = u16(s32(mla(0.5, 0.0, DEG_TO_U16)));
-    A = A.map(w => (w + add) >>> 0);
+    // the words += u16(s32(0.5 + [+0x160c][i] x 182.04445)) per component (0x3fa5b4..0x3fa638: uxtah, a fresh 0.5 each; the
+    // low half zero-extended added to the full 32-bit word). [+0x160c] is the ctor's zero vector, + 0, for every reader but
+    // Nakarkos's, whose sh vec 1 it is (k.deg; dev/em084-phase2-bases.md 3, READ, unicorn agrees). The position below and
+    // the ground angles (groundAngles reads the new Y word) take the new words.
+    const deg = k.deg || ZERO3;
+    A = A.map((w, i) => (w + u16(s32(mla(0.5, f(deg[i]), DEG_TO_U16)))) >>> 0);
     if (!(k.flags & 1)){
       // 0x3fa65c..0x3fa73c + 0x3faab8: the setup's point plus 0xbec34 x (vec turned X, Y, Z by the words)
       const [x, y, z] = rotXYZ(v, A), sc = scale001(got), P = setup.position;
@@ -5424,16 +6965,57 @@ function move011(S, ctx, D){
     // only with input.hitLife (S.slots); nothing visual
     if (S.k.flags & 0x100 && S.slots && !S.slots.some(sl => sl.on)) S.slots = slotsOf011(D.shells[S.shell], S.mode);
   } else if (!(S.slots && S.slots.some(sl => sl.on))) return 'end';     // T <= 0: ends unless byte +0x13ad or +0x1465 is set
-  // flag 0x20 -> vtable +0x164 (never set by these readers), +0x160 (bx lr), then +0x150: sp_01's 0xd0e9d4 (the hit
-  // radius growth: not visual) or base11's 0x40308c
-  return S.base === 'base11' ? tick11(S, ctx, D) : 'keep';
+  // flag 0x20 (0x3fb0fc..0x3fb118, `ldrb [+0x15ec]` / `tst #0x20`; the census's only test of it) -> vtable +0x164 = 0x3fb3a4
+  // (switch01; set only by Nakarkos's reader), +0x160 (bx lr), then +0x150: sp_01's 0xd0e9d4 (the hit radius growth: not
+  // visual), Nakarkos's bx lr, or base11's 0x40308c
+  if (S.k.flags & 0x20) switch01(S, ctx, D);
+  // Boltreaver's 04_11 +0x150 = 0x1032120, before base11's 0x40308c: anchor = position; the owner active and its joint +0x15e4 >= 0
+  // -> position = that joint's world position (0xc164c, this frame's joints: line 18) -- the shell rides joint 138
+  if (S.cls === 'uShellEm081_04_11'){
+    S.anchor = S.position.slice();
+    const M = S.k.joint >= 0 && ctx.J ? jointMatrix(ctx.J, S.k.joint) : null;
+    if (M) S.position = [f(M[12]), f(M[13]), f(M[14])];
+  }
+  // (Boltreaver's uShellEm081_04_01: +0x150 = 0x10314e8, the growth and the hold -- move081s0102)
+  return S.base === 'base11' ? tick11(S, ctx, D) : S.cls === 'uShellEm081_04_01' ? move081s0102(S, ctx) : 'keep';
+}
+
+// base01's vtable +0x164 = 0x3fb3a4 (READ, dev/em084-phase2-bases.md 2b; sp_01 does not override it): the EFFECT SWITCH at
+// the hit's onset. With ef +0x15d0 set (S.ef15d0: the reader's param there -- Nakarkos's ef 1) and slot 0's delay +0x1404
+// minus the frame step [[0x211f764]+0x68] not > 0 (vsub / vcmpe / bhi: NaN fires too): 0x43b058(h, 1) on +0x1624 / +0x1628 /
+// +0x162c (core vt +0xa4, +0x30 = 2 -- not the end's graceful flag 0; that it stops the effect at once is INFERRED), then ef
+// +0x15d0 at +0x40 (0x4a10c8 / 0x4a11e4) into +0x162c (S.effect3), 0x43ac04(shell, +0x15e8) when flag 0x40 (+0x15e8 the
+// ctor's -1: returns at once), and +0x15d0 = 0 -- once. The delay read is the slot's BEFORE this step's slotStep (the
+// slots count after every shell's move: the INFERRED order slotStep names). His modes 15..62: u_r 13 -> u_r 14 at about move
+// 100 (record 8, delay 100); 82..85 about 120. WITHOUT input.hitLife there is no slot to read: refused by name, once.
+// The flag-1 stops are events here ({ ev: 'stop', flag: 1 }); render/rom/effect/schedule.js applies them to the shell's own
+// request with 0x329c40(h, 1) and links the switch's request to effect3 (2026-10-06); efx/shellplan.mjs carries them to
+// the recorder as `<frame>:stop:0:1`.
+function switch01(S, ctx, D){
+  if (S.ef15d0 == null) return;                           // `ldr [+0x15d0]` == 0
+  if (!S.slots){
+    if (!S.switchRefused){ S.switchRefused = true;
+      ctx.out.refused.push({ shell: S.shell, mode: S.modeIndex, id: S.id, why: 'base01 flag 0x20 switch (0x3fb3a4) reads hit slot 0\'s delay +0x1404: no hit slots (input.hitLife)' }); }
+    return;
+  }
+  const sl = S.slots.find(x => x.slot === 0);
+  const delay = sl ? sl.delay : f(0);                     // +0x1404 (a slot never registered keeps the ctor's 0: INFERRED)
+  if (f(delay - ctx.dt) > 0) return;
+  for (const h of [S.effect, S.effect2, S.effect3]) if (h && !h.gone) S.events.push({ ev: 'stop', param: h.param, key: h.key, flag: 1 });
+  const param = S.ef15d0, def = D.shells[S.shell];
+  const rq = rockRequest(D, S.mode, param, S.position, 'switch', def.lists || D.lists);
+  S.events.push(rq ? { ev: 'start', param, kind: 'switch', start: rq } : { ev: 'refused', param, kind: 'switch' });
+  S.effect3 = rq ? { param, key: rq.key, kind: 'switch', move: S.moves } : null;
+  if (rq){ if (S.effects[param]) S.effects[param].started = true; ctx.out.started.push({ shell: S, start: rq }); }
+  S.switched = { move: S.moves, from: S.effect ? S.effect.key : null, to: rq ? rq.key : null };
+  S.ef15d0 = null;                                        // +0x15d0 = 0
 }
 
 // base11's +0x150 = 0x40308c: while table[idx] < +0x1618, vtable +0x168(shell, idx) (sp_11: 0xd0efc0) and idx + 1
 // (+0x1660); idx at the count (+0x1658) -> the end (vtable +0x148 with 0)
 function tick11(S, ctx, D){
   const T = S.k.table;
-  while (S.next < T.length && T[S.next] < S.elapsed){ create11(S, S.next, ctx, D); S.next++; }
+  while (S.next < T.length && T[S.next] < S.elapsed){ (CREATE11[S.cls] || create11)(S, S.next, ctx, D); S.next++; }
   return S.next < T.length ? 'keep' : 'end';
 }
 
@@ -5448,16 +7030,60 @@ function create11(S, idx, ctx, D){
                              position: [f(mla(f(v[0] * cs), v[2], sn) + P[0]), f(v[1] + P[1]), f(mls(f(v[2] * cs), v[0], sn) + P[2])] });
 }
 
+// NAKARKOS's sp_11 +0x168 = 0x108a330(shell, k) (READ 2026-10-06): with the owner active (always, in the viewer), sh vec k
+// turned by the Y word +0x166c (the owner's, kept by the reader) and added to the base point +0x1680 (0x108a3c4..0x108a438,
+// the same operations as create11); mode 0 -> shell01 mode 2 (literal; id 0x16d) with that point at +0x10, the zero vector at
+// +0x20, the kept words +0x1668..+0x1670 at +0x30.., +0x3c = 0xffff and the shell's owner (0x4a0f00) -- the arm for an arm's
+// shell11. Modes 2 / 3 / 4 start ef +0x1664 at the point and make shell00 1 (0x108a508..): NOT TRANSCRIBED in phase 1 (no
+// shell00 runtime for him yet; body (7, 0x43) L0 M63 is their only spawner) -- refused by name.
+function create11n(S, idx, ctx, D){
+  if (S.modeIndex !== 0){
+    ctx.out.refused.push({ shell: 'shell11', mode: S.modeIndex, creator: S.id,
+                           why: 'uShellEm084_sp_11 modes 2..4 create (ef +0x1664 + shell00 1, 0x108a508..): not transcribed (phase 2)' });
+    return;
+  }
+  const sh = S.mode.sh, v = idx < sh.vecs.length ? sh.vecs[idx].map(f) : [0, 0, 0];
+  const r = f(u16(S.k.words[1]) * U16_TO_RAD), sn = sinf(r), cs = cosf(r);
+  const P = S.k.base;
+  ctx.create(S, 'shell01', { mode: 2, angles: S.k.words.slice(),
+                             position: [f(mla(f(v[0] * cs), v[2], sn) + P[0]), f(v[1] + P[1]), f(mls(f(v[2] * cs), v[0], sn) + P[2])] });
+}
+// a base11 class's own +0x168 (absent: Rathian's create11)
+// BOLTREAVER's 04_11 +0x168 = 0x1031f28(shell, k) (READ; the caller base11's 0x40308c): with the owner active (always, in the
+// viewer) and mode 6 (0x4a0ee4), point k turned by the shell's Y word (x cos Y + z sin Y, y, z cos Y - x sin Y: create11's
+// operations) plus its position +0x40..; a shell01 request (0x3fa2bc(0x40)): id [e+0xcbb0], k == 0 ? mode 0x1d = 29 (u 81) : 0x1e
+// = 30 (u 80), the point at +0x10, the zero vector at +0x20, THIS shell's words +0xfe8.. at +0x30.., +0x3c = +0x1588
+function create081s11(S, idx, ctx, D){
+  if (S.modeIndex !== 6) return;
+  const v = S.k.points[idx] || [0, 0, 0];
+  const r = f(u16(S.angles[1]) * U16_TO_RAD), sn = sinf(r), cs = cosf(r);
+  const P = S.position;
+  ctx.create(S, 'shell01', { mode: idx === 0 ? 29 : 30, angles: S.angles.map(w => w >>> 0),
+                             position: [f(P[0] + mla(f(v[0] * cs), v[2], sn)), f(v[1] + P[1]), f(mls(f(v[2] * cs), v[0], sn) + P[2])] });
+}
+const CREATE11 = { uShellEm084_sp_11: create11n, uShellEm081_04_11: create081s11 };
+
 // base01's end 0x3fb264(shell, 0): graceful stops (0x43b058 -> 0x329c40(h, 0)) of +0x1624 / +0x1628 / +0x162c, 0x4a1de4
 // (hit side), vtable +0x154 (sp_01's 0xd0eb20: endCreate001; sp_11's 0x3fb54c is bx lr), state 0xfe, +0x1618 = 0;
 // EffectParam +0x15d4 (a request at the end) is never set by these readers. `events`: where the stops and the create go
 // (the shell's move's, or retire001's for the next move)
 function end011(S, events = S.events, ctx = null){
   S.stops = [];
-  for (const h of [S.effect, S.effect2]) if (h && !h.gone) S.stops.push({ param: h.param, request: 0, key: h.key });
+  // (+0x162c, the third handle: only base01's 0x20 switch fills it -- Nakarkos's, dev/em084-phase2-bases.md 4b.5)
+  for (const h of [S.effect, S.effect2, S.effect3]) if (h && !h.gone) S.stops.push({ param: h.param, request: 0, key: h.key });
   for (const s of S.stops) events.push({ ev: 'stop', param: s.param, key: s.key, flag: 0 });
   S.stop = S.stops[0] || null;
   endCreate001(S, ctx, events);
+  // EffectParam +0x15d4 at the end (0x3fb2fc..0x3fb36c, READ: dev/em081-shells-spec.md 4b) -- set only by Boltreaver's 04_01 reader
+  // (ef 1): started at +0x40 into +0x1630 (S.effect4), after the stops; the ending waits for it with the other three handles
+  if (S.ef15d4 != null){
+    const D = SHELL_DATA[S.monId], def = D && D.shells[S.shell];
+    const rq = def ? rockRequest(D, S.mode, S.ef15d4, S.position, 'end', def.lists || D.lists) : null;
+    events.push(rq ? { ev: 'start', param: S.ef15d4, kind: 'end', start: rq } : { ev: 'refused', param: S.ef15d4, kind: 'end' });
+    S.effect4 = rq ? { param: S.ef15d4, key: rq.key, kind: 'end', move: S.moves } : null;
+    if (rq){ if (S.effects[S.ef15d4]) S.effects[S.ef15d4].started = true; if (ctx && ctx.out) ctx.out.started.push({ shell: S, start: rq }); }
+    S.ef15d4 = null;
+  }
   S.state = 0xfe;
   S.elapsed = 0;
 }
@@ -5470,9 +7096,20 @@ function end011(S, events = S.events, ctx = null){
 // shells of its modes 0x1f / 0x22..0x24 (landing001); no mode of Rathian's, Gold's or Dreadqueen's is one of them.
 const END_MODES001 = new Map([[0x1b, 0x1c], [0x11, 0x12], [0x1d, 0x1e], [0x34, 0x35], [0x36, 0x37]]);
 function endCreate001(S, ctx, events){
+  if (S.cls === 'uShellEm084_sp_01') return endCreate084(S, ctx, events);
   if (S.cls !== 'uShellEm001_sp_01' || !END_MODES001.has(S.modeIndex)) return;
   if (!ctx || !ctx.create) throw new Error('shells.js: sp_01 end create (0xd0eb20) without the create context');
   ctx.create(S, 'shell01', { mode: END_MODES001.get(S.modeIndex), position: S.position.slice(), angles: [0, 0, 0] }, events);
+}
+// NAKARKOS's sp_01 +0x154 = 0x1089384(shell) (READ 2026-10-06; jump table 0x10893b0 on mode - 4): mode 4 -> shell01 5, 6 -> 7,
+// 43 / 46 -> 44 (0x2c), 70..72 / 76..78 -> 45 (0x2d); any other mode nothing. The setup: id 0x16d, the shell's own point
+// +0x40.. at +0x10, the zero vector at +0x20, ITS OWN angle words +0xfe8.. at +0x30.. (Rathian's end create gives (0, 0, 0)),
+// +0x3c = 0xffff, the shell's owner (0x4a0f00); made with 0x48b884 (the init at once, the tail of line 18).
+const END_MODES084 = new Map([[4, 5], [6, 7], [43, 44], [46, 44], [70, 45], [71, 45], [72, 45], [76, 45], [77, 45], [78, 45]]);
+function endCreate084(S, ctx, events){
+  if (!END_MODES084.has(S.modeIndex)) return;
+  if (!ctx || !ctx.create) throw new Error('shells.js: sp_01 end create (0x1089384) without the create context');
+  ctx.create(S, 'shell01', { mode: END_MODES084.get(S.modeIndex), position: S.position.slice(), angles: S.angles.map(w => w >>> 0) }, events);
 }
 
 // one base01 / base11 shell's move this step (vtable +0x24 = 0x3faec4)
@@ -5484,6 +7121,8 @@ function step011(S, ctx, input, D, out){
   // +0x1378 += dt, 0x4a1698 (hit side, not visual); a handle whose unit left states 1 / 2 is dropped (0x3faeec..0x3fafb8)
   if (S.effect && !S.effect.gone && !alive(S.effect)) S.effect.gone = true;
   if (S.effect2 && !S.effect2.gone && !alive(S.effect2)) S.effect2.gone = true;
+  if (S.effect3 && !S.effect3.gone && !alive(S.effect3)) S.effect3.gone = true;   // +0x162c (the 0x20 switch's)
+  if (S.effect4 && !S.effect4.gone && !alive(S.effect4)) S.effect4.gone = true;   // +0x1630 (the end's +0x15d4 start)
   if (S.state === 1){
     S.moves++;
     if (move011(S, ctx, D) === 'end'){ end011(S, S.events, ctx); out.ended.push(S); }
@@ -5491,7 +7130,8 @@ function step011(S, ctx, input, D, out){
     const e = f(ctx.dt + S.elapsed);                    // +0x1618 += dt
     S.elapsed = e;
     if (e > ENDING_FRAMES) S.state = 0xff;              // past [0x162493c] x 60: deleted (vtable +0x40)
-    else if (!(S.effect && !S.effect.gone) && !(S.effect2 && !S.effect2.gone)) S.state = 0xff;   // all four handles gone
+    else if (!(S.effect && !S.effect.gone) && !(S.effect2 && !S.effect2.gone) && !(S.effect3 && !S.effect3.gone) &&
+             !(S.effect4 && !S.effect4.gone)) S.state = 0xff;   // all four handles gone
   }
 }
 
@@ -5566,8 +7206,10 @@ function make001(state, D, name, setup, got, J, ctx, creator){
     if (S.start){ S.effects[0].started = true; S.starts.push(S.start); S.initEvents.push({ ev: 'start', param: 0, start: S.start }); }
     else S.initEvents.push({ ev: 'refused', param: 0, listId: mode.ef[0] ? mode.ef[0][0] : null, key: mode.ef[0] ? mode.ef[0][1] : null });
   } else {
-    const k = S.k = def.base === 'base11' ? params11(def, mode)
+    const k = S.k = def.base === 'base11' ? (READERS11[def.reader] ? READERS11[def.reader](def, mode, got, J, setup.mode) : params11(def, mode))
                   : (READERS01[def.reader] || params011)(mode ? mode.sh : null, def);   // def: its ShellCmnParam (params01k)
+    // a reader's named refusal (Nakarkos's: a base01 path not transcribed, a joint the viewer lacks): no shell
+    if (k.why){ if (ctx && ctx.out) ctx.out.refused.push({ shell: name, mode: setup.mode, creator: creator ? creator.id : null, why: k.why }); return null; }
     if (!init011(S, k, setup, got, J, ctx.stage)) return null;
     if (def.base === 'base11'){
       S.timer = f(k.table[k.table.length - 1] + 10.0);  // 0x402fd8: +0x1614 = the last time + 10.0 (+0x165c = -1: no motion-speed divide)
@@ -5576,8 +7218,15 @@ function make001(state, D, name, setup, got, J, ctx, creator){
     }
     // EffectParam 0 at +0x40 -> +0x1624, EffectParam 1 -> +0x1628 (0x3fad08..0x3fadf8): requester at +0x40, parent the
     // shell (+0xfd0), ShellScale, no rotation. A (999, -1) / (n, -1) param is refused (0x4a11e4); a mode with no files
-    // (or shell11, which has no EffectParams) starts nothing.
-    for (const param of [0, 1]){
+    // (or shell11, which has no EffectParams) starts nothing. WHICH params those two fields hold is the reader's: params 0
+    // and 1 for every reader before Nakarkos's; his (k.efAt) puts ef 1 at +0x15d0, which the init never starts -- it is the
+    // 0x20 switch's (switch01, S.ef15d0; dev/em084-phase2-bases.md 4b.2, READ)
+    const initParams = k.efAt ? [k.efAt[0x15c8], k.efAt[0x15cc]].filter(x => x != null) : [0, 1];
+    if (k.efAt) S.ef15d0 = k.efAt[0x15d0] != null && mode && mode.ef[k.efAt[0x15d0]] ? k.efAt[0x15d0] : null;
+    // (Boltreaver's 04_01: ef 1 at +0x15d4, the end's start -- end011; its +0x1660 / +0x1664 the ctor's 0 -- move081s0102)
+    if (k.efAt && k.efAt[0x15d4] != null && mode && mode.ef[k.efAt[0x15d4]]) S.ef15d4 = k.efAt[0x15d4];
+    if (def.cls === 'uShellEm081_04_01'){ S.g1660 = f(0.0); S.h1664 = f(0.0); }
+    for (const param of initParams){
       const p = mode && mode.ef[param];
       if (!p) continue;
       const rq = rockRequest(D, mode, param, S.position, 'init', def.lists || D.lists);
@@ -5727,8 +7376,28 @@ function dust001(state, D, ctx, input, out, fresh, a){
   if (S){ S.dust = row.at; state.shells.push(S); out.spawned.push(S); }
 }
 
+// BOLTREAVER's per-frame handler 0x102f44c (vt +0x1a8, from vt +0x28 -> 0xae32c -> 0x6f4e8 after the move: still line 4; spec
+// 2a): the row of the playing motion id, each of its frames crossed on the action code's frame pair (pass001), then vt +0x1b0
+// = 0x102f840: shell01 of the row's mode at the owner block's +0x40.. with its words +0x50.. -- the setup is 0x3fa2bc's, the
+// init (base01, flags 0x80 | 0x1000) places it at the owner's ground and deletes it when he is 900 or more above it
+function perFrame081(state, D, ctx, input, out, fresh){
+  const mid = motionIdOf(input.list, input.clip);
+  if (mid == null || fresh || !state.hist) return;
+  const row = D.perFrame081.find(r => r.ids.includes(mid));
+  if (!row) return;
+  for (const F of row.frames){
+    if (!pass001(state, f(F))) continue;
+    const own = ctx.own001, why = missing001(own, { facing: true, pos: true, ground: true });
+    if (why){ out.refused.push({ perFrame: mid, shell: 'shell01', mode: row.mode, why }); continue; }
+    const S = make001(state, D, 'shell01', { id: D.shells.shell01.id, mode: row.mode, position: own.ownerPos.slice(),
+                                             angles: [own.ownerX >>> 0, own.ownerY >>> 0, own.ownerZ >>> 0], frame: F },
+                      own, state.prevJoints, ctx, null);
+    if (S){ S.perFrame = mid; state.shells.push(S); out.spawned.push(S); }
+  }
+}
+
 // the spawn helpers stepShells hands a Rathian action to
-const HELPERS001 = new Set([0xd0a134, 0xd0a394, 0xd0a614, 0xd0b638, 0xd0b0b8, 0xd0baec]);
+const HELPERS001 =new Set([0xd0a134, 0xd0a394, 0xd0a614, 0xd0b638, 0xd0b0b8, 0xd0baec]);
 
 // A SPAWN AT THE MOTION'S END (`atEnd`): there the ROM tests no frame but the motion's ended flag -- 0xb09c8(e) ->
 // 0x94dc04: bit 2 of byte e+0x4b6 -- and Dreadking's L9 M1 actions (7, 0xfa) / (7, 0xfb) spawn and set the next motion
@@ -5982,6 +7651,368 @@ function snapFrame(x){
 // 'em002_00c' / 'em002_04u' and Rathalos's 'em002_00c' / 'em002_00u', Dreadking's sp_01 end creates in the ending shell's
 // events; Silver's 'em002_00c' / 'em002_02u'); a poison the newest two push out is in out.ended (its stop) the step it
 // is retired.
+// ---- BASE06: Nakarkos's aura (shell06) ---------------------------------------------------------------------------------
+// dev/em084-shell06-aura.md (READ; the placement emulated, ALL OK). base06's vtable 0x174ed48 (88 slots); sp_06 overrides
+// +0x4, +0x14, +0x14c (reader 0x1089c08), +0x158 (hit) and +0x15c (angle words 0x1089d14). Init 0x4014f8 starts ef 0 ONCE
+// on the shell itself (the rock's request: the shell the parent, no rotation) and the move 0x401a18 re-places the SHELL
+// every frame, so the effect follows by hanging from it (place: null; schedule.js setParentAngles). Life 0: it lives
+// while hit slot 0 is set, re-armed every `period` (30) for 99 -- in effect for ever; the manager (aura084) or the body's
+// dtor 0x1064be0 ends it through 0x1089c00 -> 0x401c88: a graceful 0x329c40(h, 0), then the shell stays where it was
+// until its effect is gone (or 1800) and deletes itself.
+// the reader 0x1089c08: joint +0x15d0 = int 0; flags +0x15ec bit 0 = int 1 set, bit 2 = int 2 set; floats 0 / 1 -> life /
+// period; vec 0 the offset, vec 1 degrees (mode 0's angle words)
+function params06(sh){
+  const I = k => sh.ints[k];
+  return { joint: I(0), flags: (I(1) !== -1 ? 1 : 0) | (I(2) !== -1 ? 4 : 0), life: f(sh.floats[0]), period: f(sh.floats[1]),
+           vec0: sh.vecs[0].map(f), deg: sh.vecs[1].map(f) };
+}
+// vt +0x15c 0x1089d14, then 0x4016ac: the joint's position (0xc164c) plus the offset, and the angle words
+function place06(S, J, own){
+  const k = S.k, M = jointMatrix(J, k.joint);
+  if (!M) return 'no matrix for joint ' + k.joint;
+  const P = [f(M[12]), f(M[13]), f(M[14])], [x, y, z] = k.vec0;
+  let A, v;
+  if (k.flags & 1){                                       // mode 0: the owner's angle words + vec 1 (uxtah); on his facing
+    A = [own.ownerX, own.ownerY, own.ownerZ].map((o, i) => (o + u16(s32(mla(0.5, k.deg[i], DEG_TO_U16)))) >>> 0);
+    const r = f(u16(A[1]) * U16_TO_RAD), sn = sinf(r), cs = cosf(r);
+    v = [f(f(x * cs) + f(z * sn)), y, f(f(z * cs) - f(x * sn))];
+  } else {                                                // modes 5 / 6: the joint's matrix as Euler (0xc15a4, 0x7c3a38)
+    const e = eulerOf(M);
+    A = [e.x, e.y, e.z].map(a => u16(s32(mla(0.5, a, RAD_TO_U16))));
+    v = [mla(mla(f(M[4] * y), M[0], x), M[8], z), mla(mla(f(M[5] * y), M[1], x), M[9], z), mla(mla(f(M[6] * y), M[2], x), M[10], z)];
+  }
+  S.position = [f(v[0] + P[0]), f(v[1] + P[1]), f(v[2] + P[2])];   // +0x40 = +0x1000
+  S.anchor = S.position.slice();
+  S.angles = A;                                                    // +0xfe8 / +0xfec / +0xff0
+  return null;
+}
+// a spawn (0x40137c, then 0x48b884: init at once on the previous pose's joints, as every line-4 spawn here)
+function make06(state, D, modeIndex, J, ctx){
+  const def = D.shells.shell06, mode = def.modes[modeIndex];
+  const S = { id: state.nextId++, monId: state.monId, shell: 'shell06', cls: def.cls, globalId: def.id, base: 'base06',
+              mode, modeIndex, motion: ctx.motion, state: 1, k: params06(mode.sh), position: null, anchor: null, angles: null,
+              place: null, start: null, stop: null, effect: null, timer: 0, life: 0, hitT: 0 };
+  const why = place06(S, J, ctx.own001);
+  if (why){ ctx.out.refused.push({ shell: 'shell06', mode: modeIndex, why }); return null; }
+  S.life = S.k.life; S.hitT = S.k.period;                // slot 0 (0, 99) on
+  S.start = rockRequest(D, mode, 0, S.position, 'aura');
+  S.effect = S.start ? { param: 0, key: S.start.key } : null;
+  return S;
+}
+// end 0x401c88(S, 0): frozen, the effect stopped gracefully
+function end06(S, out){
+  S.state = 0xfe; S.timer = 0;
+  S.stop = S.effect ? { param: 0, request: 0, key: S.effect.key } : null;
+  out.ended.push(S);
+}
+// the move 0x401a18 (vt +0x24)
+function step06(S, J, ctx, input, D, out){
+  if (S.state === 1){
+    const why = place06(S, J, ctx.own001);
+    if (why) out.refused.push({ shell: 'shell06', mode: S.modeIndex, why });
+    if (S.k.flags & 4){                                   // the hit slot's re-arm: every `period`, back to (0, 99)
+      const T2 = S.hitT > 0 ? f(S.hitT - ctx.dt) : 0;
+      S.hitT = T2 > 0 ? T2 : S.k.period;
+    }
+    if (S.life < 0){ S.life = 0; end06(S, out); }
+    else if (S.life > 0){ const L2 = f(S.life - ctx.dt); S.life = L2 > 0 ? L2 : 0; if (!(L2 > 0)) end06(S, out); }
+    return;                                               // slot 0 stays set (99 > 30): it lives
+  }
+  if (S.state === 0xfe){                                  // frozen where it ended
+    S.timer = f(S.timer + ctx.dt);
+    const gone = input.effectAlive ? !input.effectAlive(S, 0) : true;
+    if (S.timer > 1800 || gone) S.state = 0xff;
+  }
+}
+// THE MANAGER, 0x106aa48 (body vt +0x2a8, every frame; dev/em084-shell06-aura.md 9c): three handles -- L (mode 5),
+// R (mode 6), B (mode 0); a missing wanted one is spawned, an unwanted one ended. The viewer's inputs (input.aura,
+// index.html shellExtra): the stance (the clip, AURA084_STANCE, sticky), the charge flag (a State rung Charge 1..3), case A
+// (AURA084_CASE_A), each tentacle Exposed (its form dropdown, group g1 = part state 3). NOT EVALUABLE, taken at their
+// common values and named: the arm bytes [arm+0xcad8] = 1 (set every frame by the arm's 0x107d5cc; INFERRED for an arm
+// clip that clears it) and E+0xcb14 != 2.
+function aura084(state, D, ctx, input, out, J){
+  const a = input.aura;
+  if (!a) return;                                         // no aura state given (an older capture): nothing
+  const H = state.aura || (state.aura = { L: null, R: null, B: null });
+  const armL = 1, armR = 1;
+  const spawnIf = (k, m) => {
+    if (H[k]) return;
+    const S = make06(state, D, m, state.prevJoints || J, ctx);
+    if (S){ H[k] = S; state.shells.push(S); out.spawned.push(S); }
+  };
+  const endIf = k => { if (H[k]){ end06(H[k], out); H[k] = null; } };
+  if (a.charge || a.caseA){ armL === 1 ? endIf('L') : spawnIf('L', 5); armR === 1 ? endIf('R') : spawnIf('R', 6); endIf('B'); }
+  else if (a.stance === 1){
+    endIf('B');
+    (armL === 1 && a.exposedL) ? endIf('L') : spawnIf('L', 5);
+    (armR === 1 && a.exposedR) ? endIf('R') : spawnIf('R', 6);
+  } else {
+    endIf('L'); endIf('R');
+    (a.exposedL || a.exposedR) ? endIf('B') : spawnIf('B', 0);
+  }
+}
+
+// ---- BASE31: Nakarkos's cannon (shell31) -------------------------------------------------------------------------------
+// dev/em084-shell31-cannon.md 2 (READ; unicorn: the placement 40 / 40 exact, the ends emulated). base31's vtable 0x1750fec
+// (86 slots); sp_31 overrides +0x4, +0x14 and the reader +0x14c (0x108ae98). Init 0x413ad4 keeps the owner's motion
+// (+0x160c) and its own start words (vec 3); the activation 0x413c40 (vt +0x18, the first move) places it and starts ef 0
+// ONCE with the rotation override (+0x14 |= 2, base02's requester); the move 0x4147a8 re-places the effect every frame
+// (0x329c9c / 0x329d04) -- no target, no stage query, no travel: vec 2's 20000 is the sound's line, never the effect's
+// length. It ends (0x414d18, flag 0: graceful) when the owner goes inactive, its life (1000) runs out, or the owner's
+// motion is no longer the spawn's; then waits for its effect, at most 1800.
+function params31(sh){
+  return { joint: sh.ints[0], life: f(sh.floats[0]), sweep: [f(sh.floats[1]), f(sh.floats[2])], rearm: f(sh.floats[3]),
+           v: sh.vecs.map(v => v.map(f)) };
+}
+// R(w) about Z, then X, then Y (w the u16 words, x 9.58738e-05 rad), as 0x413d60 turns a vector
+function rot31(w, v){
+  let [x, y, z] = v;
+  const a = [0, 1, 2].map(i => f(u16(w[i]) * U16_TO_RAD)), sx = sinf(a[0]), cx = cosf(a[0]), sy = sinf(a[1]), cy = cosf(a[1]),
+        sz = sinf(a[2]), cz = cosf(a[2]);
+  [x, y] = [f(f(x * cz) - f(y * sz)), f(f(x * sz) + f(y * cz))];
+  [y, z] = [f(f(y * cx) - f(z * sx)), f(f(y * sx) + f(z * cx))];
+  [x, z] = [f(f(x * cy) + f(z * sy)), f(f(z * cy) - f(x * sy))];
+  return [x, y, z];
+}
+// the placement 0x413d60: P = joint + R(vec0) (+0x1620, the effect's point); A = P + R(vec1) (+0x1000), B = P + R(vec2)
+// (+0x40); the words from B - A; R = the owner's words (block +0x50..) after the shell's own (+0x1670.., the sweep first)
+function place31(S, J, own, dt){
+  const k = S.k, M = jointMatrix(J, k.joint);
+  if (!M) return 'no matrix for joint ' + k.joint;
+  if (k.sweep[0] < S.clock && S.clock < k.sweep[1])                 // before this frame's clock step
+    for (let i = 0; i < 3; i++){
+      const q = Math.sign(k.v[4][i]) * Math.round(Math.abs(f(k.v[4][i] * DEG_TO_U16)));   // round half away
+      S.w[i] = s32(f(S.w[i] + f(q * dt)));
+    }
+  const ow = [own.ownerX & 0xffff, own.ownerY & 0xffff, own.ownerZ & 0xffff];
+  const R = v => rot31(ow, rot31(S.w, v));
+  const J0 = [f(M[12]), f(M[13]), f(M[14])], add = (a, b) => [0, 1, 2].map(i => f(a[i] + b[i]));
+  const P = add(J0, R(k.v[0])), A = add(P, R(k.v[1])), B = add(P, R(k.v[2]));
+  const dx = f(B[0] - A[0]), dy = f(B[1] - A[1]), dz = f(B[2] - A[2]);
+  const word = r => u16(s32(mla(0.5, r, RAD_TO_U16)));
+  S.angles = [word(atan2f(f(-dy), sqrtf(f(f(dx * dx) + f(dz * dz))))), word(atan2f(dx, dz)), word(atan2f(f(-dx), dy))];
+  S.origin = P; S.position = B; S.anchor = A;
+  return null;
+}
+function make31(state, D, modeIndex, ctx, leave){
+  const def = D.shells.shell31, mode = def.modes[modeIndex], k = params31(mode.sh);
+  return { id: state.nextId++, monId: state.monId, shell: 'shell31', cls: def.cls, globalId: def.id, base: 'base31',
+           mode, modeIndex, motion: ctx.motion, motionId: ctx.ownerMotion, state: 1, k, activated: false,
+           w: k.v[3].map(d => u16(s32(mla(0.5, d, DEG_TO_U16)))), clock: 0, life: k.life, timer: 0, leaveAt: leave,
+           origin: null, position: null, anchor: null, angles: null, place: null, start: null, stop: null, effect: null };
+}
+function end31(S, out){
+  S.state = 0xfe; S.timer = 0; S.place = null;
+  S.stop = S.effect ? { param: 0, request: 0, key: S.effect.key } : null;
+  out.ended.push(S);
+}
+const deg31 = S => S.angles.map(w => f(w * U16_TO_DEG));
+function step31(S, J, ctx, input, D, out){
+  const own = owner001(input);
+  if (S.state === 0xfe){                                   // ending: until the effect is gone, at most 1800
+    S.timer = f(S.timer + ctx.dt);
+    const gone = input.effectAlive ? !input.effectAlive(S, 0) : true;
+    if (S.timer > 1800 || gone) S.state = 0xff;
+    return;
+  }
+  if (S.state !== 1) return;
+  if (!S.activated){                                       // vt +0x18 0x413c40: place, then start ef 0 once
+    S.activated = true;
+    const why = place31(S, J, own, 0);
+    if (why){ out.refused.push({ shell: 'shell31', mode: S.modeIndex, why }); S.state = 0xff; return; }
+    const p = S.mode.ef[0], L = p && D.lists[p[0]];
+    if (p && p[1] >= 0 && L){
+      S.start = { param: 0, listId: p[0], list: L.list, pel: L.pel, key: p[1],
+                  requester: { position: S.origin.slice(), rotationDeg: deg31(S), scale: [f(S.mode.scale), f(S.mode.scale), f(S.mode.scale)],
+                               parent: 'shell', flags14: 0x40000002, flags1c: 3, type8: 3 } };
+      S.effect = { param: 0, key: p[1] };
+    }
+  }
+  // the live step 0x414870
+  const why = place31(S, J, own, ctx.dt);
+  if (why) out.refused.push({ shell: 'shell31', mode: S.modeIndex, why });
+  S.place = S.effect && !why ? { param: 0, position: S.origin.slice(), rotationDeg: deg31(S) } : null;
+  S.clock = f(S.clock + ctx.dt);
+  if (!(S.life > 0)){ S.life = 0; end31(S, out); return; }
+  const L2 = f(S.life - ctx.dt); S.life = L2 > 0 ? L2 : 0;
+  if (!(L2 > 0)){ end31(S, out); return; }
+  if (ctx.ownerMotion != null && ctx.ownerMotion !== S.motionId){ end31(S, out); return; }   // +0x160c != [O+0x4b4]
+  if (S.leaveAt != null && !(S.clock < S.leaveAt)) end31(S, out);   // the game's M83 (the viewer loops M82)
+}
+// the shot's spawn (0x10767c0 phase 1 -> 0x106f820), line 4: the play's pick names the action
+function cannon084(state, D, ctx, input, out, fresh){
+  // THE LOOP HELD FIRING FORWARD -- a VIEWER STAND-IN (Raven, 2026-10-05: "Keep 82 loop firing forward for the time
+  // being"). The game spawns the pair once, at f282 of the first pass, and moves on to M83 after its passes; the viewer's
+  // M82 _loop played on its own shows no shot. While the motion is in its loop and no cannon shell of the play is live, one
+  // straight pair is held -- modes 1 + 0, the no-sweep ones -- with no `leave` and no life limit; it ends when the clip
+  // leaves the loop (back to the _start, or another motion: step31's motion test). Not a game behaviour: named here.
+  const inM82 = String(input.list) === '2' && input.clip === 'Motion[82]';
+  const inLoop = inM82 && input.loopStart != null && !(snapFrame(input.frame) < snapFrame(input.loopStart));
+  const H = state.cannonHold || (state.cannonHold = []);
+  for (let i = H.length - 1; i >= 0; i--) if (H[i].state !== 1) H.splice(i, 1);
+  if (!inLoop){ for (const S of H) end31(S, out); H.length = 0; }
+  else if (!H.length && !state.shells.some(S => S.base === 'base31' && S.state === 1)){
+    for (const m of [1, 0]){
+      const S = make31(state, D, m, ctx, null);
+      S.life = Infinity; S.held = true;
+      H.push(S); state.shells.push(S); out.spawned.push(S);
+    }
+  }
+  if (!inM82 || fresh || !state.hist) return;
+  const v = input.rock && input.rock.variant, row = D.cannon084.find(r => r.variant === v);
+  if (!row || !pass001(state, f(282))) return;
+  if (!(state.hist[0] < 380)) return;                    // the first pass only: frame 282 lies in the _start piece
+  for (const m of row.modes){
+    const S = make31(state, D, m, ctx, f(row.leave - 282));
+    state.shells.push(S); out.spawned.push(S);
+  }
+}
+
+// ---- NAKARKOS'S ARMS AS SHELL OWNERS (uEmOstgaloaArm): the tentacle-form shells, phase 1 ------------------------------------
+// An arm's own action spawns its shells with the ARM as their owner (the request's +0xc = the arm; dev/em084-shells-spec.md
+// 5): their joints are the arm's (input.attachedJoints[side], armJoints) and the owner block their inits and readers read is
+// the arm unit's -- its block position [arm+0x1428]+0x40 and angle words +0x50..+0x58 (e+0xfe8..). The viewer has no arm unit:
+// input.arms[side].frame is the attached body's world frame (index.html armsInput: the body joint it hangs from, 200 / 203,
+// game units), and taking its translation as the arm's +0x40 and its Euler angles (0x7c3a38's convention, eulerOf, rows
+// normalised) as the arm's words is INFERRED. What the arm block holds beyond that is not read and named here: its size
+// (+0x1ac / +0x1b0; [1, 1] -- every phase-1 shell multiplies it by a zero vector), its target slot +0x1d0 (not read by any
+// phase-1 shell: the form-3 lobs take no target), its ground. The stage, rank and hit-slot life are the body's inputs.
+// The body stays the owner of every shell the body spawns.
+function ownArm084(input, side, frame){
+  const own = Object.assign({}, owner001(input));
+  own.arm = side;
+  own.size = [f(1.0), f(1.0)]; own.base = f(1.0); own.y5c = f(0.0);
+  own.target = null;
+  if (!Array.isArray(frame) || frame.length !== 16){ own.facing = false; own.ownerPos = null; own.ownerX = own.ownerY = own.ownerZ = 0; return own; }
+  const M = frame.map(f);
+  const n = r => { const l = Math.hypot(M[r], M[r + 1], M[r + 2]) || 1; return [M[r] / l, M[r + 1] / l, M[r + 2] / l]; };
+  const R = [...n(0), 0, ...n(4), 0, ...n(8), 0, 0, 0, 0, 1].map(f);
+  const e = eulerOf(R);
+  [own.ownerX, own.ownerY, own.ownerZ] = [e.x, e.y, e.z].map(a => u16(s32(mla(0.5, a, RAD_TO_U16))));
+  own.facing = true;
+  own.ownerPos = [M[12], M[13], M[14]];
+  return own;
+}
+// a shell13 of the arm's (0x107cc68's request: id 0x171, the mode, the owner the arm, +0x10 and +0x20 the zero vector, +0x30
+// the arg, +0x34 0xffff), inited at once on the arm's joints (line 4: the previous pose's). `body` = the body's owner block:
+// the thrown point's angle words are the body's (thrown13n). +0x73e8 is the ARM's halfword the action setter writes at every
+// action start (0x767bc: the old value, or 0x49634() -> 0x3f76d8 on the global 0x18858a8 -- INFERRED a random draw); the game's
+// draw cannot be known here, so the viewer takes 0 -- A NAMED STAND-IN (it only picks the scatter, within +0x1610 = 300).
+const H73E8_STANDIN = 0;
+function make13n(state, D, m, J, own, body, ctx, arg){
+  const def = D.shells.shell13, mode = def.modes[m], lists = def.lists || D.lists;
+  if (!mode) return null;
+  const S = { id: state.nextId++, monId: state.monId, shell: 'shell13', cls: def.cls, globalId: def.id, base: def.base,
+              mode, modeIndex: m, action: [7, 0x1b], motion: ctx.motion, state: 2, arm: own.arm, ownArm: own,
+              position: null, prevPosition: null, anchor: null, angles: null, velocity: null, gravity: null,
+              centre: null, lifetime: 0, timer: 0, clock: 0, moves: 0, aim: 0, launch: null, events: [],
+              folder: def.folder, effect: null, effect2: null, start: null, place: null, stop: null };
+  S.k = params13n(def, mode);
+  S.words13 = [body.ownerX >>> 0, body.ownerY >>> 0, body.ownerZ >>> 0];
+  S.h73e8 = H73E8_STANDIN;
+  S.effects = mode.ef.map(([listId, key], param) => ({ param, listId, list: (lists[listId] || {}).list || null, key, started: false }));
+  if (!init13n(S, J, { centre: [0, 0, 0], arg })) return null;
+  S.prevPosition = S.position.slice();
+  S.start = rockRequest(D, mode, 0, S.position, 'flight', lists);           // ef 0 (+0x15c8) at +0x40 (0x404c70..0x404ce0)
+  S.effect = S.start ? { param: 0, key: S.start.key, kind: 'flight' } : null;
+  if (S.start) S.effects[0].started = true;
+  return S;
+}
+// THE ARM'S SPAWN (SHELL_DATA.em084_00.arm084): on the arm's own list (l_N -> the left arm, r_N -> the right; render/monster.js
+// ROM_ARM_PAIRS plays the body and the other arm beside it), in the arm's action code -- line 4, the frame pair the motion test
+// reads (pass001) and the previous pose's arm joints -- by the arm's form (input.arms[side].form, index.html armsInput: the
+// tentacle's form dropdown). NAMED, NOT MODELLED: (7, 0x1b) clears the arm's form byte to 0xff as it starts (0x106d994, spec 3)
+// while its phase 0 copies the byte it attacks with -- which comes first is INFERRED; the viewer takes the dropdown's form as
+// the one the attack started with. 'exposed' (part state 3, group 1) shows no form, so the spawn is refused by name.
+// PHASE 2 (SHELL_DATA.em084_00.arm084's later rows): a row's `spawns` (several gates, modes by kind -- `left` / `right`), and a
+// `both` row, whose order goes to both arms at once ((7, 0x17) / (7, 0x18)): spawned for each arm by its OWN form, on whichever
+// list the viewer shows that order on -- the body's list or either arm's (each shows the body and both arms on the clip).
+function arm084(state, D, ctx, input, out, fresh){
+  const mm = /^(?:([lr])_)?(\d+)$/.exec(String(input.list || ''));
+  if (!mm || fresh || !state.hist || !input.clip) return;
+  const listSide = mm[1] ? (mm[1] === 'l' ? 'left' : 'right') : null, clip = String(input.clip).replace(/_(start|loop)$/, '');
+  for (const row of D.arm084){
+    if (row.list !== mm[2] || row.clip !== clip) continue;
+    if (!listSide && !row.both) continue;                  // the body's own list plays an arm's single order on no arm
+    for (const sp of row.spawns || [{ frame: row.frame, forms: row.forms }]){
+      if (!pass001(state, sp.frame)) continue;
+      const sides = row.both ? (sp.side ? [sp.side] : ['left', 'right']) : [listSide];
+      for (const side of sides) armSpawn084(state, D, ctx, input, out, row, sp, side);
+    }
+  }
+}
+// one arm's spawn at one gate, by its form
+function armSpawn084(state, D, ctx, input, out, row, sp, side){
+  const arm = input.arms && input.arms[side];
+  const form = arm ? arm.form : undefined;
+  if (form === 'exposed'){ out.refused.push({ action: row.action, arm: side, why: 'the tentacle shows Exposed (part state 3, group 1): its form byte +0xcb30, which ' + actName084(row) + ' spawns by, is not shown' }); return; }
+  if (form == null){ out.refused.push({ action: row.action, arm: side, why: 'no arm form (input.arms.' + side + '.form)' }); return; }
+  const pick = sp.forms[form];
+  if (!pick) return;                                       // a form the row does not list (0xff included): nothing
+  const modes = pick.modes || pick[side] || [];
+  if (!modes.length) return;
+  const J = state.prevArm && state.prevArm[side];
+  const frame = (state.prevArmFrame && state.prevArmFrame[side]) || (arm && arm.frame);
+  const own = ownArm084(input, side, frame);
+  if (!J || !own.facing){ out.refused.push({ action: row.action, arm: side, shell: pick.shell, why: 'no arm joints / frame (input.attachedJoints / input.arms.' + side + '.frame)' }); return; }
+  const log = (m, S) => (state.arm084Log || (state.arm084Log = [])).push({ arm: side, form, shell: pick.shell, mode: m, made: !!S });
+  if (pick.shell === 'shell13'){
+    const body = ctx.own001, why = missing001(body, { facing: true });
+    if (why){ out.refused.push({ action: row.action, arm: side, shell: 'shell13', modes: modes.slice(), why }); return; }
+    modes.forEach((m, i) => {
+      const S = make13n(state, D, m, J, own, body, ctx, i + 1);
+      if (S){ state.shells.push(S); out.spawned.push(S); }
+      else out.refused.push({ action: row.action, arm: side, shell: 'shell13', mode: m, why: 'no matrix for the arm\'s joint ' + D.shells.shell13.modes[m].sh.ints[0] });
+    });
+    return;
+  }
+  if (pick.shell === 'shell00'){
+    // 0x107c0cc's setup (0x3f883c(0x30)): +0x10 / +0x20 the zero vector, +0x2e 0xffff, the arm as owner -- base00 reads none
+    // of the request's vectors on his flags (0x10 / 0x20 clear): the ARM's joint 12 and the arm's own angle words
+    for (const m of modes){
+      const S = make00n(state, D, m, J, own, ctx, row.action, sp.frame);
+      if (S){ state.shells.push(S); out.spawned.push(S); }
+      else out.refused.push({ action: row.action, arm: side, shell: 'shell00', mode: m, why: D.shells.shell00.modes[m] ? 'no matrix for the arm\'s joint ' + D.shells.shell00.modes[m].sh.ints[0] : 'shell00 mode ' + m + ' not in SHELL_DATA' });
+      log(m, S);
+    }
+    return;
+  }
+  // shell01: 0x107c628's setup -- +0x10 = the arm's block position, +0x30.. = its angle words, +0x3c 0xffff; shell11:
+  // 0x107cb9c's -- +0x10 / +0x20 the zero vector, +0x30.. the global zero angles 0x1620e60, +0x3c 0xffff
+  for (const m of modes){
+    const def = D.shells[pick.shell];
+    const setup = pick.shell === 'shell01'
+      ? { id: def.id, mode: m, position: own.ownerPos.slice(), angles: [own.ownerX, own.ownerY, own.ownerZ], action: row.action, frame: sp.frame }
+      : { id: def.id, mode: m, position: [0, 0, 0], angles: [0, 0, 0], action: row.action, frame: sp.frame };
+    // (a null is the init deleting it -- base01's ground snap finding no ground within its reach is the ROM's own outcome,
+    // not a refusal -- or a reader's named refusal, which make001 has already reported)
+    const S = make001(state, D, pick.shell, setup, own, J, ctx, null);
+    if (S){ S.arm = side; S.ownArm = own; state.shells.push(S); out.spawned.push(S); }
+    log(m, S);
+  }
+}
+const actName084 = row => '(' + [row.action].concat(row.also || []).map(a => a[0] + ', 0x' + a[1].toString(16)).join(') / (') + ')';
+// a shell00 of the arm's (uShellEm084_sp_00 over base00; dev/em084-phase2-bases.md 1): base00's init 0x3f8b80 (init00, his reader
+// params084s00) on the arm's joints and owner block, ef 0 at +0x40 (0x3f928c..: u_r 30) -> +0x1624, and -- vt +0x164 0x3f9aec,
+// with input.hitLife -- hit SLOT 0 only, from hit int 0 (base00 never registers slot 1); its life (flight 0.0) is that slot
+function make00n(state, D, m, J, own, ctx, action, frame){
+  const def = D.shells.shell00, mode = def.modes[m], lists = def.lists || D.lists;
+  if (!mode) return null;
+  const S = { id: state.nextId++, monId: state.monId, shell: 'shell00', cls: def.cls, globalId: def.id, base: def.base,
+              mode, modeIndex: m, action, spawnFrame: frame, motion: ctx.motion, state: 1, arm: own.arm, ownArm: own,
+              position: null, prevPosition: null, anchor: null, angles: null, velocity: null, gravity: null, trail: null,
+              timer: 0, moves: 0, bounces: 0, held: false, launch: null, events: [], folder: def.folder,
+              effect: null, effect2: null, start: null, place: null, stop: null, slots: null };
+  S.effects = mode.ef.map(([listId, key], param) => ({ param, listId, list: (lists[listId] || {}).list || null, key, started: false }));
+  if (!init00(S, def, J, own)) return null;
+  S.prevPosition = S.position.slice();
+  S.start = rockRequest(D, mode, 0, S.position, 'flight', lists);
+  S.effect = S.start ? { param: 0, key: S.start.key, kind: 'flight' } : null;
+  if (S.start) S.effects[0].started = true;
+  if (own.hitLife) S.slots = slotsOf011(def, mode, ctx.out ? ctx.out.refused : null).filter(sl => sl.slot === 0);
+  return S;
+}
+
 export function stepShells(state, input){
   const out = { spawned: [], started: [], ended: [], removed: [], alive: [], refused: [], created: [] };
   const D = state.data;
@@ -5994,16 +8025,30 @@ export function stepShells(state, input){
                 stage: stageOf(input),
                 ownerMotion: input.clip ? motionIdOf(input.list, input.clip) : null, frameSeen: null };
   const J = typeof input.joints === 'function' ? input.joints : (() => null);
+  ctx.J = J;                                               // this frame's joints, for a move that reads them (Boltreaver's 04_11)
   // Rathian: the owner block its code reads (inputs, owner001), and the shells its shells make (0x48b884 during a move in
   // line 18: inited at once on this frame's joints, appended at the tail of the line, reported in out.spawned)
   {
     ctx.own001 = owner001(input);
     ctx.create = (creator, name, setup, events = creator.events) => {
       const def = D.shells[name], full = Object.assign({ id: def.id }, setup);
-      const S2 = make001(state, D, name, full, ctx.own001, J, ctx, creator);
+      // a shell an ARM's shell makes has the arm as its owner too (the setup's +0xc = 0x4a0f00(creator)): the arm's owner
+      // block and joints as they stand now (Nakarkos, ownArm084); every other creator's children are the body's as before
+      const side = creator && creator.arm;
+      const own = side ? ownArm084(input, side, input.arms && input.arms[side] && input.arms[side].frame) : ctx.own001;
+      const S2 = make001(state, D, name, full, own, side ? armJoints(input, side) : J, ctx, creator);
+      if (S2 && side){ S2.arm = side; S2.ownArm = own; }
       events.push({ ev: 'create', stepped: true, shell: name, id: def.id, mode: full.mode, position: full.position.slice(),
                             angles: full.angles.slice(), child: S2 ? S2.id : null, deleted: !S2 });
       if (S2){ state.shells.push(S2); out.spawned.push(S2); }
+    };
+    // Boltreaver's shell15 (base15), made by a shell00's landing or a shell15's corner during their moves, owner the enemy
+    ctx.make15 = (creator, m, point, words) => {
+      const S2 = make15(state, D, creator, m, point, words, ctx.own001, ctx);
+      creator.events.push({ ev: 'create', stepped: true, shell: 'shell15', mode: m, position: point.slice(), angles: words.slice(),
+                            child: S2 ? S2.id : null, deleted: !S2 });
+      if (S2){ state.shells.push(S2); out.spawned.push(S2); }
+      return S2;
     };
     // a beam's children (makeChild02g), made the same way during the beam's move
     ctx.makeChild02g = (creator, ch, m, point, words) => {
@@ -6066,6 +8111,12 @@ export function stepShells(state, input){
     // (create001 runs HER readers params001 / params011 and make001), and Basarios's rows would otherwise
     // fall into it and be built by another monster's code. His shell02 rows (0xd28bb4) are untouched.
     spawn04(state, D, a, ctx, input, out);
+  } else if (a && !fresh && state.prevJoints && a.code === 'em081'){
+    // Boltreaver's actions (spawn081), before the generic `a.spawns` arm below: that arm is Rathian's
+    spawn081(state, D, a, ctx, input, out);
+  } else if (a && !fresh && state.prevJoints && a.code === 'em007'){
+    // Bloodbath's List 9 actions (spawn007), before the generic `a.spawns` arm below for the same reason
+    spawn007(state, D, a, ctx, input, out);
   } else if (a && !fresh && state.prevJoints && a.spawns){
     // her siblings' other helpers (spawnVar001)
     spawnVar001(state, D, a, ctx, input, out);
@@ -6151,6 +8202,10 @@ export function stepShells(state, input){
   // Rathian's per-frame handler (its landing dust), run from the enemy's vtable +0x28 after its move: still line 4
   if (D.dust) dust001(state, D, ctx, input, out, fresh, a);
   if (D.perFrame) perFrame003(state, D, ctx, input, out, fresh);
+  if (D.perFrame081) perFrame081(state, D, ctx, input, out, fresh);   // Boltreaver's per-frame landings (0x102f44c), line 4
+  if (D.aura084) aura084(state, D, ctx, input, out, J);   // Nakarkos's aura manager (0x106aa48), line 4
+  if (D.cannon084) cannon084(state, D, ctx, input, out, fresh);   // his cannon shot (0x10767c0), line 4
+  if (D.arm084) arm084(state, D, ctx, input, out, fresh);         // his arms' own form-chosen shells, the arms' line 4
   ctx.frameSeen = state.hist ? state.hist[1] : null;               // F[k-1], for a held rock (0xb09a4)
   // 2. line 18, the shells, in the order they were made: each one's move (vtable +0x24) on this frame's joints. The
   // walker 0xc04728 reads a unit's next pointer (+0x14) before it runs the unit (0xc047a4) and 0xc03670 appends a new unit
@@ -6160,10 +8215,15 @@ export function stepShells(state, input){
     const S = state.shells[i], last = i === state.shells.length - 1;
     if (S.base === 'base03') stepBolt(S, ctx, input, D, out);
     else if (S.base === 'base13') stepOrb(S, ctx, input, D, out);
-    else if (S.base === 'base00' || S.base === 'base54') stepRock(S, J, ctx, input, D, out);
+    else if (S.base === 'base15') step15(S, ctx, input, D, out);
+    else if (S.base === 'base14') step14(S, ctx, input, D, out);
+    else if (S.base === 'base50') step50(S, ctx, input, D, out);
+    else if (S.base === 'base00' || S.base === 'base54' || S.base === 'base07') stepRock(S, J, ctx, input, D, out);   // base07: its move 0x402914 has base00's shape
     else if (S.base === 'base01' || S.base === 'base11') step011(S, ctx, input, D, out);
     else if (S.base === 'base02') step02(S, J, ctx, input, D, out);
     else if (S.base === 'base02g') step02g(S, S.arm ? armJoints(input, S.arm) : J, ctx, input, D, out);
+    else if (S.base === 'base06') step06(S, J, ctx, input, D, out);
+    else if (S.base === 'base31') step31(S, J, ctx, input, D, out);
     else stepBreath(S, J, ctx, input, D, out);
     if (last) break;
   }
@@ -6190,6 +8250,23 @@ export function stepShells(state, input){
   if (AJ) for (const side of Object.keys(AJ)){
     const s2 = new Map(), Jf = armJoints(input, side);
     state.prevArm[side] = gid => { if (!s2.has(gid)){ const m = Jf(gid); s2.set(gid, m ? Array.from(m) : null); } return s2.get(gid); };
+  }
+  // ...the joints the arms' form-chosen shells start from (each reader's joint int: shell01 int 1, shell11 int 2, shell13 int 0
+  // -- 12 on every phase-1 mode) and the arm frames (their owner blocks, ownArm084), as this step's pose has them
+  if (D.arm084){
+    // (phase 2: shell00 int 0, also 12 on every arm mode; a row's `spawns` gates and per-kind modes)
+    const JI = { shell00: 0, shell01: 1, shell11: 2, shell13: 0 }, gids = new Set();
+    for (const row of D.arm084) for (const sp of row.spawns || [{ forms: row.forms }])
+      for (const p of Object.values(sp.forms)) for (const m of [].concat(p.modes || [], p.left || [], p.right || [])){
+        const md = D.shells[p.shell] && D.shells[p.shell].modes[m];
+        if (md && md.sh.ints[JI[p.shell]] >= 0) gids.add(md.sh.ints[JI[p.shell]]);
+      }
+    for (const side of Object.keys(state.prevArm)) for (const g of gids) state.prevArm[side](g);
+    state.prevArmFrame = {};
+    if (input.arms) for (const side of Object.keys(input.arms)){
+      const fr = input.arms[side] && input.arms[side].frame;
+      state.prevArmFrame[side] = Array.isArray(fr) && fr.length === 16 ? fr.slice() : null;
+    }
   }
   for (const r of BEAM_SPAWNS[state.monId] || []){
     const t = BEAM_MODES.find(x => x.id === r.type), PJ = r.arm ? state.prevArm[r.arm] : state.prevJoints;

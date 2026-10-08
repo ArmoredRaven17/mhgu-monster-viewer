@@ -563,7 +563,18 @@ export class LiveEffects {
     const dt = typeof this.advance === 'number' ? this.advance : now - this.last;
     this.acc = Math.min(this.acc + dt, MAX_STEPS * STEP);
     this.last = now;
-    if (this.acc >= STEP) this.writeJoints();
+    if (this.acc >= STEP){
+      this.writeJoints();
+      // THE GAME'S CAMERA AND HUNTER, before the units step (host.js installGameCamera: effect placement mode 4 places
+      // against the camera, and its range test measures from the hunter): this render's camera in game units, looking
+      // along its -Z, and the viewer's invisible target (index.html rockInput) as the hunter
+      const cam = this.cameraMatrices(camera), e = cam.viewI.elements, p = cam.position;
+      const ri = this.schedule.rockInput ? this.schedule.rockInput() : null, t = ri && ri.target;
+      this.host.setGameCamera({ eye: [p.x, p.y, p.z], target: [p.x - e[8] * 1000, p.y - e[9] * 1000, p.z - e[10] * 1000],
+                                up: [e[4], e[5], e[6]], hunter: t ? [t.x, t.y, t.z] : null });
+      // the ground ray's floor plane (bridge.js 0x18154c): the viewer's own floor, as the shells' stage takes it
+      if (ri && Number.isFinite(ri.floorY)) this.host.stageFloorY = ri.floorY;
+    }
     while (this.acc >= STEP){
       // BEFORE the schedule, as the ROM's own order has it: the shared ailment pass runs in the enemy
       // update, ahead of the effects' (the same reason schedule.js walks the PSL before the unit passes).

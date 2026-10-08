@@ -627,6 +627,10 @@ input[type=range]{width:100%;accent-color:var(--accent)}
                its part rows offers the same break twice, once with its XfB_0__m0N_lavNN meshes and
                once without. Offered only where a review row asks for it. -->
           <label class="chk switch" id="monHeatedRow" hidden><input type="checkbox" id="monHeated"><span class="toggle"></span>Heated</label>
+          <!-- BEAM HEATED: the regions Agnaktor's beams heat -- head and chest (L2 M4 / M11 / M30, dev/em049-heat.md 2a),
+               OR-ed with Heated per region. Shown where render/monster.js ROM_HEAT_REGIONS names beam regions. Raven,
+               2026-10-06: "We can have a toggle for 'beam heated'". -->
+          <label class="chk switch" id="monBeamHeatedRow" hidden title="Head and chest heated, as the beams L2 M4 / M11 / M30 heat them (chest from f0, head from f100). Flipping plays maguma_Change / maguma_End."><input type="checkbox" id="monBeamHeated"><span class="toggle"></span>Beam heated</label>
           <!-- THE SHARED-STATE EFFECTS (render/rom/effect/shared-states.js): records the game's SHARED
                ENEMY CODE requests, not the monster's class, so every monster holding them gets the same
                switches. They are CLIP-INDEPENDENT -- the ROM plays them over whatever clip runs, on a
@@ -1335,9 +1339,9 @@ import { loadMaterialsDb } from './render/materials-db.js';
 import { createBackground } from './render/background.js';
 import { createFloorGrid, createGrid } from './render/grid.js';
 import { MotionStates, MOTION_STATES, RAGE_BY_LEVEL, RAGE_PUFF, TIRED_DROOL, JOINT_SCALE, JointScale, shellTailInput, shellPartsInput,
-         postureOf, turnAt, CEILING_ABOVE_GAME } from './render/motion-states.js';
-import { pickVariantsFor, BEAM_TYPES } from './render/shells.js';
-import { pslMask, clipActionFor, ACTION_EFFECTS, actionName, actionOf } from './render/psl-mask.js';
+         postureOf, turnAt, CEILING_ABOVE_GAME, clipHeat } from './render/motion-states.js';
+import { pickVariantsFor, BEAM_TYPES, AURA084_STANCE, AURA084_CASE_A } from './render/shells.js';
+import { pslMask, clipActionFor, clipPostureFor, ACTION_EFFECTS, actionName, actionOf } from './render/psl-mask.js';
 import { CUT_TAIL, CutTail } from './render/tail-option.js';
 import { setEyeGlow, updateEyeGlow } from './render/eye-glow.js';
 import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
@@ -1358,13 +1362,13 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts, ROM_SPAWN_CLIP,
          ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels, levelClipFor, setClipFor,
-         attachedBodyOf, attachedClipFor, partnerBodyOf, composeClip, sequenceClipFor, seqFrames,
-         FULL_ANIM_LIST, romAnimationsOf, romAnimationMotion, piecesOf, foldLoopFrame, loopFoldOf,
+         attachedBodyOf, attachedClipFor, partnerBodyOf, composeClip, sequenceClipFor, seqFrames, armPairOf,
+         FULL_ANIM_LIST, romAnimationsOf, romAnimationMotion, piecesOf, foldLoopFrame, loopFoldOf, specialMotionAt,
          stepEarFold, stepTailSwell, stepHornRaise, stepRageFur, romFormsOf,
          GAG_EYES, gagEyesOf, setGagEyes, mountGagEyes,
          monsterMats,
          enableRomAmbient, enableRomSpecular, enableRomPhong,
-         setSHAmount, setRomSpecularAmount, anchorMisses } from './render/monster.js';
+         setSHAmount, setRomSpecularAmount, anchorMisses, heatSpecOf, heatStageOf } from './render/monster.js';
 
 // A motion carrying a part break or a state change shows it over the user's choices while it plays (driveMotionStates)
 const motionStates = new MotionStates();
@@ -1459,6 +1463,8 @@ const PARTREVIEW = await loadJson('part-review.json').catch(() => ({}));
 // reading it from here would be a temporal-dead-zone throw if anything ever calls reviewFor during
 // boot validation. The checkbox writes both, and applySet restores both.
 let rawParts = false;
+// Agnaktor's heat regions (syncHeat, beside driveMotionStates): declared here for the same reason as rawParts
+let heatClip = null, heatCoolDraw = false, heatKey = '';
 const reviewFor = id => (!rawParts && id && PARTREVIEW[id]) || null;
 const reviewRows = id => (reviewFor(id) || {}).rows || {};
 // An option's key is its ON-SET -- the ids printed after "on" in the label, with the rage ladder's
@@ -2439,9 +2445,16 @@ function bindOf(root){
   }
   return bindExtent.get(root);
 }
+// A MONSTER WHOSE FLOOR IS ITS ORIGIN. The game keeps a grounded unit's own height on the floor (the ground probe
+// 0x18154c sets P+0x44 from the pick, posture 0; dev/rom-map.md "Walls and ceilings"), so the game's ground is the unit's
+// origin. The rule below -- the clip's lowest point -- puts Nakarkos's floor ~5 m under him, where his hanging tentacles
+// reach, and his tentacle shots (base01's ground snap, +-500) then found no ground and deleted themselves. Raven,
+// 2026-10-06, asked where his floor should be: "His origin".
+const FLOOR_AT_ORIGIN = new Set(['em084_00']);
 function monsterFloorY(){
   const root = mounted.main;
   if (!root) return 0;
+  if (FLOOR_AT_ORIGIN.has(state.id)) return world.position.y;
   const clipRoot = pose.mixer ? pose.mixer.getRoot() : null;
   let y;
   if (clipRoot){
@@ -3017,7 +3030,7 @@ function applyCameraState(c){
 }
 // The Parts panel's state controls as a monster opens on them: Enraged, Charged, Heated, the Rage
 // ladder, the level axis and the variant. resetMonsterState() puts them back on a monster change.
-const STATE_DEFAULTS = { rage: false, tired: false, charged: false, heated: true, rageLevel: 0, level: 0, variant: 0, size: 0 };
+const STATE_DEFAULTS = { rage: false, tired: false, charged: false, heated: true, beamHeated: false, rageLevel: 0, level: 0, variant: 0, size: 0 };
 // GROUND LOWEST BONE IS OFF for monsters, and saved as `groundLock` so a view saved while it defaulted on
 // opens with it off. Raven, 2026-09-13: "We may not need to 'ground lowest bone' any more", then "keep the
 // checkbox in Debug for now". It pins the lowest bone to the BIND pose's lowest bone every frame -- a fix
@@ -3222,12 +3235,16 @@ function attachedListIds(e){
   const pre = (e && e.parts || []).map(p => attachedBodyOf(e.id, p.name)).filter(Boolean).map(a => a.listPrefix);
   return new Set(((e && e.lists) || []).filter(l => pre.some(x => String(l.id).startsWith(x))).map(l => l.id));
 }
+// SHOWN AGAIN, 2026-10-05. Raven: "Unhide them, we will better handle them when I do animation review" -- Nakarkos's
+// arms fire most of his beams on clips only their own lists hold (render/beam-spawns.js em084_00). Picking an arm's list
+// plays the clip on THAT arm (playAttached: its own list, not a twin), while the body takes it too as before -- the
+// mismatch Raven hid them for (2026-09-13), left for his animation review.
 function buildLists(){
   const e = entry();
-  const hideIds = attachedListIds(e);
-  const lists = ((e && e.lists) || []).filter(l => !hideIds.has(l.id)).slice().sort(listOrder);
+  const armIds = attachedListIds(e);
+  const lists = ((e && e.lists) || []).slice().sort(listOrder);
   monListSel.innerHTML = lists.map(l =>
-    '<option value="' + l.id + '">' + (l.label || ('List ' + l.id)) + ' &mdash; ' + (l.clips || []).length + ' clips' +
+    '<option value="' + l.id + '">' + (l.label || ('List ' + l.id)) + (armIds.has(l.id) ? ' (tentacle)' : '') + ' &mdash; ' + (l.clips || []).length + ' clips' +
     (l.shared ? ' (shared)' : '') + '</option>').join('');
   if (!lists.some(l => l.id === state.list)){
     // the monster's own opening list where one is set, else the first the ROM gives
@@ -4467,6 +4484,21 @@ function applyPartState(){
       for (const p of synthIds(k)) drawn.set(p, on.has(p));
       if (it.clip && typeof it.clip === 'object') Object.assign(pins, it.clip);
     }
+    // AGNAKTOR'S HEAT PARTS FOLLOW THE GAME (render/monster.js ROM_HEAT_REGIONS; dev/em049-heat.md 4a; Raven,
+    // 2026-10-07: "Follow the game"). 0xec1cec draws each slot's HEATED group -- rock and lava overlay -- in play
+    // whatever its heat, and the cooled group only while vt+0x3f4 is 1 (the death clip, ROM_HEAT_REGIONS coolDraw)
+    // with that slot cooled. So the row keeps choosing the FORM (Intact / Broken / Severed) and the half is chosen
+    // here; the Heated / Beam heated toggles show through the lava materials' clips. Raw Parts is left raw.
+    const hs = heatSpecOf(e.id);
+    if (hs && !rawParts && state.groups){
+      for (const sl of hs.slots){
+        let form = sl.heated.findIndex(g => state.groups[g]);
+        if (form < 0) form = sl.cooled.findIndex(g => state.groups[g]);
+        if (form < 0) continue;
+        const g = (heatCoolDraw && !regionHot(sl.region) ? sl.cooled : sl.heated)[form];
+        for (const [p, v] of (e.groups || [])[g] || []) drawn.set(p, v);
+      }
+    }
     // a motion carrying a break shows its part sets over the user's while it plays (driveMotionStates)
     motionStates.showParts(drawn, e.groups || []);
     setReviewClipPins(e.id, pins, drawn);
@@ -4799,12 +4831,31 @@ async function playAttached(l, c){
                           { figure: 'monster', joints: a.part.joints || [], anchorXZ: false, groundLock: false });
       continue;
     }
-    const twin = l && c && (e.lists || []).find(x => x.id === a.spec.listPrefix + l.id);
-    const clip3 = twin ? await attachedClipFor(twin.file, c.clip, a.part.glb) : null;
+    // an arm's OWN list picked (Nakarkos's l_N / r_N, shown again 2026-10-05) plays on that arm; the other arm plays what
+    // the game has it play beside that clip (render/monster.js ROM_ARM_PAIRS, READ: the same action for a paired order,
+    // else its idle) while the body plays its side of the pair (armListBodyClip). An arm clip with no read pairing: the
+    // other arm's stance-1 idle, <prefix>0 Motion[1], as before.
+    const own = l && String(l.id).startsWith(a.spec.listPrefix) ? l : null;
+    const other = !own && l && attachedListIds(e).has(l.id);
+    let twin = own || (!other && l && c && (e.lists || []).find(x => x.id === a.spec.listPrefix + l.id)), clipName = c && c.clip;
+    a.idleWrap = false;
+    if (other){
+      const pair = armPairFor(e, l, c);
+      if (pair && pair.other === 'same'){
+        twin = (e.lists || []).find(x => x.id === a.spec.listPrefix + armListSuffix(e, l)) || null;
+        clipName = twin && pairedClipName(twin, c.clip, c.clip);
+      } else {
+        const [ol, oc] = (pair && pair.other) || ['0', 'Motion[1]'];
+        twin = (e.lists || []).find(x => x.id === a.spec.listPrefix + ol) || null;
+        clipName = twin && pairedClipName(twin, oc, c && c.clip);
+        a.idleWrap = true;
+      }
+    }
+    const clip3 = twin && clipName ? await attachedClipFor(twin.file, clipName, a.part.glb) : null;
     if (!attached.has(name) || attached.get(name) !== a) continue;     // remounted while loading
     if (!clip3){ a.driver.stop(); restoreBind(root); continue; }
-    a.driver.loopMode = pose.loopMode;
-    await a.driver.play({ file: twin.file, clip: c.clip, model: a.part.glb, clip3 },
+    a.driver.loopMode = a.idleWrap ? () => 'repeat' : pose.loopMode;
+    await a.driver.play({ file: twin.file, clip: clipName, model: a.part.glb, clip3 },
                         { figure: 'monster', joints: a.part.joints || [], anchorXZ: false, groundLock: false });
   }
 }
@@ -4832,7 +4883,9 @@ function stepAttached(){
     }
     if (a.driver.action && pose.action){
       a.driver.action.paused = pose.action.paused;
-      a.driver.action.time = Math.min(pose.action.time, Math.max(0, a.driver.action.getClip().duration - 1e-3));
+      const dur = Math.max(1e-3, a.driver.action.getClip().duration);
+      // the other arm's idle loops, as the game's does, under an arm clip longer than it (ROM_ARM_PAIRS)
+      a.driver.action.time = a.idleWrap ? pose.action.time % dur : Math.min(pose.action.time, Math.max(0, dur - 1e-3));
     }
     a.driver.clock.getDelta();                 // its own clock adds nothing on top of that time
     if (a.driver.action) a.driver.step([root]);
@@ -4943,6 +4996,10 @@ async function mount(){
     // fires these per action and what fires which is undecoded, so showing them all at once is
     // an inspection, not a reconstruction. See render/rom/effect-mounts.js.
     await attachEffectMounts(main, state.id, effectOnly);
+    // the Poison / Dung Bomb row once the runtime is THERE (Raven, 2026-10-05: "Posion and Dung Bomb do not appear until
+    // I toggle Enraged") -- the rage row's own refresh runs before this asynchronous attach finishes, so on a fresh load
+    // it found no runtime and hid the row until a rage toggle re-attached and repainted
+    refreshSharedRow();
   } finally { setLoading(false); }
 }
 // Fan the severed parts around the monster, on the ground, leaving the camera-facing front
@@ -5187,7 +5244,15 @@ function zoneTable(e, rec){
     const i = st.names.length ? Math.max(0, Math.min(st.names.length - 1, zoneStateIndex(st.axis))) : 0;
     const t = meatTableFor(e.id, rec.tables, { rung: state.level | 0, rage: !!state.rage, groups: state.groups,
                                               mode: st.axis === 'mode' ? i : 0, ladder: state.rageLevel | 0,
-                                              broken: k => breakRowInfo(e, k).broken });
+                                              broken: k => breakRowInfo(e, k).broken,
+                                              // a heat region not cooled (Agnaktor's `heat` rules, 0xec0dbc) -- its TARGET,
+                                              // not the material's stage: the Hit Zones panel is information, so its zones
+                                              // switch the moment the state does (Raven, 2026-10-07: "For Hit Zone panel, we
+                                              // would want the zones to switch instantly between states ... Since that panel
+                                              // is more about information not visuals"). The game's zone test reads state 0
+                                              // alone, so its zones stay soft through the 6 s cool-down; the viewer shows the
+                                              // state being moved to instead. The lava's heat-up / cool-down stays visual.
+                                              heat: r => regionTarget(r) });
     if (t){
       // with no states to list, an `exact` key that is on names the table (Amatsu's Horn Glow)
       const sw = meatSwitchOf(e.id);
@@ -6218,6 +6283,10 @@ function applyRage(){
   const canHeat = Object.values(reviewRows(state.id)).some(r => r && r.state === 'heated');
   document.getElementById('monHeatedRow').hidden = !canHeat;
   document.getElementById('monHeated').checked = !!state.heated;
+  // BEAM HEATED is the ROM's: offered where render/monster.js ROM_HEAT_REGIONS names the regions a beam heats
+  const hs = heatSpecOf(state.id);
+  document.getElementById('monBeamHeatedRow').hidden = !(hs && hs.beam && hs.beam.length);
+  document.getElementById('monBeamHeated').checked = !!state.beamHeated;
   // THE LEVEL AXIS, whose rungs are NAMED BY A PERSON and by nothing else. Unlike the Rage ladder,
   // which reads its rungs off level tokens in clip names, nothing in Astalos' data says how many
   // charge states it has or what to call them -- its two charge materials carry one clip called
@@ -6298,7 +6367,7 @@ function applyRage(){
   // rage toggle and a fresh mount already run through it.
   if (main && effectAutoOnRage(state.id)){
     setEffectRage(motionStates.rage(state.rage));      // a rage-entry motion shows rage while it plays
-    attachEffectMounts(main, state.id, null);
+    attachEffectMounts(main, state.id, null).then(refreshSharedRow);
   }
   // Barioth's eye glow: re-sync the calm/enraged glow ray to whichever eye this state now shows, so
   // the enraged (different-colour) glow never leaks into the calm state and vice versa.
@@ -6463,6 +6532,44 @@ function applySize(){
   world.scale.setScalar(sizeScale());
   world.updateMatrixWorld(true);
 }
+// A TENTACLE'S LIST PICKED: THE BODY PLAYS ITS SIDE OF THE PAIR. Raven, 2026-10-05: "We also will need to figure out how
+// to better handle the tentacle animations, currently they also move his body in eratic ways" -- the body was handed the
+// arm's own clip (tracks on the arm's bone ids). The arm plays it on itself (playAttached); the body plays the clip the
+// game runs beside that arm action, looped over the arm clip's length, so the clock, the scrubber and the arm's frame
+// gates keep the arm clip's frames. WHICH clip is READ (Raven: "Verify animation assignments"; render/monster.js
+// ROM_ARM_PAIRS, dev/em084-arm-pairings.md): the arms run no command streams, every arm action is ordered by a body
+// action, and that action's own clip is the body's -- L0 M1 / L0 M50 held for a single-arm order, its own clip for a
+// paired one. An arm clip with no read pairing keeps the earlier stand-in, the hit-zone idle (L0 Motion[1]).
+// the arm list's suffix ('2' of 'l_2') and the pairing of its clip
+function armListSuffix(e, l){
+  for (const [, a] of attached) if (a.spec && String(l.id).startsWith(a.spec.listPrefix)) return String(l.id).slice(a.spec.listPrefix.length);
+  return null;
+}
+function armPairFor(e, l, c){
+  if (!e || !l || !c) return null;
+  for (const [, a] of attached)
+    if (a.spec && String(l.id).startsWith(a.spec.listPrefix)) return armPairOf(e.id, a.spec.listPrefix, l.id, c.clip);
+  return null;
+}
+// a clip of `list` for the motion `base` beside the arm clip `armClip`: its same _start / _loop piece, else the whole
+// clip, else its _loop, else its _start
+function pairedClipName(list, base, armClip){
+  const names = (list.clips || []).map(k => k.clip), b = String(base).replace(/_(start|loop)$/, '');
+  const suf = (/_(start|loop)$/.exec(armClip || '') || [])[0];
+  return [suf && b + suf, b, b + '_loop', b + '_start'].find(n => n && names.indexOf(n) >= 0) || null;
+}
+let armBodyShown = null;           // what the body plays beside an arm clip (__view.arms)
+async function armListBodyClip(e, l, c){
+  const own = await clipFor(l, c.clip, e.glb);               // only for its length
+  const pair = armPairFor(e, l, c);
+  const pl = pair && (e.lists || []).find(x => String(x.id) === pair.body[0]);
+  const pn = pl && pairedClipName(pl, pair.body[1], c.clip);
+  const idle = pn ? { list: pair.body[0], clip: pn } : hitZonesIdleClip(e), il = idle && (e.lists || []).find(x => String(x.id) === idle.list);
+  armBodyShown = idle ? { list: idle.list, clip: idle.clip, read: !!pn } : null;
+  const body = il ? await clipFor(il, idle.clip, e.glb) : null;
+  if (!own || !body) return own;
+  return composeClip(c.clip, [{ clip: body, frames: seqFrames(own), mode: 'wrap', start: 0 }], e.glb);
+}
 let playSeq = 0;
 async function play(){
   const mine = ++playSeq;
@@ -6484,7 +6591,8 @@ async function play(){
   // Velociprey's). Those files name their tracks after the OWNER's bones, so the clip is
   // retargeted onto this model by global bone id first -- see clipFor.
   // a full animation (c.pieces) is its clips joined into one -- see composeClip in render/monster.js
-  const clip3 = c.pieces ? await sequenceClipFor(c, e.glb) : await clipFor(l, c.clip, e.glb);
+  const clip3 = attachedListIds(e).has(l.id) ? await armListBodyClip(e, l, c)
+              : c.pieces ? await sequenceClipFor(c, e.glb) : await clipFor(l, c.clip, e.glb);
   if (mine !== playSeq) return;          // a later selection won while this one was loading
   // The driver measures the loop's bounds and the body's centre with the SAME hold it plays with, so with the hold
   // off both would describe the clip's whole path. It measures held, then plays as the hold is set: bounds and
@@ -6951,6 +7059,13 @@ document.getElementById('monHeated').onchange = e => {
   if (en){ buildGroups(); applyPartState(); }
   saveState();
 };
+// BEAM HEATED drives only the heat regions (syncHeat, every frame): no row or part set changes with it in play, so
+// nothing is rebuilt here -- the region machines play the transition, and the parts / hit zones follow when a
+// region's cooled state changes.
+document.getElementById('monBeamHeated').onchange = e => {
+  state.beamHeated = e.target.checked;
+  saveState();
+};
 document.getElementById('monProxy').onchange = e => {
   state.proxy = e.target.checked;
   for (const g of Object.values(mounted)) setProxyVisible(g, state.proxy);
@@ -7173,7 +7288,7 @@ function applySet(o){
   if (!o || typeof o !== 'object') return;
   for (const k of ['id', 'list', 'clip']) if (typeof o[k] === 'string') state[k] = o[k];
   // `groundLock`, not the old `ground`: a view saved while the lock defaulted on must not turn it back on
-  for (const k of ['loop', 'tail', 'anchor', 'groundLock', 'normalFlip', 'undef', 'effects', 'extend', 'zoneShow', 'gap', 'heated'])
+  for (const k of ['loop', 'tail', 'anchor', 'groundLock', 'normalFlip', 'undef', 'effects', 'extend', 'zoneShow', 'gap', 'heated', 'beamHeated'])
     if (typeof o[k] === 'boolean') state[k] = o[k];
   // the heat map is a damage-type NAME and a table index, not booleans
   if (typeof o.heat === 'string') state.heat = o.heat;
@@ -7304,9 +7419,9 @@ function animAdvance(){
 // waits for the next one; the state is the one the motion starts in -- its MOTION_STATES row's rage / tired, else the
 // user's -- read the way motionStates.step reads a row.
 const plays = { key: null, frame: 0, n: -1, action: null, mask: null, motion: null, token: 0 };
-function playNow(act, base, frame, loopSeg, loopStart = 0){
+function playNow(act, base, frame, loopSeg, loopStart = 0, onList = state.list){
   if (!act || !base){ plays.key = null; return null; }
-  const key = state.id + '|' + state.list + '|' + base;
+  const key = state.id + '|' + onList + '|' + base;
   const prevFrame = plays.frame;
   plays.frame = frame;
   // a _loop clip's wrap is the motion going on (the ROM loops at the motion's loop frame inside one action), not a play
@@ -7315,8 +7430,8 @@ function playNow(act, base, frame, loopSeg, loopStart = 0){
     return Object.assign({}, plays, { prevFrame: frame >= prevFrame ? prevFrame : loopStart - 1e-6 });
   plays.n = key === plays.key ? plays.n + 1 : 0;
   plays.key = key;
-  let list = state.list, clip = base;
-  const an = state.list === FULL_ANIM_LIST.id ? romAnimationMotion(state.id, base) : null;
+  let list = onList, clip = base;
+  const an = onList === FULL_ANIM_LIST.id ? romAnimationMotion(state.id, base) : null;
   if (an){ list = an.motion[0]; clip = an.motion[1]; }
   const slot = +((/^Motion\[(\d+)\]$/.exec(clip) || [])[1]);
   const row = (MOTION_STATES[state.id] || {})[list + '|' + clip] || null;
@@ -7332,10 +7447,21 @@ function playNow(act, base, frame, loopSeg, loopStart = 0){
     plays.token++;                                       // another action: to the walker, another motion start
   plays.motion = { list, clip, slot };
   plays.action = action;
-  plays.mask = Number.isFinite(slot) ? pslMask(state.id, list, slot, action, { rage, tired }) : null;
+  // the tail as the parts show it (P+0x3b4 bit 0: motion-states.js shellTailInput) and the posture the play starts in
+  // (psl-mask.js clipPostureFor) -- Bloodbath's word reads both (psl-mask.js em007_04)
+  const severed = !!shellTailInput(state.id, mounted.main && mounted.main.userData.partsDrawn).tailSevered;
+  const posture = clipPostureFor(state.id, list, clip, plays.n);
+  plays.mask = Number.isFinite(slot) ? pslMask(state.id, list, slot, action, { rage, tired, severed, posture }) : null;
   return Object.assign({}, plays, { prevFrame: frame });
 }
 
+// the motion a chain entry on the Special list is playing now (render/monster.js specialMotionAt), or null
+function seqMotionNow(){
+  const act = pose.action, name = act && act.getClip ? act.getClip().name : null;
+  if (!name || state.list !== FULL_ANIM_LIST.id) return null;
+  const c = ((listOf(entry()) || {}).clips || []).find(x => x.clip === name);
+  return c ? specialMotionAt(state.id, state.list, name, c.pieces, act.time * 60) : null;
+}
 function driveClipEffects(){
   const rt = effectRuntimeInstance();
   if (rt) rt.advance = animAdvance();               // the effects step on the animation, not on wall time
@@ -7348,7 +7474,7 @@ function driveClipEffects(){
   // offset by the _start clip's length -- without that, every binding on a split motion silently misses.
   // The motion is keyed on the bare name too, so stepping from _start into _loop is not a motion change; a
   // _loop clip loops back to that offset, which is where the walk resumes after a wrap.
-  const base = clipName ? clipName.replace(/_(start|loop)$/, '') : null;
+  let base = clipName ? clipName.replace(/_(start|loop)$/, '') : null, onList = state.list;
   let splitOffset = 0;
   if (clipName && clipName.endsWith('_loop')){
     const sib = ((listOf(entry()) || {}).clips || []).find(c => c.clip === base + '_start');
@@ -7362,12 +7488,16 @@ function driveClipEffects(){
   const curClip = base ? ((listOf(entry()) || {}).clips || []).find(c => c.clip === base) : null;
   const fold = act && curClip ? loopFoldOf(state.id, state.list, base, curClip.pieces) : null;
   if (fold){ const r = foldLoopFrame(act.time * 60, fold.S, fold.L); frame = r.frame; if (r.loopStart != null){ splitOffset = r.loopStart; loopSeg = true; } }
-  const play = playNow(act, base, frame, loopSeg, splitOffset);
+  // a Special entry that is a chain of motions (render/monster.js specialMotionAt): the motion the game plays now, on its
+  // own list, at its own frame -- Rajang's 'S. Motion 8 Beam' is L2 M8 (its beam rows, its PSL) and then L2 M9
+  const seq = seqMotionNow();
+  if (seq){ onList = seq.list; base = seq.clip; frame = seq.frame; splitOffset = seq.loopStart != null ? seq.loopStart : 0; loopSeg = seq.loopSeg; }
+  const play = playNow(act, base, frame, loopSeg, splitOffset, onList);
   // the enable word (null: a monster whose word is not read -- every listed bit, as before) and, with it, the play's
   // token: a new action is a new motion start to the walker (0x7256c flags the sequence +0xc0 |= 4)
   const mask = play ? play.mask : null;
-  rt.schedule.setClip(act ? state.id + '|' + state.list + '|' + base : null, frame,
-                      base ? clipEffectsFor(state.id, base, state.list) : null, splitOffset, mask, mask != null ? play.token : null, loopSeg);
+  rt.schedule.setClip(act ? state.id + '|' + onList + '|' + base : null, frame,
+                      base ? clipEffectsFor(state.id, base, onList) : null, splitOffset, mask, mask != null ? play.token : null, loopSeg);
   // the action's own requests at a frame of its motion (ACTION_EFFECTS: the frame passed this step)
   const ae = play && play.action && play.motion && (ACTION_EFFECTS[state.id] || {})[play.motion.list + '|' + play.motion.clip];
   const rec = ae && ae.by[actionName(play.action)];
@@ -7423,8 +7553,43 @@ let turnYaw = 0;
 // mirror, by how much, how far they travel, every row from that monster's own animation. What is missing is
 // the LABEL and the DIRECTION, and both live in the ROM's action layer -- a turn animation is the motion a
 // turn ACTION plays. Re-wiring is turnLeanOf() and a target; the angle's SIGN is the part not to trust.
+// THE STEER TOWARD THE TARGET (Raven, 2026-10-05: "We already have a proxy target for this kind of situation, just an
+// invisible target"). Some actions turn the unit toward the target rather than by a fixed angle: the monster steer
+// 0x7840c -> 0x77d28 -> 0x770e4, READ in full (dev/beams/em020_00.md "The steer 0x7840c / 0x77d28"; bit-for-bit against
+// the ROM under unicorn). Each update whose frame step overlaps [from, to] (0x72714 mode 9): s = ceil(rate x step x share)
+// & 0xffff, T = the target's bearing, d = s16(offset - yaw + T); |d| < s snaps the yaw onto T + offset, else it moves s
+// the shorter way. The target is rockInput's (the viewer's invisible one, ahead of the monster), its bearing taken
+// against his facing, so the yaw here is relative and adds to CLIP_TURN's. NOT REPLAYED, by name: the steer's stop once
+// the unit has travelled 150 with the target behind him within 150 (0x7828c) -- the proxy target is never that close.
+//   Rustrazor (7, 0xdf) / (7, 0xe2), 0xdcbe78 ph1: rate 910 (tune 0x27 / (0x26 - 0x25) x 182.044 = 5 degrees a frame),
+// offset 0x8000 (his back on the target) or 0x838e (+ tune 0x29, 5 degrees), frames 50..56 (tune 0x25 / 0x26).
+const STEER = {
+  em020_04: { '9|Motion[20]': { from: 50, to: 56, rate: 910, offset: { '7:0xdf': 0x8000, '7:0xe2': 0x838e } } },
+};
+const steer = { key: null, prev: 0, yaw: 0 };
+const s16 = v => ((v & 0xffff) ^ 0x8000) - 0x8000;
+function steerAt(base, frame){
+  const t = base && STEER[state.id] && STEER[state.id][state.list + '|' + base];
+  if (!t){ steer.key = null; return 0; }
+  const ri = rockInput(), O = ri ? t.offset[ri.variant] : undefined;
+  const key = state.id + '|' + state.list + '|' + base + '|' + (ri && ri.variant);
+  if (key !== steer.key || frame < steer.prev){ steer.key = key; steer.prev = frame; steer.yaw = 0; }
+  const prev = steer.prev, cur = frame;
+  steer.prev = frame;
+  const rt = effectRuntimeInstance(), P = rt && rt.parent;
+  if (O !== undefined && P && ri && ri.target && cur > prev &&
+      ((t.from <= prev && prev <= t.to) || (t.from <= cur && cur <= t.to))){
+    const share = Math.max(0, Math.min(cur, t.to) - Math.max(prev, t.from)) / (cur - prev);
+    const sStep = Math.ceil(t.rate * (cur - prev) * share) & 0xffff;
+    const bearing = Math.trunc(0.5 + Math.atan2(ri.target.x - P.position[0], ri.target.z - P.position[2]) * 10430.378);
+    const T = (bearing - rt.schedule.ownerYaw16()) & 0xffff;              // against his facing: the yaw here is relative
+    const d = s16(O - steer.yaw + T);
+    steer.yaw = Math.abs(d) < sStep ? (T + O) & 0xffff : (steer.yaw + (d < 0 ? -sStep : sStep)) & 0xffff;
+  }
+  return s16(steer.yaw) * 360 / 65536;
+}
 function stepTurn(base, frame){
-  turnYaw = base ? turnAt(state.id, state.list, base, frame) * Math.PI / 180 : 0;
+  turnYaw = base ? (turnAt(state.id, state.list, base, frame) + steerAt(base, frame)) * Math.PI / 180 : 0;
   // THE TURN GOES ON THE PROXY, NOT ON THE MONSTER'S GROUP. render/pose.js poses every bone by WORLD matrix --
   // `inv(node.parent.matrixWorld) * proxy.matrixWorld` -- so whatever is on the group is divided straight back
   // out on the next pose step and the body never moves. Measured: driving the group to 169.9 degrees through
@@ -7464,7 +7629,12 @@ let mountedOn = null, mountedBones = false, _mountY0 = 0, _mountZ0 = 0;
 // is the engine's TILT PASS 0xbdf54, whose mode is the monster's own (.dtb tilt record, efx/agents/mount-scratch/
 // tiltrec.py -> e+0x7470). Khezu's sit at root Y +178.9 and hang below the plane once the engine's roll of 180 is
 // applied; SHOGUN CEANATAUR'S SIT AT -230.3, the opposite sign -- and the ROM says why (read 2026-10-01):
-//   Khezu, mode 0: the surface's own normal (e+0x1080, the ceiling record's (0, -1, 0) installed at posture 6) -> roll 180.
+//   Khezu: roll 180 -- but NOT from the surface normal (that reading is withdrawn: the game's ceiling polygons face UP,
+//     and his roll word P+0x58 is 0 on a ceiling). The flip is added where EVERY enemy's drawn rotation is built: the
+//     shared vtable +0xcc 0xca06c adds pi to the roll while +0x3bc (0xaf30c) says posture 6 and P+0x992 != 0, and the
+//     order is Ry . Rx . Rz (0x8a4dfc case 4, e+0x38 = 4 every frame). Khezu sets P+0x992 = 1 on each of his 32
+//     posture-6 entries; the posture setter clears it. Checked on his clips: only a 180 about his own forward axis lines
+//     L2 M7's last frame up with L2 M40's first (the release that drops the flip). posture-mount.md section 11.
 //   Shogun, mode 1 (0xbe048..0xbe33c): the normal is FITTED to three points -- his sample points (180, 0, 150) and
 //     (-180, 0, 150) (scaled by his size, turned by his facing, each probed to the surface or left on the plane P+0x5b4)
 //     and the unit's own position -- as (c - p0) x (p1 - p0), which points UP on any flat surface, floor or ceiling.
@@ -7474,10 +7644,11 @@ let mountedOn = null, mountedBones = false, _mountY0 = 0, _mountZ0 = 0;
 // L2 Motion[27] beam, fired straight down from his shell (joint 143, its 180-degree angle word), stopped in the floor an
 // arm's length below him; hung from the ceiling it crosses the whole box to the floor.
 // `bones`: the mount goes on mountFrame, the frame the pose driver writes the bones in, so the drawn body AND its
-// bones -- every effect and shell reads them -- go onto the surface together. Khezu keeps the group-level mount he was
-// reviewed with: under three.js's attached bind mode a skinned mesh ignores its own group's transform, so that one
-// never moved his drawn body or his bones, and changing what his ceiling clips show is a change to put to Raven.
-const MOUNT = { em003_00: { roll: true, bones: false }, em020_00: { roll: false, bones: true } };
+// bones -- every effect and shell reads them -- go onto the surface together. Khezu now too (Raven, 2026-10-05: "We
+// simply follow how the game handles behaviors"): the game's flip is part of his drawn rotation, so it reaches his
+// body and bones, which the old group-level mount never did (under three.js's attached bind mode a skinned mesh
+// ignores its own group's transform).
+const MOUNT = { em003_00: { roll: true, bones: true }, em020_00: { roll: false, bones: true } };
 function stepMount(want){
   const style = MOUNT[state.id] || null;
   const on = style ? (want.includes(6) ? 6 : want.includes(5) ? 5 : 0) : 0;
@@ -7576,6 +7747,17 @@ const TARGET_AHEAD = 2100;
 // viewer stand-in like the default; the pitch is the ROM's aim at whatever point
 const TARGET_AHEAD_BY_MON = { em001_00: 6300, em001_02: 6300, em001_04: 6300, em002_00: 6300, em002_02: 6300, em002_04: 6300 };   // the Rath line:
 // the same class and throws (Dreadking's aimed shell modes 0x17 / 0x1d / 0x1e / 0x1f take the same target)
+// ...and its HEIGHT, per monster, where a beam should run level. Raven, 2026-10-05, of Rajang's beam: "Move the target up
+// so the beam is paralell to the grid". A beam with flag bit 3 takes its pitch from the target (0x3fcec8, shells.js
+// pitch3fcec8): from the owner's position + b3a to the target + b3b, so the target at owner.y + b3a.y - b3b.y gives pitch
+// 0 -- level with the grid while he stands on it (Rajang: 220 - 100 = 120; render/beam-types.js). His L2 M8 beams track
+// it from their first frame (b3start 0), his L2 M20 / M21 one from frame 33. A viewer stand-in, like the distance.
+const TARGET_LEVEL_BY_MON = { em023_00: true, em023_05: true };
+function targetRise(monId){
+  if (!TARGET_LEVEL_BY_MON[monId]) return null;
+  const t = BEAM_TYPES.find(x => x.mon === monId && x.ray && x.ray.b3a && x.ray.b3b);
+  return t ? t.ray.b3a[1] - t.ray.b3b[1] : null;
+}
 // THE REST OF WHAT A MONSTER'S SHELLS READ that the viewer has no game for (shells.js): the QUEST's number (0x49930: the
 // quest id mod 100 for an ordinary quest) -- Dreadqueen's poison is weakest at 3 or below and strongest at 9 or above,
 // and L9 Motion[9]'s extra shells need it at their gate: 10, the top deviant level, shows everything she does (a viewer
@@ -7588,7 +7770,69 @@ const SHELL_QUEST_LEVEL = 10;
 const SHELL_QUEST_RANK = 5;
 function shellExtra(){
   return { questLevel: SHELL_QUEST_LEVEL, rank: SHELL_QUEST_RANK, beamState: beamState(), attachedJoints: attachedJointsInput(),
+           aura: auraInput(), arms: armsInput(), chargeTier: shellChargeTier(),
            ...shellTailInput(state.id, mounted.main && mounted.main.userData.partsDrawn) };
+}
+// BOLTREAVER'S CHARGE TIER AS HIS SHELL SPAWNERS READ IT (render/shells.js spawn081; dev/em081-shells-spec.md 5a / 6): the wing slams
+// test the wings' byte [e+0xcb02] ((t | 1) != 1) and (7, 0xc7) the tail's [e+0xcb03] (== 4). The viewer carries ONE charge rung
+// for the monster, part-review.json's five-rung axis, one rung per ROM tier 0..4 (render/motion-states.js em081_04 and
+// CHARGE_EFFECTS: "a level means all three regions at that tier") -- so both bytes are the rung. Undefined for every other monster.
+function shellChargeTier(){
+  return state.id === 'em081_04' ? (state.level | 0) : undefined;
+}
+// NAKARKOS'S ARMS AS THEIR OWN SHELLS READ THEM (render/shells.js arm084 / ownArm084; dev/em084-shells-spec.md 3 / 5), per
+// side: the FORM byte +0xcb30 the arm's attack is chosen by -- the tentacle's form dropdown, its group turned back into the
+// byte by the arm's own form switch 0x107e25c (READ, dev/em084-arm-pairings.md 5: form 0 -> g2, 1 -> g4, 2 -> g5, 3 -> g3,
+// 0xff -> g0; part state 3 -> g1, which shows no form: 'exposed') -- and the arm unit's FRAME: the attached body's world
+// matrix (attachFrame: body joint 200 / 203), its translation in game units (/ 0.01) as attachedJointsInput gives the joints.
+// That the arm's own block position and angle words ([arm+0x1428]+0x40 / +0x50..) are this frame is INFERRED (shells.js
+// ownArm084 says so where it reads them).
+const ARM_FORM_OF_GROUP = { 0: 0xff, 1: 'exposed', 2: 0, 3: 3, 4: 1, 5: 2 };
+function armsInput(){
+  if (state.id !== 'em084_00') return undefined;
+  const e = entry();
+  let out;
+  for (const [name, a] of attached){
+    if (a.partner || !a.spec || !a.frame) continue;
+    const side = a.spec.listPrefix === 'l_' ? 'left' : a.spec.listPrefix === 'r_' ? 'right' : null;
+    if (!side) continue;
+    const el = a.frame.matrix.elements.slice();
+    el[12] /= 0.01; el[13] /= 0.01; el[14] /= 0.01;
+    (out || (out = {}))[side] = { form: ARM_FORM_OF_GROUP[attachedFormOf(e, name)], frame: el.map(Math.fround) };
+  }
+  return out;
+}
+// NAKARKOS'S AURA (render/shells.js aura084, the manager 0x106aa48; dev/em084-shell06-aura.md): the state it reads, as the
+// viewer shows it. STANCE follows the clip (Raven, 2026-10-05: "Follow the clip"): a clip that only one stance plays sets
+// it (AURA084_STANCE, the idles L0 M1 / M50 among them) and every other clip keeps the last; before any, the stance the
+// game opens with at the viewer's quest rank (0x10655c4: 2 when 0x3a8430 > 4). The CHARGE FLAG is a State rung Charge 1..3;
+// CASE A the clips one case-A action plays; each tentacle EXPOSED its form dropdown on group g1 (part state 3, 0x107e25c).
+const auraStance = { id: null, v: 0, key: null };
+// the body motion the viewer shows, as 'list|Motion[N]': a Special chain's, a body list's clip, or -- on a tentacle's own
+// list -- the body clip the game pairs with that arm clip (render/monster.js ROM_ARM_PAIRS: the order runs in its stance)
+function bodyMotionKey(){
+  const seq = seqMotionNow(), act = pose.action, name = act && act.getClip ? act.getClip().name : null;
+  if (seq) return seq.list + '|' + seq.clip;
+  if (!name) return null;
+  const base = name.replace(/_(start|loop)$/, '');
+  if (/^\d+$/.test(String(state.list))) return state.list + '|' + base;
+  const e = entry(), l = listOf(e), pair = armPairFor(e, l, { clip: name });
+  return pair ? pair.body[0] + '|' + pair.body[1] : null;
+}
+// his stance: the clip's (AURA084_STANCE), kept across clips that play in both; the game's opening one before any
+function auraStanceNow(){
+  if (state.id !== 'em084_00') return 0;
+  if (auraStance.id !== state.id){ auraStance.id = state.id; auraStance.v = SHELL_QUEST_RANK > 4 ? 2 : 1; }
+  const key = auraStance.key = bodyMotionKey();
+  if (key && AURA084_STANCE[key]) auraStance.v = AURA084_STANCE[key];
+  return auraStance.v;
+}
+function auraInput(){
+  if (state.id !== 'em084_00') return null;
+  const stance = auraStanceNow(), key = auraStance.key;
+  const e = entry();
+  return { stance, charge: (state.level | 0) >= 1 && (state.level | 0) <= 3, caseA: !!(key && AURA084_CASE_A.has(key)),
+           exposedL: attachedFormOf(e, 'em084_00_left') === 1, exposedR: attachedFormOf(e, 'em084_00_right') === 1 };
 }
 // THE ATTACHED BODIES' JOINTS, by side -- Nakarkos's arms fire most of his beams from their own joints (render/beam-spawns.js
 // `arm`) -- in the convention the effect runtime hands the body's (render/rom/effect/live.js writeJoints): the bone's world
@@ -7614,7 +7858,9 @@ function attachedJointsInput(){
 // the play's pick (rockInput) and the shells' own step (shellExtra), so the two never disagree
 function beamState(){
   return { tired: motionStates.tired(), rage: motionStates.rage(state.rage), rank: SHELL_QUEST_RANK,
-           parts: shellPartsInput(state.id, mounted.main && mounted.main.userData.partsDrawn) };
+           parts: shellPartsInput(state.id, mounted.main && mounted.main.userData.partsDrawn),
+           // Nakarkos's stance (his beam rows' `when.stance`, render/beam-spawns.js); undefined for every other monster
+           stance: auraStanceNow() || undefined };
 }
 const rockPlays = { key: null, time: 0, n: -1, names: [] };
 // the beam showcase's label: the type this play of Basarios's Special 'Beam Test' fires (render/beam-types.js), or hidden.
@@ -7637,19 +7883,27 @@ function rockInput(){
   const act = pose.action, clipName = act && act.getClip ? act.getClip().name : null;
   // the choices the monster's state leaves: Rathian's tired twins (no fireball) only while tired and not enraged (the
   // command table's op 0x24 on 0x81634, shells-em001.md) -- as the motion shows those states
-  const names = clipName ? pickVariantsFor(state.id, state.list, clipName, beamState()) : [];
+  // (a chain entry's pick is its motion's: a play of the entry reaches that motion once, so it advances once a play)
+  const seq = seqMotionNow(), pList = seq ? seq.list : state.list, pClip = seq ? seq.clip : clipName;
+  const names = pClip ? pickVariantsFor(state.id, pList, pClip, beamState()) : [];
   if (names.length){
-    const key = state.id + '|' + state.list + '|' + clipName;
+    // ONE PLAY IS ONE MOTION: keyed on the bare motion, so a _start running on into its own _loop, and a _loop wrapping,
+    // continue the play (the action goes on) -- counting each piece made every split clip advance its pick twice a play,
+    // so Nakarkos's cannon took every other shot action and a two-pick clip (Rajang's L2 M8) only ever one (2026-10-05)
+    const piece = pClip, base = String(pClip).replace(/_(start|loop)$/, ''), key = state.id + '|' + pList + '|' + base;
     if (names.join() !== rockPlays.names.join()) rockPlays.n = -1;             // another monster's picks: from its first
-    if (key !== rockPlays.key || act.time < rockPlays.time) rockPlays.n++;       // a new play of a throw
-    rockPlays.key = key; rockPlays.time = act.time; rockPlays.names = names;
+    const same = key === rockPlays.key;
+    const goesOn = same && (piece === rockPlays.piece ? (act.time >= rockPlays.time || /_loop$/.test(piece))
+                                                      : (/_loop$/.test(piece) && /_start$/.test(rockPlays.piece || '')));
+    if (!goesOn) rockPlays.n++;                                                // a new play of a throw
+    rockPlays.key = key; rockPlays.piece = piece; rockPlays.time = act.time; rockPlays.names = names;
   } else rockPlays.key = null;
   paintBeamLabel(names.length ? names[Math.max(0, rockPlays.n) % names.length] : null);
   const rt = effectRuntimeInstance(), P = rt && rt.parent;
   if (!P || !rt.schedule) return null;
   const y = monsterFloorY() / 0.01;
   const yaw = rt.schedule.ownerYaw16() * 2 * Math.PI / 65536;
-  const ahead = TARGET_AHEAD_BY_MON[state.id] || TARGET_AHEAD;
+  const ahead = TARGET_AHEAD_BY_MON[state.id] || TARGET_AHEAD, rise = targetRise(state.id);
   const picks = rockPlays.names;
   // THE WALL THE SHELLS ASK ABOUT IS THE ONE ON SCREEN. render/shells.js's stage stand-in answers a wall query when
   // the viewer supplies a plane, and Khezu's base03 casts one every move -- so the box's wall is handed over while it
@@ -7669,7 +7923,8 @@ function rockInput(){
   const wallAt = box.wall.on ? box.wall.info().at / 0.01 : 0;
   const wall = box.wall.on ? { axis: 'z', at: wallAt, facing: P.position[2] >= wallAt ? 1 : -1 } : undefined;
   return { variant: picks.length ? picks[Math.max(0, rockPlays.n) % picks.length] : null,
-           target: { x: P.position[0] + ahead * Math.sin(yaw), y, z: P.position[2] + ahead * Math.cos(yaw) },
+           target: { x: P.position[0] + ahead * Math.sin(yaw), y: rise != null ? P.position[1] + rise : y,
+                     z: P.position[2] + ahead * Math.cos(yaw) },
            floorY: y, wall };
 }
 
@@ -7703,6 +7958,44 @@ function stepJointScale(){
   }
 }
 
+// ---- Agnaktor's heat regions (render/monster.js ROM_HEAT_REGIONS, render/motion-states.js HEAT_CLIPS) ----------
+// heatClip: the regions the playing motion heats at this frame (driveMotionStates); heatCoolDraw: the motion is one
+// the cooled groups show in (the death clip); heatKey: what the parts and the hit zones were last applied for.
+// (Declared at the top of the module, beside rawParts: the first mount's applyPartState reads them before here.)
+// Each region's target: Heated (all six) OR Beam heated (the beam's regions) OR the clip's heat. dev/em049-heat.md 6.
+function heatTargets(){
+  const hs = heatSpecOf(state.id);
+  if (!hs) return null;
+  const on = {};
+  for (const r of hs.regions)
+    on[r] = !!state.heated || (!!state.beamHeated && hs.beam.indexOf(r) >= 0) || !!(heatClip && heatClip.has(r));
+  return on;
+}
+// NOT COOLED -- heating, molten or cooling -- as the region's material machine last stepped it (the hit zones and the
+// death clip's parts read the ROM's state 0 alone, 0xec0dbc / 0xec1cec); its target where no machine runs.
+function regionHot(region){
+  const st = (mounted.main && state.matAnim !== false) ? heatStageOf(mounted.main, region) : null;
+  if (st !== null) return st !== 0;
+  const t = heatTargets();
+  return !!(t && t[region]);
+}
+// the region's target as the toggles and the playing motion set it (heatTargets) -- what the Hit Zones panel shows
+function regionTarget(region){
+  const t = heatTargets();
+  return !!(t && t[region]);
+}
+// Once a frame, before the materials step: hand the machines their targets, and re-apply the parts (and with them
+// the hit-zone table) when a region's cooled state, its target (the zones follow it at once) or the death clip changes.
+function syncHeat(){
+  const hs = heatSpecOf(state.id);
+  if (!hs || !mounted.main){ heatKey = ''; return; }
+  mounted.main.userData.heatOn = heatTargets();
+  const key = (heatCoolDraw ? 'D' : 'P') + hs.regions.map(r => (regionHot(r) ? 1 : 0) + (regionTarget(r) ? 2 : 0)).join('');
+  if (key === heatKey) return;
+  const first = !heatKey;
+  heatKey = key;
+  if (!first) applyPartState();
+}
 function driveMotionStates(){
   const act = pose.action;
   const clipName = act && act.getClip ? act.getClip().name : null;
@@ -7715,7 +8008,12 @@ function driveMotionStates(){
   const now = performance.now() / 1000;
   const loopSeg = !!(clipName && clipName.endsWith('_loop'));
   const loopEnd = act ? loopStart + act.getClip().duration * 60 : 0;
-  const r = motionStates.step(state.id, state.list, base, act ? act.time * 60 + loopStart : 0,
+  // a chain entry on the Special list: the motion it plays now (seqMotionNow), its frame and its loop
+  const seq = seqMotionNow();
+  const r = seq ? motionStates.step(state.id, seq.list, seq.clip, seq.frame,
+                                    { loopStart: seq.loopStart || 0, loopEnd: seq.loopEnd, loopSeg: seq.loopSeg },
+                                    { rage: !!state.rage, level: state.level | 0, tired: exhausted() }, now)
+              : motionStates.step(state.id, state.list, base, act ? act.time * 60 + loopStart : 0,
                               { loopStart, loopEnd, loopSeg },
                               // `level` is the charge rung (render/motion-states.js CHARGE_EFFECTS): the
                               // records a class holds while a charge TIER is up rather than while a clip
@@ -7723,6 +8021,16 @@ function driveMotionStates(){
                               // like any other, and nothing new is needed here to apply them.
                               // `tired`: the Exhausted state (exhausted()), held over every clip as P+0x505 is
                               { rage: !!state.rage, level: state.level | 0, tired: exhausted() }, now);
+  // THE CLIP'S HEAT (render/motion-states.js HEAT_CLIPS, Agnaktor): the regions this motion heats at this frame; a
+  // play-once clip held on its last frame is over, and its regions go back to the toggles (Raven's "revert back to
+  // unheated when it finishes")
+  if (heatSpecOf(state.id)){
+    const ended = !!(act && act.loop === THREE.LoopOnce && act.time >= clipDur(act) - 1e-3);
+    heatClip = seq ? clipHeat(state.id, seq.list, seq.clip, seq.frame, ended)
+                   : clipHeat(state.id, state.list, base, act ? act.time * 60 + loopStart : 0, ended);
+    heatCoolDraw = (heatSpecOf(state.id).coolDraw || []).indexOf((seq ? seq.list : state.list) + '|' + (seq ? seq.clip : base)) >= 0;
+  } else { heatClip = null; heatCoolDraw = false; }
+  syncHeat();
   if (r.parts) applyPartState();
   // a change the motion begins after (death, well into its fall) is shown with its transitions over
   if (r.rage){ markStateChange(); if (r.settled) tStateChanged = -1e9; }
@@ -7833,9 +8141,28 @@ async function runScene(name){
   return sc;
 }
 window.__view = { camera, controls, scene, world, renderer, frameAll, pose, state, MON, mounted,
-                  monsterMats, runScene, capture: captureHarness, clip: clipHarness };
+                  monsterMats, runScene, capture: captureHarness, clip: clipHarness,
+                  // the attached bodies' pose and frames (Nakarkos's tentacles), for a harness that steps the body itself
+                  // (dev/shell-capture.mjs): the render loop runs it after the body's step, and without it their joints stay
+                  // at the bind pose
+                  stepAttached: () => stepAttached() };
 // ?shells: debug markers for the shells render/shells.js reproduces from the ROM (render/shells-debug.js)
 if (new URLSearchParams(location.search).has('shells')) import('./render/shells-debug.js').then(m => m.attachShellsDebug(window.__view));
+// __view.heat(): Agnaktor's heat regions as the display holds them -- targets, each region's machine stage (0 cooled,
+// 1 heating, 2 molten, 3 cooling) and clip, the clip's heat, whether the death clip's cooled parts are in play, and
+// the hit-zone table each zone slot reads (0 / 1) -- for a headless check (render/monster.js ROM_HEAT_REGIONS)
+window.__view.heat = () => {
+  const hs = heatSpecOf(state.id), root = mounted.main, e = entry();
+  if (!hs || !root || !e) return null;
+  const all = root.userData.romStage, rec = HITZONES.monsters && HITZONES.monsters[e.id];
+  const zt = rec && rec.tables && rec.tables.length > 1 ? zoneTable(e, rec) : null;
+  return { targets: heatTargets(), clip: heatClip ? [...heatClip] : [], coolDraw: heatCoolDraw,
+           regions: Object.fromEntries(hs.regions.map(r => {
+             const s = all && all.list.find(x => x.tbl && x.tbl.heat === r);
+             return [r, { stage: s ? s.stage : null, clip: s ? s.clip : null, hot: regionHot(r) }];
+           })),
+           zones: zt && zt.from ? zt.from.map(f => f[0]) : null };
+};
 
 // ---- BACKGROUND PANEL -------------------------------------------------------------------
 // A map's sky, scenery and ground behind the monster; render/background.js has the why and the how. Raven,
@@ -7941,6 +8268,7 @@ window.__view.effects = async (on, only) => {
   enableEffectMounts(on);
   if (!on) detachEffectMounts();
   else await attachEffectMounts(mounted.main, state.id, effectOnly);
+  refreshSharedRow();
   renderer.render(scene, camera);
   return { on: effectMountsEnabled(), mounted: effectMountsLive() };
 };
@@ -8062,6 +8390,9 @@ window.__view.tentacleAttach = mode => {
   }
   return out;
 };
+// An arm's own clip, read back (render/monster.js ROM_ARM_PAIRS): what the body and each arm are playing
+window.__view.arms = () => ({ body: armBodyShown, arms: [...attached].filter(([, a]) => !a.partner).map(([name, a]) =>
+  ({ name, clip: a.driver.action ? a.driver.action.getClip().name : null, idleWrap: !!a.idleWrap })) });
 // A combined partner (ROM_PARTNER_BODY), read back: __view.partner() reports; __view.partner(true / false)
 // switches it the way the row does and reports once it is mounted or dropped.
 // Rage and charge as the material step sees them (matAxes), `ahead` seconds from now, and what each swappable
