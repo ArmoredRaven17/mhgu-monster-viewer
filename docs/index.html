@@ -931,6 +931,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="field"><label for="setClipFmt">Clip format</label><select id="setClipFmt" title="A video keeps no transparency; a frame sequence does, and saves as a zip of numbered frames"><option value="mp4">Video</option><option value="webp">Frame sequence, WebP</option><option value="png">Frame sequence, PNG</option></select></div>
     <p class="hint" id="setClipHint"></p>
     <h3 class="stage-h">Theme</h3>
+    <label class="chk"><input type="checkbox" id="setDeviantTheme">Deviant Themes</label>
     <div id="swatches" class="swatches"></div>
     <button id="themeClose" class="btn accent">Done</button>
   </div>
@@ -1249,6 +1250,80 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       }
     }
 
+    // A DEVIANT WEARS ITS OWN THEME WHILE IT IS SELECTED. Raven, 2026-10-10: "Refer to the Challenge Apps for this. When a
+    // Deviant is selected, I want the theme to change to their theme", and "These themes for now will not be selectable".
+    // The behaviour and the derivation are the Challenge Apps' (MHGU Challenge Run docs/app.js applyTheme); the COLOUR is
+    // the Deviant's own pigment (below), keyed by this app's em id. It is shown, not chosen: the user's saved theme (KEY) is never overwritten, so picking any other monster puts
+    // it straight back. Several Deviant colours are LIGHT (Elderfrost #B8C6CE, Boltreaver #22D3DB), which this app's
+    // darken() would leave too light for its white text; so the Deviant path takes the Challenge Apps' own derivation,
+    // shade() -- the lightness held inside a fixed dark band whatever the colour -- for the surfaces, and this app's
+    // --cta / --stage on top.
+    // THE SECOND COLOUR OF EACH DEVIANT'S PIGMENT. Raven, 2026-10-10: "for the ones that have colors they can select, use
+    // the second color". Every Deviant unlocks a two-colour special pigment for armour (Color_Special_1..18, unlock bits
+    // +0xd18); the pairs are the ROM's own table, built at runtime by 0x560bd4 and read by 0x55f474(table, id - 2, which)
+    // with which = 1 the second colour, u32 0xAABBGGRR (red in the low byte, 0x5daad4) -- extracted by emulation
+    // (task board, Armor Viewer "Deviant Pigments"). All 18 have one, so all 18 take its second colour here.
+    // GRIMCLAW AND BOLTREAVER ARE SWAPPED from the table's order (11 Grimclaw #93F8FF, 16 Boltreaver #9CD3FF): Raven,
+    // 2026-10-10, "Switch Boltreaver and Grimclaw colors".
+    const DEVIANTS = {
+      em060_04: ["Redhelm Arzuros", "#FF4033"],     em061_04: ["Snowbaron Lagombi", "#8F43FF"],
+      em019_04: ["Stonefist Hermitaur", "#FCBAC4"], em001_04: ["Dreadqueen Rathian", "#FF0FBF"],
+      em066_04: ["Drilltusk Tetsucabra", "#FF763B"], em037_04: ["Silverwind Nargacuga", "#FFFFFF"],
+      em045_04: ["Crystalbeard Uragaan", "#FEE68D"], em018_04: ["Deadeye Yian Garuga", "#CDFAD0"],
+      em002_04: ["Dreadking Rathalos", "#FF2121"],  em057_04: ["Thunderlord Zinogre", "#FFF546"],
+      em032_04: ["Grimclaw Tigrex", "#9CD3FF"],     em080_04: ["Hellblade Glavenus", "#FF8E00"],
+      em079_04: ["Nightcloak Malfestio", "#273FE5"], em020_04: ["Rustrazor Ceanataur", "#BCFFFE"],
+      em082_04: ["Soulseer Mizutsune", "#FE97F0"],  em081_04: ["Boltreaver Astalos", "#93F8FF"],
+      em083_04: ["Elderfrost Gammoth", "#C5DEE4"],  em007_04: ["Bloodbath Diablos", "#FF2929"],
+    };
+    // the Challenge Apps' shade: hue and saturation kept, lightness mapped into lo..hi by the colour's own lightness
+    const shade = (rgb, lo, hi) => { const [h, s, l] = rgbToHsl(rgb); return hslToRgb([h, s, clamp01(lo + (hi - lo) * l)]); };
+    const lightenMin = (rgb, b, minL) => { const [h, s, l] = rgbToHsl(rgb); return hslToRgb([h, s, clamp01(Math.max(l + (1 - l) * b, minL))]); };
+    let deviant = null;              // the em id whose theme is showing, or null: the user's own
+    function applyDeviant(id) {
+      const [name, hex] = DEVIANTS[id];
+      const c = hexRgb(hex), r = document.documentElement.style;
+      r.setProperty("--bg", css(shade(c, .10, .28)));
+      r.setProperty("--bg1", css(shade(c, .085, .23)));
+      r.setProperty("--bg2", css(shade(c, .07, .19)));
+      r.setProperty("--hover", css(shade(c, .17, .35)));
+      r.setProperty("--accent", css(shade(c, .10, .28)));
+      r.setProperty("--accent-hover", css(lightenMin(c, .40, .62)));
+      r.setProperty("--cta", css(complement(c)));
+      r.setProperty("--stage", STAGES[stageMode] || css(shade(c, .04, .12)));
+      r.setProperty("--text", "#ffffff");
+      r.setProperty("--text-dim", "#fffffff5");
+      r.setProperty("--line", "rgba(11, 8, 8, 0.12)");
+      r.setProperty("--card", "rgba(255,255,255,0.05)");
+      document.documentElement.classList.toggle("chroma", stageMode !== "theme");
+      const icon = document.querySelector(".title-icon");
+      if (icon) { icon.src = monsterIcon(name); icon.alt = name; icon.onerror = () => { icon.onerror = null; icon.src = FALLBACK_ICON; }; }
+    }
+    // THE SETTING. Raven, 2026-10-10: "Add a setting to turn off the Deviant themes if the user wishes". On by default,
+    // remembered in this browser; off, a Deviant shows the user's own theme like any other monster.
+    const DEVIANT_KEY = "mhgu-monster-viewer-deviant-theme";
+    let deviantOn = true;
+    try { deviantOn = localStorage.getItem(DEVIANT_KEY) !== "off"; } catch (e) { /* private mode */ }
+    let shownId = null;              // the monster on screen, so a change of the setting applies at once
+    // called by the monster mount (window.__themeForMonster): a Deviant shows its theme, anything else the user's own
+    window.__themeForMonster = (id) => {
+      shownId = id;
+      const next = deviantOn && DEVIANTS[id] ? id : null;
+      if (next === deviant) return;
+      deviant = next;
+      if (deviant) applyDeviant(deviant);
+      else applyTheme(current);
+    };
+    const devBox = document.getElementById("setDeviantTheme");
+    if (devBox){
+      devBox.checked = deviantOn;
+      devBox.onchange = () => {
+        deviantOn = devBox.checked;
+        try { localStorage.setItem(DEVIANT_KEY, deviantOn ? "on" : "off"); } catch (e) { /* private mode */ }
+        window.__themeForMonster(shownId);
+      };
+    }
+
     function renderSwatches() {
       const grid = document.getElementById("swatches");
       if (!grid) return;
@@ -1268,7 +1343,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         const span = document.createElement("span");
         span.textContent = t.name;
         b.append(img, span);
-        b.addEventListener("click", () => applyTheme(t.hex));
+        b.addEventListener("click", () => { applyTheme(t.hex); if (deviant) applyDeviant(deviant); });
         grid.appendChild(b);
       }
     }
@@ -1288,6 +1363,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       try { localStorage.setItem(STAGE_KEY, stageMode); } catch (e) { /* private mode */ }
       for (const m in STAGE_BTN) document.getElementById(STAGE_BTN[m]).classList.toggle("on", m === stageMode);
       applyTheme(current);   // re-derives --stage and repaints the scene
+      if (deviant) applyDeviant(deviant);
     }
     for (const m in STAGE_BTN) document.getElementById(STAGE_BTN[m]).onclick = () => setStage(m);
     setStage(stageMode);
@@ -4941,6 +5017,7 @@ async function remount({ play: withPlay = true, frame = true } = {}){
 async function mount(){
   const e = entry();
   const mine = ++seq;
+  if (window.__themeForMonster) window.__themeForMonster(e ? e.id : null);   // a Deviant wears its own theme
   if (!e) { clearMounts(); return; }
   setLoading(true);
   // finally, not a plain call at the end: the superseded path below returns early and a throw
