@@ -626,11 +626,33 @@ source and this map did not point at it.** Board section: *"Raging Brachydios's 
 | `0x3f7724` → `0x7c9234` | game RNG: xorshift128, u32 out (`[obj+0x20..0x2c]` state) | R | same |
 | `0x127fb0` / `0x128410` | skill-row / slot-row getters: `[res+0x6c] + i*8`, count `[res+0x64]` | R | same |
 | `rodata 0x15504b8..0x155054c` | reflection names: `cAmuletSkillBase {mSkillType, mMinValue, mMaxValue}`, `cAmuletSlotBase {mProb[0..3]}` — no weight field | R | same |
+| `0x39c1a8` | `rRem` (type `0x5b3c302d`) record getter: `[res+0x6c] + i*0xb4`; record `+4 mFlag[8]`, `+0xc mFlagNum[8]`, `+0x14` entries `{u8 rate, u8 count, u16 item}` | R | `charm/charm-roll.md` "Quest rewards" |
+| `0x37bbfc` | `(record, key)` → item list of the group whose **mFlag == key** (mFlag is a key, not a count) | R | same |
+| `0x382314` | **sub-quest reward roll**; rolls from `sxtb questData+0x56` (mRemAddLotMax): `1+ceil(x/2)`, +1 at 11/16 up to `x+4`; `u16 rand % Σrate` per roll. Called `0x3875f4` behind `0x3a1fcc(quest,2)` (sub objective done). ROM-run vs `charm/questfarm.py`: 0 mismatches | R | same |
+| `0x381a68` | bonus boxes mRemTbl_Add1/Add2: per group, switch on key (table `0x381cc8`); keys 25–35 pay when `[10,15,20,25,30,40,50,60,70,80,90][key-25] <= s16 [state+0x9a]` | R | same |
+| `0x3b3478` | delivery: sets `state+0x9a` = count of the delivery-target item (`+0xf0`) in the box | R | same |
+| `0x3a2a54` / `0x3a2a78` / `0x3a2a9c` | quest-link getters: mRemTbl_Add1 / Add2 / Sub (`link+0x2c/0x30/0x34`) | R | same |
+| questData file `0x55/0x56/0x57` | = in-memory `+0x54/0x55/0x56` mRemAddFrame_1 / _2 / mRemAddLotMax | I | same — by survey of all 1,849 quest files, not by reading the loader |
+
+### Spawn size type → scale and appearance (Viewer agent's sizes pass, 2026-09-13; indexed here 2026-10-08 by the General Agent, not re-read)
+
+The reads were recorded only in `docs/part-review.json` (`<id>.sizes.note`) and were missing from this map. St is as that note records it.
+
+| addr | what | class | st | detail |
+|---|---|---|---|---|
+| `0x6fb68` | spawn entry (36 bytes, every `rEmSetList` in `loc\arc\quest` and `arc\quest`) byte `+7` = size type → `em+0x5cb6` | shared | R | part-review.json, any `sizes.note` |
+| `0xb94d0` | dtbase's multiplier loaded into `mEmScale` `em+0x1ac`, before vt slot `0x1d8` turns the size type into the scale | shared | R | same |
+| `0x10cc078` | Kelbi vt `0x1d8`: types 1..3 × table `0x16a3b48` (0.85 / 1.3 / 1.1), type 0 unchanged | uEms003_00 | R | part-review.json `ems003_00` |
+| `0x10cf44c` | Kelbi vt `0x210`: **the same size type picks the part group** — type 0 → group 2 (4,5,104), 1 → group 0 (1,2,101), 2 → group 3, 3 → group 1; spawns use only 0 and 1 | uEms003_00 | R | same |
+| `0x10f1788` (`0x10f18c8` / `0x10f18e4` / `0x10f1918`) | Bnahabra vt `0x1d8`: types 2/5/8/11 → 1.0, others 0.6; types come in threes and the first of each also sets other parameters (unread) | uEms026_00 | R | part-review.json `ems026_00` |
+| `0x110d5b8` (`0x110d684`) | Konchu vt `0x1d8`: type 100 → 2.0; types 1..3 change something other than size (unread); type 0 is replaced by one of 1..3 through a virtual call (unread) | uEms045_00 | R / unread | part-review.json `ems045_00` |
 
 ### Withdrawn — kept so they are not rediscovered
 
 | claim | why wrong | correction |
 |---|---|---|
+| index.html heat-map note "AN ATTACHED BODY HAS NO HIT ZONES YET" and the board (2026-09-13): the tentacles' 16 capsules each are "on the body's Back / Shell / Head rows" | no read: the slot words are 0 / 1 / 2, and the arc has no arm damage table, so which table they index is unread | slots 0 / 1 / 2 = tip / middle / base by joint; ~~the table is NOT READ~~ READ 2026-10-08: they index the ARM's own `ems099_00_dttune` table 0 (63 / 36 / 15 cut), not the body's rows (section "Nakarkos -- the tentacles' hit zones", dev/em084-arm-hitzones.md) |
+| row "`enemy\dt_tune\em084_00_dttune`" (section "Nakarkos -- the tentacles' hit zones", **Viewer agent, 2026-10-08**): "the ONLY damage table in the arc ... No arm dt_tune / dt_base file exists", and the NOT READ row's guess "the arm's own load of em084_00_dttune (then tip / middle / base = Back / Shell / Head values, 30 / 15 / 65 cut)" | searched the arc by file NAME (`em084_00_*`); the arm's table ships under ANOTHER em id, so the name search could not find it | the arm loader requests res `0x8390` / `0x8391` = `enemy\dt_base\ems099_00_dtbase` / `enemy\dt_tune\ems099_00_dttune` (`0x107bfb4`, `0x70960` → `arm+0x75e8` / `+0x75ec`); tip / middle / base = **63 / 36 / 15** cut, the reverse order of the guess (dev/em084-arm-hitzones.md §1, §2) |
 | Charms row "`0x196290` … callers, sItem unit: flag 1, kind fixed Enduring `0x164` / Timeworn `0x163`" (**charm agent, 2026-10-08**) | read only the instructions just before each `bl`; at `0x196290` those are the LAST arm (Enduring) of a 4-way switch that falls into one shared call | `0x196188` switches on the slot type: arms `0x1961d8 / 0x196204 / 0x196230 / 0x19625c` load `0x161..0x164` and all reach `0x196290`. Only the Juju sites (`0x19667c`, `0x196720`) are fixed. Charms section, `charm/charm-roll.md` |
 | monster.js ROM_STAGE_CLIPS em033_00 (comment, before 2026-10-08): "Angry_Start on slot 1 of the THREE materials ctl+0x3c XfB__m02_eye, ctl+0x40 XfB__m06_body_add02, ctl+0x44 XfB__m03_sukima"; the other three "XfB__m05_body_add01 (ctl+0x30), XfB_N__E0__m01_body (ctl+0x34), XfB_N__E0__m00_face (ctl+0x38)"; and the entry had no rest clip | the cache `0xe362a4..0xe36324` stores by MRL id: +0x3c is m04__kekkan (the eye has no Angry_Start, so the machine would stall at `0xe377d4` if it were); m00_face is not cached; with no rest clip the eye kept Angry's orange texture after the first rage | the six are m01_body / m02_eye / m03_sukima / m04__kekkan / m05_body_add01 / m06_body_add02 at +0x30..+0x44; the entry is now `layered` with `rest: 'Normal'` (Akantor section above) |
 | dev/em081-shells-spec.md §3b's base15 move pseudo-code (**research agent, 2026-10-07**): "TURN: v = (−(sgn·A), 0, speed) turned Z, X, Y by the shell's words … S.velocity = (v / \|v\|) × speed" | the helper's bit-exact model (scratchpad bolt15/run_move.py `step`, 1,635 steps against the ROM) turns it by `+0x1748..+0x1750` (0, the owner's Y word, 0) and renormalises the OLD velocity (the transcription matches the helper's checkpoints only that way) | the turn as run_move.py has it (Boltreaver section, implementation rows: "base15 move turn") |
@@ -1016,6 +1038,24 @@ Transcribed: docs/effects/em084_00.json c 131 `when: clip` (was `calm`), CLIP_EF
 | `0x107f0e4` / `0x107f0d4` | **uEmOstgaloaArm vt +0x13c / +0xf0** (vtable 0x17f6498): per arm motion l/r_2 M1/5/6/13/14/28/50/51/86 by body action (7, 0x44/45/69/6a/9b/9c -> 15-17; 0x4a/4b -> 18-20) and arm action (table 0x107f398); M92/M93 by skull form -> table 0x1592ae8 {0x38000, 0x1c0000, 0xe00000, 0x7000000} | uEmOstgaloaArm | R (arm+0xcadc = body is I) | dev/em084-psl-mask.md §6 |
 | trap | Nakarkos's c 140 (`em084_00_008`, rock models cm202_020_g) on L0 M1 is NOT an idle effect: the class enables bit 15 only in the buried hold of (13, 0). Every other bit 0-5 of his body PSLs (all the c 135 bindings) always fires | — | R | dev/em084-psl-mask.md §3 |
 | transcribed | the enable word: docs/render/psl-mask.js CLASS_MASK.em084_00 (body lists only; pslMask returns null for l_N / r_N), PSL_MASK_MONSTERS, CLIP_ACTIONS em084_00 '2|Motion[23]' (2026-10-05, dev/em084-psl-mask.md; emulated, identical words) | R | psl-mask.js |
+
+### Nakarkos -- the tentacles' hit zones (Viewer agent, 2026-10-08)
+
+Raven: "Can you double check if Nakarkos tentacles have a hit zone table or not".
+
+| addr | what | class | st | detail |
+|---|---|---|---|---|
+| `enemy\body_data\em084_00_arm_left_bodydata` / `_arm_right_bodydata` | the arms' OWN capsules: 764 B, 17 records (16 + the 0xFFFF terminator), identical left and right. Slot (+6): **0** bones 11-12 (the tip, 4 capsules), **1** bones 4-10 (the middle, 9), **2** bones 0-3 (the base, 3). Flag word (+0xa) `0x804` / `0x884`: no bit of `0x152`, so the common attack types COUNT them (0x16bc54) | uEmOstgaloaArm | R (the file) | this row |
+| `enemy\dt_tune\em084_00_dttune` (+ `dt_base\em084_00_dtbase` / `_dtbparts`) | the BODY's damage table: 2 tables x 8 rows, the body's 7 zones (Back, Shell, Head, Fin, Body, Blowhole, Weakpoint) + an empty row 7. ~~the ONLY damage table in the arc; no arm dt_tune / dt_base file exists~~ **WITHDRAWN 2026-10-08 (the Withdrawn table): the arc also ships `ems099_00_dttune` / `_dtbase` / `_dtbparts`, and the arm loads the first two** | uEm084_00 | R (the file) | docs/hitzones.json em084_00 |
+| `0x107bfb4..0x107bff4` (arm loader `0x107ba5c`, extent `..0x107c02c`) | res **`0x8390` = `enemy\dt_base\ems099_00_dtbase`** → `arm+0x75e8`, **`0x8391` = `enemy\dt_tune\ems099_00_dttune`** → `arm+0x75ec` via `0x70960` (its ONLY caller); fixed ids, both kinds. Also `0x838c/d` arm bodydata → `+0x75cc` (`0x70924`), `0x838e/f` cambodydata → `+0x75d0`, `0x838a` arm_attackdata → `+0x75d4`, `0x838b` arm_hitsize → `+0x75dc`; no dtbparts (`0x8392`) | uEmOstgaloaArm | R | dev/em084-arm-hitzones.md §1 |
+| `ems099_00_dttune` table 0 rows 0 / 1 / 2 | **THE ARM'S HIT ZONES**, slots tip / middle / base: cut/impact/shot **63/63/35** fire 15 thunder 10 dragon 20; **36/36/25** fire 5 dragon 10; **15/15/10** no element; stun / exhaust 0. ONE block (header byte 0x12 = 1, so `[dt+0x10]` = 0 and `0xbaafc` is a no-op): no state switch | uEmOstgaloaArm | R | §2 |
+| `0xbaaa4(E, slot)` / `0xbab38` / `0x57684` | the hit's row: every handler passes `ldrb [rec,#6]` → `[[E+0x1428]+0x418+4*slot]` of the STRUCK unit (slot >= 8 → vt `+0x314`); the reset writes `P+0x418+4k = [[E+0x75ec]+0x64]+0xc + 10k`; the dtt loader puts table 0 at `[dt+0xc]` (file: 0x38 hdr, u32, 0x50 parts, hdr[8] preamble, 0x50) and table 1 at `[dt+0x10]` only when hdr[0x12] == 0 | shared | R | §2 (closes hitzone-capsules.md's "where the handler reads the row") |
+| `0x107b440` → `0xc9df4` → `0xad4e0` → `0xa4b90` → `0xbab38` | the arm's activation (vt `+0x18` `0x107b3a4`) resets its rows from its own `+0x75ec`; no other meat call or `P+0x418` write reaches an arm (Nakarkos code: only the body's `0x1069c08` / `0x1069c18`, on the body) | uEmOstgaloaArm | R | §2 |
+| `arm+0x7648` / `0xadd7c` | the arm's setup writes `+0x7648 = 1` (`0x107b3c4`; the only writer besides the ctor's zero `0x6db24`); the update `0xada80` then SKIPS the damage step `0xa5844` → `0x97d20`, the only HP (`P+0x370`) subtracter (`0x98a48` / `0x98b04` / `0x996e8`) -- **the arm takes no damage of its own** | uEmOstgaloaArm | R | §3 |
+| `0x1066048` (body vt `+0x1e8`) → `0x106cdd4(body, side)` | before the body's damage step: left arm's `P+0x444` set → side 0 (arm `body+0xcc00`, **body part 1**), else right arm's → side 1 (`body+0x19750`, **body part 0**); copies the arm's hit block `P+0x444..0x4fc` (arm part-0 damage `P+0x488` → body `P+0x488+2*part`) and `E+0x142c..0x1431` into the body, which charges its **HP** (sum of `P+0x488`, `0x986a0` → `0x98b04`) and part counter `P+0x3be+12*part` (`0x98690`) | uEm084_00 | R | §3 |
+| `0x107d704` (arm vt `+0x2a8`) | arm group word `P+0x3b4` = 0 each frame, bit 15 set on motion `0x21b` / `0x21c` (l_2 / r_2 M27 / M28) when `0xb0968(arm, 2, 0, 120.0, 0.0)` passes → record 1 (tip sphere r330, mask `0x8000`) off; no meat call | uEmOstgaloaArm | R (mode 2 I) | §4 |
+| `0x107ddbc` (arm vt `+0x344`) / `0x106ef7c` / `0x16c560` | 0 when `[attack+0xb5]` bit 5 (set after a hit on em `0x63` arm or `0x54` body) or any of body / left / right holds `P+0x444`; INFERRED one Nakarkos unit per swing / frame; its consumer NOT READ | uEmOstgaloaArm | R (code) / I (purpose) | §4 |
+| VIEWER (2026-10-09) | **baked**: build-hitzones.py `bake_attached` (`--attached em084_00` updates only this monster; table 0 at 0x8c + header byte 8, the loader 0x57684's own layout) -> docs/hitzones/em084_00_left.bin / _right.bin and hitzones.json `attached` {tables, names, bodyPart, prims, slots}; index.html heatEach paints each tentacle from its own zones in the damage and hardness maps and the charts list Tentacle Tip / Middle / Base (zoneChartRows). Extracts: NOT READ for a tentacle hit, left gray | — | viewer | index.html zoneChartRows / heatEach |
 
 ### Nakarkos -- his aura, shell06 on base06 (research agent for the Viewer agent, 2026-10-05; dev/em084-shell06-aura.md)
 
@@ -1417,6 +1457,7 @@ so in their own titles; the Effects lane's are the effect / twin / retro files.
 | `em081-shells-spec.md` | Boltreaver's shells: every spawn by action (emulated), the readers, base14 / base15 / base50, the c 30 motion table, shell11's spiral -- the Viewer agent's spec for Group D | 2026-10-07 | ~45 KB |
 | `effect-ground-ray.md` | The effect ground ray: 0x42744's ray arm, 0x18154c's answer, u 605 (Boltreaver L9 M22), the stand-in floor service | 2026-10-07 | 24 KB |
 | `effect-bb43ac-flag8.md` | why 0xbb43c8's arm was never recorded: the shell recorder builds primitive records but never draws the layer; vecprim.py covers it | 2026-10-05 | 14 KB |
+| `em084-arm-hitzones.md` | Nakarkos's tentacles' hit zones: their own table `ems099_00_dttune` (tip / middle / base 63 / 36 / 15 cut), the hit's row path `0xbaaa4`, the arm's skipped damage step (`+0x7648`) and the copy into the body's HP and part 1 / 0 (`0x106cdd4`); what the viewer should bake | 2026-10-08 | 12 KB |
 | `em084-shell31-cannon.md` | Nakarkos's wave-motion cannon: the shot 0x10767c0, base31 (vtable 0x1750fec) and shell31; the viewer's spec | 2026-10-05 | 22 KB |
 | `em084-shell06-aura.md` | Nakarkos's aura: base06 (vtable 0x174ed48) and shell06, the manager 0x106aa48, the viewer's spec | 2026-10-05 | 20 KB |
 | `em084-psl-mask.md` | Nakarkos's PSL enable word (vt+0x13c 0x106cae8): c 140 debris only in the buried hold of (13, 0); L2 M23 by action; L3 M63; the tentacles' 0x107f0e4 | 2026-10-05 | 14 KB |
@@ -1939,3 +1980,8 @@ otes` (82 files)
    so the check reports "game 9, js unwritten" on Boltreaver's u 604 (shipped) and u 605 alike. The viewer is unaffected: the
    lifted caller passes its real r12, and the soak / live / sweep play the motions clean. A 0/N on such a routine is the
    harness, not the lift; carrying r12 needs the recorder to log it (vectors.py) and runLifted to seed it.
+49. **An arc can carry a class's data under ANOTHER monster's id -- find a class's files by its loader's resource ids, not
+   by file name (2026-10-08).** "No arm dt_tune in em084_00.arc" came from a name search for `em084_00_*`; the arm loads
+   `ems099_00_dttune` / `_dtbase` (res `0x8390` / `0x8391`, `0x107bfb4`), shipped in the same arc. Resolve every
+   `0x152530(rm, id, dti)` in the loader against the arc (`0x159daa0` hashes, scratchpad `resids.py` method:
+   `~crc32(lowercase backslash path)`) before calling a file absent.

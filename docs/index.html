@@ -5162,16 +5162,26 @@ function applyUndef(){
 // (Raven, 2026-09-05: "the idea will be to display the Hitzone chart along with the Heatmaps").
 // Clicking a column header selects that damage type, so the chart IS the heat-map control.
 // AN ATTACHED BODY HAS NO HIT ZONES YET, SO IT GOES DARK GRAY. Nakarkos' tentacles carry their own
-// rBodyData -- em084_00_arm_left_bodydata.bdd and _arm_right, 16 capsules each on the body's Back /
-// Shell / Head rows -- but build-hitzones.py reads only <em>_bodydata.bdd and bakes only the body
-// model, so the tentacles have no slots at all. Painting them with the BODY's zone map was worse than
+// rBodyData -- em084_00_arm_left_bodydata.bdd and _arm_right, 16 capsules each with slot words 0 / 1 / 2 (tip /
+// middle / base) -- but the arc ships NO arm damage table and which table those slots index is not read (CORRECTED
+// 2026-10-08: this note said "on the body's Back / Shell / Head rows", which no read supports). build-hitzones.py
+// bakes only the body model, so the tentacles have no painted slots; their capsules are drawn by position from the
+// Capsule dropdown (hitzones.json `attached`, attachedZoneCapsules). Painting them with the BODY's zone map was worse than
 // nothing: their prim numbers index a different model, so most prims were left in full colour beside
 // a heat-mapped body. Raven, 2026-09-13: "If we don't have hit zones for tentacles, make them a dark
 // gray when heat mapping the main body." Painted through applyHeatmap itself, with every vertex on a
 // dummy slot, so clearHeatmap restores them exactly as it restores everything else.
 const NO_ZONE_RGB = [0.22, 0.22, 0.24];
-function heatEach(e, paint){
+// A TENTACLE WITH ITS OWN ZONES IS PAINTED FROM THEM (2026-10-08, dev/em084-arm-hitzones.md): `paintOwn(g, att, zones)`
+// paints an attached body that hitzones.json `attached` gives a table and a bake (its own .bin, loaded into
+// zoneCache.attached). A map the attached zones do not answer -- the Extracts map, whose colour for a tentacle hit is
+// NOT READ -- passes no paintOwn, and the body stays dark gray as before.
+function heatEach(e, paint, paintOwn){
+  const rec = e && HITZONES.monsters && HITZONES.monsters[e.id];
   for (const [name, g] of Object.entries(mounted)){
+    const own = paintOwn && rec && rec.attached && rec.attached[name];
+    const zones = own && zoneCache && zoneCache.attached && zoneCache.attached[name];
+    if (own && zones){ paintOwn(g, own, zones); continue; }
     if (name !== 'main' && (attachedBodyOf(e && e.id, name) || (attached.get(name) || {}).partner)){
       const zones = {};
       g.traverse(o => {
@@ -5479,7 +5489,13 @@ async function applyHeat(){
   if (!zoneCache || zoneCache.id !== e.id){
     const res = await fetch(rec.bin);
     if (!res.ok) throw new Error('hit zones missing: ' + rec.bin + ' (' + res.status + ')');
-    zoneCache = { id: e.id, zones: parseZones(await res.arrayBuffer(), rec.prims) };
+    zoneCache = { id: e.id, zones: parseZones(await res.arrayBuffer(), rec.prims), attached: {} };
+    // an attached body's own bake (build-hitzones.py bake_attached): one .bin per model
+    for (const [model, a] of Object.entries(rec.attached || {})){
+      if (!a.bin) continue;
+      const r2 = await fetch(a.bin);
+      if (r2.ok) zoneCache.attached[model] = parseZones(await r2.arrayBuffer(), a.prims);
+    }
   }
   const zt = zoneTable(e, rec);
   const tsel = document.getElementById('monHeatTable');
@@ -5537,9 +5553,19 @@ async function applyHeat(){
       const lv = hardnessLevel(row[type], t, tier);
       if (lv !== null) bySlot[slot] = SHARP_RGB[lv];
     });
-    heatEach(e, g => applyHeatmap(g, zoneCache.zones.slots, null, 1, THREE, bySlot));
+    heatEach(e, g => applyHeatmap(g, zoneCache.zones.slots, null, 1, THREE, bySlot),
+             (g, att, z) => {
+               const own = {};
+               att.tables[0].forEach((row, slot) => { const lv = hardnessLevel(row[type], t, tier); if (lv !== null) own[slot] = SHARP_RGB[lv]; });
+               applyHeatmap(g, z.slots, null, 1, THREE, own);
+             });
   } else if (shownHeat){
-    heatEach(e, g => applyHeatmap(g, zoneCache.zones.slots, value, HEATSCALE, THREE));
+    heatEach(e, g => applyHeatmap(g, zoneCache.zones.slots, value, HEATSCALE, THREE),
+             (g, att, z) => {
+               const own = {};
+               att.tables[0].forEach((row, slot) => { own[slot] = heatShape(state.heat, row[state.heat]); });
+               applyHeatmap(g, z.slots, own, HEATSCALE, THREE);
+             });
   } else {
     for (const g of Object.values(mounted)) clearHeatmap(g);
   }
@@ -5599,6 +5625,18 @@ function markUnpainted(th, rec, sl){
   }
 }
 // `from`, on a state table, says which of the file's rows each slot reads (zoneTable), shown on the name's tooltip.
+// THE ROWS A ZONE CHART LISTS: the body's slots, then an attached body's own (Nakarkos's tentacles -- hitzones.json
+// `attached`, their own table ems099_00_dttune, dev/em084-arm-hitzones.md). Raven, 2026-10-08: "once we know what zones
+// they belong to, then we can show them in detail". Both arms read the one table (the loader's file id is fixed), so the
+// three rows are listed once, picking the `arm` kind that draws both sides' capsules (attachedZoneCapsules).
+function zoneChartRows(rec, table){
+  const named = zoneNames(rec);
+  const rows = zoneSlots(rec).map(sl => ({ kind: 'slot', sl, name: named[sl] || 'Slot ' + sl, row: table[sl] }));
+  const att = Object.values((rec && rec.attached) || {}).find(a => a.tables && a.tables[0]);
+  if (att) for (const sl of att.slotsDefined || [])
+    rows.push({ kind: 'arm', sl, name: (att.names && att.names[sl]) || ATTACHED_ZONE_NAMES[sl] || 'Tentacle slot ' + sl, row: att.tables[0][sl] });
+  return rows;
+}
 function buildTypeChart(el, types, rec, table, from){
   const named = zoneNames(rec);
   const slots = zoneSlots(rec);
@@ -5618,17 +5656,20 @@ function buildTypeChart(el, types, rec, table, from){
     head.appendChild(th);
   }
   const body = el.createTBody();
-  for (const sl of slots){
+  for (const z of zoneChartRows(rec, table)){
+    const sl = z.sl;
     const tr = body.insertRow();
     const th = document.createElement('th');
-    th.textContent = named[sl] || 'Slot ' + sl;
-    markUnpainted(th, rec, sl);
-    if (from && from[sl]) th.title = (th.title ? th.title + ' ' : '') + 'Table ' + from[sl][0] + ', row ' + from[sl][1] + '.';
-    zoneRow(tr, th, 'slot', sl);
+    th.textContent = z.name;
+    if (z.kind === 'slot'){
+      markUnpainted(th, rec, sl);
+      if (from && from[sl]) th.title = (th.title ? th.title + ' ' : '') + 'Table ' + from[sl][0] + ', row ' + from[sl][1] + '.';
+    } else th.title = 'The tentacles’ own table (ems099_00_dttune), row ' + sl + '.';
+    zoneRow(tr, th, z.kind, sl);
     tr.appendChild(th);
     for (const t of types){
       const td = tr.insertCell();
-      const v = table[sl] && table[sl][t];
+      const v = z.row && z.row[t];
       td.textContent = v === undefined ? '?' : v;
       if (v !== undefined){
         const c = heatColor(Math.max(0, Math.min(1, heatShape(t, v) / HEATSCALE)));
@@ -5694,6 +5735,12 @@ function paintZonePick(){
   const key = shown ? pick.kind + ':' + pick.index : null;
   if (zoneShape && (zoneShape.userData.key !== key || zoneShape.userData.root !== mounted.main)){
     scene.remove(zoneShape); zoneShape.userData.dispose(); zoneShape = null;
+  }
+  if (shown && !zoneShape && pick.kind === 'arm'){
+    zoneShape = attachedZoneCapsules(rec, pick.index, { color: zoneColourNow().rgb });
+    zoneShape.userData.key = key;
+    zoneShape.userData.root = mounted.main;
+    scene.add(zoneShape);
   }
   if (shown && !zoneShape){
     const picked = zoneShapesFor(rec, pick);
@@ -5801,7 +5848,50 @@ function buildZoneCapSel(rec){
     o.value = value; o.textContent = text;
     sel.appendChild(o);
   }
+  // AN ATTACHED BODY'S OWN CAPSULES (hitzones.json `attached`): listed by their own slot, not under the body's names
+  for (const [value, text] of attachedZoneOptions(rec)){
+    const o = document.createElement('option');
+    o.value = value; o.textContent = text;
+    sel.appendChild(o);
+  }
   paintZoneCapSel();
+}
+// NAKARKOS'S TENTACLES CARRY THEIR OWN CAPSULES. Raven, 2026-10-08: "add the capsule data to the viewer", "simply add
+// them in for now, once we know what zones they belong to, then we can show them in detail". Each arm ships its own
+// rBodyData (enemy/body_data/em084_00_arm_left_bodydata / _right: 16 capsules, identical) whose slot word reads 0 at the
+// tip (joints 11-12), 1 along the middle (4-10) and 2 at the base (0-3) -- but the arc has no arm damage table, and
+// which table those slots index is NOT READ yet (dev/rom-map.md "Nakarkos -- the tentacles' hit zones"). So they are
+// offered by POSITION, drawn on the tentacle models' own joints, and joined to no damage row and no body name: slot 0
+// here is not the body's Back. The flag rule is the body's (zoneShapesFor): a word with any bit of 0x152 is never
+// counted by the common attacks and is not drawn -- none of the arms' 0x800 / 0x804 / 0x884 has one.
+const ATTACHED_ZONE_NAMES = ['Tentacle Tip', 'Tentacle Middle', 'Tentacle Base'];
+function attachedZoneOptions(rec){
+  const att = rec && rec.attached;
+  if (!att) return [];
+  const slots = new Set();
+  for (const a of Object.values(att)) for (const c of a.capsules || []) slots.add(c[0]);
+  return [...slots].sort((a, b) => a - b).map(sl => ['arm:' + sl, ATTACHED_ZONE_NAMES[sl] || 'Tentacle slot ' + sl]);
+}
+function attachedZoneCapsules(rec, slot, opts){
+  const group = new THREE.Group();
+  group.name = 'zone-capsules-attached';
+  const parts = [];
+  for (const [model, a] of Object.entries((rec && rec.attached) || {})){
+    const root = mounted[model];
+    if (!root) continue;
+    const flags = a.capsuleFlags || [];
+    const rows = (a.capsules || []).filter((c, i) => c[0] === slot && ((flags[i] || 0) & 0x152) === 0);
+    const g = zoneCapsules(root, rows, opts);
+    parts.push(g);
+    group.add(g);
+  }
+  group.userData.placed = parts.reduce((n, g) => n + g.userData.placed, 0);
+  group.userData.skipped = parts.reduce((n, g) => n + g.userData.skipped, 0);
+  group.userData.readback = () => parts.flatMap(g => g.userData.readback());
+  group.userData.setColor = c => { for (const g of parts) g.userData.setColor(c); };
+  group.userData.getColor = () => parts.length ? parts[0].userData.getColor() : null;
+  group.userData.dispose = () => { for (const g of parts) g.userData.dispose(); };
+  return group;
 }
 // The dropdown shows the pick however it was made; a pick from another monster reads Off. A part record picked in the
 // chart's Extracts table is not offered here, so it is SHOWN by an item the list does not open to.
@@ -5820,7 +5910,7 @@ function paintZoneCapSel(){
   sel.value = [...sel.options].some(o => o.value === want) ? want : '';
 }
 document.getElementById('monZoneCap').onchange = e => {
-  const m = /^(slot|part):(\d+)$/.exec(e.target.value);
+  const m = /^(slot|part|arm):(\d+)$/.exec(e.target.value);
   zonePick = m ? { id: (entry() || {}).id, kind: m[1], index: +m[2] } : null;
   paintZonePick();
 };
@@ -5893,16 +5983,17 @@ function buildHardnessChart(rec, table){
     head.appendChild(th);
   }
   const body = chart.createTBody();
-  for (const sl of slots){
+  for (const z of zoneChartRows(rec, table)){
+    const sl = z.sl;
     const tr = body.insertRow();
     const th = document.createElement('th');
-    th.textContent = named[sl] || 'Slot ' + sl;
-    markUnpainted(th, rec, sl);
-    zoneRow(tr, th, 'slot', sl);
+    th.textContent = z.name;
+    if (z.kind === 'slot') markUnpainted(th, rec, sl);
+    zoneRow(tr, th, z.kind, sl);
     tr.appendChild(th);
     for (const key of ['cut', 'impact']){
       const td = tr.insertCell();
-      const hz = table[sl] && table[sl][key];
+      const hz = z.row && z.row[key];
       // The floor rung only: the sharpness a hit needs to NOT BOUNCE. Tiers 3 and 4 are not hardness --
       // they never make a hit bounce -- so they are not drawn (Raven, 2026-09-21).
       const lv = deflectLadder(hz, t)[2];
