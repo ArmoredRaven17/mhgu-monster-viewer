@@ -370,7 +370,7 @@ async function pageCheck(){
 
   // 8. the table itself: every motion it lists is a clip Savage carries
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
-    const [list, clip] = k.split('|');
+    const [list, clipK] = k.split('|'), clip = clipK.replace(/#.*$/, '');   // a copy's row ('#B', CLIP_VARIANTS) is its clip's
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table\'s ' + k + ' is a clip Savage carries');
   }
@@ -524,7 +524,7 @@ async function pageCheckNarga(){
   await play(...REST); await frames(3);
   const MS = await import('/render/motion-states.js');
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
-    const [list, clip] = k.split('|');
+    const [list, clipK] = k.split('|'), clip = clipK.replace(/#.*$/, '');   // a copy's row ('#B', CLIP_VARIANTS) is its clip's
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'), 'the table\'s ' + k + ' is a clip Nargacuga carries');
   }
   check(!fx.failed, 'the effect runtime never stopped', fx.failed);
@@ -751,7 +751,7 @@ async function pageCheckDeviljho(){
   }
 
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
-    const [list, clip] = k.split('|');
+    const [list, clipK] = k.split('|'), clip = clipK.replace(/#.*$/, '');   // a copy's row ('#B', CLIP_VARIANTS) is its clip's
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'), 'the table\'s ' + k + ' is a clip he carries');
   }
   S.start = s0;
@@ -922,7 +922,7 @@ async function pageCheckBasarios(){
   await play(...REST); await frames(3);
 
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
-    const [list, clip] = k.split('|');
+    const [list, clipK] = k.split('|'), clip = clipK.replace(/#.*$/, '');   // a copy's row ('#B', CLIP_VARIANTS) is its clip's
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'), 'the table\'s ' + k + ' is a clip he carries');
   }
   S.start = s0;
@@ -1065,7 +1065,7 @@ async function pageCheckBarioth(){
 
   await play(REST[0], REST[1]); await frames(3);
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
-    const parts = k.split('|'), list = parts[0], clip = parts[1];
+    const parts = k.split('|'), list = parts[0], clip = parts[1].replace(/#.*$/, '');   // a copy's row ('#B') is its clip's
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }
@@ -1239,7 +1239,7 @@ async function pageCheckKhezu(){
   check(!V.mounted.main.userData.motionClips && (await moves()), 'another motion: the Death clip is gone and the vein layer animates again', matOf(bloodMat));
 
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
-    const [list, clip] = k.split('|');
+    const [list, clipK] = k.split('|'), clip = clipK.replace(/#.*$/, '');   // a copy's row ('#B', CLIP_VARIANTS) is its clip's
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'), 'the table\'s ' + k + ' is a clip he carries');
   }
   S.start = s0;
@@ -1578,7 +1578,7 @@ async function pageCheckRathian(MON = 'em001_00', LABEL = 'Rathian'){
   }
   await play(...REST); await frames(3);
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
-    const [list, clip] = k.split('|');
+    const [list, clipK] = k.split('|'), clip = clipK.replace(/#.*$/, '');   // a copy's row ('#B', CLIP_VARIANTS) is its clip's
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'), 'the table\'s ' + k + ' is a clip ' + LABEL + ' carries');
   }
   S.start = s0;

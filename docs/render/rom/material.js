@@ -76,6 +76,23 @@ import { installRomAmbient, trackRomAmbient, enableRomAmbient, romAmbientEnabled
 import { installRomSpecular, trackRomSpecular, enableRomSpecular, romSpecularEnabled,
          setRomSpecularAmount, anchorMisses } from './specular.js';
 
+// A ROM COLOUR CONSTANT, IN THE SPACE THE VIEWER SHADES IN (Option A of dev/model-pass-colour-space.md,
+// 2026-10-15). The game's model pass works in GAMMA space: texels as stored, every colour constant raw,
+// nothing encoded (sRender.mSRGBEnable = 0, 0xbb9dfc; FAlbedoMap = tex.rgb * fAlbedoColor). This viewer
+// DECODES each texel to linear and ENCODES the output, so the game's product t x k comes out only if the
+// constant is decoded the same way: encode(decode(t) x decode(k)) = t x k (exact for a power curve).
+// Emission has been read like this since 2026-09-11; every other colour constant was written raw, so a
+// 0.2 tint showed as ~0.48. Values of exactly 0 and 1 are unchanged.
+//
+// Under the opt-in game-space render (?space=game, render/colour-space.js) colour management is OFF and
+// textures are sampled as stored, so a constant is used raw like the game's: this returns c unchanged.
+// The curve is three.js's own SRGBToLinear (so it matches setRGB(..., SRGBColorSpace) exactly).
+export function romLinear(c){
+  if (!THREE.ColorManagement.enabled) return c;
+  return c < 0.04045 ? c * 0.0773993808 : Math.pow(c * 0.9478672986 + 0.0521327014, 2.4);
+}
+export function romLinear3(v){ return [romLinear(v[0]), romLinear(v[1]), romLinear(v[2])]; }
+
 let enabled = true;
 export function enableRomCore(on){ enabled = !!on; }
 // The ROM's own BRDF class (Lambert + Blinn-Phong). DEFAULT OFF: it changes the lighting of every
@@ -188,9 +205,10 @@ export function createRomMaterial(spec){
   if (gl && gl.albedo){
     const k = (feat && feat.albedo === 'MapConstant' && gl.constant) ? gl.constant : [1, 1, 1, 1];
     const df = (cb && cb.diffuse) ? cb.diffuse : [1, 1, 1];
+    // decoded like a texel (romLinear, above): the game multiplies the raw texel by the raw product
     mat.color.setRGB(gl.albedo[0] * df[0] * k[0],
                      gl.albedo[1] * df[1] * k[1],
-                     gl.albedo[2] * df[2] * k[2]);
+                     gl.albedo[2] * df[2] * k[2], THREE.SRGBColorSpace);
   }
   if (cb && typeof cb.transparency === 'number' && cb.transparency < 1){
     mat.opacity = cb.transparency;
@@ -404,7 +422,7 @@ export function createRomMaterial(spec){
       // fSpecularColor ($Globals float3 @44) is the specular lobe's colour -- `light.specColor` in
       // FBRDF is the LIGHT's, and this is the material's half of the same product.
       if (gl.specular && gl.specular.length >= 3)
-        mat.specular.setRGB(gl.specular[0], gl.specular[1], gl.specular[2]);
+        mat.specular.setRGB(gl.specular[0], gl.specular[1], gl.specular[2], THREE.SRGBColorSpace);
     } else if (gl.shininess > 16){
       mat.roughness = Math.min(0.85, Math.max(0.4, 0.85 - Math.log2(gl.shininess / 16) * 0.15));
     }
@@ -443,7 +461,14 @@ export function createRomMaterial(spec){
     // whole quad instead: forcing the emission to black still lit 1799 pixels at mean 32.5 of 255,
     // against 35.7 with it, so the emission was almost none of what was on screen. That is Raven's
     // "the albedo layer still shows its boundaries ... you can see the boundary as a pale area".
-    if (gl && gl.specular) u.uSpecRGB.value.fromArray(gl.specular.slice(0, 3));
+    // Decoded (romLinear): uSpecRGB multiplies the specular accumulators, which three sums in linear.
+    if (gl && gl.specular) u.uSpecRGB.value.fromArray(romLinear3(gl.specular));
+    // fReflectiveColor as FReflectGlobalCubeMap's multiplier (uReflRGB). rom/specular.js -- shared
+    // with the Armor Viewer -- builds it raw from cbm.reflective only when the holder is missing, so
+    // it is put here first, decoded, and specular.js keeps it. The AVERAGE above (userData.reflective)
+    // stays raw on purpose: its one reader is material.js's sphere-map screen, which runs on the
+    // sRGB-ENCODED colour (mhguSrgbOetf ... Eotf), i.e. already in display values.
+    if (feat && feat.reflect === 'GlobalCubeMap' && cb && cb.reflective && !u.uReflRGB) u.uReflRGB = { value: new THREE.Vector3().fromArray(romLinear3(cb.reflective)) };
   }
   // ONLY WHERE THE ALPHA IS COVERAGE AND NOTHING ELSE -- i.e. an OPAQUE material. See the note on
   // installCutoutSolid: on a blended, additive or reverse-subtractive material diffuseColor.a is

@@ -368,6 +368,7 @@ export function nodeUpdate(m, owner, inst){
   m.w32(inst + 0x108, w108); m.w32(inst + 0x10c, w10c); m.w32(inst + 0x110, w110);
   const sc = new Scratch(m);
   const local = sc.alloc(0x40), pos = sc.alloc(0x10), attach = sc.alloc(0x40), world = sc.alloc(0x40);
+  const node = sc.alloc(0x40);       // what the tail 0x9bc15c stores: the ROM holds it in r1..r6 / sb / ip / lr and sp+0x30..+0x4c
   m.w32(pos + 0xc, 0);
   let lerp = m.u32(inst + 0x128) !== 0;
   if (!lerp) lerp = m.u32(inst + 0x12c) !== 0 || (w10c & 0xf0) !== 0;
@@ -376,8 +377,21 @@ export function nodeUpdate(m, owner, inst){
   // 0x9bbb10
   m.u32(inst + 0x108); m.u32(inst + 0xe4); m.u32(inst + 0xe8); m.u32(inst + 0xe0);
   const f10c = m.u32(inst + 0x10c), f110 = m.u32(inst + 0x110);
-  const mode = (f10c >>> 16) & 0xf;
-  if (mode === 3) throw new Unverified('0x9bbb4c node transform mode 3');
+  const mode = (f10c >>> 16) & 0xf;                                        // 0x9bbb30 ubfx sb, [inst+0x10c], #16, #4
+  if (mode === 3){
+    // 0x9bbb4c..0x9bbba8 (`cmp sb, #3 ; bne 0x9bbbac`): node transform MODE 3 is the node's LOCAL transform as its
+    // world matrix -- the local rows (sp+0xa0..+0xcc, from 0xae8b74 / 0xae8d18) with the local position (sp+0x90..
+    // +0x98) as the translation and w 1.0 (`mov r1, #0x3f800000`), then `b 0x9bc15c`, the common tail. It skips
+    // everything between: no attach matrix (vt+0xec is never called, so neither the effect's own matrix +0x120 nor a
+    // parent joint is applied), no folding of the attach scale into +0xe0, no position * scale (+0x110 bit 11), no
+    // `s20` sign on x, no product 0x29d00, no normalising. r0 at the tail is still +0x110 as loaded at 0x9bbb20.
+    for (let k = 0; k < 0x30; k += 4) m.w32(node + k, m.u32(local + k));
+    m.w32(node + 0x30, m.u32(pos)); m.w32(node + 0x34, m.u32(pos + 4)); m.w32(node + 0x38, m.u32(pos + 8));
+    m.w32(node + 0x3c, 0x3f800000);
+    nodeStore(m, inst, node, f110);
+    sc.free();
+    return;
+  }
   const M = vcall(m, owner, 0xec, m.u32(inst + 0x8c), (f110 & 0x100) ? 1 : 0);
   for (let k = 0; k < 0x40; k += 4) m.w32(attach + k, m.u32(M + k));
   if (!(m.u32(inst + 0x10c) & 0xf00000)){                                  // else 0x9bbe14: keep the parent's scale
@@ -406,27 +420,39 @@ export function nodeUpdate(m, owner, inst){
   m.wf32(local + 0x30, px); m.wf32(local + 0x34, py); m.wf32(local + 0x38, pz);
   m.wf32(pos, px);
   m.w32(local + 0x3c, 0x3f800000);
-  matMulTo(m, world, local, attach);
-  // 0x9bbebc: node transform MODE 2 keeps the RAW world rows; the other modes normalise them (0x9bbf00). Both
-  // then write the same matrix to the node (the common tail 0x9bc154). em003_00_006's nodes use mode 2, and the
-  // recording's thin stand-in parent never reached it, so this is transcribed straight from the ROM branch.
-  if (mode !== 2){
-    // 0x9bbf00
+  matMulTo(m, world, local, attach);                                       // 0x9bbe90 0x29d00(sp+0xe0, sp+0xa0, sp+0x50)
+  // 0x9bbe94..0x9bbeb4: every mode takes the PRODUCT's translation row (sp+0x110..+0x11c, w included).
+  for (let k = 0x30; k < 0x40; k += 4) m.w32(node + k, m.u32(world + k));
+  if (mode === 2){
+    // 0x9bbebc..0x9bbef8: node transform MODE 2 takes its rows from the LOCAL matrix (sp+0xa0..+0xcc, as mode 3 does),
+    // not from the product: the node follows what it hangs from in POSITION only, never in rotation. Read
+    // 2026-10-15 (effects-runtime agent): the earlier hand line kept the product's raw rows -- the em063_05 /
+    // em082_04 / em037_00 mode-2 vectors pass either way (their attach rotation is the identity), the lifted
+    // L_9bba54 (lifted-particles.js) reads sp+0xa0 like the ROM.
+    for (let k = 0; k < 0x30; k += 4) m.w32(node + k, m.u32(local + k));
+  } else {
+    // 0x9bbf00: the other modes normalise the product's three rows
     normaliseRow(m, world, '0x9bbf24');
     normaliseRow(m, world + 0x10, '0x9bbfec');
     normaliseRow(m, world + 0x20, '0x9bc090');
+    for (let k = 0; k < 0x30; k += 4) m.w32(node + k, m.u32(world + k));
   }
-  const f110b = m.u32(inst + 0x110);
-  for (let k = 0; k < 0x40; k += 4) m.w32(inst + k, m.u32(world + k));
-  if (f110b & 0x40) throw new Unverified('0x9bc1d0 node +0x110 bit 6');
-  for (let k = 0; k < 0x40; k += 4) m.w32(inst + 0x40 + k, m.u32(world + k));   // 0x9bc9ac
+  nodeStore(m, inst, node, m.u32(inst + 0x110));                          // 0x9bc154 ldr r0, [[sp+0x2c], #8]
+  sc.free();
+}
+
+// 0x9bc15c..0x9bc1cc / 0x9bc9ac..0x9bca0c, the node update's common tail: the matrix into the node's +0x00 and its
+// copy +0x40. `f110` is r0 there: +0x110 re-read at 0x9bc158 (modes 0..2) or as loaded at 0x9bbb20 (mode 3).
+function nodeStore(m, inst, node, f110){
+  for (let k = 0; k < 0x40; k += 4) m.w32(inst + k, m.u32(node + k));
+  if (f110 & 0x40) throw new Unverified('0x9bc1d0 node +0x110 bit 6');
+  for (let k = 0; k < 0x40; k += 4) m.w32(inst + 0x40 + k, m.u32(node + k));   // 0x9bc9ac
   // 0x9bca10: node +0x110 bit 12 calls the node DRAW-REGISTRATION (0x9bca30) -- it walks the render singleton's
   // active passes (0xe75730 +0x54/+0x204/... ) and, for each, computes the node's per-pass draw matrix from the
   // camera (the world x view combine at 0x9bce20). The viewer does not draw through the ROM's render passes; it
   // draws each effect through host.drawFrame with its own camera, so that registration is LEFT OUT here rather
   // than translated (it needs the render singleton the viewer never stands up). The node's own matrix at
   // inst+0x00..0x7c is already written above. If a model's placement/orientation comes out wrong, translate it.
-  sc.free();
 }
 
 // 0xae9340: the node's start delay: state 0 loads it (delay * the effect's count scale), state 1 counts

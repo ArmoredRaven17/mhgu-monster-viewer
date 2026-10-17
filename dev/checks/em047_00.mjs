@@ -39,7 +39,8 @@ async function pageCheckRoyalLudroth(){
   const puffDefs = S.entries.filter(e => e.when === 'ragePuff').map(e => e.def.efl);
   check(puffDefs.every(f => /em047_00_002/.test(f)),
         'and HIS PUFF IS HIS OWN FILE, em047_00_002 -- not the shared cm200_007 every other monster uses', puffDefs);
-  check(TO.CUT_TAIL[MON] && TO.CUT_TAIL[MON].joint === 143, 'his cut tail is on joint 143', TO.CUT_TAIL[MON]);
+  // the drop joint is the sever call's kind byte 0x8e = 142 (0xeabc90), not u 900's 143
+  check(TO.CUT_TAIL[MON] && TO.CUT_TAIL[MON].joint === 142, 'his cut tail drops from joint 142', TO.CUT_TAIL[MON]);
   check(!Object.values(MS.MOTION_STATES[MON]).some(s => s.rage === true),
         'and he has NO rage row: his rage entry action plays the same clip as his combat idle, so no clip means rage started');
   const MONSTER = V.MON.monsters.find(e => e.id === MON);
@@ -160,7 +161,7 @@ async function pageCheckRoyalLudroth(){
   await play(REST[0], REST[1]); await frames(3);
 
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
-    const parts = k.split('|'), list = parts[0], clip = parts[1];
+    const parts = k.split('|'), list = parts[0], clip = parts[1].replace(/#.*$/, '');   // a copy's row ('#B') is its clip's
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }

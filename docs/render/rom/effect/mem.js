@@ -31,13 +31,31 @@ export class Mem {
     if (!p){ p = new Uint8Array(PAGE); this.pages.set(k, p); }
     return p;
   }
-  load(addr, bytes){ for (let i = 0; i < bytes.length; i++) this.page(addr + i)[(addr + i) % PAGE] = bytes[i]; }
+  // A PAGE AT A TIME, not a byte at a time: one page() per page the bytes touch (it was one per byte -- a Map lookup, and
+  // under the strict host its export test too, for every byte of every file loaded; the profile of a monster switch had
+  // this and the page lookups at 1.1-1.6 s of CPU, 2026-10-16). Same bytes, same pages made, same strict refusals.
+  load(addr, bytes){
+    const n = bytes.length;
+    for (let i = 0; i < n;){
+      const a = addr + i, off = a % PAGE, len = Math.min(PAGE - off, n - i), p = this.page(a);
+      if (len === 1) p[off] = bytes[i];
+      else p.set(bytes.subarray ? bytes.subarray(i, i + len) : bytes.slice(i, i + len), off);
+      i += len;
+    }
+  }
   rawByte(a){ return this.page(a)[a % PAGE]; }
 
   u8(a){ a >>>= 0; if (this.onRead) this.onRead(a, 1); return this.rawByte(a); }
-  u16(a){ a >>>= 0; if (this.onRead) this.onRead(a, 2); return this.rawByte(a) | (this.rawByte(a + 1) << 8); }
+  u16(a){
+    a >>>= 0; if (this.onRead) this.onRead(a, 2);
+    const o = a % PAGE;
+    if (o <= PAGE - 2){ const p = this.page(a); return p[o] | (p[o + 1] << 8); }
+    return this.rawByte(a) | (this.rawByte(a + 1) << 8);
+  }
   u32(a){
     a >>>= 0; if (this.onRead) this.onRead(a, 4);
+    const o = a % PAGE;
+    if (o <= PAGE - 4){ const p = this.page(a); return (p[o] | (p[o + 1] << 8) | (p[o + 2] << 16) | (p[o + 3] << 24)) >>> 0; }
     return (this.rawByte(a) | (this.rawByte(a + 1) << 8) | (this.rawByte(a + 2) << 16) | (this.rawByte(a + 3) << 24)) >>> 0;
   }
   i32(a){ return this.u32(a) | 0; }

@@ -35,6 +35,7 @@ import { linkMaterial } from './modelshader.js';
 import { EffectSchedule } from './schedule.js';
 import { SharedStates, SHARED_STATES } from './shared-states.js';
 import { SHELL_DATA, BEAM_SHOWCASE, BEAM_TYPES } from '../../shells.js';
+import { CLASS_THREADS } from '../../class-threads.js';
 import { rank as rankFilters, constants as filterConstants, FilterPass } from './filter.js';
 import { loadJson, getTexture, loadGlb } from '../../assets.js';
 import { gidBonesOf } from '../../skeleton.js';
@@ -47,6 +48,21 @@ const MAX_STEPS = 4;
 
 let shared = null;           // the host's data, loaded once
 async function bytes(url){ return new Uint8Array(await (await fetch(url + '?v=' + Date.now())).arrayBuffer()); }
+// AN EFFECT FILE, fetched ONCE PER PAGE LOAD (the stamp is the load's, as render/assets.js `bust`): the files are the export's
+// and do not change under a running page, and a reload still refetches them all. attach() used to fetch every file of a
+// monster one after another with a fresh stamp each, a name again for each effect that named it -- 0.9-1.4 s of every monster
+// switch spent waiting on hundreds of small requests (profile 2026-10-16). Each caller gets its own copy of the bytes.
+const FILE_STAMP = '?v=' + Date.now();
+const fileCache = new Map();         // path -> Promise<ArrayBuffer>
+function effectFile(path){
+  let p = fileCache.get(path);
+  if (!p){
+    p = fetch(path + FILE_STAMP).then(r => r.arrayBuffer());
+    fileCache.set(path, p);
+    p.catch(() => fileCache.delete(path));
+  }
+  return p.then(b => new Uint8Array(b.slice(0)));
+}
 function pages(b){
   const out = [], dv = new DataView(b.buffer, b.byteOffset, b.byteLength);
   for (let o = 0; o < b.length; ){ const a = dv.getUint32(o, true), n = dv.getUint32(o + 4, true); out.push([a, b.subarray(o + 8, o + 8 + n)]); o += 8 + n; }
@@ -248,13 +264,16 @@ export class LiveEffects {
   async attach(root, { rage = false } = {}){
     const s = await loadShared();
     const def = this.def, res = def.resources;
-    const files = {};
-    for (const e of def.effects) files[e.efl] = await bytes('effects/' + e.efl);
+    // every file the effects and their resources name, each once, all in flight together (effectFile above)
+    const names = new Set();
+    for (const e of def.effects) names.add(e.efl);
     for (const r of Object.values(res)){
-      if (r.ean) files[r.ean] = await bytes('effects/' + r.ean);
-      if (r.mesh) files[r.mesh] = await bytes('effects/' + r.mesh);
-      if (r.list) files[r.list] = await bytes('effects/' + r.list);     // a child list (host.js loadPending)
+      if (r.ean) names.add(r.ean);
+      if (r.mesh) names.add(r.mesh);
+      if (r.list) names.add(r.list);         // a child list (host.js loadPending)
     }
+    const files = {};
+    await Promise.all([...names].map(async n => { files[n] = await effectFile('effects/' + n); }));
     this.shaders = s.shaders;
     this.modelShaders = s.modelShaders;
     this.gpuShaders = s.gpuShaders;
@@ -295,7 +314,8 @@ export class LiveEffects {
     const parent = this.parent = (named.length || def.effects.some(e => e.record)) ? host.createParent(joints) : null;
     this.joints = joints.map(j => ({ j, bone: (bones.find(b => b.gid === j) || {}).node || null }));
     // every mapped bone, for a monster whose shells are decoded (writeJoints: a shell's joint comes from its params)
-    this.shellBones = SHELL_DATA[def.monster] ? bones.filter(b => b.gid != null && b.node) : null;
+    // ...and for a monster whose class stretches threads between its joints (render/class-threads.js)
+    this.shellBones = (SHELL_DATA[def.monster] || CLASS_THREADS[def.monster]) ? bones.filter(b => b.gid != null && b.node) : null;
     // ANCHOR (joint -1 = model+0xb0, the model's world-matrix ORIGIN, per the joint getter 0x939278). The
     // mounted group's origin sits on the FLOOR, but the ROM places the model's world matrix at the model's
     // authored root = the skeleton root bone (gid 0). The aura's own nodes are authored well BELOW that
@@ -315,6 +335,8 @@ export class LiveEffects {
     // the monster's SHELLS (render/shells.js), when its shells are decoded: stepped by the schedule, from this
     // step's joints in the game's convention (writeJoints keeps them in gameJoints)
     this.schedule.useShells(this.def.monster, gid => this.gameJoints.get(gid) || null);
+    // the class's own THREADS (render/class-threads.js: Ahtal-Ka's silk), stretched between joints of the same step
+    this.schedule.useThreads(this.def.monster, gid => this.gameJoints.get(gid) || null);
     // THE SHARED-STATE EFFECTS (shared-states.js): the ailment / mark / dung / alert / blast records the
     // game's SHARED ENEMY CODE requests, not the monster's class. They are clip-independent, so they are
     // driven here rather than from a MOTION_STATES row.

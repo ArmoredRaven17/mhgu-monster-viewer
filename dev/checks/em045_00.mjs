@@ -48,8 +48,11 @@ async function pageCheckUragaan(MON, NAME, U, DEVIANT){
   const P = MS.RAGE_PUFF[MON];
   check(P && P.pick() === 0 && P.joint === 3 && P.records.every(r => r[0] === U),
         'his puff is the stub shape on JOINT 3 at scale 1.5', { joint: P && P.joint });
-  check(TO.CUT_TAIL[MON] && TO.CUT_TAIL[MON].joint === (DEVIANT ? 144 : 142),
-        'his cut tail is on joint ' + (DEVIANT ? 144 : 142), TO.CUT_TAIL[MON]);
+  // both variants' sever call passes 0x8e = 142 (0xe8fc48), 75 S up from .dtp option row 0 (dev/em044-em045-second-pieces-spec.md)
+  check(TO.CUT_TAIL[MON] && TO.CUT_TAIL[MON].joint === 142 && TO.CUT_TAIL[MON].above === 75,
+        'his cut tail drops from joint 142 and lands 75 S up', TO.CUT_TAIL[MON]);
+  if (DEVIANT) check(TO.CUT_TAIL[MON].beard && TO.CUT_TAIL[MON].beard.joint === 4 && TO.CUT_TAIL[MON].beard.landing[1] === 906,
+        'his beard is the second piece: joint 4, landing u 906', TO.CUT_TAIL[MON].beard);
   const MONSTER = V.MON.monsters.find(e => e.id === MON);
   const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => MONSTER.partIds.includes(p))) : null; };
   const isSet = (d, n) => (MONSTER.groups[n] || []).filter(([g]) => MONSTER.partIds.includes(g)).every(([g, on]) => d[g] === on);
@@ -117,6 +120,7 @@ async function pageCheckUragaan(MON, NAME, U, DEVIANT){
         'L3 Motion[19]: the tail SEVERED -- set 9, the club and its danmen gone for a 52-vertex stump -- and u 900. ' +
         'The sever is GATED on the tail already being at ' + (DEVIANT ? 'level >= 2' : 'level >= 1'), { fired, d: drawn() });
   check(!!V.mounted[TO.CUT_TAIL[MON].piece], 'and the cut tail piece is mounted', Object.keys(V.mounted));
+  if (DEVIANT) check(!!V.mounted[TO.CUT_TAIL[MON].beard.piece], 'and the beard piece is mounted', Object.keys(V.mounted));
 
   // RAGE: nothing at all on the model -- read, not assumed: the class never calls 0x81670 or 0x816b8
   await play(REST[0], REST[1]); await frames(3);
@@ -178,12 +182,28 @@ async function pageCheckUragaan(MON, NAME, U, DEVIANT){
   await play(REST[0], REST[1]); await frames(3);
 
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
-    const parts = k.split('|'), list = parts[0], clip = parts[1];
+    const parts = k.split('|'), list = parts[0], clip = parts[1].replace(/#.*$/, '');   // a copy's row ('#B') is its clip's
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }
   S.start = s0;
   check(!fx.failed, 'the effect runtime never stopped', fx.failed);
+  // NOT WHILE TIRED (motion-states.js row `notTired`): 0xe95c98 / 0xe98fa8 skip the u 100 / 110 / 120 (L2 M2) and u 130 / 140
+  // (L2 M21) request while tired (0x81614) -- exhausted, L2 M2 holds none; calm, it holds one of the three
+  {
+    const tiredBox = document.getElementById('monTired');
+    const setTired = async v => { tiredBox.checked = v; tiredBox.onchange({ target: tiredBox }); await frames(3); };
+    const live = () => S.entries.filter(e => e.when === 'event' && e.def.record && e.def.record.pel === U && [100, 110, 120].includes(e.def.record.key))
+                                .flatMap(e => e.requests.filter(q => !q.stopped).map(() => e.def.record.key));
+    await setTired(true);
+    await play('2', 'Motion[2]'); await frames(10);
+    check(live().length === 0, 'Exhausted, L2 M2: none of u 100 / 110 / 120 is held (notTired, 0x81614)', live());
+    await setTired(false);
+    await play('0', 'Motion[2]'); await frames(3);
+    await play('2', 'Motion[2]'); await frames(10);
+    check(live().length === 1, 'calm, L2 M2: one of u 100 / 110 / 120 is held', live());
+    await play('0', 'Motion[2]'); await frames(3);
+  }
   return out;
 }
 

@@ -37,6 +37,9 @@ async function pageCheckKutKu(){
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
   const byWhen = {};
   for (const e of S.entries) byWhen[e.when] = (byWhen[e.when] || 0) + 1;
+  // [2026-10-15: c 1105 is no longer dead -- the shock trap's own play clip, L3 M9, carries it now (MOTION_STATES
+  // em008_00 '3|Motion[9]'). The count below was already stale at HEAD (27 event: the shared blast / notice / hyper
+  // records were exported since); not revised here.]
   // SIX, not seven: c 1105 (the shock trap) shares the paralysis hold, so his table never names it and it is not
   // exported. A record the table cannot request is a record the viewer cannot play, and every monster wired before
   // the rule carried a dead one. He is the first with none.
@@ -159,7 +162,7 @@ async function pageCheckKutKu(){
   await play(REST[0], REST[1]); await frames(3);
 
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
-    const parts = k.split('|'), list = parts[0], clip = parts[1];
+    const parts = k.split('|'), list = parts[0], clip = parts[1].replace(/#.*$/, '');   // a copy's row ('#B') is its clip's
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }

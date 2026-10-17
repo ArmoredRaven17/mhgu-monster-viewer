@@ -134,11 +134,16 @@ async function pageCheckDaimyo(){
   fired.length = 0;
   await play('3', 'Motion[2]'); await frames(3);
   check(same(fired, [1109]), 'L3 Motion[2] play 3 is the tune+0x44 status: c 1109 once', fired);
+  // play 4 is the shock trap's start (D_TRAP, 2026-10-15): (10, 0x6e) plays L3 M2 to f40, c 1105 every 42
+  await play('3', 'Motion[3]'); await frames(2);
+  fired.length = 0;
+  await play('3', 'Motion[2]'); await frames(3);
+  check(same(fired, [1105]), 'L3 Motion[2] play 4 is the shock trap: c 1105 at once', fired);
   check(await pickIndex(1, 1), 'the +X claw row set to broken');
   await play('3', 'Motion[3]'); await frames(2);
   fired.length = 0;
   await play('3', 'Motion[2]'); await frames(3);
-  check(same(fired, [1026]) && isSet(drawn(), 2), 'L3 Motion[2] play 4, the +X claw at level 2: set 1 -> 2, u 1026', { fired, d: drawn() });
+  check(same(fired, [1026]) && isSet(drawn(), 2), 'L3 Motion[2] play 5, the +X claw at level 2: set 1 -> 2, u 1026', { fired, d: drawn() });
   await pickIndex(1, 0);
   await play(REST[0], REST[1]); await frames(3);
   check(same(drawn(), user0), 'the rows back to intact: the parts are the user\'s again', drawn());
@@ -211,7 +216,7 @@ async function pageCheckDaimyo(){
   await play(REST[0], REST[1]); await frames(3);
 
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
-    const parts = k.split('|'), list = parts[0], clip = parts[1];
+    const parts = k.split('|'), list = parts[0], clip = parts[1].replace(/#.*$/, '');   // a copy's row ('#B') is its clip's
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }

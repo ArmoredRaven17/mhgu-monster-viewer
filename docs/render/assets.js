@@ -5,6 +5,24 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 export const loader = new GLTFLoader(), texLoader = new THREE.TextureLoader();
+// TEXTURES DECODE OFF THE MAIN THREAD, as ImageBitmaps with the upload's own settings. three uploads with
+// UNPACK_PREMULTIPLY_ALPHA false and UNPACK_COLORSPACE_CONVERSION NONE (sRGB on sRGB), which is not how the browser keeps
+// a decoded <img> -- so every webp was DECODED AGAIN, synchronously, inside texSubImage2D: 2.6 s of Ahtal-Ka's monster
+// switch on the GPU profile (2026-10-16). createImageBitmap with premultiplyAlpha 'none' / colorSpaceConversion 'none'
+// decodes the same pixels in the background and the upload is a copy; flipY stays false (an ImageBitmap ignores it).
+// Screenshots identical before / after (dev/shots/tex-before, tex-after, tex-after2). The <img> path stays wherever three's
+// own GLTFLoader (r169, its constructor) keeps it: no createImageBitmap, Safari before 17, Firefox before 98.
+// MONSTER VIEWER EDIT of a file shared with the Armor Viewer (dev/sync-render.py SHARED): port it there.
+const bitmapOk = (() => {
+  if (typeof createImageBitmap === 'undefined') return false;
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+  const safari = /^((?!chrome|android).)*safari/i.test(ua), sv = (ua.match(/Version\/(\d+)/) || [])[1];
+  const firefox = ua.indexOf('Firefox') > -1, fv = (ua.match(/Firefox\/([0-9]+)\./) || [])[1];
+  return !((safari && (sv ? +sv : -1) < 17) || (firefox && (fv ? +fv : -1) < 98));
+})();
+const bitmapLoader = bitmapOk
+  ? new THREE.ImageBitmapLoader().setOptions({ imageOrientation: 'none', premultiplyAlpha: 'none', colorSpaceConversion: 'none' })
+  : null;
 export const texCache = new Map(), glbCache = new Map();
 // The game's own held poses, played once on an off-screen proxy (see render/pose.js). The
 // proxy GLB is cached here and reused across poses.
@@ -69,10 +87,23 @@ export const bust = url => (String(url).indexOf('?') >= 0 ? url : url + ASSET_V)
 
 // `opt.linear`: a data map (a monster's normal map) that must not be read as sRGB colour;
 // cached apart from the colour reading of the same file
+// IN FLIGHT ONCE: callers asking for a key while it loads share that load (texCache only holds it once it is done). Without
+// this, a monster's materials naming the same map each fetched and decoded it -- the bitmap path showed one 833 KB map
+// fetched seven times in one switch; the <img> path hid it because the browser merges image requests for one URL, but
+// each still made its own texture (2026-10-16).
+const texInflight = new Map();
 export async function getTexture(file, opt){
   const key = (opt && opt.linear) ? file + '#linear' : file;
   if (texCache.has(key)) return texCache.get(key);
-  const t = await texLoader.loadAsync(bust(file));
+  if (texInflight.has(key)) return texInflight.get(key);
+  const p = loadTexture(file, opt, key);
+  texInflight.set(key, p);
+  try { return await p; } finally { texInflight.delete(key); }
+}
+async function loadTexture(file, opt, key){
+  let t;
+  if (bitmapLoader){ t = new THREE.Texture(await bitmapLoader.loadAsync(bust(file))); t.needsUpdate = true; }
+  else t = await texLoader.loadAsync(bust(file));
   t.colorSpace = (opt && opt.linear) ? THREE.NoColorSpace : THREE.SRGBColorSpace; t.flipY = false;
   // MT Framework tiles its maps: 14% of primitives have UVs outside 0..1, up to 6x on
   // capes, long hair and skirts. three.js defaults to ClampToEdge, which smears the edge

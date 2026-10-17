@@ -37,6 +37,21 @@ import { PARENT_GETDTI, PARENT_ADD_EFFECT, PARENT_VFN_A8, PARENT_VFN_AC, RESMGR_
 
 const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 const u32bytes = v => new Uint8Array(new Uint32Array([v >>> 0]).buffer);
+const F = Math.fround;
+// vcvt.s32.f32: toward zero, saturating, NaN 0
+const s32 = v => Number.isNaN(v) ? 0 : v >= 2147483647 ? 2147483647 : v <= -2147483648 ? -2147483648 : Math.trunc(v);
+// THE THREAD'S AIM from A to B, as 0x10bb5f0 and 0x10ba418 both compute it (single precision, vmla = product rounded, then
+// the add): yaw = atan2f(dx, dz) and pitch = atan2f(-dy, sqrt(dx^2 + dz^2)) (0x13ecba8; Math.atan2 rounded to single --
+// the libm's own last bit is not read), each as u16(s32(0.5 + a * 10430.378)); the length sqrt((dx^2 + dy^2) + dz^2).
+function threadAim(A, B){
+  const dx = F(F(B[0]) - F(A[0])), dy = F(F(B[1]) - F(A[1])), dz = F(F(B[2]) - F(A[2]));
+  const xx = F(dx * dx), zz = F(dz * dz);
+  const len = F(Math.sqrt(F(F(xx + F(dy * dy)) + zz)));
+  const k = F(bitsf32(0x4622f983));
+  const yaw = F(Math.atan2(dx, dz));
+  const pitch = F(Math.atan2(F(-dy), F(Math.sqrt(F(xx + zz)))));
+  return { yaw16: s32(F(F(0.5) + F(yaw * k))) & 0xffff, pitch16: s32(F(F(0.5) + F(pitch * k))) & 0xffff, len };
+}
 
 export class EffectHost {
   // pages: [[address, Uint8Array], ...] -- the image the runtime reads (data sections after the static
@@ -304,6 +319,39 @@ export class EffectHost {
       if (scaleZ != null){ m.wf32(u + 0x68, scaleZ); m.w32(u + 0x6c, 0); }
     }
   }
+  // A TWO-POINT THREAD (Ahtal-Ka's silk, render/class-threads.js): the requester his thread request 0x10bb5f0(e, k, id, &A, &B)
+  // builds (READ 0x10bb5f0..0x10bb7b0, effects-runtime agent 2026-10-15): 0x40a54's requester on the stack with +8 = 3, +0xc =
+  // the area byte e+0x1054, +0x1c |= 1, +0xc0.. = A (w 0), +0x14 |= 0x40000002 with +0x30.. = (pitch, yaw, 0, 0) in DEGREES
+  // and +0x40.. = (1.0, 1.0, |B - A| / 920.0, 0), then vt+0x1d0(e, id, requester) (0x10bb790). The angles: yaw = atan2f(dx,
+  // dz), pitch = atan2f(-dy, sqrt(dx^2 + dz^2)), each u16(s32(0.5 + a * 10430.378)) times 0.0054931640625 (literals
+  // 0x10bb7b4 / 0x10bb7b8 / 0x10bb7bc); the length sqrt((dx^2 + dy^2) + dz^2). Points in game units.
+  threadRequester(A, B){
+    const { yaw16, pitch16, len } = threadAim(A, B);
+    const deg = F(bitsf32(0x3bb40000));
+    return { position: A.slice(0, 3), rotationDeg: [F(F(pitch16) * deg), F(F(yaw16) * deg), 0], scale: [1, 1, F(len / F(920))],
+             type8: 3, flags14: 0x40000002, flags1c: 1 };
+  }
+  // ...and its re-aim, every frame the slot stays active (READ 0x10ba418..0x10ba528): unit = [core + 0x150] (none yet: nothing);
+  // the same aim from A to B; 0x329c9c(core, A, 0) -- the position, w 0; then on THAT unit alone +0x60 / +0x64 kept, +0x68 =
+  // |B - A| / 920.0 (literal 0x10ba278), +0x6c = 0, and 0x8a4dfc(unit, (pitch, yaw, 0, 0)) with each angle u16 x 9.58738e-05
+  // (0x10ba27c) -- radians. The record is a strand along the effect's +Z: the stretch is its z scale.
+  stretchRequest(q, A, B){
+    const m = this.m, u = m.u32(q.core + 0x150);
+    if (!u) return false;
+    const { yaw16, pitch16, len } = threadAim(A, B);
+    const k = F(bitsf32(0x38c90fdb));
+    const v = this.threadVec || (this.threadVec = this.malloc(0x20));
+    for (let i = 0; i < 3; i++) m.wf32(v + 4 * i, A[i]);
+    m.w32(v + 12, 0);
+    const r = v + 0x10;
+    m.wf32(r, F(F(pitch16) * k)); m.wf32(r + 4, F(F(yaw16) * k)); m.w32(r + 8, 0); m.w32(r + 12, 0);
+    const s0 = m.u32(u + 0x60), s1 = m.u32(u + 0x64);
+    liftedCall(m, 0x329c9c, [q.core, v, 0]);
+    m.w32(u + 0x60, s0); m.w32(u + 0x64, s1);
+    m.wf32(u + 0x68, F(len / F(920))); m.w32(u + 0x6c, 0);
+    liftedCall(m, 0x8a4dfc, [u, r]);
+    return true;
+  }
   // units the passes no longer act on (state 3) off the list; a request off the passes altogether (proof.js)
   pruneUnits(){ if (this.requests) pruneUnits(this.m, this.requests); }
   // Take a request off the unit passes (proof.js). Called on a request that has already been stopped and
@@ -559,7 +607,18 @@ export class EffectHost {
     // it (proof.js registerUnit) -- which matters, as a model draw keeps the pass the draw before it left
     const units = this.requests ? this.requests.units : [];
     const rank = new Map(units.map(([u, line], i) => [u >>> 0, [line, i]]));
-    const drawn = owners.map((o, i) => [rank.get(o >>> 0) || [Infinity, Infinity], i, o])
+    // ...and ONLY THE UNITS IT DRAWS: both its arms submit a unit's vtable +0x30 (0x9b75e8) only when
+    // (+0xc & 0x4807) == 0x4802 -- state 2, bit 11 set, bit 14 clear (`movw 0x4807` / `movw 0x4802` at 0xc03dc0 / 0xc03f48,
+    // the tests 0xc03e2c..0xc03e34 / 0xc03fa8..0xc03fb0). An ENDED unit (state 3) is never drawn. The viewer drew the core's
+    // whole array, ended units included, for the frame before pruneUnits takes them: Tigrex / Grimclaw's c 25 (L0 M76),
+    // whose start builds no row (its rows all need MASK2 bit 5, and 0x41c74 gives 3 on a floor with no flag 8: dev/rom-map.md
+    // "Akantor / Tigrex"), ends in its first move and was then drawn with an empty generator list -- the 0x9b76e4 refusal,
+    // a path the game never takes (Viewer agent, 2026-10-14). A plain effect (no unit: the viewer's own showcase owner)
+    // is not in sUnit's lists and is drawn as before; a unit pruneUnits took off this frame (state 3, proof.js `dying`)
+    // still is one, and is gated.
+    const dying = new Set(((this.requests && this.requests.dying) || []).map(([u]) => u >>> 0));
+    const drawn = owners.filter(o => !(rank.has(o >>> 0) || dying.has(o >>> 0)) || (m.u32(o + 0xc) & 0x4807) === 0x4802)
+                        .map((o, i) => [rank.get(o >>> 0) || [Infinity, Infinity], i, o])
                         .sort((a, b) => (a[0][0] - b[0][0]) || (a[0][1] - b[0][1]) || (a[1] - b[1])).map(x => x[2]);
     for (const o of drawn) drawEffect(m, o, this.VIEW);
     invoke(m, 0xbad790, [this.SYS, this.VIEW, 0, 0]);

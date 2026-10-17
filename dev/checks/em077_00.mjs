@@ -46,7 +46,7 @@ async function pageCheckSeregios(){
         'HIS PICK IS LIVE: the table holds rathianPuffPick itself, on joint 4 -- his 0xfeded8 is her 0xd08afc and ' +
         '0xfda1a8 writes P+0x5d04 = 4. His two records DIFFER, so a stub pick would show the wrong one',
         { live: P && P.pick === MS.rathianPuffPick, joint: P && P.joint });
-  check(TO.CUT_TAIL[MON] && TO.CUT_TAIL[MON].joint === 144, 'his cut tail is on joint 144', TO.CUT_TAIL[MON]);
+  check(TO.CUT_TAIL[MON] && TO.CUT_TAIL[MON].joint === 145, 'his cut tail drops from joint 145 (the sever call passes r3 = 0x91, 0xfdae18)', TO.CUT_TAIL[MON]);
   const RP = MS.RAGE_PARTS[MON];
   check(RP && RP.calm.join() === '2,3' && RP.enraged.join() === '14,15',
         'the four break-free regions are RAGE_PARTS: calm 2 + 3, enraged 14 + 15 -- the part pass re-applies them ' +
@@ -215,7 +215,7 @@ async function pageCheckSeregios(){
   await play(REST[0], REST[1]); await frames(3);
 
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
-    const parts = k.split('|'), list = parts[0], clip = parts[1];
+    const parts = k.split('|'), list = parts[0], clip = parts[1].replace(/#.*$/, '');   // a copy's row ('#B') is its clip's
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }

@@ -165,8 +165,10 @@ async function pageCheckHellbladeGlavenus(){
   check(S.rage === false && count(fired, 1104) === 1,
         'L0 Motion[8] (the tired idle): rage off and the drool c 1104 at once -- Glavenus\'s "tiredness puts the ' +
         'throat out" branch is variant-0 only, so nothing on his model changes', { rage: S.rage, fired });
-  await clipSteps(50);
-  check(count(fired, 1104) === 2, 'and the drool again 48 clip frames on', fired);
+  // in SCHEDULE steps (the game's frames), not clip frames: the effect runtime steps on the wall clock while this page
+  // check pins the pose clock, so on a page drawing under 60 fps one clip frame is two steps (2026-10-17)
+  await steps(50);
+  check(count(fired, 1104) === 2, 'and the drool again 48 steps on', fired);
 
   // ASLEEP
   await play(REST[0], REST[1]); await frames(3);
@@ -211,7 +213,7 @@ async function pageCheckHellbladeGlavenus(){
   await play(REST[0], REST[1]); await frames(3);
 
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
-    const parts = k.split('|'), list = parts[0], clip = parts[1];
+    const parts = k.split('|'), list = parts[0], clip = parts[1].replace(/#.*$/, '');   // a copy's row ('#B') is its clip's
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }

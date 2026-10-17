@@ -129,9 +129,11 @@ async function pageCheckNibelsnarf(){
   fired.length = 0;
   await play('0', 'Motion[9]'); await frames(3); await steps(2);
   check(S.rage === false && count(fired, 1104) === 1, 'L0 Motion[9] (tired on land, a clip of its own): rage off, drool at once', fired);
+  // NOT "at once" here: only the reset and rage zero the drool's countdown (schedule.js stepDrool, 0xa42a4 / 0xa42d0), so
+  // after L0 M9 it carries on -- M23 drools when the 48 run out
   fired.length = 0;
-  await play('0', 'Motion[23]'); await frames(3); await steps(2);
-  check(count(fired, 1104) === 1, 'L0 Motion[23] (tired in the sand -- also the stuck jaw\'s clip, which shows nothing): drool at once', fired);
+  await play('0', 'Motion[23]'); await frames(3); await steps(52);
+  check(count(fired, 1104) === 1, 'L0 Motion[23] (tired in the sand -- also the stuck jaw\'s clip, which shows nothing): drool within one period', fired);
 
   // ASLEEP, PARALYSIS, the STUN
   await play('3', 'Motion[4]'); await frames(4);
@@ -167,7 +169,7 @@ async function pageCheckNibelsnarf(){
   await play(REST[0], REST[1]); await frames(3);
 
   for (const k of Object.keys(rows)){
-    const parts = k.split('|'), list = parts[0], clip = parts[1];
+    const parts = k.split('|'), list = parts[0], clip = parts[1].replace(/#.*$/, '');   // a copy's row ('#B') is its clip's
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }

@@ -121,7 +121,9 @@ async function pageCheckDiablos(){
         'L3 Motion[2]: the back breaks (set 8), u 1000, and the horns stay broken', { fired, d: d3 });
 
   // THE TAIL SEVER, and HE DROPS IT -- his cut tail is staged, unlike Basarios's
-  check(TO.CUT_TAIL[MON] && TO.CUT_TAIL[MON].joint === 144, 'his cut tail is on JOINT 144, not the Rath line 143', TO.CUT_TAIL[MON]);
+  // 145, not 144 (corrected 2026-10-14): the piece drops from the sever's joint byte 0x91 (0xd32730 -> option +0x1477),
+  // not u 900's joint (dev/em007_04-undriven-spec.md; rom-map Withdrawn)
+  check(TO.CUT_TAIL[MON] && TO.CUT_TAIL[MON].joint === 145, 'his cut tail is on JOINT 145 (the sever byte 0x91), not the Rath line 143', TO.CUT_TAIL[MON]);
   check(await pick('4,101', 'Severed'), 'the Tail row set to Severed');
   await play('3', 'Motion[1]'); await frames(2);
   fired.length = 0;
@@ -197,7 +199,7 @@ async function pageCheckDiablos(){
   await play(REST[0], REST[1]); await frames(3);
 
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
-    const parts = k.split('|'), list = parts[0], clip = parts[1];
+    const parts = k.split('|'), list = parts[0], clip = parts[1].replace(/#.*$/, '');   // a copy's row ('#B') is its clip's
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }

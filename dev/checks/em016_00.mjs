@@ -91,7 +91,7 @@ async function pageCheckIodrome(){
 
   // THE HEAD BREAK, and the point of it: LEVELS 1 AND 2 SHOW NOTHING. His durability is 90 over three depletions
   // and the .dtp row is at level 3, so only the third changes the model or fires anything.
-  //   L3 Motion[15] IS A `cycle` OF TWO: the head break and the tune+0x44 status (c 1109), because (10, 7) and
+  //   L3 Motion[15] IS A `cycle` OF THREE: the head break, the tune+0x44 status (c 1109) and the shock trap's start (c 1105, 2026-10-15), because (10, 7) and
   // (10, 0x1b) both play it and each play shows the next of them. So the PLAY ORDER is part of what is asserted
   // here, nothing may play that motion before this block, and the row is changed between two HEAD plays -- which
   // means stepping past the exhaust play in between rather than setting the row and playing again.
@@ -104,11 +104,15 @@ async function pageCheckIodrome(){
   fired.length = 0;
   await play('3', 'Motion[15]'); await frames(3);
   check(same(fired, [1109]) && isSet(drawn(), 2), 'L3 Motion[15] play 2 is the tune+0x44 status: c 1109 once, and no mesh change', { fired, d: drawn() });
+  await play('3', 'Motion[14]'); await frames(2);
+  fired.length = 0;
+  await play('3', 'Motion[15]'); await frames(3);
+  check(same(fired, [1105]) && isSet(drawn(), 2), 'L3 Motion[15] play 3 is the shock trap: c 1105 at once (every 42 while it lasts), and no mesh change', { fired, d: drawn() });
   check(await pick('2,102', 'Broken'), 'the Head row set to Broken');
   await play('3', 'Motion[14]'); await frames(2);
   fired.length = 0;
   await play('3', 'Motion[15]'); await frames(3);
-  check(same(fired, [1002]) && isSet(drawn(), 4), 'L3 Motion[15] play 3, back to the head at level 3: set 2 -> 4 (group 102 out, 2 in), u 1002', { fired, d: drawn() });
+  check(same(fired, [1002]) && isSet(drawn(), 4), 'L3 Motion[15] play 4, back to the head at level 3: set 2 -> 4 (group 102 out, 2 in), u 1002', { fired, d: drawn() });
   await pick('2,102', 'Intact');
   await play(REST[0], REST[1]); await frames(3);
   check(same(drawn(), user0), 'the row back to Intact: the parts are the user\'s again', drawn());
@@ -173,7 +177,7 @@ async function pageCheckIodrome(){
   await play(REST[0], REST[1]); await frames(3);
 
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
-    const parts = k.split('|'), list = parts[0], clip = parts[1];
+    const parts = k.split('|'), list = parts[0], clip = parts[1].replace(/#.*$/, '');   // a copy's row ('#B') is its clip's
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }

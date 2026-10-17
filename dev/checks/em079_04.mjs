@@ -52,10 +52,13 @@ async function pageCheckNightcloak(){
         { his: Object.keys(a).length, malfestio: Object.keys(b).length });
   const swap = s => JSON.stringify(s).split('em079_04u').join('em079_00u');
   const diffs = Object.keys(a).filter(k => swap(a[k]) !== JSON.stringify(b[k]));
-  check(JSON.stringify(diffs) === JSON.stringify(['3|Motion[17]', '3|Motion[12]', '3|Motion[20]']),
-        'and with his u.pel substituted the ONLY motions that differ are the three deaths', diffs);
+  // 2026-10-17: the deaths no longer differ (u 200 fires only while CLOAKED, 0xff01c8, and the viewer shows him uncloaked);
+  // his L2 M24 does -- (7, 0xca) / (7, 0xd2) play it with set 13, where Malfestio's (7, 0x18) has the dive set 14
+  check(JSON.stringify(diffs) === JSON.stringify(['2|Motion[24]']),
+        'and with his u.pel substituted the ONLY motion that differs is L2 M24 (his plays of it carry no dive set)', diffs);
 
-  // WHAT HIS VARIANT ADDS: entering status 11 cancels the cloak. vtable +0x204 fires u 200 and sets e+0xcb00 = 1.
+  // WHAT HIS VARIANT ADDS: entering status 11 cancels the cloak. vtable +0x204 fires u 200 and sets e+0xcb00 = 1 -- ONLY WHILE
+  // CLOAKED (0xff01c8..0xff0204, dev/em079-hypnosis-and-gaps.md G4); the viewer shows him uncloaked, so no death fires it.
   const MONSTER = V.MON.monsters.find(e => e.id === MON);
   const listOf = id => MONSTER.lists.find(l => l.id === id);
   const play = async (list, clip) => {
@@ -75,8 +78,8 @@ async function pageCheckNightcloak(){
     await play('0', 'Motion[1]'); await frames(2);
     fired.length = 0;
     await play('3', m); await frames(4);
-    check(fired.includes(200) && S.rage === false,
-          'L3 ' + m + ' (death): the CLOAK IS CANCELLED -- u 200 fired -- and the rage shown goes off', { fired, rage: S.rage });
+    check(!fired.includes(200) && S.rage === false,
+          'L3 ' + m + ' (death), uncloaked: no u 200 (the cloak cancel needs the cloak) -- and the rage shown goes off', { fired, rage: S.rage });
   }
   rageBox.checked = false; await rageBox.onchange({ target: rageBox }); await frames(3);
   check(!Object.keys(b).some(k => JSON.stringify(b[k]).includes('200')),
@@ -90,7 +93,7 @@ async function pageCheckNightcloak(){
         'his puff is his own records on joint 4 every 30, pick the base stub\'s 0', { joint: P && P.joint, pick: P && P.pick() });
 
   for (const k of Object.keys(a)){
-    const parts = k.split('|'), list = parts[0], clip = parts[1];
+    const parts = k.split('|'), list = parts[0], clip = parts[1].replace(/#.*$/, '');   // a copy's row ('#B') is its clip's
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }

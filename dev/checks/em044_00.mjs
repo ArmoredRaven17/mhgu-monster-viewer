@@ -37,7 +37,10 @@ async function pageCheckBarroth(){
   for (const e of S.entries) byWhen[e.when] = (byWhen[e.when] || 0) + 1;
   check(byWhen.event >= 17 && byWhen.ragePuff === 2,
         'the schedule holds his state records: 17 event (6 mud + the break + both severs + the landing + the burrow + 6 ailments) and 2 ragePuff', byWhen);
-  check(TO.CUT_TAIL[MON] && TO.CUT_TAIL[MON].joint === 142, 'his cut tail is on joint 142', TO.CUT_TAIL[MON]);
+  // the drop joint is the sever call's kind byte, 0x8f = 143 (0xe839d8), not u 900's 142 (dev/em044-em045-second-pieces-spec.md)
+  check(TO.CUT_TAIL[MON] && TO.CUT_TAIL[MON].joint === 143, 'his cut tail drops from joint 143', TO.CUT_TAIL[MON]);
+  check(TO.CUT_TAIL[MON].head && TO.CUT_TAIL[MON].head.joint === 3 && TO.CUT_TAIL[MON].head.landing[1] === 906,
+        'his head is the second piece: joint 3, landing u 906', TO.CUT_TAIL[MON].head);
   const MONSTER = V.MON.monsters.find(e => e.id === MON);
   const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => MONSTER.partIds.includes(p))) : null; };
   const isSet = (d, n) => (MONSTER.groups[n] || []).filter(([g]) => MONSTER.partIds.includes(g)).every(([g, on]) => d[g] === on);
@@ -128,6 +131,7 @@ async function pageCheckBarroth(){
   await play('3', 'Motion[16]'); await frames(4);
   check(same(fired, [900]) && isSet(drawn(), 8), 'L3 Motion[16]: the tail severed (set 8), u 900 on joint 142', { fired, d: drawn() });
   check(!!V.mounted[TO.CUT_TAIL[MON].piece], 'and the cut tail piece is mounted, so `drops` has something to fly', Object.keys(V.mounted));
+  check(!!V.mounted[TO.CUT_TAIL[MON].head.piece], 'and the head piece is mounted, so `drops: \'head\'` has something to fly', Object.keys(V.mounted));
 
   // THE MUD RE-COAT, and the burrow's held record
   await play(LAND[0], LAND[1]); await frames(2);
@@ -185,7 +189,7 @@ async function pageCheckBarroth(){
   await play(REST[0], REST[1]); await frames(3);
 
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
-    const parts = k.split('|'), list = parts[0], clip = parts[1];
+    const parts = k.split('|'), list = parts[0], clip = parts[1].replace(/#.*$/, '');   // a copy's row ('#B') is its clip's
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }

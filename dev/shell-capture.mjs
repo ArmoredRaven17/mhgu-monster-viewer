@@ -44,6 +44,13 @@ const LEVEL = opt('--level', null);
 // 'Broken') before the clip runs -- the parts shown are what the shells' inputs read (index.html shellExtra: Bloodbath's
 // shell07 spawns by the tail severed, render/motion-states.js SHELL_TAIL em007_04 part 4)
 const PART = opt('--part', null);
+// --carry <0|1|2|4>: the Carrying control (Ahtal-Ka's e+0xcb0c, render/monster.js HELD_PROP) for the capture -- his shell57 spawns
+// read it (index.html shellExtra `carry`); --loop: keep the clip looping (his web anchors are made on L2 M30's first WRAP);
+// --then <list>:<clip>[:<steps>]: after the clip's steps play this one (default its length + 300 steps) in the same session --
+// what a later play reads from an earlier one (the spot a shell57 end leaves for the next pull, an L3 start releasing the webs)
+const CARRY = opt('--carry', null);
+const LOOP = (() => { const i = argv.indexOf('--loop'); if (i < 0) return false; argv.splice(i, 1); return true; })();
+const THEN = opt('--then', null);
 const [MON, LIST, CLIP, VARIANT, OUT] = argv;
 if (!OUT) throw new Error('usage: node dev/shell-capture.mjs <monster> <list> <clip> <variant> <out json> [--steps n] [--wall metres] [--arm-form group]');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -62,7 +69,7 @@ const evaluate = (c, expression) => c.send('Runtime.evaluate', { expression, awa
   .then(r => { if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception ? r.exceptionDetails.exception.description : r.exceptionDetails.text); return r.result.value; });
 
 // IN THE PAGE: play the clip once (its loop off) for its length + 300 steps (or N), logging each step's shell inputs
-async function pageCapture(MONID, LISTID, CLIPNAME, VAR, N, WALLAT, ARMG, LVL, PARTSPEC){
+async function pageCapture(MONID, LISTID, CLIPNAME, VAR, N, WALLAT, ARMG, LVL, PARTSPEC, CARRYV, LOOPV, THENSPEC){
   const V = window.__view;
   const M = await import('/render/monster.js');
   const monSel = document.getElementById('monSel'), listSel = document.getElementById('monList'), clipSel = document.getElementById('monClip');
@@ -82,7 +89,8 @@ async function pageCapture(MONID, LISTID, CLIPNAME, VAR, N, WALLAT, ARMG, LVL, P
     if (!o) return { error: 'no part row ' + row + ' option ' + want };
     sel.value = o.value; if (sel.onchange) await sel.onchange();
   }
-  V.state.loop = false;                                 // one play, held on its last frame
+  if (CARRYV != null){ const cs = document.getElementById('monCarry'); cs.value = String(CARRYV); await cs.onchange({ target: cs }); }
+  V.state.loop = !!LOOPV;                               // one play, held on its last frame (--loop: the clip loops)
   await V.effects(false); await V.effects(true);
   const fx = M.effectRuntimeInstance();
   // A monster with no shells still has ANIMATED JOINTS worth capturing: an effect placed on a joint the clip
@@ -111,12 +119,31 @@ async function pageCapture(MONID, LISTID, CLIPNAME, VAR, N, WALLAT, ARMG, LVL, P
   // a Special entry with loop cycles: the motion's own frame, folded into its loop, as index.html driveClipEffects hands it
   const fold = M.loopFoldOf ? M.loopFoldOf(MONID, LISTID, CLIPNAME, clipDef.pieces) : null;
   const steps0 = N || Math.round(clipDef.dur * 60) + 300;
-  for (let f = 0; f < steps0; f++){
+  let thenAt = null, thenN = 0;
+  if (THENSPEC){
+    const [tl, tc, tn] = THENSPEC.split(':');
+    const tlist = V.MON.monsters.find(e => e.id === MONID).lists.find(l => l.id === tl);
+    const tdef = tlist && tlist.clips.find(x => x.clip === tc);
+    if (!tdef) return { error: 'no clip ' + tc + ' in list ' + tl };
+    thenAt = { list: tl, clip: tc, def: tdef };
+    thenN = tn ? +tn : Math.round(tdef.dur * 60) + 300;
+  }
+  for (let f = 0; f < steps0 + thenN; f++){
+    if (thenAt && f === steps0){                        // the next clip, in the same session
+      if (V.state.list !== thenAt.list){ listSel.value = thenAt.list; await listSel.onchange(); }
+      clipSel.value = thenAt.clip; await clipSel.onchange();
+      pose.clock.getDelta = () => 1 / 60;
+      splitOffset = 0;
+    }
     pose.step([V.mounted.main]);
     V.mounted.main.updateMatrixWorld(true);
     // the attached bodies (Nakarkos's tentacles) are posed after the body, as the render loop does -- without it every
     // capture recorded their bind pose (an arm's joint 12 at y 735 behind him, where the viewer has it near the ground ahead)
     if (V.stepAttached) V.stepAttached();
+    // THE MOTION STATES, as the render loop steps them (index.html driveMotionStates): the loop is stopped here, and without
+    // this motionStates.cur stayed the boot clip's row (em001_00 L0 M14, a TIRED row), so every capture before 2026-10-16 logged
+    // beamState.tired = true -- Silverwind's blades (tired-gated, 0x81614) made nothing
+    if (V.driveMotionStates) V.driveMotionStates();
     fx.writeJoints();
     const act = pose.action;
     const nm = act && act.getClip ? act.getClip().name : null;
@@ -179,7 +206,7 @@ async function main(){
   }
   // the viewer's own loop stopped, so nothing else steps the effects
   await evaluate(c, 'window.__view.renderer.setAnimationLoop(null), true');
-  const res = await evaluate(c, `(${pageCapture.toString()})(${JSON.stringify(MON)}, ${JSON.stringify(LIST)}, ${JSON.stringify(CLIP)}, ${JSON.stringify(VARIANT)}, ${STEPS}, ${WALL == null ? 'null' : +WALL}, ${ARMFORM == null ? 'null' : +ARMFORM}, ${LEVEL == null ? 'null' : +LEVEL}, ${JSON.stringify(PART)})`);
+  const res = await evaluate(c, `(${pageCapture.toString()})(${JSON.stringify(MON)}, ${JSON.stringify(LIST)}, ${JSON.stringify(CLIP)}, ${JSON.stringify(VARIANT)}, ${STEPS}, ${WALL == null ? 'null' : +WALL}, ${ARMFORM == null ? 'null' : +ARMFORM}, ${LEVEL == null ? 'null' : +LEVEL}, ${JSON.stringify(PART)}, ${CARRY == null ? 'null' : +CARRY}, ${LOOP}, ${JSON.stringify(THEN)})`);
   if (res.error) throw new Error(res.error);
   const steps = [];
   for (let i = 0; i < res.n; i += 50)

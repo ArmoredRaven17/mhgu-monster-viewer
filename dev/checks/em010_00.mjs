@@ -88,7 +88,7 @@ async function pageCheckPlesioth(){
   // status. ALL FOUR BREAKS NEED LEVEL 2 -- level 1 shows nothing at all on any of them.
   check(fins.cycle.length === 2, 'L3 Motion[1] carries a two-rung cycle: both pectoral fins', fins.cycle.length);
   const body = MS.MOTION_STATES[MON]['3|Motion[2]'];
-  check(body.cycle.length === 3, 'L3 Motion[2] carries a three-rung cycle: the head, the back and the exhaust status',
+  check(body.cycle.length === 4, 'L3 Motion[2] carries a four-rung cycle: the head, the back, the exhaust status and the shock trap (c 1105, 2026-10-15)',
         body.cycle.length);
   fired.length = 0;
   await play('3', 'Motion[1]'); await frames(3);
@@ -161,7 +161,7 @@ async function pageCheckPlesioth(){
   await play('0', 'Motion[1]'); await frames(3);
 
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
-    const parts = k.split('|'), list = parts[0], clip = parts[1];
+    const parts = k.split('|'), list = parts[0], clip = parts[1].replace(/#.*$/, '');   // a copy's row ('#B') is its clip's
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }

@@ -254,8 +254,14 @@ export function applyTint(mat){
                  ' uniform float uSpecTint; uniform vec3 uSpecRGB;' +
                  ' uniform float uDark;' +
                  ' float gGloss = 0.0; vec3 gBase = vec3( 1.0 );' +
-                 ' vec3 mhguSrgbOetf( vec3 c ){ c = max( c, vec3( 0.0 ) ); return mix( pow( c, vec3( 1.0 / 2.4 ) ) * 1.055 - 0.055, c * 12.92, vec3( lessThanEqual( c, vec3( 0.0031308 ) ) ) ); }' +
-                 ' vec3 mhguSrgbEotf( vec3 c ){ c = max( c, vec3( 0.0 ) ); return mix( pow( ( c + 0.055 ) / 1.055, vec3( 2.4 ) ), c / 12.92, vec3( lessThanEqual( c, vec3( 0.04045 ) ) ) ); }' +
+                 // With colour management OFF (the Monster Viewer's opt-in ?space=game, which renders in
+                 // the game's gamma space with no output encode) the fragment colour already IS the
+                 // display value, so the pair is the identity there (2026-10-15).
+                 (THREE.ColorManagement.enabled
+                   ? ' vec3 mhguSrgbOetf( vec3 c ){ c = max( c, vec3( 0.0 ) ); return mix( pow( c, vec3( 1.0 / 2.4 ) ) * 1.055 - 0.055, c * 12.92, vec3( lessThanEqual( c, vec3( 0.0031308 ) ) ) ); }' +
+                     ' vec3 mhguSrgbEotf( vec3 c ){ c = max( c, vec3( 0.0 ) ); return mix( pow( ( c + 0.055 ) / 1.055, vec3( 2.4 ) ), c / 12.92, vec3( lessThanEqual( c, vec3( 0.04045 ) ) ) ); }'
+                   : ' vec3 mhguSrgbOetf( vec3 c ){ return max( c, vec3( 0.0 ) ); }' +
+                     ' vec3 mhguSrgbEotf( vec3 c ){ return max( c, vec3( 0.0 ) ); }') +
                  ' void main() {')
         // THE SPECULAR MAP HAD NO EFFECT ON 396 OF THE 469 MATERIALS THAT BIND ONE.
         // Every monster material selects FSpecularMap (none selects FSpecularDisable), so the game
@@ -840,6 +846,9 @@ function restoreBase(m, b){
   }
 }
 
+// scratch for decoding an animated colour constant into the working space (identity with colour
+// management off)
+const _romLin = new THREE.Color();
 function applyTrack(m, tr, f){
   const v = sampleTrack(tr, f);
   if (!v) return;
@@ -877,15 +886,20 @@ function applyTrack(m, tr, f){
       }
       break;
     }
+    // THE COLOUR CONSTANTS ARE DECODED LIKE A TEXEL (SRGBColorSpace), 2026-10-15. The game's model
+    // pass multiplies the RAW texel by the RAW constant in gamma space (sRender.mSRGBEnable = 0;
+    // Monster Viewer dev/model-pass-colour-space.md); this renderer decodes the texel and encodes the
+    // output, so encode(decode(t) x decode(k)) = t x k only when k is decoded too. Written raw, a 0.2
+    // showed as ~0.48. 0 and 1 are unchanged. The emission below has been read this way since 2026-09-11.
     case 'fConstantColor':                      // rgb + alpha, written not scaled
-      if (m.color) m.color.setRGB(b.albedo[0] * v[0], b.albedo[1] * v[1], b.albedo[2] * v[2]);
+      if (m.color) m.color.setRGB(b.albedo[0] * v[0], b.albedo[1] * v[1], b.albedo[2] * v[2], THREE.SRGBColorSpace);
       if (cols > 3){                            // only when the ROM writes the fourth float
         m.opacity = v[3];
         m.transparent = true;
       }
       break;
     case 'fAlbedoColor': case 'fDiffuseColor':
-      if (m.color) m.color.setRGB(b.albedo[0] * v[0], b.albedo[1] * v[1], b.albedo[2] * v[2]);
+      if (m.color) m.color.setRGB(b.albedo[0] * v[0], b.albedo[1] * v[1], b.albedo[2] * v[2], THREE.SRGBColorSpace);
       break;
     // 8 tracks on enrage clips drive this and it had no case at all, so Crimson Fatalis, both
     // Mizutsune, Grimclaw Tigrex and Ahtal-Ka lost the part of their rage that is emission.
@@ -913,7 +927,8 @@ function applyTrack(m, tr, f){
       // fEmissionColor tracks land on one, where they were silently dropped. Those are the rage
       // glows. The ROM's emission is a term ADDED to the material's output, and an additive pass is
       // already a sum, so on this path it adds into the colour the layer contributes.
-      if (m.color) m.color.setRGB(b.albedo[0] + v[0], b.albedo[1] + g, b.albedo[2] + bl);
+      // The sum is the factor on the texel here, so it is decoded as one (2026-10-15).
+      if (m.color) m.color.setRGB(b.albedo[0] + v[0], b.albedo[1] + g, b.albedo[2] + bl, THREE.SRGBColorSpace);
       break;
     }
     case 'fTransparency':
@@ -936,6 +951,8 @@ function applyTrack(m, tr, f){
     // fReflectiveColor scales the sphere-map reflection. CBMaterial declares it float3 at
     // floatOffset 4, and the static value already drives envStrength() -> uEnvAmt; the ROM animates
     // it on 16 monster tracks, which had no destination until the sphere map was bound.
+    // RAW, unlike the colours around it: its one reader is the sphere-map screen, which runs on the
+    // sRGB-ENCODED colour (mhguSrgbOetf), so this weight is already applied in display values.
     case 'fReflectiveColor': {
       const u = m.userData.u;
       if (u && u.uEnvAmt){
@@ -950,7 +967,12 @@ function applyTrack(m, tr, f){
     // existed. Written into the extend uniform the monster app installs.
     case 'fAlbedoBlendColor': {
       const u = m.userData.u;
-      if (u && u.uExtTint) u.uExtTint.value.set(v[0], v[1], v[2], cols > 3 ? v[3] : 1);
+      // rgb decoded like a texel (it multiplies or adds to the second map's texel); .a stays raw --
+      // on MapBlend it is a lerp FACTOR, not a colour (2026-10-15)
+      if (u && u.uExtTint){
+        _romLin.setRGB(v[0], v[1] === undefined ? v[0] : v[1], v[2] === undefined ? v[0] : v[2], THREE.SRGBColorSpace);
+        u.uExtTint.value.set(_romLin.r, _romLin.g, _romLin.b, cols > 3 ? v[3] : 1);
+      }
       break;
     }
     // fSpecularColor, $Globals float3 at floatOffset 44. MeshStandardMaterial has no specular
@@ -970,9 +992,11 @@ function applyTrack(m, tr, f){
     }
     case 'fSpecularColor': {
       const u = m.userData.u;
-      if (u && u.uSpecTint)
-        u.uSpecTint.value = 0.299 * v[0] + 0.587 * (v[1] === undefined ? v[0] : v[1])
-                          + 0.114 * (v[2] === undefined ? v[0] : v[2]);
+      // the luminance of the DECODED colour: the tint scales a linear specular (2026-10-15)
+      if (u && u.uSpecTint){
+        _romLin.setRGB(v[0], v[1] === undefined ? v[0] : v[1], v[2] === undefined ? v[0] : v[2], THREE.SRGBColorSpace);
+        u.uSpecTint.value = 0.299 * _romLin.r + 0.587 * _romLin.g + 0.114 * _romLin.b;
+      }
       break;
     }
     default: break;                             // a target the viewer has no home for yet

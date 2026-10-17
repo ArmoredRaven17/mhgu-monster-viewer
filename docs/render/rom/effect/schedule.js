@@ -57,6 +57,7 @@
 // runs out, drawn, until its last effect is gone (0x426e0; the ROM's own limit there is 1800 frames). Only then
 // is the request finished() and dropped.
 import { createShellState, stepShells, SHELL_DATA } from '../../shells.js';
+import { CLASS_THREADS } from '../../class-threads.js';
 
 const hex = h => Uint8Array.from(h.match(/../g) || [], b => parseInt(b, 16));
 
@@ -149,14 +150,17 @@ export class EffectSchedule {
   // 0x329c40(h, 0) while 0x81bb0(e, 0) or (e, 1) holds, the aura left running, and requests them again when neither
   // does. Off stops its running requests and keeps setRage from starting it; on lets it run again -- started now if
   // rage is on.
+  // AN 'always' RECORD HELD OFF the same way -- Ahtal-Ka's u 120: his vt+0x208 0x10b7644 requests it whenever its handle
+  // e+0xd4ac is empty and stops it with 0x329c40(h, 0), clearing the handle, every frame he is on L2 M28 or dying
+  // (render/motion-states.js CLASS_HOLD_OFF); on again starts it at once, as the next frame's request does.
   holdRage(pel, key, off){
     const id = pel + '|' + key;
     if (off) this.rageOff.add(id); else this.rageOff.delete(id);
     for (const e of this.entries){
-      if (!e.def.record || e.when !== 'rage' || e.def.record.pel !== pel || e.def.record.key !== key) continue;
+      if (!e.def.record || (e.when !== 'rage' && e.when !== 'always') || e.def.record.pel !== pel || e.def.record.key !== key) continue;
       const live = e.requests.filter(q => !q.stopped);
       if (off){ for (const q of live) this.host.stopRequest(q); }
-      else if (this.rage && !live.length) this.start(e);
+      else if ((e.when === 'always' || this.rage) && !live.length) this.start(e);
     }
   }
 
@@ -216,7 +220,9 @@ export class EffectSchedule {
     this.walk();
     this.stepPuff();                  // the +0x28 pass's request, ahead of the effects' own passes
     this.stepDrool();                 // the same handler's other branch (0xa41b8): rage and tiredness exclude each other
-    this.host.unitFrame(this.shells ? () => this.stepShells() : undefined);
+    // between the passes: the class's own thread pass (its vt+0x208, the enemy's line) ahead of the shells' moves
+    this.host.unitFrame(this.shells || this.threads ? () => { if (this.threads) this.stepThreads(); if (this.shells) this.stepShells(); }
+                                                    : undefined);
     for (const e of this.entries) if (!e.def.record) this.host.move(e.owner);
     this.host.pruneUnits();
     for (const e of this.entries) if (e.requests.length) e.requests = e.requests.filter(q => !q.finished());
@@ -413,15 +419,29 @@ export class EffectSchedule {
     // the shell's parent; the handle keeps the request, so the rock's ending waits for it (shells.js effect2)
     for (const { shell: sh, start } of out.started){
       const e = this.entries.find(x => x.when === 'shell' && x.def.record && x.def.record.pel === start.pel && x.def.record.key === start.key);
-      if (!e || !sh.parent) continue;                             // no such record exported: the effect is not there
+      if (!e) continue;                                           // no such record exported: the effect is not there
+      // a shell whose init started nothing of its own (its first effect comes from a later move: Ahtal-Ka's base57 starts
+      // ef 0 at its landing, ef 4 on the pull) has no parent yet: the same model-less parent the spawn would have made
+      if (!sh.parent){ sh.parent = this.host.createParent([], { model: false }); if (sh.position) pose(sh); }
       const r = e.def.record;
       const q = this.host.requestEffect(e.owner, sh.parent, { index: r.index, key: r.key, path: r.path, payload: hex(r.payload) },
                                         undefined, start.requester);
       e.requests.push(q);
       this.starts++;
-      if (start.kind === 'switch' && sh.effect3) sh.effect3.request = q;   // base01's 0x20 switch: its +0x162c handle
+      if (start.slot && sh.handles) sh.handles[start.slot] = q;          // a named handle (Ahtal-Ka's anchors, shells.js start60)
+      else if (start.kind === 'switch' && sh.effect3) sh.effect3.request = q;   // base01's 0x20 switch: its +0x162c handle
       else if (start.kind === 'end' && sh.effect4) sh.effect4.request = q;  // base01's end start of +0x15d4 (Boltreaver's 04_01): +0x1630
       else if (sh.effect2) sh.effect2.request = q;
+    }
+    // A SHELL'S NAMED HANDLES STOPPED BY ITS MOVE (shells.js `stops`: { slot, mode } -- 'start' its own first effect; 0x43b058(h,
+    // mode): 0 graceful, 1 at once)
+    for (const sh of out.alive.concat(out.ended)){
+      if (!sh.stops || !sh.stops.length) continue;
+      for (const st of sh.stops){
+        const q = st.slot === 'start' ? sh.request : (sh.handles && sh.handles[st.slot]);
+        if (q && reqAlive(q) && !q.stopped) this.host.stopRequest(q, st.mode ? 1 : 0);
+      }
+      sh.stops = [];
     }
     // A SHELL'S OWN EFFECT STOPPED GRACEFULLY MID-LIFE (Boltreaver's base14 stops u 41 at its delay, 0x406a34: 0x329c40(h, 0))
     for (const sh of out.alive) if (sh.stopNow && sh.request && alive(sh) && !sh.request.stopped) this.host.stopRequest(sh.request);
@@ -447,6 +467,78 @@ export class EffectSchedule {
     for (const sh of out.ended) if (sh.effect3 && sh.effect3.request && reqAlive(sh.effect3.request) && !sh.effect3.request.stopped)
       this.host.stopRequest(sh.effect3.request);
   }
+  // A CLASS'S THREADS (render/class-threads.js; Ahtal-Ka's vt+0x208 head 0x10b7798): numbered slots, each a handle held while
+  // the pass marks the slot active, stretched between its two points every frame. joints: gid => the game's 16-float joint
+  // matrix this step (live.js); threadInput() (index.html) => { carry, action, motion: { list, slot } }, what the viewer
+  // holds of what the pass reads. The records are exported `when: 'thread'` -- nothing else starts them.
+  useThreads(monId, joints){
+    const T = CLASS_THREADS[monId];
+    this.threads = T ? { T, joints, slots: new Array(T.slots).fill(null), on: [], off: T.off.slice(), missing: [] } : null;
+  }
+  stepThreads(){
+    const R = this.threads, T = R.T, c = this.clip;
+    const inp = this.threadInput ? this.threadInput() : null;
+    const motion = inp && inp.motion && c && c.key ? { list: String(inp.motion.list), slot: inp.motion.slot } : null;
+    // the tick that reaches frame t + 1 (the sweep's frame model, class-threads.js)
+    const tick = c ? Math.max(0, Math.ceil(c.frame - 1e-6) - 1) : 0;
+    const carry = inp ? inp.carry : 4;
+    // a class's points written once at an action's start (Ahtal-Ka's web points, class-threads.js latch): taken when the
+    // viewer starts a play (the clip's play token), from the owner unit as it stands then (+0x40, its size, its yaw word)
+    R.mem = R.mem || {};
+    if (T.latch && c && c.play != null && c.play !== R.play){
+      R.play = c.play;
+      const P = this.parent;
+      T.latch(inp ? inp.action : null, P ? { position: P.position, scale: P.scale, yaw16: this.ownerYaw16() } : null, R.mem);
+    }
+    const anchors = T.anchors ? T.anchors(this.shells ? this.shells.state : null) : null;
+    const now = T.at({ motion, tick, carry, pending: inp ? inp.pending : 4, action: inp ? inp.action : null, anchors });
+    const bySlot = new Map(now.on.map(s => [s.slot, s]));
+    // 0xc164c: a joint's position, the translation row of its world matrix; a number the model does not map reads joint 0's
+    const pos = g => { const M = R.joints(g) || R.joints(0); return M ? [M[12], M[13], M[14]] : null; };
+    // an end that is an OBJECT: its point by its slot state (class-threads.js objectPoint), the shells' own state as the viewer's G
+    // a POINT the class keeps (start kind 3 / end kind 4: R.mem, zero until written, as the ctor's fill leaves it)
+    const kept = k => (R.mem[k] || [0, 0, 0]).slice();
+    const start = a => typeof a === 'number' ? pos(a) : kept(a.point);
+    const end = b => {
+      if (typeof b === 'number') return { point: pos(b), why: 'joint ' + b + ' not in the model' };
+      if (b.point) return { point: kept(b.point) };
+      if (b.anchor){ const A = anchors && anchors[b.anchor][b.p]; return { point: A ? A.point.slice(0, 3) : null, why: 'anchor ' + b.anchor + '+' + b.p + ' gone' }; }
+      return T.objectPoint(b.object, { carry, joint: pos, shells: this.shells ? this.shells.state : null });
+    };
+    R.on = []; R.missing = [];
+    for (let k = 0; k < R.slots.length; k++){
+      const s = bySlot.get(k), S = R.slots[k];
+      const A = s ? start(s.a) : null, Bend = s ? end(s.b) : null, B = Bend ? Bend.point : null;
+      if (!s || !A || !B){
+        if (s) R.missing.push('u ' + s.key + ' (slot ' + k + '): ' + (A ? Bend.why : 'joint ' + s.a + ' not in the model'));
+        // an inactive slot's handle: 0x329c40(h, 1) when its +0x60 byte is 1, else (h, 0); the handle cleared
+        if (S && S.q && !S.q.stopped && !S.dead) this.host.stopRequest(S.q, S.hard ? 1 : 0);
+        R.slots[k] = null;
+        continue;
+      }
+      let cur = S;
+      if (!cur){
+        const e = this.entries.find(x => x.when === 'thread' && x.def.record && x.def.record.pel === T.pel && x.def.record.key === s.key);
+        if (!e){ R.missing.push('u ' + s.key + ': its record is not exported'); continue; }
+        const r = e.def.record;
+        const q = this.host.requestEffect(e.owner, this.parent, { index: r.index, key: r.key, path: r.path, payload: hex(r.payload) },
+                                          undefined, this.host.threadRequester(A, B));
+        e.requests.push(q);
+        this.starts++;
+        cur = R.slots[k] = { q, key: s.key, dead: false };
+      }
+      cur.hard = s.hard;                       // the slot's +0x60 byte, as this frame's arm wrote it
+      // a held handle whose effect ran out on its own (none of these is read to) is kept -- the slot is not requested again
+      // while it stays active (0x10ba3e8 tests the handle) -- and no longer written
+      if (!cur.dead && cur.q.finished()) cur.dead = true;
+      if (!cur.dead) this.host.stretchRequest(cur.q, A, B);
+      R.on.push({ slot: k, key: s.key, held: cur.key, a: s.a, b: s.b, A, B });
+    }
+    R.off = T.off.concat(now.off);
+  }
+  // what the thread pass drew this step and what it could not (the checks, the soaks)
+  threadState(){ const R = this.threads; return R ? { on: R.on.slice(), off: R.off.slice(), missing: R.missing.slice() } : null; }
+
   // the monster's facing as the u16 angle a unit keeps (+0x54; forward = (sin Y, 0, cos Y)), from its parent's
   // quaternion; the float-to-u16 rounding is the viewer's (the unit's own word is not kept here)
   ownerYaw16(){

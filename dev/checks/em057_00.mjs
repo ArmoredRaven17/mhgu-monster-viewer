@@ -54,7 +54,8 @@ async function pageCheckZinogre(MON, NAME, U, DEVIANT){
     check(P && P.pick() === 0 && P.joint === 2 && P.records.every(r => r[0] === U),
           'his puff is the stub shape on JOINT 2 -- and it is his OWN effect, em057_00_011, not the shared cm200_007',
           { joint: P && P.joint });
-  check(TO.CUT_TAIL[MON] && TO.CUT_TAIL[MON].joint === 144, 'his cut tail is on joint 144', TO.CUT_TAIL[MON]);
+  // the drop joint is the sever call's kind byte 0x8f = 143 (0xeed254), not u 900's 144
+  check(TO.CUT_TAIL[MON] && TO.CUT_TAIL[MON].joint === 143, 'his cut tail drops from joint 143', TO.CUT_TAIL[MON]);
   const MONSTER = V.MON.monsters.find(e => e.id === MON);
   const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => MONSTER.partIds.includes(p))) : null; };
   const isSet = (d, n) => (MONSTER.groups[n] || []).filter(([g]) => MONSTER.partIds.includes(g)).every(([g, on]) => d[g] === on);
@@ -192,7 +193,7 @@ async function pageCheckZinogre(MON, NAME, U, DEVIANT){
   await play(REST[0], REST[1]); await frames(3);
 
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
-    const parts = k.split('|'), list = parts[0], clip = parts[1];
+    const parts = k.split('|'), list = parts[0], clip = parts[1].replace(/#.*$/, '');   // a copy's row ('#B') is its clip's
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }

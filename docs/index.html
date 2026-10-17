@@ -420,7 +420,8 @@ header #bar .btn.tiny{margin-right:0}
    like the other drop downs" -- Rage, the level axis (Zamtrios' Form, Astalos' Charge State) and the
    variant (Kelbi's Gender) were bare selects beside their labels. They are .field rows now, below the
    part rows: the panel body's own 6px gap plus 7 is the 13 between two part rows. */
-#monRageLevelRow,#monLevelRow,#monVariantRow,#monSizeRow{gap:5px;margin-top:7px}
+#monRageLevelRow,#monLevelRow,#monVariantRow,#monSizeRow,#monCarryRow,#monStateRow,#monStanceRow{gap:5px;margin-top:7px}
+#monRageRow.folded,#monTiredRow.folded,#monRageLevelRow.folded,#monLevelRow.folded{display:none !important}
 /* The Hit Zones panel's Broken Parts: a caption the size and colour of a .field label, over the state switches' rows. */
 #monZoneBreakRow{display:flex;flex-direction:column;gap:2px}
 #monZoneBreaks{display:flex;flex-direction:column;gap:2px}
@@ -614,6 +615,13 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <button class="panel-head">Parts <span class="chev">&#9662;</span></button>
         <div class="panel-body">
           <div id="monGroups"></div>
+          <!-- STATE: Normal / Enraged / Exhausted as ONE dropdown. Raven, 2026-10-17: "I would like the drop down for these three
+               states since typically a monster cannot be Normal ... Enraged or Exhausted at the same time" (the game never has
+               rage and exhaustion together: 0xbcd20, 0x76224). It drives the Enraged / Exhausted toggles below and, where the
+               rage has levels, the Rage dropdown -- kept as the state's holders (folded, never shown), so every handler and
+               every reader of their rows is unchanged. paintStateSelect builds it. -->
+          <div class="field" id="monStateRow" hidden><label for="monState">State</label>
+            <select id="monState"></select></div>
           <label class="chk switch" id="monRageRow" hidden><input type="checkbox" id="monRage"><span class="toggle"></span>Enraged</label>
           <!-- EXHAUSTED (render/motion-states.js TIRED_DROOL). Raven, 2026-09-30: "We are missing the Exhausted state,
                outside of some animations and the effect showing the status, which impacts some animations". A state the
@@ -655,6 +663,11 @@ input[type=range]{width:100%;accent-color:var(--accent)}
                charge is three states, not two, so no checkbox expresses it and its Rage ladder is
                not the right name for it. Raven, 2026-09-11: "U = Uncharged, C = Charging, F = Fully
                Charged ... And we will want a toggle for the charge states." -->
+          <!-- A STANCE: two states a monster's ACTIONS move it between, each with its own animation (part-review `stance`:
+               Nakarkos's Disguise / Revealed). Picking one moves the transport to that state's view (none = the monster's
+               opening view). -->
+          <div class="field" id="monStanceRow" hidden><label for="monStance" id="monStanceLab">Stance</label>
+            <select id="monStance"></select></div>
           <div class="field" id="monLevelRow" hidden><label for="monLevel" id="monLevelLab">Level</label>
             <select id="monLevel"></select></div>
           <!-- A VARIANT picks between whole alternative bodies sharing one part table -- see
@@ -667,6 +680,15 @@ input[type=range]{width:100%;accent-color:var(--accent)}
                that halves a child and gives it the small tusks. -->
           <div class="field" id="monSizeRow" hidden><label for="monSize" id="monSizeLab">Size</label>
             <select id="monSize"></select></div>
+          <!-- CARRYING: the object a monster's class holds on a joint, offered where render/monster.js HELD_PROP names the
+               monster -- Ahtal-Ka's e+0xcb0c (Raven, 2026-10-15: "Yes, build the Carrying control"). A select beside Size
+               and Variant, on their footing, but fed by the ROM's table rather than part-review.json: it changes no part
+               group (so it is not a `levels` rung or a variant), it draws a separate model on joint 130 and it feeds the
+               enable word's bits 15-23 (psl-mask.js em088_00). The names are by shape (INFERRED); each option's
+               tooltip says which file and value it is. -->
+          <div class="field" id="monCarryRow" hidden title="What the class carries (Ahtal-Ka: e+0xcb0c, 4 = none). Drawn on joint 130 while carried; an action that drops it at its start (an ailment, death, the throw, the tired idle) shows none for that play, and the choice comes back on the next.">
+            <label for="monCarry">Carrying</label>
+            <select id="monCarry"></select></div>
           <!-- A GAG, off by default and offered only where render/monster.js GAG_EYES names a monster: Nibelsnarf's
                eye piece, lifted from its own model and hand-placed on this one. Raven, 2026-09-20: "Khezu, keep in
                mind this is a gag setting". -->
@@ -930,6 +952,9 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <label class="chk"><input type="checkbox" id="setShotBg">Include the backdrop in screenshots</label>
     <div class="field"><label for="setClipFmt">Clip format</label><select id="setClipFmt" title="A video keeps no transparency; a frame sequence does, and saves as a zip of numbered frames"><option value="mp4">Video</option><option value="webp">Frame sequence, WebP</option><option value="png">Frame sequence, PNG</option></select></div>
     <p class="hint" id="setClipHint"></p>
+    <h3 class="stage-h">Texture Cache</h3>
+    <div class="row gap cache-row"><span class="hint">Save Resources</span><input type="range" id="setTexCache" min="0" max="5" step="1" style="flex:1"><span class="hint">Faster Loading</span></div>
+    <p class="hint" id="setTexCacheHint"></p>
     <h3 class="stage-h">Theme</h3>
     <label class="chk"><input type="checkbox" id="setDeviantTheme">Deviant Themes</label>
     <div id="swatches" class="swatches"></div>
@@ -1258,23 +1283,23 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     // darken() would leave too light for its white text; so the Deviant path takes the Challenge Apps' own derivation,
     // shade() -- the lightness held inside a fixed dark band whatever the colour -- for the surfaces, and this app's
     // --cta / --stage on top.
-    // THE SECOND COLOUR OF EACH DEVIANT'S PIGMENT. Raven, 2026-10-10: "for the ones that have colors they can select, use
-    // the second color". Every Deviant unlocks a two-colour special pigment for armour (Color_Special_1..18, unlock bits
-    // +0xd18); the pairs are the ROM's own table, built at runtime by 0x560bd4 and read by 0x55f474(table, id - 2, which)
-    // with which = 1 the second colour, u32 0xAABBGGRR (red in the low byte, 0x5daad4) -- extracted by emulation
-    // (task board, Armor Viewer "Deviant Pigments"). All 18 have one, so all 18 take its second colour here.
-    // GRIMCLAW AND BOLTREAVER ARE SWAPPED from the table's order (11 Grimclaw #93F8FF, 16 Boltreaver #9CD3FF): Raven,
-    // 2026-10-10, "Switch Boltreaver and Grimclaw colors".
+    // THE CHALLENGE APPS' OWN DEVIANT COLOURS (MHGU Challenge Run docs/app.js COLORS -- the same list as the Zenny
+    // Gauntlet's). Raven, 2026-10-15: "Challenge App colors, like I had specified", having made "some exceptions to that
+    // since I wanted some themes that matched the monster icon more" -- they are hand-picked, not the ROM's pigments.
+    // [Until 2026-10-15 this table held the second colour of each Deviant's special armour pigment (the ROM's pairs,
+    // 0x560bd4 / 0x55f474; dev/deviant-pigment-mapping.md), from a misreading of "for the ones that have colors they can
+    // select, use the second color" as overriding the Challenge Apps; Grimclaw and Boltreaver had been swapped to match
+    // the Challenge Apps' blue / cyan, which these colours now give directly.]
     const DEVIANTS = {
-      em060_04: ["Redhelm Arzuros", "#FF4033"],     em061_04: ["Snowbaron Lagombi", "#8F43FF"],
-      em019_04: ["Stonefist Hermitaur", "#FCBAC4"], em001_04: ["Dreadqueen Rathian", "#FF0FBF"],
-      em066_04: ["Drilltusk Tetsucabra", "#FF763B"], em037_04: ["Silverwind Nargacuga", "#FFFFFF"],
-      em045_04: ["Crystalbeard Uragaan", "#FEE68D"], em018_04: ["Deadeye Yian Garuga", "#CDFAD0"],
-      em002_04: ["Dreadking Rathalos", "#FF2121"],  em057_04: ["Thunderlord Zinogre", "#FFF546"],
-      em032_04: ["Grimclaw Tigrex", "#9CD3FF"],     em080_04: ["Hellblade Glavenus", "#FF8E00"],
-      em079_04: ["Nightcloak Malfestio", "#273FE5"], em020_04: ["Rustrazor Ceanataur", "#BCFFFE"],
-      em082_04: ["Soulseer Mizutsune", "#FE97F0"],  em081_04: ["Boltreaver Astalos", "#93F8FF"],
-      em083_04: ["Elderfrost Gammoth", "#C5DEE4"],  em007_04: ["Bloodbath Diablos", "#FF2929"],
+      em060_04: ["Redhelm Arzuros", "#CE2A20"],     em061_04: ["Snowbaron Lagombi", "#8E6BC4"],
+      em019_04: ["Stonefist Hermitaur", "#E8776E"], em001_04: ["Dreadqueen Rathian", "#4A2A66"],
+      em066_04: ["Drilltusk Tetsucabra", "#D07A20"], em037_04: ["Silverwind Nargacuga", "#7A858E"],
+      em045_04: ["Crystalbeard Uragaan", "#CFAE44"], em018_04: ["Deadeye Yian Garuga", "#3F7A2E"],
+      em002_04: ["Dreadking Rathalos", "#3E0C05"],  em057_04: ["Thunderlord Zinogre", "#C79A1C"],
+      em032_04: ["Grimclaw Tigrex", "#3070D0"],     em080_04: ["Hellblade Glavenus", "#D25A18"],
+      em079_04: ["Nightcloak Malfestio", "#07143C"], em020_04: ["Rustrazor Ceanataur", "#5E9CC8"],
+      em082_04: ["Soulseer Mizutsune", "#DC6F9E"],  em081_04: ["Boltreaver Astalos", "#22D3DB"],
+      em083_04: ["Elderfrost Gammoth", "#B8C6CE"],  em007_04: ["Bloodbath Diablos", "#1E2440"],
     };
     // the Challenge Apps' shade: hue and saturation kept, lightness mapped into lo..hi by the colour's own lightness
     const shade = (rgb, lo, hi) => { const [h, s, l] = rgbToHsl(rgb); return hslToRgb([h, s, clamp01(lo + (hi - lo) * l)]); };
@@ -1408,6 +1433,11 @@ if (document.fonts) document.fonts.load('1em MHFU').then(() => {
 //   materials.json   what the game's own material files say about every material
 //   models/monsters  one glb per model      poses/monsters  one glb per motion list
 import * as THREE from 'three';
+// FIRST, before any module makes a colour or a texture: ?space=game renders in the game's own gamma space
+// (render/colour-space.js; off by default, and then it does nothing)
+import { GAME_SPACE, applyGameSpace, DEFAULT_CUBE_SH } from './render/colour-space.js';
+import { setSHCoef } from './render/rom/ambient.js';
+import { enableRomBlinnPhong } from './render/rom/specular.js';
 import { createStage } from './render/stage.js';
 import { createFx } from './render/fx.js';
 import { renderCameraFor, LENS_DEFAULT, LENS_TYPES, SQUEEZES } from './render/lens.js';
@@ -1418,13 +1448,14 @@ import { gidBonesOf } from './render/skeleton.js';
 import { loadMaterialsDb } from './render/materials-db.js';
 import { createBackground } from './render/background.js';
 import { createFloorGrid, createGrid } from './render/grid.js';
-import { MotionStates, MOTION_STATES, RAGE_BY_LEVEL, RAGE_PUFF, TIRED_DROOL, JOINT_SCALE, JointScale, shellTailInput, shellPartsInput,
-         postureOf, turnAt, CEILING_ABOVE_GAME, clipHeat } from './render/motion-states.js';
-import { pickVariantsFor, BEAM_TYPES, AURA084_STANCE, AURA084_CASE_A } from './render/shells.js';
-import { pslMask, clipActionFor, clipPostureFor, ACTION_EFFECTS, actionName, actionOf } from './render/psl-mask.js';
-import { CUT_TAIL, CutTail } from './render/tail-option.js';
+import { MotionStates, MOTION_STATES, RAGE_BY_LEVEL, CLASS_HOLD_OFF, RAGE_PUFF, TIRED_DROOL, JOINT_SCALE, JointScale, shellTailInput, shellPartsInput, shellMudInput, glavenusHeat,
+         CLIP_VARIANTS, clipVariantOf, clipVariantsFor,
+         postureOf, turnAt, CEILING_ABOVE_GAME, clipHeat, airLift } from './render/motion-states.js';
+import { pickVariantsFor, BEAM_TYPES, AURA084_STANCE, AURA084_CASE_A, heldUntil088, pullClip088, SHELL_DATA } from './render/shells.js';
+import { pslMask, clipActionFor, clipPostureFor, clipPhaseFor, clipSunkFor, ACTION_EFFECTS, actionName, actionOf, em088CarryAt } from './render/psl-mask.js';
+import { CUT_TAIL, CutTail, FLIGHTS } from './render/tail-option.js';
 import { setEyeGlow, updateEyeGlow } from './render/eye-glow.js';
-import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
+import { loadMonster, releaseMonster, trimTextureCache, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
          partVerts, partsDrawn, applyParts, groupLabel, groupIsInert, setNormalOpt,
          DEFAULT_PARTS_OFF, DEFAULT_PARTS_ON, defaultPartsOn, ROM_RAGE_SET, setRestSets, stepRefract,
          hasChargeState, applyMaterialSwap, stateHoldSeconds, chargeFreezesRage, rageLadder, rageLadderParts,
@@ -1445,7 +1476,7 @@ import { loadMonster, releaseMonster, restoreBind, clipFor, clusterGroups, defau
          attachedBodyOf, attachedClipFor, partnerBodyOf, composeClip, sequenceClipFor, seqFrames, armPairOf,
          FULL_ANIM_LIST, romAnimationsOf, romAnimationMotion, piecesOf, foldLoopFrame, loopFoldOf, specialMotionAt,
          stepEarFold, stepTailSwell, stepHornRaise, stepRageFur, romFormsOf,
-         GAG_EYES, gagEyesOf, setGagEyes, mountGagEyes,
+         GAG_EYES, gagEyesOf, setGagEyes, mountGagEyes, HELD_PROP,
          monsterMats,
          enableRomAmbient, enableRomSpecular, enableRomPhong,
          setSHAmount, setRomSpecularAmount, anchorMisses, heatSpecOf, heatStageOf } from './render/monster.js';
@@ -1558,7 +1589,7 @@ function optionKey(g, skipParts){
 }
 // The key as a review file writes it: the ON-set, plus ",S<n>" on the item that has a part we added
 // switched on (armSlimeOptions).
-function optKeyText(o){ return o.sOn ? o.key + ',S' + o.sPart : o.key; }
+function optKeyText(o){ return o.sOn ? o.key + ',S' + o.sPart + (o.sLevel !== undefined ? ':' + o.sLevel : '') : o.key; }
 // EXACT MATCH FIRST, then a UNIQUE containment fallback, then nothing at all with a warning.
 // Exact-first is load-bearing rather than tidy: Dreadqueen Rathian's 8,11,12,101 row offers
 // 11,101 / 12,101 / 8, so the bare key "101" names two options and has to be REFUSED -- the old
@@ -1591,11 +1622,13 @@ function resolveOptionKey(opts, key, where, stateOn){
   // same ON-set. It has to be taken out BEFORE the ids are parsed, because parseInt drops "s1" and
   // the key would otherwise land silently on the ROM item. A key that does not name it never
   // reaches the item that has it on.
-  const sTok = t => /^s\.?\s*(?:part\s*)?(\d+)$/.exec(t.trim());
+  // ...and may name the slime LEVEL its item sets, "4,15,S1:0" -- Brachydios's Depleted arm (Raven, 2026-10-15: "Remap
+  // the arms as needed"), the third item beside "4,15,S1" and "4,15" -- so the level is part of the match too.
+  const sTok = t => /^s\.?\s*(?:part\s*)?(\d+)(?::(\d+))?$/.exec(t.trim());
   const sHit = raw.split(',').map(sTok).find(Boolean);
-  const sPart = sHit ? (sHit[1] | 0) : undefined;
+  const sPart = sHit ? (sHit[1] | 0) + (sHit[2] !== undefined ? ':' + (sHit[2] | 0) : '') : undefined;
   if (sHit) raw = raw.split(',').filter(t => !sTok(t)).join(',').trim();
-  const sOf = o => o.sOn ? o.sPart : undefined;
+  const sOf = o => o.sOn ? o.sPart + (o.sLevel !== undefined ? ':' + o.sLevel : '') : undefined;
   const want = (raw === '' || raw === 'none' || raw === 'off')
     ? 'none'
     : raw.split(',').map(s => parseInt(s, 10)).filter(Number.isFinite).sort((a, b) => a - b).join(',');
@@ -1690,6 +1723,8 @@ const GLOW_LIGHTS = Object.values(stage.lights);
 // every effect off the frame is the plain renderer.render this app has always drawn. The renderer's
 // tone mapping stays NoToneMapping for it -- the grade pass is the one place that tone-maps.
 const fx = createFx(renderer, scene);
+// ?space=game: no output encode on the canvas or in the effects' grade pass (render/colour-space.js)
+applyGameSpace(renderer, fx);
 
 // ---- THE ROM-DERIVED LIGHTING CORRECTIONS ---------------------------------------------------
 // Five differences between what the ROM's own shader program does and what this viewer drew,
@@ -1726,6 +1761,22 @@ enableRomSpecular(true);
 // BRDF CLASS. Left OFF. MeshPhongMaterial is literally the ROM's model, but swapping it changes
 // every lit material at once and wants its own look. Flip to true to compare.
 enableRomPhong(false);
+
+// ?space=game (render/colour-space.js, OPT-IN, 2026-10-15): the model is shaded in the game's own gamma
+// space, so its default light takes the parts of the ROM's lighting that ARE read, in place of the
+// viewer's stand-ins:
+//   * the ambient is the ENGINE DEFAULT -- DefaultCube_CM's own SH, packed as the ROM packs it -- where
+//     the linear render uses the authored STUDIO_SH;
+//   * the lights' highlight is FBRDF's un-normalised Blinn-Phong on every material (rom/specular.js
+//     __romBlinnPhong; the linear render keeps it to BLINN_PHONG_DEFAULT_REFS).
+// The key / rim / fill / headlight stay the viewer's rig and the Lighting panel drives them unchanged: a
+// monster carries no lights and an area's EM01..03 are stage state (render/area.js). Three's Lambert is
+// N.L x colour / pi, so each light here is the ROM's light.diffuse = intensity / pi -- the reading
+// rom/specular.js already makes for the lobe.
+if (GAME_SPACE){
+  setSHCoef(DEFAULT_CUBE_SH);
+  enableRomBlinnPhong(true);
+}
 
 // If material.js moves upstream, rom/specular.js's string anchors stop matching and it no-ops
 // rather than half-applying. Say so loudly instead of silently drawing the old way.
@@ -2499,6 +2550,8 @@ function fitRenderer(){
 const _aniso = new THREE.Vector2(1, 1);
 function renderFrame(t){
   frameNo++;
+  stepHeldProp();               // the held piece on its joint, after the pose (render/monster.js HELD_PROP)
+  stepShellModels();            // the models shells draw themselves (Ahtal-Ka's shell57: the object in flight)
   const cam = lensCamera();
   const following = fx.active && fxState.dof.on && fxState.dof.follow;
   const focus = following ? focusDistance(t !== undefined) : fxState.dof.focus;
@@ -2530,7 +2583,24 @@ function bindOf(root){
 // origin. The rule below -- the clip's lowest point -- puts Nakarkos's floor ~5 m under him, where his hanging tentacles
 // reach, and his tentacle shots (base01's ground snap, +-500) then found no ground and deleted themselves. Raven,
 // 2026-10-06, asked where his floor should be: "His origin".
-const FLOOR_AT_ORIGIN = new Set(['em084_00']);
+// Zamtrios (em067_00) too: every action sets posture 0 or 4, both pinned to the ground (0xbf284), every clip's reference
+// track has Y 0 and P+0x5c is 0 outside the dig -- while the lowest-bone rule followed the fat body's / hind legs' bones the
+// visible mesh does not use, 150-480 units low (dev/em067-forms-spec.md 4; Raven, 2026-10-17 "ensure Zamtrios is on the
+// grid floor")
+const FLOOR_AT_ORIGIN = new Set(['em084_00', 'em067_00']);
+// AN AIR CLIP, as the floor rule has always told it: the body hangs below the clip's own origin by more than AIR_REACH (in
+// the clip's units, before the size) over the loop. Its height above the ground is then the ROM's (render/motion-states.js
+// AIR_HEIGHT / airLift: FlyOfs x size + the standard takeoff's 485.5, or the clip's own), where that monster's is read.
+const AIR_REACH = 1.0;
+function airNow(){
+  const clipRoot = pose.mixer ? pose.mixer.getRoot() : null, act = pose.action;
+  if (!clipRoot || !act || !act.getClip || state.list === FULL_ANIM_LIST.id) return null;
+  const reach = (pose.bounds && !pose.bounds.isEmpty()) ? pose.bounds.min.y : Infinity;
+  const e = entry();
+  // a clip with its own AIR_HEIGHT row applies as it is; any other only when it hangs below its origin
+  return airLift(state.id, state.list, act.getClip().name, act.time * 60, world.scale.y || 1, (e && e.sizeBase) || 1,
+                 reach < clipRoot.position.y - AIR_REACH);
+}
 function monsterFloorY(){
   const root = mounted.main;
   if (!root) return 0;
@@ -2538,10 +2608,24 @@ function monsterFloorY(){
   const clipRoot = pose.mixer ? pose.mixer.getRoot() : null;
   let y;
   if (clipRoot){
+    // the ROM's air height where read: the ground lies H below the unit, the clip's origin (dev/air-height.md)
+    const air = airNow();
+    if (air) return clipRoot.position.y * (world.scale.y || 1) + world.position.y - air.ground * 0.01;
     const reach = (pose.bounds && !pose.bounds.isEmpty()) ? pose.bounds.min.y : Infinity;
     y = Math.min(clipRoot.position.y, reach);
   } else y = bindOf(root).minY;
   return y * (world.scale.y || 1) + world.position.y;
+}
+// THE UNIT, P+0x40, in game units: the clip's own origin (the pose driver's root, through the world group, which carries the
+// travel and the size), less the posture-3 drop on an air clip that pins the unit to the ground (airLift `unit`). The shells
+// take THIS as their owner's position (base01's 900 rule reads P+0x44, the spawns P+0x40..): the hips the effect parent
+// stands on (live.js unitMatrix, gid 0) swing with the body -- +231 on Seregios's L1 M1 f100, +318 standing (rom-map trap 67).
+function unitGamePos(){
+  const clipRoot = pose.mixer ? pose.mixer.getRoot() : null, s = world.scale, w = world.position;
+  const p = clipRoot ? [clipRoot.position.x * s.x + w.x, clipRoot.position.y * s.y + w.y, clipRoot.position.z * s.z + w.z]
+                     : [w.x, w.y, w.z];
+  const air = clipRoot ? airNow() : null;
+  return [p[0] / 0.01, p[1] / 0.01 - (air ? air.unit : 0), p[2] / 0.01];
 }
 // the monster's horizontal half-size: over the playing loop, or in the bind pose
 function monsterReach(){
@@ -3110,7 +3194,8 @@ function applyCameraState(c){
 }
 // The Parts panel's state controls as a monster opens on them: Enraged, Charged, Heated, the Rage
 // ladder, the level axis and the variant. resetMonsterState() puts them back on a monster change.
-const STATE_DEFAULTS = { rage: false, tired: false, charged: false, heated: true, beamHeated: false, rageLevel: 0, level: 0, variant: 0, size: 0 };
+// `carry`: the Carrying control (render/monster.js HELD_PROP), 4 = nothing -- Ahtal-Ka's spawn value of e+0xcb0c
+const STATE_DEFAULTS = { rage: false, tired: false, charged: false, heated: true, beamHeated: false, rageLevel: 0, level: 0, variant: 0, size: 0, carry: 4, stance: 0 };
 // GROUND LOWEST BONE IS OFF for monsters, and saved as `groundLock` so a view saved while it defaulted on
 // opens with it off. Raven, 2026-09-13: "We may not need to 'ground lowest bone' any more", then "keep the
 // checkbox in Debug for now". It pins the lowest bone to the BIND pose's lowest bone every frame -- a fix
@@ -3183,6 +3268,9 @@ const monSel = document.getElementById('monSel'), monFilter = document.getElemen
       monListSel = document.getElementById('monList'), monClipSel = document.getElementById('monClip'),
       monGroupsEl = document.getElementById('monGroups'), monAbout = document.getElementById('monAbout'),
       monTail = document.getElementById('monTail'), monTailRow = document.getElementById('monTailRow');
+// where the level control lives when no row claims it (placeLevelRow); declared here, before anything can build the rows
+const levelHome = document.createComment('monLevelRow home');
+{ const r = document.getElementById('monLevelRow'); r.parentNode.insertBefore(levelHome, r); }
 
 function entry(){ return MON.monsters.find(e => e.id === state.id) || null; }
 function listOf(e){ return (e && e.lists.find(l => l.id === state.list)) || null; }
@@ -3298,8 +3386,30 @@ function buildMonsterList(){
 // a reviewer no longer has to edit two places for one monster. The six that were here (Diablos and
 // Bloodbath on List 0 Motion[2]_loop; Tigrex, Grimclaw, Nargacuga and Silverwind on List 0
 // Motion[25]_loop) moved across unchanged.
-const DEFAULT_VIEW = new Proxy({}, { get: (_, id) =>
-  (typeof id === 'string' ? (reviewFor(id) || {}).view : undefined) || undefined });
+// EVERY MONSTER OPENS ON LIST 0, MOTION 1. Raven, 2026-10-17: "let's revert the default animation for each monster to L0,
+// M1". The review's per-monster `view` entries (above) are kept in part-review.json as the record of those calls, and no
+// longer pick the opening clip. Motion[1] itself, else its _loop piece, else its _start piece; a monster without an L0 M1
+// opens on its first list's first clip, as before.
+// THE NEW BASELINE'S EXCEPTIONS are part-review `opening: {list, clip}` -- Raven's calls made from here on ("Update Tigrex
+// to use L0, M25 as its default; I will be making adjusts", 2026-10-17), `clip` as the motion (Motion[25]) or a piece of
+// it (Motion[25]_loop), resolved the same way. Kept apart from the old `view` so the two sets of calls never mix.
+function openingView(id){
+  const e = (MON.monsters || []).find(m => m.id === id);
+  const want = (reviewFor(id) || {}).opening;
+  if (want && e){
+    const l = (e.lists || []).find(x => String(x.id) === String(want.list));
+    const names = l ? (l.clips || []).map(c => c.clip) : [];
+    const base = String(want.clip).replace(/_(start|loop)$/, '');
+    const clip = [want.clip, base, base + '_loop', base + '_start'].find(n => names.includes(n));
+    if (clip) return { list: String(want.list), clip };
+    console.warn('part-review: ' + id + ' opening names ' + want.list + '|' + want.clip + ', which this monster does not have');
+  }
+  const l0 = e && (e.lists || []).find(l => String(l.id) === '0');
+  const names = l0 ? (l0.clips || []).map(c => c.clip) : [];
+  const clip = ['Motion[1]', 'Motion[1]_loop', 'Motion[1]_start'].find(n => names.includes(n));
+  return clip ? { list: '0', clip } : undefined;
+}
+const DEFAULT_VIEW = new Proxy({}, { get: (_, id) => (typeof id === 'string' ? openingView(id) : undefined) });
 function listOrder(a, b){
   const na = /^\d+$/.test(a.id), nb = /^\d+$/.test(b.id);
   if (na && nb) return (+a.id) - (+b.id);
@@ -3337,8 +3447,11 @@ function buildLists(){
 }
 function buildClips(){
   const clips = (listOf(entry()) || {}).clips || [];
+  // ONE CLIP, TWO STATES (render/motion-states.js CLIP_VARIANTS): a copied motion shows once per copy, 'Motion[19]_loop A'
+  // / 'Motion[19]_loop B'; the value of a copy past A carries '#B', which state.clipVariant keeps and state.clip does not
   monClipSel.innerHTML = '<option value="">Bind pose</option>' +
-    clips.map(c => '<option value="' + c.clip + '">' + c.clip + ' &mdash; ' + c.dur.toFixed(2) + ' s</option>').join('');
+    clips.map(c => (clipVariantsFor(state.id, state.list, c.clip) || [{ value: c.clip, label: c.clip }])
+      .map(v => '<option value="' + v.value + '">' + v.label + ' &mdash; ' + c.dur.toFixed(2) + ' s</option>').join('')).join('');
   if (!clips.some(c => c.clip === state.clip)){
     const e = entry();
     const dv = DEFAULT_VIEW[e && e.id];
@@ -3347,8 +3460,10 @@ function buildClips(){
     const want = (dv && dv.list === state.list) ? dv.clip : null;
     const pick = clips.find(c => c.clip === want) || clips[0];
     state.clip = pick ? pick.clip : '';
+    state.clipVariant = '';
   }
-  monClipSel.value = state.clip;
+  monClipSel.value = state.clip + (state.clipVariant ? '#' + state.clipVariant : '');
+  if (monClipSel.value === '' && state.clip){ state.clipVariant = ''; monClipSel.value = state.clip; }
 }
 // ICONS PICKED BY HAND, keyed by id, and they win over the harvest's. Raven, 2026-09-13: "Fatalis line,
 // Alatreon use the Forbidden icon" -- the Forbidden theme's question mark -- and "Ahtal-Neset, should
@@ -3468,7 +3583,7 @@ function reviewedParts(rv){
 function setView(want, where){
   const e = entry();
   const lists = (e && e.lists || []).slice().sort(listOrder);
-  if (!want) want = (reviewFor(e && e.id) || {}).view;
+  if (!want) want = DEFAULT_VIEW[e && e.id];             // where every monster opens: L0 M1 (openingView)
   if (!want && lists[0] && (lists[0].clips || [])[0])
     want = { list: lists[0].id, clip: lists[0].clips[0].clip };
   if (!want) return;
@@ -3486,7 +3601,7 @@ function setView(want, where){
     return;
   }
   if (state.list === list.id && state.clip === clip.clip) return;
-  state.list = list.id; state.clip = clip.clip;
+  state.list = list.id; state.clip = clip.clip; state.clipVariant = '';
   buildClips();
   monListSel.value = state.list;
   monClipSel.value = state.clip;
@@ -3710,11 +3825,19 @@ function armSlimeOptions(opts, c, stateDefault){
   const intact = opts.find(o => o.members.some(k => stateDefault[k]));
   if (!intact) return opts;
   const off = o => Object.assign({}, o, { slimeArm: slot, slime: t.spawnLevel, sPart: slot + 1, sOn: false });
-  // The added item leads its ROM twin. Raven dictated "In (Primed), In (Diminished), Br", and Primed
-  // as the BRIGHTER green is a reading -- his words say which two greens, not which is which.
+  // The added items lead their ROM twin. THREE INTACT ARMS, one per slime level the part driver shows (Raven, 2026-10-15:
+  // "Brachy's arms go from Depleted (reduced slime) to Primed (normal slime) to Enraged (slime slightly grows)", then
+  // "Remap the arms as needed", after the renders dev/shots/brachy-arms/): level 0 -- slime on the fist tips only -- is
+  // DEPLETED, the key "<parts>,S<n>:0"; the spawn level 2 -- the normal coat -- is PRIMED, the ROM twin itself; level 1 --
+  // the fullest coat -- is ENRAGED, "<parts>,S<n>". Level 0 is also the level the class's enable word reads as the arm
+  // spent (psl-mask.js em063: c 130 / 131 / 140 / 141, the impact cloud on his punches). (Until 2026-10-15 the twins were
+  // Primed = 1 and Diminished = 2, a reading of "In (Primed), In (Diminished), Br", and level 0 was not offered.)
   const out = [];
   for (const o of opts){
-    if (o === intact) out.push(Object.assign(off(o), { slime: S_PART_SLIME_LEVEL, sOn: true }));
+    if (o === intact){
+      out.push(Object.assign(off(o), { slime: 0, sOn: true, sLevel: 0 }));
+      out.push(Object.assign(off(o), { slime: S_PART_SLIME_LEVEL, sOn: true }));
+    }
     out.push(off(o));
   }
   return out;
@@ -3951,6 +4074,16 @@ function stepReviewCycle(id, t){ if (id && reviewCycle(id)) writeClipPins(id, t)
 function synthIds(v){
   return String(v === undefined ? '' : v).split(',').map(s => parseInt(s, 10)).filter(Number.isFinite);
 }
+// whether the current monster's applied synthetic item pins material `mat` to `clip` (Hellblade's Tail "(Blasted)" items:
+// XfBA1__m04_tail -> overheat_Loop, the one state of his heat byte no part shows; motion-states.js glavenusHeat)
+function synthClipPicked(id, mat, clip){
+  for (const [k, rv] of Object.entries(reviewRows(id))){
+    if (!rv || !Array.isArray(rv.synth) || !rv.synth.length) continue;
+    const it = rv.synth[synthIndex(k, rv)] || {};
+    if (it.clip && it.clip[mat] === clip) return true;
+  }
+  return false;
+}
 function synthIndex(key, rv){
   const list = (rv && rv.synth) || [];
   const p = synthPicked[key];
@@ -3987,6 +4120,8 @@ function buildGroups(){
   if (!state.groups || state.groups.length !== groups.length)
     state.groups = defaultGroupsOn(groups, e && e.em, e && e.id, !!state.rage,
                                    DEFAULT_PARTS_OFF[e && e.id], forcedOn(e && e.id));
+  // the level control may sit among the rows (placeLevelRow): home first, or the clear below would take it with them
+  { const r = document.getElementById('monLevelRow'); if (r && r.parentNode === monGroupsEl) levelHome.after(r); }
   monGroupsEl.innerHTML = '';
   if (!groups.length){
     monGroupsEl.innerHTML = '<p class="hint">This monster ships no part-visibility table.</p>';
@@ -4220,7 +4355,7 @@ function buildGroups(){
       // names the added part too, and a rebuild picks between the twins by the arm's CURRENT slime
       // level -- a rage toggle must not put a primed arm back to its spawn level. Rows with no added
       // part are exactly as before: every item's value is its rep and the first match wins.
-      const optValue = o => o.sOn ? o.rep + ',S' + o.sPart : String(o.rep);
+      const optValue = o => o.sOn ? o.rep + ',S' + o.sPart + (o.sLevel !== undefined ? ':' + o.sLevel : '') : String(o.rep);
       const byLevel = list => list.find(o => o.slime === undefined ||
                                              o.slime === (armSlimeLevels(mounted.main) || [])[o.slimeArm]) || list[0];
       // THE HIGHEST-GROUP-INDEX FALLBACK, captured BEFORE any reordering below, because that is
@@ -4280,7 +4415,7 @@ function buildGroups(){
         // A key naming a part we add ("4,S1") is moot on a row that adds none: Raging Brachydios' slime items exist only
         // while render/monster.js ROM_ARM_SLIME lists its slime materials, and a hide for an item that is not there is
         // not a typo worth a warning. Raven, 2026-09-16: "Hide those parts for Raging".
-        const namesAdded = String(k).toLowerCase().split(',').some(t => /^s\.?\s*(?:part\s*)?\d+$/.test(t.trim()));
+        const namesAdded = String(k).toLowerCase().split(',').some(t => /^s\.?\s*(?:part\s*)?\d+(?::\d+)?$/.test(t.trim()));
         if (namesAdded && !opts.some(o => o.sOn)) continue;
         const o = resolveOptionKey(opts, k, (e && e.id) + ' row ' + c.parts + ' hide', stOn);
         if (o) dropped.add(o);
@@ -4423,9 +4558,20 @@ function buildGroups(){
   buildAxisRows(e);
   buildAttachedRows(e);
   buildPartnerRow(e);
+  placeLevelRow();
   // the severed-pieces debug switch has nothing to show when every piece is an attached second body
   monTailRow.hidden = !(e && e.parts.some(p => !attachedBodyOf(e.id, p.name)));
   monTail.checked = state.tail;
+}
+// THE LEVEL CONTROL UNDER THE ROW IT DRIVES. Raven, 2026-10-17: "Normal Glavenus, move Tail State to be below Tail" /
+// "update Hellblade to use the same layout as Glavenus". part-review `levels.under` names that row's key; the control moves
+// right after the row's field, and back to its own place (levelHome) for a monster that names none.
+function placeLevelRow(){
+  const r = document.getElementById('monLevelRow');
+  const under = ((reviewFor(state.id) || {}).levels || {}).under;
+  const field = under != null ? [...monGroupsEl.children].find(x => x.dataset.row === String(under)) : null;
+  if (field) field.after(r);
+  else if (r.previousSibling !== levelHome) levelHome.after(r);
 }
 // A VARIANT IS A WHOLE ALTERNATIVE MODEL SHARING ONE PART TABLE, AND THE PART GROUPS CANNOT SAY SO.
 // Kelbi is the case and the first in the sweep the group model cannot express: it has no part 0 at
@@ -4622,6 +4768,7 @@ function applyPartState(){
 }
 function clearMounts(){
   clearAttached();
+  releaseHeldProp();             // the held piece belongs to the body that is going (HELD_PROP)
   // give the materials and geometry back: a sweep steps through every monster in the game
   for (const k of Object.keys(mounted)){
     world.remove(mounted[k]); releaseMonster(mounted[k]); delete mounted[k];
@@ -5003,10 +5150,42 @@ function setLoading(on){
 // camera -- and the screen has to span all three. Holding only across mount() would drop it on
 // an unposed monster at the previous monster's camera, which then jumps when frameAll runs.
 // The hold is counted, so mount()'s own hold nesting inside this one is harmless.
+// THE TEXTURE CACHE SETTING (render/monster.js trimTextureCache). Raven, 2026-10-11: "Save Resources <------|------>
+// Faster Loading", "The slider will determine how many textures are cached", then "I doubt monsters share textures, so it
+// might be better to use 'monsters'". Six stops, each a number of recently viewed monsters whose textures stay cached
+// (the one on screen counts). Faster Loading (the last stop) keeps everything, as the viewer always has, and is the
+// default; ~250 MB of GPU memory per monster was the 2026-10-10 measurement.
+const TEX_CACHE_STOPS = [1, 2, 3, 5, 8, Infinity];
+const TEX_CACHE_KEY = 'mhgu-monster-viewer-texcache';
+let texCacheStop = TEX_CACHE_STOPS.length - 1;
+try { const v = localStorage.getItem(TEX_CACHE_KEY); if (v !== null && +v >= 0 && +v < TEX_CACHE_STOPS.length) texCacheStop = +v; } catch (e) {}
+function paintTexCache(){
+  const el = document.getElementById('setTexCache'), hint = document.getElementById('setTexCacheHint');
+  if (el) el.value = String(texCacheStop);
+  const n = TEX_CACHE_STOPS[texCacheStop];
+  if (hint) hint.textContent = n === Infinity ? 'Textures of every monster you view stay cached.'
+    : n === 1 ? 'Only the current monster' + String.fromCharCode(8217) + 's textures stay cached.'
+    : 'Textures of the last ' + n + ' monsters you view stay cached.';
+}
+function trimTextures(){
+  const r = trimTextureCache(Object.values(mounted), state.id, TEX_CACHE_STOPS[texCacheStop]);
+  window.__texCache = r;
+  return r;
+}
+{
+  const el = document.getElementById('setTexCache');
+  if (el) el.oninput = () => {
+    texCacheStop = +el.value | 0;
+    try { localStorage.setItem(TEX_CACHE_KEY, String(texCacheStop)); } catch (e) {}
+    paintTexCache(); trimTextures();
+  };
+  paintTexCache();
+}
 async function remount({ play: withPlay = true, frame = true } = {}){
   setLoading(true);
   try {
     await mount();
+    trimTextures();
     // again after play(): mount() has only the T-pose box to go on, and the driver's bounds --
     // the union of the whole loop -- are what the parts should actually clear
     if (withPlay) { await play(); placeParts(); }
@@ -5070,6 +5249,14 @@ async function mount(){
     // AFTER applyRage, which is where a Charged that this monster cannot do gets cleared -- marking
     // before it would leave the clock believing in a state the monster is not in.
     markStateChange(true);
+    // A MONSTER THAT IS NEVER CALM opens with its enrage already applied, its transition over -- every state it has is
+    // enraged (part-review `levels.rage` all true: Furious Rajang). Raven, 2026-10-17: "Furious Rajang: Ensure the
+    // enrage effects are applied before loading the model". The effect runtime already attaches enraged (no rage-start
+    // burst); this settles the materials' clock the way a change begun before the clip is settled (driveMotionStates).
+    {
+      const lv = (reviewFor(state.id) || {}).levels;
+      if (lv && Array.isArray(lv.rage) && lv.rage.length && lv.rage.every(Boolean)){ prevMatState = curMatState; tStateChanged = -1e9; }
+    }
     zoneCache = null; await applyHeat(); applyGap();
     setNormalOpt(state.normalFlip, state.normalScale);
     placeParts();
@@ -5077,6 +5264,8 @@ async function mount(){
     // fires these per action and what fires which is undecoded, so showing them all at once is
     // an inspection, not a reconstruction. See render/rom/effect-mounts.js.
     await attachEffectMounts(main, state.id, effectOnly);
+    // the piece the class holds on a joint, as the Carrying control has it (render/monster.js HELD_PROP)
+    await syncHeldProp();
     // the Poison / Dung Bomb row once the runtime is THERE (Raven, 2026-10-05: "Posion and Dung Bomb do not appear until
     // I toggle Enraged") -- the rage row's own refresh runs before this asynchronous attach finishes, so on a fresh load
     // it found no runtime and hid the row until a rage toggle re-attached and repainted
@@ -5390,6 +5579,12 @@ function breakRowInfo(e, key){
       reps: on.slice(), broken: on.indexOf(axisIndex(e.id, name)) >= 0 }));
     return { key, groups: gs, rows, broken: rows.some(r => r.broken) };
   }
+  // A KEY A LEVEL RUNG ANSWERS (Hellblade's Tail Blasted: his Tail State on Blasted). Its one row is the level control.
+  const lvk = sw && sw.level && sw.level[key];
+  if (lvk){
+    const rows = [{ row: 'level', rv: null, offered: true, reps: lvk.slice(), broken: lvk.indexOf(state.level | 0) >= 0 }];
+    return { key, groups: gs, rows, broken: rows[0].broken };
+  }
   // A KEY A SYNTHETIC ROW ANSWERS BY ITS CLIP. Hellblade Glavenus' Tail offers "(Heated)" and "(Blasted)" items that
   // draw the same parts and differ only in the heat clip, so no group can tell them apart: `synthClip` names the
   // material clip that makes an item count, and the key is on when the row's applied item plays it.
@@ -5433,6 +5628,7 @@ function breakRowInfo(e, key){
 }
 function zoneBreakField(row){
   // an 'axis:<key>' row is the axis's own field (buildAxisRows), which carries data-axis rather than data-row
+  if (row === 'level'){ const f = document.getElementById('monLevelRow'); return f && !f.hidden ? f : null; }
   const axisKey = row.indexOf('axis:') === 0 ? row.slice(5) : null;
   const f = [...document.querySelectorAll('#monGroups .field')]
     .find(x => axisKey !== null ? x.dataset.axis === axisKey : x.dataset.row === row);
@@ -6266,13 +6462,21 @@ addEventListener('resize', () => { if (!zonePanel.hidden) placeZonePanel(); });
 // Both are recomputed at mount BEFORE buildGroups, because the parts decide which clusters the
 // panel shows and which variant of them is chosen.
 let ladder = [], ladderParts = [];
+// A LADDER THAT IS NOT THE ENRAGE. Bloodbath's rungs are P+0x1bb's two latched HP stages; his enrage is P+0x518 (the
+// puff's gate 0x81670, the enable word's enraged group), as every other monster's. Raven, 2026-10-14: "Enraged toggle.
+// Rage is a unique aspect of Bloodbath, where it gains moves, effects, visual changes as it loses HP. We can rename
+// Rage to Bloodbath State to avoid confusion." So for him the ladder (part-review `rage.name`) keeps its rungs and
+// parts but sets no state.rage, and the Enraged toggle shows beside it and owns state.rage
+// (dev/em007_04-undriven-spec.md 3).
+const LADDER_NOT_ENRAGE = new Set(['em007_04']);
+const ladderIsRage = () => ladder.length > 0 && !LADDER_NOT_ENRAGE.has(state.id);
 function readLadder(){
   const main = mounted.main;
   ladder = main ? rageLadder(main) : [];
   ladderParts = (main && ladder.length) ? rageLadderParts(main) : [];
   if (!ladder.length) state.rageLevel = 0;
   else if (state.rageLevel > ladder.length) state.rageLevel = ladder.length;
-  state.rage = ladder.length ? state.rageLevel > 0 : state.rage;
+  state.rage = ladderIsRage() ? state.rageLevel > 0 : state.rage;
 }
 // THE RAGE CONTROL OWNS ITS OWN PARTS. Raven, 2026-09-10: "For the rage levels have it switch the
 // parts that need to be on for the effect to show ... This way users don't have to somehow figure
@@ -6416,13 +6620,13 @@ function applyRage(){
     rungs.forEach(r => { const o = document.createElement('option');
                          o.value = String(r.v); o.textContent = r.t; lvSel.appendChild(o); });
     lvSel.value = String(state.rageLevel || 0);
-    state.rage = state.rageLevel > 0;
+    if (ladderIsRage()) state.rage = state.rageLevel > 0;
   } else {
     lvSel.innerHTML = '';                 // do not leave the previous monster's rungs in a hidden select
     state.rageLevel = 0;
   }
-  // the checkbox is the control only where there is no ladder
-  document.getElementById('monRageRow').hidden = !has || ladder.length > 0;
+  // the checkbox is the control only where there is no ladder -- or where the ladder is not the enrage (Bloodbath)
+  document.getElementById('monRageRow').hidden = !has || ladderIsRage();
   document.getElementById('monRage').checked = !!state.rage;
   paintTired();
   // the SHARED-STATE row appears per monster, once the effect runtime has built its SharedStates
@@ -6432,7 +6636,8 @@ function applyRage(){
   {
     const rv = (reviewFor(state.id) || {}).rage || null;
     const text = [...document.getElementById('monRageRow').childNodes].reverse().find(n => n.nodeType === 3);
-    if (text) text.textContent = (rv && rv.name) ? String(rv.name) : 'Enraged';
+    // where a ladder shows, `rage.name` is the LADDER's label (Bloodbath State), not this toggle's
+    if (text) text.textContent = (rv && rv.name && !ladder.length) ? String(rv.name) : 'Enraged';
   }
   // CHARGED IS ITS OWN STATE, not a deeper rage -- Khezu's Taiden branch (0xd1ec1c) hangs off a
   // different value of the same state byte as Angry, and running both at once put a 4Hz full-body
@@ -6487,6 +6692,8 @@ function applyRage(){
     }
   }
   paintSize();
+  paintCarry();
+  paintStance();
   {
     const lv = (reviewFor(state.id) || {}).levels || null;
     // A MONSTER WHOSE FORMS ARE A ROM MACHINE gets the axis without a part row on it -- Alatreon's forms
@@ -6580,12 +6787,51 @@ function paintTired(){
   if (state.rage) state.tired = false;                       // never both (0xbcd20, 0x76224)
   row.hidden = !can;
   document.getElementById('monTired').checked = !!state.tired;
+  paintStateSelect();
+}
+// THE STATE DROPDOWN (monStateRow): Normal, then Enraged (the rage toggle's own label: part-review `rage.name`, e.g. Raging
+// Brachydios's "Red slime") or -- where the rage has levels (a ladder that IS the enrage) -- each level by its rung name,
+// then Exhausted where the monster tires. The toggles and the rage ladder it replaces stay as the state's holders, folded.
+// Mizutsune / Soulseer keep their own State rung (levels with `tired`): the toggles are hidden there, so this stays hidden.
+function paintStateSelect(){
+  const row = document.getElementById('monStateRow'), sel = document.getElementById('monState');
+  const rageRow = document.getElementById('monRageRow'), tiredRow = document.getElementById('monTiredRow');
+  const lvRow = document.getElementById('monRageLevelRow'), lvSel = document.getElementById('monRageLevel');
+  const rungs = !lvRow.hidden && ladderIsRage();
+  const opts = [];
+  // A LEVEL AXIS THAT OWNS RAGE (part-review `levels.rage`: Rajang's Normal / Enraged / Armor Mode, Furious Rajang's) is the
+  // state: its rungs are the options, then Exhausted. Raven, 2026-10-17: "Rajang: Combine state drop downs". Not where a
+  // rung is itself exhaustion (levels.mat: Mizutsune / Soulseer keep their own State rung, the toggles hidden).
+  const lvAxis = (reviewFor(state.id) || {}).levels, levelRow = document.getElementById('monLevelRow');
+  const ownsRage = !!(lvAxis && Array.isArray(lvAxis.rage) && !tiredRung() && !levelRow.hidden);
+  levelRow.classList.toggle('folded', ownsRage);
+  if (ownsRage){
+    for (const o of document.getElementById('monLevel').options) opts.push({ v: 'lv:' + o.value, t: o.textContent });
+  } else if (rungs){
+    for (const o of lvSel.options) opts.push(+o.value === 0 ? { v: 'normal', t: 'Normal' } : { v: 'rung:' + o.value, t: o.textContent });
+  } else {
+    opts.push({ v: 'normal', t: 'Normal' });
+    if (!rageRow.hidden){
+      const rv = (reviewFor(state.id) || {}).rage || null;
+      opts.push({ v: 'rage', t: (rv && rv.name && !ladder.length) ? String(rv.name) : 'Enraged' });
+    }
+  }
+  if (!tiredRow.hidden) opts.push({ v: 'tired', t: 'Exhausted' });
+  rageRow.classList.add('folded'); tiredRow.classList.add('folded');
+  lvRow.classList.toggle('folded', rungs);
+  row.hidden = opts.length < 2;
+  sel.textContent = '';
+  for (const o of opts){ const el = document.createElement('option'); el.value = o.v; el.textContent = o.t; sel.appendChild(el); }
+  const cur = state.tired ? 'tired' : ownsRage ? 'lv:' + (state.level | 0)
+            : rungs ? ((state.rageLevel | 0) > 0 ? 'rung:' + state.rageLevel : 'normal') : (state.rage ? 'rage' : 'normal');
+  sel.value = opts.some(o => o.v === cur) ? cur : opts[0].v;
 }
 // The clip the chosen rung names, or null for No Rage / a monster with no ladder.
 function levelClip(){
   // A LEVEL AXIS THE ROM COLOURS BY ITS OWN CASE comes first: Boltreaver's Charge State rung is the
   // charge byte its part driver switches on, and the same case picks the clip (ROM_CLIP_LADDER).
-  const byLevel = levelClipFor(state.id, state.level);
+  // (Glavenus's Tail State rung picks his tail material's clip, `normal` again on a severed tail: the parts drawn)
+  const byLevel = levelClipFor(state.id, state.level, mounted.main && mounted.main.userData.partsDrawn);
   if (byLevel !== undefined) return byLevel;
   // A PART SET THE ROM SWITCHES ON THE SAME FLAG AS A CLIP: Thunderlord's third charge option (group 19)
   // is its yellow state, so the effect clip follows that row (ROM_SET_CLIP).
@@ -6604,6 +6850,17 @@ let tStateChanged = 0, prevMatState = 'calm', curMatState = 'calm';
 // death (driveMotionStates)
 function shownMatState(){
   const st = matState(), o = motionStates.rageOverride();
+  // A MONSTER WHOSE RUNG NAMES A TIRED MATERIAL (levels.mat: Mizutsune, Soulseer -- the only class whose STATE_NAMES
+  // `tired` clips exist) shows a motion's exhaustion too. Raven, 2026-10-15: "Blue for exhausted, Red for enraged,
+  // normal state for anything else." A rage entry wins over the Exhausted rung (never both: 0xbcd20), a tired row
+  // (`rage: false, tired: true`) over the Enraged rung, and death at the Exhausted rung stays tired (the flag is
+  // still up; states-em082_00.md 5). Every other monster keeps the rule below, unchanged.
+  // (only once the driver has stepped THIS monster: at a mount its row is still the last monster's -- a Rathian tired
+  // idle there put the new Mizutsune into tired_Change and tired_End before his first frame)
+  if (tiredRung() && motionStates.monId === state.id){
+    if (o === true) return 'enraged';
+    if (motionStates.tired() && (o === false || st !== 'enraged')) return 'tired';
+  }
   if (o === true && st === 'calm') return 'enraged';
   if (o === false && st === 'enraged') return 'calm';
   return st;
@@ -6623,6 +6880,8 @@ function markStateChange(force){
 // where no rest clip follows. Opening a saved view or running a scene sets its own state instead.
 function resetMonsterState(){
   Object.assign(state, STATE_DEFAULTS);
+  // part-review `levels.default`: the rung a fresh mount opens on (Hellblade's Tail State: Blasted)
+  { const lv = (reviewFor(state.id) || {}).levels; if (lv && Number.isInteger(lv.default)) state.level = lv.default; }
   state.axes = {};        // an object, so not in STATE_DEFAULTS, where Object.assign would share one
   prevMatState = curMatState = 'calm';
   axisClock.id = null;
@@ -6993,7 +7252,7 @@ monTypeSel.onchange = () => {
   monSel.onchange();
 };
 monSel.onchange = async () => {
-  state.id = monSel.value; state.groups = null; state.list = ''; state.clip = '';
+  state.id = monSel.value; state.groups = null; state.list = ''; state.clip = ''; state.clipVariant = '';
   buildMonsterList();              // Species Type follows a monster picked from a search across types
   resetMonsterState();
   buildLists();
@@ -7002,10 +7261,14 @@ monSel.onchange = async () => {
   saveState();
 };
 monListSel.onchange = async () => {
-  state.list = monListSel.value; state.clip = '';
+  state.list = monListSel.value; state.clip = ''; state.clipVariant = '';
   buildClips(); await play(); saveState();
 };
-monClipSel.onchange = async () => { state.clip = monClipSel.value; await play(); saveState(); };
+monClipSel.onchange = async () => {
+  const v = clipVariantOf(monClipSel.value);
+  state.clip = v.clip; state.clipVariant = v.variant;
+  await play(); saveState();
+};
 // placeParts on the way in: the monster may have been posed or resized since it mounted, and
 // the parts are measured against whatever the body is doing right now
 monTail.onchange = () => { state.tail = monTail.checked; applyPartState(); if (state.tail) placeParts(); saveState(); };
@@ -7101,12 +7364,36 @@ window.__refreshSharedRow = refreshSharedRow;
 
 // EXHAUSTED (paintTired): turning it on takes rage off through rage's own control, so the parts and materials follow
 // exactly as unticking Enraged makes them; everything exhaustion changes is read per frame from motionStates.tired().
+document.getElementById('monState').onchange = e => {
+  const v = e.target.value;
+  const box = document.getElementById('monRage'), tb = document.getElementById('monTired');
+  const lvRow = document.getElementById('monRageLevelRow'), lvSel = document.getElementById('monRageLevel');
+  const rungs = !lvRow.hidden && ladderIsRage();
+  const lvAxis = (reviewFor(state.id) || {}).levels, levSel = document.getElementById('monLevel');
+  const ownsRage = !!(lvAxis && Array.isArray(lvAxis.rage) && !tiredRung() && !document.getElementById('monLevelRow').hidden);
+  if (v === 'tired'){
+    if (ownsRage && lvAxis.rage[state.level | 0]){
+      const calm = lvAxis.rage.findIndex(r => !r);
+      if (calm >= 0){ levSel.value = String(calm); levSel.onchange({ target: levSel }); }
+    }
+    tb.checked = true; tb.onchange({ target: tb });
+  }
+  else {
+    if (state.tired){ tb.checked = false; tb.onchange({ target: tb }); }
+    if (v.startsWith('lv:')){ levSel.value = v.slice(3); levSel.onchange({ target: levSel }); }
+    else if (v.startsWith('rung:')){ lvSel.value = v.slice(5); lvSel.onchange({ target: lvSel }); }
+    else if (v === 'rage'){ box.checked = true; box.onchange({ target: box }); }
+    else if (rungs){ if ((state.rageLevel | 0) > 0){ lvSel.value = '0'; lvSel.onchange({ target: lvSel }); } }
+    else if (state.rage){ box.checked = false; box.onchange({ target: box }); }
+  }
+  paintStateSelect();
+};
 document.getElementById('monTired').onchange = e => {
   state.tired = e.target.checked;
   if (state.tired && state.rage){
     const lvRow = document.getElementById('monRageLevelRow'), lvSel = document.getElementById('monRageLevel');
     const box = document.getElementById('monRage');
-    if (!lvRow.hidden){ lvSel.value = String([...lvSel.options].map(o => +o.value).sort((a, b) => a - b)[0] || 0); lvSel.onchange({ target: lvSel }); }
+    if (!lvRow.hidden && ladderIsRage()){ lvSel.value = String([...lvSel.options].map(o => +o.value).sort((a, b) => a - b)[0] || 0); lvSel.onchange({ target: lvSel }); }
     else { box.checked = false; box.onchange({ target: box }); }
   }
   paintTired();
@@ -7140,8 +7427,11 @@ document.getElementById('monRage').onchange = e => {
 };
 document.getElementById('monRageLevel').onchange = e => {
   state.rageLevel = +e.target.value | 0;
-  state.rage = state.rageLevel > 0;
-  if (state.rage) state.tired = false;                     // never both (0xbcd20, 0x76224)
+  // a ladder that is not the enrage (LADDER_NOT_ENRAGE: Bloodbath State) leaves rage and exhaustion to their toggles
+  if (ladderIsRage()){
+    state.rage = state.rageLevel > 0;
+    if (state.rage) state.tired = false;                   // never both (0xbcd20, 0x76224)
+  }
   paintTired();
   markStateChange();
   // ALWAYS recompute, not only where ROM_RAGE_SET has an entry: the rung owns the effect's parts
@@ -7196,6 +7486,222 @@ document.getElementById('monSize').onchange = async e => {
   buildGroups(); applyPartState(); saveState();
   await resize();
 };
+// ---- THE HELD PIECE (render/monster.js HELD_PROP: Ahtal-Ka's carried object, e+0xcb0c) ----------------------------------
+// The Carrying control, rebuilt with the other state controls (applyRage). Offered only where HELD_PROP names the monster.
+// THE STANCE CONTROL (part-review `stance: { name, options: [{ label, view? }] }`). Nakarkos: Raven, 2026-10-17, "Add a toggle
+// for Disguise / Revealed. Disguise will play the current DA. Revealed will use L0, M50". The ROM's stance byte E+0xcac4
+// (build/hitzone-states/state-decodes.md NAKARKOS): 1 the disguise (idle L0 M1; the Face table left alone), 2 the revealed
+// form (L0 M50 among its clips; the Face table switching with the clip) -- set per action at its start (0x1066c14), stance 2
+// at spawn above rank 4. Nothing else the model shows hangs on it, so the control moves the animation alone.
+function paintStance(){
+  const row = document.getElementById('monStanceRow'), sel = document.getElementById('monStance');
+  const st = (reviewFor(state.id) || {}).stance;
+  row.hidden = !(st && Array.isArray(st.options) && st.options.length > 1);
+  if (row.hidden){ state.stance = 0; sel.textContent = ''; return; }
+  document.getElementById('monStanceLab').textContent = st.name || 'Stance';
+  sel.textContent = '';
+  st.options.forEach((o, i) => { const el = document.createElement('option'); el.value = String(i); el.textContent = String(o.label); sel.appendChild(el); });
+  if (!(state.stance >= 0 && state.stance < st.options.length)) state.stance = 0;
+  sel.value = String(state.stance | 0);
+}
+document.getElementById('monStance').onchange = e => {
+  const st = (reviewFor(state.id) || {}).stance;
+  state.stance = +e.target.value | 0;
+  const o = st && st.options[state.stance];
+  setView(o && o.view ? o.view : null, 'stance');
+  saveState();
+};
+function paintCarry(){
+  const spec = HELD_PROP[state.id] || null;
+  const row = document.getElementById('monCarryRow'), sel = document.getElementById('monCarry');
+  row.hidden = !spec;
+  sel.textContent = '';
+  if (!spec) return;
+  if (!spec.options.some(o => o.carry === state.carry)) state.carry = 4;
+  for (const o of spec.options){
+    const el = document.createElement('option');
+    el.value = String(o.carry); el.textContent = o.label;
+    if (o.title) el.title = o.title;
+    sel.appendChild(el);
+  }
+  sel.value = String(state.carry);
+}
+// A new choice is a new motion start: the enable word reads the carried object when a motion starts (0x7256c), so the
+// play in hand is begun again for the word (playNow), and the piece is swapped at once.
+document.getElementById('monCarry').onchange = async e => {
+  state.carry = +e.target.value;
+  saveState();
+  plays.key = null; plays.motion = null;
+  await syncHeldProp();
+};
+// the piece mounted now: { id, carry, root, main, bone } -- one at a time, as the class makes one unit (e+0xcb18)
+let heldProp = null, heldPropSeq = 0;
+const _hp = { p: new THREE.Vector3(), q: new THREE.Quaternion(), s: new THREE.Vector3(), one: new THREE.Vector3(),
+              m: new THREE.Matrix4(), inv: new THREE.Matrix4() };
+function releaseHeldProp(){
+  heldPropSeq++;
+  if (!heldProp) return;
+  if (heldProp.root.parent) heldProp.root.parent.remove(heldProp.root);
+  releaseMonster(heldProp.root);
+  heldProp = null;
+}
+// Load the chosen piece (another monster's part record: HELD_PROP `source`, through the viewer's own material path) and
+// hang it on the world group -- NOT in `mounted`, so no pose driver reaches it (trap 54); stepHeldProp places it.
+async function syncHeldProp(){
+  const spec = HELD_PROP[state.id] || null;
+  const opt = spec && spec.options.find(o => o.carry === state.carry);
+  const main = mounted.main;
+  if (!spec || !main || !opt || !opt.model){ releaseHeldProp(); return; }
+  if (heldProp && heldProp.main === main && heldProp.id === state.id && heldProp.carry === state.carry) return;
+  releaseHeldProp();
+  const src = MON.monsters.find(m => m.id === spec.source);
+  const rec = src && (src.parts || []).find(p => p.name === opt.model);
+  const bone = gidBonesOf(main).find(b => b.gid === spec.joint);
+  if (!rec || !bone){ noteError('held piece: no ' + (rec ? 'joint ' + spec.joint : opt.model + ' in ' + spec.source)); return; }
+  const mine = ++heldPropSeq;
+  const root = await loadMonster(rec, {}, { wire: wireOn });
+  if (mine !== heldPropSeq || mounted.main !== main){ releaseMonster(root); return; }
+  root.name = 'held-' + opt.model;
+  root.userData.heldProp = true;
+  root.matrixAutoUpdate = false;
+  root.visible = false;                       // until stepHeldProp has placed it
+  world.add(root);
+  heldProp = { id: state.id, carry: state.carry, root, main, bone, model: opt.model };
+}
+// The carried object for the play in hand: the play's action as playNow named it, or the clip's first action where no
+// play has been taken yet (psl-mask.js em088CarryAt: the starts that drop it show none).
+function carryNow(){
+  const act = pose.action, name = act && act.getClip ? act.getClip().name : null;
+  if (!name) return state.carry;
+  const base = name.replace(/_(start|loop)$/, '');
+  let mine = false;
+  try { mine = plays.key === state.id + '|' + state.list + '|' + base; } catch (_) {}   // `plays` is declared further down
+  // the PULL (render/shells.js pullClip088): the object it brings lies at its spot, not in his claw, until L2 M20 / M38 sets it
+  // (0x10c00e0) -- the Carrying choice is the pending pick e+0xd471 the shell flies in (INFERRED: one control for both)
+  if (state.id === 'em088_00' && pullClip088(state.list, base)) return 4;
+  if (mine){
+    // THE THROW's own play starts L2 M17 at 160 (0x10bf0d4) and the shell takes the piece there (shells.js heldUntil088):
+    // the viewer, playing the clip from 0, shows it held until that frame
+    const until = state.id === 'em088_00' ? heldUntil088(state.list, base, plays.action) : null;
+    if (until != null && plays.frame < until) return em088CarryAt(null, state.carry);
+    return em088CarryAt(plays.action, state.carry);
+  }
+  return em088CarryAt(clipActionFor(state.id, state.list, base, 0), state.carry);
+}
+// THE CLASS'S THREADS (render/class-threads.js; schedule.js stepThreads): what Ahtal-Ka's thread pass 0x10b7798 reads that
+// the viewer holds -- the object he carries as the held piece shows it (carryNow: its end, his joint 130), the play's
+// action and the game motion it plays (playNow). `plays` is declared further down: read only once a play has been taken.
+// `pending` is e+0xd3e1 (d471 != 4 ? d471 : d470), the AI's pending pick, which the pass takes while e+0xcb0c is 4: on a PULL
+// play the Carrying choice, as the pull's shell takes it (carryNow above: INFERRED, one control for both); else its spawn
+// value 4 (0x10b2e58) -- the AI's picks are not a viewer input.
+function threadInput(){
+  let action = null, motion = null;
+  try { if (plays.key){ action = plays.action; motion = plays.motion; } } catch (_) {}
+  const pull = state.id === 'em088_00' && !!motion && pullClip088(motion.list, motion.clip);
+  return { carry: carryNow(), pending: pull ? state.carry : 4, action, motion };
+}
+// Every frame, before the render: the uCoord parent is his joint 130 with no local transform of its own (0x10af348 ->
+// 0x457c8), so the piece takes the joint's world matrix with its scale taken out and the world group's size put back,
+// and its own nodes stay at the file's rest. Drawn while the object is carried (e+0xcb10 = e+0xcb0c != 4, 0x10b4044).
+function stepHeldProp(){
+  if (!heldProp) return;
+  const { root, bone, main } = heldProp;
+  if (mounted.main !== main){ root.visible = false; return; }
+  root.visible = carryNow() === heldProp.carry;
+  if (!root.visible) return;
+  bone.node.updateWorldMatrix(true, false);
+  bone.node.matrixWorld.decompose(_hp.p, _hp.q, _hp.s);
+  _hp.m.compose(_hp.p, _hp.q, _hp.one.setScalar(world.scale.x || 1));
+  world.updateWorldMatrix(true, false);
+  root.matrix.copy(_hp.inv.copy(world.matrixWorld).invert().multiply(_hp.m));
+  root.matrixWorldNeedsUpdate = true;
+}
+// ---- THE MODELS SHELLS DRAW (render/shells.js: a shell carrying `model`) -----------------------------------------------------
+// Ahtal-Ka's shell57 (base57) sets its own unit's model to the object it flies (0x42f18c -> 0x10bb5d0 -> vt+0x58), the same
+// em087_00 part glb the held piece is, and draws it while in states 1 / 2 (its move clears the draw bit +0xc bit 11 in 0xfe,
+// 0x4304a4). The unit's world matrix: its position +0x40 (game units, the scene's x 0.01, as the effects take it) and the
+// rotation its three angle words make (0x232404's R -- the inverse of the 0x7c3a38 Euler the shell keeps them by), at its own
+// unit scale (ShellScale, 1.0: a shell is not the monster's size). Each shell gets its own copy, released when it is gone.
+const shellModels = new Map();   // shell id -> { root, part, seq }
+let shellModelSeq = 0;
+const _sm = { m: new THREE.Matrix4(), inv: new THREE.Matrix4() };
+function releaseShellModels(keep){
+  for (const [id, e] of shellModels){
+    if (keep && keep.has(id)) continue;
+    if (e.root){ if (e.root.parent) e.root.parent.remove(e.root); releaseMonster(e.root); }
+    e.dead = true;
+    shellModels.delete(id);
+  }
+}
+// a loaded copy waiting for a shell (one of each model is loaded as soon as the monster's shells can draw one, so the
+// first throw does not wait on the glb)
+const shellModelPool = new Map();   // part -> [root]
+let shellModelPrimed = null;
+async function loadShellModel(source, part){
+  const src = MON.monsters.find(m => m.id === source);
+  const rec = src && (src.parts || []).find(p => p.name === part);
+  if (!rec){ noteError('shell model: no ' + part + ' in ' + source); return null; }
+  const root = await loadMonster(rec, {}, { wire: wireOn });
+  root.name = 'shell-' + part; root.userData.shellModel = true;
+  root.matrixAutoUpdate = false; root.visible = false;
+  return root;
+}
+function primeShellModels(){
+  const D = SHELL_DATA[state.id], R = D && D.rubble;
+  if (shellModelPrimed === mounted.main) return;
+  for (const roots of shellModelPool.values()) for (const r of roots){ if (r.parent) r.parent.remove(r); releaseMonster(r); }
+  shellModelPool.clear();
+  shellModelPrimed = mounted.main;
+  if (!R) return;
+  const main = mounted.main;
+  for (const part of R.models) loadShellModel(R.source, part).then(root => {
+    if (!root) return;
+    if (mounted.main !== main){ releaseMonster(root); return; }
+    world.add(root);
+    (shellModelPool.get(part) || shellModelPool.set(part, []).get(part)).push(root);
+  });
+}
+async function mountShellModel(id, sh){
+  const e = { root: null, part: sh.model.part, main: mounted.main };
+  shellModels.set(id, e);
+  const pooled = (shellModelPool.get(sh.model.part) || []).pop();
+  const root = pooled || await loadShellModel(sh.model.source, sh.model.part);
+  if (!root) return;
+  if (e.dead || mounted.main !== e.main){ if (root.parent) root.parent.remove(root); releaseMonster(root); return; }
+  if (!root.parent) world.add(root);
+  e.root = root;
+}
+// the rotation 0x232404 builds from three u16 words (render/shells.js rotWords57), rows = axes
+function wordsRot(W){
+  const k = 2 * Math.PI / 65536, [ax, ay, az] = W.map(w => (w & 0xffff) * k);
+  const sx = Math.sin(ax), sy = Math.sin(ay), sz = Math.sin(az), cx = Math.cos(ax), cy = Math.cos(ay), cz = Math.cos(az);
+  return [cy * cz + sx * sy * sz, sz * cx, sx * sz * cy - sy * cz, sy * sx * cz - sz * cy, cx * cz, sx * cy * cz + sy * sz,
+          sy * cx, -sx, cx * cy];
+}
+function stepShellModels(){
+  const rt = effectRuntimeInstance(), sh = rt && rt.schedule && rt.schedule.shells;
+  const list = sh && sh.state && sh.state.monId === state.id ? sh.state.shells.filter(s => s.model && s.position) : [];
+  const ids = new Set(list.map(s => s.id));
+  releaseShellModels(ids);
+  primeShellModels();
+  if (!list.length) return;
+  world.updateWorldMatrix(true, false);
+  _sm.inv.copy(world.matrixWorld).invert();
+  for (const s of list){
+    let e = shellModels.get(s.id);
+    if (!e){ mountShellModel(s.id, s); continue; }
+    if (!e.root) continue;
+    e.root.visible = !!s.drawn;
+    if (!s.drawn) continue;
+    const R = wordsRot(s.angles), c = s.unitScale != null ? s.unitScale : 1, p = s.position;
+    _sm.m.set(R[0] * c, R[3] * c, R[6] * c, p[0] * 0.01,
+              R[1] * c, R[4] * c, R[7] * c, p[1] * 0.01,
+              R[2] * c, R[5] * c, R[8] * c, p[2] * 0.01,
+              0, 0, 0, 1);
+    e.root.matrix.copy(_sm.inv).multiply(_sm.m);
+    e.root.matrixWorldNeedsUpdate = true;
+  }
+}
 // The world group carries the size, and the pose driver's ground lock was measured at the old one,
 // so the clip is replayed exactly as the Ground and Anchor switches replay it. The camera is left
 // where it is: re-framing would undo the very difference the control exists to show.
@@ -7484,6 +7990,7 @@ function applySet(o){
   if (typeof o.level === 'number') state.level = Math.max(0, o.level | 0);
   if (typeof o.variant === 'number') state.variant = Math.max(0, o.variant | 0);
   if (typeof o.size === 'number') state.size = Math.max(0, o.size | 0);
+  if (o.carry === 0 || o.carry === 1 || o.carry === 2 || o.carry === 4) state.carry = o.carry;
   if (o.axes && typeof o.axes === 'object' && !Array.isArray(o.axes)){
     state.axes = {};
     for (const [k, v] of Object.entries(o.axes)) if (typeof v === 'number') state.axes[k] = Math.max(0, v | 0);
@@ -7606,7 +8113,8 @@ function playNow(act, base, frame, loopSeg, loopStart = 0, onList = state.list){
   const an = onList === FULL_ANIM_LIST.id ? romAnimationMotion(state.id, base) : null;
   if (an){ list = an.motion[0]; clip = an.motion[1]; }
   const slot = +((/^Motion\[(\d+)\]$/.exec(clip) || [])[1]);
-  const row = (MOTION_STATES[state.id] || {})[list + '|' + clip] || null;
+  const vkey = state.clipVariant && state.clip.replace(/_(start|loop)$/, '') === clip ? list + '|' + clip + '#' + state.clipVariant : null;
+  const row = (MOTION_STATES[state.id] || {})[vkey] || (MOTION_STATES[state.id] || {})[list + '|' + clip] || null;
   const rage = row && row.rage === true ? true : (row && (row.rage === false || row.dead)) ? false : !!state.rage;
   const tired = !rage && (!!(row && row.tired) || exhausted());
   let action = null;
@@ -7621,9 +8129,43 @@ function playNow(act, base, frame, loopSeg, loopStart = 0, onList = state.list){
   plays.action = action;
   // the tail as the parts show it (P+0x3b4 bit 0: motion-states.js shellTailInput) and the posture the play starts in
   // (psl-mask.js clipPostureFor) -- Bloodbath's word reads both (psl-mask.js em007_04)
-  const severed = !!shellTailInput(state.id, mounted.main && mounted.main.userData.partsDrawn).tailSevered;
+  const tailNow = shellTailInput(state.id, mounted.main && mounted.main.userData.partsDrawn);
+  const severed = !!tailNow.tailSevered;
+  // Deadeye's word reads part 7's break level too, and Gypceros's his crest (psl-mask.js em018 / em009_00): the parts SHOWN
+  const breakLevel7 = tailNow.breakLevel7 | 0;
+  const partsIn = shellPartsInput(state.id, mounted.main && mounted.main.userData.partsDrawn);
+  const crestBroken = !!partsIn.crestBroken;
+  const beardOff = !!partsIn.beardOff;           // Crystalbeard's word reads the beard cut (psl-mask.js em045)
+  const backBroken = !!partsIn.backBroken, bellyBroken = !!partsIn.bellyBroken;   // Gravios's (psl-mask.js em005_00)
+  const phase = clipPhaseFor(state.id, list, clip, plays.n);   // Khezu's L2 M37 second play (psl-mask.js em003_00)
+  // Brachydios's word reads each arm's slime row, 3 = the arm fell to level 0 (psl-mask.js em063): [left, right] from
+  // the arm levels the viewer holds (slot 0 / slot 1, the ctl order). Raging's word has no arm test.
+  const arms = state.id === 'em063_00' ? armSlimeLevels(mounted.main) : null;
+  const armEmpty = arms ? [arms[0] === 0, arms[1] === 0] : undefined;
   const posture = clipPostureFor(state.id, list, clip, plays.n);
-  plays.mask = Number.isFinite(slot) ? pslMask(state.id, list, slot, action, { rage, tired, severed, posture }) : null;
+  plays.posture = posture;                     // the state rows' `posture` gate reads it (motion-states.js holds())
+  // Astalos's word reads his three charge tier bytes, crest / wings / tail (psl-mask.js em081_00): the viewer's one
+  // charge rung stands for all three (the mapping CHARGE_EFFECTS and shellChargeTier state), latched at the play's start
+  const charge = state.id === 'em081_00' ? [state.level | 0, state.level | 0, state.level | 0] : undefined;
+  // Akantor's word reads severed (above) on L2 M3 / M21 and 0x81d6c "already sunk" on L0 M2 (psl-mask.js em033_00);
+  // Ukanlos's the same two, severed on L2 M3 and 0x81d6c on L0 M2 (psl-mask.js em038_00).
+  // STAND-IN, named: sunk = false -- the burrow sets L0 M2 from the surface and the viewer shows no sunk posture
+  // Deviljho's and Barroth's burrowed L0 M6 entries name it (psl-mask.js clipSunkFor); every other play stays false
+  const sunk = clipSunkFor(state.id, list, clip, plays.n);
+  // Barroth's mud byte (motion-states.js shellMudInput) and the rank his L4 M6 / M7 arm reads (SHELL_QUEST_RANK, G)
+  const mud = shellMudInput(state.id, mounted.main && mounted.main.userData.partsDrawn);
+  // Glavenus / Hellblade's heat byte P+0x1bb, all their word reads (psl-mask.js em080): the overheat (Hellblade's Tail
+  // "(Blasted)" items' clip pin) and the dark tail (Glavenus's Tail State "Dulled": the dark clip his rung shows, which
+  // levelClip already takes back to `normal` on a severed tail) move no mesh
+  const heat = /^em080_0[04]$/.test(state.id)
+    ? glavenusHeat(state.id, mounted.main && mounted.main.userData.partsDrawn,
+                   (state.id === 'em080_04' && levelClip() === 'overheat_Loop') || synthClipPicked(state.id, 'XfBA1__m04_tail', 'overheat_Loop'),
+                   state.id === 'em080_00' && levelClip() === 'dark_Change_Loop_End')
+    : 0;
+  // Ahtal-Ka's word reads the object he carries, e+0xcb0c (psl-mask.js em088_00): the Carrying control, unless this play's
+  // action dropped it at its start (em088CarryAt) -- the same answer the held piece shows (stepHeldProp)
+  const carry = HELD_PROP[state.id] ? em088CarryAt(action, state.carry) : undefined;
+  plays.mask = Number.isFinite(slot) ? pslMask(state.id, list, slot, action, { rage, tired, severed, breakLevel7, crestBroken, beardOff, armEmpty, mud, rank: SHELL_QUEST_RANK, questLevel: SHELL_QUEST_LEVEL, heat, posture, charge, sunk, carry, backBroken, bellyBroken, phase }) : null;
   return Object.assign({}, plays, { prevFrame: frame });
 }
 
@@ -7654,6 +8196,7 @@ function driveClipEffects(){
   }
   if (!rt.schedule.rockInput) rt.schedule.rockInput = rockInput;
   if (!rt.schedule.shellExtra) rt.schedule.shellExtra = shellExtra;
+  if (!rt.schedule.threadInput) rt.schedule.threadInput = threadInput;
   let frame = act ? act.time * 60 + splitOffset : 0, loopSeg = !!(clipName && clipName.endsWith('_loop'));
   // a Special entry that is one whole motion played with loop cycles: the motion's own frame, folded into its loop
   // (render/monster.js foldLoopFrame) -- each cycle is the motion looping, not a new play
@@ -7686,6 +8229,20 @@ function syncRageRecords(rt){
   if (rageRecordsHeld.rt === rt && rageRecordsHeld.key === key) return;
   rageRecordsHeld = { rt, key };
   for (const [pel, k] of RAGE_BY_LEVEL[state.id].records) rt.holdRage(pel, k, off.includes(pel + '|' + k));
+}
+
+// THE CLASS'S HELD RECORDS A CLIP OR DEATH STOPS (render/motion-states.js CLASS_HOLD_OFF): Ahtal-Ka's u 120 (`always`)
+// and u 130 (`rage`) are stopped gracefully while L2 M28 or the death clip plays and start again off them (schedule.js
+// holdRage). `rowKey` is the state table's key of the clip playing ('<list>|Motion[N]', a copy's '#B' included).
+let classHoldsHeld = { rt: null, key: null };
+function syncClassHolds(rt, rowKey){
+  const t = CLASS_HOLD_OFF[state.id];
+  if (!rt || !t) return;
+  const row = (MOTION_STATES[state.id] || {})[rowKey];
+  const off = !!pose.action && (t.clips.includes(String(rowKey).replace(/#.*$/, '')) || !!(t.dead && row && row.dead));
+  if (classHoldsHeld.rt === rt && classHoldsHeld.key === off) return;
+  classHoldsHeld = { rt, key: off };
+  for (const [pel, key] of t.records) rt.holdRage(pel, key, off);
 }
 
 // THE BOX FOLLOWS THE MOTION (render/motion-states.js CLIP_POSTURE). A clip the game plays on a wall or a ceiling
@@ -7861,18 +8418,22 @@ function stepMount(want){
 // monster's position on the grid floor (+20 S), where it lands (u 905 at k = 42) and stays, drawn at the ROM's own
 // transform. The piece is the one the Parts panel's Severed shows; it goes back to that panel's say when the motion
 // is over. Each start of the sever motion drops it again from where the tail is then.
+// A ROW MAY NAME THE PIECE: `drops: true` drops CUT_TAIL[id], `drops: '<name>'` its second piece CUT_TAIL[id][name] --
+// Bloodbath's horn (`drops: 'horn'` on L9 M17, option slot 1), which flies on its own class (`flight`, FLIGHTS) and lands
+// `above` unscaled where `unscaled` says so (dev/em007_04-undriven-spec.md 4.1). One piece flies at a time: another
+// piece's motion sends the one that was flying back to the Parts panel's say first.
 function stepCutTail(r, rt){
-  const spec = motionStates.cur && motionStates.cur.spec.drops ? CUT_TAIL[state.id] : null;
+  const drops = motionStates.cur && motionStates.cur.spec.drops;
+  const own = drops ? CUT_TAIL[state.id] : null;
+  const spec = own ? (drops === true ? own : own[drops]) || null : null;
   const g = spec && mounted[spec.piece];
-  if (!spec || !g){
-    if (cutTail){
-      const piece = mounted[cutTail.spec.piece];
-      cutTail = null;
-      if (piece){ piece.quaternion.identity(); piece.scale.set(1, 1, 1); }
-      placeParts(); applyPartState();
-    }
-    return;
+  if (cutTail && (!spec || !g || cutTail.spec !== spec)){
+    const piece = mounted[cutTail.spec.piece];
+    cutTail = null;
+    if (piece){ piece.quaternion.identity(); piece.scale.set(1, 1, 1); }
+    placeParts(); applyPartState();
   }
+  if (!spec || !g) return;
   if (r.drop || !cutTail){
     const bones = gidBonesOf(mounted.main), at = gid => { const b = bones.find(x => x.gid === gid); return b && b.node; };
     const joint = at(spec.joint), unit = at(0) || mounted.main;
@@ -7880,9 +8441,10 @@ function stepCutTail(r, rt){
     const J = joint.getWorldPosition(new THREE.Vector3()).divideScalar(0.01);
     const U = unit.getWorldPosition(new THREE.Vector3()).divideScalar(0.01);
     const S = world.scale.x || 1;
-    const G = [U.x, monsterFloorY() / 0.01 + spec.above * S, U.z];
+    const G = [U.x, monsterFloorY() / 0.01 + spec.above * (spec.unscaled ? 1 : S), U.z];
     const first = !cutTail;
-    cutTail = { tail: new CutTail([J.x, J.y, J.z], G), spec, frame0: motionStates.cur.frame0 };
+    const Flight = (spec.flight && FLIGHTS[spec.flight]) || CutTail;
+    cutTail = { tail: new Flight([J.x, J.y, J.z], G), spec, frame0: motionStates.cur.frame0 };
     if (first) applyPartState();
   }
   const k = Math.max(0, Math.floor(motionStates.cur.frame - cutTail.frame0));
@@ -7943,14 +8505,20 @@ const SHELL_QUEST_RANK = 5;
 function shellExtra(){
   return { questLevel: SHELL_QUEST_LEVEL, rank: SHELL_QUEST_RANK, beamState: beamState(), attachedJoints: attachedJointsInput(),
            aura: auraInput(), arms: armsInput(), chargeTier: shellChargeTier(),
+           // Ahtal-Ka's object (render/shells.js spawn088): the Carrying control as e+0xcb0c (and as the pull's pending pick)
+           carry: state.id === 'em088_00' ? state.carry : undefined,
+           // the owner's position is the UNIT (unitGamePos), not the effect parent's hips -- overrides schedule.js's ownerPos
+           ownerPos: (([x, y, z]) => ({ x, y, z }))(unitGamePos()),
            ...shellTailInput(state.id, mounted.main && mounted.main.userData.partsDrawn) };
 }
 // BOLTREAVER'S CHARGE TIER AS HIS SHELL SPAWNERS READ IT (render/shells.js spawn081; dev/em081-shells-spec.md 5a / 6): the wing slams
 // test the wings' byte [e+0xcb02] ((t | 1) != 1) and (7, 0xc7) the tail's [e+0xcb03] (== 4). The viewer carries ONE charge rung
 // for the monster, part-review.json's five-rung axis, one rung per ROM tier 0..4 (render/motion-states.js em081_04 and
 // CHARGE_EFFECTS: "a level means all three regions at that tier") -- so both bytes are the rung. Undefined for every other monster.
+// ASTALOS (em081_00) the same: his wing slams test [e+0xcb02] and (7, 0xc7) [e+0xcb03] (0x103047c), and his three-rung axis (U 0 /
+// C 1 / F 2) is his tiers 0..2 (render/shells.js SHELL_DATA.em081_00 actions).
 function shellChargeTier(){
-  return state.id === 'em081_04' ? (state.level | 0) : undefined;
+  return (state.id === 'em081_04' || state.id === 'em081_00') ? (state.level | 0) : undefined;
 }
 // NAKARKOS'S ARMS AS THEIR OWN SHELLS READ THEM (render/shells.js arm084 / ownArm084; dev/em084-shells-spec.md 3 / 5), per
 // side: the FORM byte +0xcb30 the arm's attack is chosen by -- the tentacle's form dropdown, its group turned back into the
@@ -8076,7 +8644,10 @@ function rockInput(){
   const y = monsterFloorY() / 0.01;
   const yaw = rt.schedule.ownerYaw16() * 2 * Math.PI / 65536;
   const ahead = TARGET_AHEAD_BY_MON[state.id] || TARGET_AHEAD, rise = targetRise(state.id);
-  const picks = rockPlays.names;
+  // THIS clip's picks: a clip with none has no variant. (rockPlays.names keeps the last pick clip's list for the count's
+  // reset above; reading it here handed a no-pick clip the previous clip's pick -- and playNow takes a variant as the play's
+  // action, so Ahtal-Ka's L3 M14 after Astalos's L4 M62 played (7, 0xc7), not its drop (10, 0x1f). 2026-10-16.)
+  const picks = names;
   // THE WALL THE SHELLS ASK ABOUT IS THE ONE ON SCREEN. render/shells.js's stage stand-in answers a wall query when
   // the viewer supplies a plane, and Khezu's base03 casts one every move -- so the box's wall is handed over while it
   // is shown, in game units, with `facing` the side he is on (the plane's own outward normal, +z for a wallZ).
@@ -8172,6 +8743,9 @@ function driveMotionStates(){
   const act = pose.action;
   const clipName = act && act.getClip ? act.getClip().name : null;
   const base = clipName ? clipName.replace(/_(start|loop)$/, '') : null;
+  // a copied clip (CLIP_VARIANTS) past copy A reads its own row, '<list>|Motion[N]#B' -- the state table's key only
+  const rowClip = base && state.clipVariant && state.clip.replace(/_(start|loop)$/, '') === base
+                && (MOTION_STATES[state.id] || {})[state.list + '|' + base + '#' + state.clipVariant] ? base + '#' + state.clipVariant : base;
   let loopStart = 0;
   if (clipName && clipName.endsWith('_loop')){
     const sib = ((listOf(entry()) || {}).clips || []).find(c => c.clip === base + '_start');
@@ -8185,14 +8759,17 @@ function driveMotionStates(){
   const r = seq ? motionStates.step(state.id, seq.list, seq.clip, seq.frame,
                                     { loopStart: seq.loopStart || 0, loopEnd: seq.loopEnd, loopSeg: seq.loopSeg },
                                     { rage: !!state.rage, level: state.level | 0, tired: exhausted() }, now)
-              : motionStates.step(state.id, state.list, base, act ? act.time * 60 + loopStart : 0,
-                              { loopStart, loopEnd, loopSeg },
+              : motionStates.step(state.id, state.list, rowClip, act ? act.time * 60 + loopStart : 0,
+                              // ended: a play-once clip held on its last frame (the part pass's "clip has ended")
+                              { loopStart, loopEnd, loopSeg,
+                                ended: !!(act && act.loop === THREE.LoopOnce && act.time >= clipDur(act) - 1e-3) },
                               // `level` is the charge rung (render/motion-states.js CHARGE_EFFECTS): the
                               // records a class holds while a charge TIER is up rather than while a clip
                               // plays, so they are diffed in step() and come back as holdOn / holdOff / fire
                               // like any other, and nothing new is needed here to apply them.
                               // `tired`: the Exhausted state (exhausted()), held over every clip as P+0x505 is
-                              { rage: !!state.rage, level: state.level | 0, tired: exhausted() }, now);
+                              // `posture`: the posture this play started in (playNow, psl-mask.js clipPostureFor)
+                              { rage: !!state.rage, level: state.level | 0, tired: exhausted(), posture: plays.key ? plays.posture : undefined }, now);
   // THE CLIP'S HEAT (render/motion-states.js HEAT_CLIPS, Agnaktor): the regions this motion heats at this frame; a
   // play-once clip held on its last frame is over, and its regions go back to the toggles (Raven's "revert back to
   // unheated when it finishes")
@@ -8206,9 +8783,14 @@ function driveMotionStates(){
   if (r.parts) applyPartState();
   // a change the motion begins after (death, well into its fall) is shown with its transitions over
   if (r.rage){ markStateChange(); if (r.settled) tStateChanged = -1e9; }
+  // a tired row began or ended: the materials' state follows where it can show it (shownMatState; a no-op elsewhere)
+  else if (r.tired) markStateChange();
   if (r.clips && mounted.main) mounted.main.userData.motionClips = motionStates.clips();
   // rage entered again while shown: Gekikou_Start runs from this frame, as from calm
-  if (r.entry){ prevMatState = 'calm'; curMatState = shownMatState(); tStateChanged = performance.now() / 1000; }
+  // -- but NOT on the Mizutsune class (tiredRung: levels.mat), whose clip machine 0x1037bb8 starts angry_Change only
+  // from its state 0 and holds state 5 for as long as isEnraged stays up (states-em082_00.md 8): a roar replayed while
+  // enraged keeps the held red instead of flashing back through white
+  if (r.entry && !tiredRung()){ prevMatState = 'calm'; curMatState = shownMatState(); tStateChanged = performance.now() / 1000; }
   const rt = effectRuntimeInstance();
   if ((r.rage || r.entry) && effectAutoOnRage(state.id)){
     setEffectRage(motionStates.rage(state.rage));
@@ -8219,6 +8801,7 @@ function driveMotionStates(){
   stepJointScale();
   stepCutTail(r, rt);
   syncRageRecords(rt);
+  syncClassHolds(rt, seq ? seq.list + '|' + seq.clip : state.list + '|' + rowClip);
   if (rt){
     for (const [pel, key] of r.eyesOff) rt.holdRage(pel, key, true);
     for (const [pel, key] of r.eyesOn) rt.holdRage(pel, key, false);
@@ -8462,11 +9045,15 @@ window.__view.box = (which, on) => {
 };
 // the cut tail as it flies (render/tail-option.js): J, G (game units) and the frame it is on
 window.__view.cutTail = () => cutTail && { J: cutTail.tail.J, G: cutTail.tail.G, k: cutTail.tail.k, qa: cutTail.tail.qa,
-                                            pose: cutTail.tail.pose(), floor: monsterFloorY() };
+                                            pose: cutTail.tail.pose(), floor: monsterFloorY(), piece: cutTail.spec.piece };
 // the shells' inputs as the viewer makes them (rockInput: the pick, the target ahead on the grid floor, the floor) --
 // dev/shell-capture.mjs and dev/effect-live-soak.mjs --rock fix the pick and keep the rest
 window.__view.rockInput = () => rockInput();
 window.__view.shellExtra = () => shellExtra();
+// the per-frame motion-state step the render loop runs (driveMotionStates): dev/shell-capture.mjs stops that loop and steps the pose
+// itself, so it runs this each step -- without it motionStates.cur kept the boot clip's row (em001_00 L0 M14, a tired row) and
+// every capture's beamState said tired (2026-10-16)
+window.__view.driveMotionStates = () => driveMotionStates();
 // the break / state driver as it stands (render/motion-states.js; dev/motion-states-check.mjs reads it back)
 window.__view.motionStates = () => ({ cur: motionStates.cur && { key: motionStates.cur.key, sets: motionStates.cur.sets,
                                                              rage: motionStates.cur.rage, clips: motionStates.clips() },
@@ -8707,7 +9294,7 @@ window.__view.sweep = async function(run, only){
   const report = [];
   for (const id of ids){
     errors.length = 0;
-    state.id = id; state.groups = null; state.list = ''; state.clip = '';
+    state.id = id; state.groups = null; state.list = ''; state.clip = ''; state.clipVariant = '';
     buildMonsterList(); buildLists();
     await remount();
     const r = await window.__view.shot(run || 'sweep', id, 0);
