@@ -32,8 +32,10 @@
 //   pigment      flag 0x20 marks the dyeable region (the `_sym_` materials, 99% of them);
 //                flag 0x40 without 0x20 is the colour-override class (skin, fur, face)
 // Approximations kept from before: the studio lights, roughness .85 (lowered only where
-// fShininess exceeds 16), the screen-blended matcap at envAmount.
+// fShininess exceeds 16), and GGX for the lights' highlight where the ROM's FBRDF is Blinn-Phong. The sphere map is the
+// ROM's combine since 2026-10-07 (ROM_SPHERE); the screen-blended matcap at envAmount is its switch-off.
 import * as THREE from 'three';
+import { installRomSpecular, trackRomSpecular } from './rom/specular.js';
 
 // ---- pigment state -----------------------------------------------------------------------
 // Owned here so every armour material reads one truth. The picker, the per-slot rows and the
@@ -58,6 +60,39 @@ export const envAmount = 0.55;
 export const allMats = [];
 // pigment applies to ARMOUR only -- never the hunter's face or hair
 export const armorMats = [];
+// the dye-mask view's state (setDebug)
+let dyeMaskOn = 0;
+// THE SPHERE MAP AS THE ROM COMBINES IT -- ON (2026-10-07; Raven: "review each armor to ensure we are accurately rendering
+// them"). FSpecularMap / FFinalCombiner add FReflectSphereMap INSIDE the specular:
+//     MC.specular = ( lights * fSpecularColor + sample( tSphereMap, view normal ) * fReflectiveColor ) * specMap
+//     out.rgb    += MC.specular * MC.fresnel
+// where this path SCREENS the map over the finished colour, weighted by gloss squared and envAmount (an approximation tuned
+// by eye so bright armour does not clip). On, the term is added beside the lights' specular, ahead of render/rom/specular.js's
+// Fresnel and RGB map, and the screen is skipped; __romSphere(false) brings the old screen back to compare. The arithmetic
+// runs on the renderer's linear values, as its lighting does, where the ROM's runs on the texels as stored.
+export const ROM_SPHERE = { value: 1 };
+// THE PIGMENT AS THE GAME APPLIES IT -- ON (2026-10-07; Raven: "Pigment however is in the game"). The armour pigment is
+// colour channel 3 (0x0053a0e4 -> the material's vfunc +0x2c): it REPLACES fAlbedoColor of the dye-region material, a plain
+// multiply of its texels. This path used to RECOLOUR by luminance instead (uTint x (0.30 + luma x 1.35)), chosen by eye
+// because a multiply only darkens; setRomPigment(false) / __romPigment(false) brings that back to compare.
+export const ROM_PIGMENT = { value: 1 };
+export function setRomPigment(on){ ROM_PIGMENT.value = on ? 1 : 0; for (const m of armorMats) applyTint(m); return !!ROM_PIGMENT.value; }
+export function setRomSphere(on){ ROM_SPHERE.value = on ? 1 : 0; return !!ROM_SPHERE.value; }
+// A ROM COLOUR CONSTANT IN THE SPACE THIS RENDERER SHADES IN (Option A, 2026-10-15; Raven: "A, I noticed some colors were
+// off with things like pigment and I want things to be more accurate to in game"). The game's model pass works in GAMMA
+// space: texels as stored, every colour constant raw, nothing encoded (sRender.mSRGBEnable = 0, 0xbb9dfc; FAlbedoMap =
+// tex.rgb * fAlbedoColor -- the Monster Viewer's dev/model-pass-colour-space.md). This renderer DECODES each texel to linear
+// and ENCODES the output, so the game's product t x k comes out only if the constant is decoded the same way:
+// encode(decode(t) x decode(k)) = t x k. Written raw, a 0.2 tint showed as ~0.48. 0 and 1 are unchanged. The curve is
+// three.js's own SRGBToLinear, so it equals setRGB(..., SRGBColorSpace). NOT decoded, on purpose: the sphere-map screen's
+// weights (uReflTint, uEnvAmt) and the reflection overlay's uRefl, whose shaders already work in display values.
+export function romLinear(c){
+  if (!THREE.ColorManagement.enabled) return c;
+  return c < 0.04045 ? c * 0.0773993808 : Math.pow(c * 0.9478672986 + 0.0521327014, 2.4);
+}
+function romLinear3(v){ const g = v[1] === undefined ? v[0] : v[1], b = v[2] === undefined ? v[0] : v[2]; return [romLinear(v[0]), romLinear(g), romLinear(b)]; }
+// the reflective colour ADDED into the linear specular (the ROM sphere path): decoded
+function setReflRaw(m, rgb){ const u = m.userData.u; if (u && u.uReflRaw) u.uReflRaw.value.fromArray(romLinear3(rgb)); }
 
 // ---- the ROM's render states ---------------------------------------------------------------
 // The rasterizer's cull mode. RSMesh culls BACK faces, so the front faces render: FrontSide.
@@ -77,26 +112,6 @@ let alphaOverride = null;
 // the raw 32 units.
 const biasMats = new Set();
 let biasUnitsPerStep = 32;
-// DEPTH WRITE COMES FROM THE ROM'S DEPTH-STENCIL STATE, not from the blend word.
-// nDraw::DepthStencilState's descriptor is the MFX record's words 6..7 copied verbatim, and
-// **bit 1 of word 0 is depth write** (bit 0 is depth test, bits 2..5 the compare function, bit 6
-// stencil enable). The two records almost everything uses differ in that single bit:
-//     DSZTest      = 0x007fff8d
-//     DSZTestWrite = 0x007fff8f
-// Inferring it from the blend word instead is wrong wherever the two disagree -- counted over the
-// shipped data: 443 armour/weapon material rows (291 blend + 151 add that DO write depth, plus one
-// opaque that does not) and 54 monster rows. The visible consequence is that additive and alpha
-// layers which are supposed to lay depth down, so later geometry sorts behind them, currently let
-// everything draw through them.
-// We carry the record NAME rather than the word, so the map is by name; anything unrecognised
-// falls back to the old blend-derived guess rather than inventing an answer.
-function romDepthWrite(st, fallback){
-  const ds = st && st.ds;
-  if (!ds) return fallback;
-  if (ds === 'DSZTestWrite' || ds === 'DSZTestWriteStencilWrite') return true;
-  if (ds === 'DSZTest' || ds === 'DSZTestStencilWrite') return false;
-  return fallback;
-}
 // RSMeshBiasN pulls a layer toward the camera. Every path that builds a material has to apply it,
 // so it lives here rather than being repeated: the additive and reverse-subtract branches returned
 // before the copy that used to sit further down, which silently dropped the bias on EVERY additive
@@ -107,50 +122,45 @@ function romDepthWrite(st, fallback){
 // Raven, 2026-09-06, on Savage Deviljho's groups 0/3/12/100: "we need to be better able to render
 // these", and "we don't 'decide' how, we let the ROM tell us how the game does it" -- the ROM says
 // bias -512 on that group's XfB__m02_body_k, so it gets bias -512.
-// THE OVERLAY SHADE -- what the additive and reverse-subtract branches were dropping.
-// Both branches build a MeshBasicMaterial and returned before the lit path's colour work, so three
-// ROM terms never reached them. They are applied here so the two branches cannot drift apart again;
-// they already did once, which is how every additive material lost its depth bias.
+// DEPTH WRITE, FROM THE ROM'S OWN DEPTH-STENCIL STATE. The Monster Viewer's rule, brought back
+// (Raven, 2026-09-27: "update the armor viewer with the lessons learned"). Every blended and
+// additive material here was forced to write no depth, which is the safe guess but not what the
+// state record says: DSZTestWrite writes, DSZTest only tests. Counted over this app's own data,
+// 442 armour and weapon materials carry a WRITING state and were letting everything draw through
+// them. Unrecognised names fall back to the old blend-derived guess rather than inventing one.
+function romDepthWrite(st, fallback){
+  const ds = st && st.ds;
+  if (!ds) return fallback;
+  if (ds === 'DSZTestWrite' || ds === 'DSZTestWriteStencilWrite') return true;
+  if (ds === 'DSZTest' || ds === 'DSZTestStencilWrite') return false;
+  return fallback;
+}
+// THE OVERLAY'S COLOUR AND ALPHA. The additive and reverse-subtract branches build a
+// MeshBasicMaterial and return before the lit path's colour work, so three ROM terms never reached
+// them; this holds all three in one place so the two branches cannot drift apart.
 //
-//   1. THE ALBEDO TINT, fAlbedoColor x fDiffuseColor. The lit path (the `mat.color.setRGB` below)
-//      and the unlit path both apply it; add/revsub did not. 24 monster materials and 588 armour
-//      and weapon materials carry a non-unit tint here and were drawn untinted.
+//   1. THE ALBEDO TINT, fAlbedoColor. The lit and unlit paths apply it; add/revsub did not.
+//   2. fConstantColor, where the feature word asks for it: FAlbedoMapConstant means the albedo is
+//      the map MULTIPLIED BY fConstantColor, whose base value is glob.constant -- the same float4
+//      the material animation's fConstantColor track writes. Its ALPHA counts too, and a constant
+//      alpha of 0 means invisible at rest until a clip ramps it up.
+//   3. THE ALPHA TEST for feat.transp === 'Alpha' with the material's alphaTest bit; those
+//      overlays were drawing their cut texels.
 //
-//   2. fConstantColor, where the feature word asks for it. `feat.albedo === 'MapConstant'` means
-//      the albedo is the map MULTIPLIED BY fConstantColor, and that constant's base value is
-//      glob.constant -- the same float4 the material animation's fConstantColor track writes
-//      (monster.js applyTrack). Of the 78 add/revsub monster materials, 31 are MapConstant: four
-//      carry a tinted constant (0.4/0.4/0.4, 0.4/0.86/1.0, 0.08/0.32/0.32, 0.32/0.08/0.08) and
-//      **three carry alpha 0.0**, meaning INVISIBLE AT REST -- exactly what the ROM intends, since
-//      their Angry_Start / Gekikou_Start clips ramp that alpha to 1. Savage Deviljho's
-//      XfB__m02_body_k is one of the three: drawn at full strength it is a permanent glow instead
-//      of one the rage lights up.
+// AND THE TRANSPARENCY FEATURE THE RIGHT WAY ROUND. FTransparencyAlpha is
+// `mc.Alpha * CBMaterial.fTransparency`; FTransparencyAlphaConstant is `mc.Alpha` ALONE -- the
+// ROM's own doc string for it is "just returns the transparency" and it references no constant
+// buffer. This app had it inverted (it applied cbm.transparency under AlphaConstant and never
+// under Alpha), which drew at full strength the layers the ROM starts faint.
 //
-//   3. THE ALPHA TEST, for feat.transp === 'Alpha' with the material's alphaTest bit. 41 monster
-//      and 642 armour/weapon add/revsub materials have it and were drawing their cut texels.
-//
-// NOT applied here, and deliberately: fEmissionColor. 71 monster add/revsub materials carry one,
-// but MeshBasicMaterial has no emissive term and an additive pass is already purely additive, so
-// there is nowhere faithful to put it without a custom shader. Left as an explicit gap.
+// NOT applied, deliberately: fEmissionColor. MeshBasicMaterial has no emissive term and an
+// additive pass is already a sum, so there is nowhere faithful to put it. An explicit gap.
 function romOverlayShade(mat, rom){
   const ft = rom && rom.feat, cb = rom && rom.cbm, gl = rom && rom.glob;
-  // fAlbedoColor x fConstantColor, where the feature word asks for the constant.
-  // NOT cbm.diffuse. An earlier version multiplied by it as "the ROM's albedo tint" and that was
-  // REFUTED from the shader package 2026-09-07: in AppShaderPackage.mfx, CBMaterial.fDiffuseColor
-  // is referenced by the FDiffuse* family and by NOTHING ELSE -- no FAlbedo* feature reads it. The
-  // artists zero it on precisely these overlay layers, so the rule painted mat.color pure black on
-  // 583 of the 970 add/revsub armour and weapon materials and they stopped drawing at all.
   if (gl){
     const k = (ft && ft.albedo === 'MapConstant' && gl.constant) ? gl.constant : [1, 1, 1, 1];
-    mat.color.setRGB(gl.albedo[0] * k[0], gl.albedo[1] * k[1], gl.albedo[2] * k[2]);
+    mat.color.setRGB(gl.albedo[0] * k[0], gl.albedo[1] * k[1], gl.albedo[2] * k[2], THREE.SRGBColorSpace);   // decoded (romLinear)
   }
-  // THE TRANSPARENCY FEATURE, the right way round.
-  // FTransparencyAlpha      = `mc.Alpha * CBMaterial.fTransparency`
-  // FTransparencyAlphaConstant = `mc.Alpha` alone -- the ROM's own doc string for it is
-  //   "透明度を返すだけ", "just returns the transparency"; it references NO constant buffer.
-  // So fTransparency applies under 'Alpha', not under 'AlphaConstant'. The old code had it exactly
-  // inverted, which drew at full strength six materials the ROM starts invisible (em027 m01_effect01
-  // and m02_effect02, em057/em057_04 m03_effect, em086 m02_angry and m04_breathe).
   let a = 1;
   if (cb && ft && ft.transp === 'Alpha') a *= cb.transparency;
   if (ft && ft.albedo === 'MapConstant' && gl && gl.constant) a *= gl.constant[3];
@@ -180,6 +190,116 @@ export function setAlphaOverride(v){
   return alphaOverride;
 }
 
+// THE REFLECTION OVERLAY: the additive layer a weapon's own state lights -- the Sword & Shield's oils and the Long Sword's
+// Spirit Gauge on colour channel 2 (render/weapon-state.js), 123 + 123 models, and the Dual Blades' 242 -- drawn with the
+// game's own formula, not the albedo. PS_MaterialStd, as efx/shader/glsl.py translates it for these materials
+// (one134.mrl, ken122.mrl; 2026-09-30):
+//   colour = albedo x FDiffuse + FSpecularMap x FFresnel, alpha = vertex alpha x FTransparencyAlpha, blended BSAddAlpha
+//   FDiffuse        = (light + FAmbient) x CBMaterial.fDiffuseColor -- (0, 0, 0) on 245 of the 246, so NOTHING
+//   FSpecularMap    = ((light specular x $Globals.fSpecularColor) + FReflect) x tSpecularMap.rgb x occlusion
+//   FReflectSphereMap = tSphereMap(uv) x CBMaterial.fReflectiveColor, uv = normalize(View x normal).xy x 0.5 + 0.5, v flipped
+//   FFresnelSchlick = fFresnelSchlick + (1 - it) x (1 - N.V)^5, and fFresnelSchlick is 1.0: no term
+//   FTransparencyAlpha = transparency x CBMaterial.fTransparency; FAlbedoMap (not ColorOnly) first multiplies the
+//                    transparency by the albedo map's alpha
+// So what shows is the SPHERE MAP TINTED BY fReflectiveColor -- the colour the oils write (0x53a254) and the Spirit clips
+// animate -- faded by fTransparency. The old additive path drew the albedo map instead, which the ROM multiplies by zero,
+// and hid the layers that bind no albedo (the Sword & Shield's): both wrong for these.
+//   UNBOUND TEXTURES: none of these layers binds tSpecularMap, and 120 Sword & Shield layers bind no albedo either. Read
+// as black, the spec map would zero the only term there is and no oil or Spirit level could ever show, which the game's
+// own authoring (a sphere map, a colour, an animated fade on a layer that is otherwise nothing) rules out: they read as
+// white here, the albedo's alpha as 1.
+//   NOT DRAWN, deliberately: the lights' specular term (x fSpecularColor, which the Spirit clips colour; the viewer's lights
+// are a studio stand-in) and the albedo term of the one layer whose fDiffuseColor is not zero (the Sword & Shield 151).
+// fUVTransform2 is the second UV set, which the sphere lookup does not read.
+// The arithmetic runs on the texel as the file holds it (the sRGB-encoded value) and is decoded again, as the lit path's
+// sheen is: the ROM's colour constants act on its texture values.
+// THE CHARGE BLADE'S PHIAL LAYER is the same layer on channel 30 (2026-10-03; Raven: "it does not show the phial color on
+// the weapon"): `m30_gaxeNNN_add_`, additive, a sphere map, fDiffuseColor (0, 0, 0), no specular or emission -- and its two
+// clips, "red" and "yellow", drive fReflectiveColor and fTransparency, which the albedo path drew as a white fade. The
+// sword's part code picks the clip by the Charge Gauge (render/weapon-state.js cbPhialTriggers). Only the Charge Blade's:
+// the Switch Axe's and the Hammer's channel-30 layers are drawn as before (the board).
+const CB_PHIAL = /_gaxe\d+_/;
+function isReflectOverlay(rom, name){
+  if (!(rom && rom.feat && rom.feat.reflect === 'SphereMap' && rom.sphere && rom.cbm)) return false;
+  if (rom.ch === 2) return true;
+  const d = rom.cbm.diffuse;
+  return rom.ch === 30 && CB_PHIAL.test(name || '') && !!d && !(d[0] || d[1] || d[2]);
+}
+const OVERLAY_VS = `
+#include <common>
+#include <skinning_pars_vertex>
+attribute vec4 color;
+varying vec3 vOvNormal;
+varying float vOvAlpha;
+varying vec2 vOvUv;
+void main() {
+  #include <beginnormal_vertex>
+  #include <skinbase_vertex>
+  #include <skinnormal_vertex>
+  #include <defaultnormal_vertex>
+  #include <begin_vertex>
+  #include <skinning_vertex>
+  #include <project_vertex>
+  vOvNormal = transformedNormal;
+  vOvAlpha = color.a;       // COLOR_0's alpha where the mesh has one (the Long Sword's fade at the blade's ends), else 1
+  vOvUv = uv;
+}`;
+const OVERLAY_FS_SRGB = `
+uniform sampler2D uSphere; uniform float uSphereOn;
+uniform sampler2D uAlb; uniform float uAlbOn; uniform float uAlbView;
+uniform vec3 uRefl; uniform float uTransp;
+varying vec3 vOvNormal; varying float vOvAlpha; varying vec2 vOvUv;
+//OV_PAIR
+void main() {
+  vec3 n = normalize( vOvNormal );
+  #ifdef DOUBLE_SIDED
+    if ( ! gl_FrontFacing ) n = - n;
+  #endif
+  vec2 suv = n.xy * 0.5 + 0.5;
+  suv.y = 1.0 - suv.y;
+  vec3 raw = uSphereOn > 0.5 ? ovOetf( texture2D( uSphere, suv ).rgb ) : vec3( 0.0 );
+  float a = vOvAlpha * uTransp;
+  if ( uAlbOn > 0.5 ) a *= texture2D( uAlb, uAlbView > 0.5 ? suv : vOvUv ).a;
+  gl_FragColor = vec4( ovEotf( raw * uRefl ), clamp( a, 0.0, 1.0 ) );
+  #include <colorspace_fragment>
+}`;
+// the overlay's encode / decode pair: the identity with colour management off (?space=game), as the main shader's
+function overlayFs(){
+  const pair = THREE.ColorManagement.enabled
+    ? 'vec3 ovOetf( vec3 c ){ c = max( c, vec3( 0.0 ) ); return mix( pow( c, vec3( 1.0 / 2.4 ) ) * 1.055 - 0.055, c * 12.92, vec3( lessThanEqual( c, vec3( 0.0031308 ) ) ) ); }\n' +
+      'vec3 ovEotf( vec3 c ){ c = max( c, vec3( 0.0 ) ); return mix( pow( ( c + 0.055 ) / 1.055, vec3( 2.4 ) ), c / 12.92, vec3( lessThanEqual( c, vec3( 0.04045 ) ) ) ); }'
+    : 'vec3 ovOetf( vec3 c ){ return max( c, vec3( 0.0 ) ); }\nvec3 ovEotf( vec3 c ){ return max( c, vec3( 0.0 ) ); }';
+  return OVERLAY_FS_SRGB.replace('//OV_PAIR', pair);
+}
+function createReflectOverlay(spec, rom, st, side){
+  const ft = rom.feat, cb = rom.cbm;
+  const ov = {
+    uSphere: { value: null }, uSphereOn: { value: 0 },
+    uAlb: { value: null }, uAlbOn: { value: 0 }, uAlbView: { value: ft.uvAlbedoMap === 'UVViewNormal' ? 1 : 0 },
+    uRefl: { value: new THREE.Vector3().fromArray(cb.reflective) },
+    uTransp: { value: ft.transp === 'Alpha' ? cb.transparency : 1 },
+  };
+  // BSAddAlpha on the colour: dst + src x srcAlpha. The DESTINATION ALPHA is left as it is: the game never shows its
+  // framebuffer's alpha, and this canvas is composited over the page by it -- three's AdditiveBlending adds srcAlpha^2
+  // there too, so the sphere map's black rim, which adds no colour, laid a dark veil over the floor grid behind the blade.
+  const mat = new THREE.ShaderMaterial({ name: spec.srcName, uniforms: ov, vertexShader: OVERLAY_VS, fragmentShader: overlayFs(),
+                                         side, transparent: true, blending: THREE.CustomBlending,
+                                         blendEquation: THREE.AddEquation, blendSrc: THREE.SrcAlphaFactor, blendDst: THREE.OneFactor,
+                                         blendEquationAlpha: THREE.AddEquation, blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor,
+                                         depthWrite: romDepthWrite(st, false), wireframe: !!spec.wire });
+  mat.userData.ov = ov;
+  mat.userData.rom = rom; mat.userData.unlit = true; mat.userData.noTint = true;
+  mat.userData.renderOrder = 20;
+  return applyRomBias(mat, st);
+}
+// the overlay's albedo, once loaded: only its alpha counts, and only under FAlbedoMap
+export function setOverlayAlbedo(mat, t){
+  const ov = mat.userData.ov, ft = mat.userData.rom && mat.userData.rom.feat;
+  if (!ov) return false;
+  ov.uAlb.value = t; ov.uAlbOn.value = (t && ft && ft.albedo === 'Map') ? 1 : 0;
+  return true;
+}
+
 export function applyTint(mat){
   // Own the uniform OBJECTS up front and hand the same ones to onBeforeCompile, so
   // changing pigment or sheen is just a .value write -- no recompile.
@@ -189,13 +309,14 @@ export function applyTint(mat){
       uAmt:  { value: 0 },
       uEnv:  { value: null },
       uEnvAmt: { value: 0 },
-      uDbg: { value: 0 },
-      // fSpecularColor ($Globals float3 @44) has no MeshStandardMaterial slot; the ROM's
-      // specular feeds the same reflection path this shader drives, so its luminance scales the
-      // gloss. 1.0 leaves the shipped behaviour untouched until a track writes it.
-      uSpecTint: { value: 1.0 },
-      // fSpecularColor, $Globals float3 @44 -- the specular lobe's colour/intensity
-      uSpecRGB: { value: new THREE.Vector3(1, 1, 1) },
+      // fReflectiveColor's HUE on the sphere map, as a multiplier of the scalar weight above: (1, 1, 1), the lit path's
+      // long-standing average, everywhere except under a part's material override (setMaterialOverride), which draws the
+      // ROM's colour as it is -- the Lance's Healing Shield pulses the shield's reflection green. (17 CBMaterial records
+      // and 654 clip tracks carry a non-grey reflective colour elsewhere and are still averaged: a separate matter.)
+      uReflTint: { value: new THREE.Vector3(1, 1, 1) },
+      uReflRaw: { value: new THREE.Vector3(1, 1, 1) },   // fReflectiveColor as it is (ROM_SPHERE)
+      uRomSphere: ROM_SPHERE,
+      uDbg: { value: dyeMaskOn },     // the dye-mask view: on for a material built while it is shown
       uKey: { value: new THREE.Color(1,1,1) },          // the armor's AUTHORED color
       uHasKey: { value: 0 },
       uKeyTol: { value: 0.15 },
@@ -227,52 +348,61 @@ export function applyTint(mat){
       // is the gloss that scales the sphere map
       uSpec: { value: null },
       uSpecOn: { value: 0 },
+      // fSpecularColor, $Globals float3 @44 -- the specular lobe's own colour and intensity, read
+      // by no code until now. Of the 24,062 material instances that take the LIT path here, 5,056
+      // ship exactly ZERO (matte in the ROM, shiny on screen), 18,799 ship something else -- 0.4
+      // on most of them -- and only 207 ship the 1.0 they were all effectively drawn with.
+      uSpecRGB: { value: new THREE.Vector3(1, 1, 1) },
+      // An iris mask for the character colour, sampled at the albedo UV: 1 on the iris, 0 on
+      // everything else. Off, the tint covers the whole material as it always has, which is
+      // right for skin, hair and fur. On, only the iris takes the eye colour -- the hunter's
+      // eye texture paints sclera, pupil, glint and lids into the same material, and the old
+      // whole-material tint coloured the white of the eye hardest (Raven, 2026-09-14).
+      uIris: { value: null },
+      uIrisOn: { value: 0 },
       // the albedo sampled by the view-space normal (uvAlbedoMap UVViewNormal, the glow
       // materials) instead of the mesh's UVs
       uViewUv: { value: 0 },
       // Schlick's F0 for the sphere map (fFresnelSchlickRGB)
-      // fFresnelSchlickRGB is a float3 in $Globals (floatOffset 41), and FFresnel has a
-      // per-channel variant: 9 monster materials are FresnelSchlickRGB with a genuinely
-      // non-uniform F0. Averaging them to a scalar threw that away, so this is a vec3.
       uF0: { value: new THREE.Vector3(1, 1, 1) },
       // 0..1: how far the dye region (and the material's glow) is pulled toward black.
       // The Esurient animation drives it (setRegionDark); nothing else touches it.
-      uDark: { value: 0 }
+      uDark: { value: 0 },
+      // The game's colour for this material's CHANNEL (setChannelColor), white when it has
+      // none. It multiplies the texel, so it reaches the lit colour and the glow alike.
+      uChan: { value: new THREE.Color(1,1,1) }
     };
     mat.onBeforeCompile = (sh) => {
       Object.assign(sh.uniforms, mat.userData.u);
       sh.fragmentShader = sh.fragmentShader
         .replace('void main() {',
                  'uniform vec3 uTint; uniform float uAmt;' +
-                 ' uniform sampler2D uEnv; uniform float uEnvAmt; uniform float uDbg;' +
+                 ' uniform sampler2D uEnv; uniform float uEnvAmt; uniform vec3 uReflTint; uniform float uDbg; uniform vec3 uReflRaw; uniform float uRomSphere;' +
                  ' uniform vec2 uSat; uniform vec2 uVal;' +
                  ' uniform vec3 uKey; uniform float uHasKey; uniform float uKeyTol;' +
                  ' uniform float uSatBoost;' +
                  ' uniform vec3 uChar; uniform float uCharAmt; uniform float uRegion;' +
                  ' uniform float uAlphaCut;' +
                  ' uniform sampler2D uSpec; uniform float uSpecOn; uniform float uViewUv; uniform vec3 uF0;' +
-                 ' uniform float uSpecTint; uniform vec3 uSpecRGB;' +
-                 ' uniform float uDark;' +
+                 ' uniform vec3 uSpecRGB;' +
+                 ' uniform sampler2D uIris; uniform float uIrisOn;' +
+                 ' uniform float uDark; uniform vec3 uChan;' +
                  ' float gGloss = 0.0; vec3 gBase = vec3( 1.0 );' +
-                 // With colour management OFF (the Monster Viewer's opt-in ?space=game, which renders in
-                 // the game's gamma space with no output encode) the fragment colour already IS the
-                 // display value, so the pair is the identity there (2026-10-15).
+                 // With colour management OFF (the Monster Viewer's opt-in ?space=game, render/colour-space.js: the game's gamma
+                 // space, no output encode) the fragment colour already IS the display value, so the pair is the identity there
                  (THREE.ColorManagement.enabled
-                   ? ' vec3 mhguSrgbOetf( vec3 c ){ c = max( c, vec3( 0.0 ) ); return mix( pow( c, vec3( 1.0 / 2.4 ) ) * 1.055 - 0.055, c * 12.92, vec3( lessThanEqual( c, vec3( 0.0031308 ) ) ) ); }' +
-                     ' vec3 mhguSrgbEotf( vec3 c ){ c = max( c, vec3( 0.0 ) ); return mix( pow( ( c + 0.055 ) / 1.055, vec3( 2.4 ) ), c / 12.92, vec3( lessThanEqual( c, vec3( 0.04045 ) ) ) ); }'
-                   : ' vec3 mhguSrgbOetf( vec3 c ){ return max( c, vec3( 0.0 ) ); }' +
-                     ' vec3 mhguSrgbEotf( vec3 c ){ return max( c, vec3( 0.0 ) ); }') +
+                   ? ' vec3 viewSrgbOetf( vec3 c ){ c = max( c, vec3( 0.0 ) ); return mix( pow( c, vec3( 1.0 / 2.4 ) ) * 1.055 - 0.055, c * 12.92, vec3( lessThanEqual( c, vec3( 0.0031308 ) ) ) ); }' +
+                     ' vec3 viewSrgbEotf( vec3 c ){ c = max( c, vec3( 0.0 ) ); return mix( pow( ( c + 0.055 ) / 1.055, vec3( 2.4 ) ), c / 12.92, vec3( lessThanEqual( c, vec3( 0.04045 ) ) ) ); }'
+                   : ' vec3 viewSrgbOetf( vec3 c ){ return max( c, vec3( 0.0 ) ); }' +
+                     ' vec3 viewSrgbEotf( vec3 c ){ return max( c, vec3( 0.0 ) ); }') +
                  ' void main() {')
-        // THE SPECULAR MAP HAD NO EFFECT ON 396 OF THE 469 MATERIALS THAT BIND ONE.
-        // Every monster material selects FSpecularMap (none selects FSpecularDisable), so the game
-        // runs a specular term on all of them. Here gGloss was computed in map_fragment and then
-        // used ONLY inside `if ( uEnvAmt > 0.0 )`, which needs a sphere map -- so on the 349 lit
-        // materials without one it was discarded, and the 47 additive ones never even received the
-        // texture. A specular MAP is a mask on the specular lobe, so that is where it goes: the
-        // direct and indirect specular are scaled by it, which is the term the ROM is masking.
-        // fSpecularColor ($Globals float3 @44) scales the same lobe and was read by no code at all;
-        // 459 of 570 materials ship a non-unit value and 84 ship exactly zero -- those are matte in
-        // the ROM and were shiny here.
+        // THE SPECULAR MAP REACHED ONLY THE MATERIALS THAT ALSO BIND A SPHERE MAP, and
+        // fSpecularColor reached nothing at all. gGloss is computed in map_fragment and was used
+        // ONLY inside `if ( uEnvAmt > 0.0 )`, which needs a sphere map -- so on every lit material
+        // without one the specular mask was discarded. A specular MAP is a mask on the specular
+        // LOBE, so that is where it goes: both accumulators are scaled by it, which is the term
+        // the ROM is masking. fSpecularColor ($Globals float3 @44) scales the same lobe.
+        // The Monster Viewer's, brought back (Raven, 2026-09-27).
         .replace('#include <lights_fragment_end>',
           `#include <lights_fragment_end>
            {
@@ -288,7 +418,6 @@ export function applyTint(mat){
              // the gloss that scales the sphere map: the map's own alpha, or the separate
              // specular map's luminance where the material binds one
              gGloss = uSpecOn > 0.5 ? dot( texture2D( uSpec, vMapUv ).rgb, vec3( 0.299, 0.587, 0.114 ) ) : texel.a;
-             gGloss *= uSpecTint;
              // MHGU authors the dyeable part of a texture as DESATURATED white/grey so a
              // pigment can be multiplied into it -- undyed, those areas read as the white
              // sashes and boots you see. So the mask is low saturation, not the alpha:
@@ -330,8 +459,11 @@ export function applyTint(mat){
              // the color itself) keeps the strand and shading detail while actually
              // changing the hue.
              if ( uCharAmt > 0.0 ) {
-               base = mix( base, uChar * luma * 2.0, uCharAmt );
+               float irisW = uIrisOn > 0.5 ? texture2D( uIris, vMapUv ).r : 1.0;
+               base = mix( base, uChar * luma * 2.0, uCharAmt * irisW );
              }
+               // the channel colour stands in for fAlbedoColor, a plain multiply (setChannelColor)
+               base *= uChan;
                gBase = base;           // the dyed albedo, for the glow below
                diffuseColor.rgb *= base;
              }
@@ -352,7 +484,9 @@ export function applyTint(mat){
           `#ifdef USE_EMISSIVEMAP
              totalEmissiveRadiance *= gBase;
            #endif
-           totalEmissiveRadiance *= 1.0 - uDark;`)
+           totalEmissiveRadiance *= 1.0 - uDark;
+           // the dye-mask view greys the glow too: no colour but the mask's magenta
+           if ( uDbg > 0.5 ) totalEmissiveRadiance = vec3( dot( totalEmissiveRadiance, vec3( 0.299, 0.587, 0.114 ) ) * 0.55 );`)
         // MHGU shades armor with a 64x64 spherical env map (a matcap) scaled by gloss.
         // Sample it with the view-space normal and screen it over the lit colour. The screen
         // has always run on the sRGB-ENCODED colour -- it sat after <colorspace_fragment>,
@@ -360,7 +494,7 @@ export function applyTint(mat){
         // same pixels on the canvas, and right in a linear render target too, where three's
         // own <colorspace_fragment> is the identity (Raven, 2026-09-04: post-processing).
         .replace('#include <colorspace_fragment>',
-          `if ( uEnvAmt > 0.0 ) {
+          `if ( uEnvAmt > 0.0 && uRomSphere < 0.5 ) {
              vec3 vn = normalize( normal );
              vec2 muv = vn.xy * 0.5 + 0.5;
              vec3 env = texture2D( uEnv, muv ).rgb;
@@ -372,26 +506,36 @@ export function applyTint(mat){
              vec3 fres = uF0 + ( vec3( 1.0 ) - uF0 ) * pow( 1.0 - clamp( vn.z, 0.0, 1.0 ), 5.0 );
              // SCREEN blend, not additive -- a + b*(1-a) cannot exceed 1, so bright
              // armor keeps its detail instead of clipping to white.
-             vec3 enc = mhguSrgbOetf( gl_FragColor.rgb );
-             enc += env * g * uEnvAmt * fres * ( 1.0 - enc );
-             gl_FragColor.rgb = mhguSrgbEotf( enc );
+             vec3 enc = viewSrgbOetf( gl_FragColor.rgb );
+             enc += env * uReflTint * g * uEnvAmt * fres * ( 1.0 - enc );
+             gl_FragColor.rgb = viewSrgbEotf( enc );
            }
            #include <colorspace_fragment>`);
     };
     mat.needsUpdate = true;
   }
   const u = mat.userData.u;
-  u.uRegion.value = mat.userData.dyeRegion ? 1 : 0;
+  // the dye region is the ARMOUR pigment's: a material the pigment never reaches (the face, the hair -- whose ROM flag
+  // marks the hair colour's region -- the weapon) is no dye region, so the dye-mask view greys it
+  u.uRegion.value = mat.userData.dyeRegion && !mat.userData.noTint ? 1 : 0;
   const own = tint.useDefaults && mat.userData.own ? mat.userData.own.rgb : null;
   const slotCol = tint.slotPigment[mat.userData.slot] || null;
   const use = own || slotCol || (tint.useDefaults ? null : tint.pigment);
   const key = mat.userData.own;                 // authored color = the region key
   u.uHasKey.value = key ? 1 : 0;
   if (key) u.uKey.value.setRGB(key.rgb[0]/255, key.rgb[1]/255, key.rgb[2]/255);
-  if (use && !mat.userData.noTint){
-    u.uTint.value.setRGB(use[0]/255, use[1]/255, use[2]/255);
+  const region = mat.userData.dyeRegion && !mat.userData.noTint;
+  if (ROM_PIGMENT.value){
+    // THE GAME'S PIGMENT: the colour goes over fAlbedoColor of the dye region (channel 3) and multiplies its texels
+    // (setChannelColor, the same write the weapons' and the Kinsect's colours take). No pigment: the texels as they are.
+    u.uAmt.value = 0;
+    if (region) setChannelColor(mat, use || null);
+  } else if (use && !mat.userData.noTint){
+    if (region && mat.userData.chanRgb) setChannelColor(mat, null);
+    u.uTint.value.setRGB(use[0]/255, use[1]/255, use[2]/255, THREE.SRGBColorSpace);   // game bytes, as setChannelColor takes
     u.uAmt.value = 1;
   } else {
+    if (region && mat.userData.chanRgb) setChannelColor(mat, null);
     u.uAmt.value = 0;
   }
   u.uEnvAmt.value = envStrength(mat);
@@ -438,6 +582,7 @@ export function createMaterial(spec){
   const rom = spec.rom || null;
   const st = rom && rom.state, ft = rom && rom.feat, cb = rom && rom.cbm, gl = rom && rom.glob;
   const side = (st && st.cull in SIDE) ? SIDE[st.cull] : THREE.DoubleSide;   // FrontSide is 0: no || here
+  if (st && st.blend === 'add' && isReflectOverlay(rom, spec.srcName)) return createReflectOverlay(spec, rom, st, side);
   if (st && st.blend === 'add'){
     // Additive materials are the glow parts, drawn unlit and added over what is behind:
     // the Charge Blade's phial box (part 24, XfB_0__m30_gaxe064_add_) is a 12-vertex box
@@ -498,16 +643,13 @@ export function createMaterial(spec){
     }
     if (ft && (ft.transp === 'Alpha' || ft.transp === 'AlphaConstant') && rom.alphaTest)
       mat.alphaTest = Math.max(0, gl ? gl.clip : 0) + ALPHA_EPS;
-    // fConstantColor BELONGS ON THIS PATH TOO. FAlbedoMapConstant means the albedo is the map
-    // multiplied by fConstantColor, and the unlit branch is where the ROM's MaterialConstant /
-    // MaterialConstantFog classes land -- a monster's EYE among them. It was applied only on the
-    // additive branch, so 33 monster eye materials that ship fConstantColor 1.5 rendered at
-    // two-thirds of the brightness the ROM gives them.
+    // fConstantColor BELONGS ON THIS PATH TOO: FAlbedoMapConstant means the albedo is the map
+    // multiplied by fConstantColor, and this is where the ROM's MaterialConstant classes land.
     if (gl && cb){
       const k = (ft && ft.albedo === 'MapConstant' && gl.constant) ? gl.constant : [1, 1, 1, 1];
       mat.color.setRGB(gl.albedo[0] * cb.diffuse[0] * k[0],
                        gl.albedo[1] * cb.diffuse[1] * k[1],
-                       gl.albedo[2] * cb.diffuse[2] * k[2]);
+                       gl.albedo[2] * cb.diffuse[2] * k[2], THREE.SRGBColorSpace);   // decoded (romLinear)
     }
     applyRomBias(mat, st);
     mat.userData.rom = rom; mat.userData.unlit = true; mat.userData.noTint = true;
@@ -531,23 +673,20 @@ export function createMaterial(spec){
   }
   applyRomBias(mat, st);
   // albedo tint, emission, shininess
-  if (gl && cb) mat.color.setRGB(gl.albedo[0] * cb.diffuse[0], gl.albedo[1] * cb.diffuse[1], gl.albedo[2] * cb.diffuse[2]);
+  // the colour constants decoded like a texel (romLinear): the game multiplies the raw texel by the raw constant
+  if (gl && cb) mat.color.setRGB(gl.albedo[0] * cb.diffuse[0], gl.albedo[1] * cb.diffuse[1], gl.albedo[2] * cb.diffuse[2], THREE.SRGBColorSpace);
   if (gl && (gl.emission[0] + gl.emission[1] + gl.emission[2]) > 0){
-    mat.emissive.setRGB(gl.emission[0], gl.emission[1], gl.emission[2]);
+    mat.emissive.setRGB(gl.emission[0], gl.emission[1], gl.emission[2], THREE.SRGBColorSpace);
     mat.userData.emissiveFromMap = true;
   }
   if (gl && gl.shininess > 16) mat.roughness = Math.min(0.85, Math.max(0.4, 0.85 - Math.log2(gl.shininess / 16) * 0.15));
   mat.userData.reflective = cb ? (cb.reflective[0] + cb.reflective[1] + cb.reflective[2]) / 3 : 1;
   // THE FRESNEL SOURCE IS CHOSEN BY THE FEATURE, and reading the wrong one neuters the term.
   // $Globals declares BOTH: fFresnelSchlick (float, floatOffset 40) and fFresnelSchlickRGB
-  // (float3, floatOffset 41). FFresnel's variants pick between them:
-  //   Schlick     -> the SCALAR. 460 monster materials, and on 120 of them the scalar is 0.5 while
-  //                  the triple is [1,1,1]. Taking the triple gave F0 = 1, so
-  //                  fres = 1 + (1-1)*(...) = 1 -- a constant, i.e. no Fresnel at all.
-  //   SchlickRGB  -> the TRIPLE. 9 materials, all small monsters, and their triple is [0,0,0]
-  //                  while the scalar is 1.0 -- so taking the scalar killed the term the other way.
-  // Materials with no FFresnel feature (101) keep F0 = 1, which is the same no-op the ROM gets by
-  // not running the term.
+  // (float3, floatOffset 41), and FFresnel's variants pick between them -- Schlick takes the
+  // SCALAR, SchlickRGB the TRIPLE. Averaging the triple for everything gave F0 = 1 wherever the
+  // scalar was the real value, and fres = 1 + (1-1)*(...) = 1 is no Fresnel at all. A material
+  // with no FFresnel feature keeps F0 = 1, the same no-op the ROM gets by not running the term.
   mat.userData.f0 = (!gl) ? [1, 1, 1]
     : (ft && ft.fresnel === 'SchlickRGB') ? gl.fresnelSchlickRGB.slice(0, 3)
     : (ft && ft.fresnel === 'Schlick')    ? [gl.fresnel, gl.fresnel, gl.fresnel]
@@ -565,21 +704,39 @@ export function createMaterial(spec){
   u.uAlphaCut.value = texAlpha ? 1 : 0;
   u.uViewUv.value = mat.userData.viewUv ? 1 : 0;
   u.uF0.value.fromArray(mat.userData.f0);
-  // MOVED DOWN HERE 2026-09-07 (Monster Viewer side, on Raven's call). This was written 24 lines
-  // above as `mat.userData.u.uSpecRGB...`, before applyTint() had created mat.userData.u -- so it
-  // threw `Cannot read properties of undefined (reading 'uSpecRGB')` on the FIRST lit material and
-  // the app did not load at all. gl.specular is non-null on 215 of 215 monster $Globals rows and
-  // 279 of 279 armour ones, so nothing reached the renderer. It belongs in this block, which is
-  // where every other uniform is written from the same `u`.
-  // NOTE: material.js is a file this repo SYNCS from the Armor Viewer and does not own, so
-  // sync-render.py --check will now report `EDITED HERE` and verify-monsters.py will exit 1 until
-  // the same fix lands upstream and is pulled. SOURCE.json is deliberately NOT rewritten to hide
-  // that -- a red gate telling the truth beats a green one that does not.
-  if (gl && gl.specular) u.uSpecRGB.value.fromArray(gl.specular.slice(0, 3));
+  // AFTER applyTint, which is what creates `u`: written above it this threw on the first lit
+  // material and the app did not load at all (the Monster Viewer's lesson, 2026-09-07).
+  if (gl && gl.specular) u.uSpecRGB.value.fromArray(romLinear3(gl.specular));   // decoded: it scales linear accumulators
+  // fReflectiveColor as FReflectGlobalCubeMap's multiplier (uReflRGB): rom/specular.js (shared, verbatim) builds it RAW
+  // from cbm.reflective only when the holder is missing, so it is put here first, decoded, and specular.js keeps it
+  if (cb && cb.reflective && !u.uReflRGB) u.uReflRGB = { value: new THREE.Vector3().fromArray(romLinear3(cb.reflective)) };
+  // THE ROM'S SPECULAR, as the Monster Viewer draws it (render/rom/specular.js, taken verbatim 2026-10-07; Raven: "review
+  // each armor to ensure we are accurately rendering them"): FReflectGlobalCubeMap -- the reflection 9,533 armour
+  // materials select, on the engine's default cube DefaultCube_CM, which this path drew as no term -- and FFinalCombiner's
+  // scope, the Fresnel over the whole specular and the specular map as full RGB. Installed only while enableRomSpecular
+  // is on (index.html), so the shared path is untouched otherwise.
+  if (cb) setReflRaw(mat, cb.reflective);
+  installRomSpecular(mat, rom, spec.ref || null); trackRomSpecular(mat);
+  if (mat.userData.romSpecular){
+    const prev = mat.onBeforeCompile;
+    mat.onBeforeCompile = (sh, r) => {
+      if (prev) prev(sh, r);
+      const A = '               vec3 romN = normalize( normal );';
+      if (sh.fragmentShader.indexOf(A) < 0) return;
+      sh.fragmentShader = sh.fragmentShader.replace(A,
+        '               if ( uRomSphere > 0.5 && uEnvAmt > 0.0 ) {\n' +
+        '                 vec3 rsN = normalize( normal );\n' +
+        '                 reflectedLight.indirectSpecular += texture2D( uEnv, rsN.xy * 0.5 + 0.5 ).rgb * uReflRaw * specMask;\n' +
+        '               }\n' + A);
+    };
+    mat.userData.progTags = (mat.userData.progTags || '') + '|romSphere';
+    const tags = mat.userData.progTags;
+    mat.customProgramCacheKey = () => tags;
+    mat.needsUpdate = true;
+  }
   return mat;
 }
 
-// the env matcap, once its texture has loaded
 // THE STATIC UV TRANSFORM, cbm.uv -- decoded into materials.json and never applied until now.
 // CBMaterial declares three of them (mfx: fUVTransform @float 8, fUVTransform2 @16, fUVTransform3
 // @24, each `float2x4`), so the 24 floats are THREE 2x4 affine matrices laid out
@@ -588,13 +745,17 @@ export function createMaterial(spec){
 // with identity [1,0,0,0, 0,1,0,0]. The animated fUVTransform tracks build exactly this matrix at
 // runtime (0xb0ca90..0xb0caf0: sin/cos into [sx*cos, -sy*sin, 0, tx] / [sx*sin, sy*cos, 0, ty]).
 //
-// Only the PRIMARY matrix maps onto a three.js texture's offset/repeat. Measured over the shipped
-// data, that is a small population -- 2 monster and 8 armour/weapon material instances -- because
-// the bulk of the non-identity rows (8 monster, 290 armour) are in fUVTransform2, the SECOND UV set,
-// which belongs to the TypeExtend two-map albedo path and has no home here yet.
-// Rotation is effectively unused: of 3,058 animated UV keys in the whole library exactly ONE
-// carries a non-zero angle, so `center` is left at three.js's default rather than moved to (0.5,0.5)
-// to match the ROM's pivot -- that would be a change with one key's worth of evidence behind it.
+// Only the PRIMARY matrix maps onto a three.js texture's offset/repeat, and over this app's own
+// data that is 8 material instances -- the bulk of the non-identity rows sit in fUVTransform2, the
+// SECOND UV set, which belongs to the TypeExtend two-map albedo path and has no home here yet.
+// Rotation is effectively unused (of 3,058 animated UV keys in the library exactly one carries a
+// non-zero angle), so `center` stays at three.js's default rather than moving to the ROM's pivot.
+//
+// THE TEXTURE IS SHARED, so a non-identity transform gets its own handle: getTexture hands every
+// material binding a file ONE cached object, and writing offset/repeat onto it would move every
+// other material drawing that texture. Texture.clone() shares `source`, which is what three.js
+// keys the GPU upload on, so the copy costs an object and no pixels -- the same trick the material
+// animation's baseOf uses for an animated fUVTransform.
 export function applyRomUv(mat, t){
   const cb = mat.userData.rom && mat.userData.rom.cbm;
   const uv = cb && cb.uv;
@@ -603,18 +764,28 @@ export function applyRomUv(mat, t){
   if (f.length < 8) return t;
   const a = f[0], b = f[1], tx = f[3], c = f[4], d = f[5], ty = f[7];
   if (a === 1 && b === 0 && tx === 0 && c === 0 && d === 1 && ty === 0) return t;
-  t.repeat.set(a, d);
-  t.offset.set(tx, ty);
-  if (b || c) t.rotation = Math.atan2(c, a);   // the shear terms, where a material carries any
-  t.needsUpdate = true;
-  return t;
+  const own = t.clone();
+  own.repeat.set(a, d);
+  own.offset.set(tx, ty);
+  if (b || c) own.rotation = Math.atan2(c, a);   // the shear terms, where a material carries any
+  own.needsUpdate = true;
+  return own;
 }
 
+// the env matcap, once its texture has loaded
 export function setEnvTexture(mat, t){
+  if (mat.userData.ov){ mat.userData.ov.uSphere.value = t; mat.userData.ov.uSphereOn.value = t ? 1 : 0; return; }
   if (mat.isMeshMatcapMaterial){ mat.matcap = t; mat.needsUpdate = true; return; }
   if (!mat.userData.u) return;                 // an unlit additive material takes none
   mat.userData.u.uEnv.value = t;
   mat.userData.u.uEnvAmt.value = envStrength(mat);
+  mat.needsUpdate = true;
+}
+// the iris mask, once loaded: the character colour then reaches only the iris
+export function setIrisMask(mat, t){
+  if (!mat.userData.u) return;
+  mat.userData.u.uIris.value = t;
+  mat.userData.u.uIrisOn.value = 1;
   mat.needsUpdate = true;
 }
 // the separate specular map, once loaded: its luminance is the gloss
@@ -623,6 +794,29 @@ export function setSpecTexture(mat, t){
   mat.userData.u.uSpec.value = t;
   mat.userData.u.uSpecOn.value = 1;
   mat.needsUpdate = true;
+}
+
+// The colour the game hands to this material's CHANNEL (spec.rom.ch), as [r, g, b] 0-255, or
+// null for the material's own constants. What the game does with it, read from the ROM
+// (Raven, 2026-09-18, the Kinsect and Insect Glaive colours): 0x0053a0e4 walks the model's
+// materials and, on each whose channel matches, calls the material's vfunc +0x2c or +0x24,
+// picked by the model byte +0x1368, which the model constructor (0x00538b34) sets to 1 and
+// nothing a hunter, weapon or Kinsect builds clears. +0x2c (0x00b0ad0c) writes the colour's
+// RGB over $Globals.fAlbedoColor and its alpha over CBMaterial.fTransparency. So the colour
+// REPLACES fAlbedoColor: it drops out of mat.color (fAlbedoColor x fDiffuseColor) and
+// multiplies the texel instead, where it reaches the glow as well -- the glow takes
+// fAlbedoColor in game, which is what the Esurient pigment showed. The alpha is 255 on every
+// colour the game writes here, the fTransparency every such material already has.
+export function setChannelColor(mat, rgb){
+  const u = mat.userData.u;
+  if (!u || !u.uChan) return;                  // the unlit paths take no channel colour
+  const rom = mat.userData.rom, gl = rom && rom.glob, cb = rom && rom.cbm;
+  const alb = (rgb || !gl) ? [1, 1, 1] : gl.albedo, dif = cb ? cb.diffuse : [1, 1, 1];
+  if (gl && cb) mat.color.setRGB(alb[0] * dif[0], alb[1] * dif[1], alb[2] * dif[2], THREE.SRGBColorSpace);
+  // the GAME's bytes (a pigment, a weapon's or the Kinsect's colour, the face paint), decoded like a texel (romLinear)
+  if (rgb) u.uChan.value.setRGB(rgb[0] / 255, rgb[1] / 255, rgb[2] / 255, THREE.SRGBColorSpace);
+  else u.uChan.value.setRGB(1, 1, 1);
+  mat.userData.chanRgb = rgb || null;
 }
 
 // hair / eye / skin / fur colour: a '#rrggbb' string or a THREE.Color, or null for the
@@ -639,9 +833,13 @@ export function setWire(mats, on){
   mats.forEach(m => m.wireframe = on);
 }
 
-// the dye-mask debug view (magenta = selected)
+// the dye-mask debug view (magenta = selected, every other texel grey): it covers EVERY material the viewer builds --
+// the hunter's face, hair and body and the weapon, not only the armour (Raven, 2026-10-01: "the hunters face does not
+// gray out when Dye Mask is displayed, I would like everything non-dye to be grayed out") -- and a material built while
+// it is shown (a piece swapped in, a weapon drawn) starts in it (dyeMaskOn, with the registries)
 export function setDebug(mats, v){
-  mats.forEach(m => { if (m.userData.u) m.userData.u.uDbg.value = v; });
+  dyeMaskOn = v ? 1 : 0;
+  mats.forEach(m => { const u = m.userData.u; if (u && u.uDbg) u.uDbg.value = dyeMaskOn; });
 }
 
 // the saturation / value window the fallback mask uses, plus the debug boost
@@ -651,78 +849,126 @@ export function setMaskWindow(mats, s0, s1, v0, kt, sb){
     u.uKeyTol.value = kt; u.uSatBoost.value = sb; });
 }
 
-// ---- MATERIAL ANIMATION -------------------------------------------------------------------------
-// MOVED HERE FROM the monster app 2026-09-07, because it is not monster-specific and the Armor
-// Viewer needs it: 1,486 armour and weapon materials (370 pieces, 1,116 weapons, 5,174 tracks,
-// 1,177 of them auto-play) carry an animation block in their .mrl and were drawn frozen at frame 0.
-// material.js's own notes already deferred to this -- the Charge Blade phial box "adds nothing until
-// its material animation lights it", and the Sword & Shield 134 mapless overlay likewise.
+// ---- MATERIAL ANIMATION -------------------------------------------------------------------
+// The evaluator is the Monster Viewer's (its render/material.js, written there to be taken back:
+// "it is not monster-specific and the Armor Viewer needs it"). Raven, 2026-09-27: "I would like to
+// update the armor viewer with the lessons learned". The .mrl carries an animation block per
+// material -- decoded by build-matanim.py -- and 1,486 of this app's materials have one (370
+// armour pieces, 1,116 weapons, 5,174 tracks, 1,177 clips auto-play). They were all drawn frozen at
+// frame 0: materials.json shipped the blocks for monsters only until the builder's armour pass was
+// run here (2026-09-27), and nothing played them.
 //
-// The EVALUATOR is here; the CLIP-SELECTION POLICY stays with the caller, because that is where the
-// two apps genuinely differ. The ROM's own default policy is the auto-play bit (clip+0x04 bit 1),
-// which is what an armour viewer wants; the monster app layers its enraged/calm state on top.
+// THE CLIP-SELECTION POLICY STAYS WITH THE CALLER. The ROM's own default is the auto-play bit
+// (AUTO_CLIP), which is what this app wants; the monster app layers a rage state machine over it.
 //
-// THE FRAME RATE. The evaluator's clock is `slotTime += material[+0x20] * dt`
-//     00b0cf24 vldr s18,[r3] / 00b0cf28 vldr s0,[sb,#0x20] / 00b0cf2c vldr s2,[sp,#0x10]
-//     00b0cf30 vmla.f32 s18, s0, s2
-// and the sum is compared against the clip's frame count, loaded as u32 and converted
-//     00b0cf38 ldr r0,[r5] / 00b0cf3c vmov s0,r0 / 00b0cf40 vcvt.f32.u32 s0,s0
-// so slotTime carries the SAME UNIT as `frames`. uBaseModel 0x88c494 passes dt through unmodified
-// (`0088c4c0 vldr s16,[r4,#0x1c]`, cUnit::mDeltaTime), so material animation and MOTION share one
-// tick. All of that is decoded and holds.
-//
-// WHAT IS NOT DECODED IS THE WALL-CLOCK RATE, and this constant is an ASSUMPTION, not a reading.
-// Corrected 2026-09-10 after Raven: "The game runs at ~30 FPS, so the effect looks fast compared to
-// what we see in game." The two arguments that used to sit here for 60 do not survive:
-//
-//   * "8,848 of 14,538 durations are an integral frame count at 60 and not at 30" does not
-//     discriminate. Any integer frame count is a whole number of frames at either rate; the test
-//     only ever measured how round the resulting SECONDS looked, which is a matter of taste.
-//   * The exported motion keyframes sit 0.01667 s apart, i.e. 59.99 fps, over 283,323 keys. That is
-//     `lmt_to_gltf`'s own choice when it turned LMT frame indices into glTF seconds -- a
-//     third-party tool's assumption, not the ROM's statement. Citing it as confirmation was
-//     circular, and it was mine.
-//
-// The one structural argument that does hold points at 30. material[+0x20] multiplies dt, so it is
-// a RATE MULTIPLIER, and a rate multiplier's neutral value is 1.0. For the sum to reach `frames`
-// with a 1.0 multiplier, dt must be in FRAME UNITS -- about 1.0 per tick, not ~0.0167 seconds. Then
-// a clip's duration is its frame count in GAME TICKS, and the wall-clock length is frames divided
-// by the rate the game actually ticks at. MHGU ticks at ~30. Akantor's 96-frame Angry loop is then
-// 3.2 s in game, and this viewer was playing it in 1.6 s -- exactly the doubling Raven reports.
-//
-// This also means the content may well be authored at 60, as Raven guessed ("it wouldn't shock me
-// to find out everything is calculated around 60fps, but looks different due to the 3DS
-// framerates") -- and it still plays at 30 ticks per second, because dt is counted in ticks.
-//
-// STILL UNREAD, and it is the thing that would settle this outright: material[+0x20] itself.
-// Searched again 2026-09-10 and it is not written anywhere in the material-animation module
-// (0xb08000..0xb12000 holds no `vstr` to [reg,#0x20]), and it does not come from the .mrl -- the
-// material record is 60 bytes and words 8..12 and 14, the only ones nothing reads, are ZERO on all
-// 577 monster materials across 187 files. So it is set by code that has not been found. Until it
-// is, this number rests on Raven's eyes rather than on the ROM, and it is labelled that way.
-//
-// REVERTED TO 60 the same day, because changing it globally REGRESSED A MONSTER Raven had already
-// signed off. He set 30 from Akantor's rage effect looking fast against the game; within the hour:
-// "Grimclaw albedo looks wrong agian", and "Tigrex still looks fine somehow". A diff of every
-// change since Grimclaw last looked right came back with exactly two, one of them an em033_00-only
-// parts entry that cannot reach Grimclaw -- so this constant was the cause, with nothing else in
-// the running. Tigrex survived it because he has ONE animated material; Grimclaw has four, and one
-// of them cycles fEmissionColor from (0.75, 0.25, 0.25) to (1, 0, 0) on a 90-frame loop, so halving
-// the rate is plainly visible on him and nearly invisible on Tigrex.
-//
-// THE LESSON, and it is the reason this note is long. A single global constant is the wrong
-// instrument for a question the ROM has not answered. It silently re-times all 425 monster clips to
-// buy one monster's effect, and the cost lands on monsters already judged -- Raven, seeing it:
-// "this is the exact situation I wanted to avoid". The rate stays at the value everything was
-// judged against until material[+0x20] is actually read, and anything wanting a different speed
-// should be a control Raven can turn, not a constant swapped underneath him.
-//
-// So 60 here is NOT a claim that 60 is the ROM's rate. It is the value the library was reviewed at.
-// The argument above for 30 still stands on its own terms and is deliberately left in place.
+// THE FRAME RATE is an assumption, not a reading, and it is the Monster Viewer's: the evaluator's
+// clock is `slotTime += material[+0x20] * dt` and the sum is compared against the clip's frame
+// count, so the two share a unit -- but material[+0x20] itself is written by code nobody has found,
+// so the wall-clock rate is open. 60 is the value that library was reviewed at; the argument for 30
+// (a rate multiplier's neutral value is 1.0, so dt would be in ticks, and MHGU ticks at ~30) is
+// real and recorded there, and changing it globally there regressed a monster already signed off.
+// Same number here, so the two apps agree, and it belongs in a control rather than a constant swap.
 export const MAT_FPS = 60;
 
 const animBase = new WeakMap();
 
+// A material's shipped values, snapshotted the first time it is stepped, so every frame can start
+// from a known state: the ROM rebuilds its constant buffer from the material's own values each
+// frame, while these writes land on a three.js material and would otherwise accumulate.
+//
+// THE TEXTURE HANDLE IS THIS APP'S ONE DEPARTURE. fUVTransform drives the texture object, and the
+// monster app may write it because a monster owns its maps -- here the pool is content-addressed
+// and shared, and all 168 materials that animate the primary UV share their map with another
+// material of the same piece (a helm's scrolling glow beside its still body texture). So a material
+// that animates UV gets its own handle on the same image: Texture.clone() shares `source`, which is
+// what three.js keys the GPU upload on, so this costs a texture object and no pixels.
+function baseOf(m){
+  let b = animBase.get(m);
+  if (b) return b;
+  const rom = m.userData && m.userData.rom;
+  const gl = rom && rom.glob;
+  const drives = t => ((rom && rom.anim) || []).some(c => (c.tracks || []).some(k => k.target === t));
+  const drivesUv = drives('fUVTransform');
+  // AN ANIMATED EMISSION NEEDS THE MAP UNDER IT, exactly as a static one does. createMaterial sets
+  // `emissiveFromMap` wherever the ROM's emission constant is non-zero, and the caller then binds the
+  // ALBEDO as the emissive map, because the ROM's emission is the constant TIMES the albedo -- the
+  // shader's `totalEmissiveRadiance *= gBase` lives inside `#ifdef USE_EMISSIVEMAP`. A material whose
+  // constant is zero gets no such map, so when a CLIP writes fEmissionColor onto it the emission is a
+  // flat glow over the whole surface instead of the map's own bright texels.
+  //   That is the Esurient sets (Raven, 2026-09-27: "Esurient armor glows oddly, the armor itself is
+  // glowing not the pigment"): their `_env_` materials ship emission 0, so they had no emissive map,
+  // and their clips write a small emission that lit the entire piece rather than the dye region. Give
+  // such a material the same map the static path would have given it, once, before the first write.
+  //   ONLY A MATERIAL WITH AN EMISSIVE TERM CAN TAKE ONE. An additive or constant material is a
+  // MeshBasicMaterial: no `.emissive`, and no `emissiveMap` uniform either, so three.js's uniform refresh
+  // throws on the map (`uniforms.emissiveMap` is undefined) and the throw takes the whole frame with it.
+  // That was Raikou Works (Raven, 2026-09-29: "Raikou Works has a bug"): its `axe147_add_` layer is
+  // additive and its two clips drive fEmissionColor, so mounting the axe stopped the viewer drawing.
+  // Eleven weapon models ship such a layer (w01 2, w02 3, w08 1, w09 2, w12 1, w14 2; no armour). The
+  // track itself needs no map there: applyTrack adds it into the layer's colour, the map's own texels
+  // already being the layer.
+  if (m.map && !m.emissiveMap && m.emissive && drives('fEmissionColor')){
+    m.emissiveMap = m.map;
+    m.userData.emissiveFromMap = true;
+    m.needsUpdate = true;
+  }
+  if (drivesUv && m.map){
+    const own = m.map.clone(); own.needsUpdate = true;
+    if (m.emissiveMap === m.map) m.emissiveMap = own;
+    if (m.alphaMap === m.map) m.alphaMap = own;
+    m.map = own;
+    m.needsUpdate = true;
+  }
+  b = { color: m.color ? m.color.clone() : null, opacity: m.opacity, transparent: m.transparent,
+        albedo: (gl && gl.albedo) ? gl.albedo.slice(0, 3) : [1, 1, 1],
+        emissive: m.emissive ? m.emissive.clone() : null,
+        reflective: m.userData ? m.userData.reflective : undefined,
+        envAmt: (m.userData.u && m.userData.u.uEnvAmt) ? m.userData.u.uEnvAmt.value : undefined,
+        specRGB: (m.userData.u && m.userData.u.uSpecRGB) ? m.userData.u.uSpecRGB.value.clone() : null,
+        // the destinations only an app that installs them has (applyTrack): the shipped map for a kind-3 swap, the
+        // distortion, the second map's transform and tint
+        map: m.map || null,
+        distFac: (m.userData.u && m.userData.u.uDistFac) ? m.userData.u.uDistFac.value : undefined,
+        distBlend: (m.userData.u && m.userData.u.uDistBlend) ? m.userData.u.uDistBlend.value : undefined,
+        extXf: (m.userData.u && m.userData.u.uExtXf) ? m.userData.u.uExtXf.value.clone() : null,
+        extTint: (m.userData.u && m.userData.u.uExtTint) ? m.userData.u.uExtTint.value.clone() : null,
+        uv: (drivesUv && m.map) ? { offset: m.map.offset.clone(), repeat: m.map.repeat.clone(), rotation: m.map.rotation } : null,
+        // from the ROM's own constants, not the uniforms: a colour write may already stand when the first frame is stepped
+        ov: m.userData.ov ? { refl: new THREE.Vector3().fromArray(rom.cbm.reflective),
+                              transp: rom.feat.transp === 'Alpha' ? rom.cbm.transparency : 1 } : null };
+  animBase.set(m, b);
+  return b;
+}
+function restoreBase(m, b){
+  if (b.ov && m.userData.ov){
+    m.userData.ov.uRefl.value.copy(b.ov.refl); m.userData.ov.uTransp.value = b.ov.transp;
+    if (m.userData.cbWrite) writeCb(m, m.userData.cbWrite);   // what the weapon's own code wrote stands under the clips
+  }
+  if (b.color && m.color) m.color.copy(b.color);
+  if (b.opacity !== undefined) m.opacity = b.opacity;
+  if (b.transparent !== undefined) m.transparent = b.transparent;
+  if (b.emissive && m.emissive) m.emissive.copy(b.emissive);
+  if (m.userData){
+    if (b.reflective !== undefined) m.userData.reflective = b.reflective;
+    const u = m.userData.u;
+    if (u && u.uEnvAmt && b.envAmt !== undefined) u.uEnvAmt.value = b.envAmt;
+    if (u && u.uSpecRGB && b.specRGB) u.uSpecRGB.value.copy(b.specRGB);
+    if (u && u.uDistFac && b.distFac !== undefined) u.uDistFac.value = b.distFac;
+    if (u && u.uDistBlend && b.distBlend !== undefined) u.uDistBlend.value = b.distBlend;
+    if (u && u.uExtXf && b.extXf) u.uExtXf.value.copy(b.extXf);
+    if (u && u.uExtTint && b.extTint) u.uExtTint.value.copy(b.extTint);
+    if (m.userData.texSwap && b.map && m.map !== b.map){ m.map = b.map; m.needsUpdate = true; }
+  }
+  if (b.uv && m.map){
+    m.map.offset.copy(b.uv.offset);
+    m.map.repeat.copy(b.uv.repeat);
+    m.map.rotation = b.uv.rotation;
+  }
+}
+
+// One track at frame f. Kinds 2, 3 and 5 are STEP tracks in the ROM (their handlers go from the key
+// search straight to the writer); interp 0 holds, 2 and 4 are cubic Hermite with tangents built
+// from the neighbouring keys (the format stores none), everything else is linear.
 function sampleTrack(tr, f){
   const k = tr.keys;
   if (!k || !k.length) return null;
@@ -732,25 +978,11 @@ function sampleTrack(tr, f){
   let i = 0;
   while (i < k.length - 1 && k[i + 1][0] <= f) i++;
   const a = k[i], b = k[i + 1];
-  if (tr.interp === 0) return a.slice(1);          // hold
-  // Kinds 2, 3 and 5 are STEP tracks in the ROM: their handlers go straight from the key search to
-  // the writer with no interpolation (kind 3 at 0xb0be14). Interpolating kind 3 would produce a
-  // fractional TEXTURE INDEX -- 4 half way between 3 and 5.
+  if (tr.interp === 0) return a.slice(1);
   if (tr.kind === 2 || tr.kind === 3 || tr.kind === 5) return a.slice(1);
   const span = b[0] - a[0];
   const t = span > 0 ? (f - a[0]) / span : 0;
   const n = Math.min(a.length, b.length);
-  // THE CUBIC. The game dispatches on interp alone -- `cmp r3,#4 / cmpne r3,#2 / bne <linear>` at
-  // 0xb0c0cc -- so 2 and 4 are cubic Hermite and everything else is linear. The tangents are NOT
-  // stored; the format has nowhere to put them. They are built from the neighbouring keys in the
-  // non-uniform Catmull-Rom form, using the key BEFORE the segment (P) and the one AFTER it (C):
-  //     mA = 0.5 * [ (B - A) + (A - P) * dtAB/dtPA ]
-  //     mB = 0.5 * [ (C - B) * dtAB/dtBC + (B - A) ]
-  //     H(u) = A + mA*u + (3B - 3A - 2mA - mB)*u^2 + (2A - 2B + mA + mB)*u^3
-  // At the ends the missing neighbour collapses its term to zero, leaving the half-slope of the
-  // segment itself -- what the ROM gets by clamping its key search.
-  // 65 monster tracks are interp 2 (fConstantColor 15, fDiffuseColor 12, fTransparency 12,
-  // fEmissionColor 10, fUVTransform 8, fAlbedoColor 6, fDistortion* 2); none is interp 4.
   if ((tr.interp === 2 || tr.interp === 4) && span > 0){
     const p = k[i - 1] || a, c2 = k[i + 2] || b;
     const rPA = (a[0] - p[0]) > 0 ? span / (a[0] - p[0]) : 0;
@@ -772,111 +1004,43 @@ function sampleTrack(tr, f){
   return out;
 }
 
-// A track WRITES its shader constant; it does not scale the shipped one. That distinction is not
-// cosmetic: Savage Deviljho's Gekikou decal ships fTransparency 0.0 and fDiffuseColor (0,0,0) --
-// deliberately invisible until the clip runs -- so multiplying by the static value pinned it at
-// zero for ever and the effect could never appear. The static values ARE the animation's frame-0
-// state, which is why they look like "off".
-// The lit path folds the ROM's albedo tint into material.color as glob.albedo * cbm.diffuse, so an
-// animated fDiffuseColor is re-multiplied by glob.albedo rather than replacing the pair.
-function baseOf(m){
-  let b = animBase.get(m);
-  if (!b){
-    const rom = m.userData && m.userData.rom;
-    const gl = rom && rom.glob;
-    const u = m.userData && m.userData.u;
-    const tx = m.map;
-    b = { color: m.color ? m.color.clone() : null, opacity: m.opacity,
-          transparent: m.transparent,
-          map: m.map || null,                    // the shipped albedo, so a kind-3 swap reverses
-          albedo: (gl && gl.albedo) ? gl.albedo.slice(0, 3) : [1, 1, 1],
-          // EVERY OTHER DESTINATION A TRACK WRITES, snapshotted so it can be put back. Colour,
-          // opacity and the map used to be the whole of it, which meant a material that STOPPED
-          // being animated kept the last emission, reflection, specular and UV a clip had left on
-          // it -- for ever. Khezu, 2026-09-09: leaving the charged state put Body_Taiden_End's
-          // last frame on the body (fEmissionColor 0.1/0.11/0.15, fReflectiveColor 0.732 against
-          // its shipped 0.165) and nothing ever took it off again. The ROM has no such state: it
-          // rebuilds the constant buffer from the material's own values every frame.
-          emissive:  m.emissive ? m.emissive.clone() : null,
-          reflective: m.userData ? m.userData.reflective : undefined,
-          envAmt:    u && u.uEnvAmt   ? u.uEnvAmt.value   : undefined,
-          specTint:  u && u.uSpecTint ? u.uSpecTint.value : undefined,
-          distFac:   u && u.uDistFac  ? u.uDistFac.value  : undefined,
-          distBlend: u && u.uDistBlend ? u.uDistBlend.value : undefined,
-          extXf:     u && u.uExtXf   ? u.uExtXf.value.clone()   : null,
-          extTint:   u && u.uExtTint ? u.uExtTint.value.clone() : null,
-          // ONLY WHERE THIS MATERIAL ITSELF DRIVES IT. A texture object is SHARED between
-          // materials, so a material that merely happens to bind the same map must not put its own
-          // offset back every frame -- that would fight whichever material is actually scrolling
-          // it. Snapshot the UV only when one of this material's own clips targets fUVTransform.
-          uv: (tx && (rom && rom.anim || []).some(c => (c.tracks || [])
-                        .some(t => t.target === 'fUVTransform')))
-              ? { offset: tx.offset.clone(), repeat: tx.repeat.clone(), rotation: tx.rotation }
-              : null };
-    animBase.set(m, b);
-  }
-  return b;
-}
-// Put a material back on its shipped values. Called before the running slots are applied, so every
-// frame starts from a known state whatever the clip selection did last frame.
-function restoreBase(m, b){
-  if (b.color && m.color) m.color.copy(b.color);
-  if (b.opacity !== undefined) m.opacity = b.opacity;
-  if (b.emissive && m.emissive) m.emissive.copy(b.emissive);
-  if (m.userData){
-    if (b.reflective !== undefined) m.userData.reflective = b.reflective;
-    else delete m.userData.reflective;
-    const u = m.userData.u;
-    if (u){
-      if (u.uEnvAmt    && b.envAmt    !== undefined) u.uEnvAmt.value    = b.envAmt;
-      if (u.uSpecTint  && b.specTint  !== undefined) u.uSpecTint.value  = b.specTint;
-      if (u.uDistFac   && b.distFac   !== undefined) u.uDistFac.value   = b.distFac;
-      if (u.uDistBlend && b.distBlend !== undefined) u.uDistBlend.value = b.distBlend;
-      if (u.uExtXf   && b.extXf)   u.uExtXf.value.copy(b.extXf);
-      if (u.uExtTint && b.extTint) u.uExtTint.value.copy(b.extTint);
-    }
-  }
-  // fUVTransform drives the texture objects themselves, and a texture is SHARED between
-  // materials -- so only the material that owns this base may put it back, and only to the
-  // values it was built with.
-  if (b.uv && m.map){
-    m.map.offset.copy(b.uv.offset);
-    m.map.repeat.copy(b.uv.repeat);
-    m.map.rotation = b.uv.rotation;
-  }
+// AN ANIMATED ALPHA ONLY REACHES A MATERIAL THAT IS ACTUALLY BLENDED, which is the gate the static
+// path already applies: createMaterial writes cbm.transparency onto `opacity` under `st.blend ===
+// 'blend'` and on the two overlay branches, and nowhere else. The ROM's FTransparencyAlpha is
+// `mc.Alpha * CBMaterial.fTransparency` -- it scales the material's ALPHA, and on a BSSolid material
+// nothing blends that alpha, so the value changes no pixel.
+//   Writing it anyway did two things at once (Raven, 2026-09-27: "On the female armors, I saw the
+// pigment go transparent", "Which then made parts of the arm vanish along with them"). The Esurient
+// `_sym_` materials are blend=opaque with an fTransparency clip that sweeps 0.1 -> 1.0 -> 0.1, so the
+// dye region faded to a tenth; and flipping `transparent` on moved it out of the opaque pass into the
+// sorted one, where it stopped occluding and took what it covered with it.
+//   So: honour the value where the shipped material was blended, ignore it where it was not. `b` is
+// baseOf's snapshot of how the material shipped, taken before any track had run.
+function setAlpha(m, b, a){
+  if (!b.transparent) return;
+  m.opacity = a;
+  m.transparent = true;
 }
 
-// scratch for decoding an animated colour constant into the working space (identity with colour
-// management off)
-const _romLin = new THREE.Color();
 function applyTrack(m, tr, f){
   const v = sampleTrack(tr, f);
   if (!v) return;
   const b = baseOf(m);
-  // The ROM writes only as many floats as the member word asks for. The vector writer 0xb0f844
-  // stores float 0 unconditionally, then returns early on ((member>>10)&3):
-  //   00b0f944  str r1,[r0,r7,lsl #2]   ; float 0 always
-  //   00b0f948  ubfx r1, r2, #0xa, #2   ; cols-1
-  //   00b0f950  beq #0xb0f97c           ; cols-1 == 0 -> stop after ONE
-  // 380 of the 550 monster tracks carrying a member word are 3-column, so reading v[3] on them
-  // applies a fourth component the game never writes.
+  // THE REFLECTION OVERLAY draws two of the members its clips drive: fReflectiveColor, its tint, and fTransparency, its
+  // fade (FTransparencyAlpha). fDiffuseColor and fAlbedoColor feed the albedo term, fSpecularColor the lights' term and
+  // fUVTransform2 the second UV set -- none of which it draws (createReflectOverlay).
+  const ov = m.userData.ov;
+  if (ov){
+    if (tr.target === 'fReflectiveColor') ov.uRefl.value.set(v[0], v[1] === undefined ? v[0] : v[1], v[2] === undefined ? v[0] : v[2]);
+    else if (tr.target === 'fTransparency' && m.userData.rom.feat.transp === 'Alpha') ov.uTransp.value = v[0];
+    return;
+  }
+  // the ROM writes only as many floats as the member word asks for (the vector writer returns
+  // early on cols-1), so a 3-column track must not have its fourth component applied
   const cols = tr.cols || v.length;
   switch (tr.target){
-    // fUVTransform2 and fUVTransform3 DO NOT drive the primary map. CBMaterial declares three
-    // separate float2x4 matrices (floatOffset 8, 16, 24) and feat.uvxf is the ROM's own routing
-    // table naming which one applies to each UV slot -- ["Offset","Offset2",false,"Offset3"], i.e.
-    // slot 0 (UVPrimary) takes fUVTransform, slot 1 (UVSecondary) fUVTransform2, slot 3 (UVExtend)
-    // fUVTransform3. 22 monster tracks are on the 2nd and 3rd, and writing them to the primary map
-    // scrolled the wrong texture. Where the material carries a second-UV map (the TypeExtend blend
-    // map), they drive ITS transform; otherwise there is nothing for them to move and they are
-    // dropped rather than misapplied.
-    case 'fUVTransform2': case 'fUVTransform3': {
-      const u = m.userData.u;
-      if (u && u.uExtXf) u.uExtXf.value.set(v[2] === 0 ? 1 : v[2], v[3] === 0 ? 1 : v[3], v[0], v[1]);
-      break;
-    }
+    // offsetU, offsetV, scaleU, scaleV, rotation -- on this material's own handle (see baseOf)
     case 'fUVTransform': {
-      // offsetU, offsetV, scaleU, scaleV, rotation
       for (const key of ['map', 'emissiveMap', 'alphaMap']){
         const tex = m[key];
         if (!tex) continue;
@@ -886,193 +1050,267 @@ function applyTrack(m, tr, f){
       }
       break;
     }
-    // THE COLOUR CONSTANTS ARE DECODED LIKE A TEXEL (SRGBColorSpace), 2026-10-15. The game's model
-    // pass multiplies the RAW texel by the RAW constant in gamma space (sRender.mSRGBEnable = 0;
-    // Monster Viewer dev/model-pass-colour-space.md); this renderer decodes the texel and encodes the
-    // output, so encode(decode(t) x decode(k)) = t x k only when k is decoded too. Written raw, a 0.2
-    // showed as ~0.48. 0 and 1 are unchanged. The emission below has been read this way since 2026-09-11.
-    case 'fConstantColor':                      // rgb + alpha, written not scaled
-      if (m.color) m.color.setRGB(b.albedo[0] * v[0], b.albedo[1] * v[1], b.albedo[2] * v[2], THREE.SRGBColorSpace);
-      if (cols > 3){                            // only when the ROM writes the fourth float
-        m.opacity = v[3];
-        m.transparent = true;
-      }
+    case 'fConstantColor':                       // rgb + alpha, written not scaled
+      if (m.color) m.color.setRGB(b.albedo[0] * v[0], b.albedo[1] * v[1], b.albedo[2] * v[2], THREE.SRGBColorSpace);   // decoded (romLinear)
+      if (cols > 3) setAlpha(m, b, v[3]);
       break;
     case 'fAlbedoColor': case 'fDiffuseColor':
-      if (m.color) m.color.setRGB(b.albedo[0] * v[0], b.albedo[1] * v[1], b.albedo[2] * v[2], THREE.SRGBColorSpace);
+      if (m.color) m.color.setRGB(b.albedo[0] * v[0], b.albedo[1] * v[1], b.albedo[2] * v[2], THREE.SRGBColorSpace);   // decoded (romLinear)
       break;
-    // 8 tracks on enrage clips drive this and it had no case at all, so Crimson Fatalis, both
-    // Mizutsune, Grimclaw Tigrex and Ahtal-Ka lost the part of their rage that is emission.
+    // READ AS sRGB, the space this pipeline's maps are decoded in: the ROM's colour constants sit
+    // in the same space as its textures and this term is ADDED, so writing it into the working
+    // (linear) space made it several times too bright -- the Monster Viewer's lesson, where it
+    // whited out Crimson Fatalis. An additive material has no .emissive; there the term adds into
+    // the colour the layer contributes, because an additive pass is already a sum.
     case 'fEmissionColor': {
       const g = v[1] === undefined ? v[0] : v[1], bl = v[2] === undefined ? v[0] : v[2];
-      // THE ROM'S COLOUR CONSTANTS ARE IN THE SAME SPACE AS ITS TEXTURES, and this one is ADDED,
-      // so the space is the whole difference. three.js 0.169 has colour management on: a bare
-      // setRGB writes the WORKING space, Linear-sRGB, while every map here is decoded with
-      // SRGBColorSpace. So a texel of 0.2 becomes ~0.033 linear and a CONSTANT of 0.2 stays 0.2 --
-      // six times brighter, added flat on top of the lighting.
-      //
-      // Crimson Fatalis is where it shows worst. Its `Angry` clip sets fEmissionColor to a flat
-      // grey 0.2, which lifted the dark ground of a red/orange lava texture to a mid grey and
-      // washed the whole monster out. Raven, 2026-09-11: "Crimson Fatalis enraged effect is whited
-      // out", and "I know we had it looking correct at one point" -- correct being before this case
-      // existed at all, when the emission was dropped rather than added in the wrong space.
-      //
-      // Reading it as sRGB is not a new decode; it is treating a constant the same way the pipeline
-      // already treats a texel from the same art. FEmissionConstant is genuinely a flat constant --
-      // FEmissionMap is a separate variant carrying the 0x04 "uses a map" bit in its mfx record and
-      // NO monster material selects it -- so the term really is added unmodulated; only its
-      // magnitude was wrong.
       if (m.emissive){ m.emissive.setRGB(v[0], g, bl, THREE.SRGBColorSpace); break; }
-      // AN ADDITIVE MATERIAL HAS NO .emissive -- it is a MeshBasicMaterial, and 40 of the 101
-      // fEmissionColor tracks land on one, where they were silently dropped. Those are the rage
-      // glows. The ROM's emission is a term ADDED to the material's output, and an additive pass is
-      // already a sum, so on this path it adds into the colour the layer contributes.
-      // The sum is the factor on the texel here, so it is decoded as one (2026-10-15).
-      if (m.color) m.color.setRGB(b.albedo[0] + v[0], b.albedo[1] + g, b.albedo[2] + bl, THREE.SRGBColorSpace);
+      if (m.color) m.color.setRGB(b.albedo[0] + v[0], b.albedo[1] + g, b.albedo[2] + bl, THREE.SRGBColorSpace);   // the factor on the texel: decoded as one
       break;
     }
     case 'fTransparency':
-      m.opacity = v[0];
-      m.transparent = true;
+      setAlpha(m, b, v[0]);
       break;
-    // Kind 3, the texture switch. The key value is a 1-BASED index into the material entry's own
-    // texture table -- the encoding materials-db.js already resolves with tl[idx-1] -- written
-    // through the material's own writer at vtable +0x60, not the float writers. 41 monster tracks
-    // use it and 40 of them target tAlbedoMap; the Fatalis line is the heavy user.
-    case 'tex': {
-      const idx = v[0] | 0;
-      const swap = m.userData && m.userData.texSwap;
-      if (swap && idx >= 1 && swap[idx - 1] && m.map !== swap[idx - 1]){
-        m.map = swap[idx - 1];
-        m.needsUpdate = true;
-      }
-      break;
-    }
-    // fReflectiveColor scales the sphere-map reflection. CBMaterial declares it float3 at
-    // floatOffset 4, and the static value already drives envStrength() -> uEnvAmt; the ROM animates
-    // it on 16 monster tracks, which had no destination until the sphere map was bound.
-    // RAW, unlike the colours around it: its one reader is the sphere-map screen, which runs on the
-    // sRGB-ENCODED colour (mhguSrgbOetf), so this weight is already applied in display values.
+    // fReflectiveColor scales the sphere-map reflection, the same value envStrength() reads
     case 'fReflectiveColor': {
       const u = m.userData.u;
       if (u && u.uEnvAmt){
         const avg = (v[0] + (v[1] === undefined ? v[0] : v[1]) + (v[2] === undefined ? v[0] : v[2])) / 3;
         m.userData.reflective = avg;
+        setReflRaw(m, v);
         if (u.uEnv && u.uEnv.value) u.uEnvAmt.value = envStrength(m);
       }
       break;
     }
-    // fAlbedoBlendColor tints the SECOND albedo map of a TypeExtend material ($Globals float4 at
-    // floatOffset 4). 8 tracks, all on additive materials, and all dead until the two-map albedo
-    // existed. Written into the extend uniform the monster app installs.
-    case 'fAlbedoBlendColor': {
-      const u = m.userData.u;
-      // rgb decoded like a texel (it multiplies or adds to the second map's texel); .a stays raw --
-      // on MapBlend it is a lerp FACTOR, not a colour (2026-10-15)
-      if (u && u.uExtTint){
-        _romLin.setRGB(v[0], v[1] === undefined ? v[0] : v[1], v[2] === undefined ? v[0] : v[2], THREE.SRGBColorSpace);
-        u.uExtTint.value.set(_romLin.r, _romLin.g, _romLin.b, cols > 3 ? v[3] : 1);
-      }
-      break;
-    }
-    // fSpecularColor, $Globals float3 at floatOffset 44. MeshStandardMaterial has no specular
-    // colour -- the ROM's specular feeds the same reflection path this shader drives through the
-    // gloss term, so the luminance scales it. 32 monster tracks.
-    // fDistortionFactor / fDistortionBlend, CBDistortion. 12 tracks, all on Refract materials,
-    // with no destination until the screen-space distortion existed.
-    case 'fDistortionFactor': {
-      const u = m.userData.u;
-      if (u && u.uDistFac) u.uDistFac.value = v[0];
-      break;
-    }
-    case 'fDistortionBlend': {
-      const u = m.userData.u;
-      if (u && u.uDistBlend) u.uDistBlend.value = v[0];
-      break;
-    }
+    // AN ANIMATED fSpecularColor IS A COLOUR, as its static value is: it goes where the static
+    // value lives, uSpecRGB, which multiplies both specular accumulators. (The Monster Viewer
+    // reached this the long way round -- it wrote the luminance to a scalar on the gloss, so a
+    // clip could brighten the specular but never change its hue, and Raven caught it on
+    // Boltreaver's membrane: "Fix the specular colour". Its monster-side override becomes
+    // redundant once it syncs this file.)
+    //   IT BARELY MATTERS IN THIS APP, and that is worth saying plainly: 612 tracks carry the
+    // target here, but 611 of them sit on ADDITIVE materials, which are MeshBasicMaterial with no
+    // specular lobe and no `u` at all -- the guard below drops them. Exactly one lit material has
+    // one (the Light Bowgun 086 emia_, two keys both at 0.4). It is the monsters' 32 tracks that
+    // this case is really for, and this is the file they share.
     case 'fSpecularColor': {
       const u = m.userData.u;
-      // the luminance of the DECODED colour: the tint scales a linear specular (2026-10-15)
-      if (u && u.uSpecTint){
-        _romLin.setRGB(v[0], v[1] === undefined ? v[0] : v[1], v[2] === undefined ? v[0] : v[2], THREE.SRGBColorSpace);
-        u.uSpecTint.value = 0.299 * _romLin.r + 0.587 * _romLin.g + 0.114 * _romLin.b;
+      if (u && u.uSpecRGB){
+        const g = v[1] === undefined ? v[0] : v[1], bl = v[2] === undefined ? v[0] : v[2];
+        u.uSpecRGB.value.fromArray(romLinear3([v[0], g, bl]));   // decoded, as the static value
       }
       break;
     }
-    default: break;                             // a target the viewer has no home for yet
+    // THE TWO-MAP ALBEDO, THE DISTORTION AND THE TEXTURE SWITCH (the Monster Viewer's cases, 2026-10-18 shared base): each
+    // writes a uniform or a map list only an app that installs it has (uExtXf / uExtTint for the TypeExtend second map,
+    // uDistFac / uDistBlend for the Refract distortion, userData.texSwap for a kind-3 track), so where the app has none the
+    // track is dropped, as before. fUVTransform2 / 3 drive the SECOND-UV map's transform (feat.uvxf routes slot 1 to
+    // fUVTransform2, slot 3 to fUVTransform3), never the primary map.
+    case 'fUVTransform2': case 'fUVTransform3': {
+      const u = m.userData.u;
+      if (u && u.uExtXf) u.uExtXf.value.set(v[2] === 0 ? 1 : v[2], v[3] === 0 ? 1 : v[3], v[0], v[1]);
+      break;
+    }
+    // fAlbedoBlendColor tints the second albedo map: rgb decoded like a texel (romLinear); .a stays raw -- on MapBlend it
+    // is a lerp FACTOR, not a colour
+    case 'fAlbedoBlendColor': {
+      const u = m.userData.u;
+      if (u && u.uExtTint){
+        const c = romLinear3(v);
+        u.uExtTint.value.set(c[0], c[1], c[2], cols > 3 ? v[3] : 1);
+      }
+      break;
+    }
+    case 'fDistortionFactor': { const u = m.userData.u; if (u && u.uDistFac) u.uDistFac.value = v[0]; break; }
+    case 'fDistortionBlend': { const u = m.userData.u; if (u && u.uDistBlend) u.uDistBlend.value = v[0]; break; }
+    // a kind-3 track switches the albedo map by index, through the material's own writer (vtable +0x60): 1 = the first
+    // entry of the app's userData.texSwap list
+    case 'tex': {
+      const idx = v[0] | 0, swap = m.userData && m.userData.texSwap;
+      if (swap && idx >= 1 && swap[idx - 1] && m.map !== swap[idx - 1]){ m.map = swap[idx - 1]; m.needsUpdate = true; }
+      break;
+    }
+    // STILL NO DESTINATION, so dropped rather than misapplied:
+    //   fUVTransform2 / fUVTransform3 (378) -- the second and third UV sets, which belong to the
+    //     two-map albedo path this app does not have. Writing them to the primary map would
+    //     scroll the wrong texture.
+    //   fAlbedoBlendColor, fDistortionFactor, fDistortionBlend -- the same two paths.
+    // There are no kind-3 (texture switch) tracks in this app's data at all.
+    default: break;
   }
 }
 
-// Drive every animated material on a mounted model. tSec is wall time; nothing here touches a
-// material that carries no animation block.
+function stepOneSlot(m, clip, tSec){
+  if (!clip || !clip.frames || !clip.tracks) return;
+  const fr = Math.max(0, tSec) * MAT_FPS;
+  // Clamped to frameCount, NOT frameCount-1: the ROM stores frameCount itself for a non-looping
+  // clip. That is this evaluator's rule, not uModel::Motion's LMT rule.
+  const f = clip.loop ? fr % clip.frames : Math.min(fr, clip.frames);
+  for (const tr of clip.tracks) if (!tr.unsupported) applyTrack(m, tr, f);
+}
 
-// Drive every animated material under `root`. `pickClip(clips, rom)` returns the index of the clip
-// to play, or -1 for none; pass `AUTO_CLIP` for the ROM's own default.
+// Drive every animated material under `root`. `pickClip(clips, rom, tSec)` returns the clip index
+// to play, an array of up to four (the ROM runs four slots, later ones writing over earlier), or
+// -1 for none; pass AUTO_CLIP for the ROM's own default. Returns how many materials it drove.
+// NOTHING SELECTED MEANS THE MATERIAL'S OWN VALUES: the restore is unconditional, so a material
+// that stops matching a clip goes back to how it shipped instead of keeping the last frame written.
 export function stepMaterialAnim(root, tSec, pickClip){
   if (!root) return 0;
+  lastClock = tSec;
   let n = 0;
   root.traverse(o => {
     const m = o.material;
     if (!m || !m.userData) return;
-    const rom = m.userData.rom;
-    const clips = rom && rom.anim;
-    if (!clips || !clips.length) return;
-    // FOUR SLOTS. A material runs up to four clips at once -- the animation state is four
-    // (u32 ctl, f32 time) pairs at material+0x50+i*8, and the evaluator's outer loop is
-    // `i = 0..3`. RENDER.md's rider that the slots are "never contended on monsters" is refuted:
-    // no material carries two AUTO-PLAY clips, but the rage state machine at 0xe37560 deliberately
-    // puts findClipByName("Angry_Start") into SLOT 1 on three materials while slot 0 holds the
-    // steady-state clip. So a picker may return several indices and they are evaluated in slot
-    // order, later slots writing over earlier ones exactly as the ROM's loop does.
-    // A SLOT MAY RUN ON ITS OWN CLOCK. The ROM zeroes a slot's time word when it puts a clip
-    // there -- Khezu's enrage is `setClip(mat, 1, "Angry_Start")` then `str 0,[mat+0x5c]` at
-    // 0xd1e908, +0x5c being slot 1's time -- so a transition dropped into a slot starts at frame
-    // 0 while slot 0 carries on from wherever it was. A picker may therefore return `[index, t0]`
-    // pairs as well as bare indices; the pair's slot is evaluated at `tSec - t0`.
-    const pick = pickClip ? pickClip(clips, rom, tSec) : AUTO_CLIP(clips);
-    const raw = Array.isArray(pick) ? pick : [pick];
+    const clips = m.userData.rom && m.userData.rom.anim;
+    const ovr = m.userData.override;
+    // A PART'S OVERRIDE WITH A CLIP OF ITS OWN RUNS ON ANY MATERIAL, animated or not: the player steps its part-state
+    // materials' clips every frame (0x27bcb8) and the part copies the moving members on (0x3063cc) -- the Lance's
+    // Healing Shield on a shield whose own materials have no clip at all
+    if ((!clips || !clips.length) && !(ovr && ovr.anim)) return;
     const list = [];
-    for (const e of raw){
-      const i = Array.isArray(e) ? e[0] : e;
-      if (!(i >= 0)) continue;
-      const t0 = Array.isArray(e) && typeof e[1] === 'number' ? e[1] : 0;
-      list.push([i, tSec - t0]);
-      if (list.length === 4) break;
+    if (clips && clips.length){
+      const pick = pickClip ? pickClip(clips, m.userData.rom, tSec, m) : AUTO_CLIP(clips);
+      const raw = Array.isArray(pick) ? pick : [pick];
+      for (const e of raw){
+        const i = Array.isArray(e) ? e[0] : e;
+        if (!(i >= 0)) continue;
+        const t0 = Array.isArray(e) && typeof e[1] === 'number' ? e[1] : 0;
+        list.push([i, tSec - t0]);
+        if (list.length === 4) break;
+      }
+      restoreBase(m, baseOf(m));
+      for (const [ci, t] of list) stepOneSlot(m, clips[ci], t);
     }
-    // NOTHING SELECTED MEANS THE MATERIAL'S OWN VALUES, NOT THE LAST ONES WRITTEN.
-    // This used to `return` here, BEFORE the restore below, so a material that stopped matching a
-    // clip kept whatever the previous clip had written -- for ever. Raven, 2026-09-09, on turning
-    // the enrage toggle off: "it should simply revert to its base form; so it feels like we are not
-    // turning off the effect after it is turned on, simply pausing it instead." That is exactly
-    // what the early return did. The restore is now unconditional and the return happens after it.
-    // EVERY SLOT IS RE-EVALUATED FROM A KNOWN STATE each frame. The ROM rebuilds the constant
-    // buffer from the material's shipped values and then applies the running slots; these writes
-    // land on a three.js material and would otherwise accumulate, so the base is restored first.
-    const bs = baseOf(m);
-    restoreBase(m, bs);
-    if (bs.map && m.map !== bs.map && !clips.some(c => (c.tracks || []).some(t => t.kind === 3))){
-      m.map = bs.map; m.needsUpdate = true;
-    }
-    if (!list.length) return;                             // restored above; nothing to play
-    for (const [ci, t] of list) stepOneSlot(m, clips[ci], t);
-    n++;
+    if (ovr) writeOverride(m, ovr, tSec);   // a part's override lands after the clips
+    if (list.length || (ovr && ovr.anim)) n++;
   });
   return n;
 }
-function stepOneSlot(m, clip, tSec){
-    if (!clip || !clip.frames || !clip.tracks) return;
-    // Never below frame 0. A slot with its own origin can be handed a negative time -- the parts
-    // harness calls the stepper with tSec 0 while a state clock is already running -- and a
-    // negative frame would extrapolate off the front of the first key rather than sit on it.
-    const fr = Math.max(0, tSec) * MAT_FPS;
-    // Clamped to frameCount, NOT frameCount-1. Chunk 1 disassembled this path
-    // (0xb0cf38..0xb0cf88): `bge` on `time >= frameCount`, then for a non-looping clip
-    // `vstr s0,[r3]` stores frameCount itself. Do NOT "fix" this to frames-1 -- that is
-    // uModel::Motion's LMT rule, a DIFFERENT evaluator. Tried 2026-09-07 and reverted.
-    const f = clip.loop ? fr % clip.frames : Math.min(fr, clip.frames);
-    for (const tr of clip.tracks) if (!tr.unsupported) applyTrack(m, tr, f);
-}
-// The ROM's own default: clip+0x04 bit 1 is the auto-play flag -- at load the engine walks the clip
-// table and writes every bit-1 clip into the next free slot (0xb09aac `ands r7,r7,#2` /
-// `strdne r8,sb,[r1,#0x50]`). Everything else waits for a setClip call from game state.
+// The ROM's own default: clip+0x04 bit 1 is the auto-play flag, and at load the engine writes every
+// bit-1 clip into the next free slot. Everything else waits for a setClip call from game state.
 export function AUTO_CLIP(clips){ return clips.findIndex(c => c.auto); }
+
+// SLOT 0 AS THE GAME'S OWN CODE SETS IT. 0xb09ae8(material, slot, clip) puts `clip` in the slot at time 0 (+0x50 + slot * 8,
+// the time +0x54 zeroed); a weapon's gimmick trigger does it with the record's `anime` (render/weapon-state.js), and the
+// colour writer 0x53a254 with its flag sets clip 0xffff, which plays nothing. `t0` is the clock value (the one
+// stepMaterialAnim is handed) at which the clip starts; clip -1 is none. Until something sets it, the slot holds what the
+// engine put there at load, the auto-play clip -- SLOT_CLIP, the picker the page runs, answers exactly that.
+export function setMaterialClip(mat, clip, t0){ mat.userData.slot0 = { clip, t0 }; }
+export function clearMaterialClip(mat){ delete mat.userData.slot0; }
+export function SLOT_CLIP(clips, rom, tSec, m){
+  const s = m && m.userData.slot0;
+  if (!s) return AUTO_CLIP(clips);
+  return (s.clip >= 0 && s.clip < clips.length) ? [[s.clip, s.t0]] : -1;
+}
+// WHAT THE WEAPON'S CODE WRITES INTO A MATERIAL'S CONSTANTS, and what stands until something writes over it: the colour
+// writers 0x53a254 (fReflectiveColor), 0x53a3bc ($Globals.fSpecularColor) and 0x53a738 (fTransparency). `w` is
+// { reflective: [r, g, b], specular: [r, g, b], transparency }, any of them, or null for the material's own values. The
+// material's clips still write over it each frame, member by member, as the ROM's evaluator does. Drawn on the reflection
+// overlay; fSpecularColor is kept but has no term there (createReflectOverlay).
+export function setCbWrite(mat, w){
+  mat.userData.cbWrite = w || null;
+  const ov = mat.userData.ov, cb = mat.userData.rom && mat.userData.rom.cbm;
+  if (!ov || !cb) return;
+  ov.uRefl.value.fromArray(cb.reflective);
+  ov.uTransp.value = mat.userData.rom.feat.transp === 'Alpha' ? cb.transparency : 1;
+  if (w) writeCb(mat, w);
+}
+function writeCb(m, w){
+  const ov = m.userData.ov;
+  if (w.reflective) ov.uRefl.value.fromArray(w.reflective);
+  if (typeof w.transparency === 'number' && m.userData.rom.feat.transp === 'Alpha') ov.uTransp.value = w.transparency;
+}
+
+// A MATERIAL LAID OVER A WEAPON PART'S OWN, as the part unit does it (0x305f3c, every frame the part holds an override at
+// +0x13b0), into each of the part's materials whose colour channel is not masked out:
+//   * THE FRAME IT CHANGES (0x30679c): CBMaterial.fDiffuseColor and fReflectiveColor, $Globals.fSpecularColor (+0xb0) and
+//     fEmissionColor (+0xc0), the CBAmbient colour where both carry one, the tFresnelMap / tShininessMap bindings where
+//     the override binds them -- the override material's values AT THAT MOMENT;
+//   * EVERY FRAME AFTER (0x3063cc): fReflectiveColor and fEmissionColor only, again as they stand now.
+// "As they stand" because the override is a live material with its own clip: the player keeps a clone of each part-state
+// material (0x2895d4: res->vt+0x44(0), ->vt+0x1c) and steps them all every frame by its own frame delta (vtable +0x60 =
+// 0x27bcb8 -> each material's vt+0x20 = 0xb0cffc, the clip evaluator 0xb0ba84), from the moment it is loaded -- not from
+// the moment it is laid on. So fSpecularColor keeps whatever value the clip had on the frame the override took hold.
+// `o` is { diffuse, reflective, specular, emission } (each [r, g, b] or absent) and, when the override material is
+// animated, `anim`: its auto-play clip (build-matanim.py's shape), evaluated on the clock stepMaterialAnim is handed; or
+// null to give the material back its own. The Lance's Healing Shield puts player/mod/common/pl_lance_up.mrl on the
+// shield this way (render/weapon-state.js LANCE_UP). On the lit path: the colour is fAlbedoColor x fDiffuseColor,
+// fReflectiveColor the sphere map's weight AND hue (uReflTint), fSpecularColor uSpecRGB, fEmissionColor the emissive
+// over the albedo map (the ROM's PS_MaterialStd adds FEmissionConstant into mc.diffuse, which FFinalCombiner multiplies
+// by the albedo); on the reflection overlay only fReflectiveColor has a term. A material's own clips run under it: the
+// part writes the override after them, every frame (stepMaterialAnim).
+let lastClock = 0;                               // the clock stepMaterialAnim was last handed
+export function setMaterialOverride(mat, o){
+  mat.userData.override = o || null;
+  restoreOwn(mat);
+  // an animated material's snapshot of how it shipped must be taken before anything is laid over it
+  if (mat.userData.rom && mat.userData.rom.anim && mat.userData.rom.anim.length) baseOf(mat);
+  if (!o){ unbindOverrideEmission(mat); delete mat.userData.overrideSpec; return; }
+  mat.userData.overrideSpec = sampleOverride(o, 'fSpecularColor', lastClock) || o.specular || null;   // the frame it changes
+  bindOverrideEmission(mat, o);
+  writeOverride(mat, o, lastClock);
+}
+// the override's own clip at `tSec` for one member, [r, g, b] (3 columns written), or null when it does not drive it
+function sampleOverride(o, target, tSec){
+  const c = o && o.anim;
+  if (!c || !c.frames || !c.tracks) return null;
+  const tr = c.tracks.find(t => t.target === target && !t.unsupported);
+  if (!tr) return null;
+  const fr = Math.max(0, tSec) * MAT_FPS;
+  const v = sampleTrack(tr, c.loop ? fr % c.frames : Math.min(fr, c.frames));
+  return v ? [v[0], v[1] === undefined ? v[0] : v[1], v[2] === undefined ? v[0] : v[2]] : null;
+}
+// AN EMISSION LAID ON NEEDS THE ALBEDO UNDER IT, as baseOf gives an animated one (the Esurient rule): a part material
+// that ships emission 0 has no emissive map, and the override's glow would light the whole surface flat
+function overrideEmits(o){
+  const e = o.emission, tr = o.anim && o.anim.tracks && o.anim.tracks.find(t => t.target === 'fEmissionColor');
+  return !!tr || !!(e && (e[0] + e[1] + e[2]) > 0);
+}
+function bindOverrideEmission(m, o){
+  if (!m.map || !m.emissive || m.emissiveMap || !overrideEmits(o)) return;
+  m.emissiveMap = m.map;
+  m.userData.emissiveFromOverride = true;
+  m.needsUpdate = true;
+}
+function unbindOverrideEmission(m){
+  if (!m.userData.emissiveFromOverride) return;
+  m.emissiveMap = null;
+  delete m.userData.emissiveFromOverride;
+  m.needsUpdate = true;
+}
+function setReflective(m, rgb){
+  setReflRaw(m, rgb);
+  const u = m.userData.u, avg = (rgb[0] + rgb[1] + rgb[2]) / 3;
+  m.userData.reflective = avg;
+  if (u.uReflTint){
+    if (avg > 1e-6) u.uReflTint.value.set(rgb[0] / avg, rgb[1] / avg, rgb[2] / avg);
+    else u.uReflTint.value.set(1, 1, 1);
+  }
+  if (u.uEnvAmt) u.uEnvAmt.value = envStrength(m);
+}
+function restoreOwn(m){
+  const rom = m.userData.rom, gl = rom && rom.glob, cb = rom && rom.cbm, u = m.userData.u;
+  if (m.userData.ov){ if (cb) setCbWrite(m, m.userData.cbWrite); return; }
+  if (!gl || !cb) return;
+  if (u && m.color) m.color.setRGB(gl.albedo[0] * cb.diffuse[0], gl.albedo[1] * cb.diffuse[1], gl.albedo[2] * cb.diffuse[2], THREE.SRGBColorSpace);
+  m.userData.reflective = (cb.reflective[0] + cb.reflective[1] + cb.reflective[2]) / 3;
+  setReflRaw(m, cb.reflective);
+  if (u && u.uReflTint) u.uReflTint.value.set(1, 1, 1);
+  if (u && u.uEnvAmt) u.uEnvAmt.value = envStrength(m);
+  if (u && u.uSpecRGB && gl.specular) u.uSpecRGB.value.fromArray(romLinear3(gl.specular));
+  if (m.emissive) m.emissive.setRGB(gl.emission[0], gl.emission[1], gl.emission[2], THREE.SRGBColorSpace);
+}
+function writeOverride(m, o, tSec){
+  const refl = sampleOverride(o, 'fReflectiveColor', tSec) || o.reflective;
+  const emis = sampleOverride(o, 'fEmissionColor', tSec) || o.emission;
+  if (m.userData.ov){ if (refl) m.userData.ov.uRefl.value.fromArray(refl); return; }
+  const rom = m.userData.rom, gl = rom && rom.glob, u = m.userData.u;
+  if (!u) return;                                // an unlit layer: nothing here takes these constants
+  const alb = gl ? gl.albedo : [1, 1, 1];
+  if (o.diffuse && m.color) m.color.setRGB(alb[0] * o.diffuse[0], alb[1] * o.diffuse[1], alb[2] * o.diffuse[2], THREE.SRGBColorSpace);
+  if (refl) setReflective(m, refl);
+  const spec = m.userData.overrideSpec || o.specular;
+  if (spec && u.uSpecRGB) u.uSpecRGB.value.fromArray(romLinear3(spec));
+  // read as sRGB, as applyTrack reads a clip's fEmissionColor (the Monster Viewer's lesson: linear is several times too bright)
+  if (emis && m.emissive) m.emissive.setRGB(emis[0], emis[1], emis[2], THREE.SRGBColorSpace);
+}

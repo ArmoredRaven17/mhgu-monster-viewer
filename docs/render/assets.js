@@ -12,7 +12,6 @@ export const loader = new GLTFLoader(), texLoader = new THREE.TextureLoader();
 // decodes the same pixels in the background and the upload is a copy; flipY stays false (an ImageBitmap ignores it).
 // Screenshots identical before / after (dev/shots/tex-before, tex-after, tex-after2). The <img> path stays wherever three's
 // own GLTFLoader (r169, its constructor) keeps it: no createImageBitmap, Safari before 17, Firefox before 98.
-// MONSTER VIEWER EDIT of a file shared with the Armor Viewer (dev/sync-render.py SHARED): port it there.
 const bitmapOk = (() => {
   if (typeof createImageBitmap === 'undefined') return false;
   const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
@@ -30,60 +29,38 @@ export const poseCache = new Map();
 // the weapon's own motion sets (poses/weapons/mot/), see render/weapon.js
 export const weaponMotCache = new Map();
 
+// ONE STAMP PER PAGE LOAD, appended to every MODEL and TEXTURE fetch. The Monster Viewer's
+// lesson, brought over (its render/assets.js, 2026-09-12): loadJson has always cache-busted,
+// so the manifests were fresh while the .glb and .webp they name came from the browser's disk
+// cache -- the worst possible split, because everything the app REPORTS is current while the
+// geometry on screen is old. It cost Raven two rounds there of looking at a model that had
+// already been repaired and pushed ("Hard Refreshed and still see the weld"). GitHub Pages
+// serves these with a freshness lifetime and the browser does not revalidate inside it, so an
+// ETag does not save us; this app is served the same way.
+//   PER LOAD, not per request: the stamp is fixed for the life of the page, so switching
+// hunters, weapons or poses still hits the browser cache and costs nothing, and only a reload
+// refetches -- which is the whole contract of "hard refresh and look again".
+const ASSET_V = '?v=' + Date.now();
+export const bust = url => (String(url).indexOf('?') >= 0 ? url : url + ASSET_V);
+
 // tiled maps viewed at a glancing angle (skirts, capes) alias badly without this
 let maxAnisotropy = 1;
 export function initAssets(renderer){
   maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
 }
 
-// TEXTURES THE ROM SHIPS WITH NO MIPMAP CHAIN, by their pooled md5 name.
-//
-// An MT .tex header carries its own level count (`buildlib._tex_header` -> `mips`). Across all 514
-// monster textures exactly FIVE ship a single level, and all five say so in the ROM's own filename:
-//
-//     em027_00_eft1_nomip     64x128     em027_00_eft3_nomip    256x256
-//     em027_00_eft2_nomip    128x128     em086_00_add_nomip     256x256
-//     em043_05_04_bm_nomip   128x128  -> Savage Deviljho's XfBA_IW_1__m00, the neck glow
-//
-// Every other monster texture carries a full 7..11-level chain, so this is an authored decision
-// per texture and not an artefact of the extraction.
-//
-// It matters because three.js generates a chain anyway and samples it trilinear. These five are
-// small effect maps drawn on scrolling, tiled UVs -- Savage's is 128x128 under a clip that runs
-// fUVTransform u 0 -> 1 on a mesh whose UVs already span -0.613..1.469 -- and under minification a
-// generated mip is exactly the blur the game does not have. Raven, 2026-09-11: "the one that does
-// render is blobby, it should be sharper."
-//
-// The ROM's answer is its own level count, so honour it: no chain, and magnify/minify linearly
-// from level 0. Anisotropy is left alone; it needs no mips and only helps at glancing angles.
-const ROM_NO_MIPMAP = new Set([
-  'tex/2b36024aca3a39b3.webp',   // em027_00 eft1
-  'tex/5ad539cbc824f934.webp',   // em027_00 eft2
-  'tex/865f4666b4cc1b3f.webp',   // em027_00 eft3
-  'tex/35689af189393fd5.webp',   // em043_05 Savage Deviljho, neck glow
-  'tex/9f7dea74f29c830b.webp',   // em086_00 add
-]);
+// TEXTURES THE ROM SHIPS WITH NO MIPMAP CHAIN. An MT .tex header carries its own level count; a texture that ships a
+// single level is an authored decision, and three.js would generate a chain anyway and sample it trilinear -- exactly the
+// blur the game does not have on small effect maps drawn on scrolling, tiled UVs. The ROM's answer is its own level count:
+// no chain, linear from level 0 (anisotropy left alone). WHICH files is the app's data, not this module's: the app passes
+// their pooled names ('tex/<md5>.webp') to setNoMipmap. The Monster Viewer fills it with its five; the Armor Viewer has none.
+const noMipmap = new Set();
+export function setNoMipmap(files){ noMipmap.clear(); for (const f of files || []) noMipmap.add(f); }
 function romNoMipmap(file){
   const i = String(file).indexOf('tex/');
-  return i >= 0 && ROM_NO_MIPMAP.has(String(file).slice(i));
+  return i >= 0 && noMipmap.has(String(file).slice(i));
 }
 
-// ONE STAMP PER PAGE LOAD, appended to every MODEL and TEXTURE fetch.
-//
-// loadJson has always cache-busted, so the manifests were fresh while the .glb and .webp they
-// name were served from the browser's disk cache -- which is the worst possible split, because
-// everything the app REPORTS is current while the geometry on screen is old. It cost Raven two
-// separate rounds of looking at a model I had already repaired and pushed (2026-09-12: "Hard
-// Refreshed and still see the weld", then "Deployed version, Crimson is back to being shifted"
-// against a deploy that was byte-for-byte correct). GitHub Pages serves these with a freshness
-// lifetime and the browser does not revalidate inside it, so an ETag does not save us.
-//
-// PER LOAD, not per request: the stamp is fixed for the life of the page, so switching monsters
-// still hits the browser cache and costs nothing, and only a reload refetches. That is the point
-// -- a refresh has to be able to show new data, which is the whole contract of "hard refresh and
-// look again". The cost is re-downloading what a session actually touches, once per reload.
-const ASSET_V = '?v=' + Date.now();
-export const bust = url => (String(url).indexOf('?') >= 0 ? url : url + ASSET_V);
 
 // `opt.linear`: a data map (a monster's normal map) that must not be read as sRGB colour;
 // cached apart from the colour reading of the same file
@@ -122,8 +99,46 @@ async function loadTexture(file, opt, key){
 // one parse per cache key; callers skeletonClone() the scene they get back
 export async function loadGlb(url, cacheKey){
   let gltf = glbCache.get(cacheKey);
-  if (!gltf) { gltf = await loader.loadAsync(bust(url)); glbCache.set(cacheKey, gltf); }
+  if (!gltf) { gltf = await loader.loadAsync(bust(url)); repairZeroNormals(gltf.scene); glbCache.set(cacheKey, gltf); }
   return gltf;
+}
+
+// ZERO-LENGTH NORMALS (2026-10-08; Raven: "Yukumo Bow has the issue I saw earlier with the hunting horn"). Some of the game's
+// own meshes carry vertices whose normal is (0, 0, 0) -- 1,105 vertices in the drawn groups of 221 shipped models, among
+// them the Yukumo Bow (weapons/w10/135, 4) and Avenir's Music Box (w12/022, 4). Lighting normalizes the normal, and a zero
+// vector normalizes to NaN: the triangles round those vertices wrote NaN pixels, specks on the plain canvas that any blur
+// (the Effects panel's bloom, depth of field) spreads into black squares. A viewer repair, not the game's data: each such
+// vertex takes the area-weighted normal of the triangles it belongs to (or its neighbours' normals when those are
+// degenerate), once per parse -- every mount shares the geometry.
+const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _n = new THREE.Vector3();
+export function repairZeroNormals(root){
+  root.traverse(o => {
+    const g = o.isMesh ? o.geometry : null, n = g && g.attributes.normal, p = g && g.attributes.position;
+    if (!n || !p || g.userData.zeroNormalsRepaired) return;
+    g.userData.zeroNormalsRepaired = true;
+    const face = new Map(), near = new Map();
+    for (let i = 0; i < n.count; i++)
+      if (n.getX(i) === 0 && n.getY(i) === 0 && n.getZ(i) === 0){ face.set(i, new THREE.Vector3()); near.set(i, new THREE.Vector3()); }
+    if (!face.size) return;
+    const idx = g.index, tris = Math.floor((idx ? idx.count : p.count) / 3);
+    for (let t = 0; t < tris; t++){
+      const v = [0, 1, 2].map(k => idx ? idx.getX(3 * t + k) : 3 * t + k);
+      if (!v.some(i => face.has(i))) continue;
+      _a.fromBufferAttribute(p, v[0]); _b.fromBufferAttribute(p, v[1]); _c.fromBufferAttribute(p, v[2]);
+      _b.sub(_a); _c.sub(_a); _b.cross(_c);                         // the face normal, weighted by its area
+      for (const i of v){
+        if (!face.has(i)) continue;
+        face.get(i).add(_b);
+        for (const j of v) if (j !== i && !face.has(j)) near.get(i).add(_n.fromBufferAttribute(n, j));
+      }
+    }
+    for (const [i, f] of face){
+      const use = f.lengthSq() > 0 ? f : near.get(i).lengthSq() > 0 ? near.get(i) : f.set(0, 1, 0);
+      use.normalize();
+      n.setXYZ(i, use.x, use.y, use.z);                            // a normalized (int8) attribute takes floats in -1..1
+    }
+    n.needsUpdate = true;
+  });
 }
 
 // cache-bust: the dev server sends no no-cache headers and a stale manifest

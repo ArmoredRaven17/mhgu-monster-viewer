@@ -27,7 +27,9 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
 DEST = os.path.join(REPO, "docs", "render")
-SRC = os.path.normpath(os.path.join(REPO, "..", "MHGU-Armor-Viewer", "docs", "render"))
+# the LIVE Armor Viewer repo (shared viewer base, Phase 0, 2026-10-18). It used to read the old clone
+# C:\MHGU-Extract\MHGU-Armor-Viewer, pinned 44 commits behind.
+SRC = r"C:\Coding Repos\mhgu-armor-viewer\docs\base\render"   # moved there by its Phase 1.1 (2026-10-18)
 MANIFEST = os.path.join(DEST, "SOURCE.json")
 
 # Everything the monster viewer mounts a model with. Not taken: mount.js, mount-rom.js,
@@ -36,8 +38,10 @@ MANIFEST = os.path.join(DEST, "SOURCE.json")
 # fx.js and lens.js came 2026-09-13 with the Armor Viewer's Camera and Effects panels (Raven: "add
 # in the Armor Viewer camera, lighting, effects to the Monster Viewer"). They were pulled with
 # --only, because four of the files above carry edits made here and a full --pull refuses.
+# grid.js (walls and ceilings) and colour-space.js (?space=game) went upstream 2026-10-18, Phase 0 of the
+# shared viewer base; the edits made here went upstream the same day and came back with --pull.
 SHARED = ["stage.js", "assets.js", "skeleton.js", "material.js", "materials-db.js", "pose.js",
-          "fx.js", "lens.js"]
+          "fx.js", "lens.js", "grid.js", "colour-space.js", "rom/specular.js"]
 
 
 def sha(path):
@@ -127,7 +131,7 @@ def pull(force=False, only=None):
         out = dict(man, files=files)
         out["fileCommits"] = dict(man.get("fileCommits") or {}, **{n: commit for n in names})
     else:
-        out = {"source": "../../MHGU-Armor-Viewer/docs/render", "commit": commit, "files": files}
+        out = {"source": "mhgu-armor-viewer/docs/base/render", "commit": commit, "files": files}
     with open(MANIFEST, "w", encoding="utf-8") as f:
         json.dump(out, f, indent=1)
     print("recorded %d files from %s" % (len(names), (commit or "?")[:8]))

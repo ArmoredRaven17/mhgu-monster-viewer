@@ -1,18 +1,17 @@
 {
- "source": "../../MHGU-Armor-Viewer/docs/render",
- "commit": "a8554020459c7f47901ad3cb342b6078dcab59b2",
+ "source": "mhgu-armor-viewer/docs/base/render",
+ "commit": "a4c016a171eb9ca0226920e151da7109b9d8eb34",
  "files": {
   "stage.js": "4045a544d4f7ce9ca5943d099e74ca8a45bc4fa8ef41ec4c2f1cb170a6eaacfe",
-  "assets.js": "9c58c5cebb9c7d01bf8dd234cbae65be2324c6f3b6b9285d0b7ea730921b9c34",
-  "skeleton.js": "dff7ad2373095286fe8f6713208a92d98d696fd9764d62c90116314cd7ed4e47",
-  "material.js": "b45aa2f9f9608fddeb155c025499c9de744019015d6136ce52577b2fd3d8b280",
-  "materials-db.js": "b82f595399592a2c5461e3f44dc6bf4a10811d5d0c0b2062ccdf0c3d8b7fafa4",
-  "pose.js": "4b4190c037e60222e777e11a0ce735333528613e7f660f061d5ccbf259eaaf63",
-  "fx.js": "0fd5ecb8a7a7ea0aafe1675360855cf176c440817bfb2108e16e3765d2d0943f",
-  "lens.js": "aca7e5a8989dd107a99720d39d439fda2b86e79f9de1f6647ea0539bc4ef2084"
- },
- "fileCommits": {
-  "fx.js": "a8554020459c7f47901ad3cb342b6078dcab59b2",
-  "lens.js": "a8554020459c7f47901ad3cb342b6078dcab59b2"
+  "assets.js": "3f01128ee008504d5be5d483f5fd6f6d1872062f9d98f2bee1b8f80c45421cc0",
+  "skeleton.js": "f6dcae53347aa688dd1f62426aa0cf7738155f98912e16dc6c68adf808ff1872",
+  "material.js": "708084dfc086242167499a26609cea1e3b64957256b1e7056339d5114f0b6921",
+  "materials-db.js": "d47366ade3d43dc03f4c193a0e8d550803f896c6825958000d8d220daa4bc4c0",
+  "pose.js": "05a62bb685e7d086e8d057b353ea4ac240114133cc0984f0021c64d31d7be8b9",
+  "fx.js": "ca05b79d2c44f5da4120c103c89cc0c6804360be85ead4e5519d91254b9deae7",
+  "lens.js": "68fabbf52a0da45cc894d53b317184cacf8f978fa6ada12ad4256d06533e4603",
+  "grid.js": "1a72a50e8872ab4bc491b05a3954483fda2d1fe02a270d74b49f244377291562",
+  "colour-space.js": "60561ed51d75661f72074fb956090fcbeaa990f36c2267c553ba81fe5f7b69c9",
+  "rom/specular.js": "d986e1fbbc296a4b430310db38084eafb1f5865b99aecd703beec16d015592bd"
  }
 }

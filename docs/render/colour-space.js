@@ -62,7 +62,7 @@ export function applyGameSpace(renderer, fx){
   renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
   const grade = fx && fx.passes && fx.passes.grade;
   if (grade && grade.material){
-    const A = 'c = mhguOetf( clamp( c, 0.0, 1.0 ) );';
+    const A = 'c = viewOetf( clamp( c, 0.0, 1.0 ) );';
     const f = grade.material.fragmentShader;
     if (f.indexOf(A) >= 0){
       grade.material.fragmentShader = f.replace(A, 'c = clamp( c, 0.0, 1.0 );');

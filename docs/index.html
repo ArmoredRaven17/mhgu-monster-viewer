@@ -1441,8 +1441,17 @@ import { enableRomBlinnPhong } from './render/rom/specular.js';
 import { createStage } from './render/stage.js';
 import { createFx } from './render/fx.js';
 import { renderCameraFor, LENS_DEFAULT, LENS_TYPES, SQUEEZES } from './render/lens.js';
-import { initAssets, loadJson } from './render/assets.js';
+import { initAssets, loadJson, setNoMipmap } from './render/assets.js';
 import { allMats, setWire, setBiasUnitsPerStep } from './render/material.js';
+// THE TEXTURES THE ROM GIVES ONE MIP LEVEL: no chain, linear from level 0 (shared assets.js's hook since the
+// shared viewer base, 2026-10-18 -- the list is monster data, so it lives here)
+setNoMipmap([
+  'tex/2b36024aca3a39b3.webp',   // em027_00 eft1
+  'tex/5ad539cbc824f934.webp',   // em027_00 eft2
+  'tex/865f4666b4cc1b3f.webp',   // em027_00 eft3
+  'tex/35689af189393fd5.webp',   // em043_05 Savage Deviljho, neck glow
+  'tex/9f7dea74f29c830b.webp',   // em086_00 add
+]);
 import { PoseDriver } from './render/pose.js';
 import { gidBonesOf } from './render/skeleton.js';
 import { loadMaterialsDb } from './render/materials-db.js';
