@@ -599,6 +599,15 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           <div class="field" id="monGroundRow" title="The ground under the monster: the floor flag word (e+0x1068) and attribute byte (e+0x1066) the game's ground probe reports. Picks the effects' floor rows and the shells' floor choices; changing it replays the clip. Working names.">
             <label for="monGroundType">Ground</label>
             <select id="monGroundType"></select></div>
+          <!-- THE MONSTER'S ATTACK SHAPES (Raven, 2026-10-22: "can you look into Monster Attack Hit Capsules? ... I want to see what hits a
+               hunter or not"): render/attack-hitboxes.js, the ROM's records armed for the playing clip on their joints. Red: can hit a
+               hunter (target mask bit 0); orange: other monsters only; blue: neither; yellow: touching the Solid stand-in hunter. Working
+               labels. MOVED HERE from the Hit Zones panel 2026-10-23 (Raven: "Keep in mind, when in the Hit Zones panel, we can't change
+               animations", "So, that will need to be moved to Animations"): the shapes live only on their attack's frames. -->
+          <div class="field" id="monAtkBoxRow" hidden title="The attack records the monster arms for this clip (its attackdata / hitsize files and the action census): spheres and capsules on their joints, live in their frame window. Red can hit a hunter, orange only other monsters, blue neither; yellow touches the Solid hunter. Hover a shape for its power, element, status and kind. Working names.">
+            <label for="monAtkBox">Attack Hitboxes</label>
+            <select id="monAtkBox"><option value="off">Off</option><option value="armed">Armed only</option><option value="all">All (unarmed greyed)</option></select>
+          </div>
           <!-- THE QUEST (Raven, 2026-10-20: approved): the rank 0x3a8430 returns -- [[quest+0xa4]+0xf] as a signed byte: 5 / 3 / 1, anything
                else 0 -- and the quest's number 0x3a8470 (0x3b8eb4 for an ordinary quest; 0 or 0x10 for the special ids). Every rank or
                level test the viewer transcribes reads these (the shells, the beams, the PSL words, the low-rank break rows, Thunderlord's
@@ -766,14 +775,6 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           <div class="field" id="monZoneCapRow" hidden>
             <label for="monZoneCap">Part - Hit Zone Capsules</label>
             <select id="monZoneCap"></select>
-          </div>
-          <!-- THE MONSTER'S ATTACK SHAPES (Raven, 2026-10-22: "can you look into Monster Attack Hit Capsules? ... I want to see what hits a
-               hunter or not"): render/attack-hitboxes.js, the ROM's records armed for the playing clip on their joints. Red: can hit a
-               hunter (target mask bit 0); orange: other monsters only; blue: neither; yellow: touching the Solid stand-in hunter. Working
-               labels. -->
-          <div class="field" id="monAtkBoxRow" hidden title="The attack records the monster arms for this clip (its attackdata / hitsize files and the action census): spheres and capsules on their joints, live in their frame window. Red can hit a hunter, orange only other monsters, blue neither; yellow touches the Solid hunter. Hover a shape for its power, element, status and kind. Working names.">
-            <label for="monAtkBox">Attack Hitboxes</label>
-            <select id="monAtkBox"><option value="off">Off</option><option value="armed">Armed only</option><option value="all">All (unarmed greyed)</option></select>
           </div>
           <!-- THE CAPSULES' COLOUR. Raven, 2026-09-17: "Giving people options might not be a bad idea", then "Another
                option we can do is have the color change between tables". Auto changes with the heat map. The colours
@@ -6671,7 +6672,6 @@ function zoneShapesFor(rec, pick){
 // 2026-09-17: "Only show the Hit Zone regions from the table, no need for the Extracts". Rebuilt with the chart, so a
 // renamed or hidden slot changes both at once.
 function buildZoneCapSel(rec){
-  paintAtkBoxRow();                     // the Attack Hitboxes row beside it (render/attack-hitboxes.js)
   const sel = document.getElementById('monZoneCap');
   const has = !!(rec && Array.isArray(rec.capsules) && rec.capsules.length);
   document.getElementById('monZoneCapRow').hidden = !has;
@@ -10129,8 +10129,11 @@ function paintAtkBoxRow(){
   if (row) row.hidden = !hasAttackData(state.id);
 }
 loadAttackData('').then(paintAtkBoxRow);
+let atkRowFor = null;
 function stepAttackBoxes(){
   if (window.__view && !window.__view.attackBoxes) window.__view.attackBoxes = () => atkBoxes ? atkBoxes.userData.last : null;
+  // the row (Animation panel, after Ground) follows the monster on its own -- no Hit Zones chart needed
+  if (atkRowFor !== state.id){ atkRowFor = state.id; paintAtkBoxRow(); }
   const root = mounted.main;
   if (atkMode === 'off' || !root){ if (atkBoxes){ scene.remove(atkBoxes); atkBoxes.userData.dispose(); atkBoxes = null; } return; }
   if (!atkBoxes || atkBoxes.userData.root !== root || atkBoxes.userData.mon !== state.id){

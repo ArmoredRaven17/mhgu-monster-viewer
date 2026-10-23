@@ -73,8 +73,16 @@ The ROM rows are in rom-map ("Monster attack shapes"). This note is written to b
   arms.
 * Overlay: `render/attack-hitboxes.js`.
   - It is drawn with the hit-zone capsules' own `zoneCapsules`: the same shapes, the same two-pass material.
-  - The Hit Zones panel has **Attack Hitboxes**: Off / Armed only / All (unarmed greyed). It is beside "Part - Hit Zone Capsules" and is
-    shown where the monster has data.
+  - The **Attack Hitboxes** row (Off / Armed only / All (unarmed greyed)) is in the **Animation panel, after the Ground row**, shown
+    where the monster has data. MOVED there 2026-10-23 from the Hit Zones panel (Raven: "Keep in mind, when in the Hit Zones panel, we
+    can't change animations", "So, that will need to be moved to Animations"): a shape shows only on its attack's frames, so the
+    control sits where clips play and scrub. Nothing of the Hit Zones panel was a precondition: the overlay steps every render frame
+    (stepAttackBoxes after driveMotionStates) and the row now follows the monster by itself (it was painted from the zone chart's
+    buildZoneCapSel). Opening Hit Zones keeps the overlay's setting, but that panel plays its own idle clip (List 0 Motion[1]),
+    which arms nothing, so no shape shows there; back in Animation the selected clip returns and its shapes with it.
+    Check `<scratchpad>/atkcheck3.mjs` 8 / 8: the row's place, the overlay stepping with a playing clip (Rathian L4 M6, 5 armed at
+    f40), a pixel check (the frame with the overlay group shown vs hidden: 160059 pixels change, 159591 red-leaning), the hover pick
+    ("Attack record 28, slot 0, shape set 15, frames 6-80"), the panel switch; atkcheck2 21 / 21.
   - Colours: red, can hit a hunter; orange, only other monsters; blue, neither; grey, not armed now; yellow, touching the Solid
     stand-in hunter (Hunter Body: Solid; the shells' 0x2821e4 stand-in capsule).
   - A clip several actions play shows only the play's own action's arms where the viewer names that action (CLIP_ACTIONS / copies).
