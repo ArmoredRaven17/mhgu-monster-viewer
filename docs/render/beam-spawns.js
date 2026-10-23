@@ -161,7 +161,9 @@ export const BEAM_SPAWNS = {
   ],
   // KUSHALA DAORA (uEm024_00; dev/beams/em024_00.md, READ): 0xdf8c28 for every issued action -- L2 M1 to f40, then L2 M8
   // (L2 M27 blended with M8 for (7, 0x1a)), 0xb1 at f24 of it: mode 1 when he was enraged at the action start (ctl+0x2c)
-  // AND the stage byte e+0x1053 is 3, 14 or 20 (ctl+0x2d), else mode 0. The viewer has no stage: enraged, both picks play.
+  // AND the stage byte e+0x1053 is 3, 14 or 20 (ctl+0x2d), else mode 0. The viewer has no stage: the raw lists play mode 0, and the
+  // Snow Variants list (index.html; Raven, 2026-10-18) plays the same clips with the map on -- `when.snow` (beamState.snow), so an
+  // enraged play there fires mode 1. (It was a 'snow maps' Clip copy, enraged, beside the plain one: moved into that list.)
   // THE STAGES ARE THE SNOW MAPS (decoded 2026-10-05; Raven: "Then decode them"; dev/beams/em024_00.md section 5): e+0x1053
   // is the quest's map number, cQuestData mMapNo (+0x10) % 100 % 28, stored by the shared enemy setup before his reset
   // tests it -- 3 Arctic Ridge, 14 Frozen Seaway, 20 Polar Field (names from the quests' own text; Lao-Shan Lung's 26 and
@@ -175,11 +177,11 @@ export const BEAM_SPAWNS = {
   // beam flashed for 6 frames (measured headless). Until the pieces play as one motion the beam keeps its own life.
   em024_00: [
     { list: '2', clip: 'Motion[8]',  frame: 24, type: 'em024_00:0', action: [7, 0x15], when: { rage: false } },
-    { list: '2', clip: 'Motion[8]',  frame: 24, type: 'em024_00:0', action: [7, 0x15], when: { rage: true } },     // any other map
-    { list: '2', clip: 'Motion[8]',  frame: 24, type: 'em024_00:1', action: [7, 0x15], variant: '7:0x15 snow maps', when: { rage: true } },   // Arctic Ridge / Frozen Seaway / Polar Field
+    { list: '2', clip: 'Motion[8]',  frame: 24, type: 'em024_00:0', action: [7, 0x15], when: { rage: true, snow: false } },     // any other map
+    { list: '2', clip: 'Motion[8]',  frame: 24, type: 'em024_00:1', action: [7, 0x15], when: { rage: true, snow: true } },      // Arctic Ridge / Frozen Seaway / Polar Field
     { list: '2', clip: 'Motion[27]', frame: 24, type: 'em024_00:0', action: [7, 0x1a], when: { rage: false } },
-    { list: '2', clip: 'Motion[27]', frame: 24, type: 'em024_00:0', action: [7, 0x1a], when: { rage: true } },    // any other map
-    { list: '2', clip: 'Motion[27]', frame: 24, type: 'em024_00:1', action: [7, 0x1a], variant: '7:0x1a snow maps', when: { rage: true } },  // Arctic Ridge / Frozen Seaway / Polar Field
+    { list: '2', clip: 'Motion[27]', frame: 24, type: 'em024_00:0', action: [7, 0x1a], when: { rage: true, snow: false } },    // any other map
+    { list: '2', clip: 'Motion[27]', frame: 24, type: 'em024_00:1', action: [7, 0x1a], when: { rage: true, snow: true } },     // Arctic Ridge / Frozen Seaway / Polar Field
   ],
   // AKANTOR (uEm033_00; dev/beams/em033_00.md, READ): 0xc2. (7, 4) L2 M5 blended with M22 / M23: f152 mode 1 (f112 mode 0 and
   // f152's mode 2 start no effect); (7, 0xf) L2 M14 blended with M24 / M25: f172 mode 3 -- at questRank >= 5 the remap
@@ -218,6 +220,9 @@ export const BEAM_SPAWNS = {
   // (7, 0xe) and the turning (7, 0x25) alike.
   em050_00: [
     { list: '2', clip: 'Motion[11]', frame: 22, type: 'em050_00:0', action: [7, 0x0e] },
+    // (7, 0x25): 0xec8544 with r1 = 2 (stub 0xecbe9c), the same spawn -- the turn it adds (phase 3: P+0x54 +-64 x the step) is the
+    // body's facing, not the beam's (row added 2026-10-19 by the shells lane; dev/beams/em050_00.md's table row)
+    { list: '2', clip: 'Motion[11]', frame: 22, type: 'em050_00:0', action: [7, 0x25] },
   ],
   // NIBELSNARF (uEm056_00; dev/beams/em056_00.md, READ): 0xf5. (7, 0xd) L2 M17 f102 mode 0; (7, 0x24) / (7, 0x25) -- reached
   // only from (7, 0xe) / (7, 0x23) as L2 M18 ends -- L2 M35 f55 mode 1, which lives on through the sweep (+0x170 0xeeb410).
@@ -245,8 +250,8 @@ export const BEAM_SPAWNS = {
   em081_04: [
     { list: '9', clip: 'Motion[1]',  frame: 48, type: 'em081_04:4', action: [7, 0xca] },
     { list: '9', clip: 'Motion[2]',  atStart: true, type: 'em081_04:5', action: [7, 0xd2] },
-    { list: '9', clip: 'Motion[21]', frame: 78, type: 'em081_04:7', action: [7, 0xd0] },
-    { list: '9', clip: 'Motion[22]', atStart: true, type: 'em081_04:8', action: [7, 0xd1] },
+    { list: '9', clip: 'Motion[21]', frame: 78, type: 'em081_04:7', action: [7, 0xd0], also: [[7, 0xe4]] },   // (also: the same site 0x1029390, census 2026-10-19)
+    { list: '9', clip: 'Motion[22]', atStart: true, type: 'em081_04:8', action: [7, 0xd1], also: [[7, 0xe5]] },   // (the same site 0x10294a8)
   ],
   // MIZUTSUNE / SOULSEER (uEm082_00; dev/beams/em082_00.md, READ): [e+0xcac4] (0x15a / 0x15e), variant 4 adding 10 to the
   // mode. (7, 0x2b) / (7, 0x2c) L2 M75: mode 2 at f2, mode 0 at f100 (tune float 20); (7, 0x21) / (7, 0x7c) L2 M81: mode 2
@@ -319,6 +324,7 @@ function whenHolds(w, o){
   if (!w || !o) return true;
   if (w.tired != null && !!o.tired !== w.tired) return false;
   if (w.rage != null && !!o.rage !== w.rage) return false;
+  if (w.snow != null && !!o.snow !== w.snow) return false;                         // the snow maps (the Snow Variants list)
   if (w.stance != null && o.stance != null && o.stance !== w.stance) return false;   // Nakarkos's stance (index.html)
   if (w.rank === 'G' && !(o.rank > 4)) return false;
   if (w.rank === 'low' && !(o.rank <= 4)) return false;

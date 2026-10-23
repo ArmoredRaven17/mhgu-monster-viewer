@@ -432,3 +432,18 @@ Not withdrawn here (the beams note is not mine to edit) — the beams lane shoul
 | `0x1088e38` / `0x108aba8` / `0x1089384` / `0x108a330` / `0x108b2e8` | second generation: sp_00 / sp_13 landings, sp_01 end, sp_11 create, sp_48 +0x15c | uShellEm084_* | R | §6 |
 | `0x1088c5c` / `0x10891dc` / `0x1089c08` / `0x108a04c` / `0x108a954` / `0x108ae98` / `0x108b118` | the seven readers | uShellEm084_* | R | §8 |
 | trap | `dev/beams/em084_00.md`'s "arm actions in EMC group 0 s35/s36" — those numbers are also body actions (§9) | — | I | §9 |
+
+## Addendum 2026-10-20 (shells agent's decode helper; scratchpad gapC/RESULT.md) -- the rank pair, sp_11 2's fall, the record table
+
+- The arm's (7, 0xb) (0x10851bc, M1 + M2, tune 1 = 120) and (7, 0x25) (0x10879a4, M50 + M51, tune 8 = 108) call `0x107c0cc(arm, 0 /
+  1)`: modes 0 / 3 and 2 / 4 by the kind +0xcae0, G rank (> 4) 5 / 7 and 6 / 8. No form test. BUILT (arm084 `any` rows).
+- Body (7, 0x43) `0x10775c0` (L0 M63, tune 15 = 460) -> `0x106f74c(E, 0)` = shell11 2; `0x108a330` for modes 2..4 starts u 21 at each
+  create point and makes shell00 1 there. BUILT (body084 / createFall084).
+- The record walker `0x1069e78` (clock records, part below its .dtp limit, slot free) plays L2 M72 / M73; at the layer's frame 58
+  `0x106f354` sel 19 / 20 makes shell00 65 / 66 -- for (7, 0xa) / (7, 0xd) (`0x1075d88`, L0 M4) at L0 M4 frames 58 / 258. BUILT
+  (records084; input.parts084 optional, absent = unbroken). The layer's one-frame-per-frame advance is INFERRED.
+- FIXED: shell11's reader writes its effect to +0x1664 only and base11's init starts only +0x15c8 / +0x15cc, so the ROM starts nothing
+  at sp_11's init; make001 had started u_r 10 there (params11n now hands efAt null). Six other base11 readers need the same check.
+- WIRED 2026-10-21: body parts 2 / 3 / 4 read (the part pass 0x106b2d0, body vt+0x210; gapH): part 2 = Parts row `6,16,26` (sets
+  11 / 12), part 3 = row `5,15,25` (9 / 10), part 4 = row `7,8,17,18,28` (13 / 14 / 15). motion-states.js nakarkosParts084 hands
+  input.parts084 from the rows shown (index.html shellExtra).

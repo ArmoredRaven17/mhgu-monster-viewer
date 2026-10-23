@@ -199,6 +199,15 @@ const GENERATOR_TYPES = {
   // which stores *(0x183c9a4) + 8 = 0x1789b34; that vtable's getDTI 0xaae0a0 reaches MtDTI 0x211cb5c, and
   // the registration at 0xaae138 builds that MtDTI with the rodata string "cParticleGeneratorPolygonStrip".
   15: { got: 0x183c9a4, name: 'PolygonStrip' }, // vtable 0x1789b34
+  // genType 20, cParticleGeneratorSizeBillboard -- PINNED (READ 2026-10-18): the factory's type-20 arm 0x9bb150 allocates
+  // through 0xa7e274 (0x1d0) and constructs with 0xa7e2b0 (the generic 0xa55db4, then *(0x183c8b4) + 8 = 0x178918c); that
+  // vtable's getDTI 0xa81ef4 returns MtDTI 0x211c6ac, which 0xa82014 registers with the rodata string
+  // "cParticleGeneratorSizeBillboard". Its own slots: 6 init 0xa7e300, 8 start 0xa7e348, 15 transform 0xa7e3ac, 17 0xa78598,
+  // 21 0xa7e41c, 23 0xa7faa0, 24 0xa80180 (the rest shared). In cm200_050_s (Amatsu's c 1600 / c 1601), cm001_500, cm123_030..035.
+  //   The viewer's draw of it reaches the GPU state setup 0xbadd68's arm 0xbae8cc (0xbae8c0: the draw packet's word 1, bit 22,
+  // clear), which only the primitive-draw harness reaches with these files (efx/vecprim.py: vectors/prim20_*, 2026-10-18 --
+  // the request recorder never runs the draw system's +0x44 for them). Enabled once those sets were lifted.
+  20: { got: 0x183c8b4, name: 'SizeBillboard' }, // vtable 0x178918c
 };
 // Undecoded generator types (anything not in GENERATOR_TYPES, and not the cParticleNode branch) the factory meets and skips, kept so the omission is
 // reportable rather than silent. genType -> how many rows were skipped. (Soulseer's eye flame em082_04_004 has
@@ -402,8 +411,26 @@ function generatorFlags(m, g){
   const nb8 = m.u32(nb + 8);
   m.w32(g + 0x8c, nb8);
   const f118 = m.u32(m.u32(g + 8) + 0x118);
-  if (!(f118 & 0x8000000) && m.u16(nb + 0xbe) !== 0) throw new Unverified('0xae997c node block +0xbe');
-  m.w32(g + 0x50, (m.u32(g + 0x50) & ~0x0f000000) >>> 0);
+  // 0xae9970..0xae99e8 (READ 2026-10-18, Fanged-Wyvern lane; Lagiacrus u 61's discharge): node block +0xbe is the u16 offset,
+  // from the node block, of its BOUNDS block; with [[g+8]+0x118] bit 27 clear, the offset set and node block +0xa2's low nibble
+  // set, the nibble goes to g+0x50 bits 24..27 and the bounds are copied: radius [+0x20] -> g+0x80, [+0x24] -> g+0x84, a vec3
+  // [+0..8] -> g+0x60 (w 0), a vec3 [+0x10..0x18] -> g+0x70 (w 0). Consumers (lifted): 0xa64894 (bit 0 a sphere of [g+0x80]
+  // x scale about the owner, bit 1 the box owner + scale x [g+0x60] / [g+0x70], bit 2 [g+0x84]) and the cull tests 0xae9bc4 /
+  // 0xaec0xx (bit 2 / bit 0 / bit 1; 0xae9dc4 and 0xaec1fc keep a generator outside the view drawn while bits 24 / 25 are set).
+  // Otherwise (0xae99ec) the nibble is cleared.
+  let bounds = 0;
+  if (!(f118 & 0x8000000)){
+    const off = m.u16(nb + 0xbe);
+    if (off !== 0) bounds = m.u16(nb + 0xa2) & 0xf;
+    if (bounds){
+      const v = (nb + off) >>> 0;
+      m.w32(g + 0x50, ((m.u32(g + 0x50) & ~0x0f000000) | (bounds << 24)) >>> 0);
+      m.w32(g + 0x80, m.u32(v + 0x20)); m.w32(g + 0x84, m.u32(v + 0x24));
+      m.w32(g + 0x60, m.u32(v)); m.w32(g + 0x64, m.u32(v + 4)); m.w32(g + 0x68, m.u32(v + 8)); m.w32(g + 0x6c, 0);
+      m.w32(g + 0x70, m.u32(v + 0x10)); m.w32(g + 0x74, m.u32(v + 0x14)); m.w32(g + 0x78, m.u32(v + 0x18)); m.w32(g + 0x7c, 0);
+    }
+  }
+  if (!bounds) m.w32(g + 0x50, (m.u32(g + 0x50) & ~0x0f000000) >>> 0);
   let shape = 0x40000000, extra = 0;                                       // squared envelope
   if (!(nb8 & 0x8000000)){                                                // 0xae9a0c: the manager's +0x230
     const b = m.u8(mgrOf(m) + 0x230);
@@ -1278,6 +1305,10 @@ registerCode(0xa91b80, transformModel); registerCode(0xa783a8, transformLiteBill
 registerCode(0xa99558, initType2); registerCode(0xa99590, startType2); registerCode(0xa56d14, transformType2);
 registerCode(0xa825c8, initType9); registerCode(0xa825f4, startType9);
 registerCode(0xaa8c90, initPolygonStrip); registerCode(0xaa8cc8, startPolygonStrip); registerCode(0xaa8df8, transformPolygonStrip);
+// genType 20 (SizeBillboard, vtable 0x178918c): slots 6, 8 and 15, each the lifted ROM routine
+registerCode(0xa7e300, (m, g, owner, row, index) => liftedCall(m, 0xa7e300, [g, owner, row, index]).r[0]);
+registerCode(0xa7e348, (m, g) => liftedCall(m, 0xa7e348, [g]).r[0]);
+registerCode(0xa7e3ac, (m, g) => liftedCall(m, 0xa7e3ac, [g]).r[0]);
 // cParticleNode (vtable 0x1789ebc, effects-node.md 1): the slots the start reaches through its own dispatch -- 6 init
 // 0xaed19c, 7 pool 0xaecd44, 8 start 0xaed2b8, 9 arm 0xaed79c, 15 its record in sGpuParticle 0xaedaac (must return 1) --
 // each the lifted ROM routine. Its move, post pass, draw and stop are reached from lifted code.

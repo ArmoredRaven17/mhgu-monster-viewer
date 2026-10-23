@@ -1,0 +1,2568 @@
+// hit-type3.js -- THE THIRD HIT-SHAPE TYPE (hit-size codes 4 / 6), shared by the monster's attack shapes (render/attack-hitboxes.js)
+// and the shells' hunter pass (render/shells.js shellHitShapes / hunterPass): one transcription, one place (effects lane, 2026-10-22;
+// dev/attack-hitshapes.md 4, dev/effect-runtime-engine.md E20, rom-map "Monster attack shapes").
+//
+// THE BUILD (both builders leave the shape type 3 at 0x170160; R = s x the record's radius, s the builder's scale):
+//   the enemy's joints (0x16ddd0, table 0x16deac): code 4 -> 0x16e89c, code 6 -> 0x16ec78
+//   the unit / a shell, j0 255 (0x16dbd4, table 0x16dbf4): code 4 -> 0x16e368 (tail 0x16fcbc), code 6 -> 0x16e470 (tail 0x170058)
+//   P = the frame's point for s x o0 (the joint matrix's rows, or the unit's +0x40 + its angle words' rows -- as codes 0..2 place o0)
+//   code 4: p0 = P + (0, s x o1.x, 0), p1 = P + (0, s x o1.y, 0)  -- straight along the WORLD's Y
+//   code 6: p0 = P + Y x s x o1.x,   p1 = P + Y x s x o1.y        -- along the frame's own Y row (a joint: enemy vt+0x54 `0xc156c`,
+//           that joint's world matrix; the unit: the angle words' row 1); the X / Z rows' factor is the literal 0.0 (0x16e964 /
+//           0x170238), so o1.z is unused
+//   codes 3 / 5: no shape (type 0)
+// THE TEST (the hunter pass 0x16b6cc: the attack shape's type byte +0x2030 == 3 -> 0x16b88c -> 0x167f70(attack, hunter capsule, out)):
+//   0x167f70 -> 0x7dda24 -> 0x7dc9a0, with 0x7dc9a0's callees 0x806ce4 / 0x7db964 / 0x7ebfd8 / 0x80017c / 0x80448c / 0x8060ac /
+//   0x8069d8 and sqrtf 0x13ecc14. TRANSCRIBED LINE BY LINE below (the GENERATED block): every instruction of the ten functions that
+//   the code can reach, one statement each under its own address, by <scratchpad>/t3/arm2js.py from main.text:
+//     - the float registers are a Float32Array, so every VFP result rounds to f32 as the VFP does; vmla / vmls are unfused (the
+//       product rounded, then the sum); vsqrt / vdiv correctly rounded (the f64 result rounded once: exact for f32);
+//     - the flags N Z C V come from vcmpe (unordered: 0011) and cmp; the conditions as ARM's;
+//     - the stack and the caller's blocks live in a 64 KB DataView; the BSS axis constants the routine reads through the GOT
+//       (0x1832134 -> 0x19176e0 = X (1, 0, 0), 0x1832130 -> 0x19176f0 = Y, 0x1832184 -> 0x1917700 = Z: written by the static
+//       initialiser 0x7c4708..0x7c473c) are the table AXES.
+//   The blocks: a shape = p0 (x, y, z, w) +0, p1 +0x10, r +0x20. 0x167f70(a = the attack's type-3 shape, b = the hunter capsule,
+//   out): 0x7dda24 -> 0x7dc9a0(a, b, &info, &t) fills info (point +0x10.., normal +0x20.., distance +0x30); meets when the
+//   distance <= b.r (0x7dda88, movwls); out = point + (distance - b.r) x normal (0x7ddadc..), the w 0 (0x167fd0).
+//   CHECKED against the ROM run natively on the whole executable after its static initialisers (<scratchpad>/t3/t3diff.py,
+//   t3hunt.py, t3hunt2.py -> t3diff.mjs): 1537 cases (the first check's 480 -- 20 aligned, 60 + 400 random -- plus 300 with the
+//   hunter's axis through the cylinder, 300 skimming a rim, 150 parallel, 100 degenerate, 200 game-sized, 7 targeted): meet / no-meet
+//   agrees on all 1537 and every contact point is BIT-EXACT (max error 0, max ulp 0). Coverage (cover.mjs): 2240 of the 2392
+//   transcribed instructions run; the rest are 118 sqrtf-on-NaN fallbacks (bvc after vsqrt: never for finite inputs), 21 that this
+//   caller cannot reach (0x7dda24's r2 != 0 block 0x7dda84..0x7ddad0, 0x7dc9a0's r3 == 0 load 0x7dcf20) and 13 not reached
+//   (0x7dd57c..0x7dd5ac: the axis-crossing path with R^2 under the 1.19e-7 epsilon).
+// WHAT 0x7dc9a0 DOES (the structure; the code below is the authority):
+//   - the cylinder's axis and the hunter's, normalised (0x7dc9c8..0x7dcacc);
+//   - 0x806ce4(A, B, &s, &t, eps 0.001): the closest points of the two axes (lengths along each) -> C = A.p0 + s x axis (sp+0x50),
+//     the plane through C across the axis (sp+0x40);
+//   - axes not perpendicular (|dot| > 1.19e-7): 0x7ebfd8 -> 0x80017c, the hunter's line through that plane at P, kept when
+//     |P - C| < R: the hunter's axis PASSES THROUGH the cylinder; the normal (P - C) / |P - C|, or, with P on the axis
+//     (|P - C|^2 <= 1.19e-7, 0x7dd3d0), the world axis X / Y / Z least along the cylinder's (dot < 0.999), the point C + n x R,
+//     and the depth from 0x7db964 / 0x80448c;
+//   - else 0x806ce4 again: the hunter's nearest point beside the SIDE (s within 0.001 of neither end, 0x7dcdb4..0x7dcdc8): normal
+//     from the axis point to it, point = axis point + n x R, distance = |d| - R (0x7dcf0c);
+//   - near an END (0x7dd030..): the nearer end's disk (p0 or p1, 0x7dd068), 0x8069d8 (the hunter's segment to that point), then
+//     three cases on the projected distances (r3 0 / 1 / 2, 0x7dd320..0x7dd380): the face (0x7dd384), or the rim through
+//     0x7db964 (0x7dd5b0 / 0x7dd634).
+
+// the ends from the placed point P (o0 already placed by the caller's frame), the axis (world up for code 4, the frame's Y row for
+// code 6 -- a unit vector or the row as the frame gives it), the scale s and the record's o1 / radius. Returns { type: 3, p0, p1, r }
+export function type3Shape(code, P, yRow, s, o1, radius){
+  const Y = code === 4 ? [0, 1, 0] : yRow;
+  const f = Math.fround;
+  return { type: 3, code, p0: [f(P[0] + f(Y[0] * f(s * o1[0]))), f(P[1] + f(Y[1] * f(s * o1[0]))), f(P[2] + f(Y[2] * f(s * o1[0])))],
+           p1: [f(P[0] + f(Y[0] * f(s * o1[1]))), f(P[1] + f(Y[1] * f(s * o1[1]))), f(P[2] + f(Y[2] * f(s * o1[1])))], r: f(s * radius) };
+}
+export const TYPE3_CODES = [4, 6];
+
+// ---- the machine the transcription runs on ----
+const HEAP = 0x10000, STACK_TOP = 0xff00, A_BLK = 0x100, B_BLK = 0x140, OUT_BLK = 0x180;
+const AXES_LO = 0x19176e0;
+const AXES = new DataView(new ArrayBuffer(0x30));
+AXES.setFloat32(0x00, 1, true); AXES.setFloat32(0x14, 1, true); AXES.setFloat32(0x28, 1, true);
+function machine(){
+  const buf = new ArrayBuffer(HEAP), DV = new DataView(buf);
+  const U = new Uint32Array(1), F = new Float32Array(U.buffer);
+  const view = a => (a >= AXES_LO && a < AXES_LO + 0x30) ? [AXES, a - AXES_LO] : (a < HEAP - 3 ? [DV, a] : null);
+  const bad = a => { throw new Error('hit-type3 ROM: an address outside the blocks: 0x' + (a >>> 0).toString(16)); };
+  const M = { R: new Uint32Array(16), S: new Float32Array(32), N: 0, Z: 0, C: 0, V: 0, FP: 0, U, F, DV,
+    ld32: a => { const v = view(a) || bad(a); return v[0].getUint32(v[1], true); },
+    st32: (a, x) => { if (a >= HEAP - 3) bad(a); DV.setUint32(a, x >>> 0, true); },
+    ld8: a => { const v = view(a) || bad(a); return v[0].getUint8(v[1]); },
+    st8: (a, x) => { if (a >= HEAP) bad(a); DV.setUint8(a, x & 0xff); },
+    ldf: a => { const v = view(a) || bad(a); return v[0].getFloat32(v[1], true); },
+    stf: (a, x) => { if (a >= HEAP - 3) bad(a); DV.setFloat32(a, x, true); } };
+  return M;
+}
+let MACH = null;
+function putShape(M, at, C){
+  for (let k = 0; k < 3; k++){ M.DV.setFloat32(at + 4 * k, C.p0[k], true); M.DV.setFloat32(at + 0x10 + 4 * k, C.p1[k], true); }
+  M.DV.setFloat32(at + 0xc, 0, true); M.DV.setFloat32(at + 0x1c, 0, true);
+  M.DV.setFloat32(at + 0x20, C.r, true); M.DV.setFloat32(at + 0x24, 0, true); M.DV.setFloat32(at + 0x28, 0, true); M.DV.setFloat32(at + 0x2c, 0, true);
+}
+// 0x167f70(attack type-3 shape A, hunter capsule cap, out): null, or { point } -- the ROM's own test, as transcribed
+export function type3VsHunter(A, cap){
+  const M = MACH || (MACH = machine());
+  const mem = new Uint8Array(M.DV.buffer); mem.fill(0, 0, 0x200); mem.fill(0, 0xe000, HEAP);   // the blocks and the stack
+  M.R.fill(0); M.S.fill(0); M.N = M.Z = M.C = M.V = M.FP = 0;
+  putShape(M, A_BLK, A); putShape(M, B_BLK, cap);
+  for (let k = 0; k < 4; k++) M.DV.setUint32(OUT_BLK + 4 * k, 0xeeeeeeee, true);
+  M.R[0] = A_BLK; M.R[1] = B_BLK; M.R[2] = OUT_BLK; M.R[13] = STACK_TOP;
+  F_167f70(M);
+  if (M.R[0] !== 1) return null;
+  return { point: [0, 4, 8].map(o => M.DV.getFloat32(OUT_BLK + o, true)) };
+}
+// ---- GENERATED by <scratchpad>/t3/arm2js.py from main.text: one statement per instruction, its address the label ----
+function F_167f70(M){
+  const R = M.R, S = M.S, DV = M.DV;
+  let pc = 0x167f70;
+  for (;;) switch (pc){
+    case 0x167f70: R[13] = (R[13] - 16) >>> 0; M.st32(R[13] + 0, R[4]); M.st32(R[13] + 4, R[5]); M.st32(R[13] + 8, R[11]); M.st32(R[13] + 12, R[14]);  // push {r4, r5, fp, lr}
+    case 0x167f74: R[11] = (R[13] + 8) >>> 0;  // add fp, sp, #8
+    case 0x167f78: R[13] = (R[13] - 48) >>> 0;  // sub sp, sp, #0x30
+    case 0x167f7c: R[13] = (R[13] & 4294967280) >>> 0;  // bfc sp, #0, #4
+    case 0x167f80: R[4] = R[2];  // mov r4, r2
+    case 0x167f84: R[2] = 65535;  // movw r2, #0xffff
+    case 0x167f88: R[5] = 0;  // mov r5, #0
+    case 0x167f8c: R[3] = R[13];  // mov r3, sp
+    case 0x167f90: R[2] = ((R[2] & 0xffff) | (32639 << 16)) >>> 0;  // movt r2, #0x7f7f
+    case 0x167f94: M.st32(((R[13] + 12) >>> 0), R[5]);  // str r5, [sp, #0xc]
+    case 0x167f98: M.st32(((R[13] + 28) >>> 0), R[5]);  // str r5, [sp, #0x1c]
+    case 0x167f9c: M.st32(((R[13] + 32) >>> 0), R[2]);  // str r2, [sp, #0x20]
+    case 0x167fa0: R[2] = 0;  // mov r2, #0
+    case 0x167fa4: M.st32(((R[13] + 36) >>> 0), R[5]);  // str r5, [sp, #0x24]
+    case 0x167fa8: M.st8(((R[13] + 40) >>> 0), R[5]);  // strb r5, [sp, #0x28]
+    case 0x167fac: F_7dda24(M);  // bl #0x7dda24
+    case 0x167fb0: { const a = R[0] >>> 0, b = 1 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp r0, #1
+    case 0x167fb4: if (!M.Z) { pc = 0x167fd4; continue; }  // bne #0x167fd4
+    case 0x167fb8: R[1] = M.ld32(((R[13] + 0) >>> 0));  // ldr r1, [sp]
+    case 0x167fbc: M.st32(((R[4] + 0) >>> 0), R[1]);  // str r1, [r4]
+    case 0x167fc0: R[1] = M.ld32(((R[13] + 4) >>> 0));  // ldr r1, [sp, #4]
+    case 0x167fc4: M.st32(((R[4] + 4) >>> 0), R[1]);  // str r1, [r4, #4]
+    case 0x167fc8: R[1] = M.ld32(((R[13] + 8) >>> 0));  // ldr r1, [sp, #8]
+    case 0x167fcc: M.st32(((R[4] + 8) >>> 0), R[1]);  // str r1, [r4, #8]
+    case 0x167fd0: M.st32(((R[4] + 12) >>> 0), R[5]);  // str r5, [r4, #0xc]
+    case 0x167fd4: R[13] = (R[11] - 8) >>> 0;  // sub sp, fp, #8
+    case 0x167fd8: R[4] = M.ld32(R[13] + 0); R[5] = M.ld32(R[13] + 4); R[11] = M.ld32(R[13] + 8); R[13] = (R[13] + 16) >>> 0; return;  // pop {r4, r5, fp, pc}
+    default: throw new Error('hit-type3 ROM: no label ' + pc.toString(16));
+  }
+}
+
+function F_7dda24(M){
+  const R = M.R, S = M.S, DV = M.DV;
+  let pc = 0x7dda24;
+  for (;;) switch (pc){
+    case 0x7dda24: R[13] = (R[13] - 24) >>> 0; M.st32(R[13] + 0, R[4]); M.st32(R[13] + 4, R[5]); M.st32(R[13] + 8, R[6]); M.st32(R[13] + 12, R[7]); M.st32(R[13] + 16, R[11]); M.st32(R[13] + 20, R[14]);  // push {r4, r5, r6, r7, fp, lr}
+    case 0x7dda28: R[11] = (R[13] + 16) >>> 0;  // add fp, sp, #0x10
+    case 0x7dda2c: R[13] = (R[13] - 72) >>> 0;  // sub sp, sp, #0x48
+    case 0x7dda30: R[13] = (R[13] & 4294967280) >>> 0;  // bfc sp, #0, #4
+    case 0x7dda34: R[6] = R[1];  // mov r6, r1
+    case 0x7dda38: R[1] = 65535;  // movw r1, #0xffff
+    case 0x7dda3c: R[7] = 0;  // mov r7, #0
+    case 0x7dda40: R[4] = R[3];  // mov r4, r3
+    case 0x7dda44: R[5] = R[2];  // mov r5, r2
+    case 0x7dda48: R[2] = (R[13] + 16) >>> 0;  // add r2, sp, #0x10
+    case 0x7dda4c: R[3] = (R[13] + 12) >>> 0;  // add r3, sp, #0xc
+    case 0x7dda50: R[1] = ((R[1] & 0xffff) | (32639 << 16)) >>> 0;  // movt r1, #0x7f7f
+    case 0x7dda54: M.st32(((R[13] + 28) >>> 0), R[7]);  // str r7, [sp, #0x1c]
+    case 0x7dda58: M.st32(((R[13] + 44) >>> 0), R[7]);  // str r7, [sp, #0x2c]
+    case 0x7dda5c: M.st32(((R[13] + 48) >>> 0), R[1]);  // str r1, [sp, #0x30]
+    case 0x7dda60: R[1] = R[6];  // mov r1, r6
+    case 0x7dda64: M.st32(((R[13] + 52) >>> 0), R[7]);  // str r7, [sp, #0x34]
+    case 0x7dda68: M.st8(((R[13] + 56) >>> 0), R[7]);  // strb r7, [sp, #0x38]
+    case 0x7dda6c: F_7dc9a0(M);  // bl #0x7dc9a0
+    case 0x7dda70: S[0] = M.ldf((R[6] + 32) >>> 0);  // vldr s0, [r6, #0x20]
+    case 0x7dda74: S[2] = M.ldf((R[13] + 48) >>> 0);  // vldr s2, [sp, #0x30]
+    case 0x7dda78: { const a = R[5] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp r5, #0
+    case 0x7dda7c: S[4] = S[2] - S[0];  // vsub.f32 s4, s2, s0
+    case 0x7dda80: if (M.Z) { pc = 0x7ddad4; continue; }  // beq #0x7ddad4
+    case 0x7dda84: R[0] = M.ld32(((R[13] + 16) >>> 0));  // ldr r0, [sp, #0x10]
+    case 0x7dda88: { const x = S[2], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s0
+    case 0x7dda8c: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dda90: M.st32(((R[5] + 0) >>> 0), R[0]);  // str r0, [r5]
+    case 0x7dda94: R[0] = M.ld32(((R[13] + 20) >>> 0));  // ldr r0, [sp, #0x14]
+    case 0x7dda98: M.st32(((R[5] + 4) >>> 0), R[0]);  // str r0, [r5, #4]
+    case 0x7dda9c: R[0] = M.ld32(((R[13] + 24) >>> 0));  // ldr r0, [sp, #0x18]
+    case 0x7ddaa0: M.st32(((R[5] + 8) >>> 0), R[0]);  // str r0, [r5, #8]
+    case 0x7ddaa4: M.st32(((R[5] + 12) >>> 0), R[7]);  // str r7, [r5, #0xc]
+    case 0x7ddaa8: R[0] = M.ld32(((R[13] + 32) >>> 0));  // ldr r0, [sp, #0x20]
+    case 0x7ddaac: M.st32(((R[5] + 16) >>> 0), R[0]);  // str r0, [r5, #0x10]
+    case 0x7ddab0: R[0] = M.ld32(((R[13] + 36) >>> 0));  // ldr r0, [sp, #0x24]
+    case 0x7ddab4: M.st32(((R[5] + 20) >>> 0), R[0]);  // str r0, [r5, #0x14]
+    case 0x7ddab8: R[0] = M.ld32(((R[13] + 40) >>> 0));  // ldr r0, [sp, #0x28]
+    case 0x7ddabc: M.st32(((R[5] + 24) >>> 0), R[0]);  // str r0, [r5, #0x18]
+    case 0x7ddac0: M.st32(((R[5] + 28) >>> 0), R[7]);  // str r7, [r5, #0x1c]
+    case 0x7ddac4: M.stf((R[5] + 32) >>> 0, S[4]);  // vstr s4, [r5, #0x20]
+    case 0x7ddac8: M.st32(((R[5] + 36) >>> 0), R[7]);  // str r7, [r5, #0x24]
+    case 0x7ddacc: if ((!M.C || M.Z)) { R[7] = 1; }  // movwls r7, #1
+    case 0x7ddad0: M.st8(((R[5] + 40) >>> 0), R[7]);  // strb r7, [r5, #0x28]
+    case 0x7ddad4: { const a = R[4] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp r4, #0
+    case 0x7ddad8: if (M.Z) { pc = 0x7ddb48; continue; }  // beq #0x7ddb48
+    case 0x7ddadc: S[6] = M.ldf((R[13] + 16) >>> 0);  // vldr s6, [sp, #0x10]
+    case 0x7ddae0: S[12] = M.ldf((R[13] + 32) >>> 0);  // vldr s12, [sp, #0x20]
+    case 0x7ddae4: S[8] = M.ldf((R[13] + 20) >>> 0);  // vldr s8, [sp, #0x14]
+    case 0x7ddae8: S[14] = M.ldf((R[13] + 36) >>> 0);  // vldr s14, [sp, #0x24]
+    case 0x7ddaec: S[10] = M.ldf((R[13] + 24) >>> 0);  // vldr s10, [sp, #0x18]
+    case 0x7ddaf0: S[1] = M.ldf((R[13] + 40) >>> 0);  // vldr s1, [sp, #0x28]
+    case 0x7ddaf4: R[0] = 0;  // mov r0, #0
+    case 0x7ddaf8: { const x = S[2], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s0
+    case 0x7ddafc: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7ddb00: S[6] = S[6] + Math.fround(S[4] * S[12]);  // vmla.f32 s6, s4, s12
+    case 0x7ddb04: S[8] = S[8] + Math.fround(S[4] * S[14]);  // vmla.f32 s8, s4, s14
+    case 0x7ddb08: S[10] = S[10] + Math.fround(S[4] * S[1]);  // vmla.f32 s10, s4, s1
+    case 0x7ddb0c: M.stf((R[4] + 0) >>> 0, S[6]);  // vstr s6, [r4]
+    case 0x7ddb10: S[6] = -S[12];  // vneg.f32 s6, s12
+    case 0x7ddb14: M.stf((R[4] + 4) >>> 0, S[8]);  // vstr s8, [r4, #4]
+    case 0x7ddb18: M.stf((R[4] + 8) >>> 0, S[10]);  // vstr s10, [r4, #8]
+    case 0x7ddb1c: M.st32(((R[4] + 12) >>> 0), R[0]);  // str r0, [r4, #0xc]
+    case 0x7ddb20: S[8] = -S[14];  // vneg.f32 s8, s14
+    case 0x7ddb24: M.stf((R[4] + 16) >>> 0, S[6]);  // vstr s6, [r4, #0x10]
+    case 0x7ddb28: S[6] = -S[1];  // vneg.f32 s6, s1
+    case 0x7ddb2c: M.stf((R[4] + 20) >>> 0, S[8]);  // vstr s8, [r4, #0x14]
+    case 0x7ddb30: M.stf((R[4] + 24) >>> 0, S[6]);  // vstr s6, [r4, #0x18]
+    case 0x7ddb34: M.st32(((R[4] + 28) >>> 0), R[0]);  // str r0, [r4, #0x1c]
+    case 0x7ddb38: M.stf((R[4] + 32) >>> 0, S[4]);  // vstr s4, [r4, #0x20]
+    case 0x7ddb3c: M.st32(((R[4] + 36) >>> 0), R[0]);  // str r0, [r4, #0x24]
+    case 0x7ddb40: if ((!M.C || M.Z)) { R[0] = 1; }  // movwls r0, #1
+    case 0x7ddb44: M.st8(((R[4] + 40) >>> 0), R[0]);  // strb r0, [r4, #0x28]
+    case 0x7ddb48: { const x = S[2], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s0
+    case 0x7ddb4c: R[0] = 0;  // mov r0, #0
+    case 0x7ddb50: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7ddb54: if ((!M.C || M.Z)) { R[0] = 1; }  // movwls r0, #1
+    case 0x7ddb58: R[13] = (R[11] - 16) >>> 0;  // sub sp, fp, #0x10
+    case 0x7ddb5c: R[4] = M.ld32(R[13] + 0); R[5] = M.ld32(R[13] + 4); R[6] = M.ld32(R[13] + 8); R[7] = M.ld32(R[13] + 12); R[11] = M.ld32(R[13] + 16); R[13] = (R[13] + 24) >>> 0; return;  // pop {r4, r5, r6, r7, fp, pc}
+    default: throw new Error('hit-type3 ROM: no label ' + pc.toString(16));
+  }
+}
+
+function F_7dc9a0(M){
+  const R = M.R, S = M.S, DV = M.DV;
+  let pc = 0x7dc9a0;
+  for (;;) switch (pc){
+    case 0x7dc9a0: R[13] = (R[13] - 36) >>> 0; M.st32(R[13] + 0, R[4]); M.st32(R[13] + 4, R[5]); M.st32(R[13] + 8, R[6]); M.st32(R[13] + 12, R[7]); M.st32(R[13] + 16, R[8]); M.st32(R[13] + 20, R[9]); M.st32(R[13] + 24, R[10]); M.st32(R[13] + 28, R[11]); M.st32(R[13] + 32, R[14]);  // push {r4, r5, r6, r7, r8, sb, sl, fp, lr}
+    case 0x7dc9a4: R[11] = (R[13] + 28) >>> 0;  // add fp, sp, #0x1c
+    case 0x7dc9a8: R[13] = (R[13] - 4) >>> 0;  // sub sp, sp, #4
+    case 0x7dc9ac: R[13] = (R[13] - 64) >>> 0; for (let k = 0; k < 16; k++) M.stf(R[13] + 4 * k, S[16 + k]);  // vpush {d8, d9, d10, d11, d12, d13, d14, d15}
+    case 0x7dc9b0: R[13] = (R[13] - 184) >>> 0;  // sub sp, sp, #0xb8
+    case 0x7dc9b4: R[13] = (R[13] & 4294967280) >>> 0;  // bfc sp, #0, #4
+    case 0x7dc9b8: R[6] = R[0];  // mov r6, r0
+    case 0x7dc9bc: R[10] = R[3];  // mov sl, r3
+    case 0x7dc9c0: R[4] = R[2];  // mov r4, r2
+    case 0x7dc9c4: R[7] = R[1];  // mov r7, r1
+    case 0x7dc9c8: S[0] = M.ldf((R[6] + 4) >>> 0);  // vldr s0, [r6, #4]
+    case 0x7dc9cc: S[8] = M.ldf((R[6] + 20) >>> 0);  // vldr s8, [r6, #0x14]
+    case 0x7dc9d0: S[4] = M.ldf((R[6] + 0) >>> 0);  // vldr s4, [r6]
+    case 0x7dc9d4: S[6] = M.ldf((R[6] + 16) >>> 0);  // vldr s6, [r6, #0x10]
+    case 0x7dc9d8: S[2] = M.ldf((R[6] + 8) >>> 0);  // vldr s2, [r6, #8]
+    case 0x7dc9dc: S[10] = M.ldf((R[6] + 24) >>> 0);  // vldr s10, [r6, #0x18]
+    case 0x7dc9e0: S[28] = S[8] - S[0];  // vsub.f32 s28, s8, s0
+    case 0x7dc9e4: S[26] = S[6] - S[4];  // vsub.f32 s26, s6, s4
+    case 0x7dc9e8: S[30] = S[10] - S[2];  // vsub.f32 s30, s10, s2
+    case 0x7dc9ec: S[16] = S[28] * S[28];  // vmul.f32 s16, s28, s28
+    case 0x7dc9f0: S[16] = S[16] + Math.fround(S[26] * S[26]);  // vmla.f32 s16, s26, s26
+    case 0x7dc9f4: S[16] = S[16] + Math.fround(S[30] * S[30]);  // vmla.f32 s16, s30, s30
+    case 0x7dc9f8: S[18] = Math.sqrt(S[16]);  // vsqrt.f32 s18, s16
+    case 0x7dc9fc: { const x = S[18], y = S[18]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s18, s18
+    case 0x7dca00: S[20] = S[18];  // vmov.f32 s20, s18
+    case 0x7dca04: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dca08: if (!M.V) { pc = 0x7dca18; continue; }  // bvc #0x7dca18
+    case 0x7dca0c: S[0] = S[16];  // vmov.f32 s0, s16
+    case 0x7dca10: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dca14: S[20] = S[0];  // vmov.f32 s20, s0
+    case 0x7dca18: { const x = S[18], y = S[18]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s18, s18
+    case 0x7dca1c: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dca20: if (!M.V) { pc = 0x7dca30; continue; }  // bvc #0x7dca30
+    case 0x7dca24: S[0] = S[16];  // vmov.f32 s0, s16
+    case 0x7dca28: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dca2c: S[18] = S[0];  // vmov.f32 s18, s0
+    case 0x7dca30: S[0] = M.ldf((R[7] + 4) >>> 0);  // vldr s0, [r7, #4]
+    case 0x7dca34: S[8] = M.ldf((R[7] + 20) >>> 0);  // vldr s8, [r7, #0x14]
+    case 0x7dca38: S[4] = M.ldf((R[7] + 0) >>> 0);  // vldr s4, [r7]
+    case 0x7dca3c: S[6] = M.ldf((R[7] + 16) >>> 0);  // vldr s6, [r7, #0x10]
+    case 0x7dca40: S[2] = M.ldf((R[7] + 8) >>> 0);  // vldr s2, [r7, #8]
+    case 0x7dca44: S[10] = M.ldf((R[7] + 24) >>> 0);  // vldr s10, [r7, #0x18]
+    case 0x7dca48: S[27] = 1.0;  // vmov.f32 s27, #1.000000e+00
+    case 0x7dca4c: S[19] = S[8] - S[0];  // vsub.f32 s19, s8, s0
+    case 0x7dca50: S[16] = S[6] - S[4];  // vsub.f32 s16, s6, s4
+    case 0x7dca54: S[17] = S[10] - S[2];  // vsub.f32 s17, s10, s2
+    case 0x7dca58: S[24] = S[19] * S[19];  // vmul.f32 s24, s19, s19
+    case 0x7dca5c: S[24] = S[24] + Math.fround(S[16] * S[16]);  // vmla.f32 s24, s16, s16
+    case 0x7dca60: S[24] = S[24] + Math.fround(S[17] * S[17]);  // vmla.f32 s24, s17, s17
+    case 0x7dca64: S[22] = Math.sqrt(S[24]);  // vsqrt.f32 s22, s24
+    case 0x7dca68: { const x = S[22], y = S[22]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s22, s22
+    case 0x7dca6c: S[21] = S[22];  // vmov.f32 s21, s22
+    case 0x7dca70: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dca74: if (!M.V) { pc = 0x7dca84; continue; }  // bvc #0x7dca84
+    case 0x7dca78: S[0] = S[24];  // vmov.f32 s0, s24
+    case 0x7dca7c: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dca80: S[21] = S[0];  // vmov.f32 s21, s0
+    case 0x7dca84: S[18] = S[27] / S[18];  // vdiv.f32 s18, s27, s18
+    case 0x7dca88: { const x = S[22], y = S[22]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s22, s22
+    case 0x7dca8c: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dca90: if (!M.V) { pc = 0x7dcaa0; continue; }  // bvc #0x7dcaa0
+    case 0x7dca94: S[0] = S[24];  // vmov.f32 s0, s24
+    case 0x7dca98: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dca9c: S[22] = S[0];  // vmov.f32 s22, s0
+    case 0x7dcaa0: S[25] = 1.1920928955078125e-07;  // [0x7dcd54]  // vldr s25, [pc, #0x2ac]
+    case 0x7dcaa4: S[30] = S[30] * S[18];  // vmul.f32 s30, s30, s18
+    case 0x7dcaa8: S[28] = S[28] * S[18];  // vmul.f32 s28, s28, s18
+    case 0x7dcaac: S[26] = S[26] * S[18];  // vmul.f32 s26, s26, s18
+    case 0x7dcab0: { const x = S[22], y = S[25]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s22, s25
+    case 0x7dcab4: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dcab8: if (M.N) { pc = 0x7dcacc; continue; }  // bmi #0x7dcacc
+    case 0x7dcabc: S[0] = S[27] / S[22];  // vdiv.f32 s0, s27, s22
+    case 0x7dcac0: S[17] = S[17] * S[0];  // vmul.f32 s17, s17, s0
+    case 0x7dcac4: S[19] = S[19] * S[0];  // vmul.f32 s19, s19, s0
+    case 0x7dcac8: S[16] = S[16] * S[0];  // vmul.f32 s16, s16, s0
+    case 0x7dcacc: S[0] = 0.0010000000474974513;  // [0x7dcd58]  // vldr s0, [pc, #0x284]
+    case 0x7dcad0: R[5] = 0;  // mov r5, #0
+    case 0x7dcad4: R[2] = (R[13] + 124) >>> 0;  // add r2, sp, #0x7c
+    case 0x7dcad8: R[3] = (R[13] + 120) >>> 0;  // add r3, sp, #0x78
+    case 0x7dcadc: R[0] = R[6];  // mov r0, r6
+    case 0x7dcae0: R[1] = R[7];  // mov r1, r7
+    case 0x7dcae4: M.stf((R[13] + 40) >>> 0, S[21]);  // vstr s21, [sp, #0x28]
+    case 0x7dcae8: M.st32(((R[13] + 124) >>> 0), R[5]);  // str r5, [sp, #0x7c]
+    case 0x7dcaec: M.st32(((R[13] + 120) >>> 0), R[5]);  // str r5, [sp, #0x78]
+    case 0x7dcaf0: M.st32(((R[13] + 116) >>> 0), R[5]);  // str r5, [sp, #0x74]
+    case 0x7dcaf4: M.st32(((R[13] + 108) >>> 0), R[5]);  // str r5, [sp, #0x6c]
+    case 0x7dcaf8: F_806ce4(M);  // bl #0x806ce4
+    case 0x7dcafc: S[0] = M.ldf((R[6] + 4) >>> 0);  // vldr s0, [r6, #4]
+    case 0x7dcb00: S[8] = M.ldf((R[6] + 20) >>> 0);  // vldr s8, [r6, #0x14]
+    case 0x7dcb04: S[4] = M.ldf((R[6] + 0) >>> 0);  // vldr s4, [r6]
+    case 0x7dcb08: S[6] = M.ldf((R[6] + 16) >>> 0);  // vldr s6, [r6, #0x10]
+    case 0x7dcb0c: S[2] = M.ldf((R[6] + 8) >>> 0);  // vldr s2, [r6, #8]
+    case 0x7dcb10: S[10] = M.ldf((R[6] + 24) >>> 0);  // vldr s10, [r6, #0x18]
+    case 0x7dcb14: S[29] = S[30] * S[17];  // vmul.f32 s29, s30, s17
+    case 0x7dcb18: S[21] = M.ldf((R[13] + 124) >>> 0);  // vldr s21, [sp, #0x7c]
+    case 0x7dcb1c: S[18] = S[8] - S[0];  // vsub.f32 s18, s8, s0
+    case 0x7dcb20: S[22] = S[6] - S[4];  // vsub.f32 s22, s6, s4
+    case 0x7dcb24: S[24] = S[10] - S[2];  // vsub.f32 s24, s10, s2
+    case 0x7dcb28: S[6] = S[28] * S[19];  // vmul.f32 s6, s28, s19
+    case 0x7dcb2c: S[4] = S[26] * S[16];  // vmul.f32 s4, s26, s16
+    case 0x7dcb30: S[0] = S[18] * S[18];  // vmul.f32 s0, s18, s18
+    case 0x7dcb34: S[0] = S[0] + Math.fround(S[22] * S[22]);  // vmla.f32 s0, s22, s22
+    case 0x7dcb38: M.stf((R[13] + 36) >>> 0, S[4]);  // vstr s4, [sp, #0x24]
+    case 0x7dcb3c: S[23] = S[4] + S[6];  // vadd.f32 s23, s4, s6
+    case 0x7dcb40: M.stf((R[13] + 32) >>> 0, S[6]);  // vstr s6, [sp, #0x20]
+    case 0x7dcb44: S[0] = S[0] + Math.fround(S[24] * S[24]);  // vmla.f32 s0, s24, s24
+    case 0x7dcb48: S[2] = Math.sqrt(S[0]);  // vsqrt.f32 s2, s0
+    case 0x7dcb4c: { const x = S[2], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s2
+    case 0x7dcb50: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dcb54: if (!M.V) { pc = 0x7dcb60; continue; }  // bvc #0x7dcb60
+    case 0x7dcb58: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dcb5c: S[2] = S[0];  // vmov.f32 s2, s0
+    case 0x7dcb60: S[0] = S[27] / S[2];  // vdiv.f32 s0, s27, s2
+    case 0x7dcb64: M.stf((R[13] + 28) >>> 0, S[29]);  // vstr s29, [sp, #0x1c]
+    case 0x7dcb68: S[12] = S[23] + S[29];  // vadd.f32 s12, s23, s29
+    case 0x7dcb6c: S[2] = M.ldf((R[6] + 0) >>> 0);  // vldr s2, [r6]
+    case 0x7dcb70: S[4] = M.ldf((R[6] + 4) >>> 0);  // vldr s4, [r6, #4]
+    case 0x7dcb74: S[6] = M.ldf((R[6] + 8) >>> 0);  // vldr s6, [r6, #8]
+    case 0x7dcb78: S[10] = S[18] * S[0];  // vmul.f32 s10, s18, s0
+    case 0x7dcb7c: S[8] = S[22] * S[0];  // vmul.f32 s8, s22, s0
+    case 0x7dcb80: S[0] = S[24] * S[0];  // vmul.f32 s0, s24, s0
+    case 0x7dcb84: S[18] = M.ldf((R[13] + 120) >>> 0);  // vldr s18, [sp, #0x78]
+    case 0x7dcb88: S[2] = S[2] + Math.fround(S[21] * S[8]);  // vmla.f32 s2, s21, s8
+    case 0x7dcb8c: S[4] = S[4] + Math.fround(S[21] * S[10]);  // vmla.f32 s4, s21, s10
+    case 0x7dcb90: S[6] = S[6] + Math.fround(S[21] * S[0]);  // vmla.f32 s6, s21, s0
+    case 0x7dcb94: M.stf((R[13] + 80) >>> 0, S[2]);  // vstr s2, [sp, #0x50]
+    case 0x7dcb98: M.stf((R[13] + 84) >>> 0, S[4]);  // vstr s4, [sp, #0x54]
+    case 0x7dcb9c: M.stf((R[13] + 88) >>> 0, S[6]);  // vstr s6, [sp, #0x58]
+    case 0x7dcba0: M.st32(((R[13] + 92) >>> 0), R[5]);  // str r5, [sp, #0x5c]
+    case 0x7dcba4: S[0] = M.ldf((R[7] + 4) >>> 0);  // vldr s0, [r7, #4]
+    case 0x7dcba8: S[8] = M.ldf((R[7] + 20) >>> 0);  // vldr s8, [r7, #0x14]
+    case 0x7dcbac: S[4] = M.ldf((R[7] + 0) >>> 0);  // vldr s4, [r7]
+    case 0x7dcbb0: S[6] = M.ldf((R[7] + 16) >>> 0);  // vldr s6, [r7, #0x10]
+    case 0x7dcbb4: S[2] = M.ldf((R[7] + 8) >>> 0);  // vldr s2, [r7, #8]
+    case 0x7dcbb8: S[10] = M.ldf((R[7] + 24) >>> 0);  // vldr s10, [r7, #0x18]
+    case 0x7dcbbc: S[21] = S[8] - S[0];  // vsub.f32 s21, s8, s0
+    case 0x7dcbc0: S[24] = S[6] - S[4];  // vsub.f32 s24, s6, s4
+    case 0x7dcbc4: S[23] = S[10] - S[2];  // vsub.f32 s23, s10, s2
+    case 0x7dcbc8: S[0] = S[21] * S[21];  // vmul.f32 s0, s21, s21
+    case 0x7dcbcc: S[0] = S[0] + Math.fround(S[24] * S[24]);  // vmla.f32 s0, s24, s24
+    case 0x7dcbd0: S[0] = S[0] + Math.fround(S[23] * S[23]);  // vmla.f32 s0, s23, s23
+    case 0x7dcbd4: S[22] = Math.sqrt(S[0]);  // vsqrt.f32 s22, s0
+    case 0x7dcbd8: { const x = S[22], y = S[22]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s22, s22
+    case 0x7dcbdc: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dcbe0: if (!M.V) { pc = 0x7dcbf4; continue; }  // bvc #0x7dcbf4
+    case 0x7dcbe4: S[22] = S[12];  // vmov.f32 s22, s12
+    case 0x7dcbe8: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dcbec: S[12] = S[22];  // vmov.f32 s12, s22
+    case 0x7dcbf0: S[22] = S[0];  // vmov.f32 s22, s0
+    case 0x7dcbf4: S[2] = M.ldf((R[13] + 84) >>> 0);  // vldr s2, [sp, #0x54]
+    case 0x7dcbf8: S[0] = M.ldf((R[13] + 80) >>> 0);  // vldr s0, [sp, #0x50]
+    case 0x7dcbfc: S[4] = M.ldf((R[13] + 88) >>> 0);  // vldr s4, [sp, #0x58]
+    case 0x7dcc00: S[31] = M.ldf((R[7] + 0) >>> 0);  // vldr s31, [r7]
+    case 0x7dcc04: S[27] = M.ldf((R[7] + 4) >>> 0);  // vldr s27, [r7, #4]
+    case 0x7dcc08: S[29] = M.ldf((R[7] + 8) >>> 0);  // vldr s29, [r7, #8]
+    case 0x7dcc0c: M.stf((R[13] + 64) >>> 0, S[26]);  // vstr s26, [sp, #0x40]
+    case 0x7dcc10: M.stf((R[13] + 68) >>> 0, S[28]);  // vstr s28, [sp, #0x44]
+    case 0x7dcc14: M.stf((R[13] + 72) >>> 0, S[30]);  // vstr s30, [sp, #0x48]
+    case 0x7dcc18: S[2] = S[28] * S[2];  // vmul.f32 s2, s28, s2
+    case 0x7dcc1c: S[2] = S[2] + Math.fround(S[26] * S[0]);  // vmla.f32 s2, s26, s0
+    case 0x7dcc20: S[2] = S[2] + Math.fround(S[30] * S[4]);  // vmla.f32 s2, s30, s4
+    case 0x7dcc24: S[0] = -S[2];  // vneg.f32 s0, s2
+    case 0x7dcc28: M.stf((R[13] + 76) >>> 0, S[0]);  // vstr s0, [sp, #0x4c]
+    case 0x7dcc2c: S[0] = Math.abs(S[12]);  // vabs.f32 s0, s12
+    case 0x7dcc30: { const x = S[0], y = S[25]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s25
+    case 0x7dcc34: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dcc38: if ((!M.C || M.Z)) { pc = 0x7dcd30; continue; }  // bls #0x7dcd30
+    case 0x7dcc3c: S[0] = M.ldf((R[6] + 32) >>> 0);  // vldr s0, [r6, #0x20]
+    case 0x7dcc40: S[1] = 0.10000000149011612;  // [0x7dd028]  // vldr s1, [pc, #0x3e0]
+    case 0x7dcc44: R[0] = (R[13] + 96) >>> 0;  // add r0, sp, #0x60
+    case 0x7dcc48: R[1] = (R[13] + 64) >>> 0;  // add r1, sp, #0x40
+    case 0x7dcc4c: R[2] = (R[13] + 80) >>> 0;  // add r2, sp, #0x50
+    case 0x7dcc50: R[3] = (R[13] + 116) >>> 0;  // add r3, sp, #0x74
+    case 0x7dcc54: S[25] = S[12];  // vmov.f32 s25, s12
+    case 0x7dcc58: M.st32(((R[13] + 0) >>> 0), R[0]);  // str r0, [sp]
+    case 0x7dcc5c: R[0] = R[7];  // mov r0, r7
+    case 0x7dcc60: F_7ebfd8(M);  // bl #0x7ebfd8
+    case 0x7dcc64: { const a = R[0] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp r0, #0
+    case 0x7dcc68: if (M.Z) { pc = 0x7dcd5c; continue; }  // beq #0x7dcd5c
+    case 0x7dcc6c: S[0] = M.ldf((R[13] + 80) >>> 0);  // vldr s0, [sp, #0x50]
+    case 0x7dcc70: S[6] = M.ldf((R[13] + 96) >>> 0);  // vldr s6, [sp, #0x60]
+    case 0x7dcc74: S[2] = M.ldf((R[13] + 84) >>> 0);  // vldr s2, [sp, #0x54]
+    case 0x7dcc78: S[8] = M.ldf((R[13] + 100) >>> 0);  // vldr s8, [sp, #0x64]
+    case 0x7dcc7c: S[4] = M.ldf((R[13] + 88) >>> 0);  // vldr s4, [sp, #0x58]
+    case 0x7dcc80: S[10] = M.ldf((R[13] + 104) >>> 0);  // vldr s10, [sp, #0x68]
+    case 0x7dcc84: R[0] = 0;  // mov r0, #0
+    case 0x7dcc88: S[27] = S[8] - S[2];  // vsub.f32 s27, s8, s2
+    case 0x7dcc8c: S[29] = S[6] - S[0];  // vsub.f32 s29, s6, s0
+    case 0x7dcc90: S[31] = S[10] - S[4];  // vsub.f32 s31, s10, s4
+    case 0x7dcc94: S[8] = M.ldf((R[6] + 32) >>> 0);  // vldr s8, [r6, #0x20]
+    case 0x7dcc98: S[18] = S[27] * S[27];  // vmul.f32 s18, s27, s27
+    case 0x7dcc9c: S[18] = S[18] + Math.fround(S[29] * S[29]);  // vmla.f32 s18, s29, s29
+    case 0x7dcca0: S[18] = S[18] + Math.fround(S[31] * S[31]);  // vmla.f32 s18, s31, s31
+    case 0x7dcca4: S[24] = S[8] * S[8];  // vmul.f32 s24, s8, s8
+    case 0x7dcca8: S[8] = S[25];  // vmov.f32 s8, s25
+    case 0x7dccac: { const x = S[18], y = S[24]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s18, s24
+    case 0x7dccb0: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dccb4: if ((!M.C || M.Z)) { R[0] = 1; }  // movwls r0, #1
+    case 0x7dccb8: { const a = R[10] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp sl, #0
+    case 0x7dccbc: if (!M.Z) { R[1] = M.ld32(((R[13] + 116) >>> 0)); }  // ldrne r1, [sp, #0x74]
+    case 0x7dccc0: if (!M.Z) { M.st32(((R[10] + 0) >>> 0), R[1]); }  // strne r1, [sl]
+    case 0x7dccc4: { const a = R[4] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp r4, #0
+    case 0x7dccc8: if (M.Z) { pc = 0x7dd8cc; continue; }  // beq #0x7dd8cc
+    case 0x7dcccc: S[6] = 1.1920928955078125e-07;  // [0x7dcd54]  // vldr s6, [pc, #0x80]
+    case 0x7dccd0: { const x = S[18], y = S[6]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s18, s6
+    case 0x7dccd4: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dccd8: if ((!M.C || M.Z)) { pc = 0x7dd3d0; continue; }  // bls #0x7dd3d0
+    case 0x7dccdc: S[22] = Math.sqrt(S[18]);  // vsqrt.f32 s22, s18
+    case 0x7dcce0: { const x = S[22], y = S[22]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s22, s22
+    case 0x7dcce4: S[20] = S[22];  // vmov.f32 s20, s22
+    case 0x7dcce8: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dccec: if (!M.V) { pc = 0x7dccfc; continue; }  // bvc #0x7dccfc
+    case 0x7dccf0: S[0] = S[18];  // vmov.f32 s0, s18
+    case 0x7dccf4: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dccf8: S[20] = S[0];  // vmov.f32 s20, s0
+    case 0x7dccfc: { const x = S[22], y = S[22]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s22, s22
+    case 0x7dcd00: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dcd04: if (!M.V) { pc = 0x7dcd14; continue; }  // bvc #0x7dcd14
+    case 0x7dcd08: S[0] = S[18];  // vmov.f32 s0, s18
+    case 0x7dcd0c: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dcd10: S[22] = S[0];  // vmov.f32 s22, s0
+    case 0x7dcd14: S[0] = 1.1920928955078125e-07;  // [0x7dcd54]  // vldr s0, [pc, #0x38]
+    case 0x7dcd18: { const x = S[22], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s22, s0
+    case 0x7dcd1c: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dcd20: if (M.N) { pc = 0x7dd4f4; continue; }  // bmi #0x7dd4f4
+    case 0x7dcd24: S[0] = 1.0;  // vmov.f32 s0, #1.000000e+00
+    case 0x7dcd28: S[0] = S[0] / S[22];  // vdiv.f32 s0, s0, s22
+    case 0x7dcd2c: { pc = 0x7dd4e8; continue; }  // b #0x7dd4e8
+    case 0x7dcd30: { const a = R[10] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp sl, #0
+    case 0x7dcd34: if (M.Z) { pc = 0x7dcf20; continue; }  // beq #0x7dcf20
+    case 0x7dcd38: R[0] = M.ld32(((R[13] + 120) >>> 0));  // ldr r0, [sp, #0x78]
+    case 0x7dcd3c: M.st32(((R[10] + 0) >>> 0), R[0]);  // str r0, [sl]
+    case 0x7dcd40: M.U[0] = R[0]; S[16] = M.F[0];  // vmov s16, r0
+    case 0x7dcd44: S[31] = M.ldf((R[7] + 0) >>> 0);  // vldr s31, [r7]
+    case 0x7dcd48: S[27] = M.ldf((R[7] + 4) >>> 0);  // vldr s27, [r7, #4]
+    case 0x7dcd4c: S[29] = M.ldf((R[7] + 8) >>> 0);  // vldr s29, [r7, #8]
+    case 0x7dcd50: { pc = 0x7dcf24; continue; }  // b #0x7dcf24
+    case 0x7dcd5c: S[0] = 1.0;  // vmov.f32 s0, #1.000000e+00
+    case 0x7dcd60: S[16] = 0.0010000000474974513;  // [0x7dcd58]  // vldr s16, [pc, #-0x10]
+    case 0x7dcd64: R[5] = 0;  // mov r5, #0
+    case 0x7dcd68: R[2] = (R[13] + 48) >>> 0;  // add r2, sp, #0x30
+    case 0x7dcd6c: R[3] = (R[13] + 44) >>> 0;  // add r3, sp, #0x2c
+    case 0x7dcd70: R[0] = R[6];  // mov r0, r6
+    case 0x7dcd74: R[1] = R[7];  // mov r1, r7
+    case 0x7dcd78: M.st32(((R[13] + 48) >>> 0), R[5]);  // str r5, [sp, #0x30]
+    case 0x7dcd7c: M.st32(((R[13] + 44) >>> 0), R[5]);  // str r5, [sp, #0x2c]
+    case 0x7dcd80: S[0] = S[0] / S[22];  // vdiv.f32 s0, s0, s22
+    case 0x7dcd84: S[2] = S[23] * S[0];  // vmul.f32 s2, s23, s0
+    case 0x7dcd88: S[4] = S[21] * S[0];  // vmul.f32 s4, s21, s0
+    case 0x7dcd8c: S[0] = S[24] * S[0];  // vmul.f32 s0, s24, s0
+    case 0x7dcd90: S[31] = S[31] + Math.fround(S[18] * S[0]);  // vmla.f32 s31, s18, s0
+    case 0x7dcd94: S[0] = S[16];  // vmov.f32 s0, s16
+    case 0x7dcd98: S[29] = S[29] + Math.fround(S[18] * S[2]);  // vmla.f32 s29, s18, s2
+    case 0x7dcd9c: S[27] = S[27] + Math.fround(S[18] * S[4]);  // vmla.f32 s27, s18, s4
+    case 0x7dcda0: F_806ce4(M);  // bl #0x806ce4
+    case 0x7dcda4: S[22] = S[0];  // vmov.f32 s22, s0
+    case 0x7dcda8: S[0] = -0.0010000000474974513;  // [0x7dd02c]  // vldr s0, [pc, #0x27c]
+    case 0x7dcdac: S[17] = M.ldf((R[13] + 48) >>> 0);  // vldr s17, [sp, #0x30]
+    case 0x7dcdb0: S[0] = S[20] + S[0];  // vadd.f32 s0, s20, s0
+    case 0x7dcdb4: { const x = S[17], y = S[16]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s17, s16
+    case 0x7dcdb8: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dcdbc: if ((M.C && !M.Z)) { R[5] = 1; }  // movwhi r5, #1
+    case 0x7dcdc0: { const x = S[17], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s17, s0
+    case 0x7dcdc4: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dcdc8: if ((M.N === M.V)) { pc = 0x7dd030; continue; }  // bge #0x7dd030
+    case 0x7dcdcc: { const a = R[5] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp r5, #0
+    case 0x7dcdd0: if (M.Z) { pc = 0x7dd030; continue; }  // beq #0x7dd030
+    case 0x7dcdd4: S[0] = M.ldf((R[6] + 4) >>> 0);  // vldr s0, [r6, #4]
+    case 0x7dcdd8: S[8] = M.ldf((R[6] + 20) >>> 0);  // vldr s8, [r6, #0x14]
+    case 0x7dcddc: S[4] = M.ldf((R[6] + 0) >>> 0);  // vldr s4, [r6]
+    case 0x7dcde0: S[6] = M.ldf((R[6] + 16) >>> 0);  // vldr s6, [r6, #0x10]
+    case 0x7dcde4: S[2] = M.ldf((R[6] + 8) >>> 0);  // vldr s2, [r6, #8]
+    case 0x7dcde8: S[10] = M.ldf((R[6] + 24) >>> 0);  // vldr s10, [r6, #0x18]
+    case 0x7dcdec: S[20] = S[8] - S[0];  // vsub.f32 s20, s8, s0
+    case 0x7dcdf0: S[18] = S[6] - S[4];  // vsub.f32 s18, s6, s4
+    case 0x7dcdf4: S[16] = S[10] - S[2];  // vsub.f32 s16, s10, s2
+    case 0x7dcdf8: S[0] = S[20] * S[20];  // vmul.f32 s0, s20, s20
+    case 0x7dcdfc: S[0] = S[0] + Math.fround(S[18] * S[18]);  // vmla.f32 s0, s18, s18
+    case 0x7dce00: S[0] = S[0] + Math.fround(S[16] * S[16]);  // vmla.f32 s0, s16, s16
+    case 0x7dce04: S[2] = Math.sqrt(S[0]);  // vsqrt.f32 s2, s0
+    case 0x7dce08: { const x = S[2], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s2
+    case 0x7dce0c: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dce10: if (!M.V) { pc = 0x7dce1c; continue; }  // bvc #0x7dce1c
+    case 0x7dce14: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dce18: S[2] = S[0];  // vmov.f32 s2, s0
+    case 0x7dce1c: S[0] = 1.0;  // vmov.f32 s0, #1.000000e+00
+    case 0x7dce20: S[24] = M.ldf((R[6] + 0) >>> 0);  // vldr s24, [r6]
+    case 0x7dce24: S[26] = M.ldf((R[6] + 4) >>> 0);  // vldr s26, [r6, #4]
+    case 0x7dce28: S[28] = M.ldf((R[6] + 8) >>> 0);  // vldr s28, [r6, #8]
+    case 0x7dce2c: S[0] = S[0] / S[2];  // vdiv.f32 s0, s0, s2
+    case 0x7dce30: S[2] = S[20] * S[0];  // vmul.f32 s2, s20, s0
+    case 0x7dce34: S[4] = S[18] * S[0];  // vmul.f32 s4, s18, s0
+    case 0x7dce38: S[0] = S[16] * S[0];  // vmul.f32 s0, s16, s0
+    case 0x7dce3c: S[26] = S[26] + Math.fround(S[17] * S[2]);  // vmla.f32 s26, s17, s2
+    case 0x7dce40: S[24] = S[24] + Math.fround(S[17] * S[4]);  // vmla.f32 s24, s17, s4
+    case 0x7dce44: S[28] = S[28] + Math.fround(S[17] * S[0]);  // vmla.f32 s28, s17, s0
+    case 0x7dce48: S[16] = S[27] - S[26];  // vsub.f32 s16, s27, s26
+    case 0x7dce4c: S[18] = S[31] - S[24];  // vsub.f32 s18, s31, s24
+    case 0x7dce50: S[20] = S[29] - S[28];  // vsub.f32 s20, s29, s28
+    case 0x7dce54: S[2] = S[16] * S[16];  // vmul.f32 s2, s16, s16
+    case 0x7dce58: S[2] = S[2] + Math.fround(S[18] * S[18]);  // vmla.f32 s2, s18, s18
+    case 0x7dce5c: S[2] = S[2] + Math.fround(S[20] * S[20]);  // vmla.f32 s2, s20, s20
+    case 0x7dce60: S[0] = Math.sqrt(S[2]);  // vsqrt.f32 s0, s2
+    case 0x7dce64: { const x = S[0], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s0
+    case 0x7dce68: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dce6c: if (!M.V) { pc = 0x7dce78; continue; }  // bvc #0x7dce78
+    case 0x7dce70: S[0] = S[2];  // vmov.f32 s0, s2
+    case 0x7dce74: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dce78: S[2] = 1.1920928955078125e-07;  // [0x7dcd54]  // vldr s2, [pc, #-0x12c]
+    case 0x7dce7c: { const x = S[0], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s2
+    case 0x7dce80: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dce84: if (M.N) { pc = 0x7dce9c; continue; }  // bmi #0x7dce9c
+    case 0x7dce88: S[2] = 1.0;  // vmov.f32 s2, #1.000000e+00
+    case 0x7dce8c: S[0] = S[2] / S[0];  // vdiv.f32 s0, s2, s0
+    case 0x7dce90: S[20] = S[0] * S[20];  // vmul.f32 s20, s0, s20
+    case 0x7dce94: S[16] = S[0] * S[16];  // vmul.f32 s16, s0, s16
+    case 0x7dce98: S[18] = S[0] * S[18];  // vmul.f32 s18, s0, s18
+    case 0x7dce9c: { const a = R[10] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp sl, #0
+    case 0x7dcea0: S[0] = M.ldf((R[6] + 32) >>> 0);  // vldr s0, [r6, #0x20]
+    case 0x7dcea4: if (!M.Z) { R[0] = M.ld32(((R[13] + 44) >>> 0)); }  // ldrne r0, [sp, #0x2c]
+    case 0x7dcea8: if (!M.Z) { M.st32(((R[10] + 0) >>> 0), R[0]); }  // strne r0, [sl]
+    case 0x7dceac: { const a = R[4] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp r4, #0
+    case 0x7dceb0: if (M.Z) { pc = 0x7dd6bc; continue; }  // beq #0x7dd6bc
+    case 0x7dceb4: S[2] = S[20] * S[0];  // vmul.f32 s2, s20, s0
+    case 0x7dceb8: S[4] = S[16] * S[0];  // vmul.f32 s4, s16, s0
+    case 0x7dcebc: S[6] = S[18] * S[0];  // vmul.f32 s6, s18, s0
+    case 0x7dcec0: S[0] = Math.sqrt(S[22]);  // vsqrt.f32 s0, s22
+    case 0x7dcec4: S[28] = S[28] + S[2];  // vadd.f32 s28, s28, s2
+    case 0x7dcec8: S[26] = S[26] + S[4];  // vadd.f32 s26, s26, s4
+    case 0x7dcecc: S[24] = S[24] + S[6];  // vadd.f32 s24, s24, s6
+    case 0x7dced0: { const x = S[0], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s0
+    case 0x7dced4: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dced8: if (!M.V) { pc = 0x7dcee4; continue; }  // bvc #0x7dcee4
+    case 0x7dcedc: S[0] = S[22];  // vmov.f32 s0, s22
+    case 0x7dcee0: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dcee4: S[2] = M.ldf((R[6] + 32) >>> 0);  // vldr s2, [r6, #0x20]
+    case 0x7dcee8: R[0] = 0;  // mov r0, #0
+    case 0x7dceec: M.stf((R[4] + 0) >>> 0, S[24]);  // vstr s24, [r4]
+    case 0x7dcef0: M.stf((R[4] + 4) >>> 0, S[26]);  // vstr s26, [r4, #4]
+    case 0x7dcef4: M.stf((R[4] + 8) >>> 0, S[28]);  // vstr s28, [r4, #8]
+    case 0x7dcef8: M.st32(((R[4] + 12) >>> 0), R[0]);  // str r0, [r4, #0xc]
+    case 0x7dcefc: M.stf((R[4] + 16) >>> 0, S[18]);  // vstr s18, [r4, #0x10]
+    case 0x7dcf00: M.stf((R[4] + 20) >>> 0, S[16]);  // vstr s16, [r4, #0x14]
+    case 0x7dcf04: M.stf((R[4] + 24) >>> 0, S[20]);  // vstr s20, [r4, #0x18]
+    case 0x7dcf08: M.st32(((R[4] + 28) >>> 0), R[0]);  // str r0, [r4, #0x1c]
+    case 0x7dcf0c: S[0] = S[0] - S[2];  // vsub.f32 s0, s0, s2
+    case 0x7dcf10: M.stf((R[4] + 32) >>> 0, S[0]);  // vstr s0, [r4, #0x20]
+    case 0x7dcf14: M.st32(((R[4] + 36) >>> 0), R[0]);  // str r0, [r4, #0x24]
+    case 0x7dcf18: M.st8(((R[4] + 40) >>> 0), R[0]);  // strb r0, [r4, #0x28]
+    case 0x7dcf1c: { pc = 0x7dd6bc; continue; }  // b #0x7dd6bc
+    case 0x7dcf20: S[16] = M.ldf((R[13] + 120) >>> 0);  // vldr s16, [sp, #0x78]
+    case 0x7dcf24: S[0] = M.ldf((R[7] + 16) >>> 0);  // vldr s0, [r7, #0x10]
+    case 0x7dcf28: S[2] = M.ldf((R[7] + 20) >>> 0);  // vldr s2, [r7, #0x14]
+    case 0x7dcf2c: S[4] = M.ldf((R[7] + 24) >>> 0);  // vldr s4, [r7, #0x18]
+    case 0x7dcf30: S[18] = S[2] - S[27];  // vsub.f32 s18, s2, s27
+    case 0x7dcf34: S[22] = S[0] - S[31];  // vsub.f32 s22, s0, s31
+    case 0x7dcf38: S[20] = S[4] - S[29];  // vsub.f32 s20, s4, s29
+    case 0x7dcf3c: S[0] = S[18] * S[18];  // vmul.f32 s0, s18, s18
+    case 0x7dcf40: S[0] = S[0] + Math.fround(S[22] * S[22]);  // vmla.f32 s0, s22, s22
+    case 0x7dcf44: S[0] = S[0] + Math.fround(S[20] * S[20]);  // vmla.f32 s0, s20, s20
+    case 0x7dcf48: S[2] = Math.sqrt(S[0]);  // vsqrt.f32 s2, s0
+    case 0x7dcf4c: { const x = S[2], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s2
+    case 0x7dcf50: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dcf54: if (!M.V) { pc = 0x7dcf60; continue; }  // bvc #0x7dcf60
+    case 0x7dcf58: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dcf5c: S[2] = S[0];  // vmov.f32 s2, s0
+    case 0x7dcf60: S[0] = 1.0;  // vmov.f32 s0, #1.000000e+00
+    case 0x7dcf64: S[4] = M.ldf((R[7] + 4) >>> 0);  // vldr s4, [r7, #4]
+    case 0x7dcf68: S[6] = M.ldf((R[7] + 8) >>> 0);  // vldr s6, [r7, #8]
+    case 0x7dcf6c: R[0] = 65535;  // movw r0, #0xffff
+    case 0x7dcf70: R[5] = (R[13] + 128) >>> 0;  // add r5, sp, #0x80
+    case 0x7dcf74: R[1] = (R[13] + 48) >>> 0;  // add r1, sp, #0x30
+    case 0x7dcf78: R[0] = ((R[0] & 0xffff) | (32639 << 16)) >>> 0;  // movt r0, #0x7f7f
+    case 0x7dcf7c: R[2] = R[5];  // mov r2, r5
+    case 0x7dcf80: S[0] = S[0] / S[2];  // vdiv.f32 s0, s0, s2
+    case 0x7dcf84: S[2] = M.ldf((R[7] + 0) >>> 0);  // vldr s2, [r7]
+    case 0x7dcf88: R[7] = 0;  // mov r7, #0
+    case 0x7dcf8c: M.st32(((R[13] + 140) >>> 0), R[7]);  // str r7, [sp, #0x8c]
+    case 0x7dcf90: M.st32(((R[13] + 156) >>> 0), R[7]);  // str r7, [sp, #0x9c]
+    case 0x7dcf94: M.st32(((R[13] + 160) >>> 0), R[0]);  // str r0, [sp, #0xa0]
+    case 0x7dcf98: R[0] = R[6];  // mov r0, r6
+    case 0x7dcf9c: M.st32(((R[13] + 164) >>> 0), R[7]);  // str r7, [sp, #0xa4]
+    case 0x7dcfa0: M.st8(((R[13] + 168) >>> 0), R[7]);  // strb r7, [sp, #0xa8]
+    case 0x7dcfa4: S[8] = S[22] * S[0];  // vmul.f32 s8, s22, s0
+    case 0x7dcfa8: S[10] = S[18] * S[0];  // vmul.f32 s10, s18, s0
+    case 0x7dcfac: S[0] = S[20] * S[0];  // vmul.f32 s0, s20, s0
+    case 0x7dcfb0: S[2] = S[2] + Math.fround(S[16] * S[8]);  // vmla.f32 s2, s16, s8
+    case 0x7dcfb4: S[4] = S[4] + Math.fround(S[16] * S[10]);  // vmla.f32 s4, s16, s10
+    case 0x7dcfb8: S[6] = S[6] + Math.fround(S[16] * S[0]);  // vmla.f32 s6, s16, s0
+    case 0x7dcfbc: M.stf((R[13] + 48) >>> 0, S[2]);  // vstr s2, [sp, #0x30]
+    case 0x7dcfc0: M.stf((R[13] + 52) >>> 0, S[4]);  // vstr s4, [sp, #0x34]
+    case 0x7dcfc4: M.stf((R[13] + 56) >>> 0, S[6]);  // vstr s6, [sp, #0x38]
+    case 0x7dcfc8: M.st32(((R[13] + 60) >>> 0), R[7]);  // str r7, [sp, #0x3c]
+    case 0x7dcfcc: F_7db964(M);  // bl #0x7db964
+    case 0x7dcfd0: { const a = R[4] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp r4, #0
+    case 0x7dcfd4: if (M.Z) { pc = 0x7dd8cc; continue; }  // beq #0x7dd8cc
+    case 0x7dcfd8: R[2] = M.ld32(((R[13] + 128) >>> 0));  // ldr r2, [sp, #0x80]
+    case 0x7dcfdc: R[1] = (R[5] + 32) >>> 0;  // add r1, r5, #0x20
+    case 0x7dcfe0: M.st32(((R[4] + 0) >>> 0), R[2]);  // str r2, [r4]
+    case 0x7dcfe4: R[2] = M.ld32(((R[13] + 132) >>> 0));  // ldr r2, [sp, #0x84]
+    case 0x7dcfe8: M.st32(((R[4] + 4) >>> 0), R[2]);  // str r2, [r4, #4]
+    case 0x7dcfec: R[2] = M.ld32(((R[13] + 136) >>> 0));  // ldr r2, [sp, #0x88]
+    case 0x7dcff0: M.st32(((R[4] + 8) >>> 0), R[2]);  // str r2, [r4, #8]
+    case 0x7dcff4: M.st32(((R[4] + 12) >>> 0), R[7]);  // str r7, [r4, #0xc]
+    case 0x7dcff8: R[2] = M.ld32(((R[13] + 144) >>> 0));  // ldr r2, [sp, #0x90]
+    case 0x7dcffc: M.st32(((R[4] + 16) >>> 0), R[2]);  // str r2, [r4, #0x10]
+    case 0x7dd000: R[2] = M.ld32(((R[13] + 148) >>> 0));  // ldr r2, [sp, #0x94]
+    case 0x7dd004: M.st32(((R[4] + 20) >>> 0), R[2]);  // str r2, [r4, #0x14]
+    case 0x7dd008: R[2] = M.ld32(((R[13] + 152) >>> 0));  // ldr r2, [sp, #0x98]
+    case 0x7dd00c: M.st32(((R[4] + 24) >>> 0), R[2]);  // str r2, [r4, #0x18]
+    case 0x7dd010: M.st32(((R[4] + 28) >>> 0), R[7]);  // str r7, [r4, #0x1c]
+    case 0x7dd014: R[2] = M.ld8(((R[1] + 8) >>> 0));  // ldrb r2, [r1, #8]
+    case 0x7dd018: M.st8(((R[4] + 40) >>> 0), R[2]);  // strb r2, [r4, #0x28]
+    case 0x7dd01c: { const a = ((R[1] + 0) >>> 0); R[2] = M.ld32(a); R[3] = M.ld32(a + 4); }  // ldrd r2, r3, [r1]
+    case 0x7dd020: { const a = ((R[4] + 32) >>> 0); M.st32(a, R[2]); M.st32(a + 4, R[3]); }  // strd r2, r3, [r4, #0x20]
+    case 0x7dd024: { pc = 0x7dd8cc; continue; }  // b #0x7dd8cc
+    case 0x7dd030: { const x = S[17], y = S[16]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s17, s16
+    case 0x7dd034: R[0] = R[6];  // mov r0, r6
+    case 0x7dd038: S[19] = M.ldf((R[7] + 20) >>> 0);  // vldr s19, [r7, #0x14]
+    case 0x7dd03c: M.stf((R[13] + 16) >>> 0, S[17]);  // vstr s17, [sp, #0x10]
+    case 0x7dd040: S[2] = M.ldf((R[13] + 68) >>> 0);  // vldr s2, [sp, #0x44]
+    case 0x7dd044: S[0] = M.ldf((R[13] + 64) >>> 0);  // vldr s0, [sp, #0x40]
+    case 0x7dd048: S[4] = M.ldf((R[13] + 72) >>> 0);  // vldr s4, [sp, #0x48]
+    case 0x7dd04c: S[6] = M.ldf((R[13] + 76) >>> 0);  // vldr s6, [sp, #0x4c]
+    case 0x7dd050: S[25] = M.ldf((R[7] + 4) >>> 0);  // vldr s25, [r7, #4]
+    case 0x7dd054: S[12] = M.ldf((R[7] + 0) >>> 0);  // vldr s12, [r7]
+    case 0x7dd058: S[16] = M.ldf((R[7] + 16) >>> 0);  // vldr s16, [r7, #0x10]
+    case 0x7dd05c: S[10] = M.ldf((R[7] + 8) >>> 0);  // vldr s10, [r7, #8]
+    case 0x7dd060: S[1] = M.ldf((R[7] + 24) >>> 0);  // vldr s1, [r7, #0x18]
+    case 0x7dd064: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd068: if ((M.C && !M.Z)) { R[0] = (R[0] + 16) >>> 0; }  // addhi r0, r0, #0x10
+    case 0x7dd06c: S[20] = M.ldf((R[0] + 0) >>> 0);  // vldr s20, [r0]
+    case 0x7dd070: S[22] = M.ldf((R[0] + 4) >>> 0);  // vldr s22, [r0, #4]
+    case 0x7dd074: S[21] = M.ldf((R[0] + 8) >>> 0);  // vldr s21, [r0, #8]
+    case 0x7dd078: S[8] = S[2] * S[19];  // vmul.f32 s8, s2, s19
+    case 0x7dd07c: S[2] = S[25] * S[2];  // vmul.f32 s2, s25, s2
+    case 0x7dd080: S[8] = S[8] + Math.fround(S[0] * S[16]);  // vmla.f32 s8, s0, s16
+    case 0x7dd084: S[2] = S[2] + Math.fround(S[12] * S[0]);  // vmla.f32 s2, s12, s0
+    case 0x7dd088: M.stf((R[13] + 36) >>> 0, S[10]);  // vstr s10, [sp, #0x24]
+    case 0x7dd08c: S[24] = S[27] - S[22];  // vsub.f32 s24, s27, s22
+    case 0x7dd090: S[17] = S[31] - S[20];  // vsub.f32 s17, s31, s20
+    case 0x7dd094: S[18] = S[29] - S[21];  // vsub.f32 s18, s29, s21
+    case 0x7dd098: S[27] = S[1];  // vmov.f32 s27, s1
+    case 0x7dd09c: S[2] = S[2] + Math.fround(S[10] * S[4]);  // vmla.f32 s2, s10, s4
+    case 0x7dd0a0: S[8] = S[8] + Math.fround(S[4] * S[1]);  // vmla.f32 s8, s4, s1
+    case 0x7dd0a4: S[4] = M.ldf((R[6] + 32) >>> 0);  // vldr s4, [r6, #0x20]
+    case 0x7dd0a8: S[0] = S[28] * S[24];  // vmul.f32 s0, s28, s24
+    case 0x7dd0ac: S[0] = S[0] + Math.fround(S[26] * S[17]);  // vmla.f32 s0, s26, s17
+    case 0x7dd0b0: M.stf((R[13] + 20) >>> 0, S[4]);  // vstr s4, [sp, #0x14]
+    case 0x7dd0b4: S[0] = S[0] + Math.fround(S[30] * S[18]);  // vmla.f32 s0, s30, s18
+    case 0x7dd0b8: S[31] = S[6] + S[2];  // vadd.f32 s31, s6, s2
+    case 0x7dd0bc: S[29] = S[6] + S[8];  // vadd.f32 s29, s6, s8
+    case 0x7dd0c0: S[24] = S[24] - Math.fround(S[28] * S[0]);  // vmls.f32 s24, s28, s0
+    case 0x7dd0c4: S[17] = S[17] - Math.fround(S[26] * S[0]);  // vmls.f32 s17, s26, s0
+    case 0x7dd0c8: S[18] = S[18] - Math.fround(S[30] * S[0]);  // vmls.f32 s18, s30, s0
+    case 0x7dd0cc: S[2] = S[24] * S[24];  // vmul.f32 s2, s24, s24
+    case 0x7dd0d0: S[2] = S[2] + Math.fround(S[17] * S[17]);  // vmla.f32 s2, s17, s17
+    case 0x7dd0d4: S[2] = S[2] + Math.fround(S[18] * S[18]);  // vmla.f32 s2, s18, s18
+    case 0x7dd0d8: S[0] = Math.sqrt(S[2]);  // vsqrt.f32 s0, s2
+    case 0x7dd0dc: { const x = S[0], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s0
+    case 0x7dd0e0: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd0e4: if (!M.V) { pc = 0x7dd0f8; continue; }  // bvc #0x7dd0f8
+    case 0x7dd0e8: S[0] = S[2];  // vmov.f32 s0, s2
+    case 0x7dd0ec: S[23] = S[12];  // vmov.f32 s23, s12
+    case 0x7dd0f0: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dd0f4: S[12] = S[23];  // vmov.f32 s12, s23
+    case 0x7dd0f8: S[19] = S[19] - Math.fround(S[28] * S[29]);  // vmls.f32 s19, s28, s29
+    case 0x7dd0fc: S[25] = S[25] - Math.fround(S[28] * S[31]);  // vmls.f32 s25, s28, s31
+    case 0x7dd100: S[2] = 1.1920928955078125e-07;  // [0x7dcd54]  // vldr s2, [pc, #-0x3b4]
+    case 0x7dd104: { const x = S[0], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s2
+    case 0x7dd108: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd10c: if (M.N) { pc = 0x7dd124; continue; }  // bmi #0x7dd124
+    case 0x7dd110: S[2] = 1.0;  // vmov.f32 s2, #1.000000e+00
+    case 0x7dd114: S[0] = S[2] / S[0];  // vdiv.f32 s0, s2, s0
+    case 0x7dd118: S[18] = S[18] * S[0];  // vmul.f32 s18, s18, s0
+    case 0x7dd11c: S[24] = S[24] * S[0];  // vmul.f32 s24, s24, s0
+    case 0x7dd120: S[17] = S[17] * S[0];  // vmul.f32 s17, s17, s0
+    case 0x7dd124: M.stf((R[13] + 12) >>> 0, S[19]);  // vstr s19, [sp, #0xc]
+    case 0x7dd128: M.stf((R[13] + 8) >>> 0, S[25]);  // vstr s25, [sp, #8]
+    case 0x7dd12c: S[2] = S[20];  // vmov.f32 s2, s20
+    case 0x7dd130: S[23] = S[22] - S[19];  // vsub.f32 s23, s22, s19
+    case 0x7dd134: S[19] = S[22] - S[25];  // vsub.f32 s19, s22, s25
+    case 0x7dd138: S[12] = S[12] - Math.fround(S[26] * S[31]);  // vmls.f32 s12, s26, s31
+    case 0x7dd13c: R[0] = 0;  // mov r0, #0
+    case 0x7dd140: R[1] = (R[13] + 128) >>> 0;  // add r1, sp, #0x80
+    case 0x7dd144: R[2] = (R[13] + 116) >>> 0;  // add r2, sp, #0x74
+    case 0x7dd148: S[16] = S[16] - Math.fround(S[26] * S[29]);  // vmls.f32 s16, s26, s29
+    case 0x7dd14c: S[0] = M.ldf((R[6] + 32) >>> 0);  // vldr s0, [r6, #0x20]
+    case 0x7dd150: M.stf((R[13] + 24) >>> 0, S[21]);  // vstr s21, [sp, #0x18]
+    case 0x7dd154: S[2] = S[2] + Math.fround(S[17] * S[0]);  // vmla.f32 s2, s17, s0
+    case 0x7dd158: S[22] = S[22] + Math.fround(S[24] * S[0]);  // vmla.f32 s22, s24, s0
+    case 0x7dd15c: M.stf((R[13] + 128) >>> 0, S[2]);  // vstr s2, [sp, #0x80]
+    case 0x7dd160: S[2] = S[21];  // vmov.f32 s2, s21
+    case 0x7dd164: M.stf((R[13] + 132) >>> 0, S[22]);  // vstr s22, [sp, #0x84]
+    case 0x7dd168: S[21] = S[12];  // vmov.f32 s21, s12
+    case 0x7dd16c: S[2] = S[2] + Math.fround(S[18] * S[0]);  // vmla.f32 s2, s18, s0
+    case 0x7dd170: M.stf((R[13] + 136) >>> 0, S[2]);  // vstr s2, [sp, #0x88]
+    case 0x7dd174: M.st32(((R[13] + 140) >>> 0), R[0]);  // str r0, [sp, #0x8c]
+    case 0x7dd178: R[0] = R[7];  // mov r0, r7
+    case 0x7dd17c: F_8069d8(M);  // bl #0x8069d8
+    case 0x7dd180: S[0] = M.ldf((R[7] + 4) >>> 0);  // vldr s0, [r7, #4]
+    case 0x7dd184: S[2] = M.ldf((R[7] + 0) >>> 0);  // vldr s2, [r7]
+    case 0x7dd188: S[6] = M.ldf((R[7] + 16) >>> 0);  // vldr s6, [r7, #0x10]
+    case 0x7dd18c: S[8] = M.ldf((R[7] + 20) >>> 0);  // vldr s8, [r7, #0x14]
+    case 0x7dd190: S[4] = M.ldf((R[7] + 8) >>> 0);  // vldr s4, [r7, #8]
+    case 0x7dd194: S[10] = M.ldf((R[7] + 24) >>> 0);  // vldr s10, [r7, #0x18]
+    case 0x7dd198: S[18] = S[29];  // vmov.f32 s18, s29
+    case 0x7dd19c: S[22] = M.ldf((R[13] + 116) >>> 0);  // vldr s22, [sp, #0x74]
+    case 0x7dd1a0: S[29] = S[8] - S[0];  // vsub.f32 s29, s8, s0
+    case 0x7dd1a4: S[25] = S[6] - S[2];  // vsub.f32 s25, s6, s2
+    case 0x7dd1a8: S[24] = S[10] - S[4];  // vsub.f32 s24, s10, s4
+    case 0x7dd1ac: S[2] = S[29] * S[29];  // vmul.f32 s2, s29, s29
+    case 0x7dd1b0: S[2] = S[2] + Math.fround(S[25] * S[25]);  // vmla.f32 s2, s25, s25
+    case 0x7dd1b4: S[2] = S[2] + Math.fround(S[24] * S[24]);  // vmla.f32 s2, s24, s24
+    case 0x7dd1b8: S[0] = Math.sqrt(S[2]);  // vsqrt.f32 s0, s2
+    case 0x7dd1bc: { const x = S[0], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s0
+    case 0x7dd1c0: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd1c4: if (!M.V) { pc = 0x7dd1d0; continue; }  // bvc #0x7dd1d0
+    case 0x7dd1c8: S[0] = S[2];  // vmov.f32 s0, s2
+    case 0x7dd1cc: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dd1d0: S[2] = 1.0;  // vmov.f32 s2, #1.000000e+00
+    case 0x7dd1d4: M.stf((R[13] + 32) >>> 0, S[18]);  // vstr s18, [sp, #0x20]
+    case 0x7dd1d8: M.stf((R[13] + 28) >>> 0, S[31]);  // vstr s31, [sp, #0x1c]
+    case 0x7dd1dc: S[3] = S[27];  // vmov.f32 s3, s27
+    case 0x7dd1e0: S[27] = M.ldf((R[13] + 36) >>> 0);  // vldr s27, [sp, #0x24]
+    case 0x7dd1e4: S[10] = M.ldf((R[13] + 128) >>> 0);  // vldr s10, [sp, #0x80]
+    case 0x7dd1e8: S[12] = M.ldf((R[13] + 132) >>> 0);  // vldr s12, [sp, #0x84]
+    case 0x7dd1ec: S[14] = M.ldf((R[13] + 136) >>> 0);  // vldr s14, [sp, #0x88]
+    case 0x7dd1f0: S[17] = S[23] * S[23];  // vmul.f32 s17, s23, s23
+    case 0x7dd1f4: S[19] = S[19] * S[19];  // vmul.f32 s19, s19, s19
+    case 0x7dd1f8: S[23] = S[20] - S[21];  // vsub.f32 s23, s20, s21
+    case 0x7dd1fc: S[4] = M.ldf((R[7] + 4) >>> 0);  // vldr s4, [r7, #4]
+    case 0x7dd200: S[6] = M.ldf((R[7] + 8) >>> 0);  // vldr s6, [r7, #8]
+    case 0x7dd204: S[0] = S[2] / S[0];  // vdiv.f32 s0, s2, s0
+    case 0x7dd208: S[2] = M.ldf((R[7] + 0) >>> 0);  // vldr s2, [r7]
+    case 0x7dd20c: S[3] = S[3] - Math.fround(S[30] * S[18]);  // vmls.f32 s3, s30, s18
+    case 0x7dd210: S[27] = S[27] - Math.fround(S[30] * S[31]);  // vmls.f32 s27, s30, s31
+    case 0x7dd214: S[18] = S[20] - S[16];  // vsub.f32 s18, s20, s16
+    case 0x7dd218: S[8] = S[29] * S[0];  // vmul.f32 s8, s29, s0
+    case 0x7dd21c: S[1] = S[25] * S[0];  // vmul.f32 s1, s25, s0
+    case 0x7dd220: S[0] = S[24] * S[0];  // vmul.f32 s0, s24, s0
+    case 0x7dd224: S[4] = S[4] + Math.fround(S[22] * S[8]);  // vmla.f32 s4, s22, s8
+    case 0x7dd228: S[2] = S[2] + Math.fround(S[22] * S[1]);  // vmla.f32 s2, s22, s1
+    case 0x7dd22c: S[6] = S[6] + Math.fround(S[22] * S[0]);  // vmla.f32 s6, s22, s0
+    case 0x7dd230: S[31] = S[4] - S[12];  // vsub.f32 s31, s4, s12
+    case 0x7dd234: S[25] = S[2] - S[10];  // vsub.f32 s25, s2, s10
+    case 0x7dd238: S[12] = S[6] - S[14];  // vsub.f32 s12, s6, s14
+    case 0x7dd23c: S[10] = S[16];  // vmov.f32 s10, s16
+    case 0x7dd240: S[24] = S[31] * S[31];  // vmul.f32 s24, s31, s31
+    case 0x7dd244: S[24] = S[24] + Math.fround(S[25] * S[25]);  // vmla.f32 s24, s25, s25
+    case 0x7dd248: S[24] = S[24] + Math.fround(S[12] * S[12]);  // vmla.f32 s24, s12, s12
+    case 0x7dd24c: S[22] = Math.sqrt(S[24]);  // vsqrt.f32 s22, s24
+    case 0x7dd250: { const x = S[22], y = S[22]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s22, s22
+    case 0x7dd254: S[20] = S[22];  // vmov.f32 s20, s22
+    case 0x7dd258: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd25c: if (!M.V) { pc = 0x7dd28c; continue; }  // bvc #0x7dd28c
+    case 0x7dd260: S[0] = S[24];  // vmov.f32 s0, s24
+    case 0x7dd264: S[20] = S[21];  // vmov.f32 s20, s21
+    case 0x7dd268: S[16] = S[10];  // vmov.f32 s16, s10
+    case 0x7dd26c: S[29] = S[3];  // vmov.f32 s29, s3
+    case 0x7dd270: S[21] = S[12];  // vmov.f32 s21, s12
+    case 0x7dd274: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dd278: S[12] = S[21];  // vmov.f32 s12, s21
+    case 0x7dd27c: S[21] = S[20];  // vmov.f32 s21, s20
+    case 0x7dd280: S[3] = S[29];  // vmov.f32 s3, s29
+    case 0x7dd284: S[10] = S[16];  // vmov.f32 s10, s16
+    case 0x7dd288: S[20] = S[0];  // vmov.f32 s20, s0
+    case 0x7dd28c: S[0] = M.ldf((R[13] + 24) >>> 0);  // vldr s0, [sp, #0x18]
+    case 0x7dd290: S[17] = S[17] + Math.fround(S[18] * S[18]);  // vmla.f32 s17, s18, s18
+    case 0x7dd294: S[19] = S[19] + Math.fround(S[23] * S[23]);  // vmla.f32 s19, s23, s23
+    case 0x7dd298: { const x = S[22], y = S[22]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s22, s22
+    case 0x7dd29c: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd2a0: S[29] = S[0] - S[3];  // vsub.f32 s29, s0, s3
+    case 0x7dd2a4: S[16] = S[0] - S[27];  // vsub.f32 s16, s0, s27
+    case 0x7dd2a8: if (!M.V) { pc = 0x7dd2d8; continue; }  // bvc #0x7dd2d8
+    case 0x7dd2ac: S[0] = S[24];  // vmov.f32 s0, s24
+    case 0x7dd2b0: S[22] = S[21];  // vmov.f32 s22, s21
+    case 0x7dd2b4: S[24] = S[10];  // vmov.f32 s24, s10
+    case 0x7dd2b8: S[23] = S[3];  // vmov.f32 s23, s3
+    case 0x7dd2bc: S[21] = S[12];  // vmov.f32 s21, s12
+    case 0x7dd2c0: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dd2c4: S[12] = S[21];  // vmov.f32 s12, s21
+    case 0x7dd2c8: S[21] = S[22];  // vmov.f32 s21, s22
+    case 0x7dd2cc: S[3] = S[23];  // vmov.f32 s3, s23
+    case 0x7dd2d0: S[10] = S[24];  // vmov.f32 s10, s24
+    case 0x7dd2d4: S[22] = S[0];  // vmov.f32 s22, s0
+    case 0x7dd2d8: S[0] = M.ldf((R[13] + 20) >>> 0);  // vldr s0, [sp, #0x14]
+    case 0x7dd2dc: S[17] = S[17] + Math.fround(S[29] * S[29]);  // vmla.f32 s17, s29, s29
+    case 0x7dd2e0: S[19] = S[19] + Math.fround(S[16] * S[16]);  // vmla.f32 s19, s16, s16
+    case 0x7dd2e4: S[6] = 1.1920928955078125e-07;  // [0x7dd6c4]  // vldr s6, [pc, #0x3d8]
+    case 0x7dd2e8: S[4] = S[0] * S[0];  // vmul.f32 s4, s0, s0
+    case 0x7dd2ec: S[0] = M.ldf((R[13] + 32) >>> 0);  // vldr s0, [sp, #0x20]
+    case 0x7dd2f0: { const x = S[22], y = S[6]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s22, s6
+    case 0x7dd2f4: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd2f8: S[2] = Math.abs(S[0]);  // vabs.f32 s2, s0
+    case 0x7dd2fc: S[0] = M.ldf((R[13] + 28) >>> 0);  // vldr s0, [sp, #0x1c]
+    case 0x7dd300: S[0] = Math.abs(S[0]);  // vabs.f32 s0, s0
+    case 0x7dd304: if (M.N) { pc = 0x7dd31c; continue; }  // bmi #0x7dd31c
+    case 0x7dd308: S[6] = 1.0;  // vmov.f32 s6, #1.000000e+00
+    case 0x7dd30c: S[6] = S[6] / S[22];  // vdiv.f32 s6, s6, s22
+    case 0x7dd310: S[12] = S[12] * S[6];  // vmul.f32 s12, s12, s6
+    case 0x7dd314: S[31] = S[31] * S[6];  // vmul.f32 s31, s31, s6
+    case 0x7dd318: S[25] = S[25] * S[6];  // vmul.f32 s25, s25, s6
+    case 0x7dd31c: { const x = S[0], y = S[20]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s20
+    case 0x7dd320: R[3] = 0;  // mov r3, #0
+    case 0x7dd324: R[7] = 0;  // mov r7, #0
+    case 0x7dd328: M.F[0] = S[30]; R[0] = M.U[0];  // vmov r0, s30
+    case 0x7dd32c: M.F[0] = S[28]; R[1] = M.U[0];  // vmov r1, s28
+    case 0x7dd330: M.F[0] = S[26]; R[2] = M.U[0];  // vmov r2, s26
+    case 0x7dd334: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd338: { const x = S[19], y = S[4]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s19, s4
+    case 0x7dd33c: if (M.N) { R[7] = 1; }  // movwmi r7, #1
+    case 0x7dd340: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd344: if (M.N) { R[3] = 1; }  // movwmi r3, #1
+    case 0x7dd348: R[7] = (R[3] & R[7]) >>> 0; M.N = R[7] >>> 31; M.Z = R[7] === 0 ? 1 : 0;  // ands r7, r3, r7
+    case 0x7dd34c: S[6] = M.Z ? S[20] : S[0];  // vseleq.f32 s6, s20, s0
+    case 0x7dd350: R[3] = R[7];  // mov r3, r7
+    case 0x7dd354: { const x = S[2], y = S[6]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s6
+    case 0x7dd358: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd35c: { const x = S[17], y = S[4]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s17, s4
+    case 0x7dd360: if (M.N) { R[3] = 2; }  // movwmi r3, #2
+    case 0x7dd364: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd368: if (!M.N) { R[3] = R[7]; }  // movpl r3, r7
+    case 0x7dd36c: { const a = R[3] >>> 0, b = 2 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp r3, #2
+    case 0x7dd370: if (M.Z) { pc = 0x7dd5b0; continue; }  // beq #0x7dd5b0
+    case 0x7dd374: { const a = R[3] >>> 0, b = 1 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp r3, #1
+    case 0x7dd378: if (M.Z) { pc = 0x7dd634; continue; }  // beq #0x7dd634
+    case 0x7dd37c: { const a = R[3] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp r3, #0
+    case 0x7dd380: if (!M.Z) { pc = 0x7dd6bc; continue; }  // bne #0x7dd6bc
+    case 0x7dd384: { const a = R[10] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp sl, #0
+    case 0x7dd388: if (!M.Z) { R[0] = M.ld32(((R[13] + 116) >>> 0)); }  // ldrne r0, [sp, #0x74]
+    case 0x7dd38c: if (!M.Z) { M.st32(((R[10] + 0) >>> 0), R[0]); }  // strne r0, [sl]
+    case 0x7dd390: { const a = R[4] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp r4, #0
+    case 0x7dd394: if (M.Z) { pc = 0x7dd6bc; continue; }  // beq #0x7dd6bc
+    case 0x7dd398: R[0] = M.ld32(((R[13] + 128) >>> 0));  // ldr r0, [sp, #0x80]
+    case 0x7dd39c: M.st32(((R[4] + 0) >>> 0), R[0]);  // str r0, [r4]
+    case 0x7dd3a0: R[0] = M.ld32(((R[13] + 132) >>> 0));  // ldr r0, [sp, #0x84]
+    case 0x7dd3a4: M.st32(((R[4] + 4) >>> 0), R[0]);  // str r0, [r4, #4]
+    case 0x7dd3a8: R[0] = M.ld32(((R[13] + 136) >>> 0));  // ldr r0, [sp, #0x88]
+    case 0x7dd3ac: M.st32(((R[4] + 8) >>> 0), R[0]);  // str r0, [r4, #8]
+    case 0x7dd3b0: R[0] = 0;  // mov r0, #0
+    case 0x7dd3b4: M.st32(((R[4] + 12) >>> 0), R[0]);  // str r0, [r4, #0xc]
+    case 0x7dd3b8: M.stf((R[4] + 16) >>> 0, S[25]);  // vstr s25, [r4, #0x10]
+    case 0x7dd3bc: M.stf((R[4] + 20) >>> 0, S[31]);  // vstr s31, [r4, #0x14]
+    case 0x7dd3c0: M.stf((R[4] + 24) >>> 0, S[12]);  // vstr s12, [r4, #0x18]
+    case 0x7dd3c4: M.st32(((R[4] + 28) >>> 0), R[0]);  // str r0, [r4, #0x1c]
+    case 0x7dd3c8: M.stf((R[4] + 32) >>> 0, S[20]);  // vstr s20, [r4, #0x20]
+    case 0x7dd3cc: { pc = 0x7dcf14; continue; }  // b #0x7dcf14
+    case 0x7dd3d0: S[6] = 0.9990000128746033;  // [0x7dd784]  // vldr s6, [pc, #0x3ac]
+    case 0x7dd3d4: { const x = S[8], y = S[6]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s8, s6
+    case 0x7dd3d8: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd3dc: if ((M.N !== M.V)) { pc = 0x7dd44c; continue; }  // blt #0x7dd44c
+    case 0x7dd3e0: R[0] = 17124680;  // [0x7dd8e4]  // ldr r0, [pc, #0x4fc]
+    case 0x7dd3e4: R[0] = 26310368;  // GOT 0x1832134 -> 0x19176e0  // ldr r0, [pc, r0]
+    case 0x7dd3e8: S[19] = M.ldf((R[0] + 4) >>> 0);  // vldr s19, [r0, #4]
+    case 0x7dd3ec: S[16] = M.ldf((R[0] + 0) >>> 0);  // vldr s16, [r0]
+    case 0x7dd3f0: S[17] = M.ldf((R[0] + 8) >>> 0);  // vldr s17, [r0, #8]
+    case 0x7dd3f4: S[8] = S[28] * S[19];  // vmul.f32 s8, s28, s19
+    case 0x7dd3f8: S[8] = S[8] + Math.fround(S[26] * S[16]);  // vmla.f32 s8, s26, s16
+    case 0x7dd3fc: S[8] = S[8] + Math.fround(S[30] * S[17]);  // vmla.f32 s8, s30, s17
+    case 0x7dd400: { const x = S[8], y = S[6]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s8, s6
+    case 0x7dd404: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd408: if ((M.N === M.V)) { pc = 0x7dd44c; continue; }  // bge #0x7dd44c
+    case 0x7dd40c: R[0] = 17124632;  // [0x7dd8e8]  // ldr r0, [pc, #0x4d4]
+    case 0x7dd410: R[0] = 26310384;  // GOT 0x1832130 -> 0x19176f0  // ldr r0, [pc, r0]
+    case 0x7dd414: S[19] = M.ldf((R[0] + 4) >>> 0);  // vldr s19, [r0, #4]
+    case 0x7dd418: S[16] = M.ldf((R[0] + 0) >>> 0);  // vldr s16, [r0]
+    case 0x7dd41c: S[17] = M.ldf((R[0] + 8) >>> 0);  // vldr s17, [r0, #8]
+    case 0x7dd420: S[8] = S[28] * S[19];  // vmul.f32 s8, s28, s19
+    case 0x7dd424: S[8] = S[8] + Math.fround(S[26] * S[16]);  // vmla.f32 s8, s26, s16
+    case 0x7dd428: S[8] = S[8] + Math.fround(S[30] * S[17]);  // vmla.f32 s8, s30, s17
+    case 0x7dd42c: { const x = S[8], y = S[6]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s8, s6
+    case 0x7dd430: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd434: if ((M.N === M.V)) { pc = 0x7dd44c; continue; }  // bge #0x7dd44c
+    case 0x7dd438: R[0] = 17124672;  // [0x7dd8ec]  // ldr r0, [pc, #0x4ac]
+    case 0x7dd43c: R[0] = 26310400;  // GOT 0x1832184 -> 0x1917700  // ldr r0, [pc, r0]
+    case 0x7dd440: S[16] = M.ldf((R[0] + 0) >>> 0);  // vldr s16, [r0]
+    case 0x7dd444: S[19] = M.ldf((R[0] + 4) >>> 0);  // vldr s19, [r0, #4]
+    case 0x7dd448: S[17] = M.ldf((R[0] + 8) >>> 0);  // vldr s17, [r0, #8]
+    case 0x7dd44c: S[8] = M.ldf((R[7] + 4) >>> 0);  // vldr s8, [r7, #4]
+    case 0x7dd450: S[12] = S[19] + S[19];  // vadd.f32 s12, s19, s19
+    case 0x7dd454: S[6] = M.ldf((R[7] + 0) >>> 0);  // vldr s6, [r7]
+    case 0x7dd458: S[7] = S[16] + S[16];  // vadd.f32 s7, s16, s16
+    case 0x7dd45c: S[10] = M.ldf((R[7] + 8) >>> 0);  // vldr s10, [r7, #8]
+    case 0x7dd460: S[14] = M.ldf((R[13] + 64) >>> 0);  // vldr s14, [sp, #0x40]
+    case 0x7dd464: S[1] = M.ldf((R[13] + 68) >>> 0);  // vldr s1, [sp, #0x44]
+    case 0x7dd468: S[3] = M.ldf((R[13] + 72) >>> 0);  // vldr s3, [sp, #0x48]
+    case 0x7dd46c: S[5] = M.ldf((R[13] + 76) >>> 0);  // vldr s5, [sp, #0x4c]
+    case 0x7dd470: S[8] = S[12] + S[8];  // vadd.f32 s8, s12, s8
+    case 0x7dd474: S[12] = S[17] + S[17];  // vadd.f32 s12, s17, s17
+    case 0x7dd478: S[6] = S[7] + S[6];  // vadd.f32 s6, s7, s6
+    case 0x7dd47c: S[10] = S[12] + S[10];  // vadd.f32 s10, s12, s10
+    case 0x7dd480: S[7] = S[8] * S[1];  // vmul.f32 s7, s8, s1
+    case 0x7dd484: S[7] = S[7] + Math.fround(S[6] * S[14]);  // vmla.f32 s7, s6, s14
+    case 0x7dd488: S[7] = S[7] + Math.fround(S[10] * S[3]);  // vmla.f32 s7, s10, s3
+    case 0x7dd48c: S[12] = S[5] + S[7];  // vadd.f32 s12, s5, s7
+    case 0x7dd490: S[8] = S[8] - Math.fround(S[1] * S[12]);  // vmls.f32 s8, s1, s12
+    case 0x7dd494: S[6] = S[6] - Math.fround(S[14] * S[12]);  // vmls.f32 s6, s14, s12
+    case 0x7dd498: S[10] = S[10] - Math.fround(S[12] * S[3]);  // vmls.f32 s10, s12, s3
+    case 0x7dd49c: S[27] = S[8] - S[2];  // vsub.f32 s27, s8, s2
+    case 0x7dd4a0: S[29] = S[6] - S[0];  // vsub.f32 s29, s6, s0
+    case 0x7dd4a4: S[31] = S[10] - S[4];  // vsub.f32 s31, s10, s4
+    case 0x7dd4a8: S[2] = S[27] * S[27];  // vmul.f32 s2, s27, s27
+    case 0x7dd4ac: S[2] = S[2] + Math.fround(S[29] * S[29]);  // vmla.f32 s2, s29, s29
+    case 0x7dd4b0: S[2] = S[2] + Math.fround(S[31] * S[31]);  // vmla.f32 s2, s31, s31
+    case 0x7dd4b4: S[0] = Math.sqrt(S[2]);  // vsqrt.f32 s0, s2
+    case 0x7dd4b8: { const x = S[0], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s0
+    case 0x7dd4bc: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd4c0: if (!M.V) { pc = 0x7dd4cc; continue; }  // bvc #0x7dd4cc
+    case 0x7dd4c4: S[0] = S[2];  // vmov.f32 s0, s2
+    case 0x7dd4c8: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dd4cc: S[2] = 1.1920928955078125e-07;  // [0x7dd6c4]  // vldr s2, [pc, #0x1f0]
+    case 0x7dd4d0: S[20] = 0.0;  // [0x7dd854]  // vldr s20, [pc, #0x37c]
+    case 0x7dd4d4: { const x = S[0], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s2
+    case 0x7dd4d8: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd4dc: if (M.N) { pc = 0x7dd4f4; continue; }  // bmi #0x7dd4f4
+    case 0x7dd4e0: S[2] = 1.0;  // vmov.f32 s2, #1.000000e+00
+    case 0x7dd4e4: S[0] = S[2] / S[0];  // vdiv.f32 s0, s2, s0
+    case 0x7dd4e8: S[31] = S[31] * S[0];  // vmul.f32 s31, s31, s0
+    case 0x7dd4ec: S[27] = S[27] * S[0];  // vmul.f32 s27, s27, s0
+    case 0x7dd4f0: S[29] = S[29] * S[0];  // vmul.f32 s29, s29, s0
+    case 0x7dd4f4: S[17] = M.ldf((R[13] + 80) >>> 0);  // vldr s17, [sp, #0x50]
+    case 0x7dd4f8: S[0] = M.ldf((R[6] + 32) >>> 0);  // vldr s0, [r6, #0x20]
+    case 0x7dd4fc: S[22] = M.ldf((R[13] + 84) >>> 0);  // vldr s22, [sp, #0x54]
+    case 0x7dd500: S[16] = M.ldf((R[13] + 88) >>> 0);  // vldr s16, [sp, #0x58]
+    case 0x7dd504: { const x = S[18], y = S[24]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s18, s24
+    case 0x7dd508: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd50c: S[16] = S[16] + Math.fround(S[31] * S[0]);  // vmla.f32 s16, s31, s0
+    case 0x7dd510: S[22] = S[22] + Math.fround(S[27] * S[0]);  // vmla.f32 s22, s27, s0
+    case 0x7dd514: S[17] = S[17] + Math.fround(S[29] * S[0]);  // vmla.f32 s17, s29, s0
+    case 0x7dd518: if ((M.C && !M.Z)) { pc = 0x7dd57c; continue; }  // bhi #0x7dd57c
+    case 0x7dd51c: R[0] = R[6];  // mov r0, r6
+    case 0x7dd520: R[1] = R[7];  // mov r1, r7
+    case 0x7dd524: S[18] = S[0] - S[20];  // vsub.f32 s18, s0, s20
+    case 0x7dd528: F_80448c(M);  // bl #0x80448c
+    case 0x7dd52c: R[8] = (R[7] + 16) >>> 0;  // add r8, r7, #0x10
+    case 0x7dd530: R[9] = R[0];  // mov sb, r0
+    case 0x7dd534: R[0] = R[6];  // mov r0, r6
+    case 0x7dd538: S[18] = -S[18];  // vneg.f32 s18, s18
+    case 0x7dd53c: R[1] = R[8];  // mov r1, r8
+    case 0x7dd540: F_80448c(M);  // bl #0x80448c
+    case 0x7dd544: { const a = R[9] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp sb, #0
+    case 0x7dd548: if (M.Z) { const a = R[0] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmpeq r0, #0
+    case 0x7dd54c: if (!M.Z) { pc = 0x7dd6c8; continue; }  // bne #0x7dd6c8
+    case 0x7dd550: R[0] = 0;  // mov r0, #0
+    case 0x7dd554: M.stf((R[4] + 0) >>> 0, S[17]);  // vstr s17, [r4]
+    case 0x7dd558: M.stf((R[4] + 4) >>> 0, S[22]);  // vstr s22, [r4, #4]
+    case 0x7dd55c: M.stf((R[4] + 8) >>> 0, S[16]);  // vstr s16, [r4, #8]
+    case 0x7dd560: M.st32(((R[4] + 12) >>> 0), R[0]);  // str r0, [r4, #0xc]
+    case 0x7dd564: M.stf((R[4] + 16) >>> 0, S[29]);  // vstr s29, [r4, #0x10]
+    case 0x7dd568: M.stf((R[4] + 20) >>> 0, S[27]);  // vstr s27, [r4, #0x14]
+    case 0x7dd56c: M.stf((R[4] + 24) >>> 0, S[31]);  // vstr s31, [r4, #0x18]
+    case 0x7dd570: M.st32(((R[4] + 28) >>> 0), R[0]);  // str r0, [r4, #0x1c]
+    case 0x7dd574: M.stf((R[4] + 32) >>> 0, S[18]);  // vstr s18, [r4, #0x20]
+    case 0x7dd578: { pc = 0x7dd8c0; continue; }  // b #0x7dd8c0
+    case 0x7dd57c: S[0] = S[20] - S[0];  // vsub.f32 s0, s20, s0
+    case 0x7dd580: R[0] = 0;  // mov r0, #0
+    case 0x7dd584: M.stf((R[4] + 0) >>> 0, S[17]);  // vstr s17, [r4]
+    case 0x7dd588: M.stf((R[4] + 4) >>> 0, S[22]);  // vstr s22, [r4, #4]
+    case 0x7dd58c: M.stf((R[4] + 8) >>> 0, S[16]);  // vstr s16, [r4, #8]
+    case 0x7dd590: M.st32(((R[4] + 12) >>> 0), R[0]);  // str r0, [r4, #0xc]
+    case 0x7dd594: M.stf((R[4] + 16) >>> 0, S[29]);  // vstr s29, [r4, #0x10]
+    case 0x7dd598: M.stf((R[4] + 20) >>> 0, S[27]);  // vstr s27, [r4, #0x14]
+    case 0x7dd59c: M.stf((R[4] + 24) >>> 0, S[31]);  // vstr s31, [r4, #0x18]
+    case 0x7dd5a0: M.st32(((R[4] + 28) >>> 0), R[0]);  // str r0, [r4, #0x1c]
+    case 0x7dd5a4: M.stf((R[4] + 32) >>> 0, S[0]);  // vstr s0, [r4, #0x20]
+    case 0x7dd5a8: M.st32(((R[4] + 36) >>> 0), R[0]);  // str r0, [r4, #0x24]
+    case 0x7dd5ac: { pc = 0x7dd8c8; continue; }  // b #0x7dd8c8
+    case 0x7dd5b0: S[6] = 0.0010000000474974513;  // [0x7dd8dc]  // vldr s6, [pc, #0x324]
+    case 0x7dd5b4: S[8] = M.ldf((R[13] + 16) >>> 0);  // vldr s8, [sp, #0x10]
+    case 0x7dd5b8: { const a = R[10] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp sl, #0
+    case 0x7dd5bc: if (M.Z) { pc = 0x7dd5d8; continue; }  // beq #0x7dd5d8
+    case 0x7dd5c0: S[0] = 0.0;  // [0x7dd8e0]  // vldr s0, [pc, #0x318]
+    case 0x7dd5c4: S[4] = M.ldf((R[13] + 40) >>> 0);  // vldr s4, [sp, #0x28]
+    case 0x7dd5c8: { const x = S[6], y = S[8]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s6, s8
+    case 0x7dd5cc: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd5d0: S[0] = (M.N === M.V) ? S[0] : S[4];  // vselge.f32 s0, s0, s4
+    case 0x7dd5d4: M.stf((R[10] + 0) >>> 0, S[0]);  // vstr s0, [sl]
+    case 0x7dd5d8: S[0] = M.ldf((R[13] + 12) >>> 0);  // vldr s0, [sp, #0xc]
+    case 0x7dd5dc: { const a = R[4] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp r4, #0
+    case 0x7dd5e0: if (M.Z) { pc = 0x7dd6bc; continue; }  // beq #0x7dd6bc
+    case 0x7dd5e4: { const x = S[8], y = S[6]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s8, s6
+    case 0x7dd5e8: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd5ec: if ((M.C && !M.Z)) { pc = 0x7dd608; continue; }  // bhi #0x7dd608
+    case 0x7dd5f0: M.F[0] = S[30]; R[0] = M.U[0];  // vmov r0, s30
+    case 0x7dd5f4: M.F[0] = S[28]; R[1] = M.U[0];  // vmov r1, s28
+    case 0x7dd5f8: M.F[0] = S[26]; R[2] = M.U[0];  // vmov r2, s26
+    case 0x7dd5fc: R[0] = (R[0] ^ 2147483648) >>> 0;  // eor r0, r0, #0x80000000
+    case 0x7dd600: R[1] = (R[1] ^ 2147483648) >>> 0;  // eor r1, r1, #0x80000000
+    case 0x7dd604: R[2] = (R[2] ^ 2147483648) >>> 0;  // eor r2, r2, #0x80000000
+    case 0x7dd608: R[3] = 0;  // mov r3, #0
+    case 0x7dd60c: M.stf((R[4] + 0) >>> 0, S[10]);  // vstr s10, [r4]
+    case 0x7dd610: M.stf((R[4] + 4) >>> 0, S[0]);  // vstr s0, [r4, #4]
+    case 0x7dd614: M.stf((R[4] + 8) >>> 0, S[3]);  // vstr s3, [r4, #8]
+    case 0x7dd618: M.st32(((R[4] + 12) >>> 0), R[3]);  // str r3, [r4, #0xc]
+    case 0x7dd61c: M.st32(((R[4] + 16) >>> 0), R[2]);  // str r2, [r4, #0x10]
+    case 0x7dd620: M.st32(((R[4] + 20) >>> 0), R[1]);  // str r1, [r4, #0x14]
+    case 0x7dd624: M.st32(((R[4] + 24) >>> 0), R[0]);  // str r0, [r4, #0x18]
+    case 0x7dd628: M.st32(((R[4] + 28) >>> 0), R[3]);  // str r3, [r4, #0x1c]
+    case 0x7dd62c: M.stf((R[4] + 32) >>> 0, S[2]);  // vstr s2, [r4, #0x20]
+    case 0x7dd630: { pc = 0x7dd6b4; continue; }  // b #0x7dd6b4
+    case 0x7dd634: S[6] = 0.0010000000474974513;  // [0x7dd8dc]  // vldr s6, [pc, #0x2a0]
+    case 0x7dd638: S[10] = M.ldf((R[13] + 16) >>> 0);  // vldr s10, [sp, #0x10]
+    case 0x7dd63c: { const a = R[10] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp sl, #0
+    case 0x7dd640: if (M.Z) { pc = 0x7dd65c; continue; }  // beq #0x7dd65c
+    case 0x7dd644: S[2] = 0.0;  // [0x7dd8e0]  // vldr s2, [pc, #0x294]
+    case 0x7dd648: S[4] = M.ldf((R[13] + 40) >>> 0);  // vldr s4, [sp, #0x28]
+    case 0x7dd64c: { const x = S[6], y = S[10]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s6, s10
+    case 0x7dd650: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd654: S[2] = (M.N === M.V) ? S[2] : S[4];  // vselge.f32 s2, s2, s4
+    case 0x7dd658: M.stf((R[10] + 0) >>> 0, S[2]);  // vstr s2, [sl]
+    case 0x7dd65c: S[2] = M.ldf((R[13] + 8) >>> 0);  // vldr s2, [sp, #8]
+    case 0x7dd660: { const a = R[4] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp r4, #0
+    case 0x7dd664: if (M.Z) { pc = 0x7dd6bc; continue; }  // beq #0x7dd6bc
+    case 0x7dd668: { const x = S[10], y = S[6]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s10, s6
+    case 0x7dd66c: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd670: if ((M.C && !M.Z)) { pc = 0x7dd68c; continue; }  // bhi #0x7dd68c
+    case 0x7dd674: M.F[0] = S[30]; R[0] = M.U[0];  // vmov r0, s30
+    case 0x7dd678: M.F[0] = S[28]; R[1] = M.U[0];  // vmov r1, s28
+    case 0x7dd67c: M.F[0] = S[26]; R[2] = M.U[0];  // vmov r2, s26
+    case 0x7dd680: R[0] = (R[0] ^ 2147483648) >>> 0;  // eor r0, r0, #0x80000000
+    case 0x7dd684: R[1] = (R[1] ^ 2147483648) >>> 0;  // eor r1, r1, #0x80000000
+    case 0x7dd688: R[2] = (R[2] ^ 2147483648) >>> 0;  // eor r2, r2, #0x80000000
+    case 0x7dd68c: R[3] = 0;  // mov r3, #0
+    case 0x7dd690: M.stf((R[4] + 0) >>> 0, S[21]);  // vstr s21, [r4]
+    case 0x7dd694: M.stf((R[4] + 4) >>> 0, S[2]);  // vstr s2, [r4, #4]
+    case 0x7dd698: M.stf((R[4] + 8) >>> 0, S[27]);  // vstr s27, [r4, #8]
+    case 0x7dd69c: M.st32(((R[4] + 12) >>> 0), R[3]);  // str r3, [r4, #0xc]
+    case 0x7dd6a0: M.st32(((R[4] + 16) >>> 0), R[2]);  // str r2, [r4, #0x10]
+    case 0x7dd6a4: M.st32(((R[4] + 20) >>> 0), R[1]);  // str r1, [r4, #0x14]
+    case 0x7dd6a8: M.st32(((R[4] + 24) >>> 0), R[0]);  // str r0, [r4, #0x18]
+    case 0x7dd6ac: M.st32(((R[4] + 28) >>> 0), R[3]);  // str r3, [r4, #0x1c]
+    case 0x7dd6b0: M.stf((R[4] + 32) >>> 0, S[0]);  // vstr s0, [r4, #0x20]
+    case 0x7dd6b4: M.st32(((R[4] + 36) >>> 0), R[3]);  // str r3, [r4, #0x24]
+    case 0x7dd6b8: M.st8(((R[4] + 40) >>> 0), R[3]);  // strb r3, [r4, #0x28]
+    case 0x7dd6bc: R[0] = 0;  // mov r0, #0
+    case 0x7dd6c0: { pc = 0x7dd8cc; continue; }  // b #0x7dd8cc
+    case 0x7dd6c8: S[0] = M.ldf((R[6] + 0) >>> 0);  // vldr s0, [r6]
+    case 0x7dd6cc: S[2] = M.ldf((R[6] + 4) >>> 0);  // vldr s2, [r6, #4]
+    case 0x7dd6d0: S[4] = M.ldf((R[6] + 8) >>> 0);  // vldr s4, [r6, #8]
+    case 0x7dd6d4: S[6] = -S[26];  // vneg.f32 s6, s26
+    case 0x7dd6d8: S[8] = -S[28];  // vneg.f32 s8, s28
+    case 0x7dd6dc: { const a = R[9] >>> 0, b = 1 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp sb, #1
+    case 0x7dd6e0: M.stf((R[13] + 128) >>> 0, S[6]);  // vstr s6, [sp, #0x80]
+    case 0x7dd6e4: M.stf((R[13] + 132) >>> 0, S[8]);  // vstr s8, [sp, #0x84]
+    case 0x7dd6e8: S[0] = -Math.fround(S[26] * S[0]);  // vnmul.f32 s0, s26, s0
+    case 0x7dd6ec: S[0] = S[0] - Math.fround(S[2] * S[28]);  // vmls.f32 s0, s2, s28
+    case 0x7dd6f0: S[2] = -S[30];  // vneg.f32 s2, s30
+    case 0x7dd6f4: M.stf((R[13] + 136) >>> 0, S[2]);  // vstr s2, [sp, #0x88]
+    case 0x7dd6f8: S[0] = S[0] - Math.fround(S[4] * S[30]);  // vmls.f32 s0, s4, s30
+    case 0x7dd6fc: S[0] = -S[0];  // vneg.f32 s0, s0
+    case 0x7dd700: M.stf((R[13] + 140) >>> 0, S[0]);  // vstr s0, [sp, #0x8c]
+    case 0x7dd704: S[2] = M.ldf((R[6] + 20) >>> 0);  // vldr s2, [r6, #0x14]
+    case 0x7dd708: S[0] = M.ldf((R[6] + 16) >>> 0);  // vldr s0, [r6, #0x10]
+    case 0x7dd70c: S[4] = M.ldf((R[6] + 24) >>> 0);  // vldr s4, [r6, #0x18]
+    case 0x7dd710: M.stf((R[13] + 48) >>> 0, S[26]);  // vstr s26, [sp, #0x30]
+    case 0x7dd714: M.stf((R[13] + 52) >>> 0, S[28]);  // vstr s28, [sp, #0x34]
+    case 0x7dd718: M.stf((R[13] + 56) >>> 0, S[30]);  // vstr s30, [sp, #0x38]
+    case 0x7dd71c: S[2] = S[28] * S[2];  // vmul.f32 s2, s28, s2
+    case 0x7dd720: S[2] = S[2] + Math.fround(S[26] * S[0]);  // vmla.f32 s2, s26, s0
+    case 0x7dd724: S[2] = S[2] + Math.fround(S[30] * S[4]);  // vmla.f32 s2, s30, s4
+    case 0x7dd728: S[0] = -S[2];  // vneg.f32 s0, s2
+    case 0x7dd72c: M.stf((R[13] + 60) >>> 0, S[0]);  // vstr s0, [sp, #0x3c]
+    case 0x7dd730: if (!M.Z) { pc = 0x7dd788; continue; }  // bne #0x7dd788
+    case 0x7dd734: { const x = S[25], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s25, #0
+    case 0x7dd738: R[1] = 0;  // mov r1, #0
+    case 0x7dd73c: R[2] = (R[13] + 48) >>> 0;  // add r2, sp, #0x30
+    case 0x7dd740: M.st32(((R[13] + 116) >>> 0), R[1]);  // str r1, [sp, #0x74]
+    case 0x7dd744: R[1] = (R[13] + 128) >>> 0;  // add r1, sp, #0x80
+    case 0x7dd748: S[8] = M.ldf((R[7] + 0) >>> 0);  // vldr s8, [r7]
+    case 0x7dd74c: S[10] = M.ldf((R[7] + 4) >>> 0);  // vldr s10, [r7, #4]
+    case 0x7dd750: S[12] = M.ldf((R[7] + 8) >>> 0);  // vldr s12, [r7, #8]
+    case 0x7dd754: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd758: if ((!M.Z && M.N === M.V)) { R[1] = R[2]; }  // movgt r1, r2
+    case 0x7dd75c: R[2] = R[7];  // mov r2, r7
+    case 0x7dd760: S[2] = M.ldf((R[1] + 4) >>> 0);  // vldr s2, [r1, #4]
+    case 0x7dd764: S[0] = M.ldf((R[1] + 0) >>> 0);  // vldr s0, [r1]
+    case 0x7dd768: S[4] = M.ldf((R[1] + 8) >>> 0);  // vldr s4, [r1, #8]
+    case 0x7dd76c: S[6] = M.ldf((R[1] + 12) >>> 0);  // vldr s6, [r1, #0xc]
+    case 0x7dd770: S[2] = S[10] * S[2];  // vmul.f32 s2, s10, s2
+    case 0x7dd774: S[2] = S[2] + Math.fround(S[8] * S[0]);  // vmla.f32 s2, s8, s0
+    case 0x7dd778: S[2] = S[2] + Math.fround(S[12] * S[4]);  // vmla.f32 s2, s12, s4
+    case 0x7dd77c: S[0] = S[6] + S[2];  // vadd.f32 s0, s6, s2
+    case 0x7dd780: { pc = 0x7dd794; continue; }  // b #0x7dd794
+    case 0x7dd788: S[0] = -3.4028234663852886e+38;  // [0x7dd8f0]  // vldr s0, [pc, #0x160]
+    case 0x7dd78c: R[2] = 0;  // mov r2, #0
+    case 0x7dd790: R[1] = 0;  // mov r1, #0
+    case 0x7dd794: S[1] = M.ldf((R[13] + 40) >>> 0);  // vldr s1, [sp, #0x28]
+    case 0x7dd798: { const a = R[0] >>> 0, b = 1 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp r0, #1
+    case 0x7dd79c: if (!M.Z) { pc = 0x7dd820; continue; }  // bne #0x7dd820
+    case 0x7dd7a0: S[2] = M.ldf((R[13] + 32) >>> 0);  // vldr s2, [sp, #0x20]
+    case 0x7dd7a4: S[4] = M.ldf((R[13] + 36) >>> 0);  // vldr s4, [sp, #0x24]
+    case 0x7dd7a8: R[3] = (R[13] + 48) >>> 0;  // add r3, sp, #0x30
+    case 0x7dd7ac: R[0] = (R[13] + 128) >>> 0;  // add r0, sp, #0x80
+    case 0x7dd7b0: S[6] = M.ldf((R[7] + 24) >>> 0);  // vldr s6, [r7, #0x18]
+    case 0x7dd7b4: S[2] = -S[2];  // vneg.f32 s2, s2
+    case 0x7dd7b8: S[2] = S[2] - S[4];  // vsub.f32 s2, s2, s4
+    case 0x7dd7bc: S[4] = M.ldf((R[13] + 28) >>> 0);  // vldr s4, [sp, #0x1c]
+    case 0x7dd7c0: S[2] = S[2] - S[4];  // vsub.f32 s2, s2, s4
+    case 0x7dd7c4: S[4] = M.ldf((R[7] + 20) >>> 0);  // vldr s4, [r7, #0x14]
+    case 0x7dd7c8: { const x = S[2], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, #0
+    case 0x7dd7cc: S[2] = M.ldf((R[7] + 16) >>> 0);  // vldr s2, [r7, #0x10]
+    case 0x7dd7d0: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd7d4: if ((!M.Z && M.N === M.V)) { R[0] = R[3]; }  // movgt r0, r3
+    case 0x7dd7d8: S[10] = M.ldf((R[0] + 4) >>> 0);  // vldr s10, [r0, #4]
+    case 0x7dd7dc: S[8] = M.ldf((R[0] + 0) >>> 0);  // vldr s8, [r0]
+    case 0x7dd7e0: S[12] = M.ldf((R[0] + 8) >>> 0);  // vldr s12, [r0, #8]
+    case 0x7dd7e4: S[14] = M.ldf((R[0] + 12) >>> 0);  // vldr s14, [r0, #0xc]
+    case 0x7dd7e8: S[4] = S[4] * S[10];  // vmul.f32 s4, s4, s10
+    case 0x7dd7ec: S[4] = S[4] + Math.fround(S[2] * S[8]);  // vmla.f32 s4, s2, s8
+    case 0x7dd7f0: S[4] = S[4] + Math.fround(S[6] * S[12]);  // vmla.f32 s4, s6, s12
+    case 0x7dd7f4: S[2] = S[14] + S[4];  // vadd.f32 s2, s14, s4
+    case 0x7dd7f8: { const x = S[2], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s0
+    case 0x7dd7fc: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd800: if ((!M.Z && M.N === M.V)) { pc = 0x7dd810; continue; }  // bgt #0x7dd810
+    case 0x7dd804: R[3] = (R[9] ^ 1) >>> 0;  // eor r3, sb, #1
+    case 0x7dd808: { const a = R[3] >>> 0, b = 1 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp r3, #1
+    case 0x7dd80c: if (!M.Z) { pc = 0x7dd820; continue; }  // bne #0x7dd820
+    case 0x7dd810: S[0] = S[2];  // vmov.f32 s0, s2
+    case 0x7dd814: R[2] = R[8];  // mov r2, r8
+    case 0x7dd818: R[1] = R[0];  // mov r1, r0
+    case 0x7dd81c: M.stf((R[13] + 116) >>> 0, S[1]);  // vstr s1, [sp, #0x74]
+    case 0x7dd820: { const x = S[0], y = S[18]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s18
+    case 0x7dd824: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dd828: if (!M.N) { pc = 0x7dd858; continue; }  // bpl #0x7dd858
+    case 0x7dd82c: R[1] = 0;  // mov r1, #0
+    case 0x7dd830: M.stf((R[4] + 0) >>> 0, S[17]);  // vstr s17, [r4]
+    case 0x7dd834: M.stf((R[4] + 4) >>> 0, S[22]);  // vstr s22, [r4, #4]
+    case 0x7dd838: M.stf((R[4] + 8) >>> 0, S[16]);  // vstr s16, [r4, #8]
+    case 0x7dd83c: M.F[0] = S[31]; R[0] = M.U[0];  // vmov r0, s31
+    case 0x7dd840: S[0] = S[18];  // vmov.f32 s0, s18
+    case 0x7dd844: M.st32(((R[4] + 12) >>> 0), R[1]);  // str r1, [r4, #0xc]
+    case 0x7dd848: M.stf((R[4] + 16) >>> 0, S[29]);  // vstr s29, [r4, #0x10]
+    case 0x7dd84c: M.stf((R[4] + 20) >>> 0, S[27]);  // vstr s27, [r4, #0x14]
+    case 0x7dd850: { pc = 0x7dd8b0; continue; }  // b #0x7dd8b0
+    case 0x7dd858: { const a = R[10] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp sl, #0
+    case 0x7dd85c: if (!M.Z) { R[0] = M.ld32(((R[13] + 116) >>> 0)); }  // ldrne r0, [sp, #0x74]
+    case 0x7dd860: if (!M.Z) { M.st32(((R[10] + 0) >>> 0), R[0]); }  // strne r0, [sl]
+    case 0x7dd864: R[0] = 0;  // mov r0, #0
+    case 0x7dd868: S[2] = M.ldf((R[1] + 0) >>> 0);  // vldr s2, [r1]
+    case 0x7dd86c: S[8] = M.ldf((R[2] + 0) >>> 0);  // vldr s8, [r2]
+    case 0x7dd870: S[4] = M.ldf((R[1] + 4) >>> 0);  // vldr s4, [r1, #4]
+    case 0x7dd874: S[10] = M.ldf((R[2] + 4) >>> 0);  // vldr s10, [r2, #4]
+    case 0x7dd878: S[6] = M.ldf((R[1] + 8) >>> 0);  // vldr s6, [r1, #8]
+    case 0x7dd87c: S[12] = M.ldf((R[2] + 8) >>> 0);  // vldr s12, [r2, #8]
+    case 0x7dd880: M.st32(((R[4] + 12) >>> 0), R[0]);  // str r0, [r4, #0xc]
+    case 0x7dd884: S[8] = S[8] - Math.fround(S[2] * S[0]);  // vmls.f32 s8, s2, s0
+    case 0x7dd888: S[10] = S[10] - Math.fround(S[4] * S[0]);  // vmls.f32 s10, s4, s0
+    case 0x7dd88c: S[12] = S[12] - Math.fround(S[6] * S[0]);  // vmls.f32 s12, s6, s0
+    case 0x7dd890: M.stf((R[4] + 0) >>> 0, S[8]);  // vstr s8, [r4]
+    case 0x7dd894: M.stf((R[4] + 4) >>> 0, S[10]);  // vstr s10, [r4, #4]
+    case 0x7dd898: M.stf((R[4] + 8) >>> 0, S[12]);  // vstr s12, [r4, #8]
+    case 0x7dd89c: R[0] = M.ld32(((R[1] + 0) >>> 0));  // ldr r0, [r1]
+    case 0x7dd8a0: M.st32(((R[4] + 16) >>> 0), R[0]);  // str r0, [r4, #0x10]
+    case 0x7dd8a4: R[0] = M.ld32(((R[1] + 4) >>> 0));  // ldr r0, [r1, #4]
+    case 0x7dd8a8: M.st32(((R[4] + 20) >>> 0), R[0]);  // str r0, [r4, #0x14]
+    case 0x7dd8ac: R[0] = M.ld32(((R[1] + 8) >>> 0));  // ldr r0, [r1, #8]
+    case 0x7dd8b0: M.st32(((R[4] + 24) >>> 0), R[0]);  // str r0, [r4, #0x18]
+    case 0x7dd8b4: R[0] = 0;  // mov r0, #0
+    case 0x7dd8b8: M.st32(((R[4] + 28) >>> 0), R[0]);  // str r0, [r4, #0x1c]
+    case 0x7dd8bc: M.stf((R[4] + 32) >>> 0, S[0]);  // vstr s0, [r4, #0x20]
+    case 0x7dd8c0: M.st32(((R[4] + 36) >>> 0), R[0]);  // str r0, [r4, #0x24]
+    case 0x7dd8c4: R[0] = 1;  // mov r0, #1
+    case 0x7dd8c8: M.st8(((R[4] + 40) >>> 0), R[0]);  // strb r0, [r4, #0x28]
+    case 0x7dd8cc: R[13] = (R[11] - 96) >>> 0;  // sub sp, fp, #0x60
+    case 0x7dd8d0: for (let k = 0; k < 16; k++) S[16 + k] = M.ldf(R[13] + 4 * k); R[13] = (R[13] + 64) >>> 0;  // vpop {d8, d9, d10, d11, d12, d13, d14, d15}
+    case 0x7dd8d4: R[13] = (R[13] + 4) >>> 0;  // add sp, sp, #4
+    case 0x7dd8d8: R[4] = M.ld32(R[13] + 0); R[5] = M.ld32(R[13] + 4); R[6] = M.ld32(R[13] + 8); R[7] = M.ld32(R[13] + 12); R[8] = M.ld32(R[13] + 16); R[9] = M.ld32(R[13] + 20); R[10] = M.ld32(R[13] + 24); R[11] = M.ld32(R[13] + 28); R[13] = (R[13] + 36) >>> 0; return;  // pop {r4, r5, r6, r7, r8, sb, sl, fp, pc}
+    default: throw new Error('hit-type3 ROM: no label ' + pc.toString(16));
+  }
+}
+
+function F_806ce4(M){
+  const R = M.R, S = M.S, DV = M.DV;
+  let pc = 0x806ce4;
+  for (;;) switch (pc){
+    case 0x806ce4: R[13] = (R[13] - 32) >>> 0; M.st32(R[13] + 0, R[4]); M.st32(R[13] + 4, R[5]); M.st32(R[13] + 8, R[6]); M.st32(R[13] + 12, R[7]); M.st32(R[13] + 16, R[8]); M.st32(R[13] + 20, R[9]); M.st32(R[13] + 24, R[11]); M.st32(R[13] + 28, R[14]);  // push {r4, r5, r6, r7, r8, sb, fp, lr}
+    case 0x806ce8: R[13] = (R[13] - 64) >>> 0; for (let k = 0; k < 16; k++) M.stf(R[13] + 4 * k, S[16 + k]);  // vpush {d8, d9, d10, d11, d12, d13, d14, d15}
+    case 0x806cec: R[13] = (R[13] - 16) >>> 0;  // sub sp, sp, #0x10
+    case 0x806cf0: R[6] = R[0];  // mov r6, r0
+    case 0x806cf4: S[16] = S[0];  // vmov.f32 s16, s0
+    case 0x806cf8: R[7] = R[1];  // mov r7, r1
+    case 0x806cfc: R[8] = R[3];  // mov r8, r3
+    case 0x806d00: R[9] = R[2];  // mov sb, r2
+    case 0x806d04: S[0] = M.ldf((R[6] + 4) >>> 0);  // vldr s0, [r6, #4]
+    case 0x806d08: S[8] = M.ldf((R[6] + 20) >>> 0);  // vldr s8, [r6, #0x14]
+    case 0x806d0c: S[4] = M.ldf((R[6] + 0) >>> 0);  // vldr s4, [r6]
+    case 0x806d10: S[6] = M.ldf((R[6] + 16) >>> 0);  // vldr s6, [r6, #0x10]
+    case 0x806d14: S[2] = M.ldf((R[6] + 8) >>> 0);  // vldr s2, [r6, #8]
+    case 0x806d18: S[10] = M.ldf((R[6] + 24) >>> 0);  // vldr s10, [r6, #0x18]
+    case 0x806d1c: S[12] = M.ldf((R[7] + 24) >>> 0);  // vldr s12, [r7, #0x18]
+    case 0x806d20: S[21] = S[8] - S[0];  // vsub.f32 s21, s8, s0
+    case 0x806d24: S[23] = S[6] - S[4];  // vsub.f32 s23, s6, s4
+    case 0x806d28: S[25] = S[10] - S[2];  // vsub.f32 s25, s10, s2
+    case 0x806d2c: S[2] = M.ldf((R[7] + 4) >>> 0);  // vldr s2, [r7, #4]
+    case 0x806d30: S[10] = M.ldf((R[7] + 20) >>> 0);  // vldr s10, [r7, #0x14]
+    case 0x806d34: S[4] = M.ldf((R[7] + 8) >>> 0);  // vldr s4, [r7, #8]
+    case 0x806d38: S[6] = M.ldf((R[7] + 0) >>> 0);  // vldr s6, [r7]
+    case 0x806d3c: S[8] = M.ldf((R[7] + 16) >>> 0);  // vldr s8, [r7, #0x10]
+    case 0x806d40: S[0] = S[21] * S[21];  // vmul.f32 s0, s21, s21
+    case 0x806d44: S[0] = S[0] + Math.fround(S[23] * S[23]);  // vmla.f32 s0, s23, s23
+    case 0x806d48: S[0] = S[0] + Math.fround(S[25] * S[25]);  // vmla.f32 s0, s25, s25
+    case 0x806d4c: S[18] = S[10] - S[2];  // vsub.f32 s18, s10, s2
+    case 0x806d50: S[19] = S[12] - S[4];  // vsub.f32 s19, s12, s4
+    case 0x806d54: S[27] = S[8] - S[6];  // vsub.f32 s27, s8, s6
+    case 0x806d58: S[2] = Math.sqrt(S[0]);  // vsqrt.f32 s2, s0
+    case 0x806d5c: { const x = S[2], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s2
+    case 0x806d60: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x806d64: if (!M.V) { pc = 0x806d70; continue; }  // bvc #0x806d70
+    case 0x806d68: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x806d6c: S[2] = S[0];  // vmov.f32 s2, s0
+    case 0x806d70: S[15] = 1.0;  // vmov.f32 s15, #1.000000e+00
+    case 0x806d74: S[0] = S[18] * S[18];  // vmul.f32 s0, s18, s18
+    case 0x806d78: S[0] = S[0] + Math.fround(S[27] * S[27]);  // vmla.f32 s0, s27, s27
+    case 0x806d7c: S[2] = S[15] / S[2];  // vdiv.f32 s2, s15, s2
+    case 0x806d80: S[0] = S[0] + Math.fround(S[19] * S[19]);  // vmla.f32 s0, s19, s19
+    case 0x806d84: S[22] = S[25] * S[2];  // vmul.f32 s22, s25, s2
+    case 0x806d88: S[26] = S[21] * S[2];  // vmul.f32 s26, s21, s2
+    case 0x806d8c: S[24] = S[23] * S[2];  // vmul.f32 s24, s23, s2
+    case 0x806d90: S[2] = Math.sqrt(S[0]);  // vsqrt.f32 s2, s0
+    case 0x806d94: { const x = S[2], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s2
+    case 0x806d98: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x806d9c: if (!M.V) { pc = 0x806db0; continue; }  // bvc #0x806db0
+    case 0x806da0: S[20] = S[15];  // vmov.f32 s20, s15
+    case 0x806da4: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x806da8: S[15] = S[20];  // vmov.f32 s15, s20
+    case 0x806dac: S[2] = S[0];  // vmov.f32 s2, s0
+    case 0x806db0: S[0] = S[15] / S[2];  // vdiv.f32 s0, s15, s2
+    case 0x806db4: S[12] = S[15];  // vmov.f32 s12, s15
+    case 0x806db8: S[21] = S[21] * S[26];  // vmul.f32 s21, s21, s26
+    case 0x806dbc: S[21] = S[21] + Math.fround(S[23] * S[24]);  // vmla.f32 s21, s23, s24
+    case 0x806dc0: S[2] = M.ldf((R[6] + 0) >>> 0);  // vldr s2, [r6]
+    case 0x806dc4: S[6] = M.ldf((R[6] + 4) >>> 0);  // vldr s6, [r6, #4]
+    case 0x806dc8: S[4] = M.ldf((R[6] + 8) >>> 0);  // vldr s4, [r6, #8]
+    case 0x806dcc: S[10] = M.ldf((R[7] + 4) >>> 0);  // vldr s10, [r7, #4]
+    case 0x806dd0: S[8] = M.ldf((R[7] + 8) >>> 0);  // vldr s8, [r7, #8]
+    case 0x806dd4: R[4] = (R[7] + 16) >>> 0;  // add r4, r7, #0x10
+    case 0x806dd8: S[21] = S[21] + Math.fround(S[25] * S[22]);  // vmla.f32 s21, s25, s22
+    case 0x806ddc: S[17] = S[18] * S[0];  // vmul.f32 s17, s18, s0
+    case 0x806de0: S[30] = S[27] * S[0];  // vmul.f32 s30, s27, s0
+    case 0x806de4: S[28] = S[19] * S[0];  // vmul.f32 s28, s19, s0
+    case 0x806de8: S[18] = S[18] * S[17];  // vmul.f32 s18, s18, s17
+    case 0x806dec: S[18] = S[18] + Math.fround(S[27] * S[30]);  // vmla.f32 s18, s27, s30
+    case 0x806df0: S[18] = S[18] + Math.fround(S[19] * S[28]);  // vmla.f32 s18, s19, s28
+    case 0x806df4: S[19] = S[26] * S[17];  // vmul.f32 s19, s26, s17
+    case 0x806df8: S[19] = S[19] + Math.fround(S[24] * S[30]);  // vmla.f32 s19, s24, s30
+    case 0x806dfc: S[19] = S[19] + Math.fround(S[22] * S[28]);  // vmla.f32 s19, s22, s28
+    case 0x806e00: S[12] = S[12] - Math.fround(S[19] * S[19]);  // vmls.f32 s12, s19, s19
+    case 0x806e04: { const x = S[12], y = S[16]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s12, s16
+    case 0x806e08: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x806e0c: if ((!M.C || M.Z)) { pc = 0x806ecc; continue; }  // bls #0x806ecc
+    case 0x806e10: S[0] = M.ldf((R[7] + 0) >>> 0);  // vldr s0, [r7]
+    case 0x806e14: S[25] = S[10] - S[6];  // vsub.f32 s25, s10, s6
+    case 0x806e18: S[29] = S[6] - S[10];  // vsub.f32 s29, s6, s10
+    case 0x806e1c: S[9] = S[8] - S[4];  // vsub.f32 s9, s8, s4
+    case 0x806e20: S[31] = S[4] - S[8];  // vsub.f32 s31, s4, s8
+    case 0x806e24: S[3] = S[15] / S[12];  // vdiv.f32 s3, s15, s12
+    case 0x806e28: S[23] = S[0] - S[2];  // vsub.f32 s23, s0, s2
+    case 0x806e2c: S[27] = S[2] - S[0];  // vsub.f32 s27, s2, s0
+    case 0x806e30: S[14] = S[26] * S[25];  // vmul.f32 s14, s26, s25
+    case 0x806e34: S[1] = S[17] * S[29];  // vmul.f32 s1, s17, s29
+    case 0x806e38: S[14] = S[14] + Math.fround(S[24] * S[23]);  // vmla.f32 s14, s24, s23
+    case 0x806e3c: S[1] = S[1] + Math.fround(S[30] * S[27]);  // vmla.f32 s1, s30, s27
+    case 0x806e40: S[14] = S[14] + Math.fround(S[22] * S[9]);  // vmla.f32 s14, s22, s9
+    case 0x806e44: S[1] = S[1] + Math.fround(S[28] * S[31]);  // vmla.f32 s1, s28, s31
+    case 0x806e48: S[5] = S[14];  // vmov.f32 s5, s14
+    case 0x806e4c: S[5] = S[5] + Math.fround(S[19] * S[1]);  // vmla.f32 s5, s19, s1
+    case 0x806e50: S[12] = S[3] * S[5];  // vmul.f32 s12, s3, s5
+    case 0x806e54: { const x = S[12], y = S[21]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s12, s21
+    case 0x806e58: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x806e5c: if ((M.Z || M.N !== M.V)) { pc = 0x806ef8; continue; }  // ble #0x806ef8
+    case 0x806e60: S[12] = M.ldf((R[7] + 16) >>> 0);  // vldr s12, [r7, #0x10]
+    case 0x806e64: S[14] = M.ldf((R[7] + 20) >>> 0);  // vldr s14, [r7, #0x14]
+    case 0x806e68: S[5] = M.ldf((R[6] + 16) >>> 0);  // vldr s5, [r6, #0x10]
+    case 0x806e6c: S[7] = M.ldf((R[6] + 20) >>> 0);  // vldr s7, [r6, #0x14]
+    case 0x806e70: S[3] = M.ldf((R[7] + 24) >>> 0);  // vldr s3, [r7, #0x18]
+    case 0x806e74: S[1] = M.ldf((R[6] + 24) >>> 0);  // vldr s1, [r6, #0x18]
+    case 0x806e78: S[20] = S[14] - S[10];  // vsub.f32 s20, s14, s10
+    case 0x806e7c: S[27] = S[7] - S[10];  // vsub.f32 s27, s7, s10
+    case 0x806e80: S[31] = S[12] - S[0];  // vsub.f32 s31, s12, s0
+    case 0x806e84: S[19] = S[5] - S[0];  // vsub.f32 s19, s5, s0
+    case 0x806e88: S[16] = S[3] - S[8];  // vsub.f32 s16, s3, s8
+    case 0x806e8c: S[29] = S[1] - S[8];  // vsub.f32 s29, s1, s8
+    case 0x806e90: S[10] = S[27] * S[20];  // vmul.f32 s10, s27, s20
+    case 0x806e94: S[0] = S[20] * S[20];  // vmul.f32 s0, s20, s20
+    case 0x806e98: S[10] = S[10] + Math.fround(S[19] * S[31]);  // vmla.f32 s10, s19, s31
+    case 0x806e9c: S[0] = S[0] + Math.fround(S[31] * S[31]);  // vmla.f32 s0, s31, s31
+    case 0x806ea0: S[10] = S[10] + Math.fround(S[29] * S[16]);  // vmla.f32 s10, s29, s16
+    case 0x806ea4: S[0] = S[0] + Math.fround(S[16] * S[16]);  // vmla.f32 s0, s16, s16
+    case 0x806ea8: S[8] = S[10] / S[0];  // vdiv.f32 s8, s10, s0
+    case 0x806eac: { const x = S[8], y = S[15]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s8, s15
+    case 0x806eb0: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x806eb4: if ((M.Z || M.N !== M.V)) { pc = 0x807250; continue; }  // ble #0x807250
+    case 0x806eb8: S[25] = S[7] - S[6];  // vsub.f32 s25, s7, s6
+    case 0x806ebc: S[23] = S[5] - S[2];  // vsub.f32 s23, s5, s2
+    case 0x806ec0: S[20] = S[1] - S[4];  // vsub.f32 s20, s1, s4
+    case 0x806ec4: S[16] = S[3] - S[4];  // vsub.f32 s16, s3, s4
+    case 0x806ec8: { pc = 0x806f60; continue; }  // b #0x806f60
+    case 0x806ecc: { const x = S[19], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s19, #0
+    case 0x806ed0: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x806ed4: if (!M.N) { pc = 0x807040; continue; }  // bpl #0x807040
+    case 0x806ed8: S[10] = M.ldf((R[7] + 20) >>> 0);  // vldr s10, [r7, #0x14]
+    case 0x806edc: S[8] = M.ldf((R[7] + 24) >>> 0);  // vldr s8, [r7, #0x18]
+    case 0x806ee0: R[2] = R[7];  // mov r2, r7
+    case 0x806ee4: R[0] = (R[7] + 8) >>> 0;  // add r0, r7, #8
+    case 0x806ee8: R[1] = (R[7] + 4) >>> 0;  // add r1, r7, #4
+    case 0x806eec: R[7] = R[4];  // mov r7, r4
+    case 0x806ef0: R[4] = R[2];  // mov r4, r2
+    case 0x806ef4: { pc = 0x807048; continue; }  // b #0x807048
+    case 0x806ef8: { const x = S[12], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s12, #0
+    case 0x806efc: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x806f00: if (!M.N) { pc = 0x80726c; continue; }  // bpl #0x80726c
+    case 0x806f04: S[12] = M.ldf((R[7] + 16) >>> 0);  // vldr s12, [r7, #0x10]
+    case 0x806f08: S[14] = M.ldf((R[7] + 20) >>> 0);  // vldr s14, [r7, #0x14]
+    case 0x806f0c: S[1] = M.ldf((R[7] + 24) >>> 0);  // vldr s1, [r7, #0x18]
+    case 0x806f10: S[19] = S[14] - S[10];  // vsub.f32 s19, s14, s10
+    case 0x806f14: S[16] = S[12] - S[0];  // vsub.f32 s16, s12, s0
+    case 0x806f18: S[20] = S[1] - S[8];  // vsub.f32 s20, s1, s8
+    case 0x806f1c: S[10] = S[29] * S[19];  // vmul.f32 s10, s29, s19
+    case 0x806f20: S[0] = S[19] * S[19];  // vmul.f32 s0, s19, s19
+    case 0x806f24: S[10] = S[10] + Math.fround(S[27] * S[16]);  // vmla.f32 s10, s27, s16
+    case 0x806f28: S[0] = S[0] + Math.fround(S[16] * S[16]);  // vmla.f32 s0, s16, s16
+    case 0x806f2c: S[10] = S[10] + Math.fround(S[31] * S[20]);  // vmla.f32 s10, s31, s20
+    case 0x806f30: S[0] = S[0] + Math.fround(S[20] * S[20]);  // vmla.f32 s0, s20, s20
+    case 0x806f34: S[8] = S[10] / S[0];  // vdiv.f32 s8, s10, s0
+    case 0x806f38: { const x = S[8], y = S[15]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s8, s15
+    case 0x806f3c: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x806f40: if ((M.Z || M.N !== M.V)) { pc = 0x807374; continue; }  // ble #0x807374
+    case 0x806f44: S[0] = M.ldf((R[6] + 16) >>> 0);  // vldr s0, [r6, #0x10]
+    case 0x806f48: S[8] = M.ldf((R[6] + 20) >>> 0);  // vldr s8, [r6, #0x14]
+    case 0x806f4c: S[10] = M.ldf((R[6] + 24) >>> 0);  // vldr s10, [r6, #0x18]
+    case 0x806f50: S[16] = S[1] - S[4];  // vsub.f32 s16, s1, s4
+    case 0x806f54: S[25] = S[8] - S[6];  // vsub.f32 s25, s8, s6
+    case 0x806f58: S[23] = S[0] - S[2];  // vsub.f32 s23, s0, s2
+    case 0x806f5c: S[20] = S[10] - S[4];  // vsub.f32 s20, s10, s4
+    case 0x806f60: S[0] = S[25] * S[25];  // vmul.f32 s0, s25, s25
+    case 0x806f64: S[0] = S[0] + Math.fround(S[23] * S[23]);  // vmla.f32 s0, s23, s23
+    case 0x806f68: S[0] = S[0] + Math.fround(S[20] * S[20]);  // vmla.f32 s0, s20, s20
+    case 0x806f6c: S[19] = S[12] - S[2];  // vsub.f32 s19, s12, s2
+    case 0x806f70: S[2] = Math.sqrt(S[0]);  // vsqrt.f32 s2, s0
+    case 0x806f74: S[21] = S[14] - S[6];  // vsub.f32 s21, s14, s6
+    case 0x806f78: { const x = S[2], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s2
+    case 0x806f7c: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x806f80: if (!M.V) { pc = 0x806f94; continue; }  // bvc #0x806f94
+    case 0x806f84: S[27] = S[15];  // vmov.f32 s27, s15
+    case 0x806f88: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x806f8c: S[15] = S[27];  // vmov.f32 s15, s27
+    case 0x806f90: S[2] = S[0];  // vmov.f32 s2, s0
+    case 0x806f94: S[2] = S[15] / S[2];  // vdiv.f32 s2, s15, s2
+    case 0x806f98: S[0] = M.ldf((R[6] + 4) >>> 0);  // vldr s0, [r6, #4]
+    case 0x806f9c: S[10] = M.ldf((R[6] + 20) >>> 0);  // vldr s10, [r6, #0x14]
+    case 0x806fa0: S[6] = M.ldf((R[6] + 0) >>> 0);  // vldr s6, [r6]
+    case 0x806fa4: S[8] = M.ldf((R[6] + 16) >>> 0);  // vldr s8, [r6, #0x10]
+    case 0x806fa8: S[4] = M.ldf((R[6] + 8) >>> 0);  // vldr s4, [r6, #8]
+    case 0x806fac: S[12] = M.ldf((R[6] + 24) >>> 0);  // vldr s12, [r6, #0x18]
+    case 0x806fb0: R[0] = 0;  // mov r0, #0
+    case 0x806fb4: R[1] = (R[13] + 8) >>> 0;  // add r1, sp, #8
+    case 0x806fb8: M.F[0] = S[18]; R[5] = M.U[0];  // vmov r5, s18
+    case 0x806fbc: M.st32(((R[13] + 4) >>> 0), R[0]);  // str r0, [sp, #4]
+    case 0x806fc0: R[0] = (R[13] + 12) >>> 0;  // add r0, sp, #0xc
+    case 0x806fc4: S[0] = S[10] - S[0];  // vsub.f32 s0, s10, s0
+    case 0x806fc8: S[6] = S[8] - S[6];  // vsub.f32 s6, s8, s6
+    case 0x806fcc: S[4] = S[12] - S[4];  // vsub.f32 s4, s12, s4
+    case 0x806fd0: S[14] = S[25] * S[2];  // vmul.f32 s14, s25, s2
+    case 0x806fd4: S[10] = S[23] * S[2];  // vmul.f32 s10, s23, s2
+    case 0x806fd8: S[2] = S[20] * S[2];  // vmul.f32 s2, s20, s2
+    case 0x806fdc: S[0] = S[14] * S[0];  // vmul.f32 s0, s14, s0
+    case 0x806fe0: S[0] = S[0] + Math.fround(S[10] * S[6]);  // vmla.f32 s0, s10, s6
+    case 0x806fe4: S[6] = S[21] * S[14];  // vmul.f32 s6, s21, s14
+    case 0x806fe8: S[6] = S[6] + Math.fround(S[19] * S[10]);  // vmla.f32 s6, s19, s10
+    case 0x806fec: S[0] = S[0] + Math.fround(S[2] * S[4]);  // vmla.f32 s0, s2, s4
+    case 0x806ff0: S[6] = S[6] + Math.fround(S[16] * S[2]);  // vmla.f32 s6, s16, s2
+    case 0x806ff4: M.stf((R[13] + 12) >>> 0, S[0]);  // vstr s0, [sp, #0xc]
+    case 0x806ff8: { const x = S[0], y = S[6]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s6
+    case 0x806ffc: M.stf((R[13] + 8) >>> 0, S[6]);  // vstr s6, [sp, #8]
+    case 0x807000: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x807004: if (M.N) { R[1] = R[0]; }  // movmi r1, r0
+    case 0x807008: R[0] = (R[13] + 4) >>> 0;  // add r0, sp, #4
+    case 0x80700c: S[0] = M.ldf((R[1] + 0) >>> 0);  // vldr s0, [r1]
+    case 0x807010: { const x = S[0], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, #0
+    case 0x807014: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x807018: if ((!M.Z && M.N === M.V)) { R[0] = R[1]; }  // movgt r0, r1
+    case 0x80701c: R[0] = M.ld32(((R[0] + 0) >>> 0));  // ldr r0, [r0]
+    case 0x807020: M.U[0] = R[0]; S[4] = M.F[0];  // vmov s4, r0
+    case 0x807024: S[21] = S[21] - Math.fround(S[14] * S[4]);  // vmls.f32 s21, s14, s4
+    case 0x807028: S[19] = S[19] - Math.fround(S[10] * S[4]);  // vmls.f32 s19, s10, s4
+    case 0x80702c: S[16] = S[16] - Math.fround(S[2] * S[4]);  // vmls.f32 s16, s2, s4
+    case 0x807030: S[0] = S[21] * S[21];  // vmul.f32 s0, s21, s21
+    case 0x807034: S[0] = S[0] + Math.fround(S[19] * S[19]);  // vmla.f32 s0, s19, s19
+    case 0x807038: S[0] = S[0] + Math.fround(S[16] * S[16]);  // vmla.f32 s0, s16, s16
+    case 0x80703c: { pc = 0x807628; continue; }  // b #0x807628
+    case 0x807040: R[0] = (R[7] + 24) >>> 0;  // add r0, r7, #0x18
+    case 0x807044: R[1] = (R[7] + 20) >>> 0;  // add r1, r7, #0x14
+    case 0x807048: S[12] = M.ldf((R[7] + 0) >>> 0);  // vldr s12, [r7]
+    case 0x80704c: S[0] = M.ldf((R[1] + 0) >>> 0);  // vldr s0, [r1]
+    case 0x807050: S[7] = M.ldf((R[4] + 0) >>> 0);  // vldr s7, [r4]
+    case 0x807054: S[9] = S[26] * S[6];  // vmul.f32 s9, s26, s6
+    case 0x807058: S[13] = S[26] * S[10];  // vmul.f32 s13, s26, s10
+    case 0x80705c: S[9] = S[9] + Math.fround(S[24] * S[2]);  // vmla.f32 s9, s24, s2
+    case 0x807060: S[5] = M.ldf((R[0] + 0) >>> 0);  // vldr s5, [r0]
+    case 0x807064: S[14] = M.ldf((R[6] + 16) >>> 0);  // vldr s14, [r6, #0x10]
+    case 0x807068: S[3] = M.ldf((R[6] + 20) >>> 0);  // vldr s3, [r6, #0x14]
+    case 0x80706c: S[1] = M.ldf((R[6] + 24) >>> 0);  // vldr s1, [r6, #0x18]
+    case 0x807070: S[9] = S[9] + Math.fround(S[22] * S[4]);  // vmla.f32 s9, s22, s4
+    case 0x807074: S[13] = S[13] + Math.fround(S[24] * S[12]);  // vmla.f32 s13, s24, s12
+    case 0x807078: S[11] = S[26] * S[0];  // vmul.f32 s11, s26, s0
+    case 0x80707c: S[11] = S[11] + Math.fround(S[24] * S[7]);  // vmla.f32 s11, s24, s7
+    case 0x807080: S[13] = S[13] + Math.fround(S[22] * S[8]);  // vmla.f32 s13, s22, s8
+    case 0x807084: S[11] = S[11] + Math.fround(S[22] * S[5]);  // vmla.f32 s11, s22, s5
+    case 0x807088: { const x = S[9], y = S[13]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s9, s13
+    case 0x80708c: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x807090: if ((M.N !== M.V)) { pc = 0x80714c; continue; }  // blt #0x80714c
+    case 0x807094: { const x = S[9], y = S[11]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s9, s11
+    case 0x807098: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x80709c: if ((M.C && !M.Z)) { pc = 0x80714c; continue; }  // bhi #0x80714c
+    case 0x8070a0: S[28] = S[0] - S[10];  // vsub.f32 s28, s0, s10
+    case 0x8070a4: S[26] = S[7] - S[12];  // vsub.f32 s26, s7, s12
+    case 0x8070a8: S[20] = S[5] - S[8];  // vsub.f32 s20, s5, s8
+    case 0x8070ac: S[22] = S[2] - S[12];  // vsub.f32 s22, s2, s12
+    case 0x8070b0: S[16] = S[4] - S[8];  // vsub.f32 s16, s4, s8
+    case 0x8070b4: S[24] = S[6] - S[10];  // vsub.f32 s24, s6, s10
+    case 0x8070b8: S[0] = S[28] * S[28];  // vmul.f32 s0, s28, s28
+    case 0x8070bc: S[0] = S[0] + Math.fround(S[26] * S[26]);  // vmla.f32 s0, s26, s26
+    case 0x8070c0: S[0] = S[0] + Math.fround(S[20] * S[20]);  // vmla.f32 s0, s20, s20
+    case 0x8070c4: S[2] = Math.sqrt(S[0]);  // vsqrt.f32 s2, s0
+    case 0x8070c8: { const x = S[2], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s2
+    case 0x8070cc: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x8070d0: if (!M.V) { pc = 0x8070e4; continue; }  // bvc #0x8070e4
+    case 0x8070d4: S[30] = S[15];  // vmov.f32 s30, s15
+    case 0x8070d8: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x8070dc: S[15] = S[30];  // vmov.f32 s15, s30
+    case 0x8070e0: S[2] = S[0];  // vmov.f32 s2, s0
+    case 0x8070e4: S[0] = S[15] / S[2];  // vdiv.f32 s0, s15, s2
+    case 0x8070e8: R[1] = (R[13] + 12) >>> 0;  // add r1, sp, #0xc
+    case 0x8070ec: R[2] = (R[13] + 8) >>> 0;  // add r2, sp, #8
+    case 0x8070f0: R[0] = 0;  // mov r0, #0
+    case 0x8070f4: M.st32(((R[13] + 4) >>> 0), R[0]);  // str r0, [sp, #4]
+    case 0x8070f8: S[2] = S[28] * S[0];  // vmul.f32 s2, s28, s0
+    case 0x8070fc: S[4] = S[26] * S[0];  // vmul.f32 s4, s26, s0
+    case 0x807100: S[8] = S[20] * S[0];  // vmul.f32 s8, s20, s0
+    case 0x807104: S[6] = S[28] * S[2];  // vmul.f32 s6, s28, s2
+    case 0x807108: S[6] = S[6] + Math.fround(S[26] * S[4]);  // vmla.f32 s6, s26, s4
+    case 0x80710c: S[0] = S[24] * S[2];  // vmul.f32 s0, s24, s2
+    case 0x807110: S[0] = S[0] + Math.fround(S[22] * S[4]);  // vmla.f32 s0, s22, s4
+    case 0x807114: S[6] = S[6] + Math.fround(S[20] * S[8]);  // vmla.f32 s6, s20, s8
+    case 0x807118: S[0] = S[0] + Math.fround(S[16] * S[8]);  // vmla.f32 s0, s16, s8
+    case 0x80711c: M.stf((R[13] + 12) >>> 0, S[6]);  // vstr s6, [sp, #0xc]
+    case 0x807120: { const x = S[6], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s6, s0
+    case 0x807124: M.stf((R[13] + 8) >>> 0, S[0]);  // vstr s0, [sp, #8]
+    case 0x807128: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x80712c: if (M.N) { R[2] = R[1]; }  // movmi r2, r1
+    case 0x807130: R[1] = (R[13] + 4) >>> 0;  // add r1, sp, #4
+    case 0x807134: S[0] = M.ldf((R[2] + 0) >>> 0);  // vldr s0, [r2]
+    case 0x807138: { const x = S[0], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, #0
+    case 0x80713c: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x807140: if ((!M.Z && M.N === M.V)) { R[1] = R[2]; }  // movgt r1, r2
+    case 0x807144: R[5] = M.ld32(((R[1] + 0) >>> 0));  // ldr r5, [r1]
+    case 0x807148: { pc = 0x807218; continue; }  // b #0x807218
+    case 0x80714c: S[30] = S[15];  // vmov.f32 s30, s15
+    case 0x807150: S[15] = S[26] * S[3];  // vmul.f32 s15, s26, s3
+    case 0x807154: S[15] = S[15] + Math.fround(S[24] * S[14]);  // vmla.f32 s15, s24, s14
+    case 0x807158: S[15] = S[15] + Math.fround(S[22] * S[1]);  // vmla.f32 s15, s22, s1
+    case 0x80715c: { const x = S[15], y = S[13]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s15, s13
+    case 0x807160: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x807164: if ((M.N !== M.V)) { pc = 0x807284; continue; }  // blt #0x807284
+    case 0x807168: { const x = S[15], y = S[11]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s15, s11
+    case 0x80716c: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x807170: if ((M.C && !M.Z)) { pc = 0x807284; continue; }  // bhi #0x807284
+    case 0x807174: S[28] = S[0] - S[10];  // vsub.f32 s28, s0, s10
+    case 0x807178: S[26] = S[7] - S[12];  // vsub.f32 s26, s7, s12
+    case 0x80717c: S[20] = S[5] - S[8];  // vsub.f32 s20, s5, s8
+    case 0x807180: S[16] = S[1] - S[8];  // vsub.f32 s16, s1, s8
+    case 0x807184: S[24] = S[3] - S[10];  // vsub.f32 s24, s3, s10
+    case 0x807188: S[22] = S[14] - S[12];  // vsub.f32 s22, s14, s12
+    case 0x80718c: S[0] = S[28] * S[28];  // vmul.f32 s0, s28, s28
+    case 0x807190: S[0] = S[0] + Math.fround(S[26] * S[26]);  // vmla.f32 s0, s26, s26
+    case 0x807194: S[0] = S[0] + Math.fround(S[20] * S[20]);  // vmla.f32 s0, s20, s20
+    case 0x807198: S[2] = Math.sqrt(S[0]);  // vsqrt.f32 s2, s0
+    case 0x80719c: { const x = S[2], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s2
+    case 0x8071a0: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x8071a4: if (!M.V) { pc = 0x8071b0; continue; }  // bvc #0x8071b0
+    case 0x8071a8: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x8071ac: S[2] = S[0];  // vmov.f32 s2, s0
+    case 0x8071b0: S[0] = S[30] / S[2];  // vdiv.f32 s0, s30, s2
+    case 0x8071b4: R[0] = 0;  // mov r0, #0
+    case 0x8071b8: R[1] = (R[13] + 8) >>> 0;  // add r1, sp, #8
+    case 0x8071bc: M.st32(((R[13] + 4) >>> 0), R[0]);  // str r0, [sp, #4]
+    case 0x8071c0: R[0] = (R[13] + 12) >>> 0;  // add r0, sp, #0xc
+    case 0x8071c4: S[2] = S[28] * S[0];  // vmul.f32 s2, s28, s0
+    case 0x8071c8: S[4] = S[26] * S[0];  // vmul.f32 s4, s26, s0
+    case 0x8071cc: S[8] = S[20] * S[0];  // vmul.f32 s8, s20, s0
+    case 0x8071d0: S[6] = S[28] * S[2];  // vmul.f32 s6, s28, s2
+    case 0x8071d4: S[6] = S[6] + Math.fround(S[26] * S[4]);  // vmla.f32 s6, s26, s4
+    case 0x8071d8: S[0] = S[24] * S[2];  // vmul.f32 s0, s24, s2
+    case 0x8071dc: S[0] = S[0] + Math.fround(S[22] * S[4]);  // vmla.f32 s0, s22, s4
+    case 0x8071e0: S[6] = S[6] + Math.fround(S[20] * S[8]);  // vmla.f32 s6, s20, s8
+    case 0x8071e4: S[0] = S[0] + Math.fround(S[16] * S[8]);  // vmla.f32 s0, s16, s8
+    case 0x8071e8: M.stf((R[13] + 12) >>> 0, S[6]);  // vstr s6, [sp, #0xc]
+    case 0x8071ec: { const x = S[6], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s6, s0
+    case 0x8071f0: M.stf((R[13] + 8) >>> 0, S[0]);  // vstr s0, [sp, #8]
+    case 0x8071f4: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x8071f8: if (M.N) { R[1] = R[0]; }  // movmi r1, r0
+    case 0x8071fc: R[0] = (R[13] + 4) >>> 0;  // add r0, sp, #4
+    case 0x807200: S[0] = M.ldf((R[1] + 0) >>> 0);  // vldr s0, [r1]
+    case 0x807204: { const x = S[0], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, #0
+    case 0x807208: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x80720c: if ((!M.Z && M.N === M.V)) { R[0] = R[1]; }  // movgt r0, r1
+    case 0x807210: R[5] = M.ld32(((R[0] + 0) >>> 0));  // ldr r5, [r0]
+    case 0x807214: M.F[0] = S[21]; R[0] = M.U[0];  // vmov r0, s21
+    case 0x807218: M.U[0] = R[5]; S[6] = M.F[0];  // vmov s6, r5
+    case 0x80721c: S[24] = S[24] - Math.fround(S[2] * S[6]);  // vmls.f32 s24, s2, s6
+    case 0x807220: S[22] = S[22] - Math.fround(S[4] * S[6]);  // vmls.f32 s22, s4, s6
+    case 0x807224: S[16] = S[16] - Math.fround(S[8] * S[6]);  // vmls.f32 s16, s8, s6
+    case 0x807228: S[0] = S[24] * S[24];  // vmul.f32 s0, s24, s24
+    case 0x80722c: S[0] = S[0] + Math.fround(S[22] * S[22]);  // vmla.f32 s0, s22, s22
+    case 0x807230: S[0] = S[0] + Math.fround(S[16] * S[16]);  // vmla.f32 s0, s16, s16
+    case 0x807234: { const x = S[19], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s19, #0
+    case 0x807238: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x80723c: if (!M.N) { pc = 0x807760; continue; }  // bpl #0x807760
+    case 0x807240: M.U[0] = R[5]; S[2] = M.F[0];  // vmov s2, r5
+    case 0x807244: S[2] = S[18] - S[2];  // vsub.f32 s2, s18, s2
+    case 0x807248: M.F[0] = S[2]; R[5] = M.U[0];  // vmov r5, s2
+    case 0x80724c: { pc = 0x807760; continue; }  // b #0x807760
+    case 0x807250: { const x = S[8], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s8, #0
+    case 0x807254: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x807258: if (!M.N) { pc = 0x807474; continue; }  // bpl #0x807474
+    case 0x80725c: S[19] = S[7] - S[6];  // vsub.f32 s19, s7, s6
+    case 0x807260: S[20] = S[5] - S[2];  // vsub.f32 s20, s5, s2
+    case 0x807264: S[16] = S[1] - S[4];  // vsub.f32 s16, s1, s4
+    case 0x807268: { pc = 0x807398; continue; }  // b #0x807398
+    case 0x80726c: S[1] = S[1] + Math.fround(S[19] * S[14]);  // vmla.f32 s1, s19, s14
+    case 0x807270: S[0] = -1.0;  // vmov.f32 s0, #-1.000000e+00
+    case 0x807274: M.F[0] = S[12]; R[0] = M.U[0];  // vmov r0, s12
+    case 0x807278: S[2] = S[3] * S[1];  // vmul.f32 s2, s3, s1
+    case 0x80727c: M.F[0] = S[2]; R[5] = M.U[0];  // vmov r5, s2
+    case 0x807280: { pc = 0x807628; continue; }  // b #0x807628
+    case 0x807284: { const x = S[9], y = S[13]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s9, s13
+    case 0x807288: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x80728c: if ((M.C && !M.Z)) { pc = 0x807540; continue; }  // bhi #0x807540
+    case 0x807290: { const x = S[15], y = S[11]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s15, s11
+    case 0x807294: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x807298: if ((M.N !== M.V)) { pc = 0x807540; continue; }  // blt #0x807540
+    case 0x80729c: S[28] = S[3] - S[6];  // vsub.f32 s28, s3, s6
+    case 0x8072a0: S[26] = S[14] - S[2];  // vsub.f32 s26, s14, s2
+    case 0x8072a4: S[20] = S[1] - S[4];  // vsub.f32 s20, s1, s4
+    case 0x8072a8: S[22] = S[12] - S[2];  // vsub.f32 s22, s12, s2
+    case 0x8072ac: S[16] = S[8] - S[4];  // vsub.f32 s16, s8, s4
+    case 0x8072b0: S[24] = S[10] - S[6];  // vsub.f32 s24, s10, s6
+    case 0x8072b4: S[0] = S[28] * S[28];  // vmul.f32 s0, s28, s28
+    case 0x8072b8: S[0] = S[0] + Math.fround(S[26] * S[26]);  // vmla.f32 s0, s26, s26
+    case 0x8072bc: S[0] = S[0] + Math.fround(S[20] * S[20]);  // vmla.f32 s0, s20, s20
+    case 0x8072c0: S[2] = Math.sqrt(S[0]);  // vsqrt.f32 s2, s0
+    case 0x8072c4: { const x = S[2], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s2
+    case 0x8072c8: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x8072cc: if (!M.V) { pc = 0x8072d8; continue; }  // bvc #0x8072d8
+    case 0x8072d0: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x8072d4: S[2] = S[0];  // vmov.f32 s2, s0
+    case 0x8072d8: S[2] = S[30] / S[2];  // vdiv.f32 s2, s30, s2
+    case 0x8072dc: S[0] = M.ldf((R[6] + 4) >>> 0);  // vldr s0, [r6, #4]
+    case 0x8072e0: S[10] = M.ldf((R[6] + 20) >>> 0);  // vldr s10, [r6, #0x14]
+    case 0x8072e4: S[6] = M.ldf((R[6] + 0) >>> 0);  // vldr s6, [r6]
+    case 0x8072e8: S[8] = M.ldf((R[6] + 16) >>> 0);  // vldr s8, [r6, #0x10]
+    case 0x8072ec: S[4] = M.ldf((R[6] + 8) >>> 0);  // vldr s4, [r6, #8]
+    case 0x8072f0: S[12] = M.ldf((R[6] + 24) >>> 0);  // vldr s12, [r6, #0x18]
+    case 0x8072f4: R[0] = (R[13] + 12) >>> 0;  // add r0, sp, #0xc
+    case 0x8072f8: R[1] = (R[13] + 8) >>> 0;  // add r1, sp, #8
+    case 0x8072fc: R[5] = 0;  // mov r5, #0
+    case 0x807300: M.st32(((R[13] + 4) >>> 0), R[5]);  // str r5, [sp, #4]
+    case 0x807304: S[0] = S[10] - S[0];  // vsub.f32 s0, s10, s0
+    case 0x807308: S[6] = S[8] - S[6];  // vsub.f32 s6, s8, s6
+    case 0x80730c: S[4] = S[12] - S[4];  // vsub.f32 s4, s12, s4
+    case 0x807310: S[14] = S[28] * S[2];  // vmul.f32 s14, s28, s2
+    case 0x807314: S[10] = S[26] * S[2];  // vmul.f32 s10, s26, s2
+    case 0x807318: S[2] = S[20] * S[2];  // vmul.f32 s2, s20, s2
+    case 0x80731c: S[0] = S[14] * S[0];  // vmul.f32 s0, s14, s0
+    case 0x807320: S[0] = S[0] + Math.fround(S[10] * S[6]);  // vmla.f32 s0, s10, s6
+    case 0x807324: S[6] = S[24] * S[14];  // vmul.f32 s6, s24, s14
+    case 0x807328: S[6] = S[6] + Math.fround(S[22] * S[10]);  // vmla.f32 s6, s22, s10
+    case 0x80732c: S[0] = S[0] + Math.fround(S[2] * S[4]);  // vmla.f32 s0, s2, s4
+    case 0x807330: S[6] = S[6] + Math.fround(S[16] * S[2]);  // vmla.f32 s6, s16, s2
+    case 0x807334: M.stf((R[13] + 12) >>> 0, S[0]);  // vstr s0, [sp, #0xc]
+    case 0x807338: { const x = S[0], y = S[6]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s6
+    case 0x80733c: M.stf((R[13] + 8) >>> 0, S[6]);  // vstr s6, [sp, #8]
+    case 0x807340: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x807344: if (M.N) { R[1] = R[0]; }  // movmi r1, r0
+    case 0x807348: R[0] = (R[13] + 4) >>> 0;  // add r0, sp, #4
+    case 0x80734c: S[0] = M.ldf((R[1] + 0) >>> 0);  // vldr s0, [r1]
+    case 0x807350: { const x = S[0], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, #0
+    case 0x807354: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x807358: if ((!M.Z && M.N === M.V)) { R[0] = R[1]; }  // movgt r0, r1
+    case 0x80735c: R[0] = M.ld32(((R[0] + 0) >>> 0));  // ldr r0, [r0]
+    case 0x807360: M.U[0] = R[0]; S[4] = M.F[0];  // vmov s4, r0
+    case 0x807364: S[24] = S[24] - Math.fround(S[14] * S[4]);  // vmls.f32 s24, s14, s4
+    case 0x807368: S[22] = S[22] - Math.fround(S[10] * S[4]);  // vmls.f32 s22, s10, s4
+    case 0x80736c: S[16] = S[16] - Math.fround(S[2] * S[4]);  // vmls.f32 s16, s2, s4
+    case 0x807370: { pc = 0x807228; continue; }  // b #0x807228
+    case 0x807374: { const x = S[8], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s8, #0
+    case 0x807378: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x80737c: if (!M.N) { pc = 0x807564; continue; }  // bpl #0x807564
+    case 0x807380: S[8] = M.ldf((R[6] + 20) >>> 0);  // vldr s8, [r6, #0x14]
+    case 0x807384: S[0] = M.ldf((R[6] + 16) >>> 0);  // vldr s0, [r6, #0x10]
+    case 0x807388: S[10] = M.ldf((R[6] + 24) >>> 0);  // vldr s10, [r6, #0x18]
+    case 0x80738c: S[19] = S[8] - S[6];  // vsub.f32 s19, s8, s6
+    case 0x807390: S[20] = S[0] - S[2];  // vsub.f32 s20, s0, s2
+    case 0x807394: S[16] = S[10] - S[4];  // vsub.f32 s16, s10, s4
+    case 0x807398: S[2] = S[19] * S[19];  // vmul.f32 s2, s19, s19
+    case 0x80739c: S[2] = S[2] + Math.fround(S[20] * S[20]);  // vmla.f32 s2, s20, s20
+    case 0x8073a0: S[2] = S[2] + Math.fround(S[16] * S[16]);  // vmla.f32 s2, s16, s16
+    case 0x8073a4: S[0] = Math.sqrt(S[2]);  // vsqrt.f32 s0, s2
+    case 0x8073a8: { const x = S[0], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s0
+    case 0x8073ac: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x8073b0: if (!M.V) { pc = 0x8073cc; continue; }  // bvc #0x8073cc
+    case 0x8073b4: S[0] = S[2];  // vmov.f32 s0, s2
+    case 0x8073b8: S[21] = S[15];  // vmov.f32 s21, s15
+    case 0x8073bc: S[27] = S[9];  // vmov.f32 s27, s9
+    case 0x8073c0: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x8073c4: S[9] = S[27];  // vmov.f32 s9, s27
+    case 0x8073c8: S[15] = S[21];  // vmov.f32 s15, s21
+    case 0x8073cc: S[0] = S[15] / S[0];  // vdiv.f32 s0, s15, s0
+    case 0x8073d0: S[2] = M.ldf((R[6] + 4) >>> 0);  // vldr s2, [r6, #4]
+    case 0x8073d4: S[10] = M.ldf((R[6] + 20) >>> 0);  // vldr s10, [r6, #0x14]
+    case 0x8073d8: S[6] = M.ldf((R[6] + 0) >>> 0);  // vldr s6, [r6]
+    case 0x8073dc: S[8] = M.ldf((R[6] + 16) >>> 0);  // vldr s8, [r6, #0x10]
+    case 0x8073e0: S[4] = M.ldf((R[6] + 8) >>> 0);  // vldr s4, [r6, #8]
+    case 0x8073e4: S[12] = M.ldf((R[6] + 24) >>> 0);  // vldr s12, [r6, #0x18]
+    case 0x8073e8: R[0] = (R[13] + 12) >>> 0;  // add r0, sp, #0xc
+    case 0x8073ec: R[1] = (R[13] + 8) >>> 0;  // add r1, sp, #8
+    case 0x8073f0: R[5] = 0;  // mov r5, #0
+    case 0x8073f4: M.st32(((R[13] + 4) >>> 0), R[5]);  // str r5, [sp, #4]
+    case 0x8073f8: S[2] = S[10] - S[2];  // vsub.f32 s2, s10, s2
+    case 0x8073fc: S[6] = S[8] - S[6];  // vsub.f32 s6, s8, s6
+    case 0x807400: S[14] = S[19] * S[0];  // vmul.f32 s14, s19, s0
+    case 0x807404: S[10] = S[20] * S[0];  // vmul.f32 s10, s20, s0
+    case 0x807408: S[8] = S[16] * S[0];  // vmul.f32 s8, s16, s0
+    case 0x80740c: S[0] = S[12] - S[4];  // vsub.f32 s0, s12, s4
+    case 0x807410: S[2] = S[14] * S[2];  // vmul.f32 s2, s14, s2
+    case 0x807414: S[2] = S[2] + Math.fround(S[10] * S[6]);  // vmla.f32 s2, s10, s6
+    case 0x807418: S[4] = S[25] * S[14];  // vmul.f32 s4, s25, s14
+    case 0x80741c: S[4] = S[4] + Math.fround(S[23] * S[10]);  // vmla.f32 s4, s23, s10
+    case 0x807420: S[2] = S[2] + Math.fround(S[8] * S[0]);  // vmla.f32 s2, s8, s0
+    case 0x807424: S[4] = S[4] + Math.fround(S[9] * S[8]);  // vmla.f32 s4, s9, s8
+    case 0x807428: M.stf((R[13] + 12) >>> 0, S[2]);  // vstr s2, [sp, #0xc]
+    case 0x80742c: { const x = S[2], y = S[4]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s4
+    case 0x807430: M.stf((R[13] + 8) >>> 0, S[4]);  // vstr s4, [sp, #8]
+    case 0x807434: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x807438: if (M.N) { R[1] = R[0]; }  // movmi r1, r0
+    case 0x80743c: R[0] = (R[13] + 4) >>> 0;  // add r0, sp, #4
+    case 0x807440: S[0] = M.ldf((R[1] + 0) >>> 0);  // vldr s0, [r1]
+    case 0x807444: { const x = S[0], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, #0
+    case 0x807448: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x80744c: if ((!M.Z && M.N === M.V)) { R[0] = R[1]; }  // movgt r0, r1
+    case 0x807450: R[0] = M.ld32(((R[0] + 0) >>> 0));  // ldr r0, [r0]
+    case 0x807454: M.U[0] = R[0]; S[2] = M.F[0];  // vmov s2, r0
+    case 0x807458: S[25] = S[25] - Math.fround(S[14] * S[2]);  // vmls.f32 s25, s14, s2
+    case 0x80745c: S[23] = S[23] - Math.fround(S[10] * S[2]);  // vmls.f32 s23, s10, s2
+    case 0x807460: S[9] = S[9] - Math.fround(S[8] * S[2]);  // vmls.f32 s9, s8, s2
+    case 0x807464: S[0] = S[25] * S[25];  // vmul.f32 s0, s25, s25
+    case 0x807468: S[0] = S[0] + Math.fround(S[23] * S[23]);  // vmla.f32 s0, s23, s23
+    case 0x80746c: S[0] = S[0] + Math.fround(S[9] * S[9]);  // vmla.f32 s0, s9, s9
+    case 0x807470: { pc = 0x807628; continue; }  // b #0x807628
+    case 0x807474: S[2] = Math.sqrt(S[0]);  // vsqrt.f32 s2, s0
+    case 0x807478: { const x = S[2], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s2
+    case 0x80747c: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x807480: if (!M.V) { pc = 0x807494; continue; }  // bvc #0x807494
+    case 0x807484: S[23] = S[15];  // vmov.f32 s23, s15
+    case 0x807488: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x80748c: S[15] = S[23];  // vmov.f32 s15, s23
+    case 0x807490: S[2] = S[0];  // vmov.f32 s2, s0
+    case 0x807494: S[2] = S[15] / S[2];  // vdiv.f32 s2, s15, s2
+    case 0x807498: S[0] = M.ldf((R[7] + 4) >>> 0);  // vldr s0, [r7, #4]
+    case 0x80749c: S[10] = M.ldf((R[7] + 20) >>> 0);  // vldr s10, [r7, #0x14]
+    case 0x8074a0: S[6] = M.ldf((R[7] + 0) >>> 0);  // vldr s6, [r7]
+    case 0x8074a4: S[8] = M.ldf((R[7] + 16) >>> 0);  // vldr s8, [r7, #0x10]
+    case 0x8074a8: S[4] = M.ldf((R[7] + 8) >>> 0);  // vldr s4, [r7, #8]
+    case 0x8074ac: S[12] = M.ldf((R[7] + 24) >>> 0);  // vldr s12, [r7, #0x18]
+    case 0x8074b0: R[1] = 0;  // mov r1, #0
+    case 0x8074b4: R[2] = (R[13] + 8) >>> 0;  // add r2, sp, #8
+    case 0x8074b8: M.F[0] = S[21]; R[0] = M.U[0];  // vmov r0, s21
+    case 0x8074bc: M.st32(((R[13] + 4) >>> 0), R[1]);  // str r1, [sp, #4]
+    case 0x8074c0: R[1] = (R[13] + 12) >>> 0;  // add r1, sp, #0xc
+    case 0x8074c4: S[0] = S[10] - S[0];  // vsub.f32 s0, s10, s0
+    case 0x8074c8: S[6] = S[8] - S[6];  // vsub.f32 s6, s8, s6
+    case 0x8074cc: S[4] = S[12] - S[4];  // vsub.f32 s4, s12, s4
+    case 0x8074d0: S[14] = S[20] * S[2];  // vmul.f32 s14, s20, s2
+    case 0x8074d4: S[10] = S[31] * S[2];  // vmul.f32 s10, s31, s2
+    case 0x8074d8: S[2] = S[16] * S[2];  // vmul.f32 s2, s16, s2
+    case 0x8074dc: S[0] = S[14] * S[0];  // vmul.f32 s0, s14, s0
+    case 0x8074e0: S[0] = S[0] + Math.fround(S[10] * S[6]);  // vmla.f32 s0, s10, s6
+    case 0x8074e4: S[6] = S[27] * S[14];  // vmul.f32 s6, s27, s14
+    case 0x8074e8: S[6] = S[6] + Math.fround(S[19] * S[10]);  // vmla.f32 s6, s19, s10
+    case 0x8074ec: S[0] = S[0] + Math.fround(S[2] * S[4]);  // vmla.f32 s0, s2, s4
+    case 0x8074f0: S[6] = S[6] + Math.fround(S[29] * S[2]);  // vmla.f32 s6, s29, s2
+    case 0x8074f4: M.stf((R[13] + 12) >>> 0, S[0]);  // vstr s0, [sp, #0xc]
+    case 0x8074f8: { const x = S[0], y = S[6]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s6
+    case 0x8074fc: M.stf((R[13] + 8) >>> 0, S[6]);  // vstr s6, [sp, #8]
+    case 0x807500: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x807504: if (M.N) { R[2] = R[1]; }  // movmi r2, r1
+    case 0x807508: R[1] = (R[13] + 4) >>> 0;  // add r1, sp, #4
+    case 0x80750c: S[0] = M.ldf((R[2] + 0) >>> 0);  // vldr s0, [r2]
+    case 0x807510: { const x = S[0], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, #0
+    case 0x807514: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x807518: if ((!M.Z && M.N === M.V)) { R[1] = R[2]; }  // movgt r1, r2
+    case 0x80751c: R[5] = M.ld32(((R[1] + 0) >>> 0));  // ldr r5, [r1]
+    case 0x807520: M.U[0] = R[5]; S[4] = M.F[0];  // vmov s4, r5
+    case 0x807524: S[27] = S[27] - Math.fround(S[14] * S[4]);  // vmls.f32 s27, s14, s4
+    case 0x807528: S[19] = S[19] - Math.fround(S[10] * S[4]);  // vmls.f32 s19, s10, s4
+    case 0x80752c: S[29] = S[29] - Math.fround(S[2] * S[4]);  // vmls.f32 s29, s2, s4
+    case 0x807530: S[0] = S[27] * S[27];  // vmul.f32 s0, s27, s27
+    case 0x807534: S[0] = S[0] + Math.fround(S[19] * S[19]);  // vmla.f32 s0, s19, s19
+    case 0x807538: S[0] = S[0] + Math.fround(S[29] * S[29]);  // vmla.f32 s0, s29, s29
+    case 0x80753c: { pc = 0x807628; continue; }  // b #0x807628
+    case 0x807540: { const x = S[9], y = S[11]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s9, s11
+    case 0x807544: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x807548: if ((M.Z || M.N !== M.V)) { pc = 0x8077d8; continue; }  // ble #0x8077d8
+    case 0x80754c: S[0] = S[6] - S[0];  // vsub.f32 s0, s6, s0
+    case 0x807550: S[2] = S[2] - S[7];  // vsub.f32 s2, s2, s7
+    case 0x807554: S[4] = S[4] - S[5];  // vsub.f32 s4, s4, s5
+    case 0x807558: M.F[0] = S[18]; R[5] = M.U[0];  // vmov r5, s18
+    case 0x80755c: R[0] = 0;  // mov r0, #0
+    case 0x807560: { pc = 0x8077ec; continue; }  // b #0x8077ec
+    case 0x807564: S[2] = Math.sqrt(S[0]);  // vsqrt.f32 s2, s0
+    case 0x807568: { const x = S[2], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s2
+    case 0x80756c: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x807570: if (!M.V) { pc = 0x807584; continue; }  // bvc #0x807584
+    case 0x807574: S[21] = S[15];  // vmov.f32 s21, s15
+    case 0x807578: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x80757c: S[15] = S[21];  // vmov.f32 s15, s21
+    case 0x807580: S[2] = S[0];  // vmov.f32 s2, s0
+    case 0x807584: S[2] = S[15] / S[2];  // vdiv.f32 s2, s15, s2
+    case 0x807588: S[0] = M.ldf((R[7] + 4) >>> 0);  // vldr s0, [r7, #4]
+    case 0x80758c: S[10] = M.ldf((R[7] + 20) >>> 0);  // vldr s10, [r7, #0x14]
+    case 0x807590: S[6] = M.ldf((R[7] + 0) >>> 0);  // vldr s6, [r7]
+    case 0x807594: S[8] = M.ldf((R[7] + 16) >>> 0);  // vldr s8, [r7, #0x10]
+    case 0x807598: S[4] = M.ldf((R[7] + 8) >>> 0);  // vldr s4, [r7, #8]
+    case 0x80759c: S[12] = M.ldf((R[7] + 24) >>> 0);  // vldr s12, [r7, #0x18]
+    case 0x8075a0: R[1] = (R[13] + 12) >>> 0;  // add r1, sp, #0xc
+    case 0x8075a4: R[2] = (R[13] + 8) >>> 0;  // add r2, sp, #8
+    case 0x8075a8: R[0] = 0;  // mov r0, #0
+    case 0x8075ac: M.st32(((R[13] + 4) >>> 0), R[0]);  // str r0, [sp, #4]
+    case 0x8075b0: S[0] = S[10] - S[0];  // vsub.f32 s0, s10, s0
+    case 0x8075b4: S[6] = S[8] - S[6];  // vsub.f32 s6, s8, s6
+    case 0x8075b8: S[4] = S[12] - S[4];  // vsub.f32 s4, s12, s4
+    case 0x8075bc: S[14] = S[19] * S[2];  // vmul.f32 s14, s19, s2
+    case 0x8075c0: S[10] = S[16] * S[2];  // vmul.f32 s10, s16, s2
+    case 0x8075c4: S[2] = S[20] * S[2];  // vmul.f32 s2, s20, s2
+    case 0x8075c8: S[0] = S[14] * S[0];  // vmul.f32 s0, s14, s0
+    case 0x8075cc: S[0] = S[0] + Math.fround(S[10] * S[6]);  // vmla.f32 s0, s10, s6
+    case 0x8075d0: S[6] = S[29] * S[14];  // vmul.f32 s6, s29, s14
+    case 0x8075d4: S[6] = S[6] + Math.fround(S[27] * S[10]);  // vmla.f32 s6, s27, s10
+    case 0x8075d8: S[0] = S[0] + Math.fround(S[2] * S[4]);  // vmla.f32 s0, s2, s4
+    case 0x8075dc: S[6] = S[6] + Math.fround(S[31] * S[2]);  // vmla.f32 s6, s31, s2
+    case 0x8075e0: M.stf((R[13] + 12) >>> 0, S[0]);  // vstr s0, [sp, #0xc]
+    case 0x8075e4: { const x = S[0], y = S[6]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s6
+    case 0x8075e8: M.stf((R[13] + 8) >>> 0, S[6]);  // vstr s6, [sp, #8]
+    case 0x8075ec: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x8075f0: if (M.N) { R[2] = R[1]; }  // movmi r2, r1
+    case 0x8075f4: R[1] = (R[13] + 4) >>> 0;  // add r1, sp, #4
+    case 0x8075f8: S[0] = M.ldf((R[2] + 0) >>> 0);  // vldr s0, [r2]
+    case 0x8075fc: { const x = S[0], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, #0
+    case 0x807600: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x807604: if ((!M.Z && M.N === M.V)) { R[1] = R[2]; }  // movgt r1, r2
+    case 0x807608: R[5] = M.ld32(((R[1] + 0) >>> 0));  // ldr r5, [r1]
+    case 0x80760c: M.U[0] = R[5]; S[4] = M.F[0];  // vmov s4, r5
+    case 0x807610: S[29] = S[29] - Math.fround(S[14] * S[4]);  // vmls.f32 s29, s14, s4
+    case 0x807614: S[27] = S[27] - Math.fround(S[10] * S[4]);  // vmls.f32 s27, s10, s4
+    case 0x807618: S[31] = S[31] - Math.fround(S[2] * S[4]);  // vmls.f32 s31, s2, s4
+    case 0x80761c: S[0] = S[29] * S[29];  // vmul.f32 s0, s29, s29
+    case 0x807620: S[0] = S[0] + Math.fround(S[27] * S[27]);  // vmla.f32 s0, s27, s27
+    case 0x807624: S[0] = S[0] + Math.fround(S[31] * S[31]);  // vmla.f32 s0, s31, s31
+    case 0x807628: M.U[0] = R[5]; S[2] = M.F[0];  // vmov s2, r5
+    case 0x80762c: { const x = S[2], y = S[18]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s18
+    case 0x807630: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x807634: if ((M.Z || M.N !== M.V)) { pc = 0x807640; continue; }  // ble #0x807640
+    case 0x807638: M.F[0] = S[18]; R[5] = M.U[0];  // vmov r5, s18
+    case 0x80763c: { pc = 0x807654; continue; }  // b #0x807654
+    case 0x807640: { const x = S[2], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, #0
+    case 0x807644: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x807648: if (!M.N) { pc = 0x80777c; continue; }  // bpl #0x80777c
+    case 0x80764c: R[5] = 0;  // mov r5, #0
+    case 0x807650: R[4] = R[7];  // mov r4, r7
+    case 0x807654: S[2] = M.ldf((R[6] + 4) >>> 0);  // vldr s2, [r6, #4]
+    case 0x807658: S[8] = M.ldf((R[6] + 20) >>> 0);  // vldr s8, [r6, #0x14]
+    case 0x80765c: S[6] = M.ldf((R[6] + 0) >>> 0);  // vldr s6, [r6]
+    case 0x807660: S[0] = M.ldf((R[6] + 16) >>> 0);  // vldr s0, [r6, #0x10]
+    case 0x807664: S[4] = M.ldf((R[6] + 8) >>> 0);  // vldr s4, [r6, #8]
+    case 0x807668: S[10] = M.ldf((R[6] + 24) >>> 0);  // vldr s10, [r6, #0x18]
+    case 0x80766c: S[12] = M.ldf((R[4] + 4) >>> 0);  // vldr s12, [r4, #4]
+    case 0x807670: S[14] = M.ldf((R[4] + 8) >>> 0);  // vldr s14, [r4, #8]
+    case 0x807674: S[20] = S[8] - S[2];  // vsub.f32 s20, s8, s2
+    case 0x807678: S[26] = S[0] - S[6];  // vsub.f32 s26, s0, s6
+    case 0x80767c: S[24] = S[10] - S[4];  // vsub.f32 s24, s10, s4
+    case 0x807680: S[22] = S[12] - S[2];  // vsub.f32 s22, s12, s2
+    case 0x807684: S[8] = M.ldf((R[4] + 0) >>> 0);  // vldr s8, [r4]
+    case 0x807688: S[16] = S[14] - S[4];  // vsub.f32 s16, s14, s4
+    case 0x80768c: S[0] = S[20] * S[20];  // vmul.f32 s0, s20, s20
+    case 0x807690: S[0] = S[0] + Math.fround(S[26] * S[26]);  // vmla.f32 s0, s26, s26
+    case 0x807694: S[0] = S[0] + Math.fround(S[24] * S[24]);  // vmla.f32 s0, s24, s24
+    case 0x807698: S[18] = S[8] - S[6];  // vsub.f32 s18, s8, s6
+    case 0x80769c: S[2] = Math.sqrt(S[0]);  // vsqrt.f32 s2, s0
+    case 0x8076a0: { const x = S[2], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s2
+    case 0x8076a4: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x8076a8: if (!M.V) { pc = 0x8076bc; continue; }  // bvc #0x8076bc
+    case 0x8076ac: S[28] = S[15];  // vmov.f32 s28, s15
+    case 0x8076b0: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x8076b4: S[15] = S[28];  // vmov.f32 s15, s28
+    case 0x8076b8: S[2] = S[0];  // vmov.f32 s2, s0
+    case 0x8076bc: S[2] = S[15] / S[2];  // vdiv.f32 s2, s15, s2
+    case 0x8076c0: S[0] = M.ldf((R[6] + 4) >>> 0);  // vldr s0, [r6, #4]
+    case 0x8076c4: S[10] = M.ldf((R[6] + 20) >>> 0);  // vldr s10, [r6, #0x14]
+    case 0x8076c8: S[6] = M.ldf((R[6] + 0) >>> 0);  // vldr s6, [r6]
+    case 0x8076cc: S[8] = M.ldf((R[6] + 16) >>> 0);  // vldr s8, [r6, #0x10]
+    case 0x8076d0: S[4] = M.ldf((R[6] + 8) >>> 0);  // vldr s4, [r6, #8]
+    case 0x8076d4: S[12] = M.ldf((R[6] + 24) >>> 0);  // vldr s12, [r6, #0x18]
+    case 0x8076d8: R[0] = 0;  // mov r0, #0
+    case 0x8076dc: R[1] = (R[13] + 8) >>> 0;  // add r1, sp, #8
+    case 0x8076e0: M.st32(((R[13] + 4) >>> 0), R[0]);  // str r0, [sp, #4]
+    case 0x8076e4: R[0] = (R[13] + 12) >>> 0;  // add r0, sp, #0xc
+    case 0x8076e8: S[0] = S[10] - S[0];  // vsub.f32 s0, s10, s0
+    case 0x8076ec: S[6] = S[8] - S[6];  // vsub.f32 s6, s8, s6
+    case 0x8076f0: S[4] = S[12] - S[4];  // vsub.f32 s4, s12, s4
+    case 0x8076f4: S[14] = S[20] * S[2];  // vmul.f32 s14, s20, s2
+    case 0x8076f8: S[10] = S[26] * S[2];  // vmul.f32 s10, s26, s2
+    case 0x8076fc: S[2] = S[24] * S[2];  // vmul.f32 s2, s24, s2
+    case 0x807700: S[0] = S[14] * S[0];  // vmul.f32 s0, s14, s0
+    case 0x807704: S[0] = S[0] + Math.fround(S[10] * S[6]);  // vmla.f32 s0, s10, s6
+    case 0x807708: S[6] = S[22] * S[14];  // vmul.f32 s6, s22, s14
+    case 0x80770c: S[6] = S[6] + Math.fround(S[18] * S[10]);  // vmla.f32 s6, s18, s10
+    case 0x807710: S[0] = S[0] + Math.fround(S[2] * S[4]);  // vmla.f32 s0, s2, s4
+    case 0x807714: S[6] = S[6] + Math.fround(S[16] * S[2]);  // vmla.f32 s6, s16, s2
+    case 0x807718: M.stf((R[13] + 12) >>> 0, S[0]);  // vstr s0, [sp, #0xc]
+    case 0x80771c: { const x = S[0], y = S[6]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s6
+    case 0x807720: M.stf((R[13] + 8) >>> 0, S[6]);  // vstr s6, [sp, #8]
+    case 0x807724: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x807728: if (M.N) { R[1] = R[0]; }  // movmi r1, r0
+    case 0x80772c: R[0] = (R[13] + 4) >>> 0;  // add r0, sp, #4
+    case 0x807730: S[0] = M.ldf((R[1] + 0) >>> 0);  // vldr s0, [r1]
+    case 0x807734: { const x = S[0], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, #0
+    case 0x807738: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x80773c: if ((!M.Z && M.N === M.V)) { R[0] = R[1]; }  // movgt r0, r1
+    case 0x807740: R[0] = M.ld32(((R[0] + 0) >>> 0));  // ldr r0, [r0]
+    case 0x807744: M.U[0] = R[0]; S[4] = M.F[0];  // vmov s4, r0
+    case 0x807748: S[22] = S[22] - Math.fround(S[14] * S[4]);  // vmls.f32 s22, s14, s4
+    case 0x80774c: S[18] = S[18] - Math.fround(S[10] * S[4]);  // vmls.f32 s18, s10, s4
+    case 0x807750: S[16] = S[16] - Math.fround(S[2] * S[4]);  // vmls.f32 s16, s2, s4
+    case 0x807754: S[0] = S[22] * S[22];  // vmul.f32 s0, s22, s22
+    case 0x807758: S[0] = S[0] + Math.fround(S[18] * S[18]);  // vmla.f32 s0, s18, s18
+    case 0x80775c: S[0] = S[0] + Math.fround(S[16] * S[16]);  // vmla.f32 s0, s16, s16
+    case 0x807760: { const a = R[9] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp sb, #0
+    case 0x807764: if (!M.Z) { M.st32(((R[9] + 0) >>> 0), R[0]); }  // strne r0, [sb]
+    case 0x807768: { const a = R[8] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp r8, #0
+    case 0x80776c: if (!M.Z) { M.st32(((R[8] + 0) >>> 0), R[5]); }  // strne r5, [r8]
+    case 0x807770: R[13] = (R[13] + 16) >>> 0;  // add sp, sp, #0x10
+    case 0x807774: for (let k = 0; k < 16; k++) S[16 + k] = M.ldf(R[13] + 4 * k); R[13] = (R[13] + 64) >>> 0;  // vpop {d8, d9, d10, d11, d12, d13, d14, d15}
+    case 0x807778: R[4] = M.ld32(R[13] + 0); R[5] = M.ld32(R[13] + 4); R[6] = M.ld32(R[13] + 8); R[7] = M.ld32(R[13] + 12); R[8] = M.ld32(R[13] + 16); R[9] = M.ld32(R[13] + 20); R[11] = M.ld32(R[13] + 24); R[13] = (R[13] + 32) >>> 0; return;  // pop {r4, r5, r6, r7, r8, sb, fp, pc}
+    case 0x80777c: { const x = S[0], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, #0
+    case 0x807780: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x807784: if (!M.N) { pc = 0x807760; continue; }  // bpl #0x807760
+    case 0x807788: S[4] = M.ldf((R[7] + 4) >>> 0);  // vldr s4, [r7, #4]
+    case 0x80778c: S[10] = M.ldf((R[6] + 4) >>> 0);  // vldr s10, [r6, #4]
+    case 0x807790: S[0] = M.ldf((R[7] + 0) >>> 0);  // vldr s0, [r7]
+    case 0x807794: S[8] = M.ldf((R[6] + 0) >>> 0);  // vldr s8, [r6]
+    case 0x807798: M.U[0] = R[0]; S[14] = M.F[0];  // vmov s14, r0
+    case 0x80779c: S[6] = M.ldf((R[7] + 8) >>> 0);  // vldr s6, [r7, #8]
+    case 0x8077a0: S[12] = M.ldf((R[6] + 8) >>> 0);  // vldr s12, [r6, #8]
+    case 0x8077a4: S[4] = S[4] + Math.fround(S[17] * S[2]);  // vmla.f32 s4, s17, s2
+    case 0x8077a8: S[10] = S[10] + Math.fround(S[26] * S[14]);  // vmla.f32 s10, s26, s14
+    case 0x8077ac: S[0] = S[0] + Math.fround(S[30] * S[2]);  // vmla.f32 s0, s30, s2
+    case 0x8077b0: S[8] = S[8] + Math.fround(S[24] * S[14]);  // vmla.f32 s8, s24, s14
+    case 0x8077b4: S[6] = S[6] + Math.fround(S[28] * S[2]);  // vmla.f32 s6, s28, s2
+    case 0x8077b8: S[12] = S[12] + Math.fround(S[22] * S[14]);  // vmla.f32 s12, s22, s14
+    case 0x8077bc: S[4] = S[10] - S[4];  // vsub.f32 s4, s10, s4
+    case 0x8077c0: S[2] = S[8] - S[0];  // vsub.f32 s2, s8, s0
+    case 0x8077c4: S[0] = S[4] * S[4];  // vmul.f32 s0, s4, s4
+    case 0x8077c8: S[4] = S[12] - S[6];  // vsub.f32 s4, s12, s6
+    case 0x8077cc: S[0] = S[0] + Math.fround(S[2] * S[2]);  // vmla.f32 s0, s2, s2
+    case 0x8077d0: S[0] = S[0] + Math.fround(S[4] * S[4]);  // vmla.f32 s0, s4, s4
+    case 0x8077d4: { pc = 0x807760; continue; }  // b #0x807760
+    case 0x8077d8: S[0] = S[3] - S[10];  // vsub.f32 s0, s3, s10
+    case 0x8077dc: S[2] = S[14] - S[12];  // vsub.f32 s2, s14, s12
+    case 0x8077e0: S[4] = S[1] - S[8];  // vsub.f32 s4, s1, s8
+    case 0x8077e4: M.F[0] = S[21]; R[0] = M.U[0];  // vmov r0, s21
+    case 0x8077e8: R[5] = 0;  // mov r5, #0
+    case 0x8077ec: S[0] = S[0] * S[0];  // vmul.f32 s0, s0, s0
+    case 0x8077f0: S[0] = S[0] + Math.fround(S[2] * S[2]);  // vmla.f32 s0, s2, s2
+    case 0x8077f4: S[0] = S[0] + Math.fround(S[4] * S[4]);  // vmla.f32 s0, s4, s4
+    case 0x8077f8: { pc = 0x807234; continue; }  // b #0x807234
+    default: throw new Error('hit-type3 ROM: no label ' + pc.toString(16));
+  }
+}
+
+function F_7db964(M){
+  const R = M.R, S = M.S, DV = M.DV;
+  let pc = 0x7db964;
+  for (;;) switch (pc){
+    case 0x7db964: R[13] = (R[13] - 36) >>> 0; M.st32(R[13] + 0, R[4]); M.st32(R[13] + 4, R[5]); M.st32(R[13] + 8, R[6]); M.st32(R[13] + 12, R[7]); M.st32(R[13] + 16, R[8]); M.st32(R[13] + 20, R[9]); M.st32(R[13] + 24, R[10]); M.st32(R[13] + 28, R[11]); M.st32(R[13] + 32, R[14]);  // push {r4, r5, r6, r7, r8, sb, sl, fp, lr}
+    case 0x7db968: R[13] = (R[13] - 4) >>> 0;  // sub sp, sp, #4
+    case 0x7db96c: R[13] = (R[13] - 64) >>> 0; for (let k = 0; k < 16; k++) M.stf(R[13] + 4 * k, S[16 + k]);  // vpush {d8, d9, d10, d11, d12, d13, d14, d15}
+    case 0x7db970: R[13] = (R[13] - 8) >>> 0;  // sub sp, sp, #8
+    case 0x7db974: R[6] = R[0];  // mov r6, r0
+    case 0x7db978: R[4] = R[2];  // mov r4, r2
+    case 0x7db97c: R[5] = R[1];  // mov r5, r1
+    case 0x7db980: S[0] = M.ldf((R[6] + 4) >>> 0);  // vldr s0, [r6, #4]
+    case 0x7db984: S[8] = M.ldf((R[6] + 20) >>> 0);  // vldr s8, [r6, #0x14]
+    case 0x7db988: S[4] = M.ldf((R[6] + 0) >>> 0);  // vldr s4, [r6]
+    case 0x7db98c: S[6] = M.ldf((R[6] + 16) >>> 0);  // vldr s6, [r6, #0x10]
+    case 0x7db990: S[2] = M.ldf((R[6] + 8) >>> 0);  // vldr s2, [r6, #8]
+    case 0x7db994: S[10] = M.ldf((R[6] + 24) >>> 0);  // vldr s10, [r6, #0x18]
+    case 0x7db998: S[28] = S[8] - S[0];  // vsub.f32 s28, s8, s0
+    case 0x7db99c: S[22] = S[6] - S[4];  // vsub.f32 s22, s6, s4
+    case 0x7db9a0: S[24] = S[10] - S[2];  // vsub.f32 s24, s10, s2
+    case 0x7db9a4: S[20] = S[28] * S[28];  // vmul.f32 s20, s28, s28
+    case 0x7db9a8: S[20] = S[20] + Math.fround(S[22] * S[22]);  // vmla.f32 s20, s22, s22
+    case 0x7db9ac: S[20] = S[20] + Math.fround(S[24] * S[24]);  // vmla.f32 s20, s24, s24
+    case 0x7db9b0: S[18] = Math.sqrt(S[20]);  // vsqrt.f32 s18, s20
+    case 0x7db9b4: { const x = S[18], y = S[18]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s18, s18
+    case 0x7db9b8: S[16] = S[18];  // vmov.f32 s16, s18
+    case 0x7db9bc: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7db9c0: if (!M.V) { pc = 0x7db9d0; continue; }  // bvc #0x7db9d0
+    case 0x7db9c4: S[0] = S[20];  // vmov.f32 s0, s20
+    case 0x7db9c8: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7db9cc: S[16] = S[0];  // vmov.f32 s16, s0
+    case 0x7db9d0: { const x = S[18], y = S[18]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s18, s18
+    case 0x7db9d4: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7db9d8: if (!M.V) { pc = 0x7db9e8; continue; }  // bvc #0x7db9e8
+    case 0x7db9dc: S[0] = S[20];  // vmov.f32 s0, s20
+    case 0x7db9e0: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7db9e4: S[18] = S[0];  // vmov.f32 s18, s0
+    case 0x7db9e8: R[0] = 0;  // mov r0, #0
+    case 0x7db9ec: R[2] = (R[13] + 4) >>> 0;  // add r2, sp, #4
+    case 0x7db9f0: R[1] = R[5];  // mov r1, r5
+    case 0x7db9f4: R[7] = (R[6] + 16) >>> 0;  // add r7, r6, #0x10
+    case 0x7db9f8: M.st32(((R[13] + 4) >>> 0), R[0]);  // str r0, [sp, #4]
+    case 0x7db9fc: R[0] = R[6];  // mov r0, r6
+    case 0x7dba00: F_8069d8(M);  // bl #0x8069d8
+    case 0x7dba04: S[26] = 1.0;  // vmov.f32 s26, #1.000000e+00
+    case 0x7dba08: S[0] = S[26] / S[18];  // vdiv.f32 s0, s26, s18
+    case 0x7dba0c: S[18] = M.ldf((R[13] + 4) >>> 0);  // vldr s18, [sp, #4]
+    case 0x7dba10: { const x = S[18], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s18, #0
+    case 0x7dba14: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dba18: S[30] = S[28] * S[0];  // vmul.f32 s30, s28, s0
+    case 0x7dba1c: S[24] = S[24] * S[0];  // vmul.f32 s24, s24, s0
+    case 0x7dba20: S[28] = S[22] * S[0];  // vmul.f32 s28, s22, s0
+    case 0x7dba24: if ((!M.C || M.Z)) { pc = 0x7dbb88; continue; }  // bls #0x7dbb88
+    case 0x7dba28: S[0] = -0.0010000000474974513;  // [0x7dbdd8]  // vldr s0, [pc, #0x3a8]
+    case 0x7dba2c: S[0] = S[16] + S[0];  // vadd.f32 s0, s16, s0
+    case 0x7dba30: { const x = S[18], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s18, s0
+    case 0x7dba34: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dba38: if ((M.N === M.V)) { pc = 0x7dbb88; continue; }  // bge #0x7dbb88
+    case 0x7dba3c: S[0] = M.ldf((R[6] + 4) >>> 0);  // vldr s0, [r6, #4]
+    case 0x7dba40: S[8] = M.ldf((R[6] + 20) >>> 0);  // vldr s8, [r6, #0x14]
+    case 0x7dba44: S[4] = M.ldf((R[6] + 0) >>> 0);  // vldr s4, [r6]
+    case 0x7dba48: S[6] = M.ldf((R[6] + 16) >>> 0);  // vldr s6, [r6, #0x10]
+    case 0x7dba4c: S[2] = M.ldf((R[6] + 8) >>> 0);  // vldr s2, [r6, #8]
+    case 0x7dba50: S[10] = M.ldf((R[6] + 24) >>> 0);  // vldr s10, [r6, #0x18]
+    case 0x7dba54: S[23] = S[8] - S[0];  // vsub.f32 s23, s8, s0
+    case 0x7dba58: S[22] = S[6] - S[4];  // vsub.f32 s22, s6, s4
+    case 0x7dba5c: S[20] = S[10] - S[2];  // vsub.f32 s20, s10, s2
+    case 0x7dba60: S[0] = S[23] * S[23];  // vmul.f32 s0, s23, s23
+    case 0x7dba64: S[0] = S[0] + Math.fround(S[22] * S[22]);  // vmla.f32 s0, s22, s22
+    case 0x7dba68: S[0] = S[0] + Math.fround(S[20] * S[20]);  // vmla.f32 s0, s20, s20
+    case 0x7dba6c: S[2] = Math.sqrt(S[0]);  // vsqrt.f32 s2, s0
+    case 0x7dba70: { const x = S[2], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s2
+    case 0x7dba74: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dba78: if (!M.V) { pc = 0x7dba84; continue; }  // bvc #0x7dba84
+    case 0x7dba7c: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dba80: S[2] = S[0];  // vmov.f32 s2, s0
+    case 0x7dba84: S[0] = S[26] / S[2];  // vdiv.f32 s0, s26, s2
+    case 0x7dba88: S[17] = M.ldf((R[6] + 0) >>> 0);  // vldr s17, [r6]
+    case 0x7dba8c: S[19] = M.ldf((R[6] + 4) >>> 0);  // vldr s19, [r6, #4]
+    case 0x7dba90: S[21] = M.ldf((R[6] + 8) >>> 0);  // vldr s21, [r6, #8]
+    case 0x7dba94: S[4] = M.ldf((R[5] + 0) >>> 0);  // vldr s4, [r5]
+    case 0x7dba98: S[6] = M.ldf((R[5] + 4) >>> 0);  // vldr s6, [r5, #4]
+    case 0x7dba9c: S[8] = M.ldf((R[5] + 8) >>> 0);  // vldr s8, [r5, #8]
+    case 0x7dbaa0: S[2] = S[23] * S[0];  // vmul.f32 s2, s23, s0
+    case 0x7dbaa4: S[10] = S[22] * S[0];  // vmul.f32 s10, s22, s0
+    case 0x7dbaa8: S[0] = S[20] * S[0];  // vmul.f32 s0, s20, s0
+    case 0x7dbaac: S[19] = S[19] + Math.fround(S[18] * S[2]);  // vmla.f32 s19, s18, s2
+    case 0x7dbab0: S[17] = S[17] + Math.fround(S[18] * S[10]);  // vmla.f32 s17, s18, s10
+    case 0x7dbab4: S[21] = S[21] + Math.fround(S[18] * S[0]);  // vmla.f32 s21, s18, s0
+    case 0x7dbab8: S[23] = S[6] - S[19];  // vsub.f32 s23, s6, s19
+    case 0x7dbabc: S[25] = S[4] - S[17];  // vsub.f32 s25, s4, s17
+    case 0x7dbac0: S[27] = S[8] - S[21];  // vsub.f32 s27, s8, s21
+    case 0x7dbac4: S[22] = S[23] * S[23];  // vmul.f32 s22, s23, s23
+    case 0x7dbac8: S[22] = S[22] + Math.fround(S[25] * S[25]);  // vmla.f32 s22, s25, s25
+    case 0x7dbacc: S[22] = S[22] + Math.fround(S[27] * S[27]);  // vmla.f32 s22, s27, s27
+    case 0x7dbad0: S[20] = Math.sqrt(S[22]);  // vsqrt.f32 s20, s22
+    case 0x7dbad4: { const x = S[20], y = S[20]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s20, s20
+    case 0x7dbad8: S[18] = S[20];  // vmov.f32 s18, s20
+    case 0x7dbadc: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dbae0: if (!M.V) { pc = 0x7dbaf0; continue; }  // bvc #0x7dbaf0
+    case 0x7dbae4: S[0] = S[22];  // vmov.f32 s0, s22
+    case 0x7dbae8: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dbaec: S[18] = S[0];  // vmov.f32 s18, s0
+    case 0x7dbaf0: { const x = S[20], y = S[20]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s20, s20
+    case 0x7dbaf4: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dbaf8: if (!M.V) { pc = 0x7dbb08; continue; }  // bvc #0x7dbb08
+    case 0x7dbafc: S[0] = S[22];  // vmov.f32 s0, s22
+    case 0x7dbb00: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dbb04: S[20] = S[0];  // vmov.f32 s20, s0
+    case 0x7dbb08: S[0] = 1.1920928955078125e-07;  // [0x7dbddc]  // vldr s0, [pc, #0x2cc]
+    case 0x7dbb0c: { const x = S[20], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s20, s0
+    case 0x7dbb10: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dbb14: if (M.N) { pc = 0x7dbb28; continue; }  // bmi #0x7dbb28
+    case 0x7dbb18: S[0] = S[26] / S[20];  // vdiv.f32 s0, s26, s20
+    case 0x7dbb1c: S[27] = S[27] * S[0];  // vmul.f32 s27, s27, s0
+    case 0x7dbb20: S[23] = S[23] * S[0];  // vmul.f32 s23, s23, s0
+    case 0x7dbb24: S[25] = S[25] * S[0];  // vmul.f32 s25, s25, s0
+    case 0x7dbb28: S[0] = M.ldf((R[6] + 32) >>> 0);  // vldr s0, [r6, #0x20]
+    case 0x7dbb2c: M.F[0] = S[25]; R[11] = M.U[0];  // vmov fp, s25
+    case 0x7dbb30: M.F[0] = S[23]; R[8] = M.U[0];  // vmov r8, s23
+    case 0x7dbb34: M.F[0] = S[27]; R[9] = M.U[0];  // vmov sb, s27
+    case 0x7dbb38: S[21] = S[21] + Math.fround(S[27] * S[0]);  // vmla.f32 s21, s27, s0
+    case 0x7dbb3c: S[19] = S[19] + Math.fround(S[23] * S[0]);  // vmla.f32 s19, s23, s0
+    case 0x7dbb40: S[17] = S[17] + Math.fround(S[25] * S[0]);  // vmla.f32 s17, s25, s0
+    case 0x7dbb44: { const x = S[18], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s18, s0
+    case 0x7dbb48: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dbb4c: M.F[0] = S[21]; R[2] = M.U[0];  // vmov r2, s21
+    case 0x7dbb50: M.F[0] = S[19]; R[3] = M.U[0];  // vmov r3, s19
+    case 0x7dbb54: M.F[0] = S[17]; R[10] = M.U[0];  // vmov sl, s17
+    case 0x7dbb58: if (!M.N) { pc = 0x7dbd04; continue; }  // bpl #0x7dbd04
+    case 0x7dbb5c: S[2] = 0.5;  // vmov.f32 s2, #5.000000e-01
+    case 0x7dbb60: S[0] = S[0] - S[18];  // vsub.f32 s0, s0, s18
+    case 0x7dbb64: S[4] = M.ldf((R[13] + 4) >>> 0);  // vldr s4, [sp, #4]
+    case 0x7dbb68: S[2] = S[16] * S[2];  // vmul.f32 s2, s16, s2
+    case 0x7dbb6c: S[0] = -S[0];  // vneg.f32 s0, s0
+    case 0x7dbb70: { const x = S[4], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s4, s2
+    case 0x7dbb74: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dbb78: if ((M.Z || M.N !== M.V)) { pc = 0x7dbd10; continue; }  // ble #0x7dbd10
+    case 0x7dbb7c: R[0] = (R[6] + 24) >>> 0;  // add r0, r6, #0x18
+    case 0x7dbb80: R[1] = (R[6] + 20) >>> 0;  // add r1, r6, #0x14
+    case 0x7dbb84: { pc = 0x7dbd28; continue; }  // b #0x7dbd28
+    case 0x7dbb88: { const x = S[18], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s18, #0
+    case 0x7dbb8c: S[6] = M.ldf((R[5] + 4) >>> 0);  // vldr s6, [r5, #4]
+    case 0x7dbb90: S[2] = M.ldf((R[5] + 0) >>> 0);  // vldr s2, [r5]
+    case 0x7dbb94: S[4] = M.ldf((R[5] + 8) >>> 0);  // vldr s4, [r5, #8]
+    case 0x7dbb98: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dbb9c: if ((!M.C || M.Z)) { R[7] = R[6]; }  // movls r7, r6
+    case 0x7dbba0: S[16] = M.ldf((R[7] + 0) >>> 0);  // vldr s16, [r7]
+    case 0x7dbba4: S[18] = M.ldf((R[7] + 4) >>> 0);  // vldr s18, [r7, #4]
+    case 0x7dbba8: S[20] = M.ldf((R[7] + 8) >>> 0);  // vldr s20, [r7, #8]
+    case 0x7dbbac: S[22] = S[6];  // vmov.f32 s22, s6
+    case 0x7dbbb0: S[0] = S[6] - S[18];  // vsub.f32 s0, s6, s18
+    case 0x7dbbb4: S[8] = S[2] - S[16];  // vsub.f32 s8, s2, s16
+    case 0x7dbbb8: S[10] = S[4] - S[20];  // vsub.f32 s10, s4, s20
+    case 0x7dbbbc: S[0] = S[30] * S[0];  // vmul.f32 s0, s30, s0
+    case 0x7dbbc0: S[0] = S[0] + Math.fround(S[28] * S[8]);  // vmla.f32 s0, s28, s8
+    case 0x7dbbc4: S[8] = M.ldf((R[6] + 32) >>> 0);  // vldr s8, [r6, #0x20]
+    case 0x7dbbc8: S[0] = S[0] + Math.fround(S[24] * S[10]);  // vmla.f32 s0, s24, s10
+    case 0x7dbbcc: S[8] = S[8] * S[8];  // vmul.f32 s8, s8, s8
+    case 0x7dbbd0: S[22] = S[22] - Math.fround(S[30] * S[0]);  // vmls.f32 s22, s30, s0
+    case 0x7dbbd4: S[30] = S[2];  // vmov.f32 s30, s2
+    case 0x7dbbd8: S[30] = S[30] - Math.fround(S[28] * S[0]);  // vmls.f32 s30, s28, s0
+    case 0x7dbbdc: S[28] = S[4];  // vmov.f32 s28, s4
+    case 0x7dbbe0: S[28] = S[28] - Math.fround(S[24] * S[0]);  // vmls.f32 s28, s24, s0
+    case 0x7dbbe4: S[17] = S[22] - S[18];  // vsub.f32 s17, s22, s18
+    case 0x7dbbe8: S[24] = S[30] - S[16];  // vsub.f32 s24, s30, s16
+    case 0x7dbbec: S[19] = S[28] - S[20];  // vsub.f32 s19, s28, s20
+    case 0x7dbbf0: S[0] = S[17] * S[17];  // vmul.f32 s0, s17, s17
+    case 0x7dbbf4: S[0] = S[0] + Math.fround(S[24] * S[24]);  // vmla.f32 s0, s24, s24
+    case 0x7dbbf8: S[0] = S[0] + Math.fround(S[19] * S[19]);  // vmla.f32 s0, s19, s19
+    case 0x7dbbfc: { const x = S[0], y = S[8]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s8
+    case 0x7dbc00: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dbc04: if ((M.Z || M.N !== M.V)) { pc = 0x7dbc68; continue; }  // ble #0x7dbc68
+    case 0x7dbc08: S[2] = Math.sqrt(S[0]);  // vsqrt.f32 s2, s0
+    case 0x7dbc0c: { const x = S[2], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s2
+    case 0x7dbc10: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dbc14: if (!M.V) { pc = 0x7dbc20; continue; }  // bvc #0x7dbc20
+    case 0x7dbc18: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dbc1c: S[2] = S[0];  // vmov.f32 s2, s0
+    case 0x7dbc20: S[0] = 1.1920928955078125e-07;  // [0x7dbddc]  // vldr s0, [pc, #0x1b4]
+    case 0x7dbc24: { const x = S[2], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s0
+    case 0x7dbc28: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dbc2c: if (M.N) { pc = 0x7dbc40; continue; }  // bmi #0x7dbc40
+    case 0x7dbc30: S[0] = S[26] / S[2];  // vdiv.f32 s0, s26, s2
+    case 0x7dbc34: S[19] = S[19] * S[0];  // vmul.f32 s19, s19, s0
+    case 0x7dbc38: S[17] = S[17] * S[0];  // vmul.f32 s17, s17, s0
+    case 0x7dbc3c: S[24] = S[24] * S[0];  // vmul.f32 s24, s24, s0
+    case 0x7dbc40: S[0] = M.ldf((R[6] + 32) >>> 0);  // vldr s0, [r6, #0x20]
+    case 0x7dbc44: S[2] = M.ldf((R[5] + 0) >>> 0);  // vldr s2, [r5]
+    case 0x7dbc48: S[6] = M.ldf((R[5] + 4) >>> 0);  // vldr s6, [r5, #4]
+    case 0x7dbc4c: S[4] = M.ldf((R[5] + 8) >>> 0);  // vldr s4, [r5, #8]
+    case 0x7dbc50: S[20] = S[20] + Math.fround(S[19] * S[0]);  // vmla.f32 s20, s19, s0
+    case 0x7dbc54: S[18] = S[18] + Math.fround(S[17] * S[0]);  // vmla.f32 s18, s17, s0
+    case 0x7dbc58: S[16] = S[16] + Math.fround(S[24] * S[0]);  // vmla.f32 s16, s24, s0
+    case 0x7dbc5c: S[22] = S[18];  // vmov.f32 s22, s18
+    case 0x7dbc60: S[30] = S[16];  // vmov.f32 s30, s16
+    case 0x7dbc64: S[28] = S[20];  // vmov.f32 s28, s20
+    case 0x7dbc68: S[18] = S[6] - S[22];  // vsub.f32 s18, s6, s22
+    case 0x7dbc6c: S[20] = S[2] - S[30];  // vsub.f32 s20, s2, s30
+    case 0x7dbc70: S[24] = S[4] - S[28];  // vsub.f32 s24, s4, s28
+    case 0x7dbc74: S[16] = S[18] * S[18];  // vmul.f32 s16, s18, s18
+    case 0x7dbc78: S[16] = S[16] + Math.fround(S[20] * S[20]);  // vmla.f32 s16, s20, s20
+    case 0x7dbc7c: S[16] = S[16] + Math.fround(S[24] * S[24]);  // vmla.f32 s16, s24, s24
+    case 0x7dbc80: S[0] = Math.sqrt(S[16]);  // vsqrt.f32 s0, s16
+    case 0x7dbc84: { const x = S[0], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s0
+    case 0x7dbc88: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dbc8c: if (!M.V) { pc = 0x7dbc98; continue; }  // bvc #0x7dbc98
+    case 0x7dbc90: S[0] = S[16];  // vmov.f32 s0, s16
+    case 0x7dbc94: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dbc98: S[2] = 1.1920928955078125e-07;  // [0x7dbddc]  // vldr s2, [pc, #0x13c]
+    case 0x7dbc9c: { const x = S[0], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s2
+    case 0x7dbca0: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dbca4: if (M.N) { pc = 0x7dbcb8; continue; }  // bmi #0x7dbcb8
+    case 0x7dbca8: S[0] = S[26] / S[0];  // vdiv.f32 s0, s26, s0
+    case 0x7dbcac: S[24] = S[24] * S[0];  // vmul.f32 s24, s24, s0
+    case 0x7dbcb0: S[18] = S[18] * S[0];  // vmul.f32 s18, s18, s0
+    case 0x7dbcb4: S[20] = S[20] * S[0];  // vmul.f32 s20, s20, s0
+    case 0x7dbcb8: S[0] = Math.sqrt(S[16]);  // vsqrt.f32 s0, s16
+    case 0x7dbcbc: M.F[0] = S[30]; R[10] = M.U[0];  // vmov sl, s30
+    case 0x7dbcc0: M.F[0] = S[22]; R[3] = M.U[0];  // vmov r3, s22
+    case 0x7dbcc4: M.F[0] = S[28]; R[2] = M.U[0];  // vmov r2, s28
+    case 0x7dbcc8: M.F[0] = S[20]; R[11] = M.U[0];  // vmov fp, s20
+    case 0x7dbccc: M.F[0] = S[18]; R[8] = M.U[0];  // vmov r8, s18
+    case 0x7dbcd0: M.F[0] = S[24]; R[9] = M.U[0];  // vmov sb, s24
+    case 0x7dbcd4: R[0] = 0;  // mov r0, #0
+    case 0x7dbcd8: { const x = S[0], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s0
+    case 0x7dbcdc: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dbce0: if (!M.V) { pc = 0x7dbd98; continue; }  // bvc #0x7dbd98
+    case 0x7dbce4: S[0] = S[16];  // vmov.f32 s0, s16
+    case 0x7dbce8: R[5] = R[2];  // mov r5, r2
+    case 0x7dbcec: R[6] = R[3];  // mov r6, r3
+    case 0x7dbcf0: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7dbcf4: R[3] = R[6];  // mov r3, r6
+    case 0x7dbcf8: R[2] = R[5];  // mov r2, r5
+    case 0x7dbcfc: R[0] = 0;  // mov r0, #0
+    case 0x7dbd00: { pc = 0x7dbd98; continue; }  // b #0x7dbd98
+    case 0x7dbd04: R[0] = 0;  // mov r0, #0
+    case 0x7dbd08: S[0] = S[18] - S[0];  // vsub.f32 s0, s18, s0
+    case 0x7dbd0c: { pc = 0x7dbd98; continue; }  // b #0x7dbd98
+    case 0x7dbd10: S[24] = -S[24];  // vneg.f32 s24, s24
+    case 0x7dbd14: S[30] = -S[30];  // vneg.f32 s30, s30
+    case 0x7dbd18: S[28] = -S[28];  // vneg.f32 s28, s28
+    case 0x7dbd1c: R[0] = (R[6] + 8) >>> 0;  // add r0, r6, #8
+    case 0x7dbd20: R[1] = (R[6] + 4) >>> 0;  // add r1, r6, #4
+    case 0x7dbd24: R[7] = R[6];  // mov r7, r6
+    case 0x7dbd28: S[6] = M.ldf((R[1] + 0) >>> 0);  // vldr s6, [r1]
+    case 0x7dbd2c: S[4] = M.ldf((R[5] + 4) >>> 0);  // vldr s4, [r5, #4]
+    case 0x7dbd30: S[2] = M.ldf((R[5] + 0) >>> 0);  // vldr s2, [r5]
+    case 0x7dbd34: S[10] = M.ldf((R[7] + 0) >>> 0);  // vldr s10, [r7]
+    case 0x7dbd38: S[12] = M.ldf((R[0] + 0) >>> 0);  // vldr s12, [r0]
+    case 0x7dbd3c: S[8] = M.ldf((R[5] + 8) >>> 0);  // vldr s8, [r5, #8]
+    case 0x7dbd40: R[0] = 1;  // mov r0, #1
+    case 0x7dbd44: S[6] = S[30] * S[6];  // vmul.f32 s6, s30, s6
+    case 0x7dbd48: S[14] = S[30] * S[4];  // vmul.f32 s14, s30, s4
+    case 0x7dbd4c: S[6] = S[6] + Math.fround(S[28] * S[10]);  // vmla.f32 s6, s28, s10
+    case 0x7dbd50: S[14] = S[14] + Math.fround(S[28] * S[2]);  // vmla.f32 s14, s28, s2
+    case 0x7dbd54: S[6] = S[6] + Math.fround(S[24] * S[12]);  // vmla.f32 s6, s24, s12
+    case 0x7dbd58: S[14] = S[14] + Math.fround(S[24] * S[8]);  // vmla.f32 s14, s24, s8
+    case 0x7dbd5c: S[6] = S[14] - S[6];  // vsub.f32 s6, s14, s6
+    case 0x7dbd60: { const x = S[6], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s6, s0
+    case 0x7dbd64: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7dbd68: if (M.N) { pc = 0x7dbd98; continue; }  // bmi #0x7dbd98
+    case 0x7dbd6c: S[8] = S[8] - Math.fround(S[24] * S[6]);  // vmls.f32 s8, s24, s6
+    case 0x7dbd70: S[4] = S[4] - Math.fround(S[30] * S[6]);  // vmls.f32 s4, s30, s6
+    case 0x7dbd74: S[2] = S[2] - Math.fround(S[28] * S[6]);  // vmls.f32 s2, s28, s6
+    case 0x7dbd78: M.F[0] = S[28]; R[11] = M.U[0];  // vmov fp, s28
+    case 0x7dbd7c: M.F[0] = S[30]; R[8] = M.U[0];  // vmov r8, s30
+    case 0x7dbd80: M.F[0] = S[24]; R[9] = M.U[0];  // vmov sb, s24
+    case 0x7dbd84: S[0] = S[6];  // vmov.f32 s0, s6
+    case 0x7dbd88: R[0] = 1;  // mov r0, #1
+    case 0x7dbd8c: M.F[0] = S[8]; R[2] = M.U[0];  // vmov r2, s8
+    case 0x7dbd90: M.F[0] = S[4]; R[3] = M.U[0];  // vmov r3, s4
+    case 0x7dbd94: M.F[0] = S[2]; R[10] = M.U[0];  // vmov sl, s2
+    case 0x7dbd98: R[1] = 0;  // mov r1, #0
+    case 0x7dbd9c: M.st32(((R[4] + 0) >>> 0), R[10]);  // str sl, [r4]
+    case 0x7dbda0: M.st32(((R[4] + 4) >>> 0), R[3]);  // str r3, [r4, #4]
+    case 0x7dbda4: M.st32(((R[4] + 8) >>> 0), R[2]);  // str r2, [r4, #8]
+    case 0x7dbda8: M.st32(((R[4] + 12) >>> 0), R[1]);  // str r1, [r4, #0xc]
+    case 0x7dbdac: M.st32(((R[4] + 16) >>> 0), R[11]);  // str fp, [r4, #0x10]
+    case 0x7dbdb0: M.st32(((R[4] + 20) >>> 0), R[8]);  // str r8, [r4, #0x14]
+    case 0x7dbdb4: M.st32(((R[4] + 24) >>> 0), R[9]);  // str sb, [r4, #0x18]
+    case 0x7dbdb8: M.st32(((R[4] + 28) >>> 0), R[1]);  // str r1, [r4, #0x1c]
+    case 0x7dbdbc: M.stf((R[4] + 32) >>> 0, S[0]);  // vstr s0, [r4, #0x20]
+    case 0x7dbdc0: M.st32(((R[4] + 36) >>> 0), R[1]);  // str r1, [r4, #0x24]
+    case 0x7dbdc4: M.st8(((R[4] + 40) >>> 0), R[0]);  // strb r0, [r4, #0x28]
+    case 0x7dbdc8: R[13] = (R[13] + 8) >>> 0;  // add sp, sp, #8
+    case 0x7dbdcc: for (let k = 0; k < 16; k++) S[16 + k] = M.ldf(R[13] + 4 * k); R[13] = (R[13] + 64) >>> 0;  // vpop {d8, d9, d10, d11, d12, d13, d14, d15}
+    case 0x7dbdd0: R[13] = (R[13] + 4) >>> 0;  // add sp, sp, #4
+    case 0x7dbdd4: R[4] = M.ld32(R[13] + 0); R[5] = M.ld32(R[13] + 4); R[6] = M.ld32(R[13] + 8); R[7] = M.ld32(R[13] + 12); R[8] = M.ld32(R[13] + 16); R[9] = M.ld32(R[13] + 20); R[10] = M.ld32(R[13] + 24); R[11] = M.ld32(R[13] + 28); R[13] = (R[13] + 36) >>> 0; return;  // pop {r4, r5, r6, r7, r8, sb, sl, fp, pc}
+    default: throw new Error('hit-type3 ROM: no label ' + pc.toString(16));
+  }
+}
+
+function F_7ebfd8(M){
+  const R = M.R, S = M.S, DV = M.DV;
+  let pc = 0x7ebfd8;
+  for (;;) switch (pc){
+    case 0x7ebfd8: R[13] = (R[13] - 24) >>> 0; M.st32(R[13] + 0, R[4]); M.st32(R[13] + 4, R[5]); M.st32(R[13] + 8, R[6]); M.st32(R[13] + 12, R[7]); M.st32(R[13] + 16, R[11]); M.st32(R[13] + 20, R[14]);  // push {r4, r5, r6, r7, fp, lr}
+    case 0x7ebfdc: R[13] = (R[13] - 40) >>> 0; for (let k = 0; k < 10; k++) M.stf(R[13] + 4 * k, S[16 + k]);  // vpush {d8, d9, d10, d11, d12}
+    case 0x7ebfe0: S[16] = S[0];  // vmov.f32 s16, s0
+    case 0x7ebfe4: S[0] = S[1];  // vmov.f32 s0, s1
+    case 0x7ebfe8: R[7] = R[3];  // mov r7, r3
+    case 0x7ebfec: R[4] = R[2];  // mov r4, r2
+    case 0x7ebff0: R[6] = R[0];  // mov r6, r0
+    case 0x7ebff4: R[2] = R[7];  // mov r2, r7
+    case 0x7ebff8: F_80017c(M);  // bl #0x80017c
+    case 0x7ebffc: S[0] = M.ldf((R[6] + 4) >>> 0);  // vldr s0, [r6, #4]
+    case 0x7ec000: S[8] = M.ldf((R[6] + 20) >>> 0);  // vldr s8, [r6, #0x14]
+    case 0x7ec004: S[4] = M.ldf((R[6] + 0) >>> 0);  // vldr s4, [r6]
+    case 0x7ec008: S[6] = M.ldf((R[6] + 16) >>> 0);  // vldr s6, [r6, #0x10]
+    case 0x7ec00c: S[2] = M.ldf((R[6] + 8) >>> 0);  // vldr s2, [r6, #8]
+    case 0x7ec010: S[10] = M.ldf((R[6] + 24) >>> 0);  // vldr s10, [r6, #0x18]
+    case 0x7ec014: S[18] = M.ldf((R[7] + 0) >>> 0);  // vldr s18, [r7]
+    case 0x7ec018: R[5] = R[0];  // mov r5, r0
+    case 0x7ec01c: S[22] = S[8] - S[0];  // vsub.f32 s22, s8, s0
+    case 0x7ec020: S[20] = S[6] - S[4];  // vsub.f32 s20, s6, s4
+    case 0x7ec024: S[24] = S[10] - S[2];  // vsub.f32 s24, s10, s2
+    case 0x7ec028: S[0] = S[22] * S[22];  // vmul.f32 s0, s22, s22
+    case 0x7ec02c: S[0] = S[0] + Math.fround(S[20] * S[20]);  // vmla.f32 s0, s20, s20
+    case 0x7ec030: S[0] = S[0] + Math.fround(S[24] * S[24]);  // vmla.f32 s0, s24, s24
+    case 0x7ec034: S[2] = Math.sqrt(S[0]);  // vsqrt.f32 s2, s0
+    case 0x7ec038: { const x = S[2], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s2
+    case 0x7ec03c: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7ec040: if (!M.V) { pc = 0x7ec04c; continue; }  // bvc #0x7ec04c
+    case 0x7ec044: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x7ec048: S[2] = S[0];  // vmov.f32 s2, s0
+    case 0x7ec04c: S[0] = 1.0;  // vmov.f32 s0, #1.000000e+00
+    case 0x7ec050: S[4] = M.ldf((R[6] + 8) >>> 0);  // vldr s4, [r6, #8]
+    case 0x7ec054: R[1] = M.ld32(((R[13] + 64) >>> 0));  // ldr r1, [sp, #0x40]
+    case 0x7ec058: R[2] = 0;  // mov r2, #0
+    case 0x7ec05c: { const a = R[5] >>> 0, b = 1 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp r5, #1
+    case 0x7ec060: R[0] = 0;  // mov r0, #0
+    case 0x7ec064: S[6] = S[0] / S[2];  // vdiv.f32 s6, s0, s2
+    case 0x7ec068: S[0] = M.ldf((R[6] + 0) >>> 0);  // vldr s0, [r6]
+    case 0x7ec06c: S[2] = M.ldf((R[6] + 4) >>> 0);  // vldr s2, [r6, #4]
+    case 0x7ec070: S[8] = S[24] * S[6];  // vmul.f32 s8, s24, s6
+    case 0x7ec074: S[10] = S[22] * S[6];  // vmul.f32 s10, s22, s6
+    case 0x7ec078: S[6] = S[20] * S[6];  // vmul.f32 s6, s20, s6
+    case 0x7ec07c: S[4] = S[4] + Math.fround(S[18] * S[8]);  // vmla.f32 s4, s18, s8
+    case 0x7ec080: S[2] = S[2] + Math.fround(S[18] * S[10]);  // vmla.f32 s2, s18, s10
+    case 0x7ec084: S[0] = S[0] + Math.fround(S[18] * S[6]);  // vmla.f32 s0, s18, s6
+    case 0x7ec088: if (!M.Z) { pc = 0x7ec0c4; continue; }  // bne #0x7ec0c4
+    case 0x7ec08c: S[6] = M.ldf((R[4] + 0) >>> 0);  // vldr s6, [r4]
+    case 0x7ec090: S[8] = M.ldf((R[4] + 4) >>> 0);  // vldr s8, [r4, #4]
+    case 0x7ec094: S[10] = M.ldf((R[4] + 8) >>> 0);  // vldr s10, [r4, #8]
+    case 0x7ec098: R[0] = 0;  // mov r0, #0
+    case 0x7ec09c: S[8] = S[2] - S[8];  // vsub.f32 s8, s2, s8
+    case 0x7ec0a0: S[6] = S[0] - S[6];  // vsub.f32 s6, s0, s6
+    case 0x7ec0a4: S[10] = S[4] - S[10];  // vsub.f32 s10, s4, s10
+    case 0x7ec0a8: S[8] = S[8] * S[8];  // vmul.f32 s8, s8, s8
+    case 0x7ec0ac: S[8] = S[8] + Math.fround(S[6] * S[6]);  // vmla.f32 s8, s6, s6
+    case 0x7ec0b0: S[8] = S[8] + Math.fround(S[10] * S[10]);  // vmla.f32 s8, s10, s10
+    case 0x7ec0b4: S[6] = S[16] * S[16];  // vmul.f32 s6, s16, s16
+    case 0x7ec0b8: { const x = S[8], y = S[6]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s8, s6
+    case 0x7ec0bc: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x7ec0c0: if (M.N) { R[0] = 1; }  // movwmi r0, #1
+    case 0x7ec0c4: M.st32(((R[1] + 12) >>> 0), R[2]);  // str r2, [r1, #0xc]
+    case 0x7ec0c8: M.stf((R[1] + 0) >>> 0, S[0]);  // vstr s0, [r1]
+    case 0x7ec0cc: M.stf((R[1] + 4) >>> 0, S[2]);  // vstr s2, [r1, #4]
+    case 0x7ec0d0: M.stf((R[1] + 8) >>> 0, S[4]);  // vstr s4, [r1, #8]
+    case 0x7ec0d4: for (let k = 0; k < 10; k++) S[16 + k] = M.ldf(R[13] + 4 * k); R[13] = (R[13] + 40) >>> 0;  // vpop {d8, d9, d10, d11, d12}
+    case 0x7ec0d8: R[4] = M.ld32(R[13] + 0); R[5] = M.ld32(R[13] + 4); R[6] = M.ld32(R[13] + 8); R[7] = M.ld32(R[13] + 12); R[11] = M.ld32(R[13] + 16); R[13] = (R[13] + 24) >>> 0; return;  // pop {r4, r5, r6, r7, fp, pc}
+    default: throw new Error('hit-type3 ROM: no label ' + pc.toString(16));
+  }
+}
+
+function F_80017c(M){
+  const R = M.R, S = M.S, DV = M.DV;
+  let pc = 0x80017c;
+  for (;;) switch (pc){
+    case 0x80017c: R[13] = (R[13] - 16) >>> 0; M.st32(R[13] + 0, R[4]); M.st32(R[13] + 4, R[5]); M.st32(R[13] + 8, R[6]); M.st32(R[13] + 12, R[14]);  // push {r4, r5, r6, lr}
+    case 0x800180: R[13] = (R[13] - 40) >>> 0; for (let k = 0; k < 10; k++) M.stf(R[13] + 4 * k, S[16 + k]);  // vpush {d8, d9, d10, d11, d12}
+    case 0x800184: R[6] = R[0];  // mov r6, r0
+    case 0x800188: S[16] = S[0];  // vmov.f32 s16, s0
+    case 0x80018c: R[4] = R[2];  // mov r4, r2
+    case 0x800190: R[5] = R[1];  // mov r5, r1
+    case 0x800194: S[0] = M.ldf((R[6] + 4) >>> 0);  // vldr s0, [r6, #4]
+    case 0x800198: S[8] = M.ldf((R[6] + 20) >>> 0);  // vldr s8, [r6, #0x14]
+    case 0x80019c: S[4] = M.ldf((R[6] + 0) >>> 0);  // vldr s4, [r6]
+    case 0x8001a0: S[6] = M.ldf((R[6] + 16) >>> 0);  // vldr s6, [r6, #0x10]
+    case 0x8001a4: S[2] = M.ldf((R[6] + 8) >>> 0);  // vldr s2, [r6, #8]
+    case 0x8001a8: S[10] = M.ldf((R[6] + 24) >>> 0);  // vldr s10, [r6, #0x18]
+    case 0x8001ac: S[22] = S[8] - S[0];  // vsub.f32 s22, s8, s0
+    case 0x8001b0: S[20] = S[6] - S[4];  // vsub.f32 s20, s6, s4
+    case 0x8001b4: S[24] = S[10] - S[2];  // vsub.f32 s24, s10, s2
+    case 0x8001b8: S[18] = S[22] * S[22];  // vmul.f32 s18, s22, s22
+    case 0x8001bc: S[18] = S[18] + Math.fround(S[20] * S[20]);  // vmla.f32 s18, s20, s20
+    case 0x8001c0: S[18] = S[18] + Math.fround(S[24] * S[24]);  // vmla.f32 s18, s24, s24
+    case 0x8001c4: S[0] = Math.sqrt(S[18]);  // vsqrt.f32 s0, s18
+    case 0x8001c8: { const x = S[0], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s0
+    case 0x8001cc: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x8001d0: if (!M.V) { pc = 0x8001dc; continue; }  // bvc #0x8001dc
+    case 0x8001d4: S[0] = S[18];  // vmov.f32 s0, s18
+    case 0x8001d8: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x8001dc: S[2] = 1.0;  // vmov.f32 s2, #1.000000e+00
+    case 0x8001e0: S[6] = M.ldf((R[5] + 4) >>> 0);  // vldr s6, [r5, #4]
+    case 0x8001e4: S[8] = S[2] / S[0];  // vdiv.f32 s8, s2, s0
+    case 0x8001e8: S[0] = M.ldf((R[5] + 0) >>> 0);  // vldr s0, [r5]
+    case 0x8001ec: S[2] = M.ldf((R[5] + 8) >>> 0);  // vldr s2, [r5, #8]
+    case 0x8001f0: S[4] = S[22] * S[8];  // vmul.f32 s4, s22, s8
+    case 0x8001f4: S[10] = S[20] * S[8];  // vmul.f32 s10, s20, s8
+    case 0x8001f8: S[8] = S[24] * S[8];  // vmul.f32 s8, s24, s8
+    case 0x8001fc: S[4] = S[4] * S[6];  // vmul.f32 s4, s4, s6
+    case 0x800200: S[4] = S[4] + Math.fround(S[0] * S[10]);  // vmla.f32 s4, s0, s10
+    case 0x800204: S[10] = -9.999999747378752e-06;  // [0x80029c]  // vldr s10, [pc, #0x90]
+    case 0x800208: S[4] = S[4] + Math.fround(S[8] * S[2]);  // vmla.f32 s4, s8, s2
+    case 0x80020c: { const x = S[4], y = S[10]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s4, s10
+    case 0x800210: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x800214: if ((M.Z || M.N !== M.V)) { pc = 0x800240; continue; }  // ble #0x800240
+    case 0x800218: S[8] = 9.999999747378752e-06;  // [0x8002a0]  // vldr s8, [pc, #0x80]
+    case 0x80021c: { const x = S[4], y = S[8]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s4, s8
+    case 0x800220: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x800224: if (!M.N) { pc = 0x800240; continue; }  // bpl #0x800240
+    case 0x800228: R[0] = 65535;  // movw r0, #0xffff
+    case 0x80022c: R[0] = ((R[0] & 0xffff) | (32639 << 16)) >>> 0;  // movt r0, #0x7f7f
+    case 0x800230: M.st32(((R[4] + 0) >>> 0), R[0]);  // str r0, [r4]
+    case 0x800234: R[0] = 0;  // mov r0, #0
+    case 0x800238: for (let k = 0; k < 10; k++) S[16 + k] = M.ldf(R[13] + 4 * k); R[13] = (R[13] + 40) >>> 0;  // vpop {d8, d9, d10, d11, d12}
+    case 0x80023c: R[4] = M.ld32(R[13] + 0); R[5] = M.ld32(R[13] + 4); R[6] = M.ld32(R[13] + 8); R[13] = (R[13] + 16) >>> 0; return;  // pop {r4, r5, r6, pc}
+    case 0x800240: S[10] = M.ldf((R[6] + 4) >>> 0);  // vldr s10, [r6, #4]
+    case 0x800244: S[8] = M.ldf((R[6] + 0) >>> 0);  // vldr s8, [r6]
+    case 0x800248: S[12] = M.ldf((R[6] + 8) >>> 0);  // vldr s12, [r6, #8]
+    case 0x80024c: S[14] = M.ldf((R[5] + 12) >>> 0);  // vldr s14, [r5, #0xc]
+    case 0x800250: R[0] = 0;  // mov r0, #0
+    case 0x800254: S[6] = S[10] * S[6];  // vmul.f32 s6, s10, s6
+    case 0x800258: S[6] = S[6] + Math.fround(S[8] * S[0]);  // vmla.f32 s6, s8, s0
+    case 0x80025c: S[6] = S[6] + Math.fround(S[12] * S[2]);  // vmla.f32 s6, s12, s2
+    case 0x800260: S[0] = S[14] + S[6];  // vadd.f32 s0, s14, s6
+    case 0x800264: S[0] = -S[0];  // vneg.f32 s0, s0
+    case 0x800268: S[0] = S[0] / S[4];  // vdiv.f32 s0, s0, s4
+    case 0x80026c: { const x = S[0], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, #0
+    case 0x800270: M.stf((R[4] + 0) >>> 0, S[0]);  // vstr s0, [r4]
+    case 0x800274: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x800278: if ((M.N !== M.V)) { pc = 0x800294; continue; }  // blt #0x800294
+    case 0x80027c: S[2] = S[18] + S[16];  // vadd.f32 s2, s18, s16
+    case 0x800280: S[0] = S[0] * S[0];  // vmul.f32 s0, s0, s0
+    case 0x800284: R[0] = 0;  // mov r0, #0
+    case 0x800288: { const x = S[0], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s2
+    case 0x80028c: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x800290: if ((!M.C || M.Z)) { R[0] = 1; }  // movwls r0, #1
+    case 0x800294: for (let k = 0; k < 10; k++) S[16 + k] = M.ldf(R[13] + 4 * k); R[13] = (R[13] + 40) >>> 0;  // vpop {d8, d9, d10, d11, d12}
+    case 0x800298: R[4] = M.ld32(R[13] + 0); R[5] = M.ld32(R[13] + 4); R[6] = M.ld32(R[13] + 8); R[13] = (R[13] + 16) >>> 0; return;  // pop {r4, r5, r6, pc}
+    default: throw new Error('hit-type3 ROM: no label ' + pc.toString(16));
+  }
+}
+
+function F_80448c(M){
+  const R = M.R, S = M.S, DV = M.DV;
+  let pc = 0x80448c;
+  for (;;) switch (pc){
+    case 0x80448c: R[13] = (R[13] - 24) >>> 0; M.st32(R[13] + 0, R[4]); M.st32(R[13] + 4, R[5]); M.st32(R[13] + 8, R[6]); M.st32(R[13] + 12, R[10]); M.st32(R[13] + 16, R[11]); M.st32(R[13] + 20, R[14]);  // push {r4, r5, r6, sl, fp, lr}
+    case 0x804490: R[11] = (R[13] + 16) >>> 0;  // add fp, sp, #0x10
+    case 0x804494: R[13] = (R[13] - 24) >>> 0; for (let k = 0; k < 6; k++) M.stf(R[13] + 4 * k, S[16 + k]);  // vpush {d8, d9, d10}
+    case 0x804498: R[13] = (R[13] - 32) >>> 0;  // sub sp, sp, #0x20
+    case 0x80449c: R[13] = (R[13] & 4294967280) >>> 0;  // bfc sp, #0, #4
+    case 0x8044a0: R[5] = R[0];  // mov r5, r0
+    case 0x8044a4: R[6] = R[1];  // mov r6, r1
+    case 0x8044a8: R[4] = 0;  // mov r4, #0
+    case 0x8044ac: R[0] = M.ld32(((R[5] + 0) >>> 0));  // ldr r0, [r5]
+    case 0x8044b0: M.st32(((R[13] + 0) >>> 0), R[0]);  // str r0, [sp]
+    case 0x8044b4: M.U[0] = R[0]; S[8] = M.F[0];  // vmov s8, r0
+    case 0x8044b8: R[1] = M.ld32(((R[5] + 4) >>> 0));  // ldr r1, [r5, #4]
+    case 0x8044bc: M.st32(((R[13] + 4) >>> 0), R[1]);  // str r1, [sp, #4]
+    case 0x8044c0: M.U[0] = R[1]; S[6] = M.F[0];  // vmov s6, r1
+    case 0x8044c4: R[2] = M.ld32(((R[5] + 8) >>> 0));  // ldr r2, [r5, #8]
+    case 0x8044c8: M.st32(((R[13] + 8) >>> 0), R[2]);  // str r2, [sp, #8]
+    case 0x8044cc: M.st32(((R[13] + 12) >>> 0), R[4]);  // str r4, [sp, #0xc]
+    case 0x8044d0: S[0] = M.ldf((R[5] + 16) >>> 0);  // vldr s0, [r5, #0x10]
+    case 0x8044d4: S[2] = M.ldf((R[5] + 20) >>> 0);  // vldr s2, [r5, #0x14]
+    case 0x8044d8: S[4] = M.ldf((R[5] + 24) >>> 0);  // vldr s4, [r5, #0x18]
+    case 0x8044dc: S[16] = S[2] - S[6];  // vsub.f32 s16, s2, s6
+    case 0x8044e0: S[20] = S[0] - S[8];  // vsub.f32 s20, s0, s8
+    case 0x8044e4: M.U[0] = R[2]; S[2] = M.F[0];  // vmov s2, r2
+    case 0x8044e8: S[18] = S[4] - S[2];  // vsub.f32 s18, s4, s2
+    case 0x8044ec: S[0] = S[16] * S[16];  // vmul.f32 s0, s16, s16
+    case 0x8044f0: S[0] = S[0] + Math.fround(S[20] * S[20]);  // vmla.f32 s0, s20, s20
+    case 0x8044f4: S[0] = S[0] + Math.fround(S[18] * S[18]);  // vmla.f32 s0, s18, s18
+    case 0x8044f8: S[2] = Math.sqrt(S[0]);  // vsqrt.f32 s2, s0
+    case 0x8044fc: { const x = S[2], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s2, s2
+    case 0x804500: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x804504: if (!M.V) { pc = 0x804510; continue; }  // bvc #0x804510
+    case 0x804508: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x80450c: S[2] = S[0];  // vmov.f32 s2, s0
+    case 0x804510: S[0] = 1.0;  // vmov.f32 s0, #1.000000e+00
+    case 0x804514: R[0] = R[13];  // mov r0, sp
+    case 0x804518: R[1] = R[6];  // mov r1, r6
+    case 0x80451c: R[2] = 0;  // mov r2, #0
+    case 0x804520: S[0] = S[0] / S[2];  // vdiv.f32 s0, s0, s2
+    case 0x804524: S[2] = S[20] * S[0];  // vmul.f32 s2, s20, s0
+    case 0x804528: S[4] = S[0] * S[16];  // vmul.f32 s4, s0, s16
+    case 0x80452c: S[0] = S[0] * S[18];  // vmul.f32 s0, s0, s18
+    case 0x804530: M.stf((R[13] + 16) >>> 0, S[2]);  // vstr s2, [sp, #0x10]
+    case 0x804534: M.stf((R[13] + 20) >>> 0, S[4]);  // vstr s4, [sp, #0x14]
+    case 0x804538: M.stf((R[13] + 24) >>> 0, S[0]);  // vstr s0, [sp, #0x18]
+    case 0x80453c: M.st32(((R[13] + 28) >>> 0), R[4]);  // str r4, [sp, #0x1c]
+    case 0x804540: F_8060ac(M);  // bl #0x8060ac
+    case 0x804544: S[2] = M.ldf((R[5] + 32) >>> 0);  // vldr s2, [r5, #0x20]
+    case 0x804548: S[2] = S[2] * S[2];  // vmul.f32 s2, s2, s2
+    case 0x80454c: { const x = S[0], y = S[2]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s2
+    case 0x804550: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x804554: if ((!M.Z && M.N === M.V)) { pc = 0x8045d4; continue; }  // bgt #0x8045d4
+    case 0x804558: S[0] = M.ldf((R[6] + 0) >>> 0);  // vldr s0, [r6]
+    case 0x80455c: S[12] = M.ldf((R[5] + 0) >>> 0);  // vldr s12, [r5]
+    case 0x804560: S[4] = M.ldf((R[6] + 4) >>> 0);  // vldr s4, [r6, #4]
+    case 0x804564: S[10] = M.ldf((R[5] + 4) >>> 0);  // vldr s10, [r5, #4]
+    case 0x804568: S[14] = M.ldf((R[5] + 20) >>> 0);  // vldr s14, [r5, #0x14]
+    case 0x80456c: S[6] = M.ldf((R[5] + 16) >>> 0);  // vldr s6, [r5, #0x10]
+    case 0x804570: S[2] = M.ldf((R[6] + 8) >>> 0);  // vldr s2, [r6, #8]
+    case 0x804574: S[3] = M.ldf((R[5] + 8) >>> 0);  // vldr s3, [r5, #8]
+    case 0x804578: S[8] = M.ldf((R[5] + 24) >>> 0);  // vldr s8, [r5, #0x18]
+    case 0x80457c: S[7] = S[12] - S[0];  // vsub.f32 s7, s12, s0
+    case 0x804580: S[5] = S[10] - S[4];  // vsub.f32 s5, s10, s4
+    case 0x804584: S[1] = S[14] - S[10];  // vsub.f32 s1, s14, s10
+    case 0x804588: S[12] = S[6] - S[12];  // vsub.f32 s12, s6, s12
+    case 0x80458c: S[10] = S[8] - S[3];  // vsub.f32 s10, s8, s3
+    case 0x804590: S[3] = S[3] - S[2];  // vsub.f32 s3, s3, s2
+    case 0x804594: S[5] = S[1] * S[5];  // vmul.f32 s5, s1, s5
+    case 0x804598: S[5] = S[5] + Math.fround(S[12] * S[7]);  // vmla.f32 s5, s12, s7
+    case 0x80459c: S[5] = S[5] + Math.fround(S[10] * S[3]);  // vmla.f32 s5, s10, s3
+    case 0x8045a0: { const x = S[5], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s5, #0
+    case 0x8045a4: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x8045a8: if ((!M.Z && M.N === M.V)) { pc = 0x8045d4; continue; }  // bgt #0x8045d4
+    case 0x8045ac: S[4] = S[14] - S[4];  // vsub.f32 s4, s14, s4
+    case 0x8045b0: S[0] = S[6] - S[0];  // vsub.f32 s0, s6, s0
+    case 0x8045b4: S[2] = S[8] - S[2];  // vsub.f32 s2, s8, s2
+    case 0x8045b8: R[4] = 0;  // mov r4, #0
+    case 0x8045bc: S[4] = S[1] * S[4];  // vmul.f32 s4, s1, s4
+    case 0x8045c0: S[4] = S[4] + Math.fround(S[12] * S[0]);  // vmla.f32 s4, s12, s0
+    case 0x8045c4: S[4] = S[4] + Math.fround(S[10] * S[2]);  // vmla.f32 s4, s10, s2
+    case 0x8045c8: { const x = S[4], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s4, #0
+    case 0x8045cc: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x8045d0: if (!M.N) { R[4] = 1; }  // movwpl r4, #1
+    case 0x8045d4: R[0] = R[4];  // mov r0, r4
+    case 0x8045d8: R[13] = (R[11] - 40) >>> 0;  // sub sp, fp, #0x28
+    case 0x8045dc: for (let k = 0; k < 6; k++) S[16 + k] = M.ldf(R[13] + 4 * k); R[13] = (R[13] + 24) >>> 0;  // vpop {d8, d9, d10}
+    case 0x8045e0: R[4] = M.ld32(R[13] + 0); R[5] = M.ld32(R[13] + 4); R[6] = M.ld32(R[13] + 8); R[10] = M.ld32(R[13] + 12); R[11] = M.ld32(R[13] + 16); R[13] = (R[13] + 24) >>> 0; return;  // pop {r4, r5, r6, sl, fp, pc}
+    default: throw new Error('hit-type3 ROM: no label ' + pc.toString(16));
+  }
+}
+
+function F_8060ac(M){
+  const R = M.R, S = M.S, DV = M.DV;
+  let pc = 0x8060ac;
+  for (;;) switch (pc){
+    case 0x8060ac: S[0] = M.ldf((R[0] + 4) >>> 0);  // vldr s0, [r0, #4]
+    case 0x8060b0: S[14] = M.ldf((R[1] + 4) >>> 0);  // vldr s14, [r1, #4]
+    case 0x8060b4: S[2] = M.ldf((R[0] + 0) >>> 0);  // vldr s2, [r0]
+    case 0x8060b8: S[6] = M.ldf((R[1] + 0) >>> 0);  // vldr s6, [r1]
+    case 0x8060bc: S[4] = M.ldf((R[0] + 8) >>> 0);  // vldr s4, [r0, #8]
+    case 0x8060c0: S[1] = M.ldf((R[1] + 8) >>> 0);  // vldr s1, [r1, #8]
+    case 0x8060c4: S[8] = M.ldf((R[0] + 16) >>> 0);  // vldr s8, [r0, #0x10]
+    case 0x8060c8: S[10] = M.ldf((R[0] + 20) >>> 0);  // vldr s10, [r0, #0x14]
+    case 0x8060cc: S[12] = M.ldf((R[0] + 24) >>> 0);  // vldr s12, [r0, #0x18]
+    case 0x8060d0: { const a = R[2] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp r2, #0
+    case 0x8060d4: S[0] = S[14] - S[0];  // vsub.f32 s0, s14, s0
+    case 0x8060d8: S[2] = S[6] - S[2];  // vsub.f32 s2, s6, s2
+    case 0x8060dc: S[4] = S[1] - S[4];  // vsub.f32 s4, s1, s4
+    case 0x8060e0: S[6] = S[0] * S[10];  // vmul.f32 s6, s0, s10
+    case 0x8060e4: S[6] = S[6] + Math.fround(S[2] * S[8]);  // vmla.f32 s6, s2, s8
+    case 0x8060e8: S[6] = S[6] + Math.fround(S[4] * S[12]);  // vmla.f32 s6, s4, s12
+    case 0x8060ec: if (!M.Z) { M.stf((R[2] + 0) >>> 0, S[6]); }  // vstrne s6, [r2]
+    case 0x8060f0: S[0] = S[0] - Math.fround(S[10] * S[6]);  // vmls.f32 s0, s10, s6
+    case 0x8060f4: S[2] = S[2] - Math.fround(S[8] * S[6]);  // vmls.f32 s2, s8, s6
+    case 0x8060f8: S[4] = S[4] - Math.fround(S[12] * S[6]);  // vmls.f32 s4, s12, s6
+    case 0x8060fc: S[0] = S[0] * S[0];  // vmul.f32 s0, s0, s0
+    case 0x806100: S[0] = S[0] + Math.fround(S[2] * S[2]);  // vmla.f32 s0, s2, s2
+    case 0x806104: S[0] = S[0] + Math.fround(S[4] * S[4]);  // vmla.f32 s0, s4, s4
+    case 0x806108: return;  // bx lr
+    default: throw new Error('hit-type3 ROM: no label ' + pc.toString(16));
+  }
+}
+
+function F_8069d8(M){
+  const R = M.R, S = M.S, DV = M.DV;
+  let pc = 0x8069d8;
+  for (;;) switch (pc){
+    case 0x8069d8: R[13] = (R[13] - 16) >>> 0; M.st32(R[13] + 0, R[4]); M.st32(R[13] + 4, R[5]); M.st32(R[13] + 8, R[11]); M.st32(R[13] + 12, R[14]);  // push {r4, r5, fp, lr}
+    case 0x8069dc: R[13] = (R[13] - 48) >>> 0; for (let k = 0; k < 12; k++) M.stf(R[13] + 4 * k, S[16 + k]);  // vpush {d8, d9, d10, d11, d12, d13}
+    case 0x8069e0: R[13] = (R[13] - 16) >>> 0;  // sub sp, sp, #0x10
+    case 0x8069e4: R[5] = R[0];  // mov r5, r0
+    case 0x8069e8: S[12] = M.ldf((R[1] + 4) >>> 0);  // vldr s12, [r1, #4]
+    case 0x8069ec: S[14] = M.ldf((R[1] + 8) >>> 0);  // vldr s14, [r1, #8]
+    case 0x8069f0: R[4] = R[2];  // mov r4, r2
+    case 0x8069f4: S[0] = M.ldf((R[5] + 4) >>> 0);  // vldr s0, [r5, #4]
+    case 0x8069f8: S[8] = M.ldf((R[5] + 20) >>> 0);  // vldr s8, [r5, #0x14]
+    case 0x8069fc: S[6] = M.ldf((R[5] + 0) >>> 0);  // vldr s6, [r5]
+    case 0x806a00: S[2] = M.ldf((R[5] + 16) >>> 0);  // vldr s2, [r5, #0x10]
+    case 0x806a04: S[4] = M.ldf((R[5] + 8) >>> 0);  // vldr s4, [r5, #8]
+    case 0x806a08: S[10] = M.ldf((R[5] + 24) >>> 0);  // vldr s10, [r5, #0x18]
+    case 0x806a0c: S[22] = S[8] - S[0];  // vsub.f32 s22, s8, s0
+    case 0x806a10: S[26] = S[2] - S[6];  // vsub.f32 s26, s2, s6
+    case 0x806a14: S[24] = S[10] - S[4];  // vsub.f32 s24, s10, s4
+    case 0x806a18: S[20] = S[12] - S[0];  // vsub.f32 s20, s12, s0
+    case 0x806a1c: S[8] = M.ldf((R[1] + 0) >>> 0);  // vldr s8, [r1]
+    case 0x806a20: S[16] = S[14] - S[4];  // vsub.f32 s16, s14, s4
+    case 0x806a24: S[2] = S[22] * S[22];  // vmul.f32 s2, s22, s22
+    case 0x806a28: S[2] = S[2] + Math.fround(S[26] * S[26]);  // vmla.f32 s2, s26, s26
+    case 0x806a2c: S[2] = S[2] + Math.fround(S[24] * S[24]);  // vmla.f32 s2, s24, s24
+    case 0x806a30: S[18] = S[8] - S[6];  // vsub.f32 s18, s8, s6
+    case 0x806a34: S[0] = Math.sqrt(S[2]);  // vsqrt.f32 s0, s2
+    case 0x806a38: { const x = S[0], y = S[0]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, s0
+    case 0x806a3c: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x806a40: if (!M.V) { pc = 0x806a4c; continue; }  // bvc #0x806a4c
+    case 0x806a44: S[0] = S[2];  // vmov.f32 s0, s2
+    case 0x806a48: S[0] = Math.sqrt(S[0]);  // sqrtf  // bl #0x13ecc14
+    case 0x806a4c: S[2] = 1.0;  // vmov.f32 s2, #1.000000e+00
+    case 0x806a50: S[4] = M.ldf((R[5] + 4) >>> 0);  // vldr s4, [r5, #4]
+    case 0x806a54: S[12] = M.ldf((R[5] + 20) >>> 0);  // vldr s12, [r5, #0x14]
+    case 0x806a58: S[8] = M.ldf((R[5] + 0) >>> 0);  // vldr s8, [r5]
+    case 0x806a5c: S[10] = M.ldf((R[5] + 16) >>> 0);  // vldr s10, [r5, #0x10]
+    case 0x806a60: S[6] = M.ldf((R[5] + 8) >>> 0);  // vldr s6, [r5, #8]
+    case 0x806a64: S[14] = M.ldf((R[5] + 24) >>> 0);  // vldr s14, [r5, #0x18]
+    case 0x806a68: R[0] = 0;  // mov r0, #0
+    case 0x806a6c: R[1] = (R[13] + 8) >>> 0;  // add r1, sp, #8
+    case 0x806a70: M.st32(((R[13] + 4) >>> 0), R[0]);  // str r0, [sp, #4]
+    case 0x806a74: R[0] = (R[13] + 12) >>> 0;  // add r0, sp, #0xc
+    case 0x806a78: S[0] = S[2] / S[0];  // vdiv.f32 s0, s2, s0
+    case 0x806a7c: S[4] = S[12] - S[4];  // vsub.f32 s4, s12, s4
+    case 0x806a80: S[8] = S[10] - S[8];  // vsub.f32 s8, s10, s8
+    case 0x806a84: S[2] = S[22] * S[0];  // vmul.f32 s2, s22, s0
+    case 0x806a88: S[12] = S[26] * S[0];  // vmul.f32 s12, s26, s0
+    case 0x806a8c: S[10] = S[24] * S[0];  // vmul.f32 s10, s24, s0
+    case 0x806a90: S[0] = S[14] - S[6];  // vsub.f32 s0, s14, s6
+    case 0x806a94: S[4] = S[2] * S[4];  // vmul.f32 s4, s2, s4
+    case 0x806a98: S[4] = S[4] + Math.fround(S[12] * S[8]);  // vmla.f32 s4, s12, s8
+    case 0x806a9c: S[6] = S[20] * S[2];  // vmul.f32 s6, s20, s2
+    case 0x806aa0: S[6] = S[6] + Math.fround(S[18] * S[12]);  // vmla.f32 s6, s18, s12
+    case 0x806aa4: S[4] = S[4] + Math.fround(S[10] * S[0]);  // vmla.f32 s4, s10, s0
+    case 0x806aa8: S[6] = S[6] + Math.fround(S[16] * S[10]);  // vmla.f32 s6, s16, s10
+    case 0x806aac: M.stf((R[13] + 12) >>> 0, S[4]);  // vstr s4, [sp, #0xc]
+    case 0x806ab0: { const x = S[4], y = S[6]; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s4, s6
+    case 0x806ab4: M.stf((R[13] + 8) >>> 0, S[6]);  // vstr s6, [sp, #8]
+    case 0x806ab8: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x806abc: if (M.N) { R[1] = R[0]; }  // movmi r1, r0
+    case 0x806ac0: R[0] = (R[13] + 4) >>> 0;  // add r0, sp, #4
+    case 0x806ac4: S[0] = M.ldf((R[1] + 0) >>> 0);  // vldr s0, [r1]
+    case 0x806ac8: { const x = S[0], y = 0; M.FP = (x !== x || y !== y) ? 3 : x < y ? 8 : x === y ? 6 : 2; }  // vcmpe.f32 s0, #0
+    case 0x806acc: M.N = M.FP >> 3 & 1; M.Z = M.FP >> 2 & 1; M.C = M.FP >> 1 & 1; M.V = M.FP & 1;  // vmrs apsr_nzcv, fpscr
+    case 0x806ad0: if ((!M.Z && M.N === M.V)) { R[0] = R[1]; }  // movgt r0, r1
+    case 0x806ad4: { const a = R[4] >>> 0, b = 0 >>> 0, r = (a - b) >>> 0; M.N = r >>> 31; M.Z = r === 0 ? 1 : 0; M.C = a >= b ? 1 : 0; M.V = (((a ^ b) & (a ^ r)) >>> 31); }  // cmp r4, #0
+    case 0x806ad8: R[0] = M.ld32(((R[0] + 0) >>> 0));  // ldr r0, [r0]
+    case 0x806adc: M.U[0] = R[0]; S[4] = M.F[0];  // vmov s4, r0
+    case 0x806ae0: if (!M.Z) { M.st32(((R[4] + 0) >>> 0), R[0]); }  // strne r0, [r4]
+    case 0x806ae4: S[20] = S[20] - Math.fround(S[2] * S[4]);  // vmls.f32 s20, s2, s4
+    case 0x806ae8: S[18] = S[18] - Math.fround(S[12] * S[4]);  // vmls.f32 s18, s12, s4
+    case 0x806aec: S[16] = S[16] - Math.fround(S[10] * S[4]);  // vmls.f32 s16, s10, s4
+    case 0x806af0: S[0] = S[20] * S[20];  // vmul.f32 s0, s20, s20
+    case 0x806af4: S[0] = S[0] + Math.fround(S[18] * S[18]);  // vmla.f32 s0, s18, s18
+    case 0x806af8: S[0] = S[0] + Math.fround(S[16] * S[16]);  // vmla.f32 s0, s16, s16
+    case 0x806afc: R[13] = (R[13] + 16) >>> 0;  // add sp, sp, #0x10
+    case 0x806b00: for (let k = 0; k < 12; k++) S[16 + k] = M.ldf(R[13] + 4 * k); R[13] = (R[13] + 48) >>> 0;  // vpop {d8, d9, d10, d11, d12, d13}
+    case 0x806b04: R[4] = M.ld32(R[13] + 0); R[5] = M.ld32(R[13] + 4); R[11] = M.ld32(R[13] + 8); R[13] = (R[13] + 16) >>> 0; return;  // pop {r4, r5, fp, pc}
+    default: throw new Error('hit-type3 ROM: no label ' + pc.toString(16));
+  }
+}
+
+// ---- END GENERATED ----

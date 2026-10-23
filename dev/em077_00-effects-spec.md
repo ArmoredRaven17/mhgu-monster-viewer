@@ -325,3 +325,19 @@ the honest stand-in — name it). c 32 must be exported first (§8).
 NOT READ, by name: `[e+0x1c]` as the frame step (I); the meaning of L1 M1 / M2 / M12 / M13 and of action (4, 0x15) that
 silences two of them; who issues (7, 0x3e) (nothing found); the part pass's choice of set 24 / 28 on the sever bit (I from
 the note); shells 0x13d / 0x13e and c 31.
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* **`[e+0x1c]` -- READ**: sUnit's line pass `0xc044c4` writes it before each unit's move as the frame step `[[0x211f764]+0x68]` times
+  the line's rate (+0x30). The c 30 clock (`ctl+0x54 += [e+0x1c]`) therefore runs in frames at normal speed (the line rate's value:
+  I 1.0).
+* **L1 M1 / M2 / M12 / M13 and (4, 0x15) -- READ**: (4, 0x15), (4, 4) and (4, 0x1c) are his aerial TURNS (table `0x16a190c`: L1 M2
+  straight, L1 M12 / L1 M13 the sides). L1 M1 is the hover ((0, 3), (4, 3) / (4, 0x19), the status-3 flight moves), L1 M2 also the
+  hover idle (0, 6) and the end of his air attacks. So the c 30 table's "not (4, 0x15)" silences the pulse on one of three aerial
+  turns; the viewer's plays of L1 M12 / M13 / M2 stand for (4, 4) / (4, 0x1c), which keep it. No change.
+* **(7, 0x3e) -- named, controlled**: no stream issues it and no action follows into it (the census finds the (7, 0x3f) / (7, 0x40)
+  follows at `0xfe1620`, the control).
+* **Set 24 / 28 -- READ** (`0xfdf7b4..0xfdf930`): calm 24, enraged 28, each when vt+0x370(e, 1) -- P+0x3b4 bit 0, the sever -- else
+  4 / 16. The section-6 I is R; `severed = drawn(16) || drawn(18)` stands.

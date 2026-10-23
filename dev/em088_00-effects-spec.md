@@ -384,3 +384,21 @@ M20 rows: the viewer has no such clip (plan). Records to export: **u 200, u 203*
 The section "Ahtal-Ka -- the carried object, the silk threads, the class requests (research agent, 2026-10-15)", the
 upgrades of the `0x10bc340`, `0x6d1b4` and `0x10ad838` rows, two Withdrawn rows (class_sites.py's `0x404` hits;
 class-requests.json's uEm087_00 vtable), and trap 53 (the `e+0x4f4` frame-predicate trap).
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* **Who issues the web actions -- READ in the file**: (1, 0x1c) g1 s105 / s110, (1, 0x1e) g1 s106, (1, 0x20) g0 s14, (1, 0x22) g1
+  s111 / s112 / s113, each stream behind an op-0x6e no-repeat gate (its own number). The odd ones (1, 0x1d / 0x1f / 0x21 / 0x23 /
+  0x24 / 0x25) are in no stream; their code-side issuers stay NR (the harness faults on several of his starts -- section 6).
+* **`e+0xd408` and its writer, `0x329c9c`, `0x7db70` -- READ before this sweep** (rom-map: "e+0xd408 (a BYTE flag)" set every frame
+  of (7, 0x2c / 0x31 / 0x32 / 0x33 / 0x34 / 0x37 / 0x2f / 0x36) and cleared by vt+0x1dc; `0x329c9c` the placement by index; `0x7db70`
+  the hit-record arms). Section 6's lines on them are superseded.
+* Still open, b (deferred): the anchors' `+4` byte, which action starts release the anchors, `0x8a4dfc`, a data table for id 1009 /
+  1010, the faulting starts' effect on `e+0xcb0c`.
+* **Deferred items -- READ** (rom-map "Ahtal-Ka anchor releases" and `0x8a4dfc`): the five-anchor web is released by (1, 6 / 0x1d /
+  0x20 / 0x23) and every status-10 / 11 start, the three / four-anchor web by (1, 6 / 0x1f / 0x20 / 0x25) and the same; two other
+  release paths on (7, 0x2c / 0x2f / 0x31 / 0x36) and (7, 0x34). `0x8a4dfc` sets a unit's rotation from three angles. e+0xcb0c
+  goes to 4 at the start of (1, 2 / 6 / 0x20), (7, 0x10 / 0x1b..0x1e / 0x32) and 21 status-10 numbers. u 20 has no request site
+  (literal ids or the thread slot's +8 only). The anchors' +4 byte is the anchor unit's own state (the shells lane).

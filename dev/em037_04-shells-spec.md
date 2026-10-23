@@ -18,7 +18,7 @@ rathian-variants 973, rock 55, spike 257).
 | shell | global id | class / base | what | records |
 |---|---|---|---|---|
 | shell00 | 0xca | uShellEm037_sp_00 / base00 | the spike throws (Nargacuga's actions, Silverwind's files); the RISING SPIKE 8 / 13 / 14 | u 0 flight, u 1 floor, u 2 wall, u 3 hunter |
-| shell01 | 0xcb | uShellEm037_sp_01 / base01 | mode 0 at every FLOOR landing (spike, falling spike): draws u 4 | u 4 (mode 1: c 30, not built) |
+| shell01 | 0xcb | uShellEm037_sp_01 / base01 | mode 0 at every FLOOR landing (spike, falling spike): draws u 4 | u 4 (mode 1: c 30, BUILT 2026-10-20: perFrame037) |
 | shell45 | 0xcc | uShellEm037_sp_45 / **uShellEmBase45** | the TAIL BLADES: 13 modes | u 10 11 12 20 21 23 30 31 |
 | shell46 | 0xcd | uShellEm037_sp_46 / **uShellEmBase46** | the FALLING SPIKE a rising spike makes at its end | u 0 flight, u 1 / u 2 / u 3 landings |
 
@@ -27,7 +27,7 @@ rathian-variants 973, rock 55, spike 257).
 (0x48b884 refuses an unloaded id). 0xca / 0xcb are Nargacuga's CLASSES (sp_00, sp_01: the same code) with Silverwind's files;
 sp_45 / sp_46 and base45 / base46 are used by no other shell class (`efx/agents/narga-shell-scratch/shelltable.json`: only ids
 204 / 205 name Base45 / Base46). The 13 records are em037_04u's own (UNIQUE: `add_effects.array_of`), exported `when: 'shell'`
-in `docs/effects/em037_04.json` since commit 18e184e; c 30 (em037_00c) is shell01 mode 1's, not built.
+in `docs/effects/em037_04.json` since commit 18e184e; c 30 (em037_00c) is shell01 mode 1's -- built 2026-10-20 (perFrame037; was "not built", rom-map Withdrawn).
 
 ## 1. Classes, vtables, bands
 
@@ -107,7 +107,7 @@ Mode 0: ef `(0, 4)` (list 0 = em037_04u: **u 4 = em037_04_002**), sh ints all -1
 [0]; mode 1: ef `(1, 30)` (list 1 = em037_00c), ints `[0, -1, -1, 0]` (0x1080), hit [1]. hitdata (HDS, 2 records): (0, 30),
 (14, 10). Mode 0 sits at the contact with the creator's words (init011 flags 0) and, timer 0.0, lives while hit slot 0 is on
 (slotsOf011, input.hitLife); with no hit registration (the harness) it ends at move 1 (graceful stop of u 4). Mode 1 is the
-per-frame 0xe47b0c's (L0 M28 f20, L1 M1 f60, L1 M2 f2 with 0x6fe88 NR), not built (N s6, as Nargacuga's).
+per-frame 0xe47b0c's (L0 M28 f20, L1 M1 f60, L1 M2 f2 unless 0x6fe88(e, 3, 5), the current-action test): BUILT 2026-10-20 (perFrame037; hit slot 1 (14, 10); was "not built / 0x6fe88 NR", rom-map Withdrawn).
 
 ## 5. base45 -- the tail blades
 
@@ -202,7 +202,7 @@ aimed spikes, another joint, the facing one unit off) fail.
 * **base46's hunter aim** (0x424c10..0x425038, 0x425064, 0x182b04 NR): +0x1660 is a hunter unit (`0xc2df8`); the viewer has none,
   so the spike takes the ROM's null path (the fall). In the game it homes onto the ground under the hunter.
 * **The ground marker** (0x43b2b0 -> 0x2b3c8, byte +0x1664): not an effect record, not drawn.
-* **shell01 mode 1** (c 30): Nargacuga's per-frame spawner, not built (N s6 / s11).
+* **shell01 mode 1** (c 30): Nargacuga's per-frame spawner 0xe47b0c -- BUILT 2026-10-20 (perFrame037, dev/shells-nargacuga-impact-check.mjs 27/27).
 * **(7, 0x71)'s second slash** (the other clip from frame 42, the first side's mode, the facing re-read at 130): not a pick of
   its own (its first slash is the 0xf7 / 0xf8 rows').
 * **The tail input**: `render/motion-states.js SHELL_TAIL` has no em037_04 entry, so input.tailSevered never reaches his shells

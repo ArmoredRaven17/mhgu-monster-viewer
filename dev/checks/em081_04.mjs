@@ -38,7 +38,10 @@ async function pageCheckBoltreaver(){
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
   const byWhen = {};
   for (const e of S.entries) byWhen[e.when] = (byWhen[e.when] || 0) + 1;
-  check(byWhen.event === 11 && byWhen.ragePuff === 2,
+  // [2026-10-18, suite triage: the count is a FLOOR, as em007_00 / em014_00 already have it -- the shared-states pass of
+  // 2026-10-15 exported the blast / notice / hyper / trap records (c 1100..1109, c 1130..1137, c 1200 / 1201 / 1500, u 1301..1314)
+  // for every monster after this was written; each row's own record is checked by its play below.]
+  check(byWhen.event >= 11 && byWhen.ragePuff === 2,
         'the schedule holds his state records: 11 event and 2 ragePuff', byWhen);
   // HIS AILMENTS ARE ASTALOS'S RECORDS. em081_04 ships no c.pel of its own -- the ROM's resource descriptor names
   // effect\pel\em\em081_00c for both monsters -- so every c 11xx entry must carry em081_00c, not em081_04c.

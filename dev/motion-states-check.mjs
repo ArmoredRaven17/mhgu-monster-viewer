@@ -460,8 +460,14 @@ async function pageCheckNarga(){
   check(rageBox && !rageBox.closest('[hidden]'), 'the Enraged toggle is offered', !!rageBox);
   rageBox.checked = true; await rageBox.onchange({ target: rageBox }); await frames(4);
   check(fx.schedule.rage === true && reqs(1120).includes('r'), 'Enraged on: u 1120 runs', reqs(1120));
-  fired.length = 0;
-  await play('3', 'Motion[2]'); await frames(4); d = drawn();
+  // L3 Motion[2] is a cycle (motion-states.js em037_00: head break, shock trap, exhaust -- one a play), so the play that
+  // breaks the head is found, not assumed to be the next (re-walk 2026-10-18: the second play is the shock trap's c 1105)
+  for (let k = 0; k < 3; k++){
+    fired.length = 0;
+    await play(...REST); await frames(2);
+    await play('3', 'Motion[2]'); await frames(4); d = drawn();
+    if (count(fired, 1001) === 1) break;
+  }
   check(count(fired, 1001) === 1 && d[2] === true && d[3] === true && d[4] === false && d[8] === true, 'enraged head break -- set 7', { fired, d });
   check(!reqs(1120).includes('r') && reqs(1121).includes('r'), 'the trails swap: u 1120 stopped, u 1121 runs', { u1120: reqs(1120), u1121: reqs(1121) });
   await play(...REST); await frames(4);

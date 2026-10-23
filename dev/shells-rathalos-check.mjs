@@ -487,7 +487,9 @@ console.log('== 4. picks, inputs, gates');
                           ['7:0x27', '7:0x28', '7:0x65', '7:0x67', '7:0x31', '7:0x32', '7:0x33', '7:0x34', '7:0x3c']],
       ['4', 'Motion[32]', ['7:0x03', '7:0x29', '7:0x2b', '7:0x2c', '7:0x48', '7:0x49', '9:0x03', '9:0x04'],
                           ['7:0x29', '9:0x03', '7:0x35', '7:0x36', '7:0x37', '7:0x38', '9:0x04']],
-      ['4', 'Motion[38]', ['7:0x43', '7:0x45', '7:0x46', '7:0x70'], ['7:0x45', '7:0x70']],
+      // (7, 0xf5): listed with no spawn since the Flying-Wyvern re-walk (2026-10-18) -- the streams' g1 s224 / s235 issue it in op
+      // 0x6f(0xe)'s default, op-0x24 else body, as Dreadking's; its mode 31 has no file in em002_02_00
+      ['4', 'Motion[38]', ['7:0x43', '7:0x45', '7:0x46', '7:0x70', '7:0xf5'], ['7:0x45', '7:0x70']],
       ['4', 'Motion[45]', [], []], ['4', 'Motion[69]', [], []], ['4', 'Motion[17]', [], []], ['4', 'Motion[7]', [], []],
     ],
     em002_04: [

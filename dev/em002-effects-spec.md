@@ -230,3 +230,22 @@ NOT READ, by name: who issues (7, 0xf5) for Silver, and why his shell picks omit
 (no record rides them); the game's quest numbers for Dreadking quests (the <= 5 arm); what u 502 / 503 / 510 / 522 / 523 / 290 /
 291 look like. The em-1 arms (L4 M6 / M50 / M52 / M55 / M65, L9 M2 / M6, and L2 M1 / M3 / M4 for Gold / Dreadqueen) are the
 Rathian-line agent's to transcribe — read here only to bound the method.
+
+## Re-walk 2026-10-18 (Fanged-Wyvern effects agent): tracer diff, request census, word re-emulation
+
+**Silver Rathalos plays (7, 0xf5) too.** The line's g1 s224 / s235 issue it in op 0x6f(0xe)'s default -- vt+0x214 `0xcf15c8` selector 0xe (`0xcf1828`) = [ctl+0x2c] >= 0.0, no em or variant test -- and it plays L4 M38 for every variant (tracer). Silver's pick list left it out because his shell00 has no mode 31, which also took away the word's (7, 0xf5) play (bits 6-12 cleared: u 230 / 231 / 232 / 221 off). Listed now with no spawn (shells.js em002_02, op24 'else').
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* **(1, 7) / (1, 8) -- READ.** (1, 7) is issued by em001_00_cmdtbl g1 s67 / s68 / s69 / s70; its body `0xcee720` plays L0 M16 and in
+  phase 1 counts L0 M16's ends in P+0x1a2 -- at the third it follows (1, 8), L0 M17 (`0xceebe4..0xceec24`). (1, 4) / (1, 0xd) also
+  play L0 M16 (`0xcf2f80`); their (1, 8) arm needs r1 == 1 and the one caller passes 0. c 60 / c 61 (bits 18-19) have no record:
+  nothing changes on screen.
+* **(7, 0xf5) for Silver -- READ before this sweep**: g1 s224 / s235 (shared table, no variant test); shells.js lists it with no
+  spawn (rom-map Withdrawn row "shells.js em002_02").
+* Still open, category a: Dreadking's quest numbers (`questLevel`).
+* **Tired (with Rage) -- BUILT 2026-10-19** (CLASS_TOGGLES `tiredRage`, working label): with Enraged on, the play reads tired
+  (0x81614 is P+0x505 alone; the stamina machine 0xbd1a4 sets it with no rage test), so L2 M1 / L4 M32 lose bits 24-26 as the ROM
+  does. Checked on Rathalos L2 M3 (class-toggles.mjs).

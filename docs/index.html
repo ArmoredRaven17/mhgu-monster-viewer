@@ -420,7 +420,7 @@ header #bar .btn.tiny{margin-right:0}
    like the other drop downs" -- Rage, the level axis (Zamtrios' Form, Astalos' Charge State) and the
    variant (Kelbi's Gender) were bare selects beside their labels. They are .field rows now, below the
    part rows: the panel body's own 6px gap plus 7 is the 13 between two part rows. */
-#monRageLevelRow,#monLevelRow,#monVariantRow,#monSizeRow,#monCarryRow,#monStateRow,#monStanceRow{gap:5px;margin-top:7px}
+#monRageLevelRow,#monLevelRow,#monVariantRow,#monSizeRow,#monCarryRow,#monBoulderRow,#monClassCtlRow,#monClassCtl2Row,#monStateRow,#monStanceRow{gap:5px;margin-top:7px}
 #monRageRow.folded,#monTiredRow.folded,#monRageLevelRow.folded,#monLevelRow.folded{display:none !important}
 /* The Hit Zones panel's Broken Parts: a caption the size and colour of a .field label, over the state switches' rows. */
 #monZoneBreakRow{display:flex;flex-direction:column;gap:2px}
@@ -591,6 +591,37 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <div class="panel-body">
           <div class="field"><label for="monList">Motion List</label><select id="monList"></select></div>
           <div class="field"><label for="monClip">Clip</label><select id="monClip"></select></div>
+          <!-- THE GROUND (Raven, 2026-10-19: "Yes"; moved here 2026-10-20: "a ground type toggle in the animation panel would be better"):
+               the floor under the monster as the game's ground probe reports it -- the flag word e+0x1068 and the attribute byte
+               e+0x1066 (0x18154c from the polygon). It picks the effects' floor rows (0x41c74 -> MASK2) and the shells' floor selectors
+               (input.floorFlags / floorAttr); a change replays the playing clip, so its effects start on the new ground at once.
+               WORKING labels, by the bits: Raven names them. -->
+          <div class="field" id="monGroundRow" title="The ground under the monster: the floor flag word (e+0x1068) and attribute byte (e+0x1066) the game's ground probe reports. Picks the effects' floor rows and the shells' floor choices; changing it replays the clip. Working names.">
+            <label for="monGroundType">Ground</label>
+            <select id="monGroundType"></select></div>
+          <!-- THE QUEST (Raven, 2026-10-20: approved): the rank 0x3a8430 returns -- [[quest+0xa4]+0xf] as a signed byte: 5 / 3 / 1, anything
+               else 0 -- and the quest's number 0x3a8470 (0x3b8eb4 for an ordinary quest; 0 or 0x10 for the special ids). Every rank or
+               level test the viewer transcribes reads these (the shells, the beams, the PSL words, the low-rank break rows, Thunderlord's
+               puff). Default G / 10, as the viewer has always run. WORKING labels. A change replays the clip. -->
+          <div class="field" id="monQuestRankRow" title="The quest rank the monster's code reads (0x3a8430: 5 / 3 / 1, else 0). Working names.">
+            <label for="monQuestRank">Quest Rank</label>
+            <select id="monQuestRank"></select></div>
+          <div class="field" id="monQuestLevelRow" title="The quest's number the monster's code reads (0x3a8470: 0x3b8eb4 for an ordinary quest; 0 / 16 for the special ones). Working names.">
+            <label for="monQuestLevel">Quest Level</label>
+            <select id="monQuestLevel"></select></div>
+          <!-- THE HUNTER (Raven, 2026-10-22: "We already have proxy hunters/targets. Add the control, I will see what it impacts"): the
+               viewer's one stand-in for the hunter the game's code reads -- the aimed shells' target (rockInput / partnerRockInput, the
+               rock's target), the effect runtime's hunter (x.HUNTER+0x40: the mode-4 range test 0x328d9c) -- moved from its default
+               point ahead of the monster to a distance and a side. Default as before. WORKING labels. A change replays the clip. -->
+          <div class="field" id="monHunterRow" title="The stand-in hunter (target) the monster's code aims at and measures from. Default: 2100 ahead (the Rath line 6300). Working names.">
+            <label for="monHunterDist">Hunter</label>
+            <select id="monHunterDist"></select></div>
+          <div class="field" id="monHunterSideRow" title="The side of the monster the stand-in hunter stands on (his facing turned by the angle). Working names.">
+            <label for="monHunterSide">Hunter Side</label>
+            <select id="monHunterSide"></select></div>
+          <div class="field" id="monHunterBodyRow" title="Whether the stand-in hunter is a body the shells' contact test can hit (their type-2 hunter contact). Default: no body. Working names.">
+            <label for="monHunterBody">Hunter Body</label>
+            <select id="monHunterBody"></select></div>
           <div id="anim" class="idle">
             <div class="transport">
               <input id="animScrub" type="range" min="0" max="1" step="1" value="0" title="Scrub through the frames">
@@ -689,6 +720,18 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           <div class="field" id="monCarryRow" hidden title="What the class carries (Ahtal-Ka: e+0xcb0c, 4 = none). Drawn on joint 130 while carried; an action that drops it at its start (an ailment, death, the throw, the tired idle) shows none for that play, and the choice comes back on the next.">
             <label for="monCarry">Carrying</label>
             <select id="monCarry"></select></div>
+          <div class="field" id="monBoulderRow" hidden title="The rock in hand as each play starts, and its kind ctl+0x30 (Tetsucabra / Drilltusk: render/motion-states.js BOULDER). Held as u 10 (kind 1 / 2) or u 12 (Drilltusk's kind 3) through the carrying motions; any other motion stops it and requests u 50 (u 60 for u 12). A dig's own rock (L4 M18 at frame 35) and the carrying actions' own request come as the ROM makes them. The choice comes back on every play.">
+            <label for="monBoulder">Boulder</label>
+            <select id="monBoulder"></select></div>
+          <div class="field" id="monClassCtlRow" hidden>
+            <label for="monClassCtl" id="monClassCtlLab">State</label>
+            <select id="monClassCtl"></select></div>
+          <div class="field" id="monClassCtl2Row" hidden>
+            <label for="monClassCtl2" id="monClassCtl2Lab">State</label>
+            <select id="monClassCtl2"></select></div>
+          <!-- THE CLASS TOGGLES (render/motion-states.js CLASS_TOGGLES): one switch per class input no other control holds --
+               Begins Burrowed, Tired (with Rage), Poisoned. Working labels, listed for Raven (2026-10-19). -->
+          <div id="monClassToggles"></div>
           <!-- A GAG, off by default and offered only where render/monster.js GAG_EYES names a monster: Nibelsnarf's
                eye piece, lifted from its own model and hand-placed on this one. Raven, 2026-09-20: "Khezu, keep in
                mind this is a gag setting". -->
@@ -723,6 +766,14 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           <div class="field" id="monZoneCapRow" hidden>
             <label for="monZoneCap">Part - Hit Zone Capsules</label>
             <select id="monZoneCap"></select>
+          </div>
+          <!-- THE MONSTER'S ATTACK SHAPES (Raven, 2026-10-22: "can you look into Monster Attack Hit Capsules? ... I want to see what hits a
+               hunter or not"): render/attack-hitboxes.js, the ROM's records armed for the playing clip on their joints. Red: can hit a
+               hunter (target mask bit 0); orange: other monsters only; blue: neither; yellow: touching the Solid stand-in hunter. Working
+               labels. -->
+          <div class="field" id="monAtkBoxRow" hidden title="The attack records the monster arms for this clip (its attackdata / hitsize files and the action census): spheres and capsules on their joints, live in their frame window. Red can hit a hunter, orange only other monsters, blue neither; yellow touches the Solid hunter. Hover a shape for its power, element, status and kind. Working names.">
+            <label for="monAtkBox">Attack Hitboxes</label>
+            <select id="monAtkBox"><option value="off">Off</option><option value="armed">Armed only</option><option value="all">All (unarmed greyed)</option></select>
           </div>
           <!-- THE CAPSULES' COLOUR. Raven, 2026-09-17: "Giving people options might not be a bad idea", then "Another
                option we can do is have the color change between tables". Auto changes with the heat map. The colours
@@ -1454,15 +1505,19 @@ setNoMipmap([
 ]);
 import { PoseDriver } from './render/pose.js';
 import { gidBonesOf } from './render/skeleton.js';
+import { loadAttackData, buildAttackHitboxes, hasAttackData } from './render/attack-hitboxes.js';
 import { loadMaterialsDb } from './render/materials-db.js';
 import { createBackground } from './render/background.js';
 import { createFloorGrid, createGrid } from './render/grid.js';
-import { MotionStates, MOTION_STATES, RAGE_BY_LEVEL, CLASS_HOLD_OFF, RAGE_PUFF, TIRED_DROOL, JOINT_SCALE, JointScale, shellTailInput, shellPartsInput, shellMudInput, glavenusHeat,
+import { MotionStates, MOTION_STATES, RAGE_BY_LEVEL, CLASS_HOLD_OFF, RAGE_PUFF, TIRED_DROOL, JOINT_SCALE, JointScale, shellTailInput, shellPartsInput, shellMudInput, glavenusHeat, rustrazorInput,
          CLIP_VARIANTS, clipVariantOf, clipVariantsFor,
-         postureOf, turnAt, CEILING_ABOVE_GAME, clipHeat, airLift } from './render/motion-states.js';
-import { pickVariantsFor, BEAM_TYPES, AURA084_STANCE, AURA084_CASE_A, heldUntil088, pullClip088, SHELL_DATA } from './render/shells.js';
-import { pslMask, clipActionFor, clipPostureFor, clipPhaseFor, clipSunkFor, ACTION_EFFECTS, actionName, actionOf, em088CarryAt } from './render/psl-mask.js';
+         postureOf, turnAt, CEILING_ABOVE_GAME, clipHeat, airLift, BOULDER, CLASS_CONTROLS, CLASS_CONTROLS2, gauge071, gauge071Tier, charges021, CLASS_TOGGLES, trunkSnow083, legSnow083, agnaktorBroken049, mizutsuneHead082, tetsucabraTusks066, nerscyllaBack070, seregiosParts077, nakarkosParts084 } from './render/motion-states.js';
+import { hunterCapsuleOf, pickVariantsFor, BEAM_TYPES, AURA084_STANCE, AURA084_CASE_A, heldUntil088, pullClip088, SHELL_DATA, SNOW_VARIANTS } from './render/shells.js';
+import { pslMask, clipActionFor, clipCopyActions, clipPostureFor, clipPhaseFor, clipSunkFor, clipFieldFor, clipEntryIndex, ACTION_EFFECTS, actionName, actionOf, em088CarryAt, em021Item, em021Gas, armPlay084, armMask084 } from './render/psl-mask.js';
 import { CUT_TAIL, CutTail, FLIGHTS } from './render/tail-option.js';
+// a combined partner's own effect runtime (Seltas on the Queen: drivePartnerEffects) -- the same module monster.js re-exports
+import { partnerEffectRuntime, attachPartnerEffects, detachPartnerEffects, partnerEffectsPending, effectRuntimeOn,
+         sideEffectRuntime, attachSideEffects, detachSideEffects, sideEffectsPending, setEffectFloor } from './render/rom/effect-mounts.js';
 import { setEyeGlow, updateEyeGlow } from './render/eye-glow.js';
 import { loadMonster, releaseMonster, trimTextureCache, restoreBind, clipFor, clusterGroups, defaultGroupsOn,
          partVerts, partsDrawn, applyParts, groupLabel, groupIsInert, setNormalOpt,
@@ -1482,7 +1537,7 @@ import { loadMonster, releaseMonster, trimTextureCache, restoreBind, clipFor, cl
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts, ROM_SPAWN_CLIP,
          ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels, levelClipFor, setClipFor,
-         attachedBodyOf, attachedClipFor, partnerBodyOf, composeClip, sequenceClipFor, seqFrames, armPairOf,
+         attachedBodyOf, attachedClipFor, partnerBodyOf, partnerClassOf, partnerPairOf, clawStageAt, clawSetOf, wingPartsAt, wingStateOf, freeTimeline, seedOf, composeClip, sequenceClipFor, seqFrames, armPairOf,
          FULL_ANIM_LIST, romAnimationsOf, romAnimationMotion, piecesOf, foldLoopFrame, loopFoldOf, specialMotionAt,
          stepEarFold, stepTailSwell, stepHornRaise, stepRageFur, romFormsOf,
          GAG_EYES, gagEyesOf, setGagEyes, mountGagEyes, HELD_PROP,
@@ -1492,6 +1547,28 @@ import { loadMonster, releaseMonster, trimTextureCache, restoreBind, clipFor, cl
 
 // A motion carrying a part break or a state change shows it over the user's choices while it plays (driveMotionStates)
 const motionStates = new MotionStates();
+// the effect runtime the charge rung's held records were last handed to (driveMotionStates): a runtime that comes up after
+// the rung was set never saw their holdOn -- Thunderlord's u 42 at his default rung 0
+// A CLASS'S OWN BLOCK for a request (proof.js requester), from a CLASS_TIMERS fire / hold's 4th / 3rd element: +0x14 |= 0x20 with the
+// root joint +0x52 (Teostra's u 0 / u 10 / u 1 / u 2 / u 3, joint 3: 0xe110d8 / 0xe111a8 / 0xe11204..), and Nerscylla's +0x1c |= 1
+// with +0xc0 = the joint's position (game units) and +0x14 |= 1 with the offset +0x20.. (L4 M30 / M31). null: the record's own.
+function classBlockOf(at){
+  if (!at || (at.rootJoint == null && at.joint == null)) return null;
+  const req = { positionOnly: true };
+  if (at.rootJoint != null) req.rootJoint = at.rootJoint;
+  if (at.joint != null){
+    const bones = mounted.main ? gidBonesOf(mounted.main) : [], b = bones.find(x => x.gid === at.joint);
+    const p = b && b.node ? b.node.getWorldPosition(new THREE.Vector3()).divideScalar(0.01) : null;
+    if (p){ req.position = [p.x, p.y, p.z]; req.flags1c = 1; }
+    req.rootJoint = at.joint;
+    if (at.offset) req.offset = at.offset;
+  }
+  return req;
+}
+let chargeHoldRt = null;
+// the charge rung motion-states.js CHARGE_EFFECTS keys on: the level axis (Astalos / Nakarkos / Zinogre's rungs), except
+// Lagiacrus, whose charged tier (P+0x1bb >= tune int 1 = 99) is the boolean Charged toggle -- his rung 1 (u 30, 0xea9228)
+function chargeRungOf(){ return state.id === 'em046_00' ? (state.charged ? 1 : 0) : (state.level | 0); }
 // a cut tail the game is dropping, { tail, spec, frame0 } (stepCutTail) -- up here: applyPartState reads it at the first mount
 let cutTail = null;
 const errEl = document.getElementById('err');
@@ -1521,11 +1598,12 @@ for (const m of MON.monsters){
   if (!anims.length) continue;
   const clips = [];
   for (const an of anims){
+    if (an.duo) continue;                // a duo animation lives on the combined list (ROM_PARTNER_BODY partnerList)
     // the chain with its loop cycles (render/monster.js piecesOf: an entry's `loops`)
-    const pieces = piecesOf(an).map(([lid, cn]) => {
+    const pieces = piecesOf(an).map(([lid, cn, blend]) => {
       const l = (m.lists || []).find(x => String(x.id) === String(lid));
       const c = l && (l.clips || []).find(x => x.clip === cn);
-      return c ? { list: l, clip: cn, dur: c.dur } : null;
+      return c ? { list: l, clip: cn, dur: c.dur, blend: blend || 0 } : null;
     });
     if (pieces.some(p => !p)){ noteError('full animation ' + an.name + ': a piece is missing from ' + m.id); continue; }
     clips.push({ clip: an.name, dur: pieces.reduce((t, p) => t + p.dur, 0), pieces });
@@ -1533,6 +1611,83 @@ for (const m of MON.monsters){
   if (clips.length && !(m.lists || []).some(l => l.id === FULL_ANIM_LIST.id))
     m.lists.push({ id: FULL_ANIM_LIST.id, label: FULL_ANIM_LIST.label, file: clips[0].pieces[0].list.file, clips, full: true });
 }
+// THE COMBINED LIST (render/monster.js ROM_PARTNER_BODY `partnerList`; Raven, 2026-10-17: "leave Queen's raw animations
+// uncombined in case people want to see them"). Her raw lists play her alone; this one list holds every animation the
+// ROM plays with him on her, in four groups, in this order: (1) her required clips ('Queen L4 Motion[6]', `her`: the
+// clip of hers it plays; he plays its ROM pair), (2) the joined duo animations (`pieces`, ROM_ANIMATIONS `duo`), (3) his
+// clips no clip of hers leads ('Seltas Motion[31]', `his` / `body` / `hisSeq`), (4) her `both` clips with him free
+// ('... + Seltas free'). The list's `file` is her list 4's, which her pose driver needs for its proxy.
+for (const m of MON.monsters){
+  const spec = partnerBodyOf(m.id), pl = spec && spec.partnerList;
+  if (!pl || (m.lists || []).some(l => l.id === pl.id)) continue;
+  const pm = MON.monsters.find(x => x.id === spec.monster);
+  const his = pm && (pm.lists || []).find(l => String(l.id) === String(pl.from));
+  const herList = (m.lists || []).find(l => String(l.id) === String(spec.list));
+  if (!his || !herList){ noteError('partner list ' + pl.id + ': a list is missing'); continue; }
+  const req = [], joined = [], leaves = [], hisClips = [], free = [];
+  const unresolved = new Set(spec.unresolved || []);
+  for (const lid of pl.herLists || []){
+    const hl = (m.lists || []).find(l => String(l.id) === String(lid));
+    for (const c of (hl && hl.clips) || []){
+      const bare = String(lid) + '|' + c.clip.replace(/_(start|loop)$/, '');
+      const k = partnerClassOf(spec, lid, c.clip);
+      if (k === 'combined') req.push({ clip: 'Queen L' + lid + ' ' + c.clip, dur: c.dur, her: { list: lid, clip: c.clip }, group: 'required' });
+      else if (k === 'release' && spec.leaves){
+        // her clip held (or looped) while he flies off (spec.dismounts.leave) -- long enough to see it through
+        const fr = Math.max(Math.round(c.dur * 60), 300);
+        leaves.push({ clip: 'Queen L' + lid + ' ' + c.clip + ' + Seltas leaves', dur: fr / 60, her: { list: lid, clip: c.clip }, leaves: true,
+                      body: [[lid, c.clip, { frames: fr }]], group: 'leaves' });
+      }
+      else if (k === 'both' && !unresolved.has(bare))
+        free.push({ clip: 'Queen L' + lid + ' ' + c.clip + ' + Seltas free', dur: c.dur, her: { list: lid, clip: c.clip }, group: 'free' });
+    }
+  }
+  for (const an of romAnimationsOf(m.id)){
+    if (!an.duo) continue;
+    const pieces = piecesOf(an).map(([lid, cn, blend]) => {
+      const l = (m.lists || []).find(x => String(x.id) === String(lid));
+      const c = l && (l.clips || []).find(x => x.clip === cn);
+      return c ? { list: l, clip: cn, dur: c.dur, blend: blend || 0 } : null;
+    });
+    if (pieces.some(p => !p)){ noteError('duo animation ' + an.name + ': a piece is missing'); continue; }
+    const deathAt = an.deathAt ? pieces.slice(0, an.deathAt.piece).reduce((t, p) => t + Math.round(p.dur * 60), 0) + an.deathAt.frame : null;
+    joined.push({ clip: an.name, dur: pieces.reduce((t, p) => t + p.dur, 0), pieces, group: 'joined', deathAt });
+  }
+  for (const [name, ent] of Object.entries(pl.clips)){
+    // an entry is [her clips] for his clip of that name, or { his, body, hisSeq } where his side is several clips
+    const hc = Array.isArray(ent) ? name : ent.his, body = Array.isArray(ent) ? ent : ent.body;
+    const c = (his.clips || []).find(x => x.clip === hc);
+    if (!c){ noteError('partner list ' + pl.id + ': his ' + hc + ' is missing'); continue; }
+    hisClips.push({ clip: pl.prefix + name, his: hc, dur: Array.isArray(ent) || !ent.drop ? c.dur : 10, body, hisSeq: Array.isArray(ent) ? null : ent.hisSeq || null,
+                    drop: !Array.isArray(ent) && !!ent.drop, group: 'his' });
+  }
+  const clips = [...req, ...joined, ...leaves, ...hisClips, ...free];
+  if (clips.length) m.lists.push({ id: pl.id, label: pl.label, file: herList.file, clips, partner: true,
+                                   groups: { required: req.length, joined: joined.length, leaves: leaves.length, his: hisClips.length, free: free.length } });
+}
+// THE SNOW VARIANTS LIST (Raven, 2026-10-18: "Add Snow variations of the same clips, add them under a Snow Variants list").
+// The snow maps (the quest's map e+0x1053 in {3, 14, 20}: Arctic Ridge, Frozen Seaway, Polar Field) change what some monsters'
+// shells and beams make; the viewer has no map, so the raw lists play the plain modes and this one list holds the same clips with
+// the map on (snowNow: shells input.snow, beamState.snow, the PSL word's snowMap, the class timers' snowMap). Its entries ROUTE to
+// the clip underneath for every consumer (`routed`: seqMotionNow -> partnerMotionNow, as the combined list's whole entries do): a
+// clip is { her: { list, clip } }, a split motion its _start + _loop as pieces. Which clips: render/shells.js SNOW_VARIANTS.
+for (const m of MON.monsters){
+  const want = SNOW_VARIANTS[m.id];
+  if (!want || (m.lists || []).some(l => l.id === 'snow')) continue;
+  const clips = [];
+  for (const [lid, cn] of want){
+    const l = (m.lists || []).find(x => String(x.id) === String(lid));
+    const one = l && (l.clips || []).find(x => x.clip === cn);
+    const st = l && (l.clips || []).find(x => x.clip === cn + '_start'), lp = l && (l.clips || []).find(x => x.clip === cn + '_loop');
+    if (one) clips.push({ clip: 'L' + lid + ' ' + cn, dur: one.dur, her: { list: String(lid), clip: cn }, file: l.file });
+    else if (st && lp) clips.push({ clip: 'L' + lid + ' ' + cn, dur: st.dur + lp.dur, file: l.file,
+                                    pieces: [{ list: l, clip: st.clip, dur: st.dur, blend: 0 }, { list: l, clip: lp.clip, dur: lp.dur, blend: 0 }] });
+    else noteError('snow variants: ' + m.id + ' L' + lid + ' ' + cn + ' is missing');
+  }
+  if (clips.length) m.lists.push({ id: 'snow', label: 'Snow Variants', file: clips[0].file, clips, routed: true, snow: true });
+}
+// the snow map on: the clip on screen is the Snow Variants list's
+function snowNow(){ const l = listOf(entry()); return !!(l && l.snow); }
 // Part NAMES, built by build-part-names.py. Optional: an older deploy without the file still
 // runs, the rows just read as part ids. See that script for where the names come from -- the
 // ROM has no part-name table, so these are community names reached through
@@ -2597,6 +2752,26 @@ function bindOf(root){
 // visible mesh does not use, 150-480 units low (dev/em067-forms-spec.md 4; Raven, 2026-10-17 "ensure Zamtrios is on the
 // grid floor")
 const FLOOR_AT_ORIGIN = new Set(['em084_00', 'em067_00']);
+// THE BURROWERS' FLOOR IS THEIR UNIT on every pinned clip (2026-10-20, effects lane; coordinator: Diablos's L0 M24 / M33 / M43
+// got no dust). The ROM pins the unit to the ground in postures 0, 3, 4 and 6 -- 0xbf284 (`P+0x44 = P+0x5b4`, read whole) every
+// frame, and the setter 0xbc7f4 on entering 0 / 4 (0xbc8e4) -- and the move pass keeps a clip's vertical step only in postures
+// 1 / 2 / 5 / 6 (0xae370, mask 0x66). So a burrow clip's sinking is the BODY going under a unit that stays on the floor, and
+// every unit-height test (base01's 900 arm 0x3fa8b0, the stage floor snap) sees 0. The lowest-reach rule below put Diablos's
+// floor at the buried pose's bottom (-1345 on L0 M24, -2043 on L0 M33) and base01 deleted the dust under the 900 rule. A clip
+// the posture tables give ONLY postures 1 / 2 / 5 (CLIP_POSTURE: the unit may leave the floor there) keeps the lowest-reach
+// rule, and an air clip the ROM's air height (airNow) as before. Bloodbath (em007_04) is Diablos's class (uEm007_00, variant 4)
+// on the same lists 0-3: his postures are em007_00's table. The burrowers are the Begins Burrowed monsters and Diablos's pair.
+const FLOOR_AT_UNIT = new Set(['em007_00', 'em007_04', 'em004_00', 'em005_00', 'em033_00', 'em038_00', 'em043_00', 'em043_05',
+                               'em044_00', 'em045_00', 'em063_00', 'em063_05', 'em060_00', 'em060_04']);
+const POSTURE_TABLE_OF = { em007_04: 'em007_00' };
+// CLIPS READ AS PINNED on a monster that is not a burrower: the floor is the unit there too (the FLOOR_AT_UNIT rule, by clip).
+// Chameleos (em025_00) L2 M43 / M45 -- (7, 0x1e / 0x1f / 0x20) 0xe0b70c: phase 0 sets posture 0 (0xbc7f4(e, 0), 0xe0b7fc) and
+// nothing else in the handler writes it, so P+0x44 = P+0x5b4 throughout (0xbc8e4, 0xbf284). L2 M45 dips the neck 297 below his
+// feet at f70 (the tongue to -431), which the lowest-reach rule took for the ground (-443 x size). His other below-origin clips
+// (L2 M15's body hangs under a raised unit) keep the old rule until their posture is read. (shells lane gapP, 2026-10-22)
+const FLOOR_AT_UNIT_CLIPS = { em025_00: ['2|Motion[43]', '2|Motion[45]'] };
+const PINNED_POSTURES = [0, 3, 4, 6];
+var clipPostureNow = [0];   // the playing clip's postures (stepBox), read by monsterFloorY
 // AN AIR CLIP, as the floor rule has always told it: the body hangs below the clip's own origin by more than AIR_REACH (in
 // the clip's units, before the size) over the loop. Its height above the ground is then the ROM's (render/motion-states.js
 // AIR_HEIGHT / airLift: FlyOfs x size + the standard takeoff's 485.5, or the clip's own), where that monster's is read.
@@ -2606,8 +2781,11 @@ function airNow(){
   if (!clipRoot || !act || !act.getClip || state.list === FULL_ANIM_LIST.id) return null;
   const reach = (pose.bounds && !pose.bounds.isEmpty()) ? pose.bounds.min.y : Infinity;
   const e = entry();
+  // (a combined entry: the clip of hers it plays now, at its own frame -- seqMotionNow)
+  const pq = listOf(e) && (listOf(e).partner || listOf(e).routed) ? seqMotionNow() : null;
   // a clip with its own AIR_HEIGHT row applies as it is; any other only when it hangs below its origin
-  return airLift(state.id, state.list, act.getClip().name, act.time * 60, world.scale.y || 1, (e && e.sizeBase) || 1,
+  return airLift(state.id, pq ? pq.list : state.list, pq ? pq.raw : act.getClip().name,
+                 pq ? pq.frame - (pq.loopSeg ? pq.loopStart : 0) : act.time * 60, world.scale.y || 1, (e && e.sizeBase) || 1,
                  reach < clipRoot.position.y - AIR_REACH);
 }
 function monsterFloorY(){
@@ -2620,6 +2798,13 @@ function monsterFloorY(){
     // the ROM's air height where read: the ground lies H below the unit, the clip's origin (dev/air-height.md)
     const air = airNow();
     if (air) return clipRoot.position.y * (world.scale.y || 1) + world.position.y - air.ground * 0.01;
+    // a burrower on a pinned clip: the ground is the unit (FLOOR_AT_UNIT above)
+    if (FLOOR_AT_UNIT.has(state.id) && clipPostureNow.some(p => PINNED_POSTURES.includes(p)))
+      return clipRoot.position.y * (world.scale.y || 1) + world.position.y;
+    const unitClips = FLOOR_AT_UNIT_CLIPS[state.id], act = pose.action;
+    if (unitClips && act && act.getClip
+        && unitClips.includes(state.list + '|' + String(act.getClip().name).replace(/_(start|loop)$/, '')))
+      return clipRoot.position.y * (world.scale.y || 1) + world.position.y;
     const reach = (pose.bounds && !pose.bounds.isEmpty()) ? pose.bounds.min.y : Infinity;
     y = Math.min(clipRoot.position.y, reach);
   } else y = bindOf(root).minY;
@@ -2629,10 +2814,24 @@ function monsterFloorY(){
 // travel and the size), less the posture-3 drop on an air clip that pins the unit to the ground (airLift `unit`). The shells
 // take THIS as their owner's position (base01's 900 rule reads P+0x44, the spawns P+0x40..): the hips the effect parent
 // stands on (live.js unitMatrix, gid 0) swing with the body -- +231 on Seregios's L1 M1 f100, +318 standing (rom-map trap 67).
+// THE TRAVEL WITHIN A PASS (shells agent, 2026-10-20): the world group carries only the ground earlier passes gained (shiftWorld at
+// a wrap or a clip change); the pass's own travel is the clip's `reference` track (the node every bone hangs from, the one the
+// clip's travel is authored on -- stepTurn's note), and the mixer root stays pinned at x / z 0. So X / Z are the `reference`
+// node's world point: without it the unit stood still through a pass and jumped at its end, and a maker that reads its travel
+// never fired (Mizutsune's trail 0x104cdb4, one bubble per 550 of it: L2 M24's reference goes 0 -> 17.68 over the pass). Y keeps
+// the root's (the ground lock and the air height below).
+const _unitRef = new THREE.Vector3();
 function unitGamePos(){
   const clipRoot = pose.mixer ? pose.mixer.getRoot() : null, s = world.scale, w = world.position;
   const p = clipRoot ? [clipRoot.position.x * s.x + w.x, clipRoot.position.y * s.y + w.y, clipRoot.position.z * s.z + w.z]
                      : [w.x, w.y, w.z];
+  const ref = clipRoot ? clipRoot.getObjectByName('reference') : null;
+  // (the pose proxy is never in the scene -- render/pose.js -- so the node's matrixWorld is in the PROXY's space: it is taken through
+  // the world group as the root's own position is, its scale and the travel earlier passes gave it. Without that the unit lost every
+  // pass before this one: Kushala's pulse on L0 M8 spawned at z 616 / 1574 / 310 / 875 while he stood at 2422 / 4583 / 6458 / 8533;
+  // effects lane, 2026-10-21)
+  if (ref){ ref.updateWorldMatrix(true, false); _unitRef.setFromMatrixPosition(ref.matrixWorld);
+            p[0] = _unitRef.x * s.x + w.x; p[2] = _unitRef.z * s.z + w.z; }
   const air = clipRoot ? airNow() : null;
   return [p[0] / 0.01, p[1] / 0.01 - (air ? air.unit : 0), p[2] / 0.01];
 }
@@ -3204,7 +3403,8 @@ function applyCameraState(c){
 // The Parts panel's state controls as a monster opens on them: Enraged, Charged, Heated, the Rage
 // ladder, the level axis and the variant. resetMonsterState() puts them back on a monster change.
 // `carry`: the Carrying control (render/monster.js HELD_PROP), 4 = nothing -- Ahtal-Ka's spawn value of e+0xcb0c
-const STATE_DEFAULTS = { rage: false, tired: false, charged: false, heated: true, beamHeated: false, rageLevel: 0, level: 0, variant: 0, size: 0, carry: 4, stance: 0 };
+// `boulder`: the Boulder control (render/motion-states.js BOULDER), 0 = no rock in hand, 1..3 the kind ctl+0x30
+const STATE_DEFAULTS = { rage: false, tired: false, charged: false, heated: true, beamHeated: false, rageLevel: 0, level: 0, variant: 0, size: 0, carry: 4, stance: 0, boulder: 0, classCtl: 0, classCtl2: 0 };
 // GROUND LOWEST BONE IS OFF for monsters, and saved as `groundLock` so a view saved while it defaulted on
 // opens with it off. Raven, 2026-09-13: "We may not need to 'ground lowest bone' any more", then "keep the
 // checkbox in Debug for now". It pins the lowest bone to the BIND pose's lowest bone every frame -- a fix
@@ -3220,7 +3420,7 @@ const STATE_DEFAULTS = { rage: false, tired: false, charged: false, heated: true
 const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: false,
                 anchor: false, groundLock: false, normalFlip: false, normalScale: 1,
                 // both OFF by default: see applyUndef and applyExtend
-                undef: false, extend: false, gap: false, proxy: false, ...STATE_DEFAULTS, axes: {}, rawParts: false, heat: '', heatTable: 0, zoneMode: 0, deflectT: 'f25',
+                undef: false, extend: false, gap: false, proxy: false, ...STATE_DEFAULTS, axes: {}, toggles: {}, rawParts: false, heat: '', heatTable: 0, zoneMode: 0, deflectT: 'f25',
                 zoneTab: 'raw',
                 zoneShow: true, zonePos: null,
                 zoneColour: ZONE_CAPSULE_AUTO,
@@ -3459,7 +3659,9 @@ function buildClips(){
   // ONE CLIP, TWO STATES (render/motion-states.js CLIP_VARIANTS): a copied motion shows once per copy, 'Motion[19]_loop A'
   // / 'Motion[19]_loop B'; the value of a copy past A carries '#B', which state.clipVariant keeps and state.clip does not
   monClipSel.innerHTML = '<option value="">Bind pose</option>' +
-    clips.map(c => (clipVariantsFor(state.id, state.list, c.clip) || [{ value: c.clip, label: c.clip }])
+    clips.map(c => ((c.her ? (clipVariantsFor(state.id, c.her.list, c.her.clip) || null) && clipVariantsFor(state.id, c.her.list, c.her.clip)
+                       .map(v => { const k = clipVariantOf(v.value).variant; return { value: c.clip + (k ? '#' + k : ''), label: c.clip + v.label.slice(c.her.clip.length) }; })
+                     : clipVariantsFor(state.id, state.list, c.clip)) || [{ value: c.clip, label: c.clip }])
       .map(v => '<option value="' + v.value + '">' + v.label + ' &mdash; ' + c.dur.toFixed(2) + ' s</option>').join('')).join('');
   if (!clips.some(c => c.clip === state.clip)){
     const e = entry();
@@ -4566,7 +4768,7 @@ function buildGroups(){
   // makes no sense to explain"). The data is still in partnames.json and build/notes/monsters.md.
   buildAxisRows(e);
   buildAttachedRows(e);
-  buildPartnerRow(e);
+  // (the Seltas Off / Combined row is gone: the combined list replaces it -- partnerWanted)
   placeLevelRow();
   // the severed-pieces debug switch has nothing to show when every piece is an attached second body
   monTailRow.hidden = !(e && e.parts.some(p => !attachedBodyOf(e.id, p.name)));
@@ -4719,6 +4921,11 @@ function applyPartState(){
       for (const p of synthIds(k)) drawn.set(p, on.has(p));
       if (it.clip && typeof it.clip === 'object') Object.assign(pins, it.clip);
     }
+    // SELTAS' WINGS FOLLOW HIS FLIGHT STATE (render/monster.js ROM_WINGS; Raven, 2026-10-17: "Seltas wing parts are not
+    // being toggled during flying sections"): where his clip has a ROM flight state it draws the cards (folded: none, out:
+    // part 4, flapping: part 2 / parts 1, 3, 4 every 2 frames); elsewhere the Wings row's choice stands. Raw Parts is raw.
+    const wp = rawParts ? null : wingsNow(e.id);
+    if (wp) for (const p of [1, 2, 3, 4]) drawn.set(p, wp.includes(p));
     // AGNAKTOR'S HEAT PARTS FOLLOW THE GAME (render/monster.js ROM_HEAT_REGIONS; dev/em049-heat.md 4a; Raven,
     // 2026-10-07: "Follow the game"). 0xec1cec draws each slot's HEATED group -- rock and lava overlay -- in play
     // whatever its heat, and the cooled group only while vt+0x3f4 is 1 (the death clip, ROM_HEAT_REGIONS coolDraw)
@@ -4735,7 +4942,7 @@ function applyPartState(){
       }
     }
     // a motion carrying a break shows its part sets over the user's while it plays (driveMotionStates)
-    motionStates.showParts(drawn, e.groups || []);
+    motionStates.showParts(drawn, e.groups || [], state.classCtl | 0);
     setReviewClipPins(e.id, pins, drawn);
     applyParts(mounted.main, drawn);
   }
@@ -4750,8 +4957,15 @@ function applyPartState(){
       // A COMBINED PARTNER draws the combined result ROM_PARTNER_BODY names, on its own part table
       g.visible = true;
       const groups = (a.part && a.part.groups) || [];
-      const drawn = partsDrawn(groups, groups.map((_, i) => a.spec.groups.includes(i)));
-      for (const p of a.spec.partsOff || []) drawn.set(p, false);
+      // ...and his claw set by his claw stage (stepAttached), the first set until a stage has been read
+      // (released: his bit is clear, so the combined glow's group 8 is not drawn -- group 0, 0xfc6468)
+      const base = a.pick && (a.pick.release || a.deadNow) ? a.spec.groups.map(x => x === 8 ? 0 : x) : a.spec.groups;
+      const on = base.concat(a.spec.claws ? [a.clawSet != null ? a.clawSet : a.spec.claws.sets[0]] : []);
+      a.groupsOn = on;
+      const drawn = partsDrawn(groups, groups.map((_, i) => on.includes(i)));
+      // his wing cards: the ROM's flight state where his clip has one (stepAttached a.wingParts), else Raven's Away
+      if (a.wingParts) for (const p of [1, 2, 3, 4]) drawn.set(p, a.wingParts.includes(p));
+      else for (const p of a.spec.partsOff || []) drawn.set(p, false);
       applyParts(g, drawn);
       continue;
     }
@@ -4879,6 +5093,39 @@ function setupAttached(){
 // is the body joint's position and rotation at the partner's own size. Raven, 2026-09-14: "For now, we only
 // need the result of the combine."
 const partnerOn = {};                        // monster id -> the Combined row is on
+// WHICH OF HER CLIPS HE IS ON (render/monster.js ROM_PARTNER_BODY `classes`, dev/em069-duo-spec.md): `combined` mounts
+// him whatever the row says (the ROM plays the clip only with him linked), `solo` and `release` never do (he is not on
+// her / he leaves at its frame 0), `both` follows the row. A joined animation takes its pieces': any solo or release
+// piece makes it that, all combined makes it combined. Raven, 2026-10-17: "Ensure we do not allow them to be combined
+// when they are not meant to be combined".
+function partnerClassAt(e, l, c){
+  const spec = e && partnerBodyOf(e.id);
+  if (!spec || !c) return 'both';
+  if (l && l.partner && c.her) return partnerClassOf(spec, c.her.list, c.her.clip);   // a clip of hers on the combined list
+  if (l && l.partner) return 'combined';           // one of his own clips: he is the one playing
+  if (c.pieces){
+    const ks = c.pieces.map(p => partnerClassOf(spec, p.list.id, p.clip));
+    return ks.find(k => k === 'solo' || k === 'release') || (ks.every(k => k === 'combined') ? 'combined' : 'both');
+  }
+  return partnerClassOf(spec, l && l.id, c.clip);
+}
+// HE IS ON HER ONLY ON THE COMBINED LIST (Raven, 2026-10-17): her raw lists play her alone
+function partnerWanted(e, l, c){ return !!(l && l.partner && c); }
+const PARTNER_WHY = {
+  combined: 'this clip runs only with him on her back (ROM) -- he is shown whatever the row says',
+  solo: 'he is not on her in this clip (ROM) -- the row does not combine here',
+  release: 'he leaves her at the first frame of this clip (ROM: request 7, his 1:0x13 unlinks) -- not shown',
+  both: '' };
+function syncPartnerRow(e){
+  const spec = e && partnerBodyOf(e.id);
+  const row = spec && monGroupsEl.querySelector('.field[data-row="partner:' + spec.monster + '"]');
+  if (!row) return;
+  const sel = row.querySelector('select'), l = listOf(e), c = clipOf(l), k = partnerClassAt(e, l, c);
+  sel.value = mounted[spec.monster] ? '1' : '0';
+  sel.disabled = k !== 'both';
+  row.dataset.partnerClass = k;
+  row.title = PARTNER_WHY[k] || '';
+}
 function buildPartnerRow(e){
   const spec = e && partnerBodyOf(e.id);
   const prec = spec && MON.monsters.find(m => m.id === spec.monster);
@@ -4896,6 +5143,7 @@ function buildPartnerRow(e){
   sel.onchange = () => { setPartner(e, sel.value === '1'); };
   row.appendChild(lab); row.appendChild(sel);
   monGroupsEl.appendChild(row);
+  syncPartnerRow(e);
 }
 function loadPartnerModel(spec){
   const prec = MON.monsters.find(m => m.id === spec.monster);
@@ -4917,91 +5165,148 @@ function setupPartner(e){
   g.userData.partnerClip = spec.matClip || null;
 }
 function dropPartner(spec){
+  detachPartnerEffects();                    // his own effect runtime goes with him (drivePartnerEffects)
   const a = attached.get(spec.monster);
   if (a){ a.driver.stop(); attached.delete(spec.monster); }
   const g = mounted[spec.monster];
   if (g){ world.remove(g); releaseMonster(g); delete mounted[spec.monster]; }
 }
-// The row's change: mount or drop the partner alone, so the body keeps its parts, clip and camera.
-async function setPartner(e, on){
+// Mount the partner alone, so the body keeps its parts, clip and camera (the caller plays his clip).
+async function mountPartner(e){
   const spec = partnerBodyOf(e.id);
-  if (!spec) return;
-  partnerOn[e.id] = !!on;
-  if (!on){ dropPartner(spec); applyPartState(); return; }
-  if (mounted[spec.monster]) return;
+  if (!spec || mounted[spec.monster]) return !!(spec && mounted[spec.monster]);
   const mine = seq;
   setLoading(true);
   try {
     const g = await loadPartnerModel(spec);
-    if (!g) return;
-    if (mine !== seq || entry() !== e || !partnerOn[e.id] || mounted[spec.monster]){ releaseMonster(g); return; }
+    if (!g) return false;
+    if (mine !== seq || entry() !== e || mounted[spec.monster]){ releaseMonster(g); return !!mounted[spec.monster]; }
     world.add(g); mounted[spec.monster] = g;
     setupPartner(e);
     applyPartState(); applyUndef(); applyExtend(); applyProxy();
     if (lightRig) setSHAmount(lightRig.ambient);
-    const l = listOf(e), c = clipOf(l);
-    if (c) await playAttached(l, c);
-    stepAttached();
+    return true;
   } finally { setLoading(false); }
 }
-// WHICH CLIP THE PARTNER PLAYS. Not a ROM read -- the ROM pairs the two monsters' motions in their action machines,
-// which is left for the animation review (the pairs read so far are in render/monster.js above ROM_PARTNER_BODY).
-// Raven, 2026-09-14: "I suspect List 4 of Seltas and Queen animations are the combined, we can try simply paring the
-// animation lists", then "have the queen's list select selta's list for a
-// single selection", and then "I only wanted animation list 4 to be the paired animation list. The others don't need
-// to be paired at this time." So on list 4 -- the list the combine's own loop is in, ROM_PARTNER_BODY's `list` -- the
-// body's clip picks the partner's clip of the same name, else the same motion number (a _start / _loop split need not
-// match). On any other list, or with no match, the partner plays the combine's loop (list 4 Motion[35]). Measured
-// 2026-09-14: the two list 4s share 28 motion numbers, and 5 of those (5, 8, 9, 16, 73) are the same length on both.
-// A clip the ROM pair table names (ROM_PARTNER_BODY `pairs`, the Motion[76]..[79] test case) takes its entry first:
-// `wrap` loops the partner clip on the body clip's time, `holdAfter` freezes it at (that body clip's length) modulo
-// (its own length) -- where its loop stood when the body finished that clip.
-// A FULL ANIMATION (c.pieces) pairs piece by piece by the same rules -- the ROM table, else the same name or
-// number on the partner list, else the combine's loop -- on one joined timeline (partnerSequenceClip).
-function partnerPieceOf(a, listId, clipName){
-  const lists = (a.part && a.part.lists) || [];
-  const pl = lists.find(x => x.id === a.spec.list);
-  if (!pl) return null;
-  const clips = pl.clips || [];
-  if (String(listId) === String(a.spec.list)){
-    const rp = a.spec.pairs && a.spec.pairs[clipName];
-    if (rp && clips.some(x => x.clip === rp.clip)) return { list: pl, clip: rp.clip, mode: rp.holdAfter ? 'hold' : 'wrap' };
-    let hit = clips.find(x => x.clip === clipName);
-    const mm = !hit && /^Motion\[(\d+)\]/.exec(clipName);
-    if (mm) hit = clips.find(x => x.clip.startsWith('Motion[' + mm[1] + ']'));
-    if (hit) return { list: pl, clip: hit.clip, mode: 'play' };
+// Bring the partner in line with her clip's class and the row: mount, drop, or leave him.
+async function syncPartner(e, l, c){
+  const spec = e && partnerBodyOf(e.id);
+  if (!spec) return;
+  const want = partnerWanted(e, l, c);
+  if (!want && mounted[spec.monster]){ dropPartner(spec); applyPartState(); }
+  else if (want && !mounted[spec.monster]) await mountPartner(e);
+  syncPartnerRow(e);
+}
+// The row's change: the choice is kept for every `both` clip; a combined / solo / release clip overrides it.
+async function setPartner(e, on){
+  const spec = partnerBodyOf(e.id);
+  if (!spec) return;
+  partnerOn[e.id] = !!on;
+  const l = listOf(e), c = clipOf(l), had = !!mounted[spec.monster];
+  await syncPartner(e, l, c);
+  if (mounted[spec.monster] && !had){
+    if (c) await playAttached(l, c);
+    stepAttached();
   }
-  return { list: pl, clip: a.spec.clip, mode: 'wrap' };
+}
+// WHICH CLIP THE PARTNER PLAYS: the ROM's pair for her clip (render/monster.js ROM_PARTNER_BODY `pairs`, read
+// 2026-10-17 from her requests and his answers -- dev/em069-duo-spec.md), else his ride (1:0, L4 Motion[35]). This
+// replaces the list-4 same-name / same-number pairing of 2026-09-14, which was a viewer rule ("I suspect List 4 ... we
+// can try simply paring the animation lists") and gave, among others, her Motion[46] / [47] his unrelated 31- and
+// 25-frame clips, frozen on their last frame for the rest of hers.
+// A pick's time rule: `wrap` (his loop on her time from `start`), `hold` (one frame: the 1:0x21 freeze), or a composed
+// clip of her clip's own length (`seq`, paired frame for frame -- his clips laid out as the pair's pieces say).
+function partnerPieceOf(a, listId, clipName){
+  const pl = ((a.part && a.part.lists) || []).find(x => x.id === a.spec.list);
+  if (!pl) return null;
+  let pair = partnerPairOf(a.spec, listId, clipName);
+  const has = n => (pl.clips || []).some(x => x.clip === n);
+  if (!pair.seq.every(x => has(x.clip))){
+    noteError('partner pair ' + listId + '|' + clipName + ': a clip of his is missing');
+    pair = partnerPairOf(a.spec, '-', '-');
+  }
+  return { list: pl, pair };
+}
+const fr60 = x => Math.round(x * 60);          // whole 60 fps frames: the lengths in monsters.json are rounded
+// the frame he freezes on under a `holdAfter` pair: where his loop stood when her named clip ended (187 % 61 = 4 for
+// her Motion[77] and his Motion[79]_loop); the same whatever the update order, since both changes lag alike
+function partnerHoldOf(a, pl, bodyList, pair){
+  if (pair.holdAt != null) return pair.holdAt / 60;          // the ROM's own frame where it was read (ROM_PARTNER_BODY)
+  const after = pair.holdAfter && ((bodyList && bodyList.clips) || []).find(x => x.clip === pair.holdAfter);
+  const his = (pl.clips || []).find(x => x.clip === pair.seq[0].clip);
+  if (pair.holdAfter && !after) noteError('partner pair: holdAfter clip ' + pair.holdAfter + ' not found');
+  return (after && his && fr60(his.dur) > 0) ? (fr60(after.dur) % fr60(his.dur)) / 60 : 0;
 }
 function partnerClipOf(a, l, c){
-  const lists = (a.part && a.part.lists) || [];
-  if (c && c.pieces){
-    const segs = c.pieces.map(p => ({ bodyList: p.list, body: p.clip, pick: partnerPieceOf(a, p.list.id, p.clip) }));
-    const pl = lists.find(x => x.id === a.spec.list);
-    if (pl && segs.every(s => s.pick))
-      return { list: pl, clip: c.clip, paired: true, rom: true, hold: null,
-               seq: segs.map(s => ({ bodyList: s.bodyList, body: s.body, clip: s.pick.clip, mode: s.pick.mode })) };
-  }
-  const pl = l && l.id === a.spec.list && lists.find(x => x.id === l.id);
-  if (pl && c){
-    const clips = pl.clips || [];
-    const rp = a.spec.pairs && a.spec.pairs[c.clip];
-    const rhit = rp && clips.find(x => x.clip === rp.clip);
-    if (rhit){
-      const after = rp.holdAfter && (l.clips || []).find(x => x.clip === rp.holdAfter);
-      if (rp.holdAfter && !after) noteError('partner pair ' + c.clip + ': holdAfter clip ' + rp.holdAfter + ' not found');
-      // in whole 60 fps frames: the lengths in monsters.json are rounded, and 3.117 % 1.017 lands just short of frame 4
-      const fr = x => Math.round(x * 60);
-      const hold = (after && fr(rhit.dur) > 0) ? (fr(after.dur) % fr(rhit.dur)) / 60 : null;
-      return { list: pl, clip: rhit.clip, paired: false, rom: true, hold };
+  if (!c) return null;
+  // one of HIS clips picked on her list (a partner list): he plays it, on her time frame for frame (her side was
+  // built to its length, partnerListBodyClip); his loop wraps
+  // a clip of hers where he LEAVES her at frame 0 (request 7): his 1:0x13, M46 then M47, released into world space
+  // HIS DEATH IN HER M79 (render/monster.js pairs '4|Motion[79]' `death`, the joined entry's `deathAt`; spec §21): linked and
+  // frozen to the kill frame, then unlinked: his death (11, 8)
+  if (l && l.partner && a.spec.dismounts && a.spec.dismounts.death){
+    const pl = ((a.part && a.part.lists) || []).find(x => String(x.id) === String(a.spec.partnerList.from));
+    const pr = c.her ? partnerPairOf(a.spec, c.her.list, c.her.clip) : null;
+    if (pl && (c.deathAt != null || (pr && pr.death))){
+      const pre = [];
+      if (c.deathAt != null){
+        // the joined grab's linked part, piece by piece from the pairs (the ride under M76, his struggle under M77, the hold)
+        let at = 0;
+        for (const p of c.pieces){
+          const f = Math.round(p.dur * 60), pair = partnerPairOf(a.spec, p.list.id, p.clip), q = pair.seq[0];
+          const take = Math.min(f, c.deathAt - at);
+          if (take <= 0) break;
+          const hold = q.mode === 'hold' ? partnerHoldOf(a, pl, p.list, pair) * 60 : null;
+          pre.push({ list: '4', clip: q.clip, blend: q.blend || 0, frames: take, mode: hold != null ? 'hold' : q.mode === 'wrap' ? 'wrap' : 'play',
+                     start: hold != null ? hold : q.start || 0, period: q.period || 0 });
+          at += take;
+        }
+      } else pre.push({ list: '4', clip: pr.seq[0].clip, frames: pr.death.at, mode: 'hold', start: partnerHoldOf(a, pl, null, pr) * 60 });
+      return { list: pl, clip: c.clip, paired: true, rom: true, hold: null, mode: 'seq', start: 0, compose: [], release: false,
+               unl: 'death', pre, deathAt: c.deathAt != null ? c.deathAt : pr.death.at };
     }
-    let hit = clips.find(x => x.clip === c.clip);
-    const mm = !hit && /^Motion\[(\d+)\]/.exec(c.clip);
-    if (mm) hit = clips.find(x => x.clip.startsWith('Motion[' + mm[1] + ']'));
-    if (hit) return { list: pl, clip: hit.clip, paired: true };
   }
-  const fl = lists.find(x => x.id === a.spec.list);
-  return fl ? { list: fl, clip: a.spec.clip, paired: false } : null;
+  if (l && l.partner && (c.leaves || c.drop) && a.spec.dismounts){
+    const pl = ((a.part && a.part.lists) || []).find(x => String(x.id) === String(a.spec.partnerList.from));
+    return pl ? { list: pl, clip: c.clip, paired: true, rom: true, hold: null, mode: 'seq', start: 0, compose: [], release: true,
+                  unl: c.drop ? 'drop' : 'leave' } : null;
+  }
+  // a combined-list entry that is a clip of hers: his ROM pair for that clip, exactly as before (or his own logic)
+  if (l && l.partner && c.her){
+    const e = entry(), hl = e && (e.lists || []).find(x => String(x.id) === String(c.her.list));
+    const hc = hl && (hl.clips || []).find(x => x.clip === c.her.clip);
+    return hl && hc ? partnerClipOf(a, hl, hc) : null;
+  }
+  if (l && l.partner && !c.pieces){
+    const pl = ((a.part && a.part.lists) || []).find(x => String(x.id) === String(a.spec.partnerList.from));
+    if (!pl) return null;
+    const loop = /_loop$/.test(c.his);
+    if (c.hisSeq) return { list: pl, clip: c.clip, paired: true, rom: true, hold: null, mode: 'seq', start: 0, compose: c.hisSeq };
+    return { list: pl, clip: c.his, paired: !loop, rom: true, hold: null, mode: loop ? 'wrap' : 'seq', start: 0 };
+  }
+  if (c.pieces){
+    const segs = c.pieces.map(p => ({ bodyList: p.list, body: p.clip, pick: partnerPieceOf(a, p.list.id, p.clip) }));
+    const pl = segs[0] && segs[0].pick && segs[0].pick.list;
+    if (pl && segs.every(x => x.pick))
+      return { list: pl, clip: c.clip, paired: true, rom: true, hold: null, mode: 'seq',
+               seq: segs.map(x => ({ bodyList: x.bodyList, body: x.body, pair: x.pick.pair })) };
+    return null;
+  }
+  const pick = partnerPieceOf(a, l && l.id, c.clip);
+  if (!pick) return null;
+  const { list: pl, pair } = pick, s0 = pair.seq[0];
+  const rom = pair !== partnerPairOf(a.spec, '-', '-');
+  // NO COUPLING ON THIS CLIP: he follows his own logic (render/monster.js ROM_PARTNER_BODY `free`: the ride to its
+  // frame 180, then his table's draw), seeded by her clip so a scrub, a pause or a replay gives the same choices
+  if (!rom && a.spec.free)
+    return { list: pl, clip: 'free:' + c.clip, paired: false, rom: true, mode: 'free', seed: seedOf(l.id + '|' + c.clip) };
+  if (pair.holdAfter)
+    return { list: pl, clip: s0.clip, paired: false, rom, mode: 'hold', hold: partnerHoldOf(a, pl, l, pair), start: 0 };
+  if (pair.seq.length === 1 && s0.mode !== 'play')
+    return { list: pl, clip: s0.clip, paired: false, rom, mode: s0.mode, hold: s0.mode === 'hold' ? (s0.start || 0) / 60 : null,
+             start: (s0.start || 0) / 60, period: s0.period ? s0.period / 60 : null };
+  return { list: pl, clip: c.clip, paired: true, rom, hold: null, mode: 'seq',
+           seq: [{ bodyList: l, body: c.clip, pair }] };
 }
 const _pp = new THREE.Vector3(), _pq = new THREE.Quaternion(), _ps = new THREE.Vector3(), _pm = new THREE.Matrix4();
 // no clip playing: the partner's root itself goes onto the frame, carrying its bind pose
@@ -5015,6 +5320,13 @@ function placeOnFrame(root, frame){
 // that joint's motion away from its rest pose carried on the world group ('rest').
 function attachFrame(a){
   a.jointNode.updateWorldMatrix(true, false);
+  // RELEASED (a `release` pick): the frame stays where joint 200 was when he unlinked -- her frame 0, sampled by
+  // releaseMatOf -- and her motion no longer carries him (ROM_PARTNER_BODY `leaves`)
+  if (a.partner && a.pick && a.pick.unl){
+    const m = unlFrameAt(a, pose.action ? Math.round(pose.action.time * 60) : 0);
+    if (m){ a.frame.matrix.copy(m); a.frame.matrixWorld.copy(m); return; }
+  }
+  if (a.partner && a.pick && a.pick.release && a.releaseMat){ a.frame.matrix.copy(a.releaseMat); a.frame.matrixWorld.copy(a.frame.matrix); return; }
   if (a.partner){
     // the ROM's link mode 3: the joint's position and rotation with its scale dropped, at the partner's own
     // size -- its dtbase multiplier, as a monster shown alone is scaled (sizeScale)
@@ -5030,26 +5342,216 @@ function attachFrame(a){
   } else a.frame.matrix.copy(a.jointNode.matrixWorld);
   a.frame.matrixWorld.copy(a.frame.matrix);
 }
-// The partner's side of a sequence: each piece of the body's sequence, the partner clip `pairs` names for it, on
-// the body's own frame counts so the two timelines line up frame for frame. The partner's clock runs on through
-// pieces that keep the same clip -- a wrap continues its loop, a hold stays where that loop stood -- and a new
-// clip starts from its frame 0.
+// WHERE HE WAS RELEASED: her joint (ROM_PARTNER_BODY `joint`) at HER frame 0, the frame he unlinks on -- sampled from
+// her own driver at time 0 and put back, so a pick that loads late, a scrub or a pause cannot move it
+function releaseMatOf(a, at = 0){
+  if (!pose.action || !pose.mixer || !pose.proxyBones) return null;
+  const src = pose.proxyBones.get(a.spec.joint);
+  if (!src) return null;
+  const t = pose.action.time;
+  pose.action.time = at / 60; pose.mixer.update(0); if (pose.anchorProxy) pose.anchorProxy();
+  src.updateWorldMatrix(true, false);
+  const m = new THREE.Matrix4().copy(src.matrixWorld);
+  if (pose.frame){ pose.frame.updateWorldMatrix(true, false); m.premultiply(pose.frame.matrixWorld); }
+  pose.action.time = t; pose.mixer.update(0); if (pose.anchorProxy) pose.anchorProxy();
+  m.decompose(_pp, _pq, _ps);
+  const sz = (a.part && a.part.sizeBase) || 1;
+  return new THREE.Matrix4().compose(_pp, _pq, _ps.set(sz, sz, sz));
+}
+// (no proxy sample to be had: the joint where it stands now)
+function jointFrameOf(a){
+  a.jointNode.updateWorldMatrix(true, false);
+  a.jointNode.matrixWorld.decompose(_pp, _pq, _ps);
+  const sz = (a.part && a.part.sizeBase) || 1;
+  return new THREE.Matrix4().compose(_pp, _pq, _ps.set(sz, sz, sz));
+}
+// The partner's side of a composed pick: per piece of hers (one piece for a single clip), his clips laid out as its
+// pair's `seq` says, on her own frame counts so the two timelines line up frame for frame. A `play` piece runs from
+// `start` to his clip's end and the next takes over; the last piece fills her piece. A `wrap` that continues the same
+// clip as the piece before carries his clock on (the ride under a chain of hers); `blend` eases the cut (composeClip).
+// `layout` keeps, per piece on her timeline, which clip of his plays from which of his frames -- for the claw stage.
 async function partnerSequenceClip(a, pick, e){
-  const pieces = [];
-  let prev = null, clock = 0;
-  for (const s of pick.seq){
-    const bclip = await clipFor(s.bodyList, s.body, e.glb);
-    const pclip = await clipFor(pick.list, s.clip, a.part.glb);
-    if (!bclip || !pclip) return null;
-    const frames = seqFrames(bclip);
-    // a new clip, or a same-number pair ('play', which runs with the body's piece), starts from its frame 0
-    if (!prev || prev.clip !== s.clip || s.mode === 'play') clock = 0;
-    pieces.push({ clip: pclip, frames, mode: s.mode, start: clock });
-    if (s.mode === 'wrap' && pclip.duration > 0) clock = (clock + frames / 60) % pclip.duration;
-    if (s.mode === 'play') clock = Math.min(frames / 60, pclip.duration);
-    prev = s;
+  const pieces = [], layout = [];
+  let prev = null, clock = 0, at = 0;
+  for (const sg of pick.seq){
+    const bclip = await clipFor(sg.bodyList, sg.body, e.glb);
+    if (!bclip) return null;
+    const F = seqFrames(bclip);
+    const holdAt = sg.pair.holdAfter ? partnerHoldOf(a, pick.list, sg.bodyList, sg.pair) : null;
+    let t = 0;
+    for (let i = 0; i < sg.pair.seq.length && t < F; i++){
+      const x = sg.pair.seq[i];
+      const pclip = await clipFor(pick.list, x.clip, a.part.glb);
+      if (!pclip) return null;
+      const last = i === sg.pair.seq.length - 1;
+      let start = holdAt != null ? holdAt : (x.start || 0) / 60;
+      if (x.mode === 'wrap' && prev && prev.clip === x.clip && prev.mode === 'wrap' && !x.start) start = clock;
+      const own = Math.max(1, seqFrames(pclip) - fr60(start));
+      const len = (last || x.mode !== 'play') ? F - t : Math.min(F - t, own);
+      pieces.push({ clip: pclip, frames: len, mode: x.mode, start, blend: (prev && prev.clip === x.clip) ? 0 : (x.blend || 0), period: x.period ? x.period / 60 : 0 });
+      layout.push({ from: at + t, frames: len, clip: x.clip, mode: x.mode, start: fr60(start), dur: x.period || seqFrames(pclip) });
+      clock = x.mode === 'wrap' && pclip.duration > 0 ? (start + len / 60) % (x.period ? x.period / 60 : pclip.duration)
+            : x.mode === 'hold' ? start : Math.min(start + len / 60, pclip.duration);
+      prev = { clip: x.clip, mode: x.mode };
+      t += len;
+    }
+    at += F;
   }
+  pick.layout = layout;
   return composeClip(pick.clip, pieces, a.part.glb);
+}
+// HIS FREE TIMELINE (a `free` pick): his ride and his table's picks laid end to end, 60 s of them (then it repeats),
+// each change eased by its setMotion blend. Her loop passes run on along it (stepAttached counts them), so a pass of
+// hers does not replay the last one's choices; a fresh play of her clip starts it again from the seed.
+const FREE_FRAMES = 3600, freeCache = new Map();
+async function partnerFreeClip(a, pick){
+  const his = pick.list, framesOf = n => { const c = (his.clips || []).find(x => x.clip === n); return c ? fr60(c.dur) : 1; };
+  const hit = freeCache.get(pick.seed);
+  if (hit && hit.model === a.part.glb){ pick.layout = hit.layout; pick.total = hit.total; a.freePass = 0; a.lastBodyT = 0; return hit.clip; }
+  const tl = freeTimeline(a.spec.free, pick.seed, FREE_FRAMES, framesOf);
+  const pieces = [], layout = [];
+  let at = 0;
+  for (const sg of tl){
+    const pc = await clipFor(his, sg.clip, a.part.glb);
+    if (!pc) return null;
+    pieces.push({ clip: pc, frames: sg.frames, mode: 'play', start: 0, blend: sg.blend });
+    layout.push({ from: at, frames: sg.frames, clip: sg.clip, mode: 'play', start: 0, dur: seqFrames(pc), kind: sg.kind, draw: sg.draw });
+    at += sg.frames;
+  }
+  pick.layout = layout; pick.total = at;
+  a.freePass = 0; a.lastBodyT = 0;
+  const clip = await composeClip(pick.clip, pieces, a.part.glb);
+  if (freeCache.size > 24) freeCache.clear();
+  freeCache.set(pick.seed, { clip, layout, total: at, model: a.part.glb });
+  return clip;
+}
+// his side as several clips of his own (a partner list's `hisSeq`): each { clip, start, frames, blend }, the last to its end
+// THE DISMOUNT'S CLIP AND PATH (render/monster.js ROM_PARTNER_BODY `dismounts`): his pieces on their own lists, laid out
+// to her entry's length; the unit's start (her joint at HER frame 0, upright, her facing) and the code movement
+function dismountPlan(a, pick){
+  const d = a.spec.dismounts[pick.unl], herF = pose.action ? Math.round(pose.action.getClip().duration * 60) : 300;
+  const lists = (a.part && a.part.lists) || [];
+  const durOf = x => { const l = lists.find(y => String(y.id) === x.list), c = l && (l.clips || []).find(y => y.clip === x.clip); return c ? Math.round(c.dur * 60) : 0; };
+  const at0 = pick.unl === 'death' ? pick.deathAt : 0;
+  const base = unlBaseOf(a, at0);
+  const out = [];
+  let tLand = null, commitAt = null;
+  if (pick.unl === 'death'){
+    // linked and frozen to the kill frame, then the fall to her ground (the stand-in rate) and the lie
+    for (const x of pick.pre) out.push(Object.assign({}, x));
+    const drop = base ? Math.max(0, (base.pos.y - base.floor) * base.ws) / 0.01 : 0;
+    let n = 0; while (-(d.fall.v * n + d.fall.a * n * n / 2) < drop && n < 600) n++;
+    tLand = at0 + n;
+    const s0 = durOf(d.air[0]);
+    out.push(Object.assign({}, d.air[0], { frames: Math.max(1, Math.min(s0, n)) }));
+    if (n > s0) out.push(Object.assign({}, d.air[1], { frames: n - s0 }));
+    let at = at0 + Math.max(1, n);
+    for (const x of d.land){ const f = x.rest ? Math.max(1, herF - at) : durOf(x); out.push(Object.assign({}, x, { frames: f })); at += f; }
+  } else if (pick.unl === 'leave'){
+    let at = 0;
+    d.pieces.forEach((x, i) => { const f = x.rest ? Math.max(1, herF - at) : durOf(x); out.push(Object.assign({}, x, { frames: f })); if (i === d.commit.after) commitAt = at + f; at += f; });
+  } else {
+    // the fall: -10 / frame, -1 / frame^2 (game units; 0.01 a viewer unit) from the unit's height to her ground
+    const drop = base ? Math.max(0, (base.pos.y - base.floor) * base.ws) / 0.01 : 0;
+    let n = 0; while (-(d.fall.v * n + d.fall.a * n * n / 2) < drop && n < 600) n++;
+    tLand = n;
+    const s0 = durOf(d.air[0]);
+    out.push(Object.assign({}, d.air[0], { frames: Math.max(1, Math.min(s0, n)) }));
+    if (n > s0) out.push(Object.assign({}, d.air[1], { frames: n - s0 }));
+    let at = Math.max(1, n);
+    for (const x of d.land){ const f = x.rest ? Math.max(1, herF - at) : durOf(x); out.push(Object.assign({}, x, { frames: f })); at += f; }
+  }
+  pick.plan = { base, commitAt, tLand, d, floor: base ? base.floor : 0, at: at0 };
+  return out;
+}
+// the unit when he unlinks: her joint at HER frame 0 (sampled from her driver, put back), upright, at her facing (his yaw +
+// hers, pitch / roll 0: 0xfc5020..0xfc5048 / 0xfc9b4c..0xfc9b84)
+function unlBaseOf(a, at = 0){
+  const m = releaseMatOf(a, at) || jointFrameOf(a);
+  if (!m) return null;
+  // kept in the WORLD GROUP's space (the walk carry-over moves the group, and her with it -- his unit moves with her ground)
+  world.updateWorldMatrix(true, false);
+  const pos = world.worldToLocal(new THREE.Vector3().setFromMatrixPosition(m));
+  mountFrame.updateWorldMatrix(true, false);
+  const q = mountFrame.quaternion.clone();
+  const scn = pose.mixer && pose.mixer.getRoot(), ref = scn && scn.getObjectByName('reference');
+  const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(q);
+  const yaw = Math.atan2(fwd.x, fwd.z) + (ref ? ref.rotation.y : 0);
+  const ws = world.scale.y || 1;
+  return { pos, yaw, scale: ((a.part && a.part.sizeBase) || 1) / ws, ws, floor: world.worldToLocal(new THREE.Vector3(0, monsterFloorY(), 0)).y };
+}
+// his frame at her frame t, unlinked: the unit's start plus the code's movement (render/monster.js `dismounts`)
+const _uq = new THREE.Quaternion(), _uy = new THREE.Vector3(0, 1, 0);
+function unlFrameAt(a, t){
+  const pl = a.pick && a.pick.plan;
+  if (!pl || !pl.base) return null;
+  if (pl.at && t < pl.at) return null;                     // (his death: still linked before the kill frame)
+  const b = pl.base, p = b.pos.clone();
+  let yaw = b.yaw;
+  if (a.pick.unl === 'death'){
+    const n = Math.min(t - pl.at, pl.tLand - pl.at);
+    p.y -= -(pl.d.fall.v * n + pl.d.fall.a * n * n / 2) * 0.01 / b.ws;
+    if (t >= pl.tLand) p.y = pl.floor;
+  } else if (a.pick.unl === 'leave'){
+    if (pl.commitAt != null && t >= pl.commitAt){
+      const o = new THREE.Vector3(...pl.d.commit.model).multiplyScalar(b.scale).applyAxisAngle(_uy, yaw);
+      p.add(o);
+    }
+  } else {
+    yaw += pl.d.turn;
+    const n = Math.min(t, pl.tLand);
+    p.y -= -(pl.d.fall.v * n + pl.d.fall.a * n * n / 2) * 0.01 / b.ws;
+    if (t >= pl.tLand) p.y = pl.floor;            // on the ground (0xbf0bc): her ground, the grid floor
+  }
+  _uq.setFromAxisAngle(_uy, yaw);
+  world.updateWorldMatrix(true, false);
+  return new THREE.Matrix4().compose(p, _uq, new THREE.Vector3(b.scale, b.scale, b.scale)).premultiply(world.matrixWorld);
+}
+async function partnerComposeClip(a, pick){
+  const pieces = [], layout = [];
+  let at = 0;
+  if (pick.unl) pick.compose = dismountPlan(a, pick);
+  for (let i = 0; i < pick.compose.length; i++){
+    const x = pick.compose[i];
+    const xl = x.list ? ((a.part && a.part.lists) || []).find(y => String(y.id) === String(x.list)) || pick.list : pick.list;
+    const pc = await clipFor(xl, x.clip, a.part.glb);
+    if (!pc) return null;
+    const st = x.start || 0, fr = x.frames || Math.max(1, seqFrames(pc) - st);
+    const md = x.mode || (/_loop$/.test(x.clip) ? 'wrap' : 'play');
+    pieces.push({ clip: pc, frames: fr, mode: md, start: st / 60, blend: x.blend || 0, period: x.period ? x.period / 60 : 0 });
+    layout.push({ from: at, frames: fr, clip: x.clip, list: x.list || null, mode: md, start: st, dur: seqFrames(pc),
+                  spitSet: x.spitSet || null });
+    at += fr;
+  }
+  pick.layout = layout;
+  return composeClip(pick.clip, pieces, a.part.glb);
+}
+// her frame f -> his frame on a free timeline (her passes counted in stepAttached)
+function freeFrameOf(a, f){
+  const herF = pose.action ? Math.max(1, Math.round(pose.action.getClip().duration * 60)) : 1;
+  return ((a.freePass || 0) * herF + f) % Math.max(1, a.pick.total || 1);
+}
+// which clip of his plays at her frame `f`, and his own frame of it (the claw stage reads it)
+function partnerLocalAt(a, f){
+  const pk = a.pick;
+  if (!pk) return null;
+  if (pk.mode !== 'seq' && pk.mode !== 'free'){
+    const his = ((pk.list && pk.list.clips) || []).find(x => x.clip === pk.clip), d = his ? fr60(his.dur) : 0;
+    const p = pk.period ? fr60(pk.period) : d;
+    const fr = pk.mode === 'hold' ? fr60(pk.hold || 0) : p > 0 ? (fr60(pk.start || 0) + f) % p : 0;
+    return { clip: pk.clip, frame: fr };
+  }
+  if (pk.mode === 'free') f = freeFrameOf(a, f);
+  if (!pk.layout){                       // one clip of his played whole (a partner list's entry)
+    const his = ((pk.list && pk.list.clips) || []).find(x => x.clip === pk.clip);
+    return { clip: pk.clip, frame: Math.min(f, his ? fr60(his.dur) : f) };
+  }
+  const seg = (pk.layout || []).find(x => f >= x.from && f < x.from + x.frames) || (pk.layout || [])[pk.layout.length - 1];
+  if (!seg) return null;
+  const j = f - seg.from;
+  const fr = seg.mode === 'hold' ? seg.start : seg.mode === 'wrap' ? (seg.dur > 0 ? (seg.start + j) % seg.dur : 0)
+           : Math.min(seg.start + j, seg.dur);
+  return { clip: seg.clip, frame: fr, list: seg.list || null };
 }
 async function playAttached(l, c){
   const e = entry();
@@ -5057,14 +5559,22 @@ async function playAttached(l, c){
     const root = mounted[name];
     if (a.partner){
       const pick = partnerClipOf(a, l, c);
-      const pclip = !pick ? null : pick.seq ? await partnerSequenceClip(a, pick, e)
+      const pclip = !pick ? null : pick.mode === 'free' ? await partnerFreeClip(a, pick)
+                  : pick.compose ? await partnerComposeClip(a, pick)
+                  : pick.seq ? await partnerSequenceClip(a, pick, e)
                                              : await clipFor(pick.list, pick.clip, a.part.glb);
       if (!attached.has(name) || attached.get(name) !== a) continue;
       if (!pclip){ a.driver.stop(); a.pick = null; restoreBind(root); continue; }
-      a.pick = pick;
+      const wasRelease = !!(a.pick && a.pick.release);
+      a.pick = pick; a.releaseMat = null;
+      if (wasRelease !== !!pick.release) applyPartState();     // the glow follows the link bit
       a.driver.loopMode = pick.paired ? pose.loopMode : () => 'repeat';
+      a.driver.holdReference = !!pick.unl;
       await a.driver.play({ file: pick.list.file, clip: pick.clip, model: a.part.glb, clip3: pclip },
                           { figure: 'monster', joints: a.part.joints || [], anchorXZ: false, groundLock: false });
+      // (the proxy may be the one already loaded: its `reference` node is held, or let go, per pick)
+      { const scn = a.driver.mixer && a.driver.mixer.getRoot();
+        a.driver.referenceNode = pick.unl && scn ? scn.getObjectByName('reference') || null : null; }
       continue;
     }
     // an arm's OWN list picked (Nakarkos's l_N / r_N, shown again 2026-10-05) plays on that arm; the other arm plays what
@@ -5093,6 +5603,9 @@ async function playAttached(l, c){
     a.driver.loopMode = a.idleWrap ? () => 'repeat' : pose.loopMode;
     await a.driver.play({ file: twin.file, clip: clipName, model: a.part.glb, clip3 },
                         { figure: 'monster', joints: a.part.joints || [], anchorXZ: false, groundLock: false });
+    // what its own effect runtime walks (driveArmEffects): the arm's list and clip, and a play count per (list, clip)
+    { const k = twin.id + '|' + clipName.replace(/_(start|loop)$/, '');
+      a.fxN = a.fxKey === k ? (a.fxN | 0) + 1 : 0; a.fxKey = k; a.fxList = twin.id; a.fxClip = clipName; a.fxPlay = (a.fxPlay | 0) + 1; }
   }
 }
 // Called right after the body's own step, every time: the frame follows the body joint as drawn
@@ -5101,20 +5614,57 @@ function stepAttached(){
   for (const [name, a] of attached){
     const root = mounted[name];
     if (!root) continue;
+    if (a.partner && a.pick && a.pick.release && !a.releaseMat) a.releaseMat = releaseMatOf(a) || jointFrameOf(a);
     attachFrame(a);
     if (a.partner){
-      // held to the body clip's time so a shot is repeatable: a paired clip stops where the body's does, the
-      // combine's own loop wraps, and a ROM hold (partnerClipOf) stays on its one frame
+      // ONE CLOCK: his time is set from hers on every step, never advanced on its own, so the two cannot drift across
+      // loops, scrubs, pauses or a joined clip's pieces. A composed pick is her clip's own length (frame for frame);
+      // `wrap` runs his loop on her time from `start`; `hold` stays on its frame (partnerClipOf).
       if (a.driver.action && pose.action){
         const dur = Math.max(1e-3, a.driver.action.getClip().duration);
-        const hold = a.pick ? a.pick.hold : null;
+        const pk = a.pick, t = pose.action.time;
         a.driver.action.paused = pose.action.paused;
-        a.driver.action.time = (typeof hold === 'number') ? Math.min(hold, dur - 1e-3)
-          : (a.pick && a.pick.paired) ? Math.min(pose.action.time, dur - 1e-3) : pose.action.time % dur;
+        // her loop wrapping while playing moves a free timeline on to its next pass; a scrub or a pause does not
+        if (pk && pk.mode === 'free'){
+          if (!pose.action.paused && t < (a.lastBodyT || 0) - pose.action.getClip().duration / 2) a.freePass = (a.freePass || 0) + 1;
+          a.lastBodyT = t;
+        }
+        a.driver.action.time = !pk ? t % dur
+          : pk.mode === 'free' ? Math.min(freeFrameOf(a, Math.round(t * 60)) / 60, dur - 1e-3)
+          : pk.mode === 'hold' ? Math.min(pk.hold || 0, dur - 1e-3)
+          : pk.mode === 'wrap' ? ((pk.start || 0) + t) % Math.min(dur, pk.period || dur)
+          : Math.min(t, dur - 1e-3);
       }
       a.driver.clock.getDelta();
       if (a.driver.action) a.driver.step([root]);
       else placeOnFrame(root, a.frame);
+      // HIS CLAWS follow his own claw stage at this frame (render/monster.js clawStageAt: 0 at every action start,
+      // grown only by his own attacks) -- part 10 under every clip of hers the ROM pairs
+      if (a.spec.claws){
+        const loc = pose.action ? partnerLocalAt(a, Math.round(pose.action.time * 60)) : null;
+        const stage = loc ? clawStageAt(a.spec.monster, loc.clip, loc.frame) : 0;
+        const set = clawSetOf(a.spec.claws.sets, stage);
+        a.clawStage = stage;
+        if (a.clawSet !== set){ a.clawSet = set; applyPartState(); }
+      }
+      // (dead from the kill frame on: his bit is clear, the glow goes)
+      { const dn = !!(a.pick && a.pick.unl === 'death' && pose.action && Math.round(pose.action.time * 60) >= a.pick.deathAt);
+        if (dn !== !!a.deadNow){ a.deadNow = dn; applyPartState(); } }
+      // HIS WINGS follow his flight state at this frame (render/monster.js ROM_WINGS / wingPartsAt), Away where it has none
+      {
+        const hf = pose.action ? Math.round(pose.action.time * 60) : 0;
+        const loc = pose.action ? partnerLocalAt(a, hf) : null;
+        // the flap runs on from the first piece of a run of flapping pieces (the +0x40 count is not reset by a new write of 2)
+        let wf = loc ? loc.frame : 0;
+        if (loc && a.pick && a.pick.layout && wingStateOf(a.spec.monster, loc.list || a.spec.list, loc.clip) === 2){
+          const lay = a.pick.layout, i = lay.findIndex(x => hf >= x.from && hf < x.from + x.frames);
+          let k = i; while (k > 0 && wingStateOf(a.spec.monster, lay[k - 1].list || a.spec.list, lay[k - 1].clip) === 2) k--;
+          if (i >= 0) wf = hf - lay[k].from + (lay[k].start || 0);
+        }
+        const wp = loc ? wingPartsAt(a.spec.monster, loc.list || a.spec.list, loc.clip, wf) : null;
+        const key = wp ? wp.join(',') : null;
+        if (key !== a.wingKey){ a.wingKey = key; a.wingParts = wp; applyPartState(); }
+      }
       continue;
     }
     if (a.driver.action && pose.action){
@@ -5220,7 +5770,7 @@ async function mount(){
     for (const p of e.parts) extra.push([p.name, await loadMonster(p, {}, { wire: wireOn })]);
     // a combined partner the row has switched on (ROM_PARTNER_BODY); setupAttached puts it on its joint
     const pspec = partnerBodyOf(e.id);
-    if (pspec && partnerOn[e.id]){
+    if (pspec && partnerWanted(e, listOf(e), clipOf(listOf(e)))){
       const pg = await loadPartnerModel(pspec);
       if (pg) extra.push([pspec.monster, pg]);
     }
@@ -5487,6 +6037,8 @@ function zoneStates(e, rec){
   const axis = meatAxisOf(e.id);
   // A STATE ONLY THE TABLE KNOWS: the entry names it (Najarala's Normal / Exhausted) and the dropdown is its control.
   if (axis === 'mode') return { axis, names: meatSwitchOf(e.id).modes.map(String) };
+  // THE CLASS CONTROL's options (Chameleos's Invisible: CLASS_CONTROLS em025_00)
+  if (axis === 'ctl'){ const cc = CLASS_CONTROLS[e.id]; return cc ? { axis, names: cc.options.map(o => o[1]) } : null; }
   // THE RAGE LADDER'S RUNGS, named as the Rage dropdown names them: Bloodbath's Head follows the same stages as its
   // rage glow (ROM_MEAT_SWITCH em007_04), so the table is that dropdown's and lists its rungs.
   if (axis === 'ladder'){
@@ -5524,6 +6076,7 @@ function zoneStateIndex(axis){
   if (axis === 'ladder') return Math.max(0, [...document.getElementById('monRageLevel').options]
                                               .findIndex(o => +o.value === (state.rageLevel | 0)));
   if (axis === 'mode') return state.zoneMode | 0;
+  if (axis === 'ctl'){ const cc = CLASS_CONTROLS[state.id]; return cc ? Math.max(0, cc.options.findIndex(o => o[0] === (state.classCtl | 0))) : 0; }
   if (axis === 'rage') return state.rage ? 1 : 0;
   return 0;
 }
@@ -5532,7 +6085,7 @@ function zoneTable(e, rec){
   if (st){
     const i = st.names.length ? Math.max(0, Math.min(st.names.length - 1, zoneStateIndex(st.axis))) : 0;
     const t = meatTableFor(e.id, rec.tables, { rung: state.level | 0, rage: !!state.rage, groups: state.groups,
-                                              mode: st.axis === 'mode' ? i : 0, ladder: state.rageLevel | 0,
+                                              mode: st.axis === 'mode' ? i : 0, ladder: state.rageLevel | 0, ctl: state.classCtl | 0,
                                               broken: k => breakRowInfo(e, k).broken,
                                               // a heat region not cooled (Agnaktor's `heat` rules, 0xec0dbc) -- its TARGET,
                                               // not the material's stage: the Hit Zones panel is information, so its zones
@@ -6118,6 +6671,7 @@ function zoneShapesFor(rec, pick){
 // 2026-09-17: "Only show the Hit Zone regions from the table, no need for the Extracts". Rebuilt with the chart, so a
 // renamed or hidden slot changes both at once.
 function buildZoneCapSel(rec){
+  paintAtkBoxRow();                     // the Attack Hitboxes row beside it (render/attack-hitboxes.js)
   const sel = document.getElementById('monZoneCap');
   const has = !!(rec && Array.isArray(rec.capsules) && rec.capsules.length);
   document.getElementById('monZoneCapRow').hidden = !has;
@@ -6477,7 +7031,22 @@ let ladder = [], ladderParts = [];
 // Rage to Bloodbath State to avoid confusion." So for him the ladder (part-review `rage.name`) keeps its rungs and
 // parts but sets no state.rage, and the Enraged toggle shows beside it and owns state.rage
 // (dev/em007_04-undriven-spec.md 3).
-const LADDER_NOT_ENRAGE = new Set(['em007_04']);
+// CHAOTIC GORE MAGALA's ladder (the BodyLight clips) is not his enrage either: his part pass vt+0x210 0xfbf97c sets that clip from
+// the gauge C+0x84's tier (motion-states.js gauge071Tier; C+0x82 aside), never from the enrage. So the GAUGE control owns its rung
+// (LADDER_BY_GAUGE: the ladder row is hidden, the rung follows the gauge) and his Enraged state is its own, as Bloodbath's.
+const LADDER_NOT_ENRAGE = new Set(['em007_04', 'em071_05']);
+const LADDER_BY_GAUGE = new Set(['em071_05']);
+// the rung the gauge gives (0 Normal, 1..4 = LV1 / LV2 / LV3 / LVMAX -- rageLadder's order, Max last)
+const gaugeRung = () => Math.min(ladder.length, gauge071Tier(gauge071(state.classCtl2, shellQuestRank())));
+// after the Gauge or the Quest Rank changes: put the rung where the gauge now says, through the ladder's own handler (its parts,
+// the clip's state change)
+function syncGaugeLadder(){
+  if (!LADDER_BY_GAUGE.has(state.id) || !ladder.length) return;
+  const lv = gaugeRung(), lvSel = document.getElementById('monRageLevel');
+  if (lv === (state.rageLevel | 0) || !lvSel || ![...lvSel.options].some(o => +o.value === lv)) return;
+  lvSel.value = String(lv);
+  lvSel.onchange({ target: lvSel });
+}
 const ladderIsRage = () => ladder.length > 0 && !LADDER_NOT_ENRAGE.has(state.id);
 function readLadder(){
   const main = mounted.main;
@@ -6584,7 +7153,8 @@ function applyRage(){
   // looping clip on that material is BodyLight_Start_Finish.
   const lvRow = document.getElementById('monRageLevelRow');
   const lvSel = document.getElementById('monRageLevel');
-  lvRow.hidden = !ladder.length;
+  lvRow.hidden = !ladder.length || LADDER_BY_GAUGE.has(state.id);
+  if (ladder.length && LADDER_BY_GAUGE.has(state.id)) state.rageLevel = gaugeRung();
   if (ladder.length){
     if (state.rageLevel > ladder.length) state.rageLevel = ladder.length;
     // THE RUNG NAMES ARE REVIEWABLE TOO. rageLadder() reads them off the clip names, which gives
@@ -6702,6 +7272,10 @@ function applyRage(){
   }
   paintSize();
   paintCarry();
+  paintBoulder();
+  paintClassControl();
+  paintClassControl2();
+  paintClassToggles();
   paintStance();
   {
     const lv = (reviewFor(state.id) || {}).levels || null;
@@ -6892,6 +7466,7 @@ function resetMonsterState(){
   // part-review `levels.default`: the rung a fresh mount opens on (Hellblade's Tail State: Blasted)
   { const lv = (reviewFor(state.id) || {}).levels; if (lv && Number.isInteger(lv.default)) state.level = lv.default; }
   state.axes = {};        // an object, so not in STATE_DEFAULTS, where Object.assign would share one
+  state.toggles = {};     // the class toggles (render/motion-states.js CLASS_TOGGLES), the same way
   prevMatState = curMatState = 'calm';
   axisClock.id = null;
 }
@@ -7010,6 +7585,30 @@ async function armListBodyClip(e, l, c){
   if (!own || !body) return own;
   return composeClip(c.clip, [{ clip: body, frames: seqFrames(own), mode: 'wrap', start: 0 }], e.glb);
 }
+// Her side of one of HIS clips (a partner list's entry): her `body` clips played in order on one timeline as long as
+// his clip (his loop: as long as her clips), each from its frame 0, a loop of hers wrapping, the last one holding.
+let partnerBodyShown = null;
+async function partnerListBodyClip(e, l, c){
+  const spec = partnerBodyOf(e.id), pm = spec && MON.monsters.find(x => x.id === spec.monster);
+  const hl = pm && (pm.lists || []).find(x => String(x.id) === String(spec.partnerList.from));
+  const hisClip = hl && await clipFor(hl, c.his, pm.glb);
+  const pieces = [];
+  for (const [lid, cn, o = {}] of c.body){
+    const bl = (e.lists || []).find(x => String(x.id) === String(lid));
+    const bc = bl && await clipFor(bl, cn, e.glb);
+    if (!bc){ noteError('partner list: her ' + lid + '|' + cn + ' is missing'); return null; }
+    // `start` / `frames` / `blend`: a piece of hers entered mid-clip or cut short (her 7:0x4f's M42 from 90, her M65 to 105)
+    const st = o.start || 0, fr = o.frames || Math.max(1, seqFrames(bc) - st);
+    pieces.push({ clip: bc, frames: fr, mode: /_loop$/.test(cn) || o.loop ? 'wrap' : 'play', start: st / 60, blend: o.blend || 0, name: lid + '|' + cn + (st ? '@' + st : '') });
+  }
+  const herF = pieces.reduce((n, p) => n + p.frames, 0);
+  const hisF = c.hisSeq ? herF : hisClip ? seqFrames(hisClip) : herF;
+  const F = /_loop$/.test(c.his) || hisF < 2 ? herF : Math.max(hisF, herF);
+  pieces[pieces.length - 1].frames += F - herF;
+  partnerBodyShown = { his: c.his, body: pieces.map(p => p.name), frames: F, entry: c.clip,
+                       layout: c.body.map(([lid, cn, o = {}], i) => ({ list: String(lid), clip: cn, start: o.start || 0, frames: pieces[i].frames, loop: !!o.loop })) };
+  return composeClip(c.clip, pieces, e.glb);
+}
 let playSeq = 0;
 async function play(){
   const mine = ++playSeq;
@@ -7032,6 +7631,8 @@ async function play(){
   // retargeted onto this model by global bone id first -- see clipFor.
   // a full animation (c.pieces) is its clips joined into one -- see composeClip in render/monster.js
   const clip3 = attachedListIds(e).has(l.id) ? await armListBodyClip(e, l, c)
+              : (l.partner || l.routed) ? (c.her && !c.body ? await clipFor((e.lists || []).find(x => String(x.id) === String(c.her.list)), c.her.clip, e.glb)
+                             : c.pieces ? await sequenceClipFor(c, e.glb) : await partnerListBodyClip(e, l, c))
               : c.pieces ? await sequenceClipFor(c, e.glb) : await clipFor(l, c.clip, e.glb);
   if (mine !== playSeq) return;          // a later selection won while this one was loading
   // The driver measures the loop's bounds and the body's centre with the SAME hold it plays with, so with the hold
@@ -7046,6 +7647,14 @@ async function play(){
   // the new clip's first frame goes where the old clip's last drawn one was (THE WALK CARRIES OVER)
   { const first = measureLoopShift(); shiftWorld(lastInLoop.x - first.x, lastInLoop.z - first.z); lastInLoop.copy(first);
     carryAction = pose.action; carryTime = pose.action ? pose.action.time : 0; }
+  // A COPY'S START FRAME (psl-mask.js CLIP_ACTIONS `startFrame`, frames at 60 a second): the ROM sets the motion from that frame
+  // (Deadeye's (7, 0xe3) / (7, 0xe5) on L0 M7 begin at 18) -- after the loop shift, which measures at 0 and leaves the clip there
+  { const base0 = String(c.clip).replace(/_(start|loop)$/, ''), vv = state.clipVariant || '';
+    const sf = vv ? clipFieldFor(state.id, l.id, base0, clipEntryIndex(state.id, l.id, base0, 0, vv), 'startFrame') : undefined;
+    if (Number.isFinite(sf) && pose.action && pose.mixer){ pose.action.time = Math.min(sf / 60, Math.max(0, clipDur(pose.action) - 1e-3)); pose.mixer.update(0); if (pose.anchorProxy) pose.anchorProxy(); } }
+  // he is mounted or dropped by her clip's class first (partnerWanted: the ROM's combined / solo / release clips)
+  await syncPartner(e, l, c);
+  if (mine !== playSeq) return;
   await playAttached(l, c);
   stepAttached();
   // every clip, list and lock change comes through here, and the severed pieces stand on the new floor
@@ -7058,6 +7667,8 @@ async function play(){
 // certain animations."
 // the state a clip gives at a frame of it (a joined animation by its first piece), or null where the entry has no say
 function clipZoneMode(e, l, c, frame){
+  const h = herClipOf(l, c);
+  if (h){ l = { id: h.list }; c = { clip: h.clip }; }
   const first = c && c.pieces && c.pieces[0];
   const m = c && /^Motion\[(\d+)\](?:_(\w+))?/.exec(first ? first.clip : c.clip);
   if (!m) return null;
@@ -7163,6 +7774,28 @@ function seekTo(t){
   }
   pose.step(poseRoots());
   stepAttached();
+  // his own runtime too (drivePartnerEffects), re-armed at HIS frame there
+  const prt = partnerEffectRuntime();
+  if (act.time < was && prt && prt.schedule){
+    const e = entry(), spec = e && partnerBodyOf(e.id), c = spec && partnerFxClip(attached.get(spec.monster), spec);
+    prt.schedule.clearClipEffects(c ? c.frame : 0);
+  }
+  // and each tentacle's (driveArmEffects), at the arm's own frame. The hard release a step back makes of a running em084_00_050 /
+  // _007 generator takes the particle-generator base destructor's free-list arm (0xa55ea8 -> 0xa55f20), RECORDED 2026-10-19 (efx
+  // add_em084_00_c135_rel60 / c135l_rel60 / c130l_rel8 / c130l_rel45, vecdrawsched.py <frame>:release:<n>). Any release path still
+  // unrecorded (0xa55eec, [r5] != 0) is a NAMED REFUSAL here: the throw leaves that runtime's host dead, so it is dropped and
+  // driveArmEffects makes it again at the arm's frame, and the console says so.
+  if (act.time < was) for (const name of ['em084_00_left', 'em084_00_right']){
+    const srt = sideEffectRuntime(name);
+    if (!srt || !srt.schedule) continue;
+    const at = armFxAt(entry(), attached.get(name));
+    try { srt.schedule.clearClipEffects(at ? at.frame : 0); }
+    catch (err){
+      detachSideEffects(name);
+      console.warn('arm effects ' + name + ': the step back\'s release is unrecorded (' + (err && err.message || err) +
+                   '); the runtime is made again at the arm\'s frame');
+    }
+  }
 }
 animScrub.oninput = () => seekTo(+animScrub.value * FRAME);
 document.getElementById('animFirst').onclick = () => seekTo(0);
@@ -7332,6 +7965,11 @@ document.getElementById('monHeatTable').onchange = async e => {
       if (o){ rl.value = o.value; rl.onchange({ target: rl }); }
       return;
     }
+    if (st.axis === 'ctl'){
+      const cc = CLASS_CONTROLS[en.id], sel = document.getElementById('monClassCtl'), o = cc && cc.options[+e.target.value];
+      if (o){ sel.value = String(o[0]); sel.onchange({ target: sel }); }
+      return;
+    }
     if (st.axis === 'mode'){
       state.zoneMode = +e.target.value;
       zoneModeView(en, state.zoneMode);
@@ -7367,6 +8005,17 @@ function refreshSharedRow(){
   row.hidden = !(rt && rt.sharedStates);
   if (row.hidden) for (const id of Object.keys(SHARED_TOGGLES)){
     const el = document.getElementById(id); if (el) el.checked = false;
+  }
+  // ONE POISONED, NOT TWO. Raven, 2026-10-22: "Teostra has two Poisoned toggles, we only need one" (Kushala too). Where the class has its
+  // own Poisoned toggle (motion-states.js CLASS_TOGGLES POISONED: P+0x5e08 bit 1 -- it holds off Teostra's aura / Kushala's wind AND
+  // requests c 1100 on 0xa4518's timer, CLASS_TIMERS poison1100) the shared row's c 1100 switch is the same bit's other half, so it is
+  // hidden there and kept off; the class toggle drives both.
+  const own = (CLASS_TOGGLES[state.id] || []).some(t => t.key === 'poisoned');
+  const pc = document.getElementById('monC1100');
+  if (pc){
+    const lab = pc.closest('label');
+    if (lab) lab.style.display = own ? 'none' : '';
+    if (own && pc.checked){ pc.checked = false; if (rt && rt.setSharedState) rt.setSharedState('c1100', false); }
   }
 }
 window.__refreshSharedRow = refreshSharedRow;
@@ -7542,6 +8191,250 @@ document.getElementById('monCarry').onchange = async e => {
   saveState();
   plays.key = null; plays.motion = null;
   await syncHeldProp();
+};
+// THE BOULDER (Tetsucabra / Drilltusk; render/motion-states.js BOULDER, dev/em066-effects-spec.md 5): the rock in hand as a play
+// starts and ctl+0x30. Tetsucabra's ctl+0x30 is 1 or 3 (2 is written on variant 4 alone: states-em066_00.md 8.1); his kind 3 asks
+// for key 12, which his file lacks, so it holds nothing -- the word still reads the kind.
+const BOULDER_OPTIONS = { em066_00: [0, 1, 3], em066_04: [0, 1, 2, 3] };
+function paintBoulder(){
+  const opts = BOULDER[state.id] ? BOULDER_OPTIONS[state.id] : null;
+  const row = document.getElementById('monBoulderRow'), sel = document.getElementById('monBoulder');
+  row.hidden = !opts;
+  sel.textContent = '';
+  if (!opts) return;
+  if (!opts.includes(state.boulder | 0)) state.boulder = 0;
+  for (const k of opts){
+    const el = document.createElement('option');
+    el.value = String(k);
+    el.textContent = k ? 'Kind ' + k : 'None';
+    el.title = !k ? 'No rock in hand (ctl+0x30 from the play, else 1)'
+             : (BOULDER[state.id].key(k) == null ? 'Kind ' + k + ': no record in his file (key 12) -- nothing held' : 'Kind ' + k + ': u ' + BOULDER[state.id].key(k) + ' held');
+    sel.appendChild(el);
+  }
+  sel.value = String(state.boulder | 0);
+}
+// A new choice is a new motion start, for the word (playNow) and the rock (motionStates.stepRock)
+document.getElementById('monBoulder').onchange = e => {
+  state.boulder = +e.target.value | 0;
+  saveState();
+  plays.key = null; plays.motion = null;
+  motionStates.rock = null;
+};
+// A CLASS BYTE THE USER SETS (render/motion-states.js CLASS_CONTROLS): Kushala's wind aura. The word reads it as the play
+// starts, so a change begins the play in hand again for the word, as Boulder and Carrying do.
+function paintClassControl(){
+  const spec = CLASS_CONTROLS[state.id] || null;
+  const row = document.getElementById('monClassCtlRow'), sel = document.getElementById('monClassCtl');
+  row.hidden = !spec;
+  sel.textContent = '';
+  if (!spec) return;
+  document.getElementById('monClassCtlLab').textContent = spec.label;
+  row.title = spec.title || '';
+  if (!spec.options.some(([v]) => v === (state.classCtl | 0))) state.classCtl = spec.options[0][0];
+  for (const [v, label] of spec.options){
+    const el = document.createElement('option');
+    el.value = String(v); el.textContent = label;
+    sel.appendChild(el);
+  }
+  sel.value = String(state.classCtl | 0);
+}
+// CHAMELEOS's INVISIBLE (render/motion-states.js CLASS_CONTROLS em025_00; dev/em025_00-effects-spec.md 8): the class byte drives the
+// material machine (render/monster.js ROM_STAGE_CLIPS em025_00, `on: 'cloak'`), and -- the full cloak, ctl+0x13 = 2 -- the model's
+// alpha P+0x5dfc goes to 0 at the end of stealth_start_S's 30 frames (vt+0x210 phase 1, 0xe01a38): e+0x158 = 0 and the model draw
+// 0x892098 returns, so the model is not drawn; uncloaked it is drawn again (the ROM's 60-frame alpha ramp back is not shown: the
+// viewer's model has no global alpha). While cloaked the class's PSL gate (vt+0x12c 0xdff12c) refuses every PSL start.
+// [2026-10-18, the gaps closed] THE PHASE MACHINE vt+0x210 0xe00eb4 on the runtime's 60 Hz steps (frames f since the change):
+//   ON, horn intact (ctl+0x13 2, the FULL cloak): f0 body / wing stealth_start_S, light fade_out, eyes off; f30 alpha 0 at once
+//     (0xe01a38) -- the model not drawn -- and the hit zones on the second block; PSL starts refused throughout (vt+0x12c).
+//   ON, horn broken (ctl+0x13 1, the SHIMMER): f0 the same; f30 stealth01 / 02 into slots 1 / 3 (0xe01500), stealth_start (15),
+//     f45 the stealth loop; alpha stays 1; the PSL gate is open (it needs +0x13 2).
+//   OFF from full: f0 the stealth materials swapped in with stealth_end (30) and the alpha 0 -> 1 over 60 (0xe01764, the model
+//     drawn translucent while it is below 1: 0x892254); f30 the body / wing back (0xe017b8) with stealth_end_S (30); f60 the light
+//     fade_in (30); f90 the eyes back (+0x15 reaches 4).   OFF from shimmer: the same from f0, without the alpha.
+// The horn: P+0x3b4 bit 1 -> the part pass's set 4 (group 5 off) in place of set 3.
+let cloak025 = { on: false, since: 0, full: true };
+let cloakAlpha025 = 1;
+function stepCloak025(rt){
+  const root = mounted.main;
+  if (!root || !root.userData) return;
+  if (state.id !== 'em025_00'){ cloakAlpha025 = 1; return; }
+  // the Invisible control (CLASS_CONTROLS em025_00): 0 Off, 1 On (an older saved 2 / 3 reads as On)
+  const mode = (state.classCtl | 0) ? 1 : 0;
+  // the clock: the effect runtime's 60 Hz steps when it is up (the game's frames), else the wall clock
+  const now = rt && rt.schedule && Number.isFinite(rt.schedule.frame) ? rt.schedule.frame / 60 : performance.now() / 1000;
+  const drawn = root.userData.partsDrawn, hornBroken = !!(drawn && drawn.get(5) === false && drawn.get(2) === true);
+  // the tail severed: the part pass's set 8 (P+0x3b4 bit 0: part 3 drawn, 101 hidden)
+  const tailCut = !!(drawn && drawn.get(3) === true && drawn.get(101) === false);
+  // BREAKS WHILE CLOAKED (READ 2026-10-22, dev/em025_00-effects-spec.md 8.6): a break or a sever starts his status-10 reaction
+  // (the reaction switch 0x9a76c -> vt+0x23c 0x6beb0 = 0 -> the break flinch; the sever (10, 0x72)), and vt+0x204's status-10 arm
+  // ENDS ANY CLOAK at that action's start, latch or not (0xdff778..0xdff810: ctl+0xc = 0, +0x15 = 0, +0x16 = 0, sound 0xcf;
+  // ROM-RUN <scratchpad>/zg/cloak204.py, control: status 1 / 2 / 3 starts keep a latched cloak). Nothing rewrites ctl+0x13 mid-cloak
+  // (its only writers are the setters and the uncloak's 0xe01740), so the level never changes live: the cloak ends, and the NEXT one
+  // takes the horn's pick (0xe03cc4 / 0xe06b4c / 0xe0a958: intact full, broken semi; no setter reads the tail). With On set the
+  // viewer plays that: the uncloak on the frame the break applies, then (the uncloak done, 90 frames) the next cloak at the new level.
+  // BOTH WAYS (Raven: "Horn part change update needs to be bidirectional"): a RESTORE is the viewer's own (the game never repairs a
+  // part, so no ROM path) and mirrors the break -- any change of the horn or the tail while cloaked ends the cloak the same way
+  const partChange = cloak025.horn !== undefined && (hornBroken !== cloak025.horn || tailCut !== cloak025.tail);
+  cloak025.horn = hornBroken; cloak025.tail = tailCut;
+  if (partChange && cloak025.on) cloak025.broke = true;
+  if (!mode) cloak025.broke = false;
+  // after a break's uncloak has run its 90 frames, the next cloak starts (On still set). THE 90 FRAMES ARE A STAND-IN: when his AI
+  // cloaks again is not read (the (1, 3) cloak is the command table's g0 s18 choice, the (1, 0x16) one runs with the leave-area timer
+  // e+0x758c, the status-7 ones at a damage threshold) -- an open choice for Raven
+  if (cloak025.broke && !cloak025.on && (now - cloak025.since) * 60 >= 90) cloak025.broke = false;
+  const on = mode !== 0 && !cloak025.broke;
+  if (on !== cloak025.on || now < cloak025.since){
+    // a change before the first one settled starts from where the model is (the ROM's phases run from the new request)
+    // +0x13: 2 the full cloak (the horn intact), 1 the semi-invisible one (the horn broken) -- read when the cloak STARTS. The look
+    // with the horn intact is the command table's own cloak, (1, 3) 0xe03b70: +0x17 = 1, the FADE (alpha 1 -> 0 over 30, 0xe01a14,
+    // the stealth materials at f30 under it); horn broken, every reachable path's semi (+0x13 1, +0x17 0)
+    const full = on ? !hornBroken : cloak025.full;
+    cloak025 = { on, since: now, full, fade: on ? full : cloak025.fade, mode, broke: cloak025.broke, horn: hornBroken, tail: tailCut, first: cloak025.first === undefined && !on };
+  }
+  cloak025.mode = mode;
+  const f = (now - cloak025.since) * 60, full = cloak025.full, settled = cloak025.first;
+  // the material clock the stage machines read: this frame's t, the phase starts placed on it
+  const tMat = performance.now() / 1000, at = fr => tMat - (f - fr) / 60;
+  const mc = root.userData.manualClips = {};
+  let swap = null, alpha = 1, eyes = on;
+  if (on){
+    mc.body = ['stealth_start_S', at(0)]; mc.light = ['fade_out', at(0)];
+    // the full cloak: cut to 0 at f30 (0xe01a38); the fading one ramps 1 -> 0 over f0..30 (0xbee74(0, 30)) and takes the stealth
+    // materials at f30 (0xe01500) under its alpha 0
+    if (full && cloak025.fade){ alpha = Math.max(0, 1 - f / 30); if (f >= 30){ swap = 'stealth'; mc.stealth = f < 45 ? ['stealth_start', at(30)] : ['stealth', at(45)]; } }
+    else if (full){ if (f >= 30) alpha = 0; }
+    else if (f >= 30){ swap = 'stealth'; mc.stealth = f < 45 ? ['stealth_start', at(30)] : ['stealth', at(45)]; }
+  } else if (!settled){
+    if (f < 30){ swap = 'stealth'; mc.stealth = ['stealth_end', at(0)]; mc.body = ['stealth_start_S', at(-30)]; mc.light = ['fade_out', at(-30)]; }
+    else if (f < 60){ mc.body = ['stealth_end_S', at(30)]; mc.light = ['fade_out', at(-30)]; }
+    else if (f < 90) mc.light = ['fade_in', at(60)];
+    if (full) alpha = Math.min(1, f / 60);
+    eyes = f < 90;
+  }
+  if ((root.userData.matSwapState || null) !== swap) applyMaterialSwap(root, swap);
+  cloakAlpha025 = alpha;
+  // the eye set is the part pass's: re-run it when the phase moves the eyes (the control's own change already does)
+  if (motionStates.cloakEyes !== eyes){ motionStates.cloakEyes = eyes; applyPartState(); }
+  root.userData.cloakOn = on;
+  if (rt && rt.schedule) rt.schedule.pslRefuse = on && full;
+}
+// THE MODEL ALPHA (P+0x5dfc -> e+0x158): 0 = the model is not drawn (0x892098); below 1 the translucent draw (0x892254, INFERRED from
+// the vt+0x68 path) -- every material of the model at `alpha` x its own opacity, blended. After the material step, so an animated
+// material's own opacity is the base it multiplies; a material left alone keeps its base from the frame it was first scaled.
+function applyCloakAlpha025(){
+  const root = mounted.main;
+  if (!root) return;
+  const a = state.id === 'em025_00' ? cloakAlpha025 : 1;
+  // THE MODEL's meshes only (buildMesh marks them with `prim`): the root stays drawn, because the effect runtime's frame driver
+  // and its effects hang from it -- in the game the cloaked enemy's effects go on (a hidden root stopped the runtime's steps)
+  if (!root.visible && root.userData.cloakHidRoot){ root.visible = true; root.userData.cloakHidRoot = false; }
+  root.traverse(o => {
+    if (!(o.isMesh || o.isSkinnedMesh) || !o.material || o.userData.prim === undefined) return;
+    for (const m of Array.isArray(o.material) ? o.material : [o.material]){
+      const u = m.userData || (m.userData = {});
+      if (a <= 0){ if (m.visible){ m.visible = false; u.cloakHidden = true; } }
+      else if (u.cloakHidden){ m.visible = true; u.cloakHidden = false; }
+      if (a >= 1){
+        if (u.cloakA){ if (Math.abs(m.opacity - u.cloakA.set) < 1e-6) m.opacity = u.cloakA.base; m.transparent = u.cloakA.transparent; delete u.cloakA; }
+        continue;
+      }
+      const base = u.cloakA && Math.abs(m.opacity - u.cloakA.set) < 1e-6 ? u.cloakA.base : m.opacity;
+      const transparent = u.cloakA ? u.cloakA.transparent : m.transparent;
+      m.opacity = base * a; m.transparent = true;
+      u.cloakA = { base, transparent, set: m.opacity };
+    }
+  });
+}
+// THE CLASS TOGGLES (render/motion-states.js CLASS_TOGGLES): a switch per entry, its value in state.toggles[key]
+const ctog = key => !!(state.toggles && state.toggles[key]);
+// THE GROUND (the Ground control above). The game's per-frame ground probe (0x18154c) writes the polygon's flag word to e+0x1068 and its
+// attribute byte to e+0x1066; READ consumers: 0x41c74 (an effect's MASK2: flag & 6 -> an UNRECORDED arm, & 0x1040 -> 9, else & 8 -> 0x21,
+// else & 0x800000 -> 0x41, else & 0x800 -> 0x81, else attr bit 1 -> 0x101, else 3), Tigrex's ctl+0x29 (flag & 6 -> 2, & 0x40 -> 3, else
+// attr bit 1), Nerscylla's PSL word (flag bit 3). The types offered are the classes those tests tell apart; flag 6 is left out (its
+// MASK2 arm 0x41c88 is unrecorded: every effect of the monster would refuse). Which floor each is (water, sand, snow, lava ...) is NOT
+// READ: working labels by the bits, for Raven to name. The footstep dust (cm202_001 / _002 / _020 ...) carries one row set per class.
+const GROUND_TYPES = [
+  { key: 'plain', label: 'Plain floor',             flags: 0,        attr: 0 },
+  { key: 'g1040', label: 'Ground A (0x1040)',       flags: 0x1040,   attr: 0 },
+  { key: 'g8',    label: 'Ground B (0x8)',          flags: 0x8,      attr: 0 },
+  { key: 'g800k', label: 'Ground C (0x800000)',     flags: 0x800000, attr: 0 },
+  { key: 'g800',  label: 'Ground D (0x800)',        flags: 0x800,    attr: 0 },
+  { key: 'a2',    label: 'Ground E (attribute 2)',  flags: 0,        attr: 2 },
+  { key: 'g40',   label: 'Ground F (0x40)',         flags: 0x40,     attr: 0 },
+  // flag 6 (0x41c88, READ and lifted 2026-10-20): [+0x1074] - [+0x1078] > 5.0 -> MASK2 5, else 0x11 -- the two sides as two types.
+  // +0x1074 is the water height and +0x1078 the hit below the chosen floor (0x18154c, READ); the floor block's flags can carry bit 1
+  // (0x2) but never bit 2 (0x4): 0x18154c never picks a 0x1004 polygon as the floor, so 0x2 is the one the game can show here
+  { key: 'g2deep',    label: 'Ground G (0x2, gap > 5)',  flags: 0x2, attr: 0, f74: 100, f78: 0,
+    hint: 'Water more than 5 above the surface below (the floor block: +0x1074 the water height, +0x1078 the hit below; 0x41c88 -> MASK2 5)' },
+  { key: 'g2shallow', label: 'Ground H (0x2, gap <= 5)', flags: 0x2, attr: 0, f74: 0,   f78: 0,
+    hint: 'Water 5 or less above the surface below (the floor block: +0x1074 the water height, +0x1078 the hit below; 0x41c88 -> MASK2 0x11)' },
+];
+function groundNow(){ return GROUND_TYPES.find(g => g.key === state.ground) || GROUND_TYPES[0]; }
+function setGround(key){
+  state.ground = GROUND_TYPES.some(g => g.key === key) ? key : 'plain';
+  const g = groundNow(), sel = document.getElementById('monGroundType');
+  if (sel && sel.value !== g.key) sel.value = g.key;
+  setEffectFloor(g.flags, g.attr, g.f74 || 0, g.f78 || 0);
+}
+{
+  const sel = document.getElementById('monGroundType');
+  if (sel){
+    // a type whose floor fields are read carries a hint on hover (its label stays the working one, for Raven to name)
+    sel.innerHTML = GROUND_TYPES.map(g => '<option value="' + g.key + '"' + (g.hint ? ' title="' + g.hint + '"' : '') + '>' + g.label + '</option>').join('');
+    // the playing clip takes the new ground at once: a row set is chosen when an effect starts (0x41c74 at the request), so the
+    // clip is played again from its first frame, as the Replay button does
+    sel.onchange = () => { setGround(sel.value); play(); };
+  }
+}
+window.__ground = { types: GROUND_TYPES, set: setGround, now: () => groundNow() };
+function paintClassToggles(){
+  const box = document.getElementById('monClassToggles');
+  box.textContent = '';
+  if (!state.toggles || typeof state.toggles !== 'object') state.toggles = {};
+  for (const spec of (CLASS_TOGGLES[state.id] || [])){
+    const lab = document.createElement('label');
+    lab.className = 'chk switch'; lab.title = spec.title || ''; lab.id = 'monTog_' + spec.key;
+    const box2 = document.createElement('input');
+    box2.type = 'checkbox'; box2.checked = ctog(spec.key);
+    box2.onchange = e => {
+      state.toggles[spec.key] = !!e.target.checked;
+      saveState();
+      plays.key = null; plays.motion = null;          // the next frame starts the play again with the input
+    };
+    const sw = document.createElement('span'); sw.className = 'toggle';
+    lab.append(box2, sw, document.createTextNode(spec.label));
+    box.appendChild(lab);
+  }
+}
+// the second class byte (render/motion-states.js CLASS_CONTROLS2): Teostra's size type P+0x5cb6
+function paintClassControl2(){
+  const spec = CLASS_CONTROLS2[state.id] || null;
+  const row = document.getElementById('monClassCtl2Row'), sel = document.getElementById('monClassCtl2');
+  row.hidden = !spec;
+  sel.textContent = '';
+  if (!spec) return;
+  document.getElementById('monClassCtl2Lab').textContent = spec.label;
+  row.title = spec.title || '';
+  if (!spec.options.some(([v]) => v === (state.classCtl2 | 0))) state.classCtl2 = spec.options[0][0];
+  for (const [v, label] of spec.options){
+    const el = document.createElement('option');
+    el.value = String(v); el.textContent = label;
+    sel.appendChild(el);
+  }
+  sel.value = String(state.classCtl2 | 0);
+}
+document.getElementById('monClassCtl2').onchange = e => {
+  state.classCtl2 = +e.target.value | 0;
+  saveState();
+  plays.key = null; plays.motion = null;
+  syncGaugeLadder();                      // Chaotic's BodyLight rung follows the gauge (LADDER_BY_GAUGE)
+};
+document.getElementById('monClassCtl').onchange = e => {
+  state.classCtl = +e.target.value | 0;
+  saveState();
+  plays.key = null; plays.motion = null;
+  applyPartState();                       // a control the part pass reads (STATE_OVERLAY's `on`: Amatsu's e+0x15fb)
+  if (meatSwitchOf(state.id)) Promise.resolve().then(() => applyHeat()).then(applyGap).catch(noteError);   // a damage table on the byte (Chameleos)
 };
 // the piece mounted now: { id, carry, root, main, bone } -- one at a time, as the class makes one unit (e+0xcb18)
 let heldProp = null, heldPropSeq = 0;
@@ -8000,6 +8893,9 @@ function applySet(o){
   if (typeof o.variant === 'number') state.variant = Math.max(0, o.variant | 0);
   if (typeof o.size === 'number') state.size = Math.max(0, o.size | 0);
   if (o.carry === 0 || o.carry === 1 || o.carry === 2 || o.carry === 4) state.carry = o.carry;
+  if (o.boulder === 0 || o.boulder === 1 || o.boulder === 2 || o.boulder === 3) state.boulder = o.boulder;
+  if (Number.isInteger(o.classCtl) && o.classCtl >= 0 && o.classCtl < 256) state.classCtl = o.classCtl;
+  if (Number.isInteger(o.classCtl2) && o.classCtl2 >= 0 && o.classCtl2 < 256) state.classCtl2 = o.classCtl2;
   if (o.axes && typeof o.axes === 'object' && !Array.isArray(o.axes)){
     state.axes = {};
     for (const [k, v] of Object.entries(o.axes)) if (typeof v === 'number') state.axes[k] = Math.max(0, v | 0);
@@ -8106,7 +9002,7 @@ function animAdvance(){
 // The word is LATCHED at the play's start, as the ROM builds it at setMotion (0x7256c) and a state change mid-motion
 // waits for the next one; the state is the one the motion starts in -- its MOTION_STATES row's rage / tired, else the
 // user's -- read the way motionStates.step reads a row.
-const plays = { key: null, frame: 0, n: -1, action: null, mask: null, motion: null, token: 0 };
+const plays = { key: null, variant: '', frame: 0, n: -1, action: null, mask: null, motion: null, token: 0 };
 function playNow(act, base, frame, loopSeg, loopStart = 0, onList = state.list){
   if (!act || !base){ plays.key = null; return null; }
   const key = state.id + '|' + onList + '|' + base;
@@ -8114,23 +9010,34 @@ function playNow(act, base, frame, loopSeg, loopStart = 0, onList = state.list){
   plays.frame = frame;
   // a _loop clip's wrap is the motion going on (the ROM loops at the motion's loop frame inside one action), not a play
   // (after a wrap the frames passed are the loop's own, from its start)
-  if (key === plays.key && (frame >= prevFrame || loopSeg))
+  // ...but another COPY of the clip picked from the Clip menu (CLIP_VARIANTS) is another play even on a _loop clip: its own
+  // entries decide its action and posture (Diablos's L0 M7 copies B / C, whose rows gate on the posture -- re-walk 2026-10-18)
+  const variantNow = state.clipVariant || '';
+  if (key === plays.key && plays.variant === variantNow && (frame >= prevFrame || loopSeg))
     return Object.assign({}, plays, { prevFrame: frame >= prevFrame ? prevFrame : loopStart - 1e-6 });
   plays.n = key === plays.key ? plays.n + 1 : 0;
-  plays.key = key;
+  plays.key = key; plays.variant = variantNow;
   let list = onList, clip = base;
   const an = onList === FULL_ANIM_LIST.id ? romAnimationMotion(state.id, base) : null;
   if (an){ list = an.motion[0]; clip = an.motion[1]; }
   const slot = +((/^Motion\[(\d+)\]$/.exec(clip) || [])[1]);
-  const vkey = state.clipVariant && state.clip.replace(/_(start|loop)$/, '') === clip ? list + '|' + clip + '#' + state.clipVariant : null;
+  const vkey = state.clipVariant && stateRawClip().clip.replace(/_(start|loop)$/, '') === clip ? list + '|' + clip + '#' + state.clipVariant : null;
+  // the CLIP_ACTIONS entry this play takes: the n-th play, or the n-th of the picked copy's own entries (psl-mask.js clipEntryIndex)
+  plays.cn = clipEntryIndex(state.id, list, clip, plays.n, vkey ? state.clipVariant : '');
   const row = (MOTION_STATES[state.id] || {})[vkey] || (MOTION_STATES[state.id] || {})[list + '|' + clip] || null;
   const rage = row && row.rage === true ? true : (row && (row.rage === false || row.dead)) ? false : !!state.rage;
-  const tired = !rage && (!!(row && row.tired) || exhausted());
+  // Tired (with Rage), the Rath line's toggle: 0x81614 = P+0x505 alone, which the stamina machine 0xbd1a4 sets with no rage test
+  const tired = (!rage && (!!(row && row.tired) || exhausted())) || (rage && ctog('tiredRage'));
   let action = null;
   if (an) action = (tired && an.tired) ? an.tired : (an.action || null);
   else {
     const ri = rockInput();                              // the shells' pick for this play (counts the play itself)
-    action = (ri && ri.variant) ? actionOf(ri.variant) : clipActionFor(state.id, list, clip, plays.n, { tired, rage });
+    // Zinogre's / Thunderlord's charged byte (below) also decides which of his plays the G remap leaves (psl-mask.js EM057)
+    const chargedAt = state.id === 'em057_00' ? (state.level | 0) === 2 : state.id === 'em057_04' ? (state.level | 0) === 1 : undefined;
+    // ...unless the clip is played as a CLIP_VARIANTS copy whose entries do not name the pick: then the copy's own entry is the play
+    const copyActs = clipCopyActions(state.id, list, clip, vkey ? state.clipVariant : '');
+    action = (ri && ri.variant && (!copyActs || copyActs.includes(actionName(actionOf(ri.variant))))) ? actionOf(ri.variant)
+           : clipActionFor(state.id, list, clip, plays.cn, { tired, rage, charged: chargedAt });
   }
   if (actionName(action) !== actionName(plays.action) || !plays.motion || plays.motion.clip !== clip || plays.motion.list !== list)
     plays.token++;                                       // another action: to the walker, another motion start
@@ -8144,23 +9051,30 @@ function playNow(act, base, frame, loopSeg, loopStart = 0, onList = state.list){
   const breakLevel7 = tailNow.breakLevel7 | 0;
   const partsIn = shellPartsInput(state.id, mounted.main && mounted.main.userData.partsDrawn);
   const crestBroken = !!partsIn.crestBroken;
-  const beardOff = !!partsIn.beardOff;           // Crystalbeard's word reads the beard cut (psl-mask.js em045)
+  const beardOff = !!partsIn.beardOff;
+  const fangsBroken = !!partsIn.fangsBroken;     // Blangonga's word reads the fangs' break (psl-mask.js em022_00)           // Crystalbeard's word reads the beard cut (psl-mask.js em045)
   const backBroken = !!partsIn.backBroken, bellyBroken = !!partsIn.bellyBroken;   // Gravios's (psl-mask.js em005_00)
-  const phase = clipPhaseFor(state.id, list, clip, plays.n);   // Khezu's L2 M37 second play (psl-mask.js em003_00)
+  const phase = clipPhaseFor(state.id, list, clip, plays.cn);   // Khezu's L2 M37 second play (psl-mask.js em003_00)
   // Brachydios's word reads each arm's slime row, 3 = the arm fell to level 0 (psl-mask.js em063): [left, right] from
   // the arm levels the viewer holds (slot 0 / slot 1, the ctl order). Raging's word has no arm test.
   const arms = state.id === 'em063_00' ? armSlimeLevels(mounted.main) : null;
   const armEmpty = arms ? [arms[0] === 0, arms[1] === 0] : undefined;
-  const posture = clipPostureFor(state.id, list, clip, plays.n);
+  const posture = clipPostureFor(state.id, list, clip, plays.cn);
   plays.posture = posture;                     // the state rows' `posture` gate reads it (motion-states.js holds())
   // Astalos's word reads his three charge tier bytes, crest / wings / tail (psl-mask.js em081_00): the viewer's one
   // charge rung stands for all three (the mapping CHARGE_EFFECTS and shellChargeTier state), latched at the play's start
   const charge = state.id === 'em081_00' ? [state.level | 0, state.level | 0, state.level | 0] : undefined;
+  // Zinogre's / Thunderlord's word reads the CHARGED byte P+0x5df3 (0x816d4; psl-mask.js em057): the Charge State rung the part
+  // pass draws while it is up -- Zinogre's Fully Charged (2), Thunderlord's Overcharged (1); a death play reads it as e+0xcb14
+  // Lagiacrus's word reads P+0x1bb >= tune int 1 (99, the charged tier): his Charged toggle (psl-mask.js em046_00)
+  const charged = state.id === 'em057_00' ? (state.level | 0) === 2 : state.id === 'em057_04' ? (state.level | 0) === 1 : state.id === 'em046_00' ? !!state.charged : undefined;
   // Akantor's word reads severed (above) on L2 M3 / M21 and 0x81d6c "already sunk" on L0 M2 (psl-mask.js em033_00);
   // Ukanlos's the same two, severed on L2 M3 and 0x81d6c on L0 M2 (psl-mask.js em038_00).
   // STAND-IN, named: sunk = false -- the burrow sets L0 M2 from the surface and the viewer shows no sunk posture
   // Deviljho's and Barroth's burrowed L0 M6 entries name it (psl-mask.js clipSunkFor); every other play stays false
-  const sunk = clipSunkFor(state.id, list, clip, plays.n);
+  // Begins Burrowed (CLASS_TOGGLES `burrowed`): 0x81d6c is posture 4 AND P+0x5c below 0.9 x MoguriBaseOfs -- on, every posture-4
+  // play reads sunk; off, only the entries that name it (a posture-4 play begun from the surface)
+  const sunk = clipSunkFor(state.id, list, clip, plays.cn) || (ctog('burrowed') && posture === 4);
   // Barroth's mud byte (motion-states.js shellMudInput) and the rank his L4 M6 / M7 arm reads (SHELL_QUEST_RANK, G)
   const mud = shellMudInput(state.id, mounted.main && mounted.main.userData.partsDrawn);
   // Glavenus / Hellblade's heat byte P+0x1bb, all their word reads (psl-mask.js em080): the overheat (Hellblade's Tail
@@ -8174,20 +9088,116 @@ function playNow(act, base, frame, loopSeg, loopStart = 0, onList = state.list){
   // Ahtal-Ka's word reads the object he carries, e+0xcb0c (psl-mask.js em088_00): the Carrying control, unless this play's
   // action dropped it at its start (em088CarryAt) -- the same answer the held piece shows (stepHeldProp)
   const carry = HELD_PROP[state.id] ? em088CarryAt(action, state.carry) : undefined;
-  plays.mask = Number.isFinite(slot) ? pslMask(state.id, list, slot, action, { rage, tired, severed, breakLevel7, crestBroken, beardOff, armEmpty, mud, rank: SHELL_QUEST_RANK, questLevel: SHELL_QUEST_LEVEL, heat, posture, charge, sunk, carry, backBroken, bellyBroken, phase }) : null;
+  // Congalala's word reads the item at his tail ctl[0] (the Item row shown), the gas type ctl[1] (the eating play's own, else
+  // the play's `gas`) and 0x81bb0 "asleep" (the pit sleep's play) -- psl-mask.js em021_00
+  const cg = state.id === 'em021_00';
+  const item = cg ? em021Item(mounted.main && mounted.main.userData.partsDrawn) : undefined;
+  // the breath's gas: the Gas Type control (CLASS_CONTROLS em021_00, ctl[1]); the eating plays set their own (em021Gas)
+  const gas = cg ? em021Gas(action, state.classCtl | 0) : undefined;
+  const asleep = cg ? !!clipFieldFor(state.id, list, clip, plays.cn, 'asleep') : undefined;
+  // P+0x5c at the motion start where a play's entry names it (Plesioth's L0 M18: psl-mask.js em010_00)
+  const depth = clipFieldFor(state.id, list, clip, plays.cn, 'depth');
+  // Tetsucabra's / Drilltusk's word reads the boulder kind ctl+0x30 (a play's `boulder`) and the tusks' break (psl-mask.js em066)
+  // -- the Boulder control's kind where one is set (ctl+0x30 as the play starts), else the play's own entry
+  const boulder = BOULDER[state.id] && (state.boulder | 0) ? state.boulder | 0 : clipFieldFor(state.id, list, clip, plays.cn, 'boulder');
+  const tusksBroken = !!partsIn.tusksBroken;
+  const part2Broken = !!partsIn.part2Broken;
+  // Rustrazor's shell type e+0xcadc and the claws knocked off, as his part pass shows them (motion-states.js rustrazorInput)
+  const rz = rustrazorInput(state.id, mounted.main && mounted.main.userData.partsDrawn);
+  const { shellType, claw5Off, claw6Off } = rz;
+  const claw5Broken = !!partsIn.claw5Broken, shellBroken2 = !!partsIn.shellBroken2;   // Stonefist's word (psl-mask.js crab019)     // Najarala's word reads part 2's break (set 9's group 5: psl-mask.js em068_00)
+  plays.mask = Number.isFinite(slot) ? pslMask(state.id, list, slot, action, { rage, tired, severed, breakLevel7, crestBroken, beardOff, armEmpty, mud, rank: shellQuestRank(), questLevel: shellQuestLevel(), heat, posture, charge, charged, sunk, carry, backBroken, bellyBroken, phase, item, gas, asleep, fangsBroken, depth, boulder, tusksBroken, part2Broken, claw5Broken, shellBroken2, shellType, claw5Off, claw6Off, snowMap: snowNow(), floorFlag8: !!(groundNow().flags & 8), aura5e08: ctog('poisoned'), seltasLink: state.id === 'em069_00' ? herLinkedForShells() : false, ...(CLASS_CONTROLS[state.id] ? { [CLASS_CONTROLS[state.id].key]: state.classCtl | 0 } : {}), ...(state.id === 'em024_00' ? { windAura: windNow024() } : {}), ...(state.id === 'em027_00' ? { fireAura: fireNow027() } : {}) }) : null;
   return Object.assign({}, plays, { prevFrame: frame });
 }
 
-// the motion a chain entry on the Special list is playing now (render/monster.js specialMotionAt), or null
+// the motion a chain entry on the Special list is playing now (render/monster.js specialMotionAt), or null -- and on the
+// COMBINED LIST (ROM_PARTNER_BODY partnerList) the clip of hers the entry plays now (partnerMotionNow)
 function seqMotionNow(){
   const act = pose.action, name = act && act.getClip ? act.getClip().name : null;
-  if (!name || state.list !== FULL_ANIM_LIST.id) return null;
+  if (!name) return null;
+  const pl = listOf(entry());
+  if (pl && (pl.partner || pl.routed)) return partnerMotionNow(pl, name, act);   // (routed: the Snow Variants list)
+  if (state.list !== FULL_ANIM_LIST.id) return null;
   const c = ((listOf(entry()) || {}).clips || []).find(x => x.clip === name);
   return c ? specialMotionAt(state.id, state.list, name, c.pieces, act.time * 60) : null;
 }
+// A COMBINED-LIST ENTRY IS ITS CLIPS OF HERS (Raven, 2026-10-17: her clip-keyed records fire on every combined entry exactly
+// as on the raw clip). Every consumer keyed on list|clip -- the effect schedule, the PSL word (CLIP_ACTIONS / psl-mask),
+// ACTION_EFFECTS, MOTION_STATES (parts, rage, tired, puff / drool gates, class holds), CLIP_VARIANTS, heat, turn, posture,
+// air, the hit-zone mode -- reads the motion through here: { list, clip (bare), frame (over the whole slot), loopStart,
+// loopSeg, loopEnd, raw (the clip name), whole (the entry IS one clip of hers, so it reads exactly as the raw clip),
+// partner: true }. A her-led entry (`her`) is that clip; the joined entry walks its pieces; his entries walk the layout of
+// her side partnerListBodyClip laid on his frames.
+function herClipOf(l, c){
+  if (!l || !(l.partner || l.routed) || !c) return null;
+  if (c.her) return { list: String(c.her.list), clip: c.her.clip };
+  if (c.pieces && c.pieces[0]) return { list: String(c.pieces[0].list.id), clip: c.pieces[0].clip };
+  if (c.body && c.body[0]) return { list: String(c.body[0][0]), clip: c.body[0][1] };
+  return null;
+}
+function partnerMotionNow(l, name, act){
+  // (a her-led entry's body IS her raw clip, under its own name: the entry is the one the menu holds)
+  const cur = clipOf(l);
+  const e = entry(), c = (l.clips || []).find(x => x.clip === name) || (cur && cur.her && cur.her.clip === name ? cur : null);
+  if (!c || !e) return null;
+  const t = act.time * 60;
+  const listIn = id => (e.lists || []).find(x => String(x.id) === String(id));
+  const at = (lid, cn, f, whole) => {
+    const hl = listIn(lid), bare = cn.replace(/_(start|loop)$/, ''), loop = /_loop$/.test(cn);
+    const sib = loop && hl && (hl.clips || []).find(x => x.clip === bare + '_start');
+    const own = hl && (hl.clips || []).find(x => x.clip === cn);
+    const S = sib ? Math.round(sib.dur * 60) : 0;
+    const L = whole ? act.getClip().duration * 60 : own ? own.dur * 60 : 0;
+    return { list: String(lid), clip: bare, raw: cn, frame: S + f, loopStart: loop ? S : null, loopSeg: loop, loopEnd: S + L,
+             whole: !!whole, partner: true, entry: name };
+  };
+  if (c.her && !c.body) return at(c.her.list, c.her.clip, t, true);
+  if (c.pieces){
+    // the joined entry, piece by piece, a split motion's _start + _loop as one motion (render/monster.js specialMotionAt)
+    const bare = p => p.clip.replace(/_(start|loop)$/, ''), lid = p => String(p.list.id != null ? p.list.id : p.list);
+    let a0 = 0;
+    for (let i = 0; i < c.pieces.length; ){
+      let j = i;
+      while (j < c.pieces.length && lid(c.pieces[j]) === lid(c.pieces[i]) && bare(c.pieces[j]) === bare(c.pieces[i])) j++;
+      const run = c.pieces.slice(i, j), len = run.reduce((n, p) => n + Math.round(p.dur * 60), 0);
+      if (t < a0 + len || j === c.pieces.length){
+        const st = run.find(p => /_start$/.test(p.clip)), lp = run.find(p => /_loop$/.test(p.clip));
+        const S = st ? Math.round(st.dur * 60) : 0, L = lp ? Math.round(lp.dur * 60) : 0;
+        const r = lp ? foldLoopFrame(t - a0, S, L) : { frame: t - a0, loopStart: null };
+        return { list: lid(c.pieces[i]), clip: bare(c.pieces[i]), raw: run[0].clip, frame: r.frame, loopStart: r.loopStart,
+                 loopSeg: r.loopStart != null, loopEnd: S + L || len, whole: false, partner: true, entry: name };
+      }
+      a0 += len; i = j;
+    }
+    return null;
+  }
+  const lay = partnerBodyShown && partnerBodyShown.entry === name ? partnerBodyShown.layout : null;
+  if (!lay) return null;
+  let a0 = 0;
+  for (let i = 0; i < lay.length; i++){
+    const r = lay[i];
+    if (t < a0 + r.frames || i === lay.length - 1){
+      const own = (listIn(r.list) && listIn(r.list).clips || []).find(x => x.clip === r.clip);
+      const len = own ? Math.round(own.dur * 60) : 0;
+      let f = r.start + (t - a0);
+      if (len > 0) f = /_loop$/.test(r.clip) || r.loop ? f % len : Math.min(f, len);     // a _loop piece (or a looped one) wraps, a play holds its end
+      return at(r.list, r.clip, f, false);
+    }
+    a0 += r.frames;
+  }
+  return null;
+}
+// the clip the Clip menu names, as hers: a combined entry's clip of hers, else the menu's own (for CLIP_VARIANTS rows)
+function stateRawClip(){
+  const l = listOf(entry()), c = l && (l.partner || l.routed) ? (l.clips || []).find(x => x.clip === state.clip) : null;
+  const h = herClipOf(l, c);
+  return h && c.her ? h : { list: state.list, clip: state.clip };
+}
+let fxAdvance = null;                               // this frame's animation advance, for every runtime (drivePartnerEffects)
 function driveClipEffects(){
   const rt = effectRuntimeInstance();
-  if (rt) rt.advance = animAdvance();               // the effects step on the animation, not on wall time
+  fxAdvance = animAdvance();
+  if (rt) rt.advance = fxAdvance;                   // the effects step on the animation, not on wall time
   if (!rt || !rt.schedule) return;
   const act = pose.action;
   const clipName = act && act.getClip ? act.getClip().name : null;
@@ -8228,6 +9238,190 @@ function driveClipEffects(){
   if (rec && play.prevFrame < ae.frame && frame >= ae.frame) rt.fire(rec[0], rec[1]);
 }
 
+// HIS OWN EFFECTS, WHILE HE IS ON HER (Seltas on the Seltas Queen; dev/em069-duo-spec.md §9.4). In the game he is a unit of
+// his own: his PSL walker reads HIS motion and frame and HIS enable word, his effects hang from HIS joints. So a second
+// effect runtime runs on his mounted model (render/rom/effect-mounts.js attachPartnerEffects), reconciled here every frame:
+// made while he is mounted and her runtime is up (the runtime switch, __view.effects and __view.effectRuntime take both),
+// dropped with him (dropPartner), with hers, or on a monster change -- and fed what his driver shows:
+//   * his clip and his own frame: partnerLocalAt, the same answer stepAttached poses him by (his ROM pair laid on her clip,
+//     his free loop's picks, a frozen hold -- whose frame does not move, so nothing passes -- or his release);
+//   * his list 4 motion, keyed 'em076_00|4|Motion[N]' exactly as solo Seltas's own clip is (driveClipEffects), a _loop
+//     piece offset by its _start; a new piece of his timeline (or a new pick) is a new motion start to the walker, the
+//     same piece coming round again (her clip looping under one pick) is the motion looping;
+//   * his enable word: his class's +0x13c is the base 0xca170 (psl-mask.js em076_00: BASE_ONLY, the vtable word) -- it
+//     reads his rage P+0x518 and tired P+0x505 and NOT his link bit P+0x1bb. Calm, not tired: neither class reads or
+//     writes the other's rage (no 0x81670 / 0x81614 call and no +0x518 / +0x505 access in his band 0xfc40ec..0xfd963c;
+//     hers tests only her own -- duofx/ragescan.py, control 0xca170), and the viewer has no rage of his to show.
+// Nothing of his is gated on the link: his word ignores it, MOTION_STATES.em076_00 has no list-4 row, and the link-bit
+// glow (group 8) and `ride_on` are a part and a material clip, not effect records.
+let fxPartnerPick = 0;
+let partnerFxRefused = null;                 // his model whose runtime failed to attach: not retried every frame
+function partnerFxClip(a, spec){
+  const pk = a && a.pick;
+  if (!pose.action || !pk || !a.driver.action) return null;
+  const t60 = pose.action.time * 60;
+  const f = pk.mode === 'free' ? Math.round(t60) : t60;            // as stepAttached times his driver
+  const loc = partnerLocalAt(a, f);
+  if (!loc) return null;
+  // (a piece of an unlinked dismount may come from another list of his: L1 M1, L3 M11 / M29, L0 M1 -- partnerLocalAt's list)
+  const lst = loc.list ? ((a.part && a.part.lists) || []).find(x => String(x.id) === String(loc.list)) || pk.list : pk.list;
+  const list = String(lst.id), raw = loc.clip, base = raw.replace(/_(start|loop)$/, '');
+  let frame = loc.frame, start = 0;
+  const loopSeg = /_loop$/.test(raw);
+  if (loopSeg){ const sib = (lst.clips || []).find(x => x.clip === base + '_start'); if (sib){ start = fr60(sib.dur); frame += start; } }
+  // which piece of his timeline plays (a layout's segment), and which pick: together, his motion start
+  let seg = 0;
+  if (pk.layout && (pk.mode === 'seq' || pk.mode === 'free')){
+    const g = pk.mode === 'free' ? freeFrameOf(a, f) : f;
+    const i = pk.layout.findIndex(x => g >= x.from && g < x.from + x.frames);
+    seg = i >= 0 ? i : pk.layout.length - 1;
+  }
+  if (!pk.fxPick) pk.fxPick = ++fxPartnerPick;
+  const slot = +((/^Motion\[(\d+)\]$/.exec(base) || [])[1]);
+  const mask = Number.isFinite(slot) ? pslMask(spec.monster, list, slot, null, { rage: false, tired: false }) : null;
+  return { key: spec.monster + '|' + list + '|' + base, frame, motion: clipEffectsFor(spec.monster, base, list), start, mask,
+           token: pk.fxPick + ':' + seg, loopSeg, clip: raw };
+}
+// NAKARKOS'S TENTACLES, EACH ON ITS OWN EFFECT RUNTIME (board PHASE 3, 2026-10-19; render/rom/effect-mounts.js attachSideEffects).
+// In the game an arm is a unit of its own class (uEmOstgaloaArm): its PSL walker reads ITS motion and frame on its own lists
+// (em084_00_l_N / r_N), its enable word is its class's (0x107f0e4: psl-mask.js armMask084, READ and emulated), its records
+// come from its own pels (em084_00u_l / em084_00c_l, _r) and hang from its joints -- docs/effects/em084_00_left.json /
+// _right.json and CLIP_EFFECTS['em084_00_left' / '_right'] (efx: <scratchpad>/zg/arm_export.py). Each runtime is made on the
+// arm's mounted model while the body's is up, its unit the frame the arm hangs on (attachFrame: body joint 200 / 203), and fed
+// the arm's clip as its driver plays it (playAttached: a.fxList / a.fxClip), at the arm's own time.
+const ARM_FX = { em084_00: { em084_00_left: 'l', em084_00_right: 'r' } };
+const armFxRefused = new Set();
+// the arm's motion and frame as its own walker sees them: its clip at its driver's time, a _loop segment after its _start
+function armFxAt(e, a){
+  const act = a && a.driver && a.driver.action;
+  if (!act || !a.fxList || !a.fxClip) return null;
+  const lst = ((e && e.lists) || []).find(x => x.id === a.fxList);
+  const raw = a.fxClip, base = raw.replace(/_(start|loop)$/, ''), loopSeg = /_loop$/.test(raw);
+  let start = 0;
+  if (loopSeg && lst){ const sib = (lst.clips || []).find(x => x.clip === base + '_start'); if (sib) start = fr60(sib.dur); }
+  return { base, start, frame: act.time * 60 + start, loopSeg };
+}
+function driveArmEffects(){
+  const e = entry(), sides = e && ARM_FX[e.id];
+  const on = !!(sides && effectRuntimeOn() && effectRuntimeInstance());
+  for (const name of ['em084_00_left', 'em084_00_right']){
+    const a = attached.get(name), g = mounted[name];
+    const want = on && sides && sides[name] && a && !a.partner && g;
+    const rt = sideEffectRuntime(name);
+    if (!want){ if (rt || sideEffectsPending(name)) detachSideEffects(name); continue; }
+    if (!rt || rt.root !== g){
+      if (!sideEffectsPending(name) && !armFxRefused.has(g)){
+        attachSideEffects(name, g, name, () => { const x = attached.get(name); return x && x.frame ? x.frame.matrixWorld : null; })
+          .then(v => { if (v === false) armFxRefused.add(g); })
+          .catch(err => { armFxRefused.add(g); noteError('arm effects ' + name + ': ' + (err && err.message || err)); });
+      }
+      continue;
+    }
+    rt.advance = fxAdvance;
+    if (!rt.schedule) continue;
+    const at = armFxAt(e, a);
+    if (!at){ rt.schedule.setClip(null, 0, null); continue; }
+    const { base, start, frame, loopSeg } = at;
+    const slot = +((/^Motion\[(\d+)\]$/.exec(base) || [])[1]);
+    // the arm's word: its own method over the base, the body's action and the arm's own (the orders ROM_ARM_PAIRS reads), its
+    // form byte +0xcb30 (the tentacle's form dropdown); rage / tired: the base word reads them through the ARM's P (P+0x518 /
+    // P+0x505, jscheckarm.py); the viewer gives the body's (INFERRED: the arm's own rage / tired bytes are not read)
+    const side = sides[name], arms = armsInput(), form = arms && arms[side === 'l' ? 'left' : 'right'] ? arms[side === 'l' ? 'left' : 'right'].form : undefined;
+    const play = Number.isFinite(slot) ? armPlay084(a.fxList, slot, a.fxN | 0) : null;
+    const mask = Number.isFinite(slot) ? armMask084(a.fxList, slot, side, play, { rage: !!state.rage, tired: exhausted(), armForm: typeof form === 'number' && form <= 3 ? form : undefined }) : null;
+    rt.schedule.setClip(name + '|' + a.fxList + '|' + base, frame, clipEffectsFor(name, base, a.fxList), start, mask, 'arm:' + (a.fxPlay | 0), loopSeg);
+  }
+}
+function drivePartnerEffects(){
+  const e = entry(), spec = e && partnerBodyOf(e.id);
+  const a = spec && attached.get(spec.monster), g = spec && mounted[spec.monster];
+  const want = !!(a && a.partner && g && effectRuntimeOn() && effectRuntimeInstance());
+  const rt = partnerEffectRuntime();
+  if (!want){ if (rt || partnerEffectsPending()) detachPartnerEffects(); return; }
+  if (!rt || rt.root !== g || rt.monsterId !== spec.monster){
+    const p = partnerEffectsPending();
+    if ((!p || p[0] !== g) && partnerFxRefused !== g){
+      const mon = spec.monster;
+      // his unit: the frame attachFrame carries him on (her joint at his size; where he was released)
+      attachPartnerEffects(g, mon, () => { const x = attached.get(mon); return x && x.frame ? x.frame.matrixWorld : null; })
+        .then(v => { if (v === false) partnerFxRefused = g; })
+        .catch(err => { partnerFxRefused = g; noteError('partner effects ' + mon + ': ' + (err && err.message || err)); });
+    }
+    return;
+  }
+  rt.advance = fxAdvance;
+  if (!rt.schedule) return;
+  // his SHELLS (render/shells.js SHELL_DATA.em076_00) step on his runtime's schedule: his pick, his target and his unit
+  if (!rt.schedule.rockInput) rt.schedule.rockInput = partnerRockInput;
+  if (!rt.schedule.shellExtra) rt.schedule.shellExtra = partnerShellExtra;
+  const c = partnerFxClip(a, spec);
+  if (!c){ rt.schedule.setClip(null, 0, null); return; }
+  rt.schedule.setClip(c.key, c.frame, c.motion, c.start, c.mask, c.mask != null ? c.token : null, c.loopSeg);
+}
+// HIS SHELLS WHILE HE IS ON HER (dev/em069-em076-shells-spec.md 6). His runtime's schedule steps SHELL_DATA.em076_00 on his own clip
+// and frame (partnerFxClip); what his spawners read from the game, the viewer gives as it gives hers (rockInput / shellExtra):
+//   * the PICK: his combined 7:0x3f answer to her 7:0x4e (request 0x10) wherever her side is L0 M65 (her required entry and his
+//     'Seltas Motion[33] with her 7:0x4e') -- his spit, two shell00 3 a crossing (0xfd5cec); elsewhere his own clip's picks in turn,
+//     one per play (his riding attacks L4 M33: 7:0x34 / 7:0x39; M34: 7:0x3a), as rockInput takes hers;
+//   * THE LINK (P+0x5c30, her; [e+0xcac0]+0x50 his partner): his own words are zeroed while linked (the link system, the board's
+//     read) and every spawner adds the parent's joint-200 yaw -- u16(s32(0.5 + atan2(row 2 x, row 2 z) x 10430.378)) of the frame
+//     he is carried on (her joint 200 at his size, attachFrame); released (+ Seltas leaves) he is unlinked, on his own facing;
+//   * HIS UNIT (P+0x40): that frame's point, in game units; the TARGET: TARGET_AHEAD along his facing, on her floor -- the
+//     viewer's stand-in, as hers.
+const partnerPlays = { key: null, token: null, frame: 0, n: -1, names: '' };
+function partnerShellState(){
+  const e = entry(), spec = e && partnerBodyOf(e.id), a = spec && attached.get(spec.monster);
+  const rt = partnerEffectRuntime();
+  if (!a || !a.partner || !a.frame || !rt || !rt.schedule) return null;
+  a.frame.updateWorldMatrix(true, false);
+  const m = a.frame.matrixWorld.elements;
+  const linked = !(a.pick && (a.pick.release || a.pick.unl));
+  const yaw = Math.atan2(m[8], m[10]);
+  const word = Math.trunc(Math.fround(Math.fround(0.5) + Math.fround(Math.fround(yaw) * Math.fround(10430.3779296875))));
+  return { e, spec, a, rt, linked, word, yaw, pos: [m[12] / 0.01, m[13] / 0.01, m[14] / 0.01] };
+}
+function partnerRockInput(){
+  const p = partnerShellState();
+  if (!p) return null;
+  const c = p.rt.schedule.clip, k = c && c.key ? c.key.split('|') : null;
+  const l = listOf(p.e), cur = clipOf(l), her = herClipOf(l, cur);
+  let variant = null;
+  if (k && her && her.list === '0' && /^Motion\[65\]/.test(her.clip) && k[2] === 'Motion[33]'){
+    variant = '7:0x3f';
+    // (his third set, +0x6c == 2: 0xfd4b00(e, 1), one spit a crossing -- the layout piece marked `spitSet: 3`)
+    const pk = p.a.pick, hf = pose.action ? Math.round(pose.action.time * 60) : 0;
+    const seg = pk && pk.layout ? pk.layout.find(x => hf >= x.from && hf < x.from + x.frames) : null;
+    if (seg && seg.spitSet === 3) variant = '7:0x3f/3';
+  }
+  else if (k){
+    const names = pickVariantsFor(p.spec.monster, k[1], k.slice(2).join('|'), {});
+    if (names.length){
+      if (names.join() !== partnerPlays.names) partnerPlays.n = -1;
+      if (c.key !== partnerPlays.key || c.token !== partnerPlays.token || c.frame < partnerPlays.frame) partnerPlays.n++;
+      partnerPlays.names = names.join();
+      variant = names[Math.max(0, partnerPlays.n) % names.length];
+    }
+  }
+  if (c){ partnerPlays.key = c.key; partnerPlays.token = c.token; partnerPlays.frame = c.frame; }
+  const y = monsterFloorY() / 0.01, ahead = hunterAhead(p.spec.monster), hy = hunterYaw(p.yaw);   // the Hunter control (default 2100 ahead)
+  const wallAt = box.wall.on ? box.wall.info().at / 0.01 : 0;
+  const wall = box.wall.on ? { axis: 'z', at: wallAt, facing: p.pos[2] >= wallAt ? 1 : -1 } : undefined;
+  return { variant, target: { x: p.pos[0] + ahead * Math.sin(hy), y, z: p.pos[2] + ahead * Math.cos(hy) }, floorY: y, wall };
+}
+function partnerShellExtra(){
+  const p = partnerShellState();
+  if (!p) return {};
+  return { questLevel: shellQuestLevel(), rank: shellQuestRank(), ownerPos: { x: p.pos[0], y: p.pos[1], z: p.pos[2] }, hunterBody: hunterSolid() || undefined,
+           floorFlags: groundNow().flags, floorAttr: groundNow().attr,
+           owner: p.linked ? { x: 0, y: 0, z: 0 } : { x: 0, y: p.word & 0xffff, z: 0 },
+           link: p.linked ? { word: p.word, partner: true } : undefined };
+}
+// HER LINK BIT as her (7, 0x38) reads it (P+0x1bb & 1, 0xf95588): Seltas mounted on her -- the combined list, him not released
+function herLinkedForShells(){
+  const e = entry(), spec = e && partnerBodyOf(e.id), a = spec && attached.get(spec.monster);
+  return !!(a && a.partner && mounted[spec.monster] && !(a.pick && (a.pick.release || a.pick.unl)));
+}
+
 // RAGE RECORDS THAT FOLLOW A PART (render/motion-states.js RAGE_BY_LEVEL): Nargacuga's trails, one record while its head
 // is intact and another once broken -- the one for the head as drawn runs, the other is held off (schedule holdRage).
 let rageRecordsHeld = { rt: null, key: null };
@@ -8261,11 +9455,14 @@ function syncClassHolds(rt, rowKey){
 // shows both, because which one the engine picked is its own state and not in the animation.
 // __view.box(which, true/false) forces one until the next clip change; a number places it and keeps it placed.
 let boxForced = { wall: null, ceiling: null }, boxClip = null;
-function stepBox(base){
-  const key = state.id + '|' + state.list + '|' + base;
+function stepBox(base, list = state.list){
+  const key = state.id + '|' + list + '|' + base;
   if (key !== boxClip){ boxClip = key; boxForced = { wall: null, ceiling: null }; }
-  const p = base ? postureOf(state.id, state.list, base) : 0;
+  const p = base ? postureOf(state.id, list, base) : 0;
   const want = Array.isArray(p) ? p : [p];
+  // the floor's posture test (monsterFloorY / FLOOR_AT_UNIT), Bloodbath through Diablos's table
+  const pt = base && POSTURE_TABLE_OF[state.id] ? postureOf(POSTURE_TABLE_OF[state.id], list, base) : p;
+  clipPostureNow = Array.isArray(pt) ? pt : [pt];
   box.wall.set(boxForced.wall === null ? want.includes(5) : boxForced.wall);
   box.ceiling.set(boxForced.ceiling === null ? want.includes(6) : boxForced.ceiling);
   stepMount(want);
@@ -8306,11 +9503,11 @@ const STEER = {
 };
 const steer = { key: null, prev: 0, yaw: 0 };
 const s16 = v => ((v & 0xffff) ^ 0x8000) - 0x8000;
-function steerAt(base, frame){
-  const t = base && STEER[state.id] && STEER[state.id][state.list + '|' + base];
+function steerAt(base, frame, list = state.list){
+  const t = base && STEER[state.id] && STEER[state.id][list + '|' + base];
   if (!t){ steer.key = null; return 0; }
   const ri = rockInput(), O = ri ? t.offset[ri.variant] : undefined;
-  const key = state.id + '|' + state.list + '|' + base + '|' + (ri && ri.variant);
+  const key = state.id + '|' + list + '|' + base + '|' + (ri && ri.variant);
   if (key !== steer.key || frame < steer.prev){ steer.key = key; steer.prev = frame; steer.yaw = 0; }
   const prev = steer.prev, cur = frame;
   steer.prev = frame;
@@ -8326,8 +9523,8 @@ function steerAt(base, frame){
   }
   return s16(steer.yaw) * 360 / 65536;
 }
-function stepTurn(base, frame){
-  turnYaw = base ? (turnAt(state.id, state.list, base, frame) + steerAt(base, frame)) * Math.PI / 180 : 0;
+function stepTurn(base, frame, list = state.list){
+  turnYaw = base ? (turnAt(state.id, list, base, frame) + steerAt(base, frame, list)) * Math.PI / 180 : 0;
   // THE TURN GOES ON THE PROXY, NOT ON THE MONSTER'S GROUP. render/pose.js poses every bone by WORLD matrix --
   // `inv(node.parent.matrixWorld) * proxy.matrixWorld` -- so whatever is on the group is divided straight back
   // out on the next pose step and the body never moves. Measured: driving the group to 169.9 degrees through
@@ -8496,6 +9693,38 @@ const TARGET_AHEAD_BY_MON = { em001_00: 6300, em001_02: 6300, em001_04: 6300, em
 // 0 -- level with the grid while he stands on it (Rajang: 220 - 100 = 120; render/beam-types.js). His L2 M8 beams track
 // it from their first frame (b3start 0), his L2 M20 / M21 one from frame 33. A viewer stand-in, like the distance.
 const TARGET_LEVEL_BY_MON = { em023_00: true, em023_05: true };
+// THE HUNTER CONTROL (Raven, 2026-10-22, approved; WORKING labels): the distance and the side of the stand-in above. Default (-1) is
+// the per-monster distance straight ahead, as before; the side turns the monster's facing by the angle (+90 = his left: forward is
+// (sin Y, 0, cos Y), so Y + 90 degrees points at +x when he faces +z). The BODY option makes the same point a body the shells'
+// hunter contact can hit (input.hunterBody, render/shells.js -- the shells agent's contact test); off by default.
+const HUNTER_DISTS = [[-1, 'Default (2100 ahead)'], [0, 'At him (0)'], [500, 'Near (500)'], [1200, 'Mid (1200)']];
+const HUNTER_SIDES = [[0, 'Front'], [90, 'Left (+90°)'], [-90, 'Right (−90°)'], [180, 'Behind']];
+const HUNTER_BODIES = [[0, 'None'], [1, 'Solid']];
+const hunterDist = () => HUNTER_DISTS.some(([v]) => v === state.hunterDist) ? state.hunterDist : -1;
+const hunterSide = () => HUNTER_SIDES.some(([v]) => v === state.hunterSide) ? state.hunterSide : 0;
+const hunterSolid = () => state.hunterBody === 1;
+// the stand-in's distance and its direction's yaw (radians), from the monster's facing yaw
+function hunterAhead(monId){ const d = hunterDist(); return d < 0 ? (TARGET_AHEAD_BY_MON[monId] || TARGET_AHEAD) : d; }
+function hunterYaw(yaw){ return yaw + hunterSide() * Math.PI / 180; }
+{
+  const fill = (id, rows, cur, set) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = rows.map(([v, l]) => '<option value="' + v + '">' + l + '</option>').join('');
+    el.value = String(cur());
+    el.onchange = () => { set(+el.value); play(); };
+  };
+  fill('monHunterDist', HUNTER_DISTS, hunterDist, v => { state.hunterDist = v; });
+  fill('monHunterSide', HUNTER_SIDES, hunterSide, v => { state.hunterSide = v; });
+  fill('monHunterBody', HUNTER_BODIES, () => (hunterSolid() ? 1 : 0), v => { state.hunterBody = v; });
+}
+// for the dev checks: __hunter.set(dist, side, body) / now()
+window.__hunter = { set: (dist, side, body) => {
+                      if (dist != null) state.hunterDist = dist; if (side != null) state.hunterSide = side; if (body != null) state.hunterBody = body;
+                      for (const [id, v] of [['monHunterDist', hunterDist()], ['monHunterSide', hunterSide()], ['monHunterBody', hunterSolid() ? 1 : 0]]){
+                        const el = document.getElementById(id); if (el) el.value = String(v); }
+                      play(); },
+                    now: () => ({ dist: hunterDist(), side: hunterSide(), body: hunterSolid() ? 1 : 0 }) };
 function targetRise(monId){
   if (!TARGET_LEVEL_BY_MON[monId]) return null;
   const t = BEAM_TYPES.find(x => x.mon === monId && x.ray && x.ray.b3a && x.ray.b3b);
@@ -8505,20 +9734,130 @@ function targetRise(monId){
 // quest id mod 100 for an ordinary quest) -- Dreadqueen's poison is weakest at 3 or below and strongest at 9 or above,
 // and L9 Motion[9]'s extra shells need it at their gate: 10, the top deviant level, shows everything she does (a viewer
 // stand-in, like the rank's G); and her tail as the parts show it (render/motion-states.js shellTailInput).
-const SHELL_QUEST_LEVEL = 10;
+const QUEST_LEVELS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 16];
+function shellQuestLevel(){ return QUEST_LEVELS.includes(state.questLevel) ? state.questLevel : 10; }
 // and the QUEST RANK the shells read separately (0x3a8430: 1 low, 3 high, 5 G) -- passed rather than left to
 // shells.js's own default, which is also 5, so that what the viewer shows is stated here instead of being inherited
 // silently. It decides real differences: Khezu's orb ring is modes 0..5 with u 30 at low rank and 6..11 with u 32
 // above it, and his breath picks its mode the same way. G goes with the quest level above it.
-const SHELL_QUEST_RANK = 5;
+// (the Quest Rank control, 2026-10-20: was the constant 5)
+const QUEST_RANKS = [[5, 'G Rank (5)'], [3, 'High Rank (3)'], [1, 'Low Rank (1)'], [0, 'Rank 0 (none)']];
+function shellQuestRank(){ return QUEST_RANKS.some(([v]) => v === state.questRank) ? state.questRank : 5; }
+// (Chaotic Gore Magala's counter C+0x84: the steps and the rank cap are motion-states.js GAUGE071_STEP / gauge071)
+{
+  const rs = document.getElementById('monQuestRank'), ls = document.getElementById('monQuestLevel');
+  if (rs){
+    rs.innerHTML = QUEST_RANKS.map(([v, l]) => '<option value="' + v + '">' + l + '</option>').join('');
+    rs.value = String(shellQuestRank());
+    rs.onchange = () => { state.questRank = +rs.value; syncGaugeLadder(); play(); };
+  }
+  if (ls){
+    ls.innerHTML = QUEST_LEVELS.map(v => '<option value="' + v + '">Level ' + v + (v === 16 ? ' (special)' : v === 0 ? ' (special / none)' : '') + '</option>').join('');
+    ls.value = String(shellQuestLevel());
+    ls.onchange = () => { state.questLevel = +ls.value; play(); };
+  }
+}
+window.__quest = { set: (rank, level) => { if (rank != null) state.questRank = rank; if (level != null) state.questLevel = level;
+                                          const rs = document.getElementById('monQuestRank'), ls = document.getElementById('monQuestLevel');
+                                          if (rs) rs.value = String(shellQuestRank()); if (ls) ls.value = String(shellQuestLevel());
+                                          syncGaugeLadder(); play(); },
+                   now: () => ({ rank: shellQuestRank(), level: shellQuestLevel() }) };
 function shellExtra(){
-  return { questLevel: SHELL_QUEST_LEVEL, rank: SHELL_QUEST_RANK, beamState: beamState(), attachedJoints: attachedJointsInput(),
+  return { questLevel: shellQuestLevel(), rank: shellQuestRank(), beamState: beamState(), attachedJoints: attachedJointsInput(),
+           // the Hunter control's BODY: the stand-in hunter is a body the shells' hunter contact can hit, standing at input.rock.target
+           hunterBody: hunterSolid() || undefined,
            aura: auraInput(), arms: armsInput(), chargeTier: shellChargeTier(),
            // Ahtal-Ka's object (render/shells.js spawn088): the Carrying control as e+0xcb0c (and as the pull's pending pick)
            carry: state.id === 'em088_00' ? state.carry : undefined,
+           // Chaotic Gore Magala's control-block counter C+0x84 (the Gauge control, CLASS_CONTROLS2 em071_05: 0 / 5000 / 10000 / 20000 /
+           // 28000), under the rank's per-frame cap (motion-states.js gauge071: 0x16a1530)
+           gauge071: state.id === 'em071_05' ? gauge071(state.classCtl2, shellQuestRank()) : undefined,
+           // Ahtal-Neset's rockets (render/shells.js rockets087): the Rockets control as his mask e+0xcdc0; the points his own area_patrol
+           // record holds (the viewer stands in for his arena, map 27 area 1), anchored on him (Raven's Lao / Alatreon precedent)
+           rockets087: state.id === 'em087_00' ? (state.classCtl | 0) : undefined, patrol087: state.id === 'em087_00' || undefined,
+           anchor087: state.id === 'em087_00' || undefined,
+           // the Seltas Queen's link bit P+0x1bb (render/shells.js spawn069: her (7, 0x38) spit only with him on her back)
+           linked: state.id === 'em069_00' ? herLinkedForShells() : undefined,
+           // Zinogre's / Thunderlord's (render/shells.js spawn057): the CHARGED byte P+0x5df3 as the Charge State rung shows it (the
+           // same rung playNow's `charged` reads), and the play's action (playNow: the pick, or CLIP_ACTIONS' -- L0 M20, L2 M1 / M2, L9)
+           charged: (state.id === 'em057_00' || state.id === 'em057_04') ? (state.level | 0) === (state.id === 'em057_00' ? 2 : 1) : undefined,
+           // ...and Kushala's (render/shells.js perFrame024: the wind pulse runs only under its pulse actions -- the play's CLIP_ACTIONS
+           // action, his idle L0 M1 A (0, 0) / walk L0 M2 A; 2026-10-22, Raven: "wind aura does not appear even when set to wind level 3")
+           action: (state.id === 'em057_00' || state.id === 'em057_04' || state.id === 'em024_00') ? shellPlayAction057() : undefined,
+           // Congalala's gas breath (render/shells.js spawn021): the gas the play carries, as his PSL word reads it (playNow's `gas`)
+           gas021: state.id === 'em021_00' ? shellGas021() : undefined,
+           // ...and the charges he has left (the Charges control, CLASS_CONTROLS2 em021_00): fewer than 2 is the last-charge breath (vt+0x1fc
+           // 0xdcee10's remap -> shell04 5..8, u 300..330)
+           gas021Last: state.id === 'em021_00' ? charges021(state.classCtl2) < 2 : undefined,
+           // Elderfrost's trunk snow (render/shells.js spawn083: 0x1060e28's gate on snow slot 5), the level his parts SHOW
+           trunkSnow083: trunkSnow083(state.id, motionStates.table, mounted.main && mounted.main.userData.partsDrawn),
+           // Gammoth's / Elderfrost's leg snow (render/shells.js make083row legSnow083: 0x105fd94's gate on snow slots 0..3), the levels the leg rows SHOW
+           legSnow083: legSnow083(state.id, motionStates.table, mounted.main && mounted.main.userData.partsDrawn),
+           // Agnaktor's lava drips (render/shells.js spawn049): the chest's / tail's heat as their machines show it, and their breaks
+           // Mizutsune's / Soulseer's bubbles (render/shells.js choose082): the head break as the parts show it
+           mizu082: mizutsuneHead082(state.id, motionStates.table, mounted.main && mounted.main.userData.partsDrawn),
+           // Soulseer's soul flame (render/shells.js spawn082: P+0x1bb bit 1's arms) -- the Soul Flame control (CLASS_CONTROLS.em082_04)
+           soulFlame082: state.id === 'em082_04' ? (state.classCtl | 0) === 1 : undefined,
+           // Kushala's wind aura P+0x1bb (render/shells.js spawn024: the makers' level) -- the Wind Aura control (CLASS_CONTROLS.em024_00)
+           windAura024: state.id === 'em024_00' ? windNow024() : undefined,
+           // Teostra's fire aura P+0x1bb (render/shells.js spawn027: vt+0x208's L0 M5 test) -- the Fire Aura control (CLASS_CONTROLS.em027_00)
+           fireAura027: state.id === 'em027_00' ? fireNow027() : undefined,
+           // the snow maps (the Snow Variants list): Kushala's makers (with the play's rage), Tetsucabra's / Drilltusk's rocks and slab
+           snow: snowNow(),
+           // the ground (the Ground control): e+0x1068 / e+0x1066 -- Tigrex's ctl+0x29 selector, Garuga's 0x1040 child (render/shells.js)
+           floorFlags: groundNow().flags, floorAttr: groundNow().attr,
+           // Lao-Shan Lung's rubble anchored around him (render/shells.js spawn012: each entry's landing centre onto his unit)
+           anchor012: state.id === 'em012_00' ? true : undefined,
+           // Alatreon's (7, 0x20) arena drops anchored round him the same way (render/shells.js drop050: each point's x / z onto his unit)
+           anchor050: state.id === 'em050_00' ? true : undefined,
+           // Tetsucabra's / Drilltusk's rocks and slab (render/shells.js spawn066): the tusks' break level as the parts show it
+           tusk066: tetsucabraTusks066(state.id, motionStates.table, mounted.main && mounted.main.userData.partsDrawn),
+           // Seregios's bladescales (render/shells.js spawn077s28): parts 4 / 6's break levels as the parts show them
+           parts077: seregiosParts077(state.id, motionStates.table, mounted.main && mounted.main.userData.partsDrawn),
+           // Nakarkos's record-table makers (render/shells.js records084): ROM parts 2 / 3 / 4's break levels as the parts show them
+           parts084: nakarkosParts084(state.id, motionStates.table, mounted.main && mounted.main.userData.partsDrawn),
+           // Nerscylla's drip (render/shells.js drip070): none with the Back at its second break level, as the parts show it
+           back070: nerscyllaBack070(state.id, motionStates.table, mounted.main && mounted.main.userData.partsDrawn),
+           heat049: state.id === 'em049_00' ? Object.assign({ chest: regionHot('chest'), tail: regionHot('tail') }, agnaktorBroken049(state.id, motionStates.table, mounted.main && mounted.main.userData.partsDrawn)) : undefined,
            // the owner's position is the UNIT (unitGamePos), not the effect parent's hips -- overrides schedule.js's ownerPos
            ownerPos: (([x, y, z]) => ({ x, y, z }))(unitGamePos()),
            ...shellTailInput(state.id, mounted.main && mounted.main.userData.partsDrawn) };
+}
+// the action the current play stands for (playNow's plays.action, [status, n]) while that play is the clip on screen; else
+// undefined (the shells then take the clip's own pick). `plays` is declared further down: read only once a play has been taken.
+function shellPlayAction057(){
+  try {
+    if (!plays.key || !plays.action || !plays.motion) return undefined;
+    const seq = seqMotionNow(), act = pose.action, name = act && act.getClip ? act.getClip().name : null;
+    const list = seq ? seq.list : state.list, clip = seq ? seq.clip : name;
+    if (String(plays.motion.list) !== String(list) || plays.motion.clip !== String(clip || '').replace(/_(start|loop)$/, '')) return undefined;
+    return plays.action;
+  } catch (_) { return undefined; }
+}
+// Congalala's gas ctl[1] for the play on screen: the eating play's own, else the play's CLIP_ACTIONS `gas` (the same em021Gas
+// playNow hands his PSL word); 0 before any play
+// KUSHALA's WIND AURA AS HIS CODE HOLDS IT (READ 2026-10-22, vt+0x204 0xdef314): the Wind Aura control, but never 3 with his horns
+// broken. The horn break (10, 0x72) on part 0 (0x9e8d8 == 0, 0xdefbc4) sets ctl+0x24 = 1 -- the part pass then draws set 7 for 2
+// (0xdfcc78: the broken horn, part 3) -- and takes 3 off the level (3 -> 0); from then on every raise that reaches 3 stops at 2
+// (0xdef920..0xdef93c: ctl+0x24 ? 2 : 3). So with the Head row on its broken horn the strongest wind (bits 21-23, the pulse's
+// modes 2 / 1: c 31 / c 32 and the camera-attached c 34 / c 33) is not reached: Level 3 plays as Level 2.
+function windNow024(){
+  const L = state.classCtl | 0, d = mounted.main && mounted.main.userData.partsDrawn;
+  const hornBroken = !!d && d.get(3) === true;
+  return hornBroken && L >= 3 ? 2 : L;
+}
+// TEOSTRA's FIRE AURA AS HIS CODE HOLDS IT (READ 2026-10-22, vt+0x204 0xe10a80..0xe10afc): his horn break (10, 0x72) on part 0 sets
+// ctl+0x22 (the part pass's broken head: set 7, part 3 drawn) and the aura byte P+0x1bb = 0xff, which every on-test refuses and
+// nothing writes back: with the Head row broken the Fire Aura control's On plays as Off (his word, the shells, the class timers)
+function fireNow027(){
+  const d = mounted.main && mounted.main.userData.partsDrawn;
+  return (!!d && d.get(3) === true) ? 0 : (state.classCtl | 0);
+}
+function shellGas021(){
+  try {
+    if (!plays.key || !plays.motion) return 0;
+    return em021Gas(plays.action, state.classCtl | 0) | 0;      // the Gas Type control, as the word's
+  } catch (_) { return 0; }
 }
 // BOLTREAVER'S CHARGE TIER AS HIS SHELL SPAWNERS READ IT (render/shells.js spawn081; dev/em081-shells-spec.md 5a / 6): the wing slams
 // test the wings' byte [e+0xcb02] ((t | 1) != 1) and (7, 0xc7) the tail's [e+0xcb03] (== 4). The viewer carries ONE charge rung
@@ -8571,7 +9910,7 @@ function bodyMotionKey(){
 // his stance: the clip's (AURA084_STANCE), kept across clips that play in both; the game's opening one before any
 function auraStanceNow(){
   if (state.id !== 'em084_00') return 0;
-  if (auraStance.id !== state.id){ auraStance.id = state.id; auraStance.v = SHELL_QUEST_RANK > 4 ? 2 : 1; }
+  if (auraStance.id !== state.id){ auraStance.id = state.id; auraStance.v = shellQuestRank() > 4 ? 2 : 1; }
   const key = auraStance.key = bodyMotionKey();
   if (key && AURA084_STANCE[key]) auraStance.v = AURA084_STANCE[key];
   return auraStance.v;
@@ -8606,10 +9945,12 @@ function attachedJointsInput(){
 // them, the quest rank above, and the parts the model shows (render/motion-states.js SHELL_PARTS) -- one object for both
 // the play's pick (rockInput) and the shells' own step (shellExtra), so the two never disagree
 function beamState(){
-  return { tired: motionStates.tired(), rage: motionStates.rage(state.rage), rank: SHELL_QUEST_RANK,
+  return { tired: motionStates.tired(), rage: motionStates.rage(state.rage), rank: shellQuestRank(),
            parts: shellPartsInput(state.id, mounted.main && mounted.main.userData.partsDrawn),
            // Nakarkos's stance (his beam rows' `when.stance`, render/beam-spawns.js); undefined for every other monster
-           stance: auraStanceNow() || undefined };
+           stance: auraStanceNow() || undefined,
+           // the snow maps (the Snow Variants list; render/beam-spawns.js `when.snow`: Kushala's mode-1 beam)
+           snow: snowNow() };
 }
 const rockPlays = { key: null, time: 0, n: -1, names: [] };
 // the beam showcase's label: the type this play of Basarios's Special 'Beam Test' fires (render/beam-types.js), or hidden.
@@ -8634,7 +9975,16 @@ function rockInput(){
   // command table's op 0x24 on 0x81634, shells-em001.md) -- as the motion shows those states
   // (a chain entry's pick is its motion's: a play of the entry reaches that motion once, so it advances once a play)
   const seq = seqMotionNow(), pList = seq ? seq.list : state.list, pClip = seq ? seq.clip : clipName;
-  const names = pClip ? pickVariantsFor(state.id, pList, pClip, beamState()) : [];
+  let names = pClip ? pickVariantsFor(state.id, pList, pClip, beamState()) : [];
+  // A CLIP_VARIANTS COPY PICKED IN THE CLIP MENU IS THE PLAY (psl-mask.js clipCopyActions): an action pick its own entries do not name
+  // is not offered, so the copy's play spawns no other action's shells -- Kirin's roar L4 M7 A (1, 6) throws none of the lightning
+  // picks (7, 5) / ... share. A pick that names no action (a rock variant, 'beam:n') is kept. (2026-10-18)
+  if (names.length && pClip){
+    const pBase = String(pClip).replace(/_(start|loop)$/, '');
+    const vSel = state.clipVariant && stateRawClip().clip.replace(/_(start|loop)$/, '') === pBase ? state.clipVariant : '';
+    const copyActs = clipCopyActions(state.id, pList, pBase, vSel);
+    if (copyActs) names = names.filter(v => !actionOf(v) || copyActs.includes(actionName(actionOf(v))));
+  }
   if (names.length){
     // ONE PLAY IS ONE MOTION: keyed on the bare motion, so a _start running on into its own _loop, and a _loop wrapping,
     // continue the play (the action goes on) -- counting each piece made every split clip advance its pick twice a play,
@@ -8652,7 +10002,7 @@ function rockInput(){
   if (!P || !rt.schedule) return null;
   const y = monsterFloorY() / 0.01;
   const yaw = rt.schedule.ownerYaw16() * 2 * Math.PI / 65536;
-  const ahead = TARGET_AHEAD_BY_MON[state.id] || TARGET_AHEAD, rise = targetRise(state.id);
+  const ahead = hunterAhead(state.id), rise = targetRise(state.id), hy = hunterYaw(yaw);     // the Hunter control (default as before)
   // THIS clip's picks: a clip with none has no variant. (rockPlays.names keeps the last pick clip's list for the count's
   // reset above; reading it here handed a no-pick clip the previous clip's pick -- and playNow takes a variant as the play's
   // action, so Ahtal-Ka's L3 M14 after Astalos's L4 M62 played (7, 0xc7), not its drop (10, 0x1f). 2026-10-16.)
@@ -8675,8 +10025,8 @@ function rockInput(){
   const wallAt = box.wall.on ? box.wall.info().at / 0.01 : 0;
   const wall = box.wall.on ? { axis: 'z', at: wallAt, facing: P.position[2] >= wallAt ? 1 : -1 } : undefined;
   return { variant: picks.length ? picks[Math.max(0, rockPlays.n) % picks.length] : null,
-           target: { x: P.position[0] + ahead * Math.sin(yaw), y: rise != null ? P.position[1] + rise : y,
-                     z: P.position[2] + ahead * Math.cos(yaw) },
+           target: { x: P.position[0] + ahead * Math.sin(hy), y: rise != null ? P.position[1] + rise : y,
+                     z: P.position[2] + ahead * Math.cos(hy) },
            floorY: y, wall };
 }
 
@@ -8748,6 +10098,91 @@ function syncHeat(){
   heatKey = key;
   if (!first) applyPartState();
 }
+// the main monster's ROM wing parts at this frame (render/monster.js wingPartsAt), or null where it has none
+function wingsNow(id){
+  const act = pose.action, name = act && act.getClip ? act.getClip().name : null;
+  if (!name) return null;
+  const seq = seqMotionNow();
+  let list = state.list, clip = name.replace(/_(start|loop)$/, ''), frame = act.time * 60;
+  if (seq){ list = seq.list; clip = seq.clip; frame = seq.frame; }
+  else if (/_loop$/.test(name)){
+    const sib = ((listOf(entry()) || {}).clips || []).find(c => c.clip === clip + '_start');
+    if (sib) frame += Math.round(sib.dur * 60);
+  }
+  return wingPartsAt(id, list, clip, Math.floor(frame));
+}
+let wingKeyMain = null;
+function stepWings(){
+  const wp = mounted.main && !rawParts ? wingsNow(state.id) : null;
+  const key = state.id + '|' + (wp ? wp.join(',') : 'row');
+  if (key === wingKeyMain) return;
+  const first = wingKeyMain === null || !wingKeyMain.startsWith(state.id + '|');
+  wingKeyMain = key;
+  if (!first || wp) applyPartState();
+}
+// THE ATTACK HITBOXES (render/attack-hitboxes.js; dev/attack-hitshapes.md): the playing clip's armed records, by its key and frame, the
+// Solid stand-in hunter's capsule (the shells' 0x2821e4 stand-in, render/shells.js hunterCapsuleOf) for the touch test
+let atkBoxes = null, atkMode = 'off';
+document.getElementById('monAtkBox').onchange = e => { atkMode = e.target.value; stepAttackBoxes(); };
+function paintAtkBoxRow(){
+  const row = document.getElementById('monAtkBoxRow');
+  if (row) row.hidden = !hasAttackData(state.id);
+}
+loadAttackData('').then(paintAtkBoxRow);
+function stepAttackBoxes(){
+  if (window.__view && !window.__view.attackBoxes) window.__view.attackBoxes = () => atkBoxes ? atkBoxes.userData.last : null;
+  const root = mounted.main;
+  if (atkMode === 'off' || !root){ if (atkBoxes){ scene.remove(atkBoxes); atkBoxes.userData.dispose(); atkBoxes = null; } return; }
+  if (!atkBoxes || atkBoxes.userData.root !== root || atkBoxes.userData.mon !== state.id){
+    if (atkBoxes){ scene.remove(atkBoxes); atkBoxes.userData.dispose(); }
+    atkBoxes = buildAttackHitboxes(root, state.id);
+    atkBoxes.userData.root = root; atkBoxes.userData.mon = state.id;
+    scene.add(atkBoxes);
+  }
+  const act = pose.action, clipName = act && act.getClip ? act.getClip().name : null;
+  const seq = seqMotionNow();
+  let list = state.list, base = clipName ? clipName.replace(/_(start|loop)$/, '').replace(/#.*$/, '') : null, frame = 0;
+  if (seq){ list = seq.list; base = String(seq.clip).replace(/_(start|loop)$/, '').replace(/#.*$/, ''); frame = seq.frame; }
+  else if (act){
+    let loopStart = 0;
+    if (clipName.endsWith('_loop')){ const sib = ((listOf(entry()) || {}).clips || []).find(c => c.clip === base + '_start'); if (sib) loopStart = Math.round(sib.dur * 60); }
+    frame = act.time * 60 + loopStart;
+  }
+  // the Solid hunter (Hunter Body), in view units: the stand-in capsule at the hunter point (rockInput's target)
+  let hunter = null;
+  if (hunterSolid() && hunterCapsuleOf){
+    // (rockInput's point without its pick count: the unit, his facing, the Hunter control's distance and side)
+    const rt = effectRuntimeInstance(), P = rt && rt.parent && rt.parent.position;
+    const yaw = rt && rt.schedule ? rt.schedule.ownerYaw16() * 2 * Math.PI / 65536 : 0, d = hunterAhead(state.id), hy = hunterYaw(yaw);
+    const t = P ? { x: P[0] + d * Math.sin(hy), z: P[2] + d * Math.cos(hy) } : null;
+    if (t){ const c = hunterCapsuleOf([t.x, monsterFloorY() / 0.01, t.z], 0);
+      hunter = { p0: new THREE.Vector3(...c.p0).multiplyScalar(0.01), p1: new THREE.Vector3(...c.p1).multiplyScalar(0.01), r: c.r * 0.01 }; }
+  }
+  // the play's own action where the viewer names one (CLIP_ACTIONS / a copy's pick: plays.action), so a clip several actions play shows
+  // that action's arms only
+  const pa = shellPlayAction057(), action = Array.isArray(pa) ? pa[0] + ':0x' + (pa[1] | 0).toString(16) : null;
+  atkBoxes.userData.update(base ? list + '|' + base : null, frame, { mode: atkMode, hunter, action });
+}
+// the hover tooltip: what the attack shape under the pointer is (render/attack-hitboxes.js describeText -- power, element, status bits,
+// kind, window), while the overlay is on
+{
+  const tip = document.createElement('div');
+  tip.id = 'atkTip';
+  tip.style.cssText = 'position:fixed;z-index:50;pointer-events:none;white-space:pre;font:12px/1.35 system-ui,sans-serif;'
+    + 'padding:6px 8px;border-radius:6px;background:rgba(20,20,24,.92);color:#f2f2f2;box-shadow:0 2px 8px rgba(0,0,0,.4);display:none';
+  document.body.appendChild(tip);
+  const el = renderer.domElement;
+  el.addEventListener('pointermove', e => {
+    if (!atkBoxes || atkMode === 'off' || e.buttons){ tip.style.display = 'none'; return; }
+    const box = el.getBoundingClientRect();
+    const hit = atkBoxes.userData.pick(e.clientX - box.left, e.clientY - box.top, lensCamera(), box.width, box.height);
+    if (!hit){ tip.style.display = 'none'; return; }
+    tip.textContent = hit.text;
+    tip.style.left = (e.clientX + 14) + 'px'; tip.style.top = (e.clientY + 14) + 'px';
+    tip.style.display = 'block';
+  });
+  el.addEventListener('pointerleave', () => { tip.style.display = 'none'; });
+}
 function driveMotionStates(){
   const act = pose.action;
   const clipName = act && act.getClip ? act.getClip().name : null;
@@ -8765,9 +10200,25 @@ function driveMotionStates(){
   const loopEnd = act ? loopStart + act.getClip().duration * 60 : 0;
   // a chain entry on the Special list: the motion it plays now (seqMotionNow), its frame and its loop
   const seq = seqMotionNow();
-  const r = seq ? motionStates.step(state.id, seq.list, seq.clip, seq.frame,
+  // a combined entry that IS one clip of hers: the raw clip's own call, with her list, clip, copy and frame
+  const wq = seq && seq.whole ? seq : null;
+  const rc = wq ? stateRawClip() : null;
+  const wRow = wq && state.clipVariant && rc.clip.replace(/_(start|loop)$/, '') === wq.clip
+             && (MOTION_STATES[state.id] || {})[wq.list + '|' + wq.clip + '#' + state.clipVariant] ? wq.clip + '#' + state.clipVariant : wq && wq.clip;
+  // ONE user input for every path: a routed entry (the combined list's, the Snow Variants') reads the same controls, class bytes and
+  // snow map as the raw clip -- the routed calls had only rage / level / tired, so a class timer on them never saw its byte or the
+  // snow (re-walk 2026-10-18: Kushala's barrier on a Snow Variants entry held u 230, not u 210)
+  const userIn = { rage: !!state.rage, level: chargeRungOf(), tired: exhausted(), posture: plays.key ? plays.posture : undefined,
+                   rank: shellQuestRank(), questLevel: shellQuestLevel(),
+                   boulder: state.boulder | 0, action: plays.key ? plays.action : undefined, classCtl: state.classCtl | 0,
+                   classCtl2: state.classCtl2 | 0, snowMap: snowNow(), toggles: state.toggles || {} };
+  const r = wq ? motionStates.step(state.id, wq.list, wRow, wq.frame,
+                                   { loopStart: wq.loopStart || 0, loopEnd: wq.loopEnd, loopSeg: wq.loopSeg,
+                                     ended: !!(act && act.loop === THREE.LoopOnce && act.time >= clipDur(act) - 1e-3) },
+                                   userIn, now)
+          : seq ? motionStates.step(state.id, seq.list, seq.clip, seq.frame,
                                     { loopStart: seq.loopStart || 0, loopEnd: seq.loopEnd, loopSeg: seq.loopSeg },
-                                    { rage: !!state.rage, level: state.level | 0, tired: exhausted() }, now)
+                                    userIn, now)
               : motionStates.step(state.id, state.list, rowClip, act ? act.time * 60 + loopStart : 0,
                               // ended: a play-once clip held on its last frame (the part pass's "clip has ended")
                               { loopStart, loopEnd, loopSeg,
@@ -8778,7 +10229,8 @@ function driveMotionStates(){
                               // like any other, and nothing new is needed here to apply them.
                               // `tired`: the Exhausted state (exhausted()), held over every clip as P+0x505 is
                               // `posture`: the posture this play started in (playNow, psl-mask.js clipPostureFor)
-                              { rage: !!state.rage, level: state.level | 0, tired: exhausted(), posture: plays.key ? plays.posture : undefined }, now);
+                              // `boulder` / `action`: the Boulder control and the play's action (motion-states.js stepRock)
+                              userIn, now);
   // THE CLIP'S HEAT (render/motion-states.js HEAT_CLIPS, Agnaktor): the regions this motion heats at this frame; a
   // play-once clip held on its last frame is over, and its regions go back to the toggles (Raven's "revert back to
   // unheated when it finishes")
@@ -8805,23 +10257,108 @@ function driveMotionStates(){
     setEffectRage(motionStates.rage(state.rage));
     if (rt){ if (r.entry) rt.restartRage(); else rt.setRage(motionStates.rage(state.rage)); }
   }
-  stepTurn(base, act ? act.time * 60 + loopStart : 0);
-  stepBox(base);
+  // (a combined entry turns and stands as the clip of hers it plays now)
+  const pq = seq && seq.partner ? seq : null;
+  stepTurn(pq ? pq.clip : base, pq ? pq.frame : act ? act.time * 60 + loopStart : 0, pq ? pq.list : state.list);
+  stepBox(pq ? pq.clip : base, pq ? pq.list : state.list);
   stepJointScale();
   stepCutTail(r, rt);
   syncRageRecords(rt);
-  syncClassHolds(rt, seq ? seq.list + '|' + seq.clip : state.list + '|' + rowClip);
+  syncClassHolds(rt, wq ? wq.list + '|' + wRow : seq ? seq.list + '|' + seq.clip : state.list + '|' + rowClip);
+  stepCloak025(rt);
   if (rt){
     for (const [pel, key] of r.eyesOff) rt.holdRage(pel, key, true);
     for (const [pel, key] of r.eyesOn) rt.holdRage(pel, key, false);
     for (const [pel, key] of r.holdOff) rt.holdEvent(pel, key, false);
-    for (const [pel, key] of r.holdOn) rt.holdEvent(pel, key, true);
-    for (const [pel, key] of r.fire) rt.fire(pel, key);
+    if (rt !== chargeHoldRt){
+      chargeHoldRt = rt;
+      const now = new Set(r.holdOn.map(h => h[0] + '|' + h[1]));
+      for (const [pel, key] of motionStates.chargeHold()) if (!now.has(pel + '|' + key)) rt.holdEvent(pel, key, true);
+      // ...and the class timers' holds (render/motion-states.js CLASS_TIMERS `holds`), which step() reports only on a change:
+      // a runtime made after they went up (the Effects toggle, a reload of the effects) never heard of them (re-walk 2026-10-18,
+      // Deadeye's u 30 held from spawn)
+      for (const [pel, key, at] of ((motionStates.classT && motionStates.classT.held) || [])) if (!now.has(pel + '|' + key)) rt.holdEvent(pel, key, true, classBlockOf(at));
+    }
+    for (const [pel, key, at] of r.holdOn) rt.holdEvent(pel, key, true, classBlockOf(at));
+    // a held record's fade as its class writes it each frame (unit 0's colour block: Amatsu's aura, Valstrax's glow)
+    for (const [pel, key, a] of (r.alpha || [])) rt.alphaEvent(pel, key, a);
+    // a record with `{ ahead: d }` is requested at a point d x his scale ahead of him on the floor, the requester carrying the
+    // position alone (Zamtrios's u 60, 0xf695e4..0xf696ac: P+0x30.. + (sin, cos)(yaw) x 530 x scale)
+    for (const [pel, key, , at] of r.fire){
+      // a fill of the Gore line's slot ring (CLASS_TIMERS em071_00 / em071_05 / em072_00 -> schedule.js ringFill): the point is his unit
+      // P+0x40.. plus the site's offset turned by his angle P+0x54 (x cos + z sin, y, z cos - x sin; each site's own sinf / cosf, not scaled)
+      if (at && at.ring){
+        const f = Math.fround, P = unitGamePos().map(f), o = at.ring.offset;
+        const D = mounted.main ? mounted.main.getWorldDirection(new THREE.Vector3()) : new THREE.Vector3(0, 0, 1);
+        const yaw16 = Math.trunc(f(f(0.5) + f(f(Math.atan2(D.x, D.z)) * f(10430.3779296875)))) & 0xffff;
+        const a = f(f(yaw16) * f(9.58738019107841e-05)), sn = f(Math.sin(a)), cs = f(Math.cos(a));
+        const position = [f(P[0] + f(f(o[0] * cs) + f(o[2] * sn))), f(P[1] + o[1]), f(P[2] + f(f(o[2] * cs) - f(o[0] * sn)))];
+        rt.ringFill(pel, { position, s0: at.ring.s0, s1: at.ring.s1, flag: at.ring.flag });
+        continue;
+      }
+      // a class's held request STOPPED (0x329c40(h, 0)): Nerscylla's C+0xb5 handle on a change (CLASS_TIMERS em070_00)
+      if (at && at.stop){ rt.holdEvent(pel, key, false); continue; }
+      // a class's request with a block of its own (proof.js requester): +0x14 |= 0x20 with the root joint +0x52 (Teostra's u 2 / u 3,
+      // joint 3), and Nerscylla's +0x1c |= 1 with +0xc0 = the joint's position (game units, as the unit's joint array holds it) and
+      // +0x14 |= 1 with the offset +0x20.. on L4 M30 / M31
+      if (at && (at.rootJoint != null || at.joint != null)){
+        rt.placeEvent(pel, key, [classBlockOf(at)]);
+        continue;
+      }
+      if (at && at.ahead != null && mounted.main){
+        const bones = gidBonesOf(mounted.main), b0 = bones.find(x => x.gid === 0), unit = (b0 && b0.node) || mounted.main;
+        const U = unit.getWorldPosition(new THREE.Vector3()).divideScalar(0.01);
+        const F = mounted.main.getWorldDirection(new THREE.Vector3()); F.y = 0; F.normalize();
+        const d = at.ahead * (world.scale.x || 1);
+        rt.fireAt(pel, key, [U.x + F.x * d, monsterFloorY() / 0.01, U.z + F.z * d]);
+      } else rt.fire(pel, key);
+    }
+    stepC800(rt);                          // Nakarkos's three placed c 800 on L3 M65
     // the rage puff's gates (render/motion-states.js RAGE_PUFF): paused in the sleep hold, zeroed calm and tired
-    rt.puffGates(motionStates.puffOff(), motionStates.tired());
+    rt.puffGates(motionStates.puffOff(), motionStates.tired(), { rung: state.level | 0, rank: shellQuestRank() });
   }
 }
 
+// NAKARKOS'S c 800, THREE PLACED (dev/em084-class-effects.md 3; READ 0x1069b88 / 0x1069cbc / 0x106af68 / 0x106eff4..0x106f214 /
+// 0x10698d0). Per frame his vt+0x2a8 asks: the motion 0x341 (L3 M65) and the latch E+0xcb20 clear -> 0x106af68 sets the latch
+// and requests c 1001 (= c 800, vt+0x1cc) THREE times, each through a control block of its own (schedule.js placeEvent): the
+// point P+0x40.. + (x cos + z sin, y, z cos - x sin) x size (0xbe518), (x, y, z) action-tune vec i (0x6f640(e, i), i = 1..3),
+// the angle u16 P+0x54 x 9.58738e-05 (0x38c90fdb); the scale vec 4; +0x14 |= 0x40000000, +0x1c |= 3, +8 = 3. 0x10698d0 stops
+// all three (0x329c40(h, 0)), clears the handles and the latch: at EVERY action start (vt+0x204 0x10679c8) and on L3 M66 as it
+// crosses frame 172 (0xb0968(e, 0, 0) with tune float 0x27 = 172.0, 0x1069d88..0x1069dc0) -- the (10, 0xaf) chain M64 -> M65 ->
+// M66 is one action in the game; the viewer plays each clip as its own play, so c 800 runs while L3 M65 plays and stops at the
+// next play. The two scene objects 0x106af68 enables (E+0x262a0 / +0x262a4, 0xc44c70) are NOT read and not drawn.
+// Tune (em084_00_actiontune.fup: 40 ints at 0x14, 277 floats at 0xb4, 9 vecs of 12 bytes at 0x508 -- the length closes, and vecs
+// 1..4 are the ones read through 0x3cb35c): [1] (430, 250, 1350), [2] (420, 280, 1200), [3] (410, 310, 1050), [4] (1.8, 2.3, 1.8).
+// RECORDED AND ON (2026-10-19): em084_00_200's effect took paths no recording had -- 0xaf6734 in L_af63c4, then a call to
+// 0xaf6ac0 (from 0xaf6740) that no lift line named; efx sets add_em084_00_c800 / _stop / _near recorded with 0xaf6ac0 on
+// lifted-added.js's line, lifted. `on` is the switch (dev/checks/em084_00.mjs reads it: its c 800 block runs when on).
+const C800 = { on: true, pel: 'em084_00c', key: 800, vecs: [[430, 250, 1350], [420, 280, 1200], [410, 310, 1050]], scale: [1.8, 2.3, 1.8].map(Math.fround) };
+const c800 = { rt: null, play: null, lit: false };
+function c800Requesters(){
+  const f = Math.fround, P = unitGamePos().map(f), size = f(world.scale.x || 1);
+  const D = mounted.main ? mounted.main.getWorldDirection(new THREE.Vector3()) : new THREE.Vector3(0, 0, 1);
+  const yaw16 = Math.trunc(f(f(0.5) + f(f(Math.atan2(D.x, D.z)) * f(10430.3779296875)))) & 0xffff;      // P+0x54, as the unit keeps it
+  const a = f(f(yaw16) * f(9.58738019107841e-05)), sn = f(Math.sin(a)), cs = f(Math.cos(a));       // 0x13ecc20 / 0x13ecc2c
+  return C800.vecs.map(([vx, vy, vz]) => {
+    // 0x106f178..0x106f1bc, each product and sum rounded to a float as vmul / vmla / vmls do
+    const s0 = f(f(vx * cs) + f(vz * sn)), s2 = f(f(vz * cs) - f(vx * sn));
+    return { position: [f(P[0] + f(s0 * size)), f(P[1] + f(vy * size)), f(P[2] + f(s2 * size))],
+             scale: C800.scale, flags14: 0x40000000, flags1c: 3, type8: 3 };
+  });
+}
+function stepC800(rt){
+  const here = !!rt && state.id === 'em084_00' && C800.on;
+  if (!here || rt !== c800.rt){ c800.rt = here ? rt : null; c800.lit = false; c800.play = null; if (!here) return; }
+  // a play is an action start to his vt+0x204 (0x10679c8 -> 0x10698d0): a new clip, a replay, another action on the same clip
+  const play = plays.key ? plays.key + '#' + plays.n + '#' + plays.token : null;
+  if (play !== c800.play){
+    if (c800.lit) rt.holdEvent(C800.pel, C800.key, false);
+    c800.lit = false; c800.play = play;
+  }
+  const m = play && plays.motion;
+  if (!c800.lit && m && String(m.list) === '3' && m.clip === 'Motion[65]'){ rt.placeEvent(C800.pel, C800.key, c800Requesters()); c800.lit = true; }
+}
 // the canvas and the effects composer resize together (fitRenderer)
 new ResizeObserver(fitRenderer).observe(viewport);
 addEventListener('resize', fitRenderer);
@@ -8839,8 +10376,12 @@ renderer.setAnimationLoop(() => {
   inLoopTravel(lastInLoop);
   driveClipEffects();
   driveMotionStates();
+  stepAttackBoxes();
+  stepWings();
   driveZoneFrameMode();
   stepAttached();
+  drivePartnerEffects();                   // his own effects, on his clip as stepAttached just posed it
+  driveArmEffects();                       // Nakarkos's tentacles' own effects, on each arm's clip
   updateDepthBias();
   // the ROM's own material animation: scrolling UVs, pulsing alpha, tinted glows
   if (state.matAnim !== false){
@@ -8863,6 +10404,7 @@ renderer.setAnimationLoop(() => {
     } else {
       for (const g of Object.values(mounted)) stepMatAnim(g, t, st, mid, tStateChanged, prevMatState, levelClip());
     }
+    applyCloakAlpha025();                  // Chameleos's model alpha over what the materials just set
     // Refract samples the scene colour, so the capture has to happen AFTER the animation has set
     // fDistortionFactor / fDistortionBlend for this frame and BEFORE the visible render.
     // through the lens's own camera, so what refracts is the scene as this frame will frame it
@@ -8906,6 +10448,8 @@ async function runScene(name){
 }
 window.__view = { camera, controls, scene, world, renderer, frameAll, pose, state, MON, mounted,
                   monsterMats, runScene, capture: captureHarness, clip: clipHarness,
+                  unitGamePos: () => unitGamePos(),          // P+0x40 in game units, as the page forms it (dev/checks/em084_00.mjs c 800)
+                  c800: () => C800.on,                       // whether Nakarkos's placed c 800 is driven (index.html stepC800)
                   // the attached bodies' pose and frames (Nakarkos's tentacles), for a harness that steps the body itself
                   // (dev/shell-capture.mjs): the render loop runs it after the body's step, and without it their joints stay
                   // at the bind pose
@@ -9208,11 +10752,19 @@ window.__view.partner = async on => {
   if (!spec) return { partner: null };
   if (on !== undefined){
     await setPartner(e, !!on);
-    const sel = document.querySelector('#monGroups .field[data-row="partner:' + spec.monster + '"] select');
-    if (sel) sel.value = partnerOn[e.id] ? '1' : '0';
+    syncPartnerRow(e);          // the row shows whether he is on: a combined / solo / release clip overrides the choice
   }
   const a = attached.get(spec.monster), g = mounted[spec.monster];
-  if (!a || !g) return { partner: spec.monster, on: !!partnerOn[e.id], mounted: false };
+  const pcls = partnerClassAt(e, listOf(e), clipOf(listOf(e)));
+  const prow = monGroupsEl.querySelector('.field[data-row="partner:' + spec.monster + '"] select');
+  // his own effect runtime (drivePartnerEffects): what its walker was handed last, what it started, whether it stopped
+  const prt = partnerEffectRuntime(), pc = prt && prt.schedule && prt.schedule.clip;
+  const fx = prt ? { monster: prt.monsterId, onHim: !!(g && prt.root === g), key: pc ? pc.key : null, frame: pc ? +pc.frame.toFixed(2) : null,
+                     mask: pc ? pc.mask : null, play: pc ? pc.play : null, bits: pc && pc.motion ? pc.motion.bits.length : 0,
+                     starts: prt.schedule ? prt.schedule.starts : 0, running: prt.stats.running || 0, steps: prt.stats.steps || 0,
+                     failed: prt.failed || null, notHers: prt !== effectRuntimeInstance() } : null;
+  if (!a || !g) return { partner: spec.monster, on: !!partnerOn[e.id], mounted: false, class: pcls,
+                         rowDisabled: prow ? prow.disabled : null, bodyList: state.list, bodyClip: state.clip, fx };
   stepAttached();
   const at = o => new THREE.Vector3().setFromMatrixPosition(o.matrixWorld).toArray().map(v => +v.toFixed(3));
   const s = new THREE.Vector3(); a.frame.matrix.decompose(new THREE.Vector3(), new THREE.Quaternion(), s);
@@ -9222,13 +10774,28 @@ window.__view.partner = async on => {
   let eye = null;
   g.traverse(o => { if (!eye && o.material && o.material.name === (spec.matClip || {}).mat && o.material.emissive) eye = o.material.emissive.toArray().map(v => +v.toFixed(3)); });
   return { partner: spec.monster, on: !!partnerOn[e.id], mounted: true, bodyJoint: spec.joint,
-           bodyJointAt: at(a.jointNode), partnerJoint0At: b0 ? at(b0.node) : null, frameScale: +s.x.toFixed(3),
+           bodyJointAt: at(a.jointNode), frameAt: new THREE.Vector3().setFromMatrixPosition(a.frame.matrix).toArray().map(v => +v.toFixed(3)),
+           released: !!(a.pick && a.pick.release), dead: !!a.deadNow, unl: a.pick && a.pick.unl ? { kind: a.pick.unl, commitAt: a.pick.plan && a.pick.plan.commitAt,
+             tLand: a.pick.plan && a.pick.plan.tLand, yaw: a.pick.plan && a.pick.plan.base ? +a.pick.plan.base.yaw.toFixed(4) : null,
+             floor: +monsterFloorY().toFixed(3), layout: (a.pick.layout || []).map(x => [x.list, x.clip, x.from, x.frames]) } : null,
+           frameYaw: (() => { const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().extractRotation(a.frame.matrix)); const f = new THREE.Vector3(0, 0, 1).applyQuaternion(q); return +Math.atan2(f.x, f.z).toFixed(4); })(),
+           wingParts: a.wingParts ? a.wingParts.slice() : null, groupsOn: a.groupsOn ? a.groupsOn.slice() : null, partnerJoint0At: b0 ? at(b0.node) : null, frameScale: +s.x.toFixed(3),
            worldScale: +world.scale.x.toFixed(3), clip: a.driver.action ? a.driver.action.getClip().name : '(bind pose)',
            list: a.driver.action && a.pick ? a.pick.list.id : null, paired: !!(a.driver.action && a.pick && a.pick.paired),
            romPair: !!(a.driver.action && a.pick && a.pick.rom), hold: a.pick && typeof a.pick.hold === 'number' ? +a.pick.hold.toFixed(4) : null,
            clipTime: a.driver.action ? +a.driver.action.time.toFixed(4) : null,
            bodyList: state.list, bodyClip: state.clip,
-           drawnParts: [...parts].sort((x, y) => x - y), eyeEmissive: eye };
+           class: pcls, rowDisabled: prow ? prow.disabled : null, mode: a.pick ? a.pick.mode : null,
+           start: a.pick && a.pick.start != null ? +a.pick.start.toFixed(4) : null,
+           layout: a.pick && a.pick.layout ? a.pick.layout.slice(0, 40).map(x => ({ ...x })) : null,
+           freePass: a.pick && a.pick.mode === 'free' ? (a.freePass || 0) : null,
+           bodyTime: pose.action ? +pose.action.time.toFixed(4) : null,
+           local: pose.action ? partnerLocalAt(a, Math.round(pose.action.time * 60)) : null,
+           clawStage: a.clawStage != null ? a.clawStage : null, clawSet: a.clawSet != null ? a.clawSet : null,
+           herSide: listOf(e) && listOf(e).partner ? partnerBodyShown : null,
+           routed: (() => { const q = seqMotionNow(); return q && q.partner ? { list: q.list, clip: q.clip, frame: +q.frame.toFixed(2), whole: q.whole } : null; })(),
+           rowValue: prow ? prow.value : null,
+           drawnParts: [...parts].sort((x, y) => x - y), eyeEmissive: eye, fx };
 };
 window.__view.matAnim = on => {
   let touched = 0;

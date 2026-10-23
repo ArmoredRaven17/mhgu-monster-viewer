@@ -122,3 +122,23 @@ Order: the word (1) first, then --apply, so c 150 / c 151 are never bound ungate
 
 NOT READ, by name: the value of P+0x5c at L0 M2's start (`state.sunk`); the update order that decides whether
 c 1105 fires once for him; the `+0x1404` / `+0x1408` latch setters (u 1400).
+
+## Re-walk 2026-10-18 (Fanged-Wyvern effects agent): tracer diff, request census, word re-emulation
+
+**L0 M2's burrow asks u 1121.** `0xe3a5c8` is `0xa499c(e, 1)`: the u 1400 sweep was right that it is not u 1400, and the request it is -- u 1121 (cm200_007), held while the clip plays -- had no row. Traced (reqtrace.py): (6, 2 / 6 / 7 / 8) ask it; every other L0 M2 play (the walks, (1, 0xb..0xd), (6, 3 / 9 / 0xc..0xf), (7, 6..0xd), (8, 0)) asks nothing. Viewer: CLIP_ACTIONS em033_00 L0 M2 copies A / B (6, 2), MOTION_STATES '0|Motion[2]#B' hold u 1121 (an event twin of the puff record); dev/checks/level-copies.mjs.
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* **The `+0x1404` / `+0x1408` latch setters -- READ before this sweep** (rom-map rows "bit 20 of e+0x1404" .. "so the latch's u
+  1400 can fire only ..", 2026-10-17): bit 20 is raised only by class code before a posture-4 dive, and uEm033_00 is not among
+  them; `+0x1408` bit 0 only by Lavasioth. Akantor's u 1400 is his class call `0xe3a5c8` (level 1 = u 1121) or nothing. Superseded.
+* **c 1105's update order -- READ**: the action main (and the default his (10, 0x6e) falls to) runs in the vt+0x24 chain
+  (`0xada80` -> `0xa5940`), c 1105's request `0xa4518` in vt+0x28's `0xae370`, and sUnit's line pass `0xc04728` calls +0x24 then
+  +0x2c then +0x28 for each unit (I: that the enemy's line is that pass -- it is sUnit's only +0x28 caller). So his (10, 0x6e) is
+  gone before the request asks: **no c 1105 for Akantor**. The refusal is now the ROM's answer (rom-map row `0xae32c`).
+* `state.sunk` at L0 M2: category c (the cross-monster "Begins burrowed" toggle, dev/effects-open-items.md X1).
+* **Begins Burrowed -- BUILT 2026-10-19** (CLASS_TOGGLES `burrowed`, working label, approved by Raven): on, every posture-4 play
+  reads sunk (0x81d6c: posture 4 and P+0x5c below 0.9 x MoguriBaseOfs); off, only the entries that name sunk. Checked on
+  Basarios's L0 M7 B (dev/checks/class-toggles.mjs).

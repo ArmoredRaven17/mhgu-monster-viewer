@@ -35,8 +35,12 @@ export function clobber(c, keepR0 = false){
 }
 
 const LIFTED = new Map();                 // address -> (m, c) => void
-export function registerLifted(table){ for (const [a, f] of Object.entries(table)) LIFTED.set(Number(a), f); }
-export function registerNative(address, fn){ LIFTED.set(address, fn); }
+// A HAND NATIVE WINS over a lift of the same address, whatever the import order: proof.js imports bridge.js (and its
+// natives) before lifted-added.js, so a routine a recording also lifted (0x881d94, the view's sphere test) took the lift's
+// partial copy -- "0x881e38 falls into unrecorded code" with a complete native registered (2026-10-18).
+const NATIVE = new Set();
+export function registerLifted(table){ for (const [a, f] of Object.entries(table)) if (!NATIVE.has(Number(a))) LIFTED.set(Number(a), f); }
+export function registerNative(address, fn){ NATIVE.add(address >>> 0); LIFTED.set(address >>> 0, fn); }
 export function lifted(address){ return LIFTED.get(address); }
 
 export function call(m, c, address){

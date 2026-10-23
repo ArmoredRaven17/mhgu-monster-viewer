@@ -173,6 +173,11 @@ async function pageCheckNibelsnarf(){
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }
+  // THE ENABLE WORD (psl-mask.js em056_00; dev/em056_00-effects-spec.md): 0xeea464 -- L0 M1 / M2 15-17 unless (6, n in 0x62059)
+  { const PM = await import('/render/psl-mask.js');
+    const W = (n, a) => PM.pslMask(MON, '0', n, a, {});
+    check(PM.PSL_MASK_MONSTERS.includes(MON) && W(1, null) === 0x381ff && W(2, [6, 3]) === 0x1ff && W(2, [6, 1]) === 0x381ff && W(3, null) === 0x1ff,
+          'the word: L0 M1 / M2 15-17, none under (6, 3), on under (6, 1)'); }
   S.start = s0;
   check(!fx.failed, 'the effect runtime never stopped', fx.failed);
   return out;

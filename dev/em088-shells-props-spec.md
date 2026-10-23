@@ -297,3 +297,14 @@ numbers.)
 - The (7, n) -> clip rows (states agent) that would turn the swing-clip list from INFERRED to READ.
 - Whether the uCoord parent joint `+0x34` is a joint NUMBER or an index (`0x457c8` stores it; the consumer not read).
   The probe's coherent placement and Ahtal-Ka having only 43 joints (index 130 impossible) say number: INFERRED.
+
+## Addendum 2026-10-20 (shells agent's decode helper; scratchpad gapE/RESULT.md) -- the anchors' sub-states 2 / 3, BUILT
+
+- shell60: the re-aim `0x4380e4` ((7, 0x2c) L2 M16, (7, 0x2f) / (7, 0x36) L2 M3 / M2, (7, 0x31) L2 M17 -> the throw (7, 0x32) at 160)
+  sets sub 2 with T = target + vec 2 turned by the yaw H -> target; sub 2 `0x436c94` (back to H, timer f6 x 60, the drop f8 to D,
+  u 331 stopped, the shakes); sub 3 `0x437a20` flies to T at f1 -- u 301 (ef 7, `0x437c2c`, the only site) and u 231, u 300 stopped;
+  at T u 310.
+- shell61: the orbit `0x43a374` ((7, 0x34), reached only from (7, 0x33)'s chain at f86, L2 M35 from 94) sets sub 2 `0x4397ec`: u 360
+  (ef 4, `0x4398e4`), u 331 stopped, the orbit round his spawn point until its spin changes sign, a timer, the dive; sub 3 `0x439c10`
+  hops and lands with u 310. Mode 3 never leaves the orbit (floats 13 / 14 are 0). The exact orbit step is INFERRED (the game skips
+  L2 M35 to f94). Checks: dev/shells-ahtal-anchors-check.mjs 43/43 (ROM), shells-ahtal-check 72/72.

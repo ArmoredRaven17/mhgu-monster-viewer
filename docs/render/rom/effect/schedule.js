@@ -85,9 +85,10 @@ export class EffectSchedule {
     }
   }
 
-  start(e){
+  start(e, requester){
     const r = e.def.record;
-    e.requests.push(this.host.requestEffect(e.owner, this.parent, { index: r.index, key: r.key, path: r.path, payload: hex(r.payload) }));
+    e.requests.push(this.host.requestEffect(e.owner, this.parent, { index: r.index, key: r.key, path: r.path, payload: hex(r.payload) },
+                                            undefined, requester || null));
     this.starts++;
   }
 
@@ -134,17 +135,54 @@ export class EffectSchedule {
     return out;
   }
 
+  // A CLASS'S PLACED REQUESTS -- Nakarkos's c 800 (dev/em084-class-effects.md 3, READ 0x106eff4..0x106f214): one request per
+  // requester, each a control block the class fills itself (0x40a54; +0xc the area byte, +0xd0 its model's handle vt+0x130,
+  // +8 = 3, +0x1c |= 3, +0xc0.. the point (w 0), +0x14 |= 0x40000000 with +0x40.. a scale (w 0) -- proof.js's requester form,
+  // whose ctor leaves +4 = 0 as 0x40a54 does). The class keeps the handles and stops them with 0x329c40(h, 0): holdEvent off.
+  // requesters: [{ position, scale, flags14, flags1c, type8 }] in game units. Returns the requests it started.
+  placeEvent(pel, key, requesters){
+    const out = [];
+    for (const e of this.entries){
+      if (e.when !== 'event' || !e.def.record || e.def.record.pel !== pel || e.def.record.key !== key) continue;
+      const r = e.def.record;
+      for (const req of requesters){
+        const q = this.host.requestEffect(e.owner, this.parent, { index: r.index, key: r.key, path: r.path, payload: hex(r.payload) },
+                                          undefined, req);
+        e.requests.push(q);
+        this.starts++;
+        out.push(q);
+      }
+    }
+    return out;
+  }
+
   // AN EVENT'S EFFECT HELD while its state lasts -- Savage's stun: 0xa3ef0 requests c 1103 once, into one handle, and
   // 0x6f124 stops it with 0x329c40(h, 0) when the stun ends. On starts it unless one of its requests runs un-stopped;
   // off stops those (they run out, as a stop request does).
-  holdEvent(pel, key, on){
+  //   A STOPPED REQUEST IS NOT DRAWN UNTIL IT HAS MOVED (2026-10-18, Fanged agent; dev/em082-effects-spec.md 6). The class code
+  // that stops a held handle (0x329c40) runs in the enemy update, ahead of the effects' passes, so the game never draws a request
+  // stopped since its last move. The viewer stops from the motion-states driver, outside the step -- and a render with no step
+  // (a clip change gives `advance` 0; a paused clip) drew the stopped request unmoved: Soulseer's u 310 left early in L9 M5 sent
+  // its GPU batch's flush 0xb978cc in with nothing staged ([sb+0xf8] == 0 -> 0xb97b64), a state the game cannot reach. The stop
+  // itself stays immediate (a paused viewer must still stop it: Nibelsnarf's stun chain c 1103); the request is stamped with
+  // the step it was stopped in, and effects() leaves it out until a step has moved it.
+  // A HELD EVENT'S FADE: the class's per-frame write of unit 0's colour block (host.tintRequestUnit0) on its live requests
+  alphaEvent(pel, key, a){
+    for (const e of this.entries){
+      if (e.when !== 'event' || !e.def.record || e.def.record.pel !== pel || e.def.record.key !== key) continue;
+      for (const q of e.requests) if (!q.stopped && q.core) this.host.tintRequestUnit0(q, a);
+    }
+  }
+  // (requester: the class's own block for the request, proof.js -- Teostra's aura u 0 / u 10: +0x14 |= 0x20, root joint +0x52 = 3)
+  holdEvent(pel, key, on, requester){
     for (const e of this.entries){
       if (e.when !== 'event' || !e.def.record || e.def.record.pel !== pel || e.def.record.key !== key) continue;
       const live = e.requests.filter(q => !q.stopped);
-      if (on){ if (!live.length) this.start(e); }
-      else for (const q of live) this.host.stopRequest(q);
+      if (on){ if (!live.length) this.start(e, requester); }
+      else for (const q of live){ this.host.stopRequest(q); q.stoppedAtStep = this.frame || 0; }
     }
   }
+
 
   // A RAGE RECORD HELD OFF by its monster's code -- Savage's eyes while asleep: 0xe80500 stops the eyes handle with
   // 0x329c40(h, 0) while 0x81bb0(e, 0) or (e, 1) holds, the aura left running, and requests them again when neither
@@ -180,6 +218,57 @@ export class EffectSchedule {
   // calm and tired, 0x7206c counts it down and each time it fires it is set to the period again and c id 4 is requested
   // (0xa42d0..0xa4334); calm and not tired, nothing. Zeroed by the reset and while enraged, so tiredness drools at once.
   setTiredDrool(spec){ this.drool = spec ? { period: spec.period, record: spec.record, left: 0 } : null; }
+  // THE GORE LINE'S SLOT RING (effects lane, 2026-10-20; READ: 0xfc05ec, 0xfaf318, the ctor 0xfad6cc..0xfad7b4, vt+0x1dc 0xfae96c..
+  // 0xfae9cc; dev/rom-map.md "Class requests driven"). Two slots in the control block (C + 0x40k: byte +0 = 0xff free, else the
+  // counter it was filled at; +0x10.. the point; +0x2c / +0x30 s0 / s1; +0x38 the u 30 handle), the counter C+0x80 (0..3) and the
+  // live count C+0x81 (bytes). ringFill is one call of a fill site: the caller steps the counter (+1, 4 -> 0) and k = counter & 1;
+  // 0xfc05ec: a busy slot k is burst first (0xfaf318: stop its handle 0x329c40(h, 0), id 1002 = u 31 at its point with +0x1c |= 3,
+  // +8 = 1; byte 0xff; count - 1); flag 0 -> the ground query 0x183664 from the point + 500 down: a hit within 500 below takes its
+  // height, none -> no fill (the counter stays stepped); then the slot is filled, and while count <= 1 id 1001 = u 30 is requested at
+  // the point (+0x1c |= 3, +8 = 2) and count + 1. Every frame each busy slot's +0x30 counts down 1.0 (0x7206c); at <= 0 it is burst.
+  // The ground is the stand-in floor plane (host.stageFloorY, the same answer as 0x18154c's).
+  ringFill(pel, { position, s0 = 400, s1 = 240, flag = 1 }){
+    const R = this.ring || (this.ring = { pel, counter: 0, count: 0, slots: [{ byte: 0xff }, { byte: 0xff }] });
+    R.pel = pel;
+    R.counter = (R.counter + 1) & 0xff; if (R.counter >= 4) R.counter = 0;
+    const k = R.counter & 1;
+    const out = { k, burst: null, filled: false, requested: false };
+    const p = position.map(Math.fround);
+    if (flag === 0){
+      const floor = Math.fround(this.host.stageFloorY || 0), from = Math.fround(p[1] + 500);
+      if (!(floor <= from)) return out;                                   // no hit below the ray's start
+      if (!(Math.fround(p[1] - floor) <= 500)) return out;                // farther than 500 below: no fill
+      p[1] = floor;
+    }
+    if (R.slots[k].byte !== 0xff) out.burst = this.ringBurst(k);
+    R.slots[k] = { byte: R.counter, point: p, s0: Math.fround(s0), life: Math.fround(s1), handle: null };
+    out.filled = true;
+    if (R.count <= 1){
+      const q = this.placeEvent(pel, 30, [{ position: p, flags1c: 3, positionOnly: true, type8: 2 }]);
+      R.slots[k].handle = q[0] || null;
+      R.count = (R.count + 1) & 0xff;
+      out.requested = true;
+    }
+    return out;
+  }
+  ringBurst(k){
+    const R = this.ring, s = R.slots[k];
+    if (s.handle && !s.handle.stopped){ this.host.stopRequest(s.handle, 0); s.handle.stoppedAtStep = this.frame || 0; }
+    this.placeEvent(R.pel, 31, [{ position: s.point, flags1c: 3, positionOnly: true, type8: 1 }]);
+    R.slots[k] = { byte: 0xff };
+    R.count = (R.count - 1) & 0xff;
+    return s.point;
+  }
+  stepRing(){
+    const R = this.ring;
+    if (!R) return;
+    for (const k of [0, 1]){
+      const s = R.slots[k];
+      if (s.byte === 0xff) continue;
+      s.life = Math.fround(s.life - 1);
+      if (s.life <= 0) this.ringBurst(k);
+    }
+  }
   stepDrool(){
     const D = this.drool, G = this.gates || { paused: false, tired: false };
     if (!D || G.paused) return;
@@ -220,6 +309,7 @@ export class EffectSchedule {
     this.walk();
     this.stepPuff();                  // the +0x28 pass's request, ahead of the effects' own passes
     this.stepDrool();                 // the same handler's other branch (0xa41b8): rage and tiredness exclude each other
+    this.stepRing();                  // the Gore line's slot timers (vt+0x1dc 0xfae96c..0xfae9cc), in the enemy update
     // between the passes: the class's own thread pass (its vt+0x208, the enemy's line) ahead of the shells' moves
     this.host.unitFrame(this.shells || this.threads ? () => { if (this.threads) this.stepThreads(); if (this.shells) this.stepShells(); }
                                                     : undefined);
@@ -279,7 +369,8 @@ export class EffectSchedule {
         const was = (W.values >>> b.bit) & 1, is = (now >>> b.bit) & 1, word = this.words + 4 * b.bit;
         if (was && is) m.w32(word, (m.u32(word) | 1) >>> 0);
         else if (was) m.w32(word, (m.u32(word) | 2) >>> 0);
-        else if (is) for (const q of this.startClip(b.efl, b.key)) m.w32(q.core + 0x194, word);
+        // `pslRefuse`: the class's PSL start gate refuses every start (Chameleos fully cloaked: vt+0x12c 0xdff12c; index.html)
+        else if (is && !this.pslRefuse) for (const q of this.startClip(b.efl, b.key)) m.w32(q.core + 0x194, word);
       }
       W.values = now;
     }
@@ -368,12 +459,16 @@ export class EffectSchedule {
     // position and angles -- the parent carries both (host.setParentAngles: 0x539cd4 -> 0x8a4dfc)
     // the parent's scale is the shell unit's own +0x60 (host.composeParent) -- the ShellScale its requester carries, unless
     // the shell's class sets its unit's size itself (shells.js unitScale: Ukanlos's beam children, 0x43ab74)
-    const scaleOf = sh => sh.unitScale != null ? sh.unitScale : sh.start.requester.scale[0];
-    const pose = sh => sh.angles && !sh.place
-      ? this.host.setParentAngles(sh.parent, { position: sh.position, angles: sh.angles, scale: scaleOf(sh) })
-      : this.host.setParentPose(sh.parent, { position: sh.position, quaternion: [0, 0, 0, 1], scale: scaleOf(sh) });
+    // (a shell whose init started nothing -- the Gore line's sp_01 2 / 5, ef 0 (999, -1), whose first effect is the 0x20 switch's --
+    // has no sh.start: the ShellScale is the starting request's, `st`; shells agent 2026-10-19)
+    const scaleOf = (sh, st) => sh.unitScale != null ? sh.unitScale : sh.start ? sh.start.requester.scale[0] : st ? st.requester.scale[0] : sh.scale0;
+    const pose = (sh, st) => sh.angles && !sh.place
+      ? this.host.setParentAngles(sh.parent, { position: sh.position, angles: sh.angles, scale: scaleOf(sh, st) })
+      : this.host.setParentPose(sh.parent, { position: sh.position, quaternion: [0, 0, 0, 1], scale: scaleOf(sh, st) });
     // a tally of what the shells did, for the dev soaks (dev/effect-live-soak.mjs): every shell spawned, and every spawn
     // the module refused with its reason (out.refused -- nothing else reads it; the last 50 kept)
+    // a shell's call into its owner's slot ring (the Gore line's sp_00 landing 0xfc2034 / sp_03 end 0xfc3164 -> 0xfc083c: flag 0)
+    for (const f of out.ownerFills || []) this.ringFill(f.pel, f);
     const T = this.shellTally || (this.shellTally = { spawned: 0, beams: [], refused: [] });
     T.spawned += out.spawned.length;
     for (const sh of out.spawned) if (sh.base === 'base02g' || sh.base === 'base02')
@@ -403,6 +498,10 @@ export class EffectSchedule {
     // each moving shell places its effect (0x329c9c / 0x329d04); an ended one stops it gracefully (0x329c40(h, 0))
     for (const sh of out.alive){
       if (sh.parent && sh.position) pose(sh);
+      // a shell that writes its handle's draw byte core+0x1c1 itself (Lao-Shan Lung's rubble: 0 while its delay runs, 1 after --
+      // shells.js make012s13 / delay012s13; 0x43370 copies it to +0x18c, which 0x327214 turns into its units' +0xc bit 11): written
+      // as the shell changes it
+      if (sh.shown1c1 != null && sh.request && alive(sh) && sh.wrote1c1 !== sh.shown1c1){ m.w8(sh.request.core + 0x1c1, sh.shown1c1); sh.wrote1c1 = sh.shown1c1; }
       if (sh.place && sh.request && alive(sh)) this.host.placeRequest(sh.request, sh.place.position, sh.place.rotationDeg);
       // a beam's drawn length (base02 flag bit 2, 0x3fc540..0x3fc5e8): its effect's units scaled to (1, 1, length / 100)
       if (sh.scaleZ != null && sh.request && alive(sh)) this.host.scaleRequestUnits(sh.request, [1, 1, sh.scaleZ]);
@@ -412,7 +511,8 @@ export class EffectSchedule {
     }
     // a beam's impact handle dropped (no hit this frame, 0x3fc198..0x3fc1b8; or the beam's end, 0x3fc698)
     for (const sh of out.alive.concat(out.ended)){
-      if (sh.stop2 && sh.stop2.request && reqAlive(sh.stop2.request) && !sh.stop2.request.stopped) this.host.stopRequest(sh.stop2.request);
+      // (stop2.atOnce: the handle KILLED, its vt+0x40 0x43384 -- base58's miss, shells.js step58 -- stopped at once)
+      if (sh.stop2 && sh.stop2.request && reqAlive(sh.stop2.request) && !sh.stop2.request.stopped) this.host.stopRequest(sh.stop2.request, sh.stop2.atOnce ? 1 : 0);
       if (sh.stop2) sh.stop2 = null;
     }
     // a rock's bounce / landing effect: started by its move at the contact point (placed: placement mode 3), hung from
@@ -422,13 +522,21 @@ export class EffectSchedule {
       if (!e) continue;                                           // no such record exported: the effect is not there
       // a shell whose init started nothing of its own (its first effect comes from a later move: Ahtal-Ka's base57 starts
       // ef 0 at its landing, ef 4 on the pull) has no parent yet: the same model-less parent the spawn would have made
-      if (!sh.parent){ sh.parent = this.host.createParent([], { model: false }); if (sh.position) pose(sh); }
+      if (!sh.parent){ sh.parent = this.host.createParent([], { model: false }); sh.scale0 = start.requester.scale[0]; if (sh.position) pose(sh, start); }
       const r = e.def.record;
       const q = this.host.requestEffect(e.owner, sh.parent, { index: r.index, key: r.key, path: r.path, payload: hex(r.payload) },
                                         undefined, start.requester);
       e.requests.push(q);
       this.starts++;
       if (start.slot && sh.handles) sh.handles[start.slot] = q;          // a named handle (Ahtal-Ka's anchors, shells.js start60)
+      else if (start.kind === 'reflight'){
+        // a new flight into the shell's own handle (Gammoth's split, shells.js post083s13: 0x329c40(h, 1) on +0x1674, then ef 3
+        // into it): the old request stopped at once, the new one the shell's request from here on (its end stops it); the move's
+        // flag-1 stop event is this one, applied here
+        if (sh.request && reqAlive(sh.request) && !sh.request.stopped) this.host.stopRequest(sh.request, 1);
+        sh.request = q;
+        for (const ev of sh.events || []) if (ev.ev === 'stop' && ev.reflight) ev.__applied = true;
+      }
       else if (start.kind === 'switch' && sh.effect3) sh.effect3.request = q;   // base01's 0x20 switch: its +0x162c handle
       else if (start.kind === 'end' && sh.effect4) sh.effect4.request = q;  // base01's end start of +0x15d4 (Boltreaver's 04_01): +0x1630
       else if (sh.effect2) sh.effect2.request = q;
@@ -549,7 +657,7 @@ export class EffectSchedule {
   }
 
   // the effects to draw this frame: every request not yet finished, a stopped one included -- it runs out on screen
-  effects(){ return this.entries.flatMap(e => e.def.record ? e.requests.flatMap(q => q.effects()) : [e.owner]); }
+  effects(){ return this.entries.flatMap(e => e.def.record ? e.requests.flatMap(q => (q.stoppedAtStep !== undefined && q.stoppedAtStep === (this.frame || 0)) ? [] : q.effects()) : [e.owner]); }
   // requests and plain effects running
   get running(){ return this.entries.reduce((n, e) => n + (e.def.record ? e.requests.length : 1), 0); }
 }

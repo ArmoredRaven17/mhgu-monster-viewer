@@ -242,3 +242,18 @@ NOT READ, by name: `0x3b8eb4` and `0x3b519c` (what the quest number is -- shells
 `e+0xb5f0` holds exactly the ids states-em001.md lists (the arm reads it; the values are that note's); what c 60 / 61 / u 290 /
 291 / 522 / 523 / 550 would be on Rathian (no records); the em-2 arm L4 M32 and Dreadking's thresholds (the Rathalos read);
 who issues (7, 0xf5); what any record looks like.
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* **`e+0xb5f0` -- READ.** The spawn's id setter `0x6fa58` stores the id word whole (`0x6fa78`) and derives the em byte (bits 0-7)
+  and the variant byte (bits 8-11) from it; the id table `0x1594ca4` holds, for em byte 1, only 1 / 0x201 / 0x401 (and 0x1001, bit
+  12: another descriptor, I a small monster). So the halfword the L2 M1 arm reads is exactly states-em001.md's ids: no viewer change.
+* **Who issues (7, 0xf5) -- READ before this sweep** (rom-map rows `0xcf15c8` sel 0xe and the em002_02 Withdrawn row): em001_00_cmdtbl
+  g1 s224 / s235 in op 0x6f(0xe)'s default, `[ctl+0x2c] >= 0.0` -> 1; the table is shared by all six Rath-line monsters. The line
+  above ("who issues (7, 0xf5)") is answered there.
+* Still open, category a: the quest number (`0x3b8eb4` / `0x3b519c`). Category c: an enraged-and-tired start (a Tired toggle).
+* **Tired (with Rage) -- BUILT 2026-10-19** (CLASS_TOGGLES `tiredRage`, working label): with Enraged on, the play reads tired
+  (0x81614 is P+0x505 alone; the stamina machine 0xbd1a4 sets it with no rage test), so L2 M1 / L4 M32 lose bits 24-26 as the ROM
+  does. Checked on Rathalos L2 M3 (class-toggles.mjs).

@@ -235,3 +235,13 @@ NOT READ, by name: Glavenus's dark state as a viewer input (stand-in 0); what ea
 whether the PSL author meant L9 M15 b23's u 503 (the only off-pattern record in the tail forms) -- it is never enabled on
 Hellblade either way; the writers `0xffe438..0xffe718` of P+0x1bb site by site (the decode notes' tables are used as
 theirs).
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* **P+0x1bb's writers -- READ site by site** (rom-map row "P+0x1bb writers in uEm080_00's band"): the dark bit is set when the tail
+  gauge e+0xcae4 falls to actiontune int 4 (0) and cleared by the vent (`0x1004930`) or the gauge's rise; the hot bit at the gauge's
+  top (int 2 = 100) and cleared at int 3 (0). The decode notes' table (section 1) is now the class's own read, not theirs.
+* Still open, category c: the dark state as a viewer input (a "Tail state" select: Normal / Hot / Dark -- the dark forms bits 22-23
+  are the same records at the same frames as the normal ones, so on screen it changes nothing but which bits light).

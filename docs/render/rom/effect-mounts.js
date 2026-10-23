@@ -30,7 +30,8 @@
 import * as THREE from 'three';
 import { loader, loadJson, getTexture } from '../assets.js';
 import { gidBonesOf } from '../skeleton.js';
-import { LiveEffects, liveEffectsFor, setEffectGround } from './effect/live.js';
+import { LiveEffects, liveEffectsFor, setEffectGround, setEffectMeter, effectMeterReport, setEffectFloor, effectFloor } from './effect/live.js';
+export { setEffectFloor, effectFloor };
 
 // THE ROM'S OWN EFFECTS, WHERE THEY EXIST. A monster with docs/effects/<id>.json runs its effect
 // files on the translated runtime (effect/live.js) -- placed by the joints its nodes bind to, animated
@@ -54,9 +55,101 @@ export function setEffectRuntime(on){ runtimeOn = !!on; }
 // the runtime's frame() then draws nothing. Material effects (slime, veins) are the body's own meshes, so they
 // follow the heat map on their own and are unaffected.
 let effectsSuppressed = false;
-export function setEffectsSuppressed(on){ effectsSuppressed = !!on; if (runtime) runtime.suppressed = effectsSuppressed; }
+export function setEffectsSuppressed(on){
+  effectsSuppressed = !!on;
+  if (runtime) runtime.suppressed = effectsSuppressed;
+  if (partnerRuntime) partnerRuntime.suppressed = effectsSuppressed;
+}
 export function effectRuntimeStats(){ return runtime ? Object.assign({}, runtime.stats) : null; }
+// THE BODY'S runtime -- the monster picked. Every single-runtime consumer (shell captures, the soaks, the checks, the
+// shared-state row, the steer) reads this one; a combined partner's runtime is apart (partnerEffectRuntime below).
 export function effectRuntimeInstance(){ return runtime; }
+export function effectRuntimeOn(){ return runtimeOn; }
+
+// A COMBINED PARTNER'S OWN RUNTIME (Seltas on the Seltas Queen: render/monster.js ROM_PARTNER_BODY, dev/em069-duo-spec.md).
+// In the game he is an enemy unit of his own, so his PSL walker, his requests and his effects run off HIS motion and HIS
+// joints, beside hers. A second LiveEffects on his mounted model: his effects json (em076_00*), his joints (gidBonesOf his
+// root), his unit placement (`unitSource`: the frame index.html carries him on -- her joint 200 at his own size, or where
+// he was released). index.html reconciles it every frame (drivePartnerEffects): made while he is mounted and her runtime is
+// up, dropped with him, with hers, with a monster change or the runtime switch -- and fed his clip and frame. It is never
+// returned by effectRuntimeInstance(), so nothing that reads the body's runtime sees it.
+let partnerRuntime = null;
+let partnerToken = 0;
+let partnerPending = null;        // [root, monsterId] of an attach in flight
+export function partnerEffectRuntime(){ return partnerRuntime; }
+export function partnerEffectsPending(){ return partnerPending; }
+export async function attachPartnerEffects(root, monsterId, unitSource){
+  installConsoleHook();
+  if (partnerRuntime && partnerRuntime.root === root && partnerRuntime.monsterId === monsterId) return partnerRuntime;
+  detachPartnerEffects();
+  // false: nothing to run for him (no effects of his, or none this switch shows) -- null: superseded while loading
+  if (!runtimeOn || !root || (!enabled && !autoOnRage(monsterId) && !hasClipEffects(monsterId))) return false;
+  const token = ++partnerToken;
+  partnerPending = [root, monsterId];
+  try {
+    const def = await liveEffectsFor(monsterId).catch(() => null);
+    if (token !== partnerToken) return null;
+    if (!def) return false;
+    const fx = new LiveEffects(def);
+    fx.monsterId = monsterId;
+    fx.partner = true;
+    fx.keepAcrossRage = true;
+    fx.suppressed = effectsSuppressed;
+    fx.unitSource = unitSource || null;               // live.js unitMatrix: his unit, not her world group
+    await fx.attach(root, { rage: false });           // calm: no code of either class sets or reads his rage from hers
+    if (token !== partnerToken){ fx.detach(); return null; }
+    partnerRuntime = fx;
+    return fx;
+  } finally { if (token === partnerToken) partnerPending = null; }
+}
+export function detachPartnerEffects(){
+  partnerToken++;
+  partnerPending = null;
+  if (partnerRuntime){ partnerRuntime.detach(); partnerRuntime = null; }
+}
+// MORE UNITS OF THE MONSTER'S OWN, EACH ON ITS OWN RUNTIME (Nakarkos's tentacles, board PHASE 3, 2026-10-19): in the game each arm
+// is a unit of its own class (uEmOstgaloaArm) -- its PSL walker reads ITS motion and frame on its own lists, its records come
+// from its own pels and hang from its joints. So each one gets a runtime as the partner's does (attachPartnerEffects), keyed
+// by the attached piece's name, its effects in docs/effects/<piece>.json (efx: <scratchpad>/zg/arm_export.py). index.html
+// driveArmEffects makes, feeds and drops them.
+const sideRuntimes = new Map();          // key -> LiveEffects
+const sidePending = new Map();           // key -> token of an attach in flight
+let sideToken = 0;
+export function sideEffectRuntime(key){ return sideRuntimes.get(key) || null; }
+export function sideEffectsPending(key){ return sidePending.has(key); }
+export function sideEffectKeys(){ return [...sideRuntimes.keys()]; }
+export async function attachSideEffects(key, root, monsterId, unitSource){
+  installConsoleHook();
+  const cur = sideRuntimes.get(key);
+  if (cur && cur.root === root && cur.monsterId === monsterId) return cur;
+  detachSideEffects(key);
+  if (!runtimeOn || !root || (!enabled && !autoOnRage(monsterId) && !hasClipEffects(monsterId))) return false;
+  const token = ++sideToken;
+  sidePending.set(key, token);
+  try {
+    const def = await liveEffectsFor(monsterId).catch(() => null);
+    if (sidePending.get(key) !== token) return null;
+    if (!def) return false;
+    const fx = new LiveEffects(def);
+    fx.monsterId = monsterId;
+    fx.partner = true;                    // a second unit: not the page's main runtime
+    fx.keepAcrossRage = true;
+    fx.suppressed = effectsSuppressed;
+    fx.unitSource = unitSource || null;   // live.js unitMatrix: the arm's unit (its frame on the body joint)
+    await fx.attach(root, { rage: false });
+    if (sidePending.get(key) !== token){ fx.detach(); return null; }
+    sideRuntimes.set(key, fx);
+    return fx;
+  } finally { if (sidePending.get(key) === token) sidePending.delete(key); }
+}
+export function detachSideEffects(key){
+  const keys = key == null ? [...new Set([...sideRuntimes.keys(), ...sidePending.keys()])] : [key];
+  for (const k of keys){
+    sidePending.delete(k);
+    const fx = sideRuntimes.get(k);
+    if (fx){ fx.detach(); sideRuntimes.delete(k); }
+  }
+}
 // __view.effectRuntime()        what the ROM runtime drew in its last frame (null when it is not running)
 // __view.effectRuntime(false)   back to the table-mounted models; (true) the ROM runtime again
 function installConsoleHook(){
@@ -67,6 +160,7 @@ function installConsoleHook(){
     window.__view.effectRuntime = async on => {
       if (on === undefined) return effectRuntimeStats();
       setEffectRuntime(on);
+      if (!runtimeOn){ detachPartnerEffects(); detachSideEffects(); }   // the partner's and the arms' go with it (index.html re-makes them)
       if (lastAttach) await attachEffectMounts(...lastAttach);
       return { runtime: runtimeOn, stats: effectRuntimeStats(), mounted: effectMountsLive().length };
     };
@@ -79,6 +173,14 @@ function installConsoleHook(){
     };
     // __view.effectRuntimeObj() -- the live LiveEffects instance, for inspecting the drawn meshes/host in dev.
     window.__view.effectRuntimeObj = () => runtime;
+    // __view.partnerEffectRuntimeObj() -- a combined partner's own instance (Seltas on the Queen), or null
+    window.__view.partnerEffectRuntimeObj = () => partnerRuntime;
+    // __view.sideEffectRuntimeObj(key) -- an arm's own instance (Nakarkos's 'em084_00_left' / 'em084_00_right'), or null
+    window.__view.sideEffectRuntimeObj = key => sideRuntimes.get(key) || null;
+    // __view.effectMeter(on, { every }) / __view.effectMeterReport() -- THE DRAW METER (live.js METER): what each started record draws,
+    // on every runtime; report()'s rows: starts, draws, visible meshes and why not, lit pixels, a verdict
+    window.__view.effectMeter = (on, opts) => setEffectMeter(on, opts);
+    window.__view.effectMeterReport = () => effectMeterReport();
   };
   install();
 }

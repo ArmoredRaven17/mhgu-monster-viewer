@@ -119,18 +119,21 @@ async function pageCheckElderfrost(){
   await pick(FL, 'Full Ice'); await pick(FR, 'Full Ice');
 
   // L3 M1: THE KNOCK-OFF for his three snow limbs, then the shock trap. His 1051 is the TRUNK's.
+  // Its phase is NOT assumable (the note on `rounds` above): switching the list to 3 auto-plays L3 Motion[1], its first
+  // clip, and that counts one play of the cycle (seen 2026-10-17: the knock-offs came one arm late). So four consecutive
+  // plays, and the SET of what they show: each arm once.
   const KNOCK = [[10, 1041, 'the +X leg'], [15, 1046, 'the -X leg'], [6, 1051, 'the TRUNK (his own u 1051, on joint 157)']];
-  for (const [set, key, what] of KNOCK){
+  const k4 = [];
+  for (let i = 0; i < 4; i++){
     await play(LAND[0], LAND[1]); await frames(2);
     fired.length = 0;
-    await play('3', 'Motion[1]'); await frames(3);
-    check(same(fired, [key]) && isSet(drawn(), set),
-          'L3 Motion[1] knocks the snow off ' + what + ': set ' + set + ', u ' + key, { fired, d: drawn() });
+    await play('3', 'Motion[1]'); await frames(3); await steps(2);
+    k4.push({ fired: fired.slice(), d: drawn() });
   }
-  await play(LAND[0], LAND[1]); await frames(2);
-  fired.length = 0;
-  await play('3', 'Motion[1]'); await frames(3); await steps(2);
-  check(count(fired, 1105) === 1, 'and its 4th play is the SHOCK TRAP: c 1105 at once', fired);
+  for (const [set, key, what] of KNOCK)
+    check(k4.some(x => same(x.fired, [key]) && isSet(x.d, set)),
+          'L3 Motion[1] knocks the snow off ' + what + ': set ' + set + ', u ' + key, k4.map(x => x.fired));
+  check(k4.some(x => count(x.fired, 1105) === 1), 'and its 4th arm is the SHOCK TRAP: c 1105 at once', k4.map(x => x.fired));
 
   // SNOW PUT BACK ON -- the rows only he has
   await play(LAND[0], LAND[1]); await frames(2);
@@ -188,6 +191,21 @@ async function pageCheckElderfrost(){
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }
+  // THE ENABLE WORD (psl-mask.js em083; dev/em083-effects-spec.md): 0x1054b8c -- L9 M16 only, (7, 0x6a) bits 18-20 (u 511),
+  // anything else bits 21-23 (u 220); his two plays of it are (7, 0x6a) and (7, 0x6b), so the plays alternate one of each
+  { const PM = await import('/render/psl-mask.js');
+    const W = (a, st) => PM.pslMask(MON, '9', 16, a, st || {});
+    check(PM.PSL_MASK_MONSTERS.includes(MON) && W([7, 0x6a]) === 0x1c01ff && W([7, 0x6b]) === 0xe001ff && PM.pslMask(MON, '0', 33, null, {}) === 0x1ff,
+          'the word: L9 M16 (7, 0x6a) bits 18-20, (7, 0x6b) bits 21-23, elsewhere the base', [W([7, 0x6a]), W([7, 0x6b])].map(w => '0x' + w.toString(16)));
+    const A = PM.CLIP_ACTIONS[MON] && PM.CLIP_ACTIONS[MON]['9|Motion[16]'];
+    check(A && A.length === 2 && A[0].action[1] === 0x6a && A[1].action[1] === 0x6b, 'L9 M16 is played by (7, 0x6a) and (7, 0x6b) (tracer)', A);
+    const mask = () => S.clip && S.clip.mask != null ? S.clip.mask >>> 0 : null;
+    const seen = [];
+    // consecutive plays (index.html counts a clip's plays from 0 again whenever another clip comes between)
+    await play(REST[0], REST[1]); await frames(2);
+    for (let i = 0; i < 2; i++){ await play('9', 'Motion[16]'); await frames(6); seen.push(mask()); }
+    check(seen.includes(0x1c01ff) && seen.includes(0xe001ff), 'L9 M16 in the page: two plays, one with bits 18-20 (u 511), the other 21-23 (u 220)', seen.map(w => w == null ? null : '0x' + w.toString(16)));
+    await play(REST[0], REST[1]); await frames(3); }
   S.start = s0;
   check(!fx.failed, 'the effect runtime never stopped', fx.failed);
   return out;

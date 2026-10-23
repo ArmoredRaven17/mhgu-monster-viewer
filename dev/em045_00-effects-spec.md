@@ -263,3 +263,19 @@ check; if not, the honest fallback is two entries for L2 M2.)
 NOT READ, by name: what `vt+0x3e8` (`0x75330`) does between the status-6 steps beyond the EMC chain the table shows; what
 groups 5 / 8 / 13 of the command table are (the (1, 0) / (1, 0xc) issuers); `0x3a8430`'s byte (u 110 vs u 120 only); what
 u 201 / u 230 / u 240 / u 26x / u 28x look like (Raven's).
+
+## Re-walk 2026-10-18 (Fanged-Wyvern effects agent): tracer diff, request census, word re-emulation
+
+**L0 M6's u 1400 is (6, 3) / (6, 6)'s** (reqtrace.py, `0xe941b0`); the walks and the curl (6, 2) ask nothing. Now copy B for Uragaan and Crystalbeard (whose MoguriBaseOfs 0 keeps it unsunk). The class ids: (7, 2) u 1001, (7, 4) u 1003, (7, 0x90) u 1005 (phase 1 / 1 / 4). CLIP_ACTIONS L2 M3 confirmed: (7, 2) / (7, 4) reach it once P+0x1a2 (the roll count, raised at each L2 M2 end) is >= 4 (`0xe95c3c..0xe95c88`), (7, 0x90) at phase 4 (`0xe990b0`).
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* **`vt+0x3e8` (`0x75330`) between the status-6 steps -- answered by its row** (rom-map `0x75330`): posture 4, (0, 7) unless status
+  0xb, then `0x82454(e, 0)` (e+0x72f0 = 1); it picks no step -- the streams do.
+* Groups 5 / 8 / 13 (the (1, 0) / (1, 0xc) issuers): group 5 is the shared selector's (`0x7e1e8` / `0x7e678`); 8 and 13 are
+  started by no `0x824f0` caller (rom-map row "groups started by the shared selectors") -- NR.
+* **Begins Burrowed -- BUILT 2026-10-19** (CLASS_TOGGLES `burrowed`, working label, approved by Raven): on, every posture-4 play
+  reads sunk (0x81d6c: posture 4 and P+0x5c below 0.9 x MoguriBaseOfs); off, only the entries that name sunk. Checked on
+  Basarios's L0 M7 B (dev/checks/class-toggles.mjs).

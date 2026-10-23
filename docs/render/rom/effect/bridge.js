@@ -254,6 +254,101 @@ registerNative(0xaee2dc, (m, c) => {
   const rc = liftedCall(m, m.u32((m.u32(obj) + 0x40) >>> 0), [obj, c.r[1], c.r[2], c.r[3]]);
   clobber(c); c.r[0] = rc.r[0] >>> 0;
 });
+// 0x881d94 (READ whole, 0x881d94..0x881f08; Fanged-Wyvern lane 2026-10-18): the view's SPHERE test, a leaf with no stack frame
+// -- (view, sphere {x, y, z, r}). The six planes {n, d} at ([view+0xd94] & ~0xf) + 0x10 i: dist = d + (y ny + x nx + z nz) in
+// that order, each step rounded; dist < -r on any plane -> -1 (outside, returned at once); else bit i set where dist >= r
+// (inside that plane), 0..0x3f. NaN takes neither test, as vcmpe's unordered N = 0 / GE false. r1 is kept, r2 left the plane
+// base, s0 = r. A native and not a lift: the viewer's camera reaches plane outcomes a recording's camera does not (Lagiacrus
+// u 61's bounds sphere, through the cull test 0xae9bc4's 0xae9d1c, refused at 0x881e38 lifted).
+registerNative(0x881d94, (m, c) => {
+  const v = c.r[0] >>> 0, sp = c.r[1] >>> 0;
+  const base = (m.u32((v + 0xd94) >>> 0) & ~0xf) >>> 0;
+  const x = m.f32(sp), y = m.f32(sp + 4), z = m.f32(sp + 8), r = m.f32(sp + 12), nr = f32(-r);
+  let out = 0, gone = false;
+  for (let i = 0; i < 6 && !gone; i++){
+    const q = (base + 0x10 * i) >>> 0;
+    let t = f32(y * m.f32(q + 4));
+    t = f32(t + f32(x * m.f32(q)));
+    t = f32(t + f32(z * m.f32(q + 8)));
+    const dist = f32(m.f32(q + 12) + t);
+    if (dist < nr) gone = true;
+    else if (dist >= r) out |= 1 << i;
+  }
+  const r1 = c.r[1];
+  clobber(c, true);
+  c.r[0] = gone ? 0xffffffff : out; c.r[1] = r1; c.r[2] = base;
+  c.sf[0] = r;
+});
+// 0x4187c (READ whole, 0x4187c..0x419dc; 2026-10-18): THE SLOT POOL'S FREE-SLOT FINDER -- (mgr, bank), a leaf (push r4, lr
+// only). bank > 2 -> 0; five bitmap words at mgr + 0x74 + 20 bank + 4k, k = 0..4; the first word not 0xffffffff gives its
+// lowest clear bit x = ~w & -~w, looked up through the de Bruijn table at mgr + 0x770: [((hi(x * 0x27179461) + x * 0x03f566ed)
+// mod 2^32) >> 26]; a looked-up 0x40 (no bit) goes on to the next word; the slot is that + 32k. All five full -> -1 (0x419d4),
+// and in the fifth word a 0x40 also -> -1 (0x419a0 mvneq). The caller 0x41808 (lifted, both arms) stores the object at
+// [mgr + 0xb0 + 0x240 bank + 4 slot] BEFORE its `pophi` (slot > 0x8f: 144 slots per bank), so a full pool leaves the object
+// unregistered (and that store lands one word below the bank, as the ROM's does) -- the pool degrades, nothing stops. A native
+// and not a lift: a looping clip's pile-up (Mizutsune's puddles, Soulseer's flames) reaches words 1..4 and the full pool, which
+// no recording reached ("0x418d4 falls into unrecorded code").
+registerNative(0x4187c, (m, c) => {
+  const mgr = c.r[0] >>> 0;
+  let bank = c.r[1] >>> 0;
+  if (bank > 2) bank = 0;
+  const base = (mgr + 20 * bank) >>> 0;
+  let out = 0xffffffff;
+  for (let k = 0; k < 5; k++){
+    const w = m.u32((base + 0x74 + 4 * k) >>> 0);
+    if (w === 0xffffffff) continue;
+    const nw = (~w) >>> 0, x = (nw & ((0 - nw) >>> 0)) >>> 0;
+    const p = BigInt(x) * 0x27179461n;
+    const hi = Number((p >> 32n) & 0xffffffffn);
+    const idx = ((hi + Math.imul(x, 0x03f566ed)) >>> 0) >>> 26;
+    const t = m.u32((mgr + 0x770 + 4 * idx) >>> 0);
+    if (t === 0x40){ if (k === 4) break; continue; }
+    out = (t + 32 * k) >>> 0;
+    break;
+  }
+  const r4 = c.r[4];
+  clobber(c, true);
+  c.r[0] = out; c.r[1] = out; c.r[4] = r4;
+});
+// 0x419e0 (READ whole, 0x419e0..0x41b14; 2026-10-18): THE SLOT POOL'S RELEASE -- (mgr, obj, kind), 0x41808's partner: obj 0 ->
+// nothing; bank as 0x41808's (kind 2 -> 1, 3 -> 2, else 0). For each of the bank's five bitmap words, its SET bits low to high
+// (the same de Bruijn lookup, as a 64-bit walk whose high word stays 0), slot = bit + 32k: the first whose table entry
+// [mgr + 0xb0 + 0x240 bank + 4 slot] is obj is cleared (0), and its bit cleared when slot <= 0x8f; then return. A word run out
+// goes to the next (0x41a94 -> 0x41ac8, what a pile-up reaches: "branch to unrecorded 0x41ac8"); not found -> nothing.
+registerNative(0x419e0, (m, c) => {
+  const mgr = c.r[0] >>> 0, obj = c.r[1] >>> 0, kind = c.r[2] >>> 0;
+  const keep = [4, 5, 6, 7, 8, 9, 10, 11].map(k => c.r[k]);
+  if (obj !== 0){
+    const bank = kind === 2 ? 1 : kind === 3 ? 2 : 0;
+    const bits = (mgr + 20 * bank) >>> 0, tab = (mgr + 0x240 * bank) >>> 0;
+    const look = x => {
+      const p = BigInt(x) * 0x27179461n;
+      const hi = Number((p >> 32n) & 0xffffffffn);
+      return m.u32((mgr + 0x770 + 4 * (((hi + Math.imul(x, 0x03f566ed)) >>> 0) >>> 26)) >>> 0);
+    };
+    done: for (let k = 0; k < 5; k++){
+      let w = m.u32((bits + 0x74 + 4 * k) >>> 0);
+      if (w === 0) continue;
+      for (;;){
+        const t = look((w & ((0 - w) >>> 0)) >>> 0);
+        if (t === 0x40) break;
+        const slot = (t + 32 * k) >>> 0, at = (tab + 0xb0 + 4 * slot) >>> 0;
+        if (m.u32(at) === obj){
+          m.w32(at, 0);
+          if (slot <= 0x8f){
+            const wa = (bits + 0x74 + 4 * (slot >>> 5)) >>> 0;
+            m.w32(wa, (m.u32(wa) & ~(1 << (slot & 31))) >>> 0);
+          }
+          break done;
+        }
+        w = (w & ~(1 << t)) >>> 0;
+        if (w === 0) break;
+      }
+    }
+  }
+  clobber(c);
+  [4, 5, 6, 7, 8, 9, 10, 11].forEach((k, i) => { c.r[k] = keep[i]; });
+});
 // cUnit's empty virtual (vtable +0x2c of both the core and the effect): bx lr.
 registerNative(0x1eba8, () => {});
 // The unit manager's add (0xc03670: sUnit, line, unit, ...): the harness hooks it to return at once with the
@@ -295,6 +390,10 @@ registerNative(0x18154c, (m, c) => {
   if (hit){
     for (let k = 0; k < 7; k++) m.w8(hit + k, 0);
     m.w32(hit + 8, 0); m.w32(hit + 0xc, 0); m.w32(hit + 0x10, 0);
+    // the ground type (host.setFloor): the polygon's attribute byte +6 and flag word +8, as the unit's floor block +0x1066 / +0x1068
+    // takes them from this hit (the block at +0x1060)
+    const fl = m.svc.floor ? m.svc.floor() : null;
+    if (fl){ m.w8(hit + 6, fl.attr & 0xff); m.w32(hit + 8, fl.flags >>> 0); }
     m.wf32(hit + 0x14, -100000); m.wf32(hit + 0x18, h);
     m.wf32(hit + 0x20, 0); m.wf32(hit + 0x24, 1); m.wf32(hit + 0x28, 0); m.w32(hit + 0x2c, 0);
   }

@@ -48,7 +48,9 @@ async function pageCheckLagiacrus(){
   check(MS.RAGE_PUFF[MON] && MS.RAGE_PUFF[MON].joint === 103 && MS.RAGE_PUFF[MON].pick() === 0,
         'RAGE_PUFF: joint 103, the base stub pick (0 -> u 1121, the 0.8x record)', MS.RAGE_PUFF[MON] && MS.RAGE_PUFF[MON].joint);
   check(MS.TIRED_DROOL[MON] && MS.TIRED_DROOL[MON][1] === 1104, 'TIRED_DROOL: c 1104', MS.TIRED_DROOL[MON]);
-  check(!MS.CHARGE_EFFECTS[MON], 'and NO CHARGE_EFFECTS entry: u 30 waits on Charged reaching `level` and on its export');
+  // [was: "NO CHARGE_EFFECTS entry: u 30 waits on Charged reaching `level` and on its export" -- both done 2026-10-17: index.html's
+  // chargeRungOf() passes Charged as rung 1, u 30 exported (dev/em046_00-effects-spec.md 3)]
+  check(MS.CHARGE_EFFECTS[MON] && MS.CHARGE_EFFECTS[MON][1], 'the CHARGE_EFFECTS entry: u 30 at the charged rung');
   // the drop joint is the sever call's kind byte 0x91 = 145 (0xea0284 / 0xea0290); his .dtp has no option rows
   check(TO.CUT_TAIL[MON] && TO.CUT_TAIL[MON].joint === 145 && TO.CUT_TAIL[MON].above === 20,
         'his cut tail drops from joint 145 and lands 20 S up', TO.CUT_TAIL[MON]);
@@ -199,6 +201,21 @@ async function pageCheckLagiacrus(){
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }
+  // THE ENABLE WORD (psl-mask.js em046_00; dev/em046_00-effects-spec.md): 0xea9a0c -- L0 M5 / L2 M6 21-23 (24-26 in posture
+  // 4), L2 M3 / M7..M9 15-17 only charged; and the Charged toggle is his charge rung for u 30 (CHARGE_EFFECTS)
+  { const PM = await import('/render/psl-mask.js');
+    const W = (l, n, st) => PM.pslMask(MON, String(l), n, null, st || {});
+    check(PM.PSL_MASK_MONSTERS.includes(MON) && W(2, 6) === 0xe001ff && W(2, 6, { posture: 4 }) === 0x70001ff && W(0, 5) === 0xe001ff &&
+          W(2, 3) === 0x1ff && W(2, 3, { charged: true }) === 0x381ff && W(2, 8, { charged: true }) === 0x381ff && W(2, 10, { charged: true }) === 0x1ff,
+          'the word: L2 M6 by posture, L2 M3 / M8 15-17 only charged');
+    check(MS.CHARGE_EFFECTS[MON] && MS.CHARGE_EFFECTS[MON][1] && MS.CHARGE_EFFECTS[MON][1].hold[0][1] === 30, 'u 30 held at the charged rung (0xea9228)');
+    const ev30 = () => S.entries.filter(e => e.when === 'event' && e.def.record.key === 30).map(e => e.requests.map(q => q.stopped ? 's' : 'r').join('')).join('|');
+    const cb = document.getElementById('monCharge');
+    if (cb){ cb.checked = true; await cb.onchange({ target: cb }); await frames(6); }
+    const on = ev30();
+    if (cb){ cb.checked = false; await cb.onchange({ target: cb }); await frames(6); }
+    const off = ev30();
+    check(cb && on.includes('r') && !off.includes('r'), 'Charged on: u 30 held; off: stopped', { on, off }); }
   S.start = s0;
   check(!fx.failed, 'the effect runtime never stopped', fx.failed);
   return out;

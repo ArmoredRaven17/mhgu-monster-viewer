@@ -220,6 +220,26 @@ async function pageCheckDaimyo(){
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }
+  // THE ENABLE WORD (psl-mask.js crab019 / em019 / em020; dev/em019-em020-effects-spec.md): 0xdc0ff4, shared by the line; most arms
+  // Stonefist's alone (em 0x13 + variant 4)
+  { const PM = await import('/render/psl-mask.js');
+    const W = (m, l, n, a, st) => PM.pslMask(m, String(l), n, a, st || {});
+    check(['em019_00', 'em019_04', 'em020_00', 'em020_04'].every(m => PM.PSL_MASK_MONSTERS.includes(m)) &&
+          W('em019_00', 2, 2, [7, 0x0f]) === 0x380001ff && W('em019_00', 2, 2, [7, 0xee]) === 0x1ff && W('em019_04', 2, 2, [7, 0xee]) === 0xc00001ff &&
+          W('em019_04', 9, 14, null, { claw5Broken: true }) === 0x1c01ff && W('em019_04', 9, 14, null) === 0x381ff &&
+          W('em019_00', 2, 18, null, { rank: 5 }) === 0x1c01ff && W('em019_04', 2, 18, null) === 0xe001ff && W('em020_00', 2, 18, null) === 0x1ff &&
+          W('em020_00', 2, 68, null) === 0xc01ff && W('em020_00', 4, 3, null) === 0x6001ff && W('em020_04', 4, 3, null) === 0x6001ff &&
+          W('em020_04', 4, 3, null, { shellType: 4 }) === 0xc01ff && W('em019_00', 0, 4, null, { sunk: true }) === 0x1ff,
+          'the word: L2 M2 by action, Stonefist arms, L2 M18 by variant / rank, the Shogun line arms and the Rustrazor shell type'); }
+  // RUSTRAZOR's shell type and claws from the parts shown (motion-states.js rustrazorInput; his part pass 0xdc5228: shell type 4 ->
+  // set 12 = part 110, 5 -> set 11 = part 109; claw 0x4000 -> set 7 = part 2, 0x2000 -> set 8 = part 4)
+  { const MS2 = await import('/render/motion-states.js'), PM = await import('/render/psl-mask.js');
+    const I = MS2.rustrazorInput('em020_04', new Map([[110, true], [109, false], [2, true], [4, false]]));
+    const I0 = MS2.rustrazorInput('em020_04', new Map([[110, false], [109, true], [2, false], [4, false]]));
+    check(I.shellType === 4 && I.claw5Off === true && I.claw6Off === false && I0.shellType === 5 && !I0.claw5Off &&
+          MS2.rustrazorInput('em020_00', new Map([[110, true]])).shellType === undefined &&
+          PM.pslMask('em020_04', '4', 3, null, I) === 0x401ff && PM.pslMask('em020_04', '4', 3, null, I0) === 0x6001ff,
+          'Rustrazor: the Glavenus skull (part 110) is shell type 4 and the stump (part 2) the 0x4000 claw -- L4 M3 then lights bit 18 alone', { I, I0 }); }
   S.start = s0;
   check(!fx.failed, 'the effect runtime never stopped', fx.failed);
   return out;

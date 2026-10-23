@@ -101,7 +101,7 @@ tune vec × size (`0xbe518`): x' = x·cos + z·sin, y' = y, z' = z·cos − x·s
 
 Ends: `0x10698d0` stops all three (`0x329c40(h, 0)`), disables the two objects and clears `E+0xcb20`; it is called
 from vt `+0x204` at `0x10679c8` on **every** action start (all paths converge at `0x10679b4`; `run2.py`: all 4572 pairs).
-So c 800 lives from L3 M65's first frame to the end of the action that plays it — (10, 0xaf) in stance 2 plays
+**[2026-10-19, corrected: 0x1069d88..0x1069dc0 also stops it on L3 M66 as it crosses f172 (tune float 0x27, 0xb0968(e, 0, 0)) -- so within (10, 0xaf) it ends at M66 f172; rom-map "Effects open items"]** So c 800 lives from L3 M65's first frame to the end of the action that plays it — (10, 0xaf) in stance 2 plays
 L3 M64 → M65 → M66 (state-decodes.md), so through M66. **Hit-dependent**: (10, 0xaf) is issued by the shared reaction
 dispatcher (`0x9b078`, reaction code `P+0x3ae` = 27 per motion-states.js Nightcloak), not by the class.
 

@@ -50,6 +50,7 @@
 //   { cycle: [spec, ...] }     one motion that several breaks play (Rathian's back and wings): each play -- each frame 0 --
 //                              shows the next spec
 //   start: [[pel, key], ...]   records requested once at the motion's frame 0 (a reaction whose setAction requests one)
+//   fireFrom: [[frame, [[pel, key], ...]], ...]   records requested once as the motion passes that frame
 //
 // THE EYES SHUT IN DEATH, on every monster that has a lid, and the death rows below carry the lid set the
 // monster's own sleep hold uses. This corrects a negative that had spread through many of these blocks:
@@ -242,7 +243,9 @@ const G_BELLY  = [[9, 11], [10, 11], [10, 12]];
 // own EFFECT: the break code's `index = part * 5 + level + 6` puts part 0 level 1 at shared-u index 7, which
 // is u 1000, and it was loaded and never fired with the level-1 slot null. Same shape as the head on M102.
 const G_BACK   = { levels: [[17], [17], [18]],
-                   fire: [null, ['em005_00u', 1000], ['em005_00u', 1001]] };
+                   fire: [null, ['em005_00u', 1000], ['em005_00u', 1001]],
+                   // below G the row's threshold is 1 (2.2): set 18 at level 1, u 1000 (the Quest Rank control, 2026-10-20)
+                   lowRank: { levels: [[17], [18]], fire: [null, ['em005_00u', 1000]] } };
 const G_BELLY1 = { levels: G_BELLY, fire: [null, ['em005_00u', 1030], null] };
 const G_WING_L = { levels: [[5], [6]], fire: [null, ['em005_00u', 1005]] };
 const G_WING_R = { levels: [[7], [8]], fire: [null, ['em005_00u', 1010]] };
@@ -655,6 +658,7 @@ function lagombiLine(u, c){
 //   POISON: `em018_00c` HAS NO KEY 1100. The shared code still asks for c id 0 and finds nothing -- so poison
 //   shows nothing on either monster, which is a fact about the file rather than a gap in this table. Key 1107 is
 //   absent too, so the second paint request finds nothing; 1106 and 1108 exist and are byte-identical.
+//   [SHOWN 2026-10-18: CLASS_TIMERS.em018_04 holds it -- the paragraph below is the gap as it stood]
 //   DEADEYE'S PERMANENT HELD EFFECT: `vtable +0x208` at 0xda52f8 requests 1001 -> u key 30 = `em018_04_003` on
 //   JOINT 3 for variant 4 only, kept alive from spawn, killed on sleep / rest / death and re-requested when he
 //   changes area. It is not a motion state -- it is on for his whole life -- and this table has no slot that
@@ -739,6 +743,12 @@ const Z_FORE_L = { calm: [[14], [16]],    enraged: [[15], [16]] };
 // Crystalbeard's puts it at level 2 and his sever needs level >= 2, so his ladder repeats the intact rung once
 // more. Neither has any rank dependence: every row's level and level-at-G are the same byte.
 // (states-em045_00.md 0, 3.1, 4)
+// ZINOGRE / THUNDERLORD's death rows (dev/em057-effects-spec.md 10.4, 11): the status-11 start's discharge request at the rungs listed
+const EM057_U120 = ['em057_00u', 120, 'UNIQUE'];
+const Z_DEATH = (rec, rungs) => ({ dead: true, sets: [0, 2], clips: [{ mats: ['XfB__m02_light'], clip: 'Death' }],
+                                   startAt: Object.fromEntries(rungs.map(r => [r, [rec]])) });
+const TL_DEATH = (f, rungs) => ({ dead: true, sets: [9, 2], setsFrom: [[f, [1]]], clips: [{ mats: ['XfB__m02_light'], clip: 'Death' }],
+                                  startAt: Object.fromEntries(rungs.map(r => [r, [['em057_04u', 90, 'UNIQUE']]])) });
 const U_TAIL  = [[7], [8], [9]];
 const U_TAIL4 = [[7], [7], [8], [9]];
 
@@ -766,7 +776,10 @@ export const MOTION_STATES = {
     // `e+0xb7c4` until the next 0xa499c stops it. Hence `hold`, for as long as the move runs.
     // (Swept 2026-09-30, after four monsters in a row turned out to be class-requested; dev/rom-map.md's
     // "26 monsters close as one refusal" is WITHDRAWN and this row is part of the correction.)
-    '0|Motion[7]':  { hold: ['em004_00u', 1400] },
+    // [CORRECTED 2026-10-18 (reqtrace.py): the class asks it on the plays listed in psl-mask.js CLIP_ACTIONS copy B only, not on
+    //   every play of the clip.]
+    '0|Motion[7]':  {},
+    '0|Motion[7]#B': { hold: ['em004_00u', 1400] },
     // THE CHEST / BELLY BREAK: (10, 0x14) with part 6 plays L3 Motion[107]. One level, and set 4 with it -- the
     // broken chest in, the intact one out -- firing u 1030 (cm202_060 on joint 2, id 6*5 + 1 + 6 = 37).
     '3|Motion[107]': { levels: [[3], [4]], fire: [null, ['em004_00u', 1030]] },
@@ -837,6 +850,8 @@ export const MOTION_STATES = {
   //   THE BELLY IS TWO SWAPS STACKED on one dtt part (part 6, .dtp rows 1 and 2), which is why G_BELLY below
   //   carries a PAIR of sets per rung: the pass applies 9+11 at level 0, 10+11 at level 1 and 10+12 at level 2.
   //   (2.2 -- the ROM confirms the progression docs/part-review.json recorded as Raven's 2026-09-10 assumption.)
+  //   [2026-10-20: the low-rank rows below are now wired as `lowRank` on G_BACK and L3 M102, read from the Quest Rank control
+  //   (index.html shellQuestRank; dev/checks/quest-rank.mjs). What follows is the G description, still the default.]
   //   WIRED AT G RANK, because the viewer already is: index.html's SHELL_QUEST_RANK = 5, off which Khezu's orb ring
   //   and breath are wired. His back (.dtp row 0) and his head (row 3) are the first breaks we have read whose
   //   THRESHOLD RISES WITH RANK -- level 1 at low and high rank, level 2 at G, the part pass reading byte +2 of the
@@ -864,7 +879,8 @@ export const MOTION_STATES = {
     // authored parts three times over -- G_BELLY1's u 1030 = part 6 level 1, M107's u 1031 = part 6 level 2, and
     // em007_00's u 1000 = part 0 level 1.
     '3|Motion[102]': { levels: [[3], [3], [4]],
-                       fire: [null, ['em005_00u', 1025], ['em005_00u', 1026]] },
+                       fire: [null, ['em005_00u', 1025], ['em005_00u', 1026]],
+                       lowRank: { levels: [[3], [4]], fire: [null, ['em005_00u', 1025]] } },
     // THE TWO WING-FORELEGS both play L3 M103 ((10, 7), script 0x17988b0, blend 2): left (part 1) set 5 -> 6 firing
     // u 1005 on joint 9, right (part 2) set 7 -> 8 firing u 1010 on joint 13 -- their broken meshes are the only
     // two sharing `XfBA_E0__m50_wing`. One clip, two breaks: each play shows the next. The part pass reads .dtp row
@@ -1259,8 +1275,41 @@ export const MOTION_STATES = {
   // sets and rage clip are NOT read yet (the action -> clip prober has not been run on him), so nothing else is here.
   // (dev/remaining-classes-effects-survey.md)
   em068_00: {
-    '0|Motion[44]': { hold: ['em068_00u', 1400] },
+    // NAJARALA (em068_00): NO states note existed -- read for dev/em068_00-effects-spec.md (Snake Wyvern walk, 2026-10-18): the
+    // status-10 scripts (0xa1290 per depleted part 0x9e8d8 and hit side 0x9e8c0), the part pass vt+0x210 0xf86984 (0x72c78 sets:
+    // base 0 / dead 15; part 0 at .dtp row 0's level 2 -> 8 else 2; part 2 (row 1, level 1) -> 9 else 3; part 3 (row 2) -> 10 and
+    // P+0x3b4 |= 1 -- the tail breaks off, no sever call -- else 4; part 7 (row 3) -> 11 else 5; part 6 (row 4) -> 12 else 6; the
+    // dead variants 13 / 14 / 16 not shown), the eyes 0x71398(e, 1, 7, ..) at 0xf79930, EMC g6 s0 (ends `00 01 00`: (1, 0) L0 M50),
+    // the idle (0, 2) -> 0xb0230(e, 0x26): L0 M38. Records by the shared rule (id = part x 5 + level + 6).
+    // L3 M10: (10, 7) part 0 (the HEAD, level 2: 2 -> 8, u 1001), (10, 0x14), the paralysis and shock trap's first clip (to f80)
+    '3|Motion[10]': { cycle: [{ levels: [[2], [2], [8]], at: 2, fire: [null, null, ['em068_00u', 1001]] }, { every: [['em068_00c', 1105], 42] }] },
+    // L3 M37: the paralysis hold ((10, 0x1f): c 1101 every 60) -- and the trap's hold, copy B (TRAP_B)
+    '3|Motion[37]': { every: [['em068_00c', 1101], 60] },
+    // L3 M2: (10, 7) parts 1 / 2 / 3 -- part 2 (level 1: 3 -> 9, u 1010), part 3 (THE TAIL, level 1: 4 -> 10, u 1015; P+0x3b4 bit 0)
+    // -- and the exhaust (10, 0x1b): c 1109 once
+    '3|Motion[2]':  { cycle: [{ levels: [[3], [9]], fire: [null, ['em068_00u', 1010]] }, { levels: [[4], [10]], fire: [null, ['em068_00u', 1015]] },
+                              { start: [['em068_00c', 1109]] }] },
+    // L3 M55 -> (360 f) M57 -> M56: (10, 7) parts 4..7 -- part 6 (level 1: 6 -> 12, u 1030), part 7 (5 -> 11, u 1035) -- and the
+    // stun (10, 0x20): the same chain with M57 held (0x17e09f0), c 1103 in one held handle
+    '3|Motion[55]': { cycle: [{ levels: [[6], [12]], fire: [null, ['em068_00u', 1030]] }, { levels: [[5], [11]], fire: [null, ['em068_00u', 1035]] }, { hold: ['em068_00c', 1103] }] },
+    '3|Motion[57]': { cycle: [{ levels: [[6], [12]], fire: [null, null] }, { levels: [[5], [11]], fire: [null, null] }, { hold: ['em068_00c', 1103] }] },
+    '3|Motion[56]': { cycle: [{ levels: [[6], [12]], fire: [null, null] }, { levels: [[5], [11]], fire: [null, null] }, { hold: ['em068_00c', 1103] }] },
+    // RAGE: (1, 0) L0 M50. TIRED: (0, 2) L0 M38 (also (1, 0xe)); the drool is TIRED_DROOL's.
+    '0|Motion[50]': { rage: true },
+    '0|Motion[38]': { rage: false, tired: true },
+    // ASLEEP: (10, 0x1d) L3 M28 -> L0 M51 f100 (held), (10, 0x1e) holds L0 M56: eyes shut (set 7), c 1102 every 90, the puff paused.
+    // Capture (11, 0x10) plays L3 M28 -> L0 M51 -> L0 M56.
+    '3|Motion[28]': { sets: [7] },
+    '0|Motion[56]': { sets: [7], every: [['em068_00c', 1102], 90], puffOff: true },
+    // DEATH: (11, 0) L3 M19; (11, 7 / 0x12) L3 M85. Eyes shut (0xbd594).
+    '3|Motion[19]': { dead: true, sets: [7] },
+    '3|Motion[85]': { dead: true, sets: [7] },
+    // u 1400 (0xf7fdbc / 0xf85228, base level 2): ONLY the burrowed plays of L0 M44 -- (6, 3 / 7 / 9), (13, 1) after 0xbf62c ->
+    // 0xbf700 (sunk; tracer U1400 r1=2) -- copy B; the surface plays (2, 1 / 3 / 4) phase 2 do not. [Was on every L0 M44 play.]
+    '0|Motion[44]': {},
+    '0|Motion[44]#B': { hold: ['em068_00u', 1400] },
   },
+
   // GYPCEROS (em009_00): E:\offline\decode\notes\states-em009_00.md, read and ROM-run by the Gypceros decode agent
   // (2026-09-24). His class `uEm009_00` (vtable 0x179c5d8) puts the part pass and a MATERIAL machine in the one
   // +0x210, and he is the first monster we have wired with only ONE break row and with a body state that is not
@@ -1636,6 +1685,8 @@ export const MOTION_STATES = {
     // with it: the part pass reads only the break level, there is no material animation in the class, and +0x2a0
     // scales nothing. What rage really does is swap the aura keys (above) and the hit-zone rows (off-model).
     '4|Motion[7]':  { rage: true },
+    // (1, 7) and the attacks play the same clip and are no rage entry (copies B / C; dev/em011_00-effects-spec.md 2)
+    '4|Motion[7]#B': {}, '4|Motion[7]#C': {},
     // ASLEEP: (10, 0x1d) L3 M5 lies down and (10, 0x1e) holds L3 M7. His eyes DO shut -- the applier is
     // 0x71398(e, 3, 2, -1), so open is set 3 and SHUT IS SET 2 (group 1, the 28-vertex lid, drawn) -- while
     // P+0x5d02 is up, and the hold has the zzz c 1102 every 90 (cm200_002 on joint 2, offset (5, 0, 20), scale
@@ -1793,7 +1844,12 @@ export const MOTION_STATES = {
     // BURROWED TRAVEL: (6, 3) / (6, 6) / (6, 0xe) play L0 M6, and the shared 0xa499c starts u 1400 (cm202_005 on
     // joint 2 at 0.9x) SUSTAINED, killing the previous handle at e+0xb7c4 first -- so it is held while the motion
     // plays rather than fired.
-    '0|Motion[6]':  { hold: ['em044_00u', 1400] },
+    // [CORRECTED 2026-10-18: the request is not u 1400 for all three. 0xe86430 takes r1 from its caller and passes
+    //   r1 = (r1 == 1) ? 2 : 0 to 0xa499c (0xe864f0..0xe86504); traced: (6, 6) -> u 1400, (6, 3) / (6, 0xe) -> u 1120
+    //   (em044_00_010 on joint 3 -- the same record the puff uses, exported a second time as an event).]
+    '0|Motion[6]':  {},
+    '0|Motion[6]#B': { hold: ['em044_00u', 1400] },
+    '0|Motion[6]#C': { hold: ['em044_00u', 1120] },
     // RAGE: command group 6's body issues (1, 2) -- L0 M11 from frame 0, 4.783 s, cross-checked against the .mdd's
     // PartsChangeActSt/No = 1/2. NOTHING on the model changes: the part pass never reads isEnraged. L0 M11 is also
     // the recovery clip of the paralysis, the stun and the shock trap ((10, 0x2a) / (10, 0x2b) / (10, 0x70)); the
@@ -1871,7 +1927,10 @@ export const MOTION_STATES = {
     // u table 0x159c7fc index 2 = key 1400, `cm202_005`, END 1, HELD in `e+0xb7c4`. The two differ only in their
     // entry (the first writes `e+0xb5f8 = 2` first) and each runs once, on `[e+0x1428]+0x1a1 == 0`, raising it.
     // Read 2026-09-30; the same shape as Uragaan's and Duramboros's rolls, on his own clip.
-    '0|Motion[10]': { hold: ['em063_00u', 1400] },
+    // [CORRECTED 2026-10-18 (reqtrace.py): the class asks it on the plays listed in psl-mask.js CLIP_ACTIONS copy B only, not on
+    //   every play of the clip.]
+    '0|Motion[10]': {},
+    '0|Motion[10]#B': { hold: ['em063_00u', 1400] },
     // RAGE: command group 6 issues (1, 6) -- L0 M15, the 4.783 s roar, cross-checked against the .mdd's
     // PartsChangeActSt/No = 1/6. Nothing changes AT THAT INSTANT: the roar only starts the gauge climbing, and the
     // colour lands ten frames later (see the block comment). The puff runs while rage is shown.
@@ -1957,7 +2016,10 @@ export const MOTION_STATES = {
     // u 1400, the held record the class asks for itself -- both sites (0xf3ccbc, 0xf3cd9c) take posture 4 and set
     // motion 0xa = L0 Motion[10] before `b 0xa499c` with r1 = 2, and r1 is the LEVEL, which the base u table
     // 0x159c7fc turns into key 1400. Not the shared latch. (Read 2026-09-30; dev/rom-map.md.)
-    '0|Motion[10]': { hold: ['em063_05u', 1400] },
+    // [CORRECTED 2026-10-18 (reqtrace.py): the class asks it on the plays listed in psl-mask.js CLIP_ACTIONS copy B only, not on
+    //   every play of the clip.]
+    '0|Motion[10]': {},
+    '0|Motion[10]#B': { hold: ['em063_05u', 1400] },
     // RAGE: command group 6 issues (1, 6) -- L0 M15. `em063_05.arc` ships the same `em063_00_cmdtbl.emc`, so his
     // rage stream is literally Brachydios's (3.6).
     '0|Motion[15]': { rage: true },
@@ -2085,6 +2147,82 @@ export const MOTION_STATES = {
     // depletion reaction's own clips. (11, 7) / (11, 0x12) hold L3 M11, the ailments' clip, so they are not marked:
     // marking them would put a death on the paralysis. Nothing reverts at death, because nothing ever changed.
     '3|Motion[9]':  { dead: true, settled: true },
+    // u 1400 (the dig's dust), READ 2026-10-17 (dev/em030_00-effects-spec.md 3): the dig charge (6, 2) takes posture 4, sinks, sets
+    // L0 M5 and tail-calls 0xa499c(e, 2) at 0xe1e8d0 -- id 2 -> u 1400, into the handle e+0xb7c4 -- the same play; the surface
+    // plays of L0 M5 ((2, 2 / 8 / 0xc)) ask nothing. `posture: 4` keeps it to the burrowed play (psl-mask.js CLIP_ACTIONS).
+    '0|Motion[5]':  { hold: ['em030_00u', 1400], posture: 4 },
+  },
+  // ARZUROS (em060_00) / REDHELM ARZUROS (em060_04) / VOLVIDON (em062_00): ONE class uEm060_00 (no uEm062_00 exists; the em byte
+  // e+0xb5f4 0x3c / 0x3e and the variant byte split it), read 2026-10-17 off the ROM -- there is no states note
+  // (dev/em060-effects-spec.md 2-3: the action main under unicorn, the reaction scripts through scr.py, the part pass 0xf18558).
+  //   THE BREAKS (part pass 0xf18558, every frame; .dtp array A): Arzuros's arms (part 2) at LEVEL 1 -- set 4 -> 5, no record
+  //   (em060_00u has no key 1010); Redhelm's hair (part 0) at LEVEL 2 -- set 6 -> 7, u 1001 -- and arms (part 2) at LEVEL 2 --
+  //   set 4 -> 5, no record (no key 1011); Volvidon's back (part 0) at LEVEL 1 -- set 2 -> 4, u 1000. Every depletion is (10, 7)
+  //   (vt+0x23c is the base 0): parts 0 / 2 play L3 M1, which is also the exhaust (10, 0x1b, c 1109).
+  //   THE EYES (0x71398 at 0xf114ac / 0xf1155c): open set 2 / shut set 3 (Arzuros, Redhelm), open 1 / shut 3 (Volvidon) -- shut
+  //   while P+0x5d02 is up: asleep and dead. RAGE: g6 s0 ends in (1, 0x1b) -- L0 M13 -- for all three (Arzuros's first takes
+  //   (1, 2) / L0 M5 behind op 0x6f selector 0). TIRED: tune+0x30 present (stamina 5400 / 7200), the idle (0, 2) is L0 M3 --
+  //   which (1, 5) / (1, 0x19) also play, so no row: the drool is TIRED_DROOL's.
+  em060_00: {
+    '3|Motion[1]':  { cycle: [{ levels: [[4], [5]], fire: [null, null] }, { start: [['em060_00c', 1109]] }] },
+    '0|Motion[13]': { rage: true },
+    '3|Motion[12]': { sets: [3] },
+    '3|Motion[13]': { sets: [3], every: [['em060_00c', 1102], 90], puffOff: true },
+    '3|Motion[15]': { sets: [3], every: [['em060_00c', 1102], 90], puffOff: true },
+    '3|Motion[22]': { every: [['em060_00c', 1101], 60] },
+    '3|Motion[10]': { every: [['em060_00c', 1101], 60] },
+    '3|Motion[20]': { hold: ['em060_00c', 1103] },
+    '3|Motion[19]': { dead: true, sets: [3] },
+    '3|Motion[8]':  { dead: true, sets: [3] },
+  },
+  em060_04: {
+    '3|Motion[1]':  { cycle: [{ levels: [[6], [6], [7]], fire: [null, null, ['em060_04u', 1001]] },
+                              { levels: [[4], [4], [5]], fire: [null, null, null] },
+                              { start: [['em060_00c', 1109]] }] },
+    '0|Motion[13]': { rage: true },
+    '3|Motion[12]': { sets: [3] },
+    '3|Motion[13]': { sets: [3], every: [['em060_00c', 1102], 90], puffOff: true },
+    '3|Motion[15]': { sets: [3], every: [['em060_00c', 1102], 90], puffOff: true },
+    '3|Motion[22]': { every: [['em060_00c', 1101], 60] },
+    '3|Motion[10]': { every: [['em060_00c', 1101], 60] },
+    '3|Motion[20]': { hold: ['em060_00c', 1103] },
+    '3|Motion[19]': { dead: true, sets: [3] },
+    '3|Motion[8]':  { dead: true, sets: [3] },
+  },
+  em062_00: {
+    '3|Motion[1]':  { cycle: [{ levels: [[2], [4]], fire: [null, ['em062_00u', 1000]] }, { start: [['em062_00c', 1109]] }] },
+    '0|Motion[13]': { rage: true },
+    '3|Motion[7]':  { sets: [3] },
+    '3|Motion[8]':  { sets: [3], every: [['em062_00c', 1102], 90], puffOff: true },
+    '3|Motion[10]': { sets: [3], every: [['em062_00c', 1102], 90], puffOff: true },
+    '3|Motion[17]': { every: [['em062_00c', 1101], 60] },
+    '3|Motion[5]':  { every: [['em062_00c', 1101], 60] },
+    '3|Motion[15]': { hold: ['em062_00c', 1103] },
+    '3|Motion[14]': { dead: true, sets: [3] },
+    '3|Motion[3]':  { dead: true, sets: [3] },
+  },
+  // KECHA WACHA (em065_00): no states note exists -- read 2026-10-17 (dev/em065_00-effects-spec.md): the reaction scripts, the
+  // part pass vt+0x210 0xf49e70, vt+0x23c 0xf4a8ec, the eyes 0x71398(e, 1, 7, 0xb) at 0xf48fe0, the rage stream g6 s0.
+  //   THE HEAD (part 0) breaks at LEVEL 2 (.dtp A row 0 = 2 / 2): set 3 -> 12, u 1001 (id 0 x 5 + 2 + 6 = 8), on (10, 7)'s
+  //   part-0 script -- L3 M1. Parts 1..5 deplete on L3 M2 (parts 2 / 4 at an even level take (10, 0x14), L3 M11 -> M17 -> M18):
+  //   part 2 at level 1 (row 1) sets 4 / 5 -> 13 / 14, part 5 at level 1 (row 2) set 6 -> 15, no records (no keys 1010 / 1025).
+  //   L3 M2 is also the exhaust (10, 0x1b, c 1109). EYES: open 1, shut 7 while P+0x5d02 (asleep, dead).
+  //   RAGE: g6 s0 in posture 0 issues (1, 8) -- L0 M19 (also (1, 0xd) / (1, 0xe)); in posture 6 (hanging) (3, 0x50) / (3, 0x39).
+  //   SLEEP (10, 0x1d) L0 M16 (held) and (10, 0x1e) L0 M14 -- both also the rest chain (1, 3) / (1, 9), so the sleep is copy B.
+  //   TIRED: the idle (0, 2) is L0 M38, which (1, 7) / (1, 0xb) also play -- the drool is TIRED_DROOL's.
+  em065_00: {
+    '3|Motion[1]':  { levels: [[3], [3], [12]], fire: [null, null, ['em065_00u', 1001]] },
+    '3|Motion[2]':  { cycle: [{ levels: [[4, 5], [13, 14]], fire: [null, null] }, { levels: [[6], [15]], fire: [null, null] },
+                              { start: [['em065_00c', 1109]] }] },
+    '0|Motion[19]': { rage: true },
+    '0|Motion[16]#B': { sets: [7], every: [['em065_00c', 1102], 90], puffOff: true },
+    '0|Motion[14]#B': { sets: [7], every: [['em065_00c', 1102], 90], puffOff: true },
+    '3|Motion[6]':  { every: [['em065_00c', 1101], 60] },
+    '3|Motion[10]': { hold: ['em065_00c', 1103] },
+    '3|Motion[4]':  { hold: ['em065_00c', 1103] },
+    '3|Motion[5]':  { hold: ['em065_00c', 1103] },
+    '3|Motion[9]':  { dead: true, sets: [7] },
+    '3|Motion[15]': { dead: true, sets: [7] },
   },
   // LAGIACRUS (em046_00): E:\offline\decode\notes\states-em046_00.md (0, 3, 4, 5, 6.2), read and ROM-run by the
   // Lagiacrus decode agent (2026-09-25); transcribed 2026-10-15 off the gap dev/leviathans-effects-survey.md found.
@@ -2113,6 +2251,63 @@ export const MOTION_STATES = {
   //   long `P+0x5d02` stays up into it is not given, so it has no lid row.
   //   THE TURNS the reaction scripts run (op 0xa: the sever's -180 deg over L3 M13 f94..140, the leg chains' +-90) are
   //   CLIP_TURN's, not this table's, and are not written here.
+  // AGNAKTOR (em049_00): NO states note existed -- everything below was read for dev/em049_00-effects-spec.md (Leviathans walk,
+  // 2026-10-17): the status-10 handler 0xebf3c0 per depleted part (0x9e8d8) and hit side (0x9e8c0), the reaction scripts
+  // (0xa1290, scr.py), the part pass 0xec1cec's heated groups (dev/em049-heat.md 1 / 4a; render/monster.js ROM_HEAT_REGIONS:
+  // the sets below are the HEATED ones, what he draws alive), the .dtp break rows A (part: low-rank / G threshold -- 0: 2 / 2,
+  // 1: 2 / 3, 2..6: 1 / 1, 7: 1 / 2; G shown, as the viewer's rank is), the eyes 0x71398(e, 1, 2, -1) at 0xeb4adc, EMC g6 s0 (1, 0) and the
+  // sever 0xc2274(e, 0, 0, 0x91) on (10, 0x72) with part 7 (0xeb4ffc). Break records by the shared rule id = part x 5 + level
+  // + 6 -> u 1000 + id - 7.
+  em049_00: {
+    // L3 M2: (10, 7) for part 0 (the HEAD, level 2: set 3 -> 4, u 1001) and part 6 (the BACK, level 1: 5 -> 6, u 1030), the
+    // exhaust (10, 0x1b) (c 1109 once) and the shock trap (10, 0x6e) to frame 80 then L3 M9 (c 1105 every 42 while it lasts)
+    '3|Motion[2]':  { cycle: [{ levels: [[3], [3], [4]], at: 2, fire: [null, null, ['em049_00u', 1001]] },
+                              { levels: [[5], [6]], fire: [null, ['em049_00u', 1030]] },
+                              { start: [['em049_00c', 1109]] },
+                              { every: [['em049_00c', 1105], 42] }] },
+    // [2026-10-20: AT LOW RANK below is now each arm's `lowRank` (the Quest Rank control; dev/checks/quest-rank.mjs)]
+    // L3 M1: (10, 7) for part 1 (the CHEST) and part 7 (the TAIL). WIRED AT G RANK, as the viewer is (index.html SHELL_QUEST_RANK =
+    // 5; Gravios's / Great Maccao's pattern): the chest breaks at level 3 (7 -> 8), the tail at level 2 (17 -> 18); the records
+    // by the shared rule fire at the level that names one in UNIQUE -- chest level 2 u 1006, tail level 1 u 1035 -- and the G
+    // break levels' own keys (u 1007, u 1036) are not in em049_00u's UNIQUE, so those breaks show their set and fire nothing.
+    // AT LOW RANK (not shown): chest { levels: [[7], [7], [8]], at: 2, fire: [null, null, u 1006] }, tail { levels: [[17], [18]],
+    // fire: [null, u 1035] }.
+    '3|Motion[1]':  { cycle: [{ levels: [[7], [7], [7], [8]], at: 3, fire: [null, null, ['em049_00u', 1006], null],
+                                lowRank: { levels: [[7], [7], [8]], at: 2, fire: [null, null, ['em049_00u', 1006]] } },
+                              { levels: [[17], [17], [18]], at: 2, fire: [null, ['em049_00u', 1035], null],
+                                lowRank: { levels: [[17], [18]], at: 1, fire: [null, ['em049_00u', 1035]] } }] },
+    // L3 M3 -> (240 f) M4 -> M5 (script 0x17c6d70): (10, 7) for parts 2 (11 -> 12, u 1010) and 3 (9 -> 10, u 1015); the
+    // stun (10, 0x20) side 1 plays the same chain (0x17c6d10, M4 held) with c 1103 in one held handle
+    '3|Motion[3]':  { cycle: [{ levels: [[11], [12]], fire: [null, ['em049_00u', 1010]] }, { levels: [[9], [10]], fire: [null, ['em049_00u', 1015]] },
+                              { hold: ['em049_00c', 1103] }] },
+    '3|Motion[4]':  { cycle: [{ levels: [[11], [12]], fire: [null, null] }, { levels: [[9], [10]], fire: [null, null] },
+                              { hold: ['em049_00c', 1103] }] },
+    '3|Motion[5]':  { cycle: [{ levels: [[11], [12]], fire: [null, null] }, { levels: [[9], [10]], fire: [null, null] },
+                              { hold: ['em049_00c', 1103] }] },
+    // L3 M6 -> M7 -> M8 (0x17c6df0): parts 4 (15 -> 16, u 1020) and 5 (13 -> 14, u 1025); the stun side 2 (0x17c6da8, M7 held)
+    '3|Motion[6]':  { cycle: [{ levels: [[15], [16]], fire: [null, ['em049_00u', 1020]] }, { levels: [[13], [14]], fire: [null, ['em049_00u', 1025]] },
+                              { hold: ['em049_00c', 1103] }] },
+    '3|Motion[7]':  { cycle: [{ levels: [[15], [16]], fire: [null, null] }, { levels: [[13], [14]], fire: [null, null] },
+                              { hold: ['em049_00c', 1103] }] },
+    '3|Motion[8]':  { cycle: [{ levels: [[15], [16]], fire: [null, null] }, { levels: [[13], [14]], fire: [null, null] },
+                              { hold: ['em049_00c', 1103] }] },
+    // THE TAIL SEVER: (10, 0x72) (script 0x17c6b20: turn, L3 M13) with part 7 -> 0xc2274(e, 0, 0, 0x91): u 900, P+0x3b4 |= 1;
+    // the tail's severed heated group 19 (ROM_HEAT_REGIONS slot 7). CUT_TAIL.em049_00 drops the piece.
+    '3|Motion[13]': { levels: [[17], [19]], fire: [null, ['em049_00u', 900]], drops: true },
+    // RAGE: EMC g6 s0 `00 01 00` -> (1, 0) L0 M3. TIRED: (0, 2) L0 M19 (also (1, 7)); the drool is TIRED_DROOL's.
+    '0|Motion[3]':  { rage: true },
+    '0|Motion[19]': { rage: false, tired: true },
+    // ASLEEP: (10, 0x1d) L3 M10 lies down (held), (10, 0x1e) holds L0 M16 -- the eyes shut (set 2) while P+0x5d02; the zzz
+    // c 1102 every 90 and the puff paused. Capture (11, 0x10) plays the same two.
+    '3|Motion[10]': { sets: [2] },
+    '0|Motion[16]': { sets: [2], every: [['em049_00c', 1102], 90], puffOff: true },
+    // PARALYSIS (10, 0x1f) holds L3 M9: c 1101 every 60. The trap's hold is the same clip -- copy B (TRAP_B).
+    '3|Motion[9]':  { every: [['em049_00c', 1101], 60] },
+    // DEATH: (11, 0) L3 M12; (11, 7 / 0x12) L3 M18; (11, 3) L3 M21 -> L3 M18. Eyes shut (0xbd594). L3 M12 also draws his
+    // cooled groups (ROM_HEAT_REGIONS coolDraw).
+    '3|Motion[12]': { dead: true, sets: [2] },
+    '3|Motion[18]': { dead: true, sets: [2] },
+  },
   em046_00: {
     // L3 M2 IS THE HEAD BREAK, THE SHOCK TRAP AND THE EXHAUST STATUS, so each play shows the next (6.2). The head
     // is at LEVEL 2: set 1 -> 10 (group 1 off, 2 on -- 243 vertices for 124), firing u 1001 (cm202_060 on joint 2,
@@ -2558,7 +2753,10 @@ export const MOTION_STATES = {
     // `e+0xb7c4` until the next 0xa499c stops it. Hence `hold`, for as long as the move runs.
     // (Swept 2026-09-30, after four monsters in a row turned out to be class-requested; dev/rom-map.md's
     // "26 monsters close as one refusal" is WITHDRAWN and this row is part of the correction.)
-    '0|Motion[8]':  { hold: ['em069_00u', 1400] },
+    // ONLY the burrowed play (6, 2) -- posture 4, 0xf926c0 -> 0xbf62c / 0xbf700 -> u 1400 (tracer, 2026-10-18) -- copy B; the walks
+    // (2, 1 / 2 / 3 / 0x13 / 0x16 / 0x19) and (16, 3) set the same clip and request nothing. [Was on every L0 M8 play.]
+    '0|Motion[8]':  {},
+    '0|Motion[8]#B': { hold: ['em069_00u', 1400] },
     // L3 M1 CARRIES SIX OF HER SEVEN BREAKS, each part swapping its own pair at level 1, and then the SHOCK TRAP's
     // first clip ((10, 0x6e) plays L3 M1 and holds L3 M13, with c 1105 every 42). Each play shows the next.
     // The records sit where the .pel puts them, which for the Smaller Legs is JOINT 1, the head -- not on the legs'
@@ -2606,7 +2804,8 @@ export const MOTION_STATES = {
   //   **key 1012, which `em085_00u` does not contain**. So at the viewer's rank (index.html's SHELL_QUEST_RANK = 5)
   //   the tail break SHOWS ITS SET AND FIRES NOTHING, and that is what is wired. AT LOW RANK it would be
   //   `{ levels: [[5], [5], [6]], fire: [null, null, ['em085_00u', 1011]] }` -- the record exists and is only ever
-  //   reachable there, which is why it is not exported: nothing at G asks for it.
+  //   reachable there, which is why it is not exported: nothing at G asks for it. [2026-10-20: now wired as the tail arm's `lowRank`
+  //   and exported -- the Quest Rank control reaches it; dev/checks/quest-rank.mjs]
   //   BREAKING THE CREST OR THE TAIL KNOCKS HIM OVER. `vtable +0x23c` is overridden to "this part just reached its
   //   break level" -- where Barioth's tests tiredness -- so both breaks route to (10, 0x14) and the full topple
   //   (L3 M3 -> M4 -> M5 -> (120 f) L3 M16 -> L3 M9) rather than to the (10, 7) stagger. That is why both sit on
@@ -2625,7 +2824,9 @@ export const MOTION_STATES = {
     // firing u 1001 on joint 3; then the TAIL at G's level 3 (set 5 -> 6: group 2 off, 12 on, 102 off), which fires
     // nothing at this rank. L3 M3 is also the first clip of the death chain, which is why death is on L3 M10.
     '3|Motion[3]':  { cycle: [{ levels: [[3], [3], [4]], at: 2, fire: [null, null, ['em085_00u', 1001]] },
-                              { levels: [[5], [5], [5], [6]], at: 3, fire: [null, null, null, null] }] },
+                              { levels: [[5], [5], [5], [6]], at: 3, fire: [null, null, null, null],
+                                // below G: level 2, u 1011 (the record only low / high rank asks for)
+                                lowRank: { levels: [[5], [5], [6]], at: 2, fire: [null, null, ['em085_00u', 1011]] } }] },
     // L3 M1 CARRIES THE SHOCK TRAP AND THE EXHAUST STATUS (and the crest's level-1 depletion, which shows and fires
     // nothing -- `em085_00u` has no key 1000): (10, 0x6e) plays L3 M1 and holds L3 M8, with c 1105 every 42; then
     // (10, 0x1b) requests c 1109 once at frame 0.
@@ -2961,7 +3162,9 @@ export const MOTION_STATES = {
   //   MEASURING IT went the other way: with the allow flag set, bit-4 records FAULT in the recorder
   //   (UC_ERR_READ_UNMAPPED) where four records of the same .efl with the bit clear record fine. So his soak
   //   reports 1 refused and that is the accepted number, not a regression. (Effects session A, 2026-09-25;
-  //   E:/offline/decode/notes/effects-ground-ray.md)
+  //   E:/offline/decode/notes/effects-ground-ray.md) [SUPERSEDED 2026-10-17: that record is c 230 (cm202_020, L2 M30),
+  //   recordable since the ray was retired 2026-10-07; it is exported and recorded, and the "1 refused" the soaks showed
+  //   was L3 M9's 0xa92798 (now covered). Both soak 0 refused (87 / 92 motions). dev/em057-effects-spec.md 7]
   // NOT WIRED, stated instead:
   //   THE GAUGE TIERS. u 30 (tier 2, gauge 50..74) and u 31 (tier 3, gauge >= 75) are the CALM auras; the viewer
   //   has no gauge, and picking one would be inventing a value. Only the charged aura u 32 is wired, because the
@@ -2991,14 +3194,16 @@ export const MOTION_STATES = {
     // carries his option list and `em057_00_tail.glb` is staged, which is what the drop needs (CUT_TAIL).
     '3|Motion[19]': { levels: [[17], [18]], fire: [null, ['em057_00u', 900]], drops: true },
     // CHARGED ON: (1, 4) plays L0 M24 and the action start sets `P+0x5df3 = 1` (0xeec02c). The body swaps, both
-    // materials take `tyoutaiden_Loop`, every part takes its charged column, and u 32 is held.
+    // materials take `tyoutaiden_Loop`, every part takes its charged column. u 32 is NOT held here: the aura machine
+    // skips the request on the (1, 4) start itself (0xeed78c..0xeed7a0, emulated -- dev/em057-effects-spec.md 10) and
+    // makes it at the NEXT action start; the Fully Charged rung holds it (CHARGE_EFFECTS em057_00). [was `hold: u 32`]
     '0|Motion[24]': { sets: [1], tables: [Z_BACK, Z_FORE_R, Z_FORE_L], show: 'enraged',
-                      clips: [{ mats: ['XfB__m02_light', 'XfB__I0__m03_effect'], clip: 'tyoutaiden_Loop' }],
-                      hold: ['em057_00u', 32] },
+                      clips: [{ mats: ['XfB__m02_light', 'XfB__I0__m03_effect'], clip: 'tyoutaiden_Loop' }] },
     // CHARGED OFF: (1, 5) plays L0 M25 (0xeecb28). Set 1 -> 0 and the materials go back -- `XfB__m02_light` to
     // `normal_Loop`, and `XfB__I0__m03_effect` has NO `normal_Loop` clip, so the ROM simply clears its slot,
     // which is why only the one material is named here.
-    '0|Motion[25]': { sets: [0], tables: [Z_BACK, Z_FORE_R, Z_FORE_L],
+    // The (1, 5) start runs the discharge 0xeecb28 -> 0xeecc2c: id 1005 = u 90 (em057_00_002, joint 2) once.
+    '0|Motion[25]': { sets: [0], tables: [Z_BACK, Z_FORE_R, Z_FORE_L], start: [['em057_00u', 90, 'UNIQUE']],
                       clips: [{ mats: ['XfB__m02_light'], clip: 'normal_Loop' }] },
     // RAGE: command group 6 stream 0 runs into group 1 stream 6 and issues (1, 9) -- L3 M20. Nothing on the
     // model. L3 M20 is ALSO the common recovery clip ((10, 0x2a) / (10, 0x2b) / (10, 0x70) and the wake-up's
@@ -3026,8 +3231,12 @@ export const MOTION_STATES = {
     // while `XfB__I0__m03_effect` is cleared.
     //   HIS EYES SHUTTING AT DEATH IS THE SECOND READING OF THAT SHARED CODE, after Lagombi's -- two independent
     //   decodes now say status-11 raises `P+0x5d02`, against states-em042_00.md 8, where Barioth's stay open.
-    '3|Motion[21]': { dead: true, sets: [0, 2], clips: [{ mats: ['XfB__m02_light'], clip: 'Death' }] },
-    '3|Motion[13]': { dead: true, sets: [0, 2], clips: [{ mats: ['XfB__m02_light'], clip: 'Death' }] },
+    // The status-11 start: charged -> e+0xcb14 = 1 and the discharge; uncharged with gauge tier >= 1 -> 0xeecc2c alone --
+    // both request id 1004 = u 120 (status 11, variant 0). Fully Charged and Charging (tier >= 2) fire it; Normal is the
+    // tier-0 stand-in (tier 1, gauge 25..49, would fire it too). The held auras stop (CHARGE_EFFECTS `alive`).
+    // NORMAL is tier 0 OR 1 (gauge < 50): each death play shows the next -- tier 0 (nothing), then tier 1 (u 120, 0xeed104).
+    '3|Motion[21]': { cycle: [Z_DEATH(EM057_U120, [1, 2]), Z_DEATH(EM057_U120, [0, 1, 2])] },
+    '3|Motion[13]': { cycle: [Z_DEATH(EM057_U120, [1, 2]), Z_DEATH(EM057_U120, [0, 1, 2])] },
   },
   // THUNDERLORD ZINOGRE (em057_04): the same class, the same vtable, the same command table (his arc ships
   // `em057_00_cmdtbl.emc`, not a file of his own) and the same three motion lists under Zinogre's names, plus a
@@ -3075,7 +3284,8 @@ export const MOTION_STATES = {
                       clips: [{ mats: ['XfB__m02_light', 'XfB__I0__m03_effect'], clip: 'shintaiden_Loop' }] },
     // CHARGED OFF: (1, 5) plays L0 M25. Set 19 -> 0, and BOTH materials go back to `normal_Loop` -- his
     // `XfB__I0__m03_effect` has a `normal_Loop` clip where Zinogre's has none.
-    '0|Motion[25]': { sets: [0],
+    // The (1, 5) start: the discharge, id 1005 = u 90 (em057_04_002) once.
+    '0|Motion[25]': { sets: [0], start: [['em057_04u', 90, 'UNIQUE']],
                       clips: [{ mats: ['XfB__m02_light', 'XfB__I0__m03_effect'], clip: 'normal_Loop' }] },
     // RAGE: the shared command table issues (1, 9) -- L3 M20 -- and nothing changes on the model. At G his puff
     // is his own u 250 (RAGE_PUFF.em057_04).
@@ -3090,8 +3300,12 @@ export const MOTION_STATES = {
     '3|Motion[5]':  { hold: ['em057_00c', 1103] },
     // DEATH: the back goes dark (set 7 -> 9) and the lid is drawn; his claws keep their light even dead, which is
     // why no foreleg set appears here -- 11 and 13 are the same list, as are 14 and 16.
-    '3|Motion[21]': { dead: true, sets: [9, 2], setsFrom: [[230, [1]]], clips: [{ mats: ['XfB__m02_light'], clip: 'Death' }] },
-    '3|Motion[13]': { dead: true, sets: [9, 2], setsFrom: [[200, [1]]], clips: [{ mats: ['XfB__m02_light'], clip: 'Death' }] },
+    // The status-11 start while Overcharged (P+0x5df3): the discharge, id 1005 = u 90 (variant 4 never takes 1004). At the
+    // Charged rung (P+0x5df3 0) it comes only with gauge tier >= 1, which no rung of his shows -- not fired (stand-in).
+    // His CHARGED rung (P+0x5df3 0) is gauge tier 0 OR >= 1 -- the tier shows nothing on him but this request -- so each death
+    // play there shows the next: tier 0 (nothing), then tier >= 1 (u 90, 0xeed104). (dev/em057-effects-spec.md 11)
+    '3|Motion[21]': { cycle: [TL_DEATH(230, [1]), TL_DEATH(230, [0, 1])] },
+    '3|Motion[13]': { cycle: [TL_DEATH(200, [1]), TL_DEATH(200, [0, 1])] },
   },
   // NERSCYLLA (em070_00): the part pass vt+0x210 0xf9bd10 applies set 16 (part 13 ON: 362 v on joints 130-133, the
   // extending JAWS) while the current motion e+0x4b4 is 0x206 / 0x207 / 0x20a / 0x21a / 0x254 / 0x255 / 0x422, set 17
@@ -3134,7 +3348,10 @@ export const MOTION_STATES = {
     // L3 M1 IS THE CHIN AND THE EXHAUST STATUS, so each play shows the next. The chin needs TWO depletions (the
     // .dtp row is level 2 at every rank): set 3 -> 4, group 1 off (56 v of `m00_jaw`, the chin itself), 2 on,
     // 102 off, firing u 1001 on JOINT 4.
-    '3|Motion[1]':  { cycle: [{ levels: [[3], [3], [4]], fire: [null, null, ['em045_00u', 1001]] },
+    // `at: 2` (2026-10-18, suite triage): the take shows the depletion that breaks it, as every other two-depletion break
+    // row does (Agnaktor's, Gammoth's, Ahtal-Ka's ...). Without it the play showed level 1 -- the first depletion, which
+    // changes nothing -- and the chin's u 1001 could never fire from the clip.
+    '3|Motion[1]':  { cycle: [{ levels: [[3], [3], [4]], at: 2, fire: [null, null, ['em045_00u', 1001]] },
                               { start: [['em045_00c', 1109]] }] },
     // L3 M7 IS THE BACK AND THE SHOCK TRAP. The back's mineral coat goes at level 1: set 5 -> 6 (group 10 off,
     // 199 v of body and `m00_danmen`; 11 on), firing u 1010 on JOINT 0 at (0, 220, 0). Then (10, 0x6e), which
@@ -3158,7 +3375,10 @@ export const MOTION_STATES = {
     // Hence `hold` on the clip: the rolling trail runs for as long as he rolls. (Read instruction by instruction
     // 2026-09-30; states-em045_00.md 8.7 had the chain and this confirms it. His u 1400 is therefore NOT the
     // shared latch refusal the other 25 monsters close on -- his class requests it outright.)
-    '0|Motion[6]':  { hold: ['em045_00u', 1400] },
+    // [CORRECTED 2026-10-18 (reqtrace.py): the class asks it on the plays listed in psl-mask.js CLIP_ACTIONS copy B only, not on
+    //   every play of the clip.]
+    '0|Motion[6]':  {},
+    '0|Motion[6]#B': { hold: ['em045_00u', 1400] },
     // THE TWO BOULDER MOVES, and they are the rest of what the class asks for itself. Both are phase machines on
     // `[e+0x1428]+0x1a1` entered through a PIC table whose entries are OFFSETS and are NOT in source order (the
     // first arm is phase 0, the SECOND is phase 1, the third phase 2 -- resolved, not assumed):
@@ -3272,7 +3492,10 @@ export const MOTION_STATES = {
     // Hence `hold` on the clip: the rolling trail runs for as long as he rolls. (Read instruction by instruction
     // 2026-09-30; states-em045_00.md 8.7 had the chain and this confirms it. His u 1400 is therefore NOT the
     // shared latch refusal the other 25 monsters close on -- his class requests it outright.)
-    '0|Motion[6]':  { hold: ['em045_04u', 1400] },
+    // [CORRECTED 2026-10-18 (reqtrace.py): the class asks it on the plays listed in psl-mask.js CLIP_ACTIONS copy B only, not on
+    //   every play of the clip.]
+    '0|Motion[6]':  {},
+    '0|Motion[6]#B': { hold: ['em045_04u', 1400] },
     '3|Motion[9]':  { sets: [1] },
     '3|Motion[10]': { sets: [1], every: [['em045_00c', 1102], 90], puffOff: true },
     '3|Motion[11]': { every: [['em045_00c', 1101], 60] },
@@ -3350,7 +3573,10 @@ export const MOTION_STATES = {
     // and it runs for as long as he rolls -- so his u 1400 is NOT the shared one-shot latch either.
     // (The `b 0xa499c` is the ONLY call into 0xa3000..0xa4fff in his whole class band besides vtable +0x1d0's own
     // tail at 0xede148, which is how it was found: everything else he shows for a state comes from shared code.)
-    '0|Motion[6]':  { hold: ['em055_00u', 1400] },
+    // [CORRECTED 2026-10-18 (reqtrace.py): the class asks it on the plays listed in psl-mask.js CLIP_ACTIONS copy B only, not on
+    //   every play of the clip.]
+    '0|Motion[6]':  {},
+    '0|Motion[6]#B': { hold: ['em055_00u', 1400] },
     // RAGE: the rage stream g6 s0 issues (1, 0) behind op 0x6f(2) -- vt+0x214 = 0xed49a8, 1 unless the motion is L2 M2 or
     // the action (7, 9) / (7, 0xd) -- and (1, 0), (1, 2) (g8 s1) and (1, 0xd) (g13 s0) all play L0 M11. [CORRECTED
     // 2026-10-15: this said "(1, 2) is L0 M11", taking (1, 2) for the rage entry; dev/em055_00-effects-spec.md 1.] His word
@@ -3436,7 +3662,10 @@ export const MOTION_STATES = {
     // `e+0xb7c4` until the next 0xa499c stops it. Hence `hold`, for as long as the move runs.
     // (Swept 2026-09-30, after four monsters in a row turned out to be class-requested; dev/rom-map.md's
     // "26 monsters close as one refusal" is WITHDRAWN and this row is part of the correction.)
-    '0|Motion[7]':  { hold: ['em066_00u', 1400] },
+    // [2026-10-18: ON COPY B ONLY -- L0 M7 is also every surface turn ((2, 1 / 0xf..0x1c / 0x50 / 0x52 / 0x58), (13, 1); tracer),
+    // and only the dive (6, 0x51) runs 0xf5d92c's u 1400 (dev/em066-effects-spec.md 2). It held on every play before.]
+    '0|Motion[7]':  {},
+    '0|Motion[7]#B': { hold: ['em066_00u', 1400] },
     // L3 M2 WEARS THREE HATS, so each play shows the next: the TUSKS, which have TWO rungs on the one clip
     // (level 1 set 3 -> 4, u 1000 on JOINT 132 at (70, 30, 240); level 2 set 4 -> 5, u 1001 at (-90, 30, 240) --
     // the two tusks, one each side); the SHOCK TRAP ((10, 0x6e) plays L3 M2 to frame 60 then holds L3 M13); and
@@ -3461,7 +3690,7 @@ export const MOTION_STATES = {
     '4|Motion[9]':  { sets: [13] },
     '4|Motion[8]':  { sets: [13] },
     '4|Motion[18]': { sets: [13] },
-    '4|Motion[11]': { sets: [13], hold: ['em066_00u', 10] },
+    '4|Motion[11]': { sets: [13] },                                  // u 10: BOULDER ((1, 0x53) requests it)
     // RAGE: command group 6 stream 0 runs into group 1 stream 22 and issues (1, 0x10) -- L0 M4. Nothing at all on
     // the model; the shared puff is the whole of it.
     '0|Motion[4]':  { rage: true },
@@ -3497,7 +3726,10 @@ export const MOTION_STATES = {
     // `e+0xb7c4` until the next 0xa499c stops it. Hence `hold`, for as long as the move runs.
     // (Swept 2026-09-30, after four monsters in a row turned out to be class-requested; dev/rom-map.md's
     // "26 monsters close as one refusal" is WITHDRAWN and this row is part of the correction.)
-    '0|Motion[7]':  { hold: ['em066_04u', 1400] },
+    // [2026-10-18: ON COPY B ONLY -- L0 M7 is also every surface turn ((2, 1 / 0xf..0x1c / 0x50 / 0x52 / 0x58), (13, 1); tracer),
+    // and only the dive (6, 0x51) runs 0xf5d92c's u 1400 (dev/em066-effects-spec.md 2). It held on every play before.]
+    '0|Motion[7]':  {},
+    '0|Motion[7]#B': { hold: ['em066_04u', 1400] },
     '3|Motion[2]':  { cycle: [{ levels: [[3], [4], [5]], fire: [null, ['em066_04u', 1000], ['em066_04u', 1001]] },
                               { every: [['em066_00c', 1105], 42] },
                               { start: [['em066_00c', 1109]] }] },
@@ -3509,10 +3741,11 @@ export const MOTION_STATES = {
     '3|Motion[7]':  { hold: ['em066_00c', 1103] },
     '4|Motion[9]':  { sets: [13] },
     '4|Motion[8]':  { sets: [13] },
-    // (1, 0x52): HIS WIDE ROCK. `ctl+0x30 = 2` picks u key 12 from the class's private table where Tetsucabra
-    // takes 10 -- and key 12 exists only in `em066_04u`, in UNIQUE alone.
-    '4|Motion[18]': { sets: [13], hold: ['em066_04u', 12] },
-    '4|Motion[11]': { sets: [13], hold: ['em066_04u', 10] },
+    // L4 M18: the dig's rock at frame 35 -- BOULDER below. [Was: "(1, 0x52) ctl+0x30 = 2 picks u key 12", held over the whole
+    // clip. WITHDRAWN: the request takes id 1002 (key 12) only when ctl+0x30 == 3, (1, 0xff)'s kind (0xf580f0 / 0xf59288); (1, 0x52)'s
+    // kind 2 takes 1001 -> u 10.]
+    '4|Motion[18]': { sets: [13] },
+    '4|Motion[11]': { sets: [13] },
     '0|Motion[4]':  { rage: true },
     '0|Motion[14]': { rage: false, tired: true },
     '3|Motion[14]': { sets: [1] },
@@ -3674,7 +3907,11 @@ export const MOTION_STATES = {
     // (0 -> 1120, 1 -> 1121, 2 -> 1400 ...), which is what makes this a u 1400 site and not one of the three
     // sites the same sweep found at level 0 or 1. `cm202_005`, END 1, HELD in `e+0xb7c4`, so `hold`.
     // posture 4: the burrow play only (psl-mask.js CLIP_ACTIONS alternates posture 0 / 4 on this clip)
-    '0|Motion[7]':  { hold: ['em007_00u', 1400], posture: 4 },
+    // [CORRECTED 2026-10-18 (reqtrace.py): the class asks it on the plays listed in psl-mask.js CLIP_ACTIONS copy B (u 1400) / C (u 1121) only, not on
+    //   every play of the clip.]
+    '0|Motion[7]':  {},
+    '0|Motion[7]#B': { hold: ['em007_00u', 1400], posture: 4 },
+    '0|Motion[7]#C': { hold: ['em007_00u', 1121], posture: 4 },
     // THE HORNS, (10, 0x14) with part 6 on L3 Motion[22]: TWO levels, and the sets are CUMULATIVE -- level 1 takes
     // set 3 -> 4 (group 102 out, 2 in, one horn), level 2 takes that AND set 5 -> 6 (group 103 out, 3 in, both).
     // Each level fires its own record: u 1030 at the +X horn (offset (80, 80, 150)) and u 1031 at the -X
@@ -3829,7 +4066,11 @@ export const MOTION_STATES = {
     // (0 -> 1120, 1 -> 1121, 2 -> 1400 ...), which is what makes this a u 1400 site and not one of the three
     // sites the same sweep found at level 0 or 1. `cm202_005`, END 1, HELD in `e+0xb7c4`, so `hold`.
     // posture 4: the burrow play only (psl-mask.js CLIP_ACTIONS alternates posture 0 / 4 on this clip)
-    '0|Motion[7]':  { hold: ['em007_04u', 1400], posture: 4 },
+    // [CORRECTED 2026-10-18 (reqtrace.py): the class asks it on the plays listed in psl-mask.js CLIP_ACTIONS copy B (u 1400) / C (u 1121) only, not on
+    //   every play of the clip.]
+    '0|Motion[7]':  {},
+    '0|Motion[7]#B': { hold: ['em007_04u', 1400], posture: 4 },
+    '0|Motion[7]#C': { hold: ['em007_04u', 1121], posture: 4 },
     // RAGE: (1, 6) -> setMotion0 L0 Motion[22] on variants 0 and 4 alike (probe) -- Diablos's rage row. The puff
     // (RAGE_PUFF.em007_04) runs off the Enraged toggle, not the Bloodbath State ladder (dev/em007_04-undriven-spec.md 3).
     '0|Motion[22]': { rage: true },
@@ -4117,7 +4358,10 @@ export const MOTION_STATES = {
     // `e+0xb7c4` until the next 0xa499c stops it. Hence `hold`, for as long as the move runs.
     // (Swept 2026-09-30, after four monsters in a row turned out to be class-requested; dev/rom-map.md's
     // "26 monsters close as one refusal" is WITHDRAWN and this row is part of the correction.)
-    '0|Motion[6]':  { hold: ['em043_00u', 1400] },
+    // [CORRECTED 2026-10-18 (reqtrace.py): the class asks it on the plays listed in psl-mask.js CLIP_ACTIONS copy B only, not on
+    //   every play of the clip.]
+    '0|Motion[6]':  {},
+    '0|Motion[6]#B': { hold: ['em043_00u', 1400] },
     // THE HEAD BREAK, whose REACTION the rage state picks (0xe80f00): enraged -> (10, 0x14) L2 Motion[9], calm ->
     // (10, 7) L3 Motion[9]. The same two levels and the same records either way (u 1000 at level 1, u 1001 at 2;
     // 0xa442c ids 7 and 8), but the level-2 face differs: set 11 enraged, set 6 calm. Each motion shows its own form,
@@ -4165,7 +4409,10 @@ export const MOTION_STATES = {
     // `e+0xb7c4` until the next 0xa499c stops it. Hence `hold`, for as long as the move runs.
     // (Swept 2026-09-30, after four monsters in a row turned out to be class-requested; dev/rom-map.md's
     // "26 monsters close as one refusal" is WITHDRAWN and this row is part of the correction.)
-    '0|Motion[6]':  { hold: ['em043_05u', 1400] },
+    // [CORRECTED 2026-10-18 (reqtrace.py): the class asks it on the plays listed in psl-mask.js CLIP_ACTIONS copy B only, not on
+    //   every play of the clip.]
+    '0|Motion[6]':  {},
+    '0|Motion[6]#B': { hold: ['em043_05u', 1400] },
     // THE HEAD BREAK (breaks-em043.md 2). Every depletion of part 0 plays L2 Motion[9] from frame 0 (reaction code 3 ->
     // action (10, 0x14), 0x9e82c; script 0x17c08a0: motion 0x209, blend 4, start 0). The 1st raises the break level to 1:
     // u 1000 (0xa442c: id part*5 + level + 6 = 7, 0x159c7fc[7] = 1000; cm202_060 on joint 3); the 2nd to 2: u 1001 (id 8).
@@ -4362,7 +4609,9 @@ export const MOTION_STATES = {
   //   HIS GAS TYPE CHANGES NO VISUAL. `ctl[1]` (1..4) and `ctl[2]` (the charges) are set by status-1 actions that
   // also clear ctl[0], and they reach only the attack hit-group mask e+0x13f4 through vtable +0x13c -- no clip,
   // no mesh, no effect record. Which pel keys each gas type fires (u 200-203, u 260-263, c 150-153, four
-  // byte-identical records each) is a PSL binding the class does not make and is NOT READ.
+  // byte-identical records each) is a PSL binding the class does not make and is NOT READ. [WITHDRAWN 2026-10-17: the
+  // class's enable word 0xdd7cf4 picks ONE of them by ctl[1] (and c 150..153 by ctl[0] / the eating number), and u 200..203
+  // are four DIFFERENT records -- psl-mask.js em021_00, dev/em021_00-effects-spec.md 1]
   em021_00: {
     // THE HEAD (part 0) reaching level 2, (10, 7) -> L3 Motion[2]: set 3 -> 4 (group 3 on, 102 off), u 1001
     // (cm202_060 on joint 4, offset (0, 50, 40) at 0.5x). L3 Motion[2] is also every ODD-level depletion on parts
@@ -4431,6 +4680,10 @@ export const MOTION_STATES = {
   // 0xe3d1f0, which drops all three to the base default 0x76088 -- a tail call to the idle chooser. c 1105, c 1109
   // and the three pit records are real records that nothing can request, so they stay unexported.
   em033_00: {
+    // THE BURROW, L0 M2 copy B: (6, 2 / 6 / 7 / 8) ask 0xa499c(e, 1) = u 1121 (cm200_007, 0xe3a5c8) and the record is held
+    // while the clip plays (0xa499c starts it sustained, killing the handle at e+0xb7c4 first). The rom-map's u 1400 sweep
+    // read this site as "not a u 1400 site" and stopped; the request itself had no row (reqtrace.py, 2026-10-18).
+    '0|Motion[2]#B': { hold: ['em033_00u', 1121] },
     // THE HEAD (part 0), (10, 7) -> L3 Motion[9] -- reached through the OUT-OF-RANGE path, because his second
     // status-10 table indexes with part - 1 and part 0 falls to the catch-all 0xe3d7f4. It is the head alone: no
     // cycle, unlike his L3 M2.
@@ -5005,10 +5258,18 @@ export const MOTION_STATES = {
 // (states-em021_00.md 779), Blangonga L3 M9 (679), Rajang / Furious L3 M13 (states-em023_05.md 672), Lagombi / Snowbaron
 // L3 M13 and L3 M73 -> M13 from f42 (states-em061_00.md 623), Nibelsnarf L3 M3_loop (states-em056_00.md 633). Seltas's
 // two from the probes above.
+// THE GORE LINE's state copies: L3 M15 A paralysis / B the shock trap; the stun chains A / B their part-4 / part-5 twins; L0 M5 /
+// M31 A the rage entries (1, 0) / (1, 3), B their other plays
+const GORE_COPIES = Object.fromEntries(['3|Motion[15]', '3|Motion[9]', '3|Motion[10]', '3|Motion[11]', '3|Motion[3]', '3|Motion[4]', '3|Motion[5]',
+                                        '0|Motion[5]', '0|Motion[31]', '2|Motion[52]', '2|Motion[57]'].map(k => [k, ['A', 'B']]));
 export const CLIP_VARIANTS = {
+  em018_04: { '0|Motion[7]': ['A', 'B'] },     // B: (7, 0xe3) / (7, 0xe5), begun at frame 18 (psl-mask.js `startFrame`)
   em076_00: { '0|Motion[19]': ['A', 'B'], '3|Motion[13]': ['A', 'B'] },
   em023_00: { '3|Motion[13]': ['A', 'B'] }, em023_05: { '3|Motion[13]': ['A', 'B'] },
   em021_00: { '3|Motion[6]': ['A', 'B'] },  em022_00: { '3|Motion[9]': ['A', 'B'] },
+  em060_00: { '3|Motion[10]': ['A', 'B'] }, em060_04: { '3|Motion[10]': ['A', 'B'] }, em062_00: { '3|Motion[5]': ['A', 'B'] },
+  // KECHA WACHA: L0 M16 / M14 A the rest chain ((1, 3) / (1, 9)), B the sleep; L3 M6 A paralysis, B the shock trap
+  em065_00: { '0|Motion[16]': ['A', 'B'], '0|Motion[14]': ['A', 'B'], '3|Motion[6]': ['A', 'B'] },
   em061_00: { '3|Motion[13]': ['A', 'B'], '3|Motion[73]': ['A', 'B'] },
   em061_04: { '3|Motion[13]': ['A', 'B'], '3|Motion[73]': ['A', 'B'] },
   em056_00: { '3|Motion[3]': ['A', 'B'] },
@@ -5016,8 +5277,76 @@ export const CLIP_VARIANTS = {
   em088_00: { '3|Motion[16]': ['A', 'B'], '3|Motion[9]': ['A', 'B'] },
   // DIABLOS / BLOODBATH L0 M1: A the plain idle (posture 0; nothing requested), then one copy per held record the burrowed
   // group-6 plays request (0xd3c418 / 0xd3c318: c 30, c 40, and Bloodbath's u 230)
-  em007_00: { '0|Motion[1]': ['A', 'B', 'C'] },
-  em007_04: { '0|Motion[1]': ['A', 'B', 'C', 'D'] },
+  em007_00: { '0|Motion[1]': ['A', 'B', 'C'], '0|Motion[7]': ['A', 'B', 'C'] },
+  em044_00: { '0|Motion[6]': ['A', 'B', 'C'] },
+  em004_00: { '0|Motion[7]': ['A', 'B'] }, em033_00: { '0|Motion[2]': ['A', 'B', 'C'] },  // C: (6, 3), his burrow tell (psl-mask.js CLIP_ACTIONS em033_00)
+  em043_00: { '0|Motion[6]': ['A', 'B'] }, em043_05: { '0|Motion[6]': ['A', 'B'] },
+  em045_00: { '0|Motion[6]': ['A', 'B'] }, em045_04: { '0|Motion[6]': ['A', 'B'] }, em055_00: { '0|Motion[6]': ['A', 'B'] },
+  em063_00: { '0|Motion[10]': ['A', 'B'] }, em063_05: { '0|Motion[10]': ['A', 'B'] },
+  em007_04: { '0|Motion[1]': ['A', 'B', 'C', 'D'], '0|Motion[7]': ['A', 'B', 'C'] },
+  // PLESIOTH L0 M18: A the water idles (P+0x5c = -100), B (12, 0) at action-tune depth -1000 (psl-mask.js CLIP_ACTIONS)
+  em010_00: { '0|Motion[18]': ['A', 'B'] },
+  // CEPHADROME L4 M11: A the status-5 sand plays (c 60), B (7, 0xc)'s phase 1 (no c 60: psl-mask.js em017_00)
+  em017_00: { '4|Motion[11]': ['A', 'B'] },
+  // LAVASIOTH: copy B of each clip the u 60 actions share with others (psl-mask.js CLIP_ACTIONS em036_00); L0 M21 A the dive
+  // (u 1120), B the shallow plays, C (7, 0x13)'s phase 1
+  em036_00: { '0|Motion[21]': ['A', 'B', 'C'], '0|Motion[30]': ['A', 'B'], '2|Motion[10]': ['A', 'B'], '0|Motion[18]': ['A', 'B'],
+              '0|Motion[16]': ['A', 'B'] },
+  // LAGIACRUS L2 M6: A the land attacks (bits 21-23), B (6, 2) in posture 4 (bits 24-26)
+  em046_00: { '2|Motion[6]': ['A', 'B'] },
+  // ROYAL LUDROTH L2 M8: A the land turns, B (6, 7 / 8) burrowed
+  em047_00: { '2|Motion[8]': ['A', 'B'] },
+  // AGNAKTOR: L3 M9 A paralysis / B the trap's hold; L0 M6..M8 (turn table 0x169eb9c) A on the surface, B burrowed (psl-mask.js)
+  em049_00: { '3|Motion[9]': ['A', 'B'], '0|Motion[6]': ['A', 'B'], '0|Motion[7]': ['A', 'B'], '0|Motion[8]': ['A', 'B'],
+              '2|Motion[6]': ['A', 'B'] },
+  // MIZUTSUNE / SOULSEER: copies for the word's action arms on _start / _loop clips (psl-mask.js EM082_ACTIONS)
+  em082_00: { '0|Motion[12]': ['A', 'B'], '0|Motion[4]': ['A', 'B'], '0|Motion[15]': ['A', 'B'], '2|Motion[70]': ['A', 'B'] },
+  // TETSUCABRA / DRILLTUSK: the boulder carried -- A the dig's own rock (kind 1 / 2), B kind 3 -- on the throw / carry clips; L0 M7
+  // A the surface turns, B the dive (6, 0x51) with u 1400 (psl-mask.js EM066_ACTIONS)
+  em066_00: { '4|Motion[7]': ['A', 'B'], '4|Motion[17]': ['A', 'B'], '0|Motion[7]': ['A', 'B'], '4|Motion[18]': ['A', 'B'], '4|Motion[14]': ['A', 'B'], '4|Motion[15]': ['A', 'B'] },
+  // ZAMTRIOS: L4 M31 / M32 A the shallow swim turn (6, 5), B the deep ones (psl-mask.js em067_00)
+  em067_00: { '4|Motion[31]': ['A', 'B'], '4|Motion[32]': ['A', 'B'], '4|Motion[20]': ['A', 'B'] },
+  // NAJARALA: L3 M37 A paralysis / B the trap's hold; L0 M44 A the surface plays, B burrowed (u 1400); L2 M61 by the part-2 break
+  em068_00: { '3|Motion[37]': ['A', 'B'], '0|Motion[44]': ['A', 'B'] },
+  // NERSCYLLA: L3 M37 A the sleep hold / B the stun's held clip; L3 M13 A paralysis / B the trap's hold
+  em070_00: { '3|Motion[37]': ['A', 'B'], '3|Motion[13]': ['A', 'B'] },
+  // SELTAS QUEEN: L0 M16 A (1, 0x14) / B (1, 0x1c); L0 M8 A the walks / B (6, 2) burrowed
+  em069_00: { '0|Motion[16]': ['A', 'B'], '0|Motion[8]': ['A', 'B'] },
+  // KIRIN: L4 M7 A the rage roar (1, 6), B (1, 7), C the attacks; L2 M4 A / B (7, 2) (psl-mask.js em011_00)
+  em011_00: { '4|Motion[7]': ['A', 'B', 'C'], '2|Motion[4]': ['A', 'B'] },
+  // LAO-SHAN LUNG: L0 M30 A (1, 2), B the death's first clip (script 0x17a55d0)
+  em012_00: { '0|Motion[30]': ['A', 'B'] },
+  // KUSHALA: L3 M3 A stun / B exhaust / C the horns' second counter / D the part-0 knockdown; L3 M5 / M7 A stun / B others; L0 M5 A the
+  // rage entry (1, 0x1b) / B the other roars
+  // CHAMELEOS: L3 M3 A the horn (10, 0x72) / B (10, 7); L3 M12 A the stun / B (10, 7) parts 1-3 / 7 (the wings at level 2); L3 M6 / M7
+  // A the stun / B the others; L3 M2 A the exhaust / B the chain's; L3 M13 A part 6's sever / B the others; L3 M10 A the sleep hold / B
+  em025_00: { '3|Motion[3]': ['A', 'B'], '3|Motion[12]': ['A', 'B'], '3|Motion[6]': ['A', 'B'], '3|Motion[7]': ['A', 'B'], '3|Motion[2]': ['A', 'B'],
+              '3|Motion[13]': ['A', 'B'], '3|Motion[10]': ['A', 'B'] },
+  // TEOSTRA: as Kushala's, and L3 M5 C his sleep hold
+  em027_00: { '3|Motion[3]': ['A', 'B', 'C', 'D'], '3|Motion[5]': ['A', 'B'], '3|Motion[17]': ['A', 'B'], '3|Motion[7]': ['A', 'B'], '0|Motion[5]': ['A', 'B'],
+              '4|Motion[9]': ['A', 'B', 'C', 'D', 'E'], '4|Motion[10]': ['A', 'B', 'C', 'D', 'E'] },
+  // ALATREON: each word-arm clip A (the plays it lights) / B (psl-mask.js CLIP_ACTIONS.em050_00)
+  em050_00: Object.fromEntries(['1|Motion[10]', '1|Motion[11]', '2|Motion[23]', '2|Motion[25]', '2|Motion[5]', '2|Motion[6]', '2|Motion[7]', '2|Motion[8]',
+                                '2|Motion[16]', '2|Motion[17]', '1|Motion[2]', '1|Motion[3]', '0|Motion[9]', '0|Motion[10]'].map(k => [k, ['A', 'B']])),
+  // AMATSU: L3 M4 / M5 A the stun / B the sleep; L1 M9 A the rage entry (1, 0) / B (1, 0xb)
+  em058_00: { '3|Motion[4]': ['A', 'B'], '3|Motion[5]': ['A', 'B'], '1|Motion[9]': ['A', 'B'], '3|Motion[18]': ['A', 'B'] },
+  // GORE LINE: L2 M7 A (7, 0x58) / B (7, 0x60) / C the others (psl-mask.js em071)
+  em071_00: { '2|Motion[7]': ['A', 'B', 'C'], ...GORE_COPIES }, em071_05: { '2|Motion[7]': ['A', 'B', 'C'], ...GORE_COPIES },
+  em072_00: { '2|Motion[7]': ['A', 'B', 'C'], ...GORE_COPIES },
+  // NAKARKOS: L0 M50 A the idle and other plays / B the dives (6, 0x64 / 0x66) with the class's u 1121
+  em084_00: { '0|Motion[50]': ['A', 'B'] },
+  // VALSTRAX: the stun chains A / B the (10, 0x14) / (10, 0x72) twins; L0 M5 A the rage entry (1, 4) / B (1, 0xfe)
+  em086_00: { ...Object.fromEntries(['3|Motion[9]', '3|Motion[10]', '3|Motion[11]', '3|Motion[5]', '3|Motion[6]', '3|Motion[7]', '0|Motion[5]'].map(k => [k, ['A', 'B']])),
+              '1|Motion[5]': ['A', 'B', 'C'] },
+  em024_00: { '3|Motion[3]': ['A', 'B', 'C', 'D'], '3|Motion[5]': ['A', 'B'], '3|Motion[7]': ['A', 'B'], '0|Motion[5]': ['A', 'B'],
+              '0|Motion[1]': ['A', 'B'], '0|Motion[2]': ['A', 'B'] },   // (psl-mask.js CLIP_ACTIONS: A the pulse actions, 2026-10-22)
+  // FATALIS LINE: L2 M5 / M6 A (7, 0x3b / 0x3c) / B (7, 0 / 0x13); L0 M5 A the lit plays / B (3, 0xe) (psl-mask.js em013)
+  em013_00: { '2|Motion[5]': ['A', 'B'], '2|Motion[6]': ['A', 'B'], '0|Motion[5]': ['A', 'B', 'C'], '3|Motion[13]': ['A', 'B', 'C'] },
+  em013_01: { '2|Motion[5]': ['A', 'B'], '2|Motion[6]': ['A', 'B'], '0|Motion[5]': ['A', 'B', 'C'], '3|Motion[13]': ['A', 'B', 'C'] },
+  em013_02: { '2|Motion[5]': ['A', 'B'], '2|Motion[6]': ['A', 'B'], '0|Motion[5]': ['A', 'B', 'C'], '3|Motion[13]': ['A', 'B', 'C'] },
+  em066_04: { '4|Motion[7]': ['A', 'B'], '4|Motion[17]': ['A', 'B'], '9|Motion[13]': ['A', 'B'], '0|Motion[7]': ['A', 'B'], '4|Motion[18]': ['A', 'B'], '4|Motion[14]': ['A', 'B'], '4|Motion[15]': ['A', 'B'] },
+  em082_04: { '0|Motion[12]': ['A', 'B'], '0|Motion[4]': ['A', 'B', 'C', 'D'], '0|Motion[15]': ['A', 'B'], '2|Motion[70]': ['A', 'B'],
+              '9|Motion[1]': ['A', 'B'], '9|Motion[6]': ['A', 'B', 'C', 'D'], '9|Motion[9]': ['A', 'B', 'C', 'D'] },
 };
 // ZAMTRIOS'S FORMS (dev/em067-forms-spec.md; Raven, 2026-10-17: "when it enters Blob Form, it turns off the leg parts ...
 // ensure we use the correct form Normal/Armor or Blob for Zamtrios animations" -- and "follow the ROM, don't take my word for
@@ -5088,7 +5417,878 @@ Object.assign(MOTION_STATES.em076_00, { '0|Motion[19]#B': { hold: ['em076_00c', 
 MOTION_STATES.em023_00['3|Motion[13]#B'] = TRAP_B('em023_00c');
 MOTION_STATES.em023_05['3|Motion[13]#B'] = TRAP_B('em023_00c');
 MOTION_STATES.em021_00['3|Motion[6]#B'] = TRAP_B('em021_00c');
+MOTION_STATES.em049_00['3|Motion[9]#B'] = TRAP_B('em049_00c');
+MOTION_STATES.em068_00['3|Motion[37]#B'] = TRAP_B('em068_00c');
+// NERSCYLLA's states (dev/em070_00-effects-spec.md 3; NO states note existed -- the reaction scripts, the per-part depletion
+// (0x9e8d8) and the part pass 0xf9bd10's break sets read here; dev/em070-part50-spec.md 1 for the pass). Breaks, .dtp A: part 1
+// (the BACK) rows at levels 2 and 3 -- 9 + 12 -> 10 + 12 (u 1006) -> 11 + 13 (u 1007); part 2 (the LEGS, level 2) 5 + 7 -> 6 + 8
+// (u 1011); part 4 (the CLAWS, level 2) 14 -> 15 (u 1021). Depletion: parts 1 / 3 -> L3 M28; parts 2 / 4 / 5 / 6 -> L3 M1 (also
+// the shock trap's first clip, to f70); parts 0 / 7 -> L3 M3 -> M5 -> M7 (no row: nothing shows). No lid (no 0x71398 call).
+Object.assign(MOTION_STATES.em070_00, {
+  '3|Motion[28]': { levels: [[9, 12], [9, 12], [10, 12], [11, 13]], at: 2, fire: [null, null, ['em070_00u', 1006], ['em070_00u', 1007]] },
+  '3|Motion[1]':  { cycle: [{ levels: [[5, 7], [5, 7], [6, 8]], at: 2, fire: [null, null, ['em070_00u', 1011]] },
+                            { levels: [[14], [14], [15]], at: 2, fire: [null, null, ['em070_00u', 1021]] },
+                            { every: [['em070_00c', 1105], 42] }] },
+  // EXHAUST (10, 0x1b): L3 M9, c 1109 once. RAGE: g6 s0 ends (1, 7) -> L0 M5 (as (1, 2)). TIRED: (0, 2) L0 M14.
+  '3|Motion[9]':  { start: [['em070_00c', 1109]] },
+  '0|Motion[5]':  { rage: true },
+  '0|Motion[14]': { rage: false, tired: true },
+  // SLEEP: (10, 0x1d) L3 M14 -> L3 M37 (held), (10, 0x1e) L3 M37: c 1102 every 90, the puff paused. L3 M37 is ALSO the stun's held
+  // clip ((10, 0x20): L3 M26 -> L3 M37 -> L3 M16, c 1103 held) -- copy B. Capture (11, 0x10) plays L3 M14 -> L3 M37.
+  '3|Motion[37]':   { every: [['em070_00c', 1102], 90], puffOff: true },
+  '3|Motion[37]#B': { hold: ['em070_00c', 1103] },
+  '3|Motion[26]':   { hold: ['em070_00c', 1103] },
+  '3|Motion[16]':   { hold: ['em070_00c', 1103] },
+  // PARALYSIS (10, 0x1f): L3 M13 held, c 1101 every 60; the shock trap's hold is the same clip -- copy B.
+  '3|Motion[13]':   { every: [['em070_00c', 1101], 60] },
+  '3|Motion[13]#B': TRAP_B('em070_00c'),
+  // DEATH: (11, 0) L3 M18 -> L3 M38; (11, 7 / 0x12) L3 M21 -> L3 M39.
+  '3|Motion[18]': { dead: true }, '3|Motion[38]': { dead: true, settled: true },
+  '3|Motion[21]': { dead: true }, '3|Motion[39]': { dead: true, settled: true },
+});
+// LAO-SHAN LUNG's states (dev/em012_00-effects-spec.md 3; NO states note existed -- read here). His status-10 table has one
+// reaction: (10, 7) by the depleted part (0x9e8d8): parts 0 / 1 / 4..7 -> script 0x17a5540 (L3 M1), parts 2 / 3 -> 0x17a5670 (op 5
+// (28), L3 M1 -> L3 M4 -> wait 900 -> L3 M5 -> L3 M6). Every other status-10 number, the ailments included, falls to the default
+// (tracer): no ailment clip, and em012_00c holds no c 1101..1105 / 1109. Death (11, 0) -> 0x17a55d0: op 5 (450), L0 M30 -> L3 M10.
+// The part pass vt+0x210 0xd7709c (READ whole): set 0, then part 0 against .dtp rows 0 / 1 (levels 1 / 2): 1 + 3 / 2 + 3 / 2 + 4
+// (the horn, then the face); part 1 against rows 2 / 3: 9 + 11 / 10 + 11 / 10 + 12 (the back: cracked, broken); part 5 (row 4) 5 / 6
+// (the left front leg); part 6 (row 5) 7 / 8 (the right). Records by the shared rule (id = part x 5 + level + 6): u 1000 / 1001
+// (part 0), 1005 / 1006 (part 1), 1025 (part 5), 1030 (part 6). No eye set (no 0x71398 call), no tired case, no EMC group 6 (the
+// rage flag rises with no roar: the shared puff, RAGE_PUFF.em012_00).
+MOTION_STATES.em012_00 = {
+  '3|Motion[1]':  { cycle: [{ levels: [[1, 3], [2, 3], [2, 4]], fire: [null, ['em012_00u', 1000], ['em012_00u', 1001]] },
+                            { levels: [[9, 11], [10, 11], [10, 12]], fire: [null, ['em012_00u', 1005], ['em012_00u', 1006]] },
+                            { levels: [[5], [6]], fire: [null, ['em012_00u', 1025]] },
+                            { levels: [[7], [8]], fire: [null, ['em012_00u', 1030]] }] },
+  // DEATH: L0 M30 is also (1, 2)'s clip -- copy B is the death's; then L3 M10
+  '0|Motion[30]#B': { dead: true },
+  '3|Motion[10]':   { dead: true, settled: true },
+};
+// THE FATALIS LINE's states (dev/em013-effects-spec.md 3; NO states note existed -- read here; uEm013_00, all three variants the
+// same). Status 10 (jump table, default 0xd89e74 -> 0x76088): (10, 7) by part (0x9e8d8): 0 / 1 / 7 -> script 0x17a6a40 (L3 M1), 2 ->
+// 0x17a6ad0 (L3 M23), 3 -> 0x17a6ae8 (L3 M24), 4 / 5 -> 0x17a6a50 (L3 M9), 6 -> 0x17a6a60 (L3 M22); (10, 0x72) parts 0 / 5 ->
+// 0x17a6bb0 (L3 M3 -> wait 300 -> L3 M4 -> L3 M5; no sever call in the class: no 0xc2274); sleep (10, 0x1d) 0x17a6b00 (L3 M13),
+// (10, 0x1e) 0x17a6a80 (L3 M13 held), (10, 0x44) 0x17a6c28 (L3 M15 -> L0 M32 -> L0 M5); paralysis (10, 0x1f) 0x17a6b50 (L3 M13 ->
+// L3 M25 held), (10, 0x2a) 0x17a6c00. The STUN (10, 0x20), the shock trap (10, 0x6e), the exhaust (10, 0x1b) and the stun's end
+// (10, 0x2b) have NO case: they fall to the default (tracer x 4 sides) -- no clip shows c 1103 (it is the shared per-frame stun /
+// flash record 0xa3ef0, which the viewer has no state for: named). Death: every (11, n) -> L3 M17 (0xafe84), the eyes shut (vt+0x21c
+// base 0x6be7c). The part pass vt+0x210 0xd8a780 (READ to 0xd8ae40): part 0 (.dtp row 0, level 1) -> set 7 / 8 (the chest); part 5
+// (rows 1..3, levels 1 / 2 / 3) -> set 3 / 4 / 5 / 6 (the head: horn cracked, broken, face broken); part 7 (row 4, level 2) only
+// re-flags hit records, as the variant arms do (0x88db14 / 0xb08b44) -- nothing drawn. Records (id = part x 5 + level + 6): u 1000
+// (part 0), 1025 / 1026 / 1027 (part 5), 1036 (part 7 at level 2). The eyes: 0x71398(e, 2, 1, -1) at 0xd7d958 -- open set 2, shut
+// set 1. Rage: g6 s0 issues (1, 3) L0 M5 (the roar) then (1, 4) L0 M16. No tired case ((0, 2) none).
+for (const m of ['em013_00', 'em013_01', 'em013_02']) MOTION_STATES[m] = {
+  '3|Motion[1]':  { cycle: [{ levels: [[7], [8]], fire: [null, [m + 'u', 1000]] },
+                            { levels: [[], [], []], at: 2, fire: [null, null, [m + 'u', 1036]] }] },
+  '3|Motion[9]':  { levels: [[3], [4], [5], [6]], fire: [null, [m + 'u', 1025], [m + 'u', 1026], [m + 'u', 1027]] },
+  // L3 M13: A the sleep's fall (10, 0x1d) -- eyes shut; B the sleep hold (10, 0x1e) -- zzz every 90, the puff paused; C the
+  // paralysis fall (10, 0x1f) -- c 1101 every 60 from the action's start (bit 4); L3 M25 the paralysis hold
+  '3|Motion[13]':   { sets: [1] },
+  '3|Motion[13]#B': { sets: [1], every: [['em013_00c', 1102], 90], puffOff: true },
+  '3|Motion[13]#C': { every: [['em013_00c', 1101], 60] },
+  '3|Motion[25]':   { every: [['em013_00c', 1101], 60] },
+  // RAGE: (1, 3) L0 M5 -- copy A; B / C play the same clip and are no entry
+  '0|Motion[5]':  { rage: true }, '0|Motion[5]#B': {}, '0|Motion[5]#C': {},
+  '3|Motion[17]': { dead: true, sets: [1] },
+};
+// KUSHALA DAORA's states (dev/em024_00-effects-spec.md 3; NO states note existed -- read here). Status 10 (tracer, partscr): (10, 7)
+// by part (0x9e8d8): 0 -> 0x17b44b0 (L3 M3 -> wait 200 -> L3 M5 -> L3 M7), 1..5 -> 0x17b4320 (L3 M1), 6 / 7 none; (10, 0x72): part 0
+// -> 0x17b44b0, part 2 -> 0x17b4450 (L3 M15 -> L3 M16); (10, 0x14) parts 3 / 4 and the exhaust (10, 0x1b) -> 0x17b4430 (L3 M3 ->
+// L3 M2); sleep (10, 0x1d) 0x17b43a0 (L3 M14 -> L3 M55), (10, 0x1e) 0x17b4370 (L3 M10), (10, 0x44) 0x17b4490 (L3 M7 -> L3 M17);
+// paralysis (10, 0x1f) 0x17b4350 (L3 M13 held); the stun (10, 0x20), every side, 0x17b4470 (L3 M3 -> L3 M5 held -> L3 M7); the
+// recoveries (10, 0x2a / 0x2b) 0x17b4360 (L3 M17); the shock trap (10, 0x6e) has no case. Death (11, 0) 0x17b4418 (L3 M18). The
+// action-start hook vt+0x204 0xdef314, on (10, 0x72): part 0 -> ctl+0x24 = 1 (0xdefbcc) and the wind aura drops; part 2 ->
+// 0xc2274(e, 0, 0, 0x8f) (0xdef988), the TAIL SEVER at joint 143. The part pass vt+0x210 0xdfcc60 (READ whole): set 0; ctl+0x24 ?
+// 7 : 2 (the horns); part 5 against .dtp row 1 (level 1) -> 8 + 9 : 3 + 4 (both wings); P+0x3b4 bit 0 -> 10 : 5 (the tail). The
+// horns' .dtp row is (0, 0xff): its record u 1000 comes through 0x9d544's 0xff-row path; the wings' u 1025 at level 1. The eyes:
+// 0x71398(e, 1, 6, -1) (0xdef1d8) -- open 1, shut 6. The tired idle (0, 2) L0 M22; no drool: vt+0x1d8 writes e+0xb7d3 = 0
+// (0xdef18c), the band's only write. Rage: g6 s0 issues (4, 0x11) L2 M18 in the air, else (1, 0x1b) L0 M5.
+MOTION_STATES.em024_00 = {
+  '3|Motion[1]':    { levels: [[3, 4], [8, 9]], fire: [null, ['em024_00u', 1025]] },
+  // L3 M3: A the stun's first clip (c 1103 held), B the exhaust ((10, 0x1b): c 1109 once) and (10, 0x14), C the horns' second counter
+  // ((10, 0x72) part 0: ctl+0x24 -> set 7, u 1000), D the part-0 knockdown ((10, 7): nothing)
+  '3|Motion[3]':    { hold: ['em024_00c', 1103] },
+  '3|Motion[3]#B':  { start: [['em024_00c', 1109]] },
+  '3|Motion[3]#C':  { levels: [[2], [7]], fire: [null, ['em024_00u', 1000]] },
+  '3|Motion[3]#D':  {},
+  // L3 M5 / L3 M7: A the stun's hold and end (c 1103), B the knockdown / the wake's (nothing)
+  '3|Motion[5]':    { hold: ['em024_00c', 1103] }, '3|Motion[5]#B': {},
+  '3|Motion[7]':    { hold: ['em024_00c', 1103] }, '3|Motion[7]#B': {},
+  '3|Motion[15]':   { levels: [[5], [10]], fire: [null, ['em024_00u', 900]], drops: true },
+  '3|Motion[14]':   { sets: [6] },
+  // THE SLEEP HOLD (READ 2026-10-18; dev/em024_00-effects-spec.md 6): (10, 0x1e)'s script 0x17b4370 is op 1 -> 0x17b42bc and end,
+  // and the stepper's op 0 / 1 / 2 arm 0x9f33c stores the record at P+0x560 and calls setMotion only for ops 0 / 2 / 0x35
+  // (0x9fea8..0x9febc): op 1 SETS NO MOTION (the tracer: no motion call), so the hold is the clip (10, 0x1d) left running -- L3 M55,
+  // its last op. (L3 M10 was taken for it from the word 0x30a in that record, INFERRED -- withdrawn, rom-map.)
+  '3|Motion[55]':   { sets: [6], every: [['em024_00c', 1102], 90], puffOff: true },
+  '3|Motion[13]':   { every: [['em024_00c', 1101], 60] },
+  '0|Motion[22]':   { rage: false, tired: true },
+  '2|Motion[18]':   { rage: true },
+  '0|Motion[5]':    { rage: true }, '0|Motion[5]#B': {},
+  '3|Motion[18]':   { dead: true, sets: [6] },
+};
+// CHAMELEOS's states (dev/em025_00-effects-spec.md 3; NO states note existed -- read here; his word is the base 0xca170). Status 10
+// (tracer, partscr): (10, 7) parts 0 / 6 -> 0x17b5a80 (L3 M3), 1 / 2 / 3 / 7 -> 0x17b5bf0 (L3 M12 -> L3 M2), 4 / 5 -> 0x17b5c50 / c78
+// (L3 M12 -> wait 240 -> L3 M6 -> L3 M7); (10, 0x72) part 0 -> L3 M3, 1..7 -> 0x17b5d20 (L3 M13 -> L3 M14); exhaust (10, 0x1b)
+// 0x17b5a90 (L3 M2); sleep (10, 0x1d) 0x17b5b50 (L3 M11 -> L3 M7 -> L3 M10), (10, 0x1e) 0x17b5aa0 -- op 1 names no motion: the fall's
+// last clip L3 M10 held (I), (10, 0x44) 0x17b5b70 (L3 M7 -> L3 M10); paralysis (10, 0x1f) 0x17b5ab0 (L3 M9 held); the stun (10,
+// 0x20) every side (L3 M12 -> wait 240 -> L3 M6 -> L3 M7); recoveries (10, 0x2a / 0x2b) L3 M10; the shock trap no case; death (11,
+// 0) L3 M8. The action-start hook vt+0x204 0xdff4f0 on (10, 0x72) (emulated, hook204b.py): part 0 -> P+0x3b4 |= 2 and 0x9d438(e, 0)
+// (the horn, its 0xff row's u 1000); part 6 -> 0xc2274(e, 0, 0, 0x8f), the TAIL SEVER at joint 143. The part pass vt+0x210 0xe00eb4
+// (its set calls at 0xe011fc..0xe01298, READ): set 0; P+0x3b4 bit 1 -> 4 : 3 (the horn); part 7 against .dtp row 1 (level 2) -> 6 :
+// 5 (the wings, u 1036); bit 0 -> 8 : 7 (the tail). No eye applier (no 0x71398 call), no tired case. Rage: g6 s0 ends (7, 0x14) L4 M1.
+MOTION_STATES.em025_00 = {
+  '3|Motion[3]':     { levels: [[3], [4]], fire: [null, ['em025_00u', 1000]] }, '3|Motion[3]#B': {},
+  '3|Motion[12]':    { hold: ['em025_00c', 1103] },
+  '3|Motion[12]#B':  { levels: [[5], [5], [6]], at: 2, fire: [null, null, ['em025_00u', 1036]] },
+  '3|Motion[6]':     { hold: ['em025_00c', 1103] }, '3|Motion[6]#B': {},
+  '3|Motion[7]':     { hold: ['em025_00c', 1103] }, '3|Motion[7]#B': {},
+  '3|Motion[2]':     { start: [['em025_00c', 1109]] }, '3|Motion[2]#B': {},
+  '3|Motion[13]':    { levels: [[7], [8]], fire: [null, ['em025_00u', 900]], drops: true }, '3|Motion[13]#B': {},
+  '3|Motion[10]':    { every: [['em025_00c', 1102], 90], puffOff: true }, '3|Motion[10]#B': {},
+  '3|Motion[9]':     { every: [['em025_00c', 1101], 60] },
+  '3|Motion[8]':     { dead: true },
+  '4|Motion[1]':     { rage: true },
+};
+// TEOSTRA's states (dev/em027_00-effects-spec.md 3; NO states note existed -- read here; his scripts are Kushala's shape). Status 10
+// (tracer, partscr): (10, 7) part 0 -> 0x17b7370 (L3 M3 -> wait 200 -> L3 M5 -> L3 M7), 1..5 -> 0x17b71c0 (L3 M1); (10, 0x72) part 0
+// -> 0x17b7370, part 2 -> 0x17b7310 (L3 M15 -> L3 M16); (10, 0x14) parts 3 / 4 and the exhaust (10, 0x1b) -> 0x17b72e8 (L3 M3 -> L3
+// M2); sleep (10, 0x1d) 0x17b7240 (L3 M14, then L3 M7 -> L3 M17 past op 0xfd), (10, 0x1e) 0x17b7210 (op 1 -> 0x17b73a0: wait 200, L3
+// M5 -- the hold, I), (10, 0x44) 0x17b7258 (L3 M7 -> L3 M17); paralysis (10, 0x1f) L3 M13 held; the stun (10, 0x20), every side,
+// 0x17b7330 (L3 M3 -> L3 M5 held -> L3 M7); recoveries L3 M17; no shock-trap case; death (11, 0) 0x17b72d0 (L3 M18). vt+0x204 0xe107ac
+// on (10, 0x72) (emulated): part 0 -> 0x9d438(e, 0) (the horn's 0xff row, u 1000); part 2 -> 0xc2274(e, 0, 0, 0x8f), the TAIL SEVER at
+// joint 143. The part pass vt+0x210 0xe1a604 (READ; its head runs the rage material counter ctl+0x20): set 0; ctl+0x22 ? 7 : 1 (the
+// head); part 5 against .dtp row 1 (level 2) -> 8 + 9 : 2 + 3 (the wings, u 1026); P+0x3b4 bit 0 -> 10 : 4 (the tail). No eye applier;
+// his c.pel has no 1104 / 1105 / 1109. Tired: (0, 2) L0 M22. Rage: g6 s0 -> (1, 0x1b) L0 M5.
+MOTION_STATES.em027_00 = {
+  '3|Motion[1]':    { levels: [[2, 3], [2, 3], [8, 9]], at: 2, fire: [null, null, ['em027_00u', 1026]] },
+  '3|Motion[3]':    { hold: ['em027_00c', 1103] }, '3|Motion[3]#B': {},
+  '3|Motion[3]#C':  { levels: [[1], [7]], fire: [null, ['em027_00u', 1000]] }, '3|Motion[3]#D': {},
+  '3|Motion[5]':    { hold: ['em027_00c', 1103] }, '3|Motion[5]#B': {},
+  // THE SLEEP HOLD (READ 2026-10-18; spec 6): (10, 0x1e) 0x17b7210 = op 1 -> 0x17b739c, end -- no motion (0x9fea8), so the clip
+  // (10, 0x1d) 0x17b7240 left running: L3 M17, its last op. Copy B = the sleep's plays; A his other L3 M17 plays ((1, 8), the wake
+  // (10, 0x44)). (L3 M5 copy C was the record's words read as a script -- withdrawn.)
+  '3|Motion[17]':   {}, '3|Motion[17]#B': { every: [['em027_00c', 1102], 90], puffOff: true },
+  '3|Motion[7]':    { hold: ['em027_00c', 1103] }, '3|Motion[7]#B': {},
+  '3|Motion[15]':   { levels: [[4], [10]], fire: [null, ['em027_00u', 900]], drops: true },
+  '3|Motion[13]':   { every: [['em027_00c', 1101], 60] },
+  '0|Motion[22]':   { rage: false, tired: true },
+  '0|Motion[5]':    { rage: true }, '0|Motion[5]#B': {},
+  '3|Motion[18]':   { dead: true },
+  // THE NOVA (dev/em027_00-effects-spec.md 4; 0xe17ce8, READ + traced -- nova027.py): nine actions call it with a selector, (7, 5) 0,
+  // (7, 7) 1, (7, 0x1a) 2, (7, 0x1b) 3, (7, 0x22) 4, (7, 0x23) 5, (7, 0x24) 6, (7, 0x28) 7, (7, 0x29) 8. Phase 0 sets L4 M9 (rate 1.5)
+  // and requests into e+0xcacc: selectors 0 / 1 / 3 id 1006 (u 160), 2 / 4 1008 (u 161), 5 1010 then 1011 (u 162, u 164), 6 1012 then
+  // 1013 (u 163, u 165), 7 / 8 nothing; when L4 M9 ends (0xb09c8, P+0x1a2 counting its replays down) phase 2 sets L4 M10, and at its
+  // frame 50 (0xb0974(e, 50.0)) the held handle is stopped (0x329c40), the nova shell spawned, and id 1007 (u 170) / 1009 (u 171) /
+  // 1014 (u 172) / 1015 (u 173) requested (7 / 8: the shell alone). The word stops e+0xcacc on every motion but L4 M9 -- the charge
+  // record is held for L4 M9 and no longer. Keys by vt+0x1d0 0xe1aaf4 through [0x169d724]. (The old handle replaced in phase 0 gets
+  // its vmethod +0x40, not read: u 162 / u 163 are kept running beside u 164 / u 165 -- I.)
+  '4|Motion[9]':    { hold: ['em027_00u', 160, 'UNIQUE'] },
+  '4|Motion[9]#B':  { hold: ['em027_00u', 161, 'UNIQUE'] },
+  '4|Motion[9]#C':  { hold: ['em027_00u', 162, 'UNIQUE'], start: [['em027_00u', 164, 'UNIQUE']] },
+  '4|Motion[9]#D':  { hold: ['em027_00u', 163, 'UNIQUE'], start: [['em027_00u', 165, 'UNIQUE']] },
+  '4|Motion[9]#E':  {},
+  '4|Motion[10]':   { fireFrom: [[50, [['em027_00u', 170, 'UNIQUE']]]] },
+  '4|Motion[10]#B': { fireFrom: [[50, [['em027_00u', 171, 'UNIQUE']]]] },
+  '4|Motion[10]#C': { fireFrom: [[50, [['em027_00u', 172, 'UNIQUE']]]] },
+  '4|Motion[10]#D': { fireFrom: [[50, [['em027_00u', 173, 'UNIQUE']]]] },
+  '4|Motion[10]#E': {},
+};
+// AMATSU's states (dev/em058_00-effects-spec.md 3; NO states note existed -- read here; his word is the base 0xca170). Status 10
+// (tracer, partscr): (10, 7) part 0 -> 0x17cca90 (L3 M20), 1..7 -> 0x17ccaa0 (L3 M1); (10, 0x14) part 0 -> L3 M20, 1..7 -> 0x17ccab0
+// (L3 M2); sleep (10, 0x1d) 0x17ccae0 (L3 M4 -> L3 M5 held), (10, 0x1e) 0x17ccaf0 (L3 M5 held), (10, 0x44) 0x17ccba8 (L3 M7 -> L3 M8);
+// paralysis (10, 0x1f) 0x17ccac0 (L3 M3 held); the stun (10, 0x20), every side, 0x17ccb20 (L3 M4 -> L3 M5 held); recoveries (10, 0x2a /
+// 0x2b) 0x17ccb88 (L3 M7 -> L3 M8); no shock-trap / exhaust case; death (11, 0) 0x17ccb70 (L3 M13). (10, 0x72) -> 0x17cca80, an EMPTY
+// script (no clip), and vt+0x204 0xf08e7c calls 0xc2274(e, 0, 0, 0x8e) on it (emulated): the tail is severed at joint 142 over
+// whatever motion runs -- no clip carries the drop (named). The part pass vt+0x210 0xf09d0c (READ to its set calls): set 0; part 0
+// against .dtp rows 0 / 1 (levels 2 / 4) -> 1 / 8 / 9 (e+0x15fb == 1: 15 / 16 / 17) (the head: intact, cracked, broken; u 1001 /
+// 1003); part 1 (row 3) 4 / 6 (left arm, u 1005); part 2 (row 2) 5 / 7 (right arm, u 1010); the tail bit 13 / 12; part 7 (row 4) 11 /
+// 10 (the back, u 1035). Rage: g6 s0 = (1, 0) L1 M9. His puff is not the shared one (vt+0x1d8 writes e+0xb7d2 = 0): see the spec.
+MOTION_STATES.em058_00 = {
+  '3|Motion[20]':  { levels: [[1], [1], [8], [8], [9]], fire: [null, null, ['em058_00u', 1001], null, ['em058_00u', 1003]] },
+  '3|Motion[1]':   { cycle: [{ levels: [[4], [6]], fire: [null, ['em058_00u', 1005]] },
+                             { levels: [[5], [7]], fire: [null, ['em058_00u', 1010]] },
+                             { levels: [[11], [10]], fire: [null, ['em058_00u', 1035]] }] },
+  // L3 M4 / M5: A the stun (c 1103 held), B the sleep's fall and hold (c 1102 every 90)
+  '3|Motion[4]':   { hold: ['em058_00c', 1103] }, '3|Motion[4]#B': {},
+  '3|Motion[5]':   { hold: ['em058_00c', 1103] }, '3|Motion[5]#B': { every: [['em058_00c', 1102], 90] },
+  '3|Motion[3]':   { every: [['em058_00c', 1101], 60] },
+  '1|Motion[9]':   { rage: true }, '1|Motion[9]#B': {},
+  '3|Motion[13]':  { dead: true },
+  // THE TAIL SEVER, RE-READ WITH CONTROLS (2026-10-18, Raven: "monsters normally react to their tail being cut off"; spec 7):
+  // (10, 0x72)'s script 0x17cca80 is ONE op, 0xfe with arg 0x17cc84c -- and op 0xfe (the stepper 0x9fe88) is not an end: with a
+  // non-null arg it CHANGES THE ACTION to the arg's two bytes, here (1, 0x14), through 0x768c8. (1, 0x14)'s phase 0 sets L3 M9
+  // (posture 0, 0xbf4d4 / 0xbf700 height calls -- the fall) and its phase 1, when that ends, L3 M8 (posture 3). vt+0x204 0xf08e7c
+  // cuts the tail (0xc2274(e, 0, 0, 0x8e), joint 142) at (10, 0x72)'s start, and the follow runs the same update, so the tail
+  // leaves at L3 M9 frame 0. The only 0xfe naming (1, 0x14) in the data image is this one; no traced action plays L3 M9 / M8.
+  // Controls, the same trace: Rathian (10, 0x72) -> 0x1794c10 L3 M15, Glavenus part 6 -> 0x17ebbe0 L3 M15, Kushala part 2 ->
+  // 0x17b4450 L3 M15 -> M16 -- each the viewer's drop row. The tail sets: 13 intact (group 16), 12 severed (group 23).
+  '3|Motion[9]':    { levels: [[13], [12]], fire: [null, ['em058_00u', 900]], drops: true },
+  // (10, 0x6c) 0x17ccb38 = L3 M18 (f0x200) -> L3 M12; (10, 0x6d) 0x17ccdd0 = L3 M14 -> L3 M15 -> L3 M17 -> L3 M18 -> L3 M12 (no other
+  // status-10 / 11 script and no traced action plays L3 M12..M18). vt+0x204's arm 0xf09240 (READ): once (e+0xcb38) it stops
+  // e+0xcb74 and requests c id 1001 = c 1600 (not kept) and id 1002 = c 1601 into e+0xcb74 (c table [0x169f364]); the frame
+  // handler stops e+0xcb74 off those two actions and on motion 0x30c (L3 M12). Both are cm200_050_s, whose three
+  // genType-20 (SizeBillboard) rows the runtime still skips (construct.js: the row is not enabled). Held per clip here (the viewer restarts a hold at a clip).
+  '3|Motion[18]':   { start: [['em058_00c', 1600, 'UNIQUE']], hold: ['em058_00c', 1601, 'UNIQUE'] },
+  '3|Motion[18]#B': { hold: ['em058_00c', 1601, 'UNIQUE'] },
+  '3|Motion[14]':   { start: [['em058_00c', 1600, 'UNIQUE']], hold: ['em058_00c', 1601, 'UNIQUE'] },
+  '3|Motion[15]':   { hold: ['em058_00c', 1601, 'UNIQUE'] },
+  '3|Motion[17]':   { hold: ['em058_00c', 1601, 'UNIQUE'] },
+};
+// THE GORE LINE's states (dev/em071-em072-effects-spec.md 3; NO states note existed -- read here; uEm071_00 runs Gore em 0x47,
+// Chaotic em 0x47 variant 5 and Shagaru em 0x48). Status 10 (tracer, partscr; all three the same): (10, 7) parts 0 / 6 / 7 -> 0x17e50f0
+// (L3 M2), 1 / 2 / 3 / 5 -> 0x17e5100 (L3 M1), 4 -> 0x17e5528 (L3 M3 -> wait 240 -> L3 M4 -> L3 M5); (10, 0x14) parts 3 / 7 -> L3 M1,
+// 5 -> 0x17e5578 (L3 M9 -> L3 M10 -> L3 M11); the exhaust (10, 0x1b) -> L3 M2; (10, 0x72) part 6 -> 0x17e5140 (L3 M39) with vt+0x204
+// 0xfadfa0's 0xc2274(e, 0, 0, 0x8f) (emulated) -- the TAIL SEVER at joint 143 -- the other parts 0x17e5150 (L3 M18); sleep (10, 0x1d)
+// 0x17e5170 (L0 M18 -> L0 M19 held), (10, 0x1e) L0 M19 held; paralysis (10, 0x1f) 0x17e51a0 (L3 M15 held); the shock trap (10, 0x6e)
+// 0x17e5250 (L3 M15); the stun (10, 0x20) sides 0 / 1 / 3 -> 0x17e53e0 (L3 M9 -> L3 M10 held -> L3 M11), side 2 -> 0x17e5400 (L3 M3 ->
+// L3 M4 held -> L3 M5); recoveries L3 M17; death (11, 0) 0x17e53b0 (L3 M22 -> L3 M21), (11, 7 / 0x12) L3 M34, capture (11, 0x10) L0
+// M18. Tired (0, 2) L3 M23. The part pass vt+0x210 0xfbf97c, RUN with each part's level (ppemu.py; control: Lao-Shan's static read
+// reproduced): Gore -- part 0 set 1 -> 2 (the head, u 1000), part 7 5 -> 6 (the feelers, u 1035), part 3 9 -> 10 (the wing arms, u
+// 1015), part 2 11 -> 12 (the wings, u 1010); Chaotic -- 0: 1 -> 2, 7: 11 -> 12 (his right wing arm), 3: 9 -> 10, 2: 13 -> 14; Shagaru
+// -- 0: 3 -> 10 at level 1, 11 + 10 at level 2 (the horns, u 1000 / 1001), 3: 5 -> 8, 2: 4 -> 9, part 7 nothing. The tail set never
+// changed in those runs (P+0x3b4 bits 0 / 0x2000): the cut tail's piece and u 900 show it. The eyes: Shagaru only, 0x71398(e, 1, 7,
+// -1) at 0xfadcc8 (em 0x48) -- shut set 7. Rage: g6 s0 -> Shagaru (7, 0x53) L4 M2, else (1, 0) L0 M5 / (1, 3) L0 M31.
+{ const gore = (u, cPel, v) => {
+    const M2 = v === 'shagaru' ? [{ levels: [[3], [10], [11, 10]], fire: [null, [u, 1000], [u, 1001]] }]
+             : [{ levels: [[1], [2]], fire: [null, [u, 1000]] }, { levels: v === 'chaotic' ? [[11], [12]] : [[5], [6]], fire: [null, [u, 1035]] }];
+    const M1 = v === 'shagaru' ? [{ levels: [[4], [9]], fire: [null, [u, 1010]] }, { levels: [[5], [8]], fire: [null, [u, 1015]] }]
+             : [{ levels: v === 'chaotic' ? [[13], [14]] : [[11], [12]], fire: [null, [u, 1010]] }, { levels: [[9], [10]], fire: [null, [u, 1015]] }];
+    const shut = v === 'shagaru' ? { sets: [7] } : {};
+    const all = v !== 'shagaru';                         // Shagaru's c.pel has no 1104 / 1105 / 1109
+    // THE BODYLIGHT GOES OUT IN DEATH (0xfbf890..0xfbf96c, READ 2026-10-21): at action 0xb, motion 0x315 (L3 M21) crossing f238 with
+    // sub < 2, or 0x322 (L3 M34) crossing f504 with sub 7 (0xb0974), C+0xca = 1 -- and the part pass's head (0xfbf9ac) then takes tier 0,
+    // setMatClip(C+0x94, 0, C+0xa4[0]) = BodyLight_Normal on the MRL id 0x3d material (XfB_W__m01_kasan), the slot's time zeroed. Only
+    // em 0x47 runs that clip (Gore Magala and Chaotic; Shagaru has no such material). L3 M34 is 311 frames: the channel-0 frame stops
+    // at the motion's length (0x72714), so f504 is never crossed -- transcribed as the ROM has it.
+    const lightOut = f => v === 'shagaru' ? {} : { clipsFrom: [[f, [{ mats: ['XfB_W__m01_kasan'], clip: 'BodyLight_Normal' }]]] };
+    return {
+      '3|Motion[2]':    { cycle: all ? [...M2, { start: [[cPel, 1109]] }] : M2 },
+      '3|Motion[1]':    { cycle: M1 },
+      '3|Motion[39]':   { start: [[u, 900]], drops: true },
+      '0|Motion[18]':   Object.assign({}, shut),
+      '0|Motion[19]':   Object.assign({ every: [[cPel, 1102], 90], puffOff: true }, shut),
+      '3|Motion[15]':   { every: [[cPel, 1101], 60] },
+      '3|Motion[15]#B': all ? { every: [[cPel, 1105], 42] } : {},
+      '3|Motion[9]':    { hold: [cPel, 1103] }, '3|Motion[9]#B': {},
+      '3|Motion[10]':   { hold: [cPel, 1103] }, '3|Motion[10]#B': {},
+      '3|Motion[11]':   { hold: [cPel, 1103] }, '3|Motion[11]#B': {},
+      '3|Motion[3]':    { hold: [cPel, 1103] }, '3|Motion[3]#B': {},
+      '3|Motion[4]':    { hold: [cPel, 1103] }, '3|Motion[4]#B': {},
+      '3|Motion[5]':    { hold: [cPel, 1103] }, '3|Motion[5]#B': {},
+      '3|Motion[23]':   { rage: false, tired: true },
+      '0|Motion[5]':    { rage: true }, '0|Motion[5]#B': {},
+      '0|Motion[31]':   { rage: true }, '0|Motion[31]#B': {},
+      ...(v === 'shagaru' ? { '4|Motion[2]': { rage: true } } : {}),
+      '3|Motion[22]':   Object.assign({ dead: true }, shut),
+      '3|Motion[21]':   Object.assign({ dead: true, settled: true }, shut, lightOut(238)),
+      '3|Motion[34]':   Object.assign({ dead: true }, shut, lightOut(504)),
+    };
+  };
+  MOTION_STATES.em071_00 = Object.assign(MOTION_STATES.em071_00 || {}, gore('em071_00u', 'em071_00c', 'gore'));
+  MOTION_STATES.em071_05 = Object.assign(MOTION_STATES.em071_05 || {}, gore('em071_05u', 'em071_00c', 'chaotic'));
+  MOTION_STATES.em072_00 = Object.assign(MOTION_STATES.em072_00 || {}, gore('em072_00u', 'em072_00c', 'shagaru')); }
+// NAKARKOS's class u 1121 (dev/em084_00-effects-spec.md 3; READ, rom-map u 1400 sweep rows 450 / 451; tracer): the dive actions
+// (6, 0x64) (0x1073474, gated on P+0x1a2 once) and (6, 0x66) (0x10739d0, phase 0, L0 M50) call 0xa499c(e, 1) -> base u index 1 =
+// u 1121, end 0: once, at the play's start. L0 M50 copy B. His status 10 has (10, 7) / (10, 0x14) -> 0x17f1b90 and (10, 0x72) ->
+// 0x17f1bc0 and nothing else (no ailment case; his c.pel has no 1101..1105), death (11, 0) -> 0x17f1674.
+MOTION_STATES.em084_00 = Object.assign(MOTION_STATES.em084_00 || {}, { '0|Motion[50]#B': { start: [['em084_00u', 1121]] }, '3|Motion[63]': { dead: true } });
+// VALSTRAX's states (dev/em086_00-effects-spec.md 3; NO states note existed -- read here; his word is the base 0xca170). Status 10
+// (tracer, partscr): (10, 7) every part -> 0x17f90a0 (L3 M1); (10, 0x14) parts 0..3 / 6 -> 0x17f90e0 (L3 M3), 4 / 7 -> 0x17f9438 (L3
+// M5 -> wait 240 -> L3 M6 -> L3 M7), 5 -> 0x17f9460 (L3 M9 -> L3 M10 -> L3 M11); (10, 0x72) part 1 -> 0x17f95f0 (L3 M37 -> wait 480 ->
+// L3 M10 -> L3 M11), part 6 -> 0x17f9560 (L3 M21) with vt+0x204 0x109f830's 0xc2274(e, 0, 0, 0x8f) (emulated) -- the TAIL SEVER at
+// joint 143; sleep (10, 0x1d) 0x17f9110 (L0 M24 -> L0 M25 held), (10, 0x1e) L0 M25 held, (10, 0x44) 0x17f91c0 (L0 M26 -> L3 M16);
+// paralysis (10, 0x1f) 0x17f91f8 (L3 M13 -> L3 M14 held); the stun (10, 0x20) sides 0 / 1 / 3 -> 0x17f92e0 (L3 M9 -> L3 M10 held ->
+// L3 M11), side 2 -> 0x17f9300 (L3 M5 -> L3 M6 held -> L3 M7); recoveries L3 M16; no shock-trap or exhaust case; death (11, 0) L3
+// M17. The part pass vt+0x210 0x10a1230, RUN with each part's level (ppemu.py): part 0 set 4 -> 5 -> 6 (the head: cracked, broken; u
+// 1000 / 1001), 1 10 -> 11 (the back, u 1005), 2 13 -> 14 (left wing, u 1010), 3 26 -> 27 (right wing, u 1015), 4 17 -> 18 (u 1020), 5
+// 19 -> 20 (u 1025); the tail set did not move with P+0x3b4 (bits 0 / 2 / 4 / 0x2000 / 0x4000 / 0x8000 tried). The eyes 0x71398(e, 3,
+// 2, -1) (0x109e288): open 3, shut 2. Rage: g6 s0 = (1, 4) L0 M5. His puff is his own (vt+0x1d8 writes e+0xb7d2 = 0 at 0x109e17c).
+MOTION_STATES.em086_00 = {
+  '3|Motion[1]':   { cycle: [{ levels: [[4], [5], [6]], fire: [null, ['em086_00u', 1000], ['em086_00u', 1001]] },
+                             { levels: [[10], [11]], fire: [null, ['em086_00u', 1005]] },
+                             { levels: [[13], [14]], fire: [null, ['em086_00u', 1010]] },
+                             { levels: [[26], [27]], fire: [null, ['em086_00u', 1015]] },
+                             { levels: [[17], [18]], fire: [null, ['em086_00u', 1020]] },
+                             { levels: [[19], [20]], fire: [null, ['em086_00u', 1025]] }] },
+  '3|Motion[21]':  { start: [['em086_00u', 900]], drops: true },
+  // THE COMET (dev/em086_00-effects-spec.md 5; 0x109a5b4 for (7, 0x32 / 0x34 / 0x35), 0x109b07c for (7, 0x33); READ 2026-10-18).
+  // (7, 0x32 / 0x34 / 0x35) phase 3 sets L1 M5 (0x105) and P+0x1bc = tune float 0x24 (30.0, em086_00_actiontune.fup); at its
+  // expiry (0x7206c) phase 5, motion 0xffff (no clip: he is gone) and id 1002 = u 110 (0x109ab60) -- frame 30 of L1 M5, copy B.
+  // Phase 5 flies him unseen for tune float 0x25 (90 frames) and then requests id 1001 = u 100 into e+0xcb18 (0x109af40), phase 6
+  // passes to (7, 0x33), whose phase 0 (motion 0xffff) stops it and requests id 1003 = u 120 (0x109b2dc): NEITHER IS ON A CLIP
+  // (named). Its phase 1, when motion 0xffff has ended and tune float 0x29 (60) is out, sets L1 M5 again and requests id 1004 =
+  // u 130 into e+0xcb18 (0x109b7d8) -- held through phase 2's fall until he lands (P+0x44 <= P+0x1d4 + c, 0x109b440), which
+  // stops it and sets L2 M73: copy C, held. The frame handler also stops e+0xcb18 off (7, 0x32..0x35). Copy A: L1 M5's other plays
+  // ((3, 0 / 1 / 5), (12, 0), (13, 0)), none.
+  '1|Motion[5]':    {},
+  '1|Motion[5]#B':  { fireFrom: [[30, [['em086_00u', 110, 'UNIQUE']]]] },
+  '1|Motion[5]#C':  { hold: ['em086_00u', 130, 'UNIQUE'] },
+  '0|Motion[24]':  { sets: [2] },
+  '0|Motion[25]':  { sets: [2], every: [['em086_00c', 1102], 90] },
+  '3|Motion[13]':  { every: [['em086_00c', 1101], 60] },
+  '3|Motion[14]':  { every: [['em086_00c', 1101], 60] },
+  '3|Motion[9]':   { hold: ['em086_00c', 1103] }, '3|Motion[9]#B': {},
+  '3|Motion[10]':  { hold: ['em086_00c', 1103] }, '3|Motion[10]#B': {},
+  '3|Motion[11]':  { hold: ['em086_00c', 1103] }, '3|Motion[11]#B': {},
+  '3|Motion[5]':   { hold: ['em086_00c', 1103] }, '3|Motion[5]#B': {},
+  '3|Motion[6]':   { hold: ['em086_00c', 1103] }, '3|Motion[6]#B': {},
+  '3|Motion[7]':   { hold: ['em086_00c', 1103] }, '3|Motion[7]#B': {},
+  '0|Motion[5]':   { rage: true }, '0|Motion[5]#B': {},
+  '3|Motion[17]':  { dead: true, sets: [2] },
+};
+// AHTAL-NESET's states (dev/em087_00-effects-spec.md 3; read here; his word was transcribed before: base | bits 15-23 always).
+// Status 10 (tracer, partscr): (10, 7) parts 0 / 1 / 2 / 5 / 6 / 7 -> 0x18041f0 (L3 M1), 3 -> 0x1804220 (L3 M6 -> wait 1500 -> L3 M7
+// -> L3 M8), 4 -> 0x1804278 (L3 M9 -> wait 1500 -> L3 M10 -> L3 M11); (10, 0x14) every part -> 0x18042d0 (L3 M3 -> wait 1440 -> L3
+// M4 -> L3 M5); sleep, paralysis, the stun, the second counter (10, 0x72): no reaction -- the handler sets (1, 0) (0x10adab4); no
+// death case under status 11 (tracer); no EMC group 6. The part pass vt+0x210 0x10a7ed0, RUN (ppemu.py): part 3 set 13 -> 14 (u 1015),
+// part 4 11 -> 12 (u 1020); part 2's .dtp row is level 5 (u 1014 at its fifth depletion, nothing drawn).
+MOTION_STATES.em087_00 = {
+  '3|Motion[1]':  { cycle: [{ levels: [[], [], [], [], [], []], at: 5, fire: [null, null, null, null, null, ['em087_00u', 1014]] }, {}] },
+  '3|Motion[6]':  { levels: [[13], [14]], fire: [null, ['em087_00u', 1015]] },
+  '3|Motion[9]':  { levels: [[11], [12]], fire: [null, ['em087_00u', 1020]] },
+};
+// ZAMTRIOS's u 60 (dev/em067_00-effects-spec.md 3; 0xf692a0, READ): (1, 0x43) sets L4 M20 at phase 0; in phase 1 the frame test
+// 0xb0974(e, 120.0) (0xf695d8) requests id 1005 -> u 60 (em067_00_019) at a point the class computes ahead of him: the
+// requester carries the position alone (+0x1c |= 3, as the cut tail's 0x703b8), P+0x30.. + (sin, cos)(yaw P+0x54 x
+// 9.587e-5) x 530.0 x his scale (0xbe518), no side or height offset (0xf695e4..0xf696ac; open-items 65, 2026-10-19). The 4th field
+// `{ ahead: 530 }` asks index.html for that point (fireAt). (7, 0xc / 0xd) play the same clip and do not: copy B is (1, 0x43).
+MOTION_STATES.em067_00['4|Motion[20]#B'] = { fireFrom: [[120, [['em067_00u', 60, 'UNIQUE', { ahead: 530 }]]]] };
+// TETSUCABRA / DRILLTUSK's ROCK IN HAND -- the Boulder control (dev/em066-effects-spec.md 5, READ 2026-10-18). The carried
+// rock is one held handle e+0xcad4. vt+0x204 0xf57f8c requests it at an action start while none is held -- (2, 0x53..0x56),
+// (2, 0xfd) (0xf580ac..0xf5810c), (1, 0x53), (1, 0xfb), (10, 0xfb) (0xf585b8..0xf58618) -- as id 1002 when ctl+0x30 == 3, else
+// 1001; vt+0x1d0 0xf6420c maps id - 1000 through [0x16a06dc] = { -1, 10, 12, 50, 60 }: kinds 1 / 2 -> u 10, kind 3 -> u 12, and
+// em066_00u has no key 12, so Tetsucabra's kind-3 request finds no record (0x326010's key loop returns 0) and holds nothing.
+// vt+0x208 0xf59024, every frame, with the handle live, on the motion e+0x4b4 at its frame e+0x4fc: KEEP on L4 M11..M16,
+// L4 M33..M35, L9 M9..M12, L9 M14, L4 M7 at 35..147, L4 M17 below 108, L4 M18 from 35, L9 M1 from 115, L9 M13 below 216; STOP
+// with no request on L4 M7 from 148, L4 M17 from 108, L9 M13 from 216; on EVERY other motion (and L4 M7 / M18 below 35, L9 M1
+// below 115) STOP and request id 1004 (u 60) when the stopped core's +0x1b4 -- its key (0x408bc stores it, proof.js) -- is 12,
+// else 1003 (u 50). Then (0xf59204) L4 M18 at frame 35 and L9 M1 at 115 (0xb0974) stop any old handle and request a new rock by
+// ctl+0x30 -- which the dig's action start sets: (1, 0x52) 1 (variant 4: 2), (1, 0xff) 3 (states-em066_00.md 8.1), else the
+// default 1 (vt+0x1d8). The viewer's Boulder control is the rock in hand as each play starts and ctl+0x30 with it (none: no
+// handle, ctl+0x30 the play's own or 1); it comes back on every play, as Carrying does. [Replaces the rows that held u 10 on
+// L4 M11 / u 12 on Drilltusk's L4 M18 and fired u 50 / u 60 at L4 M7's start -- Drilltusk's A / B there were inverted: u 60
+// is kind 3's, u 12, not kind 2's.]
+function boulder066(u, v4){
+  const keep = 'keep', stop = 'stop', drop = 'drop';
+  return {
+    pel: u,
+    key: kind => kind === 3 ? (v4 ? 12 : null) : kind ? 10 : null,
+    drop: key => key === 12 ? 60 : 50,
+    // vt+0x204's dig kinds and its requesters (the action as playNow takes it)
+    digKind: a => a && a[0] === 1 ? (a[1] === 0x52 ? (v4 ? 2 : 1) : a[1] === 0xff ? 3 : 0) : 0,
+    requests: a => !!a && ((a[0] === 2 && ((a[1] >= 0x53 && a[1] <= 0x56) || a[1] === 0xfd)) || ((a[0] === 1 || a[0] === 10) && a[1] === 0xfb) || (a[0] === 1 && a[1] === 0x53)),
+    make: { '4|18': 35, '9|1': 115 },
+    at(list, slot, f){
+      if (!/^[0-9]+$/.test(String(list))) return keep;      // not a ROM motion list (a combined / Special entry): nothing read
+      if (list === '4'){
+        if (slot === 7) return f >= 148 ? stop : f < 35 ? drop : keep;
+        if (slot === 17) return f >= 108 ? stop : keep;
+        if (slot === 18) return f < 35 ? drop : keep;
+        if ((slot >= 11 && slot <= 16) || (slot >= 33 && slot <= 35)) return keep;
+        return drop;
+      }
+      if (list === '9'){
+        if (slot === 1) return f < 115 ? drop : keep;
+        if (slot === 13) return f >= 216 ? stop : keep;
+        if ((slot >= 9 && slot <= 12) || slot === 14) return keep;
+        return drop;
+      }
+      return drop;
+    },
+  };
+}
+export const BOULDER = { em066_00: boulder066('em066_00u', false), em066_04: boulder066('em066_04u', true) };
+// CLASS TIMERS -- periodic requests a class makes from its own per-frame hook, on its own countdowns, across clips.
+// KIRIN's LIGHTNING AURA (dev/em011_00-effects-spec.md 3; vtable +0x208 0xd6df64, READ whole to 0xd6e2d4; states-em011_00.md 5):
+// every frame ctl+0xc = ctl+0xd = 1, ctl+6 = isEnraged; calm, or the rage roar (1, 6) itself, clears ctl+0xd and ZEROES the two
+// enraged countdowns e+0xcac8 / e+0xcacc (so each fires at once when the aura may run again); on L3 M4 / M5 / M7 / M8 and L4 M6
+// (0x304..0x308 but 0x306, and 0x406) ctl+0xc = 0 and e+0xcac4 = 40. At death (vt+0x3f4) nothing is requested. Enraged and not
+// in the roar: u 61 every 32 (id 1002) while part 0 stands below its .dtp row's level (the horn intact -- set 4 not shown), and
+// u 60 every 45 (id 1003) except on L4 M7 below frame 60 (0xb0968(e, 2, 0, 60.0): "cur < 60") -- that countdown waits there; calm:
+// u 0 every 40 (id 1001) while ctl+0xc. Each countdown is 0x7206c at rate 1: it fires when it reaches 0 and is set back to its
+// period. (The hook's tail -- 0xb0974 frames on L4 M9.. / L3 M4 into 0xc241c -- requests no effect.)
+function kirinAura(t, c){
+  const U = k => ['em011_00u', k, 'UNIQUE'], fire = [];
+  const roar = !!c.action && c.action[0] === 1 && c.action[1] === 6;
+  const m = c.list + '|' + c.slot;
+  let lit = !!c.rage && !roar, calmOn = true;
+  if (!lit){ t.c8 = 0; t.cc = 0; }
+  if (m === '3|4' || m === '3|5' || m === '3|7' || m === '3|8' || m === '4|6'){ t.c4 = 40; calmOn = false; }
+  if (c.dead) return fire;
+  const tick = (k, period) => {
+    if ((t[k] || 0) <= 0){ t[k] = period; return true; }
+    t[k] -= c.dt;
+    if (t[k] <= 0){ t[k] = period; return true; }
+    return false;
+  };
+  if (lit){
+    if (!c.hornBroken && tick('c8', 32)) fire.push(U(61));
+    if (!(m === '4|7' && c.frame < 60) && tick('cc', 45)) fire.push(U(60));
+  } else if (!c.rage && calmOn && tick('c4', 40)) fire.push(U(0));
+  return fire;
+}
+// Congalala's gas at an eating action's start (psl-mask.js em021Gas, the same read: vt+0x204 0xdcefd8 sets ctl+1 for these numbers)
+const CONGA_GAS_AT_START = { 0x35: 1, 0x40: 1, 0x0b: 2, 0x42: 2, 0x0c: 3, 0x41: 3, 0x0e: 4, 0x43: 4, 0x09: 0 };
+const em021GasOf = (action, carried) =>
+  action && action[0] === 1 && CONGA_GAS_AT_START[action[1]] !== undefined ? CONGA_GAS_AT_START[action[1]] : (carried | 0);
+// Rajang's pump-down latch (CLASS_TIMERS em023_00 / em023_05)
+function rajangPumpDown(t, c, pumped){
+  if (pumped && !c.dead && !(c.list === '2' && c.slot === 24)){ t.b16 = true; return []; }
+  if (t.b16){ t.b16 = false; return [['em023_00c', 30, 'UNIQUE']]; }
+  return [];
+}
+// Nerscylla's C+0xb5 (CLASS_TIMERS em070_00): the writes per clip [frame, op, value], and the handler's change logic
+const NERSCYLLA_B5 = {
+  '0|18': [[50, 'or', 2]], '0|19': [[0, 'set', 4]], '2|27': [[24, 'or', 1]], '2|72': [[78, 'or', 1], [120, 'set', 0]],
+  '2|78': [[20, 'or', 1]], '4|11': [[0, 'set', 1]], '4|13': [[0, 'set', 0]], '4|16': [[0, 'set', 0]],
+  '2|48': [[0, 'set', 0x20]], '2|50': [[0, 'set', 0]], '2|59': [[0, 'set', 0x10]], '3|30': [[0, 'set', 0]],
+  '4|30': [[0, 'set', 0x10], [14, 'set', 0], [32, 'set', 0x10]], '2|75': [[0, 'set', 0]], '2|76': [[0, 'set', 0]],
+};
+// THE GORE LINE'S RING FILLS (CLASS_TIMERS em071_00 / em071_05 / em072_00; schedule.js ringFill holds the ring). Every fill site
+// of 0xfc05ec, traced over every action x phase x gates x rage x tired x variant (<scratchpad>/zg/goretrace.py, sinf / cosf answered,
+// the yaw checked at 0x4000) and placed on its clip by the phase that plays it (actmot.py / the handlers' phase tables, READ):
+// [frame, [x, y, z] in his frame (x to the side, z ahead; rotated by P+0x54 as each site does, NOT scaled), s0, s1, flag, actions].
+// Frame 0 = at the clip's start (the phase change that sets it). `notV5`: Chaotic's (variant 5) arm of 0xfb63d0 takes the damage
+// gate instead (0xfb670c: C+0x84 against rank thresholds; not driven). Clips other actions also play are gated by the play's action;
+// a play with no action is the action that begins on the clip at frame 0 (L2 M33 (7, 7), L0 M81 (2, 0xc), L0 M5 copy A (1, 0)).
+const goreActs = (st, ...ns) => ns.map(n => st + ',' + n);
+const GORE_FILLS = {
+  '0|5':  { acts: goreActs(1, 0, 0x14, 0x16).concat(goreActs(13, 0xb)), nullOk: true, fills: [[160, [0, 0, -300], 500, 480, 1]] },     // 0xfb25bc, 0xfbe2d0
+  '0|51': { acts: goreActs(2, 3, 0x1f), nullOk: true, fills: [[100, [0, 0, 1000], 400, 240, 1]] },                             // 0xfb34a0
+  '0|54': { acts: goreActs(2, 4, 0x20), nullOk: true, fills: [[100, [0, 0, 1000], 400, 240, 1]] },
+  '0|74': { acts: goreActs(2, 8, 0xa), nullOk: true, fills: [[16, [0, 0, 0], 400, 240, 1]] },                                   // 0xfb3f44
+  '0|77': { acts: goreActs(2, 9, 0xb), nullOk: true, fills: [[16, [0, 0, 0], 400, 240, 1]] },
+  '0|81': { acts: goreActs(2, 0xc, 0xd), nullOk: true, fills: [[0, [0, 0, 0], 400, 240, 1]] },                                  // 0xfb4478
+  '0|9':  { acts: goreActs(2, 0xe), nullOk: true, fills: [[50, [250, 0, 850], 280, 360, 1]] },                                  // 0xfb4904
+  '1|8':  { acts: goreActs(2, 0x12), nullOk: true, fills: [[90, [0, 0, 750], 450, 360, 1]] },                                   // 0xfb4c88
+  '1|13': { acts: goreActs(2, 0x23), nullOk: true, fills: [[90, [0, 0, 750], 450, 360, 1]] },
+  '2|33': { acts: goreActs(7, 7, 0x34, 0x37), nullOk: true, notV5: true, fills: [[120, [0, 0, 500], 400, 240, 1]] },             // 0xfb6d68
+  '4|20': { acts: goreActs(7, 0x69), nullOk: true, notV5: true, fills: [[184, [0, 0, 500], 400, 240, 1]] },
+  '2|20': { acts: goreActs(7, 0x13), nullOk: true, fills: [[110, [-500, 0, 0], 300, 360, 0], [186, [-750, 0, 150], 350, 360, 0]] }, // 0xfb8098 / 0xfb81c0
+  '2|21': { acts: goreActs(7, 0x14), nullOk: true, fills: [[110, [500, 0, 0], 300, 360, 0], [186, [750, 0, 150], 350, 360, 0]] },
+  '4|25': { acts: goreActs(7, 0x6c), nullOk: true, fills: [[110, [-500, 0, 0], 300, 360, 0], [186, [-750, 0, 150], 350, 360, 0]] },
+  '4|26': { acts: goreActs(7, 0x6d), nullOk: true, fills: [[110, [500, 0, 0], 300, 360, 0], [186, [750, 0, 150], 350, 360, 0]] },
+  '2|46': { acts: goreActs(7, 0x23, 0x24, 0x25), nullOk: true, fills: [[30, [0, 0, 0], 450, 360, 1]] },                        // 0xfb9b3c (phase 3)
+  '2|47': { acts: goreActs(7, 0x26, 0x27, 0x28), nullOk: true, fills: [[30, [0, 0, 400], 400, 240, 1]] },                      // 0xfb9db4 (phase 4)
+  '2|49': { acts: goreActs(7, 0x29), nullOk: true, fills: [[84, [-400, 0, 0], 400, 180, 1], [130, [400, 0, 0], 400, 300, 1]] }, // 0xfba398 / 0xfba490
+  '2|52': { acts: goreActs(7, 0x33), nullOk: false, fills: [[84, [0, 0, 600], 400, 90, 1]] },                                   // 0xfbaad8; (7, 0x2c): no class fill -- its sp_00 mode 0 lands and fills (shells.js)
+};
+// CHAOTIC's six gauge fills (variant 5, quest rank 5, C+0x84 >= 5000 and 10000 and 20000; traced with the gauge preset, a positive
+// control at 20000 and none at 19999 or at rank 3): [frame, offset, s0, s1, flag, actions]
+const GORE_GAUGE_FILLS = {
+  '2|33': { acts: goreActs(7, 7, 0x34, 0x37), nullOk: true, fills: [[150, [290, 0, 920], 500, 480, 0]] },      // 0xfb6988
+  '4|20': { acts: goreActs(7, 0x69), nullOk: true, fills: [[184, [290, 0, 920], 500, 480, 0]] },
+  '2|27': { acts: goreActs(7, 0x19, 0x35), nullOk: true, fills: [[85, [600, 0, 900], 500, 480, 1]] },          // 0xfb855c
+  '2|30': { acts: goreActs(7, 0x1b), nullOk: true, fills: [[90, [500, 0, -1600], 500, 480, 0]] },              // 0xfb8924
+  '2|31': { acts: goreActs(7, 0x1c), nullOk: true, fills: [[115, [900, 0, 1600], 500, 480, 0]] },              // 0xfb8e4c
+  '2|25': { acts: goreActs(7, 0x2f), nullOk: true, fills: [[63, [1000, 0, 1400], 500, 480, 0]] },              // 0xfbb0b0
+  '2|57': { acts: goreActs(7, 0x30), nullOk: true, fills: [[63, [1000, 0, 1400], 500, 480, 0]] },              // copy A (7, 0x30); B (2, 0x3f) none
+  '4|13': { acts: goreActs(7, 0x5a), nullOk: true, fills: [[70, [-900, 0, 550], 500, 480, 1]] },               // 0xfbc3e8
+};
+// THE GAUGE (C+0x84) AS THE GAME HOLDS IT: the step the control picks, clamped each frame to table 0x16a1530[quest rank]
+// (0xfaee10..0xfaee44: 32000 / 32000 / 24000 / 24000 / 20000 / 20000 / 20000 for ranks 0..6, 0 above) -- so at G rank it
+// never passes 20000 and the 28000 step (the BodyLight's LVMAX, below) is reached only at rank 0 / 1.
+export const GAUGE071_STEP = [0, 5000, 10000, 20000, 28000];
+const GAUGE071_CAP = [32000, 32000, 24000, 24000, 20000, 20000, 20000];
+export function gauge071(step, rank){
+  const v = GAUGE071_STEP[step | 0] || 0, r = rank | 0;
+  return Math.min(v, r >= 0 && r <= 6 ? GAUGE071_CAP[r] : 0);
+}
+// ITS BODYLIGHT TIER -- the part pass vt+0x210 0xfbf97c (0xfc0230..0xfc0350, Chaotic: em 0x47 variant 5): the count of table
+// 0x16a1294's four thresholds +0 / +0xc / +0x18 / +0x24 the gauge has reached (5000 / 10000 / 20000 / 28000 at every rank class),
+// 0..4 -> C+0xc0 -> setMatClip(C+0x94, slot 0, C+0xa4[tier]) = BodyLight_Normal / _Start_LV1 / _LV2 / _LV3 / _LVMAX on the
+// material cached at spawn (MRL id 0x3d, 0xfad8cc..0xfad94c), only when the tier changes (the slot's time zeroed). Above it in the
+// same function: C+0xca (set at the death motions L3 M21 f238 / L3 M34 f504, 0xfbf8f8..0xfbf96c) forces tier 0, and C+0x82 picks 4
+// (5 = _Start_Finish with C+0xc2) -- neither is driven here. index.html sets the ladder rung from this (LADDER_BY_GAUGE).
+// Congalala's charge count from the control (CLASS_CONTROLS2 em021_00: the value is 5 - the count)
+export const charges021 = v => 5 - Math.max(0, Math.min(5, v | 0));
+export function gauge071Tier(g){
+  let n = 0;
+  for (const t of [5000, 10000, 20000, 28000]) if (g >= t) n++;
+  return n;
+}
+function goreFills(t, c, pel, variant){
+  const out = [], row = GORE_FILLS[c.list + '|' + c.slot];
+  // Chaotic at G with the gauge at its top tier: his own extra fills (each a separate site of the same action)
+  const gRow = variant === 5 && c.rank >= 5 && gauge071(c.ctl2Raw, c.rank) >= 20000 ? GORE_GAUGE_FILLS[c.list + '|' + c.slot] : null;
+  if (gRow && !c.dead){
+    const prevG = c.fresh ? -1 : (t.gg == null ? -1 : t.gg);
+    const act = c.action ? c.action[0] + ',' + c.action[1] : null;
+    if (act ? gRow.acts.includes(act) : gRow.nullOk)
+      for (const [F, offset, s0, s1, flag] of gRow.fills)
+        if (F > prevG && F <= c.frame) out.push([pel, 30, 'UNIQUE', { ring: { offset, s0, s1, flag } }]);
+  }
+  t.gg = c.frame;
+  const prev = c.fresh ? -1 : (t.gf == null ? -1 : t.gf);
+  t.gf = c.frame;
+  if (!row || c.dead || (row.notV5 && variant === 5)){ t.gf = c.frame; return out; }
+  const act = c.action ? c.action[0] + ',' + c.action[1] : null;
+  if (act ? !row.acts.includes(act) : !row.nullOk) return out;
+  for (const [F, offset, s0, s1, flag] of row.fills)
+    if (F > prev && F <= c.frame) out.push([pel, 30, 'UNIQUE', { ring: { offset, s0, s1, flag } }]);
+  return out;
+}
+const NERSCYLLA_HELD = { 1: [30, 1], 2: [32, 144], 4: [33, 144], 32: [33, 144], 8: [34, 1], 16: [32, 144] };
+function nerscyllaB5(t, c){
+  const out = [];
+  if (t.b5 == null){ t.b5 = 0; t.last = 0; t.held = null; }
+  const w = NERSCYLLA_B5[c.list + '|' + c.slot];
+  if (w){
+    const from = c.fresh ? -1 : (t.wf == null ? -1 : t.wf);
+    for (const [f, op, v] of w) if (f > from && f <= c.frame) t.b5 = op === 'or' ? (t.b5 | v) : v;
+  }
+  t.wf = c.frame;
+  if (t.b5 !== t.last){
+    if (t.held){
+      if (t.last === 1) out.push(['em070_00u', 31, 'UNIQUE']);
+      out.push(['em070_00u', t.held, 'UNIQUE', { stop: true }]);
+      t.held = null;
+    }
+    const h = NERSCYLLA_HELD[t.b5];
+    if (h){
+      const motion430 = c.list === '4' && (c.slot === 30 || c.slot === 31);
+      out.push(['em070_00u', h[0], 'UNIQUE', { joint: h[1], offset: (t.b5 === 16 && motion430) ? [0, 0, -80] : null }]);
+      t.held = h[0];
+    }
+    t.last = t.b5;
+  }
+  return out;
+}
+const poison1100 = (t, c, pel) => {           // 0xa4518's poison arm: P+0x5c5c counts down while P+0x5e08 bit 1, fires at <= 0
+  if (c.dead || !c.toggles.poisoned) return [];
+  if ((t.p5c || 0) <= 0){ t.p5c = 90; return [[pel, 1100, 'UNIQUE']]; }
+  t.p5c -= c.dt; if (t.p5c <= 0){ t.p5c = 90; return [[pel, 1100, 'UNIQUE']]; }
+  return [];
+};
+export const CLASS_TIMERS = {
+  // ---- THE CLASS REQUESTS THE CONTROL-BLOCK RE-CHECK FOUND UNDRIVEN (effects lane, 2026-10-20; dev/rom-map.md "Class requests driven") ----
+  // CONGALALA u 500 (cm103_100, joint 2): the eating handler 0xdd0568's phase 0 (READ 0xdd05b4..0xdd0644) reads the gas byte ctl+1,
+  // sets posture 0 and L0 M43 (0x2b), and when (gas - 2) & 0xff >= 3 heals 2% (0x9a6fc) and requests id 1001 (vt+0x1d0, table
+  // 0x169ce68: u 500) through his own requester -- at the play's first frame. The gas it reads is the one the action's start just
+  // set (vt+0x204 0xdcefd8: psl-mask.js em021Gas; (1, 0x40) gas 1 -> u 500, (1, 0x41 / 0x42 / 0x43) 3 / 2 / 4 -> none), else the
+  // gas he carries (the Gas Type control). The flip probe (zg/ctl/action_em021_00.txt) puts the same request on (1, 0xb..0xe /
+  // 0x35..0x39) at their phase 1 (L0 M25 then L0 M43) and (1, 0x3c..0x43) at phase 0.
+  em021_00: { step: (t, c) => (c.fresh && !c.dead && c.list === '0' && c.slot === 43 && (((em021GasOf(c.action, c.ctl) - 2) & 0xff) >= 3))
+                ? [['em021_00u', 500, 'UNIQUE']] : [],
+              records: [['em021_00u', 500, 'UNIQUE']] },
+  // RAJANG / FURIOUS c 30 (em023_00_008, joint 2), THE PUMP-DOWN: vt+0x208 0xde2760..0xde27c4 (READ) -- while ctl+4 (PUMP UP, set with
+  // its 3600-frame timer ctl+8 by (1, 0x32)'s start, vt+0x204 0xde230c, and cleared at 0 by 0xde3d78) is up and the motion is not
+  // L2 M24 (0x218), it sets ctl+0x16 bit 1; otherwise, with the bit set, it clears it and requests c id 1002 (vt+0x1cc, table
+  // 0x169d238: c 30) once. So c 30 fires the frame the pump ends -- the timer, the rage dropping (variant 0 holds it only while
+  // enraged), death -- and when L2 M24 plays again while pumped. PUMP UP is the Armor Mode rung (Rajang level 2, Furious level 1).
+  em023_00: { step: (t, c) => rajangPumpDown(t, c, c.level === 2), records: [['em023_00c', 30, 'UNIQUE']] },
+  em023_05: { step: (t, c) => rajangPumpDown(t, c, c.level === 1), records: [['em023_00c', 30, 'UNIQUE']] },
+  // NERSCYLLA'S CONTROL BYTE C+0xb5 (vt+0x208 0xf9c1e4..0xf9c3bc, READ): on a change of the byte from its last value, a held handle is
+  // stopped (0x329c40(h, 0)) -- after a one-shot id 1002 (u 31) when the old value was 1 -- and, variant 0, the new value picks a
+  // held request (vt+0x1d0, table 0x16a0ffc): 1 -> id 1001 u 30 on joint 1; 2 -> id 1003 u 32 on joint 144; 4 / 32 -> id 1004 u 33
+  // on joint 144; 8 -> id 1005 u 34 on joint 1; 16 -> id 1003 u 32 on joint 144, offset (0, 0, -80) (+0x14 bit 0) while the motion
+  // is L4 M30 / M31; others nothing. The request block: +0x1c |= 1 with +0xc0 = the joint's position, +0x14 |= 0x20 with +0x52 =
+  // the joint. The byte's WRITERS, per clip (b5trace.py over every action, the frame floats read at each writer):
+  //   L0 M18 f50 |= 2 (0xf9e0c4) and L0 M19 at its start = 4 (0xf9e254): (1, 0x13) only. L2 M27 f24 |= 1 (0xf9fc14): (2, 0x1c..0x1e).
+  //   L2 M72 f78 |= 1, f120 = 0 (0xfa0364 / 0xfa0388): (2, 0x1f / 0x20). L2 M78 f20 |= 1 (0xfa77d8): (7, 0x33). L4 M11 at its start
+  //   = 1 (0xfa30b0) and L4 M13 / L4 M16 at theirs = 0 (0xfa330c): (3, 0x1d..0x1f). L2 M48 at its start = 0x20 (0xfa7de0) and L2
+  //   M50 at its start = 0 (0xfa7f20): (7, 0x36). L2 M59 at its start = 0x10: every action that plays it (0xfa081c, 0xfa11dc,
+  //   0xfa8690, 0xfa8c68, 0xfaa800); L3 M30 at its start = 0 (0xfa09c0): (2, 0x21) only. L4 M30 at its start = 0x10 (0xfa89d8), f14
+  //   = 0 and f32 = 0x10 at a new point (0xfa8b94 / 0xfa8bc0): the actions that BEGIN on it, (7, 0x3d / 0x41 / 0x43 / 0x45 / 0x47 /
+  //   0x49) and (13, 2) -- the others reach it from L2 M59 and write nothing there. L2 M75 / L2 M76 at their start = 0 (0xf9e644 /
+  //   0xf9ea7c): (1, 0x16 / 0x18 / 0x22 / 0x23) / (1, 0x17 / 0x19 / 0x24 / 0x25), on the arm where the object the action holds (r5,
+  //   its point through vt+0xd4) is null -- with one, the point is kept and bit 8 set later (0xf9e6fc / 0xf9e9bc): NOT driven, the
+  //   viewer has no such object.
+  //   NOT DRIVEN, by name (they depend on the ACTION, which a clip of his does not carry): L2 M59 f30 = 0 ((2, 0x25), 0xfa1224) and
+  //   L2 M55's end = 0 (the chains that begin on L4 M30, 0xfa8d20 / 0xfaac40) -- (2, 0x2b / 0x2e / 0x2f), (7, 0xa / 0xb), (13, 3)
+  //   play L2 M55 and write nothing. The byte otherwise keeps its value across clips, as it does across actions.
+  em070_00: { step: (t, c) => nerscyllaB5(t, c), records: [30, 31, 32, 33, 34].map(k => ['em070_00u', k, 'UNIQUE']) },
+  // THE GORE LINE'S SLOT RING (rom-map "Class requests driven"): the fills above; the ring itself (0xfc05ec / 0xfaf318 / the timers)
+  // runs in the effect schedule (schedule.js ringFill / stepRing), which the shells' owner calls (sp_00 / sp_03 -> 0xfc083c) also feed.
+  em071_00: { step: (t, c) => goreFills(t, c, 'em071_00u', 0), records: [30, 31].map(k => ['em071_00u', k, 'UNIQUE']) },
+  em071_05: { step: (t, c) => goreFills(t, c, 'em071_05u', 5), records: [30, 31].map(k => ['em071_05u', k, 'UNIQUE']) },
+  em072_00: { step: (t, c) => goreFills(t, c, 'em072_00u', 0), records: [30, 31].map(k => ['em072_00u', k, 'UNIQUE']) },
+  em011_00: { step: kirinAura, hornBroken: (drawn, sets) => (!!drawn && drawn.get(2) === true) || (sets || []).includes(4),
+              records: [['em011_00u', 0, 'UNIQUE'], ['em011_00u', 60, 'UNIQUE'], ['em011_00u', 61, 'UNIQUE']] },
+  // KUSHALA's WIND BARRIER (dev/em024_00-effects-spec.md 5; vtable +0x208 0xdeffc4, READ to 0xdf00fc; the rest READ 2026-10-20, rom-map / shells.js perFrame024): every frame while not
+  // dying (vt+0x3f4) the handle e+0xcac8 should hold id ctl+0x2c == 1 ? (ctl+0x2d ? 1005 : 1007) : (ctl+0x2d ? 1004 : 1006) --
+  // keys [0x169d3b8] 220 / 240 / 210 / 230; a handle with another key (+0x1b4) is stopped and the wanted one requested; at death it
+  // is stopped. ctl+0x2c is isEnraged at the last action start, ctl+0x2d the snow maps (not held: off) -- so calm u 230, enraged
+  // u 240 (em024_00_101), held across every clip.
+  // ...and on the SNOW maps (ctl+0x2d set: the Snow Variants list, c.snowMap) ids 1004 / 1005 = u 210 calm / u 220 enraged
+  // (em024_00_100) in place of 1006 / 1007 (re-walk 2026-10-18, the same 0xdeffc4 read)
+  em024_00: { step: (t, c) => poison1100(t, c, 'em024_00c'), holds: c => c.dead ? [] : [['em024_00u', c.snowMap ? (c.rage ? 220 : 210) : (c.rage ? 240 : 230)]],
+              records: [...[210, 220, 230, 240].map(k => ['em024_00u', k, 'UNIQUE']), ['em024_00c', 1100, 'UNIQUE']] },
+  // DEADEYE's HELD EFFECT (vtable +0x208 0xda528c, read 0xda52f8..0xda539c, re-walk 2026-10-18): variant 4 only, every frame --
+  // asleep (0x81bb0(e, 0): P+0x5e08 bit 0 or P+0x522, the test that shuts the eyes, 0xae3e8) or dying (vt+0x3f4): the handle
+  // e+0xcae0 is stopped (0x329c40(h, 0)); else, with none held, id 1001 = u 30 (em018_04_003, joint 3) is requested and kept.
+  // So it is up for his whole life but sleep, rest and death.
+  // It was named and not shown before (the garugaLine note): the class timers hold "always" now.
+  // The viewer's form of that test is his eyelid set 2 on the row shown: P+0x5d02 (the lid) is raised by 0x81bb0(e, 0) itself
+  // (0xae3e8) and at death (0xbd594) -- his sleep rows L3 M14 / L0 M19 and his death rows draw it, no other row does.
+  em018_04: { step: () => [], holds: c => (c.dead || c.sets.includes(2)) ? [] : [['em018_04u', 30]], records: [['em018_04u', 30, 'UNIQUE']] },
+  // AMATSU (dev/em058_00-effects-spec.md 5; vt+0x208 0xf09308, READ 2026-10-18). Alive: the aura e+0xcb70 holds id 1001 / 1002
+  // (u 0 calm / u 1 enraged, by the key at +0x1b4) while the status is not 7 or the action is (7, 0xc) (0xf099cc); on any other
+  // status-7 action it is hidden -- u 3 (id 1003) once and its alpha set to 0 (shown here as the hold dropped; its fade back in, alpha
+  // +0x180, is not shown); e+0xcb78 holds u 100 (id 1007; u 101, id 1008, while e+0x15fb == 1); enraged, every 30 frames (countdown
+  // e+0xcb80, 0x7206c) u 1120 (id 1005; u 1121, id 1006, while e+0x15fb == 1). Dying: both handles stopped, and once (e+0xcb7c) u 2
+  // (id 1004) and u 102 (id 1009). e+0x15fb is the Amatsu control (CLASS_CONTROLS below). Keys [0x169f370].
+  // THE FADE (0xf099cc..0xf09c08, READ 2026-10-19): on a hidden action, if the handle is up and +0x1c1 set, +0x1c1 is cleared, u 3
+  // requested and unit 0's colour block (+0x180..+0x19c) set to 0 -- the aura is KEPT, invisible; otherwise (calm / enraged key
+  // unchanged) +0x1c1 = 1 and the block rises by [[0x211f764]+0x68] x 0.02 a frame to 1.0 (50 frames); a key change stops the
+  // handle and requests the other (a new request draws at 1.0, the ctor's). `alpha` hands the block to the runtime.
+  em058_00: { step: (t, c) => {
+                const U = k => ['em058_00u', k, 'UNIQUE'], fire = [], hp = c.ctl === 1;
+                const hidden = !!c.action && c.action[0] === 7 && c.action[1] !== 0xc;
+                if (c.dead){ if (!t.died){ t.died = true; fire.push(U(2), U(102)); } c.hidden = hidden; t.key = null; return fire; }
+                t.died = false;
+                const key = c.rage ? 1 : 0;
+                if (t.key !== key){ t.key = key; t.a = 1; t.vis = false; }               // a new request: 1.0, +0x1c1 clear
+                if (hidden){ if (t.vis){ t.vis = false; fire.push(U(3)); t.a = 0; } }
+                else { t.vis = true; t.a = Math.min(1, (t.a == null ? 1 : t.a) + 0.02 * c.dt); }
+                t.hidden = hidden; c.hidden = hidden;
+                if (c.rage){
+                  const tick = () => { if ((t.cb80 || 0) <= 0){ t.cb80 = 30; return true; } t.cb80 -= c.dt; if (t.cb80 <= 0){ t.cb80 = 30; return true; } return false; };
+                  if (tick()) fire.push(U(hp ? 1121 : 1120));
+                } else t.cb80 = 0;
+                return fire;
+              },
+              holds: c => c.dead ? [] : [['em058_00u', c.rage ? 1 : 0], ['em058_00u', c.ctl === 1 ? 101 : 100]],
+              alpha: (t, c) => (c.dead || t.key == null) ? [] : [['em058_00u', t.key, t.a == null ? 1 : t.a]],
+              records: [0, 1, 2, 3, 100, 101, 102, 1120, 1121].map(k => ['em058_00u', k, 'UNIQUE']) },
+  // VALSTRAX (dev/em086_00-effects-spec.md 5; vt+0x208 0x109ed50, READ 2026-10-18). Alive: the aura e+0xcb1c holds u 200 (id 1005)
+  // calm, enraged u 1120 (id 1006) or u 1130 (id 1007) once part 0's break level (0x9d36c(e, 0)) reaches the .dtp byte 0x109ee90 /
+  // 0x109ee94 read (A[1] bytes 1 / 2 = 2 at either rank -- the head broken, set 6); dying: stopped. The glow e+0xcb14 holds u 1121
+  // (id 1008) while e+0xcb10 is 0 / 1 and fades out on 2..6 (alpha step [0x16a2fa0][state - 2] x dt: 1/60, at once, at once, 1/30,
+  // 1/10 -- the stop is kept at that frame count, the fade itself is not shown). e+0xcb10 is set at each action start by vt+0x204
+  // 0x109f830 (0x10a0884; calm: 3, 0x10a08d4): 2 for status-7 numbers <= 0x30 but 0x13 / 0x1f / 0x20 / 0x24..0x29, 4 for (1, 5) /
+  // (10, 0x1d / 0x1e), 5 for (3, 0 / 1 / 5 / 6), untouched by (7, 0x31 / 0x32 / 0x34 / 0x35), 0 otherwise (hookbyte.py, every
+  // action). A play the viewer names no action for keeps the last state. Keys [0x16a2edc].
+  // TEOSTRA's FIRE AURA (dev/em027_00-effects-spec.md 2; vt+0x208 0xe10f7c, READ 2026-10-18 -- Raven, the same day: "u 0 follows
+  // the Fire Aura control (the ROM), not rage"). Every frame: when P+0x5e08 bit 1 is clear (0xa1f0c(e, 2)) and the aura byte
+  // P+0x1bb is neither 0 nor 0xff (the Fire Aura control), and e+0xcac4 bit 0 is not yet set, it sets it and requests id 1001 =
+  // u 0 into e+0xcac8 (id 1002 = u 10 instead while P+0x5cb6 == 1 -- that byte's writer is NOT READ, so u 10 is left out);
+  // otherwise, with the bit set, it clears it, stops e+0xcac8 (0x329c40(h, 0)) and requests id 1003 = u 1 once. No dying gate.
+  em027_00: { step: (t, c) => {
+                // (and not after his horn break: (10, 0x72) on part 0 sets P+0x1bb = 0xff for good, 0xe10afc -- c.hornBroken below)
+                const on = c.ctl === 1 && !c.toggles.poisoned && !c.hornBroken, was = !!t.on; t.on = on;      // P+0x5e08 bit 1 clear (0xa1f0c(e, 2))
+                // THE RAGE LATCH (effects lane, 2026-10-20; READ): vt+0x204 0xe107ac ends by setting ctl+0x26 = isEnraged (0xe10eb4) at
+                // EVERY action start; vt+0x208 0xe11204..0xe112dc, every frame: ctl+0x26 set and latch e+0xcac4 bit 1 clear -> set it, id
+                // 1004 (u 2); ctl+0x26 clear and the bit set -> clear it, id 1005 (u 3) -- each through a block of its own with +0x14 |= 0x20,
+                // root joint +0x52 = 3, +0x1c |= 2 (vt+0x1d0, table 0x169d724). The viewer's action start is a new play.
+                if (c.fresh) t.c26 = !!c.rage;
+                const latch = [];
+                if (t.c26 && !t.l26){ t.l26 = true; latch.push(['em027_00u', 2, 'UNIQUE', { rootJoint: 3 }]); }
+                else if (!t.c26 && t.l26){ t.l26 = false; latch.push(['em027_00u', 3, 'UNIQUE', { rootJoint: 3 }]); }
+                return [...((was && !on) ? [['em027_00u', 1, 'UNIQUE', { rootJoint: 3 }]] : []), ...latch, ...poison1100(t, c, 'em027_00c')];
+              },
+              // u 10 for u 0 while P+0x5cb6 (the spawn entry's size type) == 1 (0xe11120): the Size Type control (CLASS_CONTROLS2)
+              // ALL THREE through the same block as u 2 / u 3 (READ 2026-10-22, 0xe11094..0xe111c8): 0x40a54, +0xc area, +0xd0 his model
+              // (vt+0x130), +0x1c |= 2, +0x14 |= 0x20 with +0x52 = 3 -- the ROOT JOINT 3, not the record's own placement on the unit
+              // (Raven, 2026-10-22: "it appears to be moved towards his tail and I expected it to be closer to his torso")
+              holds: c => (c.ctl === 1 && !c.toggles.poisoned && !c.hornBroken) ? [['em027_00u', c.ctl2 === 1 ? 10 : 0, { rootJoint: 3 }]] : [],
+              // HIS HORN BREAK (READ 2026-10-22, vt+0x204 0xe10a80..0xe10afc): (10, 0x72) with the broken part 0 (0x9e8d8): enraged -> shout,
+              // ctl+0x11 = 0, 0xbd06c; then ctl+0x10, ctl+0x22 = 1, 0x9d438(e, 0) and P+0x1bb = 0xff -- the aura byte every on-test refuses
+              // (0xe10e14, 0xe1087c, his word's "neither 0 nor 0xff"), never written back. ctl+0x22 is the part pass's broken head (0xe1a778:
+              // set 7 for 1 -- part 3 drawn, 102 hidden). So with the Head row broken there is no aura.
+              hornBroken: (drawn, sets) => (!!drawn && drawn.get(3) === true) || (sets || []).includes(7),
+              records: [...[0, 1, 2, 3, 10].map(k => ['em027_00u', k, 'UNIQUE']), ['em027_00c', 1100, 'UNIQUE']] },
+  // SOULSEER's SOUL FLAME (dev/em082-effects-spec.md 5; READ 2026-10-18): vt+0x208 0x10361dc's Soulseer block holds id 1001 = u 300
+  // (em082_04_000, joint 2) on e+0xcbc0 while P+0x1bb bit 1 is set (0x1036314) and e+0xcb45 == 0, and stops it the frame either
+  // fails -- no dying gate. Bit 1 is the Soul Flame control (CLASS_CONTROLS below); e+0xcb45 is the u 310 latch the P310 rows
+  // carry (`eyesOff`). Was `when: rage`.
+  em082_04: { step: () => [], holds: c => (c.ctl === 1 && !c.eyesOff) ? [['em082_04u', 300]] : [],
+              records: [['em082_04u', 300, 'UNIQUE']] },
+  // THE GLOW'S FADES (0x109f080..0x109f2b8, READ 2026-10-19 -- corrects the "at once" above, Withdrawn table): state 0 / 1:
+  // request u 1121 when none is held, else +0x1c1 = 1 and unit 0's block rises by dt x 1/60 (state 0) or 0.1 (state 1) to 1.0;
+  // states 2..6 with +0x1c1 set: the block falls by dt x [0x16a2fa0][state - 2] = 1/60, 1/60, 1/60, 1/30, 1/10; at 0 states 3 / 4
+  // stop the handle (0x329c40(h, 1)) and 2 / 5 / 6 keep it at 0 with +0x1c1 cleared; with +0x1c1 clear, 3 / 4 stop it at once and
+  // 2 / 5 / 6 hold it at 0.
+  em086_00: { step: (t, c) => {
+                const k = c.action ? c.action.join(',') : null;
+                if (k !== t.act || c.rage !== t.rage){
+                  t.act = k; t.rage = c.rage;
+                  const g = !c.rage ? 3 : valstraxGlow(c.action);
+                  if (g != null) t.glow = g; else if (t.glow == null) t.glow = 0;
+                }
+                const g = t.glow;
+                if (g === 0 || g === 1){
+                  if (!t.live){ t.live = true; t.a = 1; t.vis = false; }
+                  else { t.vis = true; t.a = Math.min(1, t.a + c.dt * (g === 0 ? 1 / 60 : 0.1)); }
+                } else if (t.live){
+                  if (t.vis){
+                    if (t.a < 0){ t.a = 0; t.vis = false; }
+                    else {
+                      t.a -= c.dt * [1 / 60, 1 / 60, 1 / 60, 1 / 30, 1 / 10][g - 2];
+                      if (t.a <= 0){ if (g === 3 || g === 4) t.live = false; else { t.a = 0; t.vis = false; } }
+                    }
+                  } else if (g === 3 || g === 4) t.live = false;
+                  else t.a = 0;
+                }
+                c.glow = !!t.live;
+                return [];
+              },
+              hornBroken: (drawn, sets, table) => (sets || []).includes(6) || userLevel([[4], [5], [6]], table, drawn) >= 2,
+              holds: c => c.dead ? [] : [['em086_00u', !c.rage ? 200 : c.hornBroken ? 1130 : 1120], ...(c.glow ? [['em086_00u', 1121]] : [])],
+              alpha: (t, c) => (!c.dead && c.glow) ? [['em086_00u', 1121, Math.max(0, t.a)]] : [],
+              records: [200, 1120, 1121, 1130].map(k => ['em086_00u', k, 'UNIQUE']) },
+};
+// Valstrax's e+0xcb10 for an action (null: the action leaves it as it was)
+function valstraxGlow(a){
+  // a play the viewer names no action for is an idle / move (2026-10-19: every status-7 clip now names its action -- psl-mask.js
+  // em086_00): status 0 / 2 actions set 0 (0x10a0884's default), so the glow is lit there while enraged
+  if (!a) return 0;
+  const [st, n] = a;
+  if (st === 7){
+    if (n === 0x31 || n === 0x32 || n === 0x34 || n === 0x35) return null;
+    return n <= 0x30 && !(n === 0x13 || n === 0x1f || n === 0x20 || (n >= 0x24 && n <= 0x29)) ? 2 : 0;
+  }
+  if ((st === 1 && n === 5) || (st === 10 && (n === 0x1d || n === 0x1e))) return 4;
+  if (st === 3 && (n === 0 || n === 1 || n === 5 || n === 6)) return 5;
+  return 0;
+}
+// A CLASS BYTE THE USER SETS, as Boulder sets the rock: a state the ROM keeps in the class and reads in the enable word (and
+// elsewhere), shown as a select (index.html paintClassControl) and handed to pslMask under `key`.
+// A SECOND CLASS BYTE, where a monster needs two (state.classCtl2; index.html paintClassControl2). TEOSTRA's P+0x5cb6: the spawn
+// entry's size type, written once at spawn by 0x6fb64..0x6fb70 from the quest's rEmSetList [entry+3] (rom-map 0x6fb68). His
+// class reads it twice (every #0x5cb6 in 0xe10054..0xe1ab24; control: the known 0xe11120 found): 0xe11120, the aura hold --
+// == 1 holds id 1002 = u 10 for id 1001 = u 0 (CLASS_TIMERS.em027_00); and 0xe104fc in vt+0x1d8 (spawn setup) -- != 1 (and the
+// area 0x4987c not 4 / 6) sets P+0x3b4 bit 15, the mask of his eight conditional leg capsules (.bdd records 0-7, slot 5 on
+// joints 14-21), which duplicate the unconditional records 12-19 (the same slot, the same joints): no hit-zone change, and the
+// carve-table filter 0xc1ee4 that also reads P+0x3b4 is rewards. The shared code's own readers (0x6a1b8: id 0x1b, a distance
+// loop; the 0x64..0x67 quest modes; the reward / stat lookups 0x498a8 / 0x49214 / 0x5c8b4) draw nothing. So the one visual
+// reader is u 10. The ROM tests == 1 only: every other type behaves as 0. Working label, for Raven to name.
+// CLASS TOGGLES -- on / off inputs a class reads that no other control holds (dev/effects-open-items.md section 5, approved by
+// Raven 2026-10-19; the labels are WORKING LABELS, listed for Raven to name). index.html draws one switch per entry
+// (monClassToggles) and keeps the value in state.toggles[key]; each consumer names the ROM test it stands for.
+//   burrowed  "Begins Burrowed": 0x81d6c -- posture 4 AND P+0x5c below 0.9 x MoguriBaseOfs (0xbf62c, dtbase +0xa8) at the play's
+//             start. Every posture-4 play then reads sunk (index.html: sunk = the entry's own || (burrowed && posture 4)); off,
+//             a posture-4 play is begun from the surface unless its entry names sunk (the burrowed L0 M6 copies).
+//   tiredRage "Tired (with Rage)": 0x81614 = P+0x505 alone (no rage test); the stamina machine 0xbd1a4 sets it with no rage
+//             test either, so a monster can be enraged and tired at once. The Rath line's word (bits 24-26 on L2 M1 / L4 M32) reads
+//             it: on, with Enraged, the play reads tired.
+//   poisoned  "Poisoned": P+0x5e08 bit 1, set by the hit pass's first ailment accumulator (0x9a290 -> 0xa239c) -- while it is set
+//             Kushala's wind (ctl+0x18) and Teostra's aura (vt+0x208 0xe10f7c) are off, and the shared 0xa4518 requests c 1100
+//             (id 0) on its timer.
+const BURROWED = { key: 'burrowed', label: 'Begins Burrowed',
+                   title: '0x81d6c: posture 4 and P+0x5c below 0.9 x MoguriBaseOfs at the play\'s start -- the burrow clips read "already sunk".' };
+const TIRED_RAGE = { key: 'tiredRage', label: 'Tired (with Rage)',
+                     title: '0x81614 (P+0x505) has no rage test: with Enraged on, the play reads tired too (L2 M1 / L4 M32 lose bits 24-26).' };
+const POISONED = { key: 'poisoned', label: 'Poisoned',
+                   title: 'P+0x5e08 bit 1 (0xa239c): the aura / wind is held off and c 1100 is requested every 90 frames (0xa4518).' };
+export const CLASS_TOGGLES = {
+  em004_00: [BURROWED], em005_00: [BURROWED], em033_00: [BURROWED], em038_00: [BURROWED], em043_00: [BURROWED], em043_05: [BURROWED],
+  em044_00: [BURROWED], em045_00: [BURROWED], em063_00: [BURROWED], em063_05: [BURROWED], em060_00: [BURROWED], em060_04: [BURROWED],
+  em001_00: [TIRED_RAGE], em001_02: [TIRED_RAGE], em001_04: [TIRED_RAGE], em002_00: [TIRED_RAGE], em002_02: [TIRED_RAGE], em002_04: [TIRED_RAGE],
+  em024_00: [POISONED], em027_00: [POISONED],
+};
+export const CLASS_CONTROLS2 = {
+  // CHAOTIC GORE MAGALA's control-block counter C+0x84 (approved 2026-10-20; READ: it accumulates per frame from the hunters around him,
+  // 0xfae824's loop over four (0xfaead8 / 0xfaecbc / 0xfaed60), capped by a rank value (0xfaee10..0xfaee44); his readers test it
+  // against the tier table 0x16a1294 = 5000 / 10000 / 20000 at every rank class). At 20000 (and G rank) his footfall dust (shells.js
+  // foot071, input.gauge071) and six extra slot-ring fills (GORE_FILLS `gauge`) run; his BodyLight clip is the tier (gauge071Tier, 0xfbf97c),
+  // 28000 its LVMAX (above the G cap). The values are the steps the ROM tests.
+  em071_05: { key: 'gauge071', label: 'Gauge (C+0x84)', options: [[0, '0'], [1, '5000'], [2, '10000'], [3, '20000'], [4, '28000']],
+              title: 'Chaotic Gore Magala\'s counter C+0x84 (the hunters around him), held under the rank cap (20000 at G, 24000 High, 32000 Low): his body light steps Normal / LV1 / LV2 / LV3 / LVMAX at 5000 / 10000 / 20000 / 28000; at 20000 and G rank his footfall dust and six extra slot-ring fills run. Working names.' },
+  // CONGALALA's charge count ctl[2] (Raven, 2026-10-22: "add the charge count so I can see if that is what it impacts"; READ): a status-1
+  // eat sets it to 5 (quest rank > 1) or 3 with the gas ctl[1] (vt+0x204 0xdcefd8's tail 0xdcf4ac), each gas attack spends one (0xdcf384:
+  // status 7, numbers 6 / 0x34..0x3a / 0x48), (1, 9) empties it. The action pick remaps (7, 5) / (7, 0x58) by both (vt+0x1fc 0xdcee10,
+  // READ 2026-10-22): gas 1..4 with 2+ charges -> (7, 6 / 0x35 / 0x34 / 0x36), with fewer than 2 (the last) -> (7, 0x37 / 0x39 / 0x38 /
+  // 0x3a); tired -> (7, 0x3b); gas 0 keeps the gas-less breath. That action's (gas, form) is the breath shell04's mode (0xdd4b00): the
+  // 2+ charges u 130 / 150 / 140 / 160, the last u 300 / 320 / 310 / 330 (shells.js GAS021, input.gas021Last). The breath's colour word
+  // (psl-mask.js em021_00, L2 M16) reads the gas alone. Values are 5 - the count, so the default (0) is 5: the viewer's stand-in before.
+  em021_00: { key: 'charges021', label: 'Charges', options: [[0, '5 (fresh, G)'], [1, '4'], [2, '3 (fresh below G)'], [3, '2'], [4, '1 (the last)'], [5, '0']],
+              title: 'ctl[2], the gas charges he has left (5 after eating at G, 3 below; one spent per gas attack): with 2 or more his gas breath is u 130..160, with fewer the last-charge breath u 300..330. Working names.' },
+  em027_00: { key: 'sizeType', label: 'Size Type', options: [[0, 'Type 0'], [1, 'Type 1']],
+              title: 'P+0x5cb6, the spawn entry\'s size type: 1 holds u 10 in place of u 0 while the Fire Aura is on (0xe11120).' },
+};
+export const CLASS_CONTROLS = {
+  // CONGALALA's gas ctl[1] (the type his last meal left; table 0xdd7dc0): his breath L2 M16 (7, 0x34) reads it -- 1 bits 15-16,
+  // 2 bits 19-20, 3 bits 17-18, 4 bits 21-22, 0 none (psl-mask.js em021_00). Was a per-play cycle of the four (approved
+  // 2026-10-19; working label). The eating plays still set their own gas.
+  em021_00: { key: 'gasType', label: 'Gas Type', options: [[0, 'None'], [1, 'Gas 1'], [2, 'Gas 2'], [3, 'Gas 3'], [4, 'Gas 4']],
+              title: 'ctl[1], the gas his breath L2 M16 (7, 0x34) carries: set by what he ate (0xdd7dc0).' },
+  // KUSHALA's wind aura P+0x1bb (0 at reset, 0xdef058; moved by the action-start hook 0xdef314's switch -- not applied: the control
+  // is the level the play starts on). His word reads it (psl-mask.js em024_00).
+  em024_00: { key: 'windAura', label: 'Wind Aura', options: [[0, 'Level 0'], [1, 'Level 1'], [2, 'Level 2'], [3, 'Level 3']],
+              title: 'P+0x1bb, the wind aura level his enable word reads (0xdfd19c): levels 0 to 2 light bits 15-17 of his attacks, level 3 bits 21-23.' },
+  // TEOSTRA's fire aura P+0x1bb (his word 0xe1a9d8 reads "neither 0 nor 0xff"; his aura driver vt+0x208 0xe10f7c holds u 0 on the
+  // same test -- that record stays as Raven set it, on the rage).
+  em027_00: { key: 'fireAura', label: 'Fire Aura', options: [[0, 'Off'], [1, 'On']],
+              title: 'P+0x1bb not 0 / 0xff: his enable word (0xe1a9d8) lights bits 15-17 on every motion, and clears bits 6-8 on L4 M6.' },
+  // AMATSU's e+0x15fb (dev/em058_00-effects-spec.md 6; READ 2026-10-18): set to 1 once, by vt+0x204 0xf08e7c at 0xf091ac on the
+  // action (10, 0x8e) -- an empty script -- which the shared dispatcher 0x9a76c issues for reaction code 0x1a (table 0x9a81c, case
+  // 26), and 0x97d20 picks code 0x1a at 0x99280 when P+0x380 >= P+0x370 / P+0x374 with P+0x3a8 bit 16 set (and bit 15 clear or
+  // posture 3): a one-way HP-fraction state. It never goes back to 0. What it shows: the part pass 0xf09d0c draws head sets 15 /
+  // 16 / 17 for 1 / 8 / 9 (the same parts plus groups 25 / 27 / 28: STATE_OVERLAY below), u 1121 for his puff u 1120 and u 101 for
+  // u 100 (CLASS_TIMERS above). A class state, not a part: no break row reaches it.
+  // SOULSEER's SOUL FLAME P+0x1bb bit 1 (dev/em082-effects-spec.md 5; states-em082_00.md 9): lit only by 0x1039320 at the end of
+  // his four rage roars (1, 0x10..0x13); put out at an action start once EMC request 0x13 armed e+0xcb46 (vt+0x204's tail
+  // 0x10374b0..0x10374f0, which also ends the rage). The play starts with it as set here. Read by: his enable word (0x1038f4c:
+  // bits 27-29 for 24-26), u 300's hold (vt+0x208, CLASS_TIMERS), the soul-flame shells' makers (0x1035ee8; the shells lane) and a
+  // tune pick 0x1035c6c (floats 0x85 / 0x86 / 0x87) -- not his part pass or his materials (they test bits 2 / 3, the furs).
+  em082_04: { key: 'soulFlame', label: 'Soul Flame', options: [[0, 'Off'], [1, 'On']],
+              title: 'P+0x1bb bit 1, lit by his rage roars: u 300 on his head, bits 27-29 of his word, the soul-flame shells.' },
+  // CHAMELEOS's invisibility ctl+0xc (dev/em025_00-effects-spec.md 8; READ 2026-10-18): set by (1, 0x11) / (1, 0x03) at L0 M16 f70,
+  // (1, 0x16) at L3 M32, (2, 0x14) at L2 M30 f0 (each with the area gate 0x5bfb8 / 0x5c1a8, NOT READ as a value), cleared at
+  // almost every action start (vt+0x204) and by ~20 action bodies -- the control is the state the play starts in. With the horn
+  // intact (ctl+0x13 = 2) it is the FULL cloak: his body and wing play stealth_start_S, the light fade_out, the eyes go (set 9),
+  // at 30 frames the model's alpha P+0x5dfc goes to 0 and the model is not drawn (0x892098), and no PSL record starts while it
+  // lasts (vt+0x12c 0xdff12c). Working label, for Raven to name.
+  // THE LEVELS (READ 2026-10-22; Raven: "has a semi invisible state we are not currently displaying ... based on part breaks, horn and
+  // tail"). Three setters write ctl+0xc = 1 with +0x13 / +0x17: 0xe03c78 (the area-gated (1, 0x11) path) +0x17 = 1 and +0x13 = horn ?
+  // 1 : 2 (vt+0x370(e, 2): P+0x3b4 bit 1, the horn); 0xe06b04 +0x17 = 0, +0x13 = horn ? 1 : 2; 0xe0496c ((1, 0x16), L3 M32) +0x17 = 0,
+  // +0x13 = 1 WHATEVER THE HORN. The phase machine vt+0x210: +0x13 2 with +0x17 0 -> alpha cut to 0 at f30 (0xe01a38); +0x13 2 with
+  // +0x17 1 -> alpha ramped 1 -> 0 over 30 from f0 (0xe01a14 -> 0xbee74(0, 30)) and the stealth materials at f30; +0x13 1 -> the
+  // stealth materials at f30, alpha stays 1 (the semi-invisible look). THE TAIL: vt+0x204's sever (10, 0x72), 0xdffd1c: with the horn
+  // already broken and a cloak up, the sever ends it (sound 0xcf, ctl+0xc = 0, phase 0); no setter tests the tail. So: 1 On = the
+  // horn's pick (intact full, broken semi); 2 Semi-invisible = the (1, 0x16) cloak; 3 On (fading) = the (1, 0x11) cloak. Working labels.
+  // (Superseded 2026-10-22 below: Off / On only.)
+  // [2026-10-22, Raven: Off / On, breaks live] THE BREAKS WHILE CLOAKED (READ): any status-10 start -- a break flinch, the sever
+  // (10, 0x72) -- ends the cloak at vt+0x204 0xdff778..0xdff810 (latch or not; ROM-RUN with the status 1 / 2 / 3 control); nothing
+  // rewrites +0x13 mid-cloak, so the NEXT cloak takes the horn's pick. (Withdrawn: "the sever ends it only with the horn already
+  // broken", 0xdffd1c -- the status-10 arm has ended it before that test runs.) The tail is read only by the EMC selector 2
+  // (0xe01e48), whose one consumer (g1 s15) picks between two cloaked walks (2, 6) / (2, 3). So: Off / On; On = the horn's pick
+  // when the cloak starts; a break while cloaked ends it, then the next cloak. Working labels.
+  em025_00: { key: 'invisible', label: 'Invisible', options: [[0, 'Off'], [1, 'On']],
+              title: 'ctl+0xc, his invisibility. On: the cloak at the level his horn allows when it starts -- horn intact, he fades out over 30 frames (his AI cloak, (1, 3)); horn broken, the semi-invisible stealth materials (the tail does not change the level). Breaking or restoring the horn or the tail while he is cloaked ends the cloak (a break is his flinch; a restore is the viewer mirroring it), and the next one starts 90 frames later at the new level -- that wait is a stand-in, the re-cloak timing in the game is not read. Both broken: no ROM gate found yet, so he still cloaks semi. Working names.' },
+  em058_00: { key: 'hpState', label: 'HP State', options: [[0, 'Before'], [1, 'Past the threshold']],
+              title: 'e+0x15fb, set once by (10, 0x8e) when his HP fraction falls to P+0x380: head sets 15-17 (groups 25 / 27 / 28), puff u 1121, u 101.' },
+  // AHTAL-NESET's ROCKETS (render/shells.js rockets087; dev/ahtal-neset-shells-spec.md 3C; READ 2026-10-20): the mask e+0xcdc0 his AI
+  // sets (EMC g0 s0: a3 (1, 7) rockets 0..2 or a3 (1, 0x38) rockets 3..5, 50 : 50) -- the viewer has no AI, so this is the mask, fired at
+  // an action start when every rocket is gone and the 90 s cooldown has run (the ROM's gate). Off fades the landed ones (the stand-in
+  // for his (7, 1) kill). Working labels, for Raven to name.
+  em087_00: { key: 'rockets', label: 'Rockets', options: [[0, 'Off'], [1, 'Rockets A (0-2)'], [2, 'Rockets B (3-5)']],
+              title: 'e+0xcdc0, the rockets his AI asks for: three supply rockets fall onto his arena points at the next action start (then a 90 s cooldown).' },
+};
+// SOULSEER's class requests (dev/em082-effects-spec.md 4; states-em082_00.md 9 -- the actions READ 2026-10-17): u 310
+// (em082_04_008, end 1) held on e+0xcbc4 while e+0xcb45 != 0 -- set by the leaf 0x1039678 at 0x103b7a0 ((1, 0x14 / 0x15) phase
+// 1, L9 M1), 0x103e320 ((2, 0x36) phase 1), 0x1047880 / 0x10477f8 ((7, 0x6a / 0x6b) L9 M5 -> M6), 0x1047b44 / 0x1047a9c ((7,
+// 0x6c / 0x6d) L9 M8 -> M9), cleared at the next action start -- and the soul flame's u 300 is held off meanwhile (vt+0x208
+// holds it only while e+0xcb45 == 0). At an action start (vt+0x204, 0x1037318..0x103749c, table 0x16a2290 on number - 0x6e):
+// (7, 0x6e / 0x6f) -> id 1003 u 320, (7, 0x75 / 0x76) -> 1004 u 330, (7, 0x77..0x7a) -> 1005 u 321 (one-shots into the same
+// handle), and (2, 0x36) after (2, 0x36) -> u 330 (copy D of L0 M4, 2026-10-19).
+{ const U = k => ['em082_04u', k, 'UNIQUE'], P310 = { hold: U(310), eyesOff: U(300) };
+  Object.assign(MOTION_STATES.em082_04, {
+    '9|Motion[5]': P310, '9|Motion[8]': P310, '9|Motion[1]#B': P310, '0|Motion[4]#C': P310,
+    // copy D: (2, 0x36) after (2, 0x36) -- the action start's selector 2 (0x1037318..0x103749c) requests id 1004 = u 330 as it
+    // starts, then phase 1 sets e+0xcb45 (u 310 held, u 300 off) as copy C (approved 2026-10-19)
+    '0|Motion[4]#D': Object.assign({}, P310, { start: [U(330)] }),
+    '9|Motion[6]': P310, '9|Motion[6]#B': { start: [U(320)] }, '9|Motion[6]#C': { start: [U(330)] }, '9|Motion[6]#D': { start: [U(321)] },
+    '9|Motion[9]': P310, '9|Motion[9]#B': { start: [U(320)] }, '9|Motion[9]#C': { start: [U(330)] }, '9|Motion[9]#D': { start: [U(321)] },
+  }); }
+// LAVASIOTH (dev/em036_00-effects-spec.md 3-4): u 60 (em036_00_011_s, mode 3, end 1) HELD while the action is (7, 0xf..0x14) or
+// (6, 4 / 5) -- vt+0x208 0xe3f0e8 requests it (id 1001) while e+0xcae8 == 1 and kills it when the action leaves the set -- on the
+// clips those actions play (their copy B where the clip is shared); the dive's u 1120 (0xa499c(e, 0), end 0: once) at L0 M21 A
+// ((6, 0 / 1), 0xe41e10) and C ((7, 0x13)'s phase 1, 0xe44314).
+Object.assign(MOTION_STATES.em036_00, {
+  '0|Motion[21]': { start: [['em036_00u', 1120]] }, '0|Motion[21]#B': {}, '0|Motion[21]#C': { start: [['em036_00u', 1120]], hold: ['em036_00u', 60] },
+  '0|Motion[30]#B': { hold: ['em036_00u', 60] }, '2|Motion[10]#B': { hold: ['em036_00u', 60] },
+  '2|Motion[11]': { hold: ['em036_00u', 60] }, '0|Motion[18]#B': { hold: ['em036_00u', 60] },
+  '0|Motion[16]#B': { hold: ['em036_00u', 60] },
+});
 MOTION_STATES.em022_00['3|Motion[9]#B'] = TRAP_B('em022_00c');
+// ARZUROS / REDHELM L3 M10 and VOLVIDON L3 M5: A the paralysis hold ((10, 0x1f)'s second clip), B the shock trap ((10, 0x6e))
+MOTION_STATES.em060_00['3|Motion[10]#B'] = TRAP_B('em060_00c');
+MOTION_STATES.em060_04['3|Motion[10]#B'] = TRAP_B('em060_00c');
+MOTION_STATES.em062_00['3|Motion[5]#B'] = TRAP_B('em062_00c');
+MOTION_STATES.em065_00['3|Motion[6]#B'] = TRAP_B('em065_00c');
 for (const id of ['em061_00', 'em061_04'])
   Object.assign(MOTION_STATES[id], { '3|Motion[13]#B': TRAP_B('em061_00c'), '3|Motion[73]#B': TRAP_B('em061_00c') });
 MOTION_STATES.em056_00['3|Motion[3]#B'] = TRAP_B('em056_00c');
@@ -5191,6 +6391,14 @@ export const RAGE_PARTS = {
 // "The clip has ended" (0xb09c8) is the viewer's play-once clip held on its last frame (index.html passes `at.ended`);
 // a looping death clip never ends, as a motion the ROM keeps playing would not.
 export const STATE_OVERLAY = {
+  // CHAMELEOS invisible (CLASS_CONTROLS em025_00): vt+0x1c8 0xe0df70 answers 1 while ctl+0xc is set -> the eye set 9 (groups 1 and
+  // 6 off) in place of the open / shut pair 1 / 2
+  // (the uncloak keeps them off until its phase 4: `cloakEyes`, set by index.html stepCloak025, else the control)
+  em025_00: { groups: [1, 6], on: ms => (ms.cloakEyes != null ? ms.cloakEyes : ms.userCtl >= 1), tables: [{ off: [[1], [2]], on: [[9], [9]] }] },
+  // AMATSU past the HP threshold (CLASS_CONTROLS em058_00): sets 15 / 16 / 17 for 1 / 8 / 9 at the head's level; only the groups
+  // they add (25, 27, 28) differ. `on` is the class control, not the ALIVE test.
+  em058_00: { groups: [25, 27, 28], on: ms => ms.userCtl === 1,
+              tables: [{ off: [[1], [8], [9]], on: [[15], [16], [17]] }] },
   em082_00: { groups: [20, 21, 22, 23],
               tables: [{ off: [[1], [2], [3]], on: [[4], [5], [6]] },      // head: stage 0 / 1 / 2
                        { off: [[11], [12]], on: [[13], [14]] }] },          // dorsal fin: intact / broken
@@ -5693,6 +6901,16 @@ export const AIR_HEIGHT = {
   // and-gaps.md G5; his shells' floor snap needs it)
   em079_00: { flyOfs: 300, clips: MALF_GROUND }, em079_04: { flyOfs: 300, clips: MALF_GROUND },
   em081_00: { flyOfs: 500 }, em081_04: { flyOfs: 500 },
+  // KECHA WACHA (uEm065_00): the hang drop 0xf51fc4 ((7, 0x15) / (7, 0x48) sp_00 0, (7, 0x16) / (7, 0x49) sp_01 3 at L2 M117
+  // f33). Phase 2 -> 5 (0xf52200..0xf52258): posture 1 (0xbc984(0)), P+0x44 = P+0x5b4 + 585 x S, v 0 -- L2 M126; at M126 f20
+  // (0xf52390..0xf52430): L2 M117, 0x7bd18, P+0x44 -= 250 x S (335 S); f30 vy 26, ay -1 (raw, 0xf52460..), integrated by
+  // 0x7a820 (d = f - 29: one step per frame, the update order I). No surface, no FlyOfs (0.0), no P+0x92c in the class.
+  // His clips carry that height on the `reference` track (M126 584.5, M117 400.2), which the viewer draws: `hang`.
+  // (7, 0x14) / (7, 0x4d) play M126 in posture 3 instead (unit on the ground, drawn 585 m): the drop path's value stands.
+  em065_00: { flyOfs: 0, standard: false, clips: {
+    '2|Motion[126]': { hang: (f, S) => 585 * S },
+    '2|Motion[117]': { hang: (f, S) => { const d = f - 29; return 335 * S + (d > 0 ? 26 * d - 0.5 * d * d : 0); } },
+  } },
 };
 // { ground, unit } in game units BELOW the drawn clip origin -- where the ground is, and where the unit is (0, the origin,
 // except posture 3: the ground) -- for a clip with its own row, or for any other clip the caller found airborne (`air`);
@@ -5705,7 +6923,10 @@ export function airLift(monId, list, clip, frame, size, sizeBase = 1, air = true
   const m = size / (sizeBase || 1);
   if (c && c.posture === 3){ const d = c.drawn ? c.drawn(frame, size, m) : t.flyOfs * size; return { ground: d, unit: d }; }
   if (c && c.at) return { ground: c.at(frame, size), unit: 0 };
-  if (!air) return null;
+  // `hang(f, S)` -- a clip that AUTHORS its height on the `reference` track (drawn by the viewer as part of the pose): the
+  // clip origin is the GROUND and the unit is H above it (Kecha Wacha's hang drop, below)
+  if (c && c.hang) return { ground: 0, unit: -c.hang(frame, size) };
+  if (!air || t.standard === false) return null;
   return { ground: t.flyOfs * size + AIR_STANDARD_CURVE, unit: 0 };
 }
 
@@ -5753,6 +6974,17 @@ export const RAGE_PUFF = {
   // is the record's, as the dromes' is. (Teostra has the same shape and is NOT here: Raven took him off _autoOnRage on
   // 2026-09-15.)
   em012_00: { period: 30, joint: 4, records: [['em012_00u', 1120], ['em012_00u', 1121]], pick: () => 0 },
+  // NAKARKOS: the stub shape -- vt+0x2a4 the base 0x6bf64, no e+0xb7d2 / P+0x5d04 write in his band (dev/elder-dragons-effects-survey.md):
+  // the shared puff runs, always u 1121 (em084_00_120 on joint 0). (dev/em084_00-effects-spec.md 3)
+  em084_00: { period: 30, joint: 0, records: [['em084_00u', 1120], ['em084_00u', 1121]], pick: () => 0 },
+  // THE FATALIS LINE: his own pick (fatalisPuffPick, vt+0x2a4 0xd7e800) on joint 4 (P+0x5d04 = 4, 0xd7d980); no e+0xb7d2 write, so
+  // the shared puff runs. Fatalis / Crimson: cm200_007 on joint 3; Old: his own em013_02_000 on joint 131. (dev/em013-effects-spec.md 4)
+  // CHAMELEOS: his own pick (chameleosPuffPick, vt+0x2a4 0xe025f0) on joint 4 (P+0x5d04 = 4); no e+0xb7d2 write -- the shared puff
+  // runs. His 1120 / 1121 are his own em025_00_000 on joint 3. (dev/em025_00-effects-spec.md 4)
+  em025_00: { period: 30, joint: 4, records: [['em025_00u', 1120], ['em025_00u', 1121]], pick: chameleosPuffPick },
+  em013_00: { period: 30, joint: 4, records: [['em013_00u', 1120], ['em013_00u', 1121]], pick: fatalisPuffPick },
+  em013_01: { period: 30, joint: 4, records: [['em013_01u', 1120], ['em013_01u', 1121]], pick: fatalisPuffPick },
+  em013_02: { period: 30, joint: 4, records: [['em013_02u', 1120], ['em013_02u', 1121]], pick: fatalisPuffPick },
   em024_00: { period: 30, joint: 3, records: [['em024_00u', 1120], ['em024_00u', 1121]], pick: () => 0 },
   // TEOSTRA: the same stub shape (vtable +0x2a4 the base 0x6bf64, no e+0xb7d2 write in the band;
   // dev/elder-dragons-effects-survey.md): his own em027_00_020 on joint 2 at (0, 20, 200), 1120 / 1121 byte-identical but
@@ -5879,6 +7111,14 @@ export const RAGE_PUFF = {
   // 1120 is identical and never requested. The class does not write e+0xb7d2, so the puff runs -- and it is
   // the ONLY thing rage shows on him, since his class never calls isEnraged at all. (states-em022_00.md 0)
   em022_00: { period: 30, joint: 3, records: [['em022_00u', 1120], ['em022_00u', 1121]], pick: () => 0 },
+  // ARZUROS / REDHELM / VOLVIDON: vt+0x2a4 is the base stub 0x6bf64 (u 1121), the class writes no e+0xb7d2; joint 3 (the record)
+  em060_00: { period: 30, joint: 3, records: [['em060_00u', 1120], ['em060_00u', 1121]], pick: () => 0 },
+  em060_04: { period: 30, joint: 3, records: [['em060_04u', 1120], ['em060_04u', 1121]], pick: () => 0 },
+  em062_00: { period: 30, joint: 3, records: [['em062_00u', 1120], ['em062_00u', 1121]], pick: () => 0 },
+  // KECHA WACHA: vt+0x2a4 the base stub (u 1121), no e+0xb7d2 write in his band (survey scan); the record's joint 4
+  em065_00: { period: 30, joint: 4, records: [['em065_00u', 1120], ['em065_00u', 1121]], pick: () => 0 },
+  // AGNAKTOR: vt+0x2a4 the base stub 0x6bf64 (-> u 1121), no e+0xb7d2 write in his band (rom-map); u 1121's own joint 2
+  em049_00: { period: 30, joint: 2, records: [['em049_00u', 1120], ['em049_00u', 1121]], pick: () => 0 },
   // BULLDROME: the stub shape again -- always u 1121 (cm200_007, joint 3, scale (0.1, 0.5, 0.5), and 1120 is
   // byte-identical). The class writes neither e+0xb7d2 nor e+0xb7d3 (a full-text scan of the 15 sites in the
   // ROM finds none inside his code), so the puff and the drool both run -- and since his rage has NO entry
@@ -5913,7 +7153,13 @@ export const RAGE_PUFF = {
   // RED record -- what forms 0 and 1 ask for, which is most of the fight -- needs `pick: () => 1`.
   // THE BLUE RECORD IS NOT REACHABLE from here: `pick(q)` is handed a joint quaternion and cannot see the
   // form byte, and nothing else in the schedule can either. Raised rather than faked. (states-em050_00.md 5.3)
-  em050_00: { period: 30, joint: 2, records: [['em050_00u', 1120], ['em050_00u', 1121]], pick: () => 1 },
+  //   NOW REACHED (2026-10-18; dev/em050_00-effects-spec.md 5): his puff is his frame handler vt+0x208 0xecce08's own request
+  // (0xecce84, READ): enraged, the countdown e+0xcb04 by 0x7206c, reset to 30.0, then id 1001 = u 1120, or id 1002 = u 1121 while
+  // P+0x1bb == 2 -- the BLUE form, the Form rung's second (render/monster.js ROM_FORM_CLIPS). So the pick reads the user's rung
+  // (`user.rung`, live.js puffGates' third argument). And the handler has NO SLEEP GATE (no rest / 0x81bb0 test before the
+  // countdown, only isEnraged 0x81670): `ownGates` keeps the shared puff's sleep pause off him.
+  em050_00: { period: 30, joint: 2, records: [['em050_00u', 1120], ['em050_00u', 1121]], pick: (q, user) => (user && user.rung === 1) ? 0 : 1,
+              ownGates: true },
   // ZAMTRIOS: back to the ordinary shape -- vtable +0x2a4 is the base stub, so the id is always 1 and the request
   // is always u 1121 (cm200_007, joint 3, pos (0, -60, 200) at 1.1x); 1120 is never asked for. The class
   // writes neither e+0xb7d2 nor e+0xb7d3 (only e+0xb7d4, which nothing reads), so the puff and the drool both
@@ -5978,6 +7224,7 @@ export const RAGE_PUFF = {
   // (id 1008 -> u key 250, `em057_04_011` on joint 2 at 1.2x) -- Alatreon's shape, and it needs its own row
   // when he is wired. (states-em057_00.md 0, 5.5, 7)
   em057_00: { period: 30, joint: 2, records: [['em057_00u', 1120], ['em057_00u', 1121]], pick: () => 0 },
+  // [2026-10-20: the pick now reads the Quest Rank control: u 250 at G, the shared u 1121 below (dev/checks/quest-rank.mjs)]
   // THUNDERLORD: HIS PUFF IS HIS CLASS'S OWN AT G RANK, which is the rank the viewer runs at. `e+0xb7d2 = 0`
   // (0xeebe44) switches the shared 0xa41b8 request off entirely and `vtable +0x208` runs id 1008 -> u key 250
   // (`em057_04_011`, joint 2, scale 1.2) on the same 30-frame cadence -- Alatreon's shape. BELOW G he uses the
@@ -5986,7 +7233,9 @@ export const RAGE_PUFF = {
   // (The records name their ARRAY: `em057_04u` holds key 250 in SEQUENCE *and* in UNIQUE, and the one the
   // class requests is the UNIQUE one. A two-element record leaves the export to resolve the array, which
   // it rightly refuses to guess for a duplicated key.)
-  em057_04: { period: 30, joint: 2, records: [['em057_04u', 250, 'UNIQUE'], ['em057_04u', 250, 'UNIQUE']], pick: () => 0 },
+  em057_04: { period: 30, joint: 2, records: [['em057_04u', 250, 'UNIQUE'], ['em057_04u', 1121]],
+              // the Quest Rank control (2026-10-20): at G (0x3a8430 > 4) his class's own id 1008 = u 250, below it the shared u 1121
+              pick: (q, user) => ((user && user.rank != null ? user.rank : 5) | 0) > 4 ? 1 : 0 },
   // URAGAAN and CRYSTALBEARD: vtable +0x2a4 is the base stub, so the request is always u 1121 and 1120 is never
   // asked for; their 1120 and 1121 are byte-identical (cm200_007, JOINT 3, pos (0, 0, 90), scale 1.5). The class
   // writes neither e+0xb7d2 nor e+0xb7d3, so the puff and the drool both run. (states-em045_00.md 0, 5)
@@ -6074,6 +7323,11 @@ export const TIRED_DROOL = {
   // (states-em023_05.md 6) -- cm200_006 on joint 3. Furious has no entry: his tune+0x30 is NULL and he never tires.
   em023_00: ['em023_00c', 1104],
   em021_00: ['em021_00c', 1104], em022_00: ['em022_00c', 1104], em030_00: ['em030_00c', 1104],
+  // ARZUROS / REDHELM / VOLVIDON: tune+0x30 present (stamina 5400 / 5400 / 7200), no e+0xb7d3 write in the class
+  em060_00: ['em060_00c', 1104], em060_04: ['em060_00c', 1104], em062_00: ['em062_00c', 1104],
+  em065_00: ['em065_00c', 1104],
+  em049_00: ['em049_00c', 1104],
+  em070_00: ['em070_00c', 1104],
   em032_00: ['em032_00c', 1104], em032_04: ['em032_00c', 1104], em034_00: ['em034_00c', 1104],
   em036_00: ['em036_00c', 1104], em037_00: ['em037_00c', 1104], em037_04: ['em037_00c', 1104],
   em042_00: ['em042_00c', 1104], em043_00: ['em043_00c', 1104], em043_05: ['em043_00c', 1104],
@@ -6171,7 +7425,7 @@ export function shellTailInput(monId, drawn){
 //     (psl-mask.js em045; dev/em045_00-effects-spec.md 1).
 // Gravios's back / belly (psl-mask.js em005_00): group 17 only set 18 draws (back >= .dtp row 0), group 11 only set 12
 // (belly >= row 2) -- the word's and ctl+0x24's own tests (dev/em005_00-effects-spec.md 3; false at rest: I)
-export const SHELL_PARTS = { em005_00: { headBroken: 3, backBroken: 17, bellyBroken: 11 }, em020_00: { skull: 109 }, em009_00: { crestBroken: 3 },
+export const SHELL_PARTS = { em005_00: { headBroken: 3, backBroken: 17, bellyBroken: 11 }, em020_00: { skull: 109 }, em009_00: { crestBroken: 3 }, em022_00: { fangsBroken: 2 }, em066_00: { tusksBroken: 6 }, em066_04: { tusksBroken: 6 }, em068_00: { part2Broken: 5 }, em019_04: { claw5Broken: 1, shellBroken2: 3 },
   em045_04: { beardOff: 2 } };
 // BARROTH's MUD BYTE e+0xcada as the parts SHOW it: bit 0 = the head mud gone (part 2, drawn on set 9, off on set 10),
 // bit 1 = the back mud gone (part 8, set 13 / 14). `=== false`, not `!get`: the rest sets (part-rest.json 3 / 5 / 7) do not
@@ -6202,6 +7456,79 @@ export function glavenusHeat(monId, drawn, tailOverheat, tailDark){
   if (monId === 'em080_04') return 2 | 4 | (tailOverheat ? 8 : 0) | (d(70) ? 0x10 : 0);
   return 0;
 }
+// RUSTRAZOR's shell type and claws as the parts SHOW them -- his part pass 0xdc5228 (variant 4, READ 2026-10-18): the shell by
+// e+0xcadc (5 -> set 11, part 109; 4 -> set 12, part 110; else set 13, neither), then each claw: P+0x3b4 0x4000 ((10, 0x72) part
+// 5 knocked off) -> set 7 (part 2, the stump), 0x2000 (part 6) -> set 8 (part 4), else sets 1..6. His word (psl-mask.js em020)
+// reads e+0xcadc == 4 and the two bits: so the Parts panel's shell and claw rows are those inputs. The stump also shows in sets 9 /
+// 10 ("Sharpened Broken", the blade 11 / 12 kept), which this pass does not draw (writer not read): taken as knocked off too (I).
+export function rustrazorInput(monId, drawn){
+  if (monId !== 'em020_04' || !drawn) return {};
+  const on = p => drawn.get(p) === true;
+  return { shellType: on(110) ? 4 : on(109) ? 5 : 0, claw5Off: on(2), claw6Off: on(4) };
+}
+// ELDERFROST's TRUNK SNOW as his shells read it (render/shells.js spawn083: 0x1060e28's gate 0x1053d8c(e, 1, x) reads snow slot 5,
+// e+0xcb64): the level the parts SHOW on '3|Motion[2]''s trunk row (slot 5: 0 bare set 6, 1 set 33, 2 set 31, 3 the regrowth set 32,
+// 4 broken set 7) -- the row's own `levels`, read through userLevel as the break rows are. table: the .mpm sets; drawn: the user's
+// AGNAKTOR's chest / tail breaks as his lava shells read them (render/shells.js spawn049: 0x9d36c(e, 1 / 7) below the .dtp row): broken
+// when a part of the broken set shows -- the heated or the cooled one (dev/em049-heat.md 1: chest 7 / 8 and 24 / 25, tail 17 / 18 / 19
+// and 34 / 35 / 36) -- read through userLevel as the break rows are
+// MIZUTSUNE's / SOULSEER's head break as his bubbles read it (render/shells.js choose082: 0x1036e24, 0x9d36c(e, 0) at or past the .dtp
+// row's byte -- Mizutsune row 1, 3 at either rank; Soulseer row 0, 2): the head row's top rung shown (set 6), read through userLevel
+// on the ladders MOTION_STATES gives them ([[4], [5], [5], [6]] / [[5], [5], [6]])
+export function mizutsuneHead082(monId, table, drawn){
+  if (monId === 'em082_00') return { headBroken: userLevel([[4], [5], [5], [6]], table, drawn) >= 3 };
+  if (monId === 'em082_04') return { headBroken: userLevel([[5], [5], [6]], table, drawn) >= 2 };
+  return undefined;
+}
+// Tetsucabra's / Drilltusk's tusks (part 0) as his shell spawners read them (render/shells.js tusks066: 0x9d36c(e, 0) against .dtp rows
+// 0 / 1): the level the parts show -- sets 3 / 4 / 5, L3 M2's two rungs
+export function tetsucabraTusks066(monId, table, drawn){
+  return monId === 'em066_00' || monId === 'em066_04' ? userLevel([[3], [4], [5]], table, drawn) : undefined;
+}
+// Seregios's break levels as his bladescale makers read them (render/shells.js spawn077s28, shells agent 2026-10-19): 0x9d36c(e, 4) on
+// L2 M26 / M34 and 0x9d36c(e, 6) on L2 M65 / M66 against .dtp rows 4 / 6 (level 2). The part -> ladder link is the decode notes' (the
+// S_* ladders above: part 4 the -X hind leg S_LEG_L, part 6 the head S_HEAD, either rage form)
+export function seregiosParts077(monId, table, drawn){
+  if (monId !== 'em077_00') return undefined;
+  return { 4: userLevel(S_LEG_L, table, drawn), 6: Math.max(userLevel(S_HEAD.calm, table, drawn), userLevel(S_HEAD.enraged, table, drawn)) };
+}
+// NAKARKOS's break levels of ROM parts 2 / 3 / 4 as his record table's makers read them (render/shells.js records084: 0x9d36c(E, part)
+// below .dtp A rows 0 / 1 / 3 -- shell00 66 / 65, shell48 0 / 1), taken from the parts the user shows. His part pass (body vt +0x210
+// 0x106b24c -> 0x106b2d0, READ gapH 2026-10-21; rows [[E+0x75f0]+0x64], each row's level == its G level): part 3 below row 1 (3) ->
+// set 9 else 10; part 2 below row 0 (3) -> set 11 else 12; part 4 below row 2 (2) -> set 13, below row 3 (4) -> 14, else 15.
+// userLevel gives the rung; the level handed on is the rung's floor (0 / 3, 0 / 3, 0 / 2 / 4), which the gate's limits (3 / 3 / 4)
+// read the same as any level inside that rung.
+const NAKARKOS084 = { 2: { sets: [[11], [12]], lv: [0, 3] }, 3: { sets: [[9], [10]], lv: [0, 3] }, 4: { sets: [[13], [14], [15]], lv: [0, 2, 4] } };
+export function nakarkosParts084(monId, table, drawn){
+  if (monId !== 'em084_00') return undefined;
+  const out = {};
+  for (const [part, L] of Object.entries(NAKARKOS084)) out[part] = L.lv[userLevel(L.sets, table, drawn)];
+  return out;
+}
+// Nerscylla's Back (part 1) as the drip reads it (render/shells.js drip070: P+0x3b4 0x2000 at its second level, vt+0x1dc 0xf9d350):
+// the part pass's Back sets 9 + 12 / 10 + 12 / 11 + 13 (0xf9bd10) -> 0 / 1 / 2
+export function nerscyllaBack070(monId, table, drawn){
+  return monId === 'em070_00' ? userLevel([[9, 12], [10, 12], [11, 13]], table, drawn) : undefined;
+}
+export function agnaktorBroken049(monId, table, drawn){
+  if (monId !== 'em049_00') return undefined;
+  const b = (a, c) => userLevel(a, table, drawn) > 0 || userLevel(c, table, drawn) > 0;
+  return { chestBroken: b([[7], [8]], [[24], [25]]), tailBroken: b([[17], [18, 19]], [[34], [35, 36]]) };
+}
+export const SNOW083_TRUNK = [[6], [33], [31], [32], [7]];
+export function trunkSnow083(monId, table, drawn){
+  return monId === 'em083_04' ? userLevel(SNOW083_TRUNK, table, drawn) : undefined;
+}
+// Gammoth's / Elderfrost's leg snow as the leg-snow shells read it (render/shells.js make083row legSnow083: 0x1053d8c on snow slots
+// 0..3 = parts 2..5): each leg row's level as the parts show it, on the applier's ladders (0x105418c: levels 0..4 -> sets 10 / 9 / 8
+// / 11 / 12, 15.., 20.., 25..). Elderfrost's slots 2 / 3 are 0 for good (his init writes 2 on slots 0 / 1 / 5 only, his raiser
+// 0x1054664 takes parts 1..3, 0x1054624 writes 0) -- the shells agent's decode helper, 2026-10-20
+export const SNOW083_LEGS = [[[10], [9], [8], [11], [12]], [[15], [14], [13], [16], [17]], [[20], [19], [18], [21], [22]], [[25], [24], [23], [26], [27]]];
+export function legSnow083(monId, table, drawn){
+  if (monId === 'em083_00') return SNOW083_LEGS.map(L => userLevel(L, table, drawn));
+  if (monId === 'em083_04') return [userLevel(SNOW083_LEGS[0], table, drawn), userLevel(SNOW083_LEGS[1], table, drawn), 0, 0];
+  return undefined;
+}
 export function shellPartsInput(monId, drawn){
   const p = SHELL_PARTS[monId], out = {};
   if (p) for (const [k, part] of Object.entries(p)) out[k] = !!drawn && drawn.get(part) === true;
@@ -6231,6 +7558,42 @@ export function rathianPuffPick(q){
   const a = f(Math.atan2(f(-vy), h));                                 // 0x13ecba8
   const u = Math.trunc(f(0.5 + f(a * f(10430.378))));                // vmla, vcvt.s32 (towards zero)
   return ((0xffff8000 + (u & 0xffff)) >>> 0) > 0x6e38 ? 1 : 0;       // uxtah, cmp 0x6e38, movwhi
+}
+
+// THE FATALIS LINE's pick, vtable +0x2a4 = 0xd7e800 (READ whole, to 0xd7e888; dev/em013-effects-spec.md 4): Rathian's derivation
+// unchanged -- P+0x5d10 / +0x5d14 / +0x5d18 (joint P+0x5d04's third row: his setup writes 4 at 0xd7d980), sqrt(vz*vz + vx*vx),
+// atan2f(-vy, h), x 10430.378 + 0.5 truncated -- and then `movw r1, #0xf1c7; movt r1, #0xffff; uxtah r1, r1, r0; cmp r1,
+// #0x71c7; movwlo r0, #1`: 1 (u 1120) iff the 16-bit angle is in [0xe39, 0x8000) -- joint 4's axis 20.0 degrees or more above the
+// plane -- else 0 (u 1121).
+export function fatalisPuffPick(q){
+  if (!q) return 1;
+  const f = Math.fround;
+  const x = f(q[0]), y = f(q[1]), z = f(q[2]), w = f(q[3]);
+  const z2 = f(z + z), y2 = f(y + y), x2 = f(x + x);
+  const vx = f(f(x * z2) + f(y2 * w));
+  const vy = f(f(y * z2) - f(x2 * w));
+  const vz = f(1 - f(f(x * x2) + f(y * y2)));
+  const h = f(Math.sqrt(f(f(vz * vz) + f(vx * vx))));
+  const a = f(Math.atan2(f(-vy), h));
+  const u = Math.trunc(f(0.5 + f(a * f(10430.378))));
+  return ((0xfffff1c7 + (u & 0xffff)) >>> 0) < 0x71c7 ? 1 : 0;
+}
+
+// CHAMELEOS's pick, vtable +0x2a4 = 0xe025f0 (READ whole, to 0xe02674; dev/em025_00-effects-spec.md 4): the same derivation (P+0x5d10..
+// +0x5d18, joint P+0x5d04 = 4 written in his setup at 0xdff2dc), then `and r1, u, #0xfffe; cmp r1, #0x1555; movwhi r0, #1`: 1 (u 1120)
+// iff the angle's low 16 bits, bit 0 dropped, exceed 0x1555 (30.0 degrees) -- which a NEGATIVE angle's low bits also do.
+export function chameleosPuffPick(q){
+  if (!q) return 1;
+  const f = Math.fround;
+  const x = f(q[0]), y = f(q[1]), z = f(q[2]), w = f(q[3]);
+  const z2 = f(z + z), y2 = f(y + y), x2 = f(x + x);
+  const vx = f(f(x * z2) + f(y2 * w));
+  const vy = f(f(y * z2) - f(x2 * w));
+  const vz = f(1 - f(f(x * x2) + f(y * y2)));
+  const h = f(Math.sqrt(f(f(vz * vz) + f(vx * vx))));
+  const a = f(Math.atan2(f(-vy), h));
+  const u = Math.trunc(f(0.5 + f(a * f(10430.378))));
+  return ((u & 0xfffe) >>> 0) > 0x1555 ? 1 : 0;
 }
 
 // AKANTOR's pick, vtable +0x2a4 = 0xe374d8, read instruction by instruction. It is BYTE-IDENTICAL to Rathian's
@@ -6376,6 +7739,29 @@ export const CHARGE_EFFECTS = {
     2: { start: [['em081_00u', 220, 'UNIQUE']],
          hold:  [['em081_00u', 210, 'UNIQUE'], ['em081_00u', 211, 'UNIQUE'], ['em081_00u', 212, 'UNIQUE'], ['em081_00u', 221, 'UNIQUE']] },
   },
+  // ZINOGRE / THUNDERLORD (dev/em057-effects-spec.md 10): the fulgurbug auras, READ -- the action-start hook vt+0x204
+  // 0xeecd58 (called (e, status, number)) re-runs its aura machine (0xeed68c..0xeedaa0) at EVERY action start, one held
+  // handle at a time (cb08 / cb0c / cb10, the others stopped):
+  //   Zinogre uncharged: gauge tier (op-0x6f selector 1, 0xeefec8: ctl+0 < 25 / < 50 / < 75 / else -> 0..3) 2 -> id 1001
+  //     u 30, 3 -> id 1002 u 31, 0 / 1 -> none -- NO rage test; charged and calm -> id 1003 u 32 (not at the (1, 4) start
+  //     itself, 0xeed798); charged and enraged -> none. Thunderlord: uncharged and calm -> id 1006 u 42 (his pel only),
+  //     charged and calm -> id 1007 u 32, enraged -> none (no gauge tier, no rank test).
+  //   THE RUNGS AS THE GAUGE (the viewer has no gauge): Zinogre's Normal = tier 0 / 1, Charging = tier 2 or 3 -- u 30 and
+  //     u 31 are byte-identical records in different slots (states-em057_00.md 5.3), u 30 stands for both -- Fully Charged
+  //     = P+0x5df3. Thunderlord's Charged = P+0x5df3 0 (his `0` body), Overcharged = 1.
+  //   `leave`: the discharge 0xeecb28 -> 0xeecc2c requests id 1005 (u 90) at status != 11 (and Thunderlord's always) when
+  //     the charge ends -- the (1, 5) start, the gauge reaching 0 at an action start (0xeed658), or a slam (psl-mask.js
+  //     ACTION_EFFECTS em057_04) -- so dropping off the charged rung fires it once. What empties the gauge the viewer has no
+  //     stand-in for: hunter hits (the (1, 0x1c..0x21) / (10, 0x72 / 0xa7 / 0xaf / 0x60..) reactions cost 15..50, 0xeed37c /
+  //     0xeed08c / 0xeed258 / 0xeed2a0); attacks cost 1..5 (0xeedaf0, 0 / 1 / 2 at G) but never below 1.
+  em057_00: {
+    1: { hold: [['em057_00u', 30, 'UNIQUE']], alive: true },
+    2: { hold: [['em057_00u', 32]], calm: true, alive: true, leave: [['em057_00u', 90, 'UNIQUE']] },
+  },
+  em057_04: {
+    0: { hold: [['em057_04u', 42, 'UNIQUE']], calm: true, alive: true },
+    1: { hold: [['em057_04u', 32]], calm: true, alive: true, leave: [['em057_04u', 90, 'UNIQUE']] },
+  },
   // LAGIACRUS HAS NO ENTRY, and the mechanism is not why: it is this table's shape exactly. vtable +0x208's tail
   // (0xea919c..0xea9238) requests id 1001 -> class table 0x169eaf0[1] = u 30 (effect\em\em046\em046_00_005, joint 0,
   // end 1) into ONE handle `e+0xcb28` the first frame `P+0x1bb >= tune int 1` (99, tier 2) and stops it
@@ -6385,6 +7771,9 @@ export const CHARGE_EFFECTS = {
   // `level` is always 0, so an entry at 2 would never run and one at 0 would run uncharged. And u 30 is not exported
   // (docs/effects/em046_00.json has no em046_00u 30). Both are viewer work; the entry is
   //     em046_00: { 1: { hold: [['em046_00u', 30]] } }   once Charged reaches `level` as 1 (note 8: UNIQUE; its SEQUENCE list has no 30)
+  // [DONE 2026-10-17 (Leviathans walk, dev/em046_00-effects-spec.md 3): index.html passes his Charged toggle to step() as
+  // level 1 (chargeRungOf), u 30 exported from UNIQUE. Not dropped at death -- the +0x208 tail reads P+0x1bb alone.]
+  em046_00: { 1: { hold: [['em046_00u', 30, 'UNIQUE']] } },
 };
 
 // ---- CLIPS THAT HEAT A REGION (Agnaktor) -----------------------------------------------------------
@@ -6459,17 +7848,90 @@ export class MotionStates {
   // `notTired`: the ROM skips the request while exhausted (Uragaan's 0xe95c98 / 0xe98fa8 test 0x81614 first)
   // `posture`: only on a play that started in that posture (P+0x1ba; index.html playNow -> user.posture) -- Diablos's /
   // Bloodbath's u 1400 comes from the posture-4 burrow alone (0xd3bfcc), not the posture-0 walk on the same clip
-  holds(){
+  holds(){ return this.rowHolds().concat(this.rock && this.rock.key != null ? [this.rock.pel + '|' + this.rock.key] : []); }
+  rowHolds(){
     const sp = this.cur && this.cur.spec;
     if (!sp || !sp.hold || (sp.notTired && this.tired()) || (sp.posture != null && this.userPosture !== sp.posture)) return [];
+    // a record the charge rung already holds is not held twice (Thunderlord's u 32 on L0 M24 at the Overcharged rung)
+    if (this.chargeHold().some(r => r[0] === sp.hold[0] && r[1] === sp.hold[1])) return [];
     return [sp.hold.join('|')];
+  }
+  // THE CLASS TIMERS (CLASS_TIMERS above): the countdowns run on the game frames passed -- the motion's own frames on the same
+  // motion, its frame on a new one -- so a paused clip pauses them, as the game's world does
+  stepClassTimers(monId, list, clip, frame, at, user, out){
+    const T = CLASS_TIMERS[monId];
+    if (!T || !this.classT || this.classT.mon !== monId){
+      for (const r of (this.classT && this.classT.held) || []) out.holdOff.push(r);
+      this.classT = T ? { mon: monId, t: {}, mk: null, frame: 0, held: [] } : null;
+      if (!T) return;
+    }
+    const k = this.classT, base = clip == null ? null : String(clip).replace(/#.*$/, '');
+    const mm = base && /^Motion\[(\d+)\]$/.exec(base), slot = mm ? +mm[1] : -1;
+    const mk = list + '|' + base, loopSeg = !!(at && at.loopSeg), loopStart = (at && at.loopStart) || 0, loopEnd = (at && at.loopEnd) || 0;
+    let dt;
+    k.fresh = !(k.mk === mk && (frame >= k.frame || loopSeg));
+    if (k.mk === mk && frame >= k.frame) dt = frame - k.frame;
+    else if (k.mk === mk && loopSeg) dt = Math.max(0, loopEnd - k.frame) + Math.max(0, frame - loopStart);
+    else dt = Math.max(0, frame);
+    k.mk = mk; k.frame = frame;
+    const sets = this.cur && this.cur.sets;
+    const c = { list: String(list), slot, frame, dt, rage: this.rage(user.rage), dead: this.dead(), action: user.action || null,
+                ctl: user.classCtl | 0, ctl2: user.classCtl2 | 0, snowMap: !!user.snowMap, toggles: user.toggles || {}, eyesOff: this.eyesOff().length > 0, sets: sets || [], hornBroken: T.hornBroken ? T.hornBroken(this.userDrawn, sets, this.table) : false,
+                // the level rung (Rajang's Armor Mode, part-review `levels`) and whether this step began a NEW play of the clip (a
+                // clip change, or its frame going back outside a loop segment -- the viewer's form of an action start, vt+0x204)
+                level: user.level | 0, fresh: k.fresh, rank: user.rank == null ? 5 : user.rank | 0, ctl2Raw: user.classCtl2 | 0 };
+    for (const r of T.step(k.t, c)) out.fire.push(r);
+    // `alpha`: [pel, key, a] -- the class writes unit 0's colour block (+0x180..+0x19c) of that held request to a each frame
+    // (Amatsu 0xf09ac8, Valstrax 0x109f110); index.html hands it to the runtime (alphaEvent)
+    if (T.alpha) for (const r of T.alpha(k.t, c)) out.alpha.push(r);
+    // `holds`: the records the class keeps up now -- started and stopped on the change
+    if (T.holds){
+      const now = T.holds(c), id = r => r[0] + '|' + r[1], was = k.held || [];
+      for (const r of was) if (!now.some(x => id(x) === id(r))) out.holdOff.push(r);
+      for (const r of now) if (!was.some(x => id(x) === id(r))) out.holdOn.push(r);
+      k.held = now;
+    }
+  }
+  // THE BOULDER IN HAND (BOULDER above; Tetsucabra / Drilltusk): the handle e+0xcad4 for the motion in hand. At a motion's
+  // frame 0 the user's Boulder (user.boulder: 0 none, 1..3 the kind) is the rock held and ctl+0x30; the play's action
+  // (user.action) may set ctl+0x30 (the dig) and request one (vt+0x204); then vt+0x208's per-frame keep / stop / drop, and the
+  // dig's new rock at its frame. `out` takes the drop's record and a re-request's stop / start.
+  stepRock(monId, list, clip, frame, at, user, out){
+    const B = BOULDER[monId];
+    if (!B || clip == null){ this.rock = null; return; }
+    const base = String(clip).replace(/#.*$/, ''), m = /^Motion\[(\d+)\]$/.exec(base), slot = m ? +m[1] : -1;
+    const mk = monId + '|' + list + '|' + base, p = this.rock, loopSeg = !!(at && at.loopSeg);
+    let r = p;
+    if (!(p && p.mk === mk && (frame >= p.frame || loopSeg))){
+      const kind = user.boulder | 0, act = user.action || null;
+      const ctl = B.digKind(act) || kind || 1;
+      r = this.rock = { mk, pel: B.pel, key: B.key(kind), ctl, frame: -1 };
+      if (r.key == null && B.requests(act)) r.key = B.key(ctl);
+    }
+    const prevF = r.frame; r.frame = frame;
+    if (r.key != null){
+      const w = B.at(String(list), slot, frame);
+      if (w === 'drop'){ out.fire.push([B.pel, B.drop(r.key), 'UNIQUE']); r.key = null; }
+      else if (w === 'stop') r.key = null;
+    }
+    const mf = B.make[list + '|' + slot];
+    if (mf != null && prevF < mf && frame >= mf){
+      const k = B.key(r.ctl);
+      if (r.key != null && r.key === k){ out.holdOff.push([B.pel, k]); out.holdOn.push([B.pel, k]); }   // 0x329c40(old, 1), then the new
+      r.key = k;
+    }
   }
   eyesOff(){ return this.cur && this.cur.spec.eyesOff ? [this.cur.spec.eyesOff.join('|')] : []; }
   // the rage puff's gates the motion shows (RAGE_PUFF): paused in the sleep hold, zeroed calm and tired
   // the charge records held at the level being shown, as [pel, key] pairs
   chargeHold(){
     const t = CHARGE_EFFECTS[this.monId], sp = t && t[this.chargeLevel | 0];
-    return (sp && sp.hold) || [];
+    if (!sp) return [];
+    // `calm`: the class holds them only while not enraged; `alive`: and drops them at a death -- Zinogre's / Thunderlord's
+    // aura machine in the action-start hook (0xeed68c..0xeedaa0) and the status-11 start (0xeed0e4 / 0xeecc2c)
+    if (sp.calm && this.rage(this.userRage)) return [];
+    if (sp.alive && this.dead()) return [];
+    return sp.hold || [];
   }
   puffOff(){ return !!(this.cur && this.cur.spec.puffOff); }
   // EXHAUSTED: the motion's own (a tired idle row), or the user's Exhausted state (TIRED_DROOL above) -- which holds
@@ -6508,24 +7970,32 @@ export class MotionStates {
     // index.html never re-applied them -- the monster kept the pair of the state it had just left.
     // THE CHARGE DIFF, taken around the monId/level change so a monster switch stops the old one's records.
     // Deliberately outside the clip logic below: these hold across clips, so `spec` must not touch them.
-    const chargeBefore = this.chargeHold(), levelBefore = this.chargeLevel | 0;
+    const chargeBefore = this.chargeHold(), levelBefore = this.chargeLevel | 0, monBefore = this.monId;
     this.monId = monId; this.userRage = !!user.rage; this.userTired = !!user.tired; this.userPosture = user.posture;
     this.chargeLevel = user.level | 0;
-    const chargeAfter = this.chargeHold();
     const idOf = r => r[0] + '|' + r[1];
-    const afterIds = new Set(chargeAfter.map(idOf)), beforeIds = new Set(chargeBefore.map(idOf));
     const out = { parts: false, rage: false, entry: false, fire: [], clips: false, settled: false, drop: false,
-                  holdOn: [], holdOff: [], eyesOff: [], eyesOn: [] };
-    for (const r of chargeBefore) if (!afterIds.has(idOf(r))) out.holdOff.push(r);
-    for (const r of chargeAfter) if (!beforeIds.has(idOf(r))) out.holdOn.push(r);
+                  holdOn: [], holdOff: [], eyesOff: [], eyesOn: [], alpha: [] };
     if ((this.chargeLevel | 0) !== levelBefore){
       const t = CHARGE_EFFECTS[monId], sp = t && t[this.chargeLevel | 0];
       for (const r of (sp && sp.start) || []) out.fire.push(r);
+      // `leave`: fired once on dropping OUT of the level, the same monster -- Zinogre's / Thunderlord's discharge 0xeecb28
+      // (u 90 through 0xeecc2c) when the charge ends
+      const was = monBefore === monId && t && t[levelBefore];
+      for (const r of (was && was.leave) || []) out.fire.push(r);
     }
     if (!spec) this.cur = null;
     else if (prev && prev.key === key && (frame >= prev.frame || loopSeg)){
       // the same motion, moving on -- across a _loop clip's wrap too: the countdowns run on the frames it advanced
       const d = frame >= prev.frame ? frame - prev.frame : Math.max(0, loopEnd - prev.frame) + Math.max(0, frame - loopStart);
+      // `fireFrom: [[frame, [records]], ...]` -- requested once as the motion passes that frame (a class's frame test,
+      // 0xb0974; Zamtrios's u 60 at L4 M20 f120 under (1, 0x43), 0xf695d8)
+      if (prev.spec && prev.spec.fireFrom && frame >= prev.frame)
+        for (const [f, recs] of prev.spec.fireFrom) if (prev.frame < f && frame >= f) for (const rec of recs) out.fire.push(rec);
+      // `clipsFrom: [[frame, [{ mats, clip }]], ...]` -- material clips the motion sets as it passes that frame (a class's frame
+      // test, 0xb0974; Gore Magala's C+0xca at the death motions, 0xfbf890), held for the rest of it, each from its crossing
+      if (prev.spec && prev.spec.clipsFrom && frame >= prev.frame)
+        for (const [f] of prev.spec.clipsFrom) if (prev.frame < f && frame >= f && prev.clipsAt[f] === undefined) prev.clipsAt[f] = now;
       prev.frame = frame;
       for (const t of prev.timers){
         t.left -= d;
@@ -6546,7 +8016,12 @@ export class MotionStates {
       // and the cycle still advances, so nothing else on the clip is disturbed by the discharge being
       // absent. A field, not a second device -- it reads the same user.level CHARGE_EFFECTS already gets.
       if (spec && spec.level != null && (spec.level | 0) !== (user.level | 0)) spec = {};
-      const c = { key, spec, frame, sets: null, rage: null, t0: now, timers: [] };
+      // `lowRank: {...}` -- the row (or cycle arm) at quest rank <= 4 (0x3a8430 <= 4: the part pass reads the .dtp row's byte +1 there,
+      // byte +2 above; the Quest Rank control, index.html shellQuestRank): its fields replace the G ones (Gravios's back / head,
+      // Agnaktor's chest / tail, Great Maccao's tail)
+      if (spec && spec.lowRank && ((user.rank == null ? 5 : user.rank) | 0) <= 4) spec = Object.assign({}, spec, spec.lowRank);
+      const c = { key, spec, frame, sets: null, rage: null, t0: now, timers: [], clipsAt: {} };
+      if (spec && spec.clipsFrom) for (const [f] of spec.clipsFrom) if (frame >= f) c.clipsAt[f] = now;
       // a { calm, enraged } table is read in the rage the motion shows: its own, else the user's
       const rageFor = spec.rage === true ? true : (spec.rage === false || spec.dead) ? false : !!user.rage;
       const pick = t => (t && !Array.isArray(t)) ? (rageFor ? t.enraged : t.calm) : t;
@@ -6579,6 +8054,8 @@ export class MotionStates {
         c.sets = extra.concat(c.sets || []);
       }
       if (spec.start) for (const rec of spec.start) out.fire.push(rec);
+      // `startAt: { <rung>: [records] }` -- frame 0 at that charge rung only (Zinogre's death discharge u 120, 0xeecc2c)
+      if (spec.startAt) for (const rec of spec.startAt[user.level | 0] || []) out.fire.push(rec);
       // a countdown starts at 0, so its record comes at once (0x7206c), and the period follows
       if (spec.every){ out.fire.push(spec.every[0]); c.timers.push({ rec: spec.every[0], period: spec.every[1], left: spec.every[1] }); }
       this.cur = c;
@@ -6603,6 +8080,13 @@ export class MotionStates {
       const all = (this.cur.baseSets || []).concat(extra);
       this.cur.sets = all.length ? all : this.cur.baseSets;
     }
+    this.stepRock(monId, list, clip, frame, at, user, out);
+    this.stepClassTimers(monId, list, clip, frame, at, user, out);
+    // THE CHARGE DIFF, taken after the motion so a `calm` / `alive` entry follows the rage and the death it shows
+    const chargeAfter = this.chargeHold();
+    const afterIds = new Set(chargeAfter.map(idOf)), beforeIds = new Set(chargeBefore.map(idOf));
+    for (const r of chargeBefore) if (!afterIds.has(idOf(r))) out.holdOff.push(r);
+    for (const r of chargeAfter) if (!beforeIds.has(idOf(r))) out.holdOn.push(r);
     const holdsAfter = this.holds(), eyesAfter = this.eyesOff();
     const ids = s => s.split('|').map((x, i) => i ? +x : x);
     for (const h of holdsAfter) if (!holdsBefore.includes(h)) out.holdOn.push(ids(h));
@@ -6631,24 +8115,29 @@ export class MotionStates {
   // the rage the parts are shown in is part of the key: with RAGE_PARTS the same motion draws differently
   // calm and enraged, and index.html only re-applies the parts when this changes
   setsKey(){ return (RAGE_PARTS[this.monId] ? (this.rage(this.userRage) ? 'R:' : 'C:') : '') +
-                    (STATE_OVERLAY[this.monId] ? (this.overlayOn() ? 'O:' : 'o:') : '') +
+                    (STATE_OVERLAY[this.monId] ? ((STATE_OVERLAY[this.monId].on ? STATE_OVERLAY[this.monId].on(this) : this.overlayOn()) ? 'O:' : 'o:') : '') +
                     (this.cur && this.cur.sets ? this.cur.sets.join(',') : ''); }
   // STATE_OVERLAY: the part pass's ALIVE = tired | !(dying and the death clip has ended)
   overlayOn(){ return !(this.cur && this.cur.spec.dead && this.cur.ended) || this.tired(); }
-  clipsKey(){ return this.cur && this.cur.spec.clips ? this.cur.key + '@' + this.cur.t0 : ''; }
+  clipsKey(){ const c = this.cur;
+              return c && (c.spec.clips || c.spec.clipsFrom) ? c.key + '@' + c.t0 + '|' + Object.keys(c.clipsAt || {}).join(',') : ''; }
   // the material clips the motion shows, for render/monster.js stepMatAnim: [{ mats, clip, rest, t0 }], each played
   // from t0 on the materials' clock and held at its end; a settled one is at its end already
   clips(){
     const c = this.cur;
-    if (!c || !c.spec.clips) return null;
-    return c.spec.clips.map(x => ({ mats: x.mats, clip: x.clip, rest: null, t0: c.spec.settled ? -1e9 : c.t0 }));
+    if (!c || !(c.spec.clips || c.spec.clipsFrom)) return null;
+    const out = (c.spec.clips || []).map(x => ({ mats: x.mats, clip: x.clip, rest: null, t0: c.spec.settled ? -1e9 : c.t0 }));
+    for (const [f, list] of c.spec.clipsFrom || [])
+      if (c.clipsAt && c.clipsAt[f] !== undefined) for (const x of list) out.push({ mats: x.mats, clip: x.clip, rest: null, t0: c.clipsAt[f] });
+    return out.length ? out : null;
   }
 
   // THE PARTS SHOWN: `drawn` is the user's (part -> drawn, as the Parts panel makes it), kept for the level a break
   // starts from; the motion's sets are laid over it -- every part they name takes the set's value, in the order the
   // part driver applies them (0x72c78, later wins). table: the monster's .mpm sets (monsters.json `groups`).
-  showParts(drawn, table){
+  showParts(drawn, table, ctl){
     this.userDrawn = new Map(drawn);
+    this.userCtl = ctl | 0;
     this.table = table;
     // the sets rage holds go on FIRST, so a break or a shut eye the motion carries goes over them
     const rp = RAGE_PARTS[this.monId];
@@ -6659,7 +8148,7 @@ export class MotionStates {
     // the state overlay last, at the level the parts now stand at (STATE_OVERLAY)
     const ov = STATE_OVERLAY[this.monId];
     if (ov && table){
-      const side = this.overlayOn() ? 'on' : 'off';
+      const side = (ov.on ? ov.on(this) : this.overlayOn()) ? 'on' : 'off';
       for (const t of ov.tables){
         const sets = t[side][userLevel(t.off, table, drawn)] || [];
         for (const s of sets) for (const [p, v] of table[s] || []) if (ov.groups.includes(p)) drawn.set(p, v);

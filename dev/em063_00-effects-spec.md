@@ -270,3 +270,28 @@ NOT READ, by name: the motion each of the 39 spending `0xf4653c` sites sits unde
 refill-both / gauge-0 hook: no immediate-offset call of +0x3c8 on an enemy anywhere in main.text); `0x13ecbfc`'s import
 name (memclr by signature, I); what u 200 / c 130 / c 131 / c 140 / c 141 look like (visuals are Raven's); the EMC streams
 issuing the L2 M41 / M42 actions; P+0x5c at the burrow plays (`0xf3cc88` / `0xf3cd64`) as a value (the sunk stand-in).
+
+## Re-walk 2026-10-18 (Fanged-Wyvern effects agent): tracer diff, request census, word re-emulation
+
+**L0 M10's u 1400 is the burrows' (6, 2 / 3 / 6)** (reqtrace.py); the walks and the (7, n) plays set L0 M10 with none -- now copy B, both variants. **The arm rows are at [e+0xcacc]**, not ctl = [e+0xcac0]: `ldrh [[e+0xcacc] + 0x2c]` / `+ 0x20` (0xf469c8..0xf46a00); re-emulated with them there -- 657920 runs, 0 mismatches, 72 words (the transcription was right; the earlier emulation matched with both rows unread).
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* **The spending sites' motions -- partly READ (emulated)**: the fist spends on L2 M28 / M29 ((7, 3 / 0x2e..0x31)), L2 M54 ((7, 7 /
+  0x4d)), L2 M11 / M13 (the side punches (7, 0x1a / 0x1c / 0x27 / 0x29 / 0x84..0x92 / 0xb3 / 0xb4)), (7, 0x13) phase 3, (3, 4); the
+  refills on L0 M2 ((1, 7)), L0 M33..M35 ((2, 0xf..0x11 / 0x16), (7, 0x24 / 0x25)) and L2 M1 ((7, 0xa / 0xe)). The rest sit behind
+  gates the harness answers 0 (rom-map row "`0xf4653c` spend / refill sites by action").
+* **vt+0x3c8 -- READ, no caller**: no immediate +0x3c8 vtable call on an enemy anywhere in main.text (the same scan's control finds
+  372 vt+0x3e8 loads, Deviljho's tail call among them). The refill-both hook is unused by code.
+* **`0x13ecbfc` = `__aeabi_memclr8`** (pltname.py; acosf / atan2f / sqrtf as controls). The I is R.
+* **The EMC streams of the L2 M41 / M42 actions -- READ** (rom-map row "em063_00_cmdtbl.emc ... the L2 M41 / M42 actions"); (7, 0xa5)
+  follows (7, 0xa2) / (7, 0xa4); (7, 0x15) / (7, 0x98) / (7, 0xa2) / (7, 0xa6) have no issuer -- named.
+* MoguriBaseOfs -1500 (dtbase +0xa8); P+0x5c at the burrow plays stays the cross-monster toggle (category c).
+* **CORRECTION (2026-10-19, Withdrawn table): (7, 0xa6) IS issued** -- the follow `0xf40104` after (7, 0xa2) / (7, 0xa4) picks (7, 0xa5)
+  calm and (7, 0xa6) enraged; the census had the rage test stubbed 0. Its L2 M42 entry already stood. (7, 0x15) / (7, 0x98) / (7, 0xa2)
+  re-checked with vt+0x3d0 and rage / tired both ways: still no issuer.
+* **Begins Burrowed -- BUILT 2026-10-19** (CLASS_TOGGLES `burrowed`, working label, approved by Raven): on, every posture-4 play
+  reads sunk (0x81d6c: posture 4 and P+0x5c below 0.9 x MoguriBaseOfs); off, only the entries that name sunk. Checked on
+  Basarios's L0 M7 B (dev/checks/class-toggles.mjs).

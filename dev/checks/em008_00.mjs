@@ -43,7 +43,10 @@ async function pageCheckKutKu(){
   // SIX, not seven: c 1105 (the shock trap) shares the paralysis hold, so his table never names it and it is not
   // exported. A record the table cannot request is a record the viewer cannot play, and every monster wired before
   // the rule carried a dead one. He is the first with none.
-  check(byWhen.event === 6 && byWhen.ragePuff === 2,
+  // [2026-10-18, suite triage: the count is a FLOOR, as em007_00 / em014_00 already have it -- the shared-states pass of
+  // 2026-10-15 exported the blast / notice / hyper / trap records (c 1100..1109, c 1130..1137, c 1200 / 1201 / 1500, u 1301..1314)
+  // for every monster after this was written; each row's own record is checked by its play below.]
+  check(byWhen.event >= 6 && byWhen.ragePuff === 2,
         'the schedule holds his state records: 6 event and 2 ragePuff, with NO dead c 1105', byWhen);
   const MONSTER = V.MON.monsters.find(e => e.id === MON);
   const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => MONSTER.partIds.includes(p))) : null; };

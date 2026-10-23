@@ -159,3 +159,64 @@ issued — not confirmed ones. [settled by em004]
 7. His attack records: `em005_00_attackdata` is byte-identical to Basarios's for every id the six fireball
    actions arm **except byte[30]**, which is `0x00` for every em005 record and `0x05` for every em004 one —
    a per-monster constant, not a per-attack value. What byte[30] means is **UNREAD**.
+
+---
+
+## 8. shell13 -- (7, 0x49)'s gas pair, READ and built (shells agent, 2026-10-19)
+
+Found by the Flying / Brute / Bird cengen11 re-run (fb/fbbcmp.mjs). It answers §7 items 2 and 3. rom-map rows `0xd3144c` ..
+`0xd2e538`; shells.js `params005s13`, `init005s13`, `make005s13` and `spawn005s13`, `LANDING13.uShellEm005_sp_13`; check
+dev/shells-gravios13-check.mjs.
+
+- **Who makes it.** (7, 0x49) is 0xd2af3c(e, 0); (7, 0x4a) is the same function with r1 = 1 and makes none. In phase 1 on L2
+  M46, at the crossing of 105.0 (0xb0974), with ctl+0x5c == 0, it makes two `[e+0xcad0]`:
+  - sp_13 mode 0 (ef 999 / -1: no effect, a sound);
+  - then mode 1, or 2 when the head's break level 0x9d36c(e, 5) reaches the .dtp threshold (byte +0xd, +0xe at rank > 4).
+  Modes 1 and 2 differ only in their hit and sound (both u 150, the same floats). Both setups' points are the shared zero vector.
+  `[e+0xcad0]` = 0x6f for em 5 (the loader 0xd2e538); for Basarios it is 0x19d, so he makes none. His table issues (7, 0x49) in
+  g1 s57 / s73 / s94, op 0x24's default arm.
+- **The reader** (0xd3144c, READ whole):
+  - cmn int 0 → the joint +0x15e4 (3);
+  - ef 0 → +0x15c8;
+  - 0x4a2378 ints 0 / 1 → +0x1690 / +0x1694 (the sound);
+  - hit 0 → +0x15d8;
+  - sh int 0 != -1 → flag 0x10;
+  - float 0 × 0xc1044(owner, 1.5, 1.0, 3500.0) → +0x15ec. The factor is the owner's x / z distance to his target over 3500,
+    kept in [1.0, 1.5];
+  - floats 2 / 1 / 4 / 3 / 5 → gravity / speed per unit / far / near / life;
+  - &vec 0 → +0x161c.
+  So his flags word is 0 for all three modes (the ints are -1).
+- **The init** is his +0x13c 0xd31390: base13's 0x4044d8 on the JOINT path (Nakarkos's init13n transcription; flags 0x80 / 2 / 8
+  clear), with Khezu's thrown point and launch (thrown13 / launch13, the aim limits 0, +0x15f0 0). It then returns the hit side's
+  0x4a158c answer. That needs attack data the emulator harness does not build, so the check flies the shell anyway (emu_fb
+  `initOk`); the shell is made and in state 2 either way.
+- **The flight.** His files give speed 30 × the factor, no gravity, near 10, far 10000, life 120. The gas goes straight from
+  joint 3 to the target's point at that speed. His +0x150 is `bx lr`, so a contact neither lands nor ends it: it flies on until
+  its life ends (stepOrb 'keep'). His +0x170 is the target (block +0x1a3 is 0 here, so P+0x1d0). His +0x158 adds a sound ray to
+  base13's move (audio).
+- **Check:** 6 / 6 against the ROM's own runs. Cases g49 (factor clamped to 1.0), g49far (1.29) and g49max (clamped to 1.5): both
+  shells, 521 moves, launch and every move equal. Controls fail as they should (target 30 aside, joint 3 one unit up). Page 2 / 2,
+  on **L2 Motion[46]_loop** (the viewer's _start clip loops its own 8 frames and never reaches 105).
+- **Stand-in, named:** the mode-1 / 2 choice is the viewer's head-broken toggle (input.beamState.parts.headBroken, the one his
+  beams read), not the break level against the .dtp. Visually the two modes are the same.
+- **Record:** em005_00u 150 (UNIQUE, em005_00_000) is exported. Recording waits for the efx slot.
+
+## 9. shell01 from the frame handler -- READ and built (shells agent, 2026-10-19)
+
+Found by the per-frame census (`<scratchpad>/fb/pfgen.py`: the class's overriding vtable slots x every motion id he ships; the
+action-main census cannot see it -- rom-map trap 121). The class's vt+0x208 `0xd2329c` switches on the motion id (`0xb0944`):
+
+| motion | frames (channel 1, `0xb09b0`) | site | shell |
+|---|---|---|---|
+| L1 M103 (0x167) | 2, 80 or 140 -- one spawn on any crossing | `0xd2348c..0xd234c4` | `[e+0xcac8]` mode 1 |
+| L1 M104 (0x168) | 16 | `0xd2339c` | `[e+0xcac8]` mode 1 |
+
+The request (`0x3fa2bc(0x40)`): +4 the id, +8 **1**, +0xc the owner, +0x10.. the block's P+0x40.., +0x20.. a GOT vector, +0x30..
+the block's words P+0x50 / +0x54 / +0x58 (whole), +0x3c 0xffff, `0x48b884`. No em test, and ~~Basarios ships no L1 M103 / M104~~ (WITHDRAWN the same day: he plays them from the shared
+lists), so it is Basarios's too (his 0x6b mode 1, c 0) as well as Gravios's -- shell01 **0x6d** (`0xd2e538`), uShellEm004_sp_01 on base01 with Basarios's reader `0xd308dc` (params04s01):
+ints [-1, -1, 0] -> flags 0x80 (the snap to his ground), ef **c 0** of its .shl's own list em005_00c, hit 1 -> the shared
+em004_00_01_hitdata record 1 (14, 10). The handler's other arms (0x305 / 0x306, 0x36f) set a unit's flag byte, not shells.
+
+Viewer: SHELL_DATA.em005_00.shell01 and `perFrame004` (dispatched through Malfestio's perFrame079 shape). Checked:
+dev/shells-gravios13-check.mjs h103 (three crossings, three shells) / h104, and the control (the owner 1 along x) fails; page L1
+M104 makes shell01. Record em005_00c 0 requested through the slot.

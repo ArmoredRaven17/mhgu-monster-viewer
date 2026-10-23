@@ -84,8 +84,8 @@ Offsets his reader also writes that have **no runtime name**:
 |---|---|---|---|---|
 | `+0x15ec` | `sh.ints[0]` | `0xd30550` | 5, −10, 5, −5, 0, 0, 0, 0, 0, 0, 0 | **no consumer found** — see §6 |
 | `+0x15f0` | `sh.ints[2]` | `0xd30574` | 0,0,0,0,0, −35,−1,30, −35,−1,30 | **no consumer found** — see §6 |
-| `+0x1600` | `sh.floats[1]` | `0xd305c0` | 0.0 every mode | read at `0x3fa39c` (end) — read/write **UNREAD** |
-| `+0x1604` | `sh.floats[2]` | `0xd305d8` | 0.0 every mode | read at `0x3fa394` (end) — read/write **UNREAD** |
+| `+0x1600` | `sh.floats[1]` | `0xd305c0` | ~~0.0 every mode~~ **10.0 on mode 4**, 0.0 elsewhere (WITHDRAWN 2026-10-19, §10) | the X aim's clamp low end, `0x3f9530` |
+| `+0x1604` | `sh.floats[2]` | `0xd305d8` | ~~0.0 every mode~~ **90.0 on mode 4**, 0.0 elsewhere (WITHDRAWN 2026-10-19, §10) | the clamp's high end, `0x3f953c` |
 | `+0x1618` | `accVec(0)` | `0xd30630` | `(0,0,0)` every mode | **READ** at `0x3f9e10` in the point (`ldr r2,[r4,r2]`) |
 | `+0x15c8 / +0x15d4 / +0x15cc` | `getEffect(0/1/2)` | `0xd304bc / d4 / ec` | the three ef handles | used by the landing |
 | `+0x15d8` | `accA(0)` — accessor `0x4a23f4` | `0xd30500` | **UNREAD** | |
@@ -507,3 +507,75 @@ initialised as base55 — a wrong shell rather than a refusal), and `D.actions |
 
 **Still missing for anything to appear:** a spawner branch for `0xd283fc` / `0xd2ba08` (dispatch is on
 literal ROM addresses), `params04r`, the `init00` bit-`0x10` test, and `landing04`.
+
+## 10. (7, 0x12) and mode 4, and the degree offsets the runtime never applied (shells agent, 2026-10-19)
+
+Read for the Flying / Brute / Bird build (the cengen11 re-run's triage named `7:0x12 0x6a m4` as a create no row carried).
+`R` = the consuming instruction read; the emulator check is `dev/shells-basarios-check.mjs` (`<scratchpad>\fb\mk004.py`).
+
+### 10.1 How he gets there: his own code, not a command
+
+`0xd26578(e, r1)` is (2, 0x0f)'s body (stub `0xd26788`, r1 = 2; the siblings `0xd26754` r1 0 and `0xd26798` r1 1). Phase 0
+plays L0 M5; phase 1 with r1 < 3 calls **`0xd25e14(e, r1)`**: with `e+0x7420` set (this machine owns him), r1 1 or 2 asks
+the area point list `0xa6c48(e, 0, 0x10000, 0x2000, 4)` (Khezu's `0xd11cf0` uses the same query, rom-map), and a point found
+changes the action through `0x768c8`: **r1 2 -> (7, 0x12)**, r1 1 -> (3, 0x0a) (`0xd25e6c..0xd25e84`). r1 0 asks the
+0x8000000 and 0x400 kinds instead. The census's chain pass logs it (`CHG 2:0x0f ['7:0x12']`, trgen's change at `0xd25e88`).
+So the old "neither number appears in em004_00_cmdtbl, nothing issues them" was a table walk's negative (rom-map trap 118).
+The points are stage data the viewer has no list of: on the page (7, 0x12) is a clip the user picks.
+
+### 10.2 `0xd299e4` -- phase 0 is a BLEND, not "no motion"
+
+`0xd29a10..0xd29c1c`, R (literals `0xd29d2c..0xd29d48`: 2pi/65536, 600.0, 0.0, 65536/2pi, 14564.0, -600.0, 90.0, 182.044):
+
+* X = P+0x50, Y = P+0x54 (u16 x 2pi/65536). The point Q = owner + 600 cos X (sin Y, 0, cos Y), height owner y - 600 sin X.
+* The yaw from the owner to the target (P+0x1d0) and from Q to the target; their difference + 0x4000 above 0x8000 (the
+  target behind Q) -> weight 1.0 (`0xd29b28`).
+* Else the pitch p = atan2(-(target y - Q y), flat distance Q -> target) in u16, clamped: p in [0x71c, 0x4000] kept, (0x4000,
+  0xa38e) -> 0x4000, else 0x71c (`0xd29b84..0xd29bc0`) -- 10 to 90 degrees below Q. Weight = (p - 0x71c) / 14564.
+* **`0xb03f8(e, 0x408, 0x407, 0, blend 4.0, 0.0, weight)`** at `0xd29bec`: L4 M8 with L4 M7 as the blend partner -- M7 the
+  same throw aimed down. The weight x 90 x 182.044 + 0.5 goes to ctl+0xc (`0xd29c1c`); no shell reads it (mode 4 aims itself).
+
+The rom-map row "sets no motion" came from a scan for `movw r1,#<id>` + a one-motion setter: the two-layer setter takes the
+partner in r2 (rom-map trap of 2026-09-30, "a blend's second motion is in r2"). WITHDRAWN.
+
+### 10.3 Phase 1 -- one shell00, mode 4
+
+`0xd29c28`: `cmp r1,#0 / bne` -- only arg 0 spawns ((7, 0x12); (7, 0x13) is arg 1, plays the same clip and spawns nothing,
+and no code enters it). At the crossing of 76.0 (`0xb0974`) a 0x30 request: id `[e+0xcac4]` (0x6a), **+8 = 4**, owner,
++0x10.. and +0x20.. from the same zero globals as `0xd283fc` (§5), `0x48b884`. Then `0xb09c8` (the end) -> vt+0x3dc.
+
+### 10.4 What the reader really writes, and what that does
+
+The reader's middle, `0xd30548..0xd305ec` (R):
+
+| offset | source | conversion | values |
+|---|---|---|---|
+| `+0x15ec` | `getInt(0)` | **`vcvt.f32.s32`** at `0xd30560` -- a float of degrees | 5, -10, 5, -5 (modes 0..3); 0 |
+| `+0x15f0` | `getInt(2)` | `vcvt.f32.s32` at `0xd30584` | -35, -1, 30 (modes 5..7 and 8..10); 0 |
+| `+0x1600` / `+0x1604` | `getFloat(1)` / `(2)` | -- | **10 / 90 on mode 4**; 0 elsewhere |
+| `+0x1618` | `accVec(0)` | pointer | (0, 0, 0) |
+| `+0x1614` | not written | base00's ctor: the slot `0x1831a78` -> the shared zero vec (`0x3f8a84`) | (0, 0, 0) |
+
+His vtable `0x1798ee8` +0x16c is the base's `0x3f9cc4`. So:
+
+* modes 0..3 (bit 0 clear): X += +0x15ec in degrees (`0x3f93b4`) -- the fan of the single fireballs, 5 / -10 / 5 / -5;
+* modes 5..10 (bit 1 clear, the only way for him): Y += +0x15f0 (`0x3f9d00`) -- the three-ball spread, -35 / -1 / 30;
+* mode 4 (bit 0 set, bit 4 clear): X = the aim from his position (+ block +0x5c on y; the from-vector the zero one) to the
+  target block +0x1d0 (`+0x1630` = 0), less his X word, plus 0, clamped to [10, 90] degrees (`0x3f93e0..0x3f9584`) -- the
+  fireball thrown DOWN at a target below him.
+
+**The runtime applied none of it.** `params04r` returned joint / flight / flags / vz / vy / vec / gravity only, so init00
+added 0 on both words and every Basarios fireball flew straight along his facing. The first emulator check on these rows
+(`dev/shells-basarios-check.mjs`, 2026-10-19) failed all nine cases on the init velocity with the position right (e.g.
+(7, 0x04): module (32.34, 0, 13.39), ROM (32.21, -3.05, 13.34)). `params04r` now returns degX / degY / xLo / xHi / aimOff /
+from, and `AIMX00` names uShellEm004_sp_00 (xAdjust37); spawn04 passes the target, the size pair and block +0x5c, and
+refuses a mode-4 spawn without a target by name.
+
+### 10.5 Checked
+
+`dev/shells-basarios-check.mjs` 15 / 15: (7, 4 / 0xb / 0x16 / 0x17), (7, 0x4e) and (7, 0x58) three each, (7, 0x12) four
+targets (above / far: the 10-degree end; ~60 and ~17 degrees below: inside), each with the landing's shell01 (u 161), base00
+compared in full (position, velocity, gravity, words, timer per move, the starts); controls: joint 3 one unit up, the in-range
+mode-4 target 30 aside, the clamped target dropped into the range -- each fails. Page 4/4 (L4 M5, M20, M8 make shell00).
+Soak 78 motions, 0 refused; L4 M8 6 -> 10 starts (4 shells), its partner M7 6 -> 10. The records (u 160 / u 162 / u 161) were
+already exported (recaudit: none missing for em004_00).

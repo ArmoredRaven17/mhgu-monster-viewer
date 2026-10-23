@@ -250,3 +250,21 @@ frames, 22 started; 0 refused** (18 s). Nothing left of the survey's item 2 for 
 NOT READ, by name: `0x6feb8` with a key the pel lacks (Gravios's (7, 5) / (7, 0xf) / (7, 0x15) / (7, 0x10) at f216); which L0 M7 play
 starts sunk; the requester of u 150 (`em005_00_000`, UNIQUE — not one of the class's eight vt+0x1d0 sites, the band's only request
 calls); (13, 1)'s issuer; what u 260 / 270 / 271 / 290 / 301 / 380 / 390 look like (all `em004_00_002`).
+
+## Re-walk 2026-10-18 (Fanged-Wyvern effects agent): tracer diff, request census, word re-emulation
+
+(6, 3) asks `0xa499c(e, 2)` (u 1400) on L0 M7 as Basarios does (`0xd27be4`, one class) -- em005_00u holds no key 1400, so nothing shows and no copy is made for him. His word re-emulated with the real .dtp +0x64 rows and part levels (jscheckpd.py LV=0,5,6: the gas arm's part 0 vs bytes 1 / 2, the ctl+0x24 latch's parts 5 / 6 / 0). L2 M31 / M32 are (7, 0x32)'s blend partners (r2 of 0xb03f8, 0xd29648..0xd2969c).
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* **`0x6feb8` with a key the pel lacks -- READ: nothing is made.** The request reaches `0x326010` (through vt+0x138 `0x6fd8c` ->
+  `0x53a7d8` -> `0x408bc`), which searches the UNIQUE array for the record whose halfword +0x50 is the key; none -> 0, the core is
+  freed and the handle is 0. So Gravios's (7, 5) / (7, 0xf) / (7, 0x15) / (7, 0x10) requests at f216 (u 60 / 70 / 90 / 100) draw
+  nothing, as the viewer shows (no record, no row). The I in section 2 is now R.
+* Still open: u 150's requester (a shell-layer record: the shells lane); (13, 1) (status 13 is entered from outside the class --
+  category a); which L0 M7 play begins sunk (category c, the cross-monster "Begins burrowed" toggle).
+* **Begins Burrowed -- BUILT 2026-10-19** (CLASS_TOGGLES `burrowed`, working label, approved by Raven): on, every posture-4 play
+  reads sunk (0x81d6c: posture 4 and P+0x5c below 0.9 x MoguriBaseOfs); off, only the entries that name sunk. Checked on
+  Basarios's L0 M7 B (dev/checks/class-toggles.mjs).

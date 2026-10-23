@@ -192,3 +192,24 @@ op 0x1c):
 NOT READ, by name: op 0x80's condition in g1 s4-s6 (`0xc9a9c` / `0x8df40`) — when it holds the calm form is issued even
 enraged; `e+0x1409` bit 6 (which makes `0x81688` answer calm); `0x3a8430`'s byte (irrelevant here: both thresholds are 2);
 what L2 M12's three and L1 M104's bit 24 were authored for.
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* **Op 0x80's condition -- READ: there is none.** `0xc9a9c` / `0x8df40`: the open form always skips its body (as op 0x69), so g1
+  s4..s6's leading calm forms are never issued; op 0x92 / op 0x1c decide, and the enraged forms come whenever he is enraged (with
+  `0x81688`). The viewer's `rage` = the enraged form is the ROM's.
+* `e+0x1409` bit 6: see the cross-monster row X3 of dev/effects-open-items.md.
+* **`e+0x1409 & 0x40` -- the setter READ** (rom-map row `0xc983c`): it is set when the rage timer (P+0x514) runs out, with
+  e+0x73dc = 1 -- the rage's end pending. While it is set, `0x81688` answers calm and op 0x1c issues the calm forms, though P+0x518
+  still says enraged. In the viewer the Rage control is the rage itself; the pending stretch between the timer's end and the
+  drop has no control (a short window; category c if Raven wants it). Its clear is NR.
+* **The clear of e+0x1409 & 0x40**: only the spawn init drops it (`0xb8bf4`, `&= 0x41006`); no other bic / and / bfc of bit 14
+  beside a 0x1408 / 0x1409 base anywhere in main.text (rom-map row "e+0x1408 bit 14 -- the clear"). Read as written, once a rage
+  timer runs out the calm forms win for the rest of the spawn unless bit 16 is set; a pointer-form clear is not excluded (I).
+* **The clear, re-scanned with pointer forms (2026-10-19)**: ptrscan.py over the shared layer and every enemy band finds only the
+  ctor (= 4) and the spawn reset (&= 0x41006); its controls -- a pointer-form clear of e+0x1404 bits 21-22 (0xadcdc) and the spawn
+  reset's register mask -- are found by the same scan. The negative stands: once set, the bit lasts to the next spawn.
+* **On a second rage** (2026-10-19): the AI issues the calm forms (7, 0x0a / 0x1c / 0x0c), so L4 M7 / M9 show no bits 16-18 though
+  he is enraged; parts and materials unchanged. A possible control "after first rage" for Raven (not built).

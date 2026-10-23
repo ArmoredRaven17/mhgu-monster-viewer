@@ -97,8 +97,14 @@ export class EffectHost {
     this.gpuDraws = [];
     this.drawSeq = 0;
     const host = this;
+    // THE GROUND TYPE (index.html's Ground control, 2026-10-20; dev/effect-runtime-engine.md E17): the floor flag word a unit's
+    // floor block holds at +0x1068 and its attribute byte +0x1066 -- what the game's per-frame ground probe (0x18154c) writes
+    // from the polygon under it. 0x41c74 turns them into an effect's MASK2 (rows by floor); the stand-in ray answers them too.
+    this.floor = { flags: 0, attr: 0, f74: 0, f78: 0 };
+    this.parents = [];
     m.svc = {
       alloc: (size) => host.malloc(size),
+      floor: () => host.floor,
       // materialAt: a stand-in material object per (model, mesh-material index). The ROM only needs an
       // object with a vtable here -- the real material values come from the .mrl at draw time
       // (modeldraw.js / host.material). Its vtable slots are all MATERIAL_VM, which leaves r0 alone.
@@ -293,6 +299,13 @@ export class EffectHost {
     liftedCall(m, 0x329c9c, [q.core, v, 0]);
     liftedCall(m, 0x329d04, [q.core, v + 0x10, 0]);
   }
+  // A HELD EFFECT'S FADE (Amatsu's aura 0xf09ac8..0xf09ae4, Valstrax's glow 0x109f110..0x109f12c): the class writes unit 0 of the
+  // handle -- [core + 0x150] -- its colour block +0x180..+0x19c (eight floats, 1.0 from the effect ctor 0x9b1f1c) to one value.
+  tintRequestUnit0(q, a){
+    const m = this.m, u = m.u32(q.core + 0x150);
+    if (!u) return;
+    for (let k = 0x180; k <= 0x19c; k += 4) m.wf32(u + k, a);
+  }
   // A BEAM'S DRAWN LENGTH (base02 flag bit 2, its placement 0x3fc540..0x3fc5e8): every unit of the handle -- [core +
   // 0x150 + 4i], i < [core + 0x15c] -- gets the scale (sx, sy, sz, 0) at +0x60..+0x6c.
   scaleRequestUnits(q, s){
@@ -374,6 +387,18 @@ export class EffectHost {
   // its arc holds no rModel at all -- and the difference decides how its effects are placed. Explicit
   // rather than inferred from jointNumbers.length, because "no joints" is true of both a shell and a
   // monster whose records all sit at joint -1.
+  // THE GROUND TYPE on every parent made so far and every one made after: +0x1068 the flag word, +0x1066 the attribute byte
+  // and the two floats +0x1074 / +0x1078 that 0x41c74's flag-6 arm compares (0x41c88: [+0x1074] - [+0x1078] > 5.0 -> MASK2 5, else 0x11;
+  // READ 2026-10-20, recorded and lifted. 0x18154c writes them: +0x1074 the WATER height (the highest hit flagged 0x1046), +0x1078 the hit
+  // just below the chosen floor -- so the gap is how far the water stands above the surface below; the Ground types give the two sides)
+  setFloor(flags = 0, attr = 0, f74 = 0, f78 = 0){
+    this.floor = { flags: flags >>> 0, attr: attr & 0xff, f74: +f74 || 0, f78: +f78 || 0 };
+    for (const P of this.parents) this.writeFloor(P);
+  }
+  writeFloor(P){
+    const m = this.m, f = this.floor;
+    m.w32(P + 0x1068, f.flags >>> 0); m.w8(P + 0x1066, f.attr & 0xff); m.wf32(P + 0x1074, f.f74 || 0); m.wf32(P + 0x1078, f.f78 || 0);
+  }
   createParent(jointNumbers, opts){
     const m = this.m;
     const withModel = !opts || opts.model !== false;
@@ -394,6 +419,12 @@ export class EffectHost {
     // zero, so +0x1068 = 0 and the draw setup (0x41c74) takes the real 0x41cac path, not the float path the
     // old too-small (0x1000) stand-in forced by letting these reads fall into the vtable. See efx/parent.py.
     m.w32(P + 0x1050, 0xff08ff00); m.w32(P + 0x1054, 0x000000ff);
+    // THE UNIT'S TIME SCALE +0x50c, 1.0 (draw meter, 2026-10-19): a record with payload +0x43 set (core +0xd3 -> unit +0x2a3) runs
+    // at its PARENT's rate -- the placement 0x31d16c sets the effect's speed to unit+0x2fc x [parent+0x50c] (0x31f980..0x31f9a0),
+    // which 0x327188 stores to the unit's +0x100 and 0x9b4140 multiplies into each step. Left 0 by the zero fill, every such
+    // record froze on its first frame (Deviljho / Savage c 30, cm202_000: alpha 1/255 for its whole life). +0x50c is the unit's
+    // own speed factor elsewhere too (a shell's life -= owner[+0x50c] x dt, rom-map 0x3fbe60); a monster at normal speed has 1.0.
+    m.wf32(P + 0x50c, 1);
     // cUnit's MODEL RESOURCE at +0xf0. The placement 0x31d16c TESTS it (0x31f6b4: `ldr r0,[r6,#0xf0];
     // cmp r0,#0; beq 0x31f788`) and nothing dereferences it, so a block of zeros stands for the resource.
     // With it, a space-1 record (payload +0x38 == 1) takes the joint's matrix at 0x31f6c0 and its offset
@@ -407,6 +438,8 @@ export class EffectHost {
     // NOT for a shell's parent: a shell has no rModel, so 0 is correct there and the fallback is the
     // ROM's real path for shell-spawned records (schedule.js hangs those from the shell, not the monster).
     if (withModel) m.w32(P + 0xf0, this.malloc(0x100));
+    this.writeFloor(P);   // the ground type (setFloor)
+    this.parents.push(P);
     const parent = { object: P, vtable: VT, table: TABLE, array: ARRAY, joints: jointNumbers.slice(),
                      position: [0, 0, 0], quaternion: [0, 0, 0, 1], scale: 1 };
     this.composeParent(parent);

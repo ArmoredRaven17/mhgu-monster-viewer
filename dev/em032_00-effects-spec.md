@@ -106,3 +106,45 @@ its Withdrawn table carry the rows.
 
 NOT READ, by name: which teardown route empties c 25's unit in the viewer (needs a trace); which earlier gate of
 `0x9b75e8` the u 241 hold-80 recording exits on.
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* Both items named above (the teardown route of c 25's unit; the gate u 241's hold-80 exits on) were answered by section 2.5
+  (2026-10-14): c 25 is route (a), its unit ends in its first move, and sUnit's draw `0xc03cd0` draws only `(+0xc & 0x4807) ==
+  0x4802` -- the game never draws it, nor Gravios's u 241. Superseded; no read owed.
+
+## The ground (effects lane, 2026-10-20)
+
+* c 25 (`cm200_067`, L0 M76) is a floor-only record. All 8 rows have w04 0x20, which only `0x41c74`'s flag-8 arm (MASK2 0x21)
+  builds. The viewer now has the Ground control (index.html GROUND_TYPES, working labels; dev/effect-runtime-engine.md E17).
+  Measured with the draw meter:
+
+  | ground | c 25 |
+  |---|---|
+  | plain | live, no draw |
+  | Ground B (flag 8) | DRAWS (lit 49 / 51) |
+  | A, C, D, E, F | no draw |
+
+  This matches the rows. The ROM's own answer stands: on a plain floor the game builds nothing for it.
+* The dust c 0 (`cm202_020`, L0 M9) draws on every ground, with a row set per ground:
+
+  | ground | plain | A | B | C | D | E |
+  |---|---|---|---|---|---|---|
+  | model draws | 407 | 512 | 233 | 511 | 410 | 407 |
+  | px | 7103 | 9269 | 6991 | 8458 | 4235 | 8871 |
+
+* ctl+0x29 (the shells' selector) reads the same block through `input.floorFlags` / `floorAttr`. The shells agent measured L2 M5's
+  shell00 modes per ground:
+
+  | ground | modes |
+  |---|---|
+  | plain, B | 0 / 1 / 2 |
+  | E | 3 / 4 / 5 |
+  | F, A | 9 / 10 / 11 |
+
+  The flag-6 selector 2 is unreachable: no ground offers flag 6, because its MASK2 arm is unrecorded.
+* **2026-10-20**: flag 6's arm (`0x41c88`) is read and lifted. Grounds G / H (flag 0x2) give ctl+0x29 selector 2: L2 M5 shell00
+  modes 6 / 7 / 8. u 1 starts 3 times and draws (lit 43 / 59). u 31 starts 3 times and draws off camera, as u 30 does on a plain
+  floor. By its rows c 25 builds nothing on G / H (MASK2 5 / 0x11 lack its bit 5); that was not metered.

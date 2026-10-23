@@ -223,3 +223,39 @@ issuer NR; (7, 0x44) / (7, 0x12) are also `0xd13a10`'s follow-ups); which landin
 261 / 262 / 320 look like.
 
 **Survey's other Khezu items:** soak clean, no undriven record, no refusal — the enable word was the only gap.
+
+## Re-walk 2026-10-18 (Fanged-Wyvern effects agent): tracer diff, request census, word re-emulation
+
+Tracer diff: every CLIP_ACTIONS entry plays its clip once the landing is answered -- `0xbf52c` == 1 and [P+0x14] < 0 (stored from the float getter 0xc1010, +15.0 for (7, 0x57)) -> L2 M5 at phase 2 (`0xd167e8`); (7, 0x12) L2 M39 needs the current motion 0x235 (`0xd188d4`). The tracer's leftover s0 made those landings run-order noise in a plain sweep (rom-map trap 92).
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* **(7, 0x30) and (3, 0x43) -- READ, and they need the map.** `0xd11cf0` (from the walks (2, 5) / (2, 0xe), phase 1, gated
+  `e+0x7420`) asks the area point list (`0xa6c48`: P+0x7a4 / P+0x7b4, flags 0x8000000 then 0x400): a point high enough above him ->
+  (7, 0x30) with ctl+0x10 the point; a 0x400 point not high enough -> (3, 0x43); none -> (7, 0x11) on a 0x10000 point. The viewer has
+  no area points: category a, a named refusal.
+* **(7, 0x48) / (7, 0x49) -- READ**: they follow (7, 2) / (7, 0xa) at L2 M10's end (`0xd16dc8..0xd16df0`, plain / charged) and play
+  L2 M74. Their word there equals (7, 0xf) / (7, 0x10)'s (0x48 is in the CLEAR set with 0xf, 0x49 in the SET set with 0x10), so
+  the existing L2 M74 row shows both: no new row.
+* **(7, 0x3b): no issuer** in the table, the band or any action's follows (census over every action, with (7, 0x48 / 0x49) and
+  (3, 0x43) as the controls it found) -- named.
+* (7, 0x44) / (7, 0x12): `0xd13a10`'s follow-ups, as section 3 says.
+* **`e+0x1409 & 0x40` -- the setter READ** (rom-map row `0xc983c`): it is set when the rage timer (P+0x514) runs out, with
+  e+0x73dc = 1 -- the rage's end pending. While it is set, `0x81688` answers calm and op 0x1c issues the calm forms, though P+0x518
+  still says enraged. In the viewer the Rage control is the rage itself; the pending stretch between the timer's end and the
+  drop has no control (a short window; category c if Raven wants it). Its clear is NR.
+* **The clear of e+0x1409 & 0x40**: only the spawn init drops it (`0xb8bf4`, `&= 0x41006`); no other bic / and / bfc of bit 14
+  beside a 0x1408 / 0x1409 base anywhere in main.text (rom-map row "e+0x1408 bit 14 -- the clear"). Read as written, once a rage
+  timer runs out the calm forms win for the rest of the spawn unless bit 16 is set; a pointer-form clear is not excluded (I).
+* **The clear, re-scanned with pointer forms (2026-10-19)**: ptrscan.py over the shared layer and every enemy band finds only the
+  ctor (= 4) and the spawn reset (&= 0x41006); its controls -- a pointer-form clear of e+0x1404 bits 21-22 (0xadcdc) and the spawn
+  reset's register mask -- are found by the same scan. The negative stands: once set, the bit lasts to the next spawn.
+* **On a second rage** (the coordinator's question, 2026-10-19): only the command table's choice changes -- the AI issues the plain
+  forms, so his attack clips lose bits 9-11 (the charged-form effects) though he is enraged; parts and materials follow the rage
+  itself. A possible control "after first rage" for Raven (not built).
+
+* **Draw meter (2026-10-19):** shells u 31 / u 61 start, but their request ends 2 frames later with the unit still in state 1, so nothing draws. OPEN (shells lane: the shell's life).
+
+* **u 31 / u 61, settled (2026-10-19):** their shell01 lives on its hit slot. SHELL_DATA lacked `hit` / `hitdata` (fixed in shells.js by the shells agent). Both draw now.

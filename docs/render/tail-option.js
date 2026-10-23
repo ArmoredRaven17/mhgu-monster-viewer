@@ -97,7 +97,8 @@ export const CUT_TAIL = {
   // 0x1598650 = (0x7f82, 0x7f83, -1, ...): word [1] != -1, slot 0 exists, and it is keyed by the em number, so both
   // share it; em082_00_tail and em082_04_tail are staged and both monsters.json entries carry em001_00_option.
   // Their .dtp HAS one +0x78 option row, the same in both files: (zero id, 0.8, 20.0) -- dtp.py, 2026-10-15 -- so row
-  // 0 gives 20 S, the shared height. Which file resource 0x7f83 names is NOT READ (states-em082_00.md 3.4, 14).
+  // 0 gives 20 S, the shared height. [Which file resource 0x7f83 names: READ 2026-10-18 -- 0x159daa0[0x7f83] =
+  // jamcrc(enemy\em082\em082_00\mod\em082_00_tail); Soulseer's own descriptor [130] = 0x159b884 word 1 0x85fc -> em082_04_tail.]
   em082_00: { piece: 'em082_00_tail', joint: 142, above: 20, landing: ['em082_00u', 905] },
   em082_04: { piece: 'em082_04_tail', joint: 142, above: 20, landing: ['em082_04u', 905] },
   // LAGIACRUS (2026-10-15): the sever is 0xc2274(e, 0, 0, 0x91) at 0xea0290 (`mov r3,#0x91` at 0xea0284, vt+0x204's
@@ -107,6 +108,38 @@ export const CUT_TAIL = {
   // [0x7bc4] = em043_05_tail). His monsters.json entry carries em001_00_option, and his .dtp has NO option rows
   // (dtp.py: +0x91 = 0, +0x78 empty), so the landing is the shared 20 S. (states-em046_00.md 3.4)
   em046_00: { piece: 'em046_00_tail', joint: 145, above: 20, landing: ['em046_00u', 905] },
+  // AGNAKTOR (2026-10-17, dev/em049_00-effects-spec.md 3): vt+0x204's status-10 arm, (10, 0x72) with 0x9e8d8(e) == 7,
+  // calls 0xc2274(e, 0, 0, 0x91) at 0xeb5024 (`mov r3, #0x91` at 0xeb5018) -> the drop joint is JOINT 145; his .dtp's one
+  // +0x78 option row gives 20.0 (dtp.py). The piece file READ (2026-10-18): descriptor [0x172ba68][40] = 0x15970cc, word 1 =
+  // 0x7c51 -> 0x159daa0[0x7c51] = {jamcrc(enemy\em049\em049_00\mod\em049_00_tail), rModel} -- the staged em049_00_tail.glb.
+  em049_00: { piece: 'em049_00_tail', joint: 145, above: 20, landing: ['em049_00u', 905] },
+  // KUSHALA DAORA (2026-10-18, dev/em024_00-effects-spec.md 3): vt+0x204's (10, 0x72) arm with 0x9e8d8(e) == 2 calls 0xc2274(e, 0, 0,
+  // 0x8f) at 0xdef988 -> JOINT 143 (u 900's joint too). Descriptor [0x172ba68][23] = 0x1596340: word 1 0x7a56 -> 0x159daa0[0x7a56]
+  // = jamcrc(enemy\em024\em024_00\mod\em024_00_tail), word 2 -1, +0xb4 0x77ed (em001_00_option). His .dtp has no +0x78 row (break
+  // loader dtp.py): the shared 20.
+  em024_00: { piece: 'em024_00_tail', joint: 143, above: 20, landing: ['em024_00u', 905] },
+  // CHAMELEOS (2026-10-18, dev/em025_00-effects-spec.md 3): vt+0x204 0xdff4f0 on (10, 0x72) with part 6 calls 0xc2274(e, 0, 0, 0x8f)
+  // at 0xdffd18 (emulated) -> JOINT 143. Descriptor [0x172ba68][24] = 0x159640c: word 1 0x7a77 = em025_00_tail, +0xb4 0x77ed. His .dtp's
+  // +0x78 row is the same shape as Agnaktor's (break loader dtp.py) -- the shared 20 kept, as there.
+  em025_00: { piece: 'em025_00_tail', joint: 143, above: 20, landing: ['em025_00u', 905] },
+  // TEOSTRA (2026-10-18, dev/em027_00-effects-spec.md 3): vt+0x204 0xe107ac on (10, 0x72) with part 2 calls 0xc2274(e, 0, 0, 0x8f)
+  // (emulated) -> JOINT 143. Descriptor [0x172ba68][25] = 0x15964d8: word 1 0x7a9a = em027_00_tail, +0xb4 0x77ed; his .dtp's +0x78 row
+  // holds 0.9 / 20.0 (break loader dtp.py) -- 20 above.
+  em027_00: { piece: 'em027_00_tail', joint: 143, above: 20, landing: ['em027_00u', 905] },
+  // AMATSU (2026-10-18, dev/em058_00-effects-spec.md 7): vt+0x204 0xf08e7c on (10, 0x72) with part 6 calls 0xc2274(e, 0, 0, 0x8e)
+  // (emulated) -> JOINT 142; the reaction is the follow (1, 0x14), L3 M9 (motion-states.js). Descriptor [0x172ba68][46] = 0x1597594:
+  // word 1 0x7d0a -> 0x159daa0[0x7d0a] = jamcrc(enemy\em058\em058_00\mod\em058_00_tail), word 2 -1, +0xb4 0x77ed. His .dtp's
+  // +0x78 row holds 0.8 / 20.0 (dtp.py) -- 20 above, as Teostra's 0.9 / 20.0.
+  em058_00: { piece: 'em058_00_tail', joint: 142, above: 20, landing: ['em058_00u', 905] },
+  // THE GORE LINE (2026-10-18, dev/em071-em072-effects-spec.md 3): vt+0x204 0xfadfa0 on (10, 0x72) with part 6 calls 0xc2274(e, 0, 0,
+  // 0x8f) (emulated, all three) -> JOINT 143. Descriptors [0x172ba68][59] / [127] / [60]: word 1 0x7e84 em071_00_tail / 0x85b3
+  // em071_05_tail / 0x7ea6 em072_00_tail, +0xb4 0x77ed. No +0x78 row on Gore or Shagaru: the shared 20.
+  em071_00: { piece: 'em071_00_tail', joint: 143, above: 20, landing: ['em071_00u', 905] },
+  em071_05: { piece: 'em071_05_tail', joint: 143, above: 20, landing: ['em071_05u', 905] },
+  em072_00: { piece: 'em072_00_tail', joint: 143, above: 20, landing: ['em072_00u', 905] },
+  // VALSTRAX (2026-10-18, dev/em086_00-effects-spec.md 3): vt+0x204 0x109f830 on (10, 0x72) with part 6 calls 0xc2274(e, 0, 0, 0x8f)
+  // (emulated) -> JOINT 143. Descriptor [0x172ba68][132] = 0x159ba1c: word 1 0x8626 em086_00_tail, +0xb4 0x77ed. No +0x78 row: 20.
+  em086_00: { piece: 'em086_00_tail', joint: 143, above: 20, landing: ['em086_00u', 905] },
   // ALATREON: sever kind 0x8e and u 900 names JOINT 144; his descriptor's slot 0 exists and
   // em050_00_tail.glb is staged. His tail has no .dtp row at all, so there is no broken level -- only
   // the sever. (states-em050_00.md 0, 4.4)

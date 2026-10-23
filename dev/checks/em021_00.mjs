@@ -42,10 +42,13 @@ async function pageCheckCongalala(){
   // -- the shock trap shares the paralysis hold, so the table never names it and it is not exported. And NOT the
   // pitfall's c 1700 / 1701 / 1702, which are real records his class remaps through vtable +0x1cc and which the
   // viewer has no pitfall state to ask for.
-  check(byWhen.event === 8 && byWhen.ragePuff === 2,
-        'the schedule holds his state records: 8 event and 2 ragePuff, with NO dead c 1105 and no pitfall ids', byWhen);
-  check(!S.entries.some(e => [1105, 1700, 1701, 1702].includes(e.def.record.key)),
-        'and none of those four ids is in the schedule under any name',
+  // [2026-10-17: the trap IS wired now -- CLIP_VARIANTS em021_00 L3 M6 copy B (TRAP_B) -- and the shared blast / notice / water
+  // records are exported, so the count is no longer 8: the named ones, the trap, no pitfall id]
+  const evKeys = S.entries.filter(e => e.when === 'event').map(e => e.def.record.key);
+  check([1001, 1011, 1016, 1109, 1103, 1104, 1102, 1101, 1105].every(k => evKeys.includes(k)) && byWhen.ragePuff === 2,
+        'the schedule holds his state records: the three breaks, the ailments, the shock trap c 1105, and 2 ragePuff', byWhen);
+  check(!S.entries.some(e => [1700, 1701, 1702].includes(e.def.record.key)),
+        'and none of the pitfall ids c 1700..1702 is in the schedule under any name',
         S.entries.map(e => e.def.record.key));
   const MONSTER = V.MON.monsters.find(e => e.id === MON);
   const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => MONSTER.partIds.includes(p))) : null; };
@@ -177,6 +180,41 @@ async function pageCheckCongalala(){
         }),
         'NO row drives the tail-tip item: its six meshes are a stage-keyed weighted random the viewer cannot seed');
   check(!TO.CUT_TAIL[MON], 'and he has no cut tail entry -- his tail does not sever', Object.keys(TO.CUT_TAIL));
+
+  // THE ENABLE WORD (psl-mask.js em021_00; dev/em021_00-effects-spec.md): uEm021_00 vt+0x13c = 0xdd7cf4, read whole and run
+  // 44800 times against the ROM. The gas picks ONE of four different records, the item / eating number one of c 150..153.
+  const PM = await import('/render/psl-mask.js');
+  check(PM.PSL_MASK_MONSTERS.includes(MON) && PM.CLIP_ACTIONS[MON], 'he is listed: his clip effects follow the enable word');
+  const Wd = (list, slot, action, st) => PM.pslMask(MON, String(list), slot, action, st || {});
+  const WORDS = [
+    [2, 16, [7, 0x34], { gas: 1 }, 0x181ff, 'L2 M16 gas 1: bits 15-16 (u 200)'], [2, 16, [7, 0x34], { gas: 2 }, 0x1801ff, 'gas 2: 19-20 (u 202)'],
+    [2, 16, [7, 0x34], { gas: 3 }, 0x601ff, 'gas 3: 17-18 (u 201)'], [2, 16, [7, 0x34], { gas: 4 }, 0x6001ff, 'gas 4: 21-22 (u 203)'],
+    [2, 16, [7, 0x34], { gas: 0 }, 0x1ff, 'no gas: none'],
+    [0, 43, [1, 0x42], { gas: PM.em021Gas([1, 0x42], 0) }, 0x1801ff, 'L0 M43 (1, 0x42): its start sets gas 2 -> u 262'],
+    [0, 25, [1, 0x35], { item: 0 }, 0x181ff, 'L0 M25 (1, 0x35), nothing at the tail: by the number, c 150'],
+    [0, 25, [1, 0x0b], { item: 0 }, 0x1801ff, '(1, 0x0b): c 152'], [0, 25, [1, 0x0b], { item: 3 }, 0x6001ff, 'item 3 at the tail: c 153'],
+    [0, 25, [1, 0x0b], { item: 1 }, 0x1ff, 'the bone (item 1): none'],
+    [0, 28, [1, 9], {}, 0x180001ff, 'L0 M28 (1, 9): c 120'], [0, 28, [7, 0x37], {}, 0x1ff, '(7, 0x37): none'],
+    [2, 2, [7, 1], {}, 0x60001ff, 'L2 M2 (7, 1): u 281'], [2, 2, [7, 0], {}, 0x18001ff, '(7, 0): u 280 (its b23 form)'],
+    [3, 15, [11, 7], {}, 0x180001ff, 'L3 M15 the pit death: c 3001'], [3, 15, [10, 0x63], { asleep: true }, 0x600001ff, 'the pit sleep: c 50'],
+    [3, 15, [10, 0x65], {}, 0x1ff, 'the pit paralysis: none'],
+  ];
+  for (const [l, s, a, st, want, label] of WORDS){ const w = Wd(l, s, a, st); check(w === want, 'the word: ' + label, '0x' + (w >>> 0).toString(16)); }
+  check(PM.em021Item(new Map([[13, true], [17, true]])) === 5 && PM.em021Item(new Map([[11, true]])) === 0,
+        'the Item row as ctl[0]: the stalk with mushroom 17 is item 5, the empty tail item 0');
+  const mask = () => S.clip && S.clip.mask != null ? S.clip.mask >>> 0 : null;
+  await play(REST[0], REST[1]); await frames(3);
+  // the breath reads the Gas Type control (CLASS_CONTROLS em021_00, ctl[1]; approved 2026-10-19 -- was a per-play cycle)
+  const g16 = [], gsel = document.getElementById('monClassCtl');
+  check(!document.getElementById('monClassCtlRow').hidden && [...gsel.options].map(o => +o.value).join() === '0,1,2,3,4',
+        'the Gas Type row is shown with None and Gas 1..4', [...gsel.options].map(o => o.value));
+  for (const g of [1, 2, 3, 4, 0]){
+    gsel.value = String(g); gsel.onchange({ target: gsel }); await frames(2);
+    await play(REST[0], REST[1]); await frames(2); await play('2', 'Motion[16]'); await frames(6); g16.push(mask());
+  }
+  check(same(g16, [0x181ff, 0x1801ff, 0x601ff, 0x6001ff, 0x1ff]), 'played: L2 M16 under Gas Type 1..4 shows each gas, None none',
+        g16.map(w => w == null ? null : '0x' + w.toString(16)));
+  await play(REST[0], REST[1]); await frames(3);
 
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
     const parts = k.split('|'), list = parts[0], clip = parts[1].replace(/#.*$/, '');   // a copy's row ('#B') is its clip's

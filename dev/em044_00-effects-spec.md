@@ -227,3 +227,43 @@ would carry it too — a MOTION_STATES keying question for the Viewer agent.
 NOT READ, by name: what the `0x3a8430` byte is (rom-map; the viewer's 5 = "G" stand-in); whether any surface action can precede a
 burrowed L0 M6 / L0 M13 / turn (g1 s14's arms; I: none); which action plays L2 M13 (site `0xe89da4`); the status-10 recovery scripts'
 plays of L0 M11 (states-em044_00.md §7, not re-read); what u 340 / 350 / 360, u 210 and c 40 look like.
+
+## Re-walk 2026-10-18 (Fanged-Wyvern effects agent): tracer diff, request census, word re-emulation
+
+**L0 M6's request is by action, not by clip.** `0xe86430` (the burrowed travel) maps its own r1: `cmp r5,#1; moveq r1,#2; movne r1,#0; b 0xa499c` (0xe864f0..0xe86504). Traced per action (reqtrace.py): (6, 6) r1 = 2 -> **u 1400**; (6, 3) / (6, 0xe) r1 = 0 -> **u 1120** (em044_00_010, joint 3 -- the puff's record, exported again as an event); the walk (2, 0) none. The earlier "u 1400 held on every L0 M6 play" is withdrawn (rom-map Withdrawn). Viewer: CLIP_ACTIONS copies A (2, 0) / B (6, 6) / C (6, 3) + (6, 0xe); MOTION_STATES '0|Motion[6]' {}, '#B' hold u 1400, '#C' hold u 1120; dev/checks/em044_00.mjs plays all three.
+vt+0x24c (the mud shed) `0xe8d490`: id 1006 once, behind e+0xcada bit 0x20 -- the tail mud, already the L3 M17 row.
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* **Can a surface action precede a burrowed L0 M6 -- READ, no.** The only stream that calls g1 s14 (the (6, 6) / (6, 1) arms) is
+  g0 s0, inside EMC op 0x69, and op 0x69's open form has no test: its body never runs (`0x891e8`). Every other (6, 6) follows a
+  posture-4 action. The burrowed L0 M6 starts sunk (footfalls off), as section 3 wired it.
+* **L2 M13 -- READ**: the second phase of (7, 0 / 3 / 0xe / 0xf), after L2 M12 (census). Its word is the mud's, so no row changes.
+* MoguriBaseOfs is -1500 (dtbase +0xa8, rom-map row "`.dtb +0xa8` MoguriBaseOfs", 2026-10-19).
+* Still open: the `0x3a8430` byte (category a); the status-10 recovery scripts (b, deferred, the states note's reading stands).
+* **The recovery scripts' L0 M11 -- READ**: (10, 0x2a / 0x70), (10, 0x2b), (10, 0xa9 / 0xc5) play L0 M11 alone, (10, 0xa7) at the
+  end of its long fall. All are status 10, so the L0 M11 arm (status 1, n 2 / 0xe) gives them no c 90: the existing rows hold.
+* **Begins Burrowed -- BUILT 2026-10-19** (CLASS_TOGGLES `burrowed`, working label, approved by Raven): on, every posture-4 play
+  reads sunk (0x81d6c: posture 4 and P+0x5c below 0.9 x MoguriBaseOfs); off, only the entries that name sunk. Checked on
+  Basarios's L0 M7 B (dev/checks/class-toggles.mjs).
+
+## The ground (effects lane, 2026-10-20)
+
+* c 130 (`cm200_041`, L4 M3) has rows with w04 0x14 (bits 2 and 4). No offered ground's MASK2 has those bits: every ground in the
+  Ground control (index.html GROUND_TYPES; dev/effect-runtime-engine.md E17) leaves it live with no draw.
+  - Only `0x41c74`'s unrecorded arms could build it: flag 6 (`0x41c88`) and the stage-byte arms. NAMED, unread.
+* u 200 / u 210 (`em044_00_005`, L4 M6) draw on every ground, plain included (lit 37 / 39, 17 / 18). The floor-row scan had listed
+  them as building nothing on a plain floor. It used the payload's MASK1, and the live request's (owner +0x1c8) evidently differs
+  for these two (not read).
+* **2026-10-20, read and lifted**: `0x41c88` (flag & 6) gives MASK2 0x11, or 5 when [+0x1074] - [+0x1078] > 5.0. Each carries one of
+  c 130's bits (4 / 2). Ground G (0x2, gap > 5) and Ground H (0x2, gap <= 5) were added to the control. On them c 130 DRAWS:
+
+  | ground | starts | lit |
+  |---|---|---|
+  | G | 2 | 20 / 27 |
+  | H | 4 | 45 / 56 |
+
+  On plain it is still live with no draw (dev/checks/ground-control.mjs). +0x1074 / +0x1078 are the water height and the hit below the chosen floor (0x18154c, read 2026-10-20), so H is shallow water over
+  a surface and G is water more than 5 deep over it (the meaning is INFERRED from the arithmetic).

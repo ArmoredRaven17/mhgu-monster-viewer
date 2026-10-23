@@ -222,3 +222,46 @@ hold on the play (posture 4 only) is a MOTION_STATES question for the Viewer age
 NOT READ, by name: which event-group-7 stream the engine starts per variant; op 0x20's semantics (I from the data); who
 issues (6, 2) at variant 0 and which action reaches `0xd3c4a0`; the op-0x6f selector 0x17's field ctl+0x68 (gates g1 s103,
 moot at variant 0); what c 0..3 / c 30 / c 3000 / u 202 / u 360 look like.
+
+## Re-walk 2026-10-18 (Fanged-Wyvern effects agent): tracer diff, request census, word re-emulation
+
+**L0 M7's posture-4 plays make two different requests** (reqtrace.py): `0xa499c(e, 2)` = **u 1400** for (6, 3 / 6 / 0x10 / 0x21 / 0x22 / 0x23 / 0x2a) (`0xd3bfcc`) and `0xa499c(e, 1)` = **u 1121** for (6, 0xf / 0x17 / 0x1c / 0x1d / 0x24 / 0x25 / 0x28 / 0x29 / 0x2b / 0x2c) (`0xd3c748`, which the u 1400 sweep closed as "not a u 1400 site"); the posture-0 plays (2, 6 / 7 / 8 / 0xc / 0x1a), (7, 0x6a) ask nothing. Viewer, both variants: CLIP_ACTIONS L0 M7 copies A (posture 0) / B (6, 3) / C (6, 0xf), posture 4; rows '#B' u 1400, '#C' u 1121 (event twin of the puff record), gated posture 4 as before. The class ids on L0 M1 match the copies already there: (6, 0xe / 0x11 / 0x18) c 1001 = c 30, (6, 0x1b / 0x26 / 0x27) c 1002 = c 40, (6, 0x32) u 1002 = Bloodbath's UNIQUE 230 (em007_00u has 230 only in SEQUENCE: nothing for Diablos).
+Bloodbath's (7, 0xb8) reaches L2 M19 only with `0x78b78` answered (0xd3d7a0..0xd3d808, table 0xd3d810 entry 19 -> 0xd3dc18): the CLIP_ACTIONS entry stands (deep.py FORCE=0x78b78=1, both variants).
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* **The event-group-7 stream per variant -- READ.** Group 7 starts at stream P+0x369, written by `0x7fba0(e, delay, k)`; the only
+  calls in his band are `0xd32a00`'s, Bloodbath's HP-stage machine, entered from `0xd32838` for **variant 4 only**: g7 s0 at the first
+  rung (ctl+0x6c), g7 s1 at the second (ctl+0x6d). So Diablos starts no group-7 stream; g7 s1's (7, 0x67 / 0x70 / 0xc8 / 0x6a) are
+  Bloodbath's (the I above is now R).
+* **Op 0x20 -- READ** (`0x83f4c`): in group 0 a call of g0 sn with a return pushed; in other groups skipped. Op 0x14 (`0x83e1c`) is a
+  call of g1 sn. The walk's reachability stands.
+* **(6, 2) -- named, unreachable**: only g1 s16 issues it and no stream calls g1 s16; nothing in the band follows into it.
+  **`0xd3c4a0`'s actions -- READ**: (6, 0xf / 0x17 / 0x1c / 0x1d / 0x24 / 0x25 / 0x28 / 0x29 / 0x2b / 0x2c) (census), the u 1121 copy C.
+* **Selector 0x17 / ctl+0x68 -- READ**: a timer set at the start of (7, 0xb4..0xb8) (actiontune int 0xc), counted down only at
+  variant 4. Diablos never sets it, so g1 s103 is closed to him twice over.
+
+## The burrow floor and the frame handler's dust (effects lane, 2026-10-20)
+
+* **The floor is the unit, on every clip he plays on the ground or under it.**
+  - 0xbf284 pins `P+0x44 = P+0x5b4` in postures 0 / 3 / 4 / 6, and the setter 0xbc7f4 does the same on entering 0 / 4.
+  - The move pass keeps vertical steps only in postures 1 / 2 / 5 / 6 (0xae370, mask 0x66).
+  - The burrow depth P+0x5c is a draw offset (e+0x1384).
+  - So base01's 900 arm reads 0 on L0 M24 / M33 / M43. The viewer's lowest-reach floor had put the ground 1345 (M24) and
+    2043 (M33) below him, and the dust was deleted there.
+  - index.html `FLOOR_AT_UNIT` now puts the floor at the clip origin, for Diablos, Bloodbath and the Begins Burrowed monsters,
+    on clips whose posture includes 0 / 3 / 4 / 6. The rom-map has the rows under "The ground under the unit".
+* **Metered** (draw meter; the control is the old rule, served beside the new):
+
+  | clip | dust | old rule | new rule |
+  |---|---|---|---|
+  | L0 M24 | c 2 (shell01 mode 11, f58) | none | 1 start, draws (lit 9 / 10) |
+  | L0 M33 | c 1 (mode 12) | none | 7 starts, draws (53 / 62) |
+  | L0 M43 | c 1 | 3 starts, draws | 3 starts, draws |
+
+  L0 M43's floor was at the unit already.
+* **Bloodbath (em007_04)**: the same dust drew under neither rule. His 0x71 modes 10 / 11 / 12 name ef list 1 = em007_00c c 0 / 2 / 1,
+  and docs/effects/em007_04.json had no 'shell' entries for them. The three were appended in place, copied from em007_00.json.
+  Metered: L0 M24 c 2, L0 M33 c 1 and L0 M43 c 1 now start 1 / 7 / 3 and draw.

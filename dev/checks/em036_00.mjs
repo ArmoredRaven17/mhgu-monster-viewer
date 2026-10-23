@@ -35,8 +35,11 @@ async function pageCheckLavasioth(){
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
   const byWhen = {};
   for (const e of S.entries) byWhen[e.when] = (byWhen[e.when] || 0) + 1;
-  check(byWhen.event >= 8 && byWhen.ragePuff === 2,
-        'the schedule holds his state records: 8 event (2 breaks + 6 ailments) and 2 ragePuff', byWhen);
+  // u 1120 is an EVENT, not a puff record: his puff picks u 1121 only (vt+0x2a4 the base stub), and u 1120 is the dive's
+  // own request, 0xa499c(e, 0) at 0xe41e10 (dev/em036_00-effects-spec.md 3) -- the note's "never requested" read the puff path
+  const evKeys0 = S.entries.filter(e => e.when === 'event').map(e => e.def.record.key);
+  check(byWhen.event >= 8 && byWhen.ragePuff === 1 && evKeys0.includes(1120) && evKeys0.includes(60),
+        "the schedule holds his state records (2 breaks + 6 ailments), the dive's u 1120 and the pool's u 60 as events, and 1 ragePuff (u 1121)", byWhen);
   const keys = S.entries.filter(e => e.def.record).map(e => e.def.record.key);
   check(!keys.includes(1000) && !keys.includes(1030),
         'and NO u 1000 / u 1030: both his rows are at LEVEL 2, so there is no level-1 record to hold');
@@ -184,6 +187,35 @@ async function pageCheckLavasioth(){
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }
+  // THE ENABLE WORD (psl-mask.js em036_00): 0xe3f6c4 -- L2 M14 by rank (u 231 / u 241 at G), L0 M21 bit 15 sunk, L0 M13 under
+  // (1, 0x30 / 0x31) only
+  { const PM = await import('/render/psl-mask.js');
+    const W = (l, n, a, st) => PM.pslMask(MON, String(l), n, a, st || {});
+    check(PM.PSL_MASK_MONSTERS.includes(MON) && W(2, 14, null, { rank: 3 }) === 0x381ff && W(2, 14, null, { rank: 5 }) === 0x1c01ff &&
+          W(0, 21, null, { sunk: true }) === 0x81ff && W(0, 21, null, {}) === 0x1ff && W(0, 13, [1, 0x30]) === 0x381ff &&
+          W(0, 13, [1, 0x32]) === 0x1ff, 'the word: L2 M14 low / G, L0 M21 sunk / not, L0 M13 (1, 0x30) / (1, 0x32)');
+    const sel = async (list, v) => {
+      await play(REST[0], REST[1]); await frames(2);
+      if (V.state.list !== list){ listSel.value = list; await listSel.onchange(); }
+      const o = [...clipSel.options].find(x => x.value === v);
+      if (!o){ check(false, 'the Clip menu offers ' + list + '|' + v); return false; }
+      clipSel.value = v; await clipSel.onchange(); await frames(4); await steps(2); return true;
+    };
+    // THE DIVE: L0 M21 copy A (6, 0 / 1) fires u 1120 once; copy B does not; copy C ((7, 0x13)) holds u 60
+    fired.length = 0; await sel('0', 'Motion[21]_start');
+    check(count(fired, 1120) === 1, 'L0 M21 A (the dive (6, 0 / 1)): u 1120 once, 0xa499c(e, 0)', fired);
+    fired.length = 0; await sel('0', 'Motion[21]_start#B');
+    check(count(fired, 1120) === 0 && !evReqs(60).includes('r'), 'L0 M21 B ((6, 0xa / 0x1e / 0x25)): no u 1120, no u 60', { fired, u60: evReqs(60) });
+    fired.length = 0; await sel('0', 'Motion[21]_start#C');
+    check(evReqs(60).includes('r') && count(fired, 1120) === 1, 'L0 M21 C ((7, 0x13) phase 1): u 60 held and u 1120 once (0xe44314)', { u60: evReqs(60), fired });
+    // THE POOL: u 60 held on the u 60 actions' clips (copy B where shared), off elsewhere
+    for (const [l, v] of [['0', 'Motion[30]#B'], ['2', 'Motion[10]#B'], ['2', 'Motion[11]_start'], ['0', 'Motion[18]_loop#B'], ['0', 'Motion[16]_start#B']]){
+      if (await sel(l, v)) check(evReqs(60).includes('r'), 'L' + l + ' ' + v + ': u 60 held (vt+0x208, e+0xcae8 == 1)', evReqs(60));
+    }
+    for (const [l, v] of [['0', 'Motion[30]'], ['0', 'Motion[18]_loop']]){
+      if (await sel(l, v)) check(!evReqs(60).includes('r'), 'L' + l + ' ' + v + ' (copy A, another action): u 60 off', evReqs(60));
+    }
+    await play(REST[0], REST[1]); await frames(3); }
   S.start = s0;
   check(!fx.failed, 'the effect runtime never stopped', fx.failed);
   return out;

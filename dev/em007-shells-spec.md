@@ -626,3 +626,34 @@ while having different bases **proves `parentDti` is not the base field.** It ag
 5. The `0x70`/`0x71`/`0x72` readers, and base07's runtime (nothing in the viewer implements base07).
 6. `materialAt` `0x88db14` and `findMatClipByName` `0xb08b44` are **names in my own tool table**, so
    INFERRED. The structure corroborates them (name lookup then `setMatClip`) but no callee was read.
+
+## 6. Built and checked against the ROM (shells agent, 2026-10-19)
+
+### 6a. The frame handler's dust -- Diablos (0x70) and Bloodbath (0x71)
+
+`0xd35a94` (vt+0x208, the +0x28 pass after the action) by the motion id at a channel-0 crossing (`0xb09a4(e, 0, F)`): shell01 at
+**the block's +0x40..** and his words, +0x3c 0xffff, through the helpers `0xd36a0c..` (`b 0x48b884` at `0xd36ac8`); ids literal
+(0x70 em007_00, 0x71 em007_04). Emulated per motion (fb/d07pf2.py; pfgen's census): L0 M24 f58 mode 11; L0 M33 / M43 f2 mode 12;
+L1 M1 f6 / f76, L1 M4 f2 mode 10; L1 M17 / M19 f2 mode 11. Rage, tiredness and the action change nothing. Its default arm (ctl+0x24
+!= 0 and status 6: the action-index table at `0xd36510`) only stops / clears the handle ctl+0x24 (`0xd3659c` / `0xd365b0`): no shell
+(the sweep, fb/d07pf.py, makes none).
+
+* Diablos's shell01: 0x70 is the same class as Bloodbath's (uShellEm007_04_01), its reader `0xd46770`'s 0x70 map (rom-map `0x70`
+  map, R): flags 0x84 for modes 10 / 11 / 12 (ef c 0 / c 2 / c 1, em007_00c; hitdata (14, 10) x 3). Bloodbath's modes 10 / 11 / 12
+  (ints [-1, 0, -1, -1, 0]: flags 0x84 too, ef list 1 = em007_00c) are now in SHELL007.
+* shells.js: SHELL_DATA.em007_00 (new: shell01, perFrame007), SHELL007.perFrame007, perFrame007 (Motion[1]_loop read as L1 M1),
+  params007s01's 0x70 arm. Checks: dev/shells-diablos-check.mjs / dev/shells-bloodbath-dust-check.mjs (fb/mk007pf.py; emu_fb
+  `frame3` answers 0xb09a4), 11 / 11 each; page 4 / 4 each (L1 M4 / M17 / M19).
+* **Named, not a ROM gap**: in the page, L0 M24 / M33 / M43 make nothing. index.html's monsterFloorY puts the floor at the
+  burrowed pose's lowest point, 1345 below his unit. base01's 0x80 arm then deletes the dust by the ROM's own rule (block +0x44 -
+  ground >= 900). Diablos (and Bloodbath) may belong in FLOOR_AT_ORIGIN, as Zamtrios / Nakarkos do -- the viewer lane's call.
+* Records: em007_00c 0 / 1 / 2 are exported as `clip` records only, with one entry each (live.js takes such an entry as the shell
+  record).
+
+### 6b. Bloodbath's second u 300 site, (7, 0xb8)
+
+`0xd3cd40`: phase 0 plays L2 M15 from 98. Phase 1 plays L2 M19 (`0x78b78` != 0, the r5 20 arm `0xd3dc18`). Phase 2 makes the
+crossing of 24.0 (`0xd3d0e0`, tune 137) **on L2 M19**, which gives shell01 0x71 mode 7 with the four's request (+0x10 his +0x40..,
++0x30 his words). (7, 0xb4) / (7, 0xb6) test `0xb0968(e, 0, 80)` in phase 2 instead and make none (fb/d07cap2.py). The row is
+SHELL007 (7, 0xb8) L2 M19 f24. dev/shells-bloodbath-check.mjs (fb/mk007.py) runs every Bloodbath action row against the ROM:
+(7, 0x62 / 0xa0 / 0xa1 / 0xc8 / 0xb8) shell01 and (7, 0x77 / 0x79) shell07, with the sever. 15 / 15; page 4 / 4. u 300 is exported.

@@ -62,6 +62,15 @@ async function pageCheckBarroth(){
     clipSel.value = o.value; await clipSel.onchange();
     return until(() => V.pose.action && V.pose.action.getClip().name === o.value, 300);
   };
+  // a COPY of a clip (render/motion-states.js CLIP_VARIANTS): its menu value carries '#B', the clip played does not
+  const playCopy = async (list, clip, copy) => {
+    if (V.state.list !== list){ listSel.value = list; await listSel.onchange(); }
+    const o = [...clipSel.options].find(x => x.value === clip + '_loop#' + copy || x.value === clip + '#' + copy);
+    if (!o){ check(false, 'the list has copy ' + copy + ' of ' + list + '|' + clip); return false; }
+    clipSel.value = o.value; await clipSel.onchange();
+    const name = o.value.replace(/#.*$/, '');
+    return until(() => V.pose.action && V.pose.action.getClip().name === name, 300);
+  };
   const steps = async n => { const a = S.frame; await until(() => S.frame - a >= n, 20 * n + 200); };
   // THE TWO CLOCKS. `every:` countdowns are stepped by motion-states.step in CLIP frames, while the rage
   // puff's cadence is counted by schedule.js in SCHEDULE frames -- and this harness advances one clip frame
@@ -141,10 +150,18 @@ async function pageCheckBarroth(){
         'L4 Motion[3] (wallowing): ALL SIX mud groups come back on at once', dMud);
   const evReqs = key => S.entries.filter(e => e.when === 'event' && e.def.record.key === key)
     .map(e => e.requests.map(q => q.stopped ? 's' : 'r').join('')).join('|');
+  // L0 M6 is three copies: A (2, 0) requests nothing; B (6, 6) holds u 1400; C (6, 3) / (6, 0xe) hold u 1120 -- 0xe86430
+  // passes 0xa499c r1 = 2 only when its own r1 is 1 (0xe864f0..0xe86504), traced per action
   await play('0', 'Motion[6]'); await frames(4); await steps(2);
-  check(evReqs(1400).includes('r'), 'L0 Motion[6] (burrowed travel): u 1400 is HELD, not fired', evReqs(1400));
+  check(!evReqs(1400).includes('r') && !evReqs(1120).includes('r'), 'L0 Motion[6] copy A (2, 0): neither u 1400 nor u 1120', [evReqs(1400), evReqs(1120)]);
+  await playCopy('0', 'Motion[6]', 'B'); await frames(4); await steps(2);
+  check(evReqs(1400).includes('r') && !evReqs(1120).includes('r'), 'copy B (6, 6), burrowed travel: u 1400 is HELD, not fired', [evReqs(1400), evReqs(1120)]);
   await play(REST[0], REST[1]); await frames(6);
   check(!evReqs(1400).includes('r'), 'and off the burrow it is stopped', evReqs(1400));
+  await playCopy('0', 'Motion[6]', 'C'); await frames(4); await steps(2);
+  check(evReqs(1120).includes('r') && !evReqs(1400).includes('r'), 'copy C (6, 3) / (6, 0xe): u 1120 HELD (r1 = 0), not u 1400', [evReqs(1400), evReqs(1120)]);
+  await play(REST[0], REST[1]); await frames(6);
+  check(!evReqs(1120).includes('r'), 'and off it u 1120 is stopped', evReqs(1120));
   for (const r of [['2+3,4', 'Mud'], ['11+12,101', 'Mud'], ['5+6,7', 'Mud'], ['8', 'Mud']]) await pick(r[0], r[1]);
 
   // PARALYSIS, the SHOCK TRAP, the STUN

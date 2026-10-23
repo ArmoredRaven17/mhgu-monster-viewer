@@ -144,3 +144,12 @@ Malfestio (em079_00) needs none.
 NOT READ, by name: the conditions of the AI's stream choice beyond op 0x92 (op 0x14's call reading is I); what
 `0xff26fc(e, 3)` spawns on the (7, 0xcc / 0xcd) plays (a shell request; Malfestio has no shells.js entry — out of this
 spec's scope, flagged); what `0xff27cc(e, 0)` does with handle e+0xcb4c before L1 M27.
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* **`0xff27cc(e, 0)` / `0xff26fc(e, 3)` -- READ by the shells lane** (rom-map rows `0xff27cc` "THE PUSH" on the kept whirlwind
+  e+0xcb4c, `0xff26fc` the shell00 spawner, em079-shells-spec.md). Superseded here.
+* **Op 0x14 as a call -- READ** (`0x83e1c`, rom-map "Effects open items"); op 0x6f / 0x92 share one switch (`0x8e088`). The other
+  conditions of his stream choice stay walked both ways (an upper bound), as section 2 says.

@@ -307,7 +307,7 @@ for (const { v, log, made } of ballPlan){
   ok(typeof compare(d, runJS(d, { k: 1 }), ROM[d.name]) === 'string', 'control: another object fails the drop');
 }
 // the contract
-ok(S.pickVariantsFor('em088_00', '2', 'Motion[17]').join() === '2:0x0f,7:0x10,7:0x32', 'L2 M17 picks: the move and the two throws', S.pickVariantsFor('em088_00', '2', 'Motion[17]').join());
+ok(S.pickVariantsFor('em088_00', '2', 'Motion[17]').join() === '2:0x0f,7:0x10,7:0x32,7:0x31', 'L2 M17 picks: the move, the two throws and the re-aim of (7, 0x31) (0x4380e4, 2026-10-20)', S.pickVariantsFor('em088_00', '2', 'Motion[17]').join());
 ok(S.pickVariantsFor('em088_00', '2', 'Motion[28]').join() === '1:0x10,1:0x06', 'L2 M28 picks: the rage end and (1, 6)');
 ok(S.pickVariantsFor('em088_00', '3', 'Motion[3]').length === 0 && S.actionFor('em088_00', '3', 'Motion[3]').spawns[0].drop === 2,
    'L3 M3: no pick (every action drops), the always row');

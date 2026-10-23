@@ -203,3 +203,19 @@ Nothing else is open in the survey's Barioth section: u 905 is driven by CUT_TAI
 NOT READ, by name: who issues (13, 5) (no stream, no class follow found by `<scratchpad>/bs/actsites.py`; it fires
 nothing, so it changes no word); what g0 s0 / g13 s0 are as behaviours; the e+0x7420 writer's arm for this class
 (the remap's gate) is I from the shared reading.
+
+## Re-walk 2026-10-18 (Fanged-Wyvern effects agent): tracer diff, request census, word re-emulation
+
+Tracer diff: (7, 0x11) reaches L2 M8 once `0xbf4e4` answers (0xe6c400..0xe6c448 -> 0xe6c560); the CLIP_ACTIONS entry stands.
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* **The e+0x7420 writer for this class -- READ**: every write to e+0x7420 is the shared layer's (ctor, the first update, the
+  P+0x1a8 bit-3 arms); his band only reads it. The remap's gate is therefore the shared reading, with no class arm (the I above is R).
+* **(1, 0x0e) -- READ**: it plays L0 M4 (`0xe65dbc`), issued by g13 s0 beside (1, 0x0f) (L3 M30) and (1, 0x10) (L3 M32). The word
+  lights c 90 for it as for (1, 0), so the existing (1, 0) row shows it; no new row. g0 s0 is the stream the binding starts
+  (rom-map `0x825f8`) and issues the (1, 0x0b) roar; which event starts group 13 is the shared selector's (NR, as rom-map's
+  "event groups 3 / 4 / 5" row leaves g12 / g18).
+* (13, 5): status 13 is entered from outside the class (rom-map "status 13 (13, n) issuers" row) -- category a.

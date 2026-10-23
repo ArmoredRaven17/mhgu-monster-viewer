@@ -265,6 +265,30 @@ async function pageCheckMizutsune(MON, NAME, U, DEVIANT){
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }
+  // THE ENABLE WORD (psl-mask.js em082; dev/em082-effects-spec.md): 0x1038cac, action-keyed
+  { const PM = await import('/render/psl-mask.js');
+    const W = (l, n, a, st) => PM.pslMask(MON, String(l), n, a, st || {});
+    check(PM.PSL_MASK_MONSTERS.includes(MON) && W(0, 12, [1, 4]) === 0x1c01ff && W(0, 12, [1, 8]) === 0x381ff && W(2, 1, [7, 7]) === 0x70001ff &&
+          W(2, 1, [7, 0x23]) === 0x380001ff && W(2, 69, [7, 0x7b]) === 0x381ff && W(2, 10, null) === 0x70001ff && W(3, 3, [10, 7]) === 0x1c01ff &&
+          W(0, 15, [1, 0x16]) === 0xe001ff, 'the word: L0 M12 / L2 M1 / L2 M69 by action, L2 M10 24-26, L3 M3 18-20 under status 10, L0 M15 under (1, 0x16)');
+    if (DEVIANT){
+      check(W(2, 10, null, { soulFlame: true }) === 0x380001ff, 'Soulseer: the SET_A clips 27-29 with the soul flame lit (P+0x1bb bit 1)');
+      const evr = k => S.entries.filter(e => e.when === 'event' && e.def.record.key === k).map(e => e.requests.map(q => q.stopped ? 's' : 'r').join('')).join('|');
+      const sel = async (list, v) => { if (V.state.list !== list){ listSel.value = list; await listSel.onchange(); }
+        const o = [...clipSel.options].find(x => x.value === v); if (!o){ check(false, 'the Clip menu offers ' + list + '|' + v); return false; }
+        clipSel.value = v; await clipSel.onchange(); await frames(4); await steps(2); return true; };
+      fired.length = 0; if (await sel('9', 'Motion[6]#B')) check(fired.includes(320), 'Soulseer L9 M6 B ((7, 0x6e)): u 320 at the action start', fired);
+      fired.length = 0; if (await sel('9', 'Motion[6]#D')) check(fired.includes(321), 'Soulseer L9 M6 D ((7, 0x77 / 0x79)): u 321', fired);
+      await play('0', 'Motion[1]'); await frames(3);
+      // u 310 held, then LEFT EARLY (the case that drew a stopped request unmoved before schedule.js deferred held-event stops to
+      // the next step -- dev/em082-effects-spec.md 6) and then held its full run
+      if (await sel('9', 'Motion[5]_loop')) check(evr(310).includes('r'), 'Soulseer L9 M5 ((7, 0x6a / 0x6b) phase 1): u 310 held', evr(310));
+      await play('9', 'Motion[2]'); await frames(6);
+      check(!evr(310).includes('r') && !fx.failed, 'left after a few frames: u 310 stopped, the runtime still running', { u310: evr(310), failed: fx.failed });
+      if (await sel('9', 'Motion[5]_loop')) await frames(70);
+      await play('0', 'Motion[1]'); await frames(3);
+      check(!evr(310).includes('r'), 'and after a full hold, stopped off it', evr(310));
+    } }
   S.start = s0;
   check(!fx.failed, 'the effect runtime never stopped', fx.failed);
   return out;

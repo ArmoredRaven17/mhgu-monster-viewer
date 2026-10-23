@@ -36,8 +36,10 @@ async function pageCheckLagombi(MON, NAME, U){
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
   const byWhen = {};
   for (const e of S.entries) byWhen[e.when] = (byWhen[e.when] || 0) + 1;
-  check(byWhen.event === 6 && byWhen.ragePuff === 2,
-        'the schedule holds his state records: 6 event (the one break + 5 ailment records) and 2 ragePuff', byWhen);
+  // [2026-10-17: the count was stale -- the trap c 1105, the drool and the shared blast / notice / water records are exported now]
+  const evK = S.entries.filter(e => e.when === 'event').map(e => e.def.record.key);
+  check([1101, 1102, 1103, 1105, 1109].every(k => evK.includes(k)) && byWhen.ragePuff === 2,
+        'the schedule holds his state records: the ailments, the trap c 1105, the exhaust, and 2 ragePuff', { byWhen, evK });
   const pels = {};
   for (const e of S.entries) if (e.def.record) pels[e.def.record.pel] = (pels[e.def.record.pel] || 0) + 1;
   check(pels['em061_00c'] > 0 && pels[U] > 0 && !pels['em061_04c'],
@@ -180,6 +182,14 @@ async function pageCheckLagombi(MON, NAME, U){
   }
   S.start = s0;
   check(!fx.failed, 'the effect runtime never stopped', fx.failed);
+  // THE ENABLE WORD (psl-mask.js em061; dev/em061-effects-spec.md): 0xf32bac -- L0 M6 / M51 / M60 / M61 bits 21-23 on the surface;
+  // Snowbaron alone: L0 M2 / M52 bit 15 (c 10), L2 M57 bit 18 (u 302)
+  { const PM = await import('/render/psl-mask.js');
+    const W = (l, s, st) => PM.pslMask(MON, String(l), s, null, st || {});
+    const sb = MON === 'em061_04';
+    check(PM.PSL_MASK_MONSTERS.includes(MON) && W(0, 6) === 0xe001ff && W(0, 51, { sunk: true }) === 0x1ff && W(0, 2) === (sb ? 0x81ff : 0x1ff) &&
+          W(2, 57) === (sb ? 0x401ff : 0x1ff), 'the word: L0 M6 21-23, sunk none; ' + (sb ? 'L0 M2 c 10 and L2 M57 u 302 his' : 'no c 10 on L0 M2 (the Snowbaron arm)'),
+          [W(0, 6), W(0, 51, { sunk: true }), W(0, 2), W(2, 57)].map(w => '0x' + w.toString(16))); }
   return out;
 }
 

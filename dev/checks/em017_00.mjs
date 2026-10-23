@@ -167,6 +167,24 @@ async function pageCheckCephadrome(){
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }
+  // THE ENABLE WORD (psl-mask.js em017_00; dev/em017_00-effects-spec.md): 0xda3738 -- L4 M9..M11 bits 15-17 (c 60) unless the
+  // action is (7, 0xc); L4 M11's (7, 0xc) play is its copy B
+  { const PM = await import('/render/psl-mask.js');
+    const W = (s, a) => PM.pslMask(MON, '4', s, a, {});
+    check(PM.PSL_MASK_MONSTERS.includes(MON) && W(9, [5, 4]) === 0x381ff && W(11, [5, 5]) === 0x381ff && W(11, [7, 0xc]) === 0x1ff &&
+          W(12, [7, 0xc]) === 0x1ff, 'the word: L4 M9 / M11 c 60, none under (7, 0xc)', [W(11, [5, 5]), W(11, [7, 0xc])].map(w => '0x' + w.toString(16)));
+    const mask = () => S.clip && S.clip.mask != null ? S.clip.mask >>> 0 : null;
+    const got = [];
+    for (const v of ['Motion[11]_loop', 'Motion[11]_loop#B']){
+      await play('0', 'Motion[1]'); await frames(2);
+      if (V.state.list !== '4'){ listSel.value = '4'; await listSel.onchange(); }
+      const o = [...clipSel.options].find(x => x.value === v);
+      check(!!o, 'the Clip menu offers ' + v);
+      if (o){ clipSel.value = v; await clipSel.onchange(); await frames(6); got.push(mask()); }
+    }
+    check(got[0] === 0x381ff && got[1] === 0x1ff, 'L4 M11 in the page: copy A (the sand plays) c 60, copy B ((7, 0xc)) none',
+          got.map(w => w == null ? null : '0x' + w.toString(16)));
+    await play('0', 'Motion[1]'); await frames(3); }
   S.start = s0;
   check(!fx.failed, 'the effect runtime never stopped', fx.failed);
   return out;

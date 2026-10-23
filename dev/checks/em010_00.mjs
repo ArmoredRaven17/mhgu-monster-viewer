@@ -38,8 +38,10 @@ async function pageCheckPlesioth(){
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
   const byWhen = {};
   for (const e of S.entries) byWhen[e.when] = (byWhen[e.when] || 0) + 1;
-  check(byWhen.event === 9 && byWhen.ragePuff === 2,
-        'the schedule holds his state records: 9 event and 2 ragePuff', byWhen);
+  // (the schedule also carries the shared states -- poison, dung, blast, notice, hyper, u 1400 -- so name his, do not count)
+  const evKeys = S.entries.filter(e => e.when === 'event').map(e => e.def.record.key);
+  check([1001, 1011, 1109, 1016, 1021, 1103, 1104, 1102, 1101, 1105].every(k => evKeys.includes(k)) && byWhen.ragePuff === 2,
+        'the schedule holds his state records (u 1001 / 1011 / 1016 / 1021, c 1101-1105, c 1109) and 2 ragePuff', { byWhen, evKeys });
   const MONSTER = V.MON.monsters.find(e => e.id === MON);
   const drawn = () => { const d = V.mounted.main.userData.partsDrawn; return d ? Object.fromEntries([...d].filter(([p]) => MONSTER.partIds.includes(p))) : null; };
   const isSet = (d, n) => (MONSTER.groups[n] || []).filter(([g]) => MONSTER.partIds.includes(g)).every(([g, on]) => d[g] === on);
@@ -165,6 +167,31 @@ async function pageCheckPlesioth(){
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }
+  // THE ENABLE WORD (psl-mask.js em010_00; dev/em010_00-effects-spec.md): 0xd6bbc8 -- L0 M18 bits 15-17 unless posture 4 and
+  // P+0x5c < -550 (18-20); L2 M2 (7, 0x12) 21-23, (7, 0x13) 24-26, never both
+  { const PM = await import('/render/psl-mask.js');
+    const W = (l, s, a, st) => PM.pslMask(MON, String(l), s, a, st || {});
+    check(PM.PSL_MASK_MONSTERS.includes(MON) && W(0, 18, null, { posture: 4, depth: -100 }) === 0x381ff &&
+          W(0, 18, null, { posture: 4, depth: -1000 }) === 0x1c01ff && W(0, 18, null, { posture: 0, depth: -1000 }) === 0x381ff &&
+          W(2, 2, [7, 0x12]) === 0xe001ff && W(2, 2, [7, 0x13]) === 0x70001ff && W(2, 2, null) === 0x1ff,
+          'the word: L0 M18 shallow / deep / on land, L2 M2 by (7, 0x12) / (7, 0x13)',
+          [W(0, 18, null, { posture: 4, depth: -1000 }), W(2, 2, [7, 0x12]), W(2, 2, [7, 0x13])].map(w => '0x' + w.toString(16)));
+    const mask = () => S.clip && S.clip.mask != null ? S.clip.mask >>> 0 : null;
+    const hx = a => a.map(w => w == null ? null : '0x' + w.toString(16));
+    await play('0', 'Motion[1]'); await frames(2);
+    const m2 = []; for (let i = 0; i < 2; i++){ await play('2', 'Motion[2]'); await frames(6); m2.push(mask()); }
+    check(m2.includes(0xe001ff) && m2.includes(0x70001ff), 'L2 M2 in the page: one play (7, 0x12)\'s set, the next (7, 0x13)\'s', hx(m2));
+    await play('0', 'Motion[1]'); await frames(2);
+    // L0 M18 is a _loop clip (a replay is not a new play): copy A the water idles at P+0x5c -100, copy B (12, 0) at -1000
+    const m18 = [];
+    for (const v of ['Motion[18]_loop', 'Motion[18]_loop#B']){
+      await play('0', 'Motion[1]'); await frames(2);
+      const o = [...clipSel.options].find(x => x.value === v);
+      check(!!o, 'the Clip menu offers ' + v, [...clipSel.options].map(x => x.value).filter(x => /Motion\[18\]/.test(x)));
+      if (o){ clipSel.value = v; await clipSel.onchange(); await frames(6); m18.push(mask()); }
+    }
+    check(m18[0] === 0x381ff && m18[1] === 0x1c01ff, 'L0 M18 in the page: copy A shallow (c 270, bits 15-17), copy B the (12, 0) deep one (bits 18-20)', hx(m18));
+    await play('0', 'Motion[1]'); await frames(3); }
   S.start = s0;
   check(!fx.failed, 'the effect runtime never stopped', fx.failed);
   return out;

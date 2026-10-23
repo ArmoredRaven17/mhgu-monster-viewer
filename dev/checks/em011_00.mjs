@@ -6,7 +6,7 @@
 // asserts them: NO rage puff (his class writes e+0xb7d2 = 0 and his u.pel has neither 1120 nor 1121), NO tired
 // state (tune+0x30 NULL, no (0, 2) case, no c 1104), NO paralysis record (no c 1101), no shock trap, no pitfall,
 // no exhaust, no sever and no cut tail. What he does have is one break -- the horn, at LEVEL 2 -- and a lightning
-// aura that the viewer cannot drive yet, because `when` has no periodic kind.
+// aura, driven since 2026-10-18 by motion-states.js CLASS_TIMERS (asserted below).
 async function pageCheckKirin(){
   const out = [];
   const check = (ok, label, detail) => out.push([!!ok, 'Kirin: ' + label, detail === undefined ? '' : JSON.stringify(detail)]);
@@ -142,6 +142,36 @@ async function pageCheckKirin(){
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }
+  // THE LIGHTNING AURA (motion-states.js CLASS_TIMERS; vtable +0x208 0xd6df64, dev/em011_00-effects-spec.md 3): calm u 0 every 40,
+  // enraged u 61 every 32 (horn intact) and u 60 every 45, none in the roar (1, 6), u 0 none on the down / sleep clips
+  { const rb = document.getElementById('monRage');
+    const setRage = async on => { if (rb && rb.checked !== on){ rb.checked = on; await rb.onchange({ target: rb }); await frames(3); } };
+    await setRage(false); await play(REST[0], REST[1]); await frames(3);
+    fired.length = 0; await clipSteps(85);
+    check(count(fired, 0) >= 2 && !fired.includes(60) && !fired.includes(61), 'calm: u 0 every 40 frames, no enraged aura', fired);
+    await setRage(true); await play(REST[0], REST[1]); await frames(3);
+    fired.length = 0; await clipSteps(100);
+    check(count(fired, 61) >= 3 && count(fired, 60) >= 2 && !fired.includes(0), 'enraged: u 61 every 32 and u 60 every 45, u 0 off', fired);
+    listSel.value = '4'; await listSel.onchange();
+    const roar = [...clipSel.options].find(x => x.value === 'Motion[7]');
+    fired.length = 0;
+    if (roar){ clipSel.value = roar.value; await clipSel.onchange(); await frames(3); await clipSteps(60); }
+    check(!!roar && !fired.includes(60) && !fired.includes(61) && !fired.includes(0), 'the rage roar L4 M7 A ((1, 6)): no aura at all', fired);
+    check(await pick('2,102,103', 'Broken'), 'the Horn row set to Broken');
+    await play(REST[0], REST[1]); await frames(3);
+    fired.length = 0; await clipSteps(100);
+    check(!fired.includes(61) && count(fired, 60) >= 2, 'the horn broken: u 61 is gone for good, u 60 runs on', fired);
+    await pick('2,102,103', 'Intact');
+    await setRage(false); await play('3', 'Motion[7]'); await frames(3);
+    fired.length = 0; await clipSteps(85);
+    check(!fired.includes(0), 'calm on the sleep hold L3 M7: u 0 is held off', fired);
+    await play(REST[0], REST[1]); await frames(3); }
+  // THE ENABLE WORD (psl-mask.js em011_00): 0xd73a18 -- L4 M7 by action, L2 M4 unless (7, 2)
+  { const PM = await import('/render/psl-mask.js');
+    const W = (l, n, a) => PM.pslMask(MON, String(l), n, a, {});
+    check(PM.PSL_MASK_MONSTERS.includes(MON) && W(4, 7, [7, 5]) === 0x2381ff && W(4, 7, [1, 6]) === 0x3c01ff && W(4, 7, [1, 7]) === 0x1ff &&
+          W(2, 4, [7, 3]) === 0x70001ff && W(2, 4, [7, 2]) === 0x1ff,
+          'the word: L4 M7 (7, x) bits 15-17 + 21 / the roar (1, 6) 18-21 / (1, 7) base; L2 M4 24-26 unless (7, 2)'); }
   S.start = s0;
   check(!fx.failed, 'the effect runtime never stopped', fx.failed);
   return out;

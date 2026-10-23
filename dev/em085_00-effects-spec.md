@@ -126,3 +126,13 @@ Never all three at once: c 111 alone, or c 118 + c 112.
 
 NOT READ, by name: ops 0x07 / 0x2a in g1 s73 (which of (1, 4) / (1, 0xf) the AI picks); what `0x7206c` does to P+0x1bc and
 what e+0x13a0 = 15.0 (set at `0x108e874` when a phase-2 play ends) is for; what the move is.
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* **Ops 0x07 / 0x2a in g1 s73 -- READ, and they need the map.** Op 0x07 switches on the area byte e+0x1054, op 0x2a on e+0x1053
+  (vt+0x9c; I the map). (1, 0xf) is issued only with map 1 and area 7; (1, 4) everywhere else. Category a: the viewer's L0 M21
+  copies show both, which the ROM picks by the map.
+* **`0x7206c` -- READ** (the shared countdown, schedule.js); **e+0x13a0 = 15.0** sets layer 0's flag bit 0 for 15 frames (the motion
+  advance `0x71984` counts it down); what bit 0 does is NR.

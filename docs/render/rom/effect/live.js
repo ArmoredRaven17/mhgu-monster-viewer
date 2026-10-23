@@ -239,6 +239,35 @@ const VIEW_BUFFER = /^(CBViewProjection|CBScreen)_/;
 // monster so Teostra (em027) and Savage (em043), which also use cm100_000, are untouched.
 // See memory effect-model-particles-no-node-scale.
 const HIDE_MODELS = { em003_00: new Set(['cm100_000']), em023_00: new Set(['cm101_000']) };
+// how many sceneDepth renders are in progress (frame() below: a runtime's driver does nothing inside another's)
+let depthPasses = 0;
+
+// ---- THE DRAW METER (opt-in; effect-mounts.js __view.effectMeter, dev/effect-runtime-engine.md E16) --------------------------
+// A check that a record STARTED and was NOT REFUSED says nothing about whether it DRAWS (Raven, 2026-10-19: "at times you've
+// said things passed testing but then no effects were present"). The meter measures, per record (monster | pel | key | when)
+// over all its requests and every runtime (the body's, a partner's, an arm's):
+//   * starts -- requests first seen running, and the clip each started on;
+//   * the draws its units submitted, each frame (host.drawFrame attributes the three lists to the unit whose drawEffect added
+//     them): primitive batches, GPU particle draws, model particle draws, their vertices;
+//   * whether each draw got a VISIBLE mesh, and if not why (a texture not loaded, a technique not drawn, a program not linked,
+//     a model glb missing): the viewer-side draw gates;
+//   * every `every`-th frame, the PIXELS it lights by itself: only its meshes, rendered from this camera into a cleared RGBA8
+//     target and read back -- a pixel counts when any channel is above 2/255. A draw with no lit pixel is caught here (off
+//     screen, at zero scale, at zero alpha, behind the camera).
+// The first sample that has visible meshes and lights nothing keeps a snapshot (blend, depth, textures, vertex count, the first
+// vertex's floats) for the diagnosis.
+const METER = { on: false, every: 10, recs: new Map(), seen: new WeakSet(), age: new WeakMap(), tail: 0 };
+export function setEffectMeter(on, opts = {}){
+  METER.on = !!on;
+  if (opts.every) METER.every = opts.every | 0;
+  if (opts.reset !== false && on){ METER.recs = new Map(); METER.seen = new WeakSet(); METER.age = new WeakMap(); METER.tail = 0; }
+}
+export function effectMeterReport(){
+  return { every: METER.every, tail: METER.tail, recs: [...METER.recs.values()].map(s => Object.assign({}, s, {
+    pixMean: s.samples ? s.pixSum / s.samples : 0,
+    verdict: !s.samples ? 'not sampled' : !s.drawFrames ? 'live, no draw' : !s.visibleFrames ? 'draws, no visible mesh'
+           : !s.litSamples ? (s.aimedLit ? 'draws off camera (lit when looked at)' : 'visible meshes, no lit pixel') : 'draws' })) };
+}
 
 export class LiveEffects {
   constructor(def){
@@ -288,6 +317,8 @@ export class LiveEffects {
         material: (name, index) => res[name].materials[index],
       },
     });
+    host.setFloor(floorDefault.flags, floorDefault.attr, floorDefault.f74, floorDefault.f78);   // the ground type, before the first parent
+    LIVE_RUNTIMES.add(this);
     const I = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0];
     host.initDraw({ position: [0, 0, 0], view: [...I, 0, 0, 0, 1], world: [...I, 0, 0, 0, 1] });
     this.root = root;
@@ -353,7 +384,9 @@ export class LiveEffects {
     if (puff){
       const node = (bones.find(b => b.gid === puff.joint) || {}).node || null;
       this.schedule.setRagePuff({ period: puff.period, records: puff.records,
-                                  pick: () => puff.pick(node ? [node.quaternion.x, node.quaternion.y, node.quaternion.z, node.quaternion.w] : null) });
+                                  pick: () => puff.pick(node ? [node.quaternion.x, node.quaternion.y, node.quaternion.z, node.quaternion.w] : null,
+                                                        this.puffUser || {}) });
+      this.puffOwnGates = !!puff.ownGates;
     }
     // the monster's TIRED DROOL (render/motion-states.js TIRED_DROOL): 0xa41b8's other branch, over any clip while the
     // monster shows exhausted (a tired idle, or the user's Exhausted state) -- gated by puffGates like the puff
@@ -375,6 +408,14 @@ export class LiveEffects {
     this.group.add(anchor);
     root.add(this.group);
     this.groundPlane();
+    // EVERY MODEL AND TEXTURE THE EFFECTS NAME, LOADING FROM THE MOUNT (draw meter, 2026-10-19): they used to load on their first
+    // draw, so an effect shorter than a load drew nothing the first time it played -- Kirin's u 264 (L4 M9, 27 frames) waited on
+    // cm120_020 for its whole life, Lagiacrus's u 0 on em037_00_000. syncModels / sync / syncGpu still draw only what has arrived.
+    for (const [name, r] of Object.entries(res)){
+      if (r.mesh) this.glb(String(name).split('\\').pop());
+      if (r.file) this.texture(name);
+      for (const mt of r.materials || []) for (const f of Object.values((mt && mt.textures) || {})) if (f) this.fileTexture(f);
+    }
     return this;
   }
 
@@ -478,16 +519,37 @@ export class LiveEffects {
     try { this.schedule.fireAt(pel, key, position); }
     catch (e){ this.fail(e); }
   }
+  // an event's effect requested through control blocks its class fills (schedule.js placeEvent: Nakarkos's c 800 x3)
+  placeEvent(pel, key, requesters){
+    if (this.failed || !this.schedule) return [];
+    try { return this.schedule.placeEvent(pel, key, requesters); }
+    catch (e){ this.fail(e); return []; }
+  }
+  // one fill of the Gore line's slot ring (schedule.js ringFill)
+  ringFill(pel, fill){
+    if (this.failed || !this.schedule) return null;
+    try { return this.schedule.ringFill(pel, fill); }
+    catch (e){ this.fail(e); return null; }
+  }
   // the rage puff's gates, as the motion shows them (schedule.js puffGates)
-  puffGates(paused, tired){
+  // `user`: the user's state a class's own puff reads (Alatreon's Form rung, RAGE_PUFF em050_00); a puff with `ownGates` is its
+  // class's own request, so the shared puff's sleep pause does not apply to it
+  puffGates(paused, tired, user){
     if (this.failed || !this.schedule) return;
-    try { this.schedule.puffGates(paused, tired); }
+    this.puffUser = user || null;
+    try { this.schedule.puffGates(this.puffOwnGates ? false : paused, tired); }
     catch (e){ this.fail(e); }
   }
   // an event's effect held while its state lasts / a rage record held off (schedule.js holdEvent / holdRage)
-  holdEvent(pel, key, on){
+  // a held event's fade (schedule.js alphaEvent: unit 0's colour block, as Amatsu's / Valstrax's class writes it)
+  alphaEvent(pel, key, a){
     if (this.failed || !this.schedule) return;
-    try { this.schedule.holdEvent(pel, key, on); }
+    try { this.schedule.alphaEvent(pel, key, a); }
+    catch (e){ this.fail(e); }
+  }
+  holdEvent(pel, key, on, requester){
+    if (this.failed || !this.schedule) return;
+    try { this.schedule.holdEvent(pel, key, on, requester); }
     catch (e){ this.fail(e); }
   }
   holdRage(pel, key, off){
@@ -504,7 +566,11 @@ export class LiveEffects {
   // its +0xb0 origin -- not from picking a bone by eye. Being decoded; do not re-guess.
   unitMatrix(out){
     this.unitOnGround = true;
-    out.copy(this.root.matrixWorld);
+    // A COMBINED PARTNER (effect-mounts attachPartnerEffects): his model hangs in her world group, carried by a frame of
+    // its own (index.html attachFrame -- her joint at his size, or where he was released), so his unit is that frame,
+    // not the root's world matrix (hers)
+    const src = this.unitSource ? this.unitSource() : null;
+    out.copy(src || this.root.matrixWorld);
     if (this.originBone){                                   // position from the model root (gid 0); rotation/scale stay the unit's
       this.originBone.updateWorldMatrix(true, false);
       const e = this.originBone.matrixWorld.elements, o = out.elements;
@@ -523,6 +589,10 @@ export class LiveEffects {
   // A refusal (a branch of the ROM's code no recorded run reached: Unverified) or any other fault stops
   // this effect and says where, once; the viewer's render loop must not die with it.
   frame(renderer, scene, camera){
+    // ANOTHER RUNTIME'S DEPTH PASS (sceneDepth renders the viewer's scene again, with that runtime's frame driver
+    // hidden): with two runtimes up (a combined partner's beside the body's) the other one's driver is in that scene too,
+    // and must not step or draw inside it -- it runs in the frame's own render
+    if (depthPasses > 0) return;
     this.filterDraw = null;
     // `suppressed` (effect-mounts setEffectsSuppressed): the hit-zone HEAT MAP is up. The effects draw into this
     // runtime's own scene here, over the body, so the heat map -- which repaints only the mounted body meshes --
@@ -541,7 +611,7 @@ export class LiveEffects {
     this.unhookAfterRender();
     const prev = scene.onAfterRender;
     this.hookedScene = scene; this.hookedPrev = prev;
-    scene.onAfterRender = (renderer, s, camera, target) => {
+    scene.onAfterRender = this.hookFn = (renderer, s, camera, target) => {
       if (prev) prev.call(scene, renderer, s, camera, target);
       const k = this.filterDraw;
       if (!k || renderer.getRenderTarget() !== null) return;
@@ -550,8 +620,14 @@ export class LiveEffects {
       catch (e){ this.fail(e); }
     };
   }
+  // Taken off only while it is the outermost hook: with two runtimes chained (the partner's and the body's, in either
+  // order) restoring `prev` under the other's hook would cut that one out. A hook left inside the chain only passes
+  // through to its `prev` (filterDraw stays null once this runtime stops drawing).
   unhookAfterRender(){
-    if (this.hookedScene){ this.hookedScene.onAfterRender = this.hookedPrev; this.hookedScene = null; this.hookedPrev = null; }
+    if (this.hookedScene){
+      if (this.hookedScene.onAfterRender === this.hookFn) this.hookedScene.onAfterRender = this.hookedPrev;
+      this.hookedScene = null; this.hookedPrev = null; this.hookFn = null; this.filterDraw = null;
+    }
   }
   // THE ERROR HANDLER MUST NOT THROW. `gpuMeshes` is assigned BY INDEX (`this.gpuMeshes[k] = mesh` in the draw
   // loop), so a draw the loop skips leaves a HOLE while length still counts it -- a sparse array. Holes are
@@ -651,6 +727,154 @@ export class LiveEffects {
     renderer.autoClear = false;
     try { renderer.render(this.scene, camera); }
     finally { renderer.autoClear = autoClear; }
+    if (METER.on) this.meterFrame(renderer, camera);
+  }
+
+  // the draw meter's frame (METER above), after this frame's render: every live request counted; every `every`-th frame each one
+  // DRAWN ALONE -- host.drawFrame over its own units (the draw gate, the primitive layer's begin and flush, the GPU particle frame:
+  // the same calls the real draw makes), synced into the meter's own mesh pool and scene, rendered from this camera into a cleared
+  // RGBA8 target and read back. Its draws (by kind, vertices), the meshes left hidden and why, and the pixels it lights are its own.
+  meterFrame(renderer, camera){
+    this.meterN = (this.meterN | 0) + 1;
+    const mon = this.monsterId || '?', clip = this.schedule.clip && this.schedule.clip.key;
+    const recOf = e => {
+      const r = e.def.record, k = mon + '|' + (r ? r.pel + '|' + r.key + '|' + e.when : 'plain|' + (e.def.efl || '?'));
+      let s = METER.recs.get(k);
+      if (!s) METER.recs.set(k, s = { key: k, monster: mon, efl: String(e.def.efl || '').split('/').pop(), when: e.when, starts: 0, clips: {},
+        liveFrames: 0, drawFrames: 0, visibleFrames: 0, draws: { prims: 0, gpu: 0, models: 0 }, verts: 0, hidden: {},
+        samples: 0, litSamples: 0, pixMax: 0, pixSum: 0, diag: null, partner: !!this.partner, aimed: 0, aimedLit: 0, aimedMax: 0 });
+      return s;
+    };
+    const items = [];
+    for (const e of this.schedule.entries){
+      const reqs = e.def.record ? e.requests : [{ plain: e.owner }];
+      for (const q of reqs){
+        const units = q.plain ? [q.plain] : q.effects();
+        if (!units.length) continue;                           // nothing of it is running (ended, or never made an effect)
+        const s = recOf(e);
+        if (!q.plain && !METER.seen.has(q)){ METER.seen.add(q); s.starts++; if (clip) s.clips[clip] = (s.clips[clip] || 0) + 1; }
+        // a request's first three frames are all sampled: one created after the passes is drawn from its next frame, and a
+        // one- or two-frame record would otherwise fall between samples
+        const age = (METER.age.get(q.plain ? e : q) || 0) + 1;
+        METER.age.set(q.plain ? e : q, age);
+        const first = age <= 3;
+        s.liveFrames++;
+        items.push({ s, units, first });
+      }
+    }
+    const every = this.meterN % METER.every === 0;
+    if (!items.length) return;
+    const cam = this.cameraMatrices(camera);
+    for (const it of items){
+      // every `every`-th frame, and each request on its first three frames (a request that lives a frame or two is still measured)
+      if (!every && !it.first) continue;
+      const s = it.s;
+      const r = this.host.drawFrame(it.units);
+      const n = r.prims.length + r.gpu.length + r.models.length;
+      s.samples++;
+      if (!n){
+        // NO DRAW AT ALL: why, as the units hold it -- state (+0xc & 7; drawn only when (& 0x4807) == 0x4802), generators built
+        // (+0x1f0 list), the row masks MASK1 +0x1c8 / MASK2 +0x1cc and each row's node words (w00 against MASK1, w04 against MASK2)
+        if (!s.nodraw){
+          const m = this.host.m;
+          s.nodraw = { clip, units: it.units.slice(0, 2).map(u => {
+            let gens = 0; for (let g = m.u32(u + 0x1f0) >>> 0; g && gens < 64; g = m.u32(g + 0xc) >>> 0) gens++;
+            const rl = m.u32(u + 0xf4) >>> 0, rows = [];
+            const nrow = rl ? m.u32(rl + 0x6c) >>> 0 : 0;
+            for (let row = 0; rl && row < Math.min(nrow || 16, 16); row++){
+              const c0 = m.u32(m.u32(rl + 0x68) + (row << 4)) >>> 0; if (!c0) break;
+              const nb = (m.u32(rl + 0x68) + (c0 >>> 8)) >>> 0;
+              rows.push([(m.u32(nb) >>> 0).toString(16), (m.u32(nb + 4) >>> 0).toString(16)]);
+            }
+            return { w0c: (m.u32(u + 0xc) >>> 0).toString(16), gens, mask1: (m.u32(u + 0x1c8) >>> 0).toString(16), mask2: (m.u32(u + 0x1cc) >>> 0).toString(16), nrow, rows };
+          }) };
+        }
+        continue;
+      }
+      s.drawFrames++;
+      s.draws.prims += r.prims.length; s.draws.gpu += r.gpu.length; s.draws.models += r.models.length;
+      for (const d of [...r.prims, ...r.gpu]) s.verts += d.vertices || 0;
+      const px = this.meterPixels(renderer, camera, cam, r);
+      let vis = 0;
+      for (const d of [...r.prims, ...r.gpu, ...r.models]){
+        if (d.meterMesh && d.meterMesh.visible) vis++;
+        else { const why = d.meterHidden || 'no mesh'; s.hidden[why] = (s.hidden[why] || 0) + 1; }
+      }
+      if (vis) s.visibleFrames++;
+      s.pixSum += px; if (px > s.pixMax) s.pixMax = px; if (px) s.litSamples++;
+      // NOTHING LIT FROM THIS CAMERA: once more from a camera 15 m from its own units, looking at them (the ROM's camera block set
+      // to it for the draw, so its billboards face it) -- lit then, the record draws OFF CAMERA; unlit still, it draws nothing seen
+      if (!px && vis){
+        const a = this.meterAimed(renderer, camera, it.units);
+        s.aimed++; if (a) s.aimedLit++; if (a > s.aimedMax) s.aimedMax = a;
+      }
+      if (!px && vis && !s.diag){
+        const d = r.prims[0] || r.gpu[0] || r.models[0];
+        const f = d && d.vertexBytes && d.vertexBytes.length >= 16 ? Array.from(new Float32Array(d.vertexBytes.buffer.slice(0, Math.min(64, d.vertexBytes.length & ~3)))) : null;
+        const hm = this.host.m, at = [0, 0, 0];
+        for (const u of it.units){ at[0] += hm.f32(u + 0x40) / it.units.length; at[1] += hm.f32(u + 0x44) / it.units.length; at[2] += hm.f32(u + 0x48) / it.units.length; }
+        s.diag = { frame: this.meterN, clip, unitsAt: at.map(Math.round), draws: [r.prims.length, r.gpu.length, r.models.length], blend: d && d.blend, depth: d && d.depth,
+                   textures: d && d.textures, technique: d && (d.technique || d.inputLayout || d.model), firstFloats: f && f.map(x => Math.round(x * 1000) / 1000) };
+      }
+    }
+  }
+  meterAimed(renderer, camera, units){
+    const m = this.host.m;
+    let x = 0, y = 0, z = 0, n = 0;
+    for (const u of units){ const ux = m.f32(u + 0x40), uy = m.f32(u + 0x44), uz = m.f32(u + 0x48); if (Number.isFinite(ux + uy + uz)){ x += ux; y += uy; z += uz; n++; } }
+    if (!n) return 0;
+    const target = new THREE.Vector3(x / n * MT_TO_VIEW, y / n * MT_TO_VIEW, z / n * MT_TO_VIEW);
+    const cam2 = camera.clone();
+    const dir = camera.position.clone().sub(target); if (dir.lengthSq() < 1e-6) dir.set(0, 0, 1);
+    cam2.position.copy(target).add(dir.normalize().multiplyScalar(1500 * MT_TO_VIEW));
+    cam2.lookAt(target); cam2.updateMatrixWorld(true);
+    const c0 = this.cameraMatrices(camera), c2 = this.cameraMatrices(cam2);
+    this.host.setCamera({ position: c2.position.toArray(), view: Array.from(c2.view.elements), world: Array.from(c2.viewI.elements) });
+    try {
+      const r = this.host.drawFrame(units);
+      return r.prims.length + r.gpu.length + r.models.length ? this.meterPixels(renderer, cam2, c2, r) : 0;
+    } finally {
+      this.host.setCamera({ position: c0.position.toArray(), view: Array.from(c0.view.elements), world: Array.from(c0.viewI.elements) });
+    }
+  }
+  // the meter's pool: a scene and mesh lists of its own, swapped in while the three syncs and the order run on one request's draws
+  meterPixels(renderer, camera, cam, r){
+    if (!this.meterPool) this.meterPool = { scene: new THREE.Scene(), meshes: [], gpuMeshes: [], modelMeshes: [] };
+    const P = this.meterPool, keep = { scene: this.scene, meshes: this.meshes, gpuMeshes: this.gpuMeshes, modelMeshes: this.modelMeshes };
+    Object.assign(this, P);
+    try {
+      this.syncModels(r.models, renderer, cam);
+      this.sync(r.prims, renderer, cam);
+      this.syncGpu(r.gpu, renderer, cam);
+      this.order(r.gpu, r.prims, r.models);
+    } finally { Object.assign(P, { meshes: this.meshes, gpuMeshes: this.gpuMeshes, modelMeshes: this.modelMeshes }); Object.assign(this, keep); }
+    const size = renderer.getDrawingBufferSize(new THREE.Vector2());
+    let t = this.meterTarget;
+    if (!t || t.width !== size.x || t.height !== size.y){
+      if (t) t.dispose();
+      t = this.meterTarget = new THREE.WebGLRenderTarget(size.x, size.y);
+      this.meterBuf = new Uint8Array(size.x * size.y * 4);
+      this.meterBg = null;
+    }
+    const target = renderer.getRenderTarget(), cc = renderer.getClearColor(new THREE.Color()), ca = renderer.getClearAlpha(), ac = renderer.autoClear;
+    if (!this.meterBg){                              // the cleared background as the target stores it
+      const px = new Uint8Array(4);
+      try { renderer.setRenderTarget(t); renderer.setClearColor(0x808080, 1); renderer.clear(); renderer.readRenderTargetPixels(t, 0, 0, 1, 1, px); }
+      finally { renderer.setRenderTarget(target); renderer.setClearColor(cc, ca); }
+      this.meterBg = [px[0], px[1], px[2]];
+    }
+    try {
+      // a mid-grey opaque background, so a SUBTRACTIVE blend (BSBlendRevSubAlpha) shows as well as an additive or alpha one
+      renderer.setRenderTarget(t); renderer.setClearColor(0x808080, 1); renderer.autoClear = false; renderer.clear();
+      renderer.render(P.scene, camera);
+      renderer.readRenderTargetPixels(t, 0, 0, size.x, size.y, this.meterBuf);
+    } finally { renderer.setRenderTarget(target); renderer.setClearColor(cc, ca); renderer.autoClear = ac; }
+    const b = this.meterBuf;
+    let n = 0;
+    // the background read back once (the target's encoding decides its value), then every pixel that differs from it by more than 2
+    const [r0, g0, b0] = this.meterBg;
+    for (let i = 0; i < b.length; i += 4) if (Math.abs(b[i] - r0) > 2 || Math.abs(b[i + 1] - g0) > 2 || Math.abs(b[i + 2] - b0) > 2) n++;
+    return n;
   }
 
   // THE SCENE DEPTH. Both programs fade a draw where it nears what is behind it: a primitive by
@@ -678,6 +902,7 @@ export class LiveEffects {
     this.group.visible = false;
     renderer.xr.enabled = false;
     renderer.shadowMap.autoUpdate = false;
+    depthPasses++;                                    // any other runtime's driver in this scene holds still (frame())
     try {
       renderer.setRenderTarget(t);
       renderer.state.buffers.depth.setMask(true);
@@ -690,6 +915,7 @@ export class LiveEffects {
         finally { renderer.autoClear = autoClear; }
       }
     } finally {
+      depthPasses--;
       renderer.setRenderTarget(target);
       renderer.xr.enabled = xr;
       renderer.shadowMap.autoUpdate = shadows;
@@ -768,11 +994,11 @@ export class LiveEffects {
     let k = 0;
     for (const d of models){
       const short = String(d.model).split('\\').pop();
-      if (this.hideModels && this.hideModels.has(short)) continue;   // TEMPORARY: hide Khezu's flash (HIDE_MODELS)
+      if (this.hideModels && this.hideModels.has(short)){ d.meterHidden = 'hidden by HIDE_MODELS'; continue; }   // TEMPORARY: hide Khezu's flash (HIDE_MODELS)
       const scene = this.glb(short);
-      if (!scene) continue;
+      if (!scene){ d.meterHidden = 'model glb not loaded: ' + short; continue; }
       const src = this.meshOf(scene, d.model, d.meshIndex);
-      if (!src) continue;
+      if (!src){ d.meterHidden = 'mesh not in the glb: ' + short + ' #' + d.meshIndex; continue; }
       const res = this.def.resources[d.model];
       const material = res.materials[d.material];
       const features = Object.assign({}, material.features, d.features);
@@ -831,6 +1057,7 @@ export class LiveEffects {
       mesh.renderOrder = 900 + k;                      // order() places it among the other draws
       mesh.visible = !!u.tAlbedoMap.value;
       d.mesh = mesh;
+      d.meterMesh = mesh; if (!mesh.visible) d.meterHidden = 'albedo texture not loaded';   // (the draw meter)
       k++;
     }
     for (let i = k; i < this.modelMeshes.length; i++) this.modelMeshes[i].visible = false;
@@ -926,6 +1153,7 @@ export class LiveEffects {
       applyState(mat, this.shaders, d.blend, d.depth, d.raster);
       mesh.renderOrder = 1000 + k;                     // the order the ROM's sorted primitive layer drew in
       mesh.visible = !!(u.tBaseMap.value || !/BaseMap/.test(d.features.FPrimitiveSample || ''));
+      d.meterMesh = mesh; if (!mesh.visible) d.meterHidden = 'texture not loaded: ' + d.textures.tBaseMap;   // (the draw meter)
     }
     for (let k = prims.length; k < this.meshes.length; k++) this.meshes[k].visible = false;
   }
@@ -958,6 +1186,7 @@ export class LiveEffects {
         (this.skippedTechniques || (this.skippedTechniques = new Set())).add(d.technique);
         const hide = this.gpuMeshes[k];
         if (hide) hide.visible = false;
+        d.meterHidden = 'technique not drawn: ' + d.technique;
         continue;
       }
       const topology = (d.layout >>> 21) & 0xff;
@@ -979,6 +1208,7 @@ export class LiveEffects {
         this.stats.skippedTechnique = (this.stats.skippedTechnique || 0) + 1;
         (this.skippedTechniques || (this.skippedTechniques = new Set())).add(d.technique + ' (unlinked)');
         if (this.gpuMeshes[k]) this.gpuMeshes[k].visible = false;
+        d.meterHidden = 'program not linked: ' + d.technique;
         continue;
       }
       let mesh = this.gpuMeshes[k];
@@ -1009,6 +1239,7 @@ export class LiveEffects {
       // a node that samples its base map waits for it (FInfParticleSampleAlbedo samples tBaseMap too)
       const reads = entry === INF_PARTICLE ? /Albedo|BaseMap/.test(d.features.FInfParticleSample || '') : /BaseMap/.test(d.features.FGPUParticleSample || '');
       mesh.visible = !!(u.tBaseMap.value || !reads);
+      d.meterMesh = mesh; if (!mesh.visible) d.meterHidden = 'texture not loaded: ' + d.textures.tBaseMap;   // (the draw meter)
     }
     for (let k = draws.length; k < this.gpuMeshes.length; k++) if (this.gpuMeshes[k]) this.gpuMeshes[k].visible = false;
   }
@@ -1038,6 +1269,7 @@ export class LiveEffects {
   }
 
   detach(){
+    LIVE_RUNTIMES.delete(this);
     if (this.group.parent) this.group.parent.remove(this.group);
     for (const mesh of this.meshes){ mesh.geometry.dispose(); if (mesh.material) mesh.material.dispose(); this.scene.remove(mesh); }
     for (const mesh of this.gpuMeshes){ if (!mesh) continue; mesh.geometry.dispose(); if (mesh.material) mesh.material.dispose(); this.scene.remove(mesh); }
@@ -1049,8 +1281,26 @@ export class LiveEffects {
     if (this.ground){ this.ground.geometry.dispose(); this.ground.material.dispose(); this.scene.remove(this.ground); this.ground = null; }
     this.unhookAfterRender();
     if (this.filterPass){ this.filterPass.dispose(); this.filterPass = null; }
+    // the draw meter's own target and mesh pool (meterPixels)
+    if (this.meterTarget){ this.meterTarget.dispose(); this.meterTarget = null; this.meterBuf = null; this.meterBg = null; }
+    if (this.meterPool){
+      const P = this.meterPool;
+      for (const mesh of P.meshes) if (mesh){ mesh.geometry.dispose(); if (mesh.material) mesh.material.dispose(); }
+      for (const mesh of P.gpuMeshes) if (mesh){ mesh.geometry.dispose(); if (mesh.material) mesh.material.dispose(); }
+      for (const mesh of P.modelMeshes) if (mesh && mesh.material) mesh.material.dispose();   // the geometry is the glb's
+      this.meterPool = null;
+    }
   }
 }
 // the ground stand-in's switch, for every runtime from now on (__view.effectGround)
 let groundDefault = false;
 export function setEffectGround(on){ groundDefault = !!on; }
+// THE GROUND TYPE (index.html's Ground control): every runtime's host takes it (host.setFloor -- its parents' floor block and the ground
+// ray's hit), the live ones now and each new one at its mount
+let floorDefault = { flags: 0, attr: 0, f74: 0, f78: 0 };
+const LIVE_RUNTIMES = new Set();
+export function setEffectFloor(flags = 0, attr = 0, f74 = 0, f78 = 0){
+  floorDefault = { flags: flags >>> 0, attr: attr & 0xff, f74: +f74 || 0, f78: +f78 || 0 };
+  for (const rt of LIVE_RUNTIMES) if (rt.host) rt.host.setFloor(floorDefault.flags, floorDefault.attr, floorDefault.f74, floorDefault.f78);
+}
+export function effectFloor(){ return Object.assign({}, floorDefault); }

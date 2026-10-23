@@ -1330,16 +1330,19 @@ export function armPairOf(monId, prefix, listId, clip){
 //     144 and her root, 0xfd5e38 / 0xfd6c1c) follow Queen actions whose motions are the variant-1 ids
 //     ([enemy+0xb5f5] != 0, e.g. 0x477), and the ROM's monster id table (0x50aa8) lists em069 only as 0x045, so
 //     they never run. In the motions read, her tail carries Seltas through joint 200's own tracks.
-//   * The paired combined motions share motion numbers on the two list 4s (checked 2026-09-14). Queen action 1:0x1e
+//   * (2026-09-14; SUPERSEDED 2026-10-17 -- the numbers often agree, but his clip is her REQUEST answered by his
+//     event stream, see "THE WHOLE DUO" below) The paired combined motions share motion numbers on the two list 4s. Queen action 1:0x1e
 //     plays Motion[27] while Seltas' 1:0x1a plays his Motion[27]. When she enters 1:0x1f (0xf8f3b0), which plays
 //     Motion[28] and carries joint 200 in her tail pincers, 0xfc901c puts Seltas into 1:0x1b (0xfc932c): his
 //     Motion[28] from frame 0, then Motion[43] when it ends -- the Queen placing him onto her (Raven). Queen
 //     Motion[76]..[79] (actions 1:0x21..0x24) hold joint 200 in her tail pincers, answered by his 1:0x1f..0x22:
 //     his Motion[35] loop, his Motion[79] loop, that pose frozen (motion speed 0), then the separation (unlink,
-//     his Motion[77] falling, list 3 Motion[11] on landing). The two also request Motion[3], [5], [9] and [35].
+//     his Motion[77] falling, list 3 Motion[11] on landing, then list 3 Motion[29], 0xfc9ce4). The two also request
+//     Motion[3], [5], [9] and [35].
 //     Queen Motion[46] / [47] (actions 7:0x0b / 7:0x0c, 0xf93dfc): Raven, 2026-09-14, "she grabs, then slams" --
 //     what moves Seltas in it is NOT FOUND YET (no joint-200 track, no Seltas test of those actions read); his own
-//     Motion[46] / [47] are his action 1:0x13 (0xfc8cbc), not its pair.
+//     Motion[46] / [47] are his action 1:0x13 (0xfc8cbc), not its pair. (2026-10-17: still nothing -- attack 0x11, a
+//     hunter grab; no request, so he rides through it.)
 //   * Seltas' part frame (vtable +0x210, 0xfc6318) draws group 8 while +0x1bb bit 0 is set (0xfc6468; part 9,
 //     XfB__m02_add) and group 0 otherwise; the horn by break 0 (group 3 intact); the claws by the value at
 //     [+0xcac0]+0x38 (below 4 group 4 part 10, to 8 group 9 part 11, below 12 group 10 part 12, from 12 group
@@ -1347,9 +1350,10 @@ export function armPairOf(monId, prefix, listId, clip){
 //     +0x49. When the combined bit changes it plays `ride_on` (or `separates`) on material 1, XfB__m01_eye:
 //     fEmissionColor 0.6 -> 2.0 over 60 frames (0xfc6378), held here at its end.
 //   * Seltas' own viewer rules carry over (Raven: "it will likely need to follow similar rules"): the wings are
-//     Away, parts 1..4 off, as its Wings row opens. The claws are the massive model -- Raven: "the claws will
+//     Away, parts 1..4 off, as its Wings row opens. The claws were the massive model -- Raven: "the claws will
 //     likely need to be unhidden for the combined form", "Seltas as a solo monster does not use the massive claw
-//     model" -- group 11, part 103, the ROM's full-grown stage; the combine action itself does not set that.
+//     model" -- group 11, part 103. REPLACED 2026-10-17 by the ROM's claw stage (`claws` below): 0 -- part 10 --
+//     under every clip of hers, since each action of his zeroes it (0xfc4808).
 //
 // THE PAIRED SEQUENCE TEST CASE: Queen list 4 Motion[76]..[79]. Raven, 2026-09-14: "Use 76 through 79 as the test
 // case" -- for the animation pass to copy. `pairs` names, per Queen clip on the partner list, the Seltas clip the
@@ -1364,26 +1368,378 @@ export function armPairOf(monId, prefix, listId, clip){
 //   * Queen 1:0x23 (0xf8f9a8) plays Motion[78] (a loop, attacks at 84 and 156) once she sees him in 1:0x20 at the
 //     end of Motion[77]. Seeing her in 1:0x23 he goes to 1:0x21 (0xfc9920), whose first step calls 0xb07b4(0.0):
 //     status +0x398, the factor 0xb07b4 multiplies into both motion layers' speed (0x5393d0 / 0x53942c), is 0,
-//     so his pose freezes where the loop stood -- 187 frames into a 61-frame loop, frame 4 (one frame either
-//     way with the two units' update order, unread).
+//     so his pose freezes where the loop stood -- CORRECTED 2026-10-17: 186 advances into a loop whose game period
+//     is 60 (length = numFrames - 1, 0x951810), frame 6, whatever the update order (`holdAt` below).
 //   * Queen 1:0x24 (0xf8fbf4) plays Motion[79] once she sees him in 1:0x21: joint 200 stays in her tail to about
 //     frame 132 and is back on her back by 156. He stays frozen -- only a new motion (0xafce8 sets +0x398 back
 //     to 1.0) or his 1200-frame timer ending (then 1:0x22, 0xfc9ab4: unlink, the combined bit cleared, his
 //     Motion[77] falling, list 3 Motion[11] on landing) moves him on, and that timer outlasts her clips.
 // Where he is comes from joint 200 itself (attachFrame), which her tracks carry; the table only picks his pose.
+//
+// THE WHOLE DUO, READ 2026-10-17 (Raven: "Review all Seltas Queen and Seltas combined animations", "Ensure we do not
+// allow them to be combined when they are not meant to be combined"; dev/em069-duo-spec.md has the per-clip table and
+// every address). The list-4 same-name / same-number rule that stood here was a viewer rule and is gone.
+//   * WHO IS ON WHOM: Seltas' link (mode 3, joint 200) is made at the START of his own actions -- 1:0x1a (the grab
+//     combine, 0xfc4b94), 1:0x2 (the landing, 0xfc516c), 13:1 (0xfd7dc8) -- and broken at the start of 1:0x13 / 1:0x22 /
+//     1:0x12 (0xfc5054 / 0xfc521c) and by his frame pass when she is gone (0xfc5af0). Her bit is a copy of his
+//     (0xf8aae8, every frame in her vt+0x1dc).
+//   * WHAT HE PLAYS UNDER HER CLIP: she asks for it. Her on-action-start hook (vt+0x204 = 0xf89228) writes a request
+//     number into [+0xcac0]+0x18, her frame pass waits for him to reach the action that number names (0xf8ae90, table
+//     0xf8aed8), and he runs HIS event-group-7 stream of that number (em076_00_cmdtbl.emc g7 sN): 2 -> 3:0x38 (his M6),
+//     3 -> 3:0x3c / 3:0x42 (M9 / M5), 5 -> 3:0x39 (M7), 6 -> 3:0x3a (M16), 7 -> 1:0x13 (M46, M47, unlinked),
+//     8 -> 3:0x3b (M14, M3, then 3:0x35 M4), 9 -> 3:0x3e (M3), 0xb -> 3:0x3f (M71, then 3:0x40 M73), 0xc -> 1:0x1f
+//     (M35), 0xd -> 3:0x36 (M48), 0xe -> 7:0x3b (M45). An action that makes no request leaves him in 1:0 -- his ride,
+//     L4 Motion[35] (0xfc7dd4, blend 10). Each answer holds its motion while she stays in the asking action, then
+//     returns to the ride (0xfcfc90, 0xfcf834, 0xfd0054, 0xfd02c4, ...).
+//   * THE TIMING: his answer starts on the frame she asks (her hook runs at her setAction; his event stream sets his
+//     motion at its phase 0) -- one game frame later if he updates before her in the enemy loop, which depends on the
+//     slot each was spawned in (NOT READ; dev/em069-duo-spec.md §5). Where her action runs two motions under his one
+//     (her M6 + M17 under his M6, 195 = 137 + 57 + 1), his clip continues across her second clip: `start` below.
+//   * CLIP CLASSES (`classes`, 'list|Motion[N]'): `combined` -- every action that plays it runs with him linked (he is
+//     mounted on it even with the row Off); `solo` -- he is not on her (she eats a dead male, L0 M16: 1:0x1c, issued
+//     only when EMC selector 4 says the partner is dead, 0xf89c5c case 4, and his death clears the bit, 0xfc5eac /
+//     0xf8aa90; she gave up waiting, L4 M29: 1:0x1e timer arm 0xf8f3a8); `release` -- every action that plays it asks
+//     for request 7 while linked (her hook 0xf8972c / 0xf8975c), so he unlinks at its frame 0 and flies off on his own
+//     (code-driven, not shown). Anything not listed is `both`: issued linked and unlinked alike (the command table's
+//     selector-0 split, dev/em069-duo-spec.md §2), and the row decides.
+//   * `pairs` ('list|clip', her clip): `seq` lays his clips along her clip -- { clip, mode: 'play' | 'wrap' | 'hold',
+//     start (his frame at her frame 0 of that piece), blend (frames, the setMotion blend of that change) } -- a play
+//     piece runs to his clip's end, the next takes over. `holdAfter` is the frozen pose (his 1:0x21, speed 0). A clip
+//     with no pair entry: the ride.
+//   * HIS CLAWS (`claws`): the claw stage [+0xcac0]+0x38 is ZEROED at the start of every action he takes (0xfc4808, his
+//     vt+0x204), and only his own attacks grow it (state +0x35 = 1 at a frame, +1 a frame to 12, 0xfc5ec0; = 3 shrinks
+//     it -1 a frame): L4 M31 (7:0x32) at 30 / 134, M32 (7:0x33) at 22 / 190. None of the answers above touches it, so
+//     under every one of her clips his stage is 0 -- set 4, part 10, the retracted claw (0xfc63e4). This replaces the
+//     part 103 the viewer showed from 2026-09-14 (Raven's choice for the combined look, not a ROM read).
+//   * His glow (group 8, part 9) is drawn while his bit is set (0xfc6468) -- every mounted clip. His wings: the answers
+//     set [+0xcac0]+0x49 to 0, 1 or 2 -- drawn from ROM_WINGS by his clip and frame; `partsOff` (Raven's Away) only where
+//     ROM_WINGS has no value.
+const PAIR_RIDE = { seq: [{ clip: 'Motion[35]_loop', mode: 'wrap', start: 0, blend: 10 }] };
 export const ROM_PARTNER_BODY = {
   em069_00: { monster: 'em076_00', joint: 200, list: '4', clip: 'Motion[35]_loop',
-              groups: [3, 8, 11], partsOff: [1, 2, 3, 4],
+              groups: [3, 8], partsOff: [1, 2, 3, 4],
+              claws: { sets: [4, 9, 10, 11] },
               matClip: { mat: 'XfB__m01_eye', clip: 'ride_on' },
+              classes: {
+                // combined: the asking actions run linked (EMC selector 0 == 1 only, or entered from a linked arm)
+                '4|Motion[3]': 'combined', '4|Motion[4]': 'combined', '4|Motion[6]': 'combined',
+                '4|Motion[8]': 'combined', '4|Motion[9]': 'combined', '4|Motion[11]': 'combined',
+                '4|Motion[13]': 'combined', '4|Motion[14]': 'combined', '4|Motion[15]': 'combined',
+                '4|Motion[16]': 'combined', '4|Motion[17]': 'combined', '4|Motion[26]': 'combined',
+                '4|Motion[27]': 'combined', '4|Motion[28]': 'combined', '4|Motion[71]': 'combined',
+                '4|Motion[72]': 'combined', '4|Motion[73]': 'combined', '4|Motion[76]': 'combined',
+                '4|Motion[77]': 'combined', '4|Motion[78]': 'combined', '4|Motion[79]': 'combined',
+                '3|Motion[24]': 'combined',
+                // REQUIRED, audit of 2026-10-17 (Raven: "I also see animations I know Seltas is required, but he is not
+                // being enabled"): every clip whose action asks him for an answer when linked, or whose joint 200 /
+                // record work is aimed at him, mounts him even where an unlinked stream of hers also plays it --
+                // (4,4) M7 / M24 (request 5), 7:0x3a / 0x32.. M10 (request 3), 7:0x3c M25 (request 9), 7:0x1a..0x2a
+                // M83 / M86 / M93 / M95 and their second layers (request 0xe), 1:0x26 L3 M23 (request 0xd), 7:0x4e
+                // L0 M65 (request 0x10), 7:0x3e's turn record M74 / M75 (request 0xb; 7:0x3e has no entry found at
+                // variant 0), M96 (joint 200 carried up to where he hovers). dev/em069-duo-spec.md §14.
+                '4|Motion[7]': 'combined', '4|Motion[24]': 'combined', '4|Motion[10]': 'combined', '4|Motion[25]': 'combined',
+                '4|Motion[82]': 'combined', '4|Motion[83]': 'combined', '4|Motion[84]': 'combined', '4|Motion[85]': 'combined',
+                '4|Motion[86]': 'combined', '4|Motion[87]': 'combined', '4|Motion[92]': 'combined', '4|Motion[93]': 'combined',
+                '4|Motion[94]': 'combined', '4|Motion[95]': 'combined', '3|Motion[23]': 'combined', '0|Motion[65]': 'combined',
+                '4|Motion[74]': 'combined', '4|Motion[75]': 'combined', '4|Motion[96]': 'combined',
+                // solo: he is not on her
+                '0|Motion[16]': 'solo', '4|Motion[29]': 'solo',
+                // (2026-10-17: the 22 clips of the first re-read -- M44..M50, M55..M62, M69, M70, M90, M91, L0 M10 / M11 /
+                // M36 -- are NOT solo: they are issued from her event groups 3 / 4 / 5 too, the awareness transitions of
+                // the shared forced-transition family (0x7e1e8 / 0x7e678 group 5, 0x7e9c8 / 0x7ed80 group 4 = the notice,
+                // dev/notice-marks.md; 0x7f36c group 3), and none of those tests the link -- so they run with him on her
+                // as well. They ask nothing of him: `both`, his own logic under them. dev/em069-duo-spec.md §14.)
+                // release: request 7 at frame 0 -- he unlinks (1:0x13) and leaves
+                '4|Motion[68]': 'release', '3|Motion[12]': 'release', '3|Motion[18]': 'release',
+                '3|Motion[35]': 'release', '3|Motion[36]': 'release',
+              },
               pairs: {
-                'Motion[76]_start': { clip: 'Motion[35]_loop', wrap: true },
-                'Motion[76]_loop':  { clip: 'Motion[35]_loop', wrap: true },
-                'Motion[77]':       { clip: 'Motion[79]_loop', wrap: true },
-                'Motion[78]_loop':  { clip: 'Motion[79]_loop', holdAfter: 'Motion[77]' },
-                'Motion[79]':       { clip: 'Motion[79]_loop', holdAfter: 'Motion[77]' },
+                '4|Motion[6]':  { seq: [{ clip: 'Motion[6]', mode: 'play', start: 0 }] },            // (4,0) req 2 -> 3:0x38
+                '4|Motion[17]': { seq: [{ clip: 'Motion[6]', mode: 'play', start: 137 }] },          //   ...her M6 is 137
+                '4|Motion[7]':  { seq: [{ clip: 'Motion[7]', mode: 'play', start: 0 }] },            // (4,4) req 5 -> 3:0x39
+                '4|Motion[24]': { seq: [{ clip: 'Motion[7]', mode: 'play', start: 49 }] },           //   ...her M7 is 49
+                '4|Motion[16]': { seq: [{ clip: 'Motion[16]', mode: 'play', start: 0 }] },           // 7:0x37 req 6 -> 3:0x3a
+                '4|Motion[9]':  { seq: [{ clip: 'Motion[9]', mode: 'play', start: 0, blend: 4 },     // 7:0x32/34/39 req 3 -> 3:0x3c
+                                        { clip: 'Motion[5]_loop', mode: 'wrap', start: 0 }] },
+                '4|Motion[10]': { seq: [{ clip: 'Motion[5]_loop', mode: 'wrap', start: 0 }] },       //   his M5 (or 3:0x42 M5, b4)
+                '4|Motion[14]': { seq: [{ clip: 'Motion[14]', mode: 'play', start: 0 }] },           // 7:0x3b req 8 -> 3:0x3b
+                '4|Motion[15]': { seq: [{ clip: 'Motion[14]', mode: 'play', start: 37 },             //   ...her M14 is 37
+                                        { clip: 'Motion[3]_loop', mode: 'hold', start: 0, blend: 20 }] },
+                '4|Motion[3]_loop': { seq: [{ clip: 'Motion[3]_loop', mode: 'hold', start: 0 }] },   //   his M3 pose (0xfcf63c)
+                '4|Motion[25]': { seq: [{ clip: 'Motion[3]_loop', mode: 'hold', start: 0, blend: 40 }] }, // 7:0x3c req 9 -> 3:0x3e
+                '4|Motion[4]':  { seq: [{ clip: 'Motion[4]', mode: 'play', start: 0 }] },            // 7:0x36 -> his 3:0x35
+                '4|Motion[26]': { seq: [{ clip: 'Motion[4]', mode: 'play', start: 39 }] },           //   ...her M4 is 39
+                '4|Motion[71]': { seq: [{ clip: 'Motion[71]_start', mode: 'play', start: 0 },        // 7:0x3d.. req 0xb -> 3:0x3f
+                                        { clip: 'Motion[71]_loop', mode: 'wrap', start: 0 }] },
+                '4|Motion[72]_loop': { seq: [{ clip: 'Motion[71]_loop', mode: 'wrap', start: 9 }] }, //   (149 - 80) % 10
+                '4|Motion[73]': { seq: [{ clip: 'Motion[73]', mode: 'play', start: 0 }] },           // 7:0x3f -> his 3:0x40
+                '4|Motion[74]': { seq: [{ clip: 'Motion[71]_start', mode: 'play', start: 0 },        // 7:0x3e's turns, req 0xb -> 3:0x3f
+                                        { clip: 'Motion[71]_loop', mode: 'wrap', start: 0 }] },
+                '4|Motion[75]': { seq: [{ clip: 'Motion[71]_start', mode: 'play', start: 0 },
+                                        { clip: 'Motion[71]_loop', mode: 'wrap', start: 0 }] },
+                '0|Motion[65]': { seq: [{ clip: 'Motion[33]', mode: 'play', start: 0 }] },           // 7:0x4e req 0x10 -> 7:0x3f
+                '4|Motion[83]': { seq: [{ clip: 'Motion[45]_loop', mode: 'wrap', start: 0, blend: 10 }] }, // 7:0x1a.. req 0xe -> 7:0x3b
+                '4|Motion[86]': { seq: [{ clip: 'Motion[45]_loop', mode: 'wrap', start: 0, blend: 10 }] },
+                '4|Motion[93]': { seq: [{ clip: 'Motion[45]_loop', mode: 'wrap', start: 0, blend: 10 }] },
+                '4|Motion[95]': { seq: [{ clip: 'Motion[45]_loop', mode: 'wrap', start: 0, blend: 10 }] },
+                '4|Motion[8]':  { seq: [{ clip: 'Motion[8]', mode: 'play', start: 0 }] },            // her 1:0 <- his 1:0x2 (the landing)
+                '4|Motion[27]_start': { seq: [{ clip: 'Motion[27]_loop', mode: 'wrap', start: 0 }] },// 1:0x1e <- his 1:0x1a
+                '4|Motion[27]_loop':  { seq: [{ clip: 'Motion[27]_loop', mode: 'wrap', start: 26 }] },
+                '4|Motion[28]': { seq: [{ clip: 'Motion[28]', mode: 'play', start: 0 }] },           // 1:0x1f -> his 1:0x1b
+                '3|Motion[23]': { seq: [{ clip: 'Motion[48]', mode: 'play', start: 0 }] },           // 1:0x26 req 0xd -> 3:0x36
+                '3|Motion[24]': { seq: [{ clip: 'Motion[48]', mode: 'play', start: 181 }] },         //   ...her L3 M23 is 181
+                // THE TAIL GRAB (her 1:0x21..0x24): the 2026-09-14 test case, re-read and kept
+                '4|Motion[76]_start': { seq: [{ clip: 'Motion[35]_loop', mode: 'wrap', start: 0 }] },
+                '4|Motion[76]_loop':  { seq: [{ clip: 'Motion[35]_loop', mode: 'wrap', start: 26 }] },
+                // the M79 loop runs with the GAME's period: length = numFrames - 1 (0x951810: `sub r1, r1, #1`) = 60, the
+                // wrap onto the loop point 0 (0x94f374): 60 frames, not the clip's 61. The freeze (holdAt): her M77 ends on
+                // the update its frame reaches 186 (bit 2, 0x94f374), she follows to 1:0x23 on the next (the same-update
+                // re-run, 0xa5af4..0xa5b14), he sees it and stops before his advance: 186 advances of his M79 -> 186 mod
+                // 60 = 6. Both his changes carry the same lag, so the update order does not move it.
+                '4|Motion[77]':       { seq: [{ clip: 'Motion[79]_loop', mode: 'wrap', start: 0, blend: 4, period: 60 }] },
+                '4|Motion[78]_loop':  { holdAfter: 'Motion[77]', holdAt: 6, seq: [{ clip: 'Motion[79]_loop', mode: 'hold' }] },
+                // HER M79 KILLS HIM (spec §21): her 1:0x24 arms record 0x23 (`0xf8fc8c`: kind 0xa, the sphere r200 on joint 200,
+                // flag 0x400 = past the partner exclusion); his 1:0x21 holds the reaction lock P+0x3a2 every frame until her M79
+                // frame 80 (`0xfc9980..0xfc99d0`); then the damage step sets his HP to max x P+0x380 (-1.0: 0) and asks (11, 8)
+                // (`0x98f98..0x98ff0`, Seltas in the air only: em 0x4c, `0x990cc`) -- frozen on her M79 to frame 80, then his death
+                '4|Motion[79]':       { holdAfter: 'Motion[77]', holdAt: 6, seq: [{ clip: 'Motion[79]_loop', mode: 'hold' }], death: { at: 80 } },
               } },
 };
+// HIS OWN CLIPS ON HER ANIMATION LIST (Raven, 2026-10-17: "Seltas and Queen will be akin to Nakarkos where we had the
+// tentacle animations, multiple models at the same time"): like an arm's l_N / r_N list, a list of his combined clips
+// beside hers; picking one plays it on him and her side of it on her (`body`: her clips in order, laid on his clip's
+// frames). The pairs are the inverse of `pairs` above (his answer -> the clips of the asking action); his ride and his
+// riding attacks (7:0x32 M31, 7:0x33 M32, 7:0x34 / 0x39 M33, 7:0x3a / 0x3e M34) are chosen by HIS command table while
+// he is on her (g0 s4: by her action class 0xfc5540, mostly class 1 = her 2:0, whose turn record's centre is L0 M1),
+// so her side there is her L0 Motion[1] loop -- a viewer choice where the ROM leaves her action free.
+// THE ONE COMBINED LIST (Raven, 2026-10-17: "leave Queen's raw animations uncombined in case people want to see them"):
+// her raw lists play her alone; this list, beside them, holds every animation the ROM plays with him on her, in four
+// groups -- (1) her REQUIRED clips (`classes` combined), named 'Queen L<list> <clip>', with his pair; (2) the joined
+// duo animations (ROM_ANIMATIONS entries marked `duo`); (3) HIS clips that no clip of hers already leads (his riding
+// attacks and his ride with her idling, his M43 after the placement, his 7:0x3f with her 7:0x4e / 0x4f), named
+// 'Seltas <clip>', with her side; (4) her `both` clips with him riding and following his own logic, named
+// 'Queen L<list> <clip> + Seltas free'. Release, solo and unresolved clips stay off it. His answers that one of her
+// required clips leads (his M6 under her M6 / M17, M7, M9, M14, M16, M4, M71, M73, M45, M48, M8, M27, M28, M79) are
+// that clip's entry, not a second one.
+ROM_PARTNER_BODY.em069_00.unresolved = ['0|Motion[21]', '0|Motion[22]', '0|Motion[23]', '0|Motion[24]', '0|Motion[25]', '0|Motion[26]',
+                                         '4|Motion[12]', '4|Motion[21]', '4|Motion[35]', '4|Motion[89]'];
+// WHERE HE LEAVES HER (request 7: her 1:0x1a shake-off M68 and her death clips, `classes` release): her hook writes the
+// request at her action start (0xf8972c / 0xf8975c), his 1:0x13 UNLINKS at its own start (0xfc5054, bit 0 cleared
+// 0xfc5088) and plays L4 M46 b4 then M47 b0 (0xfc8e84), wings out; unlinked he does not return to the ride (0xfc8e9c).
+// So from her frame 0 he is no longer on joint 200: the viewer leaves him where joint 200 was at that frame, in world
+// space, playing M46 then M47 (then their last frame -- what he does next is his own table's; his flight's push is
+// code, 0xfc8cbc, not shown). His glow goes off with the bit (0xfc6468: group 0, not 8).
+ROM_PARTNER_BODY.em069_00.leaves = [{ clip: 'Motion[46]', blend: 4 }, { clip: 'Motion[47]' }];
+// THE DISMOUNTS, AS THE ROM RUNS THEM (Seltas duo agent, 2026-10-17; spec §18). Once unlinked he is a unit of his own: the
+// engine draws his joint 0 on his unit position WITHOUT the clip's `reference` track (the seam test: 1:0x13 moves the unit
+// by (0, 1392.5, 245) x size at M46's end, `0xfc8d44..0xfc8e60`, and M46's last joint 0 minus M47's first is (0, 13.80,
+// 2.446) model units -- with the reference track applied instead, M47 would start 2.4 behind), and the code moves the unit:
+//   leave (1:0x13, request 7): L4 M46 b4; at its end the unit += yaw-rotated (0, 1392.5, 245) x size; L4 M47 b0; at its end,
+//     unlinked, vt+0x3e0 (`0x7527c`): posture 1 and action (0, 3) = L1 M1 b10 (`0xfc79f8`), the hover;
+//   drop (1:0x22, after the 1200-frame freeze): yaw = his + hers (world), pitch / roll 0, + 0x8000; L4 M77 b0 (its start,
+//     then its loop); v = -10 / frame, a = -1 / frame^2 (`0x7d65c`) until the ground (`0xbf0bc`; her ground, `P+0x5b4`);
+//     L3 M11 b0 (start + one loop pass: the ended bit), L3 M29 b0, then vt+0x3dc (`0x75168`): posture 0 and action (0, 0) --
+//     unaware (P+0x2c0 0) -- L0 M1 b10 (`0xfc7d24`).
+// Game units: 0.01 a viewer unit; `commit` is in his model units (the 0.01 x size the frame's scale already carries).
+ROM_PARTNER_BODY.em069_00.dismounts = {
+  // his death (11, 8), script 0x17e7350: posture air (op 4), L4 M77 b0 (its start, then its loop) until the ground, posture 0,
+  // L4 M78 b0 (start, then its loop: he lies dead), then nothing (0xff). The script sets no velocity (op 0x34 with (0, 0, 0));
+  // the fall rate of the airborne death is NOT READ -- the viewer drops him with his 1:0x22's read rate (-10 / frame, -1 /
+  // frame^2) as a stand-in. Unlinked at the death's start (status 11 clears his bit 0xfc5eac; the next action start unlinks
+  // 0xfc4894), upright at his + her yaw
+  death: { fall: { v: -10, a: -1 }, standIn: true,
+           air: [{ list: '4', clip: 'Motion[77]_start', blend: 0 }, { list: '4', clip: 'Motion[77]_loop', blend: 0 }],
+           land: [{ list: '4', clip: 'Motion[78]_start', blend: 0 }, { list: '4', clip: 'Motion[78]_loop', blend: 0, rest: true }] },
+  leave: { pieces: [{ list: '4', clip: 'Motion[46]', blend: 4 }, { list: '4', clip: 'Motion[47]', blend: 0 },
+                    { list: '1', clip: 'Motion[1]_loop', blend: 10, rest: true }],
+           commit: { after: 0, model: [0, 13.925, 2.45] } },
+  drop:  { turn: Math.PI, fall: { v: -10, a: -1 },
+           air: [{ list: '4', clip: 'Motion[77]_start', blend: 0 }, { list: '4', clip: 'Motion[77]_loop', blend: 0 }],
+           land: [{ list: '3', clip: 'Motion[11]_start', blend: 0 }, { list: '3', clip: 'Motion[11]_loop', blend: 0 },
+                  { list: '3', clip: 'Motion[29]', blend: 0 }, { list: '0', clip: 'Motion[1]_loop', blend: 10, rest: true }] },
+};
+ROM_PARTNER_BODY.em069_00.partnerList = {
+  id: 'duo', label: 'Combined (with Seltas)', from: '4', prefix: 'Seltas ', herLists: ['0', '3', '4'],
+  clips: {
+    // (2026-10-18, the static audit: these held his clip's last frame to the end of her side; at each action's end the ROM goes
+    // on -- 1:0x1c / 1:0x23 (M43) `0xfc9518`, 7:0x32 (M31) `0xfd46e8`, 7:0x33 (M32) `0xfd480c`, 7:0x34 (M33) `0xfd4908`: the
+    // ride (1, 0), M35 b10; 7:0x3a (M34) `0xfd5640`: (3, 0x3d), L4 M5 b0 (`0xfd00cc`), which leaves to the ride on its next update
+    // when she is not in the asking action)
+    'Motion[43]':       { his: 'Motion[43]', body: [['0', 'Motion[2]']],
+                          hisSeq: [{ clip: 'Motion[43]' }, { clip: 'Motion[35]_loop', blend: 10 }] },
+    'Motion[35]_loop':  [['0', 'Motion[1]_loop']],
+    'Motion[31]':       { his: 'Motion[31]', body: [['0', 'Motion[1]_loop']], hisSeq: [{ clip: 'Motion[31]' }, { clip: 'Motion[35]_loop', blend: 10 }] },
+    'Motion[32]':       { his: 'Motion[32]', body: [['0', 'Motion[1]_loop']], hisSeq: [{ clip: 'Motion[32]' }, { clip: 'Motion[35]_loop', blend: 10 }] },
+    'Motion[33]':       { his: 'Motion[33]', body: [['0', 'Motion[1]_loop']], hisSeq: [{ clip: 'Motion[33]' }, { clip: 'Motion[35]_loop', blend: 10 }] },
+    'Motion[34]':       { his: 'Motion[34]', body: [['0', 'Motion[1]_loop']],
+                          hisSeq: [{ clip: 'Motion[34]' }, { clip: 'Motion[5]_loop', frames: 1 }, { clip: 'Motion[35]_loop', blend: 10 }] },
+    // HER COMBINED ATTACK 7:0x4d -> 7:0x4e -> 7:0x4f with his 7:0x3f (request 0x10): she plays L0 M65 (b8, 0xf9720c) and
+    // loops it until his flag [+0xcac0]+0x6b (read through 0xfd92e0); his phases (table 0xfd59cc): 0 M33 by the turn
+    // record 0x16a16d4 (0xfd5a38), 1 the turn to frame 40 (0x7a27c, 0xfd5aa0), 2 / 3 the repeats (counter +0x6c <= 2,
+    // M33 again from 100 at 0xfd5d48, helpers 0xfd4924 / 0xfd4b00 NOT READ), 4 at his frame 105 the flag (0xfd5a40..
+    // 0xfd5a88), so she goes to 7:0x4f: L4 M42 from frame 90, b8 (0xf93c5c); 5 he waits while she is in 7:0x4d..0x4f,
+    // then rides. Shown: one M33 to its flag frame 105, her M42 from 90 from there; the repeats are not shown
+    // HIS DROP OFF HER BACK (1:0x22), 1200 frames after the tail grab's freeze: her side is her idle (the clip under it is
+    // her table's pick, not read) -- the entry starts at his 1:0x22, on her back
+    'Motion[77] drop off her (1:0x22)': { his: 'Motion[77]_start', body: [['0', 'Motion[1]_loop', { frames: 600 }]], drop: true },
+    // HIS 7:0x3f, PHASE BY PHASE (0xfd58ac, table 0xfd59cc; the shells agent's read, dev/em069-em076-shells-spec.md 2b): M33 from
+    // the turn record; the turn to f40 (0xfd5a90), then 20 frames more to f60 (phase 2, P+0x1bc = 20.0); at f60 M33 AGAIN FROM
+    // 40 b4 (0xfd5dc0) and the spits (phase 3: 0xfd4b00 at the crossings 68 / 88 / 96, two a crossing); at f100 +0x6c += 1 and,
+    // while <= 2, M33 from 100 b4 (0xfd5d48) and phase 2 to f120 (0xfd5c58: 120.0), then from 40 again -- THREE sets, the third
+    // one spit a crossing (+0x6c == 2); after the third the flag +0x6b at f105 (0xfd5a40: 105.0), 285 frames in. Her 7:0x4e L0
+    // M65 loops under him until she sees the flag, then her 7:0x4f: L4 M42 from 90 b8. His turns (+-11 / +-22 degrees,
+    // 0x76dd0) are not shown (his facing on her is her joint's).
+    'Motion[33] with her 7:0x4e': { his: 'Motion[33]',
+      body: [['0', 'Motion[65]', { frames: 285, loop: true }], ['4', 'Motion[42]', { start: 90, blend: 8 }]],
+      hisSeq: [{ clip: 'Motion[33]', frames: 60 },
+               { clip: 'Motion[33]', start: 40, frames: 60, blend: 4 }, { clip: 'Motion[33]', start: 100, frames: 20, blend: 4 },
+               { clip: 'Motion[33]', start: 40, frames: 60, blend: 4 }, { clip: 'Motion[33]', start: 100, frames: 20, blend: 4 },
+               { clip: 'Motion[33]', start: 40, frames: 65, blend: 4, spitSet: 3 }, { clip: 'Motion[33]', start: 105 }] },
+  },
+};
+// the two-layer attacks' second motions (0xb04d0 / 0xb03f8: M83 with M82 / M84, M86 with M85 / M87, M93 with M92,
+// M95 with M94) are the same actions -- the same answer
+for (const [a, b] of [[82, 83], [84, 83], [85, 86], [87, 86], [92, 93], [94, 95]])
+  ROM_PARTNER_BODY.em069_00.pairs['4|Motion[' + a + ']'] = ROM_PARTNER_BODY.em069_00.pairs['4|Motion[' + b + ']'];
 export function partnerBodyOf(monId){ return (monId && ROM_PARTNER_BODY[monId]) || null; }
+// the class of one of her clips ('combined' | 'solo' | 'release' | 'both'), by its bare motion name
+export function partnerClassOf(spec, listId, clipName){
+  const k = String(listId) + '|' + String(clipName).replace(/_(start|loop)$/, '');
+  return (spec && spec.classes && spec.classes[k]) || 'both';
+}
+// her clip's pair entry, by its exact name, else the ride
+export function partnerPairOf(spec, listId, clipName){
+  return (spec && spec.pairs && spec.pairs[String(listId) + '|' + clipName]) || PAIR_RIDE;
+}
+// HIS CLAW STAGE at a frame of one of his clips (0xfc5ec0): 0 until `grow`, +1 a frame to 12, held, -1 a frame from
+// `shrink`. Every new action zeroes it (0xfc4808), so a clip starts at 0.
+export const ROM_CLAW_SCHEDULE = {
+  em076_00: { 'Motion[31]': { grow: 30, shrink: 134 },    // 7:0x32, 0xfd4698 / 0xfd46bc (literals 30.0 / 134.0)
+              'Motion[32]': { grow: 22, shrink: 190 } },  // 7:0x33, 0xfd47ac / 0xfd47d0 (22.0 / 190.0)
+};
+export function clawStageAt(monId, clip, frame){
+  const s = ROM_CLAW_SCHEDULE[monId] && ROM_CLAW_SCHEDULE[monId][String(clip).replace(/_(start|loop)$/, '')];
+  if (!s || frame < s.grow) return 0;
+  const top = Math.min(12, s.shrink - s.grow);
+  return frame < s.shrink ? Math.min(12, frame - s.grow) : Math.max(0, top - (frame - s.shrink));
+}
+// the stage's .mpm set (0xfc63d8..0xfc651c): below 4 the first, to 8 the second, below 12 the third, else the fourth
+export function clawSetOf(sets, stage){
+  return stage < 4 ? sets[0] : stage <= 8 ? sets[1] : stage < 12 ? sets[2] : sets[3];
+}
+
+// SELTAS' WINGS, READ (Seltas duo agent, 2026-10-17; Raven: "Seltas wing parts are not being toggled during flying sections").
+// His flight state [+0xcac0]+0x49 is written by his actions (EMULATED, every action x phase x link: duo/s_census.json ->
+// duo/wingtable.py), and his vt+0x2a0 wing pass 0xfc66f8..0xfc75c0 (emulated, duo/wingemu.py) scales the four card joints
+// 150..153 (the .mod's cards: part 1 and part 4 on joints 150 + 151, part 2 on 152, part 3 on 153) to 0 or 1; the part
+// set the claw pass picks with it (0xfc6520: 0 set 1, 1 set 5, 2 set 6) draws them. So what shows:
+//   0 (and dead, vt+0x3f4): every card joint at 0 -- NO card (the folded wings; Raven's Away);
+//   1: joints 150 / 151 at 1, 152 / 153 at 0, set 5 = part 4 alone -- the wings OUT;
+//   2: FLAPPING, two card sets in turn every 2 frames on the +0x40 count (1 a frame, 0xfc5e54 -> 0x7264c; at >= 2.0
+//      the +0x58 bit 1 flips, 0xfc6860..0xfc6884), beginning with the first: part 2 (joint 152) for 2 frames, then
+//      parts 1, 3, 4 (joints 150, 151, 153) for 2 -- period 4. (Bit 1 also turns joints 150 / 151 by a small swing on
+//      the +0x44 count, period 18 (0xfc70d4..0xfc7434, 0x7237c) while they are at 0 -- not drawn.)
+// `clips`: the value under each of his motions (the phase that sets the motion); a clip no action of his was seen to play
+// is not listed, and there the viewer's Wings row decides. L4 M8 is 1 in his 1:0x2 (the landing on her) and 2 in 3:0x33.
+export const ROM_WINGS = {
+  em076_00: {
+    flap: { half: 2, parts: [[2], [1, 3, 4]] }, out: [4], parts: [1, 2, 3, 4],
+    folded: [
+    '0|Motion[1]', '0|Motion[2]', '0|Motion[4]', '0|Motion[5]', '0|Motion[6]', '0|Motion[7]', '0|Motion[8]',
+    '0|Motion[14]', '0|Motion[16]', '0|Motion[17]', '0|Motion[18]', '0|Motion[19]', '0|Motion[20]', '0|Motion[65]',
+    '0|Motion[72]', '1|Motion[2]', '1|Motion[21]', '1|Motion[22]', '2|Motion[5]', '2|Motion[29]', '2|Motion[32]',
+    '2|Motion[57]', '3|Motion[17]', '3|Motion[29]', '3|Motion[52]', '3|Motion[53]', '4|Motion[6]', '4|Motion[9]',
+    '4|Motion[28]', '4|Motion[31]', '4|Motion[32]', '4|Motion[33]', '4|Motion[35]', '4|Motion[43]', '4|Motion[45]',
+    '4|Motion[48]', '4|Motion[71]', '4|Motion[73]', '4|Motion[77]', '4|Motion[79]', '4|Motion[92]'
+    ],
+    out1: [
+    '1|Motion[24]', '4|Motion[1]', '4|Motion[8]', '4|Motion[14]', '4|Motion[91]', '4|Motion[93]'
+    ],
+    flapping: [
+    '1|Motion[1]', '1|Motion[3]', '1|Motion[4]', '1|Motion[5]', '1|Motion[6]', '1|Motion[7]', '1|Motion[8]',
+    '1|Motion[9]', '1|Motion[10]', '1|Motion[11]', '1|Motion[12]', '1|Motion[13]', '1|Motion[14]', '1|Motion[15]',
+    '1|Motion[16]', '1|Motion[17]', '1|Motion[18]', '1|Motion[19]', '1|Motion[23]', '1|Motion[25]', '1|Motion[27]',
+    '1|Motion[28]', '1|Motion[33]', '1|Motion[34]', '2|Motion[10]', '2|Motion[11]', '2|Motion[16]', '2|Motion[17]',
+    '2|Motion[18]', '2|Motion[24]', '2|Motion[30]', '2|Motion[37]', '2|Motion[38]', '3|Motion[63]', '3|Motion[65]',
+    '3|Motion[70]', '4|Motion[3]', '4|Motion[4]', '4|Motion[5]', '4|Motion[7]', '4|Motion[16]', '4|Motion[27]',
+    '4|Motion[34]', '4|Motion[46]', '4|Motion[47]', '4|Motion[90]', '4|Motion[94]'
+    ],
+  },
+};
+// the wing parts drawn at a frame of one of his clips ('<list>|Motion[N]', the frame over the whole slot) where his flight
+// state is up (1 / 2), or null -- folded (0) or no value -- where the viewer's Wings row decides (Raven's rule)
+export function wingPartsAt(monId, list, clip, frame){
+  const w = ROM_WINGS[monId];
+  if (!w) return null;
+  const k = String(list) + '|' + String(clip).replace(/_(start|loop)$/, '');
+  if (!w._by){ w._by = {}; for (const x of w.folded) w._by[x] = 0; for (const x of w.out1) w._by[x] = 1; for (const x of w.flapping) w._by[x] = 2; }
+  const v = w._by[k];
+  // 0 (folded: no card drawn) is the ground state: the Wings row decides there, Away being what the ROM draws
+  if (v === undefined || v === 0) return null;
+  if (v === 1) return w.out.slice();
+  return w.flap.parts[Math.floor(Math.max(0, frame) / w.flap.half) % w.flap.parts.length].slice();
+}
+export function wingStateOf(monId, list, clip){
+  const w = ROM_WINGS[monId];
+  if (!w) return null;
+  wingPartsAt(monId, list, clip, 0);
+  const v = w._by[String(list) + '|' + String(clip).replace(/_(start|loop)$/, '')];
+  return v === undefined ? null : v;
+}
+
+// HIS OWN DECISIONS WHILE HE RIDES (Raven, 2026-10-17: "Where he is mounted but free to make choices, we let Seltas follow
+// his logic"). Under a clip of hers that asks nothing he is in his ride 1:0 (0xfc7d74): L4 M35 at blend 10 (0xfc7dd4);
+// at his frame 180 (0xfc7dec, 0xb0968 mode 1, 180.0 at 0xfc7e28) it hands back to his command table (0x75230(e, 1, 0)
+// + 0x82454). His linked table (em076_00_cmdtbl g0 s4, variant 0) picks by op 0x02 -- a draw r = 0x49634() (the game's
+// xorshift128, 0x7c9234, low 16 bits) against cumulative weights out of 100 (0x857dc..). In every class of her action
+// (selector 2, 0xfc5540: her 2:0 / 7:1 / other) under op 0x77's case 0 the weights are: 20 -> 7:0x32 (L4 M31, blend 8,
+// 0xfd465c), 30 -> 7:0x33 (L4 M32, blend 8, 0xfd4770), 40 -> 7:0x33 then g1 s76 / s30 (the ride), 10 -> g1 s76 / s30
+// (the ride). Each attack runs to its end and queues the ride (0xfd46e8 / 0xfd480c). Op 0x77 is his DISTANCE to the hunter
+// (0x8589c -> 0x8e088 kind 0x15 -> 0x8e924): with no hunter in the viewer, band 0 (cases 1 / 2 / default add other
+// weights and his M33 attacks; thresholds NOT READ). INFERRED: op 0x1d in g1 s1 passes, selector 5 (his
+// [+0xcac0]+3) and selector 7 (her [+0xcac0]+0x3e) read 0. His attacks are not cut by her flinch (no status-10 test
+// in 7:0x32 / 0x33); his answers are (see `classes`).
+ROM_PARTNER_BODY.em069_00.free = {
+  ride: { clip: 'Motion[35]_loop', blend: 10, decideAt: 180 },
+  picks: [{ w: 20, clip: 'Motion[31]', blend: 8 }, { w: 70, clip: 'Motion[32]', blend: 8 }, { w: 10, clip: null }],
+};
+// the game's generator (0x7c9234): xorshift128, four words of state; the draw is its low 16 bits (0x3f76e4 uxth)
+export function xorshift128(seed){
+  const s = new Uint32Array([seed >>> 0 || 0x1234567, 0x75bcd15, 0x159a55e5, 0x1f123bb5]);
+  return () => {
+    let t = s[0];
+    s[0] = s[1]; s[1] = s[2]; s[2] = s[3];
+    t ^= t << 15; t >>>= 0; t ^= t >>> 4;
+    t = (t ^ s[3] ^ (s[3] >>> 21)) >>> 0;
+    s[3] = t;
+    return t & 0xffff;
+  };
+}
+// a stable seed from a name (FNV-1a): the same clip of hers always starts the same sequence of his choices
+export function seedOf(name){
+  let h = 0x811c9dc5;
+  for (const ch of String(name)){ h ^= ch.charCodeAt(0); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h;
+}
+// his free timeline: [{ clip, frames, blend }] covering at least `minFrames` -- ride to its frame 180, a draw, the pick
+// (an attack whole, then the ride again) -- `framesOf(clip)` gives a clip's frames
+export function freeTimeline(free, seed, minFrames, framesOf){
+  const rnd = xorshift128(seed), out = [];
+  let total = 0;
+  while (total < minFrames){
+    out.push({ clip: free.ride.clip, frames: free.ride.decideAt, blend: free.ride.blend, kind: 'ride' });
+    total += free.ride.decideAt;
+    const r = rnd() % 100;
+    let acc = 0, pick = free.picks[free.picks.length - 1];
+    for (const p of free.picks){ acc += p.w; if (r < acc){ pick = p; break; } }
+    if (pick.clip){
+      const f = framesOf(pick.clip);
+      out.push({ clip: pick.clip, frames: f, blend: pick.blend, kind: 'attack', draw: r });
+      total += f;
+    }
+  }
+  return out;
+}
 
 // ---- full animations: clips played back to back, on one list ------------------------------------------
 // Raven, 2026-09-14: "See if we can make a complete animation using multiple clips", then "The end goal is to
@@ -1400,9 +1756,12 @@ export function partnerBodyOf(monId){ return (monId && ROM_PARTNER_BODY[monId]) 
 export const FULL_ANIM_LIST = { id: 'Special', label: 'Special' };
 export const ROM_ANIMATIONS = {
   em069_00: [
-    { name: 'S. Motion[76]-[79]',
-      pieces: [['4', 'Motion[76]_start'], ['4', 'Motion[76]_loop'], ['4', 'Motion[77]'], ['4', 'Motion[78]_loop'],
-               ['4', 'Motion[79]']] },
+    { name: 'S. Motion[76]-[79]', duo: true,            // a duo animation: on the combined list, not Special
+      // the third number is the setMotion blend into that piece: her 1:0x22 M77 at 4 (0xf8f934), 1:0x24 M79 at 4 (0xf8fc74)
+      pieces: [['4', 'Motion[76]_start'], ['4', 'Motion[76]_loop'], ['4', 'Motion[77]', 4], ['4', 'Motion[78]_loop'],
+               // (2026-10-22: he dies at her M79 frame 80. In the ROM her g1 s46 then eats him -- 2:0x15 / 2:0x16 walk (L0 M8
+               // b12), 1:0x1c L0 M16 b4 -- NOT joined here: a candidate for Raven's combining review)
+               ['4', 'Motion[79]', 4]], deathAt: { piece: 4, frame: 80 } },
   ],
   // Khezu L2/Motion[3] attack copied to the Special list to flesh out its effects without touching List 2
   // (Raven, 2026-09-14: "Copy the animation into a List - Special, Motion 3"). Joining _start + _loop rebuilds the
@@ -1486,6 +1845,12 @@ for (const id of ['em023_00', 'em023_05'])
   ROM_ANIMATIONS[id] = [
     { name: 'S. Motion 8 Beam', pieces: [['2', 'Motion[8]_start'], ['2', 'Motion[8]_loop'], ['2', 'Motion[9]']], loops: 2, motions: true },
   ];
+// SHAGARU MAGALA'S (7, 0x53), WHOLE (shells agent, 2026-10-19; READ, dev/gore-line-shells-spec.md 2.4): phase 0 L4 M2, phase 1 L4 M11,
+// phase 2 L4 M12, then (1, 5) (0xfbbde0 / 0xfbbefc / 0xfbbeac). Its start begins the scatter (render/shells.js scatter071): 7200 frames of
+// sp_01 1 round the start point, one every 90 after the first 240. `motions`: the shells see each motion the game plays.
+ROM_ANIMATIONS.em072_00 = [
+  { name: 'S. Motion 2 Scatter', pieces: [['4', 'Motion[2]'], ['4', 'Motion[11]'], ['4', 'Motion[12]']], motions: true },
+];
 // LOOP CYCLES: an entry's `loops: N` plays each of its _loop pieces N times in place -- the start, N cycles of the loop,
 // then whatever piece follows it (an END is its own piece: no list here splits a motion further than _start + _loop,
 // and the motion an action plays after its loop is another motion, named in the chain the way Seltas's ends on
@@ -1823,6 +2188,7 @@ export const CLIP_EFFECTS = {
   // Nerscylla (em070_00): GENERATED by C:\MHGU-Extract\efx\add_effects.py from its PSLs (em070_00) -- every bit whose record is exported.
   em070_00: {
     'L0 Motion[6]': { frames: 117, bits: [{ bit: 30, efl: 'cm200_067.efl', key: 151, on: [[27, 28], [59, 60], [96, 97]] }] },
+    'L0 Motion[8]': { frames: 117, bits: [{ bit: 30, efl: 'cm200_067.efl', key: 151, on: [[25, 26], [59, 60], [96, 97]] }] },
     'L0 Motion[16]': { frames: 255, bits: [{ bit: 0, efl: 'cm202_070.efl', key: 240, on: [[101, 170]] }] },
     'L0 Motion[18]': { frames: 315, bits: [{ bit: 0, efl: 'em070_00_006.efl', key: 200, on: [[46, 47]] }] },
     'L0 Motion[24]': { frames: 27, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 31, on: [[24, 25]] }] },
@@ -1836,21 +2202,26 @@ export const CLIP_EFFECTS = {
     'L0 Motion[61]': { frames: 63, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[51, 52]] }, { bit: 1, efl: 'cm202_021.efl', key: 31, on: [[2, 3]] }] },
     'L0 Motion[62]': { frames: 63, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[51, 52]] }, { bit: 1, efl: 'cm202_021.efl', key: 31, on: [[2, 3]] }] },
     'L2 Motion[1]': { frames: 227, bits: [{ bit: 0, efl: 'cm202_030.efl', key: 430, on: [[80, 81]] }, { bit: 1, efl: 'cm202_031.efl', key: 431, on: [[87, 88]] }] },
+    'L2 Motion[6]': { frames: 147, bits: [{ bit: 15, efl: 'em070_00_007.efl', key: 260, on: [[116, 117]] }, { bit: 16, efl: 'em070_00_007.efl', key: 261, on: [[61, 62]] }, { bit: 18, efl: 'em070_00_007.efl', key: 260, on: [[116, 117]] }, { bit: 19, efl: 'em070_00_007.efl', key: 261, on: [[61, 62]] }, { bit: 21, efl: 'em070_00_007.efl', key: 282, on: [[116, 117]] }, { bit: 22, efl: 'em070_00_007.efl', key: 283, on: [[61, 62]] }] },
     'L2 Motion[7]': { frames: 215, bits: [{ bit: 15, efl: 'em070_00_008.efl', key: 270, on: [[31, 32]] }, { bit: 18, efl: 'em070_00_008.efl', key: 270, on: [[31, 32]] }, { bit: 21, efl: 'em070_00_008.efl', key: 280, on: [[31, 32]] }] },
-    'L2 Motion[10]': { frames: 235, bits: [{ bit: 15, efl: 'em070_00_008.efl', key: 270, on: [[32, 33]] }, { bit: 18, efl: 'em070_00_008.efl', key: 270, on: [[32, 33]] }] },
+    'L2 Motion[10]': { frames: 235, bits: [{ bit: 15, efl: 'em070_00_008.efl', key: 270, on: [[32, 33]] }, { bit: 18, efl: 'em070_00_008.efl', key: 270, on: [[32, 33]] }, { bit: 21, efl: 'em070_00_008.efl', key: 280, on: [[30, 31]] }] },
     'L2 Motion[12]': { frames: 209, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[33, 34]] }] },
     'L2 Motion[13]': { frames: 149, bits: [{ bit: 6, efl: 'em070_00_011.efl', key: 290, on: [[37, 38], [51, 52], [67, 68]] }] },
     'L2 Motion[24]': { frames: 67, bits: [{ bit: 0, efl: 'em070_00_023.efl', key: 320, on: [[2, 64]] }] },
     'L2 Motion[25]': { frames: 107, bits: [{ bit: 0, efl: 'cm200_067.efl', key: 150, on: [[17, 18]] }] },
-    'L2 Motion[26]': { frames: 193, bits: [{ bit: 2, efl: 'cm200_067.efl', key: 150, on: [[35, 36]] }] },
+    'L2 Motion[26]': { frames: 193, bits: [{ bit: 2, efl: 'cm200_067.efl', key: 150, on: [[35, 36]] }, { bit: 15, efl: 'em070_00_007.efl', key: 262, on: [[2, 3]] }, { bit: 16, efl: 'em070_00_008.efl', key: 271, on: [[44, 45]] }, { bit: 18, efl: 'em070_00_007.efl', key: 262, on: [[2, 3]] }, { bit: 19, efl: 'em070_00_008.efl', key: 271, on: [[44, 45]] }, { bit: 21, efl: 'em070_00_007.efl', key: 284, on: [[2, 3]] }, { bit: 22, efl: 'em070_00_008.efl', key: 281, on: [[44, 45]] }] },
     'L2 Motion[27]': { frames: 57, bits: [{ bit: 0, efl: 'em070_00_006.efl', key: 201, on: [[33, 34]] }, { bit: 1, efl: 'cm202_021.efl', key: 31, on: [[11, 12]] }] },
     'L2 Motion[28]': { frames: 71, bits: [{ bit: 0, efl: 'cm202_000.efl', key: 50, on: [[18, 70]] }] },
     'L2 Motion[29]': { frames: 105, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[3, 4]] }] },
-    'L2 Motion[30]': { frames: 91, bits: [{ bit: 1, efl: 'cm202_021.efl', key: 31, on: [[53, 54]] }, { bit: 6, efl: 'em070_00_003.efl', key: 360, on: [[79, 80]] }, { bit: 9, efl: 'em070_00_003.efl', key: 360, on: [[79, 80]] }] },
+    'L2 Motion[30]': { frames: 91, bits: [{ bit: 1, efl: 'cm202_021.efl', key: 31, on: [[53, 54]] }, { bit: 6, efl: 'em070_00_003.efl', key: 360, on: [[79, 80]] }, { bit: 9, efl: 'em070_00_003.efl', key: 360, on: [[79, 80]] }, { bit: 12, efl: 'em070_00_002.efl', key: 350, on: [[73, 74]] }] },
     'L2 Motion[31]': { frames: 143, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[40, 41]] }, { bit: 1, efl: 'em070_00_003.efl', key: 361, on: [[1, 2]] }] },
+    'L2 Motion[40]': { frames: 133, bits: [{ bit: 6, efl: 'em070_00_011.efl', key: 290, on: [[20, 21], [39, 40]] }, { bit: 9, efl: 'em070_00_011.efl', key: 290, on: [[20, 21], [39, 40]] }, { bit: 12, efl: 'em070_00_011.efl', key: 310, on: [[20, 21], [39, 40]] }] },
+    'L2 Motion[41]': { frames: 133, bits: [{ bit: 6, efl: 'em070_00_011.efl', key: 291, on: [[20, 21], [39, 40]] }, { bit: 9, efl: 'em070_00_011.efl', key: 291, on: [[20, 21], [39, 40]] }, { bit: 12, efl: 'em070_00_011.efl', key: 311, on: [[20, 21], [39, 40]] }] },
+    'L2 Motion[46]': { frames: 197, bits: [{ bit: 15, efl: 'em070_00_012.efl', key: 400, on: [[33, 34]] }, { bit: 16, efl: 'em070_00_012.efl', key: 401, on: [[96, 97]] }, { bit: 18, efl: 'em070_00_012.efl', key: 400, on: [[33, 34]] }, { bit: 19, efl: 'em070_00_012.efl', key: 401, on: [[96, 97]] }, { bit: 21, efl: 'em070_00_012.efl', key: 400, on: [[33, 34]] }, { bit: 22, efl: 'em070_00_012.efl', key: 401, on: [[96, 97]] }] },
     'L2 Motion[54]': { frames: 15, bits: [{ bit: 0, efl: 'em070_00_006.efl', key: 201, on: [[12, 13]] }] },
     'L2 Motion[55]': { frames: 37, bits: [{ bit: 0, efl: 'cm202_000.efl', key: 50, on: [[3, 36]] }] },
     'L2 Motion[56]': { frames: 221, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[2, 3]] }] },
+    'L2 Motion[57]': { frames: 173, bits: [{ bit: 6, efl: 'em070_00_011.efl', key: 290, on: [[67, 68], [83, 84], [98, 99]] }, { bit: 9, efl: 'em070_00_011.efl', key: 290, on: [[67, 68], [83, 84], [98, 99]] }, { bit: 12, efl: 'em070_00_011.efl', key: 291, on: [[67, 68], [83, 84], [98, 99]] }] },
     'L2 Motion[73]': { frames: 205, bits: [{ bit: 0, efl: 'cm202_030.efl', key: 430, on: [[52, 53]] }] },
     'L2 Motion[74]': { frames: 205, bits: [{ bit: 0, efl: 'cm202_031.efl', key: 431, on: [[52, 53]] }] },
     'L2 Motion[75]': { frames: 91, bits: [{ bit: 0, efl: 'em070_00_023.efl', key: 320, on: [[2, 90]] }] },
@@ -1859,8 +2230,10 @@ export const CLIP_EFFECTS = {
     'L2 Motion[78]': { frames: 65, bits: [{ bit: 0, efl: 'em070_00_006.efl', key: 200, on: [[59, 60]] }] },
     'L2 Motion[79]': { frames: 99, bits: [{ bit: 0, efl: 'cm202_000.efl', key: 50, on: [[4, 98]] }] },
     'L2 Motion[82]': { frames: 185, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[47, 48]] }, { bit: 1, efl: 'cm202_021.efl', key: 31, on: [[12, 13]] }] },
+    'L2 Motion[85]': { frames: 229, bits: [{ bit: 15, efl: 'em070_00_008.efl', key: 270, on: [[35, 36]] }, { bit: 18, efl: 'em070_00_008.efl', key: 270, on: [[35, 36]] }, { bit: 21, efl: 'em070_00_008.efl', key: 280, on: [[35, 36]] }] },
     'L3 Motion[2]': { frames: 209, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 20, on: [[6, 7]] }] },
     'L3 Motion[3]': { frames: 95, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[29, 30]] }] },
+    'L3 Motion[4]': { frames: 95, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[29, 30]] }] },
     'L3 Motion[8]': { frames: 121, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 31, on: [[57, 58]] }] },
     'L3 Motion[9]': { frames: 173, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 20, on: [[5, 6]] }] },
     'L3 Motion[11]': { frames: 191, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[2, 3]] }] },
@@ -1883,7 +2256,7 @@ export const CLIP_EFFECTS = {
     'L4 Motion[30]': { frames: 49, bits: [{ bit: 0, efl: 'em070_00_006.efl', key: 200, on: [[29, 30]] }] },
     'L4 Motion[31]': { frames: 49, bits: [{ bit: 0, efl: 'em070_00_006.efl', key: 200, on: [[29, 30]] }] },
     'L4 Motion[33]': { frames: 115, bits: [{ bit: 0, efl: 'cm202_006.efl', key: 250, on: [[29, 30], [52, 53], [79, 80]] }] },
-    'L4 Motion[34]': { frames: 185, bits: [{ bit: 1, efl: 'cm202_006.efl', key: 250, on: [[2, 3], [25, 26]] }] },
+    'L4 Motion[34]': { frames: 185, bits: [{ bit: 1, efl: 'cm202_006.efl', key: 250, on: [[2, 3], [25, 26]] }, { bit: 15, efl: 'em070_00_008.efl', key: 271, on: [[33, 34]] }, { bit: 18, efl: 'em070_00_008.efl', key: 271, on: [[33, 34]] }, { bit: 21, efl: 'em070_00_008.efl', key: 281, on: [[33, 34]] }] },
     // KEPT BY HAND: this script only ever writes 'L<list> Motion[<slot>]' keys, so an entry named after a
     // Special-list copy (ROM_ANIMATIONS) survives a regeneration -- Raven asked for those copies, and the
     // viewer shows their effects through this same table.
@@ -3392,16 +3765,18 @@ export const CLIP_EFFECTS = {
     'L2 Motion[1]': { frames: 151, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 10, on: [[64, 65]] }, { bit: 1, efl: 'cm202_020.efl', key: 31, on: [[90, 91]] }, { bit: 3, efl: 'em023_00_017.efl', key: 151, on: [[87, 88]] }] },
     'L2 Motion[4]': { frames: 179, bits: [{ bit: 0, efl: 'em023_00_011.efl', key: 200, on: [[23, 24]] }] },
     'L2 Motion[5]': { frames: 91, bits: [{ bit: 0, efl: 'em023_00_017.efl', key: 151, on: [[16, 17], [69, 70]] }, { bit: 1, efl: 'em023_00_017.efl', key: 150, on: [[36, 37]] }] },
+    'L2 Motion[6]': { frames: 83, bits: [{ bit: 0, efl: 'em023_00_011.efl', key: 153, on: [[25, 26]] }] },
     'L2 Motion[7]': { frames: 157, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 10, on: [[25, 26]] }, { bit: 1, efl: 'cm202_020.efl', key: 31, on: [[67, 68]] }, { bit: 2, efl: 'em023_00_017.efl', key: 230, on: [[64, 65]] }] },
-    'L2 Motion[8]': { frames: 145, bits: [{ bit: 0, efl: 'em023_00_003.efl', key: 290, on: [[10, 78]] }, { bit: 1, efl: 'cm202_002.efl', key: 32, on: [[78, 79]] }, { bit: 15, efl: 'em023_00_001.efl', key: 291, on: [[79, 144]] }] },
+    'L2 Motion[8]': { frames: 145, bits: [{ bit: 0, efl: 'em023_00_003.efl', key: 290, on: [[10, 78]] }, { bit: 1, efl: 'cm202_002.efl', key: 32, on: [[78, 79]] }, { bit: 6, efl: 'em023_00_001.efl', key: 294, on: [[79, 80]] }, { bit: 9, efl: 'em023_00_001.efl', key: 294, on: [[79, 80]] }, { bit: 12, efl: 'em023_00_014.efl', key: 310, on: [[79, 80]] }, { bit: 15, efl: 'em023_00_001.efl', key: 291, on: [[79, 144]] }] },
     'L2 Motion[9]': { frames: 141, bits: [{ bit: 0, efl: 'em023_00_004.efl', key: 292, on: [[1, 2]] }] },
     'L2 Motion[10]': { frames: 27, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 60, on: [[21, 22]] }] },
+    'L2 Motion[12]': { frames: 89, bits: [{ bit: 0, efl: 'em023_00_001.efl', key: 294, on: [[17, 18]] }] },
     'L2 Motion[13]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 61, on: [[2, 3]] }] },
     'L2 Motion[14]': { frames: 115, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 32, on: [[41, 42]] }, { bit: 1, efl: 'cm202_001.efl', key: 61, on: [[74, 75]] }] },
     'L2 Motion[15]': { frames: 199, bits: [{ bit: 0, efl: 'em023_00_013.efl', key: 350, on: [[56, 57]] }, { bit: 1, efl: 'cm202_002.efl', key: 32, on: [[84, 85]] }, { bit: 2, efl: 'em023_00_017.efl', key: 151, on: [[53, 54]] }] },
     'L2 Motion[16]': { frames: 111, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 10, on: [[10, 11], [45, 46], [84, 85]] }] },
     'L2 Motion[17]': { frames: 137, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 10, on: [[4, 5]] }, { bit: 1, efl: 'cm202_001.efl', key: 0, on: [[32, 33]] }, { bit: 2, efl: 'cm202_001.efl', key: 1, on: [[38, 39]] }] },
-    'L2 Motion[20]': { frames: 169, bits: [{ bit: 0, efl: 'em023_00_003.efl', key: 290, on: [[33, 74]] }, { bit: 1, efl: 'cm202_021.efl', key: 60, on: [[105, 106]] }] },
+    'L2 Motion[20]': { frames: 169, bits: [{ bit: 0, efl: 'em023_00_003.efl', key: 290, on: [[33, 74]] }, { bit: 1, efl: 'cm202_021.efl', key: 60, on: [[105, 106]] }, { bit: 6, efl: 'em023_00_001.efl', key: 293, on: [[75, 168]] }, { bit: 7, efl: 'em023_00_001.efl', key: 295, on: [[72, 73]] }, { bit: 9, efl: 'em023_00_001.efl', key: 293, on: [[75, 168]] }, { bit: 10, efl: 'em023_00_001.efl', key: 295, on: [[72, 73]] }, { bit: 12, efl: 'em023_00_014.efl', key: 310, on: [[111, 112]] }] },
     'L2 Motion[21]': { frames: 169, bits: [{ bit: 0, efl: 'em023_00_003.efl', key: 290, on: [[33, 34]] }, { bit: 1, efl: 'cm202_021.efl', key: 60, on: [[109, 110]] }, { bit: 6, efl: 'em023_00_001.efl', key: 293, on: [[75, 168]] }, { bit: 7, efl: 'em023_00_001.efl', key: 295, on: [[72, 73]] }, { bit: 9, efl: 'em023_00_001.efl', key: 293, on: [[75, 168]] }, { bit: 10, efl: 'em023_00_001.efl', key: 295, on: [[72, 73]] }, { bit: 12, efl: 'em023_00_014.efl', key: 310, on: [[111, 112]] }] },
     'L2 Motion[22]': { frames: 135, bits: [{ bit: 0, efl: 'em023_00_017.efl', key: 150, on: [[82, 83]] }, { bit: 1, efl: 'em023_00_017.efl', key: 151, on: [[60, 61], [114, 115]] }] },
     'L2 Motion[23]': { frames: 135, bits: [{ bit: 0, efl: 'em023_00_017.efl', key: 150, on: [[62, 63], [113, 114]] }, { bit: 1, efl: 'em023_00_017.efl', key: 151, on: [[91, 92]] }] },
@@ -3414,7 +3789,7 @@ export const CLIP_EFFECTS = {
     'L2 Motion[35]': { frames: 143, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 61, on: [[47, 48]] }] },
     'L2 Motion[36]': { frames: 201, bits: [{ bit: 0, efl: 'em023_00_011.efl', key: 200, on: [[47, 48]] }] },
     'L2 Motion[37]': { frames: 201, bits: [{ bit: 0, efl: 'em023_00_011.efl', key: 200, on: [[47, 48]] }] },
-    'L2 Motion[40]': { frames: 109, bits: [{ bit: 0, efl: 'em023_00_011.efl', key: 210, on: [[9, 10], [27, 28]] }, { bit: 1, efl: 'em023_00_011.efl', key: 211, on: [[24, 25]] }, { bit: 2, efl: 'em023_00_011.efl', key: 200, on: [[79, 80]] }] },
+    'L2 Motion[40]': { frames: 109, bits: [{ bit: 0, efl: 'em023_00_011.efl', key: 210, on: [[9, 10], [27, 28]] }, { bit: 1, efl: 'em023_00_011.efl', key: 211, on: [[24, 25]] }, { bit: 2, efl: 'em023_00_011.efl', key: 200, on: [[79, 80]] }, { bit: 3, efl: 'cm202_021.efl', key: 60, on: [[33, 34]] }] },
     'L3 Motion[2]': { frames: 171, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[91, 92]] }, { bit: 1, efl: 'cm202_001.efl', key: 1, on: [[81, 82]] }] },
     'L3 Motion[6]': { frames: 81, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[52, 53]] }, { bit: 1, efl: 'cm202_001.efl', key: 1, on: [[36, 37]] }] },
     'L3 Motion[8]': { frames: 81, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[36, 37]] }, { bit: 1, efl: 'cm202_001.efl', key: 1, on: [[52, 53]] }] },
@@ -3445,15 +3820,16 @@ export const CLIP_EFFECTS = {
     'L0 Motion[12]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 20, on: [[24, 25], [81, 82]] }] },
     'L0 Motion[13]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 20, on: [[24, 25], [81, 82]] }] },
     'L0 Motion[14]': { frames: 119, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 10, on: [[30, 31]] }, { bit: 1, efl: 'cm202_001.efl', key: 11, on: [[67, 68]] }] },
-    'L0 Motion[17]': { frames: 1131, bits: [{ bit: 0, efl: 'cm200_014.efl', key: 80, on: [[320, 460], [777, 860]] }, { bit: 1, efl: 'cm202_070.efl', key: 81, on: [[456, 585], [858, 940]] }] },
+    'L0 Motion[17]': { frames: 1131, bits: [{ bit: 0, efl: 'cm200_014.efl', key: 80, on: [[320, 460], [777, 860]] }, { bit: 1, efl: 'cm202_070.efl', key: 81, on: [[456, 585], [858, 940]] }, { bit: 2, efl: 'cm202_010.efl', key: 261, on: [[280, 380], [710, 798]] }] },
     'L0 Motion[19]': { frames: 519, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 25, on: [[376, 377]] }] },
     'L0 Motion[22]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 5, on: [[26, 27]] }] },
     'L0 Motion[23]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 6, on: [[26, 27]] }] },
     'L0 Motion[25]': { frames: 135, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 5, on: [[61, 62]] }, { bit: 1, efl: 'cm202_001.efl', key: 6, on: [[34, 35], [94, 95]] }] },
-    'L0 Motion[30]': { frames: 291, bits: [{ bit: 1, efl: 'em083_00_001.efl', key: 265, on: [[67, 290]] }, { bit: 2, efl: 'em083_00_030.efl', key: 256, on: [[67, 290]] }] },
+    'L0 Motion[29]': { frames: 171, bits: [{ bit: 0, efl: 'cm202_010.efl', key: 261, on: [[60, 170]] }] },
+    'L0 Motion[30]': { frames: 291, bits: [{ bit: 0, efl: 'cm202_010.efl', key: 261, on: [[0, 50]] }, { bit: 1, efl: 'em083_00_001.efl', key: 265, on: [[67, 290]] }, { bit: 2, efl: 'em083_00_030.efl', key: 256, on: [[67, 290]] }] },
     'L0 Motion[31]': { frames: 117, bits: [{ bit: 0, efl: 'em083_00_001.efl', key: 265, on: [[0, 90]] }, { bit: 1, efl: 'cm202_001.efl', key: 5, on: [[75, 76]] }, { bit: 2, efl: 'cm202_001.efl', key: 6, on: [[107, 108]] }] },
-    'L0 Motion[32]': { frames: 181, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 25, on: [[81, 82]] }] },
-    'L0 Motion[33]': { frames: 399, bits: [{ bit: 0, efl: 'em083_00_012.efl', key: 263, on: [[100, 311]] }, { bit: 1, efl: 'em083_00_001.efl', key: 265, on: [[60, 350]] }, { bit: 6, efl: 'cm202_020.efl', key: 25, on: [[59, 60]] }, { bit: 9, efl: 'cm202_020.efl', key: 25, on: [[59, 60]] }, { bit: 12, efl: 'cm202_020.efl', key: 25, on: [[59, 60]] }] },
+    'L0 Motion[32]': { frames: 181, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 25, on: [[81, 82]] }, { bit: 1, efl: 'cm202_010.efl', key: 261, on: [[84, 180]] }] },
+    'L0 Motion[33]': { frames: 399, bits: [{ bit: 0, efl: 'em083_00_012.efl', key: 263, on: [[100, 311]] }, { bit: 1, efl: 'em083_00_001.efl', key: 265, on: [[60, 350]] }, { bit: 2, efl: 'cm202_010.efl', key: 261, on: [[0, 20]] }, { bit: 3, efl: 'cm202_020.efl', key: 302, on: [[331, 332]] }, { bit: 6, efl: 'cm202_020.efl', key: 25, on: [[59, 60]] }, { bit: 9, efl: 'cm202_020.efl', key: 25, on: [[59, 60]] }, { bit: 12, efl: 'cm202_020.efl', key: 25, on: [[59, 60]] }] },
     'L0 Motion[40]': { frames: 275, bits: [{ bit: 0, efl: 'cm202_010.efl', key: 90, on: [[10, 62], [110, 143]] }, { bit: 1, efl: 'cm202_020.efl', key: 25, on: [[92, 93]] }, { bit: 2, efl: 'cm202_001.efl', key: 11, on: [[253, 254]] }] },
     'L2 Motion[1]': { frames: 291, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 320, on: [[108, 109]] }] },
     'L2 Motion[2]': { frames: 277, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 325, on: [[94, 95]] }] },
@@ -3461,31 +3837,35 @@ export const CLIP_EFFECTS = {
     'L2 Motion[6]': { frames: 539, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 325, on: [[258, 259]] }, { bit: 1, efl: 'cm202_020.efl', key: 320, on: [[300, 301]] }, { bit: 2, efl: 'cm202_002.efl', key: 321, on: [[220, 221]] }, { bit: 3, efl: 'cm202_002.efl', key: 326, on: [[265, 266]] }, { bit: 4, efl: 'em083_00_011.efl', key: 230, on: [[203, 204], [389, 390]] }] },
     'L2 Motion[9]': { frames: 181, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 5, on: [[142, 143]] }, { bit: 1, efl: 'cm202_001.efl', key: 6, on: [[177, 178]] }] },
     'L2 Motion[10]': { frames: 253, bits: [{ bit: 0, efl: 'em083_00_011.efl', key: 210, on: [[94, 95], [146, 147]] }] },
-    'L2 Motion[11]': { frames: 441, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 20, on: [[32, 33]] }, { bit: 1, efl: 'cm202_020.efl', key: 25, on: [[200, 201]] }, { bit: 2, efl: 'em083_00_001.efl', key: 304, on: [[215, 255]] }] },
+    'L2 Motion[11]': { frames: 441, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 20, on: [[32, 33]] }, { bit: 1, efl: 'cm202_020.efl', key: 25, on: [[200, 201]] }, { bit: 2, efl: 'em083_00_001.efl', key: 304, on: [[215, 255]] }, { bit: 3, efl: 'cm202_020.efl', key: 302, on: [[208, 209]] }] },
     'L2 Motion[13]': { frames: 381, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 220, on: [[133, 134]] }, { bit: 1, efl: 'em083_00_001.efl', key: 304, on: [[140, 175]] }, { bit: 2, efl: 'cm202_020.efl', key: 25, on: [[125, 126], [244, 245]] }] },
-    'L2 Motion[14]': { frames: 511, bits: [{ bit: 1, efl: 'em083_00_003.efl', key: 290, on: [[187, 188]] }, { bit: 2, efl: 'em083_00_001.efl', key: 260, on: [[193, 405]] }, { bit: 3, efl: 'em083_00_000.efl', key: 200, on: [[150, 190]] }, { bit: 4, efl: 'em083_00_002.efl', key: 292, on: [[400, 401]] }] },
+    'L2 Motion[14]': { frames: 511, bits: [{ bit: 0, efl: 'cm202_010.efl', key: 261, on: [[40, 100]] }, { bit: 1, efl: 'em083_00_003.efl', key: 290, on: [[187, 188]] }, { bit: 2, efl: 'em083_00_001.efl', key: 260, on: [[193, 405]] }, { bit: 3, efl: 'em083_00_000.efl', key: 200, on: [[150, 190]] }, { bit: 4, efl: 'em083_00_002.efl', key: 292, on: [[400, 401]] }] },
     'L2 Motion[15]': { frames: 195, bits: [{ bit: 0, efl: 'em083_00_000.efl', key: 201, on: [[74, 130]] }, { bit: 1, efl: 'em083_00_000.efl', key: 200, on: [[40, 80]] }, { bit: 2, efl: 'em083_00_000.efl', key: 202, on: [[120, 140]] }] },
-    'L2 Motion[16]': { frames: 279, bits: [{ bit: 1, efl: 'cm202_020.efl', key: 26, on: [[147, 148]] }] },
+    'L2 Motion[16]': { frames: 279, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 302, on: [[154, 155]] }, { bit: 1, efl: 'cm202_020.efl', key: 26, on: [[147, 148]] }] },
     'L2 Motion[17]': { frames: 121, bits: [{ bit: 0, efl: 'cm202_004.efl', key: 30, on: [[6, 34]] }] },
     'L2 Motion[18]': { frames: 305, bits: [{ bit: 0, efl: 'em083_00_003.efl', key: 291, on: [[125, 144]] }, { bit: 1, efl: 'em083_00_000.efl', key: 200, on: [[100, 120]] }, { bit: 2, efl: 'em083_00_002.efl', key: 341, on: [[75, 76]] }] },
-    'L2 Motion[19]': { frames: 385, bits: [{ bit: 1, efl: 'cm202_004.efl', key: 30, on: [[290, 308]] }, { bit: 2, efl: 'cm202_020.efl', key: 26, on: [[72, 73]] }] },
+    'L2 Motion[19]': { frames: 385, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 302, on: [[73, 74]] }, { bit: 1, efl: 'cm202_004.efl', key: 30, on: [[290, 308]] }, { bit: 2, efl: 'cm202_020.efl', key: 26, on: [[72, 73]] }] },
     'L2 Motion[20]': { frames: 99, bits: [{ bit: 0, efl: 'em083_00_005.efl', key: 244, on: [[73, 74]] }] },
     'L2 Motion[21]': { frames: 119, bits: [{ bit: 0, efl: 'em083_00_030.efl', key: 256, on: [[0, 118]] }, { bit: 1, efl: 'em083_00_005.efl', key: 244, on: [[92, 93]] }, { bit: 2, efl: 'em083_00_005.efl', key: 245, on: [[31, 32]] }] },
     'L2 Motion[22]': { frames: 121, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 5, on: [[26, 27]] }, { bit: 1, efl: 'cm202_001.efl', key: 6, on: [[61, 62]] }] },
-    'L2 Motion[23]': { frames: 345, bits: [{ bit: 1, efl: 'cm202_020.efl', key: 220, on: [[47, 48]] }, { bit: 2, efl: 'cm202_020.efl', key: 20, on: [[300, 301]] }] },
+    'L2 Motion[23]': { frames: 345, bits: [{ bit: 0, efl: 'cm202_010.efl', key: 261, on: [[120, 200]] }, { bit: 1, efl: 'cm202_020.efl', key: 220, on: [[47, 48]] }, { bit: 2, efl: 'cm202_020.efl', key: 20, on: [[300, 301]] }, { bit: 3, efl: 'em083_00_011.efl', key: 242, on: [[217, 218]] }] },
     'L2 Motion[24]': { frames: 121, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 5, on: [[61, 62]] }, { bit: 1, efl: 'cm202_001.efl', key: 6, on: [[26, 27]] }] },
     'L2 Motion[25]': { frames: 235, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 320, on: [[166, 167]] }, { bit: 1, efl: 'cm202_020.efl', key: 325, on: [[169, 170]] }, { bit: 2, efl: 'cm202_020.efl', key: 20, on: [[33, 34]] }] },
     'L2 Motion[26]': { frames: 235, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 320, on: [[169, 170]] }, { bit: 1, efl: 'cm202_020.efl', key: 325, on: [[166, 167]] }, { bit: 2, efl: 'cm202_020.efl', key: 20, on: [[33, 34]] }] },
     'L2 Motion[27]': { frames: 241, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 20, on: [[28, 29]] }] },
+    'L2 Motion[29]': { frames: 171, bits: [{ bit: 0, efl: 'cm202_010.efl', key: 340, on: [[0, 170]] }] },
+    'L2 Motion[30]': { frames: 129, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 303, on: [[8, 9]] }] },
     'L2 Motion[31]': { frames: 159, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 25, on: [[75, 76]] }] },
-    'L2 Motion[34]': { frames: 511, bits: [{ bit: 1, efl: 'em083_00_003.efl', key: 290, on: [[187, 188]] }, { bit: 2, efl: 'em083_00_001.efl', key: 260, on: [[193, 405]] }, { bit: 3, efl: 'em083_00_000.efl', key: 200, on: [[150, 190]] }, { bit: 4, efl: 'em083_00_002.efl', key: 294, on: [[400, 401]] }] },
+    'L2 Motion[33]': { frames: 437, bits: [{ bit: 0, efl: 'em083_00_011.efl', key: 400, on: [[40, 41]] }] },
+    'L2 Motion[34]': { frames: 511, bits: [{ bit: 0, efl: 'cm202_010.efl', key: 261, on: [[40, 100]] }, { bit: 1, efl: 'em083_00_003.efl', key: 290, on: [[187, 188]] }, { bit: 2, efl: 'em083_00_001.efl', key: 260, on: [[193, 405]] }, { bit: 3, efl: 'em083_00_000.efl', key: 200, on: [[150, 190]] }, { bit: 4, efl: 'em083_00_002.efl', key: 294, on: [[400, 401]] }] },
     'L2 Motion[37]': { frames: 289, bits: [{ bit: 0, efl: 'em083_00_011.efl', key: 230, on: [[169, 170]] }] },
     'L2 Motion[40]': { frames: 99, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 5, on: [[72, 73]] }, { bit: 1, efl: 'cm202_001.efl', key: 6, on: [[24, 25]] }] },
+    'L2 Motion[44]': { frames: 413, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 303, on: [[92, 93], [186, 187], [260, 261]] }] },
     'L2 Motion[46]': { frames: 169, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 5, on: [[46, 47], [116, 117]] }, { bit: 1, efl: 'cm202_001.efl', key: 6, on: [[151, 152]] }] },
     'L2 Motion[50]': { frames: 59, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 220, on: [[25, 26]] }] },
     'L2 Motion[55]': { frames: 169, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 320, on: [[107, 108]] }, { bit: 1, efl: 'cm202_020.efl', key: 325, on: [[108, 109]] }] },
     'L2 Motion[57]': { frames: 169, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 320, on: [[108, 109]] }, { bit: 1, efl: 'cm202_020.efl', key: 325, on: [[107, 108]] }] },
-    'L2 Motion[60]': { frames: 169, bits: [{ bit: 1, efl: 'cm202_001.efl', key: 5, on: [[39, 40], [138, 139]] }] },
+    'L2 Motion[60]': { frames: 169, bits: [{ bit: 0, efl: 'cm202_010.efl', key: 261, on: [[47, 90]] }, { bit: 1, efl: 'cm202_001.efl', key: 5, on: [[39, 40], [138, 139]] }] },
     'L2 Motion[61]': { frames: 81, bits: [{ bit: 0, efl: 'em083_00_002.efl', key: 240, on: [[25, 26]] }] },
     'L2 Motion[62]': { frames: 77, bits: [{ bit: 0, efl: 'em083_00_002.efl', key: 240, on: [[17, 22]] }] },
     'L2 Motion[63]': { frames: 95, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 6, on: [[54, 55]] }] },
@@ -3730,15 +4110,16 @@ export const CLIP_EFFECTS = {
     'L0 Motion[12]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 20, on: [[24, 25], [81, 82]] }] },
     'L0 Motion[13]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 20, on: [[24, 25], [81, 82]] }] },
     'L0 Motion[14]': { frames: 119, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 10, on: [[30, 31]] }, { bit: 1, efl: 'cm202_001.efl', key: 11, on: [[67, 68]] }] },
-    'L0 Motion[17]': { frames: 1131, bits: [{ bit: 0, efl: 'cm200_014.efl', key: 80, on: [[320, 460], [777, 860]] }, { bit: 1, efl: 'cm202_070.efl', key: 81, on: [[456, 585], [858, 940]] }] },
+    'L0 Motion[17]': { frames: 1131, bits: [{ bit: 0, efl: 'cm200_014.efl', key: 80, on: [[320, 460], [777, 860]] }, { bit: 1, efl: 'cm202_070.efl', key: 81, on: [[456, 585], [858, 940]] }, { bit: 2, efl: 'cm202_005.efl', key: 261, on: [[280, 380], [710, 798]] }] },
     'L0 Motion[19]': { frames: 519, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 25, on: [[376, 377]] }] },
     'L0 Motion[22]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 5, on: [[26, 27]] }] },
     'L0 Motion[23]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 6, on: [[26, 27]] }] },
     'L0 Motion[25]': { frames: 135, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 5, on: [[61, 62]] }, { bit: 1, efl: 'cm202_001.efl', key: 6, on: [[34, 35], [94, 95]] }] },
-    'L0 Motion[30]': { frames: 291, bits: [{ bit: 1, efl: 'em083_00_001.efl', key: 265, on: [[67, 290]] }, { bit: 2, efl: 'em083_00_030.efl', key: 256, on: [[67, 290]] }] },
+    'L0 Motion[29]': { frames: 171, bits: [{ bit: 0, efl: 'cm202_005.efl', key: 261, on: [[60, 170]] }] },
+    'L0 Motion[30]': { frames: 291, bits: [{ bit: 0, efl: 'cm202_005.efl', key: 261, on: [[0, 50]] }, { bit: 1, efl: 'em083_00_001.efl', key: 265, on: [[67, 290]] }, { bit: 2, efl: 'em083_00_030.efl', key: 256, on: [[67, 290]] }] },
     'L0 Motion[31]': { frames: 117, bits: [{ bit: 0, efl: 'em083_00_001.efl', key: 265, on: [[0, 90]] }, { bit: 1, efl: 'cm202_001.efl', key: 5, on: [[75, 76]] }, { bit: 2, efl: 'cm202_001.efl', key: 6, on: [[107, 108]] }] },
-    'L0 Motion[32]': { frames: 181, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 25, on: [[81, 82]] }] },
-    'L0 Motion[33]': { frames: 399, bits: [{ bit: 0, efl: 'em083_00_012.efl', key: 263, on: [[100, 311]] }, { bit: 1, efl: 'em083_00_001.efl', key: 265, on: [[60, 350]] }, { bit: 6, efl: 'cm202_020.efl', key: 25, on: [[59, 60]] }, { bit: 9, efl: 'cm202_020.efl', key: 25, on: [[59, 60]] }, { bit: 12, efl: 'cm202_020.efl', key: 25, on: [[59, 60]] }] },
+    'L0 Motion[32]': { frames: 181, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 25, on: [[81, 82]] }, { bit: 1, efl: 'cm202_005.efl', key: 261, on: [[84, 180]] }] },
+    'L0 Motion[33]': { frames: 399, bits: [{ bit: 0, efl: 'em083_00_012.efl', key: 263, on: [[100, 311]] }, { bit: 1, efl: 'em083_00_001.efl', key: 265, on: [[60, 350]] }, { bit: 2, efl: 'cm202_005.efl', key: 261, on: [[0, 20]] }, { bit: 3, efl: 'cm202_020.efl', key: 302, on: [[331, 332]] }, { bit: 6, efl: 'cm202_020.efl', key: 25, on: [[59, 60]] }, { bit: 9, efl: 'cm202_020.efl', key: 25, on: [[59, 60]] }, { bit: 12, efl: 'cm202_020.efl', key: 25, on: [[59, 60]] }] },
     'L0 Motion[40]': { frames: 275, bits: [{ bit: 0, efl: 'cm202_010.efl', key: 90, on: [[10, 62], [110, 143]] }, { bit: 1, efl: 'cm202_020.efl', key: 25, on: [[92, 93]] }, { bit: 2, efl: 'cm202_001.efl', key: 11, on: [[253, 254]] }] },
     'L2 Motion[1]': { frames: 291, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 320, on: [[108, 109]] }] },
     'L2 Motion[2]': { frames: 277, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 325, on: [[94, 95]] }] },
@@ -3746,31 +4127,35 @@ export const CLIP_EFFECTS = {
     'L2 Motion[6]': { frames: 539, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 325, on: [[258, 259]] }, { bit: 1, efl: 'cm202_020.efl', key: 320, on: [[300, 301]] }, { bit: 2, efl: 'cm202_002.efl', key: 321, on: [[220, 221]] }, { bit: 3, efl: 'cm202_002.efl', key: 326, on: [[265, 266]] }, { bit: 4, efl: 'em083_00_011.efl', key: 230, on: [[203, 204], [389, 390]] }] },
     'L2 Motion[9]': { frames: 181, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 5, on: [[142, 143]] }, { bit: 1, efl: 'cm202_001.efl', key: 6, on: [[177, 178]] }] },
     'L2 Motion[10]': { frames: 253, bits: [{ bit: 0, efl: 'em083_00_011.efl', key: 210, on: [[94, 95], [146, 147]] }] },
-    'L2 Motion[11]': { frames: 441, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 20, on: [[32, 33]] }, { bit: 1, efl: 'cm202_020.efl', key: 25, on: [[200, 201]] }, { bit: 2, efl: 'em083_00_001.efl', key: 304, on: [[215, 255]] }] },
+    'L2 Motion[11]': { frames: 441, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 20, on: [[32, 33]] }, { bit: 1, efl: 'cm202_020.efl', key: 25, on: [[200, 201]] }, { bit: 2, efl: 'em083_00_001.efl', key: 304, on: [[215, 255]] }, { bit: 3, efl: 'cm202_020.efl', key: 302, on: [[208, 209]] }] },
     'L2 Motion[13]': { frames: 381, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 220, on: [[133, 134]] }, { bit: 1, efl: 'em083_00_001.efl', key: 304, on: [[140, 175]] }, { bit: 2, efl: 'cm202_020.efl', key: 25, on: [[125, 126], [244, 245]] }] },
-    'L2 Motion[14]': { frames: 511, bits: [{ bit: 1, efl: 'em083_00_003.efl', key: 290, on: [[187, 188]] }, { bit: 2, efl: 'em083_00_001.efl', key: 260, on: [[193, 405]] }, { bit: 3, efl: 'em083_00_000.efl', key: 200, on: [[150, 190]] }, { bit: 4, efl: 'em083_00_002.efl', key: 292, on: [[400, 401]] }] },
+    'L2 Motion[14]': { frames: 511, bits: [{ bit: 0, efl: 'cm202_005.efl', key: 261, on: [[40, 100]] }, { bit: 1, efl: 'em083_00_003.efl', key: 290, on: [[187, 188]] }, { bit: 2, efl: 'em083_00_001.efl', key: 260, on: [[193, 405]] }, { bit: 3, efl: 'em083_00_000.efl', key: 200, on: [[150, 190]] }, { bit: 4, efl: 'em083_00_002.efl', key: 292, on: [[400, 401]] }] },
     'L2 Motion[15]': { frames: 195, bits: [{ bit: 0, efl: 'em083_00_000.efl', key: 201, on: [[74, 130]] }, { bit: 1, efl: 'em083_00_000.efl', key: 200, on: [[40, 80]] }, { bit: 2, efl: 'em083_00_002.efl', key: 202, on: [[120, 140]] }] },
-    'L2 Motion[16]': { frames: 279, bits: [{ bit: 1, efl: 'cm202_020.efl', key: 26, on: [[147, 148]] }] },
+    'L2 Motion[16]': { frames: 279, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 302, on: [[154, 155]] }, { bit: 1, efl: 'cm202_020.efl', key: 26, on: [[147, 148]] }] },
     'L2 Motion[17]': { frames: 121, bits: [{ bit: 0, efl: 'cm202_004.efl', key: 30, on: [[6, 34]] }] },
     'L2 Motion[18]': { frames: 305, bits: [{ bit: 0, efl: 'em083_00_003.efl', key: 291, on: [[125, 144]] }, { bit: 1, efl: 'em083_00_000.efl', key: 200, on: [[100, 120]] }, { bit: 2, efl: 'em083_00_002.efl', key: 341, on: [[75, 76]] }] },
-    'L2 Motion[19]': { frames: 385, bits: [{ bit: 1, efl: 'cm202_004.efl', key: 30, on: [[290, 308]] }, { bit: 2, efl: 'cm202_020.efl', key: 26, on: [[72, 73]] }] },
+    'L2 Motion[19]': { frames: 385, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 302, on: [[73, 74]] }, { bit: 1, efl: 'cm202_004.efl', key: 30, on: [[290, 308]] }, { bit: 2, efl: 'cm202_020.efl', key: 26, on: [[72, 73]] }] },
     'L2 Motion[20]': { frames: 99, bits: [{ bit: 0, efl: 'em083_00_005.efl', key: 244, on: [[73, 74]] }] },
     'L2 Motion[21]': { frames: 119, bits: [{ bit: 0, efl: 'em083_00_030.efl', key: 256, on: [[0, 118]] }, { bit: 1, efl: 'em083_00_005.efl', key: 244, on: [[92, 93]] }, { bit: 2, efl: 'em083_00_005.efl', key: 245, on: [[31, 32]] }] },
     'L2 Motion[22]': { frames: 121, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 5, on: [[26, 27]] }, { bit: 1, efl: 'cm202_001.efl', key: 6, on: [[61, 62]] }] },
-    'L2 Motion[23]': { frames: 345, bits: [{ bit: 1, efl: 'cm202_020.efl', key: 220, on: [[47, 48]] }, { bit: 2, efl: 'cm202_020.efl', key: 20, on: [[300, 301]] }, { bit: 3, efl: 'em083_00_011.efl', key: 242, on: [[217, 218]] }] },
+    'L2 Motion[23]': { frames: 345, bits: [{ bit: 0, efl: 'cm202_005.efl', key: 261, on: [[120, 200]] }, { bit: 1, efl: 'cm202_020.efl', key: 220, on: [[47, 48]] }, { bit: 2, efl: 'cm202_020.efl', key: 20, on: [[300, 301]] }, { bit: 3, efl: 'em083_00_011.efl', key: 242, on: [[217, 218]] }] },
     'L2 Motion[24]': { frames: 121, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 5, on: [[61, 62]] }, { bit: 1, efl: 'cm202_001.efl', key: 6, on: [[26, 27]] }] },
     'L2 Motion[25]': { frames: 235, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 320, on: [[166, 167]] }, { bit: 1, efl: 'cm202_020.efl', key: 325, on: [[169, 170]] }, { bit: 2, efl: 'cm202_020.efl', key: 20, on: [[33, 34]] }] },
     'L2 Motion[26]': { frames: 235, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 320, on: [[169, 170]] }, { bit: 1, efl: 'cm202_020.efl', key: 325, on: [[166, 167]] }, { bit: 2, efl: 'cm202_020.efl', key: 20, on: [[33, 34]] }] },
     'L2 Motion[27]': { frames: 241, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 20, on: [[28, 29]] }] },
+    'L2 Motion[29]': { frames: 171, bits: [{ bit: 0, efl: 'cm202_005.efl', key: 340, on: [[0, 170]] }] },
+    'L2 Motion[30]': { frames: 129, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 303, on: [[8, 9]] }] },
     'L2 Motion[31]': { frames: 159, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 25, on: [[75, 76]] }] },
-    'L2 Motion[34]': { frames: 511, bits: [{ bit: 1, efl: 'em083_00_003.efl', key: 290, on: [[187, 188]] }, { bit: 2, efl: 'em083_00_001.efl', key: 260, on: [[193, 405]] }, { bit: 3, efl: 'em083_00_000.efl', key: 200, on: [[150, 190]] }, { bit: 4, efl: 'em083_00_002.efl', key: 294, on: [[400, 401]] }] },
+    'L2 Motion[33]': { frames: 437, bits: [{ bit: 0, efl: 'em083_00_011.efl', key: 400, on: [[40, 41]] }] },
+    'L2 Motion[34]': { frames: 511, bits: [{ bit: 0, efl: 'cm202_005.efl', key: 261, on: [[40, 100]] }, { bit: 1, efl: 'em083_00_003.efl', key: 290, on: [[187, 188]] }, { bit: 2, efl: 'em083_00_001.efl', key: 260, on: [[193, 405]] }, { bit: 3, efl: 'em083_00_000.efl', key: 200, on: [[150, 190]] }, { bit: 4, efl: 'em083_00_002.efl', key: 294, on: [[400, 401]] }] },
     'L2 Motion[37]': { frames: 289, bits: [{ bit: 0, efl: 'em083_00_011.efl', key: 230, on: [[169, 170]] }] },
     'L2 Motion[40]': { frames: 99, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 5, on: [[72, 73]] }, { bit: 1, efl: 'cm202_001.efl', key: 6, on: [[24, 25]] }] },
+    'L2 Motion[44]': { frames: 413, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 303, on: [[92, 93], [186, 187], [260, 261]] }] },
     'L2 Motion[46]': { frames: 169, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 5, on: [[46, 47], [116, 117]] }, { bit: 1, efl: 'cm202_001.efl', key: 6, on: [[151, 152]] }] },
     'L2 Motion[50]': { frames: 59, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 220, on: [[25, 26]] }] },
     'L2 Motion[55]': { frames: 169, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 320, on: [[107, 108]] }, { bit: 1, efl: 'cm202_020.efl', key: 325, on: [[108, 109]] }] },
     'L2 Motion[57]': { frames: 169, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 320, on: [[108, 109]] }, { bit: 1, efl: 'cm202_020.efl', key: 325, on: [[107, 108]] }] },
-    'L2 Motion[60]': { frames: 169, bits: [{ bit: 1, efl: 'cm202_001.efl', key: 5, on: [[39, 40], [138, 139]] }] },
+    'L2 Motion[60]': { frames: 169, bits: [{ bit: 0, efl: 'cm202_005.efl', key: 261, on: [[47, 90]] }, { bit: 1, efl: 'cm202_001.efl', key: 5, on: [[39, 40], [138, 139]] }] },
     'L2 Motion[61]': { frames: 81, bits: [{ bit: 0, efl: 'em083_00_002.efl', key: 240, on: [[25, 26]] }] },
     'L2 Motion[62]': { frames: 77, bits: [{ bit: 0, efl: 'em083_00_002.efl', key: 240, on: [[17, 22]] }] },
     'L2 Motion[63]': { frames: 95, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 6, on: [[54, 55]] }] },
@@ -3795,13 +4180,13 @@ export const CLIP_EFFECTS = {
     'L3 Motion[22]': { frames: 259, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 20, on: [[16, 17], [133, 134], [161, 162], [185, 186], [225, 226]] }, { bit: 1, efl: 'cm202_020.efl', key: 25, on: [[73, 74]] }] },
     'L9 Motion[4]': { frames: 145, bits: [{ bit: 0, efl: 'em083_04_004.efl', key: 471, on: [[100, 144]] }, { bit: 1, efl: 'cm202_020.efl', key: 220, on: [[99, 100]] }] },
     'L9 Motion[5]': { frames: 137, bits: [{ bit: 0, efl: 'em083_04_004.efl', key: 471, on: [[0, 136]] }] },
-    'L9 Motion[6]': { frames: 191, bits: [{ bit: 0, efl: 'em083_04_002.efl', key: 470, on: [[110, 190]] }, { bit: 1, efl: 'cm202_001.efl', key: 5, on: [[105, 106]] }] },
+    'L9 Motion[6]': { frames: 191, bits: [{ bit: 0, efl: 'em083_04_002.efl', key: 470, on: [[110, 190]] }, { bit: 1, efl: 'cm202_001.efl', key: 5, on: [[105, 106]] }, { bit: 2, efl: 'em083_00_011.efl', key: 472, on: [[0, 5]] }] },
     'L9 Motion[7]': { frames: 69, bits: [{ bit: 0, efl: 'em083_04_002.efl', key: 470, on: [[0, 68]] }] },
-    'L9 Motion[8]': { frames: 287, bits: [{ bit: 1, efl: 'em083_04_002.efl', key: 470, on: [[0, 34]] }] },
+    'L9 Motion[8]': { frames: 287, bits: [{ bit: 0, efl: 'em083_00_011.efl', key: 473, on: [[47, 48]] }, { bit: 1, efl: 'em083_04_002.efl', key: 470, on: [[0, 34]] }] },
     'L9 Motion[11]': { frames: 183, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 322, on: [[28, 29]] }] },
     'L9 Motion[14]': { frames: 183, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 323, on: [[28, 29]] }] },
     'L9 Motion[15]': { frames: 235, bits: [{ bit: 0, efl: 'em083_04_010.efl', key: 460, on: [[10, 65]] }, { bit: 1, efl: 'em083_00_002.efl', key: 430, on: [[86, 87]] }, { bit: 2, efl: 'em083_00_002.efl', key: 240, on: [[94, 95]] }] },
-    'L9 Motion[16]': { frames: 147, bits: [{ bit: 18, efl: 'cm202_250.efl', key: 511, on: [[67, 68]] }, { bit: 21, efl: 'cm202_020.efl', key: 220, on: [[70, 71]] }] },
+    'L9 Motion[16]': { frames: 147, bits: [{ bit: 0, efl: 'em083_00_011.efl', key: 520, on: [[4, 5]] }, { bit: 18, efl: 'cm202_250.efl', key: 511, on: [[67, 68]] }, { bit: 21, efl: 'cm202_020.efl', key: 220, on: [[70, 71]] }] },
     'L9 Motion[17]': { frames: 285, bits: [{ bit: 0, efl: 'em083_04_008.efl', key: 500, on: [[109, 110]] }, { bit: 1, efl: 'em083_04_003.efl', key: 530, on: [[112, 113]] }] },
     'L9 Motion[19]': { frames: 121, bits: [{ bit: 0, efl: 'em083_00_000.efl', key: 200, on: [[70, 120]] }] },
     'L9 Motion[20]': { frames: 187, bits: [{ bit: 0, efl: 'em083_04_006.efl', key: 203, on: [[0, 40]] }, { bit: 1, efl: 'em083_00_000.efl', key: 205, on: [[40, 105]] }, { bit: 2, efl: 'em083_04_006.efl', key: 206, on: [[15, 124]] }] },
@@ -3818,6 +4203,7 @@ export const CLIP_EFFECTS = {
     'L0 Motion[15]': { frames: 63, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[30, 31]] }] },
     'L0 Motion[16]': { frames: 53, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[24, 25]] }] },
     'L2 Motion[2]': { frames: 57, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[22, 23]] }] },
+    'L2 Motion[4]': { frames: 73, bits: [{ bit: 6, efl: 'em011_00_003.efl', key: 230, on: [[14, 15]] }, { bit: 12, efl: 'em011_00_003.efl', key: 230, on: [[14, 15]] }, { bit: 24, efl: 'em011_00_000.efl', key: 352, on: [[20, 21]] }] },
     'L3 Motion[4]': { frames: 69, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[32, 33]] }] },
     'L3 Motion[5]': { frames: 161, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[118, 119]] }] },
     'L4 Motion[1]': { frames: 67, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[17, 18], [57, 58]] }, { bit: 1, efl: 'cm202_000.efl', key: 31, on: [[32, 66]] }] },
@@ -3826,9 +4212,11 @@ export const CLIP_EFFECTS = {
     'L4 Motion[4]': { frames: 181, bits: [{ bit: 0, efl: 'em011_00_000.efl', key: 350, on: [[55, 56]] }, { bit: 1, efl: 'em011_00_000.efl', key: 351, on: [[68, 69]] }, { bit: 2, efl: 'em011_00_000.efl', key: 352, on: [[105, 106]] }] },
     'L4 Motion[5]': { frames: 61, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 4, on: [[12, 13]] }] },
     'L4 Motion[6]': { frames: 367, bits: [{ bit: 0, efl: 'cm202_080.efl', key: 3000, on: [[307, 308]] }] },
+    'L4 Motion[7]': { frames: 185, bits: [{ bit: 15, efl: 'em011_00_000.efl', key: 350, on: [[33, 34]] }, { bit: 16, efl: 'em011_00_000.efl', key: 351, on: [[60, 61]] }, { bit: 17, efl: 'em011_00_000.efl', key: 352, on: [[96, 97]] }, { bit: 18, efl: 'em011_00_008.efl', key: 201, on: [[54, 55], [102, 103], [136, 137], [170, 171], [183, 184]] }, { bit: 21, efl: 'em011_00_007.efl', key: 200, on: [[52, 53]] }] },
     'L4 Motion[9]': { frames: 225, bits: [{ bit: 0, efl: 'em011_00_009.efl', key: 261, on: [[0, 1]] }, { bit: 1, efl: 'em011_00_002.efl', key: 265, on: [[0, 79]] }, { bit: 2, efl: 'em011_00_010.efl', key: 262, on: [[81, 142]] }, { bit: 3, efl: 'em011_00_006.efl', key: 263, on: [[51, 52]] }, { bit: 4, efl: 'em011_00_011.efl', key: 264, on: [[124, 125]] }] },
     'L4 Motion[10]': { frames: 255, bits: [{ bit: 0, efl: 'em011_00_012.efl', key: 231, on: [[122, 123]] }] },
     'L4 Motion[12]': { frames: 449, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[124, 125], [150, 151], [274, 275], [311, 312]] }] },
+    'L4 Motion[14]': { frames: 153, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[46, 47]] }] },
     'L4 Motion[15]': { frames: 41, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[13, 14]] }] },
     'L4 Motion[20]': { frames: 25, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 30, on: [[22, 23]] }] },
     'L4 Motion[22]': { frames: 49, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[1, 2]] }] },
@@ -3875,7 +4263,8 @@ export const CLIP_EFFECTS = {
     'L2 Motion[24]': { frames: 193, bits: [{ bit: 0, efl: 'em017_00_000.efl', key: 200, on: [[25, 26], [69, 70]] }, { bit: 1, efl: 'cm202_001.efl', key: 0, on: [[110, 111]] }] },
     'L2 Motion[26]': { frames: 295, bits: [{ bit: 0, efl: 'em017_00_000.efl', key: 200, on: [[77, 78]] }] },
     'L2 Motion[27]': { frames: 295, bits: [{ bit: 0, efl: 'em017_00_000.efl', key: 200, on: [[77, 78]] }] },
-    'L2 Motion[29]': { frames: 183, bits: [{ bit: 0, efl: 'em017_00_000.efl', key: 200, on: [[60, 61]] }, { bit: 2, efl: 'em056_00_001.efl', key: 30, on: [[94, 95]] }] },
+    'L2 Motion[29]': { frames: 183, bits: [{ bit: 0, efl: 'em017_00_000.efl', key: 200, on: [[60, 61]] }, { bit: 1, efl: 'em056_00_009.efl', key: 121, on: [[18, 19]] }, { bit: 2, efl: 'em056_00_001.efl', key: 30, on: [[94, 95]] }] },
+    'L2 Motion[30]': { frames: 183, bits: [{ bit: 0, efl: 'em017_00_000.efl', key: 200, on: [[60, 61]] }, { bit: 1, efl: 'em056_00_009.efl', key: 121, on: [[18, 19]] }, { bit: 2, efl: 'em056_00_001.efl', key: 30, on: [[94, 95]] }] },
     'L3 Motion[1]': { frames: 169, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[8, 9]] }] },
     'L3 Motion[2]': { frames: 201, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 1, on: [[60, 61]] }, { bit: 1, efl: 'cm202_001.efl', key: 0, on: [[40, 41]] }] },
     'L3 Motion[3]': { frames: 121, bits: [{ bit: 0, efl: 'em056_00_001.efl', key: 30, on: [[24, 25]] }] },
@@ -3956,6 +4345,7 @@ export const CLIP_EFFECTS = {
     'L0 Motion[14]': { frames: 25, bits: [{ bit: 0, efl: 'cm202_006.efl', key: 60, on: [[1, 2]] }] },
     'L0 Motion[15]': { frames: 69, bits: [{ bit: 0, efl: 'cm202_006.efl', key: 60, on: [[1, 2]] }] },
     'L0 Motion[16]': { frames: 83, bits: [{ bit: 0, efl: 'cm202_006.efl', key: 60, on: [[0, 1]] }] },
+    'L0 Motion[17]': { frames: 143, bits: [{ bit: 0, efl: 'cm202_006.efl', key: 16, on: [[9, 10]] }] },
     'L0 Motion[19]': { frames: 93, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 3, on: [[39, 40]] }, { bit: 1, efl: 'cm202_000.efl', key: 120, on: [[75, 92]] }] },
     'L0 Motion[20]': { frames: 91, bits: [{ bit: 0, efl: 'cm202_004.efl', key: 30, on: [[0, 90]] }] },
     'L0 Motion[21]': { frames: 221, bits: [{ bit: 0, efl: 'em049_00_009.efl', key: 500, on: [[61, 99]] }] },
@@ -3976,8 +4366,9 @@ export const CLIP_EFFECTS = {
     'L2 Motion[9]': { frames: 151, bits: [{ bit: 0, efl: 'cm202_035.efl', key: 90, on: [[50, 51]] }] },
     'L2 Motion[10]': { frames: 183, bits: [{ bit: 0, efl: 'cm202_006.efl', key: 60, on: [[20, 21]] }, { bit: 1, efl: 'cm202_006.efl', key: 62, on: [[106, 107]] }, { bit: 2, efl: 'em036_00_004.efl', key: 200, on: [[55, 56]] }, { bit: 3, efl: 'em036_00_005.efl', key: 201, on: [[67, 68]] }, { bit: 4, efl: 'em036_00_003.efl', key: 202, on: [[45, 52]] }] },
     'L2 Motion[11]': { frames: 147, bits: [{ bit: 0, efl: 'cm202_006.efl', key: 60, on: [[0, 1]] }] },
+    'L2 Motion[12]': { frames: 105, bits: [{ bit: 0, efl: 'cm202_006.efl', key: 60, on: [[0, 1]] }] },
     'L2 Motion[13]': { frames: 267, bits: [{ bit: 0, efl: 'cm202_035.efl', key: 90, on: [[55, 56]] }, { bit: 1, efl: 'cm202_035.efl', key: 91, on: [[110, 111]] }, { bit: 2, efl: 'em036_00_012.efl', key: 290, on: [[56, 57]] }, { bit: 3, efl: 'em036_00_012.efl', key: 291, on: [[108, 109]] }] },
-    'L2 Motion[14]': { frames: 181, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[60, 61]] }] },
+    'L2 Motion[14]': { frames: 181, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[60, 61]] }, { bit: 15, efl: 'em036_00_002.efl', key: 231, on: [[120, 121]] }, { bit: 18, efl: 'em036_00_002.efl', key: 241, on: [[120, 121]] }] },
     'L2 Motion[15]': { frames: 183, bits: [{ bit: 0, efl: 'cm202_000.efl', key: 120, on: [[52, 77]] }] },
     'L3 Motion[2]': { frames: 201, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[48, 49]] }, { bit: 1, efl: 'cm202_001.efl', key: 1, on: [[64, 65]] }] },
     'L3 Motion[3]': { frames: 121, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[23, 24]] }] },
@@ -4026,6 +4417,7 @@ export const CLIP_EFFECTS = {
     'L2 Motion[4]': { frames: 303, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 90, on: [[70, 71]] }, { bit: 1, efl: 'em047_00_006.efl', key: 260, on: [[7, 8]] }, { bit: 2, efl: 'em047_00_007.efl', key: 290, on: [[80, 81], [139, 140], [193, 194]] }] },
     'L2 Motion[5]': { frames: 303, bits: [{ bit: 0, efl: 'em047_00_006.efl', key: 260, on: [[7, 8]] }, { bit: 1, efl: 'em047_00_007.efl', key: 290, on: [[80, 81], [139, 140], [193, 194]] }] },
     'L2 Motion[6]': { frames: 185, bits: [{ bit: 0, efl: 'em047_00_006.efl', key: 260, on: [[20, 21]] }, { bit: 1, efl: 'em047_00_007.efl', key: 290, on: [[74, 75]] }] },
+    'L2 Motion[7]': { frames: 221, bits: [{ bit: 24, efl: 'em047_00_008.efl', key: 182, on: [[96, 97]] }, { bit: 27, efl: 'em047_00_008.efl', key: 183, on: [[96, 97]] }] },
     'L2 Motion[8]': { frames: 101, bits: [{ bit: 21, efl: 'cm202_002.efl', key: 32, on: [[50, 51]] }, { bit: 22, efl: 'cm202_002.efl', key: 33, on: [[70, 71]] }] },
     'L2 Motion[9]': { frames: 209, bits: [{ bit: 0, efl: 'em047_00_007.efl', key: 290, on: [[82, 83]] }, { bit: 1, efl: 'cm202_001.efl', key: 90, on: [[160, 161]] }] },
     'L2 Motion[10]': { frames: 247, bits: [{ bit: 0, efl: 'cm202_003.efl', key: 10, on: [[56, 57]] }, { bit: 1, efl: 'cm202_020.efl', key: 180, on: [[101, 102]] }] },
@@ -4073,7 +4465,7 @@ export const CLIP_EFFECTS = {
     'L0 Motion[5]': { frames: 53, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[16, 17]] }, { bit: 1, efl: 'cm202_001.efl', key: 10, on: [[33, 34]] }] },
     'L0 Motion[6]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 3, on: [[49, 50]] }] },
     'L0 Motion[7]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 3, on: [[49, 50]] }] },
-    'L0 Motion[9]': { frames: 183, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[60, 61]] }, { bit: 1, efl: 'cm202_002.efl', key: 1, on: [[139, 140]] }, { bit: 2, efl: 'cm202_001.efl', key: 10, on: [[13, 14], [83, 84]] }, { bit: 17, efl: 'em050_00_008.efl', key: 202, on: [[78, 181]] }] },
+    'L0 Motion[9]': { frames: 183, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[60, 61]] }, { bit: 1, efl: 'cm202_002.efl', key: 1, on: [[139, 140]] }, { bit: 2, efl: 'cm202_001.efl', key: 10, on: [[13, 14], [83, 84]] }, { bit: 15, efl: 'em050_00_011.efl', key: 200, on: [[18, 19]] }, { bit: 16, efl: 'em050_00_011.efl', key: 201, on: [[46, 47], [50, 51]] }, { bit: 17, efl: 'em050_00_008.efl', key: 202, on: [[78, 181]] }] },
     'L0 Motion[10]': { frames: 53, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 1, on: [[4, 5]] }, { bit: 15, efl: 'em050_00_008.efl', key: 202, on: [[0, 52]] }] },
     'L0 Motion[11]': { frames: 231, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 3, on: [[106, 107]] }, { bit: 1, efl: 'cm202_021.efl', key: 4, on: [[60, 61]] }, { bit: 2, efl: 'em077_00_006.efl', key: 203, on: [[51, 52]] }] },
     'L0 Motion[12]': { frames: 103, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[24, 25]] }] },
@@ -4101,24 +4493,24 @@ export const CLIP_EFFECTS = {
     'L2 Motion[2]': { frames: 85, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 4, on: [[10, 11]] }, { bit: 1, efl: 'cm202_005.efl', key: 90, on: [[48, 83]] }] },
     'L2 Motion[3]': { frames: 147, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 3, on: [[3, 4]] }] },
     'L2 Motion[4]': { frames: 251, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 3, on: [[35, 36]] }] },
-    'L2 Motion[5]': { frames: 247, bits: [{ bit: 0, efl: 'cm202_007.efl', key: 120, on: [[123, 124]] }, { bit: 1, efl: 'cm202_007.efl', key: 121, on: [[159, 160]] }, { bit: 16, efl: 'em050_00_021.efl', key: 230, on: [[22, 158]] }] },
+    'L2 Motion[5]': { frames: 247, bits: [{ bit: 0, efl: 'cm202_007.efl', key: 120, on: [[123, 124]] }, { bit: 1, efl: 'cm202_007.efl', key: 121, on: [[159, 160]] }, { bit: 15, efl: 'em050_00_022.efl', key: 231, on: [[124, 125], [159, 160]] }, { bit: 16, efl: 'em050_00_021.efl', key: 230, on: [[22, 158]] }, { bit: 27, efl: 'em050_00_021.efl', key: 240, on: [[22, 158]] }] },
     'L2 Motion[6]': { frames: 311, bits: [{ bit: 15, efl: 'em050_00_013.efl', key: 270, on: [[3, 62]] }, { bit: 16, efl: 'em050_00_014.efl', key: 271, on: [[71, 72]] }, { bit: 17, efl: 'em050_00_018.efl', key: 272, on: [[115, 140]] }, { bit: 24, efl: 'em050_00_000.efl', key: 390, on: [[3, 4]] }, { bit: 25, efl: 'em050_00_001.efl', key: 391, on: [[72, 73]] }, { bit: 26, efl: 'em050_00_003.efl', key: 392, on: [[189, 201]] }] },
-    'L2 Motion[7]': { frames: 245, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 4, on: [[48, 49], [108, 109], [184, 185]] }, { bit: 21, efl: 'em050_00_025.efl', key: 300, on: [[93, 244]] }, { bit: 22, efl: 'em050_00_026.efl', key: 301, on: [[98, 99], [203, 204]] }, { bit: 25, efl: 'em050_00_001.efl', key: 391, on: [[79, 80], [100, 101], [114, 115]] }, { bit: 26, efl: 'em050_00_003.efl', key: 392, on: [[143, 153]] }] },
-    'L2 Motion[8]': { frames: 125, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 4, on: [[21, 22], [67, 68]] }, { bit: 22, efl: 'em050_00_027.efl', key: 330, on: [[12, 124]] }] },
+    'L2 Motion[7]': { frames: 245, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 4, on: [[48, 49], [108, 109], [184, 185]] }, { bit: 21, efl: 'em050_00_025.efl', key: 300, on: [[93, 244]] }, { bit: 22, efl: 'em050_00_026.efl', key: 301, on: [[98, 99], [203, 204]] }, { bit: 24, efl: 'em050_00_000.efl', key: 390, on: [[13, 14]] }, { bit: 25, efl: 'em050_00_001.efl', key: 391, on: [[79, 80], [100, 101], [114, 115]] }, { bit: 26, efl: 'em050_00_003.efl', key: 392, on: [[143, 153]] }] },
+    'L2 Motion[8]': { frames: 125, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 4, on: [[21, 22], [67, 68]] }, { bit: 22, efl: 'em050_00_027.efl', key: 330, on: [[12, 124]] }, { bit: 25, efl: 'em050_00_028.efl', key: 360, on: [[12, 74]] }] },
     'L2 Motion[9]': { frames: 73, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 4, on: [[44, 45]] }, { bit: 1, efl: 'em050_00_029.efl', key: 361, on: [[18, 19]] }] },
     'L2 Motion[11]': { frames: 289, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 4, on: [[38, 39], [95, 96], [149, 150], [220, 221]] }] },
     'L2 Motion[12]': { frames: 65, bits: [{ bit: 0, efl: 'em050_00_028.efl', key: 360, on: [[0, 31]] }] },
     'L2 Motion[13]': { frames: 61, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 4, on: [[30, 31]] }, { bit: 1, efl: 'em050_00_004.efl', key: 482, on: [[35, 36]] }] },
     'L2 Motion[14]': { frames: 65, bits: [{ bit: 0, efl: 'em050_00_005.efl', key: 480, on: [[27, 28]] }, { bit: 1, efl: 'em050_00_001.efl', key: 481, on: [[2, 3]] }, { bit: 2, efl: 'em050_00_004.efl', key: 482, on: [[0, 1]] }] },
     'L2 Motion[15]': { frames: 85, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 4, on: [[27, 28]] }] },
-    'L2 Motion[16]': { frames: 151, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[51, 52]] }, { bit: 16, efl: 'em050_00_012.efl', key: 452, on: [[48, 65]] }] },
-    'L2 Motion[17]': { frames: 151, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[51, 52]] }, { bit: 16, efl: 'em050_00_012.efl', key: 453, on: [[48, 65]] }] },
+    'L2 Motion[16]': { frames: 151, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[51, 52]] }, { bit: 15, efl: 'em050_00_011.efl', key: 450, on: [[10, 11], [24, 25], [38, 39]] }, { bit: 16, efl: 'em050_00_012.efl', key: 452, on: [[48, 65]] }] },
+    'L2 Motion[17]': { frames: 151, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[51, 52]] }, { bit: 15, efl: 'em050_00_011.efl', key: 451, on: [[10, 11], [24, 25], [38, 39]] }, { bit: 16, efl: 'em050_00_012.efl', key: 453, on: [[48, 65]] }] },
     'L2 Motion[18]': { frames: 189, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[59, 60], [109, 110]] }, { bit: 1, efl: 'em077_00_006.efl', key: 250, on: [[101, 118]] }] },
     'L2 Motion[19]': { frames: 189, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[60, 61], [109, 110]] }, { bit: 1, efl: 'em077_00_006.efl', key: 250, on: [[101, 118]] }] },
     'L2 Motion[20]': { frames: 43, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 4, on: [[21, 22]] }] },
     'L2 Motion[21]': { frames: 87, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 4, on: [[21, 22]] }] },
     'L2 Motion[22]': { frames: 55, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 4, on: [[45, 46]] }] },
-    'L2 Motion[23]': { frames: 65, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 4, on: [[19, 20]] }] },
+    'L2 Motion[23]': { frames: 65, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 4, on: [[19, 20]] }, { bit: 15, efl: 'em050_00_038.efl', key: 550, on: [[0, 1]] }] },
     'L2 Motion[24]': { frames: 45, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 4, on: [[7, 8]] }] },
     'L2 Motion[25]': { frames: 87, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 3, on: [[4, 5]] }, { bit: 15, efl: 'em050_00_011.efl', key: 201, on: [[12, 13]] }] },
     'L2 Motion[26]': { frames: 279, bits: [{ bit: 0, efl: 'em077_00_006.efl', key: 203, on: [[53, 68]] }, { bit: 1, efl: 'em077_00_006.efl', key: 204, on: [[110, 125]] }] },
@@ -4159,6 +4551,7 @@ export const CLIP_EFFECTS = {
     'L0 Motion[24]': { frames: 269, bits: [{ bit: 0, efl: 'em056_00_000.efl', key: 3, on: [[46, 137], [216, 247]] }] },
     'L0 Motion[26]': { frames: 225, bits: [{ bit: 0, efl: 'em056_00_000.efl', key: 0, on: [[36, 190]] }, { bit: 1, efl: 'em056_00_000.efl', key: 2, on: [[157, 163]] }, { bit: 2, efl: 'em056_00_011.efl', key: 60, on: [[214, 215]] }] },
     'L0 Motion[27]': { frames: 227, bits: [{ bit: 0, efl: 'em056_00_000.efl', key: 3, on: [[16, 87], [139, 170]] }] },
+    'L0 Motion[28]': { frames: 227, bits: [{ bit: 0, efl: 'em056_00_000.efl', key: 3, on: [[16, 87], [139, 170]] }] },
     'L0 Motion[29]': { frames: 121, bits: [{ bit: 0, efl: 'em056_00_000.efl', key: 2, on: [[1, 63]] }, { bit: 1, efl: 'em056_00_001.efl', key: 10, on: [[71, 72]] }] },
     'L0 Motion[30]': { frames: 213, bits: [{ bit: 0, efl: 'em056_00_000.efl', key: 0, on: [[50, 91]] }] },
     'L0 Motion[31]': { frames: 213, bits: [{ bit: 0, efl: 'em056_00_000.efl', key: 0, on: [[50, 91]] }] },
@@ -4173,7 +4566,7 @@ export const CLIP_EFFECTS = {
     'L2 Motion[9]': { frames: 169, bits: [{ bit: 0, efl: 'em056_00_008.efl', key: 392, on: [[96, 97]] }, { bit: 2, efl: 'em056_00_003.efl', key: 391, on: [[38, 39]] }] },
     'L2 Motion[10]': { frames: 169, bits: [{ bit: 0, efl: 'em056_00_008.efl', key: 392, on: [[96, 97]] }, { bit: 2, efl: 'em056_00_003.efl', key: 391, on: [[37, 38]] }] },
     'L2 Motion[11]': { frames: 193, bits: [{ bit: 0, efl: 'em056_00_000.efl', key: 2, on: [[12, 57], [133, 170]] }, { bit: 1, efl: 'cm200_034.efl', key: 393, on: [[94, 95]] }, { bit: 2, efl: 'em056_00_001.efl', key: 1, on: [[100, 101]] }, { bit: 3, efl: 'em056_00_009.efl', key: 431, on: [[64, 65]] }] },
-    'L2 Motion[12]': { frames: 193, bits: [{ bit: 0, efl: 'em056_00_000.efl', key: 2, on: [[12, 57], [133, 170]] }, { bit: 1, efl: 'cm200_034.efl', key: 393, on: [[94, 95]] }, { bit: 2, efl: 'em056_00_001.efl', key: 1, on: [[100, 101]] }] },
+    'L2 Motion[12]': { frames: 193, bits: [{ bit: 0, efl: 'em056_00_000.efl', key: 2, on: [[12, 57], [133, 170]] }, { bit: 1, efl: 'cm200_034.efl', key: 393, on: [[94, 95]] }, { bit: 2, efl: 'em056_00_001.efl', key: 1, on: [[100, 101]] }, { bit: 3, efl: 'em056_00_009.efl', key: 431, on: [[64, 65]] }] },
     'L2 Motion[13]': { frames: 291, bits: [{ bit: 0, efl: 'em056_00_010.efl', key: 270, on: [[144, 145]] }] },
     'L2 Motion[14]': { frames: 311, bits: [{ bit: 0, efl: 'em056_00_009.efl', key: 430, on: [[22, 23]] }, { bit: 2, efl: 'em056_00_004.efl', key: 400, on: [[0, 20]] }, { bit: 3, efl: 'em056_00_001.efl', key: 1, on: [[138, 139]] }] },
     'L2 Motion[15]': { frames: 231, bits: [{ bit: 0, efl: 'em056_00_000.efl', key: 2, on: [[0, 46]] }, { bit: 1, efl: 'em056_00_000.efl', key: 0, on: [[106, 112]] }, { bit: 2, efl: 'em056_00_008.efl', key: 392, on: [[172, 173], [209, 210]] }, { bit: 3, efl: 'em056_00_001.efl', key: 1, on: [[120, 121]] }, { bit: 4, efl: 'em056_00_003.efl', key: 391, on: [[28, 29], [216, 217]] }] },
@@ -4181,7 +4574,7 @@ export const CLIP_EFFECTS = {
     'L2 Motion[18]': { frames: 189, bits: [{ bit: 0, efl: 'em056_00_005.efl', key: 200, on: [[0, 188]] }] },
     'L2 Motion[21]': { frames: 245, bits: [{ bit: 0, efl: 'em056_00_000.efl', key: 3, on: [[0, 30], [128, 146]] }, { bit: 13, efl: 'em056_00_007.efl', key: 240, on: [[1, 27]] }] },
     'L2 Motion[22]': { frames: 181, bits: [{ bit: 0, efl: 'cm200_034.efl', key: 390, on: [[70, 71]] }, { bit: 1, efl: 'em056_00_000.efl', key: 3, on: [[62, 90], [110, 146]] }] },
-    'L2 Motion[23]': { frames: 211, bits: [{ bit: 0, efl: 'cm200_034.efl', key: 390, on: [[98, 99]] }] },
+    'L2 Motion[23]': { frames: 211, bits: [{ bit: 0, efl: 'cm200_034.efl', key: 390, on: [[98, 99]] }, { bit: 1, efl: 'em056_00_000.efl', key: 3, on: [[91, 109], [125, 164]] }] },
     'L2 Motion[24]': { frames: 211, bits: [{ bit: 0, efl: 'cm200_034.efl', key: 390, on: [[98, 99]] }, { bit: 1, efl: 'em056_00_000.efl', key: 3, on: [[91, 109], [125, 164]] }] },
     'L2 Motion[27]': { frames: 145, bits: [{ bit: 0, efl: 'cm200_034.efl', key: 393, on: [[87, 88]] }, { bit: 1, efl: 'em056_00_001.efl', key: 1, on: [[98, 99]] }, { bit: 2, efl: 'em056_00_004.efl', key: 400, on: [[4, 49]] }, { bit: 3, efl: 'em056_00_000.efl', key: 2, on: [[98, 140]] }, { bit: 4, efl: 'em056_00_009.efl', key: 431, on: [[51, 52]] }] },
     'L2 Motion[28]': { frames: 279, bits: [{ bit: 1, efl: 'cm200_034.efl', key: 393, on: [[86, 87]] }, { bit: 2, efl: 'em056_00_001.efl', key: 1, on: [[102, 103]] }, { bit: 3, efl: 'em056_00_004.efl', key: 400, on: [[4, 49]] }, { bit: 4, efl: 'em056_00_006.efl', key: 301, on: [[105, 189]] }, { bit: 5, efl: 'em056_00_009.efl', key: 431, on: [[49, 50]] }] },
@@ -4362,12 +4755,14 @@ export const CLIP_EFFECTS = {
     'L4 Motion[22]': { frames: 73, bits: [{ bit: 0, efl: 'em067_00_007.efl', key: 340, on: [[24, 25]] }] },
     'L4 Motion[23]': { frames: 417, bits: [{ bit: 0, efl: 'em067_00_005.efl', key: 381, on: [[0, 37], [282, 310]] }, { bit: 1, efl: 'em067_00_007.efl', key: 320, on: [[47, 48]] }, { bit: 2, efl: 'em067_00_007.efl', key: 340, on: [[350, 351]] }] },
     'L4 Motion[30]': { frames: 353, bits: [{ bit: 0, efl: 'em067_00_005.efl', key: 381, on: [[0, 25]] }, { bit: 1, efl: 'em067_00_007.efl', key: 331, on: [[38, 39], [277, 278]] }, { bit: 2, efl: 'em067_00_016.efl', key: 410, on: [[145, 146]] }] },
+    'L4 Motion[31]': { frames: 53, bits: [{ bit: 15, efl: 'em067_00_007.efl', key: 340, on: [[14, 15]] }] },
+    'L4 Motion[32]': { frames: 53, bits: [{ bit: 15, efl: 'em067_00_007.efl', key: 340, on: [[14, 15]] }] },
     'L4 Motion[37]': { frames: 171, bits: [{ bit: 0, efl: 'em067_00_000.efl', key: 240, on: [[145, 146]] }] },
     'L4 Motion[38]': { frames: 161, bits: [{ bit: 0, efl: 'em067_00_000.efl', key: 240, on: [[4, 5]] }] },
     'L4 Motion[55]': { frames: 223, bits: [{ bit: 0, efl: 'em067_00_008.efl', key: 440, on: [[7, 55]] }, { bit: 1, efl: 'em067_00_008.efl', key: 441, on: [[56, 57]] }] },
     'L4 Motion[56]': { frames: 223, bits: [{ bit: 0, efl: 'em067_00_008.efl', key: 440, on: [[7, 55]] }, { bit: 1, efl: 'em067_00_008.efl', key: 441, on: [[56, 57]] }] },
     'L4 Motion[57]': { frames: 243, bits: [{ bit: 6, efl: 'em067_00_010.efl', key: 470, on: [[40, 41]] }, { bit: 9, efl: 'em067_00_010.efl', key: 480, on: [[40, 41]] }, { bit: 12, efl: 'em067_00_010.efl', key: 470, on: [[40, 41]] }] },
-    'L4 Motion[58]': { frames: 243, bits: [{ bit: 6, efl: 'em067_00_010.efl', key: 471, on: [[40, 41]] }] },
+    'L4 Motion[58]': { frames: 243, bits: [{ bit: 6, efl: 'em067_00_010.efl', key: 471, on: [[40, 41]] }, { bit: 9, efl: 'em067_00_010.efl', key: 481, on: [[40, 41]] }, { bit: 12, efl: 'em067_00_010.efl', key: 471, on: [[40, 41]] }] },
     'L4 Motion[59]': { frames: 359, bits: [{ bit: 0, efl: 'em067_00_011.efl', key: 500, on: [[36, 213]] }] },
     'L4 Motion[60]': { frames: 359, bits: [{ bit: 0, efl: 'em067_00_011.efl', key: 500, on: [[36, 219]] }] },
     'L4 Motion[64]': { frames: 93, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 23, on: [[53, 54]] }] },
@@ -4378,9 +4773,10 @@ export const CLIP_EFFECTS = {
     'L4 Motion[69]': { frames: 137, bits: [{ bit: 0, efl: 'em067_00_007.efl', key: 320, on: [[11, 12], [50, 51], [113, 114], [126, 127]] }] },
     'L4 Motion[70]': { frames: 277, bits: [{ bit: 0, efl: 'em067_00_007.efl', key: 320, on: [[33, 34]] }, { bit: 1, efl: 'em067_00_009.efl', key: 442, on: [[56, 57]] }, { bit: 2, efl: 'cm202_021.efl', key: 31, on: [[137, 138], [139, 140]] }] },
     'L4 Motion[71]': { frames: 207, bits: [{ bit: 0, efl: 'em067_00_003.efl', key: 292, on: [[82, 83]] }] },
-    'L4 Motion[74]': { frames: 243, bits: [{ bit: 6, efl: 'em067_00_010.efl', key: 470, on: [[26, 27]] }, { bit: 9, efl: 'em067_00_010.efl', key: 480, on: [[26, 27]] }] },
+    'L4 Motion[74]': { frames: 243, bits: [{ bit: 6, efl: 'em067_00_010.efl', key: 470, on: [[26, 27]] }, { bit: 9, efl: 'em067_00_010.efl', key: 480, on: [[26, 27]] }, { bit: 12, efl: 'em067_00_010.efl', key: 470, on: [[26, 27]] }] },
     'L4 Motion[76]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 23, on: [[45, 46]] }] },
     'L4 Motion[89]': { frames: 87, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 23, on: [[32, 33]] }] },
+    'L4 Motion[90]': { frames: 87, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 23, on: [[32, 33]] }] },
   },
   // Seltas Queen (em069_00): GENERATED by C:\MHGU-Extract\efx\add_effects.py from its PSLs (em069_00) -- every bit whose record is exported.
   em069_00: {
@@ -4436,15 +4832,15 @@ export const CLIP_EFFECTS = {
     'L4 Motion[33]': { frames: 147, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 110, on: [[25, 26]] }] },
     'L4 Motion[34]': { frames: 93, bits: [{ bit: 0, efl: 'cm202_004.efl', key: 51, on: [[10, 54], [57, 92]] }] },
     'L4 Motion[35]': { frames: 235, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 90, on: [[48, 49]] }, { bit: 1, efl: 'cm202_003.efl', key: 1, on: [[64, 65], [80, 81], [90, 91]] }, { bit: 2, efl: 'cm202_002.efl', key: 50, on: [[15, 16]] }] },
-    'L4 Motion[36]': { frames: 263, bits: [{ bit: 3, efl: 'em069_00_016.efl', key: 601, on: [[48, 49]] }] },
-    'L4 Motion[37]': { frames: 263, bits: [{ bit: 3, efl: 'em069_00_016.efl', key: 601, on: [[48, 49]] }] },
+    'L4 Motion[36]': { frames: 263, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 400, on: [[51, 52]] }, { bit: 1, efl: 'em069_00_018.efl', key: 350, on: [[100, 135]] }, { bit: 2, efl: 'cm202_002.efl', key: 151, on: [[135, 136]] }, { bit: 3, efl: 'em069_00_016.efl', key: 601, on: [[48, 49]] }] },
+    'L4 Motion[37]': { frames: 263, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 400, on: [[51, 52]] }, { bit: 1, efl: 'em069_00_018.efl', key: 350, on: [[100, 136]] }, { bit: 2, efl: 'cm202_002.efl', key: 160, on: [[136, 137]] }, { bit: 3, efl: 'em069_00_016.efl', key: 601, on: [[48, 49]] }] },
     'L4 Motion[38]': { frames: 357, bits: [{ bit: 0, efl: 'em069_00_002.efl', key: 250, on: [[15, 99]] }, { bit: 1, efl: 'em069_00_003.efl', key: 260, on: [[99, 100]] }, { bit: 2, efl: 'cm202_001.efl', key: 111, on: [[150, 151]] }] },
-    'L4 Motion[39]': { frames: 307, bits: [{ bit: 0, efl: 'cm202_035.efl', key: 340, on: [[175, 176]] }] },
+    'L4 Motion[39]': { frames: 307, bits: [{ bit: 0, efl: 'cm202_035.efl', key: 340, on: [[175, 176]] }, { bit: 1, efl: 'cm202_002.efl', key: 152, on: [[191, 192]] }] },
     'L4 Motion[41]': { frames: 403, bits: [{ bit: 0, efl: 'em010_00_019.efl', key: 470, on: [[104, 105]] }, { bit: 1, efl: 'cm202_001.efl', key: 110, on: [[160, 161]] }, { bit: 2, efl: 'em069_00_019.efl', key: 604, on: [[104, 105]] }] },
     'L4 Motion[42]': { frames: 353, bits: [{ bit: 0, efl: 'em069_00_002.efl', key: 250, on: [[9, 101]] }, { bit: 1, efl: 'em069_00_003.efl', key: 270, on: [[101, 102]] }, { bit: 2, efl: 'cm202_001.efl', key: 110, on: [[52, 53], [154, 155]] }] },
     'L4 Motion[43]': { frames: 351, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 40, on: [[54, 55]] }, { bit: 1, efl: 'cm202_002.efl', key: 41, on: [[28, 29], [153, 154]] }, { bit: 2, efl: 'cm202_020.efl', key: 90, on: [[198, 199]] }, { bit: 3, efl: 'cm202_004.efl', key: 51, on: [[114, 150]] }] },
-    'L4 Motion[46]': { frames: 293, bits: [{ bit: 3, efl: 'em069_00_016.efl', key: 600, on: [[109, 110]] }] },
-    'L4 Motion[47]': { frames: 293, bits: [{ bit: 3, efl: 'em069_00_016.efl', key: 600, on: [[109, 110]] }] },
+    'L4 Motion[46]': { frames: 293, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 400, on: [[109, 110]] }, { bit: 1, efl: 'em069_00_018.efl', key: 350, on: [[150, 190]] }, { bit: 2, efl: 'cm202_002.efl', key: 161, on: [[192, 193]] }, { bit: 3, efl: 'em069_00_016.efl', key: 600, on: [[109, 110]] }] },
+    'L4 Motion[47]': { frames: 293, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 400, on: [[109, 110]] }, { bit: 1, efl: 'em069_00_018.efl', key: 350, on: [[150, 190]] }, { bit: 2, efl: 'cm202_002.efl', key: 153, on: [[196, 197]] }, { bit: 3, efl: 'em069_00_016.efl', key: 600, on: [[109, 110]] }] },
     'L4 Motion[48]': { frames: 53, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 110, on: [[40, 41]] }] },
     'L4 Motion[49]': { frames: 103, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 110, on: [[40, 41], [93, 94]] }] },
     'L4 Motion[50]': { frames: 103, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 110, on: [[40, 41], [93, 94]] }] },
@@ -4456,18 +4852,28 @@ export const CLIP_EFFECTS = {
     'L4 Motion[60]': { frames: 125, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[104, 105]] }, { bit: 1, efl: 'cm202_001.efl', key: 10, on: [[58, 59]] }] },
     'L4 Motion[61]': { frames: 125, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[60, 61]] }, { bit: 1, efl: 'cm202_001.efl', key: 10, on: [[4, 5]] }] },
     'L4 Motion[62]': { frames: 125, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[60, 61]] }, { bit: 1, efl: 'cm202_001.efl', key: 10, on: [[96, 97]] }] },
-    'L4 Motion[66]': { frames: 177, bits: [{ bit: 0, efl: 'em069_00_010.efl', key: 290, on: [[96, 97]] }] },
-    'L4 Motion[69]': { frames: 343, bits: [{ bit: 0, efl: 'cm200_034.efl', key: 380, on: [[34, 35], [47, 48], [58, 59], [70, 71]] }] },
-    'L4 Motion[70]': { frames: 343, bits: [{ bit: 0, efl: 'cm200_034.efl', key: 380, on: [[34, 35], [47, 48], [58, 59], [70, 71]] }] },
+    'L4 Motion[66]': { frames: 177, bits: [{ bit: 0, efl: 'em069_00_010.efl', key: 290, on: [[96, 97]] }, { bit: 1, efl: 'cm202_020.efl', key: 101, on: [[96, 97]] }] },
+    'L4 Motion[69]': { frames: 343, bits: [{ bit: 0, efl: 'cm200_034.efl', key: 380, on: [[34, 35], [47, 48], [58, 59], [70, 71]] }, { bit: 1, efl: 'cm202_020.efl', key: 101, on: [[101, 102]] }] },
+    'L4 Motion[70]': { frames: 343, bits: [{ bit: 0, efl: 'cm200_034.efl', key: 380, on: [[34, 35], [47, 48], [58, 59], [70, 71]] }, { bit: 1, efl: 'cm202_020.efl', key: 101, on: [[101, 102]] }] },
     'L4 Motion[71]': { frames: 149, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 60, on: [[15, 16]] }, { bit: 1, efl: 'em069_00_016.efl', key: 602, on: [[97, 98]] }, { bit: 18, efl: 'em069_00_014.efl', key: 500, on: [[111, 129], [130, 148]] }] },
     'L4 Motion[72]': { frames: 35, bits: [{ bit: 18, efl: 'em069_00_014.efl', key: 500, on: [[0, 34]] }] },
     'L4 Motion[73]': { frames: 233, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 110, on: [[85, 86]] }, { bit: 18, efl: 'em069_00_014.efl', key: 500, on: [[0, 20]] }, { bit: 19, efl: 'em069_00_017.efl', key: 410, on: [[28, 29]] }] },
     'L4 Motion[74]': { frames: 217, bits: [{ bit: 18, efl: 'em069_00_014.efl', key: 500, on: [[0, 20], [21, 40], [41, 60], [61, 80], [81, 100], [101, 120], [121, 140], [141, 160], [161, 180], [181, 200], [201, 215]] }] },
     'L4 Motion[75]': { frames: 217, bits: [{ bit: 18, efl: 'em069_00_014.efl', key: 500, on: [[0, 20], [21, 40], [41, 60], [61, 80], [81, 100], [101, 120], [121, 140], [141, 160], [161, 180], [181, 200], [201, 215]] }] },
     'L4 Motion[77]': { frames: 187, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 111, on: [[172, 173]] }] },
-    'L4 Motion[78]': { frames: 159, bits: [{ bit: 1, efl: 'em069_00_016.efl', key: 600, on: [[2, 3], [84, 85]] }] },
+    'L4 Motion[78]': { frames: 159, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 400, on: [[2, 3], [84, 85]] }, { bit: 1, efl: 'em069_00_016.efl', key: 600, on: [[2, 3], [84, 85]] }] },
+    'L4 Motion[82]': { frames: 157, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 101, on: [[74, 75]] }] },
+    'L4 Motion[83]': { frames: 157, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 101, on: [[77, 78]] }] },
+    'L4 Motion[84]': { frames: 157, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 101, on: [[77, 78]] }] },
+    'L4 Motion[85]': { frames: 157, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 101, on: [[76, 77]] }] },
+    'L4 Motion[86]': { frames: 157, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 101, on: [[75, 76]] }] },
+    'L4 Motion[87]': { frames: 157, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 101, on: [[74, 75]] }] },
     'L4 Motion[90]': { frames: 135, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 110, on: [[47, 48], [95, 96]] }] },
     'L4 Motion[91]': { frames: 135, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 110, on: [[47, 48], [95, 96]] }] },
+    'L4 Motion[92]': { frames: 167, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 101, on: [[75, 76]] }] },
+    'L4 Motion[93]': { frames: 167, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 101, on: [[75, 76]] }] },
+    'L4 Motion[94]': { frames: 167, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 101, on: [[75, 76]] }] },
+    'L4 Motion[95]': { frames: 167, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 101, on: [[75, 76]] }] },
     'L4 Motion[96]': { frames: 301, bits: [{ bit: 0, efl: 'em069_00_004.efl', key: 320, on: [[2, 110]] }, { bit: 1, efl: 'em069_00_004.efl', key: 330, on: [[110, 215]] }, { bit: 2, efl: 'em069_00_004.efl', key: 321, on: [[215, 240]] }] },
   },
   // Seregios (em077_00): GENERATED by C:\MHGU-Extract\efx\add_effects.py from its PSLs (em077_00) -- every bit whose record is exported.
@@ -4744,9 +5150,9 @@ export const CLIP_EFFECTS = {
     'L2 Motion[2]': { frames: 71, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 60, on: [[0, 4]] }] },
     'L2 Motion[3]': { frames: 79, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 43, on: [[5, 6]] }] },
     'L2 Motion[4]': { frames: 179, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 90, on: [[22, 23]] }, { bit: 1, efl: 'cm202_035.efl', key: 170, on: [[18, 19]] }] },
-    'L2 Motion[5]': { frames: 91, bits: [{ bit: 0, efl: 'cm202_030.efl', key: 152, on: [[20, 21]] }] },
-    'L2 Motion[6]': { frames: 91, bits: [{ bit: 0, efl: 'cm202_031.efl', key: 161, on: [[20, 21]] }] },
-    'L2 Motion[7]': { frames: 87, bits: [{ bit: 1, efl: 'cm202_002.efl', key: 30, on: [[6, 7]] }] },
+    'L2 Motion[5]': { frames: 91, bits: [{ bit: 0, efl: 'cm202_030.efl', key: 152, on: [[20, 21]] }, { bit: 1, efl: 'cm202_002.efl', key: 41, on: [[21, 22]] }] },
+    'L2 Motion[6]': { frames: 91, bits: [{ bit: 0, efl: 'cm202_031.efl', key: 161, on: [[20, 21]] }, { bit: 1, efl: 'cm202_002.efl', key: 42, on: [[21, 22]] }] },
+    'L2 Motion[7]': { frames: 87, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 40, on: [[38, 39]] }, { bit: 1, efl: 'cm202_002.efl', key: 30, on: [[6, 7]] }] },
     'L2 Motion[8]': { frames: 143, bits: [{ bit: 0, efl: 'em022_00_005.efl', key: 200, on: [[52, 53]] }, { bit: 12, efl: 'em022_00_005.efl', key: 230, on: [[95, 96]] }] },
     'L2 Motion[10]': { frames: 115, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 31, on: [[43, 44]] }, { bit: 1, efl: 'cm202_001.efl', key: 60, on: [[27, 28], [74, 75]] }] },
     'L2 Motion[12]': { frames: 197, bits: [{ bit: 0, efl: 'cm202_006.efl', key: 201, on: [[97, 98]] }] },
@@ -6155,10 +6561,11 @@ export const CLIP_EFFECTS = {
     'L0 Motion[16]': { frames: 69, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 6, on: [[63, 64]] }] },
     'L0 Motion[18]': { frames: 65, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[3, 4]] }] },
     'L0 Motion[19]': { frames: 243, bits: [{ bit: 0, efl: 'em057_00_001.efl', key: 440, on: [[70, 71], [94, 95], [120, 121], [144, 145], [170, 171], [194, 195]] }] },
+    'L0 Motion[20]': { frames: 345, bits: [{ bit: 6, efl: 'em057_00_001.efl', key: 440, on: [[8, 9], [28, 29], [48, 49], [68, 69], [84, 85], [101, 102], [116, 117], [132, 133], [148, 149], [164, 165], [180, 181], [195, 196], [208, 209]] }, { bit: 9, efl: 'em057_00_001.efl', key: 440, on: [[8, 9], [28, 29], [48, 49], [68, 69], [84, 85], [101, 102], [116, 117], [132, 133], [148, 149], [164, 165], [180, 181], [195, 196], [208, 209]] }, { bit: 12, efl: 'em057_00_001.efl', key: 440, on: [[8, 9], [28, 29], [48, 49], [68, 69], [84, 85], [101, 102], [116, 117], [132, 133], [148, 149], [164, 165], [180, 181], [195, 196], [208, 209]] }, { bit: 19, efl: 'em057_00_013.efl', key: 470, on: [[80, 263]] }] },
     'L0 Motion[21]': { frames: 83, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[25, 26]] }, { bit: 1, efl: 'cm202_002.efl', key: 3, on: [[32, 33]] }, { bit: 2, efl: 'cm202_002.efl', key: 4, on: [[49, 50]] }] },
     'L0 Motion[22]': { frames: 67, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 4, on: [[32, 33]] }] },
     'L0 Motion[23]': { frames: 109, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 6, on: [[39, 40]] }] },
-    'L0 Motion[24]': { frames: 171, bits: [{ bit: 19, efl: 'em057_00_010.efl', key: 471, on: [[6, 7]] }] },
+    'L0 Motion[24]': { frames: 171, bits: [{ bit: 19, efl: 'em057_00_010.efl', key: 471, on: [[6, 7]] }, { bit: 24, efl: 'em057_00_021.efl', key: 500, on: [[0, 1]] }] },
     'L0 Motion[25]': { frames: 93, bits: [{ bit: 0, efl: 'em057_00_005.efl', key: 503, on: [[20, 21]] }] },
     'L0 Motion[28]': { frames: 119, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[50, 51]] }, { bit: 1, efl: 'cm202_021.efl', key: 6, on: [[29, 30]] }] },
     'L0 Motion[29]': { frames: 59, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[46, 47]] }, { bit: 1, efl: 'cm202_002.efl', key: 3, on: [[44, 45]] }] },
@@ -6173,7 +6580,8 @@ export const CLIP_EFFECTS = {
     'L0 Motion[45]': { frames: 51, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[3, 4]] }] },
     'L0 Motion[46]': { frames: 21, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 6, on: [[18, 19]] }] },
     'L0 Motion[48]': { frames: 41, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[1, 2]] }] },
-    'L2 Motion[2]': { frames: 229, bits: [{ bit: 9, efl: 'em057_00_003.efl', key: 220, on: [[56, 57]] }] },
+    'L2 Motion[1]': { frames: 229, bits: [{ bit: 6, efl: 'cm202_001.efl', key: 201, on: [[56, 57]] }, { bit: 9, efl: 'em057_00_003.efl', key: 221, on: [[56, 57]] }, { bit: 12, efl: 'cm202_001.efl', key: 201, on: [[56, 57]] }, { bit: 27, efl: 'em057_00_003.efl', key: 211, on: [[56, 57]] }, { bit: 30, efl: 'em057_00_023.efl', key: 235, on: [[0, 56]] }] },
+    'L2 Motion[2]': { frames: 229, bits: [{ bit: 6, efl: 'cm202_001.efl', key: 200, on: [[56, 57]] }, { bit: 9, efl: 'em057_00_003.efl', key: 220, on: [[56, 57]] }, { bit: 12, efl: 'cm202_001.efl', key: 200, on: [[56, 57]] }, { bit: 27, efl: 'em057_00_003.efl', key: 210, on: [[56, 57]] }, { bit: 30, efl: 'em057_00_023.efl', key: 234, on: [[0, 56]] }] },
     'L2 Motion[4]': { frames: 69, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 4, on: [[2, 3], [34, 35]] }] },
     'L2 Motion[5]': { frames: 69, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 4, on: [[2, 3], [34, 35]] }] },
     'L2 Motion[6]': { frames: 57, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 4, on: [[2, 3], [18, 19]] }] },
@@ -6183,28 +6591,35 @@ export const CLIP_EFFECTS = {
     'L2 Motion[11]': { frames: 59, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 4, on: [[13, 14], [32, 33]] }] },
     'L2 Motion[12]': { frames: 79, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 6, on: [[71, 72]] }] },
     'L2 Motion[13]': { frames: 305, bits: [{ bit: 1, efl: 'cm202_020.efl', key: 5, on: [[5, 6]] }] },
-    'L2 Motion[15]': { frames: 133, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 30, on: [[21, 22], [85, 86]] }, { bit: 3, efl: 'cm202_001.efl', key: 0, on: [[30, 31]] }, { bit: 4, efl: 'cm202_001.efl', key: 1, on: [[30, 31]] }, { bit: 27, efl: 'em057_00_012.efl', key: 260, on: [[123, 124]] }] },
+    'L2 Motion[15]': { frames: 133, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 30, on: [[21, 22], [85, 86]] }, { bit: 3, efl: 'cm202_001.efl', key: 0, on: [[30, 31]] }, { bit: 4, efl: 'cm202_001.efl', key: 1, on: [[30, 31]] }, { bit: 6, efl: 'cm202_030.efl', key: 201, on: [[121, 122]] }, { bit: 12, efl: 'cm202_030.efl', key: 201, on: [[121, 122]] }, { bit: 27, efl: 'em057_00_012.efl', key: 260, on: [[123, 124]] }] },
     'L2 Motion[17]': { frames: 225, bits: [{ bit: 1, efl: 'cm202_020.efl', key: 5, on: [[2, 3]] }] },
-    'L2 Motion[18]': { frames: 133, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 31, on: [[16, 17]] }] },
+    'L2 Motion[18]': { frames: 133, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 31, on: [[16, 17]] }, { bit: 3, efl: 'cm202_001.efl', key: 0, on: [[30, 31]] }, { bit: 4, efl: 'cm202_001.efl', key: 1, on: [[30, 31]] }, { bit: 6, efl: 'cm202_030.efl', key: 202, on: [[119, 120]] }, { bit: 9, efl: 'cm202_030.efl', key: 202, on: [[119, 120]] }, { bit: 12, efl: 'cm202_030.efl', key: 202, on: [[119, 120]] }, { bit: 27, efl: 'em057_00_012.efl', key: 260, on: [[120, 121]] }] },
     'L2 Motion[20]': { frames: 225, bits: [{ bit: 1, efl: 'cm202_020.efl', key: 5, on: [[2, 3]] }] },
     'L2 Motion[21]': { frames: 57, bits: [{ bit: 1, efl: 'cm202_021.efl', key: 6, on: [[48, 49]] }] },
     'L2 Motion[22]': { frames: 127, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 31, on: [[12, 13]] }, { bit: 1, efl: 'cm202_021.efl', key: 6, on: [[112, 113]] }] },
     'L2 Motion[24]': { frames: 347, bits: [{ bit: 0, efl: 'em057_00_007.efl', key: 290, on: [[2, 3]] }, { bit: 1, efl: 'cm202_020.efl', key: 5, on: [[4, 5]] }] },
-    'L2 Motion[25]': { frames: 149, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[57, 58], [92, 93], [126, 127]] }, { bit: 1, efl: 'cm202_002.efl', key: 3, on: [[57, 58], [92, 93], [128, 129]] }] },
+    'L2 Motion[25]': { frames: 149, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[57, 58], [92, 93], [126, 127]] }, { bit: 1, efl: 'cm202_002.efl', key: 3, on: [[57, 58], [92, 93], [128, 129]] }, { bit: 27, efl: 'em057_00_012.efl', key: 320, on: [[80, 81], [118, 119]] }] },
+    'L2 Motion[26]': { frames: 241, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[74, 75]] }, { bit: 27, efl: 'em057_00_012.efl', key: 350, on: [[70, 71], [75, 76], [80, 81]] }] },
     'L2 Motion[27]': { frames: 151, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 4, on: [[3, 4]] }] },
     'L2 Motion[28]': { frames: 105, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 4, on: [[3, 4]] }, { bit: 1, efl: 'cm202_021.efl', key: 6, on: [[93, 94]] }] },
     'L2 Motion[29]': { frames: 187, bits: [{ bit: 0, efl: 'cm202_030.efl', key: 8, on: [[52, 53]] }] },
-    'L2 Motion[30]': { frames: 203, bits: [{ bit: 1, efl: 'cm202_021.efl', key: 6, on: [[43, 44]] }, { bit: 2, efl: 'cm202_035.efl', key: 231, on: [[72, 73]] }] },
-    'L2 Motion[32]': { frames: 203, bits: [{ bit: 1, efl: 'em057_00_004.efl', key: 561, on: [[40, 41]] }] },
+    'L2 Motion[30]': { frames: 203, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 230, on: [[82, 83]] }, { bit: 1, efl: 'cm202_021.efl', key: 6, on: [[43, 44]] }, { bit: 2, efl: 'cm202_035.efl', key: 231, on: [[72, 73]] }] },
+    'L2 Motion[31]': { frames: 237, bits: [{ bit: 0, efl: 'em057_00_004.efl', key: 380, on: [[4, 5]] }, { bit: 1, efl: 'cm202_001.efl', key: 31, on: [[8, 9], [16, 17]] }, { bit: 2, efl: 'em057_00_004.efl', key: 560, on: [[70, 71]] }, { bit: 3, efl: 'cm202_021.efl', key: 6, on: [[89, 90]] }] },
+    'L2 Motion[32]': { frames: 203, bits: [{ bit: 0, efl: 'em057_00_004.efl', key: 380, on: [[4, 5]] }, { bit: 1, efl: 'em057_00_004.efl', key: 561, on: [[40, 41]] }, { bit: 2, efl: 'cm202_021.efl', key: 6, on: [[58, 59]] }] },
     'L2 Motion[33]': { frames: 135, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[112, 113]] }] },
-    'L2 Motion[39]': { frames: 197, bits: [{ bit: 1, efl: 'cm202_020.efl', key: 290, on: [[113, 114]] }] },
+    'L2 Motion[37]': { frames: 155, bits: [{ bit: 1, efl: 'cm202_030.efl', key: 202, on: [[142, 143]] }, { bit: 2, efl: 'cm202_021.efl', key: 6, on: [[58, 59]] }, { bit: 27, efl: 'em057_00_012.efl', key: 260, on: [[144, 145]] }] },
+    'L2 Motion[38]': { frames: 155, bits: [{ bit: 1, efl: 'cm202_030.efl', key: 201, on: [[143, 144]] }, { bit: 2, efl: 'cm202_021.efl', key: 6, on: [[54, 55]] }, { bit: 27, efl: 'em057_00_012.efl', key: 260, on: [[147, 148]] }] },
+    'L2 Motion[39]': { frames: 197, bits: [{ bit: 1, efl: 'cm202_020.efl', key: 290, on: [[113, 114]] }, { bit: 27, efl: 'em057_00_020.efl', key: 410, on: [[113, 114]] }] },
+    'L2 Motion[42]': { frames: 151, bits: [{ bit: 6, efl: 'cm202_020.efl', key: 290, on: [[72, 73]] }, { bit: 12, efl: 'cm202_020.efl', key: 290, on: [[72, 73]] }, { bit: 27, efl: 'em057_00_020.efl', key: 410, on: [[73, 74]] }] },
     'L2 Motion[43]': { frames: 31, bits: [{ bit: 30, efl: 'em057_00_023.efl', key: 232, on: [[0, 30]] }] },
     'L2 Motion[44]': { frames: 31, bits: [{ bit: 30, efl: 'em057_00_023.efl', key: 233, on: [[0, 30]] }] },
     'L2 Motion[58]': { frames: 69, bits: [{ bit: 28, efl: 'em057_00_023.efl', key: 235, on: [[21, 68]] }, { bit: 31, efl: 'em057_00_023.efl', key: 235, on: [[21, 68]] }] },
     'L2 Motion[59]': { frames: 69, bits: [{ bit: 28, efl: 'em057_00_023.efl', key: 234, on: [[21, 68]] }, { bit: 31, efl: 'em057_00_023.efl', key: 234, on: [[21, 68]] }] },
-    'L2 Motion[60]': { frames: 189, bits: [{ bit: 31, efl: 'em057_00_023.efl', key: 235, on: [[0, 27]] }] },
-    'L2 Motion[61]': { frames: 189, bits: [{ bit: 31, efl: 'em057_00_023.efl', key: 234, on: [[0, 27]] }] },
-    'L3 Motion[2]': { frames: 217, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[46, 47]] }, { bit: 1, efl: 'cm202_001.efl', key: 1, on: [[57, 58]] }] },
+    'L2 Motion[60]': { frames: 189, bits: [{ bit: 27, efl: 'em057_00_023.efl', key: 235, on: [[0, 27]] }, { bit: 31, efl: 'em057_00_023.efl', key: 235, on: [[0, 27]] }] },
+    'L2 Motion[61]': { frames: 189, bits: [{ bit: 27, efl: 'em057_00_023.efl', key: 234, on: [[0, 27]] }, { bit: 31, efl: 'em057_00_023.efl', key: 234, on: [[0, 27]] }] },
+    'L2 Motion[62]': { frames: 23, bits: [{ bit: 27, efl: 'em057_00_023.efl', key: 235, on: [[0, 22]] }, { bit: 31, efl: 'em057_00_023.efl', key: 235, on: [[0, 22]] }] },
+    'L2 Motion[63]': { frames: 23, bits: [{ bit: 27, efl: 'em057_00_023.efl', key: 234, on: [[0, 22]] }, { bit: 31, efl: 'em057_00_023.efl', key: 234, on: [[0, 22]] }] },
+    'L3 Motion[2]': { frames: 217, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[46, 47]] }, { bit: 1, efl: 'cm202_001.efl', key: 1, on: [[57, 58]] }, { bit: 2, efl: 'cm202_002.efl', key: 4, on: [[2, 3]] }] },
     'L3 Motion[3]': { frames: 75, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[20, 21]] }] },
     'L3 Motion[4]': { frames: 75, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[20, 21]] }] },
     'L3 Motion[5]': { frames: 177, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 6, on: [[57, 58]] }] },
@@ -6213,12 +6628,12 @@ export const CLIP_EFFECTS = {
     'L3 Motion[9]': { frames: 157, bits: [{ bit: 0, efl: 'em057_00_009.efl', key: 530, on: [[16, 17], [36, 37], [56, 57]] }, { bit: 1, efl: 'em057_00_009.efl', key: 531, on: [[60, 61]] }] },
     'L3 Motion[10]': { frames: 293, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 15, on: [[195, 196]] }] },
     'L3 Motion[12]': { frames: 223, bits: [{ bit: 0, efl: 'cm202_006.efl', key: 9, on: [[2, 3]] }] },
-    'L3 Motion[13]': { frames: 317, bits: [{ bit: 0, efl: 'cm202_080.efl', key: 3000, on: [[185, 186]] }, { bit: 22, efl: 'em057_00_000.efl', key: 651, on: [[0, 199]] }] },
+    'L3 Motion[13]': { frames: 317, bits: [{ bit: 0, efl: 'cm202_080.efl', key: 3000, on: [[185, 186]] }, { bit: 22, efl: 'em057_00_000.efl', key: 651, on: [[0, 199]] }, { bit: 23, efl: 'em057_00_005.efl', key: 650, on: [[199, 200]] }] },
     'L3 Motion[14]': { frames: 23, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[20, 21]] }] },
     'L3 Motion[16]': { frames: 93, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[5, 6]] }] },
     'L3 Motion[19]': { frames: 287, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[47, 48]] }] },
     'L3 Motion[20]': { frames: 215, bits: [{ bit: 15, efl: 'cm202_050.efl', key: 60, on: [[63, 87]] }] },
-    'L3 Motion[21]': { frames: 401, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[22, 23]] }, { bit: 1, efl: 'cm202_001.efl', key: 1, on: [[262, 263]] }, { bit: 2, efl: 'cm202_080.efl', key: 3000, on: [[332, 333]] }, { bit: 3, efl: 'em057_00_005.efl', key: 640, on: [[333, 334]] }, { bit: 22, efl: 'em057_00_005.efl', key: 650, on: [[229, 230]] }] },
+    'L3 Motion[21]': { frames: 401, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[22, 23]] }, { bit: 1, efl: 'cm202_001.efl', key: 1, on: [[262, 263]] }, { bit: 2, efl: 'cm202_080.efl', key: 3000, on: [[332, 333]] }, { bit: 3, efl: 'em057_00_005.efl', key: 640, on: [[333, 334]] }, { bit: 21, efl: 'em057_00_000.efl', key: 651, on: [[0, 229]] }, { bit: 22, efl: 'em057_00_005.efl', key: 650, on: [[229, 230]] }] },
     'L3 Motion[22]': { frames: 121, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 6, on: [[12, 13]] }, { bit: 1, efl: 'cm202_001.efl', key: 0, on: [[85, 86]] }, { bit: 2, efl: 'cm202_001.efl', key: 1, on: [[73, 74]] }] },
     'L3 Motion[23]': { frames: 329, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[83, 84], [164, 165], [240, 241], [291, 292]] }, { bit: 1, efl: 'cm202_002.efl', key: 3, on: [[68, 69], [156, 157], [224, 225], [290, 291]] }] },
     'L3 Motion[24]': { frames: 185, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[79, 80]] }] },
@@ -6236,10 +6651,11 @@ export const CLIP_EFFECTS = {
     'L0 Motion[16]': { frames: 69, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 6, on: [[63, 64]] }] },
     'L0 Motion[18]': { frames: 65, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[3, 4]] }] },
     'L0 Motion[19]': { frames: 243, bits: [{ bit: 0, efl: 'em057_04_001.efl', key: 440, on: [[70, 71], [94, 95], [120, 121], [144, 145], [170, 171], [194, 195]] }] },
+    'L0 Motion[20]': { frames: 345, bits: [{ bit: 6, efl: 'em057_04_001.efl', key: 440, on: [[8, 9], [28, 29], [48, 49], [68, 69], [84, 85], [101, 102], [116, 117], [132, 133], [148, 149], [164, 165], [180, 181], [195, 196], [208, 209]] }, { bit: 9, efl: 'em057_04_001.efl', key: 440, on: [[8, 9], [28, 29], [48, 49], [68, 69], [84, 85], [101, 102], [116, 117], [132, 133], [148, 149], [164, 165], [180, 181], [195, 196], [208, 209]] }, { bit: 12, efl: 'em057_04_001.efl', key: 440, on: [[8, 9], [28, 29], [48, 49], [68, 69], [84, 85], [101, 102], [116, 117], [132, 133], [148, 149], [164, 165], [180, 181], [195, 196], [208, 209]] }, { bit: 19, efl: 'em057_04_013.efl', key: 470, on: [[80, 263]] }, { bit: 27, efl: 'em057_04_013.efl', key: 480, on: [[80, 263]] }] },
     'L0 Motion[21]': { frames: 83, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[25, 26]] }, { bit: 1, efl: 'cm202_002.efl', key: 3, on: [[32, 33]] }, { bit: 2, efl: 'cm202_002.efl', key: 4, on: [[49, 50]] }] },
     'L0 Motion[22]': { frames: 67, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 4, on: [[32, 33]] }] },
     'L0 Motion[23]': { frames: 109, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 6, on: [[39, 40]] }] },
-    'L0 Motion[24]': { frames: 171, bits: [{ bit: 19, efl: 'em057_04_010.efl', key: 471, on: [[6, 7]] }] },
+    'L0 Motion[24]': { frames: 171, bits: [{ bit: 19, efl: 'em057_04_010.efl', key: 471, on: [[6, 7]] }, { bit: 24, efl: 'em057_04_021.efl', key: 500, on: [[0, 1]] }, { bit: 27, efl: 'em057_04_010.efl', key: 481, on: [[0, 1]] }] },
     'L0 Motion[25]': { frames: 93, bits: [{ bit: 0, efl: 'em057_04_005.efl', key: 503, on: [[20, 21]] }] },
     'L0 Motion[28]': { frames: 119, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[50, 51]] }, { bit: 1, efl: 'cm202_021.efl', key: 6, on: [[29, 30]] }] },
     'L0 Motion[29]': { frames: 59, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[46, 47]] }, { bit: 1, efl: 'cm202_002.efl', key: 3, on: [[44, 45]] }] },
@@ -6254,7 +6670,8 @@ export const CLIP_EFFECTS = {
     'L0 Motion[45]': { frames: 51, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[3, 4]] }] },
     'L0 Motion[46]': { frames: 21, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 6, on: [[18, 19]] }] },
     'L0 Motion[48]': { frames: 41, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[1, 2]] }] },
-    'L2 Motion[2]': { frames: 229, bits: [{ bit: 9, efl: 'em057_04_003.efl', key: 220, on: [[56, 57]] }, { bit: 22, efl: 'em057_04_023.efl', key: 244, on: [[0, 56]] }] },
+    'L2 Motion[1]': { frames: 229, bits: [{ bit: 6, efl: 'em057_04_003.efl', key: 201, on: [[56, 57]] }, { bit: 9, efl: 'em057_04_003.efl', key: 221, on: [[56, 57]] }, { bit: 12, efl: 'em057_04_003.efl', key: 201, on: [[56, 57]] }, { bit: 22, efl: 'em057_04_023.efl', key: 245, on: [[0, 56]] }, { bit: 27, efl: 'em057_04_003.efl', key: 211, on: [[56, 57]] }, { bit: 30, efl: 'em057_04_023.efl', key: 235, on: [[0, 56]] }] },
+    'L2 Motion[2]': { frames: 229, bits: [{ bit: 6, efl: 'em057_04_003.efl', key: 200, on: [[56, 57]] }, { bit: 9, efl: 'em057_04_003.efl', key: 220, on: [[56, 57]] }, { bit: 12, efl: 'em057_04_003.efl', key: 200, on: [[56, 57]] }, { bit: 22, efl: 'em057_04_023.efl', key: 244, on: [[0, 56]] }, { bit: 27, efl: 'em057_04_003.efl', key: 210, on: [[56, 57]] }, { bit: 30, efl: 'em057_04_023.efl', key: 234, on: [[0, 56]] }] },
     'L2 Motion[4]': { frames: 69, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 4, on: [[2, 3], [34, 35]] }] },
     'L2 Motion[5]': { frames: 69, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 4, on: [[2, 3], [34, 35]] }] },
     'L2 Motion[6]': { frames: 57, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 4, on: [[2, 3], [18, 19]] }] },
@@ -6264,29 +6681,35 @@ export const CLIP_EFFECTS = {
     'L2 Motion[11]': { frames: 59, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 4, on: [[13, 14], [32, 33]] }] },
     'L2 Motion[12]': { frames: 79, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 6, on: [[71, 72]] }] },
     'L2 Motion[13]': { frames: 305, bits: [{ bit: 1, efl: 'cm202_020.efl', key: 5, on: [[5, 6]] }] },
-    'L2 Motion[15]': { frames: 133, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 30, on: [[21, 22], [85, 86]] }, { bit: 3, efl: 'cm202_001.efl', key: 0, on: [[30, 31]] }, { bit: 4, efl: 'cm202_001.efl', key: 1, on: [[30, 31]] }, { bit: 21, efl: 'em057_04_012.efl', key: 270, on: [[123, 124]] }, { bit: 27, efl: 'em057_04_012.efl', key: 260, on: [[123, 124]] }] },
+    'L2 Motion[15]': { frames: 133, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 30, on: [[21, 22], [85, 86]] }, { bit: 3, efl: 'cm202_001.efl', key: 0, on: [[30, 31]] }, { bit: 4, efl: 'cm202_001.efl', key: 1, on: [[30, 31]] }, { bit: 6, efl: 'cm202_030.efl', key: 201, on: [[121, 122]] }, { bit: 12, efl: 'cm202_030.efl', key: 201, on: [[121, 122]] }, { bit: 21, efl: 'em057_04_012.efl', key: 270, on: [[123, 124]] }, { bit: 27, efl: 'em057_04_012.efl', key: 260, on: [[123, 124]] }] },
     'L2 Motion[17]': { frames: 225, bits: [{ bit: 1, efl: 'cm202_020.efl', key: 5, on: [[2, 3]] }] },
-    'L2 Motion[18]': { frames: 133, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 31, on: [[16, 17]] }] },
+    'L2 Motion[18]': { frames: 133, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 31, on: [[16, 17]] }, { bit: 3, efl: 'cm202_001.efl', key: 0, on: [[30, 31]] }, { bit: 4, efl: 'cm202_001.efl', key: 1, on: [[30, 31]] }, { bit: 6, efl: 'cm202_030.efl', key: 202, on: [[119, 120]] }, { bit: 9, efl: 'cm202_030.efl', key: 202, on: [[119, 120]] }, { bit: 12, efl: 'cm202_030.efl', key: 202, on: [[119, 120]] }, { bit: 21, efl: 'em057_04_012.efl', key: 270, on: [[120, 121]] }, { bit: 27, efl: 'em057_04_012.efl', key: 260, on: [[120, 121]] }] },
     'L2 Motion[20]': { frames: 225, bits: [{ bit: 1, efl: 'cm202_020.efl', key: 5, on: [[2, 3]] }] },
     'L2 Motion[21]': { frames: 57, bits: [{ bit: 1, efl: 'cm202_021.efl', key: 6, on: [[48, 49]] }] },
     'L2 Motion[22]': { frames: 127, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 31, on: [[12, 13]] }, { bit: 1, efl: 'cm202_021.efl', key: 6, on: [[112, 113]] }] },
-    'L2 Motion[24]': { frames: 347, bits: [{ bit: 0, efl: 'em057_04_007.efl', key: 290, on: [[2, 3]] }, { bit: 1, efl: 'cm202_020.efl', key: 5, on: [[4, 5]] }] },
-    'L2 Motion[25]': { frames: 149, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[57, 58], [92, 93], [126, 127]] }, { bit: 1, efl: 'cm202_002.efl', key: 3, on: [[57, 58], [92, 93], [128, 129]] }] },
+    'L2 Motion[24]': { frames: 347, bits: [{ bit: 0, efl: 'em057_04_007.efl', key: 290, on: [[2, 3]] }, { bit: 1, efl: 'cm202_020.efl', key: 5, on: [[4, 5]] }, { bit: 21, efl: 'em057_04_007.efl', key: 300, on: [[2, 3]] }] },
+    'L2 Motion[25]': { frames: 149, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[57, 58], [92, 93], [126, 127]] }, { bit: 1, efl: 'cm202_002.efl', key: 3, on: [[57, 58], [92, 93], [128, 129]] }, { bit: 21, efl: 'em057_04_012.efl', key: 330, on: [[80, 81], [118, 119]] }, { bit: 27, efl: 'em057_04_012.efl', key: 320, on: [[80, 81], [118, 119]] }] },
+    'L2 Motion[26]': { frames: 241, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[74, 75]] }, { bit: 21, efl: 'em057_04_012.efl', key: 360, on: [[70, 71], [75, 76], [80, 81]] }, { bit: 27, efl: 'em057_04_012.efl', key: 350, on: [[70, 71], [75, 76], [80, 81]] }] },
     'L2 Motion[27]': { frames: 151, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 4, on: [[3, 4]] }] },
     'L2 Motion[28]': { frames: 105, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 4, on: [[3, 4]] }, { bit: 1, efl: 'cm202_021.efl', key: 6, on: [[93, 94]] }] },
     'L2 Motion[29]': { frames: 187, bits: [{ bit: 0, efl: 'cm202_030.efl', key: 8, on: [[52, 53]] }] },
-    'L2 Motion[30]': { frames: 203, bits: [{ bit: 1, efl: 'cm202_021.efl', key: 6, on: [[43, 44]] }, { bit: 2, efl: 'cm202_035.efl', key: 231, on: [[72, 73]] }] },
-    'L2 Motion[32]': { frames: 203, bits: [{ bit: 1, efl: 'em057_04_004.efl', key: 561, on: [[40, 41]] }] },
+    'L2 Motion[30]': { frames: 203, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 230, on: [[82, 83]] }, { bit: 1, efl: 'cm202_021.efl', key: 6, on: [[43, 44]] }, { bit: 2, efl: 'cm202_035.efl', key: 231, on: [[72, 73]] }] },
+    'L2 Motion[31]': { frames: 237, bits: [{ bit: 0, efl: 'em057_04_004.efl', key: 380, on: [[4, 5]] }, { bit: 1, efl: 'cm202_001.efl', key: 31, on: [[8, 9], [16, 17]] }, { bit: 2, efl: 'em057_04_004.efl', key: 560, on: [[70, 71]] }, { bit: 3, efl: 'cm202_021.efl', key: 6, on: [[89, 90]] }] },
+    'L2 Motion[32]': { frames: 203, bits: [{ bit: 0, efl: 'em057_04_004.efl', key: 380, on: [[4, 5]] }, { bit: 1, efl: 'em057_04_004.efl', key: 561, on: [[40, 41]] }, { bit: 2, efl: 'cm202_021.efl', key: 6, on: [[58, 59]] }] },
     'L2 Motion[33]': { frames: 135, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[112, 113]] }] },
-    'L2 Motion[38]': { frames: 155, bits: [{ bit: 21, efl: 'em057_04_012.efl', key: 270, on: [[147, 148]] }] },
-    'L2 Motion[39]': { frames: 197, bits: [{ bit: 1, efl: 'cm202_020.efl', key: 290, on: [[113, 114]] }] },
-    'L2 Motion[43]': { frames: 31, bits: [{ bit: 30, efl: 'em057_04_023.efl', key: 232, on: [[0, 30]] }] },
-    'L2 Motion[44]': { frames: 31, bits: [{ bit: 30, efl: 'em057_04_023.efl', key: 233, on: [[0, 30]] }] },
-    'L2 Motion[58]': { frames: 69, bits: [{ bit: 22, efl: 'em057_04_023.efl', key: 245, on: [[21, 68]] }, { bit: 28, efl: 'em057_04_023.efl', key: 235, on: [[21, 68]] }, { bit: 31, efl: 'em057_04_023.efl', key: 235, on: [[21, 68]] }] },
-    'L2 Motion[59]': { frames: 69, bits: [{ bit: 22, efl: 'em057_04_023.efl', key: 244, on: [[21, 68]] }, { bit: 28, efl: 'em057_04_023.efl', key: 234, on: [[21, 68]] }, { bit: 31, efl: 'em057_04_023.efl', key: 234, on: [[21, 68]] }] },
-    'L2 Motion[60]': { frames: 189, bits: [{ bit: 31, efl: 'em057_04_023.efl', key: 235, on: [[0, 27]] }] },
-    'L2 Motion[61]': { frames: 189, bits: [{ bit: 31, efl: 'em057_04_023.efl', key: 234, on: [[0, 27]] }] },
-    'L3 Motion[2]': { frames: 217, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[46, 47]] }, { bit: 1, efl: 'cm202_001.efl', key: 1, on: [[57, 58]] }] },
+    'L2 Motion[37]': { frames: 155, bits: [{ bit: 1, efl: 'cm202_030.efl', key: 202, on: [[142, 143]] }, { bit: 2, efl: 'cm202_021.efl', key: 6, on: [[58, 59]] }, { bit: 21, efl: 'em057_04_012.efl', key: 270, on: [[144, 145]] }, { bit: 27, efl: 'em057_04_012.efl', key: 260, on: [[144, 145]] }] },
+    'L2 Motion[38]': { frames: 155, bits: [{ bit: 1, efl: 'cm202_030.efl', key: 201, on: [[143, 144]] }, { bit: 2, efl: 'cm202_021.efl', key: 6, on: [[54, 55]] }, { bit: 21, efl: 'em057_04_012.efl', key: 270, on: [[147, 148]] }, { bit: 27, efl: 'em057_04_012.efl', key: 260, on: [[147, 148]] }] },
+    'L2 Motion[39]': { frames: 197, bits: [{ bit: 1, efl: 'cm202_020.efl', key: 290, on: [[113, 114]] }, { bit: 21, efl: 'em057_04_020.efl', key: 420, on: [[113, 114]] }, { bit: 27, efl: 'em057_04_020.efl', key: 410, on: [[113, 114]] }] },
+    'L2 Motion[42]': { frames: 151, bits: [{ bit: 6, efl: 'cm202_020.efl', key: 290, on: [[72, 73]] }, { bit: 12, efl: 'cm202_020.efl', key: 290, on: [[72, 73]] }, { bit: 21, efl: 'em057_04_020.efl', key: 420, on: [[73, 74]] }, { bit: 27, efl: 'em057_04_020.efl', key: 410, on: [[73, 74]] }] },
+    'L2 Motion[43]': { frames: 31, bits: [{ bit: 22, efl: 'em057_04_023.efl', key: 242, on: [[0, 21]] }, { bit: 30, efl: 'em057_04_023.efl', key: 232, on: [[0, 30]] }] },
+    'L2 Motion[44]': { frames: 31, bits: [{ bit: 22, efl: 'em057_04_023.efl', key: 243, on: [[0, 21]] }, { bit: 30, efl: 'em057_04_023.efl', key: 233, on: [[0, 30]] }] },
+    'L2 Motion[58]': { frames: 69, bits: [{ bit: 22, efl: 'em057_04_023.efl', key: 245, on: [[21, 68]] }, { bit: 28, efl: 'em057_04_023.efl', key: 235, on: [[21, 68]] }, { bit: 29, efl: 'em057_04_023.efl', key: 251, on: [[64, 65]] }, { bit: 31, efl: 'em057_04_023.efl', key: 235, on: [[21, 68]] }] },
+    'L2 Motion[59]': { frames: 69, bits: [{ bit: 22, efl: 'em057_04_023.efl', key: 244, on: [[21, 68]] }, { bit: 28, efl: 'em057_04_023.efl', key: 234, on: [[21, 68]] }, { bit: 29, efl: 'em057_04_023.efl', key: 250, on: [[64, 65]] }, { bit: 31, efl: 'em057_04_023.efl', key: 234, on: [[21, 68]] }] },
+    'L2 Motion[60]': { frames: 189, bits: [{ bit: 21, efl: 'em057_04_023.efl', key: 245, on: [[0, 27]] }, { bit: 27, efl: 'em057_04_023.efl', key: 235, on: [[0, 27]] }, { bit: 31, efl: 'em057_04_023.efl', key: 235, on: [[0, 27]] }] },
+    'L2 Motion[61]': { frames: 189, bits: [{ bit: 21, efl: 'em057_04_023.efl', key: 244, on: [[0, 27]] }, { bit: 27, efl: 'em057_04_023.efl', key: 234, on: [[0, 27]] }, { bit: 31, efl: 'em057_04_023.efl', key: 234, on: [[0, 27]] }] },
+    'L2 Motion[62]': { frames: 23, bits: [{ bit: 21, efl: 'em057_04_023.efl', key: 244, on: [[0, 22]] }, { bit: 27, efl: 'em057_04_023.efl', key: 235, on: [[0, 22]] }, { bit: 28, efl: 'em057_04_023.efl', key: 251, on: [[0, 22]] }, { bit: 31, efl: 'em057_04_023.efl', key: 235, on: [[0, 22]] }] },
+    'L2 Motion[63]': { frames: 23, bits: [{ bit: 21, efl: 'em057_04_023.efl', key: 244, on: [[0, 22]] }, { bit: 27, efl: 'em057_04_023.efl', key: 234, on: [[0, 22]] }, { bit: 28, efl: 'em057_04_023.efl', key: 250, on: [[0, 22]] }, { bit: 31, efl: 'em057_04_023.efl', key: 234, on: [[0, 22]] }] },
+    'L3 Motion[2]': { frames: 217, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[46, 47]] }, { bit: 1, efl: 'cm202_001.efl', key: 1, on: [[57, 58]] }, { bit: 2, efl: 'cm202_002.efl', key: 4, on: [[2, 3]] }] },
     'L3 Motion[3]': { frames: 75, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[20, 21]] }] },
     'L3 Motion[4]': { frames: 75, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[20, 21]] }] },
     'L3 Motion[5]': { frames: 177, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 6, on: [[57, 58]] }] },
@@ -6295,12 +6718,12 @@ export const CLIP_EFFECTS = {
     'L3 Motion[9]': { frames: 157, bits: [{ bit: 0, efl: 'em057_00_009.efl', key: 530, on: [[16, 17], [36, 37], [56, 57]] }, { bit: 1, efl: 'em057_00_009.efl', key: 531, on: [[60, 61]] }] },
     'L3 Motion[10]': { frames: 293, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 15, on: [[195, 196]] }] },
     'L3 Motion[12]': { frames: 223, bits: [{ bit: 0, efl: 'cm202_006.efl', key: 9, on: [[2, 3]] }] },
-    'L3 Motion[13]': { frames: 317, bits: [{ bit: 0, efl: 'cm202_080.efl', key: 3000, on: [[185, 186]] }, { bit: 22, efl: 'em057_04_024.efl', key: 651, on: [[0, 199]] }, { bit: 25, efl: 'em057_04_000.efl', key: 681, on: [[0, 199]] }] },
+    'L3 Motion[13]': { frames: 317, bits: [{ bit: 0, efl: 'cm202_080.efl', key: 3000, on: [[185, 186]] }, { bit: 22, efl: 'em057_04_024.efl', key: 651, on: [[0, 199]] }, { bit: 23, efl: 'em057_04_005.efl', key: 650, on: [[199, 200]] }, { bit: 24, efl: 'em057_04_005.efl', key: 680, on: [[199, 200]] }, { bit: 25, efl: 'em057_04_000.efl', key: 681, on: [[0, 199]] }] },
     'L3 Motion[14]': { frames: 23, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[20, 21]] }] },
     'L3 Motion[16]': { frames: 93, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[5, 6]] }] },
     'L3 Motion[19]': { frames: 287, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[47, 48]] }] },
     'L3 Motion[20]': { frames: 215, bits: [{ bit: 15, efl: 'cm202_050.efl', key: 60, on: [[63, 87]] }] },
-    'L3 Motion[21]': { frames: 401, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[22, 23]] }, { bit: 1, efl: 'cm202_001.efl', key: 1, on: [[262, 263]] }, { bit: 2, efl: 'cm202_080.efl', key: 3000, on: [[332, 333]] }, { bit: 3, efl: 'em057_04_005.efl', key: 640, on: [[333, 334]] }, { bit: 22, efl: 'em057_04_005.efl', key: 650, on: [[229, 230]] }, { bit: 24, efl: 'em057_04_005.efl', key: 680, on: [[229, 230]] }, { bit: 25, efl: 'em057_04_000.efl', key: 681, on: [[0, 229]] }] },
+    'L3 Motion[21]': { frames: 401, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[22, 23]] }, { bit: 1, efl: 'cm202_001.efl', key: 1, on: [[262, 263]] }, { bit: 2, efl: 'cm202_080.efl', key: 3000, on: [[332, 333]] }, { bit: 3, efl: 'em057_04_005.efl', key: 640, on: [[333, 334]] }, { bit: 21, efl: 'em057_04_024.efl', key: 651, on: [[0, 229]] }, { bit: 22, efl: 'em057_04_005.efl', key: 650, on: [[229, 230]] }, { bit: 24, efl: 'em057_04_005.efl', key: 680, on: [[229, 230]] }, { bit: 25, efl: 'em057_04_000.efl', key: 681, on: [[0, 229]] }] },
     'L3 Motion[22]': { frames: 121, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 6, on: [[12, 13]] }, { bit: 1, efl: 'cm202_001.efl', key: 0, on: [[85, 86]] }, { bit: 2, efl: 'cm202_001.efl', key: 1, on: [[73, 74]] }] },
     'L3 Motion[23]': { frames: 329, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 2, on: [[83, 84], [164, 165], [240, 241], [291, 292]] }, { bit: 1, efl: 'cm202_002.efl', key: 3, on: [[68, 69], [156, 157], [224, 225], [290, 291]] }] },
     'L3 Motion[24]': { frames: 185, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[79, 80]] }] },
@@ -6382,13 +6805,14 @@ export const CLIP_EFFECTS = {
     'L0 Motion[6]': { frames: 73, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 60, on: [[26, 27]] }] },
     'L0 Motion[7]': { frames: 133, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 20, on: [[46, 47], [105, 106]] }, { bit: 1, efl: 'cm202_002.efl', key: 21, on: [[10, 11], [76, 77]] }] },
     'L0 Motion[8]': { frames: 119, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 30, on: [[14, 15]] }, { bit: 1, efl: 'cm202_001.efl', key: 60, on: [[37, 38]] }] },
-    'L0 Motion[9]': { frames: 137, bits: [{ bit: 1, efl: 'cm202_001.efl', key: 60, on: [[50, 51]] }] },
+    'L0 Motion[9]': { frames: 137, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 40, on: [[20, 21]] }, { bit: 1, efl: 'cm202_001.efl', key: 60, on: [[50, 51]] }] },
     'L0 Motion[10]': { frames: 55, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 30, on: [[51, 54]] }] },
     'L0 Motion[13]': { frames: 131, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 60, on: [[3, 7]] }] },
     'L0 Motion[14]': { frames: 81, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 30, on: [[14, 15], [44, 45], [75, 76]] }] },
     'L0 Motion[17]': { frames: 271, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 60, on: [[83, 84]] }] },
     'L0 Motion[18]': { frames: 253, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 60, on: [[169, 170]] }] },
     'L0 Motion[23]': { frames: 223, bits: [{ bit: 0, efl: 'cm200_011.efl', key: 160, on: [[44, 45], [127, 128], [160, 161], [200, 201]] }] },
+    'L0 Motion[25]': { frames: 289, bits: [{ bit: 15, efl: 'cm202_070.efl', key: 150, on: [[135, 288]] }, { bit: 17, efl: 'cm202_070.efl', key: 151, on: [[135, 288]] }, { bit: 19, efl: 'cm202_070.efl', key: 152, on: [[135, 288]] }, { bit: 21, efl: 'cm202_070.efl', key: 153, on: [[135, 288]] }] },
     'L0 Motion[26]': { frames: 147, bits: [{ bit: 0, efl: 'cm202_070.efl', key: 140, on: [[83, 146]] }] },
     'L0 Motion[28]': { frames: 253, bits: [{ bit: 27, efl: 'cm202_050.efl', key: 120, on: [[122, 134]] }] },
     'L0 Motion[30]': { frames: 13, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 30, on: [[8, 12]] }] },
@@ -6397,11 +6821,13 @@ export const CLIP_EFFECTS = {
     'L0 Motion[35]': { frames: 83, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 60, on: [[29, 32]] }] },
     'L0 Motion[36]': { frames: 91, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 30, on: [[87, 90]] }] },
     'L0 Motion[38]': { frames: 51, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 60, on: [[4, 7]] }] },
-    'L0 Motion[39]': { frames: 209, bits: [{ bit: 2, efl: 'cm202_010.efl', key: 180, on: [[100, 200]] }] },
+    'L0 Motion[39]': { frames: 209, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 190, on: [[24, 25]] }, { bit: 1, efl: 'cm202_002.efl', key: 191, on: [[61, 62]] }, { bit: 2, efl: 'cm202_010.efl', key: 180, on: [[100, 200]] }] },
     'L0 Motion[42]': { frames: 129, bits: [{ bit: 0, efl: 'em021_00_007.efl', key: 260, on: [[52, 53]] }] },
-    'L2 Motion[2]': { frames: 193, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 280, on: [[30, 31]] }] },
+    'L0 Motion[43]': { frames: 201, bits: [{ bit: 15, efl: 'em021_00_007.efl', key: 260, on: [[66, 110]] }, { bit: 17, efl: 'em021_00_007.efl', key: 261, on: [[66, 110]] }, { bit: 19, efl: 'em021_00_007.efl', key: 262, on: [[66, 110]] }, { bit: 21, efl: 'em021_00_007.efl', key: 263, on: [[66, 110]] }] },
+    'L2 Motion[2]': { frames: 193, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 280, on: [[30, 31]] }, { bit: 23, efl: 'cm202_020.efl', key: 280, on: [[30, 31]] }, { bit: 25, efl: 'cm202_020.efl', key: 281, on: [[30, 31]] }] },
     'L2 Motion[3]': { frames: 95, bits: [{ bit: 0, efl: 'cm202_030.efl', key: 300, on: [[16, 17]] }] },
     'L2 Motion[4]': { frames: 95, bits: [{ bit: 0, efl: 'cm202_030.efl', key: 330, on: [[15, 16]] }] },
+    'L2 Motion[5]': { frames: 325, bits: [{ bit: 12, efl: 'em021_00_001.efl', key: 241, on: [[106, 107]] }] },
     'L2 Motion[7]': { frames: 361, bits: [{ bit: 12, efl: 'em021_00_002.efl', key: 240, on: [[96, 246]] }] },
     'L2 Motion[8]': { frames: 343, bits: [{ bit: 0, efl: 'cm202_030.efl', key: 301, on: [[74, 75]] }, { bit: 1, efl: 'cm202_030.efl', key: 331, on: [[36, 37], [122, 123]] }, { bit: 2, efl: 'cm202_001.efl', key: 50, on: [[202, 203]] }] },
     'L2 Motion[11]': { frames: 151, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 50, on: [[96, 97]] }] },
@@ -6413,6 +6839,7 @@ export const CLIP_EFFECTS = {
     'L3 Motion[9]': { frames: 241, bits: [{ bit: 0, efl: 'cm202_080.efl', key: 3000, on: [[186, 187]] }] },
     'L3 Motion[10]': { frames: 113, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 50, on: [[30, 31], [75, 76]] }] },
     'L3 Motion[11]': { frames: 113, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 50, on: [[30, 31], [75, 76]] }] },
+    'L3 Motion[12]': { frames: 247, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 50, on: [[60, 61]] }] },
     'L3 Motion[13]': { frames: 61, bits: [{ bit: 0, efl: 'cm202_006.efl', key: 250, on: [[20, 21]] }] },
     'L3 Motion[15]': { frames: 131, bits: [{ bit: 27, efl: 'cm202_080.efl', key: 3001, on: [[100, 101]] }, { bit: 29, efl: 'cm202_001.efl', key: 50, on: [[100, 101]] }] },
     'L3 Motion[19]': { frames: 175, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 50, on: [[30, 31]] }] },
@@ -6593,7 +7020,7 @@ export const CLIP_EFFECTS = {
     'L0 Motion[79]': { frames: 81, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[10, 11]] }] },
     'L0 Motion[80]': { frames: 39, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 31, on: [[27, 28]] }, { bit: 1, efl: 'cm202_002.efl', key: 2, on: [[26, 27]] }] },
     'L0 Motion[82]': { frames: 77, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[4, 5]] }] },
-    'L0 Motion[92]': { frames: 275, bits: [{ bit: 3, efl: 'em071_00_000.efl', key: 200, on: [[104, 210]] }] },
+    'L0 Motion[92]': { frames: 275, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 90, on: [[56, 57]] }, { bit: 1, efl: 'cm202_020.efl', key: 91, on: [[69, 70]] }, { bit: 2, efl: 'em071_00_001.efl', key: 202, on: [[0, 87]] }, { bit: 3, efl: 'em071_00_000.efl', key: 200, on: [[104, 210]] }, { bit: 4, efl: 'em071_00_002.efl', key: 201, on: [[216, 217]] }] },
     'L0 Motion[93]': { frames: 123, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 6, on: [[40, 41]] }, { bit: 1, efl: 'cm202_020.efl', key: 30, on: [[58, 59]] }, { bit: 2, efl: 'cm202_002.efl', key: 12, on: [[71, 72]] }, { bit: 3, efl: 'cm202_002.efl', key: 13, on: [[64, 65]] }] },
     'L1 Motion[1]': { frames: 71, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[67, 68]] }] },
     'L1 Motion[2]': { frames: 49, bits: [{ bit: 0, efl: 'cm202_000.efl', key: 60, on: [[19, 48]] }] },
@@ -6607,14 +7034,14 @@ export const CLIP_EFFECTS = {
     'L1 Motion[11]': { frames: 135, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[7, 8]] }] },
     'L1 Motion[13]': { frames: 63, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 31, on: [[55, 56]] }] },
     'L1 Motion[14]': { frames: 125, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[5, 6]] }] },
-    'L2 Motion[4]': { frames: 181, bits: [{ bit: 0, efl: 'em071_00_003.efl', key: 231, on: [[10, 50]] }, { bit: 6, efl: 'em071_00_004.efl', key: 230, on: [[70, 71]] }, { bit: 7, efl: 'em071_00_003.efl', key: 234, on: [[73, 133]] }] },
+    'L2 Motion[4]': { frames: 181, bits: [{ bit: 0, efl: 'em071_00_003.efl', key: 231, on: [[10, 50]] }, { bit: 6, efl: 'em071_00_004.efl', key: 230, on: [[70, 71]] }, { bit: 7, efl: 'em071_00_003.efl', key: 234, on: [[73, 133]] }, { bit: 9, efl: 'em071_00_004.efl', key: 230, on: [[70, 71]] }, { bit: 10, efl: 'em071_00_003.efl', key: 234, on: [[73, 133]] }, { bit: 12, efl: 'em071_00_012.efl', key: 250, on: [[70, 71]] }] },
     'L2 Motion[5]': { frames: 183, bits: [{ bit: 0, efl: 'cm202_000.efl', key: 60, on: [[53, 54]] }, { bit: 1, efl: 'em071_00_017.efl', key: 300, on: [[53, 85]] }] },
-    'L2 Motion[6]': { frames: 325, bits: [{ bit: 0, efl: 'em071_00_003.efl', key: 231, on: [[10, 94]] }, { bit: 6, efl: 'em071_00_004.efl', key: 230, on: [[111, 112], [150, 151], [197, 198]] }, { bit: 7, efl: 'em071_00_003.efl', key: 234, on: [[201, 300]] }] },
-    'L2 Motion[7]': { frames: 285, bits: [{ bit: 0, efl: 'em071_00_009.efl', key: 261, on: [[20, 109]] }, { bit: 1, efl: 'em071_00_011.efl', key: 262, on: [[113, 221]] }, { bit: 2, efl: 'cm202_020.efl', key: 90, on: [[32, 33]] }, { bit: 3, efl: 'cm202_020.efl', key: 91, on: [[19, 20]] }] },
+    'L2 Motion[6]': { frames: 325, bits: [{ bit: 0, efl: 'em071_00_003.efl', key: 231, on: [[10, 94]] }, { bit: 6, efl: 'em071_00_004.efl', key: 230, on: [[111, 112], [150, 151], [197, 198]] }, { bit: 7, efl: 'em071_00_003.efl', key: 234, on: [[201, 300]] }, { bit: 9, efl: 'em071_00_004.efl', key: 230, on: [[111, 112], [150, 151], [197, 198]] }, { bit: 10, efl: 'em071_00_003.efl', key: 234, on: [[201, 300]] }, { bit: 12, efl: 'em071_00_012.efl', key: 250, on: [[111, 112], [150, 151], [197, 198]] }] },
+    'L2 Motion[7]': { frames: 285, bits: [{ bit: 0, efl: 'em071_00_009.efl', key: 261, on: [[20, 109]] }, { bit: 1, efl: 'em071_00_011.efl', key: 262, on: [[113, 221]] }, { bit: 2, efl: 'cm202_020.efl', key: 90, on: [[32, 33]] }, { bit: 3, efl: 'cm202_020.efl', key: 91, on: [[19, 20]] }, { bit: 6, efl: 'em071_00_010.efl', key: 260, on: [[109, 110]] }, { bit: 9, efl: 'em071_00_010.efl', key: 260, on: [[109, 110]] }, { bit: 12, efl: 'em071_00_012.efl', key: 280, on: [[109, 110]] }, { bit: 15, efl: 'em071_00_010.efl', key: 260, on: [[109, 110]] }, { bit: 18, efl: 'em071_00_010.efl', key: 260, on: [[109, 110]] }] },
     'L2 Motion[8]': { frames: 195, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 100, on: [[102, 103]] }, { bit: 1, efl: 'cm202_001.efl', key: 0, on: [[38, 39]] }, { bit: 2, efl: 'cm202_001.efl', key: 1, on: [[45, 46]] }, { bit: 3, efl: 'em077_00_006.efl', key: 211, on: [[117, 127]] }] },
     'L2 Motion[10]': { frames: 175, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 91, on: [[52, 53]] }, { bit: 1, efl: 'cm202_001.efl', key: 7, on: [[107, 108], [127, 128], [165, 166]] }] },
     'L2 Motion[12]': { frames: 207, bits: [{ bit: 0, efl: 'em077_00_006.efl', key: 210, on: [[70, 91]] }, { bit: 1, efl: 'cm202_001.efl', key: 8, on: [[75, 76]] }, { bit: 2, efl: 'cm202_001.efl', key: 0, on: [[29, 30]] }, { bit: 3, efl: 'cm202_001.efl', key: 1, on: [[58, 59]] }, { bit: 4, efl: 'cm202_020.efl', key: 91, on: [[176, 177]] }] },
-    'L2 Motion[13]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 13, on: [[68, 69]] }] },
+    'L2 Motion[13]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 13, on: [[68, 69]] }, { bit: 1, efl: 'cm202_020.efl', key: 101, on: [[13, 14]] }] },
     'L2 Motion[15]': { frames: 165, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 100, on: [[89, 90]] }] },
     'L2 Motion[16]': { frames: 65, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 8, on: [[4, 5], [43, 44]] }] },
     'L2 Motion[17]': { frames: 65, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 8, on: [[2, 3], [33, 34]] }] },
@@ -6625,10 +7052,11 @@ export const CLIP_EFFECTS = {
     'L2 Motion[23]': { frames: 73, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 91, on: [[53, 54]] }, { bit: 1, efl: 'cm202_020.efl', key: 90, on: [[64, 65]] }] },
     'L2 Motion[25]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 12, on: [[43, 44], [85, 86]] }, { bit: 1, efl: 'cm202_002.efl', key: 13, on: [[65, 66]] }] },
     'L2 Motion[26]': { frames: 171, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 91, on: [[19, 20], [75, 76]] }, { bit: 1, efl: 'cm202_001.efl', key: 0, on: [[53, 54]] }, { bit: 2, efl: 'cm202_020.efl', key: 90, on: [[63, 64]] }] },
-    'L2 Motion[27]': { frames: 127, bits: [{ bit: 1, efl: 'cm202_020.efl', key: 90, on: [[16, 17]] }] },
+    'L2 Motion[27]': { frames: 127, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 101, on: [[60, 61]] }, { bit: 1, efl: 'cm202_020.efl', key: 90, on: [[16, 17]] }] },
     'L2 Motion[29]': { frames: 251, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 100, on: [[65, 66]] }] },
     'L2 Motion[30]': { frames: 177, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 90, on: [[175, 176]] }, { bit: 1, efl: 'cm202_020.efl', key: 91, on: [[161, 162]] }, { bit: 2, efl: 'em077_00_006.efl', key: 210, on: [[107, 120]] }] },
     'L2 Motion[31]': { frames: 387, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[128, 129]] }, { bit: 1, efl: 'em077_00_006.efl', key: 210, on: [[113, 124]] }, { bit: 2, efl: 'em077_00_006.efl', key: 211, on: [[177, 197]] }, { bit: 3, efl: 'cm202_020.efl', key: 90, on: [[333, 334]] }, { bit: 4, efl: 'cm202_020.efl', key: 91, on: [[321, 322]] }] },
+    'L2 Motion[33]': { frames: 305, bits: [{ bit: 0, efl: 'em071_00_019.efl', key: 110, on: [[110, 111]] }] },
     'L2 Motion[34]': { frames: 117, bits: [{ bit: 1, efl: 'cm202_020.efl', key: 91, on: [[106, 107]] }] },
     'L2 Motion[35]': { frames: 173, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 100, on: [[22, 23]] }, { bit: 1, efl: 'cm202_020.efl', key: 90, on: [[143, 144]] }, { bit: 2, efl: 'cm202_020.efl', key: 91, on: [[156, 157]] }] },
     'L2 Motion[43]': { frames: 71, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[69, 70]] }] },
@@ -6639,6 +7067,7 @@ export const CLIP_EFFECTS = {
     'L2 Motion[48]': { frames: 321, bits: [{ bit: 0, efl: 'em071_00_015.efl', key: 232, on: [[97, 98]] }, { bit: 1, efl: 'em071_00_016.efl', key: 233, on: [[20, 94]] }, { bit: 2, efl: 'cm202_021.efl', key: 31, on: [[167, 168], [224, 225], [287, 288]] }, { bit: 3, efl: 'em071_00_016.efl', key: 235, on: [[130, 156]] }] },
     'L2 Motion[49]': { frames: 217, bits: [{ bit: 0, efl: 'em071_00_017.efl', key: 290, on: [[55, 83], [100, 120]] }, { bit: 1, efl: 'em071_00_016.efl', key: 233, on: [[0, 48]] }] },
     'L2 Motion[50]': { frames: 361, bits: [{ bit: 0, efl: 'em071_00_016.efl', key: 233, on: [[40, 99]] }, { bit: 1, efl: 'em071_00_015.efl', key: 232, on: [[127, 128]] }, { bit: 2, efl: 'em071_00_016.efl', key: 235, on: [[151, 181]] }] },
+    'L2 Motion[52]': { frames: 179, bits: [{ bit: 0, efl: 'em071_00_003.efl', key: 231, on: [[28, 73]] }, { bit: 6, efl: 'em071_00_004.efl', key: 230, on: [[83, 84]] }, { bit: 7, efl: 'em071_00_003.efl', key: 234, on: [[95, 165]] }, { bit: 9, efl: 'em071_00_004.efl', key: 230, on: [[83, 84]] }, { bit: 10, efl: 'em071_00_003.efl', key: 234, on: [[95, 165]] }, { bit: 12, efl: 'em071_00_012.efl', key: 250, on: [[83, 84]] }] },
     'L2 Motion[54]': { frames: 137, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[9, 10], [60, 61]] }, { bit: 1, efl: 'em077_00_006.efl', key: 210, on: [[3, 52]] }] },
     'L2 Motion[57]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 12, on: [[66, 67]] }, { bit: 1, efl: 'cm202_002.efl', key: 13, on: [[40, 41], [83, 84]] }] },
     'L2 Motion[58]': { frames: 171, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 100, on: [[17, 18]] }, { bit: 1, efl: 'cm202_020.efl', key: 90, on: [[74, 75]] }, { bit: 2, efl: 'cm202_020.efl', key: 91, on: [[61, 62]] }] },
@@ -6658,6 +7087,7 @@ export const CLIP_EFFECTS = {
     'L3 Motion[37]': { frames: 107, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[7, 8]] }] },
     'L3 Motion[38]': { frames: 151, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[6, 7]] }] },
     'L3 Motion[39]': { frames: 307, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[39, 40]] }] },
+    'L3 Motion[40]': { frames: 307, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[39, 40]] }] },
     'L3 Motion[43]': { frames: 135, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 31, on: [[58, 59], [132, 133]] }] },
     'L3 Motion[44]': { frames: 41, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[30, 31]] }] },
     'L3 Motion[45]': { frames: 111, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[97, 98]] }] },
@@ -6770,7 +7200,7 @@ export const CLIP_EFFECTS = {
     'L0 Motion[79]': { frames: 81, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[10, 11]] }] },
     'L0 Motion[80]': { frames: 39, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 31, on: [[27, 28]] }, { bit: 1, efl: 'cm202_002.efl', key: 2, on: [[26, 27]] }] },
     'L0 Motion[82]': { frames: 77, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[4, 5]] }] },
-    'L0 Motion[92]': { frames: 275, bits: [{ bit: 3, efl: 'em071_00_000.efl', key: 200, on: [[104, 210]] }] },
+    'L0 Motion[92]': { frames: 275, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 90, on: [[56, 57]] }, { bit: 1, efl: 'cm202_020.efl', key: 91, on: [[69, 70]] }, { bit: 2, efl: 'em071_00_001.efl', key: 202, on: [[0, 87]] }, { bit: 3, efl: 'em071_00_000.efl', key: 200, on: [[104, 210]] }, { bit: 4, efl: 'em071_00_002.efl', key: 201, on: [[216, 217]] }] },
     'L0 Motion[93]': { frames: 123, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 6, on: [[40, 41]] }, { bit: 1, efl: 'cm202_020.efl', key: 30, on: [[58, 59]] }, { bit: 2, efl: 'cm202_002.efl', key: 12, on: [[71, 72]] }, { bit: 3, efl: 'cm202_002.efl', key: 13, on: [[64, 65]] }] },
     'L1 Motion[1]': { frames: 71, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[67, 68]] }] },
     'L1 Motion[2]': { frames: 49, bits: [{ bit: 0, efl: 'cm202_000.efl', key: 60, on: [[19, 48]] }] },
@@ -6784,14 +7214,14 @@ export const CLIP_EFFECTS = {
     'L1 Motion[11]': { frames: 135, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[7, 8]] }] },
     'L1 Motion[13]': { frames: 63, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 31, on: [[55, 56]] }] },
     'L1 Motion[14]': { frames: 125, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[5, 6]] }] },
-    'L2 Motion[4]': { frames: 181, bits: [{ bit: 0, efl: 'em071_00_003.efl', key: 231, on: [[10, 50]] }, { bit: 6, efl: 'em071_00_004.efl', key: 230, on: [[70, 71]] }, { bit: 7, efl: 'em071_00_003.efl', key: 234, on: [[73, 133]] }] },
+    'L2 Motion[4]': { frames: 181, bits: [{ bit: 0, efl: 'em071_00_003.efl', key: 231, on: [[10, 50]] }, { bit: 6, efl: 'em071_00_004.efl', key: 230, on: [[70, 71]] }, { bit: 7, efl: 'em071_00_003.efl', key: 234, on: [[73, 133]] }, { bit: 9, efl: 'em071_00_004.efl', key: 230, on: [[70, 71]] }, { bit: 10, efl: 'em071_00_003.efl', key: 234, on: [[73, 133]] }, { bit: 12, efl: 'em071_00_012.efl', key: 250, on: [[70, 71]] }] },
     'L2 Motion[5]': { frames: 183, bits: [{ bit: 0, efl: 'cm202_000.efl', key: 60, on: [[53, 54]] }, { bit: 1, efl: 'em071_00_017.efl', key: 300, on: [[53, 85]] }] },
-    'L2 Motion[6]': { frames: 325, bits: [{ bit: 0, efl: 'em071_00_003.efl', key: 231, on: [[10, 94]] }, { bit: 6, efl: 'em071_00_004.efl', key: 230, on: [[111, 112], [150, 151], [197, 198]] }, { bit: 7, efl: 'em071_00_003.efl', key: 234, on: [[201, 300]] }] },
-    'L2 Motion[7]': { frames: 285, bits: [{ bit: 0, efl: 'em071_00_009.efl', key: 261, on: [[20, 109]] }, { bit: 1, efl: 'em071_00_011.efl', key: 262, on: [[113, 221]] }, { bit: 2, efl: 'cm202_020.efl', key: 90, on: [[32, 33]] }, { bit: 3, efl: 'cm202_020.efl', key: 91, on: [[19, 20]] }] },
+    'L2 Motion[6]': { frames: 325, bits: [{ bit: 0, efl: 'em071_00_003.efl', key: 231, on: [[10, 94]] }, { bit: 6, efl: 'em071_00_004.efl', key: 230, on: [[111, 112], [150, 151], [197, 198]] }, { bit: 7, efl: 'em071_00_003.efl', key: 234, on: [[201, 300]] }, { bit: 9, efl: 'em071_00_004.efl', key: 230, on: [[111, 112], [150, 151], [197, 198]] }, { bit: 10, efl: 'em071_00_003.efl', key: 234, on: [[201, 300]] }, { bit: 12, efl: 'em071_00_012.efl', key: 250, on: [[111, 112], [150, 151], [197, 198]] }] },
+    'L2 Motion[7]': { frames: 285, bits: [{ bit: 0, efl: 'em071_00_009.efl', key: 261, on: [[20, 109]] }, { bit: 1, efl: 'em071_00_011.efl', key: 262, on: [[113, 221]] }, { bit: 2, efl: 'cm202_020.efl', key: 90, on: [[32, 33]] }, { bit: 3, efl: 'cm202_020.efl', key: 91, on: [[19, 20]] }, { bit: 6, efl: 'em071_00_010.efl', key: 260, on: [[109, 110]] }, { bit: 9, efl: 'em071_00_010.efl', key: 260, on: [[109, 110]] }, { bit: 12, efl: 'em071_00_012.efl', key: 280, on: [[109, 110]] }, { bit: 15, efl: 'em071_00_010.efl', key: 260, on: [[109, 110]] }, { bit: 18, efl: 'em071_00_010.efl', key: 260, on: [[109, 110]] }] },
     'L2 Motion[8]': { frames: 195, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 100, on: [[102, 103]] }, { bit: 1, efl: 'cm202_001.efl', key: 0, on: [[38, 39]] }, { bit: 2, efl: 'cm202_001.efl', key: 1, on: [[45, 46]] }, { bit: 3, efl: 'em077_00_006.efl', key: 211, on: [[117, 127]] }] },
     'L2 Motion[10]': { frames: 175, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 91, on: [[52, 53]] }, { bit: 1, efl: 'cm202_001.efl', key: 7, on: [[107, 108], [127, 128], [165, 166]] }] },
     'L2 Motion[12]': { frames: 207, bits: [{ bit: 0, efl: 'em077_00_006.efl', key: 210, on: [[70, 91]] }, { bit: 1, efl: 'cm202_001.efl', key: 8, on: [[75, 76]] }, { bit: 2, efl: 'cm202_001.efl', key: 0, on: [[29, 30]] }, { bit: 3, efl: 'cm202_001.efl', key: 1, on: [[58, 59]] }, { bit: 4, efl: 'cm202_020.efl', key: 91, on: [[176, 177]] }] },
-    'L2 Motion[13]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 13, on: [[68, 69]] }] },
+    'L2 Motion[13]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 13, on: [[68, 69]] }, { bit: 1, efl: 'cm202_020.efl', key: 101, on: [[13, 14]] }] },
     'L2 Motion[15]': { frames: 165, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 100, on: [[89, 90]] }] },
     'L2 Motion[16]': { frames: 65, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 8, on: [[4, 5], [43, 44]] }] },
     'L2 Motion[17]': { frames: 65, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 8, on: [[2, 3], [33, 34]] }] },
@@ -6802,10 +7232,11 @@ export const CLIP_EFFECTS = {
     'L2 Motion[23]': { frames: 73, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 91, on: [[53, 54]] }, { bit: 1, efl: 'cm202_020.efl', key: 90, on: [[64, 65]] }] },
     'L2 Motion[25]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 12, on: [[43, 44], [85, 86]] }, { bit: 1, efl: 'cm202_002.efl', key: 13, on: [[65, 66]] }] },
     'L2 Motion[26]': { frames: 171, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 91, on: [[19, 20], [75, 76]] }, { bit: 1, efl: 'cm202_001.efl', key: 0, on: [[53, 54]] }, { bit: 2, efl: 'cm202_020.efl', key: 90, on: [[63, 64]] }] },
-    'L2 Motion[27]': { frames: 127, bits: [{ bit: 1, efl: 'cm202_020.efl', key: 90, on: [[16, 17]] }] },
+    'L2 Motion[27]': { frames: 127, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 101, on: [[60, 61]] }, { bit: 1, efl: 'cm202_020.efl', key: 90, on: [[16, 17]] }] },
     'L2 Motion[29]': { frames: 251, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 100, on: [[65, 66]] }] },
     'L2 Motion[30]': { frames: 177, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 90, on: [[175, 176]] }, { bit: 1, efl: 'cm202_020.efl', key: 91, on: [[161, 162]] }, { bit: 2, efl: 'em077_00_006.efl', key: 210, on: [[107, 120]] }] },
     'L2 Motion[31]': { frames: 387, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[128, 129]] }, { bit: 1, efl: 'em077_00_006.efl', key: 210, on: [[113, 124]] }, { bit: 2, efl: 'em077_00_006.efl', key: 211, on: [[177, 197]] }, { bit: 3, efl: 'cm202_020.efl', key: 90, on: [[333, 334]] }, { bit: 4, efl: 'cm202_020.efl', key: 91, on: [[321, 322]] }] },
+    'L2 Motion[33]': { frames: 305, bits: [{ bit: 0, efl: 'em071_00_019.efl', key: 110, on: [[110, 111]] }] },
     'L2 Motion[34]': { frames: 117, bits: [{ bit: 1, efl: 'cm202_020.efl', key: 91, on: [[106, 107]] }] },
     'L2 Motion[35]': { frames: 173, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 100, on: [[22, 23]] }, { bit: 1, efl: 'cm202_020.efl', key: 90, on: [[143, 144]] }, { bit: 2, efl: 'cm202_020.efl', key: 91, on: [[156, 157]] }] },
     'L2 Motion[43]': { frames: 71, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[69, 70]] }] },
@@ -6816,6 +7247,7 @@ export const CLIP_EFFECTS = {
     'L2 Motion[48]': { frames: 321, bits: [{ bit: 0, efl: 'em071_00_015.efl', key: 232, on: [[97, 98]] }, { bit: 1, efl: 'em071_00_016.efl', key: 233, on: [[20, 94]] }, { bit: 2, efl: 'cm202_021.efl', key: 31, on: [[167, 168], [224, 225], [287, 288]] }, { bit: 3, efl: 'em071_00_016.efl', key: 235, on: [[130, 156]] }] },
     'L2 Motion[49]': { frames: 217, bits: [{ bit: 0, efl: 'em071_00_017.efl', key: 290, on: [[55, 83], [100, 120]] }, { bit: 1, efl: 'em071_00_016.efl', key: 233, on: [[0, 48]] }] },
     'L2 Motion[50]': { frames: 361, bits: [{ bit: 0, efl: 'em071_00_016.efl', key: 233, on: [[40, 99]] }, { bit: 1, efl: 'em071_00_015.efl', key: 232, on: [[127, 128]] }, { bit: 2, efl: 'em071_00_016.efl', key: 235, on: [[151, 181]] }] },
+    'L2 Motion[52]': { frames: 179, bits: [{ bit: 0, efl: 'em071_00_003.efl', key: 231, on: [[28, 73]] }, { bit: 6, efl: 'em071_00_004.efl', key: 230, on: [[83, 84]] }, { bit: 7, efl: 'em071_00_003.efl', key: 234, on: [[95, 165]] }, { bit: 9, efl: 'em071_00_004.efl', key: 230, on: [[83, 84]] }, { bit: 10, efl: 'em071_00_003.efl', key: 234, on: [[95, 165]] }, { bit: 12, efl: 'em071_00_012.efl', key: 250, on: [[83, 84]] }] },
     'L2 Motion[54]': { frames: 137, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[9, 10], [60, 61]] }, { bit: 1, efl: 'em077_00_006.efl', key: 210, on: [[3, 52]] }] },
     'L2 Motion[57]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 12, on: [[66, 67]] }, { bit: 1, efl: 'cm202_002.efl', key: 13, on: [[40, 41], [83, 84]] }] },
     'L2 Motion[58]': { frames: 171, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 100, on: [[17, 18]] }, { bit: 1, efl: 'cm202_020.efl', key: 90, on: [[74, 75]] }, { bit: 2, efl: 'cm202_020.efl', key: 91, on: [[61, 62]] }] },
@@ -6835,6 +7267,7 @@ export const CLIP_EFFECTS = {
     'L3 Motion[37]': { frames: 107, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[7, 8]] }] },
     'L3 Motion[38]': { frames: 151, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[6, 7]] }] },
     'L3 Motion[39]': { frames: 307, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[39, 40]] }] },
+    'L3 Motion[40]': { frames: 307, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[39, 40]] }] },
     'L3 Motion[43]': { frames: 135, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 31, on: [[58, 59], [132, 133]] }] },
     'L3 Motion[44]': { frames: 41, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[30, 31]] }] },
     'L3 Motion[45]': { frames: 111, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[97, 98]] }] },
@@ -6843,9 +7276,12 @@ export const CLIP_EFFECTS = {
     'L4 Motion[7]': { frames: 163, bits: [{ bit: 0, efl: 'em072_00_013.efl', key: 380, on: [[57, 58]] }, { bit: 1, efl: 'em071_00_009.efl', key: 261, on: [[10, 51]] }, { bit: 2, efl: 'em071_00_003.efl', key: 381, on: [[77, 131]] }, { bit: 3, efl: 'cm202_020.efl', key: 30, on: [[97, 98]] }] },
     'L4 Motion[13]': { frames: 205, bits: [{ bit: 0, efl: 'em077_00_006.efl', key: 210, on: [[64, 90]] }, { bit: 1, efl: 'cm202_002.efl', key: 13, on: [[76, 77]] }, { bit: 3, efl: 'cm202_020.efl', key: 90, on: [[187, 188]] }, { bit: 4, efl: 'cm202_020.efl', key: 91, on: [[175, 176]] }] },
     'L4 Motion[15]': { frames: 103, bits: [{ bit: 0, efl: 'em071_00_004.efl', key: 400, on: [[27, 28]] }, { bit: 1, efl: 'em071_00_003.efl', key: 401, on: [[0, 22]] }, { bit: 2, efl: 'em071_00_003.efl', key: 402, on: [[40, 83]] }] },
+    'L4 Motion[21]': { frames: 361, bits: [{ bit: 0, efl: 'em071_00_019.efl', key: 700, on: [[159, 160]] }] },
     'L4 Motion[22]': { frames: 335, bits: [{ bit: 0, efl: 'em071_00_009.efl', key: 261, on: [[69, 156]] }, { bit: 1, efl: 'em071_00_010.efl', key: 260, on: [[159, 160]] }] },
     'L4 Motion[23]': { frames: 191, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 100, on: [[101, 102]] }, { bit: 1, efl: 'em077_00_006.efl', key: 211, on: [[106, 125]] }] },
+    'L4 Motion[24]': { frames: 355, bits: [{ bit: 0, efl: 'em071_00_016.efl', key: 233, on: [[7, 118]] }, { bit: 1, efl: 'em071_00_015.efl', key: 232, on: [[120, 121]] }, { bit: 2, efl: 'em071_00_016.efl', key: 235, on: [[162, 220]] }] },
     'L4 Motion[25]': { frames: 361, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[62, 63]] }, { bit: 1, efl: 'cm202_030.efl', key: 150, on: [[184, 185]] }] },
+    'L4 Motion[26]': { frames: 361, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[62, 63]] }, { bit: 1, efl: 'cm202_030.efl', key: 151, on: [[184, 185]] }] },
     'L4 Motion[28]': { frames: 355, bits: [{ bit: 0, efl: 'em071_00_016.efl', key: 233, on: [[7, 118]] }, { bit: 1, efl: 'em071_00_015.efl', key: 232, on: [[120, 121]] }, { bit: 2, efl: 'em071_00_016.efl', key: 235, on: [[162, 220]] }] },
     'L4 Motion[30]': { frames: 231, bits: [{ bit: 0, efl: 'em071_00_009.efl', key: 261, on: [[0, 111]] }, { bit: 1, efl: 'em071_00_010.efl', key: 260, on: [[119, 120]] }] },
   },
@@ -7209,9 +7645,11 @@ export const CLIP_EFFECTS = {
     'L2 Motion[3]': { frames: 171, bits: [{ bit: 0, efl: 'cm202_004.efl', key: 23, on: [[128, 129]] }, { bit: 1, efl: 'em046_00_011.efl', key: 270, on: [[125, 126]] }, { bit: 15, efl: 'em046_00_011.efl', key: 290, on: [[128, 143]] }, { bit: 16, efl: 'em046_00_000.efl', key: 322, on: [[55, 70]] }] },
     'L2 Motion[4]': { frames: 117, bits: [{ bit: 6, efl: 'em046_00_002.efl', key: 200, on: [[5, 116]] }, { bit: 9, efl: 'em046_00_002.efl', key: 200, on: [[5, 116]] }, { bit: 12, efl: 'em046_00_002.efl', key: 220, on: [[5, 116]] }] },
     'L2 Motion[5]': { frames: 221, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 21, on: [[107, 108]] }] },
+    'L2 Motion[6]': { frames: 101, bits: [{ bit: 21, efl: 'cm202_002.efl', key: 10, on: [[76, 77]] }, { bit: 22, efl: 'cm202_002.efl', key: 11, on: [[50, 51]] }] },
     'L2 Motion[7]': { frames: 109, bits: [{ bit: 2, efl: 'cm202_004.efl', key: 24, on: [[78, 108]] }, { bit: 15, efl: 'em046_00_011.efl', key: 260, on: [[81, 108]] }] },
     'L2 Motion[8]': { frames: 31, bits: [{ bit: 1, efl: 'cm202_004.efl', key: 24, on: [[0, 30]] }, { bit: 15, efl: 'em046_00_011.efl', key: 260, on: [[0, 30]] }] },
     'L2 Motion[9]': { frames: 199, bits: [{ bit: 0, efl: 'cm202_004.efl', key: 23, on: [[21, 85]] }] },
+    'L2 Motion[36]': { frames: 225, bits: [{ bit: 6, efl: 'em046_00_002.efl', key: 200, on: [[0, 80]] }, { bit: 7, efl: 'em046_00_003.efl', key: 201, on: [[92, 93]] }, { bit: 9, efl: 'em046_00_002.efl', key: 200, on: [[0, 80]] }, { bit: 10, efl: 'em046_00_003.efl', key: 201, on: [[92, 93]] }, { bit: 12, efl: 'em046_00_002.efl', key: 220, on: [[0, 80]] }, { bit: 13, efl: 'em046_00_003.efl', key: 221, on: [[92, 93]] }] },
     'L2 Motion[37]': { frames: 147, bits: [{ bit: 6, efl: 'em046_00_002.efl', key: 200, on: [[0, 11]] }, { bit: 7, efl: 'em046_00_003.efl', key: 201, on: [[12, 13]] }, { bit: 9, efl: 'em046_00_002.efl', key: 200, on: [[0, 11]] }, { bit: 10, efl: 'em046_00_003.efl', key: 201, on: [[12, 13]] }, { bit: 12, efl: 'em046_00_002.efl', key: 220, on: [[0, 11]] }, { bit: 13, efl: 'em046_00_003.efl', key: 221, on: [[12, 13]] }] },
     'L3 Motion[2]': { frames: 243, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 20, on: [[8, 9]] }, { bit: 1, efl: 'cm202_020.efl', key: 21, on: [[72, 73]] }] },
     'L3 Motion[3]': { frames: 129, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 21, on: [[110, 111]] }] },
@@ -7233,8 +7671,11 @@ export const CLIP_EFFECTS = {
     'L4 Motion[8]': { frames: 41, bits: [{ bit: 0, efl: 'em046_00_000.efl', key: 230, on: [[0, 40]] }] },
     'L4 Motion[9]': { frames: 295, bits: [{ bit: 0, efl: 'em046_00_017.efl', key: 380, on: [[59, 100]] }, { bit: 1, efl: 'em046_00_000.efl', key: 230, on: [[0, 55]] }] },
     'L4 Motion[10]': { frames: 431, bits: [{ bit: 0, efl: 'em046_00_015.efl', key: 350, on: [[100, 101]] }, { bit: 1, efl: 'em046_00_016.efl', key: 351, on: [[40, 99]] }] },
-    'L4 Motion[30]': { frames: 199, bits: [{ bit: 6, efl: 'em046_00_002.efl', key: 200, on: [[0, 92]] }, { bit: 7, efl: 'em046_00_003.efl', key: 201, on: [[96, 97]] }] },
+    'L4 Motion[15]': { frames: 169, bits: [{ bit: 6, efl: 'em046_00_003.efl', key: 201, on: [[13, 14]] }, { bit: 7, efl: 'em046_00_002.efl', key: 200, on: [[0, 13]] }, { bit: 9, efl: 'em046_00_003.efl', key: 201, on: [[13, 14]] }, { bit: 10, efl: 'em046_00_002.efl', key: 200, on: [[0, 13]] }, { bit: 12, efl: 'em046_00_003.efl', key: 221, on: [[13, 14]] }, { bit: 13, efl: 'em046_00_002.efl', key: 220, on: [[0, 13]] }] },
+    'L4 Motion[30]': { frames: 199, bits: [{ bit: 6, efl: 'em046_00_002.efl', key: 200, on: [[0, 92]] }, { bit: 7, efl: 'em046_00_003.efl', key: 201, on: [[96, 97]] }, { bit: 9, efl: 'em046_00_002.efl', key: 200, on: [[0, 92]] }, { bit: 10, efl: 'em046_00_003.efl', key: 201, on: [[96, 97]] }, { bit: 12, efl: 'em046_00_002.efl', key: 220, on: [[0, 92]] }, { bit: 13, efl: 'em046_00_003.efl', key: 221, on: [[96, 97]] }] },
     'L4 Motion[31]': { frames: 159, bits: [{ bit: 6, efl: 'em046_00_002.efl', key: 200, on: [[0, 60]] }, { bit: 7, efl: 'em046_00_003.efl', key: 201, on: [[61, 62]] }, { bit: 9, efl: 'em046_00_002.efl', key: 200, on: [[0, 60]] }, { bit: 10, efl: 'em046_00_003.efl', key: 201, on: [[61, 62]] }, { bit: 12, efl: 'em046_00_002.efl', key: 220, on: [[0, 60]] }, { bit: 13, efl: 'em046_00_003.efl', key: 221, on: [[61, 62]] }] },
+    'L4 Motion[32]': { frames: 199, bits: [{ bit: 6, efl: 'em046_00_002.efl', key: 200, on: [[0, 92]] }, { bit: 7, efl: 'em046_00_003.efl', key: 201, on: [[96, 97]] }, { bit: 9, efl: 'em046_00_002.efl', key: 200, on: [[0, 92]] }, { bit: 10, efl: 'em046_00_003.efl', key: 201, on: [[96, 97]] }, { bit: 12, efl: 'em046_00_002.efl', key: 220, on: [[0, 92]] }, { bit: 13, efl: 'em046_00_003.efl', key: 221, on: [[96, 97]] }] },
+    'L4 Motion[33]': { frames: 159, bits: [{ bit: 6, efl: 'em046_00_002.efl', key: 200, on: [[0, 50]] }, { bit: 7, efl: 'em046_00_003.efl', key: 201, on: [[55, 56]] }, { bit: 9, efl: 'em046_00_002.efl', key: 200, on: [[0, 50]] }, { bit: 10, efl: 'em046_00_003.efl', key: 201, on: [[55, 56]] }, { bit: 12, efl: 'em046_00_002.efl', key: 220, on: [[0, 50]] }, { bit: 13, efl: 'em046_00_003.efl', key: 221, on: [[55, 56]] }] },
     'L4 Motion[36]': { frames: 107, bits: [{ bit: 0, efl: 'em046_00_023.efl', key: 410, on: [[26, 27]] }] },
     'L4 Motion[37]': { frames: 129, bits: [{ bit: 0, efl: 'cm202_004.efl', key: 23, on: [[12, 77]] }] },
   },
@@ -7355,6 +7796,7 @@ export const CLIP_EFFECTS = {
     'L0 Motion[79]': { frames: 81, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[10, 11]] }] },
     'L0 Motion[80]': { frames: 39, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 31, on: [[27, 28]] }, { bit: 1, efl: 'cm202_002.efl', key: 2, on: [[26, 27]] }] },
     'L0 Motion[82]': { frames: 77, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[4, 5]] }] },
+    'L0 Motion[92]': { frames: 275, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 90, on: [[56, 57]] }, { bit: 1, efl: 'cm202_020.efl', key: 91, on: [[69, 70]] }] },
     'L0 Motion[93]': { frames: 123, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 6, on: [[40, 41]] }, { bit: 1, efl: 'cm202_020.efl', key: 30, on: [[58, 59]] }, { bit: 2, efl: 'cm202_002.efl', key: 12, on: [[71, 72]] }, { bit: 3, efl: 'cm202_002.efl', key: 13, on: [[64, 65]] }] },
     'L1 Motion[1]': { frames: 71, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[67, 68]] }] },
     'L1 Motion[2]': { frames: 49, bits: [{ bit: 0, efl: 'cm202_000.efl', key: 60, on: [[19, 48]] }] },
@@ -7368,14 +7810,14 @@ export const CLIP_EFFECTS = {
     'L1 Motion[11]': { frames: 135, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[7, 8]] }] },
     'L1 Motion[13]': { frames: 63, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 31, on: [[55, 56]] }] },
     'L1 Motion[14]': { frames: 125, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[5, 6]] }] },
-    'L2 Motion[4]': { frames: 181, bits: [{ bit: 0, efl: 'em072_00_000.efl', key: 231, on: [[10, 50]] }, { bit: 6, efl: 'em072_00_001.efl', key: 230, on: [[70, 71]] }, { bit: 7, efl: 'em072_00_000.efl', key: 234, on: [[73, 133]] }] },
+    'L2 Motion[4]': { frames: 181, bits: [{ bit: 0, efl: 'em072_00_000.efl', key: 231, on: [[10, 50]] }, { bit: 6, efl: 'em072_00_001.efl', key: 230, on: [[70, 71]] }, { bit: 7, efl: 'em072_00_000.efl', key: 234, on: [[73, 133]] }, { bit: 9, efl: 'em072_00_001.efl', key: 230, on: [[70, 71]] }, { bit: 10, efl: 'em072_00_000.efl', key: 234, on: [[73, 133]] }] },
     'L2 Motion[5]': { frames: 183, bits: [{ bit: 0, efl: 'cm202_000.efl', key: 60, on: [[53, 54]] }] },
-    'L2 Motion[6]': { frames: 325, bits: [{ bit: 0, efl: 'em072_00_000.efl', key: 231, on: [[10, 94]] }, { bit: 6, efl: 'em072_00_001.efl', key: 230, on: [[111, 112], [150, 151], [197, 198]] }, { bit: 7, efl: 'em072_00_000.efl', key: 234, on: [[201, 300]] }] },
-    'L2 Motion[7]': { frames: 285, bits: [{ bit: 0, efl: 'em071_00_009.efl', key: 261, on: [[20, 109]] }, { bit: 1, efl: 'em071_00_011.efl', key: 262, on: [[113, 221]] }, { bit: 2, efl: 'cm202_020.efl', key: 90, on: [[32, 33]] }, { bit: 3, efl: 'cm202_020.efl', key: 91, on: [[19, 20]] }] },
+    'L2 Motion[6]': { frames: 325, bits: [{ bit: 0, efl: 'em072_00_000.efl', key: 231, on: [[10, 94]] }, { bit: 6, efl: 'em072_00_001.efl', key: 230, on: [[111, 112], [150, 151], [197, 198]] }, { bit: 7, efl: 'em072_00_000.efl', key: 234, on: [[201, 300]] }, { bit: 9, efl: 'em072_00_001.efl', key: 230, on: [[111, 112], [150, 151], [197, 198]] }, { bit: 10, efl: 'em072_00_000.efl', key: 234, on: [[201, 300]] }] },
+    'L2 Motion[7]': { frames: 285, bits: [{ bit: 0, efl: 'em071_00_009.efl', key: 261, on: [[20, 109]] }, { bit: 1, efl: 'em071_00_011.efl', key: 262, on: [[113, 221]] }, { bit: 2, efl: 'cm202_020.efl', key: 90, on: [[32, 33]] }, { bit: 3, efl: 'cm202_020.efl', key: 91, on: [[19, 20]] }, { bit: 6, efl: 'em071_00_010.efl', key: 260, on: [[109, 110]] }, { bit: 9, efl: 'em071_00_010.efl', key: 260, on: [[109, 110]] }, { bit: 15, efl: 'em071_00_010.efl', key: 260, on: [[109, 110]] }, { bit: 18, efl: 'em071_00_010.efl', key: 260, on: [[109, 110]] }] },
     'L2 Motion[8]': { frames: 195, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 100, on: [[102, 103]] }, { bit: 1, efl: 'cm202_001.efl', key: 0, on: [[38, 39]] }, { bit: 2, efl: 'cm202_001.efl', key: 1, on: [[45, 46]] }, { bit: 3, efl: 'em077_00_006.efl', key: 211, on: [[117, 127]] }] },
     'L2 Motion[10]': { frames: 175, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 91, on: [[52, 53]] }, { bit: 1, efl: 'cm202_001.efl', key: 7, on: [[107, 108], [127, 128], [165, 166]] }] },
     'L2 Motion[12]': { frames: 207, bits: [{ bit: 0, efl: 'em077_00_006.efl', key: 210, on: [[70, 91]] }, { bit: 1, efl: 'cm202_001.efl', key: 8, on: [[75, 76]] }, { bit: 2, efl: 'cm202_001.efl', key: 0, on: [[29, 30]] }, { bit: 3, efl: 'cm202_001.efl', key: 1, on: [[58, 59]] }, { bit: 4, efl: 'cm202_020.efl', key: 91, on: [[176, 177]] }] },
-    'L2 Motion[13]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 13, on: [[68, 69]] }] },
+    'L2 Motion[13]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 13, on: [[68, 69]] }, { bit: 1, efl: 'cm202_020.efl', key: 101, on: [[13, 14]] }] },
     'L2 Motion[15]': { frames: 165, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 100, on: [[89, 90]] }] },
     'L2 Motion[16]': { frames: 65, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 8, on: [[4, 5], [43, 44]] }] },
     'L2 Motion[17]': { frames: 65, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 8, on: [[2, 3], [33, 34]] }] },
@@ -7386,10 +7828,11 @@ export const CLIP_EFFECTS = {
     'L2 Motion[23]': { frames: 73, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 91, on: [[53, 54]] }, { bit: 1, efl: 'cm202_020.efl', key: 90, on: [[64, 65]] }] },
     'L2 Motion[25]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 12, on: [[43, 44], [85, 86]] }, { bit: 1, efl: 'cm202_002.efl', key: 13, on: [[65, 66]] }] },
     'L2 Motion[26]': { frames: 171, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 91, on: [[19, 20], [75, 76]] }, { bit: 1, efl: 'cm202_001.efl', key: 0, on: [[53, 54]] }, { bit: 2, efl: 'cm202_020.efl', key: 90, on: [[63, 64]] }] },
-    'L2 Motion[27]': { frames: 127, bits: [{ bit: 1, efl: 'cm202_020.efl', key: 90, on: [[16, 17]] }] },
+    'L2 Motion[27]': { frames: 127, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 101, on: [[60, 61]] }, { bit: 1, efl: 'cm202_020.efl', key: 90, on: [[16, 17]] }] },
     'L2 Motion[29]': { frames: 251, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 100, on: [[65, 66]] }] },
     'L2 Motion[30]': { frames: 177, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 90, on: [[175, 176]] }, { bit: 1, efl: 'cm202_020.efl', key: 91, on: [[161, 162]] }, { bit: 2, efl: 'em077_00_006.efl', key: 210, on: [[107, 120]] }] },
     'L2 Motion[31]': { frames: 387, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[128, 129]] }, { bit: 1, efl: 'em077_00_006.efl', key: 210, on: [[113, 124]] }, { bit: 2, efl: 'em077_00_006.efl', key: 211, on: [[177, 197]] }, { bit: 3, efl: 'cm202_020.efl', key: 90, on: [[333, 334]] }, { bit: 4, efl: 'cm202_020.efl', key: 91, on: [[321, 322]] }] },
+    'L2 Motion[33]': { frames: 305, bits: [{ bit: 0, efl: 'em071_00_019.efl', key: 110, on: [[110, 111]] }] },
     'L2 Motion[34]': { frames: 117, bits: [{ bit: 1, efl: 'cm202_020.efl', key: 91, on: [[106, 107]] }] },
     'L2 Motion[35]': { frames: 173, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 100, on: [[22, 23]] }, { bit: 1, efl: 'cm202_020.efl', key: 90, on: [[143, 144]] }, { bit: 2, efl: 'cm202_020.efl', key: 91, on: [[156, 157]] }] },
     'L2 Motion[43]': { frames: 71, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[69, 70]] }] },
@@ -7400,6 +7843,7 @@ export const CLIP_EFFECTS = {
     'L2 Motion[48]': { frames: 321, bits: [{ bit: 0, efl: 'em071_00_015.efl', key: 232, on: [[97, 98]] }, { bit: 1, efl: 'em071_00_016.efl', key: 233, on: [[20, 94]] }, { bit: 2, efl: 'cm202_021.efl', key: 31, on: [[167, 168], [224, 225], [287, 288]] }, { bit: 3, efl: 'em071_00_016.efl', key: 235, on: [[130, 156]] }] },
     'L2 Motion[49]': { frames: 217, bits: [{ bit: 0, efl: 'em071_00_017.efl', key: 290, on: [[55, 83], [100, 120]] }, { bit: 1, efl: 'em071_00_016.efl', key: 233, on: [[0, 48]] }] },
     'L2 Motion[50]': { frames: 361, bits: [{ bit: 0, efl: 'em071_00_016.efl', key: 233, on: [[40, 99]] }, { bit: 1, efl: 'em071_00_015.efl', key: 232, on: [[127, 128]] }, { bit: 2, efl: 'em071_00_016.efl', key: 235, on: [[151, 181]] }] },
+    'L2 Motion[52]': { frames: 179, bits: [{ bit: 0, efl: 'em072_00_000.efl', key: 231, on: [[28, 73]] }, { bit: 6, efl: 'em072_00_001.efl', key: 230, on: [[83, 84]] }, { bit: 7, efl: 'em072_00_000.efl', key: 234, on: [[95, 165]] }, { bit: 9, efl: 'em072_00_001.efl', key: 230, on: [[83, 84]] }, { bit: 10, efl: 'em072_00_000.efl', key: 234, on: [[95, 165]] }] },
     'L2 Motion[54]': { frames: 137, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[9, 10], [60, 61]] }, { bit: 1, efl: 'em077_00_006.efl', key: 210, on: [[3, 52]] }] },
     'L2 Motion[57]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 12, on: [[66, 67]] }, { bit: 1, efl: 'cm202_002.efl', key: 13, on: [[40, 41], [83, 84]] }] },
     'L2 Motion[58]': { frames: 171, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 100, on: [[17, 18]] }, { bit: 1, efl: 'cm202_020.efl', key: 90, on: [[74, 75]] }, { bit: 2, efl: 'cm202_020.efl', key: 91, on: [[61, 62]] }] },
@@ -7418,6 +7862,7 @@ export const CLIP_EFFECTS = {
     'L3 Motion[37]': { frames: 107, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[7, 8]] }] },
     'L3 Motion[38]': { frames: 151, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[6, 7]] }] },
     'L3 Motion[39]': { frames: 307, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[39, 40]] }] },
+    'L3 Motion[40]': { frames: 307, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[39, 40]] }] },
     'L3 Motion[43]': { frames: 135, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 31, on: [[58, 59], [132, 133]] }] },
     'L3 Motion[44]': { frames: 41, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[30, 31]] }] },
     'L3 Motion[45]': { frames: 111, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[97, 98]] }] },
@@ -7435,7 +7880,7 @@ export const CLIP_EFFECTS = {
     'L0 Motion[3]': { frames: 307, bits: [{ bit: 0, efl: 'cm202_050.efl', key: 100, on: [[82, 96]] }] },
     'L0 Motion[4]': { frames: 123, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 1, on: [[10, 11], [70, 71]] }] },
     'L0 Motion[10]': { frames: 93, bits: [{ bit: 0, efl: 'cm202_003.efl', key: 6, on: [[25, 26], [45, 46]] }] },
-    'L0 Motion[12]': { frames: 495, bits: [{ bit: 0, efl: 'cm202_070.efl', key: 110, on: [[215, 330]] }] },
+    'L0 Motion[12]': { frames: 495, bits: [{ bit: 0, efl: 'cm202_070.efl', key: 110, on: [[215, 330]] }, { bit: 15, efl: 'cm200_010.efl', key: 112, on: [[125, 210]] }, { bit: 16, efl: 'cm200_010.efl', key: 113, on: [[210, 310]] }, { bit: 17, efl: 'cm202_001.efl', key: 130, on: [[120, 121]] }, { bit: 18, efl: 'cm200_010.efl', key: 121, on: [[125, 210]] }, { bit: 19, efl: 'cm200_010.efl', key: 122, on: [[210, 310]] }, { bit: 20, efl: 'cm202_001.efl', key: 120, on: [[120, 121]] }] },
     'L0 Motion[16]': { frames: 165, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 71, on: [[60, 61]] }] },
     'L0 Motion[17]': { frames: 169, bits: [{ bit: 0, efl: 'cm202_004.efl', key: 7, on: [[22, 90]] }] },
     'L0 Motion[21]': { frames: 19, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 16, on: [[10, 11]] }] },
@@ -7590,18 +8035,25 @@ export const CLIP_EFFECTS = {
     'L0 Motion[3]': { frames: 331, bits: [{ bit: 0, efl: 'cm202_050.efl', key: 60, on: [[105, 123]] }] },
     'L0 Motion[4]': { frames: 123, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[83, 84]] }, { bit: 1, efl: 'cm202_001.efl', key: 1, on: [[24, 25]] }] },
     'L0 Motion[5]': { frames: 181, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[8, 9], [95, 96]] }, { bit: 1, efl: 'cm202_001.efl', key: 1, on: [[40, 41], [130, 131]] }] },
+    'L0 Motion[6]': { frames: 61, bits: [{ bit: 15, efl: 'cm202_001.efl', key: 0, on: [[50, 51]] }, { bit: 16, efl: 'cm202_001.efl', key: 1, on: [[30, 31]] }] },
+    'L0 Motion[7]': { frames: 103, bits: [{ bit: 15, efl: 'cm202_001.efl', key: 0, on: [[64, 65]] }, { bit: 16, efl: 'cm202_001.efl', key: 1, on: [[43, 44]] }, { bit: 17, efl: 'cm202_022.efl', key: 92, on: [[59, 60]] }] },
+    'L0 Motion[8]': { frames: 103, bits: [{ bit: 15, efl: 'cm202_001.efl', key: 0, on: [[59, 60]] }, { bit: 16, efl: 'cm202_001.efl', key: 1, on: [[64, 65]] }, { bit: 17, efl: 'cm202_022.efl', key: 93, on: [[61, 62]] }] },
+    'L0 Motion[9]': { frames: 103, bits: [{ bit: 15, efl: 'cm202_001.efl', key: 0, on: [[70, 71]] }, { bit: 16, efl: 'cm202_001.efl', key: 1, on: [[61, 62]] }, { bit: 17, efl: 'cm202_022.efl', key: 92, on: [[59, 60]] }] },
+    'L0 Motion[10]': { frames: 103, bits: [{ bit: 15, efl: 'cm202_001.efl', key: 0, on: [[70, 71]] }, { bit: 16, efl: 'cm202_001.efl', key: 1, on: [[61, 62]] }, { bit: 17, efl: 'cm202_022.efl', key: 93, on: [[61, 62]] }] },
     'L0 Motion[11]': { frames: 91, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[87, 88]] }, { bit: 1, efl: 'cm202_001.efl', key: 1, on: [[34, 35]] }] },
     'L0 Motion[18]': { frames: 131, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[10, 11], [71, 72]] }, { bit: 1, efl: 'cm202_001.efl', key: 1, on: [[44, 45], [88, 89]] }] },
     'L0 Motion[28]': { frames: 139, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[2, 3]] }] },
     'L0 Motion[29]': { frames: 265, bits: [{ bit: 0, efl: 'cm200_067.efl', key: 151, on: [[55, 56], [117, 118], [173, 174]] }] },
     'L0 Motion[31]': { frames: 97, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[2, 3]] }] },
     'L2 Motion[1]': { frames: 191, bits: [{ bit: 0, efl: 'cm202_000.efl', key: 32, on: [[53, 89]] }] },
-    'L2 Motion[2]': { frames: 273, bits: [{ bit: 0, efl: 'cm202_000.efl', key: 32, on: [[60, 106]] }] },
+    'L2 Motion[2]': { frames: 273, bits: [{ bit: 0, efl: 'cm202_000.efl', key: 32, on: [[60, 106]] }, { bit: 17, efl: 'cm202_022.efl', key: 90, on: [[155, 156]] }] },
     'L2 Motion[3]': { frames: 331, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[138, 139]] }] },
     'L2 Motion[4]': { frames: 431, bits: [{ bit: 0, efl: 'cm200_034.efl', key: 200, on: [[32, 33], [44, 45], [54, 55], [68, 69]] }, { bit: 1, efl: 'em049_00_001.efl', key: 201, on: [[112, 113]] }, { bit: 2, efl: 'em049_00_004.efl', key: 202, on: [[279, 300]] }, { bit: 3, efl: 'cm202_000.efl', key: 30, on: [[113, 241]] }, { bit: 4, efl: 'em049_00_003.efl', key: 203, on: [[111, 269]] }] },
+    'L2 Motion[5]': { frames: 221, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[104, 105]] }] },
+    'L2 Motion[6]': { frames: 101, bits: [{ bit: 15, efl: 'cm202_002.efl', key: 2, on: [[29, 30], [70, 71]] }, { bit: 16, efl: 'cm202_002.efl', key: 3, on: [[47, 48], [97, 98]] }, { bit: 17, efl: 'cm202_000.efl', key: 30, on: [[50, 100]] }] },
     'L2 Motion[8]': { frames: 31, bits: [{ bit: 0, efl: 'cm202_003.efl', key: 9, on: [[0, 14], [15, 30]] }] },
     'L2 Motion[9]': { frames: 199, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 4, on: [[26, 27]] }] },
-    'L2 Motion[10]': { frames: 341, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[123, 124], [170, 171]] }] },
+    'L2 Motion[10]': { frames: 341, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[123, 124], [170, 171]] }, { bit: 16, efl: 'cm202_022.efl', key: 90, on: [[152, 153]] }] },
     'L2 Motion[11]': { frames: 457, bits: [{ bit: 0, efl: 'cm200_034.efl', key: 200, on: [[25, 26], [33, 34], [44, 45], [53, 54], [66, 67], [79, 80]] }, { bit: 1, efl: 'em049_00_001.efl', key: 201, on: [[109, 110]] }, { bit: 2, efl: 'em049_00_004.efl', key: 202, on: [[316, 358]] }, { bit: 3, efl: 'em049_00_003.efl', key: 203, on: [[110, 301]] }, { bit: 4, efl: 'cm202_000.efl', key: 30, on: [[110, 119]] }] },
     'L2 Motion[12]': { frames: 291, bits: [{ bit: 0, efl: 'cm200_034.efl', key: 200, on: [[32, 33], [44, 45], [54, 55], [67, 68]] }, { bit: 1, efl: 'em049_00_001.efl', key: 201, on: [[119, 120]] }, { bit: 2, efl: 'em049_00_004.efl', key: 202, on: [[121, 122]] }] },
     'L2 Motion[13]': { frames: 421, bits: [{ bit: 0, efl: 'em049_00_010.efl', key: 260, on: [[57, 58], [129, 130], [204, 205], [277, 278]] }, { bit: 1, efl: 'em049_00_010.efl', key: 238, on: [[91, 92], [160, 161], [238, 239], [352, 353]] }] },
@@ -7636,6 +8088,7 @@ export const CLIP_EFFECTS = {
     'L3 Motion[18]': { frames: 227, bits: [{ bit: 0, efl: 'cm202_080.efl', key: 3000, on: [[149, 150]] }] },
     'L3 Motion[19]': { frames: 301, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[65, 66]] }, { bit: 1, efl: 'cm202_021.efl', key: 31, on: [[21, 22]] }] },
     'L3 Motion[21]': { frames: 179, bits: [{ bit: 0, efl: 'em049_00_007.efl', key: 234, on: [[5, 6]] }, { bit: 1, efl: 'cm202_020.efl', key: 5, on: [[105, 106]] }] },
+    'L3 Motion[22]': { frames: 171, bits: [{ bit: 0, efl: 'em049_00_006.efl', key: 231, on: [[8, 9], [18, 19]] }] },
     'L3 Motion[30]': { frames: 41, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[23, 24]] }] },
     'L3 Motion[32]': { frames: 339, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[47, 48], [260, 261], [276, 277]] }, { bit: 1, efl: 'cm202_001.efl', key: 1, on: [[56, 57]] }, { bit: 2, efl: 'cm202_020.efl', key: 5, on: [[121, 122], [217, 218]] }] },
     'L3 Motion[33]': { frames: 161, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 5, on: [[49, 50]] }] },
@@ -8000,7 +8453,7 @@ export const CLIP_EFFECTS = {
     'L0 Motion[105]': { frames: 207, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 0, on: [[54, 108], [152, 176]] }, { bit: 1, efl: 'em068_00_003.efl', key: 1, on: [[60, 134]] }, { bit: 2, efl: 'em068_00_003.efl', key: 2, on: [[109, 144], [182, 193]] }] },
     'L0 Motion[106]': { frames: 101, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 0, on: [[54, 98]] }, { bit: 1, efl: 'em068_00_003.efl', key: 1, on: [[60, 98]] }] },
     'L0 Motion[107]': { frames: 101, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 0, on: [[56, 100]] }, { bit: 1, efl: 'em068_00_003.efl', key: 2, on: [[86, 98]] }, { bit: 2, efl: 'em068_00_003.efl', key: 1, on: [[71, 85]] }] },
-    'L0 Motion[108]': { frames: 101, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 0, on: [[56, 82]] }, { bit: 1, efl: 'em068_00_003.efl', key: 2, on: [[86, 98]] }] },
+    'L0 Motion[108]': { frames: 101, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 0, on: [[56, 82]] }, { bit: 1, efl: 'em068_00_003.efl', key: 2, on: [[86, 98]] }, { bit: 2, efl: 'em068_00_003.efl', key: 1, on: [[71, 85]] }] },
     'L0 Motion[109]': { frames: 101, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 0, on: [[56, 82]] }, { bit: 1, efl: 'em068_00_003.efl', key: 2, on: [[86, 98]] }, { bit: 2, efl: 'em068_00_003.efl', key: 1, on: [[71, 85]] }] },
     'L0 Motion[114]': { frames: 195, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 0, on: [[54, 107]] }, { bit: 1, efl: 'em068_00_003.efl', key: 1, on: [[60, 80], [122, 152]] }, { bit: 2, efl: 'em068_00_003.efl', key: 2, on: [[83, 119], [152, 183]] }] },
     'L0 Motion[115]': { frames: 195, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 0, on: [[54, 162]] }, { bit: 1, efl: 'em068_00_003.efl', key: 1, on: [[60, 144]] }, { bit: 2, efl: 'em068_00_003.efl', key: 2, on: [[83, 100], [148, 171]] }] },
@@ -8029,7 +8482,7 @@ export const CLIP_EFFECTS = {
     'L2 Motion[15]': { frames: 125, bits: [{ bit: 0, efl: 'em077_00_007.efl', key: 210, on: [[58, 59]] }, { bit: 1, efl: 'em068_00_005.efl', key: 320, on: [[3, 64]] }] },
     'L2 Motion[16]': { frames: 125, bits: [{ bit: 0, efl: 'em077_00_007.efl', key: 210, on: [[58, 59]] }, { bit: 1, efl: 'em068_00_005.efl', key: 320, on: [[0, 65]] }] },
     'L2 Motion[17]': { frames: 399, bits: [{ bit: 0, efl: 'em068_00_006.efl', key: 200, on: [[100, 101]] }, { bit: 1, efl: 'cm202_006.efl', key: 20, on: [[173, 174], [201, 202], [258, 259], [277, 278]] }, { bit: 2, efl: 'cm202_006.efl', key: 10, on: [[66, 67]] }, { bit: 3, efl: 'cm202_006.efl', key: 21, on: [[77, 78]] }, { bit: 4, efl: 'cm202_006.efl', key: 12, on: [[310, 311]] }] },
-    'L2 Motion[18]': { frames: 399, bits: [{ bit: 0, efl: 'em068_00_006.efl', key: 201, on: [[100, 101]] }, { bit: 2, efl: 'cm202_006.efl', key: 21, on: [[77, 78]] }] },
+    'L2 Motion[18]': { frames: 399, bits: [{ bit: 0, efl: 'em068_00_006.efl', key: 201, on: [[100, 101]] }, { bit: 1, efl: 'cm202_006.efl', key: 20, on: [[173, 174], [201, 202], [258, 259], [277, 278]] }, { bit: 2, efl: 'cm202_006.efl', key: 21, on: [[77, 78]] }, { bit: 3, efl: 'cm202_006.efl', key: 10, on: [[66, 67]] }, { bit: 4, efl: 'cm202_006.efl', key: 12, on: [[310, 311]] }] },
     'L2 Motion[19]': { frames: 187, bits: [{ bit: 0, efl: 'cm202_006.efl', key: 11, on: [[13, 14]] }, { bit: 1, efl: 'cm202_006.efl', key: 20, on: [[81, 82]] }, { bit: 2, efl: 'cm202_006.efl', key: 21, on: [[66, 67], [102, 103]] }, { bit: 3, efl: 'cm202_006.efl', key: 12, on: [[126, 127], [161, 162]] }] },
     'L2 Motion[20]': { frames: 79, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 1, on: [[16, 67]] }] },
     'L2 Motion[21]': { frames: 79, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 1, on: [[16, 67]] }] },
@@ -8038,15 +8491,16 @@ export const CLIP_EFFECTS = {
     'L2 Motion[26]': { frames: 69, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 0, on: [[9, 63]] }, { bit: 1, efl: 'em068_00_003.efl', key: 1, on: [[30, 58]] }] },
     'L2 Motion[28]': { frames: 69, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 0, on: [[0, 37]] }, { bit: 1, efl: 'em068_00_003.efl', key: 2, on: [[18, 41]] }] },
     'L2 Motion[29]': { frames: 225, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 0, on: [[2, 41], [90, 117]] }, { bit: 1, efl: 'em068_00_003.efl', key: 1, on: [[40, 66], [98, 162]] }, { bit: 2, efl: 'em068_00_003.efl', key: 2, on: [[141, 178]] }, { bit: 3, efl: 'cm202_020.efl', key: 90, on: [[60, 61], [104, 105]] }] },
-    'L2 Motion[34]': { frames: 93, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 0, on: [[19, 77]] }, { bit: 1, efl: 'em068_00_003.efl', key: 2, on: [[51, 71]] }] },
+    'L2 Motion[34]': { frames: 93, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 0, on: [[19, 77]] }, { bit: 1, efl: 'em068_00_003.efl', key: 2, on: [[51, 71]] }, { bit: 2, efl: 'em068_00_003.efl', key: 1, on: [[23, 47]] }] },
     'L2 Motion[36]': { frames: 59, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 2, on: [[20, 46]] }] },
     'L2 Motion[37]': { frames: 93, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 0, on: [[19, 77]] }, { bit: 1, efl: 'em068_00_003.efl', key: 2, on: [[51, 71]] }, { bit: 2, efl: 'em068_00_003.efl', key: 1, on: [[23, 47]] }] },
     'L2 Motion[39]': { frames: 59, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 1, on: [[20, 46]] }] },
     'L2 Motion[40]': { frames: 81, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 1, on: [[56, 66]] }, { bit: 1, efl: 'em068_00_003.efl', key: 0, on: [[34, 42]] }] },
+    'L2 Motion[41]': { frames: 81, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 1, on: [[56, 66]] }, { bit: 1, efl: 'em068_00_003.efl', key: 0, on: [[34, 42]] }] },
     'L2 Motion[42]': { frames: 131, bits: [{ bit: 0, efl: 'em077_00_007.efl', key: 210, on: [[57, 58]] }, { bit: 1, efl: 'em068_00_005.efl', key: 320, on: [[0, 70]] }] },
     'L2 Motion[43]': { frames: 131, bits: [{ bit: 0, efl: 'em077_00_007.efl', key: 210, on: [[57, 58]] }, { bit: 1, efl: 'em068_00_005.efl', key: 320, on: [[0, 70]] }] },
     'L2 Motion[44]': { frames: 131, bits: [{ bit: 0, efl: 'em077_00_007.efl', key: 210, on: [[57, 58]] }, { bit: 1, efl: 'em068_00_005.efl', key: 320, on: [[0, 70]] }] },
-    'L2 Motion[45]': { frames: 131, bits: [{ bit: 0, efl: 'em077_00_007.efl', key: 210, on: [[57, 58]] }] },
+    'L2 Motion[45]': { frames: 131, bits: [{ bit: 0, efl: 'em077_00_007.efl', key: 210, on: [[57, 58]] }, { bit: 1, efl: 'em068_00_005.efl', key: 320, on: [[0, 70]] }] },
     'L2 Motion[46]': { frames: 181, bits: [{ bit: 0, efl: 'em068_00_014.efl', key: 350, on: [[79, 80]] }] },
     'L2 Motion[47]': { frames: 181, bits: [{ bit: 0, efl: 'em068_00_014.efl', key: 350, on: [[79, 80]] }] },
     'L2 Motion[48]': { frames: 167, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 0, on: [[52, 67], [106, 160]] }, { bit: 1, efl: 'em068_00_003.efl', key: 1, on: [[67, 118]] }, { bit: 2, efl: 'em068_00_003.efl', key: 2, on: [[23, 119], [125, 166]] }] },
@@ -8071,6 +8525,7 @@ export const CLIP_EFFECTS = {
     'L2 Motion[75]': { frames: 501, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 22, on: [[36, 37]] }, { bit: 1, efl: 'cm202_006.efl', key: 21, on: [[0, 1]] }, { bit: 2, efl: 'em068_00_003.efl', key: 0, on: [[39, 133]] }, { bit: 3, efl: 'em068_00_003.efl', key: 1, on: [[195, 300]] }, { bit: 4, efl: 'em068_00_003.efl', key: 2, on: [[300, 388]] }, { bit: 5, efl: 'cm202_006.efl', key: 20, on: [[388, 389]] }] },
     'L2 Motion[76]': { frames: 351, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[21, 22]] }, { bit: 1, efl: 'cm202_021.efl', key: 31, on: [[58, 59]] }] },
     'L3 Motion[10]': { frames: 199, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 0, on: [[0, 18]] }, { bit: 1, efl: 'em068_00_003.efl', key: 1, on: [[19, 37]] }, { bit: 2, efl: 'em068_00_003.efl', key: 2, on: [[48, 60]] }] },
+    'L3 Motion[11]': { frames: 199, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 0, on: [[0, 18]] }, { bit: 1, efl: 'em068_00_003.efl', key: 1, on: [[19, 37]] }, { bit: 2, efl: 'em068_00_003.efl', key: 2, on: [[48, 60]] }] },
     'L3 Motion[15]': { frames: 339, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 0, on: [[62, 126]] }, { bit: 1, efl: 'em068_00_003.efl', key: 1, on: [[61, 89], [112, 131], [220, 263]] }, { bit: 2, efl: 'em068_00_003.efl', key: 2, on: [[15, 23], [167, 191], [265, 278]] }, { bit: 3, efl: 'cm202_020.efl', key: 30, on: [[60, 61]] }] },
     'L3 Motion[16]': { frames: 339, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 0, on: [[62, 111]] }, { bit: 1, efl: 'em068_00_003.efl', key: 1, on: [[61, 89], [112, 131], [220, 263]] }, { bit: 2, efl: 'em068_00_003.efl', key: 2, on: [[15, 23], [167, 191], [265, 278]] }, { bit: 3, efl: 'cm202_020.efl', key: 30, on: [[52, 53]] }] },
     'L3 Motion[19]': { frames: 359, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 1, on: [[0, 97]] }, { bit: 1, efl: 'em068_00_003.efl', key: 2, on: [[3, 104]] }, { bit: 2, efl: 'cm202_080.efl', key: 3000, on: [[240, 241]] }, { bit: 3, efl: 'cm202_020.efl', key: 30, on: [[96, 97]] }] },
@@ -8104,7 +8559,7 @@ export const CLIP_EFFECTS = {
     'L3 Motion[94]': { frames: 41, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[22, 23]] }] },
     'L3 Motion[95]': { frames: 41, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 30, on: [[22, 23]] }] },
     'L3 Motion[98]': { frames: 79, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 1, on: [[15, 53]] }, { bit: 1, efl: 'em068_00_003.efl', key: 0, on: [[0, 39]] }] },
-    'L3 Motion[99]': { frames: 79, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 1, on: [[15, 53]] }] },
+    'L3 Motion[99]': { frames: 79, bits: [{ bit: 0, efl: 'em068_00_003.efl', key: 1, on: [[15, 53]] }, { bit: 1, efl: 'em068_00_003.efl', key: 0, on: [[0, 39]] }] },
   },
   // Seltas (em076_00): GENERATED by C:\MHGU-Extract\efx\add_effects.py from its PSLs (em076_00) -- every bit whose record is exported.
   em076_00: {
@@ -8326,6 +8781,7 @@ export const CLIP_EFFECTS = {
   em013_00: {
     'L0 Motion[3]': { frames: 137, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 0, on: [[52, 53]] }] },
     'L0 Motion[4]': { frames: 137, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 1, on: [[58, 59]] }] },
+    'L0 Motion[5]': { frames: 205, bits: [{ bit: 21, efl: 'cm202_050.efl', key: 90, on: [[59, 129]] }] },
     'L0 Motion[6]': { frames: 157, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 0, on: [[16, 17]] }, { bit: 1, efl: 'cm202_020.efl', key: 1, on: [[80, 81]] }] },
     'L0 Motion[7]': { frames: 153, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 2, on: [[27, 28], [108, 109]] }, { bit: 1, efl: 'cm202_020.efl', key: 3, on: [[48, 49], [91, 92]] }] },
     'L0 Motion[8]': { frames: 153, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 2, on: [[48, 49], [91, 92]] }, { bit: 1, efl: 'cm202_020.efl', key: 3, on: [[23, 24], [104, 105]] }] },
@@ -8377,6 +8833,7 @@ export const CLIP_EFFECTS = {
     'L2 Motion[35]': { frames: 405, bits: [{ bit: 0, efl: 'em013_00_002.efl', key: 100, on: [[153, 154]] }] },
     'L2 Motion[36]': { frames: 405, bits: [{ bit: 0, efl: 'em013_00_002.efl', key: 100, on: [[153, 154]] }] },
     'L2 Motion[37]': { frames: 265, bits: [{ bit: 0, efl: 'em013_00_003.efl', key: 200, on: [[0, 127]] }, { bit: 1, efl: 'em013_00_003.efl', key: 201, on: [[134, 135]] }, { bit: 2, efl: 'em013_00_003.efl', key: 202, on: [[161, 216]] }] },
+    'L2 Motion[38]': { frames: 265, bits: [{ bit: 0, efl: 'em013_00_003.efl', key: 200, on: [[0, 127]] }, { bit: 1, efl: 'em013_00_003.efl', key: 201, on: [[134, 135]] }, { bit: 2, efl: 'em013_00_003.efl', key: 202, on: [[161, 216]] }] },
     'L2 Motion[39]': { frames: 405, bits: [{ bit: 0, efl: 'em013_00_002.efl', key: 100, on: [[153, 154]] }] },
     'L2 Motion[40]': { frames: 609, bits: [{ bit: 0, efl: 'em013_00_010.efl', key: 290, on: [[0, 163]] }] },
     'L2 Motion[41]': { frames: 163, bits: [{ bit: 0, efl: 'em013_00_003.efl', key: 200, on: [[2, 162]] }] },
@@ -8394,6 +8851,7 @@ export const CLIP_EFFECTS = {
     'L2 Motion[54]': { frames: 65, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 11, on: [[38, 39]] }] },
     'L2 Motion[56]': { frames: 19, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 11, on: [[1, 2]] }] },
     'L2 Motion[57]': { frames: 67, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 11, on: [[10, 11]] }] },
+    'L2 Motion[63]': { frames: 37, bits: [{ bit: 0, efl: 'em013_00_003.efl', key: 200, on: [[0, 36]] }] },
     'L2 Motion[64]': { frames: 37, bits: [{ bit: 0, efl: 'em013_00_003.efl', key: 200, on: [[0, 36]] }] },
     'L2 Motion[65]': { frames: 37, bits: [{ bit: 0, efl: 'em013_00_003.efl', key: 200, on: [[0, 36]] }] },
     'L2 Motion[66]': { frames: 49, bits: [{ bit: 0, efl: 'em013_00_003.efl', key: 200, on: [[0, 48]] }] },
@@ -8422,6 +8880,7 @@ export const CLIP_EFFECTS = {
   em013_01: {
     'L0 Motion[3]': { frames: 137, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 0, on: [[52, 53]] }] },
     'L0 Motion[4]': { frames: 137, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 1, on: [[58, 59]] }] },
+    'L0 Motion[5]': { frames: 205, bits: [{ bit: 21, efl: 'cm202_050.efl', key: 90, on: [[59, 129]] }] },
     'L0 Motion[6]': { frames: 157, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 0, on: [[16, 17]] }, { bit: 1, efl: 'cm202_020.efl', key: 1, on: [[80, 81]] }] },
     'L0 Motion[7]': { frames: 153, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 2, on: [[27, 28], [108, 109]] }, { bit: 1, efl: 'cm202_020.efl', key: 3, on: [[48, 49], [91, 92]] }] },
     'L0 Motion[8]': { frames: 153, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 2, on: [[48, 49], [91, 92]] }, { bit: 1, efl: 'cm202_020.efl', key: 3, on: [[23, 24], [104, 105]] }] },
@@ -8473,6 +8932,7 @@ export const CLIP_EFFECTS = {
     'L2 Motion[35]': { frames: 405, bits: [{ bit: 0, efl: 'em013_00_002.efl', key: 100, on: [[153, 154]] }] },
     'L2 Motion[36]': { frames: 405, bits: [{ bit: 0, efl: 'em013_00_002.efl', key: 100, on: [[153, 154]] }] },
     'L2 Motion[37]': { frames: 265, bits: [{ bit: 0, efl: 'em013_00_003.efl', key: 200, on: [[0, 127]] }, { bit: 1, efl: 'em013_00_003.efl', key: 201, on: [[134, 135]] }, { bit: 2, efl: 'em013_00_003.efl', key: 202, on: [[161, 216]] }] },
+    'L2 Motion[38]': { frames: 265, bits: [{ bit: 0, efl: 'em013_00_003.efl', key: 200, on: [[0, 127]] }, { bit: 1, efl: 'em013_00_003.efl', key: 201, on: [[134, 135]] }, { bit: 2, efl: 'em013_00_003.efl', key: 202, on: [[161, 216]] }] },
     'L2 Motion[39]': { frames: 405, bits: [{ bit: 0, efl: 'em013_00_002.efl', key: 100, on: [[153, 154]] }] },
     'L2 Motion[40]': { frames: 609, bits: [{ bit: 0, efl: 'em013_00_010.efl', key: 290, on: [[0, 163]] }] },
     'L2 Motion[41]': { frames: 163, bits: [{ bit: 0, efl: 'em013_00_003.efl', key: 200, on: [[2, 162]] }] },
@@ -8490,6 +8950,7 @@ export const CLIP_EFFECTS = {
     'L2 Motion[54]': { frames: 65, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 11, on: [[38, 39]] }] },
     'L2 Motion[56]': { frames: 19, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 11, on: [[1, 2]] }] },
     'L2 Motion[57]': { frames: 67, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 11, on: [[10, 11]] }] },
+    'L2 Motion[63]': { frames: 37, bits: [{ bit: 0, efl: 'em013_00_003.efl', key: 200, on: [[0, 36]] }] },
     'L2 Motion[64]': { frames: 37, bits: [{ bit: 0, efl: 'em013_00_003.efl', key: 200, on: [[0, 36]] }] },
     'L2 Motion[65]': { frames: 37, bits: [{ bit: 0, efl: 'em013_00_003.efl', key: 200, on: [[0, 36]] }] },
     'L2 Motion[66]': { frames: 49, bits: [{ bit: 0, efl: 'em013_00_003.efl', key: 200, on: [[0, 48]] }] },
@@ -8518,6 +8979,7 @@ export const CLIP_EFFECTS = {
   em013_02: {
     'L0 Motion[3]': { frames: 137, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 0, on: [[52, 53]] }] },
     'L0 Motion[4]': { frames: 137, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 1, on: [[58, 59]] }] },
+    'L0 Motion[5]': { frames: 205, bits: [{ bit: 21, efl: 'cm202_050.efl', key: 90, on: [[59, 129]] }] },
     'L0 Motion[6]': { frames: 157, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 0, on: [[16, 17]] }, { bit: 1, efl: 'cm202_020.efl', key: 1, on: [[80, 81]] }] },
     'L0 Motion[7]': { frames: 153, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 2, on: [[27, 28], [108, 109]] }, { bit: 1, efl: 'cm202_020.efl', key: 3, on: [[48, 49], [91, 92]] }] },
     'L0 Motion[8]': { frames: 153, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 2, on: [[48, 49], [91, 92]] }, { bit: 1, efl: 'cm202_020.efl', key: 3, on: [[23, 24], [104, 105]] }] },
@@ -8569,6 +9031,7 @@ export const CLIP_EFFECTS = {
     'L2 Motion[35]': { frames: 405, bits: [{ bit: 0, efl: 'em013_00_002.efl', key: 100, on: [[153, 154]] }] },
     'L2 Motion[36]': { frames: 405, bits: [{ bit: 0, efl: 'em013_00_002.efl', key: 100, on: [[153, 154]] }] },
     'L2 Motion[37]': { frames: 265, bits: [{ bit: 0, efl: 'em013_02_003.efl', key: 200, on: [[0, 127]] }, { bit: 1, efl: 'em013_02_003.efl', key: 201, on: [[134, 135]] }, { bit: 2, efl: 'em013_02_003.efl', key: 202, on: [[161, 216]] }] },
+    'L2 Motion[38]': { frames: 265, bits: [{ bit: 0, efl: 'em013_02_003.efl', key: 200, on: [[0, 127]] }, { bit: 1, efl: 'em013_02_003.efl', key: 201, on: [[134, 135]] }, { bit: 2, efl: 'em013_02_003.efl', key: 202, on: [[161, 216]] }] },
     'L2 Motion[39]': { frames: 405, bits: [{ bit: 0, efl: 'em013_00_002.efl', key: 100, on: [[153, 154]] }] },
     'L2 Motion[40]': { frames: 609, bits: [{ bit: 0, efl: 'em013_02_030.efl', key: 290, on: [[0, 163]] }] },
     'L2 Motion[41]': { frames: 163, bits: [{ bit: 0, efl: 'em013_02_003.efl', key: 200, on: [[2, 162]] }] },
@@ -8584,6 +9047,7 @@ export const CLIP_EFFECTS = {
     'L2 Motion[54]': { frames: 65, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 11, on: [[38, 39]] }] },
     'L2 Motion[56]': { frames: 19, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 11, on: [[1, 2]] }] },
     'L2 Motion[57]': { frames: 67, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 11, on: [[10, 11]] }] },
+    'L2 Motion[63]': { frames: 37, bits: [{ bit: 0, efl: 'em013_02_003.efl', key: 200, on: [[0, 36]] }] },
     'L2 Motion[64]': { frames: 37, bits: [{ bit: 0, efl: 'em013_02_003.efl', key: 200, on: [[0, 36]] }] },
     'L2 Motion[65]': { frames: 37, bits: [{ bit: 0, efl: 'em013_02_003.efl', key: 200, on: [[0, 36]] }] },
     'L2 Motion[66]': { frames: 49, bits: [{ bit: 0, efl: 'em013_02_003.efl', key: 200, on: [[0, 48]] }] },
@@ -8610,9 +9074,10 @@ export const CLIP_EFFECTS = {
     'L4 Motion[1]': { frames: 71, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 11, on: [[60, 61]] }] },
     'L4 Motion[2]': { frames: 141, bits: [{ bit: 0, efl: 'em013_02_050.efl', key: 701, on: [[58, 60]] }, { bit: 1, efl: 'em013_02_052.efl', key: 700, on: [[60, 140]] }] },
     'L4 Motion[7]': { frames: 401, bits: [{ bit: 0, efl: 'em013_02_010.efl', key: 600, on: [[2, 224]] }, { bit: 1, efl: 'em013_02_014.efl', key: 601, on: [[224, 226]] }, { bit: 2, efl: 'em013_02_003.efl', key: 202, on: [[226, 297]] }] },
-    'L4 Motion[8]': { frames: 401, bits: [{ bit: 0, efl: 'em013_02_010.efl', key: 600, on: [[2, 220]] }] },
-    'L4 Motion[9]': { frames: 401, bits: [{ bit: 0, efl: 'em013_02_010.efl', key: 600, on: [[2, 220]] }] },
+    'L4 Motion[8]': { frames: 401, bits: [{ bit: 0, efl: 'em013_02_010.efl', key: 600, on: [[2, 220]] }, { bit: 1, efl: 'em013_02_014.efl', key: 601, on: [[222, 223]] }, { bit: 2, efl: 'em013_02_003.efl', key: 202, on: [[226, 297]] }] },
+    'L4 Motion[9]': { frames: 401, bits: [{ bit: 0, efl: 'em013_02_010.efl', key: 600, on: [[2, 220]] }, { bit: 1, efl: 'em013_02_014.efl', key: 601, on: [[222, 223]] }, { bit: 2, efl: 'em013_02_003.efl', key: 202, on: [[226, 297]] }] },
     'L4 Motion[11]': { frames: 609, bits: [{ bit: 0, efl: 'em013_02_030.efl', key: 290, on: [[1, 171]] }] },
+    'L4 Motion[12]': { frames: 609, bits: [{ bit: 0, efl: 'em013_02_030.efl', key: 290, on: [[1, 171]] }] },
     'L4 Motion[14]': { frames: 71, bits: [{ bit: 0, efl: 'em013_02_051.efl', key: 702, on: [[0, 70]] }] },
     'L4 Motion[15]': { frames: 183, bits: [{ bit: 0, efl: 'em013_00_002.efl', key: 100, on: [[85, 86]] }, { bit: 1, efl: 'cm202_004.efl', key: 9, on: [[25, 80]] }, { bit: 3, efl: 'em013_02_053.efl', key: 703, on: [[16, 18]] }] },
   },
@@ -8727,16 +9192,18 @@ export const CLIP_EFFECTS = {
     'L2 Motion[1]': { frames: 151, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 10, on: [[64, 65]] }, { bit: 1, efl: 'cm202_020.efl', key: 31, on: [[90, 91]] }, { bit: 3, efl: 'em023_00_017.efl', key: 151, on: [[87, 88]] }] },
     'L2 Motion[4]': { frames: 179, bits: [{ bit: 0, efl: 'em023_00_011.efl', key: 200, on: [[23, 24]] }] },
     'L2 Motion[5]': { frames: 91, bits: [{ bit: 0, efl: 'em023_00_017.efl', key: 151, on: [[16, 17], [69, 70]] }, { bit: 1, efl: 'em023_00_017.efl', key: 150, on: [[36, 37]] }] },
+    'L2 Motion[6]': { frames: 83, bits: [{ bit: 0, efl: 'em023_00_011.efl', key: 153, on: [[25, 26]] }] },
     'L2 Motion[7]': { frames: 157, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 10, on: [[25, 26]] }, { bit: 1, efl: 'cm202_020.efl', key: 31, on: [[67, 68]] }, { bit: 2, efl: 'em023_00_017.efl', key: 230, on: [[64, 65]] }] },
-    'L2 Motion[8]': { frames: 145, bits: [{ bit: 0, efl: 'em023_00_003.efl', key: 290, on: [[10, 78]] }, { bit: 1, efl: 'cm202_002.efl', key: 32, on: [[78, 79]] }, { bit: 15, efl: 'em023_00_001.efl', key: 291, on: [[79, 144]] }] },
+    'L2 Motion[8]': { frames: 145, bits: [{ bit: 0, efl: 'em023_00_003.efl', key: 290, on: [[10, 78]] }, { bit: 1, efl: 'cm202_002.efl', key: 32, on: [[78, 79]] }, { bit: 6, efl: 'em023_00_001.efl', key: 294, on: [[79, 80]] }, { bit: 9, efl: 'em023_00_001.efl', key: 294, on: [[79, 80]] }, { bit: 12, efl: 'em023_00_014.efl', key: 310, on: [[79, 80]] }, { bit: 15, efl: 'em023_00_001.efl', key: 291, on: [[79, 144]] }] },
     'L2 Motion[9]': { frames: 141, bits: [{ bit: 0, efl: 'em023_00_004.efl', key: 292, on: [[1, 2]] }] },
     'L2 Motion[10]': { frames: 27, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 60, on: [[21, 22]] }] },
+    'L2 Motion[12]': { frames: 89, bits: [{ bit: 0, efl: 'em023_00_001.efl', key: 294, on: [[17, 18]] }] },
     'L2 Motion[13]': { frames: 101, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 61, on: [[2, 3]] }] },
     'L2 Motion[14]': { frames: 115, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 32, on: [[41, 42]] }, { bit: 1, efl: 'cm202_001.efl', key: 61, on: [[74, 75]] }] },
     'L2 Motion[15]': { frames: 199, bits: [{ bit: 0, efl: 'em023_00_013.efl', key: 350, on: [[56, 57]] }, { bit: 1, efl: 'cm202_002.efl', key: 32, on: [[84, 85]] }, { bit: 2, efl: 'em023_00_017.efl', key: 151, on: [[53, 54]] }] },
     'L2 Motion[16]': { frames: 111, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 10, on: [[10, 11], [45, 46], [84, 85]] }] },
     'L2 Motion[17]': { frames: 137, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 10, on: [[4, 5]] }, { bit: 1, efl: 'cm202_001.efl', key: 0, on: [[32, 33]] }, { bit: 2, efl: 'cm202_001.efl', key: 1, on: [[38, 39]] }] },
-    'L2 Motion[20]': { frames: 169, bits: [{ bit: 0, efl: 'em023_00_003.efl', key: 290, on: [[33, 74]] }, { bit: 1, efl: 'cm202_021.efl', key: 60, on: [[105, 106]] }] },
+    'L2 Motion[20]': { frames: 169, bits: [{ bit: 0, efl: 'em023_00_003.efl', key: 290, on: [[33, 74]] }, { bit: 1, efl: 'cm202_021.efl', key: 60, on: [[105, 106]] }, { bit: 6, efl: 'em023_00_001.efl', key: 293, on: [[75, 168]] }, { bit: 7, efl: 'em023_00_001.efl', key: 295, on: [[72, 73]] }, { bit: 9, efl: 'em023_00_001.efl', key: 293, on: [[75, 168]] }, { bit: 10, efl: 'em023_00_001.efl', key: 295, on: [[72, 73]] }, { bit: 12, efl: 'em023_00_014.efl', key: 310, on: [[111, 112]] }] },
     'L2 Motion[21]': { frames: 169, bits: [{ bit: 0, efl: 'em023_00_003.efl', key: 290, on: [[33, 34]] }, { bit: 1, efl: 'cm202_021.efl', key: 60, on: [[109, 110]] }, { bit: 6, efl: 'em023_00_001.efl', key: 293, on: [[75, 168]] }, { bit: 7, efl: 'em023_00_001.efl', key: 295, on: [[72, 73]] }, { bit: 9, efl: 'em023_00_001.efl', key: 293, on: [[75, 168]] }, { bit: 10, efl: 'em023_00_001.efl', key: 295, on: [[72, 73]] }, { bit: 12, efl: 'em023_00_014.efl', key: 310, on: [[111, 112]] }] },
     'L2 Motion[22]': { frames: 135, bits: [{ bit: 0, efl: 'em023_00_017.efl', key: 150, on: [[82, 83]] }, { bit: 1, efl: 'em023_00_017.efl', key: 151, on: [[60, 61], [114, 115]] }] },
     'L2 Motion[23]': { frames: 135, bits: [{ bit: 0, efl: 'em023_00_017.efl', key: 150, on: [[62, 63], [113, 114]] }, { bit: 1, efl: 'em023_00_017.efl', key: 151, on: [[91, 92]] }] },
@@ -8749,7 +9216,7 @@ export const CLIP_EFFECTS = {
     'L2 Motion[35]': { frames: 143, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 61, on: [[47, 48]] }] },
     'L2 Motion[36]': { frames: 201, bits: [{ bit: 0, efl: 'em023_00_011.efl', key: 200, on: [[47, 48]] }] },
     'L2 Motion[37]': { frames: 201, bits: [{ bit: 0, efl: 'em023_00_011.efl', key: 200, on: [[47, 48]] }] },
-    'L2 Motion[40]': { frames: 109, bits: [{ bit: 0, efl: 'em023_00_000_s.efl', key: 210, on: [[9, 10], [27, 28]] }, { bit: 2, efl: 'em023_00_011.efl', key: 200, on: [[79, 80]] }] },
+    'L2 Motion[40]': { frames: 109, bits: [{ bit: 0, efl: 'em023_00_000_s.efl', key: 210, on: [[9, 10], [27, 28]] }, { bit: 2, efl: 'em023_00_011.efl', key: 200, on: [[79, 80]] }, { bit: 3, efl: 'cm202_021.efl', key: 60, on: [[33, 34]] }] },
     'L3 Motion[2]': { frames: 171, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[91, 92]] }, { bit: 1, efl: 'cm202_001.efl', key: 1, on: [[81, 82]] }] },
     'L3 Motion[6]': { frames: 81, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[52, 53]] }, { bit: 1, efl: 'cm202_001.efl', key: 1, on: [[36, 37]] }] },
     'L3 Motion[8]': { frames: 81, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 0, on: [[36, 37]] }, { bit: 1, efl: 'cm202_001.efl', key: 1, on: [[52, 53]] }] },
@@ -8796,6 +9263,8 @@ export const CLIP_EFFECTS = {
     'L1 Motion[21]': { frames: 25, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 50, on: [[1, 2]] }] },
     'L1 Motion[23]': { frames: 25, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 50, on: [[1, 2]] }] },
     'L2 Motion[2]': { frames: 111, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 60, on: [[56, 57]] }] },
+    'L2 Motion[3]': { frames: 135, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 61, on: [[54, 55]] }] },
+    'L2 Motion[4]': { frames: 117, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 62, on: [[57, 58]] }] },
     'L2 Motion[6]': { frames: 43, bits: [{ bit: 15, efl: 'em024_00_003.efl', key: 200, on: [[10, 42]] }, { bit: 18, efl: 'em024_00_003.efl', key: 210, on: [[10, 42]] }, { bit: 21, efl: 'em024_00_003.efl', key: 220, on: [[10, 42]] }] },
     'L2 Motion[7]': { frames: 163, bits: [{ bit: 15, efl: 'em024_00_003.efl', key: 200, on: [[9, 60]] }, { bit: 16, efl: 'em024_00_001.efl', key: 230, on: [[76, 77]] }, { bit: 18, efl: 'em024_00_003.efl', key: 210, on: [[9, 60]] }, { bit: 19, efl: 'em024_00_001.efl', key: 240, on: [[76, 77]] }] },
     'L2 Motion[9]': { frames: 73, bits: [{ bit: 17, efl: 'em024_00_001.efl', key: 230, on: [[20, 21]] }, { bit: 20, efl: 'em024_00_001.efl', key: 240, on: [[20, 21]] }, { bit: 23, efl: 'em024_00_001.efl', key: 250, on: [[20, 21]] }] },
@@ -8846,6 +9315,7 @@ export const CLIP_EFFECTS = {
     'L1 Motion[19]': { frames: 27, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 50, on: [[1, 2]] }] },
     'L1 Motion[21]': { frames: 25, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 50, on: [[1, 2]] }] },
     'L1 Motion[23]': { frames: 25, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 50, on: [[1, 2]] }] },
+    'L2 Motion[1]': { frames: 125, bits: [{ bit: 24, efl: 'em027_00_000.efl', key: 286, on: [[20, 21]] }] },
     'L2 Motion[2]': { frames: 111, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 60, on: [[56, 57]] }] },
     'L2 Motion[3]': { frames: 135, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 61, on: [[54, 55]] }] },
     'L2 Motion[10]': { frames: 131, bits: [{ bit: 0, efl: 'em077_00_006.efl', key: 2, on: [[58, 59]] }, { bit: 1, efl: 'cm202_030.efl', key: 130, on: [[51, 52]] }, { bit: 2, efl: 'cm202_002.efl', key: 4, on: [[70, 71]] }] },
@@ -8864,8 +9334,8 @@ export const CLIP_EFFECTS = {
     'L4 Motion[1]': { frames: 25, bits: [{ bit: 0, efl: 'cm202_021.efl', key: 40, on: [[0, 1]] }, { bit: 1, efl: 'em027_00_021.efl', key: 460, on: [[10, 11]] }] },
     'L4 Motion[4]': { frames: 135, bits: [{ bit: 0, efl: 'em077_00_006.efl', key: 2, on: [[43, 44]] }, { bit: 1, efl: 'cm202_030.efl', key: 120, on: [[35, 36]] }] },
     'L4 Motion[5]': { frames: 231, bits: [{ bit: 0, efl: 'cm202_002.efl', key: 4, on: [[126, 127], [160, 161]] }] },
-    'L4 Motion[6]': { frames: 277, bits: [{ bit: 6, efl: 'em027_00_000.efl', key: 280, on: [[0, 110]] }, { bit: 7, efl: 'em027_00_001.efl', key: 284, on: [[186, 272]] }, { bit: 10, efl: 'em027_00_006.efl', key: 290, on: [[173, 260]] }, { bit: 11, efl: 'em027_00_002.efl', key: 288, on: [[142, 173]] }, { bit: 15, efl: 'em027_00_000.efl', key: 281, on: [[0, 99]] }] },
-    'L4 Motion[7]': { frames: 125, bits: [{ bit: 9, efl: 'em027_00_006.efl', key: 291, on: [[0, 69]] }, { bit: 15, efl: 'em027_00_001.efl', key: 284, on: [[0, 26]] }] },
+    'L4 Motion[6]': { frames: 277, bits: [{ bit: 6, efl: 'em027_00_000.efl', key: 280, on: [[0, 110]] }, { bit: 7, efl: 'em027_00_001.efl', key: 284, on: [[186, 272]] }, { bit: 9, efl: 'em027_00_003.efl', key: 289, on: [[0, 100]] }, { bit: 10, efl: 'em027_00_006.efl', key: 290, on: [[173, 260]] }, { bit: 11, efl: 'em027_00_002.efl', key: 288, on: [[142, 173]] }, { bit: 15, efl: 'em027_00_000.efl', key: 281, on: [[0, 99]] }] },
+    'L4 Motion[7]': { frames: 125, bits: [{ bit: 6, efl: 'em027_00_001.efl', key: 285, on: [[0, 26]] }, { bit: 9, efl: 'em027_00_006.efl', key: 291, on: [[0, 69]] }, { bit: 15, efl: 'em027_00_001.efl', key: 284, on: [[0, 26]] }] },
     'L4 Motion[10]': { frames: 231, bits: [{ bit: 0, efl: 'cm200_034.efl', key: 340, on: [[30, 31]] }] },
     'L4 Motion[11]': { frames: 71, bits: [{ bit: 0, efl: 'cm202_020.efl', key: 50, on: [[9, 10]] }] },
     'L4 Motion[12]': { frames: 259, bits: [{ bit: 0, efl: 'em027_00_009.efl', key: 401, on: [[0, 72]] }, { bit: 1, efl: 'em027_00_010.efl', key: 400, on: [[66, 67]] }] },
@@ -8877,7 +9347,7 @@ export const CLIP_EFFECTS = {
     'L0 Motion[3]': { frames: 307, bits: [{ bit: 0, efl: 'cm202_050.efl', key: 100, on: [[82, 96]] }] },
     'L0 Motion[4]': { frames: 123, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 1, on: [[10, 11], [70, 71]] }] },
     'L0 Motion[10]': { frames: 93, bits: [{ bit: 0, efl: 'cm202_003.efl', key: 6, on: [[25, 26], [45, 46]] }] },
-    'L0 Motion[12]': { frames: 495, bits: [{ bit: 0, efl: 'cm202_070.efl', key: 110, on: [[215, 330]] }] },
+    'L0 Motion[12]': { frames: 495, bits: [{ bit: 0, efl: 'cm202_070.efl', key: 110, on: [[215, 330]] }, { bit: 15, efl: 'em082_04_020.efl', key: 112, on: [[125, 210]] }, { bit: 16, efl: 'em082_04_020.efl', key: 113, on: [[210, 310]] }, { bit: 17, efl: 'cm202_001.efl', key: 130, on: [[120, 121]] }, { bit: 18, efl: 'cm200_010.efl', key: 121, on: [[125, 210]] }, { bit: 19, efl: 'cm200_010.efl', key: 122, on: [[210, 310]] }, { bit: 20, efl: 'cm202_001.efl', key: 120, on: [[120, 121]] }] },
     'L0 Motion[15]': { frames: 273, bits: [{ bit: 21, efl: 'em082_04_002.efl', key: 360, on: [[0, 272]] }] },
     'L0 Motion[16]': { frames: 165, bits: [{ bit: 0, efl: 'cm202_001.efl', key: 71, on: [[60, 61]] }] },
     'L0 Motion[17]': { frames: 169, bits: [{ bit: 0, efl: 'cm202_004.efl', key: 7, on: [[22, 90]] }] },
@@ -9021,6 +9491,157 @@ export const CLIP_EFFECTS = {
     'L3 Motion[76]': { frames: 99, bits: [{ bit: 0, efl: 'em084_00_001.efl', key: 5, on: [[64, 65]] }, { bit: 1, efl: 'em084_00_021.efl', key: 24, on: [[40, 41]] }] },
     'L3 Motion[78]': { frames: 189, bits: [{ bit: 0, efl: 'em084_00_007.efl', key: 135, on: [[0, 20], [86, 140]] }, { bit: 1, efl: 'em084_00_021.efl', key: 23, on: [[110, 111]] }] },
   },
+  // NAKARKOS's LEFT TENTACLE (em084_00_left): its OWN PSL blocks (em084_00_l_N.psl), GENERATED by <scratchpad>/zg/arm_export.py over
+  // C:\MHGU-Extract\efx\add_effects.py's plan -- keyed by the arm's own lists; run on its own effect runtime (index.html
+  // driveArmEffects), its records from its own pels.
+  em084_00_left: {
+    'Ll_0 Motion[2]': { frames: 305, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 304]] }] },
+    'Ll_0 Motion[3]': { frames: 305, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 304]] }] },
+    'Ll_0 Motion[4]': { frames: 201, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 200]] }] },
+    'Ll_0 Motion[5]': { frames: 201, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 200]] }] },
+    'Ll_0 Motion[8]': { frames: 219, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 218]] }] },
+    'Ll_0 Motion[9]': { frames: 199, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 198]] }] },
+    'Ll_0 Motion[14]': { frames: 499, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 498]] }] },
+    'Ll_0 Motion[17]': { frames: 451, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 120]] }, { bit: 1, efl: 'em084_00_006.efl', key: 105, on: [[127, 128]] }, { bit: 2, efl: 'em084_00_006.efl', key: 111, on: [[217, 218]] }, { bit: 3, efl: 'em084_00_050.efl', key: 130, on: [[137, 180]] }, { bit: 4, efl: 'em084_00_050.efl', key: 131, on: [[180, 215]] }] },
+    'Ll_0 Motion[40]': { frames: 631, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 120]] }, { bit: 1, efl: 'em084_00_006.efl', key: 105, on: [[114, 115]] }, { bit: 2, efl: 'em084_00_006.efl', key: 111, on: [[200, 201]] }, { bit: 3, efl: 'em084_00_050.efl', key: 130, on: [[130, 180]] }, { bit: 4, efl: 'em084_00_050.efl', key: 131, on: [[180, 215]] }] },
+    'Ll_0 Motion[41]': { frames: 219, bits: [{ bit: 0, efl: 'em084_00_006.efl', key: 116, on: [[30, 31]] }] },
+    'Ll_0 Motion[51]': { frames: 255, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 254]] }] },
+    'Ll_0 Motion[52]': { frames: 255, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 254]] }] },
+    'Ll_0 Motion[59]': { frames: 291, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 130, on: [[0, 40], [90, 118]] }, { bit: 1, efl: 'em084_00_006.efl', key: 105, on: [[111, 112]] }, { bit: 2, efl: 'em084_00_005.efl', key: 120, on: [[50, 84]] }, { bit: 3, efl: 'em084_00_050.efl', key: 135, on: [[170, 224]] }, { bit: 4, efl: 'em084_00_006.efl', key: 116, on: [[141, 142]] }] },
+    'Ll_0 Motion[63]': { frames: 651, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 650]] }] },
+    'Ll_0 Motion[66]': { frames: 331, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 60], [179, 257]] }, { bit: 1, efl: 'em084_00_006.efl', key: 105, on: [[50, 51]] }, { bit: 2, efl: 'em084_00_006.efl', key: 115, on: [[170, 171]] }, { bit: 3, efl: 'em084_00_006.efl', key: 116, on: [[190, 191]] }] },
+    'Ll_0 Motion[67]': { frames: 433, bits: [{ bit: 0, efl: 'em084_00_006.efl', key: 115, on: [[188, 189]] }, { bit: 1, efl: 'em084_00_050.efl', key: 131, on: [[188, 210]] }, { bit: 2, efl: 'em084_00_006.efl', key: 116, on: [[203, 204]] }] },
+    'Ll_2 Motion[1]': { frames: 341, bits: [{ bit: 0, efl: 'em084_00_001.efl', key: 10, on: [[114, 115]] }, { bit: 1, efl: 'em084_00_050.efl', key: 130, on: [[105, 140]] }, { bit: 18, efl: 'em084_00_066.efl', key: 201, on: [[0, 190]] }] },
+    'Ll_2 Motion[2]': { frames: 341, bits: [{ bit: 0, efl: 'em084_00_001.efl', key: 10, on: [[114, 115]] }, { bit: 1, efl: 'em084_00_050.efl', key: 130, on: [[100, 140]] }] },
+    'Ll_2 Motion[5]': { frames: 361, bits: [{ bit: 15, efl: 'em084_00_015.efl', key: 200, on: [[1, 200]] }, { bit: 18, efl: 'em084_00_066.efl', key: 201, on: [[1, 330]] }] },
+    'Ll_2 Motion[6]': { frames: 361, bits: [{ bit: 15, efl: 'em084_00_015.efl', key: 200, on: [[1, 152]] }, { bit: 18, efl: 'em084_00_066.efl', key: 201, on: [[1, 330]] }] },
+    'Ll_2 Motion[9]': { frames: 323, bits: [{ bit: 0, efl: 'em084_00_020.efl', key: 51, on: [[90, 91]] }, { bit: 1, efl: 'em084_00_001.efl', key: 10, on: [[108, 109]] }, { bit: 2, efl: 'em084_00_050.efl', key: 131, on: [[220, 275]] }] },
+    'Ll_2 Motion[10]': { frames: 323, bits: [{ bit: 0, efl: 'em084_00_020.efl', key: 51, on: [[90, 91]] }, { bit: 1, efl: 'em084_00_001.efl', key: 10, on: [[108, 109]] }, { bit: 2, efl: 'em084_00_050.efl', key: 131, on: [[220, 275]] }] },
+    'Ll_2 Motion[13]': { frames: 305, bits: [{ bit: 15, efl: 'em084_00_015.efl', key: 200, on: [[1, 82]] }, { bit: 18, efl: 'em084_00_066.efl', key: 201, on: [[1, 170]] }] },
+    'Ll_2 Motion[17]': { frames: 157, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 156]] }] },
+    'Ll_2 Motion[21]': { frames: 509, bits: [{ bit: 0, efl: 'em084_00_001.efl', key: 10, on: [[120, 121], [133, 134]] }, { bit: 2, efl: 'em084_00_050.efl', key: 130, on: [[170, 440]] }] },
+    'Ll_2 Motion[27]': { frames: 313, bits: [{ bit: 0, efl: 'em084_00_040.efl', key: 90, on: [[96, 200]] }, { bit: 1, efl: 'em084_00_006.efl', key: 150, on: [[290, 291]] }, { bit: 2, efl: 'em084_00_006.efl', key: 151, on: [[96, 97]] }, { bit: 3, efl: 'em084_00_007.efl', key: 152, on: [[30, 110]] }, { bit: 4, efl: 'em084_00_050.efl', key: 153, on: [[210, 311]] }] },
+    'Ll_2 Motion[28]': { frames: 587, bits: [{ bit: 0, efl: 'em084_00_040.efl', key: 90, on: [[96, 200]] }, { bit: 1, efl: 'em084_00_006.efl', key: 150, on: [[570, 571]] }, { bit: 2, efl: 'em084_00_006.efl', key: 151, on: [[96, 97]] }, { bit: 3, efl: 'em084_00_007.efl', key: 152, on: [[30, 110]] }, { bit: 4, efl: 'em084_00_050.efl', key: 153, on: [[500, 585]] }, { bit: 15, efl: 'em084_00_015.efl', key: 200, on: [[90, 138], [175, 290]] }] },
+    'Ll_2 Motion[50]': { frames: 341, bits: [{ bit: 0, efl: 'em084_00_001.efl', key: 10, on: [[110, 111]] }, { bit: 1, efl: 'em084_00_050.efl', key: 130, on: [[100, 120]] }, { bit: 18, efl: 'em084_00_066.efl', key: 201, on: [[1, 170]] }] },
+    'Ll_2 Motion[51]': { frames: 341, bits: [{ bit: 0, efl: 'em084_00_001.efl', key: 10, on: [[110, 111]] }, { bit: 1, efl: 'em084_00_050.efl', key: 130, on: [[100, 120]] }, { bit: 18, efl: 'em084_00_066.efl', key: 201, on: [[0, 111]] }] },
+    'Ll_2 Motion[62]': { frames: 213, bits: [{ bit: 0, efl: 'em084_00_020.efl', key: 51, on: [[139, 140]] }, { bit: 1, efl: 'em084_00_050.efl', key: 135, on: [[23, 100]] }] },
+    'Ll_2 Motion[64]': { frames: 187, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 131, on: [[80, 115]] }, { bit: 1, efl: 'em084_00_040.efl', key: 90, on: [[69, 100]] }] },
+    'Ll_2 Motion[65]': { frames: 213, bits: [{ bit: 0, efl: 'em084_00_020.efl', key: 51, on: [[139, 140]] }, { bit: 1, efl: 'em084_00_050.efl', key: 135, on: [[23, 100]] }] },
+    'Ll_2 Motion[67]': { frames: 187, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 131, on: [[80, 115]] }, { bit: 1, efl: 'em084_00_040.efl', key: 90, on: [[69, 100]] }] },
+    'Ll_2 Motion[74]': { frames: 773, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[20, 160]] }, { bit: 1, efl: 'em084_00_020.efl', key: 51, on: [[180, 181]] }, { bit: 2, efl: 'em084_00_050.efl', key: 130, on: [[310, 660]] }, { bit: 3, efl: 'em084_00_040.efl', key: 90, on: [[670, 697]] }] },
+    'Ll_2 Motion[76]': { frames: 157, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 156]] }] },
+    'Ll_2 Motion[81]': { frames: 457, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 140], [380, 410]] }, { bit: 1, efl: 'em084_00_006.efl', key: 105, on: [[88, 89]] }, { bit: 2, efl: 'em084_00_050.efl', key: 130, on: [[160, 370]] }] },
+    'Ll_2 Motion[82]': { frames: 461, bits: [{ bit: 0, efl: 'em084_00_006.efl', key: 105, on: [[108, 109]] }, { bit: 1, efl: 'em084_00_006.efl', key: 116, on: [[164, 165]] }, { bit: 2, efl: 'em084_00_050.efl', key: 130, on: [[185, 200], [230, 460]] }, { bit: 3, efl: 'em084_00_050.efl', key: 135, on: [[0, 110]] }] },
+    'Ll_2 Motion[83]': { frames: 301, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 130, on: [[0, 110]] }, { bit: 1, efl: 'em084_00_050.efl', key: 140, on: [[110, 300]] }] },
+    'Ll_2 Motion[86]': { frames: 631, bits: [{ bit: 15, efl: 'em084_00_015.efl', key: 200, on: [[1, 160]] }, { bit: 18, efl: 'em084_00_066.efl', key: 201, on: [[1, 470]] }] },
+    'Ll_2 Motion[92]': { frames: 687, bits: [{ bit: 0, efl: 'em084_00_006.efl', key: 105, on: [[100, 101], [165, 166], [204, 205]] }, { bit: 1, efl: 'em084_00_050.efl', key: 135, on: [[170, 233], [400, 505]] }, { bit: 2, efl: 'em084_00_006.efl', key: 115, on: [[505, 506]] }, { bit: 15, efl: 'em084_00_103.efl', key: 212, on: [[506, 507]] }, { bit: 18, efl: 'em084_00_103.efl', key: 216, on: [[506, 507]] }, { bit: 21, efl: 'em084_00_103.efl', key: 222, on: [[506, 507]] }, { bit: 24, efl: 'em084_00_103.efl', key: 227, on: [[506, 507]] }] },
+    'Ll_2 Motion[93]': { frames: 313, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[23, 217]] }, { bit: 15, efl: 'em084_00_070.efl', key: 210, on: [[246, 247]] }, { bit: 16, efl: 'em084_00_072.efl', key: 211, on: [[0, 240]] }, { bit: 18, efl: 'em084_00_076.efl', key: 215, on: [[0, 240]] }, { bit: 21, efl: 'em084_00_070.efl', key: 220, on: [[246, 247]] }, { bit: 22, efl: 'em084_00_084.efl', key: 221, on: [[0, 240]] }, { bit: 24, efl: 'em084_00_070.efl', key: 225, on: [[246, 247]] }, { bit: 25, efl: 'em084_00_093.efl', key: 226, on: [[0, 240]] }] },
+    'Ll_2 Motion[101]': { frames: 199, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 198]] }] },
+    'Ll_2 Motion[102]': { frames: 121, bits: [{ bit: 0, efl: 'em084_00_020.efl', key: 50, on: [[21, 22]] }, { bit: 1, efl: 'em084_00_050.efl', key: 135, on: [[23, 65]] }] },
+    'Ll_2 Motion[103]': { frames: 129, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 91]] }] },
+    'Ll_2 Motion[104]': { frames: 121, bits: [{ bit: 0, efl: 'em084_00_020.efl', key: 50, on: [[21, 22]] }, { bit: 1, efl: 'em084_00_050.efl', key: 135, on: [[23, 110]] }] },
+    'Ll_3 Motion[4]': { frames: 361, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 151]] }] },
+    'Ll_3 Motion[5]': { frames: 197, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 96]] }, { bit: 1, efl: 'em084_00_050.efl', key: 131, on: [[96, 125]] }, { bit: 2, efl: 'em084_00_001.efl', key: 0, on: [[100, 101]] }] },
+    'Ll_3 Motion[7]': { frames: 209, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 131, on: [[40, 140]] }, { bit: 1, efl: 'em084_00_040.efl', key: 90, on: [[148, 207]] }] },
+    'Ll_3 Motion[8]': { frames: 197, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 150]] }] },
+    'Ll_3 Motion[10]': { frames: 209, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 131, on: [[40, 140]] }, { bit: 1, efl: 'em084_00_040.efl', key: 90, on: [[148, 207]] }] },
+    'Ll_3 Motion[13]': { frames: 281, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 280]] }] },
+    'Ll_3 Motion[16]': { frames: 217, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 200]] }] },
+    'Ll_3 Motion[18]': { frames: 601, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[20, 130], [197, 256]] }, { bit: 1, efl: 'em084_00_006.efl', key: 105, on: [[250, 251]] }] },
+    'Ll_3 Motion[19]': { frames: 347, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 130, on: [[70, 100]] }, { bit: 1, efl: 'em084_00_006.efl', key: 116, on: [[103, 104]] }, { bit: 2, efl: 'em084_00_040.efl', key: 90, on: [[204, 346]] }] },
+    'Ll_3 Motion[23]': { frames: 99, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[17, 30]] }, { bit: 1, efl: 'em084_00_050.efl', key: 140, on: [[33, 40]] }, { bit: 2, efl: 'em084_00_001.efl', key: 0, on: [[53, 54]] }] },
+    'Ll_3 Motion[25]': { frames: 189, bits: [{ bit: 0, efl: 'em084_00_040.efl', key: 90, on: [[30, 188]] }] },
+    'Ll_3 Motion[50]': { frames: 261, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[10, 30]] }] },
+    'Ll_3 Motion[53]': { frames: 387, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 386]] }] },
+    'Ll_3 Motion[54]': { frames: 147, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[4, 36]] }, { bit: 1, efl: 'em084_00_050.efl', key: 131, on: [[36, 55]] }, { bit: 2, efl: 'em084_00_020.efl', key: 50, on: [[96, 97]] }] },
+    'Ll_3 Motion[56]': { frames: 229, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 136, on: [[0, 10]] }, { bit: 1, efl: 'em084_00_050.efl', key: 130, on: [[152, 180]] }, { bit: 2, efl: 'em084_00_040.efl', key: 90, on: [[180, 218]] }] },
+    'Ll_3 Motion[57]': { frames: 147, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[4, 36]] }, { bit: 1, efl: 'em084_00_050.efl', key: 131, on: [[36, 55]] }, { bit: 2, efl: 'em084_00_020.efl', key: 50, on: [[119, 120]] }] },
+    'Ll_3 Motion[59]': { frames: 229, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 136, on: [[40, 50]] }, { bit: 1, efl: 'em084_00_050.efl', key: 135, on: [[80, 110]] }, { bit: 2, efl: 'em084_00_050.efl', key: 140, on: [[111, 122]] }, { bit: 3, efl: 'em084_00_050.efl', key: 131, on: [[124, 170]] }, { bit: 4, efl: 'em084_00_006.efl', key: 116, on: [[179, 180]] }] },
+    'Ll_3 Motion[60]': { frames: 77, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[29, 40]] }, { bit: 1, efl: 'em084_00_006.efl', key: 115, on: [[31, 32]] }] },
+    'Ll_3 Motion[62]': { frames: 261, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 260]] }] },
+    'Ll_3 Motion[63]': { frames: 579, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 140]] }, { bit: 1, efl: 'em084_00_040.efl', key: 90, on: [[148, 207]] }, { bit: 2, efl: 'em084_00_050.efl', key: 140, on: [[140, 260]] }, { bit: 3, efl: 'em084_00_050.efl', key: 131, on: [[380, 432]] }, { bit: 4, efl: 'em084_00_020.efl', key: 51, on: [[460, 461]] }] },
+    'Ll_3 Motion[64]': { frames: 257, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 150]] }, { bit: 1, efl: 'em084_00_001.efl', key: 0, on: [[150, 151]] }] },
+    'Ll_3 Motion[66]': { frames: 441, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 130, on: [[100, 330]] }] },
+    'Ll_3 Motion[68]': { frames: 161, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 160]] }] },
+    'Ll_3 Motion[71]': { frames: 601, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 211]] }, { bit: 1, efl: 'em084_00_006.efl', key: 105, on: [[211, 212]] }] },
+    'Ll_3 Motion[72]': { frames: 347, bits: [{ bit: 0, efl: 'em084_00_006.efl', key: 115, on: [[121, 122]] }, { bit: 1, efl: 'em084_00_050.efl', key: 135, on: [[50, 73]] }, { bit: 2, efl: 'em084_00_040.efl', key: 90, on: [[204, 346]] }] },
+    'Ll_3 Motion[76]': { frames: 99, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[17, 30]] }, { bit: 1, efl: 'em084_00_050.efl', key: 140, on: [[33, 40]] }, { bit: 2, efl: 'em084_00_001.efl', key: 0, on: [[53, 54]] }] },
+    'Ll_3 Motion[78]': { frames: 189, bits: [{ bit: 0, efl: 'em084_00_040.efl', key: 90, on: [[30, 188]] }] },
+  },
+  // NAKARKOS's RIGHT TENTACLE (em084_00_right): its OWN PSL blocks (em084_00_r_N.psl), GENERATED by <scratchpad>/zg/arm_export.py over
+  // C:\MHGU-Extract\efx\add_effects.py's plan -- keyed by the arm's own lists; run on its own effect runtime (index.html
+  // driveArmEffects), its records from its own pels.
+  em084_00_right: {
+    'Lr_0 Motion[2]': { frames: 305, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 304]] }] },
+    'Lr_0 Motion[3]': { frames: 305, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 304]] }] },
+    'Lr_0 Motion[4]': { frames: 201, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 200]] }] },
+    'Lr_0 Motion[5]': { frames: 201, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 200]] }] },
+    'Lr_0 Motion[8]': { frames: 219, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 218]] }] },
+    'Lr_0 Motion[9]': { frames: 199, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 198]] }] },
+    'Lr_0 Motion[14]': { frames: 499, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 498]] }] },
+    'Lr_0 Motion[17]': { frames: 451, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 120]] }, { bit: 1, efl: 'em084_00_006.efl', key: 105, on: [[140, 141]] }, { bit: 2, efl: 'em084_00_006.efl', key: 111, on: [[244, 245]] }, { bit: 3, efl: 'em084_00_050.efl', key: 130, on: [[137, 180]] }, { bit: 4, efl: 'em084_00_050.efl', key: 131, on: [[180, 215]] }] },
+    'Lr_0 Motion[40]': { frames: 631, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 120]] }, { bit: 1, efl: 'em084_00_006.efl', key: 105, on: [[130, 131]] }, { bit: 2, efl: 'em084_00_006.efl', key: 111, on: [[229, 230]] }, { bit: 3, efl: 'em084_00_050.efl', key: 130, on: [[130, 180]] }, { bit: 4, efl: 'em084_00_050.efl', key: 131, on: [[180, 215]] }] },
+    'Lr_0 Motion[41]': { frames: 219, bits: [{ bit: 0, efl: 'em084_00_006.efl', key: 116, on: [[46, 47]] }] },
+    'Lr_0 Motion[51]': { frames: 255, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 254]] }] },
+    'Lr_0 Motion[52]': { frames: 255, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 254]] }] },
+    'Lr_0 Motion[59]': { frames: 291, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 130, on: [[0, 40], [90, 118]] }, { bit: 1, efl: 'em084_00_006.efl', key: 105, on: [[120, 121]] }, { bit: 2, efl: 'em084_00_005.efl', key: 120, on: [[50, 84]] }, { bit: 3, efl: 'em084_00_050.efl', key: 135, on: [[170, 224]] }, { bit: 4, efl: 'em084_00_006.efl', key: 116, on: [[141, 142]] }] },
+    'Lr_0 Motion[63]': { frames: 651, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 650]] }] },
+    'Lr_0 Motion[66]': { frames: 331, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 60], [179, 257]] }, { bit: 1, efl: 'em084_00_006.efl', key: 105, on: [[50, 51]] }, { bit: 2, efl: 'em084_00_006.efl', key: 115, on: [[170, 171]] }, { bit: 3, efl: 'em084_00_006.efl', key: 116, on: [[190, 191]] }] },
+    'Lr_0 Motion[67]': { frames: 433, bits: [{ bit: 0, efl: 'em084_00_006.efl', key: 115, on: [[232, 233]] }, { bit: 1, efl: 'em084_00_050.efl', key: 131, on: [[233, 306]] }, { bit: 2, efl: 'em084_00_006.efl', key: 116, on: [[240, 241]] }] },
+    'Lr_2 Motion[1]': { frames: 341, bits: [{ bit: 0, efl: 'em084_00_001.efl', key: 10, on: [[114, 115]] }, { bit: 1, efl: 'em084_00_050.efl', key: 130, on: [[100, 120]] }, { bit: 18, efl: 'em084_00_066.efl', key: 201, on: [[0, 190]] }] },
+    'Lr_2 Motion[2]': { frames: 341, bits: [{ bit: 0, efl: 'em084_00_001.efl', key: 10, on: [[130, 131]] }, { bit: 1, efl: 'em084_00_050.efl', key: 130, on: [[120, 140]] }] },
+    'Lr_2 Motion[5]': { frames: 361, bits: [{ bit: 15, efl: 'em084_00_015.efl', key: 200, on: [[1, 200]] }, { bit: 18, efl: 'em084_00_066.efl', key: 201, on: [[1, 330]] }] },
+    'Lr_2 Motion[6]': { frames: 361, bits: [{ bit: 15, efl: 'em084_00_015.efl', key: 200, on: [[1, 152]] }, { bit: 18, efl: 'em084_00_066.efl', key: 201, on: [[1, 330]] }] },
+    'Lr_2 Motion[9]': { frames: 323, bits: [{ bit: 0, efl: 'em084_00_020.efl', key: 51, on: [[90, 91]] }, { bit: 1, efl: 'em084_00_001.efl', key: 10, on: [[108, 109]] }, { bit: 2, efl: 'em084_00_050.efl', key: 131, on: [[220, 275]] }] },
+    'Lr_2 Motion[10]': { frames: 323, bits: [{ bit: 0, efl: 'em084_00_020.efl', key: 51, on: [[90, 91]] }, { bit: 1, efl: 'em084_00_001.efl', key: 10, on: [[108, 109]] }, { bit: 2, efl: 'em084_00_050.efl', key: 131, on: [[220, 275]] }] },
+    'Lr_2 Motion[14]': { frames: 305, bits: [{ bit: 15, efl: 'em084_00_015.efl', key: 200, on: [[1, 82]] }, { bit: 18, efl: 'em084_00_066.efl', key: 201, on: [[1, 170]] }] },
+    'Lr_2 Motion[17]': { frames: 157, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 156]] }] },
+    'Lr_2 Motion[21]': { frames: 509, bits: [{ bit: 0, efl: 'em084_00_001.efl', key: 10, on: [[120, 121], [133, 134]] }, { bit: 2, efl: 'em084_00_050.efl', key: 130, on: [[170, 440]] }] },
+    'Lr_2 Motion[27]': { frames: 313, bits: [{ bit: 0, efl: 'em084_00_040.efl', key: 90, on: [[96, 200]] }, { bit: 1, efl: 'em084_00_006.efl', key: 150, on: [[290, 291]] }, { bit: 2, efl: 'em084_00_006.efl', key: 151, on: [[96, 97]] }, { bit: 3, efl: 'em084_00_007.efl', key: 152, on: [[30, 110]] }, { bit: 4, efl: 'em084_00_050.efl', key: 153, on: [[210, 311]] }] },
+    'Lr_2 Motion[28]': { frames: 587, bits: [{ bit: 0, efl: 'em084_00_040.efl', key: 90, on: [[96, 200]] }, { bit: 1, efl: 'em084_00_006.efl', key: 150, on: [[570, 571]] }, { bit: 2, efl: 'em084_00_006.efl', key: 151, on: [[96, 97]] }, { bit: 3, efl: 'em084_00_007.efl', key: 152, on: [[30, 110]] }, { bit: 4, efl: 'em084_00_050.efl', key: 153, on: [[500, 585]] }, { bit: 15, efl: 'em084_00_015.efl', key: 200, on: [[90, 290]] }] },
+    'Lr_2 Motion[50]': { frames: 341, bits: [{ bit: 0, efl: 'em084_00_001.efl', key: 10, on: [[110, 111]] }, { bit: 1, efl: 'em084_00_050.efl', key: 130, on: [[100, 120]] }, { bit: 18, efl: 'em084_00_066.efl', key: 201, on: [[1, 170]] }] },
+    'Lr_2 Motion[51]': { frames: 341, bits: [{ bit: 0, efl: 'em084_00_001.efl', key: 10, on: [[110, 111]] }, { bit: 1, efl: 'em084_00_050.efl', key: 130, on: [[100, 120]] }, { bit: 18, efl: 'em084_00_066.efl', key: 201, on: [[0, 111]] }] },
+    'Lr_2 Motion[62]': { frames: 213, bits: [{ bit: 0, efl: 'em084_00_020.efl', key: 51, on: [[139, 140]] }, { bit: 1, efl: 'em084_00_050.efl', key: 135, on: [[23, 100]] }] },
+    'Lr_2 Motion[64]': { frames: 187, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 131, on: [[80, 115]] }, { bit: 1, efl: 'em084_00_040.efl', key: 90, on: [[69, 100]] }] },
+    'Lr_2 Motion[65]': { frames: 213, bits: [{ bit: 0, efl: 'em084_00_020.efl', key: 51, on: [[139, 140]] }, { bit: 1, efl: 'em084_00_050.efl', key: 135, on: [[23, 100]] }] },
+    'Lr_2 Motion[67]': { frames: 187, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 131, on: [[80, 115]] }, { bit: 1, efl: 'em084_00_040.efl', key: 90, on: [[69, 100]] }] },
+    'Lr_2 Motion[74]': { frames: 773, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[20, 160]] }, { bit: 1, efl: 'em084_00_020.efl', key: 51, on: [[180, 181]] }, { bit: 2, efl: 'em084_00_050.efl', key: 130, on: [[310, 660]] }, { bit: 3, efl: 'em084_00_040.efl', key: 90, on: [[670, 697]] }] },
+    'Lr_2 Motion[76]': { frames: 157, bits: [{ bit: 0, efl: 'em084_00_001.efl', key: 10, on: [[110, 111]] }, { bit: 1, efl: 'em084_00_050.efl', key: 130, on: [[100, 120]] }, { bit: 18, efl: 'em084_00_066.efl', key: 201, on: [[1, 156]] }] },
+    'Lr_2 Motion[81]': { frames: 457, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 140], [380, 410]] }, { bit: 1, efl: 'em084_00_006.efl', key: 105, on: [[96, 97]] }, { bit: 2, efl: 'em084_00_050.efl', key: 130, on: [[160, 370]] }] },
+    'Lr_2 Motion[82]': { frames: 461, bits: [{ bit: 0, efl: 'em084_00_006.efl', key: 105, on: [[108, 109]] }, { bit: 1, efl: 'em084_00_006.efl', key: 116, on: [[183, 184]] }, { bit: 2, efl: 'em084_00_050.efl', key: 130, on: [[185, 200], [230, 460]] }, { bit: 3, efl: 'em084_00_050.efl', key: 135, on: [[0, 110]] }] },
+    'Lr_2 Motion[86]': { frames: 631, bits: [{ bit: 15, efl: 'em084_00_015.efl', key: 200, on: [[9, 160]] }, { bit: 18, efl: 'em084_00_066.efl', key: 201, on: [[9, 470]] }] },
+    'Lr_2 Motion[92]': { frames: 687, bits: [{ bit: 0, efl: 'em084_00_006.efl', key: 105, on: [[100, 101], [165, 166], [204, 205]] }, { bit: 1, efl: 'em084_00_050.efl', key: 135, on: [[170, 233], [400, 505]] }, { bit: 2, efl: 'em084_00_006.efl', key: 115, on: [[505, 506]] }, { bit: 15, efl: 'em084_00_103.efl', key: 212, on: [[506, 507]] }, { bit: 18, efl: 'em084_00_103.efl', key: 216, on: [[506, 507]] }, { bit: 21, efl: 'em084_00_103.efl', key: 222, on: [[506, 507]] }, { bit: 24, efl: 'em084_00_103.efl', key: 227, on: [[506, 507]] }] },
+    'Lr_2 Motion[93]': { frames: 313, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[23, 217]] }, { bit: 15, efl: 'em084_00_070.efl', key: 210, on: [[246, 247]] }, { bit: 16, efl: 'em084_00_072.efl', key: 211, on: [[0, 240]] }, { bit: 18, efl: 'em084_00_076.efl', key: 215, on: [[0, 240]] }, { bit: 21, efl: 'em084_00_070.efl', key: 220, on: [[246, 247]] }, { bit: 22, efl: 'em084_00_084.efl', key: 221, on: [[0, 240]] }, { bit: 24, efl: 'em084_00_070.efl', key: 225, on: [[246, 247]] }, { bit: 25, efl: 'em084_00_093.efl', key: 226, on: [[0, 240]] }] },
+    'Lr_2 Motion[101]': { frames: 199, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 198]] }] },
+    'Lr_2 Motion[102]': { frames: 121, bits: [{ bit: 0, efl: 'em084_00_020.efl', key: 50, on: [[47, 48]] }, { bit: 1, efl: 'em084_00_050.efl', key: 135, on: [[23, 65]] }] },
+    'Lr_2 Motion[103]': { frames: 129, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 91]] }] },
+    'Lr_2 Motion[104]': { frames: 121, bits: [{ bit: 0, efl: 'em084_00_020.efl', key: 50, on: [[47, 48]] }, { bit: 1, efl: 'em084_00_050.efl', key: 135, on: [[23, 110]] }] },
+    'Lr_3 Motion[4]': { frames: 361, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 151]] }] },
+    'Lr_3 Motion[5]': { frames: 197, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 96]] }, { bit: 1, efl: 'em084_00_050.efl', key: 131, on: [[96, 125]] }, { bit: 2, efl: 'em084_00_001.efl', key: 0, on: [[100, 101]] }] },
+    'Lr_3 Motion[7]': { frames: 209, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 131, on: [[40, 140]] }, { bit: 1, efl: 'em084_00_040.efl', key: 90, on: [[148, 207]] }] },
+    'Lr_3 Motion[8]': { frames: 197, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 150]] }] },
+    'Lr_3 Motion[10]': { frames: 209, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 131, on: [[40, 140]] }, { bit: 1, efl: 'em084_00_040.efl', key: 90, on: [[148, 207]] }] },
+    'Lr_3 Motion[16]': { frames: 217, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 200]] }] },
+    'Lr_3 Motion[18]': { frames: 601, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[20, 130], [197, 256]] }, { bit: 1, efl: 'em084_00_006.efl', key: 105, on: [[250, 251]] }] },
+    'Lr_3 Motion[19]': { frames: 347, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 130, on: [[70, 100]] }, { bit: 1, efl: 'em084_00_006.efl', key: 116, on: [[103, 104]] }, { bit: 2, efl: 'em084_00_040.efl', key: 90, on: [[204, 346]] }] },
+    'Lr_3 Motion[23]': { frames: 99, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[17, 30]] }, { bit: 1, efl: 'em084_00_050.efl', key: 140, on: [[33, 40]] }, { bit: 2, efl: 'em084_00_001.efl', key: 0, on: [[53, 54]] }] },
+    'Lr_3 Motion[25]': { frames: 189, bits: [{ bit: 0, efl: 'em084_00_040.efl', key: 90, on: [[30, 188]] }] },
+    'Lr_3 Motion[50]': { frames: 261, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[10, 30]] }] },
+    'Lr_3 Motion[53]': { frames: 387, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 386]] }] },
+    'Lr_3 Motion[54]': { frames: 147, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[4, 36]] }, { bit: 1, efl: 'em084_00_050.efl', key: 131, on: [[36, 55]] }, { bit: 2, efl: 'em084_00_020.efl', key: 50, on: [[119, 120]] }] },
+    'Lr_3 Motion[56]': { frames: 229, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 136, on: [[0, 10]] }, { bit: 1, efl: 'em084_00_050.efl', key: 130, on: [[152, 180]] }, { bit: 2, efl: 'em084_00_040.efl', key: 90, on: [[180, 218]] }] },
+    'Lr_3 Motion[57]': { frames: 147, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[4, 36]] }, { bit: 1, efl: 'em084_00_050.efl', key: 131, on: [[36, 55]] }, { bit: 2, efl: 'em084_00_020.efl', key: 50, on: [[96, 97]] }] },
+    'Lr_3 Motion[59]': { frames: 229, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 136, on: [[40, 50]] }, { bit: 1, efl: 'em084_00_050.efl', key: 135, on: [[80, 110]] }, { bit: 2, efl: 'em084_00_050.efl', key: 140, on: [[111, 122]] }, { bit: 3, efl: 'em084_00_050.efl', key: 131, on: [[124, 170]] }, { bit: 4, efl: 'em084_00_006.efl', key: 116, on: [[179, 180]] }] },
+    'Lr_3 Motion[60]': { frames: 77, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[29, 40]] }, { bit: 1, efl: 'em084_00_006.efl', key: 115, on: [[40, 41]] }] },
+    'Lr_3 Motion[62]': { frames: 261, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 260]] }] },
+    'Lr_3 Motion[63]': { frames: 579, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 140]] }, { bit: 1, efl: 'em084_00_040.efl', key: 90, on: [[148, 207]] }, { bit: 2, efl: 'em084_00_050.efl', key: 140, on: [[140, 260]] }, { bit: 3, efl: 'em084_00_050.efl', key: 131, on: [[380, 432]] }, { bit: 4, efl: 'em084_00_020.efl', key: 51, on: [[436, 437]] }] },
+    'Lr_3 Motion[64]': { frames: 257, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 140, on: [[0, 150]] }, { bit: 1, efl: 'em084_00_001.efl', key: 0, on: [[152, 153]] }] },
+    'Lr_3 Motion[68]': { frames: 161, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 160]] }] },
+    'Lr_3 Motion[71]': { frames: 601, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[0, 211]] }, { bit: 1, efl: 'em084_00_006.efl', key: 105, on: [[211, 212]] }] },
+    'Lr_3 Motion[72]': { frames: 347, bits: [{ bit: 0, efl: 'em084_00_006.efl', key: 115, on: [[121, 122]] }, { bit: 1, efl: 'em084_00_050.efl', key: 135, on: [[50, 73]] }, { bit: 2, efl: 'em084_00_040.efl', key: 90, on: [[204, 346]] }] },
+    'Lr_3 Motion[76]': { frames: 99, bits: [{ bit: 0, efl: 'em084_00_050.efl', key: 135, on: [[17, 30]] }, { bit: 1, efl: 'em084_00_050.efl', key: 140, on: [[33, 40]] }, { bit: 2, efl: 'em084_00_001.efl', key: 0, on: [[53, 54]] }] },
+    'Lr_3 Motion[78]': { frames: 189, bits: [{ bit: 0, efl: 'em084_00_040.efl', key: 90, on: [[30, 188]] }] },
+  },
 };
 // `list` is optional: a monster whose keys are list-qualified ('L2 Motion[25]') matches on it, because the
 // game fires an effect from a slot of ONE motion list and slot numbers repeat across lists. Keys without a
@@ -9038,8 +9659,9 @@ export function clipEffectMonsters(){ return Object.keys(CLIP_EFFECTS); }
 // other clip. Every piece is resampled at the motions' own 60 frames a second
 // onto the joined timeline: `play` runs the piece from `start`, `wrap` loops it from `start`, `hold` stays on
 // `start`. A track a piece does not carry takes the model's bind value for that stretch -- what the driver shows
-// when it plays that piece alone (PoseDriver.play resets every node to bind first). Cuts between pieces are hard:
-// the ROM blends some transitions over a few frames, which is not modelled.
+// when it plays that piece alone (PoseDriver.play resets every node to bind first). A piece with `blend` (frames)
+// eases in from the pose the cut left, as the ROM's setMotion blend does (2026-10-17, the Seltas duo); without it the
+// cut is hard.
 const SEQ_FPS = 60;
 export async function composeClip(name, pieces, modelUrl){
   const model = await loadGlb(modelUrl, modelUrl);
@@ -9063,12 +9685,22 @@ export async function composeClip(name, pieces, modelUrl){
       if (!interp && (!bind || bind.length !== k.size)) ok = false;
       const dur = p.clip.duration;
       const n = p.frames + (pi === pieces.length - 1 ? 1 : 0);    // the joined clip's own last key
+      // THE BLEND INTO A PIECE (`blend`, frames -- the setMotion call's s0, e.g. his M79 at 4, 0xfc985c): from the pose
+      // the joined clip stood in at the cut to the piece's own over that many frames, weight j / blend (the ROM's
+      // blend curve is NOT READ; linear is the viewer's), quaternions by slerp
+      const bl = (pi > 0 && p.blend > 0) ? Math.round(p.blend) : 0;
+      const from = bl && f > 0 ? values.slice((f - 1) * k.size, f * k.size) : null;
       for (let j = 0; j < n; j++, f++){
         if (!ok) continue;
         const local = p.mode === 'hold' ? p.start
-                    : p.mode === 'wrap' ? (dur > 0 ? (p.start + j / SEQ_FPS) % dur : 0)
+                    : p.mode === 'wrap' ? (dur > 0 ? (p.start + j / SEQ_FPS) % (p.period > 0 ? Math.min(p.period, dur) : dur) : 0)
                     : Math.min(p.start + j / SEQ_FPS, dur);
-        values.set(interp ? interp.evaluate(local) : bind, f * k.size);
+        const v = interp ? interp.evaluate(local) : bind;
+        if (from && j < bl){
+          const w = j / bl, o = f * k.size;
+          if (prop === 'quaternion' && k.size === 4){ values.set(v, o); THREE.Quaternion.slerpFlat(values, o, from, 0, values, o, w); }
+          else for (let q = 0; q < k.size; q++) values[o + q] = from[q] + (v[q] - from[q]) * w;
+        } else values.set(v, f * k.size);
       }
     });
     if (ok) tracks.push(new k.Track(tname, times, values));
@@ -9081,14 +9713,14 @@ export async function sequenceClipFor(entry, modelUrl){
   // THE ENTRY'S NAME IS PART OF THE KEY: the clip is built under that name, and two entries can join the same pieces --
   // Basarios's four gases are one motion played as four actions -- so a key of pieces alone handed every one of them
   // the first one's clip, and with it the first one's name, action and effects.
-  const key = 'seq:' + modelUrl + ':' + (entry.clip || '') + ':' + entry.pieces.map(p => p.list.file + '#' + p.clip).join('|');
+  const key = 'seq:' + modelUrl + ':' + (entry.clip || '') + ':' + entry.pieces.map(p => p.list.file + '#' + p.clip + (p.blend ? '~' + p.blend : '')).join('|');
   const cached = poseCache.get(key);
   if (cached) return cached;
   const pieces = [];
   for (const p of entry.pieces){
     const clip = await clipFor(p.list, p.clip, modelUrl);
     if (!clip) return null;
-    pieces.push({ clip, frames: seqFrames(clip), mode: 'play', start: 0 });
+    pieces.push({ clip, frames: seqFrames(clip), mode: 'play', start: 0, blend: p.blend || 0 });
   }
   const out = await composeClip(entry.clip, pieces, modelUrl);
   poseCache.set(key, out);
@@ -9866,6 +10498,10 @@ export const STATE_MATERIAL_SWAP = {
   // calm the layer contributed (-6, -25, -23), red at (102, 84, 76); swapped (+16, +57, +53), cyan at
   // (110, 137, 125). '#833258c1' is m04__taiden's record: crc32("XfBA_A0__m04__taiden") ^ 0xFFFFFFFF.
   em003_00: { charged: { 'XfBA_A0__m03_blood': '#833258c1' } },
+  // CHAMELEOS's shimmer cloak (vt+0x210 0xe00eb4 phase 1, 0xe01500: setMaterialAt slot 1 = m03_stealth01, slot 3 = m04_stealth02 --
+  // READ by hash in the .mrl; the model's slots 1 / 3 are XfB_N__E0__m02_body / XfBAN__E1__m50_wing, the glb's material order) and
+  // the full cloak's uncloak (phase 0, 0xe01764); put back at 0xe017b8. index.html stepCloak025 sets the state.
+  em025_00: { stealth: { 'XfB_N__E0__m02_body': '#a525c570', 'XfBAN__E1__m50_wing': '#15178149' } },
 };
 // CLIP NAMES THE HARVEST DID NOT KNOW, from the ROM's own name hash -- crc32(name) ^ 0xFFFFFFFF, the word
 // build-matanim.py keeps as `hash` beside a null `name`.
@@ -10257,6 +10893,22 @@ export const ROM_STAGE_CLIPS = {
   // he is angry, and angry_End the frame the flag clears -- including on death, where the status-11
   // setAction clears rage and the part pass re-reads it the same frame. All three clip name hashes were
   // verified present in em021_00.mrl by the decode (states-em021_00.md 5.2); `Virus` is not there.
+  // CHAMELEOS's invisibility (vt+0x210 0xe00eb4, its phases on ctl+0x15; dev/em025_00-effects-spec.md 8): cloaking, slot 0 of body
+  // (MRL id 2) and wing (id 50) gets stealth_start_S (30 frames, fTransparency 1 -> 0) and the light (id 51) fade_out (30), each
+  // HELD at its end (`hold`: the machine's loop is the start's last frame); uncloaking, stealth_end_S and fade_in, then the rest
+  // (body / wing: no clip; the light its load-time auto pulse). `on: 'cloak'` is root.userData.cloakOn (index.html stepCloak025).
+  // NOT SHOWN, named: the shimmer path (horn broken / (1, 0x16): stealth01 / stealth02 put in material slots 1 / 3, stealth_start
+  // then the stealth loop) and the uncloak's first phase on those materials (stealth_end, the alpha back over 60) -- the viewer
+  // has no material-slot swap.
+  // [2026-10-18, the gaps closed: the three machines are now DRIVEN by index.html's phase machine stepCloak025 -- `manual` names
+  // the key of root.userData.manualClips it reads, [clip or null, start second] -- because the ROM's phases interleave the three
+  // (the uncloak's stealth_end on the swapped-in stealth01 / 02, then stealth_end_S on the body and wing, then the light's fade_in).
+  // stealth01 / stealth02 (#a525c570 / #15178149) are STATE_MATERIAL_SWAP.em025_00's `stealth` swap-ins; `frames` gives the ROM's
+  // own lengths (0x169d44c), since a swap-in is not on a mesh when the machine is made.]
+  em025_00: [{ mats: ['XfB_N__E0__m02_body', 'XfBAN__E1__m50_wing'], clips: ['stealth_start_S', 'stealth_end_S'], manual: 'body' },
+             { mats: ['XfB_0__m01_light'], clips: ['fade_out', 'fade_in'], manual: 'light', rest: 'auto' },
+             { mats: ['#a525c570', '#15178149'], clips: ['stealth_start', 'stealth', 'stealth_end'], manual: 'stealth',
+               frames: { stealth_start: 15, stealth: 120, stealth_end: 30 } }],
   em021_00: { mats: ['XfB_N__E_m01_nose'], clips: ['angry_Change', 'angry_Loop', 'angry_End'],
               under: 'angry_Loop' },
   // AKANTOR: his rage material machine is vtable +0x210 = 0xe37560, a four-state switch on ctl[6] (jump table
@@ -10336,6 +10988,8 @@ function matsDrawn(root, s){
   return false;
 }
 function newStageMachine(root, tbl){
+  if (tbl.manual) return { tbl, mats: tbl.mats, rest: tbl.rest || null, stage: 0, clip: null, t0: 0, tOn: null, tLast: -Infinity,
+                           frames: Object.assign({}, tbl.frames || {}), manual: tbl.manual };
   // tOn: the second the machine left idle -- slot 1's clock, which the ROM does not restart between stages
   const s = { tbl, mats: tbl.mats, rest: tbl.rest || null, stage: 0, clip: null, t0: 0, tOn: null,
               tLast: -Infinity, frames: {} };
@@ -10360,6 +11014,12 @@ const stageBase = s => !s.tbl.layered ? null
   : s.stage === 1 ? (s.cycled ? [s.rest, s.restT0] : (s.tbl.spawn ? [s.tbl.spawn, 0] : null))
   : s.stage === 3 ? [s.tbl.clips[1], s.loopT0] : null;
 function stepOneStage(s, tSec, state, root){
+  // A DRIVEN MACHINE (`manual`): its clip and start come from the page's phase machine (Chameleos's cloak, index.html stepCloak025)
+  if (s.manual){
+    const mc = root && root.userData && root.userData.manualClips && root.userData.manualClips[s.manual];
+    s.clip = mc ? mc[0] : null; s.t0 = mc ? mc[1] : 0; s.tLast = tSec; s.stage = s.clip ? 1 : 0;
+    return { mats: s.mats, rest: s.rest, clip: s.clip, t0: s.t0, tbl: s.tbl, tOn: null, cycled: !s.clip, restT0: 0, base: null };
+  }
   if (!(tSec >= s.tLast)){
     const shift = t => tSec - (s.tLast - t), b = stageBase(s);
     return { mats: s.mats, rest: s.rest, clip: s.clip, t0: shift(s.t0), tbl: s.tbl,
@@ -10370,7 +11030,8 @@ function stepOneStage(s, tSec, state, root){
   const ran = () => (tSec - s.t0) * MAT_FPS >= (s.frames[s.clip] || 0);
   const set = (i, stage) => { s.clip = s.tbl.clips[i]; s.t0 = tSec; s.stage = stage; if (stage === 2) s.loopT0 = tSec; };
   const heatOn = s.tbl.heat ? root.userData.heatOn : null;
-  const on = s.tbl.heat ? !!(heatOn && heatOn[s.tbl.heat]) : s.tbl.on === 'drawn' ? matsDrawn(root, s) : state === 'enraged';
+  const on = s.tbl.heat ? !!(heatOn && heatOn[s.tbl.heat]) : s.tbl.on === 'drawn' ? matsDrawn(root, s)
+           : s.tbl.on === 'cloak' ? !!(root.userData && root.userData.cloakOn) : state === 'enraged';
   // A REGION MACHINE OPENS SETTLED: the monster mounts on the toggles' state with no transition, which plays only
   // when the heat changes after that (Raven: "For when the toggle is used"). The game itself spawns him cooled
   // (vt+0x24 clears the states, dev/em049-heat.md 2f); the viewer's Heated default is the viewer's. Taken on the
@@ -10381,7 +11042,8 @@ function stepOneStage(s, tSec, state, root){
     s.restT0 = tSec;                                // opening cooled: the rest clip runs from here (0xb09ae8 zeroes the time)
   }
   if (s.stage === 0){ if (on){ s.tOn = tSec; set(0, 1); } }
-  else if (s.stage === 1){ if (ran()) set(1, 2); }
+  // `hold`: the loop IS the start's last frame (Chameleos's cloak: stealth_start_S held transparent), so the clip is not restarted
+  else if (s.stage === 1){ if (ran()){ if (s.tbl.hold){ s.stage = 2; s.loopT0 = tSec; } else set(1, 2); } }
   else if (s.stage === 2){ if (!on) set(2, 3); }
   // back on while the end runs: Agnaktor goes straight to the loop (`reheat: 'loop'`, 0xec2328)
   else if (on && s.tbl.reheat === 'loop') set(1, 2);
@@ -12145,6 +12807,9 @@ export const ROM_MEAT_SWITCH = {
   // the one Mizutsune's clip setter plays tired_Change on -- puts slots 0-6 on their own table-1 rows; otherwise
   // every slot is restored. The viewer has no Exhausted control for Najarala, so the state is the Damage Table's
   // own: `modes` names them (Raven's word for the state, from Mizutsune's Normal / Enraged / Exhausted).
+  // CHAMELEOS cloaked (vt+0x210 0xe00eb4: 0xbaafc(e, k, k) for k 0..6 at the cloak's phase 1 / 2, 0xbaacc back at the uncloak's
+  // phase 2, 0xe019c4): slots 0-6 on their own table-1 rows. `ctl` is the class byte (CLASS_CONTROLS em025_00, Invisible).
+  em025_00: { rules: [0, 1, 2, 3, 4, 5, 6].map(k => ({ slot: k, row: k, ctl: [1, 2, 3] })) },   // every cloak (Invisible 1..3)
   em068_00: {
     modes: ['Normal', 'Exhausted'],
     rules: [
@@ -12972,6 +13637,7 @@ export function meatTableFor(monId, tables, st){
     if (r.ladder && r.ladder.indexOf((st && st.ladder) | 0) < 0) continue;
     if (r.rage !== undefined && !!r.rage !== !!(st && st.rage)) continue;
     if (r.mode && r.mode.indexOf((st && st.mode) | 0) < 0) continue;
+    if (r.ctl && r.ctl.indexOf((st && st.ctl) | 0) < 0) continue;
     if (r.broken && ![].concat(r.broken).every(broken)) continue;
     if (r.intact && [].concat(r.intact).some(broken)) continue;
     // `heat`: a heat region (ROM_HEAT_REGIONS) that is not cooled -- heating, molten or cooling (Agnaktor, 0xec0dbc)
@@ -12988,6 +13654,7 @@ export function meatAxisOf(monId){
   const sw = meatSwitchOf(monId);
   if (!sw) return null;
   if (Array.isArray(sw.modes) && sw.modes.length > 1) return 'mode';
+  if (sw.rules.some(r => r.ctl)) return 'ctl';             // the class control's byte (Chameleos's Invisible)
   if (sw.rules.some(r => r.ladder)) return 'ladder';
   if (sw.rules.some(r => r.rung)) return 'level';
   if (sw.rules.some(r => r.rage !== undefined)) return 'rage';
@@ -13204,7 +13871,12 @@ export function zoneCapsules(root, records, opts = {}){
   group.name = 'zone-capsules';
   const bones = new Map();
   for (const b of gidBonesOf(root)) bones.set(b.gid, b.leaf || b.node);
+  // extra joints a caller names (the attack shapes' j0 255: the unit itself -- render/attack-hitboxes.js)
+  for (const [gid, node] of opts.bones || []) bones.set(gid, node);
   const geo = new THREE.CapsuleGeometry(1, 1, 6, 24);
+  // shape 3 (the attack / shell hit-size codes 4 / 6, render/hit-type3.js) is a FLAT-ENDED cylinder: the same shader, a unit
+  // cylinder (its top ring and cap go to B, the bottom to A)
+  let cyl = null;
   const rgb = opts.color || ZONE_CAPSULE_RGB;
   const color = { value: new THREE.Vector3(rgb[0], rgb[1], rgb[2]) };
   const mats = [], live = [];
@@ -13213,16 +13885,25 @@ export function zoneCapsules(root, records, opts = {}){
   for (const c of records || []){
     const [slot, part, shape, a, b, r, ax, ay, az, bx, by, bz] = c;
     const ja = bones.get(a), jb = shape === 2 ? bones.get(b) : ja;
-    if (!(shape === 0 || shape === 1 || shape === 2) || !ja || !jb){ skipped++; continue; }
+    if (!(shape === 0 || shape === 1 || shape === 2 || shape === 3) || !ja || !jb){ skipped++; continue; }
     const u = { uA: { value: new THREE.Vector3() }, uB: { value: new THREE.Vector3() }, uR: { value: 0 },
                 uBasis: { value: new THREE.Matrix3() }, uColor: color };
     const la = new THREE.Vector3(ax, ay, az).multiplyScalar(0.01);
     const lb = new THREE.Vector3(bx, by, bz).multiplyScalar(0.01);
     const place = () => {
       u.uA.value.copy(la).applyMatrix4(ja.matrixWorld);
+      const sc = s.setFromMatrixColumn(root.matrixWorld, 0).length();
       if (shape === 0) u.uB.value.copy(u.uA.value);
+      else if (shape === 3){
+        // the attack shapes' THIRD TYPE (render/attack-hitboxes.js; hit-size codes 4 / 6, 0x16e89c / 0x16ec78): P = the joint's point a;
+        // the ends P + axis x bx and P + axis x by, the axis the world's up (b 0, code 4) or the joint's own Y (b 1, code 6)
+        x.set(0, 1, 0);
+        if (b === 1) x.setFromMatrixColumn(ja.matrixWorld, 1).normalize();
+        u.uB.value.copy(u.uA.value).addScaledVector(x, by * 0.01 * sc);
+        u.uA.value.addScaledVector(x, bx * 0.01 * sc);
+      }
       else u.uB.value.copy(lb).applyMatrix4(jb.matrixWorld);
-      u.uR.value = r * 0.01 * s.setFromMatrixColumn(root.matrixWorld, 0).length();
+      u.uR.value = r * 0.01 * sc;
       y.subVectors(u.uB.value, u.uA.value);
       const len = y.length();
       if (len < 1e-6) y.set(0, 1, 0); else y.divideScalar(len);
@@ -13235,7 +13916,7 @@ export function zoneCapsules(root, records, opts = {}){
       const m = new THREE.ShaderMaterial({ vertexShader: ZONE_VS, fragmentShader: ZONE_FS,
         uniforms: Object.assign({ uAlpha: { value: alpha } }, u),
         transparent: true, depthWrite: false, depthTest: !through, side: THREE.FrontSide });
-      const mesh = new THREE.Mesh(geo, m);
+      const mesh = new THREE.Mesh(shape === 3 ? (cyl = cyl || new THREE.CylinderGeometry(1, 1, 1, 24, 1, false)) : geo, m);
       mesh.frustumCulled = false;             // the vertex shader places it; the geometry's bounds are the unit capsule
       mesh.renderOrder = order;
       // placed as the renderer reaches it, after the frame's world matrices -- the posed joints -- are current
@@ -13253,6 +13934,6 @@ export function zoneCapsules(root, records, opts = {}){
     r: +l.u.uR.value.toFixed(3) }));
   group.userData.setColor = c => { if (c) color.value.set(c[0], c[1], c[2]); };
   group.userData.getColor = () => color.value.toArray().map(v => +v.toFixed(3));
-  group.userData.dispose = () => { geo.dispose(); for (const m of mats) m.dispose(); };
+  group.userData.dispose = () => { geo.dispose(); if (cyl) cyl.dispose(); for (const m of mats) m.dispose(); };
   return group;
 }

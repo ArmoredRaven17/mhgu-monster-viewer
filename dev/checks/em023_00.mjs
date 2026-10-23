@@ -242,8 +242,29 @@ async function pageCheckRajang(){
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }
+  // L2 M8'S PLAYS (shells.js pickVariantsFor: the beams (7, 6) / (7, 0xa), then the ball's (7, 5) / (7, 0xc) / (7, 0x3b), then g1
+  // s35's direct (7, 0x3e) -- no beam, no shell -- one action a play; index.html takes the play's action from that pick): the word
+  // lights bits 15-17 (u 291) on 3 plays in 6, as table 0xded140 has it (6 / 0xa / 0x3e in, 5 / 0xc / 0x3b out). The tired remap
+  // (7, 0x43) is not in the rotation (tired, the word lights nothing).
+  { const SH = await import('/render/shells.js');
+    const picks = SH.pickVariantsFor(MON, '2', 'Motion[8]', { tired: false, rage: false }) || [];
+    check(picks.join(' ') === '7:0x06 7:0x0a 7:0x05 7:0x0c 7:0x3b 7:0x3e', 'L2 M8 rotates the six actions', picks);
+    const mask = () => S.clip && S.clip.mask != null ? S.clip.mask >>> 0 : null;
+    await play('0', 'Motion[1]'); await frames(2);
+    // from its _start each time: a _loop replay goes on with the same play (index.html rockInput), so it would not advance the pick
+    const ms = []; for (let i = 0; i < 6; i++){ await play('2', 'Motion[8]_start'); await frames(6); ms.push(mask()); }
+    const lit = ms.map(w => w != null && (w & 0x38000) === 0x38000);
+    check(lit.join(' ') === 'true true false false false true', 'L2 M8 in the page: bits 15-17 on 3 plays in 6 (the beams and (7, 0x3e))', ms.map(w => w == null ? null : '0x' + w.toString(16)));
+    await play('0', 'Motion[1]'); await frames(3); }
   S.start = s0;
   check(!fx.failed, 'the effect runtime never stopped', fx.failed);
+  // THE ENABLE WORD (psl-mask.js em023; dev/em023-effects-spec.md): 0xded0f4 -- u 291 on L2 M8 only for numbers 6 / 0xa / 0x34 /
+  // 0x35 / 0x3e / 0x3f / 0x40, never while tired
+  { const PM = await import('/render/psl-mask.js');
+    const W = (a, st) => PM.pslMask(MON, '2', 8, a, st || {});
+    check(PM.PSL_MASK_MONSTERS.includes(MON) && W([7, 6]) === 0x381ff && W([7, 5]) === 0x1ff && W([7, 6], { tired: true }) === 0x703f &&
+          W([7, 0x3e], { rage: true }) === 0x38e3f, 'the word: L2 M8 (7, 6) u 291, (7, 5) none, tired none, (7, 0x3e) enraged u 291',
+          [W([7, 6]), W([7, 5]), W([7, 6], { tired: true }), W([7, 0x3e], { rage: true })].map(w => '0x' + w.toString(16))); }
   return out;
 }
 

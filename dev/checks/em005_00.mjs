@@ -99,8 +99,11 @@ async function pageCheckGravios(){
   await play(LAND[0], LAND[1]); await frames(2);
   fired.length = 0;
   await play('3', 'Motion[106]'); await frames(3);
-  check(fired.length === 0 && same(drawn(), user0),
-        'L3 Motion[106] with the Back Intact: AT G RANK the first depletion shows nothing and fires nothing', { fired, d: drawn() });
+  // [2026-10-18, suite triage: the rows were corrected after this was written (motion-states.js em005_00 '3|Motion[102]'
+  // and G_BACK): the shared break code fires id part * 5 + level + 6 at EVERY level raised -- part 0 level 1 is index 7 of
+  // the shared u table, u 1000 -- so the G-rank first depletion changes nothing ON THE MODEL but does fire u 1000.]
+  check(same(fired, [1000]) && same(drawn(), user0),
+        'L3 Motion[106] with the Back Intact: AT G RANK the first depletion changes nothing on the model and fires the level-1 u 1000', { fired, d: drawn() });
 
   // HALF TWO: the second depletion fires u 1001, the G record -- NOT u 1000, which is low rank's.
   // This is the cycle's second play, so it would be the BELLY's spec -- so the Belly row goes with it and both
@@ -133,8 +136,9 @@ async function pageCheckGravios(){
   await play(LAND[0], LAND[1]); await frames(2);
   fired.length = 0;
   await play('3', 'Motion[102]'); await frames(3);
-  check(fired.length === 0 && isSet(drawn(), 3),
-        'L3 Motion[102] with the Head Intact: at G rank it shows nothing and fires nothing', { fired, d: drawn() });
+  // [2026-10-18, suite triage: as the back above -- part 5 level 1 is index 32, u 1025, fired though the set stays 3]
+  check(same(fired, [1025]) && isSet(drawn(), 3),
+        'L3 Motion[102] with the Head Intact: at G rank it shows nothing on the model and fires the level-1 u 1025', { fired, d: drawn() });
   check(await pick('2,3', 'Broken'), 'the Head row set to Broken');
   await play(LAND[0], LAND[1]); await frames(2);
   fired.length = 0;

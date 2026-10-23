@@ -36,8 +36,10 @@ async function pageCheckAlatreon(){
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
   const byWhen = {};
   for (const e of S.entries) byWhen[e.when] = (byWhen[e.when] || 0) + 1;
-  check(byWhen.event >= 11 && byWhen.ragePuff === 2,
-        'the schedule holds his state records: 11 event (6 breaks + the sever + the landing + 3 ailments) and 2 ragePuff', byWhen);
+  // named, not counted (2026-10-18: the count read 2 ragePuff where his file has carried 4 since its form puffs were exported)
+  const rp = MS.RAGE_PUFF.em050_00, puffKeys = new Set(S.entries.filter(e => e.when === 'ragePuff').map(e => e.def.record.pel + '|' + e.def.record.key));
+  check(byWhen.event >= 11 && rp && rp.records.every(r => puffKeys.has(r[0] + '|' + r[1])),
+        'the schedule holds his state records (6 breaks + the sever + the landing + 3 ailments) and his puff records as ragePuff', byWhen);
   const keys = S.entries.filter(e => e.def.record).map(e => e.def.record.key);
   check(!keys.includes(1104) && !keys.includes(1105) && !keys.includes(1109),
         'and NO drool, NO shock-trap and NO exhaust record: he has no tired state and those numbers have no handler', keys);
@@ -108,8 +110,14 @@ async function pageCheckAlatreon(){
   check(puffs.length >= 3 && gaps.every(g => g === 30), 'the puff comes at once, then every 30 steps', { n: puffs.length, gaps });
   check(puffs.length > 0 && puffs.every(p => p.key === 1120),
         'and every puff is KEY 1120, his RED record -- the one forms 0 and 1 ask for', puffs.map(p => p.key));
+  // THE BLUE FORM (the Form rung's second = P+0x1bb == 2): his handler 0xecce08 asks id 1002 = u 1121 instead (0xecce84)
+  { const lv0 = V.state.level; V.state.level = 1; puffs.length = 0; await steps(65);
+    check(puffs.length >= 2 && puffs.every(p => p.key === 1121), 'with the Form rung on blue every puff is KEY 1121 (0xecce84: id 1002 while P+0x1bb == 2)', puffs.map(p => p.key));
+    V.state.level = lv0; await frames(2); }
 
-  // ASLEEP -- one clip for the fall and the hold -- and PARALYSIS and the STUN
+  // ASLEEP -- one clip for the fall and the hold -- and PARALYSIS and the STUN (enraged, so the puff's gate shows)
+  const rb = document.getElementById('monRage');
+  rb.checked = true; await rb.onchange({ target: rb }); await frames(3);
   await play(REST[0], REST[1]); await frames(3);
   fired.length = 0; puffs.length = 0;
   await play('3', 'Motion[11]'); await frames(4); await steps(2);
@@ -117,7 +125,10 @@ async function pageCheckAlatreon(){
         'L3 Motion[11] (asleep -- one clip for both halves): his eyes shut (set 9) and the zzz at once', fired);
   await clipSteps(95);
   check(count(fired, 1102) === 2, 'the zzz again 90 steps on', fired);
-  check(puffs.length === 0, 'and the puff is PAUSED in the sleep hold', puffs.length);
+  // NOT paused: his puff is his own handler's (vt+0x208 0xecce08 -- only isEnraged 0x81670 gates the countdown, no rest /
+  // sleep test), not the shared 0xa41b8 whose sleep hold pauses it (was asserted the other way until 2026-10-18)
+  check(puffs.length > 0, 'and the puff KEEPS COMING in the sleep hold (0xecce08 has no sleep gate)', puffs.length);
+  rb.checked = false; await rb.onchange({ target: rb }); await frames(3);
   fired.length = 0;
   await play('3', 'Motion[9]'); await frames(3); await steps(2);
   check(count(fired, 1101) === 1, 'L3 Motion[9] (paralysed): c 1101 at once', fired);

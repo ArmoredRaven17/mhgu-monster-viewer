@@ -236,3 +236,30 @@ NOT READ, by name: who issues (6, 3) and whether its P+0x5c is MoguriBaseOfs at 
 after its motion); Deviljho's MoguriBaseOfs value; the end of his dive (6, 0) / (6, 6) L0 M33 (Barroth's ends in vt+0x3e8 =
 `0x75330` -> posture 4, (0, 7)); which action reaches turn table `0x169e568` (fn `0xe75f04`); the status-10 scripts `0x17c08f0` /
 `0x17c0bd0` (states-em043.md's reading stands, not re-read); what c 60 / c 120..125 / c 210 look like.
+
+## Re-walk 2026-10-18 (Fanged-Wyvern effects agent): tracer diff, request census, word re-emulation
+
+**L0 M6's u 1400 is (6, 3)'s alone** (reqtrace.py, `0xe770a8`); the walks (2, n), (13, 1), (16, 0xd) play it with none. The row held it on every play: now copy B (EM043_ACTIONS (6, 3) `variant: 'B'`), both variants.
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* **MoguriBaseOfs -- READ**: -2000 for Deviljho and Savage (dtbase +0xa8). The sunk test (depth below 0.9 x -2000 = -1800) is the
+  cross-monster "Begins burrowed" toggle's to show (category c).
+* **The dive's end -- READ** (`0xe76e7c`): (6, 0) plays L0 M33, sinks (P+0x5c = MoguriBaseOfs) at its end and goes to vt+0x3e8 =
+  `0x75330` (posture 4, (0, 7)), as Barroth's; **(6, 6)** is the same dive ending in **(11, 0x26)**, a death under ground (g18 s3).
+* **(6, 3) -- named, controlled**: no stream issues it, nothing in the band follows into it; (6, 0) / (6, 4) / (6, 5) / (6, 6) are
+  found the same way. Its body `0xe77008` (L0 M6, then the sink) is read; only its issuer is unknown.
+* **Turn table `0x169e568` -- READ**: (2, 0x15) only.
+* Still open, b (deferred, low value): the status-10 scripts `0x17c08f0` / `0x17c0bd0` -- states-em043.md's reading stands.
+* **The status-10 scripts -- READ (re-run)**: `0x17c08f0` {L0 M5} is (10, 0x2a) / (10, 0x70) and `0x17c0bd0` ends on L0 M5 for
+  (10, 0xa7) (scrcensus.py over every status-10 / 11 number) -- states-em043.md's reading holds; their L0 M5 plays read status 10, so
+  no c 60. No row changes.
+* **Begins Burrowed -- BUILT 2026-10-19** (CLASS_TOGGLES `burrowed`, working label, approved by Raven): on, every posture-4 play
+  reads sunk (0x81d6c: posture 4 and P+0x5c below 0.9 x MoguriBaseOfs); off, only the entries that name sunk. Checked on
+  Basarios's L0 M7 B (dev/checks/class-toggles.mjs).
+
+* **Draw meter (2026-10-19): c 30 (cm202_000) never lights** -- its one model draw carries colour alpha 1/255 for its whole life, from the ROM's own generator colour. Its twins on the same efl draw. OPEN: the colour path is NOT READ (rom-map "the draw survey" rows).
+
+* **c 30, read and fixed (2026-10-19):** payload +0x43 makes the effect run at its parent's rate: speed = unit+0x2fc x parent+0x50c (0x31f980..0x31f9a0). The stand-in parent's +0x50c was 0, so c 30 froze on its first frame. host.js createParent (and efx/parent.py) now set it to 1.0, and c 30 lights. The earlier "spawn-height check" reading is withdrawn.

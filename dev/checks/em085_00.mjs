@@ -34,12 +34,17 @@ async function pageCheckGreatMaccao(){
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
   const byWhen = {};
   for (const e of S.entries) byWhen[e.when] = (byWhen[e.when] || 0) + 1;
-  check(byWhen.event === 7 && byWhen.ragePuff === 2,
+  // [2026-10-18, suite triage: the count is a FLOOR, as em007_00 / em014_00 already have it -- the shared-states pass of
+  // 2026-10-15 exported the blast / notice / hyper / trap records (c 1100..1109, c 1130..1137, c 1200 / 1201 / 1500, u 1301..1314)
+  // for every monster after this was written; each row's own record is checked by its play below.]
+  check(byWhen.event >= 7 && byWhen.ragePuff === 2,
         'the schedule holds his state records: 7 event (the crest break + 6 ailment records) and 2 ragePuff', byWhen);
   const keys = S.entries.filter(e => e.def.record).map(e => e.def.record.key);
-  check(keys.includes(1001) && !keys.includes(1011),
-        'u 1001 (the crest) is there and u 1011 IS NOT: at G the tail break asks for key 1012, which his pel does ' +
-        'not hold, so the low-rank record is never reachable and is not exported', keys);
+  // [2026-10-20, effects lane: the Quest Rank control reaches the low-rank tail break, so u 1011 is exported (the tail arm's
+  // `lowRank`); at G it is still never asked for -- dev/checks/quest-rank.mjs plays both ranks]
+  check(keys.includes(1001) && keys.includes(1011),
+        'u 1001 (the crest) is there, and u 1011 too: at G the tail break asks for key 1012, which his pel does ' +
+        'not hold; below G (the Quest Rank control) it asks for u 1011', keys);
   const P = MS.RAGE_PUFF[MON];
   check(P && P.pick() === 0 && P.joint === 4 && P.period === 30,
         'his puff is the ordinary stub shape: pick() === 0, which schedule.js inverts into records[1] = u 1121, on joint 4',

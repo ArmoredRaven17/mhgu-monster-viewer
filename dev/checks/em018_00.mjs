@@ -36,7 +36,10 @@ async function pageCheckGaruga(MON, NAME, U, EVENTS, TAILBREAK){
   S.start = e => { if (e.when === 'ragePuff') puffs.push({ key: e.def.record.key, step: S.frame }); return s0(e); };
   const byWhen = {};
   for (const e of S.entries) byWhen[e.when] = (byWhen[e.when] || 0) + 1;
-  check(byWhen.event === EVENTS && byWhen.ragePuff === 2,
+  // [2026-10-18, suite triage: the count is a FLOOR, as em007_00 / em014_00 already have it -- the shared-states pass of
+  // 2026-10-15 exported the blast / notice / hyper / trap records (c 1100..1109, c 1130..1137, c 1200 / 1201 / 1500, u 1301..1314)
+  // for every monster after this was written; each row's own record is checked by its play below.]
+  check(byWhen.event >= EVENTS && byWhen.ragePuff === 2,
         'the schedule holds his state records: ' + EVENTS + ' event and 2 ragePuff', byWhen);
   const keys = S.entries.filter(e => e.def.record).map(e => e.def.record.key);
   check(!keys.includes(1100) && !keys.includes(1107),
@@ -187,6 +190,18 @@ async function pageCheckGaruga(MON, NAME, U, EVENTS, TAILBREAK){
   }
   await play(REST[0], REST[1]); await frames(6);
   check(!evReqs(1103).includes('r'), 'and off the chain it is stopped', evReqs(1103));
+  // DEADEYE'S HELD u 30 (vt+0x208 0xda528c, variant 4; motion-states.js CLASS_TIMERS.em018_04): up while he is awake and
+  // alive, stopped asleep (0x81bb0(e, 0), the eye-shut test) and at death; Garuga's class code has no such hold
+  const held30 = () => S.entries.filter(e => e.when === 'event' && e.def.record.pel === U && e.def.record.key === 30)
+    .some(e => e.requests.some(q => !q.stopped));
+  check(held30() === !!TAILBREAK, TAILBREAK ? 'u 30 (em018_04_003, joint 3) is HELD at rest -- his whole life but sleep, rest and death'
+                                            : 'and no held u 30: the hold is variant 4\'s', held30());
+  if (TAILBREAK){
+    await play('0', 'Motion[19]'); await frames(4); await steps(2);
+    check(!held30(), 'asleep (L0 Motion[19], the eyes shut): u 30 stopped', held30());
+    await play(REST[0], REST[1]); await frames(4); await steps(2);
+    check(held30(), 'awake again: u 30 back', held30());
+  }
 
   // DEATH: nothing reverts, because nothing was rage-driven, and the lid is NOT drawn
   const rageBox = document.getElementById('monRage');

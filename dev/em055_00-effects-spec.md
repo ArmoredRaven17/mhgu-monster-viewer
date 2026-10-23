@@ -236,3 +236,27 @@ row is `{ rage: true }`, so the recovery shows rage in the viewer as Uragaan's d
 NOT READ, by name: what group 8 (the (1, 2) issuer) and op 0x69 are; op 0x6f's case layout (I, by op 0x92's); the meaning of
 the (10, 0xe / 0x44 / 0x45 / 0xa7 / 0xbb / 0xbc) reactions sharing the stun clips; `vt+0x3e8` (`0x75330`)'s choice of the
 next status-6 step beyond the EMC chain the table shows; what c 0 / c 100 / c 120 look like (Raven's).
+
+## Re-walk 2026-10-18 (Fanged-Wyvern effects agent): tracer diff, request census, word re-emulation
+
+**L0 M6's u 1400 is (6, 5) / (6, 6)'s** (reqtrace.py, `0xed6354`); (6, 3) and the walks play it with none -- now copy B. (6, 4) plays its turn table `0x169ee4c` (L0 M15 / M4 / M3), which a tracer sweep cannot see (rom-map trap 94).
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* **Op 0x69 -- READ**: an if with no test (`0x891e8`): its open form always skips the body, so only the else part runs.
+* **Op 0x6f's case layout -- READ**: op 0x6f and op 0x92 share one switch routine (`0x8e088`); op 0x6f switches on the class's
+  vt+0x214 selector callback, op 0x92 on the variant byte. The I above is R.
+* **`vt+0x3e8` (`0x75330`)'s "choice of the next status-6 step" -- answered by its row** (rom-map `0x75330`): it chooses none --
+  posture 4, then (0, 7), then `0x82454(e, 0)` (e+0x72f0 = 1, the command-table flag the idle choosers set too); the next step is
+  the streams'.
+* Still open: what starts group 8 (the (1, 2) issuer) -- the shared selectors test only groups 3..7, 0xb and 0x11 (rom-map row
+  "groups started by the shared selectors"): NR. The meaning of the (10, 0xe / 0x44 / 0x45 / 0xa7 / 0xbb / 0xbc) reactions: b,
+  deferred.
+* **The six reactions sharing the stun clips -- READ for what the effects need, v for the names**: the ROM keeps no reaction
+  names (a reaction is a code switched into an action number, `0x9a76c`). The stun's c 1103 is gated on P+0x5e08 bit 4, which only
+  the stun family sets, so (10, 0xe / 0x44 / 0x45 / 0xa7 / 0xbb / 0xbc) light no stars on these clips; the rows stand (a clip alone
+  is the stun's motion). (10, 0xbb / 0xbc) are grouped with (10, 0xbf / 0xc0) in the damage step (I: the mounted reactions).
+* **What starts command-table groups 8 / 12 / 13 / 18 -- READ** (rom-map "EMC group starts"): 12 from the tick when the area-link
+  test `0xb6e50` passes (I the area move -> category a); 18 from an EMC op path; 8 and 13 have no start anywhere in main.text.

@@ -115,7 +115,12 @@ async function pageCheckDiablos(){
   check(await pick('6,104', 'Broken'), 'the Back row set to Broken');
   await play('3', 'Motion[1]'); await frames(2);
   fired.length = 0;
+  // [2026-10-18, suite triage] L3 M2 is a CYCLE (the back break, then the exhaust's c 1109): each play takes the next. The
+  // list change from L0 into L3 above lands the clip select on L3 Motion[2] for a moment (the select keeps its index), which
+  // is a play and took the back's turn -- so this play fired c 1109. So this plays L3 M2 until its back take comes round
+  // (at most two plays: the cycle is two long) and asserts that take.
   await play('3', 'Motion[2]'); await frames(3);
+  if (!fired.includes(1000)){ await play('3', 'Motion[1]'); await frames(2); fired.length = 0; await play('3', 'Motion[2]'); await frames(3); }
   const d3 = drawn();
   check(same(fired, [1000]) && isSet(d3, 8) && isSet(d3, 4) && isSet(d3, 6),
         'L3 Motion[2]: the back breaks (set 8), u 1000, and the horns stay broken', { fired, d: d3 });

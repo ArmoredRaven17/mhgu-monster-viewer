@@ -139,8 +139,9 @@ for (const c of ['Motion[1]', 'Motion[2]', 'Motion[12]', 'Motion[13]']){
   const sh = d.effects.filter(e => e.when === 'shell' && e.record.pel === 'em077_00c').map(e => e.record.key + '@' + e.record.index + ':' + e.efl).sort().join(' ');
   ok(sh === '30@0:files/cm200_040.efl 32@2:files/cm200_040.efl', 'c 30 and c 32 (UNIQUE 0 / 2, cm200_040) exported `when: shell`', sh);
   const D = S.SHELL_DATA.em077_00;
-  ok(D.actions.length === 0 && S.pickVariantsFor('em077_00', '1', 'Motion[4]').length === 0 && D.shells.shell01.id === 0x13c,
-     'no picks: every spawn is the frame handler\'s (the clip and its frame)');
+  // (2026-10-19, shells agent: his rows are shell28's now -- dev/shells-seregios28-check.mjs; none is shell01's, none lists L1)
+  ok(D.actions.every(a => a.shell === 'shell28') && S.pickVariantsFor('em077_00', '1', 'Motion[4]').length === 0 && D.shells.shell01.id === 0x13c,
+     'no shell01 picks: every shell01 spawn is the frame handler\'s (the clip and its frame)');
 }
 
 // 3. CONTROLS

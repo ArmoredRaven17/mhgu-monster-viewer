@@ -5,8 +5,8 @@
 // TETSUCABRA / DRILLTUSK (em066_00, em066_04): E:/offline/decode/notes/states-em066_00.md.
 // THE HELD BOULDER IS THE EFFECTS HALF OF A SHELL and it is the row this check exists for: `vtable +0x204` raises
 // `P+0x1bb` bit 0 and requests id 1001 through a CLASS-PRIVATE key table (`[0x16a06dc] = {-1, 10, 12, 50, 60}`),
-// which resolves to u key 10 -- `em066_00_004` on JOINT 131, held in one handle. Drilltusk's `ctl+0x30 = 2` on
-// (1, 0x52) takes key 12 instead, a rock 2.3x as wide. The same .efl FILE is also SEQUENCE key 440, but key 10
+// which resolves to u key 10 -- `em066_00_004` on JOINT 131, held in one handle. Drilltusk's kind-3 rock ((1, 0xff),
+// ctl+0x30 == 3: id 1002) takes key 12 instead, a rock 2.3x as wide. [Was: "ctl+0x30 = 2 on (1, 0x52)" -- WITHDRAWN, dev/em066-effects-spec.md 5.] The same .efl FILE is also SEQUENCE key 440, but key 10
 // itself is in UNIQUE alone in both pels, so it resolves without naming an array -- checked in the pel, not
 // assumed from the note.
 // HIS `vtable +0x23c` IS THE TAIL'S PARITY ALONE (`posture == 0 && part == 6 && !(breakLevel(6) & 1)`), and the
@@ -127,11 +127,21 @@ async function pageCheckTetsucabra(MON, NAME, U, DEVIANT){
   await play('4', 'Motion[11]'); await frames(4); await steps(2);
   check(isSet(drawn(), 13) && evReqs(10).includes('r'),
         'L4 Motion[11] ((1, 0x53)): he digs AND picks the rock up -- u 10 held on JOINT 131', evReqs(10));
-  if (DEVIANT){
-    await play('4', 'Motion[18]'); await frames(4); await steps(2);
-    check(evReqs(12).includes('r'),
-          'L4 Motion[18] ((1, 0x52)): HIS WIDE ROCK -- ctl+0x30 = 2 picks u 12 from the class\'s private key table ' +
-          'where Tetsucabra takes 10', evReqs(12));
+  // L4 M18, the dig's own rock at frame 35 (0xf59204: 0xb0974(e, 35.0)), by the kind its action sets: A (1, 0x52) kind 1 / his 2 ->
+  // u 10, B (1, 0xff) kind 3 -> u 12 -- Drilltusk's alone (em066_00u has no key 12). [Was: "(1, 0x52) ctl+0x30 = 2 picks u 12", the
+  // whole clip -- withdrawn: id 1002 / key 12 is ctl+0x30 == 3 only.]
+  { const pick = async v => { await play(REST[0], REST[1]); await frames(2);
+      if (V.state.list !== '4'){ listSel.value = '4'; await listSel.onchange(); }
+      const o = [...clipSel.options].find(x => ['Motion[18]', 'Motion[18]_start', 'Motion[18]_loop'].map(c => c + (v ? '#' + v : '')).includes(x.value));
+      if (!o){ check(false, 'the Clip menu offers 4|Motion[18]' + (v ? '#' + v : '')); return false; }
+      clipSel.value = o.value; await clipSel.onchange(); return true; };
+    if (await pick('')){ await frames(3); const early = evReqs(10); await clipSteps(40);
+      check(!early.includes('r') && evReqs(10).includes('r') && !evReqs(12).includes('r'),
+            'L4 Motion[18] A ((1, 0x52)): no rock before frame 35, then u 10 (kind ' + (DEVIANT ? 2 : 1) + ')', { early, at40: evReqs(10) }); }
+    if (await pick('B')){ await frames(3); await clipSteps(40);
+      check(DEVIANT ? evReqs(12).includes('r') && !evReqs(10).includes('r') : !evReqs(12).includes('r') && !evReqs(10).includes('r'),
+            DEVIANT ? 'L4 Motion[18] B ((1, 0xff), kind 3): u 12 from frame 35' : 'L4 Motion[18] B ((1, 0xff), kind 3): key 12 is not in his file -- nothing held',
+            { u10: evReqs(10), u12: evReqs(12) }); }
   }
   await play(REST[0], REST[1]); await frames(6);
   check(!evReqs(10).includes('r'), 'and off the dig clips the rock is dropped', evReqs(10));
@@ -193,6 +203,58 @@ async function pageCheckTetsucabra(MON, NAME, U, DEVIANT){
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }
+  // THE ENABLE WORD (psl-mask.js em066; dev/em066-effects-spec.md): 0xf63fc0 -- L4 M7 / M17 by the boulder carried (ctl+0x30) and
+  // the tusks (part 0 below level 2), L4 M14 / M15 under (7, 0xf7 / 0xf8), L4 M28 / M29 by variant and rank, L0 M7 unless sunk
+  { const PM = await import('/render/psl-mask.js');
+    const W = (l, n, a, st) => PM.pslMask(MON, String(l), n, a, st || {});
+    const own = DEVIANT ? 2 : 1;
+    check(PM.PSL_MASK_MONSTERS.includes(MON) &&
+          W(4, 7, null, { boulder: 1 }) === 0x181ff && W(4, 7, null, { boulder: 1, tusksBroken: true }) === 0xe001ff &&
+          W(4, 7, null, { boulder: 2 }) === 0x70001ff && W(4, 7, null, { boulder: 3, tusksBroken: true }) === 0xc00001ff &&
+          W(4, 14, [7, 0xf7]) === 0x601ff && W(4, 14, null) === 0x1ff && W(0, 7) === 0x380001ff && W(0, 7, null, { sunk: true }) === 0x1ff &&
+          W(4, 28, null, { rank: 3 }) === (DEVIANT ? 0x1c01ff : 0x381ff),
+          'the word: L4 M7 by boulder x tusks, L4 M14 by action, L0 M7 by sunk, L4 M28 by variant / rank');
+    const mask = () => S.clip && S.clip.mask != null ? S.clip.mask >>> 0 : null;
+    const got = [];
+    for (const v of ['Motion[7]', 'Motion[7]#B']){
+      await play('0', 'Motion[1]'); await frames(2);
+      if (V.state.list !== '4'){ listSel.value = '4'; await listSel.onchange(); }
+      const o = [...clipSel.options].find(x => x.value === v);
+      if (!o){ check(false, 'the Clip menu offers 4|' + v); continue; }
+      fired.length = 0; clipSel.value = v; await clipSel.onchange(); await frames(6); got.push({ mask: mask(), fired: fired.slice() });
+    }
+    check(got.length === 2 && got[0].mask === (own === 2 ? 0x70001ff : 0x181ff) && got[1].mask === 0x1801ff,
+          'L4 M7 in the page: A the rock of the dig (kind ' + own + '), B kind 3', got.map(g => g.mask == null ? null : '0x' + g.mask.toString(16)));
+    check(got.length === 2 && !got[0].fired.some(k => k === 50 || k === 60) && !got[1].fired.some(k => k === 50 || k === 60),
+          'with Boulder None the throw has no rock in hand to turn into u 50 / u 60', got.map(g => g.fired));
+    // THE BOULDER CONTROL (motion-states.js BOULDER; vt+0x208 0xf59024): the rock in hand as each play starts
+    const bsel = document.getElementById('monBoulder');
+    const setB = async k => { bsel.value = String(k); await bsel.onchange({ target: bsel }); await frames(2); };
+    check(!document.getElementById('monBoulderRow').hidden && [...bsel.options].map(o => +o.value).join() === (DEVIANT ? '0,1,2,3' : '0,1,3'),
+          'the Boulder row is shown: None / kinds ' + (DEVIANT ? '1, 2, 3' : '1, 3 (2 is variant 4 only)'), [...bsel.options].map(o => o.value));
+    const throwWith = async (k, v) => { await setB(0); await play('0', 'Motion[1]'); await frames(2); await setB(k);
+      if (V.state.list !== '4'){ listSel.value = '4'; await listSel.onchange(); }
+      fired.length = 0; clipSel.value = v; await clipSel.onchange(); await frames(6); return fired.slice(); };
+    const t1 = await throwWith(DEVIANT ? 2 : 1, 'Motion[7]'), t3 = await throwWith(3, 'Motion[7]#B');
+    check(t1.includes(50) && !t1.includes(60), 'Boulder kind ' + (DEVIANT ? 2 : 1) + ': L4 M7 below frame 35 stops the rock and requests u 50 (id 1003)', t1);
+    check(DEVIANT ? t3.includes(60) && !t3.includes(50) : !t3.includes(50) && !t3.includes(60),
+          DEVIANT ? 'Boulder kind 3: the stopped core key is 12 -> u 60 (id 1004)' : 'Boulder kind 3: no key 12 in his file, so no rock and no u 50', t3);
+    await setB(1); await play('4', 'Motion[12]'); await frames(4); await steps(2);
+    check(evReqs(10).includes('r'), 'Boulder kind 1 on L4 M12 (a carry walk): u 10 held', evReqs(10));
+    fired.length = 0; await play('4', 'Motion[17]'); await frames(4); await steps(2);
+    const held17 = evReqs(10).includes('r'); await clipSteps(112);
+    check(held17 && !evReqs(10).includes('r') && !fired.includes(50), 'L4 M17: held below frame 108, then stopped with no request', { held17, now: evReqs(10), fired });
+    fired.length = 0; await play('0', 'Motion[1]'); await frames(4); await steps(2);
+    check(fired.includes(50) && !evReqs(10).includes('r'), 'any other motion (L0 M1) stops it at once and requests u 50', { fired, u10: evReqs(10) });
+    await setB(0);
+    await play('0', 'Motion[1]'); await frames(2);
+    const a7 = [...clipSel.options]; listSel.value = '0'; await listSel.onchange();
+    const b7 = [...clipSel.options].find(x => /^Motion\[7\](_start)?#B$/.test(x.value)), a7o = [...clipSel.options].find(x => x.value === 'Motion[7]_start');
+    if (a7o){ clipSel.value = a7o.value; await clipSel.onchange(); await frames(5); }
+    const offA = !evReqs(1400).includes('r');
+    if (b7){ clipSel.value = b7.value; await clipSel.onchange(); await frames(5); }
+    check(offA && evReqs(1400).includes('r'), 'L0 M7: no u 1400 on the surface turns (A), held on the dive (6, 0x51) (B)', evReqs(1400));
+    await play('0', 'Motion[1]'); await frames(3); }
   S.start = s0;
   check(!fx.failed, 'the effect runtime never stopped', fx.failed);
   return out;

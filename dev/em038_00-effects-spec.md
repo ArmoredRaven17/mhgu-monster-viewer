@@ -135,3 +135,11 @@ So the class turns ON 3 bindings and OFF 2, and gates 7 by state (3 of them by t
 
 NOT READ, by name: the value of P+0x5c at the start of each L0 M2 play (`state.sunk`); what L2 M12's unenabled bits
 21 / 22 / 24 / 25 were authored for (the data names them, the class never sets them).
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* **Begins Burrowed -- BUILT 2026-10-19** (CLASS_TOGGLES `burrowed`, working label, approved by Raven): on, every posture-4 play
+  reads sunk (0x81d6c: posture 4 and P+0x5c below 0.9 x MoguriBaseOfs); off, only the entries that name sunk. Checked on
+  Basarios's L0 M7 B (dev/checks/class-toggles.mjs).

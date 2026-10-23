@@ -141,6 +141,21 @@ async function pageCheckBulldrome(){
   }
   S.start = s0;
   check(!fx.failed, 'the effect runtime never stopped', fx.failed);
+  // THE ENABLE WORD (psl-mask.js em030_00; dev/em030_00-effects-spec.md): L0 M5 / M6 / M7 / M14 footfalls only on the surface;
+  // the dig charge (6, 2) -- the burrowed L0 M5 play -- holds u 1400 (0xe1e8d0)
+  { const PM = await import('/render/psl-mask.js');
+    const W = (s, st) => PM.pslMask(MON, '0', s, null, st || {});
+    check(PM.PSL_MASK_MONSTERS.includes(MON) && W(5) === 0x381ff && W(5, { sunk: true }) === 0x1c01ff && W(14) === 0x381ff && W(1) === 0x1ff,
+          'the word: L0 M5 surface 15-17, sunk 18-20; L0 M14 surface 15-17; L0 M1 base', [W(5), W(5, { sunk: true }), W(14), W(1)].map(w => '0x' + w.toString(16)));
+    // the row gate and the plays, deterministically. (Played in the page this cannot be told apart: L0 M5_start is 2 frames long,
+    // and looped, each wrap is a new play by the viewer's play rule -- so the surface and burrowed plays alternate every 2 frames.)
+    const ms = new MS.MotionStates();
+    const holdsAt = posture => { ms.cur = null; ms.step(MON, '0', 'Motion[5]', 0, {}, { rage: false, level: 0, tired: false, posture }, 0); return ms.holds(); };
+    check(holdsAt(undefined).length === 0 && holdsAt(0).length === 0 && JSON.stringify(holdsAt(4)) === JSON.stringify(['em030_00u|1400']),
+          'L0 M5: the surface play holds nothing, the burrowed (posture 4) play holds u 1400', [holdsAt(0), holdsAt(4)]);
+    check(PM.clipPostureFor(MON, '0', 'Motion[5]', 0) === undefined && PM.clipPostureFor(MON, '0', 'Motion[5]', 1) === 4 &&
+          PM.clipSunkFor(MON, '0', 'Motion[5]', 1) === true && PM.actionName(PM.clipActionFor(MON, '0', 'Motion[5]', 1)) === '6:0x02',
+          'and the plays: (2, 2) on the surface, then the dig charge (6, 2) in posture 4, sunk'); }
   return out;
 }
 

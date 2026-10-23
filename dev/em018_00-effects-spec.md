@@ -242,3 +242,24 @@ index.html playNow passes `breakLevel7` (and Gypceros's `crestBroken`). `--apply
 401 560 580) and Deadeye 11. **Garuga's u 290 went in although §2 says it should not**: add_effects binds every bit the
 WHOLE block names and leaves the gating to the runtime word, so L0 M7 b27 is in his CLIP_EFFECTS and his word (no v4)
 never enables it -- exported, never fired. Left as the tool's rule rather than special-cased.
+
+## Re-walk 2026-10-18 (Fanged-Wyvern effects agent): tracer diff, request census, word re-emulation
+
+**Deadeye's held u 30 is shown now.** vt+0x208 `0xda528c`, variant 4: 0x81bb0(e, 0) (P+0x5e08 bit 0 or P+0x522 -- the eye-shut test) or vt+0x3f4 (dying) -> the handle e+0xcae0 stopped (0x329c40(h, 0)); else with none held vt+0x1d0(1001) = u 30 (em018_04_003, joint 3). Exported (event, stop) and held by CLASS_TIMERS.em018_04 while his eyelid set 2 is not shown (his sleep rows and deaths draw it, no other row) -- dev/checks/em018_00.mjs asserts it at rest, off asleep, back awake; Garuga has none.
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* **Op 0x6e query 0x47 -- READ: a no-repeat gate.** Op 0x6e switches on e+0x73b2, which every op 0x14 call fills with the g1 stream
+  called before the current one (e+0x73b0 the current). In g1 s71, case 0x47 = "s71 followed itself" -> g1 s15 instead; otherwise
+  (7, 0xe4)'s streams. So (7, 0xe4) never comes from s71 twice running. Nothing in the word changes.
+* **u 290's f5-90 run when the motion starts at frame 18 -- READ: it fires, at frame 18.** The walker (`0x31cb40` / `0x31cbe0`,
+  transcribed in schedule.js) forgets the bits on a new motion and processes from the start frame on the next update; frame 18 is
+  inside f5-90, so the bit goes off -> on there and the record starts at the clip's frame 18. The viewer plays the clip from 0, so
+  it starts the same record 13 frames sooner in clip time (and shows frames 0-17 the ROM skips). A start-frame field on the two
+  copies would match it (category c, listed).
+* **The status-10 / 11 scripts -- READ**: of the word's motions only L1 M104 is a script's, (10, 0x69) `0x17acac8` (both
+  variants); its arm (bits 24-26) reads no action, so the play is the clip's own. Nothing changes.
+* **L0 M7 copy B -- BUILT 2026-10-19**: (7, 0xe3) / (7, 0xe5) start the clip at frame 18 (CLIP_ACTIONS `startFrame`, index.html
+  play()); u 290 starts there as the ROM's. Copy A is (2, 2) from frame 0.

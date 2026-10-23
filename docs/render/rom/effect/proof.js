@@ -345,8 +345,17 @@ export class ProofRequest {
       // A REQUEST AT A POINT stops there: 0x703b8 (a cut tail's landing, tail-option-em043.md 7) writes the parent
       // handle, +0x1c |= 3 and the position alone -- no +0x14, +0x40, +4 or +8.
       const r = requester, v4 = (a, v) => { for (let k = 0; k < 3; k++) m.wf32(a + 4 * k, v[k]); m.w32(a + 12, 0); };
-      m.w32(Q + 0x1c, (m.u32(Q + 0x1c) | (r.flags1c == null ? 3 : r.flags1c)) >>> 0);
-      v4(Q + 0xc0, r.position);
+      if (r.position){
+        m.w32(Q + 0x1c, (m.u32(Q + 0x1c) | (r.flags1c == null ? 3 : r.flags1c)) >>> 0);
+        v4(Q + 0xc0, r.position);
+      }
+      // A CLASS'S OWN BLOCK (effects lane, 2026-10-20): +0x14 bit 5 with the ROOT JOINT at +0x52 (u16) -- Teostra's u 2 / u 3 (joint 3,
+      // 0xe11204..), Nerscylla's C+0xb5 requests (joint 144 / 1, 0xf9c3b4 / 0xf9c390), the Armor Viewer's weapon aura (efx/proofunit.py
+      // `rootJoint`); +0x14 bit 0 with the offset +0x20.. (Nerscylla on L4 M30 / M31, (0, 0, -80), 0xf9c354..0xf9c378)
+      if (r.rootJoint != null){ m.w32(Q + 0x14, (m.u32(Q + 0x14) | 0x20) >>> 0); m.w16(Q + 0x52, r.rootJoint & 0xffff); }
+      if (r.offset){ m.w32(Q + 0x14, (m.u32(Q + 0x14) | 1) >>> 0); v4(Q + 0x20, r.offset); }
+      // a position-only block with its own type word +8 (the Gore line's ring: u 30 +8 = 2, u 31 +8 = 1; 0xfc0718 / 0xfaf380)
+      if (r.positionOnly && r.type8 != null) m.w32(Q + 8, r.type8 >>> 0);
     }
     if (requester && !requester.positionOnly){
       const r = requester, v4 = (a, v) => { for (let k = 0; k < 3; k++) m.wf32(a + 4 * k, v[k]); m.w32(a + 12, 0); };

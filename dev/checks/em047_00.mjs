@@ -165,6 +165,13 @@ async function pageCheckRoyalLudroth(){
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip he carries');
   }
+  // THE ENABLE WORD (psl-mask.js em047_00; dev/em047_00-effects-spec.md): 0xeb388c -- L2 M7 by rank (c 182 / c 183), L2 M15 by
+  // the tail (c 212 / c 213 only with it on), L2 M8 by sunk
+  { const PM = await import('/render/psl-mask.js');
+    const W = (n, st) => PM.pslMask(MON, '2', n, null, st || {});
+    check(PM.PSL_MASK_MONSTERS.includes(MON) && W(7, { rank: 3 }) === 0x70001ff && W(7, { rank: 5 }) === 0x380001ff &&
+          W(15) === 0x381ff && W(15, { severed: true }) === 0x1c01ff && W(8) === 0xe001ff && W(8, { sunk: true }) === 0x70001ff,
+          'the word: L2 M7 low rank / G, L2 M15 tail on / cut, L2 M8 surface / sunk'); }
   S.start = s0;
   check(!fx.failed, 'the effect runtime never stopped', fx.failed);
   return out;

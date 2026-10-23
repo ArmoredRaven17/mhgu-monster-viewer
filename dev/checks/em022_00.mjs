@@ -160,6 +160,29 @@ async function pageCheckBlangonga(){
   if (rageBox){ rageBox.checked = false; await rageBox.onchange({ target: rageBox }); await frames(3); }
   await play(REST[0], REST[1]); await frames(3);
 
+  // THE ENABLE WORD (psl-mask.js em022_00; dev/em022_00-effects-spec.md): uEm022_00 vt+0x13c = 0xdda5ac, read whole and run
+  // 3840 times against the ROM. The footfalls / snow kick off in the snow dive (sunk); c 120 on the roar / howl only while
+  // the fangs stand.
+  const PM = await import('/render/psl-mask.js');
+  check(PM.PSL_MASK_MONSTERS.includes(MON) && PM.CLIP_ACTIONS[MON], 'he is listed: his clip effects follow the enable word');
+  const Wd = (list, slot, st) => PM.pslMask(MON, String(list), slot, null, st || {});
+  for (const [l, s, st, want, label] of [
+    [0, 5, {}, 0x381ff, 'L0 M5 on foot: bits 15-17 (c 0)'], [0, 5, { sunk: true }, 0x1c01ff, 'in the snow dive: 18-20 (nothing bound)'],
+    [0, 18, {}, 0x381ff, 'L0 M18: c 30'], [0, 32, {}, 0xe001ff, 'L0 M32 fangs intact: c 120'],
+    [0, 33, { fangsBroken: true }, 0x1ff, 'L0 M33 fangs broken: no c 120'], [0, 32, { rage: true, fangsBroken: true }, 0xe3f, 'L0 M32 enraged, broken: base']]){
+    const w = Wd(l, s, st); check(w === want, 'the word: ' + label, '0x' + (w >>> 0).toString(16));
+  }
+  const mask = () => S.clip && S.clip.mask != null ? S.clip.mask >>> 0 : null;
+  const m5 = [];
+  for (let i = 0; i < 2; i++){ await play('0', 'Motion[5]'); await frames(6); m5.push(mask()); }
+  check(same(m5, [0x381ff, 0x1c01ff]), 'played: L0 M5 as the (2, 1) turn, then the (6, 4) snow-dive turn (sunk)', m5.map(w => w == null ? null : '0x' + w.toString(16)));
+  check(await pick('1,2,101', 'Broken'), 'the Teeth row set to Broken');
+  await play(REST[0], REST[1]); await frames(3); await play('0', 'Motion[32]'); await frames(6);
+  const mb = mask();
+  await pick('1,2,101', 'Intact');
+  check(mb != null && (mb & 0xe00000) === 0, 'L0 M32 with the fangs broken: no c 120 bits', mb == null ? null : '0x' + mb.toString(16));
+  await play(REST[0], REST[1]); await frames(3);
+
   for (const k of Object.keys(MS.MOTION_STATES[MON])){
     const parts = k.split('|'), list = parts[0], clip = parts[1].replace(/#.*$/, '');   // a copy's row ('#B') is its clip's
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),

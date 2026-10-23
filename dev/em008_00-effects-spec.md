@@ -123,3 +123,11 @@ So the class turns ON 13 bindings (one record to export), names 3 that never fir
 
 NOT READ, by name: what issues (7, 0xe) (no op 00 in the cmdtbl names it); what L2 M12's unenabled bits 18 / 21 and
 L1 M104's bit 24 were authored for (the data names them, no record and no arm).
+
+## Open items read (2026-10-19)
+
+(The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
+
+* **(7, 0xe) -- named, controlled**: no op of the command table carries it (all ops scanned, not only op 00; (1, 8) found in g13 s0
+  as the control), no literal issuer in the band and no follow (census; (7, 0xa), (2, 1), (7, 0x51..0x5e) found). L2 M12 stays
+  (1, 8)'s single play and (7, 0xe)'s double; the word reads neither.

@@ -536,3 +536,180 @@ resolved, and the keys 70-79 / 120-125 above belong to it. §7 gap.
 8. Second generation: **three submits sit inside the shell classes' own code** (§5a), which is the shape of one, but their ids are unresolved and the reaching method is untraced.
 9. Grimclaw's shell00 **second effect list** (listId 1), unresolved (§6a).
 10. The **group** above the action-index dispatcher (§5b).
+
+---
+
+## 8. Tigrex built (shells agent, 2026-10-19) -- what the ROM fires, and what the viewer now does
+
+Read for the Flying / Brute / Bird build. `R` = the consuming instruction read; emulator check `dev/shells-tigrex-check.mjs`
+(tool `<scratchpad>/fb/mk032.py`), 18 / 18. **Several statements above are superseded here; rom-map's Withdrawn table names them.**
+
+### 8.1 What creates on Tigrex
+
+* **The census of his table's reach** (cengen11, CHG edges closed over): ONE creating action, **(7, 0x07)**, shell 0xbd
+  (`[e+0xcac8]`, sp_00, base00) modes 0 / 1 / 2 at f68 / 72 / 76. His other L2 M5 indices (8..0xc, 0x3a) are outside his reach.
+* **The per-frame census** (`fb/pfgen.py`, new: every overriding vtable slot in +0x190..+0x240 x every motion id he ships): his
+  frame handler **vt+0x208 `0xe21294`** makes shell 0xbe (`[e+0xcac4]`, sp_01, base01) **mode 0** on four motions. The hand read
+  found three; the census found the fourth (L0 M28) -- rom-map trap 121.
+
+### 8.2 (7, 0x07): `0xe2a770` and the helper `0xe2aacc` (R, both whole)
+
+* Phase 0: L2 M5 (`0x205`) blend 8 (30, and P+0x1a3 = 1, when P+0x1bb & 0xfe == 4). Phase 1: f44 / f58 `0x7ded8` / `0xc241c`
+  (sound / camera, not shells); arg 4: f70 a pitch is computed and nothing made; otherwise the crossings of 68 / 72 / 76
+  (`0xb0968(e, 0, 0, F, 0.0)`, mode 0) call `0xe2aacc(e, shot, 0, 0)`.
+* The helper (shot 0..2; r3 0 -> joint **50**, the shot as given; r3 set -> joint 40, 2 - shot):
+  * shot 0: ctl+0..8 = joint 50's position (`0xc164c`), ctl+0x2c = a random u16 (`0x16b4b4`, to request +0x2e); shots 1 / 2 keep
+    that point;
+  * **the mode = table 0x169da90 [ctl+0x29 x 3 + shot]** (r2 1 would take table A 0x169da9c, selector <= 1; no caller here);
+  * the target block +0x1d0 (y - 230 when ctl+0x2b == 1); pitch = atan2(-dy, flat) from the ctl point, rounded to u16;
+    X word = owner X + (pitch - owner X), the difference **held at 0xe000** when it falls in [0x8001, 0xe000)
+    (`0xe2ada4..0xe2adc8`: at most 45 degrees up); Y word = block +0x54; Z 0;
+  * point = ctl + **40 x joint 50's row 1** at this shot (`0xc15a4`; the two 0.0 products kept, `0xe2ad1c..0xe2ad84`);
+  * request `0x3f883c(0x30)`: +4 `[e+0xcac8]`, +8 the mode, +0xc the owner, +0x10.. the point, +0x20.. the words, +0x2e the random.
+
+### 8.3 ctl+0x29 -- THE FLOOR UNDER HIM (§0a's open value, R)
+
+Written at the action's start, vt+0x204 `0xe20990` (status 7; indices 7..0xc, 0x24, 0x25, 0x5d, 0x62..0x66, 0x69, 0x6a, 0x77,
+0x78 -> `0xe20c70`; 0x26 -> `0xe21224`):
+
+    ctl+0x2b = 0x8eb24(e, 0, P+0x230, P+0x232, P+0x234)         -- the target UNIT's state (0 for a point)
+    e+0x1068 & 6     -> ctl+0x29 = 2                             -- the stage query's floor word (rom-map 0x18154c)
+    else & 0x40      -> 3
+    else             -> e+0x1066 bit 1 (0 / 1)
+
+| selector | modes | records | |
+|---|---|---|---|
+| 0 | 0 / 1 / 2 | u 0 (flight), u 30 (landings) | the plain floor |
+| 1 | 3 / 4 / 5 | u 3, u 33 | e+0x1066 bit 1 |
+| 2 | 6 / 7 / 8 | u 1, u 31 | floor word & 6 |
+| 3 | 9 / 10 / 11 | none in the files ((999, -1)) | floor word & 0x40 |
+
+What the floor bits mean (water, lava, ...) is INFERRED (rom-map 0x41c74's row). The viewer has no stage under him: the stand-in
+is `input.floorFlags` / `input.floorAttr` (e+0x1068 / e+0x1066), absent 0 -- selector 0.
+
+**The page's Ground control feeds it** (index.html GROUND_TYPES, built by the effects agent 2026-10-20; both shell-input builders
+pass groundNow().flags / .attr). Ground E (attr 2) selects 1 (u 3 / u 33); Ground A (0x1040, which carries 0x40) and F (0x40)
+select 3; plain / B / C / D select 0. Selector 2 (flag & 6: u 1 / u 31) has no type: the control leaves flag 6 out because the
+effects' MASK2 arm 0x41c88 is unrecorded. u 1 / u 3 / u 31 / u 33 (and Grimclaw's matching 81 / 83 / 91 / 93 / 101 / 103 / 111 / 113)
+are exported and recorded so selector 2 needs only the type. Page check: shells-tigrex-check.mjs, five Ground cases (shells agent).
+
+**Hit data (2026-10-20).** em032_00_00_hitdata is 4 x (0, 9999) and em032_00_01_hitdata is (14, 10), read from the arc. SHELL_DATA.em032_00
+lacked them, so his timer-0 shell01 (c 32) was refused its slots and ended on its first move in the page (trap 127). The three -10 / 0 / 10 shots are the
+.sh float 2, his Y offset (+0x15f0).
+
+### 8.4 His shell00 (`uShellEm032_sp_00`, R)
+
+* Reader `0xe35410`: ef 0..3; hit 0; **cmn float 0 = 180, the flight** (`0x4a2264` -- §7 item 4 closed); flags **0x10 always**
+  (`0xe354b4`) | 0x20 when int 0 != -1 -- so the position and the words are the request's (init00's 0x10 arm, offset +0x1610 the
+  ctor's zero vector); floats 0 / 1 / 2 -> vz 69.05 / vy 6.125 / the Y offset; vec 0 -> the gravity; ints 1 / 2 -> +0x1660 /
+  +0x1664 (the landing's children, -1 on every Tigrex mode).
+* **+0x170 `0xe3587c`: the gravity (0, g.y, g.z) turned by the OWNER's words** Z (block +0x58), X (+0x50), Y (+0x54) -- the order
+  and the 0.0 products of base00's launch velocity -- where base00's `0x3f9f98` turns by the shell's Y word. New shells.js hook
+  `GRAVITY00` (absent = the base's), filled for this class alone.
+* **+0x150 `0xe3557c`:** type 1 with the velocity's y (+0x1014) > 0 RETURNS -- no landing, no end; else type 1 -> the children
+  `0xe35624` and ef +0x15d0 (param 2); type 0 -> +0x15cc (1); type 2 -> +0x15d4 (3); 0x43ac04 on 0 / 1 (the camera); then
+  `0x3f8970` and the end. The rising arm is transcribed but **not exercised** by the check (the harness's plane answers contacts
+  from above only).
+* +0x28 `0xe35820`: the ground marker `0x43b2b0` for modes 0x17.. (bit table 0x92441041) -- none of Tigrex's.
+
+### 8.5 The frame handler `0xe21294` (vt+0x208, R)
+
+Switch on the motion id (`0xb0944`; tables `0xe212d0` for 6..0x2b, `0xe2142c` for 0x204..0x210). Four cases make **shell01 0xbe
+mode 0 at the owner** -- `0x3fa2bc(0x40)`: +4 `[e+0xcac4]`, +8 0, +0xc the owner, +0x10.. P+0x40.., +0x20.. the zero vector,
++0x30.. e+0xfe8.., +0x3c 0xffff -- at a channel-1 frame (`0xb09b0`), each only while P+0x44 <= P+0x5b4 + 900:
+
+| motion | frame | site | extra gate |
+|---|---|---|---|
+| L0 M28 (0x01c) | 18 | `0xe21724` | |
+| L1 M1 (0x101) | 58 | `0xe21c0c` | |
+| L1 M2 (0x102) | 2 | `0xe214d0` | not under action (3, 5) |
+| L2 M8 (0x208) | 14 | `0xe21870` | |
+
+The others are camera / sound calls (`0xc241c`, `0x7db70`). shell01's reader `0xe35ac4` -> Tigrex's body `0xe35af8`: ef 0 ->
++0x15c8, **ef 1 -> +0x15d0**; hit 0 / 1 -> +0x15d8 / +0x15dc; +0x15ec bits int 0..5 -> 0x80 / 0x20 / 0x800 / 4 / 8 / 0x1000 --
+his sh000 gives 0x1080 (base01's 0x80 snap to his ground). sh000's ef: c 32 and (999, -1).
+
+### 8.6 In the viewer
+
+`SHELL_DATA.em032_00`: the (7, 0x07) row (`spawn032s00`), shell00 modes 0..11, shell01 mode 0, `perFrame032` (the four rows,
+`perFrame032()` as Malfestio's perFrame079 plus the 900 gate); params032s00 / gravity032s00 / landing032s00 / params032s01.
+Records: em032_00u 0, 1, 3, 30, 31, 33 and em032_00c 32 -- none exported before this build (requested through the slot).
+
+### 8.7 Checked
+
+`dev/shells-tigrex-check.mjs` 18 / 18: (7, 0x07) on the plain floor, each other selector (ctl+0x29 poked / floorFlags), a target
+high above (the 0xe000 hold), one below, the owner turned in all three words, a floor above the launch point; the frame handler's
+four motions and one 1000 above his ground (none); controls: joint 50 one unit up, the target 30 aside, the owner's Z word (the
+gravity alone reads it), the owner 1 along x -- each fails. Page 5 / 5 (L2 M5 shell00; L1 M1, L2 M8, L0 M28 shell01).
+
+### 8.8 Still open on this class
+
+* Grimclaw (em032_04): his own shell01 body `0xe35c50` (§7 item 1) and his L9 actions -- his build.
+* The rising-contact arm of `0xe3557c` (transcribed, not exercised).
+* What the floor bits mean in-game (INFERRED), and an area input for the viewer.
+
+---
+
+## 9. Grimclaw built (shells agent, 2026-10-19)
+
+The class at variant 4. Emulator check `dev/shells-grimclaw-check.mjs` (tool `<scratchpad>/fb/mk032g.py`), 21 / 21. §7 items 1 (his
+sp_01 body) and 9 (his "second list") are closed here; §5d's L9 reading stands (list 9 is his alone).
+
+### 9.1 What creates on him (the census of his reach + the per-frame census)
+
+| action / source | clip | maker | shells |
+|---|---|---|---|
+| (7, 0x07) | L2 M5 | `0xe2a770` -> `0xe2aacc` | shell00 0..11 by the floor selector, f68 / 72 / 76 (Tigrex's) |
+| (7, 0x69) | L2 M26 | `0xe31834` arg 1 | the volley at 70 / 74 / 78 |
+| (7, 0x6a) | L2 M27 | `0xe31834` arg 0 | the volley at 68 / 72 / 76, **joint 40, shots mirrored** (r3 = r6 = arg == 0) |
+| (7, 0x5d) | L9 M4 | `0xe303a4` -> `0xe305cc(e, 0, 0)` at tune 0xa (106) | shell00 20 (calm) / 21 (enraged) at sel 0 |
+| (7, 0x62) -> (7, 0x77) | L9 M5 from 60 -> its end -> **L9 M19** | `0xe3121c` phase 2 -> `0xe313a4` at tune 8 (50) | shell00 23 / 45, +57 / 58 (66 / 67) with the quest's number in 11..16 |
+| (7, 0x79) -> (7, 0x7a) | L9 M15 | `0xe32018(e, 1)` at tune 0x2b (20) | shell01 8 at joint 50's ground, then the waves 14 / 15 |
+| (7, 0x5e / 0x6b) L9 M1, (7, 0x60 / 0x6c) L9 M2 -> (7, 0x5f) | **L9 M6 + M7 / M8** (calm), **L9 M9 + M10 / M11** (enraged) | `0xe30998` | A (18 / 22): shell01 11 / 12; B (42 / 50): 4 + 6 / 5 + 6 + 7 |
+| frame handler `0xe21294` (Tigrex's dust rows) | L0 M28, L1 M1 / M2, L2 M8 | | shell01 0 -- his sh000 names list 0, null: made, draws nothing |
+| frame handler -> `0xe221ac` (variant 4, enraged) | L2 M10 / M15 / M16, L9 M4 / M12 | `0xe22878(e, 0, side, 0)` | shell01 10 (u 120), table in rom-map |
+
+The rest of his census lies outside his table's reach (the triage, neset/triage_all2.txt).
+
+### 9.2 The makers (R, each whole; addresses and tables in rom-map's uEm032_00 rows)
+
+* `0xe305cc`: joint 50 (side 0) / 40; ctl = its position; mode `0x1623fb8`[rage x 4 + sel] = 20 26 38 32 / 21 27 39 33; point = ctl + its 3x3
+  x his tune vec (both (0, 0, 0)); words e+0xfe8.., Y +/- 20 degrees (tune 0xb; + for side 0).
+* `0xe313a4`: ctl = joint 50; point = ctl + 40 x row 1 (the volley's); modes `0x169daa2`[rage x 12 + sel x 3 + 0..2]; words a GOT zero
+  vector (his modes 23.. have int 0 -1: the owner's words, init00's 0x20-clear arm).
+* `0xe32018`: the ray `0x183664` from 100 above joint 50 / 40 to 300 below -> sp_01 8 at (x, the ground, z), the owner's words.
+* `0xe30998`: phase 0 ctl+0x3d = rage, ctl+0x40 = clamp(target bearing less his facing / 5461, -1, 1), the blend `0xb04d0`; phase 1 A
+  `0xe22878(e, rage ? 2 : 1, 1, offset)`, B sp_01 4 + 6 (enraged 5 + 6 + 7, 7 turned 0x4000) at joint 40's ground, the offset
+  u16(0.5 + ctl+0x40 x tune (5 if ctl+0x40 > 0, else 6) x 182.04) on the Y word.
+* `0xe22878`: joint 50 / 40's ground (the ray), sp_01 kind + 10.
+* Landing children `0xe35624` (his modes with ints 1 / 2 != -1): shell00 +0x1660 at the contact with (0, the shell's Y word, 0); base01
+  +0x1664 there with (0, Y, 0). 23 -> 24 + sp_01 2; 45 -> 46 + 3; 26 -> 23 (and so on down).
+* sp_01 body `0xe35c50`: Tigrex's bits plus int 6 -> +0x15e8, vec 0 -> +0x1608 (the offset base01 turns by the words), float 0 ->
+  +0x1658. +0x150 `0xe35e00` (runs on flag 0x20, after the switch): modes 8 / 14, once, +0x1658 counted down by the step, at <= 0 ->
+  sp_01 14 / 15 at this shell's point and words: **the ground wave stepping 700 -> 1000 -> 1500 ahead**.
+
+### 9.3 His files
+
+* shell00: cmn float 0 = **0.0, the flight** -- every Grimclaw shell00 lives while its hit slot does (HDS em032_04_00_hitdata, 15
+  records: (0, 300) x 4, (2, 40), (4, 300) x 8, (2, 40), (2, 100)). Without input.hitLife the module ends them at the first move, as
+  the ROM without its hit registration.
+* shell01 EffectLists `[null, em032_04u, ...]`: listId 1 is his u pel; listId 0 is null (fb/shl.py's `lists` drops positions -- the
+  source of §6a's "second list" question). HDS em032_04_01_hitdata 12 records.
+
+### 9.4 Checked
+
+`dev/shells-grimclaw-check.mjs` 21 / 21: the three volleys, (7, 0x5d) calm / enraged (with the frame handler's L9 M4 shell on the same
+clip), (7, 0x77) calm / enraged / with the quest's number 12 (three shells, nine with their children), (7, 0x7a) and its two waves,
+(7, 0x5f) calm / enraged with phase 0 run, the frame handler's enraged rows (L2 M10 / M15 / M16 three each, L9 M4 / M12) and calm
+(none); controls joint 50 up, joint 50 along x (the wave), the target 10 degrees to the other side (the bearing) -- each fails. Hit
+slots: the harness holds slot 0 for each mode's delay + duration + 1 moves (children one less -- the module's line order; with three
+parents at once the module counts them one more, carried in that case's own table: an order effect the harness's per-tree flights cannot
+model, named). Page 4 / 4. Records em032_04u 0, 1, 3, 30, 31, 33, 70..79, 80, 81, 83, 90, 91, 93, 100, 101, 103, 110, 111, 113, 120,
+122..125 (all UNIQUE) requested through the slot.
+
+### 9.5 Not done / named
+
+* The phase-1 speed changes (`0xb07b4`) and turns (`0x76c08`, `0x76dd0`) of these actions: the viewer plays clips at their own rate and
+  does not turn him.
+* `0x183664` with no ground: the ROM makes the shell at s0 (NOT READ); the viewer refuses by name.
+* ctl+0x2b (a target unit's state, y - 230) is 0 for the viewer's point target.

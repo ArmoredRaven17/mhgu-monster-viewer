@@ -205,6 +205,12 @@ async function pageCheckGammoth(){
     check(listOf(list) && listOf(list).clips.some(c => c.clip === clip || c.clip === clip + '_start' || c.clip === clip + '_loop'),
           'the table entry ' + k + ' is a clip she carries');
   }
+  // THE ENABLE WORD (psl-mask.js em083; dev/em083-effects-spec.md): 0x1054b8c adds only on L9 M16, a list she does not carry,
+  // so hers is the base word -- the state gating of c 25 (L0 M33 blocks 6 / 9 / 12)
+  { const PM = await import('/render/psl-mask.js');
+    const W = st => PM.pslMask(MON, '0', 33, null, st || {});
+    check(PM.PSL_MASK_MONSTERS.includes(MON) && !listOf('9') && W() === 0x1ff && W({ rage: true }) === 0xe3f && W({ tired: true }) === 0x703f,
+          'the word: no list 9, L0 M33 the base -- calm 6-8, enraged 9-11, tired 12-14', [W(), W({ rage: true }), W({ tired: true })].map(w => '0x' + w.toString(16))); }
   S.start = s0;
   check(!fx.failed, 'the effect runtime never stopped', fx.failed);
   return out;
