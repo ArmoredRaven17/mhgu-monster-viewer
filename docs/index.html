@@ -9697,7 +9697,7 @@ const TARGET_LEVEL_BY_MON = { em023_00: true, em023_05: true };
 // the per-monster distance straight ahead, as before; the side turns the monster's facing by the angle (+90 = his left: forward is
 // (sin Y, 0, cos Y), so Y + 90 degrees points at +x when he faces +z). The BODY option makes the same point a body the shells'
 // hunter contact can hit (input.hunterBody, render/shells.js -- the shells agent's contact test); off by default.
-const HUNTER_DISTS = [[-1, 'Default (2100 ahead)'], [0, 'At him (0)'], [500, 'Near (500)'], [1200, 'Mid (1200)']];
+const HUNTER_DISTS = [[-1, 'Default (2100 ahead)'], [0, 'At Target (0)'], [500, 'Near (500)'], [1200, 'Mid (1200)']];
 const HUNTER_SIDES = [[0, 'Front'], [90, 'Left (+90°)'], [-90, 'Right (−90°)'], [180, 'Behind']];
 const HUNTER_BODIES = [[0, 'None'], [1, 'Solid']];
 const hunterDist = () => HUNTER_DISTS.some(([v]) => v === state.hunterDist) ? state.hunterDist : -1;

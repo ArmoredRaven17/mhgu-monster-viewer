@@ -139,7 +139,7 @@ Do these in order. Each needs its instrument and a positive control before you t
 
 | # | find | how to find it in an MT Framework build (INFERRED for 3U / 4U until done there) | GU control that proved it |
 |---|---|---|---|
-| 1 | the code image and its layout | 3DS: `code.bin` plus `.cro` modules (real modules there: per-module code ranges); Wii U: an RPX (PowerPC, big-endian); Switch: `main` split into text / rodata / data | the GU loader note in rom-map "Build" (no `.cro` on Switch) |
+| 1 | the code image and its layout | 3DS: one `code.bin` image. MH4U has no `.cro` modules (MH4U viewer, 2026-10-24); 3U on the 3DS is unchecked. A `roEmNNN.cro` name in older notes names a code GROUPING, not a file that can be loaded or bounded (CLAUDE.md §3), so bound a class by its vtable's closure (headache 6), never by a module; Wii U: an RPX (PowerPC, big-endian); Switch: `main` split into text / rodata / data | the GU loader note in rom-map "Build" (no `.cro` on Switch) |
 | 2 | the DTI table and class names | `uEmNNN_NN` strings, getDTI functions (`ldr` of a DTI, `bx lr`). Names come through relocations, so name a class by its getDTI's GOT load, never by key or string overlap | `gotrefs.py` (uEm088_00 DTI at `0x10bc448`) |
 | 3 | the effect list format | `.pel`: three 0x14-byte array descriptors at +0x74 (SEQUENCE / RULED / UNIQUE); the record payload (GU: 160 bytes) | `0x328ba0` array select |
 | 4 | the request funnel | two adjacent vtable slots that branch to the shared request when id < 1000 (`cmp r1, #0x3e8` on ARM); the level table, a word run {1120, 1121, 1400, 900, 901, 905, 906} | `reqtrace.py` on Barroth (6, 6) r1 = 2 |
@@ -195,7 +195,8 @@ new build. The validated control for each is in rom-map's tooling table.
 5. **Compare flags taken at the `cmp` instead of `vmrs` (G, ARM-VFP).** `vcmpe` writes the FPSCR. The APSR changes only at `vmrs`,
    so a conditional between them still sees the PREVIOUS compare (engine "third hit-shape type"; `0x7dd354..0x7dd368`).
 6. **Per-module code ranges (G).** A class's code range is not the range of its own methods (trap 37). Derive the band from the
-   vtable's closure. On the 3DS games the `.cro` modules are real, so bound scans per module there (INFERRED).
+   vtable's closure, in every build. Do not bound a scan by a module: GU (Switch) and MH4U (3DS, one `code.bin`, 2026-10-24)
+   have no `.cro` modules, and a `roEmNNN.cro` name is a grouping carried over from older notes (CLAUDE.md §3). 3U is unchecked.
 7. **Harness setups that skipped the static initialisers (T, and G as a warning).** A zeroed stand-in reads 0 spuriously, and a
    value an arc load writes also reads 0 (rom-map tooling `basshell.py` caveat; `0x1917xxx` "zero after main's 2,334
    initialisers"). Run every `init_array` entry first, then answer what is still null.
@@ -239,6 +240,11 @@ cause. Read section 3 of each before starting a new game.
 - PSL motion sequences, the LMT motion format (`numFrames` / `loopFrame`), shells on shared bases with `.shl` files, the
   hit-shape files (HDS / HTS), and the `.emc` command tables (MH-specific on MT; check the layout).
 - The material and shader side: `dev/gu-lessons-for-3u-4u.md` already records which GU render code is byte-identical in 3U / 4U.
+- **Measured 2026-10-24: the MH4U Monster Viewer's render modules are a fork, not byte-identical.** Against GU's working copy
+  (line endings normalised), only `stage.js` and `lens.js` match; `assets.js`, `fx.js`, `grid.js`, `material.js`, `materials-db.js`,
+  `pose.js` and `skeleton.js` differ, and it has no `docs/render/rom/` at all (so none of the effect runtime). Do not reconcile by
+  hand-copying: sync through the shared base (`C:\Coding Repos\VIEWER-BASE-PLAN.md`; `dev/sync-render.py`, to become
+  `sync-base.py`), with every fix made upstream and pulled.
 
 4U is probably the nearest to GU (INFERRED from the series' history, MHX / MHGU following 4U on the 3DS, not from a read). 3U is older. Both are INFERRED until a file or a
 routine has been read in that game.
@@ -254,6 +260,26 @@ routine has been read in that game.
 - **`lifted-*.js`** is GU machine code turned into JS. It does not port. The lifter's method (record vectors, lift what ran,
   check byte for byte) does.
 - **The alpha-test and colour state:** NVN in the Switch MRL. The PICA's is encoded elsewhere and must be read for the 3DS.
+
+### Other builds, as read
+
+Reported READ by the other viewers' own sessions. These are THOSE builds' addresses: they are not in GU's rom-map, and the detail
+lives in the cited notes.
+
+**MH4U (3DS)** -- the MH4U Monster Viewer, 2026-10-24; detail in `C:\MH4U-Extract\notes\effects.md`.
+- No `.pel` / `.psl`. Each monster has two `.mef` files (rMhMotionEffect); a record names an `.efl` by number, a joint and a
+  placement, and the sequence timing sits in the LMT (each motion's +0x34 -> four sequence pages).
+- **The sequence walker.** The driver is `cMhMotionEffect` at enemy+0xc78, and it walks the LMT pages itself.
+  - ctor `0x3933fc`: page 2, bits 0..31.
+  - update `0x39329c`: the bits over (last, now] through `0x95fda8`; pending = bits & ~last.
+  - walker `0x3915bc`: the enemy stops after bit 16; key 1100 is a marker.
+  - `0x3918c8`: a record's byte 0 is a condition bit tested against the per-frame word +0x30.
+- **The contrast with GU.** GU copies the PSL block and the enemy overwrites the copy's mask with its enable word, then fires
+  rise / held / fall (effect-runtime-engine.md E2). 4U walks the pages IN PLACE, with no copy and no enable-word overwrite, and
+  fires on RISE only. Do not carry GU's enable-word machinery into 4U.
+- **The generator factory** `0xafe1d8`, jump table `0xafe33c`: types 0 Billboard, 1 Polyline, 2 Polygon, 5 Model, 9 Filter, with a
+  full / Lite pick on row word 3 & 0xf0. Compare GU: there only 5 Model is pinned, and 0 / 1 carry "Lite" names as unpinned
+  guesses (construct.js GENERATOR_TYPES).
 
 ### FU (PSP)
 

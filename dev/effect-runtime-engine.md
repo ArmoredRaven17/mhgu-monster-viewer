@@ -63,6 +63,32 @@ recorded blocks into docs/render/rom/effect/lifted-*.js). rom-map's tooling tabl
   trusting a mismatch -- the id word e+0xb5f0, the part levels behind [e+0x75f0]+0x64, a class pointer like Brachydios's
   [e+0xcacc] (a zero pointer reads .text and can match by accident); a transcription must not hide a stand-in in its code
   (Basarios's L0 M7, 2026-10-18).
+- **Finding the walker in another build (2026-10-24, read from GU's disassembly for the 4U consultation; rom-map "THE PSL ENABLE
+  MASK" rows `0x31ca58` / `0x31cd70` / `0x3242e8` / `0x40718`).** How GU first found its walker is unrecorded (INFERRED: from the
+  PSL data's consumer side, after the file-mask assumption was withdrawn, rom-map Withdrawn row on the PSL `+0` mask).
+  - **(a) The shape.** Per frame the walker looks up the current motion's block (a per-list resource, slot = motion), may copy it
+    and let the owner rewrite the copy's mask, expands the run list `(value, frames)` into one 32-bit word per frame stepped (at
+    most 32), and for each frame and each bit 0..31 compares this frame's bit with the previous word kept on the sequence object:
+    rise / held / fall go to three different callbacks. The rise callback reads the bit's u16 effect number from the block and
+    requests it.
+  - **(b) GU.** Walker `0x31ca58..0x31cd6c`; slot lookup `0x3242e8` (`[psl+0x64]`, u16 count at +6, `[data+8+4*motion]`); run reader
+    `0x31cd70..0x31cef0` (prev word seq+0xbc, rise vt+0x18 / held +0x1c / fall +0x20); rise `0x40718` (`ldrh` at blk+4+2*bit, then
+    `0x4d5b2c`, unmapped). Block 0x14c: +0 mask, +4 u16 effectNo[32], +0x44 p1[32], +0xc4 p2[32], +0x144 run count, +0x148 runs.
+  - **(c) Fingerprints that survive a recompile:**
+    - the 32-bit loop: `cmp rB, #0x20`, `tst`/`and` with `1 << bit`, a previous-word field and three distinct call targets (scan
+      `tst` / `ands` / `teq` / `and`, not `tst` alone);
+    - the per-step cap `cmp rN, #0x20` + `movge #0x20`, and a stack array of about 33 words for the per-frame values;
+    - the run walk: count and runs pointer side by side in the block (GU +0x144 / +0x148), stride 8, an accumulating frame sum,
+      a wrap compare against the motion's frame count (the LMT `numFrames`, E22);
+    - the effect number read as `add rX, blk, bit, lsl #1` + `ldrh`. Working UP from the effect request is the quickest route:
+      of the request's callers, the walker's callback is the one whose key comes from that `ldrh`, not an immediate;
+    - on ARMv6K (3DS) expect no `ubfx` / `movw` / `vcvtp`: `lsr` + `and`, literal pools, and a C `ceil` or an FPSCR rounding
+      change in their place (INFERRED).
+  - **Controls (GU):** Basarios L2 M3 bits 15/17/19/21 outside the file mask, and Rathian L2 M5 (file mask 0) firing u 200 / 201 /
+    202 (rom-map "THE PSL ENABLE MASK"). Elsewhere: a known key at a known frame as the positive, a motion with no sequence data as
+    the negative, both run the same way.
+  - **Not every build copies the block or keeps an enable word.** MH4U walks its LMT pages in place and fires on rise only
+    (effects-porting-guide.md "Other builds, as read").
 
 ## E3. The setMotion family and the action main
 
