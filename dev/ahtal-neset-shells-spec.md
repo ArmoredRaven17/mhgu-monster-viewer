@@ -269,3 +269,22 @@ any Neset shell.
 - Soak after the lift: 81 motions, 0 refused. The viewer's starts / draw submissions, before -> after: L2 M3 26 -> 38 / 12020 ->
   18128; L2 M64 16 -> 26 / 6347 -> 14697; L2 M70 36 -> 42 / 18205 -> 26801; L2 M57 32 -> 58 / 13860 -> 40692; L0 M12 22 -> 30 /
   9108 -> 16208; L0 M7 24 -> 41 / 12196 -> 34299. Lit pixels: the effects agent's meter (requested).
+
+## 7. Read since (gapJ 2026-10-21, gapL 2026-10-22), indexed in rom-map (doc audit 2026-10-24)
+
+The detail is in `<archive>\gapJ\RESULT.md` and `<archive>\gapL\RESULT.md`. The rows are in rom-map "Ahtal-Ka -- his shells read
+and built" (moved there 2026-10-24 from the Withdrawn table) and "Shared enemy / command layer". In short:
+
+* **The lift and the drop** (gapJ): B6 `0x10ac10c(e, k)`, the lift request (shell57 mode k + 0x18, placement 2, behaviour 6, delay
+  60.0). B2 `0x10ac1ec(e, k)`, the drop request (joint 0x82 + k's point). base57 b6 (init `0x42f864`, move `0x4320a4`) is the lift.
+  e+0xccc1 + 12k is "holds object k" (`0x10aa368` sets it, B2 clears it, `0x10abf00` is the "may pick" test). The models are rModel
+  0x8679..0x867b (e+0xccb0..+0xccb8). G's spots before anything moves come from static init `0x10ae0e0` (`0x21328b0` / `0x21328e0`).
+* **The status-1 switch** vt+0x204 `0x10a6e58` -> `0x10a74fc` (n - 8): (1, 8) G+0x32 = 4; (1, 0xf) = 3; (1, 0x15) = 2; (1, 0x11 / 0x12)
+  -> `0x10a7bac(e, 0 / 1)`. The mains: (1, 8) `0x10afc44`, (1, 0x15) `0x10b029c` (clip side in rom-map). `0x10a7bac` kills rockets
+  **0..5** (six handles, not nine: the earlier "nine" is in the Withdrawn table).
+* **The HP stages** (gapL): code 0x1a fires when P+0x380 >= HP / max, P+0x3a8 bit 16 is set and bit 15 is clear (`0x99238..0x99288`).
+  P+0x3a8 is the dtbase flag word `[[e+0x75e8]+0x6c]` (`0x9cd50`), file +0x1d (loader `0x53800`). Bit 16 is set only in em087_00 and
+  em058_00. Code 0x1a -> `0x9abe8` -> (10, 0x8e) for every class. Neset's vt+0x1fc `0x6d63c` is `bx lr` (no remap).
+* **Neset's P+0x380 writers**: spawn 0.65 (`0x10a4aec`, tune 0x16); `0x10a7d50` 0.05 (tune 0x17); `0x10a7e34` -1.0 (dead path). So
+  (10, 0x8e) comes first at HP 65 % and again at HP 5 %. The HP floor is `0x98a7c..0x98a98`: P+0x370 = max(P+0x370, int(max x P+0x380)).
+* Trap 144 (rom-map): tune_emu.Loader's "fault ... 3885957120" at the end of every dtbase run is the harness's return, not a loader failure.

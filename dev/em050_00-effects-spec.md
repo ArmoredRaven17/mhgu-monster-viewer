@@ -30,7 +30,7 @@ Check dev/checks/em050_00.mjs **37 / 0** (its stale "2 ragePuff" count replaced 
   u 1120, or id 1002 = u 1121 while P+0x1bb == 2 (the blue form). The handler has no dying gate.
 - **Ids 1003..1011 have no requester.** Their keys in [0x169ee10] are 531 / 530 / 531 / 12 / 38 / 40 / 11 / 37 / 39.
   - The scan: every vt+0x1d0 call in .text with an immediate id (zg/scan1d0.py). None of those ids is requested from his
-    band 0xec480c..0xed0a38.
+    band 0xec480c..0xed0a38 [derived 2026-10-24: `0xec4890..0xed0834`; rom-map "Alatreon band (derived)"].
   - The shared computed-id sites give ids < 1000: 0x70444 (5 / 6), 0x9d534 (5 x part + 7), 0xca3c0 (byte + 0x2f),
     0xa4938 / 0xa49fc (2).
   - Positive control: the same scan finds Amatsu's 0xf09420 / 0xf09554 / 0xf09574 and his own 0xecce84.

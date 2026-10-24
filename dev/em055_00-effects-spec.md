@@ -35,7 +35,7 @@ input.
                 any other n        -> return (popne 0xede1d0)
     every other motion: the base alone
 
-Negative with control: his band `0xed0a38..0xedec14` has exactly three `0x13f4` immediates, all in the method (`0xede180`,
+Negative with control: his band `0xed0a38..0xedec14` [derived 2026-10-24: `0xed0838..0xedf74c`, the negatives re-run and stand; rom-map "Duramboros band (derived)"] has exactly three `0x13f4` immediates, all in the method (`0xede180`,
 `0xede1d4`, `0xede1e4`); control as in the Uragaan spec (uEm007_00's `0xd45354`).
 
 **The sunk test's inputs** (R): `.dtb +0xa8` MoguriBaseOfs = **-2000.0** (loader `dtb_full.py` and the raw file at `0x22`
@@ -196,7 +196,7 @@ row is `{ rage: true }`, so the recovery shows rage in the viewer as Uragaan's d
 
 * **The pick**: vt+0x2a4 = **`0x6bf64`, the base stub** (`mov r0,#0; bx lr`; the vtable word) -> `0xa425c` turns the 0 into
   id 1 -> **always u 1121**; u 1120 is never requested.
-* **The gate**: no `e+0xb7d2` / `e+0xb7d3` immediate (nor `0xb700` / `0xb7d0` / `0xb7d1`) anywhere in `0xed0a38..0xedec14`
+* **The gate**: no `e+0xb7d2` / `e+0xb7d3` immediate (nor `0xb700` / `0xb7d0` / `0xb7d1`) anywhere in `0xed0a38..0xedec14` [derived 2026-10-24: `0xed0838..0xedf74c`, the negatives re-run and stand; rom-map "Duramboros band (derived)"]
   (`immscan.py`; control: the same scan over `0xdd0000..0xdf0000` finds Rajang's `0xde1dd0` `movweq #0xb7d2` and `0xdef188`),
   so the base ctor's 1 stands and `0xa41b8`'s block runs; vt+0x2d8 = `0x6bfb0` (base). Period **30** (the shared
   `0xa423c..0xa4248`). R.

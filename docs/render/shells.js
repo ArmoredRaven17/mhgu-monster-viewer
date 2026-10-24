@@ -19937,8 +19937,10 @@ SHELL_DATA.em050_00 = {
 //   (7, 0x02) 0xf0be9c L2 M15 f130: sp_01 3 (a hit volume; +0x20 the block point -> its anchor, flag 0x200).
 // NOT BUILT (named): (7, 0x00)'s sp_29 0 (0x100, base29) -- no effect param (999) and no child: a hit volume only; (7, 0x03 / 0x04)'s
 // trail (0xf0c054: sp_01 6 every 16 frames of 0x539d5c on P+0x1bc, phases on L2 M1 / M2 / M4) -- sp_01 6 has no effect (999): hit volumes
-// only; sp_00's landing child sp_01 7 (no effect) is made, as it costs nothing. NOT REACHED: (7, 0x08 / 0x0e / 0x18 / 0x19..0x1b) (sp_06,
-// sp_42).
+// only; sp_00's landing child sp_01 7 (no effect) is made, as it costs nothing. NOT BUILT: (7, 0x08 / 0x0e / 0x18 / 0x19..0x1b) (sp_06,
+// sp_42). They ARE reached, by chains through vt+0x3d0: (2, 0xd) -> (7, 8), (2, 0xe) -> (7, 0xe), (7, 5) -> (7, 0x18),
+// (3, 1) -> (7, 0xf) -> (7, 0x19) -> (7, 0x1a) -> (7, 0x1b); the earlier "not reached" was trgen stubbing vt+0x3d0 (rom-map
+// Withdrawn table, trap 111). Their sp_06 / sp_42 makers are still to build.
 
 // sp_00's reader 0xf0f3a0 (READ whole): ef 0..3 -> +0x15c8..+0x15d4; hit 0; int 0 the joint; floats 0..3 -> +0x15ec (X degrees) / +0x15f0
 // (Y) / +0x15f4 (vz) / +0x15fc (the flight); vec 0 the offset +0x1610. vy and the gravity the ctor's 0; the flags 0

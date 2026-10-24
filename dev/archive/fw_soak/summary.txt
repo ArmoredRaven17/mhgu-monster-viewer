@@ -1,0 +1,22 @@
+em001_02 FAILED: the viewer never came up
+em001_00 em001_00: 101 motions played in the viewer, 0 refused (317 s)
+em001_04 em001_04: 111 motions played in the viewer, 0 refused (359 s)
+em002_00 em002_00: 109 motions played in the viewer, 0 refused (280 s)
+em002_02 em002_02: 113 motions played in the viewer, 0 refused (288 s)
+em002_04 em002_04: 129 motions played in the viewer, 0 refused (324 s)
+em003_00 em003_00: 63 motions played in the viewer, 0 refused (87 s)
+em004_00 em004_00: 78 motions played in the viewer, 0 refused (168 s)
+em005_00 em005_00: 71 motions played in the viewer, 2 refused (170 s)
+em007_00 em007_00: 68 motions played in the viewer, 0 refused (137 s)
+em032_00 em032_00: 78 motions played in the viewer, 1 refused (173 s)
+em007_04 em007_04: 96 motions played in the viewer, 0 refused (209 s)
+em037_00 em037_00: 61 motions played in the viewer, 0 refused (91 s)
+em033_00 em033_00: 46 motions played in the viewer, 0 refused (103 s)
+em032_04 FAILED: the viewer never came up
+em042_00 em042_00: 80 motions played in the viewer, 0 refused (100 s)
+em037_04 em037_04: 65 motions played in the viewer, 0 refused (103 s)
+em038_00 em038_00: 45 motions played in the viewer, 0 refused (146 s)
+em077_00 em077_00: 103 motions played in the viewer, 0 refused (201 s)
+em081_00 em081_00: 117 motions played in the viewer, 0 refused (269 s)
+em081_04 em081_04: 140 motions played in the viewer, 0 refused (359 s)
+ALLDONE

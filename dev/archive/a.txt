@@ -1,0 +1,80 @@
+00dfdb74  push    {r4, r5, fp, lr}
+00dfdb78  mov     r1, #0
+00dfdb7c  mvn     r2, #0
+00dfdb80  mov     r4, r0
+00dfdb84  bl      #0x4a22f0
+00dfdb88  movw    r1, #0x15c8
+00dfdb8c  mvn     r2, #0
+00dfdb90  str     r0, [r4, r1]
+00dfdb94  mov     r0, r4
+00dfdb98  mov     r1, #1
+00dfdb9c  bl      #0x4a22f0
+00dfdba0  movw    r1, #0x15cc
+00dfdba4  str     r0, [r4, r1]
+00dfdba8  mov     r0, r4
+00dfdbac  mov     r1, #0
+00dfdbb0  bl      #0x4a23f4
+00dfdbb4  movw    r1, #0x15d8
+00dfdbb8  mvn     r2, #0
+00dfdbbc  str     r0, [r4, r1]
+00dfdbc0  mov     r0, r4
+00dfdbc4  mov     r1, #3
+00dfdbc8  bl      #0x4a2470
+00dfdbcc  movw    r1, #0x15e4
+00dfdbd0  mvn     r2, #0
+00dfdbd4  str     r0, [r4, r1]
+00dfdbd8  mov     r0, r4
+00dfdbdc  mov     r1, #3
+00dfdbe0  bl      #0x4a2470
+00dfdbe4  movw    r1, #0x15ec
+00dfdbe8  mov     r5, r4
+00dfdbec  cmn     r0, #1
+00dfdbf0  mov     r0, r4
+00dfdbf4  ldr     r1, [r5, r1]!
+00dfdbf8  mov     r2, r1
+00dfdbfc  bfc     r2, #0, #1
+00dfdc00  orrne   r2, r1, #1
+00dfdc04  mov     r1, #0
+00dfdc08  str     r2, [r5]
+00dfdc0c  mvn     r2, #0
+00dfdc10  bl      #0x4a2470
+00dfdc14  ldr     r1, [r5]
+00dfdc18  cmn     r0, #1
+00dfdc1c  mov     r0, r4
+00dfdc20  mov     r2, r1
+00dfdc24  bfc     r2, #0xa, #1
+00dfdc28  orrne   r2, r1, #0x400
+00dfdc2c  mov     r1, #1
+00dfdc30  str     r2, [r5]
+00dfdc34  mvn     r2, #0
+00dfdc38  bl      #0x4a2470
+00dfdc3c  ldr     r1, [r5]
+00dfdc40  cmn     r0, #1
+00dfdc44  mov     r0, r4
+00dfdc48  mov     r2, r1
+00dfdc4c  bfc     r2, #7, #1
+00dfdc50  orrne   r2, r1, #0x80
+00dfdc54  mov     r1, #4
+00dfdc58  str     r2, [r5]
+00dfdc5c  mvn     r2, #0
+00dfdc60  bl      #0x4a2470
+00dfdc64  ldr     r1, [r5]
+00dfdc68  cmn     r0, #1
+00dfdc6c  mov     r0, r4
+00dfdc70  mov     r2, r1
+00dfdc74  bfc     r2, #0xb, #1
+00dfdc78  orrne   r2, r1, #0x800
+00dfdc7c  mov     r1, #5
+00dfdc80  str     r2, [r5]
+00dfdc84  mvn     r2, #0
+00dfdc88  bl      #0x4a2470
+00dfdc8c  ldr     r1, [r5]
+00dfdc90  cmn     r0, #1
+00dfdc94  mov     r0, r4
+00dfdc98  mov     r2, r1
+00dfdc9c  bfc     r2, #2, #1
+00dfdca0  orrne   r2, r1, #4
+00dfdca4  mov     r1, #6
+00dfdca8  str     r2, [r5]
+00dfdcac  mvn     r2, #0
+00dfdcb0  bl      #0x4a2470

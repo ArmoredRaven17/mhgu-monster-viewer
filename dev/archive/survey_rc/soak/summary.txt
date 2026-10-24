@@ -1,0 +1,8 @@
+em057_00 em057_00: 78 motions played in the viewer, 1 refused (197 s)
+em057_04 em057_04: 84 motions played in the viewer, 1 refused (227 s)
+em068_00 em068_00: 131 motions played in the viewer, 6 refused (370 s)
+em070_00 em070_00: 79 motions played in the viewer, 0 refused (196 s)
+em087_00 em087_00: 77 motions played in the viewer, 37 refused (316 s)
+em071_00 em071_00: 104 motions played in the viewer, 0 refused (279 s)
+em071_05 em071_05: 114 motions played in the viewer, 0 refused (345 s)
+ALLDONE

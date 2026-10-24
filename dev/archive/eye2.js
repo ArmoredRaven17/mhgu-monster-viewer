@@ -1,0 +1,18 @@
+const V = window.__view;
+const monSel = document.getElementById('monSel');
+monSel.value = 'em033_00'; await monSel.onchange();
+const step = async n => { for (let i = 0; i < n; i++) await new Promise(r => requestAnimationFrame(r)); };
+let eye = null;
+V.mounted.main.traverse(o => { if (o.isMesh && o.material && o.material.name === 'XfB__m02_eye') eye = o.material; });
+const nm = t => t && t.source && t.source.data ? String(t.source.data.src).split('/').pop().split('?')[0] : String(t);
+const G = eye.userData.texSwap[0], O = eye.userData.texSwap[1];
+const res = { hasMap: !!eye.map, uniformIsMap: !!(eye.uniforms && eye.uniforms.tAlbedoMap && eye.uniforms.tAlbedoMap.value === eye.map), state: V.state.rage, level: V.state.level, rageLevel: V.state.rageLevel };
+const rage = document.getElementById('monRage');
+await step(10); res.calm0 = nm(eye.map);
+rage.checked = true; rage.dispatchEvent(new Event('change')); await step(60); res.enr = nm(eye.map);
+rage.checked = false; rage.dispatchEvent(new Event('change')); await step(60); res.calm1 = nm(eye.map);
+eye.map = G; await step(10); res.forcedGreen_after = nm(eye.map);
+eye.map = O; await step(10); res.forcedOrange_after = nm(eye.map);
+res.G = nm(G); res.O = nm(O);
+res.clips = eye.userData.rom.anim.map(c => c.name + ':' + c.frames + (c.loop ? 'L' : '') + (c.auto ? 'A' : ''));
+return res;

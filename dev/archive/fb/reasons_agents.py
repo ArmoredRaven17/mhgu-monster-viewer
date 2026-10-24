@@ -1,0 +1,142 @@
+# reasons_agents.py: the named reasons for the records no page play started (four read-only research passes, 2026-10-20, checked
+# against shells.js / the specs / rom-map / the board), keyed mon:pel:key -> [verdict, why]. A record the page meter later finds
+# drawing is DRAWS whatever is written here (gen_table.py prefers the measurement).
+import json
+W, RG, RC, IM, NB, BUG, UR = 'NO WALL / HUNTER', 'ROM GIVES NOTHING', 'ROM CONDITION', 'INPUT MISSING', 'NOT BUILT', 'BUG', 'UNREAD'
+R = {
+# --- batch A
+'em005_00:em005_00u:131': [RC, 'modes 5 / 6 need the head broken (ctl+0x24 bit 0, 0xd28d7c..0xd29290; shells.js headModes): the Parts row'],
+'em011_00:em011_00u:30': [NB, 'sp_01 2 / 3 (the bolts) come only from sp_11 16..19 / 24 / 25 (create011s11), made by (2, 0x0b..0x0e) L4 M2 f84 and (2, 0x20..0x27) L0 M11 / M12 f10 (census fb/cen11_ed011_a.txt): no rows'],
+'em013_00:em013_00u:2': [W, 'sp_00 0 ef 1 is the type-2 landing (reader: ef 1 -> +0x15d4) and sp_01 2 comes only from the type-0 landing (landing013s00)'],
+'em013_01:em013_01u:2': [W, 'sp_00 0 ef 1 the type-2 contact; sp_01 3 only from mode 0\'s type-0 landing (T[0] = [3, 0, null])'],
+'em013_02:em013_02u:2': [W, 'sp_01 6 only from sp_00 0\'s type-0 (wall) landing 0xd8d08c'],
+'em013_02:em013_02u:11': [NB, 'sp_01 2 / 8 need sp_00 mode 1, made only by (7, 0x49) L2 M25 f146 (census cen11_ed013v2), not built (elder-dragon-shells-spec 3: the pitch 0xd8716c)'],
+'em013_02:em013_02u:12': [NB, 'sp_01 3 is sp_11 idx 1, which needs sp_00 mode 1 on the floor: the unbuilt (7, 0x49) (elder-dragon-shells-spec.md:155)'],
+'em013_02:em013_02u:13': [NB, 'sp_00 mode 1 is (7, 0x49) L2 M25 f146 (0xd8741c), not built (elder-dragon-shells-spec.md:155)'],
+'em013_02:em013_02u:110': [UR, 'sp_01 mode 9: no read maker makes it (actions 5 / 10 / 11, landing 0xd8d08c 6 / 0 / 8 / 7 / 1, sp_11 2 / 3 / 4); a 0x8b create census beyond the action bodies is owed'],
+'em013_02:em013_02u:111': [UR, 'as u 110: sp_01 mode 9 has no read maker'],
+'em019_00:em019_00c:30': [RG, 'Stonefist\'s sp_01 0 ((7, 0xf2) on the L9 motions) through the shared em019_00c list; Daimyo has no L9 motion'],
+'em021_00:em021_00u:300': [IM, 'modes 5..8 are the last charge\'s breath (charges ctl[2] < 2, the remap vt+0x1fc 0xdcee10): input.gas021Last, which no page control sets (the stand-in is "2+")'],
+'em021_00:em021_00u:310': [IM, 'gas 3 on the last charge (mode 6): no charge-count control (input.gas021Last)'],
+'em021_00:em021_00u:320': [IM, 'gas 2 on the last charge (mode 7): no charge-count control'],
+'em021_00:em021_00u:330': [IM, 'gas 4 on the last charge (mode 8): no charge-count control'],
+'em024_00:em024_00c:29': [UR, 'sp_01 10 / 13: no read maker (actions make 11, CHILD033 5..8 / 16, sp_34 / 38 14 / 15); a 0xb0 create census beyond the action bodies is owed'],
+'em024_00:em024_00c:30': [UR, 'sp_01 1 / 9 / 12: no read maker (as c 29)'],
+'em024_00:em024_00c:32': [UR, 'sp_01 3 / 4: no read maker (as c 29)'],
+'em024_00:em024_00c:33': [UR, 'sp_01 1\'s ef 1: the mode has no read maker (as c 29)'],
+'em024_00:em024_00c:34': [UR, 'sp_01 2\'s ef 1: the mode has no read maker (as c 29)'],
+'em024_00:em024_00c:35': [UR, 'sp_01 3\'s ef 1: the mode has no read maker (as c 29)'],
+'em024_00:em024_00u:70': [RC, 'the beam sp_02 mode 1: enraged AND a snow map (ctl+0x2c && ctl+0x2d, beam-spawns.js)'],
+'em024_00:em024_00u:71': [RC, 'sp_33 snow modes: enraged AND a snow map (snowy = input.snow && input.rage)'],
+'em024_00:em024_00u:72': [RC, 'sp_00 14..26 / sp_33 16 / 18: the snow modes, enraged AND a snow map'],
+'em024_00:em024_00u:73': [RC, 'beam mode 1\'s impact: enraged AND a snow map'],
+'em024_00:em024_00u:121': [RC, 'sp_01 6, the end child of the sp_33 snow modes: enraged AND a snow map'],
+'em024_00:em024_00u:131': [RC, 'sp_01 8, the end child of sp_33 16 / 18: enraged AND a snow map'],
+'em024_00:em024_00u:151': [RC, 'sp_34 12..19 / 22 / 23, the snow sp_00 landing children (0xdfd7e8): enraged AND a snow map'],
+'em024_00:em024_00u:161': [RC, 'sp_34 20 / 21 and sp_38 4 / 5, the snow sp_00 23 / 25 landing children: enraged AND a snow map'],
+'em027_00:em027_00c:30': [UR, 'row (4, 0x06) L1 M7 f70 lies past the viewer\'s 61-frame L1 M7; whether the game\'s motion reaches f70 is unread'],
+'em027_00:em027_00u:152': [RC, 'a leader\'s end makes sp_01 0 only when the owner\'s next action is (7, 0x2d) / (7, 0x2e) (0x6fe88): L2 M10 then L4 M10 in one run'],
+# --- batch B
+'em037_00:em037_00c:30': [NB, 'sp_01 1 (the ground impact) comes from the frame handler 0xe47b0c; not built (its life rests on hit slots, the L1 M2 gate 0x6fe88 unread)'],
+'em037_04:em037_00c:30': [NB, 'the same frame handler 0xe47b0c, not built (dev/em037_04-shells-spec.md)'],
+'em043_00:em043_00u:30': [RG, 'sp_54 4 comes only from (7, 0x7e..0x81), which no command-table stream issues (board; every issued action reaching 0xe78e34 passes r2 0)'],
+'em043_00:em043_00u:40': [RG, 'sp_54 4: (7, 0x7e..0x81) issued by no stream'],
+'em043_00:em043_00u:50': [RG, 'sp_54 4: (7, 0x7e..0x81) issued by no stream'],
+'em043_05:em043_05u:40': [RG, 'Deviljho\'s command table: (7, 0x7e..0x81) issued by no stream'],
+'em043_05:em043_05u:50': [RG, 'as u 40'],
+'em043_05:em043_05u:100': [RG, 'as u 40'],
+'em045_04:em045_04u:33': [RG, 'sp_32 ef 2 (+0x15d0) has no read in base32, the class methods or their callees; the controls +0x15c8 / +0x15cc found by the same scan (rom-map 3154 (e))'],
+'em049_00:em049_00u:100': [RC, 'the tail drips, L2 M2 f143..170: tail heat e+0xcace, the tail below its break row, G rank'],
+'em049_00:em049_00u:101': [RC, 'the chest drip, L2 M5 f112: chest heat e+0xcac2, the chest unbroken, G rank'],
+'em057_00:em057_00u:60': [RC, 'modes 0..11 only from the strikes (7, 0x71) L0 M20, pick act: the play\'s action'],
+'em057_00:em057_00u:61': [RC, 'the same strikes\' base01 0x20 switch'],
+'em057_04:em057_04u:61': [RC, 'modes 19 / 20 / 23..37: Charged plus the play\'s action'],
+'em057_04:em057_04u:70': [RC, 'uncharged (7, 0x71) L0 M20 strikes: the play\'s action'],
+'em057_04:em057_04u:71': [RC, 'the same strikes\' switch'],
+'em057_04:em057_04u:150': [RC, 'modes 21 / 22, the (7, 0xfb / 0xfc) L2 M1 / M2 f57 rays: Charged and the play\'s action'],
+'em057_04:em057_04u:170': [RC, 'mode 39, L2 M60 (7, 0xa6 / 0xa7) f18 (0xefa834): Charged AND enraged'],
+'em057_04:em057_04u:171': [RC, 'mode 40, L2 M30 f82 (0xef9554): enraged, Charged and the tail intact'],
+'em057_04:em057_04u:210': [RC, 'mode 14, (7, 0xe3) L9 M1 f266 below rank 5 (0x3a8430): the action at Low rank'],
+'em057_04:em057_04u:220': [RC, 'modes 41 / 43, (7, 0xe3) L9 M1 at rank 5+ / (7, 0xdb) L9 M5 f204: the play\'s action'],
+'em060_04:em060_04u:0': [IM, 'the slam\'s 2 / 5: the ground cast\'s attribute (& 6) AND the stage number 0x17 / 6 / 4 by the area byte (0xf189d8): no stage input (now refused by name on an attributed Ground)'],
+'em060_04:em060_04u:10': [IM, 'the slam\'s 3 / 6: the same attribute and stage gate'],
+'em060_04:em060_04u:40': [RC, 'INFERRED: the (7, 0xf5) lump flies with no gravity, aimed at the target; it meets no floor in its 450 frames, so its floor ef 2 needs a target below the launch'],
+'em061_04:em061_04u:15': [RC, 'the sp_13 contact needs (7, 0xe5) L9 M10\'s lift then (7, 0xf6) L9 M11 f59 (e+0xcae0 = 2) in one run (0xf33e40)'],
+'em061_04:em061_04u:16': [RC, 'sp_00 23..25 only from that thrown sp_13\'s burst 0xf33b1c: L9 M10 then M11'],
+'em061_04:em061_04u:17': [RC, 'the landings of those 23..25: L9 M10 then M11'],
+'em065_00:em065_00u:12': [IM, 'INFERRED: the drop\'s sp_00 is requested 300 below his block point (0xf5251c); on the floor it starts underground. Needs his height on the hanging clips'],
+'em066_00:em066_00u:25': [W, 'the snow rocks\' ef 1 / ef 3 (types 0 / 2); their floor ef is u 23'],
+'em066_00:em066_00u:33': [RC, 'sp_16 1: a snow map AND the tusks at .dtp row 1+ (0xf58dd0)'],
+'em066_00:em066_00u:43': [RC, 'sp_16 1\'s phase-2 ef 1 (54 + 415 frames in): snow AND broken tusks'],
+'em066_00:em066_00u:100': [W, 'sp_16 ef 2 (+0x15d0) is started only by +0x98 0xf65ac8 at a hunter\'s hit'],
+'em066_00:em066_00u:101': [W, 'sp_16 0\'s ef 2: a hunter\'s hit only (0xf65ac8)'],
+'em066_00:em066_00u:110': [W, 'sp_16 3\'s ef 2: a hunter\'s hit only'],
+'em066_00:em066_00u:111': [W, 'sp_16 1\'s ef 2: a hunter\'s hit only'],
+'em066_04:em066_04u:25': [W, 'the snow rocks\' type-0 / type-2 slots'],
+'em066_04:em066_04u:33': [RC, 'sp_16 1: a snow map AND the tusks at row 1+'],
+'em066_04:em066_04u:41': [RC, 'sp_16 0 on a snow map: its ef 1 at 54 + 600 frames, past L4 M30 + 400'],
+'em066_04:em066_04u:43': [RC, 'sp_16 1\'s phase-2 ef 1 (54 + 300): snow AND broken tusks'],
+'em066_04:em066_04u:100': [W, 'sp_16 ef 2: a hunter\'s hit only (0xf65ac8)'],
+'em066_04:em066_04u:101': [W, 'sp_16 0\'s ef 2: a hunter\'s hit only'],
+'em066_04:em066_04u:110': [W, 'sp_16 3\'s ef 2: a hunter\'s hit only'],
+'em066_04:em066_04u:111': [W, 'sp_16 1\'s ef 2: a hunter\'s hit only'],
+'em068_00:em068_00u:30': [RC, 'ringing ef 5 needs a scale already stuck (state 2) to hear a later ring, e.g. (1, 0) L0 M50 f190: throw then ring in one run'],
+'em068_00:em068_00u:31': [RC, 'sp_01 2 (the blast) only from ringing36: throw then ring in one run'],
+# --- batch C
+'em079_00:em079_00u:21': [RC, 'sp_01 6 only from (7, 0x38), issued only in op 0x1c\'s enraged body (0x81688)'],
+'em079_04:em079_04u:20': [RC, 'modes 4 / 5 / 8 / 9 from (7, 0x2a / 0x0d / 0x27 / 0x28): the enraged body (0x81688)'],
+'em079_04:em079_04u:21': [RC, 'sp_01 6, (7, 0x38): the enraged body'],
+'em081_00:em081_00u:31': [RG, 'sp_15 ef 1 / ef 2 go to +0x15d4 / +0x15cc (0x1034660..80), which nothing on base15\'s path loads (rom-map 0x1034638: end READ, no other reader INFERRED)'],
+'em081_04:em081_04u:80': [RC, 'sp_01 30 = sp_11 6\'s spiral strikes (0x1031f28); sp_11 only at the tail\'s charge tier 4 (0x103047c)'],
+'em081_04:em081_04u:81': [RC, 'sp_01 29, the same tier-4 gate (0x103047c)'],
+'em082_04:em082_04u:201': [NB, 'mode 180 (lit (7, 0xd / 0x30) L2 M21 f74): its int 3 sets base12 +0x15e0 bit 1, the deferred init (0x403854 -> 0x4038cc on the first move): refused by name (make12); the move\'s order after it is unread'],
+'em083_00:em083_00u:60': [UR, 'sp_01 3 / 4: no maker recorded; status 10 ((10, 0x72) snow knock-off), 0x105006c and vt+0x204 0x1051354 are not censused'],
+'em083_00:em083_00u:61': [UR, 'sp_01 5 / 6: no maker recorded (as u 60)'],
+'em083_04:em083_04u:60': [UR, 'sp_01 3 / 4: no maker recorded (as em083_00 u 60)'],
+'em083_04:em083_04u:110': [IM, 'sp_13 6\'s ef 4 (+0x167c) starts only when sp_13\'s +0x158 0x1064158 hits ANOTHER Elderfrost (u16 e+0xb5f0 | 0x400 == 0x453): no second monster'],
+# --- batch D
+'em084_00:em084_00u:1': [NB, 'sp_00 0 / 2..4 from the arm (7, 0xb) M1 f120 / (7, 0x25) M50 f108 (0x10853d8 / 0x1087b68), mode 1 the fall of sp_11 2 ((7, 0x43), 0x108a330): no rows (em084-shells-spec 5 / 6)'],
+'em084_00:em084_00u:2': [NB, 'the landings of those unbuilt sp_00 0..4, and 65 / 66 from the body\'s motion-record table (0x106f354 sel 19 / 20)'],
+'em084_00:em084_00u:4': [NB, 'sp_00 5..8, the G-rank half of the arm (7, 0xb) / (7, 0x25) pair (0x107c0cc): no rows'],
+'em084_00:em084_00u:5': [NB, 'the wall / hunter landing of those G-rank sp_00 5..8'],
+'em084_00:em084_00u:10': [NB, 'sp_00 65 / 66 only from the record table ((7, 0xa) / (7, 0xd) L0 M4 -> layer L2 M72 / M73 frame >= 58, gated by break level; spec 4b): not in shells.js'],
+'em086_00:em086_00c:30': [NB, 'sp_01 6 from (3, 0) / (3, 4) / (13, 0) / (13, 1) (elder-dragon-shells-spec 9): no rows; their issuers (0x1093018, 0x1095114, the shared reaction layer) unread'],
+'em086_00:em086_00u:21': [W, 'sp_56 ef 1 = type 0, ef 3 = type 2; the floor starts ef 2 (u 20) (+0x150 0x10a28bc)'],
+'em086_00:em086_00u:140': [NB, 'sp_01 10 belongs to (7, 0x33) (elder spec 9; 0x109a5b4 / 0x109b07c), which the EMC walk never reaches: no row'],
+'em086_00:em086_00u:502': [UR, 'sp_01 9 has no maker anywhere (elder spec 9 names 0..8 and 10..14); a census of the 0x175 requests in 0x1094024..0x10a2e44 is owed'],
+'em087_00:em087_00u:62': [W, 'sp_48 ef 2 / ef 3 are kinds 0 / 2 (the stage-query and hunter-hit arms); +0x160 0x10c27b4 calls only kind 1 at y <= 0 (u 61) (ahtal-neset-shells-spec 3B)'],
+'em088_00:em088_00u:34': [W, 'the silk ball\'s ef 4 (+0x1670), "u 34 on a hit"; sp_00 collides only at y <= 0 (u 32). The hunter is INFERRED: the reader of +0x1670 is not recorded'],
+'em088_00:em088_00u:70': [RC, 'modes 8..10, the pull\'s ef 4 (0x431244): needs G\'s spot left by an earlier shell57 end in the same run (0x433180 -> 0x10ae90c): throw then pull'],
+'em088_00:em088_00u:200': [W, 'sp_57 ef 1 starts only from base57 vt+0x98 0x430714, the hit callback; modes 2 / 14 / 18 do spawn with Carrying 2'],
+'em088_00:em088_00u:201': [W, 'the same hit callback 0x430714 (k 0\'s modes, which spawn with Carrying 0)'],
+'em088_00:em088_00u:202': [W, 'the same hit callback 0x430714 (k 1\'s modes)'],
+'em088_00:em088_00u:260': [RC, 'ef 3 is the trail\'s param 2, used only by the pull (rom-map 0x10aebac), mode 10: the spot from an earlier end (throw then pull)'],
+'em088_00:em088_00u:261': [RC, 'the same pull trail, mode 8: throw then pull'],
+'em088_00:em088_00u:262': [RC, 'the same pull trail, mode 9: throw then pull'],
+'em088_00:em088_00u:300': [RC, 'the anchors spawn at L2 M30_loop\'s first wrap (the motion-end chain stand-in, 0x10bcc9c / 0x10c03d8); u 300 after sub 0\'s float x 60'],
+'em088_00:em088_00u:301': [NB, 'shell60 ef 7: only sub-states 2 / 3, the re-aim / throw of (7, 0x2c / 0x2f / 0x31 / 0x36) via 0x4380e4, not transcribed (rom-map 0x10b4d38); that they start ef 7 INFERRED'],
+'em088_00:em088_00u:310': [IM, 'the unreleased end (shell60 ef 5 / shell61 ef 6): only when the owner goes inactive in state 1 (0x4360a0 / 0x438c10); the viewer\'s owner is always active'],
+'em088_00:em088_00u:311': [RC, 'the released end: a live anchor, then a releasing action start (status 10 / 11, (1, 6) / (1, 0x20): 0x10b49e4 / 0x10b5310) or a re-plant in the same run'],
+'em088_00:em088_00u:320': [NB, 'sp_57 20..22 = Neset\'s b2 request (0x10ac3c8, mode k + 0x14), 24..26 INFERRED his b6 (0x10ac1c8): uEm087_00\'s requests, no Neset rows'],
+'em088_00:em088_00u:321': [NB, 'ef 0 of Neset\'s 20..22 drop (0x10ac3c8): as u 320'],
+'em088_00:em088_00u:330': [RC, 'with u 300 at the anchor\'s launch: the L2 M30 first wrap'],
+'em088_00:em088_00u:331': [RC, 'the web at its arrival (sub160): the L2 M30 first wrap'],
+'em088_00:em088_00u:332': [RC, 'at the anchor\'s spawn (web088): the L2 M30 first wrap'],
+'em088_00:em088_00u:360': [NB, 'shell61 ef 4: only base61 sub-states 2 / 3, the orbit / dive of (7, 0x34) via 0x43a374, not transcribed (rom-map 0x10b57f0); INFERRED'],
+}
+# the Mizutsune / Soulseer throws and puddles (batch C): the chooser 0x104b540's throw arm gives 0 / 2 only
+for v, add in (('em082_00', 0), ('em082_04', 10)):
+    for k in (10, 11, 12, 30, 31, 32, 40, 41, 42, 50, 51, 52):
+        t = k // 10; m = t + add
+        R['%s:%su:%d' % (v, v, k)] = [RG, ('sp_13 mode %d' % m if k % 10 == 1 else 'puddle sp_01 %d (the landing child of throw %d)' % (t + 2, m)) +
+            ': the throw chooser yields 0 / 2 only -- %s (shells.js choose082s13; leviathan-shells-spec 5c)' % ('the third arm, 4, is never reached, its bound the second\'s' if t == 4 else 'mode %d is never a chooser value' % m)]
+    for k in (20, 21, 22):
+        R['%s:%su:%d' % (v, v, k)] = [RC, ('sp_13 mode %d' % (2 + add) if k == 21 else 'puddle sp_01 4 (throw %d)' % (2 + add)) +
+            ': the 10% roll x = u16((e+0x73e8 + 23 k - 0x9c4) % 100) in [90, 100) on the S13_082 actions; the named stand-in e+0x73e8 = 0 never lands in it']
+R['em082_04:em082_04u:80'] = [RC, 'only the trail\'s B arm (x < 10, k 17) -> mode 145, the e+0x73e8 roll (stand-in 0: the pass\'s 5th bubble); B[0..13] has no caller, 156..158 are Mizutsune\'s (7, 0x5e)']
+R['em082_04:em082_04u:81'] = [RC, 'as u 80: the trail\'s B arm -> 145']
+for v, m in (('em082_00', 46), ('em082_04', 146)):
+    for k in (100, 101):
+        R['%s:%su:%d' % (v, v, k)] = [BUG, 'the trail bubble (0x104cdb4, k 17, C arm: mode %d), one per 550 of the unit\'s travel: the page\'s unit (unitGamePos) stood still through a pass -- the clip\'s travel is on the `reference` node. FIXED 2026-10-20 (index.html unitGamePos)' % m]
+json.dump(R, open('reasons_agents.json', 'w'), indent=1)
+print(len(R))

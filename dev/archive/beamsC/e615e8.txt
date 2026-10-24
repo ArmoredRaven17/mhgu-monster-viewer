@@ -1,0 +1,121 @@
+00e615e8  push      {r4, r5, fp, lr}                      
+00e615ec  vpush     {d8}                                  
+00e615f0  mov       r5, r1                                
+00e615f4  mov       r4, r0                                
+00e615f8  cmp       r5, #2                                
+00e615fc  bne       #0xe61610                             
+00e61600  mov       r0, r4                                
+00e61604  bl        #0x7fc00                              
+00e61608  mov       r0, r4                                
+00e6160c  bl        #0xc0354                              
+00e61610  movw      r0, #0x1428                           
+00e61614  ldr       r0, [r4, r0]                          
+00e61618  ldrb      r1, [r0, #0x1a1]                      
+00e6161c  cmp       r1, #1                                
+00e61620  beq       #0xe6165c                             
+00e61624  cmp       r1, #0                                
+00e61628  bne       #0xe617a0                             
+00e6162c  mov       r1, #1                                
+00e61630  strb      r1, [r0, #0x1a1]                      
+00e61634  mov       r0, r4                                
+00e61638  mov       r1, #0                                
+00e6163c  bl        #0xbc7f4                              
+00e61640  vldr      s1, [pc, #0x164]                       ; =0.0
+00e61644  vmov.f32  s0, #2.000000e+00                     
+00e61648  mov       r0, r4                                
+00e6164c  movw      r1, #0x222                            
+00e61650  vpop      {d8}                                  
+00e61654  pop       {r4, r5, fp, lr}                      
+00e61658  b         #0xafe84                               ; setMotion0
+00e6165c  vldr      s16, [pc, #0x148]                      ; =0.0
+00e61660  vldr      s0, [pc, #0x140]                       ; =101.0
+00e61664  mov       r0, r4                                
+00e61668  mov       r1, #0                                
+00e6166c  mov       r2, #0                                
+00e61670  vmov.f32  s1, s16                               
+00e61674  bl        #0xb0968                               ; frameQuery(mode r1)
+00e61678  vldr      s0, [pc, #0x130]                       ; =218.0
+00e6167c  vmov.f32  s1, s16                               
+00e61680  mov       r0, r4                                
+00e61684  mov       r1, #0                                
+00e61688  mov       r2, #0                                
+00e6168c  bl        #0xb0968                               ; frameQuery(mode r1)
+00e61690  cmp       r0, #1                                
+00e61694  bne       #0xe61778                             
+00e61698  cmp       r5, #1                                
+00e6169c  beq       #0xe616f4                             
+00e616a0  cmp       r5, #0                                
+00e616a4  bne       #0xe61778                             
+00e616a8  ldr       r0, [pc, #0x110]                       ; lit 0x9d0614
+00e616ac  mov       r1, #0x10                             
+00e616b0  ldr       r0, [pc, r0]                          
+00e616b4  ldr       r5, [r0]                              
+00e616b8  mov       r0, #0x30                             
+00e616bc  bl        #0x3fb7bc                              ; alloc02?
+00e616c0  mov       r1, r0                                
+00e616c4  mov       r0, #0xd0                             
+00e616c8  str       r0, [r1, #4]                          
+00e616cc  mov       r0, #3                                
+00e616d0  str       r0, [r1, #8]                          
+00e616d4  ldr       r0, [pc, #0xe8]                        ; lit 0x9d45a4
+00e616d8  str       r4, [r1, #0xc]                        
+00e616dc  ldr       r0, [pc, r0]                          
+00e616e0  add       r0, r0, #8                            
+00e616e4  str       r0, [r1]                              
+00e616e8  ldr       r0, [pc, #0xd8]                        ; lit 0x9d0384
+00e616ec  ldr       r0, [pc, r0]                          
+00e616f0  b         #0xe6173c                             
+00e616f4  ldr       r0, [pc, #0xb8]                        ; lit 0x9d05c8
+00e616f8  mov       r1, #0x10                             
+00e616fc  ldr       r0, [pc, r0]                          
+00e61700  ldr       r5, [r0]                              
+00e61704  mov       r0, #0x30                             
+00e61708  bl        #0x3fb7bc                              ; alloc02?
+00e6170c  mov       r1, r0                                
+00e61710  mov       r0, #0xd0                             
+00e61714  str       r0, [r1, #4]                          
+00e61718  mov       r0, #4                                
+00e6171c  str       r0, [r1, #8]                          
+00e61720  ldr       r0, [pc, #0x90]                        ; lit 0x9d4558
+00e61724  str       r4, [r1, #0xc]                        
+00e61728  ldr       r0, [pc, r0]                          
+00e6172c  add       r0, r0, #8                            
+00e61730  str       r0, [r1]                              
+00e61734  ldr       r0, [pc, #0x80]                        ; lit 0x9d0338
+00e61738  ldr       r0, [pc, r0]                          
+00e6173c  ldr       r2, [r0]                              
+00e61740  mov       r3, #0                                
+00e61744  str       r2, [r1, #0x10]                       
+00e61748  ldr       r2, [r0, #4]                          
+00e6174c  str       r2, [r1, #0x14]                       
+00e61750  mov       r2, #0                                
+00e61754  ldr       r0, [r0, #8]                          
+00e61758  str       r0, [r1, #0x18]                       
+00e6175c  mov       r0, #0                                
+00e61760  str       r0, [r1, #0x1c]                       
+00e61764  strh      r0, [r1, #0x20]                       
+00e61768  movw      r0, #0xffff                           
+00e6176c  str       r0, [r1, #0x24]                       
+00e61770  mov       r0, r5                                
+00e61774  bl        #0x48b884                              ; SHELL_SUBMIT
+00e61778  mov       r0, r4                                
+00e6177c  bl        #0xb09c8                              
+00e61780  cmp       r0, #1                                
+00e61784  bne       #0xe617a0                             
+00e61788  ldr       r0, [r4]                              
+00e6178c  ldr       r1, [r0, #0x3dc]                      
+00e61790  mov       r0, r4                                
+00e61794  vpop      {d8}                                  
+00e61798  pop       {r4, r5, fp, lr}                      
+00e6179c  bx        r1                                    
+00e617a0  vpop      {d8}                                  
+00e617a4  pop       {r4, r5, fp, pc}                      
+00e617a8  sbcmi     r0, sl, #0                            
+00e617ac  andeq     r0, r0, r0                            
+00e617b0  cmpmi     sl, #0                                
+00e617b4  addseq    r0, sp, r8, asr #11                   
+00e617b8  addseq    r4, sp, r8, asr r5                    
+00e617bc  addseq    r0, sp, r8, lsr r3                    
+00e617c0  addseq    r0, sp, r4, lsl r6                    
+00e617c4  addseq    r4, sp, r4, lsr #11                   
+00e617c8  addseq    r0, sp, r4, lsl #7                    

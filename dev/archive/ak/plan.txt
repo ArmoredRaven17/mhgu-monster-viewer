@@ -1,0 +1,150 @@
+# Ahtal-Ka (em088_00): effects bound to its motions
+
+Lists: u.pel em088_00u, c.pel em088_00c. 142 motion bits over 49 motions; 41 records can go in (41 already are).
+
+| motion | frames | bit | record | efl | on | viewer clip | effect | rows |
+|---|---|---|---|---|---|---|---|---|
+| L0 Motion[4] | 187 | 0 | c 100 | cm202_050 | 22-36 | ok | ok | 15 model, 2 filter |
+| L0 Motion[5] | 117 | 0 | c 0 | em087_00_004 | 0-116 | ok | ok | 6 billboard, 3 model |
+| L0 Motion[6] | 117 | 0 | c 0 | em087_00_004 | 0-116 | ok | ok | 6 billboard, 3 model |
+| L0 Motion[7] | 241 | 0 | c 10 | em087_00_004 | 19-20 48-49 | ok | ok | 6 billboard, 3 model |
+| L0 Motion[23] | 41 | 0 | c 6 | em087_00_004 | 17-18 | ok | ok | 6 billboard, 3 model |
+| L0 Motion[24] | 61 | 0 | c 6 | em087_00_004 | 17-18 43-44 | ok | ok | 6 billboard, 3 model |
+| L0 Motion[25] | 41 | 0 | c 6 | em087_00_004 | 17-18 | ok | ok | 6 billboard, 3 model |
+| L0 Motion[26] | 61 | 0 | c 6 | em087_00_004 | 17-18 46-47 | ok | ok | 6 billboard, 3 model |
+| L0 Motion[27] | 41 | 0 | c 6 | em087_00_004 | 26-27 | ok | ok | 6 billboard, 3 model |
+| L2 Motion[1] | 147 | 0 | c 30 | em088_00_000 | 77-78 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[1] | 147 | 15 | u 250 | em087_00_002 | 1-2 | ok | ok | 3 billboard, 7 polyline, 1 model |
+| L2 Motion[1] | 147 | 18 | u 250 | em087_00_002 | 1-2 | ok | ok | 3 billboard, 7 polyline, 1 model |
+| L2 Motion[1] | 147 | 21 | u 250 | em087_00_002 | 1-2 | ok | ok | 3 billboard, 7 polyline, 1 model |
+| L2 Motion[2] | 171 | 1 | u 240 | em088_00_015 | 100-101 | ok | ok | 2 billboard, 1 model |
+| L2 Motion[3] | 171 | 1 | u 241 | em088_00_015 | 102-103 | ok | ok | 2 billboard, 1 model |
+| L2 Motion[4] | 403 | 0 | u 250 | em087_00_002 | 5-6 304-305 | ok | ok | 3 billboard, 7 polyline, 1 model |
+| L2 Motion[4] | 403 | 1 | u 260 | em088_00_004 | 335-336 | ok | ok | 3 model |
+| L2 Motion[4] | 403 | 2 | u 291 | em088_00_014 | 272-373 | ok | ok | 3 billboard, 1 polyline, 12 model |
+| L2 Motion[4] | 403 | 4 | u 200 | em088_00_000 | 71-72 248-249 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[4] | 403 | 15 | u 201 | em088_00_000 | 213-214 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[4] | 403 | 16 | u 203 | em088_00_001 | 140-141 | ok | ok | 1 billboard, 4 model |
+| L2 Motion[4] | 403 | 17 | u 206 | em087_00_004 | 274-290 | ok | ok | 6 billboard, 3 model |
+| L2 Motion[4] | 403 | 18 | u 211 | em088_00_000 | 213-214 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[4] | 403 | 19 | u 213 | em088_00_001 | 140-141 | ok | ok | 1 billboard, 4 model |
+| L2 Motion[4] | 403 | 20 | u 216 | em087_00_004 | 274-290 | ok | ok | 6 billboard, 3 model |
+| L2 Motion[4] | 403 | 21 | u 221 | em088_00_000 | 213-214 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[4] | 403 | 22 | u 223 | em088_00_001 | 140-141 | ok | ok | 1 billboard, 4 model |
+| L2 Motion[4] | 403 | 23 | u 226 | em087_00_004 | 274-290 | ok | ok | 6 billboard, 3 model |
+| L2 Motion[6] | 191 | 15 | u 200 | em088_00_000 | 93-94 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[6] | 191 | 16 | u 201 | em088_00_000 | 52-53 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[6] | 191 | 18 | u 210 | em088_00_000 | 93-94 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[6] | 191 | 19 | u 211 | em088_00_000 | 52-53 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[6] | 191 | 21 | u 220 | em088_00_000 | 93-94 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[6] | 191 | 22 | u 221 | em088_00_000 | 52-53 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[8] | 191 | 15 | u 200 | em088_00_000 | 93-94 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[8] | 191 | 16 | u 201 | em088_00_000 | 54-55 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[8] | 191 | 18 | u 210 | em088_00_000 | 93-94 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[8] | 191 | 19 | u 211 | em088_00_000 | 54-55 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[8] | 191 | 21 | u 220 | em088_00_000 | 93-94 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[8] | 191 | 22 | u 221 | em088_00_000 | 54-55 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[9] | 127 | 15 | u 250 | em087_00_002 | 21-22 | ok | ok | 3 billboard, 7 polyline, 1 model |
+| L2 Motion[9] | 127 | 16 | u 200 | em088_00_000 | 69-70 90-91 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[9] | 127 | 19 | u 210 | em088_00_000 | 69-70 90-91 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[10] | 169 | 0 | u 423 | em088_00_017 | 7-74 | ok | ok | 2 billboard, 2 model |
+| L2 Motion[10] | 169 | 15 | u 201 | em088_00_000 | 64-65 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[10] | 169 | 18 | u 422 | em088_00_017 | 17-18 | ok | ok | 2 billboard, 2 model |
+| L2 Motion[10] | 169 | 19 | u 211 | em088_00_000 | 64-65 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[10] | 169 | 21 | u 224 | em088_00_002 | 17-60 | ok | ok | 1 billboard, 6 model, 1 node |
+| L2 Motion[10] | 169 | 22 | u 221 | em088_00_000 | 64-65 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[11] | 127 | 16 | u 200 | em088_00_000 | 69-70 85-86 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[12] | 169 | 19 | u 211 | em088_00_000 | 53-54 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[12] | 169 | 21 | u 224 | em088_00_002 | 17-60 | ok | ok | 1 billboard, 6 model, 1 node |
+| L2 Motion[12] | 169 | 22 | u 221 | em088_00_000 | 64-65 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[13] | 171 | 0 | u 421 | em088_00_017 | 99-170 | ok | ok | 2 billboard, 2 model |
+| L2 Motion[13] | 171 | 2 | u 320 | em088_00_005 | 49-50 | ok | ok | 1 billboard, 1 polyline |
+| L2 Motion[14] | 265 | 0 | u 250 | em087_00_002 | 178-179 | ok | ok | 3 billboard, 7 polyline, 1 model |
+| L2 Motion[14] | 265 | 1 | u 260 | em088_00_004 | 191-192 | ok | ok | 3 model |
+| L2 Motion[14] | 265 | 2 | u 290 | em088_00_014 | 154-240 | ok | ok | 3 billboard, 1 polyline, 12 model |
+| L2 Motion[14] | 265 | 3 | u 291 | em088_00_014 | 69-154 | ok | ok | 3 billboard, 1 polyline, 12 model |
+| L2 Motion[16] | 257 | 2 | u 240 | em088_00_015 | 107-108 | ok | ok | 2 billboard, 1 model |
+| L2 Motion[16] | 257 | 3 | u 241 | em088_00_015 | 77-78 | ok | ok | 2 billboard, 1 model |
+| L2 Motion[16] | 257 | 15 | u 250 | em087_00_002 | 17-18 | ok | ok | 3 billboard, 7 polyline, 1 model |
+| L2 Motion[16] | 257 | 18 | u 250 | em087_00_002 | 17-18 | ok | ok | 3 billboard, 7 polyline, 1 model |
+| L2 Motion[16] | 257 | 21 | u 250 | em087_00_002 | 17-18 | ok | ok | 3 billboard, 7 polyline, 1 model |
+| L2 Motion[17] | 233 | 2 | u 430 | em056_00_038 | 143-162 | ok | ok | 2 model |
+| L2 Motion[17] | 233 | 15 | u 200 | em088_00_000 | 81-82 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[17] | 233 | 19 | u 210 | em088_00_000 | 81-82 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[19] | 129 | 0 | u 320 | em088_00_005 | 27-28 | ok | ok | 1 billboard, 1 polyline |
+| L2 Motion[20] | 229 | 0 | u 250 | em087_00_002 | 147-148 | ok | ok | 3 billboard, 7 polyline, 1 model |
+| L2 Motion[20] | 229 | 1 | u 261 | em088_00_004 | 161-162 | ok | ok | 3 model |
+| L2 Motion[20] | 229 | 2 | u 290 | em088_00_014 | 70-180 | ok | ok | 3 billboard, 1 polyline, 12 model |
+| L2 Motion[20] | 229 | 4 | u 291 | em088_00_014 | 40-90 180-220 | ok | ok | 3 billboard, 1 polyline, 12 model |
+| L2 Motion[21] | 155 | 0 | u 420 | em088_00_017 | 150-151 | ok | ok | 2 billboard, 2 model |
+| L2 Motion[21] | 155 | 2 | u 423 | em088_00_017 | 148-154 | ok | ok | 2 billboard, 2 model |
+| L2 Motion[22] | 37 | 0 | u 423 | em088_00_017 | 0-36 | ok | ok | 2 billboard, 2 model |
+| L2 Motion[23] | 249 | 0 | u 260 | em088_00_004 | 182-183 | ok | ok | 3 model |
+| L2 Motion[23] | 249 | 1 | u 290 | em088_00_014 | 109-200 | ok | ok | 3 billboard, 1 polyline, 12 model |
+| L2 Motion[23] | 249 | 2 | u 250 | em087_00_002 | 174-175 | ok | ok | 3 billboard, 7 polyline, 1 model |
+| L2 Motion[23] | 249 | 3 | u 291 | em088_00_014 | 80-130 200-230 | ok | ok | 3 billboard, 1 polyline, 12 model |
+| L2 Motion[23] | 249 | 15 | u 206 | em087_00_004 | 99-121 | ok | ok | 6 billboard, 3 model |
+| L2 Motion[23] | 249 | 16 | u 201 | em088_00_000 | 1-2 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[23] | 249 | 18 | u 216 | em087_00_004 | 99-121 | ok | ok | 6 billboard, 3 model |
+| L2 Motion[23] | 249 | 21 | u 226 | em087_00_004 | 99-121 | ok | ok | 6 billboard, 3 model |
+| L2 Motion[24] | 301 | 0 | u 380 | em088_00_013 | 0-94 | ok | ok | 4 billboard, 1 type 2, 6 model |
+| L2 Motion[24] | 301 | 1 | u 381 | em088_00_013 | 177-258 | ok | ok | 4 billboard, 1 type 2, 6 model |
+| L2 Motion[24] | 301 | 2 | u 382 | em088_00_013 | 105-192 | ok | ok | 4 billboard, 1 type 2, 6 model |
+| L2 Motion[26] | 33 | 0 | u 320 | em088_00_005 | 5-6 | ok | ok | 1 billboard, 1 polyline |
+| L2 Motion[28] | 301 | 0 | u 350 | em088_00_007 | 137-219 | ok | ok | 1 polyline, 1 type 2, 3 model |
+| L2 Motion[28] | 301 | 15 | u 250 | em087_00_002 | 16-17 | ok | ok | 3 billboard, 7 polyline, 1 model |
+| L2 Motion[35] | 273 | 0 | u 410 | em056_00_038 | 92-113 | ok | ok | 2 model |
+| L2 Motion[35] | 273 | 1 | c 10 | em087_00_004 | 90-133 | ok | ok | 6 billboard, 3 model |
+| L2 Motion[35] | 273 | 2 | u 240 | em088_00_015 | 92-93 115-116 | ok | ok | 2 billboard, 1 model |
+| L2 Motion[36] | 335 | 0 | u 262 | em088_00_004 | 260-261 | ok | ok | 3 model |
+| L2 Motion[36] | 335 | 1 | u 291 | em088_00_014 | 180-220 270-300 | ok | ok | 3 billboard, 1 polyline, 12 model |
+| L2 Motion[36] | 335 | 2 | u 250 | em087_00_002 | 250-251 | ok | ok | 3 billboard, 7 polyline, 1 model |
+| L2 Motion[36] | 335 | 3 | u 290 | em088_00_014 | 200-270 | ok | ok | 3 billboard, 1 polyline, 12 model |
+| L2 Motion[36] | 335 | 15 | u 201 | em088_00_000 | 116-117 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[36] | 335 | 16 | u 250 | em087_00_002 | 21-22 | ok | ok | 3 billboard, 7 polyline, 1 model |
+| L2 Motion[36] | 335 | 18 | u 211 | em088_00_000 | 116-117 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[36] | 335 | 21 | u 221 | em088_00_000 | 116-117 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[37] | 129 | 0 | u 320 | em088_00_005 | 25-26 | ok | ok | 1 billboard, 1 polyline |
+| L2 Motion[37] | 129 | 15 | u 206 | em087_00_004 | 52-114 | ok | ok | 6 billboard, 3 model |
+| L2 Motion[37] | 129 | 18 | u 216 | em087_00_004 | 52-114 | ok | ok | 6 billboard, 3 model |
+| L2 Motion[37] | 129 | 21 | u 226 | em087_00_004 | 52-114 | ok | ok | 6 billboard, 3 model |
+| L2 Motion[38] | 229 | 0 | u 250 | em087_00_002 | 155-156 | ok | ok | 3 billboard, 7 polyline, 1 model |
+| L2 Motion[38] | 229 | 2 | u 290 | em088_00_014 | 70-170 | ok | ok | 3 billboard, 1 polyline, 12 model |
+| L2 Motion[38] | 229 | 3 | u 261 | em088_00_004 | 160-161 | ok | ok | 3 model |
+| L2 Motion[38] | 229 | 4 | u 291 | em088_00_014 | 30-90 170-210 | ok | ok | 3 billboard, 1 polyline, 12 model |
+| L2 Motion[38] | 229 | 5 | u 206 | em087_00_004 | 2-120 | ok | ok | 6 billboard, 3 model |
+| L2 Motion[39] | 661 | 0 | u 261 | em088_00_004 | 587-588 | ok | ok | 3 model |
+| L2 Motion[39] | 661 | 1 | u 250 | em087_00_002 | 574-575 | ok | ok | 3 billboard, 7 polyline, 1 model |
+| L2 Motion[39] | 661 | 2 | u 290 | em088_00_014 | 470-590 | ok | ok | 3 billboard, 1 polyline, 12 model |
+| L2 Motion[39] | 661 | 3 | u 291 | em088_00_014 | 420-490 590-640 | ok | ok | 3 billboard, 1 polyline, 12 model |
+| L2 Motion[39] | 661 | 4 | u 510 | em088_00_002 | 128-167 240-313 | ok | ok | 1 billboard, 6 model, 1 node |
+| L2 Motion[39] | 661 | 15 | u 423 | em088_00_017 | 110-201 240-449 | ok | ok | 2 billboard, 2 model |
+| L2 Motion[39] | 661 | 16 | u 201 | em088_00_000 | 31-32 299-300 343-344 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[39] | 661 | 17 | u 206 | em087_00_004 | 487-566 | ok | ok | 6 billboard, 3 model |
+| L2 Motion[39] | 661 | 18 | u 423 | em088_00_017 | 110-201 240-449 | ok | ok | 2 billboard, 2 model |
+| L2 Motion[39] | 661 | 21 | u 423 | em088_00_017 | 110-201 240-449 | ok | ok | 2 billboard, 2 model |
+| L2 Motion[39] | 661 | 22 | u 221 | em088_00_000 | 31-32 299-300 343-344 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[40] | 127 | 1 | u 220 | em088_00_000 | 69-70 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[40] | 127 | 2 | u 221 | em088_00_000 | 88-89 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L2 Motion[41] | 285 | 0 | u 423 | em088_00_017 | 14-184 | ok | ok | 2 billboard, 2 model |
+| L2 Motion[41] | 285 | 1 | u 250 | em087_00_002 | 200-201 | ok | ok | 3 billboard, 7 polyline, 1 model |
+| L2 Motion[41] | 285 | 2 | u 260 | em088_00_004 | 205-206 | ok | ok | 3 model |
+| L2 Motion[41] | 285 | 3 | u 290 | em088_00_014 | 120-230 | ok | ok | 3 billboard, 1 polyline, 12 model |
+| L2 Motion[41] | 285 | 4 | u 291 | em088_00_014 | 80-140 230-260 | ok | ok | 3 billboard, 1 polyline, 12 model |
+| L2 Motion[43] | 285 | 3 | u 290 | em088_00_014 | 120-230 | ok | ok | 3 billboard, 1 polyline, 12 model |
+| L2 Motion[43] | 285 | 4 | u 291 | em088_00_014 | 80-140 230-260 | ok | ok | 3 billboard, 1 polyline, 12 model |
+| L2 Motion[46] | 249 | 1 | u 290 | em088_00_014 | 100-200 | ok | ok | 3 billboard, 1 polyline, 12 model |
+| L2 Motion[46] | 249 | 3 | u 291 | em088_00_014 | 69-121 199-230 | ok | ok | 3 billboard, 1 polyline, 12 model |
+| L2 Motion[46] | 249 | 4 | u 200 | em088_00_000 | 166-167 | ok | ok | 2 billboard, 2 polyline, 4 type 2, 14 model |
+| L3 Motion[1] | 163 | 0 | c 5 | em087_00_004 | 33-34 | ok | ok | 6 billboard, 3 model |
+| L3 Motion[2] | 209 | 0 | c 5 | em087_00_004 | 46-47 | ok | ok | 6 billboard, 3 model |
+| L3 Motion[4] | 95 | 0 | c 5 | em087_00_004 | 20-21 | ok | ok | 6 billboard, 3 model |
+| L3 Motion[8] | 121 | 0 | c 6 | em087_00_004 | 60-61 | ok | ok | 6 billboard, 3 model |
+| L3 Motion[15] | 247 | 0 | c 5 | em087_00_004 | 170-171 | ok | ok | 6 billboard, 3 model |
+| L3 Motion[19] | 369 | 0 | c 3000 | em088_00_018 | 260-261 | ok | ok | 3 type 2, 14 model, 1 node |
+| L3 Motion[19] | 369 | 1 | u 480 | em088_00_016 | 38-268 | ok | ok | 5 billboard, 4 polyline, 13 model, 2 node |
+| L3 Motion[23] | 131 | 0 | c 5 | em087_00_004 | 64-65 | ok | ok | 6 billboard, 3 model |
+| L3 Motion[27] | 51 | 0 | c 5 | em087_00_004 | 35-36 | ok | ok | 6 billboard, 3 model |
+| L3 Motion[29] | 313 | 0 | c 6 | em087_00_004 | 246-247 | ok | ok | 6 billboard, 3 model |
+
+Not bound to a motion (not added here -- their triggers are class code, shared states or shells): see dev/effects-triage/em088_00.md.

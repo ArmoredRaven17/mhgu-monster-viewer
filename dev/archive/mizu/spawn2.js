@@ -1,0 +1,12 @@
+const V = window.__view;
+const MS = await import('/render/motion-states.js');
+const monSel = document.getElementById('monSel');
+const wait = ms => new Promise(r => { const t0 = performance.now(); const f = () => performance.now() - t0 >= ms ? r() : requestAnimationFrame(f); f(); });
+const log = [];
+const P = MS.MotionStates.prototype, t0 = P.tired;
+P.tired = function(){ const r = t0.call(this); if (r && log.length < 6) log.push({ cur: this.cur && this.cur.key, spec: this.cur && this.cur.spec && this.cur.spec.tired, user: this.userTired, id: V.state.id, clip: V.state.clip, list: V.state.list, lvl: V.state.level, st: (new Error()).stack.split('\n').slice(1, 5).join(' | ') }); return r; };
+const id = 'em082_00';
+if (![...monSel.options].some(o => o.value === id)) monSel.add(new Option(id, id));
+monSel.value = id; await monSel.onchange(); await wait(500);
+P.tired = t0;
+return log;

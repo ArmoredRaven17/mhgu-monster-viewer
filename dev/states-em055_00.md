@@ -5,7 +5,7 @@ took Duramboros. This file is the note, written as his unit was wired. Status le
 **R** read (the instruction that consumes the value has been read, or the tool that produced it has a passing
 control), **I** inferred, **U** not read.
 
-Class `uEm055_00`, vtable `0x17c8768`, own code `0xed0a38..0xedec14`, frame handler (vtable `+0x208`)
+Class `uEm055_00`, vtable `0x17c8768`, own code `0xed0a38..0xedec14` [derived 2026-10-24: `0xed0838..0xedf74c`, the negatives re-run and stand; rom-map "Duramboros band (derived)"], frame handler (vtable `+0x208`)
 `0xed2a1c`. Transcribed into `docs/render/motion-states.js` (`em055_00`) and `docs/render/tail-option.js`.
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -157,7 +157,7 @@ offsets, resolved rather than assumed**) gives three distinct arms:
 **Confirmed from the other side:** the PSL fires **c 72** at **f270 on L2 M29, f313 on L2 M31 and f403 on
 L2 M32** — the same three motion/frame pairs, from a completely different file.
 
-`class-effects.json` lists a fourth site `0xee23a4`; it is **outside** his code range `0xed0a38..0xedec14` and is
+`class-effects.json` lists a fourth site `0xee23a4`; it is **outside** his code range `0xed0a38..0xedec14` [derived 2026-10-24: `0xed0838..0xedf74c`, the negatives re-run and stand; rom-map "Duramboros band (derived)"] and is
 one of the 50 known out-of-range false positives (`dev/rom-map.md`, the `class-effects.json` row).
 
 ### The blocked set — EIGHT records, 37 PSL bindings

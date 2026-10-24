@@ -1,0 +1,6420 @@
+{
+"em079_00|C|0|Motion[1]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[3]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[5]": {
+"fx": [
+[
+"0c:41/clip@34",
+"0c:40/clip@84",
+"0c:41/clip@128"
+],
+[
+"0c:41/clip@34",
+"0c:40/clip@84",
+"0c:41/clip@128"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[7]": {
+"fx": [
+[
+"0c:31/clip@4",
+"0c:12/clip@10",
+"0c:13/clip@28",
+"0c:12/clip@50",
+"0c:13/clip@74",
+"0c:12/clip@100",
+"0c:13/clip@122"
+],
+[
+"0c:12/clip@10",
+"0c:13/clip@28",
+"0c:12/clip@50",
+"0c:13/clip@74",
+"0c:12/clip@100",
+"0c:13/clip@122"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[9]": {
+"fx": [
+[
+"0c:40/clip@32"
+],
+[
+"0c:40/clip@32"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[11]": {
+"fx": [
+[
+"0c:120/clip@56"
+],
+[
+"0c:120/clip@56"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[13]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[15]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[17]": {
+"fx": [
+[
+"0c:111/clip@4"
+],
+[
+"0c:111/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[19]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[21]": {
+"fx": [
+[
+"0c:13/clip@8",
+"0c:12/clip@42",
+"0c:13/clip@76",
+"0c:20/clip@92"
+],
+[
+"0c:13/clip@8",
+"0c:12/clip@42",
+"0c:13/clip@76",
+"0c:20/clip@92"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[23]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[25]": {
+"fx": [
+[
+"0c:121/clip@4"
+],
+[
+"0c:121/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[30]": {
+"fx": [
+[
+"0c:121/clip@4"
+],
+[
+"0c:121/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[2]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[4]": {
+"fx": [
+[
+"0c:120/clip@16",
+"0c:120/clip@44",
+"0c:100/clip@108"
+],
+[
+"0c:120/clip@16",
+"0c:120/clip@44",
+"0c:100/clip@108"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[6]": {
+"fx": [
+[
+"0c:41/clip@6",
+"0c:40/clip@34"
+],
+[
+"0c:41/clip@6",
+"0c:40/clip@34"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[8]": {
+"fx": [
+[
+"0c:50/clip@32"
+],
+[
+"0c:50/clip@32"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[10]": {
+"fx": [
+[
+"0c:41/clip@32"
+],
+[
+"0c:41/clip@32"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[12]": {
+"fx": [
+[
+"0c:120/clip@56"
+],
+[
+"0c:120/clip@56"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[14]": {
+"fx": [
+[
+"0c:1104/event@4",
+"0c:1104/event@52",
+"0c:1104/event@100",
+"0c:1104/event@148",
+"0c:1104/event@196",
+"0c:1104/event@244",
+"0c:1104/event@292"
+],
+[
+"0c:1104/event@22",
+"0c:1104/event@70",
+"0c:1104/event@118",
+"0c:1104/event@166",
+"0c:1104/event@214",
+"0c:1104/event@262",
+"0c:1104/event@310"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[16]": {
+"fx": [
+[
+"0c:111/clip@132",
+"0c:111/clip@302",
+"0c:111/clip@390"
+],
+[
+"0c:111/clip@132",
+"0c:111/clip@302",
+"0c:111/clip@390"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[18]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[20]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[22]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[24]": {
+"fx": [
+[
+"0c:121/clip@4"
+],
+[
+"0c:121/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[29]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|0|Motion[31]": {
+"fx": [
+[
+"0c:121/clip@4"
+],
+[
+"0c:121/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[1]": {
+"fx": [
+[
+"0c:120/clip@10",
+"0c:120/clip@72"
+],
+[
+"0c:120/clip@10",
+"0c:120/clip@72"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[3]": {
+"fx": [
+[
+"0c:120/clip@12"
+],
+[
+"0c:120/clip@12"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[5]": {
+"fx": [
+[
+"0c:120/clip@12",
+"0c:120/clip@74"
+],
+[
+"0c:120/clip@12",
+"0c:120/clip@74"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[7]": {
+"fx": [
+[
+"0c:130/clip@4",
+"0c:31/clip@4",
+"0c:130/clip@22",
+"0c:130/clip@42",
+"0c:130/clip@62",
+"0c:130/clip@82",
+"0c:130/clip@102"
+],
+[
+"0c:130/clip@22",
+"0c:130/clip@42",
+"0c:130/clip@62",
+"0c:130/clip@82",
+"0c:130/clip@102"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[9]": {
+"fx": [
+[
+"0c:31/clip@4"
+],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[11]": {
+"fx": [
+[
+"0c:29/shell@10",
+"0c:120/clip@12"
+],
+[
+"0c:29/shell@10",
+"0c:120/clip@12"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[13]": {
+"fx": [
+[
+"0c:120/clip@58"
+],
+[
+"0c:120/clip@58"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[15]": {
+"fx": [
+[
+"0c:120/clip@38"
+],
+[
+"0c:120/clip@38"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[17]": {
+"fx": [
+[
+"0c:11/clip@34"
+],
+[
+"0c:11/clip@34"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[19]": {
+"fx": [
+[
+"0c:120/clip@4"
+],
+[
+"0c:120/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[21]": {
+"fx": [
+[
+"0c:121/clip@4",
+"0c:121/clip@48"
+],
+[
+"0c:121/clip@4",
+"0c:121/clip@48"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[23]": {
+"fx": [
+[
+"0c:121/clip@6",
+"0c:121/clip@34",
+"0c:100/clip@70",
+"0c:121/clip@184",
+"0c:121/clip@218"
+],
+[
+"0c:121/clip@6",
+"0c:121/clip@34",
+"0c:100/clip@70",
+"0c:121/clip@184",
+"0c:121/clip@218"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[25]": {
+"fx": [
+[
+"0c:120/clip@6",
+"0c:120/clip@86"
+],
+[
+"0c:120/clip@6",
+"0c:120/clip@86"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[27]": {
+"fx": [
+[
+"0c:120/clip@10"
+],
+[
+"0c:120/clip@10"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[29]": {
+"fx": [
+[
+"0c:20/clip@6"
+],
+[
+"0c:20/clip@6"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[41]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[43]": {
+"fx": [
+[
+"0c:121/clip@26"
+],
+[
+"0c:121/clip@26"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[45]": {
+"fx": [
+[
+"0c:120/clip@4",
+"0c:31/clip@32"
+],
+[
+"0c:120/clip@4",
+"0c:31/clip@32"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[99]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[2]": {
+"fx": [
+[
+"0c:120/clip@8",
+"0c:29/shell@12"
+],
+[
+"0c:120/clip@8",
+"0c:29/shell@12"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[4]": {
+"fx": [
+[
+"0c:120/clip@12"
+],
+[
+"0c:120/clip@12"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[6]": {
+"fx": [
+[
+"0c:120/clip@12",
+"0c:120/clip@74"
+],
+[
+"0c:120/clip@12",
+"0c:120/clip@74"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[8]": {
+"fx": [
+[
+"0c:31/clip@4"
+],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[10]": {
+"fx": [
+[
+"0c:31/clip@4"
+],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[12]": {
+"fx": [
+[
+"0c:29/shell@10",
+"0c:120/clip@12"
+],
+[
+"0c:29/shell@10",
+"0c:120/clip@12"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[14]": {
+"fx": [
+[
+"0c:121/clip@8"
+],
+[
+"0c:121/clip@8"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[16]": {
+"fx": [
+[
+"0c:121/clip@4"
+],
+[
+"0c:121/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[18]": {
+"fx": [
+[
+"0c:121/clip@4"
+],
+[
+"0c:121/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[20]": {
+"fx": [
+[
+"0c:20/clip@4",
+"0c:20/clip@100"
+],
+[
+"0c:20/clip@100"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[22]": {
+"fx": [
+[
+"0c:121/clip@26",
+"0c:30/shell@26"
+],
+[
+"0c:121/clip@26",
+"0c:30/shell@26"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[24]": {
+"fx": [
+[
+"0c:120/clip@6",
+"0c:120/clip@86"
+],
+[
+"0c:120/clip@6",
+"0c:120/clip@86"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[26]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[28]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[40]": {
+"fx": [
+[
+"0c:121/clip@38"
+],
+[
+"0c:121/clip@38"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[42]": {
+"fx": [
+[
+"0c:121/clip@4"
+],
+[
+"0c:121/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[44]": {
+"fx": [
+[
+"0c:20/clip@4",
+"0c:120/clip@22",
+"0c:20/clip@68"
+],
+[
+"0c:120/clip@22",
+"0c:20/clip@68"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|1|Motion[98]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[1]": {
+"fx": [
+[
+"0c:120/clip@10",
+"0c:120/clip@72"
+],
+[
+"0c:120/clip@10",
+"0c:120/clip@72"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[3]": {
+"fx": [
+[
+"0c:120/clip@12"
+],
+[
+"0c:120/clip@12"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[5]": {
+"fx": [
+[
+"0c:120/clip@12",
+"0c:120/clip@74"
+],
+[
+"0c:120/clip@12",
+"0c:120/clip@74"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[7]": {
+"fx": [
+[
+"0c:130/clip@4",
+"0c:31/clip@4",
+"0c:130/clip@22",
+"0c:130/clip@42",
+"0c:130/clip@62",
+"0c:130/clip@82",
+"0c:130/clip@102"
+],
+[
+"0c:130/clip@22",
+"0c:130/clip@42",
+"0c:130/clip@62",
+"0c:130/clip@82",
+"0c:130/clip@102"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[9]": {
+"fx": [
+[
+"0c:31/clip@4"
+],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[11]": {
+"fx": [
+[
+"0c:29/shell@10",
+"0c:120/clip@12"
+],
+[
+"0c:29/shell@10",
+"0c:120/clip@12"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[13]": {
+"fx": [
+[
+"0c:120/clip@58"
+],
+[
+"0c:120/clip@58"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[15]": {
+"fx": [
+[
+"0c:120/clip@38"
+],
+[
+"0c:120/clip@38"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[17]": {
+"fx": [
+[
+"0c:11/clip@34"
+],
+[
+"0c:11/clip@34"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[19]": {
+"fx": [
+[
+"0c:120/clip@4"
+],
+[
+"0c:120/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[21]": {
+"fx": [
+[
+"0c:121/clip@4",
+"0c:121/clip@48"
+],
+[
+"0c:121/clip@4",
+"0c:121/clip@48"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[23]": {
+"fx": [
+[
+"0c:121/clip@6",
+"0c:121/clip@34",
+"0c:100/clip@70",
+"0c:121/clip@184",
+"0c:121/clip@218"
+],
+[
+"0c:121/clip@6",
+"0c:121/clip@34",
+"0c:100/clip@70",
+"0c:121/clip@184",
+"0c:121/clip@218"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[25]": {
+"fx": [
+[
+"0c:120/clip@6",
+"0c:120/clip@86"
+],
+[
+"0c:120/clip@6",
+"0c:120/clip@86"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[27]": {
+"fx": [
+[
+"0c:120/clip@10"
+],
+[
+"0c:120/clip@10"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[29]": {
+"fx": [
+[
+"0c:20/clip@6"
+],
+[
+"0c:20/clip@6"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[41]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[43]": {
+"fx": [
+[
+"0c:121/clip@26"
+],
+[
+"0c:121/clip@26"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[45]": {
+"fx": [
+[
+"0c:120/clip@4",
+"0c:31/clip@32"
+],
+[
+"0c:120/clip@4",
+"0c:31/clip@32"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[99]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[2]": {
+"fx": [
+[
+"0c:120/clip@8",
+"0c:29/shell@12"
+],
+[
+"0c:120/clip@8",
+"0c:29/shell@12"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[4]": {
+"fx": [
+[
+"0c:120/clip@12"
+],
+[
+"0c:120/clip@12"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[6]": {
+"fx": [
+[
+"0c:120/clip@12",
+"0c:120/clip@74"
+],
+[
+"0c:120/clip@12",
+"0c:120/clip@74"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[8]": {
+"fx": [
+[
+"0c:31/clip@4"
+],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[10]": {
+"fx": [
+[
+"0c:31/clip@4"
+],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[12]": {
+"fx": [
+[
+"0c:29/shell@10",
+"0c:120/clip@12"
+],
+[
+"0c:29/shell@10",
+"0c:120/clip@12"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[14]": {
+"fx": [
+[
+"0c:121/clip@8"
+],
+[
+"0c:121/clip@8"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[16]": {
+"fx": [
+[
+"0c:121/clip@4"
+],
+[
+"0c:121/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[18]": {
+"fx": [
+[
+"0c:121/clip@4"
+],
+[
+"0c:121/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[20]": {
+"fx": [
+[
+"0c:20/clip@4",
+"0c:20/clip@100"
+],
+[
+"0c:20/clip@100"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[22]": {
+"fx": [
+[
+"0c:121/clip@26",
+"0c:30/shell@26"
+],
+[
+"0c:121/clip@26",
+"0c:30/shell@26"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[24]": {
+"fx": [
+[
+"0c:120/clip@6",
+"0c:120/clip@86"
+],
+[
+"0c:120/clip@6",
+"0c:120/clip@86"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[26]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[28]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[40]": {
+"fx": [
+[
+"0c:121/clip@38"
+],
+[
+"0c:121/clip@38"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[42]": {
+"fx": [
+[
+"0c:121/clip@4"
+],
+[
+"0c:121/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[44]": {
+"fx": [
+[
+"0c:20/clip@4",
+"0c:120/clip@22",
+"0c:20/clip@68"
+],
+[
+"0c:120/clip@22",
+"0c:20/clip@68"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|1|Motion[98]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[1]": {
+"fx": [
+[
+"0c:120/clip@18"
+],
+[
+"0c:120/clip@18"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[3]": {
+"fx": [
+[
+"0c:20/clip@4",
+"0c:20/clip@98"
+],
+[
+"0c:20/clip@98"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[5]": {
+"fx": [
+[
+"0c:120/clip@4"
+],
+[
+"0c:120/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[7]": {
+"fx": [
+[
+"0c:120/clip@4"
+],
+[
+"0c:120/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[9]": {
+"fx": [
+[
+"0c:120/clip@72"
+],
+[
+"0c:120/clip@72"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[11]": {
+"fx": [
+[
+"0c:120/clip@24"
+],
+[
+"0c:120/clip@24"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[13]": {
+"fx": [
+[
+"0c:20/clip@4",
+"0c:20/clip@88"
+],
+[
+"0c:20/clip@88"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[15]": {
+"fx": [
+[
+"0u:241/clip@78"
+],
+[
+"0u:241/clip@78"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[17]": {
+"fx": [
+[
+"0u:260/clip@4",
+"0u:1/shell@20"
+],
+[
+"0u:1/shell@20"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[19]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[21]": {
+"fx": [
+[
+"0c:11/clip@68"
+],
+[
+"0c:11/clip@68"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[23]": {
+"fx": [
+[
+"0u:10/shell@4"
+]
+],
+"shells": 1,
+"ref": [],
+"fail": "unverified path: 0xa942c8 falls into unrecorded code",
+"plays": 1
+},
+"em079_00|C|2|Motion[2]": {
+"fx": [
+[
+"0c:120/clip@4",
+"0c:130/clip@32",
+"0c:130/clip@52",
+"0c:120/clip@68",
+"0c:120/clip@98"
+],
+[
+"0c:130/clip@32",
+"0c:130/clip@52",
+"0c:120/clip@68",
+"0c:120/clip@98"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[4]": {
+"fx": [
+[
+"0c:11/clip@18"
+],
+[
+"0c:11/clip@18"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[6]": {
+"fx": [
+[
+"0c:11/clip@18"
+],
+[
+"0c:11/clip@18"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[8]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[10]": {
+"fx": [
+[
+"0c:121/clip@6"
+],
+[
+"0c:121/clip@6"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[12]": {
+"fx": [
+[
+"0c:121/clip@4",
+"0c:130/clip@12",
+"0c:121/clip@72"
+],
+[
+"0c:130/clip@12",
+"0c:121/clip@72"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[14]": {
+"fx": [
+[
+"0u:240/clip@78"
+],
+[
+"0u:240/clip@78"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[16]": {
+"fx": [
+[
+"0u:260/clip@86"
+],
+[
+"0u:260/clip@86"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[18]": {
+"fx": [
+[
+"0u:260/clip@4",
+"0u:1/shell@52"
+],
+[
+"0u:1/shell@52"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[20]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[22]": {
+"fx": [
+[
+"0u:203/clip@4",
+"0c:120/clip@28"
+],
+[
+"0u:203/clip@4",
+"0c:120/clip@28"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[24]": {
+"fx": [
+[
+"0c:120/clip@6",
+"0u:203/clip@62"
+],
+[
+"0c:120/clip@6",
+"0u:203/clip@62"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[26]": {
+"fx": [
+[
+"0c:120/clip@22",
+"0c:130/clip@54",
+"0c:130/clip@74",
+"0c:120/clip@92"
+],
+[
+"0c:120/clip@22",
+"0c:130/clip@54",
+"0c:130/clip@74",
+"0c:120/clip@92"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[28]": {
+"fx": [
+[
+"0c:20/clip@8",
+"0c:120/clip@42"
+],
+[
+"0c:20/clip@8",
+"0c:120/clip@42"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[34]": {
+"fx": [
+[
+"0c:11/clip@18"
+],
+[
+"0c:11/clip@18"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[36]": {
+"fx": [
+[
+"0c:20/clip@12",
+"0c:30/shell@86"
+],
+[
+"0c:20/clip@12",
+"0c:30/shell@86"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[41]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[43]": {
+"fx": [
+[
+"0c:120/clip@22"
+],
+[
+"0c:120/clip@22"
+]
+],
+"shells": 0,
+"ref": [
+"base01 init deleted it (no floor under the point, or 900 above the ground)"
+],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[45]": {
+"fx": [
+[
+"0c:120/clip@4"
+],
+[
+"0c:120/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[48]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[88]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[90]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[92]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[94]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[96]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|2|Motion[98]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[1]": {
+"fx": [
+[
+"0c:120/clip@18"
+],
+[
+"0c:120/clip@18"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[3]": {
+"fx": [
+[
+"0c:20/clip@4",
+"0c:20/clip@98"
+],
+[
+"0c:20/clip@98"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[5]": {
+"fx": [
+[
+"0c:120/clip@4"
+],
+[
+"0c:120/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[7]": {
+"fx": [
+[
+"0c:120/clip@4"
+],
+[
+"0c:120/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[9]": {
+"fx": [
+[
+"0c:120/clip@72"
+],
+[
+"0c:120/clip@72"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[11]": {
+"fx": [
+[
+"0c:120/clip@24"
+],
+[
+"0c:120/clip@24"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[13]": {
+"fx": [
+[
+"0c:20/clip@4",
+"0c:20/clip@88"
+],
+[
+"0c:20/clip@88"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[15]": {
+"fx": [
+[
+"0u:241/clip@78",
+"0u:20/shell@78"
+],
+[
+"0u:241/clip@78",
+"0u:20/shell@78"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[17]": {
+"fx": [
+[
+"0u:260/clip@4",
+"0u:1/shell@20"
+],
+[
+"0u:1/shell@20"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[19]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[21]": {
+"fx": [
+[
+"0c:11/clip@68"
+],
+[
+"0c:11/clip@68"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[23]": {
+"fx": [
+[
+"0u:10/shell@4"
+]
+],
+"shells": 1,
+"ref": [],
+"fail": "unverified path: 0xa942c8 falls into unrecorded code",
+"plays": 1
+},
+"em079_00|R|2|Motion[2]": {
+"fx": [
+[
+"0c:120/clip@4",
+"0c:130/clip@32",
+"0c:130/clip@52",
+"0c:120/clip@68",
+"0c:120/clip@98"
+],
+[
+"0c:130/clip@32",
+"0c:130/clip@52",
+"0c:120/clip@68",
+"0c:120/clip@98"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[4]": {
+"fx": [
+[
+"0c:11/clip@18"
+],
+[
+"0c:11/clip@18"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[6]": {
+"fx": [
+[
+"0c:11/clip@18"
+],
+[
+"0c:11/clip@18"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[8]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[10]": {
+"fx": [
+[
+"0c:121/clip@6"
+],
+[
+"0c:121/clip@6"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[12]": {
+"fx": [
+[
+"0c:121/clip@4",
+"0u:20/shell@30",
+"0c:121/clip@72"
+],
+[
+"0c:121/clip@4",
+"0u:21/shell@30",
+"0c:121/clip@72"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[14]": {
+"fx": [
+[
+"0u:240/clip@78",
+"0u:20/shell@78"
+],
+[
+"0u:240/clip@78",
+"0u:20/shell@78"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[16]": {
+"fx": [
+[
+"0u:260/clip@86"
+],
+[
+"0u:260/clip@86"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[18]": {
+"fx": [
+[
+"0u:260/clip@4",
+"0u:1/shell@52"
+],
+[
+"0u:1/shell@52"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[20]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[22]": {
+"fx": [
+[
+"0u:203/clip@4",
+"0c:120/clip@28"
+],
+[
+"0u:203/clip@4",
+"0c:120/clip@28"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[24]": {
+"fx": [
+[
+"0c:120/clip@6",
+"0u:203/clip@62"
+],
+[
+"0c:120/clip@6",
+"0u:203/clip@62"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[26]": {
+"fx": [
+[
+"0c:120/clip@22",
+"0c:130/clip@54",
+"0c:130/clip@74",
+"0c:120/clip@92"
+],
+[
+"0c:120/clip@22",
+"0c:130/clip@54",
+"0c:130/clip@74",
+"0c:120/clip@92"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[28]": {
+"fx": [
+[
+"0c:20/clip@8",
+"0c:120/clip@42"
+],
+[
+"0c:20/clip@8",
+"0c:120/clip@42"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[34]": {
+"fx": [
+[
+"0c:11/clip@18"
+],
+[
+"0c:11/clip@18"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[36]": {
+"fx": [
+[
+"0c:20/clip@12",
+"0c:30/shell@86"
+],
+[
+"0c:20/clip@12",
+"0c:30/shell@86"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[41]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[43]": {
+"fx": [
+[
+"0c:120/clip@22"
+],
+[
+"0c:120/clip@22"
+]
+],
+"shells": 0,
+"ref": [
+"base01 init deleted it (no floor under the point, or 900 above the ground)"
+],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[45]": {
+"fx": [
+[
+"0c:120/clip@4"
+],
+[
+"0c:120/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[48]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[88]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[90]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[92]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[94]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[96]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|R|2|Motion[98]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[1]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[3]": {
+"fx": [
+[
+"0c:1103/event@2",
+"0c:20/clip@46"
+],
+[
+"0c:20/clip@46"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[5]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[7]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[9]": {
+"fx": [
+[
+"0c:1105/event@2",
+"0c:20/clip@42",
+"0c:1105/event@44",
+"0c:1105/event@86",
+"0c:1105/event@128"
+],
+[
+"0c:1105/event@2",
+"0c:20/clip@42",
+"0c:1105/event@44",
+"0c:1105/event@86",
+"0c:1105/event@128"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[11]": {
+"fx": [
+[
+"0c:22/clip@4"
+],
+[
+"0c:22/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[13]": {
+"fx": [
+[
+"0c:1101/event@2",
+"0c:1101/event@64",
+"0c:1101/event@124",
+"0c:1101/event@186"
+],
+[
+"0c:1101/event@30",
+"0c:1101/event@90",
+"0c:1101/event@152",
+"0c:1101/event@214"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[15]": {
+"fx": [
+[
+"0c:1102/event@2",
+"0c:1102/event@92",
+"0c:1102/event@184"
+],
+[
+"0c:1102/event@32",
+"0c:1102/event@122",
+"0c:1102/event@214"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[17]": {
+"fx": [
+[
+"0c:3000/clip@278"
+],
+[
+"0c:3000/clip@278"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[19]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[22]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[24]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[26]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[28]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[30]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[2]": {
+"fx": [
+[
+"0u:1010/event@2",
+"0c:41/clip@36",
+"0c:40/clip@60"
+],
+[
+"0u:1015/event@2",
+"0c:41/clip@36",
+"0c:40/clip@60"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[4]": {
+"fx": [
+[
+"0c:1103/event@2",
+"0c:20/clip@46"
+],
+[
+"0c:20/clip@46"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[6]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[8]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[10]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[12]": {
+"fx": [
+[
+"0c:3000/clip@84"
+],
+[
+"0c:3000/clip@84"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[14]": {
+"fx": [
+[
+"0c:20/clip@26",
+"0c:20/clip@232"
+],
+[
+"0c:20/clip@26",
+"0c:20/clip@232"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[16]": {
+"fx": [
+[
+"0c:120/clip@46",
+"0c:120/clip@64"
+],
+[
+"0c:120/clip@46",
+"0c:120/clip@64"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[18]": {
+"fx": [
+[
+"0c:80/clip@10"
+],
+[
+"0c:80/clip@10"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[20]": {
+"fx": [
+[
+"0c:3000/clip@96"
+],
+[
+"0c:3000/clip@96"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[23]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[25]": {
+"fx": [
+[
+"0c:20/clip@6"
+],
+[
+"0c:20/clip@6"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[27]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_00|C|3|Motion[29]": {
+"fx": [
+[
+"0c:20/clip@38"
+],
+[
+"0c:20/clip@38"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[1]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[3]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[5]": {
+"fx": [
+[
+"0c:41/clip@34",
+"0c:40/clip@84",
+"0c:41/clip@128"
+],
+[
+"0c:41/clip@34",
+"0c:40/clip@84",
+"0c:41/clip@128"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[7]": {
+"fx": [
+[
+"0c:31/clip@4",
+"0c:12/clip@10",
+"0c:13/clip@28",
+"0c:12/clip@50",
+"0c:13/clip@74",
+"0c:12/clip@100",
+"0c:13/clip@122"
+],
+[
+"0c:12/clip@10",
+"0c:13/clip@28",
+"0c:12/clip@50",
+"0c:13/clip@74",
+"0c:12/clip@100",
+"0c:13/clip@122"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[9]": {
+"fx": [
+[
+"0c:40/clip@32"
+],
+[
+"0c:40/clip@32"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[11]": {
+"fx": [
+[
+"0c:120/clip@56"
+],
+[
+"0c:120/clip@56"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[13]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[15]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[17]": {
+"fx": [
+[
+"0c:111/clip@4"
+],
+[
+"0c:111/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[19]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[21]": {
+"fx": [
+[
+"0c:13/clip@8",
+"0c:12/clip@42",
+"0c:13/clip@76",
+"0c:20/clip@92"
+],
+[
+"0c:13/clip@8",
+"0c:12/clip@42",
+"0c:13/clip@76",
+"0c:20/clip@92"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[23]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[25]": {
+"fx": [
+[
+"0c:121/clip@4"
+],
+[
+"0c:121/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[30]": {
+"fx": [
+[
+"0c:121/clip@4"
+],
+[
+"0c:121/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[2]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[4]": {
+"fx": [
+[
+"0c:120/clip@16",
+"0c:120/clip@44",
+"0c:100/clip@108"
+],
+[
+"0c:120/clip@16",
+"0c:120/clip@44",
+"0c:100/clip@108"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[6]": {
+"fx": [
+[
+"0c:41/clip@6",
+"0c:40/clip@34"
+],
+[
+"0c:41/clip@6",
+"0c:40/clip@34"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[8]": {
+"fx": [
+[
+"0c:50/clip@32"
+],
+[
+"0c:50/clip@32"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[10]": {
+"fx": [
+[
+"0c:41/clip@32"
+],
+[
+"0c:41/clip@32"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[12]": {
+"fx": [
+[
+"0c:120/clip@56"
+],
+[
+"0c:120/clip@56"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[14]": {
+"fx": [
+[
+"0c:1104/event@4",
+"0c:1104/event@52",
+"0c:1104/event@100",
+"0c:1104/event@148",
+"0c:1104/event@196",
+"0c:1104/event@244",
+"0c:1104/event@292"
+],
+[
+"0c:1104/event@22",
+"0c:1104/event@70",
+"0c:1104/event@118",
+"0c:1104/event@166",
+"0c:1104/event@214",
+"0c:1104/event@262",
+"0c:1104/event@310"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[16]": {
+"fx": [
+[
+"0c:111/clip@132",
+"0c:111/clip@302",
+"0c:111/clip@390"
+],
+[
+"0c:111/clip@132",
+"0c:111/clip@302",
+"0c:111/clip@390"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[18]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[20]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[22]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[24]": {
+"fx": [
+[
+"0c:121/clip@4"
+],
+[
+"0c:121/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[29]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|0|Motion[31]": {
+"fx": [
+[
+"0c:121/clip@4"
+],
+[
+"0c:121/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[1]": {
+"fx": [
+[
+"0c:120/clip@10",
+"0c:120/clip@72"
+],
+[
+"0c:120/clip@10",
+"0c:120/clip@72"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[3]": {
+"fx": [
+[
+"0c:120/clip@12"
+],
+[
+"0c:120/clip@12"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[5]": {
+"fx": [
+[
+"0c:120/clip@12",
+"0c:120/clip@74"
+],
+[
+"0c:120/clip@12",
+"0c:120/clip@74"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[7]": {
+"fx": [
+[
+"0c:130/clip@4",
+"0c:31/clip@4",
+"0c:130/clip@22",
+"0c:130/clip@42",
+"0c:130/clip@62",
+"0c:130/clip@82",
+"0c:130/clip@102"
+],
+[
+"0c:130/clip@22",
+"0c:130/clip@42",
+"0c:130/clip@62",
+"0c:130/clip@82",
+"0c:130/clip@102"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[9]": {
+"fx": [
+[
+"0c:31/clip@4"
+],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[11]": {
+"fx": [
+[
+"0c:29/shell@10",
+"0c:120/clip@12"
+],
+[
+"0c:29/shell@10",
+"0c:120/clip@12"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[13]": {
+"fx": [
+[
+"0c:120/clip@58"
+],
+[
+"0c:120/clip@58"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[15]": {
+"fx": [
+[
+"0c:120/clip@38"
+],
+[
+"0c:120/clip@38"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[17]": {
+"fx": [
+[
+"0c:11/clip@34"
+],
+[
+"0c:11/clip@34"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[19]": {
+"fx": [
+[
+"0c:120/clip@4"
+],
+[
+"0c:120/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[21]": {
+"fx": [
+[
+"0c:121/clip@4",
+"0c:121/clip@48"
+],
+[
+"0c:121/clip@4",
+"0c:121/clip@48"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[23]": {
+"fx": [
+[
+"0c:121/clip@6",
+"0c:121/clip@34",
+"0c:100/clip@70",
+"0c:121/clip@184",
+"0c:121/clip@218"
+],
+[
+"0c:121/clip@6",
+"0c:121/clip@34",
+"0c:100/clip@70",
+"0c:121/clip@184",
+"0c:121/clip@218"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[25]": {
+"fx": [
+[
+"0c:120/clip@6",
+"0c:120/clip@86"
+],
+[
+"0c:120/clip@6",
+"0c:120/clip@86"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[27]": {
+"fx": [
+[
+"4u:361/clip@4",
+"4u:60/shell@8",
+"0c:120/clip@10"
+],
+[
+"0c:120/clip@10"
+]
+],
+"shells": 1,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[29]": {
+"fx": [
+[
+"0c:20/clip@6"
+],
+[
+"0c:20/clip@6"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[41]": {
+"fx": [
+[
+"4u:80/shell@14"
+],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[43]": {
+"fx": [
+[
+"0c:121/clip@26"
+],
+[
+"0c:121/clip@26"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[45]": {
+"fx": [
+[
+"0c:120/clip@4",
+"0c:31/clip@32"
+],
+[
+"0c:120/clip@4",
+"0c:31/clip@32"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[99]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[2]": {
+"fx": [
+[
+"0c:120/clip@8",
+"0c:29/shell@12"
+],
+[
+"0c:120/clip@8",
+"0c:29/shell@12"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[4]": {
+"fx": [
+[
+"0c:120/clip@12"
+],
+[
+"0c:120/clip@12"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[6]": {
+"fx": [
+[
+"0c:120/clip@12",
+"0c:120/clip@74"
+],
+[
+"0c:120/clip@12",
+"0c:120/clip@74"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[8]": {
+"fx": [
+[
+"0c:31/clip@4"
+],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[10]": {
+"fx": [
+[
+"0c:31/clip@4"
+],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[12]": {
+"fx": [
+[
+"0c:29/shell@10",
+"0c:120/clip@12"
+],
+[
+"0c:29/shell@10",
+"0c:120/clip@12"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[14]": {
+"fx": [
+[
+"0c:121/clip@8"
+],
+[
+"0c:121/clip@8"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[16]": {
+"fx": [
+[
+"0c:121/clip@4"
+],
+[
+"0c:121/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[18]": {
+"fx": [
+[
+"0c:121/clip@4"
+],
+[
+"0c:121/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[20]": {
+"fx": [
+[
+"0c:20/clip@4",
+"0c:20/clip@100"
+],
+[
+"0c:20/clip@100"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[22]": {
+"fx": [
+[
+"0c:121/clip@26",
+"0c:30/shell@26"
+],
+[
+"0c:121/clip@26",
+"0c:30/shell@26"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[24]": {
+"fx": [
+[
+"0c:120/clip@6",
+"0c:120/clip@86"
+],
+[
+"0c:120/clip@6",
+"0c:120/clip@86"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[26]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[28]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[40]": {
+"fx": [
+[
+"0c:121/clip@38"
+],
+[
+"0c:121/clip@38"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[42]": {
+"fx": [
+[
+"0c:121/clip@4"
+],
+[
+"0c:121/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[44]": {
+"fx": [
+[
+"0c:20/clip@4",
+"0c:120/clip@22",
+"0c:20/clip@68"
+],
+[
+"0c:120/clip@22",
+"0c:20/clip@68"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|1|Motion[98]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[1]": {
+"fx": [
+[
+"0c:120/clip@10",
+"0c:120/clip@72"
+],
+[
+"0c:120/clip@10",
+"0c:120/clip@72"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[3]": {
+"fx": [
+[
+"0c:120/clip@12"
+],
+[
+"0c:120/clip@12"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[5]": {
+"fx": [
+[
+"0c:120/clip@12",
+"0c:120/clip@74"
+],
+[
+"0c:120/clip@12",
+"0c:120/clip@74"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[7]": {
+"fx": [
+[
+"0c:130/clip@4",
+"0c:31/clip@4",
+"0c:130/clip@22",
+"0c:130/clip@42",
+"0c:130/clip@62",
+"0c:130/clip@82",
+"0c:130/clip@102"
+],
+[
+"0c:130/clip@22",
+"0c:130/clip@42",
+"0c:130/clip@62",
+"0c:130/clip@82",
+"0c:130/clip@102"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[9]": {
+"fx": [
+[
+"0c:31/clip@4"
+],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[11]": {
+"fx": [
+[
+"0c:29/shell@10",
+"0c:120/clip@12"
+],
+[
+"0c:29/shell@10",
+"0c:120/clip@12"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[13]": {
+"fx": [
+[
+"0c:120/clip@58"
+],
+[
+"0c:120/clip@58"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[15]": {
+"fx": [
+[
+"0c:120/clip@38"
+],
+[
+"0c:120/clip@38"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[17]": {
+"fx": [
+[
+"0c:11/clip@34"
+],
+[
+"0c:11/clip@34"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[19]": {
+"fx": [
+[
+"0c:120/clip@4"
+],
+[
+"0c:120/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[21]": {
+"fx": [
+[
+"0c:121/clip@4",
+"0c:121/clip@48"
+],
+[
+"0c:121/clip@4",
+"0c:121/clip@48"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[23]": {
+"fx": [
+[
+"0c:121/clip@6",
+"0c:121/clip@34",
+"0c:100/clip@70",
+"0c:121/clip@184",
+"0c:121/clip@218"
+],
+[
+"0c:121/clip@6",
+"0c:121/clip@34",
+"0c:100/clip@70",
+"0c:121/clip@184",
+"0c:121/clip@218"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[25]": {
+"fx": [
+[
+"0c:120/clip@6",
+"0c:120/clip@86"
+],
+[
+"0c:120/clip@6",
+"0c:120/clip@86"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[27]": {
+"fx": [
+[
+"4u:361/clip@4",
+"4u:60/shell@8",
+"0c:120/clip@10"
+],
+[
+"0c:120/clip@10"
+]
+],
+"shells": 1,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[29]": {
+"fx": [
+[
+"0c:20/clip@6"
+],
+[
+"0c:20/clip@6"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[41]": {
+"fx": [
+[
+"4u:80/shell@14"
+],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[43]": {
+"fx": [
+[
+"0c:121/clip@26"
+],
+[
+"0c:121/clip@26"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[45]": {
+"fx": [
+[
+"0c:120/clip@4",
+"0c:31/clip@32"
+],
+[
+"0c:120/clip@4",
+"0c:31/clip@32"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[99]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[2]": {
+"fx": [
+[
+"0c:120/clip@8",
+"0c:29/shell@12"
+],
+[
+"0c:120/clip@8",
+"0c:29/shell@12"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[4]": {
+"fx": [
+[
+"0c:120/clip@12"
+],
+[
+"0c:120/clip@12"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[6]": {
+"fx": [
+[
+"0c:120/clip@12",
+"0c:120/clip@74"
+],
+[
+"0c:120/clip@12",
+"0c:120/clip@74"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[8]": {
+"fx": [
+[
+"0c:31/clip@4"
+],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[10]": {
+"fx": [
+[
+"0c:31/clip@4"
+],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[12]": {
+"fx": [
+[
+"0c:29/shell@10",
+"0c:120/clip@12"
+],
+[
+"0c:29/shell@10",
+"0c:120/clip@12"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[14]": {
+"fx": [
+[
+"0c:121/clip@8"
+],
+[
+"0c:121/clip@8"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[16]": {
+"fx": [
+[
+"0c:121/clip@4"
+],
+[
+"0c:121/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[18]": {
+"fx": [
+[
+"0c:121/clip@4"
+],
+[
+"0c:121/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[20]": {
+"fx": [
+[
+"0c:20/clip@4",
+"0c:20/clip@100"
+],
+[
+"0c:20/clip@100"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[22]": {
+"fx": [
+[
+"0c:121/clip@26",
+"0c:30/shell@26"
+],
+[
+"0c:121/clip@26",
+"0c:30/shell@26"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[24]": {
+"fx": [
+[
+"0c:120/clip@6",
+"0c:120/clip@86"
+],
+[
+"0c:120/clip@6",
+"0c:120/clip@86"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[26]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[28]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[40]": {
+"fx": [
+[
+"0c:121/clip@38"
+],
+[
+"0c:121/clip@38"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[42]": {
+"fx": [
+[
+"0c:121/clip@4"
+],
+[
+"0c:121/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[44]": {
+"fx": [
+[
+"0c:20/clip@4",
+"0c:120/clip@22",
+"0c:20/clip@68"
+],
+[
+"0c:120/clip@22",
+"0c:20/clip@68"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|1|Motion[98]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[1]": {
+"fx": [
+[
+"0c:120/clip@18"
+],
+[
+"0c:120/clip@18"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[3]": {
+"fx": [
+[
+"0c:20/clip@4",
+"0c:20/clip@98"
+],
+[
+"0c:20/clip@98"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[5]": {
+"fx": [
+[
+"0c:120/clip@4"
+],
+[
+"0c:120/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[7]": {
+"fx": [
+[
+"0c:120/clip@4"
+],
+[
+"0c:120/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[9]": {
+"fx": [
+[
+"0c:120/clip@72"
+],
+[
+"0c:120/clip@72"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[11]": {
+"fx": [
+[
+"0c:120/clip@24"
+],
+[
+"0c:120/clip@24"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[13]": {
+"fx": [
+[
+"0c:20/clip@4",
+"0c:20/clip@88"
+],
+[
+"0c:20/clip@88"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[15]": {
+"fx": [
+[
+"4u:241/clip@78"
+],
+[
+"4u:241/clip@78"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[17]": {
+"fx": [
+[
+"4u:260/clip@4",
+"4u:1/shell@20"
+],
+[
+"4u:1/shell@20"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[19]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[21]": {
+"fx": [
+[
+"0c:11/clip@68"
+],
+[
+"0c:11/clip@68"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[23]": {
+"fx": [
+[
+"4u:10/shell@4"
+],
+[]
+],
+"shells": 1,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[25]": {
+"fx": [
+[
+"4u:203/clip@4",
+"4u:204/clip@12"
+],
+[
+"4u:203/clip@4",
+"4u:204/clip@12"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[27]": {
+"fx": [
+[
+"0c:20/clip@8",
+"0c:120/clip@42"
+],
+[
+"0c:20/clip@8",
+"0c:120/clip@42"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[29]": {
+"fx": [
+[
+"0c:20/clip@4",
+"0c:120/clip@36"
+],
+[
+"0c:20/clip@4",
+"0c:120/clip@36"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[35]": {
+"fx": [
+[
+"0c:120/clip@4"
+],
+[
+"0c:120/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[37]": {
+"fx": [
+[
+"0c:20/clip@12",
+"0c:30/shell@86"
+],
+[
+"0c:20/clip@12",
+"0c:30/shell@86"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[42]": {
+"fx": [
+[
+"0c:130/clip@4",
+"0c:120/clip@4",
+"0c:130/clip@22",
+"0c:130/clip@42",
+"0c:130/clip@62",
+"0c:130/clip@82"
+],
+[
+"0c:120/clip@4",
+"0c:130/clip@22",
+"0c:130/clip@42",
+"0c:130/clip@62",
+"0c:130/clip@82"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[44]": {
+"fx": [
+[
+"0c:11/clip@10",
+"0c:120/clip@16"
+],
+[
+"0c:11/clip@10",
+"0c:120/clip@16"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[46]": {
+"fx": [
+[
+"4u:242/clip@70",
+"4u:280/clip@76"
+],
+[
+"4u:242/clip@70",
+"4u:280/clip@76"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[87]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[89]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[91]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[93]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[95]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[97]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[99]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[2]": {
+"fx": [
+[
+"0c:120/clip@4",
+"0c:130/clip@32",
+"0c:130/clip@52",
+"0c:120/clip@68",
+"0c:120/clip@98"
+],
+[
+"0c:130/clip@32",
+"0c:130/clip@52",
+"0c:120/clip@68",
+"0c:120/clip@98"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[4]": {
+"fx": [
+[
+"0c:11/clip@18"
+],
+[
+"0c:11/clip@18"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[6]": {
+"fx": [
+[
+"0c:11/clip@18"
+],
+[
+"0c:11/clip@18"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[8]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[10]": {
+"fx": [
+[
+"0c:121/clip@6"
+],
+[
+"0c:121/clip@6"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[12]": {
+"fx": [
+[
+"0c:121/clip@4",
+"0c:130/clip@12",
+"0c:121/clip@72"
+],
+[
+"0c:130/clip@12",
+"0c:121/clip@72"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[14]": {
+"fx": [
+[
+"4u:240/clip@78"
+],
+[
+"4u:240/clip@78"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[16]": {
+"fx": [
+[
+"4u:260/clip@86"
+],
+[
+"4u:260/clip@86"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[18]": {
+"fx": [
+[
+"4u:260/clip@4",
+"4u:1/shell@52"
+],
+[
+"4u:1/shell@52"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[20]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[22]": {
+"fx": [
+[
+"4u:203/clip@4",
+"0c:120/clip@28"
+],
+[
+"4u:203/clip@4",
+"0c:120/clip@28"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[24]": {
+"fx": [
+[
+"0c:120/clip@6",
+"4u:203/clip@62"
+],
+[
+"0c:120/clip@6",
+"4u:203/clip@62"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[26]": {
+"fx": [
+[
+"0c:120/clip@22",
+"0c:130/clip@54",
+"0c:130/clip@74",
+"0c:120/clip@92"
+],
+[
+"0c:120/clip@22",
+"0c:130/clip@54",
+"0c:130/clip@74",
+"0c:120/clip@92"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[28]": {
+"fx": [
+[
+"0c:20/clip@8",
+"0c:120/clip@42"
+],
+[
+"0c:20/clip@8",
+"0c:120/clip@42"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[34]": {
+"fx": [
+[
+"0c:11/clip@18"
+],
+[
+"0c:11/clip@18"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[36]": {
+"fx": [
+[
+"0c:20/clip@12",
+"0c:30/shell@86"
+],
+[
+"0c:20/clip@12",
+"0c:30/shell@86"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[41]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[43]": {
+"fx": [
+[
+"0c:120/clip@22"
+],
+[
+"0c:120/clip@22"
+]
+],
+"shells": 0,
+"ref": [
+"base01 init deleted it (no floor under the point, or 900 above the ground)"
+],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[45]": {
+"fx": [
+[
+"0c:120/clip@4"
+],
+[
+"0c:120/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[48]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[88]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[90]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[92]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[94]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[96]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|2|Motion[98]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[1]": {
+"fx": [
+[
+"0c:120/clip@18"
+],
+[
+"0c:120/clip@18"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[3]": {
+"fx": [
+[
+"0c:20/clip@4",
+"0c:20/clip@98"
+],
+[
+"0c:20/clip@98"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[5]": {
+"fx": [
+[
+"0c:120/clip@4"
+],
+[
+"0c:120/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[7]": {
+"fx": [
+[
+"0c:120/clip@4"
+],
+[
+"0c:120/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[9]": {
+"fx": [
+[
+"0c:120/clip@72"
+],
+[
+"0c:120/clip@72"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[11]": {
+"fx": [
+[
+"0c:120/clip@24"
+],
+[
+"0c:120/clip@24"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[13]": {
+"fx": [
+[
+"0c:20/clip@4",
+"0c:20/clip@88"
+],
+[
+"0c:20/clip@88"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[15]": {
+"fx": [
+[
+"4u:241/clip@78",
+"4u:20/shell@78"
+],
+[
+"4u:241/clip@78",
+"4u:30/shell@78"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[17]": {
+"fx": [
+[
+"4u:260/clip@4",
+"4u:1/shell@20"
+],
+[
+"4u:1/shell@20"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[19]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[21]": {
+"fx": [
+[
+"0c:11/clip@68"
+],
+[
+"0c:11/clip@68"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[23]": {
+"fx": [
+[
+"4u:10/shell@4"
+],
+[]
+],
+"shells": 1,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[25]": {
+"fx": [
+[
+"4u:203/clip@4",
+"4u:204/clip@12"
+],
+[
+"4u:203/clip@4",
+"4u:204/clip@12"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[27]": {
+"fx": [
+[
+"0c:20/clip@8",
+"0c:120/clip@42"
+],
+[
+"0c:20/clip@8",
+"0c:120/clip@42"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[29]": {
+"fx": [
+[
+"0c:20/clip@4",
+"0c:120/clip@36"
+],
+[
+"0c:20/clip@4",
+"0c:120/clip@36"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[35]": {
+"fx": [
+[
+"0c:120/clip@4"
+],
+[
+"0c:120/clip@4"
+]
+],
+"shells": 0,
+"ref": [
+"base01 init deleted it (no floor under the point, or 900 above the ground)"
+],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[37]": {
+"fx": [
+[
+"0c:20/clip@12",
+"0c:30/shell@86"
+],
+[
+"0c:20/clip@12",
+"0c:30/shell@86"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[42]": {
+"fx": [
+[
+"0c:130/clip@4",
+"0c:120/clip@4",
+"0c:130/clip@22",
+"0c:130/clip@42",
+"0c:130/clip@62",
+"0c:130/clip@82"
+],
+[
+"0c:120/clip@4",
+"0c:130/clip@22",
+"0c:130/clip@42",
+"0c:130/clip@62",
+"0c:130/clip@82"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[44]": {
+"fx": [
+[
+"0c:11/clip@10",
+"0c:120/clip@16"
+],
+[
+"0c:11/clip@10",
+"0c:120/clip@16"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[46]": {
+"fx": [
+[
+"4u:242/clip@70",
+"4u:280/clip@76"
+],
+[
+"4u:242/clip@70",
+"4u:280/clip@76"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[87]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[89]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[91]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[93]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[95]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[97]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[99]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[2]": {
+"fx": [
+[
+"0c:120/clip@4",
+"0c:130/clip@32",
+"0c:130/clip@52",
+"0c:120/clip@68",
+"0c:120/clip@98"
+],
+[
+"0c:130/clip@32",
+"0c:130/clip@52",
+"0c:120/clip@68",
+"0c:120/clip@98"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[4]": {
+"fx": [
+[
+"0c:11/clip@18"
+],
+[
+"0c:11/clip@18"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[6]": {
+"fx": [
+[
+"0c:11/clip@18"
+],
+[
+"0c:11/clip@18"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[8]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[10]": {
+"fx": [
+[
+"0c:121/clip@6"
+],
+[
+"0c:121/clip@6"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[12]": {
+"fx": [
+[
+"0c:121/clip@4",
+"4u:20/shell@30",
+"0c:121/clip@72"
+],
+[
+"0c:121/clip@4",
+"4u:21/shell@30",
+"0c:121/clip@72"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[14]": {
+"fx": [
+[
+"4u:240/clip@78",
+"4u:20/shell@78"
+],
+[
+"4u:240/clip@78",
+"4u:30/shell@78"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[16]": {
+"fx": [
+[
+"4u:260/clip@86"
+],
+[
+"4u:260/clip@86"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[18]": {
+"fx": [
+[
+"4u:260/clip@4",
+"4u:1/shell@52"
+],
+[
+"4u:1/shell@52"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[20]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[22]": {
+"fx": [
+[
+"4u:203/clip@4",
+"0c:120/clip@28"
+],
+[
+"4u:203/clip@4",
+"0c:120/clip@28"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[24]": {
+"fx": [
+[
+"0c:120/clip@6",
+"4u:203/clip@62"
+],
+[
+"0c:120/clip@6",
+"4u:203/clip@62"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[26]": {
+"fx": [
+[
+"0c:120/clip@22",
+"0c:130/clip@54",
+"0c:130/clip@74",
+"0c:120/clip@92"
+],
+[
+"0c:120/clip@22",
+"0c:130/clip@54",
+"0c:130/clip@74",
+"0c:120/clip@92"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[28]": {
+"fx": [
+[
+"0c:20/clip@8",
+"0c:120/clip@42"
+],
+[
+"0c:20/clip@8",
+"0c:120/clip@42"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[34]": {
+"fx": [
+[
+"0c:11/clip@18"
+],
+[
+"0c:11/clip@18"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[36]": {
+"fx": [
+[
+"0c:20/clip@12",
+"0c:30/shell@86"
+],
+[
+"0c:20/clip@12",
+"0c:30/shell@86"
+]
+],
+"shells": 2,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[41]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[43]": {
+"fx": [
+[
+"0c:120/clip@22"
+],
+[
+"0c:120/clip@22"
+]
+],
+"shells": 0,
+"ref": [
+"base01 init deleted it (no floor under the point, or 900 above the ground)"
+],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[45]": {
+"fx": [
+[
+"0c:120/clip@4"
+],
+[
+"0c:120/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[48]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[88]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[90]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[92]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[94]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[96]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|2|Motion[98]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[1]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[3]": {
+"fx": [
+[
+"0c:1103/event@2",
+"0c:20/clip@46"
+],
+[
+"0c:20/clip@46"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[5]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[7]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[9]": {
+"fx": [
+[
+"0c:1105/event@2",
+"0c:20/clip@42",
+"0c:1105/event@44",
+"0c:1105/event@86",
+"0c:1105/event@128"
+],
+[
+"0c:1105/event@2",
+"0c:20/clip@42",
+"0c:1105/event@44",
+"0c:1105/event@86",
+"0c:1105/event@128"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[11]": {
+"fx": [
+[
+"0c:22/clip@4"
+],
+[
+"0c:22/clip@4"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[13]": {
+"fx": [
+[
+"0c:1101/event@2",
+"0c:1101/event@64",
+"0c:1101/event@124",
+"0c:1101/event@186"
+],
+[
+"0c:1101/event@30",
+"0c:1101/event@90",
+"0c:1101/event@152",
+"0c:1101/event@214"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[15]": {
+"fx": [
+[
+"0c:1102/event@2",
+"0c:1102/event@92",
+"0c:1102/event@184"
+],
+[
+"0c:1102/event@32",
+"0c:1102/event@122",
+"0c:1102/event@214"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[17]": {
+"fx": [
+[
+"4u:200/event@2",
+"0c:3000/clip@278"
+],
+[
+"4u:200/event@2",
+"0c:3000/clip@278"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[19]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[22]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[24]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[26]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[28]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[30]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[2]": {
+"fx": [
+[
+"4u:1010/event@2",
+"0c:41/clip@36",
+"0c:40/clip@60"
+],
+[
+"4u:1015/event@2",
+"0c:41/clip@36",
+"0c:40/clip@60"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[4]": {
+"fx": [
+[
+"0c:1103/event@2",
+"0c:20/clip@46"
+],
+[
+"0c:20/clip@46"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[6]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[8]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[10]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[12]": {
+"fx": [
+[
+"4u:200/event@2",
+"0c:3000/clip@84"
+],
+[
+"4u:200/event@2",
+"0c:3000/clip@84"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[14]": {
+"fx": [
+[
+"0c:20/clip@26",
+"0c:20/clip@232"
+],
+[
+"0c:20/clip@26",
+"0c:20/clip@232"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[16]": {
+"fx": [
+[
+"0c:120/clip@46",
+"0c:120/clip@64"
+],
+[
+"0c:120/clip@46",
+"0c:120/clip@64"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[18]": {
+"fx": [
+[
+"0c:80/clip@10"
+],
+[
+"0c:80/clip@10"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[20]": {
+"fx": [
+[
+"4u:200/event@2",
+"0c:3000/clip@96"
+],
+[
+"4u:200/event@2",
+"0c:3000/clip@96"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[23]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[25]": {
+"fx": [
+[
+"0c:20/clip@6"
+],
+[
+"0c:20/clip@6"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[27]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|3|Motion[29]": {
+"fx": [
+[
+"0c:20/clip@38"
+],
+[
+"0c:20/clip@38"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|9|Motion[1]": {
+"fx": [
+[
+"0c:120/clip@16"
+],
+[
+"0c:120/clip@16"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|9|Motion[3]": {
+"fx": [
+[
+"0c:120/clip@22",
+"4u:310/clip@40",
+"0c:131/clip@48",
+"4u:330/clip@132"
+],
+[
+"0c:120/clip@22",
+"4u:310/clip@40",
+"0c:131/clip@48",
+"4u:330/clip@132"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|9|Motion[5]": {
+"fx": [
+[
+"0c:13/clip@20"
+],
+[
+"0c:13/clip@20"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|9|Motion[7]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|9|Motion[2]": {
+"fx": [
+[
+"4u:500/clip@4",
+"4u:510/clip@42",
+"4u:511/clip@56"
+],
+[
+"4u:500/clip@4",
+"4u:510/clip@42",
+"4u:511/clip@56"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|9|Motion[4]": {
+"fx": [
+[
+"4u:360/clip@74",
+"4u:60/shell@74"
+],
+[
+"4u:360/clip@74",
+"4u:60/shell@74",
+"4u:60/shell@74",
+"4u:60/shell@74"
+]
+],
+"shells": 4,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|9|Motion[6]": {
+"fx": [
+[
+"0c:31/clip@4",
+"0c:12/clip@22",
+"0c:13/clip@48"
+],
+[
+"0c:12/clip@22",
+"0c:13/clip@48"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|C|9|Motion[90]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|9|Motion[1]": {
+"fx": [
+[
+"0c:120/clip@16"
+],
+[
+"0c:120/clip@16"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|9|Motion[3]": {
+"fx": [
+[
+"0c:120/clip@22",
+"4u:310/clip@40",
+"0c:131/clip@48",
+"4u:330/clip@132"
+],
+[
+"0c:120/clip@22",
+"4u:310/clip@40",
+"0c:131/clip@48",
+"4u:330/clip@132"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|9|Motion[5]": {
+"fx": [
+[
+"0c:13/clip@20"
+],
+[
+"0c:13/clip@20"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|9|Motion[7]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|9|Motion[2]": {
+"fx": [
+[
+"4u:500/clip@4",
+"4u:510/clip@42",
+"4u:511/clip@56"
+],
+[
+"4u:500/clip@4",
+"4u:510/clip@42",
+"4u:511/clip@56"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|9|Motion[4]": {
+"fx": [
+[
+"4u:360/clip@74",
+"4u:60/shell@74"
+],
+[
+"4u:360/clip@74",
+"4u:60/shell@74",
+"4u:60/shell@74",
+"4u:60/shell@74"
+]
+],
+"shells": 4,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|9|Motion[6]": {
+"fx": [
+[
+"0c:31/clip@4",
+"0c:12/clip@22",
+"0c:13/clip@48"
+],
+[
+"0c:12/clip@22",
+"0c:13/clip@48"
+]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+},
+"em079_04|R|9|Motion[90]": {
+"fx": [
+[],
+[]
+],
+"shells": 0,
+"ref": [],
+"fail": null,
+"plays": 2
+}
+}

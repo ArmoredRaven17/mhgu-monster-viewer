@@ -1,0 +1,2212 @@
+{
+ "0x1": {
+  "motions": [
+   "L2 M3"
+  ],
+  "creates": []
+ },
+ "0x2": {
+  "motions": [
+   "L2 M4",
+   "L2 M5"
+  ],
+  "creates": [
+   [
+    "L2 M5",
+    8.0,
+    "id 0xcc mode 2"
+   ]
+  ]
+ },
+ "0x3": {
+  "motions": [
+   "L2 M1"
+  ],
+  "creates": []
+ },
+ "0x4": {
+  "motions": [],
+  "creates": []
+ },
+ "0x5": {
+  "motions": [],
+  "creates": []
+ },
+ "0x6": {
+  "motions": [],
+  "creates": []
+ },
+ "0x7": {
+  "motions": [],
+  "creates": []
+ },
+ "0x8": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": []
+ },
+ "0x9": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": []
+ },
+ "0xa": {
+  "motions": [],
+  "creates": []
+ },
+ "0xb": {
+  "motions": [],
+  "creates": []
+ },
+ "0xc": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": []
+ },
+ "0xd": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": []
+ },
+ "0xe": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": []
+ },
+ "0xf": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": []
+ },
+ "0x10": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": []
+ },
+ "0x11": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": []
+ },
+ "0x12": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": []
+ },
+ "0x13": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": []
+ },
+ "0x14": {
+  "motions": [],
+  "creates": []
+ },
+ "0x15": {
+  "motions": [],
+  "creates": []
+ },
+ "0x16": {
+  "motions": [],
+  "creates": []
+ },
+ "0x17": {
+  "motions": [],
+  "creates": []
+ },
+ "0x18": {
+  "motions": [],
+  "creates": []
+ },
+ "0x19": {
+  "motions": [
+   "L2 M17",
+   "L2 M18"
+  ],
+  "creates": []
+ },
+ "0x1a": {
+  "motions": [
+   "L2 M17",
+   "L2 M18"
+  ],
+  "creates": []
+ },
+ "0x1b": {
+  "motions": [
+   "L0 M27",
+   "L0 M28"
+  ],
+  "creates": []
+ },
+ "0x1c": {
+  "motions": [
+   "L0 M27",
+   "L0 M28",
+   "L2 M10"
+  ],
+  "creates": []
+ },
+ "0x1d": {
+  "motions": [
+   "L0 M27",
+   "L0 M28",
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": []
+ },
+ "0x1e": {
+  "motions": [
+   "L0 M27",
+   "L0 M28",
+   "L2 M7"
+  ],
+  "creates": []
+ },
+ "0x1f": {
+  "motions": [],
+  "creates": []
+ },
+ "0x20": {
+  "motions": [],
+  "creates": []
+ },
+ "0x21": {
+  "motions": [],
+  "creates": []
+ },
+ "0x22": {
+  "motions": [],
+  "creates": []
+ },
+ "0x23": {
+  "motions": [],
+  "creates": []
+ },
+ "0x24": {
+  "motions": [],
+  "creates": []
+ },
+ "0x25": {
+  "motions": [],
+  "creates": []
+ },
+ "0x26": {
+  "motions": [],
+  "creates": []
+ },
+ "0x27": {
+  "motions": [],
+  "creates": []
+ },
+ "0x28": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 0"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 1"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 2"
+   ]
+  ]
+ },
+ "0x29": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 0"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 1"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 2"
+   ]
+  ]
+ },
+ "0x2a": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 0"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 1"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 2"
+   ]
+  ]
+ },
+ "0x2b": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 0"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 1"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 2"
+   ]
+  ]
+ },
+ "0x2c": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 0"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 1"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 2"
+   ]
+  ]
+ },
+ "0x2d": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 3"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 4"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 5"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 6"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 7"
+   ]
+  ]
+ },
+ "0x2e": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 3"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 4"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 5"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 6"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 7"
+   ]
+  ]
+ },
+ "0x2f": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 3"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 4"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 5"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 6"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 7"
+   ]
+  ]
+ },
+ "0x30": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 3"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 4"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 5"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 6"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 7"
+   ]
+  ]
+ },
+ "0x31": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 3"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 4"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 5"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 6"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 7"
+   ]
+  ]
+ },
+ "0x32": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 0"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 1"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 2"
+   ]
+  ]
+ },
+ "0x33": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 0"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 1"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 2"
+   ]
+  ]
+ },
+ "0x34": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 0"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 1"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 2"
+   ]
+  ]
+ },
+ "0x35": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 0"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 1"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 2"
+   ]
+  ]
+ },
+ "0x36": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 0"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 1"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 2"
+   ]
+  ]
+ },
+ "0x37": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 3"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 4"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 5"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 6"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 7"
+   ]
+  ]
+ },
+ "0x38": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 3"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 4"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 5"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 6"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 7"
+   ]
+  ]
+ },
+ "0x39": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 3"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 4"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 5"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 6"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 7"
+   ]
+  ]
+ },
+ "0x3a": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 3"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 4"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 5"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 6"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 7"
+   ]
+  ]
+ },
+ "0x3b": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 3"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 4"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 5"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 6"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 7"
+   ]
+  ]
+ },
+ "0x3c": {
+  "motions": [
+   "L2 M9",
+   "L2 M10",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x3d": {
+  "motions": [
+   "L2 M9",
+   "L2 M10",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x3e": {
+  "motions": [
+   "L2 M9",
+   "L2 M10",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x3f": {
+  "motions": [
+   "L2 M9",
+   "L2 M10",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x40": {
+  "motions": [
+   "L2 M9",
+   "L2 M10",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x41": {
+  "motions": [
+   "L2 M9",
+   "L2 M10",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x42": {
+  "motions": [
+   "L2 M9",
+   "L2 M10",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x43": {
+  "motions": [
+   "L2 M9",
+   "L2 M10",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x44": {
+  "motions": [
+   "L2 M9",
+   "L2 M10",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x45": {
+  "motions": [
+   "L2 M9",
+   "L2 M10",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x46": {
+  "motions": [
+   "L2 M9",
+   "L2 M10",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x47": {
+  "motions": [
+   "L2 M9",
+   "L2 M10",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x48": {
+  "motions": [
+   "L2 M14",
+   "L2 M15",
+   "L2 M16"
+  ],
+  "creates": []
+ },
+ "0x49": {
+  "motions": [
+   "L2 M14",
+   "L2 M15",
+   "L2 M16"
+  ],
+  "creates": []
+ },
+ "0x4a": {
+  "motions": [
+   "L2 M14",
+   "L2 M15",
+   "L2 M16"
+  ],
+  "creates": []
+ },
+ "0x4b": {
+  "motions": [
+   "L2 M14",
+   "L2 M15",
+   "L2 M16"
+  ],
+  "creates": []
+ },
+ "0x4c": {
+  "motions": [
+   "L2 M14",
+   "L2 M15",
+   "L2 M16"
+  ],
+  "creates": []
+ },
+ "0x4d": {
+  "motions": [
+   "L2 M14",
+   "L2 M15",
+   "L2 M16"
+  ],
+  "creates": []
+ },
+ "0x4e": {
+  "motions": [
+   "L2 M9",
+   "L2 M10",
+   "L2 M11"
+  ],
+  "creates": []
+ },
+ "0x4f": {
+  "motions": [
+   "L2 M9",
+   "L2 M10",
+   "L2 M11"
+  ],
+  "creates": []
+ },
+ "0x50": {
+  "motions": [
+   "L2 M9",
+   "L2 M10",
+   "L2 M11"
+  ],
+  "creates": []
+ },
+ "0x51": {
+  "motions": [
+   "L2 M10",
+   "L2 M11"
+  ],
+  "creates": []
+ },
+ "0x52": {
+  "motions": [
+   "L2 M10",
+   "L2 M11"
+  ],
+  "creates": []
+ },
+ "0x53": {
+  "motions": [
+   "L2 M10",
+   "L2 M11"
+  ],
+  "creates": []
+ },
+ "0x54": {
+  "motions": [
+   "L2 M14",
+   "L2 M15",
+   "L2 M16"
+  ],
+  "creates": []
+ },
+ "0x55": {
+  "motions": [
+   "L2 M10",
+   "L2 M15",
+   "L2 M16"
+  ],
+  "creates": []
+ },
+ "0x56": {
+  "motions": [
+   "L2 M14",
+   "L2 M15",
+   "L2 M16"
+  ],
+  "creates": []
+ },
+ "0x57": {
+  "motions": [
+   "L2 M10",
+   "L2 M15",
+   "L2 M16"
+  ],
+  "creates": []
+ },
+ "0x58": {
+  "motions": [
+   "L2 M10",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x59": {
+  "motions": [
+   "L2 M14",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x5a": {
+  "motions": [
+   "L2 M14",
+   "L2 M15",
+   "L2 M16"
+  ],
+  "creates": []
+ },
+ "0x5b": {
+  "motions": [
+   "L2 M10",
+   "L2 M15",
+   "L2 M16"
+  ],
+  "creates": []
+ },
+ "0x5c": {
+  "motions": [
+   "L2 M14",
+   "L2 M15",
+   "L2 M16"
+  ],
+  "creates": []
+ },
+ "0x5d": {
+  "motions": [
+   "L2 M10",
+   "L2 M15",
+   "L2 M16"
+  ],
+  "creates": []
+ },
+ "0x5e": {
+  "motions": [
+   "L2 M10",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x5f": {
+  "motions": [
+   "L2 M14",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x60": {
+  "motions": [
+   "L2 M14",
+   "L2 M15"
+  ],
+  "creates": []
+ },
+ "0x61": {
+  "motions": [
+   "L2 M10",
+   "L2 M15"
+  ],
+  "creates": []
+ },
+ "0x62": {
+  "motions": [
+   "L2 M14",
+   "L2 M15"
+  ],
+  "creates": []
+ },
+ "0x63": {
+  "motions": [
+   "L2 M10",
+   "L2 M15"
+  ],
+  "creates": []
+ },
+ "0x64": {
+  "motions": [
+   "L2 M10",
+   "L2 M11"
+  ],
+  "creates": []
+ },
+ "0x65": {
+  "motions": [
+   "L2 M14",
+   "L2 M11"
+  ],
+  "creates": []
+ },
+ "0x66": {
+  "motions": [
+   "L2 M10",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x67": {
+  "motions": [
+   "L2 M10",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x68": {
+  "motions": [
+   "L2 M10",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x69": {
+  "motions": [
+   "L2 M10",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x6a": {
+  "motions": [
+   "L2 M10",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x6b": {
+  "motions": [
+   "L2 M10",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0x6c": {
+  "motions": [
+   "L2 M4",
+   "L2 M21"
+  ],
+  "creates": [
+   [
+    "L2 M21",
+    8.0,
+    "id 0xcc mode 2"
+   ],
+   [
+    "L2 M21",
+    123.0,
+    "id 0xcc mode 2"
+   ]
+  ]
+ },
+ "0x6d": {
+  "motions": [
+   "L2 M20"
+  ],
+  "creates": [
+   [
+    "L2 M20",
+    100.0,
+    "id 0xcc mode 6"
+   ]
+  ]
+ },
+ "0x6e": {
+  "motions": [
+   "L4 M3"
+  ],
+  "creates": [
+   [
+    "L4 M3",
+    100.0,
+    "id 0xcc mode 6"
+   ]
+  ]
+ },
+ "0x6f": {
+  "motions": [
+   "L2 M4",
+   "L2 M5"
+  ],
+  "creates": []
+ },
+ "0x70": {
+  "motions": [
+   "L2 M4",
+   "L2 M21",
+   "L2 M19"
+  ],
+  "creates": [
+   [
+    "L2 M21",
+    8.0,
+    "id 0xcc mode 2"
+   ],
+   [
+    "L2 M19",
+    100.0,
+    "id 0xcc mode 8"
+   ]
+  ]
+ },
+ "0x71": {
+  "motions": [
+   "L2 M20",
+   "L2 M19"
+  ],
+  "creates": [
+   [
+    "L2 M20",
+    100.0,
+    "id 0xcc mode 6"
+   ],
+   [
+    "L2 M19",
+    100.0,
+    "id 0xcc mode 6"
+   ]
+  ]
+ },
+ "0x72": {
+  "motions": [],
+  "creates": []
+ },
+ "0x73": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": []
+ },
+ "0x74": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": []
+ },
+ "0x75": {
+  "motions": [],
+  "creates": []
+ },
+ "0x76": {
+  "motions": [],
+  "creates": []
+ },
+ "0x77": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": []
+ },
+ "0x78": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": []
+ },
+ "0x79": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": []
+ },
+ "0x7a": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": []
+ },
+ "0x7b": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": []
+ },
+ "0x7c": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": []
+ },
+ "0x7d": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": []
+ },
+ "0x7e": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": []
+ },
+ "0x7f": {
+  "motions": [],
+  "creates": []
+ },
+ "0x80": {
+  "motions": [],
+  "creates": []
+ },
+ "0x81": {
+  "motions": [],
+  "creates": []
+ },
+ "0x82": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 9"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 10"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 11"
+   ]
+  ]
+ },
+ "0x83": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 16"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 17"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 18"
+   ]
+  ]
+ },
+ "0x84": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 19"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 20"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 21"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 22"
+   ],
+   [
+    "L2 M8",
+    46.0,
+    "id 0xca mode 23"
+   ]
+  ]
+ },
+ "0x85": {
+  "motions": [
+   "L0 M27",
+   "L0 M28"
+  ],
+  "creates": []
+ },
+ "0x86": {
+  "motions": [
+   "L2 M9",
+   "L2 M10",
+   "L2 M11"
+  ],
+  "creates": []
+ },
+ "0x87": {
+  "motions": [
+   "L2 M9",
+   "L2 M10",
+   "L2 M11"
+  ],
+  "creates": []
+ },
+ "0x88": {
+  "motions": [
+   "L2 M10",
+   "L2 M11"
+  ],
+  "creates": []
+ },
+ "0x89": {
+  "motions": [],
+  "creates": []
+ },
+ "0x8a": {
+  "motions": [],
+  "creates": []
+ },
+ "0x8b": {
+  "motions": [],
+  "creates": []
+ },
+ "0x8c": {
+  "motions": [],
+  "creates": []
+ },
+ "0x8d": {
+  "motions": [],
+  "creates": []
+ },
+ "0x8e": {
+  "motions": [],
+  "creates": []
+ },
+ "0x8f": {
+  "motions": [],
+  "creates": []
+ },
+ "0x90": {
+  "motions": [],
+  "creates": []
+ },
+ "0x91": {
+  "motions": [],
+  "creates": []
+ },
+ "0x92": {
+  "motions": [],
+  "creates": []
+ },
+ "0x93": {
+  "motions": [],
+  "creates": []
+ },
+ "0x94": {
+  "motions": [],
+  "creates": []
+ },
+ "0x95": {
+  "motions": [],
+  "creates": []
+ },
+ "0x96": {
+  "motions": [],
+  "creates": []
+ },
+ "0x97": {
+  "motions": [],
+  "creates": []
+ },
+ "0x98": {
+  "motions": [],
+  "creates": []
+ },
+ "0x99": {
+  "motions": [],
+  "creates": []
+ },
+ "0x9a": {
+  "motions": [],
+  "creates": []
+ },
+ "0x9b": {
+  "motions": [],
+  "creates": []
+ },
+ "0x9c": {
+  "motions": [],
+  "creates": []
+ },
+ "0x9d": {
+  "motions": [],
+  "creates": []
+ },
+ "0x9e": {
+  "motions": [],
+  "creates": []
+ },
+ "0x9f": {
+  "motions": [],
+  "creates": []
+ },
+ "0xa0": {
+  "motions": [],
+  "creates": []
+ },
+ "0xa1": {
+  "motions": [],
+  "creates": []
+ },
+ "0xa2": {
+  "motions": [],
+  "creates": []
+ },
+ "0xa3": {
+  "motions": [],
+  "creates": []
+ },
+ "0xa4": {
+  "motions": [],
+  "creates": []
+ },
+ "0xa5": {
+  "motions": [],
+  "creates": []
+ },
+ "0xa6": {
+  "motions": [],
+  "creates": []
+ },
+ "0xa7": {
+  "motions": [],
+  "creates": []
+ },
+ "0xa8": {
+  "motions": [],
+  "creates": []
+ },
+ "0xa9": {
+  "motions": [],
+  "creates": []
+ },
+ "0xaa": {
+  "motions": [],
+  "creates": []
+ },
+ "0xab": {
+  "motions": [],
+  "creates": []
+ },
+ "0xac": {
+  "motions": [],
+  "creates": []
+ },
+ "0xad": {
+  "motions": [],
+  "creates": []
+ },
+ "0xae": {
+  "motions": [],
+  "creates": []
+ },
+ "0xaf": {
+  "motions": [],
+  "creates": []
+ },
+ "0xb0": {
+  "motions": [],
+  "creates": []
+ },
+ "0xb1": {
+  "motions": [],
+  "creates": []
+ },
+ "0xb2": {
+  "motions": [],
+  "creates": []
+ },
+ "0xb3": {
+  "motions": [],
+  "creates": []
+ },
+ "0xb4": {
+  "motions": [],
+  "creates": []
+ },
+ "0xb5": {
+  "motions": [],
+  "creates": []
+ },
+ "0xb6": {
+  "motions": [],
+  "creates": []
+ },
+ "0xb7": {
+  "motions": [],
+  "creates": []
+ },
+ "0xb8": {
+  "motions": [],
+  "creates": []
+ },
+ "0xb9": {
+  "motions": [],
+  "creates": []
+ },
+ "0xba": {
+  "motions": [],
+  "creates": []
+ },
+ "0xbb": {
+  "motions": [],
+  "creates": []
+ },
+ "0xbc": {
+  "motions": [],
+  "creates": []
+ },
+ "0xbd": {
+  "motions": [],
+  "creates": []
+ },
+ "0xbe": {
+  "motions": [],
+  "creates": []
+ },
+ "0xbf": {
+  "motions": [],
+  "creates": []
+ },
+ "0xc0": {
+  "motions": [],
+  "creates": []
+ },
+ "0xc1": {
+  "motions": [],
+  "creates": []
+ },
+ "0xc2": {
+  "motions": [],
+  "creates": []
+ },
+ "0xc3": {
+  "motions": [],
+  "creates": []
+ },
+ "0xc4": {
+  "motions": [],
+  "creates": []
+ },
+ "0xc5": {
+  "motions": [],
+  "creates": []
+ },
+ "0xc6": {
+  "motions": [],
+  "creates": []
+ },
+ "0xc7": {
+  "motions": [],
+  "creates": []
+ },
+ "0xc8": {
+  "motions": [],
+  "creates": []
+ },
+ "0xc9": {
+  "motions": [],
+  "creates": []
+ },
+ "0xca": {
+  "motions": [],
+  "creates": []
+ },
+ "0xcb": {
+  "motions": [],
+  "creates": []
+ },
+ "0xcc": {
+  "motions": [],
+  "creates": []
+ },
+ "0xcd": {
+  "motions": [],
+  "creates": []
+ },
+ "0xce": {
+  "motions": [],
+  "creates": []
+ },
+ "0xcf": {
+  "motions": [],
+  "creates": []
+ },
+ "0xd0": {
+  "motions": [],
+  "creates": []
+ },
+ "0xd1": {
+  "motions": [],
+  "creates": []
+ },
+ "0xd2": {
+  "motions": [],
+  "creates": []
+ },
+ "0xd3": {
+  "motions": [],
+  "creates": []
+ },
+ "0xd4": {
+  "motions": [],
+  "creates": []
+ },
+ "0xd5": {
+  "motions": [],
+  "creates": []
+ },
+ "0xd6": {
+  "motions": [],
+  "creates": []
+ },
+ "0xd7": {
+  "motions": [],
+  "creates": []
+ },
+ "0xd8": {
+  "motions": [],
+  "creates": []
+ },
+ "0xd9": {
+  "motions": [],
+  "creates": []
+ },
+ "0xda": {
+  "motions": [],
+  "creates": []
+ },
+ "0xdb": {
+  "motions": [],
+  "creates": []
+ },
+ "0xdc": {
+  "motions": [],
+  "creates": []
+ },
+ "0xdd": {
+  "motions": [],
+  "creates": []
+ },
+ "0xde": {
+  "motions": [],
+  "creates": []
+ },
+ "0xdf": {
+  "motions": [
+   "L9 M7",
+   "L0 M38"
+  ],
+  "creates": [
+   [
+    "L9 M7",
+    66.0,
+    "id 0xca mode 14"
+   ]
+  ]
+ },
+ "0xe0": {
+  "motions": [
+   "L9 M6",
+   "L0 M36"
+  ],
+  "creates": [
+   [
+    "L9 M6",
+    66.0,
+    "id 0xca mode 14"
+   ]
+  ]
+ },
+ "0xe1": {
+  "motions": [
+   "L9 M7",
+   "L0 M38"
+  ],
+  "creates": [
+   [
+    "L9 M7",
+    66.0,
+    "id 0xca mode 14"
+   ]
+  ]
+ },
+ "0xe2": {
+  "motions": [
+   "L9 M6",
+   "L0 M36"
+  ],
+  "creates": [
+   [
+    "L9 M6",
+    66.0,
+    "id 0xca mode 14"
+   ]
+  ]
+ },
+ "0xe3": {
+  "motions": [
+   "L9 M7",
+   "L0 M38"
+  ],
+  "creates": [
+   [
+    "L9 M7",
+    66.0,
+    "id 0xca mode 14"
+   ]
+  ]
+ },
+ "0xe4": {
+  "motions": [
+   "L9 M6",
+   "L0 M36"
+  ],
+  "creates": [
+   [
+    "L9 M6",
+    66.0,
+    "id 0xca mode 14"
+   ]
+  ]
+ },
+ "0xe5": {
+  "motions": [
+   "L9 M7",
+   "L0 M38"
+  ],
+  "creates": [
+   [
+    "L9 M7",
+    66.0,
+    "id 0xca mode 14"
+   ]
+  ]
+ },
+ "0xe6": {
+  "motions": [
+   "L9 M6",
+   "L0 M36"
+  ],
+  "creates": [
+   [
+    "L9 M6",
+    66.0,
+    "id 0xca mode 14"
+   ]
+  ]
+ },
+ "0xe7": {
+  "motions": [
+   "L2 M14",
+   "L2 M15",
+   "L2 M16"
+  ],
+  "creates": []
+ },
+ "0xe8": {
+  "motions": [
+   "L2 M10",
+   "L2 M11",
+   "L2 M12"
+  ],
+  "creates": []
+ },
+ "0xe9": {
+  "motions": [
+   "L9 M7",
+   "L0 M38"
+  ],
+  "creates": [
+   [
+    "L9 M7",
+    66.0,
+    "id 0xca mode 13"
+   ]
+  ]
+ },
+ "0xea": {
+  "motions": [
+   "L9 M6",
+   "L0 M36"
+  ],
+  "creates": [
+   [
+    "L9 M6",
+    66.0,
+    "id 0xca mode 13"
+   ]
+  ]
+ },
+ "0xeb": {
+  "motions": [
+   "L9 M7",
+   "L0 M38"
+  ],
+  "creates": [
+   [
+    "L9 M7",
+    66.0,
+    "id 0xca mode 13"
+   ]
+  ]
+ },
+ "0xec": {
+  "motions": [
+   "L9 M6",
+   "L0 M36"
+  ],
+  "creates": [
+   [
+    "L9 M6",
+    66.0,
+    "id 0xca mode 13"
+   ]
+  ]
+ },
+ "0xed": {
+  "motions": [
+   "L9 M7",
+   "L0 M38"
+  ],
+  "creates": [
+   [
+    "L9 M7",
+    66.0,
+    "id 0xca mode 13"
+   ]
+  ]
+ },
+ "0xee": {
+  "motions": [
+   "L9 M6",
+   "L0 M36"
+  ],
+  "creates": [
+   [
+    "L9 M6",
+    66.0,
+    "id 0xca mode 13"
+   ]
+  ]
+ },
+ "0xef": {
+  "motions": [
+   "L9 M8",
+   "L9 M9"
+  ],
+  "creates": []
+ },
+ "0xf0": {
+  "motions": [
+   "L9 M7",
+   "L0 M38"
+  ],
+  "creates": [
+   [
+    "L9 M7",
+    66.0,
+    "id 0xca mode 13"
+   ]
+  ]
+ },
+ "0xf1": {
+  "motions": [
+   "L9 M6",
+   "L0 M36"
+  ],
+  "creates": [
+   [
+    "L9 M6",
+    66.0,
+    "id 0xca mode 13"
+   ]
+  ]
+ },
+ "0xf2": {
+  "motions": [
+   "L2 M3"
+  ],
+  "creates": [
+   [
+    "L2 M3",
+    90.0,
+    "id 0xcc mode 0"
+   ]
+  ]
+ },
+ "0xf3": {
+  "motions": [
+   "L2 M2"
+  ],
+  "creates": [
+   [
+    "L2 M2",
+    90.0,
+    "id 0xcc mode 1"
+   ]
+  ]
+ },
+ "0xf4": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    44.0,
+    "id 0xca mode 8"
+   ]
+  ]
+ },
+ "0xf5": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    44.0,
+    "id 0xca mode 8"
+   ]
+  ]
+ },
+ "0xf6": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    44.0,
+    "id 0xca mode 8"
+   ]
+  ]
+ },
+ "0xf7": {
+  "motions": [
+   "L2 M20"
+  ],
+  "creates": [
+   [
+    "L2 M20",
+    100.0,
+    "id 0xcc mode 6"
+   ]
+  ]
+ },
+ "0xf8": {
+  "motions": [
+   "L2 M19"
+  ],
+  "creates": [
+   [
+    "L2 M19",
+    100.0,
+    "id 0xcc mode 8"
+   ]
+  ]
+ },
+ "0xf9": {
+  "motions": [
+   "L2 M4",
+   "L2 M5"
+  ],
+  "creates": [
+   [
+    "L2 M5",
+    8.0,
+    "id 0xcc mode 2"
+   ]
+  ]
+ },
+ "0xfa": {
+  "motions": [
+   "L2 M4",
+   "L2 M21"
+  ],
+  "creates": [
+   [
+    "L2 M21",
+    8.0,
+    "id 0xcc mode 2"
+   ],
+   [
+    "L2 M21",
+    123.0,
+    "id 0xcc mode 2"
+   ]
+  ]
+ },
+ "0xfb": {
+  "motions": [
+   "L2 M4",
+   "L2 M21",
+   "L2 M19"
+  ],
+  "creates": [
+   [
+    "L2 M21",
+    8.0,
+    "id 0xcc mode 2"
+   ],
+   [
+    "L2 M19",
+    100.0,
+    "id 0xcc mode 8"
+   ]
+  ]
+ },
+ "0xfc": {
+  "motions": [
+   "L2 M7",
+   "L2 M8"
+  ],
+  "creates": [
+   [
+    "L2 M8",
+    44.0,
+    "id 0xca mode 8"
+   ]
+  ]
+ },
+ "0xfd": {
+  "motions": [],
+  "creates": []
+ },
+ "0xfe": {
+  "motions": [
+   "L2 M3"
+  ],
+  "creates": [
+   [
+    "L2 M3",
+    90.0,
+    "id 0xcc mode 0"
+   ]
+  ]
+ },
+ "0xff": {
+  "motions": [
+   "L2 M2"
+  ],
+  "creates": [
+   [
+    "L2 M2",
+    90.0,
+    "id 0xcc mode 1"
+   ]
+  ]
+ }
+}

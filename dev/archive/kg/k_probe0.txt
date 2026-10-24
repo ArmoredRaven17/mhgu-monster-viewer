@@ -1,0 +1,288 @@
+(2, 0x00) post 0: setMotion L0 M6 (0x006) blend 14 start 0
+(2, 0x01) post 0: return (no motion)
+(2, 0x02) post 0: return (no motion)
+(2, 0x03) post 0: setMotion0 L0 M7 (0x007) blend 6 start 0
+(2, 0x04) post 0: unhandled (em003_00MoveMove)
+(2, 0x05) post 0: setMotion L0 M6 (0x006) blend 14 start 0
+(2, 0x06) post 0: setMotion L0 M6 (0x006) blend 14 start 0
+(2, 0x07) post 0: setMotion L0 M6 (0x006) blend 14 start 0
+(2, 0x08) post 0: setMotion L0 M6 (0x006) blend 14 start 0
+(2, 0x09) post 0: setMotion0 L0 M7 (0x007) blend 6 start 0
+(2, 0x0a) post 0: setMotion L0 M6 (0x006) blend 14 start 0
+(2, 0x0b) post 0: setMotion0 L0 M7 (0x007) blend 6 start 0
+(2, 0x0c) post 0: return (no motion)
+(2, 0x0d) post 0: return (no motion)
+(2, 0x0e) post 0: setMotion L0 M6 (0x006) blend 14 start 0
+(2, 0x0f) post 0: unhandled (em003_00MoveMove)
+(2, 0x10) post 0: unhandled (em003_00MoveMove)
+(2, 0x11) post 0: unhandled (em003_00MoveMove)
+(2, 0x12) post 0: unhandled (em003_00MoveMove)
+(2, 0x13) post 0: unhandled (em003_00MoveMove)
+(2, 0x14) post 0: unhandled (em003_00MoveMove)
+(2, 0x15) post 0: unhandled (em003_00MoveMove)
+(2, 0x16) post 0: unhandled (em003_00MoveMove)
+(2, 0x17) post 0: unhandled (em003_00MoveMove)
+(2, 0x18) post 0: unhandled (em003_00MoveMove)
+(2, 0x19) post 0: unhandled (em003_00MoveMove)
+(2, 0x1a) post 0: unhandled (em003_00MoveMove)
+(2, 0x1b) post 0: unhandled (em003_00MoveMove)
+(2, 0x1c) post 0: unhandled (em003_00MoveMove)
+(2, 0x1d) post 0: unhandled (em003_00MoveMove)
+(2, 0x1e) post 0: unhandled (em003_00MoveMove)
+(2, 0x1f) post 0: unhandled (em003_00MoveMove)
+(2, 0x20) post 0: unhandled (em003_00MoveMove)
+(2, 0x21) post 0: unhandled (em003_00MoveMove)
+(2, 0x22) post 0: unhandled (em003_00MoveMove)
+(2, 0x23) post 0: unhandled (em003_00MoveMove)
+(2, 0x24) post 0: unhandled (em003_00MoveMove)
+(2, 0x25) post 0: unhandled (em003_00MoveMove)
+(2, 0x26) post 0: unhandled (em003_00MoveMove)
+(2, 0x27) post 0: unhandled (em003_00MoveMove)
+(2, 0x28) post 0: unhandled (em003_00MoveMove)
+(2, 0x29) post 0: unhandled (em003_00MoveMove)
+(2, 0x2a) post 0: unhandled (em003_00MoveMove)
+(2, 0x2b) post 0: unhandled (em003_00MoveMove)
+(2, 0x2c) post 0: unhandled (em003_00MoveMove)
+(2, 0x2d) post 0: unhandled (em003_00MoveMove)
+(2, 0x2e) post 0: unhandled (em003_00MoveMove)
+(2, 0x2f) post 0: unhandled (em003_00MoveMove)
+(2, 0x30) post 0: unhandled (em003_00MoveMove)
+(2, 0x31) post 0: unhandled (em003_00MoveMove)
+(2, 0x32) post 0: unhandled (em003_00MoveMove)
+(2, 0x33) post 0: unhandled (em003_00MoveMove)
+(2, 0x34) post 0: unhandled (em003_00MoveMove)
+(2, 0x35) post 0: unhandled (em003_00MoveMove)
+(2, 0x36) post 0: unhandled (em003_00MoveMove)
+(2, 0x37) post 0: unhandled (em003_00MoveMove)
+(2, 0x38) post 0: unhandled (em003_00MoveMove)
+(2, 0x39) post 0: unhandled (em003_00MoveMove)
+(2, 0x3a) post 0: unhandled (em003_00MoveMove)
+(2, 0x3b) post 0: unhandled (em003_00MoveMove)
+(2, 0x3c) post 0: unhandled (em003_00MoveMove)
+(2, 0x3d) post 0: unhandled (em003_00MoveMove)
+(2, 0x3e) post 0: unhandled (em003_00MoveMove)
+(2, 0x3f) post 0: unhandled (em003_00MoveMove)
+(2, 0x40) post 0: unhandled (em003_00MoveMove)
+(2, 0x41) post 0: unhandled (em003_00MoveMove)
+(2, 0x42) post 0: unhandled (em003_00MoveMove)
+(2, 0x43) post 0: unhandled (em003_00MoveMove)
+(2, 0x44) post 0: unhandled (em003_00MoveMove)
+(2, 0x45) post 0: unhandled (em003_00MoveMove)
+(2, 0x46) post 0: unhandled (em003_00MoveMove)
+(2, 0x47) post 0: unhandled (em003_00MoveMove)
+(2, 0x48) post 0: unhandled (em003_00MoveMove)
+(2, 0x49) post 0: unhandled (em003_00MoveMove)
+(2, 0x4a) post 0: unhandled (em003_00MoveMove)
+(2, 0x4b) post 0: unhandled (em003_00MoveMove)
+(2, 0x4c) post 0: unhandled (em003_00MoveMove)
+(2, 0x4d) post 0: unhandled (em003_00MoveMove)
+(2, 0x4e) post 0: unhandled (em003_00MoveMove)
+(2, 0x4f) post 0: unhandled (em003_00MoveMove)
+(2, 0x50) post 0: unhandled (em003_00MoveMove)
+(2, 0x51) post 0: unhandled (em003_00MoveMove)
+(2, 0x52) post 0: unhandled (em003_00MoveMove)
+(2, 0x53) post 0: unhandled (em003_00MoveMove)
+(2, 0x54) post 0: unhandled (em003_00MoveMove)
+(2, 0x55) post 0: unhandled (em003_00MoveMove)
+(2, 0x56) post 0: unhandled (em003_00MoveMove)
+(2, 0x57) post 0: unhandled (em003_00MoveMove)
+(2, 0x58) post 0: unhandled (em003_00MoveMove)
+(2, 0x59) post 0: unhandled (em003_00MoveMove)
+(2, 0x5a) post 0: unhandled (em003_00MoveMove)
+(2, 0x5b) post 0: unhandled (em003_00MoveMove)
+(2, 0x5c) post 0: unhandled (em003_00MoveMove)
+(2, 0x5d) post 0: unhandled (em003_00MoveMove)
+(2, 0x5e) post 0: unhandled (em003_00MoveMove)
+(2, 0x5f) post 0: unhandled (em003_00MoveMove)
+(3, 0x00) post 0: setMotion L1 M3 (0x103) blend 12 start 0
+(3, 0x01) post 0: setMotion0 L1 M2 (0x102) blend 8 start 0
+(3, 0x02) post 0: unhandled (em003_00FlyMove)
+(3, 0x03) post 0: unhandled (em003_00FlyMove)
+(3, 0x04) post 0: unhandled (em003_00FlyMove)
+(3, 0x05) post 0: unhandled (em003_00FlyMove)
+(3, 0x06) post 0: unhandled (em003_00FlyMove)
+(3, 0x07) post 0: setMotion0 L1 M2 (0x102) blend 8 start 0
+(3, 0x08) post 0: setMotionL L1 M2 (0x102) blend 8 start 0
+(3, 0x09) post 0: unhandled (em003_00FlyMove)
+(3, 0x0a) post 0: unhandled (em003_00FlyMove)
+(3, 0x0b) post 0: unhandled (em003_00FlyMove)
+(3, 0x0c) post 0: setMotionL L1 M6 (0x106) blend 0 start 0
+(3, 0x0d) post 0: unhandled (em003_00FlyMove)
+(3, 0x0e) post 0: unhandled (em003_00FlyMove)
+(3, 0x0f) post 0: unhandled (em003_00FlyMove)
+(3, 0x10) post 0: setMotion0 L1 M2 (0x102) blend 8 start 0
+(3, 0x11) post 0: unhandled (em003_00FlyMove)
+(3, 0x12) post 0: unhandled (em003_00FlyMove)
+(3, 0x13) post 0: unhandled (em003_00FlyMove)
+(3, 0x14) post 0: unhandled (em003_00FlyMove)
+(3, 0x15) post 0: unhandled (em003_00FlyMove)
+(3, 0x16) post 0: unhandled (em003_00FlyMove)
+(3, 0x17) post 0: unhandled (em003_00FlyMove)
+(3, 0x18) post 0: setMotion L5 M2 (0x502) blend 8 start 0
+(3, 0x19) post 0: setMotionC L5 M1 (0x501) blend 12 start 0
+(3, 0x1a) post 0: setMotion L2 M7 (0x207) blend 4 start 0
+(3, 0x1b) post 0: return (no motion)
+(3, 0x1c) post 0: setMotion L5 M5 (0x505) blend 8 start 0
+(3, 0x1d) post 0: unhandled (em003_00FlyMove)
+(3, 0x1e) post 0: unhandled (em003_00FlyMove)
+(3, 0x1f) post 0: unhandled (em003_00FlyMove)
+(3, 0x20) post 0: unhandled (em003_00FlyMove)
+(3, 0x21) post 0: unhandled (em003_00FlyMove)
+(3, 0x22) post 0: unhandled (em003_00FlyMove)
+(3, 0x23) post 0: setMotion L5 M2 (0x502) blend 8 start 0
+(3, 0x24) post 0: setMotion L2 M14 (0x20e) blend 12 start 0
+(3, 0x25) post 0: unhandled (em003_00FlyMove)
+(3, 0x26) post 0: setMotionC L5 M1 (0x501) blend 8 start 0
+(3, 0x27) post 0: unhandled (em003_00FlyMove)
+(3, 0x28) post 0: unhandled (em003_00FlyMove)
+(3, 0x29) post 0: unhandled (em003_00FlyMove)
+(3, 0x2a) post 0: unhandled (em003_00FlyMove)
+(3, 0x2b) post 0: unhandled (em003_00FlyMove)
+(3, 0x2c) post 0: unhandled (em003_00FlyMove)
+(3, 0x2d) post 0: unhandled (em003_00FlyMove)
+(3, 0x2e) post 0: unhandled (em003_00FlyMove)
+(3, 0x2f) post 0: unhandled (em003_00FlyMove)
+(3, 0x30) post 0: unhandled (em003_00FlyMove)
+(3, 0x31) post 0: unhandled (em003_00FlyMove)
+(3, 0x32) post 0: unhandled (em003_00FlyMove)
+(3, 0x33) post 0: unhandled (em003_00FlyMove)
+(3, 0x34) post 0: unhandled (em003_00FlyMove)
+(3, 0x35) post 0: unhandled (em003_00FlyMove)
+(3, 0x36) post 0: setMotion L5 M5 (0x505) blend 8 start 0
+(3, 0x37) post 0: return (no motion)
+(3, 0x38) post 0: setMotion L5 M5 (0x505) blend 8 start 0
+(3, 0x39) post 0: return (no motion)
+(3, 0x3a) post 0: setMotion L5 M5 (0x505) blend 8 start 0
+(3, 0x3b) post 0: return (no motion)
+(3, 0x3c) post 0: return (no motion)
+(3, 0x3d) post 0: setMotion L5 M37 (0x525) blend 12 start 0
+(3, 0x3e) post 0: unhandled (em003_00FlyMove)
+(3, 0x3f) post 0: unhandled (em003_00FlyMove)
+(3, 0x40) post 0: unhandled (em003_00FlyMove)
+(3, 0x41) post 0: setMotion L0 M46 (0x02e) blend 12 start 0
+(3, 0x42) post 0: setMotion L0 M50 (0x032) blend 12 start 0
+(3, 0x43) post 0: setMotion L0 M21 (0x015) blend 12 start 0
+(3, 0x44) post 0: setMotion L5 M5 (0x505) blend 8 start 0
+(3, 0x45) post 0: setMotion L0 M26 (0x01a) blend 6 start 0
+(3, 0x46) post 0: setMotionC L5 M38 (0x526) blend 40 start 0
+(3, 0x47) post 0: unhandled (em003_00FlyMove)
+(3, 0x48) post 0: setMotion L2 M9 (0x209) blend 80 start 0
+(3, 0x49) post 0: return (no motion)
+(3, 0x4a) post 0: setMotion L5 M36 (0x524) blend 12 start 0
+(3, 0x4b) post 0: setMotion L3 M36 (0x324) blend 80 start 0
+(3, 0x4c) post 0: setMotion0 L2 M8 (0x208) blend 0 start 0
+(3, 0x4d) post 0: return (no motion)
+(3, 0x4e) post 0: setMotion L0 M46 (0x02e) blend 12 start 0
+(3, 0x4f) post 0: return (no motion)
+(3, 0x50) post 0: unhandled (em003_00FlyMove)
+(3, 0x51) post 0: setMotion L5 M5 (0x505) blend 8 start 0
+(3, 0x52) post 0: setMotion0 L2 M8 (0x208) blend 6 start 0
+(3, 0x53) post 0: setMotion L5 M5 (0x505) blend 8 start 0
+(3, 0x54) post 0: unhandled (em003_00FlyMove)
+(3, 0x55) post 0: return (no motion)
+(3, 0x56) post 0: setMotion0 L5 M4 (0x504) blend 0 start 0
+(3, 0x57) post 0: setMotion L0 M46 (0x02e) blend 12 start 0
+(3, 0x58) post 0: setMotionL L1 M6 (0x106) blend 0 start 0
+(3, 0x59) post 0: setMotion0 L1 M2 (0x102) blend 8 start 0
+(3, 0x5a) post 0: setMotionL L1 M6 (0x106) blend 0 start 0
+(3, 0x5b) post 0: setMotion L5 M2 (0x502) blend 8 start 0
+(3, 0x5c) post 0: return (no motion)
+(3, 0x5d) post 0: setMotion L5 M5 (0x505) blend 8 start 0
+(3, 0x5e) post 0: return (no motion)
+(3, 0x5f) post 0: setMotion L5 M5 (0x505) blend 8 start 0
+(7, 0x00) post 0: setMotion L2 M4 (0x204) blend 12 start 0
+(7, 0x01) post 0: setMotion0 L2 M8 (0x208) blend 0 start 0
+(7, 0x02) post 0: setMotion0 L2 M10 (0x20a) blend 8 start 0
+(7, 0x03) post 0: setMotion0 L2 M1 (0x201) blend 8 start 0
+(7, 0x04) post 0: setMotion0 L2 M11 (0x20b) blend 8 start 0
+(7, 0x05) post 0: setMotion0 L2 M3 (0x203) blend 8 start 0
+(7, 0x06) post 0: setMotion L2 M2 (0x202) blend 6 start 0
+(7, 0x07) post 0: setMotion0 L2 M12 (0x20c) blend 6 start 0
+(7, 0x08) post 0: unhandled (em003_00AttackMove)
+(7, 0x09) post 0: setMotion L2 M4 (0x204) blend 12 start 0
+(7, 0x0a) post 0: setMotion0 L2 M10 (0x20a) blend 8 start 0
+(7, 0x0b) post 0: setMotion L0 M6 (0x006) blend 14 start 0
+(7, 0x0c) post 0: unhandled (em003_00AttackMove)
+(7, 0x0d) post 0: unhandled (em003_00AttackMove)
+(7, 0x0e) post 0: setMotion0 L2 M3 (0x203) blend 8 start 0
+(7, 0x0f) post 0: setMotion0 L2 M74 (0x24a) blend 14 start 0
+(7, 0x10) post 0: setMotion0 L2 M74 (0x24a) blend 14 start 0
+(7, 0x11) post 0: setMotion L2 M4 (0x204) blend 12 start 0
+(7, 0x12) post 0: return (no motion)
+(7, 0x13) post 0: unhandled (em003_00AttackMove)
+(7, 0x14) post 0: unhandled (em003_00AttackMove)
+(7, 0x15) post 0: unhandled (em003_00AttackMove)
+(7, 0x16) post 0: unhandled (em003_00AttackMove)
+(7, 0x17) post 0: unhandled (em003_00AttackMove)
+(7, 0x18) post 0: unhandled (em003_00AttackMove)
+(7, 0x19) post 0: unhandled (em003_00AttackMove)
+(7, 0x1a) post 0: unhandled (em003_00AttackMove)
+(7, 0x1b) post 0: unhandled (em003_00AttackMove)
+(7, 0x1c) post 0: unhandled (em003_00AttackMove)
+(7, 0x1d) post 0: unhandled (em003_00AttackMove)
+(7, 0x1e) post 0: unhandled (em003_00AttackMove)
+(7, 0x1f) post 0: unhandled (em003_00AttackMove)
+(7, 0x20) post 0: unhandled (em003_00AttackMove)
+(7, 0x21) post 0: unhandled (em003_00AttackMove)
+(7, 0x22) post 0: unhandled (em003_00AttackMove)
+(7, 0x23) post 0: unhandled (em003_00AttackMove)
+(7, 0x24) post 0: unhandled (em003_00AttackMove)
+(7, 0x25) post 0: unhandled (em003_00AttackMove)
+(7, 0x26) post 0: setMotion L2 M28 (0x21c) blend 12 start 0
+(7, 0x27) post 0: unhandled (em003_00AttackMove)
+(7, 0x28) post 0: unhandled (em003_00AttackMove)
+(7, 0x29) post 0: setMotion0 L2 M61 (0x23d) blend 20 start 0
+(7, 0x2a) post 0: return (no motion)
+(7, 0x2b) post 0: setMotion L2 M36 (0x224) blend 12 start 0
+(7, 0x2c) post 0: setMotion L2 M37 (0x225) blend 6 start 0
+(7, 0x2d) post 0: setMotion L2 M42 (0x22a) blend 6 start 0
+(7, 0x2e) post 0: unhandled (em003_00AttackMove)
+(7, 0x2f) post 0: setMotion0 L2 M41 (0x229) blend 6 start 0
+(7, 0x30) post 0: setMotion L2 M4 (0x204) blend 12 start 0
+(7, 0x31) post 0: unhandled (em003_00AttackMove)
+(7, 0x32) post 0: setMotion L2 M61 (0x23d) blend 6 start 0
+(7, 0x33) post 0: setMotion L2 M75 (0x24b) blend 6 start 0
+(7, 0x34) post 0: setMotion0 L2 M12 (0x20c) blend 6 start 0
+(7, 0x35) post 0: setMotion0 L2 M3 (0x203) blend 8 start 0
+(7, 0x36) post 0: setMotion0 L2 M41 (0x229) blend 6 start 0
+(7, 0x37) post 0: setMotion0 L4 M1 (0x401) blend 8 start 0
+(7, 0x38) post 0: unhandled (em003_00AttackMove)
+(7, 0x39) post 0: setMotion L2 M51 (0x233) blend 12 start 0
+(7, 0x3a) post 0: setMotion0 L2 M61 (0x23d) blend 20 start 70
+(7, 0x3b) post 0: setMotion L0 M6 (0x006) blend 14 start 0
+(7, 0x3c) post 0: setMotion0 L2 M64 (0x240) blend 6 start 0
+(7, 0x3d) post 0: setMotion L2 M28 (0x21c) blend 12 start 0
+(7, 0x3e) post 0: unhandled (em003_00AttackMove)
+(7, 0x3f) post 0: setMotion0 L2 M61 (0x23d) blend 20 start 0
+(7, 0x40) post 0: setMotion0 L2 M64 (0x240) blend 6 start 0
+(7, 0x41) post 0: setMotion0 L2 M8 (0x208) blend 0 start 0
+(7, 0x42) post 0: setMotion0 L2 M61 (0x23d) blend 20 start 0
+(7, 0x43) post 0: setMotion0 L2 M61 (0x23d) blend 20 start 70
+(7, 0x44) post 0: return (no motion)
+(7, 0x45) post 0: setMotion L2 M7 (0x207) blend 4 start 0
+(7, 0x46) post 0: setMotion0 L2 M3 (0x203) blend 8 start 0
+(7, 0x47) post 0: setMotion0 L2 M3 (0x203) blend 8 start 0
+(7, 0x48) post 0: setMotion0 L2 M74 (0x24a) blend 0 start 0
+(7, 0x49) post 0: setMotion0 L2 M74 (0x24a) blend 0 start 0
+(7, 0x4a) post 0: setMotion L2 M51 (0x233) blend 12 start 0
+(7, 0x4b) post 0: setMotion0 L2 M41 (0x229) blend 6 start 0
+(7, 0x4c) post 0: setMotion0 L2 M64 (0x240) blend 6 start 0
+(7, 0x4d) post 0: setMotion0 L2 M3 (0x203) blend 8 start 0
+(7, 0x4e) post 0: setMotion L2 M4 (0x204) blend 12 start 0
+(7, 0x4f) post 0: setMotion L2 M4 (0x204) blend 12 start 0
+(7, 0x50) post 0: unhandled (em003_00AttackMove)
+(7, 0x51) post 0: unhandled (em003_00AttackMove)
+(7, 0x52) post 0: setMotion L2 M37 (0x225) blend 6 start 0
+(7, 0x53) post 0: setMotion0 L2 M82 (0x252) blend 6 start 0
+(7, 0x54) post 0: setMotion0 L2 M82 (0x252) blend 6 start 0
+(7, 0x55) post 0: setMotion0 L2 M82 (0x252) blend 6 start 0
+(7, 0x56) post 0: setMotion L2 M84 (0x254) blend 8 start 0
+(7, 0x57) post 0: setMotion L2 M4 (0x204) blend 12 start 0
+(7, 0x58) post 0: setMotion0 L5 M4 (0x504) blend 0 start 0
+(7, 0x59) post 0: setMotion L2 M75 (0x24b) blend 6 start 0
+(7, 0x5a) post 0: unhandled (em003_00AttackMove)
+(7, 0x5b) post 0: unhandled (em003_00AttackMove)
+(7, 0x5c) post 0: unhandled (em003_00AttackMove)
+(7, 0x5d) post 0: unhandled (em003_00AttackMove)
+(7, 0x5e) post 0: unhandled (em003_00AttackMove)
+(7, 0x5f) post 0: unhandled (em003_00AttackMove)

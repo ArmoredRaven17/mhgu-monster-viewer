@@ -1,0 +1,7 @@
+FAIL handover 0  -- null
+FAIL handover 1  -- null
+FAIL handover 2  -- {"opAtHandover":0.0652,"coolPhaseFrame":39.2}
+FAIL idle, cooled: lava parts drawn  -- [4,6,8,9,11,12,14,15,17,18,20,21,23,24,26,27,29]
+FAIL L3 M12, cooled: coolDraw / lava parts drawn  -- {"coolDraw":true,"lava":[],"groups":null}
+
+0 passed, 5 failed

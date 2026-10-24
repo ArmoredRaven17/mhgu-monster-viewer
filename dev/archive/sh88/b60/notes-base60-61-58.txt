@@ -1,0 +1,38 @@
+base60 / base61 / base58 -- read 2026-10-15 (research agent, read-only). Disassembly: d60.txt (0x435cf4..0x43a8b0),
+ctor60.txt, rd.txt (readers 0x10c4900..0x10c5560), act.txt (uEm088_00 0x10b4828..0x10b5e40), d58.txt (0x433300..0x434da8),
+thr.txt (thread end kinds), em088band.txt (0x10ab000..0x10c6000). Tools: w.py (words / jump tables), scan.py (band call census).
+
+BANDS (derived: DTI statics + setup allocators + vtables)
+  base58 0x4334c8..0x434a94  (setup-new 0x4334c8, alloc 0x433534, ctor 0x433570, init 0x4336e8, statics 0x434920 "uShellEmBase58")
+  base59 0x434a94..0x435b40  (statics 0x435ac0 "uShellEmBase59")
+  base60 0x435b40..0x4385f8  (ret0 0x435b40, setup-new 0x435b48 (0x14 B), alloc 0x435ba8, ctor 0x435be4, dtor 0x435cf4/0x435cf8,
+                              init 0x435d28, move 0x4360a0, state1 0x43630c, after 0x4363d4, sub0..3 0x436438/0x4368ac/0x436c94/0x437a20,
+                              launch 0x437e4c, reaim 0x4380e4, test 0x4381d8, release 0x438204, end 0x438214, statics 0x438484)
+  base61 0x4385f8..0x43a78c  (ret0 0x4385f8, setup-new 0x438600 (0x10 B), alloc 0x43865c, ctor 0x438698, dtor 0x438804/0x438808,
+                              init 0x438838, move 0x438c10, state1 0x438e6c, after 0x438f34, sub0..3 0x438f98/0x439400/0x4397ec/0x439c10,
+                              launch 0x439db8, dive 0x439f9c, orbit 0x43a1f4, orbit-on 0x43a374, test 0x43a388, release 0x43a39c,
+                              end 0x43a3ac, statics 0x43a610)
+  0x43a78c = shared uShellEm base ctor (called by 0x433578 / 0x435bec / 0x4386a0).
+  vtables: base60 0x1753ec4 (..+0x150; +0x150 0x438440 = return 0), base61 0x1754068 (..+0x14c).
+  sp_60 0x1809f58 overrides +0x4/+0x14 (dtor/DTI), +0x14c reader 0x10c4cf0, +0x150 0x10c5010. sp_61 0x180a0b4: +0x4/+0x14/+0x14c 0x10c5144 only.
+
+FIELD MAPS
+  sp_60: +0x15c8 cmn f0 (2500 = R); ef0..7 +0x15cc..+0x15e8 = u332,u300,u330,u331,u231,u310,u311,u301; hit0/1 +0x15ec/+0x15f0;
+         sh int0/1 +0x15f4/+0x15f8; sh f0..f14 +0x15fc..+0x1634; vec0/1/2 PTR +0x1638/+0x163c/+0x1640.
+         handles +0x1644 u332, +0x1648 u300, +0x164c u330, +0x1650 u331, +0x1654 u231, +0x1658 u310, +0x165c u311, +0x1660 u301;
+         +0x1664 timer; byte +0x1668 release; +0x1670.. high point H; +0x1680.. drop point D / vib centre A; +0x1690 vib timer;
+         +0x1694 vib angle (deg); +0x16a0..a8 throw target T (y 0); +0x16b0 t, +0x16b4 rate, +0x16b8/bc/c0 target words, +0x16c4/c8/cc start words.
+  sp_61: ef0..7 +0x15c8..+0x15e4 = u332,u300,u330,u331,u360,(999,-1),u310,u311; hit0..2 +0x15e8..+0x15f0; sh int0/1 +0x15f4/+0x15f8;
+         sh f0..f23 +0x15fc..+0x1658; vec0 PTR +0x165c. handles +0x1660 u332, +0x1664 u300, +0x1668 u330, +0x166c u331, +0x1670 u360,
+         +0x1674 (none), +0x1678 u310, +0x167c u311; +0x1680 timer / clock; byte +0x1684 release; +0x1690.. orbit point O;
+         +0x16a0 rx, +0x16a4 rz, +0x16a8 theta (rad), +0x16ac w_dive (rad/f), +0x16b0 his Y word, +0x16c0.. centre C (his pos at spawn),
+         +0x16d0 w_orbit, +0x16d4 t, +0x16d8 rate, +0x16dc/e0/e4 start words, +0x16e8/ec/f0 target words, +0x16f4 yaw offset (deg).
+  state word +4: byte4 state (1 live, 0xfe ending, 0xff dead), byte5 sub-state, byte6 phase, byte7 (base60 sub2) stopped flag.
+
+(The full transcription is in the SubagentHandback report of this session.)
+
+BASE58 DRAW VERDICT: no model (band census: no 0x152530 resource load, no vt+0x58; control base59 band shows both at 0x4350f0..0x435118);
+two effect starts: 0x433844 (sp_58 vt+0x18) ef0 [+0x1638] at +0x1000 with rotation override -> +0x15f0; 0x434688 (vt+0x158, contact)
+ef1 [+0x163c] at the contact (0x43b08c override) -> +0x15f4 (re-placed 0x329c9c/0x329d04 when live). .shl ef = (0,0)/(0,1) -> u 0 / u 1
+on em088_00u; em088_00u (dp.decode_pel via effects_triage.pel) UNIQUE 68 keys, lowest 10; SEQUENCE 56, lowest 200 -> no record.
+Control: same lookup lists u 300/301/310/311/330/331/332/360/231. Engine miss path (0x53a7d8 -> 0x408bc) NR.

@@ -1,0 +1,86 @@
+em001_00
+  em001_00u|61|shell                             rank 1: 0   -                          | rank 5: 2   draws
+  em001_00u|62|shell                             rank 1: 0   -                          | rank 5: 1   draws
+em001_02
+  em001_02u|60|shell                             rank 1: 2   draws                      | rank 5: 0   -
+em001_04
+  em001_04u|62|shell                             rank 1: 0   -                          | rank 5: 4   draws
+em003_00
+  em003_00u|30|shell                             rank 1: 1   draws                      | rank 5: 0   -
+  em003_00u|32|shell                             rank 1: 0   -                          | rank 5: 1   draws
+em009_00
+  em009_00u|3|shell                              rank 1: 1   draws                      | rank 5: 0   -
+  em009_00u|4|shell                              rank 1: 0   -                          | rank 5: 1   draws
+em010_00
+  em010_00u|0|shell                              rank 1: 5   draws                      | rank 5: 0   -
+  em010_00u|10|shell                             rank 1: 3   draws                      | rank 5: 0   -
+  em010_00u|1|shell                              rank 1: 6   draws                      | rank 5: 0   -
+  em010_00u|20|shell                             rank 1: 0   -                          | rank 5: 5   draws
+  em010_00u|21|shell                             rank 1: 0   -                          | rank 5: 6   draws
+  em010_00u|30|shell                             rank 1: 0   -                          | rank 5: 3   draws
+em019_00
+  em019_00u|0|shell                              rank 1: 2   draws                      | rank 5: 0   -
+  em019_00u|10|shell                             rank 1: 0   -                          | rank 5: 2   draws
+  em019_00u|231|clip                             rank 1: 3   draws                      | rank 5: 0   -
+  em019_00u|233|clip                             rank 1: 0   -                          | rank 5: 3   draws
+  em019_00u|234|clip                             rank 1: 0   -                          | rank 5: 1   draws
+em027_00
+  em027_00u|30|shell                             rank 1: 2   draws                      | rank 5: 0   -
+  em027_00u|50|shell                             rank 1: 0   -                          | rank 5: 6   draws
+  em027_00u|70|shell                             rank 1: 4   draws                      | rank 5: 0   -
+em036_00
+  em036_00u|241|clip                             rank 1: 0   -                          | rank 5: 1   draws
+em044_00
+  em044_00u|210|clip                             rank 1: 0   -                          | rank 5: 1   draws
+em047_00
+  em047_00c|182|clip                             rank 1: 1   draws                      | rank 5: 0   -
+  em047_00c|183|clip                             rank 1: 0   -                          | rank 5: 1   draws
+em049_00
+  em049_00u|1006|event                           rank 1: 1   draws                      | rank 5: 0   -
+  em049_00u|100|shell                            rank 1: 0   -                          | rank 5: 4   draws
+  em049_00u|101|shell                            rank 1: 0   -                          | rank 5: 1   draws
+em057_00
+  em057_00u|1|shell                              rank 1: 0   -                          | rank 5: 1   draws off camera (lit when looked at)
+  em057_00u|234|clip                             rank 1: 0   -                          | rank 5: 3   draws
+  em057_00u|235|clip                             rank 1: 0   -                          | rank 5: 3   draws
+em057_04
+  em057_04u|1121|ragePuff                        rank 1: 17  draws                      | rank 5: 0   -
+  em057_04u|210|shell                            rank 1: 1   draws                      | rank 5: 0   -
+  em057_04u|244|clip                             rank 1: 0   -                          | rank 5: 4   draws
+  em057_04u|245|clip                             rank 1: 0   -                          | rank 5: 2   draws
+  em057_04u|250|ragePuff                         rank 1: 0   -                          | rank 5: 17  draws
+em060_04
+  em060_04u|320|clip                             rank 1: 0   -                          | rank 5: 1   draws
+em066_00
+  em066_00u|22|shell                             rank 1: 4   draws                      | rank 5: 4   draws off camera (lit when looked at)
+  em066_00u|390|clip                             rank 1: 1   draws                      | rank 5: 0   -
+  em066_00u|391|clip                             rank 1: 1   draws                      | rank 5: 0   -
+  em066_00u|392|clip                             rank 1: 0   -                          | rank 5: 1   draws
+  em066_00u|393|clip                             rank 1: 0   -                          | rank 5: 1   draws
+em070_00
+  em070_00u|100|shell                            rank 1: 0   -                          | rank 5: 4   draws
+  em070_00u|101|shell                            rank 1: 0   -                          | rank 5: 3   draws
+  em070_00u|260|clip                             rank 1: 1   draws                      | rank 5: 0   -
+  em070_00u|261|clip                             rank 1: 1   draws                      | rank 5: 0   -
+  em070_00u|262|clip                             rank 1: 1   draws                      | rank 5: 0   -
+  em070_00u|271|clip                             rank 1: 2   draws                      | rank 5: 0   -
+  em070_00u|281|clip                             rank 1: 0   -                          | rank 5: 2   draws
+  em070_00u|282|clip                             rank 1: 0   -                          | rank 5: 1   draws
+  em070_00u|283|clip                             rank 1: 0   -                          | rank 5: 1   draws
+  em070_00u|284|clip                             rank 1: 0   -                          | rank 5: 1   draws
+  em070_00u|90|shell                             rank 1: 4   draws                      | rank 5: 0   -
+  em070_00u|91|shell                             rank 1: 3   draws                      | rank 5: 0   -
+em083_00
+  em083_00u|60|shell                             rank 1: 6   draws                      | rank 5: 0   -
+  em083_00u|61|shell                             rank 1: 2   draws                      | rank 5: 0   -
+em083_04
+  em083_04u|60|shell                             rank 1: 8   draws                      | rank 5: 0   -
+em084_00
+  em084_00u|10|shell                             rank 1: 1   draws                      | rank 5: 0   -
+  em084_00u|1|shell                              rank 1: 4   draws                      | rank 5: 0   -
+  em084_00u|2|shell                              rank 1: 1   draws                      | rank 5: 0   -
+  em084_00u|31|shell                             rank 1: 8   draws                      | rank 5: 0   -
+  em084_00u|32|shell                             rank 1: 0   -                          | rank 5: 8   draws
+  em084_00u|33|shell                             rank 1: 10  draws                      | rank 5: 0   -
+  em084_00u|34|shell                             rank 1: 0   -                          | rank 5: 10  draws
+NO REPORT: em007_00 (rank 1), em008_00 (rank 1), em012_00 (rank 5), em018_00 (rank 5), em018_04 (rank 1), em021_00 (rank 5), em023_00 (rank 1) (rank 5), em079_00 (rank 5), em079_04 (rank 5)

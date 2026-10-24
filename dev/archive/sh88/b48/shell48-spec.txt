@@ -1,0 +1,194 @@
+shell48 (Ahtal-Ka's ballista balls) -- base48 + uShellEm088_sp_48 + the spawn + the CU request bytes.
+Research agent, 2026-10-15, static reads (sdis.py). READ = the consuming instruction was read; INFERRED / NR said where they stand.
+Disassembly kept beside this file: band.txt (base48 0x426600..0x427b00), sp48.txt (0x10c4100..0x10c4600), spawn.txt
+(0x10b345c..0x10b3f00), cu.txt (CU band 0x10ad9f4..0x10aef00), sp01.txt + x10c3f50.txt (sp_01), x10b6320.txt, x1f5c10.txt,
+x43b2b0.txt, x4a1430.txt.
+
+Notation: S = shell; dt = float S+0x1c; every VFP op rounds to float32. vmla d,a,b = d + a*b (product rounded, then sum
+rounded -- two roundings, as everywhere in shells.js `mla`); vmls d,a,b = d - a*b. U = 10430.378 (lit 0x4622f983),
+R = 9.58738e-05 (0x38c90fdb). ang(x) := u16(trunc(vmla(0.5, x, U))); rad(w) := f32(w as u32) * R.
+rotY(v; w): sn = sinf(rad w), cs = cosf(rad w); x' = vmla(v.x*cs, v.z, sn); z' = vmls(v.z*cs, v.x, sn); y unchanged.
+atan2f is 0x13ecba8 called (s0, s1) = (dx, dz), the same convention shells.js uses (atan2f(dx, dz)).
+
+=====================================================================================================================
+1. base48 + sp_48 for Ahtal-Ka's mode 0
+=====================================================================================================================
+
+1.0 Extents, classes, vtables (R)
+ - base48 code band 0x426634..0x427b24: base47's static init + pool end at 0x426630; base48's lowest vtable slot is 0x426634
+   (cSetupParamEmBase48 vt+8, `mov r0,#0; bx lr`); its DTI static init 0x4279b4..0x427b00 (pool to 0x427b24) names
+   "uShellEmBase48" (size 0x1680) and "uShellEmBase48::cSetupParamEmBase48" (size 0x18); 0x427b28 starts base49.
+ - Functions: 0x42663c setup factory (0x18 bytes, +4 = 0x19d, +8..+0x14 = 0); 0x4266a0 setup alloc (heap 0x1887488 vt+0x20);
+   0x4266dc base vt+0x160 (stage query; OVERRIDDEN by sp_48); 0x4267e8 vt+0x150 impact; 0x4268e0 ctor (vtable 0x1752c28);
+   0x426a88 / 0x426a8c dtors; 0x426abc vt+0x13c init; 0x427294 vt+0x24 move; 0x4273a0 vt+0x158 step; 0x4278b0 vt+0x148 end;
+   0x42795c vt+0x14; 0x42796c vt+0x154 / 0x427970 vt+0x15c / 0x427974 vt+0x164 = `bx lr`. vt+0x28 = 0x4a1770 (common;
+   base48 has no own after-move).
+ - sp_48 (vtable 0x1809b24) differs from base48's 0x1752c28 ONLY at +0x4 0x10c4480 (dtor), +0x14 0x10c4490 (getDTI ->
+   0x188d8e8), +0x14c reader 0x10c415c, +0x160 0x10c42fc, +0x164 0x10c443c. sp_48 ctor 0x10c413c (base ctor, then vt).
+ - Setup (cSetupParamEmBase48, vt 0x1752dc0): +4 class id, +8 mode, +0xc owner, +0x10 &start (vec ptr or 0),
+   +0x14 &target (vec ptr or 0).
+
+1.1 Fields
+ ctor 0x4268e0: ef words +0x15c8..+0x15d4 = 0; +0x15d8/+0x15dc/+0x15e0/+0x15e4 = -1; floats +0x15e8..+0x1604 = 0;
+ +0x1608/+0x160c/+0x1610 = &ZERO (0x19176b0, the engine's shared zero vec); handles +0x161c/+0x1620 = 0; +0x1614/+0x1618 = 0;
+ +0x1630..+0x167c = ZERO's words (0); +0x15a8 = 0x30.
+ reader 0x10c415c (getters 0x4a22f0 / 0x4a23f4 / 0x4a2470 / 0x4a24f8 / 0x4a2584):
+   ef0 -> +0x15c8 (u150), ef1 -> +0x15cc (u151), ef2 -> +0x15d0 (u152), ef3 -> +0x15d4 (u152)
+   hit0 -> +0x15d8 (= 0), int0 -> +0x15e4 (= 1)
+   f0 +0x15e8 = 3000 (life)        f1 +0x15ec = 100 (base rise time)   f2 +0x15f0 = 110 (drop time)
+   f3 +0x15f4 = 2000 (rise height) f4 +0x15f8 = 500 (short of aim)    f5 +0x15fc = 20000 (max range)
+   f6 +0x1600 = 800 (min range)    f7 +0x1604 = 8 (time per 1000 of range)
+   &vec0 -> +0x1608, &vec1 -> +0x160c. +0x1610 is never written after the ctor -> always ZERO. +0x15dc / +0x15e0 stay -1.
+   vec1 (+0x160c) is read by nothing in the band. The .shl mode's scale 0.7 is the requester scale (rom-map row 871).
+ Runtime fields: +4 state byte; +0x40 pos; +0x1000 anchor; +0x1010 vel; +0x1020 acc; +0xfe8 / +0xfec the X / Y angle words;
+ +0x1614 life (then the end wait); +0x1618 T (phase-1 timer); +0x161c ef0 handle; +0x1620 impact handle; +0x1630 P1
+ (apex point); +0x1640 aim; +0x1650 B (marker point); +0x1660 vB; +0x1670 aB.
+
+1.2 init 0x426abc(S, req) -> 1 on success (R)
+ a. Gates (pass in the viewer): 0x43a850(S) and o = 0x4a100c(S) (= S+0x1384) with byte o+0x50 bit 0; else vt+0x40 (delete), 0.
+ b. reader (vt+0x14c). owner = 0x4a0f00(S). state byte +4 = 1. life +0x1614 = f0 (3000).
+ c. START: req+0x10 != 0 (Ka: always) -> pos +0x40.. = *req+0x10, +0x4c = 0.
+    [req+0x10 == 0 (not Ka): pos = *vec0 through 0xc15a4(owner, +0x15e0) matrix M (row-vector):
+     w = f(M15 + vmla(vmla(M7*y, M3, x), M11, z)); inv = w == 0 ? 0 : 1/w;
+     x' = inv * f(M12 + vmla(vmla(M4*y, M0, x), M8, z)); y' = inv * f(M13 + vmla(vmla(M5*y, M1, x), M9, z));
+     z' = inv * f(M14 + vmla(vmla(M6*y, M2, x), M10, z)).]
+    B +0x1650.. = pos (x, y, z), +0x165c = 0 (y overwritten in step f).
+ d. TARGET T = *req+0x14 (Ka: always set) [else owner block [owner+0x1428] + 0x1d0 + 16 * (+0x15dc)].
+    w1 = ang(atan2f(T.x - pos.x, T.z - pos.z)); o = rotY(*(+0x1610) = ZERO; w1) -> (0,0,0) for Ka.
+    aim +0x1640 = (T.x + o.x, f(T.y + v.y), T.z + o.z) = T; +0x164c = 0.   (call AY = aim.y)
+ e. RANGE: d = sqrtf(vmla(vmla(0, pos.x-aim.x, pos.x-aim.x), pos.z-aim.z, pos.z-aim.z)) (horizontal);
+    d = (f5 > d) ? d : f5;   D = (d > f6) ? d : f6          [vselgt x2: clamp to [800, 20000]]
+    T0 +0x1618 = vmla(f1, f7, f((D - f6) / 1000.0))         = 100 + 8 * (D - 800) / 1000
+    w2 = ang(atan2f(aim.x - pos.x, aim.z - pos.z)).
+ f. APEX P1 and the world aim:
+    P1 local = (0, 0, f(D - f4)); P1 +0x1630 = rotY(P1local; w2) [x = vmla(cs*0, (D-f4), sn), z = vmls((D-f4)*cs, sn, 0)];
+    P1.x = f(pos.x + P1.x); P1.z = f(pos.z + P1.z); P1.y +0x1634 = f(f3 + f(pos.y + 0)).
+    aim local = (0, 0, D) -> aim.x = f(pos.x + vmla(0*cs, D, sn)); aim.z = f(pos.z + vmls(D*cs, 0, sn));
+    aim.y +0x1644 = AY; B.y +0x1654 = AY.     (aim is re-made at exactly D along w2: the clamp moves it.)
+ g. PHASE-1 FLIGHT: vel +0x1010 = (0, f(f(f3+f3) / T0), f(f(D - f4) / T0)); acc +0x1020 = (0, f(f(f3 * -2.0) / f(T0*T0)), 0);
+    vel = rotY(vel; w2) (x = vmla(cs*0, vz, sn), z = vmls(vz*cs, sn, 0)); acc = rotY(acc; w2) (zeros stay 0).
+    => after T0 frames the ball is at P1 with vy = 0: it rises f3 = 2000 while covering D - 500.
+ h. MARKER TRACK B: dB = sqrtf(vmla(vmla(0, B.x-aim.x, B.x-aim.x), B.z-aim.z, B.z-aim.z));
+    vB +0x1660 = (0, 0, f(f(dB+dB) / T0)); aB +0x1670 = (0, 0, f(f(dB * -2.0) / f(T0*T0)));
+    w3 = ang(atan2f(aim.x - B.x, aim.z - B.z)); vB = rotY(vB; w3); aB = rotY(aB; w3).  (B decelerates onto aim at T0.)
+ i. EFFECT ef0 (u150): if +0x15c8 != 0: requester 0x40a54(tmp); 0x4a10c8(S, tmp, parent = S.vt+0x130(S), 0,
+    [area byte S+0x1054, &S+0x40, -1]); handle +0x161c = 0x4a11e4(S, ef0, tmp) -- the flying ball, started at pos and bound
+    to the shell (base40's requester: no rotation override). Visual.
+ j. Hit registration (not visual): 0x4a1ad8(S) == 1 and +0x15d8 >= 0 -> vt+0x140(S, 0, +0x15d8, -1, 1.0, 0x1f, 2, h16 +0x1588).
+ Init does NOT set the angle words; the first step does.
+
+1.3 move 0x427294 (vt+0x24), every frame (R)
+ 0x4a1698(S) (hit side; deletes the shell when the owner's unit leaves states 1/2 -- rom-map trap). Handle hygiene: +0x161c and
+ +0x1620 each cleared when the handle's unit state (+0xc & 7) is not 1/2 (viewer: input.effectAlive).
+ state 1 -> vt+0x158 step (1.4). state 0xfe -> the wait: L = +0x1614; L <= 0 -> L = 0, delete; else L' = L - dt,
+ L = (0 >= L') ? 0 : L'; L' <= 0 -> delete; else if either handle alive -> return; else state = 0xff (word store), delete.
+ Other states: return.
+
+1.4 step 0x4273a0 (vt+0x158), state 1 (R)
+ 1. 0x4a0f38(S) (owner active) false -> end(S, 0) (never in the viewer).
+ 2. anchor +0x1000.. = pos, +0x100c = 0.
+ 3. 0x539224 = shells.js stepFlight (t = dt * 1.0 via vt+0x90 0x5392f8, h = f(t*t)*0.5; pos += h*acc + vel*t; vel += t*acc).
+ 4. Y word +0xfec = ang(atan2f(vel.x, vel.z)).
+    hs = sqrtf(vmla(f(vel.z*vel.z), vel.x, vel.x));  X word +0xfe8 = ang(atan2f(-vel.y, hs)).   (Z word untouched.)
+ 5. B integrate (its own order, NOT stepFlight's), per axis i: a1 = f(dt*aB.i); q = f(f(dt*a1) * 0.5);
+    B.i = f(vmla(q, dt, vB.i) + B.i); vB.i = f(a1 + vB.i).
+ 6. T0 timer +0x1618: T == 0 -> skip to 8. T < 0 -> T = 0, go to 7. Else T' = T - dt; T = (0 >= T') ? 0 : T';
+    T' <= 0 -> 7, else 8.  (T stays 0 afterwards: 7 runs once.)
+ 7. PHASE 2 (the drop), once:
+    w4 = ang(atan2f(aim.x - P1.x, aim.z - P1.z)); dist = sqrtf(vmla(vmla(0, P1.x-aim.x, P1.x-aim.x), P1.z-aim.z, P1.z-aim.z));
+    acc = (0, f(f(f(AY - P1.y) + same) / f(f2*f2)), 0)   [= 2*(AY - P1.y)/110^2, a fall];
+    vel = (0, 0, f(dist / f2)) then rotY(vel; w4), acc = rotY(acc; w4). The POSITION IS NOT RESET (it continues from the
+    integrated point, a fraction of a frame past P1). vy is zeroed.
+    B = aim (+0x165c = 0); vB = aB = ZERO.
+    vt+0x164 = sp_48 0x10c443c: 0x4a1430(S, 0xfc, &(pos.x, 0, pos.z, 0), 1) -- a SOUND request (0x4edddc on the manager
+    *0x188fdbc, channel 0xb, bank 0x489d54(S+0x1384), id 0xfc): call READ, "sound" INFERRED from the manager. Not visual.
+ 8. 0x43b2b0(S, kind = int0 = 1, &B, 1) every state-1 frame: if 0x539300(S) == 1: ground query 0x183664 (mask 0x40) under B,
+    no ground -> nothing; else an entry (point = B with y = the ground) in the pooled list 0x2b3c8 (manager *0x1846dc8,
+    size class table 0x1592238[kind] = 6). INFERRED a ground marker / shadow (rom-map row base07 +0x28 already says so);
+    not an effect record. Note it tracks B (start -> aim during phase 1, then the aim), not the ball.
+ 9. LIFE (f0 = 3000 > 0): L = +0x1614; L <= 0 -> L = 0, end(S, 0); else L' = L - dt, L = (0 >= L') ? 0 : L';
+    L' <= 0 -> end(S, 0) (no impact test this frame); else vt+0x160. (f0 <= 0 would go straight to vt+0x160.)
+ 10. vt+0x160 = sp_48 0x10c42fc, the IMPACT TEST (no stage query -- it only builds 0x43ac6c's struct to pass along):
+    - hit byte S+0x13ae != 0xff and NOT (o = S+0x1458 != 0, byte o+0x1052 == 0, 0x2a8de4(o) true [hunter o: h16 +0x2506 == 1
+      and h16 +0x250a in 0xab..0xe7 -- a hunter state, NR which]) -> kind 2 at the hit point (S+0x13c8, +0x13cc, +0x13d0).
+    - otherwise (no hit, or that hunter state): pos.y > 0 (or NaN) -> nothing; pos.y <= 0 -> kind 1 at (pos.x, 0, pos.z).
+      THE GROUND IS THE WORLD PLANE y = 0, not the stage.
+    -> vt+0x150 0x4267e8(S, &pt, &query, kind): kind 1 first calls vt+0x15c (bx lr); ef = kind 0: +0x15d0 (u152),
+       1: +0x15cc (u151), 2: +0x15d4 (u152); if ef != 0: requester as 1.2.i but at pt (0x4a10c8 with [area, pt, -1]),
+       handle +0x1620 = 0x4a11e4(...) -- PLACED at pt, visual; then vt+0x148 end(S, 0).
+    sp_48 never uses kind 0 (ef2). base48's own +0x160 0x4266dc (overridden) would run the stage query 0x43ac8c, save
+    +0x1060.. / +0x1080.. and pass the query's type.
+ 11. end 0x4278b0(S, flag): if (word +4 & 0xfe) != 0xfe: 0x43b058(S, +0x161c, flag) (u150 stopped, gracefully for 0);
+    0x4a1de4(S) (not visual, NR); vt+0x154 (bx lr); +0x1614 = [0x162493c] (30.0) * 60.0 = 1800; state 0xfe.
+    flag 1 -> vt+0x40 delete, +4 |= 0xff. The impact effect (+0x1620) is NOT stopped; the 0xfe wait lasts until both
+    handles are gone or 1800 frames.
+
+1.5 Effects summary (Ka mode 0, list 0 = em088_00u, scale 0.7)
+ u150 (ef0): at init, on the shell (bound; rides pos and the X/Y words), stopped at the end. u151 (ef1): ground impact,
+ placed at (x, 0, z). u152 (ef3): hunter hit, placed at the hit point. u152 (ef2): unused by sp_48.
+ Engine calls: 0x43a850 / 0x4a100c / 0x4a0f00 / 0x4a0f38 gates (not visual); 0x539224 (visual, transcribed); atan2f /
+ sinf / cosf / sqrtf; 0x40a54 / 0x4a10c8 / 0x4a11e4 effect start (visual); 0x43b058 stop (visual); 0x43b2b0 marker
+ (INFERRED shadow, visual-ish, not an effect); 0x4a1430 sound (not visual); vt+0x140 / 0x4a1ad8 / 0x4a1698 / 0x4a1de4 hit
+ side (not visual); 0xc15a4 not reached for Ka.
+
+1.6 Worked shape (vec13 -> a target 10000 away horizontally): D = 10000, T0 = 100 + 8*9.2 = 173.6 frames rising 2000 over
+ 9500, then a 110-frame drop over ~500 to AY, then on until y <= 0. If AY > 0 the ball keeps falling past AY (no
+ re-aim) until the world plane; with AY < 0 it impacts on y = 0 before the end of the drop.
+
+=====================================================================================================================
+2. What drives the spawn (R unless marked)
+=====================================================================================================================
+G = *0x2132968 = the uEm087_088_ControlUnit instance (its ctor 0x10ae270 stores itself there and 0x5ba48 sets the game
+manager's (*0x184afe0) byte +0x2a74; 0x5ba24 returns G only while that byte is set; CU vt+0x40 0x10ae3e8 clears both).
+CU ctor: +0xbc/+0xbd/+0xc6/+0xc7 = 0, +0xbe/+0xbf/+0xc8/+0xc9 = 0xff.
+
+Chain, in order:
+ A. SILK LINES UP. Ka's 0x10b6320 (by E+0xd3fc: 1 mode 0, 2 mode 1, 3 both) makes shell01 mode k and sets P+0x1bb bit k
+    (P = [E+0x1428]; |= 1 at 0x10b637c / 0x10b6454, |= 2 at the mode-1 arms 0x10b6538 / 0x10b662c).
+    sp_01 init 0x10c3a80: modes 0/1 take a serial (+0x1654 = ++u16 at 0x21330d8).
+ B. A HUNTER CUTS LINE k. sp_01 modes 0/1 end when hit by a hunter: +0x98 0x10c3bfc (flag r3 == 0) or the per-frame
+    0x10c3c98 (hit slot +0x13ae, target +0x1458 with 0x27b808 == 1), each: 0x4a1430(S, 0xfa, hit point, 1) (sound),
+    +0x1656 = the hunter's index (hunter byte +0x1051), end. (Or remotely: G h16 +0xc0+2k == its serial -> +0x1656 =
+    G byte +0xc4+k.) Its end hook sp_01 +0x154 0x10c3f50: 0x10aea28(G, k, +0x1656): G+0xbc+k = 2, G+0xbe+k = hunter;
+    online -> FreeUsePacket kind k+1 (serial, hunter).
+ C. KA ARMS THE BALLISTA (uEm088_00 vt+0x1dc 0x10b345c, every frame, block 0x10b3a14..0x10b3afc): if E+0x7420 != 0
+    and P+0x1bb & 3: for k = 0, 1: if G+0xbc+k != 0 and P+0x1bb bit k: clear bit k; u = G+0xbe+k; u != 0xff ->
+    0x10aea54(G, 1, k, u): G+0xc6+k = 1, G+0xc8+k = u; and if online (0x2276b4(*0x187d2d0, 0x4d) != 0) -> 0x1f3c24
+    sends FreeUsePacket kind 3+k (a = u, b = 0).
+ D. THE SHOT (same call, 0x10b3afc..0x10b3d1c, reached on every path): k = 0: 0x10aead0(G, 0) (G+0xc6 != 0);
+    k = 1: 0x10aead0(G, 1). Then start = action-tune vec 13 + k (0x6f640(E, 0xd / 0xe): (-3000, 2150, -5500) /
+    (5500, 2150, -2000), world coordinates); u = 0x10aeae4(G, k) = G+0xc8+k; target = (0,0,0) unless 0xafa10(E, u) == 1
+    (hunter u = *(*0x187ea38 + 0x1c + 4u) exists, its vt+0x88 == 1, two 0x693b0 tests, and its area byte +0x1054 == E's),
+    then target = hunter u's +0x40 (its position at that frame). Setup: class 0x17d, mode 0, owner E, +0x10 = &start,
+    +0x14 = &target -> 0x48b884(*0x188b3b0, setup) (the shell factory; the pointers are to the caller's stack, so the init
+    must run inside the factory call -- INFERRED, 0x48b884 not re-read). No handle is kept.
+ E. CLEAR. The CU's move 0x10ae444 (CU vt+0x24) each frame, only while Neset's (+0x34) or Ka's (+0x38) handle is alive:
+    +0xbc+k, +0xc6+k count down by 1; reaching 0 sets +0xbe+k / +0xc8+k = 0xff (0x10ae55c..0x10ae5d8).
+ F. REMOTE MACHINES: nFestaNetwork::netEm087_088_FreeUsePacketProcedure's receive slot 0x1f5ba0 (vtable slot at data
+    0x173ade4; getDTI 0x1f5b90 -> 0x1853ab8) checks the message is a netEm087_088_FreeUsePacket (DTI 0x1853a98), then
+    0x10aed70(G, kind = msg+8, a = h16 msg+0xc, b = h16 msg+0xe): 1 -> +0xc0 = a, +0xc4 = b; 2 -> +0xc2, +0xc5;
+    3 -> +0xc6 = 2, +0xc8 = a; 4 -> +0xc7 = 2, +0xc9 = a; 5 -> +0xce |= a. Remote machines then shoot in D (D is not
+    behind E+0x7420). The packet (0x1f3c24): 0x10 bytes, vt 0x173a74c+8, +8 kind, +0xc a, +0xe b, sent by 0x9f9410 with 0x1040.
+
+ So 0x1f5c10 is not a quest / stage / gimmick script: it is the network receive handler of the Neset/Ka control unit's
+ "free use" packet, commands 3 / 4 = "ballista 0 / 1 fired at hunter a". The local trigger is C.
+
+ How many / how often: ONE shell48 per cut line. Locally +0xc6+k = 1 is written and read in the same vt+0x1dc call and
+ P+0x1bb bit k is cleared, so line k can fire again only after 0x10b6320 makes shell01 mode k again (E+0xd3fc, EMC op
+ 0xa3 b1 2 per the props spec). Both k may fire in one frame. Remote copies get 2: one shot if the CU's move (E) runs
+ before Ka's vt+0x1dc in the frame, two if after -- the unit-line order of the CU is NR.
+ E+0x7420: written 0 at 0xaf2cc, 1 / (own index == r1) at 0xb1590..0xb161c (with E+0x7424 = an index from 0x495d8 /
+ 0x4957c); INFERRED the "this machine runs this enemy" flag (1 offline); not read further.
+
+ Viewer: nothing corresponds. The ROM's trigger needs a hunter striking a shell01 mode 0/1 line (a hit-slot event) and
+ a hunter's position for the target; the viewer has neither hunters nor the hit side. The ROM-derived parts that ARE
+ available: line k exists (shell01 mode k, P+0x1bb bit k), the start (tune vec 13 + k), the flight (section 1). A
+ reproduction needs two inputs with no ROM value: "line k was cut" (the event) and the target point (the cutting
+ hunter's position; or (0,0,0) world origin only when that hunter fails 0xafa10 -- still after a cut).
+
+=====================================================================================================================
+3. NR
+=====================================================================================================================
+ 0x48b884 (factory) internals; 0x4a1de4; 0x539300; 0x183664 / 0x2b3c8 internals (marker meaning INFERRED); 0x2a8de4's
+ hunter-state meaning; 0x693b0; 0x2276b4's id 0x4d meaning (INFERRED "online"); the CU's move line vs Ka's line; who
+ sets E+0xd3fc (props spec says EMC op 0xa3 b1 2 -- not re-read here); what +0xce / +0xc0..+0xc5 drive beyond sp_01.

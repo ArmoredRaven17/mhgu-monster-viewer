@@ -1042,7 +1042,7 @@ reaches no setMotion with the state zeroed.
 - `(2, 0x1)` return (no motion)
 - `(2, 0x6)` setMotion0 L0 M4 (0x004) blend 10 start 0
 
-### Alatreon -- em050_00 -- uEm050_00 (vtable 0x17c7254, code 0xec480c..0xed0a38, main 0xeccc1c)
+### Alatreon -- em050_00 -- uEm050_00 (vtable 0x17c7254, code 0xec480c..0xed0a38 [derived 2026-10-24: `0xec4890..0xed0834`; rom-map "Alatreon band (derived)"], main 0xeccc1c)
 
 `em050_00_cmdtbl.emc` g4 s0: `0c 00 | 0c 01 01 | 0c 01 03 | 14 09 | 0c 02 | 14 00 | 0c ff | ff`
 

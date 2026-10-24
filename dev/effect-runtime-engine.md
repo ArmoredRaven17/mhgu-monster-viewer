@@ -267,6 +267,57 @@ recorded blocks into docs/render/rom/effect/lifted-*.js). rom-map's tooling tabl
   test past the layer's held end never passes (gapI: em027_00 c 30 never fires in the game) -- check the hold before calling a
   row missing.
 
+## E23. Draw order: the generator key and the model's mesh key (doc audit 2026-10-24: index entry)
+
+- **(a)** Translucent draws are ordered by a key, not by a scene sort.
+  - An effect generator's key is its view depth, clamped at 0. A generator at or behind the camera gets the far key (it draws
+    first). A generator flagged by a byte of +0x44 gets 0 before any depth is taken.
+  - A skinned model's translucent rows are keyed with ONE view depth for the whole model, plus the mesh row's own bits. Its meshes
+    keep their table order and are never depth-sorted against each other.
+- **(b)** Generator key `0xaec570`: 0x7ffe at / behind the camera at `0xaec738..0xaec744`, else max(D, 0) at `0xaec748`;
+  `[gen+0x44] & 0xff00 == 0xf00` returns 0 at `0xaec5e4`. This is INFERRED on the board; the READ is in the decode note
+  effects-draw.md, "The draw-order key at the camera".
+  The model draw is `0x9392c0` (uEnemy vt+0x68). Its key is `(0x7fff - clamp(mPriorityBias + model+0x19c - depth)) << 12 | (row+8 >> 8) & 0xff`
+  on item types 0x11 / 0x0f; docs/render/monster.js:76-80 transcribes it.
+  Rows: rom-map "Effects -- the primitive layer ...", "Colour space -- the model pass".
+- **(c)** Find the key builder by its constants (0x7ffe / 0x7fff and the `<< 12` pack) in the draw-item submit. **Trap (viewer):**
+  a renderer that sorts meshes per frame (three.js does, by renderOrder ties) makes a model's fins trade places as the camera
+  moves. Give each model one depth and keep the mesh table's order.
+
+## E24. The model pass: colour space, alpha test, material binding, distortion, lighting (doc audit 2026-10-24: pointer)
+
+Not effect-runtime code. Effect models and monster models share this pass, so a port needs it. The detail and the controls are in
+`dev/model-pass-colour-space.md`; the 3U / 4U consequences are in `dev/gu-lessons-for-3u-4u.md`.
+
+- **Colour space:** `sRender.mSRGBEnable` (+0x29) is built OFF. The model pass computes in display (sRGB-encoded) values throughout
+  (model-pass-colour-space.md §0 / §2.1).
+- **Alpha test:** NVN colour state taken from the MRL feature word: bit 20 enable, bits 21..23 function, bits 8..15 reference.
+  Loader `0xb42ed4`; SetAlphaTest at `0xafdd20`; SetAlphaRef(byte / 255) at `0xbbf2f4`. 190 / 570 monster materials enable it, all
+  GREATER (R, 2026-09-13). **GU-only:** the 3DS (PICA) alpha test is encoded elsewhere in its MRL and must be read there.
+- **Material binding:** +0x214[i] = the .mrl's find-by-name of the .mod's i-th material name, so the index follows .mod name order,
+  not .mrl order. Sites: `0xb4688c` / `0xb45da8` / `0x88c05c` (INFERRED on the board; efx/modmat.py).
+- **Distortion:** `0xb03174` makes the same-frame scene copy (nDraw::Scene +0x2e4) that is bound as tDistortionMap (R).
+- **Deferred lighting:** the draw path `0x891390` gates on mDeferredLightingForcedForwardRendering (config +0x22d), a companion byte
+  +0x22c, and a value <= 2 that picks the lighting technique. The shipped defaults are NOT READ (INFERRED).
+- **(c)** The property names (`mSRGBEnable`, `mDeferredLightingForcedForwardRendering`, `tDistortionMap`) are MT reflection strings.
+  Look them up by name in another build before searching for code. Rows: rom-map "Colour space -- the model pass".
+
+## E25. Spawn size type: the monster's scale, and what else it selects (doc audit 2026-10-24: index entry)
+
+- **(a)** A spawn entry carries a size TYPE.
+  - The enemy takes a scale multiplier from its dtbase.
+  - A class virtual then turns the type into the final scale through the class's own table.
+  - The same type can select other things: a part group (Kelbi), other parameters (Bnahabra, Konchu, unread), and an effect
+    record (Teostra's aura: u 10 instead of u 0 while P+0x5cb6 == 1).
+  - Effects on the monster are placed on its joints, so they take the scaled skeleton. An effect's own payload scale is separate
+    (E4). This is INFERRED; how the parent's scale reaches an effect is not traced.
+- **(b)** Spawn entry (36 B, every `rEmSetList`) byte +7 -> em+0x5cb6 (`0x6fb68`); dtbase multiplier -> mEmScale em+0x1ac
+  (`0xb94d0`); class vt+0x1d8 (Kelbi `0x10cc078`, table `0x16a3b48` 0.85 / 1.3 / 1.1); Teostra vt+0x208 `0xe10f7c`. Rows: rom-map
+  "Spawn size type -> scale and appearance" (taken from part-review.json, not re-read), "Teostra / Kushala".
+- **(c)** The `rEmSetList` entry and `mEmScale` (a reflection name) are the anchors. Read each class's vt+0x1d8 for its own table. A
+  type can mean a different thing per class; do not reuse GU's numbers. **Trap (method):** a record picked by the size type looks
+  "never fired" at the viewer's default type. Check P+0x5cb6 gates before calling a record missing.
+
 ## The shell engine (shells lane, 2026-10-18)
 
 Written to carry over to other MT Framework builds (3U, 4U, FU, ...). For each mechanism: (a) what it is, (b) GU's addresses, (c) how

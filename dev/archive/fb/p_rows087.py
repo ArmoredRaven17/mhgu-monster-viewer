@@ -1,0 +1,14 @@
+D = r'C:\MHGU-Extract\MHGU-Monster-Viewer\dev'
+p = D + r'\rom-map.md'
+s = open(p, encoding='utf8').read()
+a = "| `0x10bb22c` type 7 (CORRECTS \"M17 f140-160\") |"
+i = s.index(a); j = s.index('\n', i)
+rows = (
+"| `0x10aa3a0` (uEm087_00 vt+0x158) / shell table `0x175c3e8` rows 0x176..0x17a | Ahtal-Neset's shells by IMMEDIATE id (not e-fields): 0x176 (res 0x8ac3, setup DTI 0x188d7e8, folder shell00), 0x177 (0x8ac4, cSetupParamEmBase01 0x18859e8, shell01; vtable `0x1809294`), 0x178 (0x8ac5, shell48), 0x179 (0x8ac6, shell58), 0x17a (0x8ac7, shell59 the rocket) | uEm087_00 | R (ids, rows) / I (res -> folder by order) | ahtal-neset spec (to come) |\n"
+"| `0x10b0e04` ((7, 4)) / `0x10abc08(e, mode, joint, dY)` | (7, 4): phase 0 L2 M3 (0x203) and sp_01 0 at joint 0x11 at once; phase 1 at f204 (0xb0968 mode 0) sp_01 0 at joint 0xd. The maker: the joint's point (0xc164c) with **y = 0** ([sp+0x14] = 0), words (P X, u16(P Y + dY), P Z), +0x3c 0xffff | uEm087_00 | R + E (emu_fb: two creates, setup read) | \" |\n"
+"| `0x10c229c` / `0x10c2344` / `0x10c23b4` (uShellEm087_sp_01) | reader: ef 0, hit 0, int 0 -> +0x15e8, float 1 the timer +0x15f0, vec 0 +0x1608, **float 0 a delay +0x1654**; +0x150: the delay counted down by dt (kept >= 0), at 0 -> 0x10c23b4 then the end; 0x10c23b4 (id 0x177 only): sp_01 table `0x16a38e0`[mode] = [1, 2, 0, 0, 5, 6, 0, 0, 9, 10] at its point with its words, +0x3c its +0x13dc -- the chains 0 -> 1 -> 2, 4 -> 5 -> 6, 8 -> 9 -> 10 (a 0 delay never fires: modes 2 / 6 / 10 / 12 make nothing) | uShellEm087_sp_01 | R | \" |\n"
+"| `0x10af528` -> `0x6d4c8(E, 0x1803de8, 0x240)` | Ahtal-Neset's motion EVENT table: 72 pairs (list 0 only); 8 lists in bss (idx 1 / 4 / 6 / 24 / 25 / 27 / 44 / 45: built at run time, NOT READ); rows dumped `<scratchpad>\neset\seq087.txt` (846): types 1 344, 3 94, 4 46, 6 24, 7 18, 8 50, 9 67, 10 23, 11 88, 12 8, 13 42, 14 20, 15 14 | uEm087_00 / shared | R | \" |\n"
+"| `0x10ab6c0` (uEm087_00 vt+0x480, table `0x10ab708`) | his event types: 7 -> `0x10a5680(e, a0)` (kind not in mask 0x223); 8 -> object e+0xccf8[a0] == 0: `0x1217a30(e+0xcd10[a0], a1)`; **9 sp_48 0x178 mode a0** (setup 0x18, 0x4266a0); **10 sp_01 0x177 mode a0 at joint a1 (y 0), Y + a2 deg**; **11 sp_58 0x179 mode a0** (setup 0x1c, 0x433534: +0x10 0xffff, +0x14 s16 a1 deg, +0x18 a2); 12 / 13 objects (state 1 / 2: 0x1218130 / 0x12176f0); **14 sp_00 0x176 mode a0** (setup 0x40, 0x49ff98: +0x10 / +0x20 GOT vectors, +0x2e 0xffff, +0x30 the raw a2, +0x34 a1); 15 (kind gate) e+0xcb02 = 0 and 0xc44c70 on e+0xcb20 / +0xcb90.. | uEm087_00 | R (arms' setups) / NOT READ (the objects, 0x10a5680's meaning, the selectors) | \" |\n"
+"| `0x10a6e58` (uEm087_00 vt+0x204) -> `0x10a795c` | the action-start hook: sp_59 0x17a (the rocket) on some action starts (callers 0x10a7090..0x10a7128) | uEm087_00 | R (site) / NOT READ (the gates) | \" |\n")
+s = s[:j + 1] + rows + s[j + 1:]
+open(p, 'w', encoding='utf8').write(s); print('ok')

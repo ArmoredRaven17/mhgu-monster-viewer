@@ -1,0 +1,80 @@
+00d8baa4  push    {r4, r5, r6, lr}
+00d8baa8  mov     r1, #0
+00d8baac  mvn     r2, #0
+00d8bab0  mov     r4, r0
+00d8bab4  mov     r5, #0
+00d8bab8  bl      #0x4a22f0
+00d8babc  movw    r1, #0x15c8
+00d8bac0  str     r0, [r4, r1]
+00d8bac4  mov     r0, r4
+00d8bac8  mov     r1, #0
+00d8bacc  bl      #0x4a23f4
+00d8bad0  movw    r1, #0x15d8
+00d8bad4  mvn     r2, #0
+00d8bad8  str     r0, [r4, r1]
+00d8badc  mov     r0, r4
+00d8bae0  mov     r1, #0
+00d8bae4  bl      #0x4a2470
+00d8bae8  movw    r1, #0x15ec
+00d8baec  mov     r6, r4
+00d8baf0  cmn     r0, #1
+00d8baf4  mov     r0, r4
+00d8baf8  ldr     r1, [r6, r1]!
+00d8bafc  mov     r2, r1
+00d8bb00  bfc     r2, #2, #1
+00d8bb04  orrne   r2, r1, #4
+00d8bb08  mov     r1, #1
+00d8bb0c  str     r2, [r6]
+00d8bb10  mvn     r2, #0
+00d8bb14  bl      #0x4a2470
+00d8bb18  ldr     r1, [r6]
+00d8bb1c  cmn     r0, #1
+00d8bb20  mov     r0, r4
+00d8bb24  mov     r2, r1
+00d8bb28  bfc     r2, #3, #1
+00d8bb2c  orrne   r2, r1, #8
+00d8bb30  mov     r1, #2
+00d8bb34  str     r2, [r6]
+00d8bb38  mvn     r2, #0
+00d8bb3c  bl      #0x4a2470
+00d8bb40  ldr     r1, [r6]
+00d8bb44  cmn     r0, #1
+00d8bb48  mov     r0, r4
+00d8bb4c  mov     r2, r1
+00d8bb50  bfc     r2, #0xb, #1
+00d8bb54  orrne   r2, r1, #0x800
+00d8bb58  mov     r1, #3
+00d8bb5c  str     r2, [r6]
+00d8bb60  mvn     r2, #0
+00d8bb64  bl      #0x4a2470
+00d8bb68  ldr     r1, [r6]
+00d8bb6c  cmn     r0, #1
+00d8bb70  mov     r0, r4
+00d8bb74  mov     r2, r1
+00d8bb78  bfc     r2, #7, #1
+00d8bb7c  orrne   r2, r1, #0x80
+00d8bb80  mov     r1, #0
+00d8bb84  str     r2, [r6]
+00d8bb88  mvn     r2, #0
+00d8bb8c  bl      #0x4a24f8
+00d8bb90  movw    r0, #0x15f0
+00d8bb94  mov     r1, #0x3f800000
+00d8bb98  mvn     r2, #0
+00d8bb9c  add     r0, r4, r0
+00d8bba0  vstr    s0, [r0]
+00d8bba4  movw    r0, #0x15f4
+00d8bba8  str     r1, [r4, r0]
+00d8bbac  movw    r0, #0x15f8
+00d8bbb0  mov     r1, #0
+00d8bbb4  str     r5, [r4, r0]
+00d8bbb8  mov     r0, r4
+00d8bbbc  bl      #0x4a2584
+00d8bbc0  movw    r1, #0x1608
+00d8bbc4  mvn     r2, #0
+00d8bbc8  str     r0, [r4, r1]
+00d8bbcc  mov     r0, r4
+00d8bbd0  mov     r1, #1
+00d8bbd4  bl      #0x4a2584
+00d8bbd8  movw    r1, #0x160c
+00d8bbdc  str     r0, [r4, r1]
+00d8bbe0  pop     {r4, r5, r6, pc}

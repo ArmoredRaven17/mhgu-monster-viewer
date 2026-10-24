@@ -1,0 +1,769 @@
+# What was left out of dev/archive/, and why
+
+Generated 2026-10-24 by the doc audit (`docaudit/publish_select.py` + `docaudit/publish_filter.py`). Everything listed here is in
+the full local copy `C:\MHGU-RE\offline\decode\monster-viewer-scratch\` at the same relative path, except the five bulk inputs
+over 20 MB that were never copied (rom-map "2. Tooling" names them and the scripts that rewrite them). Sizes in KB.
+
+| reason | files | MB |
+|---|---|---|
+| uncited run output (census / disassembly / trace output; usually written by a script beside it, not checked file by file) | 3679 | 35.4 |
+| not a script or note | 2650 | 82.8 |
+| over 200 KB (a generated file or a copy of viewer code) | 123 | 101.2 |
+| json data dump over 200 KB | 115 | 139.0 |
+| over 200 KB (a dump or census output) | 114 | 53.6 |
+| copy of a repo file (git has the real file) | 75 | 1.6 |
+| superseded backup of a script kept beside it (the live version is included) | 36 | 1.2 |
+| third-party library copy (three.js) | 1 | 0.1 |
+
+Also never copied anywhere: the repo snapshots `headtree/` and `staged_tree/` (every file is a blob in this repo's git history).
+
+## uncited run output (census / disassembly / trace output; usually written by a script beside it, not checked file by file) (3679 files)
+
+Listed by folder and extension (count, KB):
+
+- `./` `*.json`: 22, 634 KB
+- `./` `*.out`: 200, 1083 KB
+- `./` `*.txt`: 256, 3233 KB
+- `ahtal/` `*.out`: 6, 24 KB
+- `ahtal/` `*.txt`: 3, 157 KB
+- `air/` `*.txt`: 23, 886 KB
+- `ak/` `*.txt`: 15, 556 KB
+- `ast/` `*.json`: 1, 3 KB
+- `ast/` `*.txt`: 8, 105 KB
+- `bb/` `*.txt`: 13, 110 KB
+- `bb9/` `*.json`: 1, 2 KB
+- `bb9/` `*.out`: 1, 0 KB
+- `bb9/` `*.txt`: 1, 22 KB
+- `bd_impl/` `*.txt`: 8, 32 KB
+- `bolt/` `*.json`: 1, 3 KB
+- `bolt/` `*.txt`: 26, 624 KB
+- `bolt15/` `*.out`: 1, 19 KB
+- `bolt15/` `*.txt`: 10, 235 KB
+- `bs/` `*.txt`: 8, 261 KB
+- `bw1/` `*.txt`: 35, 201 KB
+- `bw2/` `*.txt`: 14, 133 KB
+- `bw3/` `*.json`: 1, 45 KB
+- `bw3/` `*.txt`: 35, 343 KB
+- `cham/` `*.txt`: 3, 42 KB
+- `cv/` `*.json`: 10, 863 KB
+- `d07/` `*.txt`: 14, 40 KB
+- `d410/` `*.txt`: 6, 31 KB
+- `docaudit/` `*.json`: 3, 91 KB
+- `docaudit/` `*.txt`: 3, 74 KB
+- `duo/` `*.json`: 10, 124 KB
+- `duo/` `*.txt`: 17, 625 KB
+- `fb/` `*.json`: 176, 2209 KB
+- `fb/` `*.out`: 24, 130 KB
+- `fb/` `*.txt`: 695, 2984 KB
+- `fb/chunks/` `*.json`: 59, 11 KB
+- `fb/chunks1b/` `*.json`: 95, 55 KB
+- `fb/chunksw/` `*.json`: 130, 72 KB
+- `fb/chunksw2/` `*.json`: 17, 4 KB
+- `fb/chunksw3/` `*.json`: 206, 65 KB
+- `fb/pfa/` `*.txt`: 88, 670 KB
+- `fb/reasonsA/` `*.txt`: 1, 3 KB
+- `fb/reasonsD/` `*.txt`: 1, 5 KB
+- `fw/` `*.txt`: 7, 88 KB
+- `g18/` `*.txt`: 21, 174 KB
+- `gapA/` `*.json`: 3, 9 KB
+- `gapA/` `*.txt`: 2, 5 KB
+- `gapB/` `*.json`: 2, 5 KB
+- `gapB/` `*.out`: 1, 8 KB
+- `gapB/` `*.txt`: 6, 26 KB
+- `gapB/regress/` `*.out`: 8, 60 KB
+- `gapC/` `*.txt`: 7, 95 KB
+- `gapD/` `*.json`: 1, 0 KB
+- `gapD/` `*.out`: 1, 1 KB
+- `gapD/` `*.txt`: 3, 84 KB
+- `gapE/` `*.json`: 4, 8 KB
+- `gapE/` `*.out`: 3, 20 KB
+- `gapF/` `*.json`: 5, 220 KB
+- `gapF/` `*.out`: 6, 19 KB
+- `gapF/` `*.txt`: 1, 64 KB
+- `gapG/` `*.json`: 1, 0 KB
+- `gapG/` `*.out`: 4, 10 KB
+- `gapG/` `*.txt`: 4, 2 KB
+- `gapH/` `*.txt`: 1, 11 KB
+- `gapI/` `*.txt`: 2, 27 KB
+- `gapJ/` `*.out`: 1, 3 KB
+- `gapJ/` `*.txt`: 11, 333 KB
+- `gapL/` `*.txt`: 9, 89 KB
+- `gapM/` `*.json`: 1, 103 KB
+- `gapM/` `*.txt`: 16, 362 KB
+- `gapN/` `*.json`: 1, 13 KB
+- `gapN/` `*.txt`: 4, 24 KB
+- `gapO/` `*.out`: 1, 5 KB
+- `gapO/` `*.txt`: 1, 23 KB
+- `kg/` `*.txt`: 3, 40 KB
+- `m079/` `*.txt`: 11, 197 KB
+- `mizu/` `*.txt`: 2, 8 KB
+- `mm/` `*.txt`: 8, 154 KB
+- `ms/` `*.out`: 94, 2750 KB
+- `ms/` `*.txt`: 10, 2 KB
+- `neset/` `*.json`: 8, 167 KB
+- `neset/` `*.txt`: 38, 348 KB
+- `ng/` `*.txt`: 18, 170 KB
+- `oc/` `*.out`: 8, 209 KB
+- `phase0/` `*.txt`: 1, 0 KB
+- `rath1/` `*.json`: 1, 6 KB
+- `rath1/` `*.txt`: 6, 90 KB
+- `rath2/` `*.txt`: 6, 96 KB
+- `rk/` `*.out`: 119, 3157 KB
+- `sh88/` `*.json`: 7, 815 KB
+- `sh88/` `*.out`: 6, 24 KB
+- `sh88/` `*.txt`: 6, 137 KB
+- `sh88/b48/` `*.txt`: 9, 192 KB
+- `sh88/b60/` `*.txt`: 8, 238 KB
+- `sh88/s0001/` `*.txt`: 10, 204 KB
+- `survey_ap/` `*.json`: 4, 25 KB
+- `survey_ap/` `*.txt`: 5, 7 KB
+- `survey_ap/soak/` `*.txt`: 1, 0 KB
+- `survey_cn/` `*.json`: 2, 17 KB
+- `survey_cn/` `*.txt`: 1, 15 KB
+- `survey_ed/` `*.json`: 2, 22 KB
+- `survey_fb/` `*.json`: 2, 19 KB
+- `survey_lv/` `*.json`: 2, 13 KB
+- `survey_lv/soak/` `*.txt`: 1, 0 KB
+- `survey_rc/` `*.json`: 3, 77 KB
+- `sw/` `*.out`: 15, 713 KB
+- `sw/` `*.txt`: 4, 0 KB
+- `sw37/` `*.json`: 1, 0 KB
+- `sw37/` `*.txt`: 13, 405 KB
+- `sw77/` `*.json`: 2, 37 KB
+- `t3/` `*.json`: 2, 132 KB
+- `t3/` `*.txt`: 11, 183 KB
+- `thr/` `*.out`: 9, 75 KB
+- `z67/` `*.json`: 8, 111 KB
+- `z67/` `*.out`: 5, 41 KB
+- `z67/` `*.txt`: 7, 83 KB
+- `zg/` `*.json`: 53, 2886 KB
+- `zg/` `*.out`: 12, 61 KB
+- `zg/` `*.txt`: 165, 791 KB
+- `zg/ctl/` `*.txt`: 366, 2108 KB
+- `zg/ctlf/` `*.txt`: 94, 248 KB
+- `zg/e2e/b320/` `*.json`: 1, 49 KB
+- `zg/e2e/r60/` `*.json`: 1, 50 KB
+- `zg/e2e/r61/` `*.json`: 1, 49 KB
+- `zg/req/` `*.txt`: 42, 8 KB
+- `zg/ws/` `*.out`: 40, 13 KB
+- `zg/ws2/` `*.out`: 22, 7 KB
+- `zs/` `*.json`: 6, 129 KB
+- `zs/` `*.txt`: 12, 156 KB
+
+## not a script or note (2650 files)
+
+Listed by folder and extension (count, KB):
+
+- `./` `*.before`: 1, 293 KB
+- `./` `*.diff`: 1, 6 KB
+- `./` `*.err`: 10, 1 KB
+- `./` `*.fails`: 23, 75 KB
+- `./` `*.html`: 1, 513 KB
+- `./` `*.ids`: 16, 2 KB
+- `./` `*.list`: 1, 2 KB
+- `./` `*.log`: 325, 2211 KB
+- `./` `*.md5`: 2, 0 KB
+- `./` `*.pid`: 1, 0 KB
+- `./` `*.pkl`: 1, 1373 KB
+- `./` `*.png`: 22, 10002 KB
+- `ahtal/` `*.pkl`: 2, 968 KB
+- `ahtal/` `*.png`: 3, 315 KB
+- `ast/` `*.log`: 5, 23 KB
+- `b81/` `*.log`: 16, 70 KB
+- `bd_impl/` `*.log`: 59, 2186 KB
+- `bd_soak/` `*.log`: 11, 77 KB
+- `brute_soak/` `*.log`: 15, 109 KB
+- `bw_soak/` `*.log`: 10, 70 KB
+- `c1105_soak/` `*.log`: 5, 30 KB
+- `cfg_soak/` `*.log`: 12, 102 KB
+- `cham/` `*.asm`: 1, 923 KB
+- `crab_soak/` `*.log`: 9, 72 KB
+- `cs/` `*.log`: 6, 250 KB
+- `cs/m/` `*.png`: 12, 7907 KB
+- `cv/` `*.pkl`: 1, 427 KB
+- `duo/` `*.log`: 50, 449 KB
+- `duo/head/` `*.html`: 1, 592 KB
+- `duofx/` `*.log`: 3, 26 KB
+- `e84arc/` `*.0947f3c8`: 1, 0 KB
+- `e84arc/` `*.15e98d21`: 1, 0 KB
+- `e84arc/` `*.197e4d7a`: 1, 2 KB
+- `e84arc/` `*.1ac7b52d`: 6, 6 KB
+- `e84arc/` `*.1bbc291e`: 2, 0 KB
+- `e84arc/` `*.48e8ac29`: 2, 1 KB
+- `e84arc/` `*.4bf84f6f`: 1, 1 KB
+- `e84arc/` `*.5653c1b0`: 2, 11 KB
+- `e84arc/` `*.56d892d0`: 1, 1 KB
+- `e84arc/` `*.59d9c3da`: 2, 0 KB
+- `e84arc/` `*.70bb64ba`: 2, 5 KB
+- `fb/` `*.done`: 41, 0 KB
+- `fb/` `*.err`: 483, 5 KB
+- `fb/` `*.log`: 109, 853 KB
+- `fb/` `*.pid`: 1, 0 KB
+- `fb/` `*.ts`: 1, 0 KB
+- `fb/full/` `*.log`: 86, 351 KB
+- `fb/full/chunks/` `*.log`: 59, 91 KB
+- `fb/full1b/` `*.log`: 95, 279 KB
+- `fb/full_prelift/` `*.log`: 6, 30 KB
+- `fb/fullsw/` `*.log`: 35, 98 KB
+- `fb/fullsw2/` `*.log`: 27, 52 KB
+- `fb/fullsw3/` `*.log`: 213, 452 KB
+- `fb/pfa/` `*(none)`: 1, 0 KB
+- `fb/sm1/` `*.log`: 18, 53 KB
+- `fb/sm2/` `*.log`: 18, 55 KB
+- `fw/` `*.log`: 54, 402 KB
+- `fw_soak/` `*.log`: 21, 197 KB
+- `gapB/` `*.err`: 2, 0 KB
+- `gapE/` `*.diff`: 1, 20 KB
+- `gapG/` `*.err`: 2, 0 KB
+- `gapO/` `*.diff`: 1, 10 KB
+- `hzbuild/hitzones/` `*.bin`: 2, 7 KB
+- `inst/` `*.html`: 1, 588 KB
+- `m079/` `*.log`: 15, 224 KB
+- `m3/` `*.log`: 4, 10 KB
+- `mizu/` `*.log`: 12, 287 KB
+- `n70/` `*.log`: 4, 11 KB
+- `neset/` `*.log`: 13, 62 KB
+- `neset/ap/` `*.bin`: 2, 3 KB
+- `neset/apall/` `*.bin`: 139, 188 KB
+- `pagechk/` `*.log`: 16, 25 KB
+- `phase0/` `*.patch`: 9, 69 KB
+- `prof1/` `*.cpuprofile`: 4, 1218 KB
+- `prof2/` `*.cpuprofile`: 4, 1023 KB
+- `prof3/` `*.cpuprofile`: 4, 1113 KB
+- `prof4/` `*.cpuprofile`: 4, 940 KB
+- `prof5/` `*.cpuprofile`: 4, 903 KB
+- `prof6/` `*.cpuprofile`: 2, 529 KB
+- `prof7/` `*.cpuprofile`: 4, 740 KB
+- `prof8/` `*.cpuprofile`: 4, 594 KB
+- `sbc/files/` `*.065375d5`: 2, 0 KB
+- `sbc/files/` `*.15d782fb`: 1, 22 KB
+- `sbc/files/` `*.15e98d21`: 1, 0 KB
+- `sbc/files/` `*.241f5deb`: 1, 1024 KB
+- `sbc/files/` `*.2749c8a8`: 1, 0 KB
+- `sbc/files/` `*.51fc779f`: 10, 1390 KB
+- `sbc/files/` `*.58a15856`: 12, 459 KB
+- `sbc/files/` `*.6ff78212`: 1, 0 KB
+- `seltas/` `*.log`: 6, 29 KB
+- `sh88/` `*.log`: 5, 53 KB
+- `soak1/` `*.log`: 1, 0 KB
+- `soak3/` `*.log`: 1, 0 KB
+- `soak5/` `*.log`: 1, 0 KB
+- `st_soak/` `*.log`: 4, 29 KB
+- `survey_ap/` `*.err`: 2, 0 KB
+- `survey_ap/soak/` `*.log`: 6, 41 KB
+- `survey_cn/` `*.err`: 2, 0 KB
+- `survey_cn/soak/` `*.log`: 7, 50 KB
+- `survey_ed/` `*.err`: 2, 0 KB
+- `survey_ed/soak/` `*.log`: 13, 90 KB
+- `survey_fb/` `*.err`: 2, 0 KB
+- `survey_fb/soak/` `*.log`: 13, 90 KB
+- `survey_lv/` `*.err`: 2, 0 KB
+- `survey_lv/soak/` `*.log`: 6, 42 KB
+- `survey_rc/` `*.err`: 2, 0 KB
+- `survey_rc/soak/` `*.log`: 7, 71 KB
+- `sw77/` `*.log`: 1, 0 KB
+- `zg/` `*.asm`: 30, 2394 KB
+- `zg/` `*.bak`: 2, 1634 KB
+- `zg/` `*.done`: 1, 0 KB
+- `zg/` `*.html`: 3, 1995 KB
+- `zg/` `*.log`: 87, 736 KB
+- `zg/e2e/` `*.log`: 5, 1 KB
+- `zg/e2e/b320/` `*.bin`: 2, 10777 KB
+- `zg/e2e/r60/` `*.bin`: 2, 10793 KB
+- `zg/e2e/r61/` `*.bin`: 2, 10793 KB
+- `zg/req/` `*.err`: 44, 0 KB
+- `zg/sets_c800_r1/add_em084_00_c800/` `*.blocks`: 1, 84 KB
+- `zg/sets_c800_r1/add_em084_00_c800_near/` `*.blocks`: 1, 84 KB
+- `zg/sets_c800_r1/add_em084_00_c800_stop/` `*.blocks`: 1, 91 KB
+- `zg/sets_c800_r2/add_em084_00_c800/` `*.blocks`: 1, 84 KB
+- `zg/sets_c800_r2/add_em084_00_c800_near/` `*.blocks`: 1, 84 KB
+- `zg/sets_c800_r2/add_em084_00_c800_stop/` `*.blocks`: 1, 91 KB
+- `zg/sweep/` `*.err`: 42, 0 KB
+- `zg/sweep/` `*.evnew`: 5, 35 KB
+- `zg/sweep/` `*.evold`: 5, 35 KB
+- `zg/sweep/` `*.jsonl`: 42, 658 KB
+- `zg/sweep/` `*.new`: 49, 214 KB
+- `zg/sweep/` `*.old`: 35, 145 KB
+- `zs/` `*.log`: 9, 74 KB
+
+## over 200 KB (a generated file or a copy of viewer code) (123 files)
+
+- `ast/monster.before.js` (1474 KB)
+- `ast/shells.before.js` (687 KB)
+- `bb/shells_tmp.mjs` (687 KB)
+- `cs/before/render/monster.js` (1515 KB)
+- `duo/head/monster.js` (1557 KB)
+- `duo/idx_mod.mjs` (604 KB)
+- `fb/ctl083/shells.js` (1130 KB)
+- `fb/lift-effects.fb.sh` (461 KB)
+- `fb/lift-effects.fb2.sh` (462 KB)
+- `fb/lift-effects.fb3.sh` (468 KB)
+- `fb/lift-effects.fb4.sh` (471 KB)
+- `fb/lift-effects.fb5.sh` (472 KB)
+- `fb/lift-effects.fb6.sh` (473 KB)
+- `fb/shells.pre071.js` (1696 KB)
+- `fb/shells.pre071b.js` (1717 KB)
+- `fb/shells.pre071c.js` (1724 KB)
+- `fb/shells.pre083.js` (1117 KB)
+- `fb/shells.pre083b.js` (1144 KB)
+- `fb/shells.pre083d.js` (1160 KB)
+- `fw/lift-effects.fw1.sh` (428 KB)
+- `fw/lift-effects.fw2.sh` (431 KB)
+- `fw/lift-effects.fw3.sh` (431 KB)
+- `fw/lift-effects.fw4.sh` (431 KB)
+- `fw/lift-effects.fw5.sh` (432 KB)
+- `fw/lift-effects.fw6.sh` (433 KB)
+- `fw/lift-effects.fw7.sh` (433 KB)
+- `gapA/shells.js` (2099 KB)
+- `gapB/shells.patched.js` (2116 KB)
+- `gapC/shells.patched.js` (2111 KB)
+- `gapD/render/shells.js` (2119 KB)
+- `gapD/render/shells.orig.js` (2116 KB)
+- `gapE/render/shells.js` (2131 KB)
+- `gapF/shells.patched.mjs` (2152 KB)
+- `gapG/shells.patched.js` (2122 KB)
+- `gapJ/shells.patched.js` (2157 KB)
+- `held/rom-map.before.md` (569 KB)
+- `idx.mjs` (453 KB)
+- `kg/rom-map.before.md` (592 KB)
+- `lift-batch.sh` (534 KB)
+- `lift-effects-copy.sh` (536 KB)
+- `lift-effects.lod.sh` (434 KB)
+- `lift-effects.running.sh` (413 KB)
+- `lift-effects.running10.sh` (512 KB)
+- `lift-effects.running11.sh` (512 KB)
+- `lift-effects.running12.sh` (512 KB)
+- `lift-effects.running13.sh` (512 KB)
+- `lift-effects.running2.sh` (414 KB)
+- `lift-effects.running3.sh` (422 KB)
+- `lift-effects.running4.sh` (422 KB)
+- `lift-effects.running5.sh` (422 KB)
+- `lift-effects.running6.sh` (510 KB)
+- `lift-effects.running7.sh` (510 KB)
+- `lift-effects.running8.sh` (511 KB)
+- `lift-effects.running9.sh` (511 KB)
+- `lift-gore.sh` (520 KB)
+- `lift027.sh` (513 KB)
+- `lift050.sh` (514 KB)
+- `lift058.sh` (515 KB)
+- `lift058b.sh` (515 KB)
+- `lifted-added.pre.js` (478 KB)
+- `liftpre/lifted-added.js` (847 KB)
+- `liftpre/lifted-draw.js` (1101 KB)
+- `liftpre/lifted-gpu.js` (547 KB)
+- `liftpre/lifted-math.js` (424 KB)
+- `liftpre/lifted-motion.js` (442 KB)
+- `liftpre/lifted-particles.js` (2446 KB)
+- `liftpre/lifted-polyline.js` (629 KB)
+- `liftpre/lifted-prim.js` (633 KB)
+- `liftpre/lifted-proof.js` (518 KB)
+- `liftpre/lifted-request.js` (1235 KB)
+- `memref/docs/render/monster.js` (1555 KB)
+- `memref/docs/render/motion-states.js` (566 KB)
+- `memref/docs/render/rom/effect/lifted-added.js` (546 KB)
+- `memref/docs/render/rom/effect/lifted-draw.js` (982 KB)
+- `memref/docs/render/rom/effect/lifted-gpu.js` (469 KB)
+- `memref/docs/render/rom/effect/lifted-math.js` (346 KB)
+- `memref/docs/render/rom/effect/lifted-motion.js` (364 KB)
+- `memref/docs/render/rom/effect/lifted-particles.js` (2301 KB)
+- `memref/docs/render/rom/effect/lifted-polyline.js` (551 KB)
+- `memref/docs/render/rom/effect/lifted-prim.js` (552 KB)
+- `memref/docs/render/rom/effect/lifted-proof.js` (440 KB)
+- `memref/docs/render/rom/effect/lifted-request.js` (1132 KB)
+- `memref/docs/render/shells.js` (854 KB)
+- `monster_pre_drome.js` (1480 KB)
+- `monster_pre_drome2.js` (1480 KB)
+- `monster_pre_glav.js` (1496 KB)
+- `monster_pre_mm.js` (1480 KB)
+- `ms_head.js` (319 KB)
+- `n70/rom-map.before.md` (641 KB)
+- `neset/lift-b087.sh` (524 KB)
+- `neset/lift-effects.before087.sh` (520 KB)
+- `neset/shells.pre087.js` (1749 KB)
+- `neset/shells.pre58.js` (1758 KB)
+- `shells.pre-gapN.js` (2199 KB)
+- `shells.pre-gaps.js` (2121 KB)
+- `t3/hit-type3-trace.mjs` (359 KB)
+- `t3/idx.mjs` (611 KB)
+- `t3/rom_t3_trace.js` (353 KB)
+- `three/three.module.js` (1274 KB)
+- `zg/ix_module.mjs` (573 KB)
+- `zg/lift-effects.before084.sh` (515 KB)
+- `zg/lift-effects.zg.sh` (446 KB)
+- `zg/lift-effects.zg084.sh` (515 KB)
+- `zg/lift-effects.zg084b.sh` (515 KB)
+- `zg/lift-effects.zg084c.sh` (515 KB)
+- `zg/lift-effects.zg10.sh` (471 KB)
+- `zg/lift-effects.zg11.sh` (472 KB)
+- `zg/lift-effects.zg12.sh` (473 KB)
+- `zg/lift-effects.zg14.sh` (475 KB)
+- `zg/lift-effects.zg15.sh` (485 KB)
+- `zg/lift-effects.zg16.sh` (509 KB)
+- `zg/lift-effects.zg2.sh` (447 KB)
+- `zg/lift-effects.zg3.sh` (447 KB)
+- `zg/lift-effects.zg4.sh` (448 KB)
+- `zg/lift-effects.zg5.sh` (449 KB)
+- `zg/lift-effects.zg6.sh` (456 KB)
+- `zg/lift-effects.zg7.sh` (461 KB)
+- `zg/lift-effects.zg8.sh` (462 KB)
+- `zg/lift-effects.zg9.sh` (462 KB)
+- `zg/motion-states.pre-controls.js` (687 KB)
+- `zg/motion-states.prelevel.js` (680 KB)
+- `zg/rom-map.prerewalk.md` (831 KB)
+- `zs/lift-effects.zs.sh` (448 KB)
+
+## json data dump over 200 KB (115 files)
+
+- `anglegrid.json` (206 KB)
+- `ast/em081_00.before.json` (262 KB)
+- `ast/emu13c081.json` (1716 KB)
+- `bb/em007_04.before.json` (232 KB)
+- `bw3/js_in.json` (536 KB)
+- `cv/emcreach_82ec4_82770.json` (638 KB)
+- `docaudit/copy_log.json` (338 KB)
+- `duo/q_census.json` (4114 KB)
+- `duo/s_census.json` (2636 KB)
+- `em037_00.before.json` (230 KB)
+- `em037_04.before.json` (220 KB)
+- `em038_00.before.json` (234 KB)
+- `em087_00.pre.json` (231 KB)
+- `em087_00.pre2.json` (245 KB)
+- `em088_00.before-carry.json` (223 KB)
+- `fb/bk_em071_00.json` (244 KB)
+- `fb/bk_em071_05.json` (238 KB)
+- `fb/bk_em072_00.json` (229 KB)
+- `fb/bk_em086_00.json` (258 KB)
+- `fb/bl_out.json` (7494 KB)
+- `fb/c45_rom.json` (7165 KB)
+- `fb/efo_e03_6f2.json` (360 KB)
+- `fb/g09rom.json` (2287 KB)
+- `fb/gmo.json` (1418 KB)
+- `fb/gmo28.json` (1700 KB)
+- `fb/kept_out0.json` (15972 KB)
+- `fb/kept_out1.json` (2068 KB)
+- `fb/kwo.json` (658 KB)
+- `fb/r24o.json` (926 KB)
+- `fb/r24o2.json` (446 KB)
+- `gapE/ctl_rom.json` (708 KB)
+- `gapE/replay_rom.json` (3962 KB)
+- `gapE/t1o.json` (512 KB)
+- `neset/json_pre_b2/em001_00.json` (244 KB)
+- `neset/json_pre_b2/em001_02.json` (248 KB)
+- `neset/json_pre_b2/em001_04.json` (252 KB)
+- `neset/json_pre_b2/em002_00.json` (239 KB)
+- `neset/json_pre_b2/em002_02.json` (245 KB)
+- `neset/json_pre_b2/em002_04.json` (261 KB)
+- `neset/json_pre_b2/em004_00.json` (259 KB)
+- `neset/json_pre_b2/em005_00.json` (247 KB)
+- `neset/json_pre_b2/em024_00.json` (227 KB)
+- `neset/json_pre_b2/em037_04.json` (221 KB)
+- `neset/json_pre_b2/em043_00.json` (240 KB)
+- `neset/json_pre_b2/em043_05.json` (219 KB)
+- `neset/json_pre_b2/em050_00.json` (300 KB)
+- `neset/json_pre_b2/em066_00.json` (249 KB)
+- `neset/json_pre_b2/em066_04.json` (252 KB)
+- `neset/json_pre_b2/em070_00.json` (225 KB)
+- `neset/json_pre_b2/em081_00.json` (274 KB)
+- `neset/json_pre_b2/em083_04.json` (243 KB)
+- `neset/json_pre_b2/em084_00.json` (296 KB)
+- `neset/json_pre_b2/em086_00.json` (261 KB)
+- `neset/json_pre_b2/em088_00.json` (267 KB)
+- `neset/rk0_out.json` (216 KB)
+- `neset/rk9_out.json` (1947 KB)
+- `neset/rkp0_out.json` (215 KB)
+- `neset/rkp_out.json` (1939 KB)
+- `neset/s00_out.json` (789 KB)
+- `part-review.pre-hellblade.json` (389 KB)
+- `sh88/em088_00.before-shell57.json` (239 KB)
+- `sw37/t_out.json` (304 KB)
+- `t3/t3diff.json` (564 KB)
+- `t3/tr_rom.json` (691 KB)
+- `zg/em021_00.before.json` (226 KB)
+- `zg/em022_00.before.json` (221 KB)
+- `zg/em023_00.before.json` (232 KB)
+- `zg/em023_05.before.json` (220 KB)
+- `zg/em057_00.before.json` (251 KB)
+- `zg/em057_00.pre-states.json` (259 KB)
+- `zg/em057_04.before.json` (247 KB)
+- `zg/em057_04.head.json` (247 KB)
+- `zg/em057_04.pre-states.json` (260 KB)
+- `zg/em060_04.before.json` (214 KB)
+- `zg/js019_out.json` (3027 KB)
+- `zg/js021_in.json` (5858 KB)
+- `zg/js021_out.json` (273 KB)
+- `zg/js022_in.json` (402 KB)
+- `zg/js030_in.json` (251 KB)
+- `zg/js060_in.json` (309 KB)
+- `zg/js061_in.json` (201 KB)
+- `zg/js066_in.json` (13503 KB)
+- `zg/js066_out.json` (393 KB)
+- `zg/js068_in.json` (2197 KB)
+- `zg/js_in.json` (9354 KB)
+- `zg/js_out.json` (412 KB)
+- `zg/jsa_in.json` (662 KB)
+- `zg/jsg_in.json` (4180 KB)
+- `zg/jsg_out.json` (242 KB)
+- `zg/jspd_out.json` (8031 KB)
+- `zg/poolctl.json` (661 KB)
+- `zg/rc_uEm004_00_00.json` (363 KB)
+- `zg/rc_uEm004_00_01.json` (363 KB)
+- `zg/rc_uEm004_00_10.json` (363 KB)
+- `zg/rc_uEm004_00_11.json` (363 KB)
+- `zg/rc_uEm042_00_00.json` (357 KB)
+- `zg/rc_uEm042_00_01.json` (357 KB)
+- `zg/rc_uEm042_00_10.json` (357 KB)
+- `zg/rc_uEm042_00_11.json` (357 KB)
+- `zg/rc_uEm057_00_00.json` (761 KB)
+- `zg/rc_uEm057_00_01.json` (761 KB)
+- `zg/rc_uEm057_00_10.json` (761 KB)
+- `zg/rc_uEm057_00_11.json` (761 KB)
+- `zg/rc_uEm066_00_00.json` (359 KB)
+- `zg/rc_uEm066_00_01.json` (359 KB)
+- `zg/rc_uEm066_00_10.json` (359 KB)
+- `zg/rc_uEm066_00_11.json` (359 KB)
+- `zg/sets_c800_r1/add_em084_00_c800/draw.json` (1741 KB)
+- `zg/sets_c800_r1/add_em084_00_c800_near/draw.json` (1740 KB)
+- `zg/sets_c800_r1/add_em084_00_c800_stop/draw.json` (1091 KB)
+- `zg/sets_c800_r2/add_em084_00_c800/draw.json` (1753 KB)
+- `zg/sets_c800_r2/add_em084_00_c800_near/draw.json` (1753 KB)
+- `zg/sets_c800_r2/add_em084_00_c800_stop/draw.json` (1098 KB)
+- `zg/sphctl.json` (1806 KB)
+- `zs/o_t.json` (376 KB)
+
+## over 200 KB (a dump or census output) (114 files)
+
+- `ahtal/band088.txt` (711 KB)
+- `ahtal/base48.txt` (273 KB)
+- `ahtal/base57_61.txt` (366 KB)
+- `ak/band87.txt` (540 KB)
+- `ak/band88.txt` (510 KB)
+- `band.txt` (1094 KB)
+- `band011.txt` (254 KB)
+- `band012.txt` (249 KB)
+- `band013.txt` (512 KB)
+- `band019.txt` (810 KB)
+- `band024.txt` (489 KB)
+- `band025.txt` (528 KB)
+- `band027.txt` (364 KB)
+- `band050.txt` (377 KB)
+- `band058.txt` (327 KB)
+- `band066.txt` (385 KB)
+- `band067.txt` (596 KB)
+- `band068.txt` (480 KB)
+- `band070.txt` (559 KB)
+- `bodyband.txt` (711 KB)
+- `bs/em042_band.txt` (414 KB)
+- `bs/em077_band.txt` (682 KB)
+- `d410/whole2_d400.txt` (490 KB)
+- `d410/whole3.txt` (573 KB)
+- `d410/whole_d400.txt` (421 KB)
+- `duo/band69.txt` (722 KB)
+- `duo/band76.txt` (697 KB)
+- `duo/coll.txt` (591 KB)
+- `duo/emcband.txt` (443 KB)
+- `duo/shared7.txt` (2126 KB)
+- `em033_band.txt` (272 KB)
+- `em042_band.txt` (429 KB)
+- `em077_band.txt` (682 KB)
+- `fb/band046.txt` (382 KB)
+- `fb/band056.txt` (375 KB)
+- `fb/band082.txt` (817 KB)
+- `fb/band_uEm017_00.txt` (420 KB)
+- `fb/band_uEm021_00.txt` (378 KB)
+- `fb/band_uEm022_00.txt` (265 KB)
+- `fb/band_uEm023_00.txt` (442 KB)
+- `fb/band_uEm036_00.txt` (271 KB)
+- `fb/band_uEm049_00.txt` (444 KB)
+- `fb/band_uEm060_00.txt` (626 KB)
+- `fb/band_uEm061_00.txt` (567 KB)
+- `fb/band_uEm065_00.txt` (441 KB)
+- `fb/band_uEm083_00.txt` (646 KB)
+- `fb/g021.txt` (495 KB)
+- `fb/g024.txt` (492 KB)
+- `fb/g025.txt` (526 KB)
+- `fb/g027.txt` (390 KB)
+- `fb/g071.txt` (765 KB)
+- `g18/band.txt` (494 KB)
+- `gapJ/d_band087.txt` (657 KB)
+- `gapJ/d_band088.txt` (560 KB)
+- `kg/em003band.txt` (645 KB)
+- `kg/em004band.txt` (515 KB)
+- `m079/band.txt` (491 KB)
+- `mfx_all.txt` (945 KB)
+- `msc.txt` (220 KB)
+- `n70/em070_dis.txt` (1174 KB)
+- `neset/mot94.txt` (1129 KB)
+- `s31b.txt` (518 KB)
+- `seltas/band69.txt` (632 KB)
+- `seltas/band76.txt` (719 KB)
+- `sh88/b48/em088band.txt` (2203 KB)
+- `sh88/b57.txt` (255 KB)
+- `sh88/b60/d60.txt` (274 KB)
+- `sh88/b60/em088band.txt` (1565 KB)
+- `suite.out` (318 KB)
+- `suite10.out` (322 KB)
+- `suite2.out` (318 KB)
+- `suite3.out` (318 KB)
+- `suite4.out` (318 KB)
+- `suite5.out` (318 KB)
+- `suite6.out` (319 KB)
+- `suite7.out` (319 KB)
+- `suite8.out` (320 KB)
+- `suite9.out` (321 KB)
+- `suite_1016.out` (247 KB)
+- `suite_1016b.out` (247 KB)
+- `suite_1016c.out` (247 KB)
+- `suite_air.out` (248 KB)
+- `suite_al.out` (313 KB)
+- `suite_amph.out` (280 KB)
+- `suite_base.out` (280 KB)
+- `suite_close.out` (259 KB)
+- `suite_duo.out` (258 KB)
+- `suite_duo2.out` (259 KB)
+- `suite_ed.out` (305 KB)
+- `suite_ed2.out` (306 KB)
+- `suite_fb.out` (272 KB)
+- `suite_fw.out` (265 KB)
+- `suite_g.out` (285 KB)
+- `suite_late.out` (249 KB)
+- `suite_lod.out` (249 KB)
+- `suite_n.out` (312 KB)
+- `suite_perf.out` (247 KB)
+- `suite_r10.out` (317 KB)
+- `suite_r11.out` (316 KB)
+- `suite_r12.out` (316 KB)
+- `suite_r2.out` (262 KB)
+- `suite_r3.out` (262 KB)
+- `suite_r4.out` (261 KB)
+- `suite_r6.out` (313 KB)
+- `suite_r7.out` (313 KB)
+- `suite_r8.out` (316 KB)
+- `suite_tail.out` (247 KB)
+- `suite_ui.out` (247 KB)
+- `sw37/cls.txt` (1049 KB)
+- `zg/ctl/action_em017_00.txt` (291 KB)
+- `zg/ctl/action_em032_04.txt` (240 KB)
+- `zg/ctl/action_em068_00.txt` (259 KB)
+- `zs/band57.txt` (894 KB)
+- `zs/tr7.txt` (244 KB)
+
+## copy of a repo file (git has the real file) (75 files)
+
+- `cs/before/render/material.js` (65 KB)
+- `cs/before/render/rom/material.js` (49 KB)
+- `gapD/render/beam-groups.js` (1 KB)
+- `gapD/render/beam-spawns.js` (32 KB)
+- `gapD/render/beam-types.js` (82 KB)
+- `gapE/render/beam-groups.js` (1 KB)
+- `gapE/render/beam-spawns.js` (32 KB)
+- `gapE/render/beam-types.js` (82 KB)
+- `memref/dev/effect-check.mjs` (29 KB)
+- `memref/docs/render/area.js` (19 KB)
+- `memref/docs/render/assets.js` (5 KB)
+- `memref/docs/render/background.js` (10 KB)
+- `memref/docs/render/beam-groups.js` (1 KB)
+- `memref/docs/render/beam-spawns.js` (31 KB)
+- `memref/docs/render/beam-types.js` (82 KB)
+- `memref/docs/render/class-threads.js` (15 KB)
+- `memref/docs/render/colour-space.js` (4 KB)
+- `memref/docs/render/eye-glow.js` (5 KB)
+- `memref/docs/render/fx.js` (27 KB)
+- `memref/docs/render/grid.js` (7 KB)
+- `memref/docs/render/lens.js` (3 KB)
+- `memref/docs/render/material.js` (66 KB)
+- `memref/docs/render/materials-db.js` (4 KB)
+- `memref/docs/render/pose.js` (17 KB)
+- `memref/docs/render/psl-mask.js` (67 KB)
+- `memref/docs/render/rom/ambient.js` (7 KB)
+- `memref/docs/render/rom/effect-mounts.js` (13 KB)
+- `memref/docs/render/rom/effect/billboard.js` (11 KB)
+- `memref/docs/render/rom/effect/bridge.js` (25 KB)
+- `memref/docs/render/rom/effect/construct.js` (69 KB)
+- `memref/docs/render/rom/effect/cpu.js` (6 KB)
+- `memref/docs/render/rom/effect/curve.js` (11 KB)
+- `memref/docs/render/rom/effect/draw.js` (2 KB)
+- `memref/docs/render/rom/effect/emit.js` (15 KB)
+- `memref/docs/render/rom/effect/filter.js` (12 KB)
+- `memref/docs/render/rom/effect/host.js` (51 KB)
+- `memref/docs/render/rom/effect/life.js` (7 KB)
+- `memref/docs/render/rom/effect/live.js` (65 KB)
+- `memref/docs/render/rom/effect/load.js` (11 KB)
+- `memref/docs/render/rom/effect/mem.js` (2 KB)
+- `memref/docs/render/rom/effect/model.js` (12 KB)
+- `memref/docs/render/rom/effect/modeldraw.js` (12 KB)
+- `memref/docs/render/rom/effect/modelshader.js` (8 KB)
+- `memref/docs/render/rom/effect/motion.js` (12 KB)
+- `memref/docs/render/rom/effect/owner.js` (35 KB)
+- `memref/docs/render/rom/effect/polyline.js` (14 KB)
+- `memref/docs/render/rom/effect/polystrip.js` (2 KB)
+- `memref/docs/render/rom/effect/prim.js` (2 KB)
+- `memref/docs/render/rom/effect/primshader.js` (12 KB)
+- `memref/docs/render/rom/effect/proof.js` (34 KB)
+- `memref/docs/render/rom/effect/runtime.js` (1 KB)
+- `memref/docs/render/rom/effect/schedule.js` (37 KB)
+- `memref/docs/render/rom/effect/shared-states.js` (16 KB)
+- `memref/docs/render/rom/effect/spawn.js` (47 KB)
+- `memref/docs/render/rom/effect/type2.js` (1 KB)
+- `memref/docs/render/rom/material.js` (49 KB)
+- `memref/docs/render/rom/shader.js` (31 KB)
+- `memref/docs/render/rom/specular.js` (17 KB)
+- `memref/docs/render/rom/state.js` (11 KB)
+- `memref/docs/render/shells-debug.js` (5 KB)
+- `memref/docs/render/skeleton.js` (2 KB)
+- `memref/docs/render/stage.js` (4 KB)
+- `memref/docs/render/tail-option.js` (35 KB)
+- `mizu/spawn.js` (0 KB)
+- `phase0/backup/assets.js` (7 KB)
+- `phase0/backup/colour-space.js` (4 KB)
+- `phase0/backup/fx.js` (27 KB)
+- `phase0/backup/grid.js` (7 KB)
+- `phase0/backup/lens.js` (3 KB)
+- `phase0/backup/material.js` (66 KB)
+- `phase0/backup/materials-db.js` (4 KB)
+- `phase0/backup/pose.js` (17 KB)
+- `phase0/backup/skeleton.js` (2 KB)
+- `phase0/backup/stage.js` (4 KB)
+- `phase0/colour-space.js` (4 KB)
+
+## superseded backup of a script kept beside it (the live version is included) (36 files)
+
+- `beam-types.before.js` (80 KB)
+- `clip_em004.before.js` (9 KB)
+- `fb/emu_fb.pre007.py` (37 KB)
+- `fb/emu_fb.pre009.py` (38 KB)
+- `fb/emu_fb.pre027.py` (32 KB)
+- `fb/emu_fb.pre032.py` (36 KB)
+- `fb/emu_fb.pre042.py` (33 KB)
+- `fb/emu_fb.pre045.py` (37 KB)
+- `fb/emu_fb.pre066.py` (26 KB)
+- `fb/mizutsune.cur.mjs` (32 KB)
+- `fb/mk005s13.pre.py` (4 KB)
+- `fb/mk082check.pre.py` (14 KB)
+- `fb/soulseer.cur.mjs` (69 KB)
+- `fb/trgen.pre3d0.py` (7 KB)
+- `fb/trgen.prepf.py` (8 KB)
+- `gapB/regress/shells-seregios-check.orig.mjs` (11 KB)
+- `gapB/regress/shells-seregios-check.patched.mjs` (12 KB)
+- `gapB/regress/shells-silverwind-check.orig.mjs` (18 KB)
+- `gapB/regress/shells-silverwind-check.patched.mjs` (18 KB)
+- `gapB/regress/shells-spike-check.orig.mjs` (32 KB)
+- `gapB/regress/shells-spike-check.patched.mjs` (33 KB)
+- `gapB/regress/shells-tigrex-check.orig.mjs` (24 KB)
+- `gapB/regress/shells-tigrex-check.patched.mjs` (24 KB)
+- `gapO/beam-types.new-gen.js` (91 KB)
+- `gapO/beam-types.patched.js` (91 KB)
+- `gapO/gen_beam_types.new.py` (21 KB)
+- `gapO/gen_beam_types.orig.py` (16 KB)
+- `neset/neset.pre58.js` (3 KB)
+- `zg/jscheckpd.bak.py` (5 KB)
+- `zg/jscheckpd.prelv.py` (6 KB)
+- `zg/proofunit.new.py` (34 KB)
+- `zg/proofunit.orig.py` (33 KB)
+- `zg/psl-mask.bak.js` (82 KB)
+- `zg/psl-mask.prelevel.js` (138 KB)
+- `zg/vecdrawsched.new.py` (28 KB)
+- `zg/vecdrawsched.orig.py` (28 KB)
+
+## third-party library copy (three.js) (1 files)
+
+- `three/GLTFLoader.js` (107 KB)

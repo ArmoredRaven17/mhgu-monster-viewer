@@ -1,0 +1,52 @@
+mov      r1, #4                                  
+str      r2, [r5]                                
+mvn      r2, #0                                  
+bl       #0x4a2470                               
+ldr      r1, [r5]                                
+cmn      r0, #1                                  
+mov      r0, r4                                  
+mov      r2, r1                                  
+bfc      r2, #0, #1                              
+orrne    r2, r1, #1                              
+mov      r1, #8                                  
+str      r2, [r5]                                
+mvn      r2, #0                                  
+bl       #0x4a24f8                               
+movw     r0, #0x1668                             
+mov      r1, #6                                  
+mvn      r2, #0                                  
+add      r0, r4, r0                              
+vstr     s0, [r0]                                
+mov      r0, r4                                  
+bl       #0x4a24f8                               
+movw     r0, #0x166c                             
+mov      r1, #7                                  
+mvn      r2, #0                                  
+add      r0, r4, r0                              
+vstr     s0, [r0]                                
+mov      r0, r4                                  
+bl       #0x4a24f8                               
+movw     r0, #0x1670                             
+mov      r1, #3                                  
+mvn      r2, #0                                  
+add      r0, r4, r0                              
+vstr     s0, [r0]                                
+mov      r0, r4                                  
+bl       #0x4a24f8                               
+movw     r0, #0x1674                             
+mov      r1, #4                                  
+mvn      r2, #0                                  
+add      r0, r4, r0                              
+vstr     s0, [r0]                                
+mov      r0, r4                                  
+bl       #0x4a24f8                               
+movw     r0, #0x1678                             
+mov      r1, #1                                  
+mvn      r2, #0                                  
+add      r0, r4, r0                              
+vstr     s0, [r0]                                
+mov      r0, r4                                  
+bl       #0x4a22f0                               
+movw     r1, #0x1660                             
+str      r0, [r4, r1]                            
+pop      {r4, r5, fp, pc}                        

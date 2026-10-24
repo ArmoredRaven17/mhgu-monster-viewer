@@ -1,0 +1,6 @@
+**Assessment.** Gore Magala's class and vtable (getDTI `0xfc0b1c` appears once in main.data; there is no uEm071_05), so the same enable word (it has no variant test), the same sever site and the same puff pick; everything in Gore's assessment applies. His own:
+
+- **u 700** (`em071_00_019`, L4 M21 b0, inside the file mask) is a third stage-ray record (with c 101 / c 110), recordable now; same caution as Gore's c 101.
+- **His list 4** carries 5 of his 27 outside-mask bindings (the other 22 are Gore's), all at bits 0-5 (u 232 / 233 / 235 on L4 M24, c 30 / c 151 on L4 M26): they come in with any transcription of the word.
+- **Shells**: 21 records -- Gore's 11 (less u 162 / 172, plus u 153 / 154) and ten of Shagaru Magala's files (`em072_00_002..012`: u 60 / 61 / 90 / 91 / 120 / 121 / 123 / 180 / 181 / 182). No SHELL_DATA entry. **Class code**: Gore's plus u 124 (`em072_00_007`).
+- The open board item "Chaotic Gore's wing effect does not show" (2026-09-14) is a MATERIAL (XfB_W__m01_kasan uv), not an effect record; nothing in this survey touches it.

@@ -1,0 +1,989 @@
+### fn 0x405e90  extent 0x405e90..0x4066f8 (538 words)  calls 0x40a54 0x40a94 0xc15a4 0xc164c 0x183490 0x43a850 0x43b1a0 0x4a0f00 0x4a10c8 0x4a11e4 0x4a1e20 0x13ecba8 0x13ecc14 0x13ecc20 0x13ecc2c  tails   tables []
+00405e90  push     {r4, r5, r6, r7, r8, sb, sl, fp, lr}    
+00405e94  add      fp, sp, #0x1c                           
+00405e98  sub      sp, sp, #4                              
+00405e9c  vpush    {d8, d9, d10, d11, d12, d13, d14, d15}  
+00405ea0  sub      sp, sp, #0x188                          
+00405ea4  bfc      sp, #0, #4                              
+00405ea8  mov      r4, r0                                  
+00405eac  bl       #0x43a850                               
+00405eb0  cmp      r0, #0                                  
+00405eb4  beq      #0x406070                               
+00405eb8  ldr      r0, [r4]                                
+00405ebc  ldr      r1, [r0, #0x14c]                        
+00405ec0  mov      r0, r4                                  
+00405ec4  blx      r1                                      
+00405ec8  mov      r0, #1                                  
+00405ecc  mov      sb, r4                                  
+00405ed0  movw     r1, #0x162c                             
+00405ed4  strb     r0, [r4, #4]                            
+00405ed8  movw     r0, #0x15fc                             
+00405edc  ldr      r0, [sb, r0]!                           
+00405ee0  str      r0, [r4, r1]                            
+00405ee4  mov      r0, r4                                  
+00405ee8  bl       #0x4a0f00                               
+00405eec  mov      r7, r0                                  
+00405ef0  movw     r0, #0x15dc                             
+00405ef4  mov      r5, r4                                  
+00405ef8  ldr      r1, [r5, r0]!                           
+00405efc  ldr      r0, [r5, #0x34]                         
+00405f00  ldr      r2, [r0]                                
+00405f04  str      r2, [sp, #0x24]                         
+00405f08  ldr      r2, [r0, #4]                            
+00405f0c  str      r2, [sp, #0x1c]                         
+00405f10  add      r2, sp, #0x60                           
+00405f14  ldr      sl, [r0, #8]                            
+00405f18  mov      r0, r7                                  
+00405f1c  bl       #0xc15a4                                
+00405f20  ldr      r1, [r5]                                
+00405f24  movw     r0, #0x159c                             
+00405f28  sub      r6, r5, r0                              
+00405f2c  mov      r0, r7                                  
+00405f30  mov      r2, r6                                  
+00405f34  bl       #0xc164c                                
+00405f38  movw     r1, #0x1428                             
+00405f3c  ldrb     r0, [r5, #0xd]                          
+00405f40  ldr      r8, [r7, r1]!                           
+00405f44  tst      r0, #1                                  
+00405f48  ldr      r5, [r8, #0x58]                         
+00405f4c  str      r6, [sp, #0x18]                         
+00405f50  str      sb, [sp, #0x2c]                         
+00405f54  str      r7, [sp, #0x28]                         
+00405f58  bne      #0x406090                               
+00405f5c  movw     r0, #0x15ec                             
+00405f60  vmov.f32 s4, #5.000000e-01                       
+00405f64  vldr     s0, [pc, #0x11c]                        
+00405f68  vldr     s24, [pc, #0x11c]                       
+00405f6c  add      r7, r4, r0                              
+00405f70  movw     r0, #0x15f0                             
+00405f74  vldr     s2, [r7]                                
+00405f78  add      r0, r4, r0                              
+00405f7c  vmov.f32 s6, s4                                  
+00405f80  vmla.f32 s6, s2, s0                              
+00405f84  vcvt.s32.f32 s2, s6                                  
+00405f88  str      r0, [sp, #0x20]                         
+00405f8c  vldr     s6, [r0]                                
+00405f90  ldr      r1, [r8, #0x50]                         
+00405f94  ldr      r2, [r8, #0x54]                         
+00405f98  vmov     r0, s2                                  
+00405f9c  vmla.f32 s4, s6, s0                              
+00405fa0  add      r0, r0, r1                              
+00405fa4  uxth     r0, r0                                  
+00405fa8  vmov     s2, r0                                  
+00405fac  vcvt.s32.f32 s0, s4                                  
+00405fb0  vmov     r0, s0                                  
+00405fb4  vcvt.f32.u32 s0, s2                                  
+00405fb8  vmul.f32 s16, s0, s24                            
+00405fbc  add      r6, r0, r2                              
+00405fc0  vmov.f32 s0, s16                                 
+00405fc4  bl       #0x13ecc20                              
+00405fc8  vmov.f32 s18, s0                                 
+00405fcc  vmov.f32 s0, s16                                 
+00405fd0  bl       #0x13ecc2c                              
+00405fd4  uxth     r0, r6                                  
+00405fd8  vmov.f32 s16, s0                                 
+00405fdc  vmov     s0, r0                                  
+00405fe0  vcvt.f32.u32 s0, s0                                  
+00405fe4  vmul.f32 s20, s0, s24                            
+00405fe8  vmov.f32 s0, s20                                 
+00405fec  bl       #0x13ecc20                              
+00405ff0  uxth     r0, r5                                  
+00405ff4  vmov.f32 s22, s0                                 
+00405ff8  vmov     s26, sl                                 
+00405ffc  vmov     s0, r0                                  
+00406000  vmul.f32 s30, s26, s16                           
+00406004  vcvt.f32.u32 s28, s0                                 
+00406008  vmov.f32 s0, s20                                 
+0040600c  bl       #0x13ecc2c                              
+00406010  ldr      r0, [sp, #0x1c]                         
+00406014  vmul.f32 s24, s28, s24                           
+00406018  vmov.f32 s20, s0                                 
+0040601c  vmov     s0, r0                                  
+00406020  ldr      r0, [sp, #0x24]                         
+00406024  vmul.f32 s28, s0, s16                            
+00406028  vmla.f32 s30, s0, s18                            
+0040602c  vmov.f32 s0, s24                                 
+00406030  vmov     s17, r0                                 
+00406034  vmul.f32 s19, s17, s20                           
+00406038  bl       #0x13ecc20                              
+0040603c  vmov.f32 s16, s0                                 
+00406040  vmov.f32 s0, s24                                 
+00406044  vmls.f32 s28, s26, s18                           
+00406048  vmla.f32 s19, s22, s30                           
+0040604c  vmul.f32 s18, s30, s20                           
+00406050  bl       #0x13ecc2c                              
+00406054  vmul.f32 s20, s28, s0                            
+00406058  vmul.f32 s0, s19, s0                             
+0040605c  vmls.f32 s18, s17, s22                           
+00406060  vmla.f32 s20, s16, s19                           
+00406064  vmls.f32 s0, s28, s16                            
+00406068  mov      r1, r7                                  
+0040606c  b        #0x406160                               
+00406070  ldr      r0, [r4]                                
+00406074  ldr      r1, [r0, #0x40]                         
+00406078  mov      r0, r4                                  
+0040607c  blx      r1                                      
+00406080  mov      r0, #0                                  
+00406084  b        #0x4066e8                               
+00406088  teqmi    r6, #0x18400                            
+0040608c  stmlo    sb, {r0, r1, r3, r4, r6, r7, r8, sb, sl, fp} ^
+00406090  uxth     r0, r5                                  
+00406094  vldr     s24, [pc, #-0x10]                       
+00406098  vmov     s0, r0                                  
+0040609c  vcvt.f32.u32 s0, s0                                  
+004060a0  vmul.f32 s16, s0, s24                            
+004060a4  vmov.f32 s0, s16                                 
+004060a8  bl       #0x13ecc20                              
+004060ac  vmov.f32 s18, s0                                 
+004060b0  vmov.f32 s0, s16                                 
+004060b4  bl       #0x13ecc2c                              
+004060b8  ldrh     r0, [r8, #0x50]                         
+004060bc  vmov.f32 s16, s0                                 
+004060c0  vmov     s0, r0                                  
+004060c4  vcvt.f32.u32 s0, s0                                  
+004060c8  vmul.f32 s20, s0, s24                            
+004060cc  vmov.f32 s0, s20                                 
+004060d0  bl       #0x13ecc20                              
+004060d4  vmov.f32 s22, s0                                 
+004060d8  vmov.f32 s0, s20                                 
+004060dc  bl       #0x13ecc2c                              
+004060e0  ldrh     r0, [r8, #0x54]                         
+004060e4  vmov.f32 s20, s0                                 
+004060e8  ldr      r1, [sp, #0x1c]                         
+004060ec  vmov     s30, sl                                 
+004060f0  vmul.f32 s17, s30, s20                           
+004060f4  vmov     s0, r0                                  
+004060f8  vmov     s26, r1                                 
+004060fc  vcvt.f32.u32 s0, s0                                  
+00406100  ldr      r0, [sp, #0x24]                         
+00406104  vmul.f32 s28, s26, s16                           
+00406108  vmov     s2, r0                                  
+0040610c  vmul.f32 s24, s0, s24                            
+00406110  vmla.f32 s28, s2, s18                            
+00406114  vmov.f32 s0, s24                                 
+00406118  vmul.f32 s19, s2, s16                            
+0040611c  bl       #0x13ecc20                              
+00406120  vmov.f32 s16, s0                                 
+00406124  vmov.f32 s0, s24                                 
+00406128  vmla.f32 s17, s28, s22                           
+0040612c  vmls.f32 s19, s26, s18                           
+00406130  movw     r5, #0x15f0                             
+00406134  vmul.f32 s20, s28, s20                           
+00406138  bl       #0x13ecc2c                              
+0040613c  add      r0, r4, r5                              
+00406140  vmul.f32 s18, s17, s0                            
+00406144  vmul.f32 s0, s19, s0                             
+00406148  vmls.f32 s20, s30, s22                           
+0040614c  vmls.f32 s18, s19, s16                           
+00406150  vmla.f32 s0, s17, s16                            
+00406154  str      r0, [sp, #0x20]                         
+00406158  movw     r0, #0x15ec                             
+0040615c  add      r1, r4, r0                              
+00406160  vldr     s2, [r4, #0x40]                         
+00406164  movw     r0, #0x15f4                             
+00406168  mov      sb, #0                                  
+0040616c  mov      sl, r4                                  
+00406170  movw     r8, #0x1014                             
+00406174  movw     r6, #0x1018                             
+00406178  vmov.f32 s26, #5.000000e-01                      
+0040617c  vldr     s28, [pc, #-0xf8]                       
+00406180  vadd.f32 s0, s0, s2                              
+00406184  vmov.f32 s2, s26                                 
+00406188  vstr     s0, [r4, #0x40]                         
+0040618c  vldr     s0, [r4, #0x44]                         
+00406190  vadd.f32 s0, s20, s0                             
+00406194  vldr     s20, [pc, #-0x114]                      
+00406198  vstr     s0, [r4, #0x44]                         
+0040619c  vldr     s0, [r4, #0x48]                         
+004061a0  vadd.f32 s0, s18, s0                             
+004061a4  vstr     s0, [r4, #0x48]                         
+004061a8  ldr      r5, [r4, r0]                            
+004061ac  movw     r0, #0x15f8                             
+004061b0  ldr      r7, [r4, r0]                            
+004061b4  movw     r0, #0x1010                             
+004061b8  str      sb, [sl, r0]!                           
+004061bc  movw     r0, #0x101c                             
+004061c0  str      r7, [r4, r8]                            
+004061c4  str      r5, [r4, r6]                            
+004061c8  str      sb, [r4, r0]                            
+004061cc  vldr     s0, [r1]                                
+004061d0  vmla.f32 s2, s0, s20                             
+004061d4  vcvt.s32.f32 s0, s2                                  
+004061d8  vmov     r0, s0                                  
+004061dc  uxth     r0, r0                                  
+004061e0  vmov     s0, r0                                  
+004061e4  vcvt.f32.u32 s0, s0                                  
+004061e8  vmul.f32 s16, s0, s28                            
+004061ec  vmov.f32 s0, s16                                 
+004061f0  bl       #0x13ecc20                              
+004061f4  vmov.f32 s18, s0                                 
+004061f8  vmov.f32 s0, s16                                 
+004061fc  bl       #0x13ecc2c                              
+00406200  vmov     s2, r7                                  
+00406204  vmov     s4, r5                                  
+00406208  add      r0, r4, r6                              
+0040620c  add      r8, r4, r8                              
+00406210  mov      r5, r0                                  
+00406214  vmul.f32 s6, s2, s0                              
+00406218  vmul.f32 s22, s4, s0                             
+0040621c  vmls.f32 s6, s4, s18                             
+00406220  vmla.f32 s22, s2, s18                            
+00406224  vmov.f32 s2, s26                                 
+00406228  vstr     s6, [r8]                                
+0040622c  vstr     s22, [r0]                               
+00406230  str      r5, [sp, #0x24]                         
+00406234  ldr      r0, [sp, #0x20]                         
+00406238  vldr     s0, [r0]                                
+0040623c  vmla.f32 s2, s0, s20                             
+00406240  vcvt.s32.f32 s0, s2                                  
+00406244  vldr     s20, [sl]                               
+00406248  vmov     r0, s0                                  
+0040624c  uxth     r0, r0                                  
+00406250  vmov     s0, r0                                  
+00406254  vcvt.f32.u32 s0, s0                                  
+00406258  vmul.f32 s16, s0, s28                            
+0040625c  vmov.f32 s0, s16                                 
+00406260  bl       #0x13ecc20                              
+00406264  vmov.f32 s18, s0                                 
+00406268  vmov.f32 s0, s16                                 
+0040626c  bl       #0x13ecc2c                              
+00406270  vmul.f32 s2, s20, s0                             
+00406274  vmul.f32 s0, s22, s0                             
+00406278  vmla.f32 s2, s22, s18                            
+0040627c  vmls.f32 s0, s20, s18                            
+00406280  vstr     s2, [sl]                                
+00406284  vstr     s0, [r5]                                
+00406288  ldr      r0, [sp, #0x28]                         
+0040628c  ldr      r0, [r0]                                
+00406290  ldr      r1, [r0, #0x50]                         
+00406294  ldr      r2, [r0, #0x54]                         
+00406298  ldr      r0, [r0, #0x58]                         
+0040629c  str      r1, [r4, #0xfe8]                        
+004062a0  str      r2, [r4, #0xfec]                        
+004062a4  str      r0, [r4, #0xff0]                        
+004062a8  str      sb, [sp, #0x3c]                         
+004062ac  movw     r0, #0x168c                             
+004062b0  vldr     s0, [r4, #0x40]                         
+004062b4  vldr     s2, [r4, #0x44]                         
+004062b8  vldr     s4, [r4, #0x48]                         
+004062bc  str      sb, [sp, #0x4c]                         
+004062c0  str      sb, [sp, #0x5c]                         
+004062c4  add      r0, r4, r0                              
+004062c8  mov      sb, r4                                  
+004062cc  vldr     s6, [r0]                                
+004062d0  movw     r0, #0x1688                             
+004062d4  add      r0, r4, r0                              
+004062d8  vadd.f32 s8, s6, s0                              
+004062dc  vadd.f32 s10, s6, s2                             
+004062e0  vadd.f32 s6, s6, s4                              
+004062e4  vstr     s8, [sp, #0x50]                         
+004062e8  vstr     s10, [sp, #0x54]                        
+004062ec  vstr     s6, [sp, #0x58]                         
+004062f0  vldr     s6, [r0]                                
+004062f4  movw     r0, #0x1054                             
+004062f8  vadd.f32 s0, s6, s0                              
+004062fc  vadd.f32 s2, s6, s2                              
+00406300  vstr     s0, [sp, #0x40]                         
+00406304  vadd.f32 s0, s6, s4                              
+00406308  vstr     s2, [sp, #0x44]                         
+0040630c  vstr     s0, [sp, #0x48]                         
+00406310  ldrb     r6, [sb, r0]!                           
+00406314  ldr      r0, [pc, #0x3dc]                           ; literal 0x142bf2c
+00406318  ldr      r0, [pc, r0]                            
+0040631c  ldr      r7, [r0]                                
+00406320  mov      r0, r4                                  
+00406324  bl       #0x4a1e20                               
+00406328  movw     r2, #0x1060                             
+0040632c  mov      r1, #0x10                               
+00406330  mov      r3, r6                                  
+00406334  add      r5, r4, r2                              
+00406338  add      r2, sp, #0x30                           
+0040633c  stm      sp, {r2, r5}                            
+00406340  str      r1, [sp, #8]                            
+00406344  str      r0, [sp, #0xc]                          
+00406348  add      r1, sp, #0x50                           
+0040634c  add      r2, sp, #0x40                           
+00406350  mov      r0, r7                                  
+00406354  bl       #0x183490                               
+00406358  ldr      r0, [sp, #0x34]                         
+0040635c  movw     r7, #0xfe8                              
+00406360  movw     r6, #0xfec                              
+00406364  mov      r2, r5                                  
+00406368  add      r1, r4, r7                              
+0040636c  add      r3, r4, r6                              
+00406370  str      r0, [r4, #0x44]                         
+00406374  mov      r0, r4                                  
+00406378  bl       #0x43b1a0                               
+0040637c  movw     r0, #0x1690                             
+00406380  mov      r5, #0xff0                              
+00406384  add      r0, r4, r0                              
+00406388  vldr     s30, [r0]                               
+0040638c  ldrh     r0, [r4, r5]                            
+00406390  vmov     s0, r0                                  
+00406394  vcvt.f32.u32 s0, s0                                  
+00406398  vmul.f32 s16, s0, s28                            
+0040639c  vmov.f32 s0, s16                                 
+004063a0  bl       #0x13ecc20                              
+004063a4  vmov.f32 s18, s0                                 
+004063a8  vmov.f32 s0, s16                                 
+004063ac  bl       #0x13ecc2c                              
+004063b0  ldrh     r0, [r4, r7]                            
+004063b4  vmov.f32 s16, s0                                 
+004063b8  vmov     s0, r0                                  
+004063bc  vcvt.f32.u32 s0, s0                                  
+004063c0  vmul.f32 s20, s0, s28                            
+004063c4  vmov.f32 s0, s20                                 
+004063c8  bl       #0x13ecc20                              
+004063cc  vmov.f32 s22, s0                                 
+004063d0  vmov.f32 s0, s20                                 
+004063d4  bl       #0x13ecc2c                              
+004063d8  ldrh     r0, [r4, r6]                            
+004063dc  vmov.f32 s20, s0                                 
+004063e0  vldr     s17, [pc, #0x314]                       
+004063e4  vmul.f32 s19, s30, s16                           
+004063e8  vmov     s0, r0                                  
+004063ec  vmul.f32 s21, s16, s17                           
+004063f0  vcvt.f32.u32 s0, s0                                  
+004063f4  vmul.f32 s24, s0, s28                            
+004063f8  vmov.f32 s0, s24                                 
+004063fc  bl       #0x13ecc20                              
+00406400  vmov.f32 s16, s0                                 
+00406404  vmov.f32 s0, s24                                 
+00406408  vmla.f32 s19, s18, s17                           
+0040640c  vmls.f32 s21, s30, s18                           
+00406410  vmul.f32 s23, s20, s17                           
+00406414  bl       #0x13ecc2c                              
+00406418  vmla.f32 s23, s19, s22                           
+0040641c  vldr     s2, [r4, #0x40]                         
+00406420  vmul.f32 s4, s21, s0                             
+00406424  vmla.f32 s4, s23, s16                            
+00406428  vmul.f32 s0, s23, s0                             
+0040642c  vmls.f32 s0, s21, s16                            
+00406430  vadd.f32 s2, s2, s4                              
+00406434  vmul.f32 s4, s19, s20                            
+00406438  vmls.f32 s4, s22, s17                            
+0040643c  vstr     s2, [r4, #0x40]                         
+00406440  vldr     s2, [r4, #0x44]                         
+00406444  vadd.f32 s2, s4, s2                              
+00406448  vstr     s2, [r4, #0x44]                         
+0040644c  vldr     s2, [r4, #0x48]                         
+00406450  vadd.f32 s0, s0, s2                              
+00406454  vstr     s0, [r4, #0x48]                         
+00406458  ldrh     r0, [r4, r5]                            
+0040645c  vldr     s20, [sl]                               
+00406460  vldr     s22, [r8]                               
+00406464  vmov     s0, r0                                  
+00406468  vcvt.f32.u32 s0, s0                                  
+0040646c  vmul.f32 s16, s0, s28                            
+00406470  vmov.f32 s0, s16                                 
+00406474  bl       #0x13ecc20                              
+00406478  vmov.f32 s18, s0                                 
+0040647c  vmov.f32 s0, s16                                 
+00406480  bl       #0x13ecc2c                              
+00406484  vmul.f32 s2, s20, s0                             
+00406488  vmul.f32 s24, s22, s0                            
+0040648c  vmls.f32 s2, s22, s18                            
+00406490  vmla.f32 s24, s20, s18                           
+00406494  vstr     s2, [sl]                                
+00406498  vstr     s24, [r8]                               
+0040649c  ldrh     r0, [r4, r7]                            
+004064a0  ldr      r5, [sp, #0x24]                         
+004064a4  vmov     s0, r0                                  
+004064a8  vldr     s20, [r5]                               
+004064ac  vcvt.f32.u32 s0, s0                                  
+004064b0  vmul.f32 s16, s0, s28                            
+004064b4  vmov.f32 s0, s16                                 
+004064b8  bl       #0x13ecc20                              
+004064bc  vmov.f32 s18, s0                                 
+004064c0  vmov.f32 s0, s16                                 
+004064c4  bl       #0x13ecc2c                              
+004064c8  vmul.f32 s2, s24, s0                             
+004064cc  vmul.f32 s22, s20, s0                            
+004064d0  vmls.f32 s2, s20, s18                            
+004064d4  vmla.f32 s22, s24, s18                           
+004064d8  mov      r1, r5                                  
+004064dc  vstr     s2, [r8]                                
+004064e0  vstr     s22, [r1]                               
+004064e4  ldrh     r0, [r4, r6]                            
+004064e8  vldr     s20, [sl]                               
+004064ec  mov      r6, r1                                  
+004064f0  vmov     s0, r0                                  
+004064f4  vcvt.f32.u32 s0, s0                                  
+004064f8  vmul.f32 s16, s0, s28                            
+004064fc  vmov.f32 s0, s16                                 
+00406500  bl       #0x13ecc20                              
+00406504  vmov.f32 s18, s0                                 
+00406508  vmov.f32 s0, s16                                 
+0040650c  bl       #0x13ecc2c                              
+00406510  vmul.f32 s2, s22, s0                             
+00406514  vmul.f32 s4, s20, s0                             
+00406518  vmls.f32 s2, s20, s18                            
+0040651c  vmla.f32 s4, s22, s18                            
+00406520  vstr     s4, [sl]                                
+00406524  vmul.f32 s0, s2, s2                              
+00406528  vmla.f32 s0, s4, s4                              
+0040652c  vstr     s2, [r6]                                
+00406530  vsqrt.f32 s1, s0                                  
+00406534  vcmpe.f32 s1, s1                                  
+00406538  vmrs     apsr_nzcv, fpscr                        
+0040653c  bvc      #0x406548                               
+00406540  bl       #0x13ecc14                              
+00406544  vmov.f32 s1, s0                                  
+00406548  vldr     s0, [r8]                                
+0040654c  movw     r0, #0x162c                             
+00406550  add      r5, r4, r0                              
+00406554  vneg.f32 s0, s0                                  
+00406558  bl       #0x13ecba8                              
+0040655c  vldr     s16, [pc, #0x19c]                       
+00406560  vmov.f32 s2, s26                                 
+00406564  vmla.f32 s2, s0, s16                             
+00406568  vcvt.s32.f32 s0, s2                                  
+0040656c  vmov     r0, s0                                  
+00406570  uxth     r0, r0                                  
+00406574  str      r0, [r4, #0xfe8]                        
+00406578  vldr     s1, [r6]                                
+0040657c  vldr     s0, [sl]                                
+00406580  bl       #0x13ecba8                              
+00406584  vmla.f32 s26, s0, s16                            
+00406588  mov      r1, #0x1000                             
+0040658c  vcvt.s32.f32 s0, s26                                 
+00406590  vmov     r0, s0                                  
+00406594  uxth     r0, r0                                  
+00406598  str      r0, [r4, #0xfec]                        
+0040659c  ldr      r0, [r4, #0x40]                         
+004065a0  str      r0, [r4, r1]                            
+004065a4  movw     r1, #0x1004                             
+004065a8  ldr      r0, [r4, #0x44]                         
+004065ac  str      r0, [r4, r1]                            
+004065b0  movw     r1, #0x1008                             
+004065b4  ldr      r0, [r4, #0x48]                         
+004065b8  str      r0, [r4, r1]                            
+004065bc  movw     r0, #0x100c                             
+004065c0  mov      r1, #0                                  
+004065c4  str      r1, [r4, r0]                            
+004065c8  movw     r0, #0x1684                             
+004065cc  movw     r1, #0x1678                             
+004065d0  add      r0, r4, r0                              
+004065d4  add      r1, r4, r1                              
+004065d8  vldr     s0, [r0]                                
+004065dc  vldr     s2, [r1]                                
+004065e0  vcmpe.f32 s0, #0                                  
+004065e4  vmrs     apsr_nzcv, fpscr                        
+004065e8  beq      #0x406638                               
+004065ec  vdiv.f32 s8, s2, s0                              
+004065f0  vldr     s4, [sl]                                
+004065f4  vldr     s6, [r8]                                
+004065f8  vldr     s10, [r6]                               
+004065fc  movw     r0, #0x16b0                             
+00406600  movw     r1, #0x16b4                             
+00406604  add      r0, r4, r0                              
+00406608  add      r1, r4, r1                              
+0040660c  vmul.f32 s4, s4, s8                              
+00406610  vmul.f32 s6, s8, s6                              
+00406614  vstr     s4, [r0]                                
+00406618  vmul.f32 s4, s8, s10                             
+0040661c  movw     r0, #0x16b8                             
+00406620  vstr     s6, [r1]                                
+00406624  mov      r1, #0                                  
+00406628  add      r0, r4, r0                              
+0040662c  vstr     s4, [r0]                                
+00406630  movw     r0, #0x16bc                             
+00406634  str      r1, [r4, r0]                            
+00406638  movw     r0, #0x167c                             
+0040663c  add      r0, r4, r0                              
+00406640  vldr     s4, [r0]                                
+00406644  ldr      r0, [sp, #0x2c]                         
+00406648  vadd.f32 s2, s2, s4                              
+0040664c  vadd.f32 s0, s2, s0                              
+00406650  vstr     s0, [r0]                                
+00406654  vstr     s0, [r5]                                
+00406658  movw     r0, #0x1664                             
+0040665c  mov      r5, r4                                  
+00406660  ldr      r0, [r5, r0]!                           
+00406664  cmp      r0, #0                                  
+00406668  beq      #0x4066d4                               
+0040666c  add      r6, sp, #0xa0                           
+00406670  mov      r0, r6                                  
+00406674  bl       #0x40a54                                
+00406678  movw     r0, #0x16a4                             
+0040667c  mov      r7, r4                                  
+00406680  ldr      r0, [r7], r0                            
+00406684  ldr      r1, [r0, #0x130]                        
+00406688  mov      r0, r4                                  
+0040668c  blx      r1                                      
+00406690  mov      r2, r0                                  
+00406694  ldrb     r0, [sb]                                
+00406698  mvn      r1, #0                                  
+0040669c  mov      r3, #0                                  
+004066a0  str      r0, [sp]                                
+004066a4  ldr      r0, [sp, #0x18]                         
+004066a8  stmib    sp, {r0, r1}                            
+004066ac  mov      r0, r4                                  
+004066b0  mov      r1, r6                                  
+004066b4  bl       #0x4a10c8                               
+004066b8  ldr      r1, [r5]                                
+004066bc  mov      r0, r4                                  
+004066c0  mov      r2, r6                                  
+004066c4  bl       #0x4a11e4                               
+004066c8  str      r0, [r7]                                
+004066cc  mov      r0, r6                                  
+004066d0  bl       #0x40a94                                
+004066d4  movw     r0, #0x1674                             
+004066d8  movw     r1, #0x1698                             
+004066dc  ldr      r0, [r4, r0]                            
+004066e0  str      r0, [r4, r1]                            
+004066e4  mov      r0, #1                                  
+004066e8  sub      sp, fp, #0x60                           
+004066ec  vpop     {d8, d9, d10, d11, d12, d13, d14, d15}  
+004066f0  add      sp, sp, #4                              
+004066f4  pop      {r4, r5, r6, r7, r8, sb, sl, fp, pc}    
+### fn 0x405d6c  extent 0x405d6c..0x405d70 (1 words)  calls   tails   tables []
+00405d6c  bx       lr                                      
+### fn 0x406704  extent 0x406704..0x406dec (442 words)  calls 0x40a54 0x40a94 0x329c40 0x3f9814 0x43ac6c 0x43ac8c 0x4a0f38 0x4a10c8 0x4a11e4 0x8a4dfc 0x13ecc14  tails   tables []
+00406704  push     {r4, r5, r6, r7, r8, sb, sl, fp, lr}    
+00406708  add      fp, sp, #0x1c                           
+0040670c  sub      sp, sp, #4                              
+00406710  vpush    {d8}                                    
+00406714  sub      sp, sp, #0x130                          
+00406718  bfc      sp, #0, #4                              
+0040671c  mov      r4, r0                                  
+00406720  movw     r0, #0x169c                             
+00406724  mov      r6, r4                                  
+00406728  ldr      r0, [r6, r0]!                           
+0040672c  cmp      r0, #0                                  
+00406730  beq      #0x40674c                               
+00406734  ldr      r0, [r0, #0xc]                          
+00406738  and      r0, r0, #7                              
+0040673c  sub      r0, r0, #1                              
+00406740  cmp      r0, #2                                  
+00406744  movhs    r0, #0                                  
+00406748  strhs    r0, [r6]                                
+0040674c  movw     r0, #0x16a0                             
+00406750  mov      sb, r4                                  
+00406754  ldr      r0, [sb, r0]!                           
+00406758  cmp      r0, #0                                  
+0040675c  beq      #0x406778                               
+00406760  ldr      r0, [r0, #0xc]                          
+00406764  and      r0, r0, #7                              
+00406768  sub      r0, r0, #1                              
+0040676c  cmp      r0, #2                                  
+00406770  movhs    r0, #0                                  
+00406774  strhs    r0, [sb]                                
+00406778  movw     r0, #0x16a4                             
+0040677c  mov      r7, r4                                  
+00406780  ldr      r0, [r7, r0]!                           
+00406784  cmp      r0, #0                                  
+00406788  beq      #0x4067a4                               
+0040678c  ldr      r0, [r0, #0xc]                          
+00406790  and      r0, r0, #7                              
+00406794  sub      r0, r0, #1                              
+00406798  cmp      r0, #2                                  
+0040679c  movhs    r0, #0                                  
+004067a0  strhs    r0, [r7]                                
+004067a4  movw     r0, #0x1694                             
+004067a8  vldr     s0, [r4, #0x1c]                         
+004067ac  add      r5, r4, r0                              
+004067b0  mov      r0, r4                                  
+004067b4  vldr     s2, [r5]                                
+004067b8  vadd.f32 s0, s0, s2                              
+004067bc  vstr     s0, [r5]                                
+004067c0  bl       #0x4a0f38                               
+004067c4  cmp      r0, #0                                  
+004067c8  beq      #0x4067e0                               
+004067cc  vldr     s0, [r4, #0x1c]                         
+004067d0  mov      r0, r4                                  
+004067d4  bl       #0x3f9814                               
+004067d8  cmp      r0, #1                                  
+004067dc  bne      #0x406804                               
+004067e0  ldr      r0, [r4]                                
+004067e4  mov      r1, #0                                  
+004067e8  ldr      r2, [r0, #0x148]                        
+004067ec  mov      r0, r4                                  
+004067f0  sub      sp, fp, #0x28                           
+004067f4  vpop     {d8}                                    
+004067f8  add      sp, sp, #4                              
+004067fc  pop      {r4, r5, r6, r7, r8, sb, sl, fp, lr}    
+00406800  bx       r2                                      
+00406804  movw     r0, #0x16a8                             
+00406808  vldr     s0, [r5]                                
+0040680c  add      sl, r4, r0                              
+00406810  movw     r0, #0x1678                             
+00406814  add      r2, r4, r0                              
+00406818  vldr     s2, [r2]                                
+0040681c  vcmpe.f32 s0, s2                                  
+00406820  vmrs     apsr_nzcv, fpscr                        
+00406824  blt      #0x40684c                               
+00406828  mov      r0, #1                                  
+0040682c  strb     r0, [sl]                                
+00406830  ldr      r0, [r6]                                
+00406834  cmp      r0, #0                                  
+00406838  beq      #0x40684c                               
+0040683c  mov      r1, #0                                  
+00406840  mov      r8, r2                                  
+00406844  bl       #0x329c40                               
+00406848  mov      r2, r8                                  
+0040684c  movw     r0, #0x1698                             
+00406850  add      r8, r4, r0                              
+00406854  ldrb     r0, [sl]                                
+00406858  vldr     s2, [r8]                                
+0040685c  cmp      r0, #0                                  
+00406860  vcmpeeq.f32 s2, #0                                  
+00406864  vmrseq   apsr_nzcv, fpscr                        
+00406868  bne      #0x4068b8                               
+0040686c  movw     r0, #0x1010                             
+00406870  vldr     s0, [r4, #0x1c]                         
+00406874  vldr     s4, [r4, #0x40]                         
+00406878  movw     r1, #0x1014                             
+0040687c  add      r0, r4, r0                              
+00406880  vldr     s6, [r0]                                
+00406884  add      r0, r4, r1                              
+00406888  movw     r1, #0x1018                             
+0040688c  add      r1, r4, r1                              
+00406890  vldr     s10, [r0]                               
+00406894  vldr     s8, [r1]                                
+00406898  vmla.f32 s4, s0, s6                              
+0040689c  vstr     s4, [r4, #0x40]                         
+004068a0  vldr     s4, [r4, #0x44]                         
+004068a4  vmla.f32 s4, s0, s10                             
+004068a8  vstr     s4, [r4, #0x44]                         
+004068ac  vldr     s4, [r4, #0x48]                         
+004068b0  vmla.f32 s4, s0, s8                              
+004068b4  vstr     s4, [r4, #0x48]                         
+004068b8  vldr     s0, [r5]                                
+004068bc  vcmpe.f32 s0, s2                                  
+004068c0  vmrs     apsr_nzcv, fpscr                        
+004068c4  bmi      #0x406ddc                               
+004068c8  vcmpe.f32 s2, #0                                  
+004068cc  vmrs     apsr_nzcv, fpscr                        
+004068d0  beq      #0x406a58                               
+004068d4  add      r0, sp, #0x50                           
+004068d8  str      r2, [sp, #0x2c]                         
+004068dc  bl       #0x40a54                                
+004068e0  ldr      r0, [r4]                                
+004068e4  ldr      r1, [r0, #0x130]                        
+004068e8  mov      r0, r4                                  
+004068ec  blx      r1                                      
+004068f0  mov      r2, r0                                  
+004068f4  movw     r0, #0x1054                             
+004068f8  mov      r1, r4                                  
+004068fc  add      r3, r4, #0x40                           
+00406900  mov      sl, #0                                  
+00406904  ldrb     r0, [r1, r0]!                           
+00406908  str      r1, [sp, #0x28]                         
+0040690c  mvn      r1, #0                                  
+00406910  str      r3, [sp, #0x24]                         
+00406914  stm      sp, {r0, r3}                            
+00406918  str      r1, [sp, #8]                            
+0040691c  mov      r0, r4                                  
+00406920  add      r1, sp, #0x50                           
+00406924  mov      r3, #0                                  
+00406928  bl       #0x4a10c8                               
+0040692c  movw     r0, #0xfec                              
+00406930  movw     r1, #0xfe8                              
+00406934  vldr     s4, [pc, #0x364]                        
+00406938  add      r2, sp, #0x50                           
+0040693c  add      r0, r4, r0                              
+00406940  add      r1, r4, r1                              
+00406944  vldr     s0, [r1]                                
+00406948  vldr     s2, [r0]                                
+0040694c  vcvt.f32.u32 s0, s0                                  
+00406950  vcvt.f32.u32 s2, s2                                  
+00406954  ldr      r0, [sp, #0x64]                         
+00406958  orr      r0, r0, #0x40000002                     
+0040695c  vmul.f32 s0, s0, s4                              
+00406960  vmul.f32 s2, s2, s4                              
+00406964  vstr     s0, [sp, #0x80]                         
+00406968  vstr     s2, [sp, #0x84]                         
+0040696c  str      sl, [sp, #0x88]                         
+00406970  str      sl, [sp, #0x8c]                         
+00406974  str      r0, [sp, #0x64]                         
+00406978  mov      r0, #0x3fc00000                         
+0040697c  str      r0, [sp, #0x90]                         
+00406980  str      r0, [sp, #0x94]                         
+00406984  str      sl, [sp, #0x98]                         
+00406988  str      sl, [sp, #0x9c]                         
+0040698c  movw     r0, #0x1668                             
+00406990  ldr      r1, [r4, r0]                            
+00406994  mov      r0, r4                                  
+00406998  bl       #0x4a11e4                               
+0040699c  str      r0, [sb]                                
+004069a0  add      r0, sp, #0x50                           
+004069a4  bl       #0x40a94                                
+004069a8  movw     r0, #0x1660                             
+004069ac  mov      sl, r4                                  
+004069b0  ldr      r0, [sl, r0]!                           
+004069b4  cmp      r0, #0                                  
+004069b8  beq      #0x406a24                               
+004069bc  add      r0, sp, #0x50                           
+004069c0  bl       #0x40a54                                
+004069c4  ldr      r0, [r4]                                
+004069c8  ldr      r1, [r0, #0x130]                        
+004069cc  mov      r0, r4                                  
+004069d0  blx      r1                                      
+004069d4  mov      r2, r0                                  
+004069d8  ldr      r0, [sp, #0x28]                         
+004069dc  movw     r1, #0xffff                             
+004069e0  mov      r3, #0                                  
+004069e4  sxth     r1, r1                                  
+004069e8  ldrb     r0, [r0]                                
+004069ec  str      r0, [sp]                                
+004069f0  ldr      r0, [sp, #0x24]                         
+004069f4  stmib    sp, {r0, r1}                            
+004069f8  mov      r0, r4                                  
+004069fc  add      r1, sp, #0x50                           
+00406a00  bl       #0x4a10c8                               
+00406a04  ldr      r1, [sl]                                
+00406a08  add      sl, sp, #0x50                           
+00406a0c  mov      r0, r4                                  
+00406a10  mov      r2, sl                                  
+00406a14  bl       #0x4a11e4                               
+00406a18  str      r0, [r6]                                
+00406a1c  mov      r0, sl                                  
+00406a20  bl       #0x40a94                                
+00406a24  ldr      r0, [r7]                                
+00406a28  cmp      r0, #0                                  
+00406a2c  beq      #0x406a38                               
+00406a30  mov      r1, #0                                  
+00406a34  bl       #0x329c40                               
+00406a38  mov      r0, #0                                  
+00406a3c  str      r0, [r8]                                
+00406a40  ldr      r0, [r4]                                
+00406a44  ldr      r1, [r0, #0x164]                        
+00406a48  mov      r0, r4                                  
+00406a4c  blx      r1                                      
+00406a50  vldr     s0, [r5]                                
+00406a54  ldr      r2, [sp, #0x2c]                         
+00406a58  movw     r0, #0x167c                             
+00406a5c  vldr     s2, [r2]                                
+00406a60  add      r0, r4, r0                              
+00406a64  vldr     s4, [r0]                                
+00406a68  vadd.f32 s4, s2, s4                              
+00406a6c  vcmpe.f32 s0, s4                                  
+00406a70  vmrs     apsr_nzcv, fpscr                        
+00406a74  blt      #0x406b20                               
+00406a78  movw     r0, #0x16b0                             
+00406a7c  add      r1, r4, #0x1000                         
+00406a80  vldr     s4, [r4, #0x1c]                         
+00406a84  movw     r2, #0x16b4                             
+00406a88  add      r0, r4, r0                              
+00406a8c  vldr     s8, [r1]                                
+00406a90  vldr     s6, [r0]                                
+00406a94  add      r0, r4, r2                              
+00406a98  movw     r2, #0x16b8                             
+00406a9c  add      r2, r4, r2                              
+00406aa0  vldr     s12, [r0]                               
+00406aa4  movw     r0, #0x1004                             
+00406aa8  vldr     s10, [r2]                               
+00406aac  add      r0, r4, r0                              
+00406ab0  vmla.f32 s8, s4, s6                              
+00406ab4  vstr     s8, [r1]                                
+00406ab8  vldr     s14, [r0]                               
+00406abc  vmla.f32 s14, s4, s12                            
+00406ac0  vstr     s14, [r0]                               
+00406ac4  movw     r0, #0x1008                             
+00406ac8  add      r0, r4, r0                              
+00406acc  vldr     s1, [r0]                                
+00406ad0  vmla.f32 s1, s4, s10                             
+00406ad4  vstr     s1, [r0]                                
+00406ad8  vldr     s3, [r4, #0x44]                         
+00406adc  vldr     s4, [r4, #0x40]                         
+00406ae0  vldr     s5, [r4, #0x48]                         
+00406ae4  vsub.f32 s14, s3, s14                            
+00406ae8  vsub.f32 s4, s4, s8                              
+00406aec  vmul.f32 s8, s14, s12                            
+00406af0  vsub.f32 s12, s5, s1                             
+00406af4  vmla.f32 s8, s4, s6                              
+00406af8  vmla.f32 s8, s12, s10                            
+00406afc  vcmpe.f32 s8, #0                                  
+00406b00  vmrs     apsr_nzcv, fpscr                        
+00406b04  bpl      #0x406b20                               
+00406b08  ldr      r0, [r4]                                
+00406b0c  mov      r1, #0                                  
+00406b10  ldr      r2, [r0, #0x148]                        
+00406b14  mov      r0, r4                                  
+00406b18  blx      r2                                      
+00406b1c  b        #0x406ddc                               
+00406b20  ldr      r0, [sb]                                
+00406b24  cmp      r0, #0                                  
+00406b28  beq      #0x406d38                               
+00406b2c  movw     r1, #0x1004                             
+00406b30  vldr     s4, [r4, #0x40]                         
+00406b34  vldr     s6, [r4, #0x44]                         
+00406b38  vldr     s8, [r4, #0x48]                         
+00406b3c  add      r3, r4, #0x1000                         
+00406b40  add      r2, r4, r1                              
+00406b44  movw     r1, #0x1008                             
+00406b48  add      r1, r4, r1                              
+00406b4c  str      r1, [sp, #0x28]                         
+00406b50  vldr     s10, [r1]                               
+00406b54  str      r2, [sp, #0x2c]                         
+00406b58  movw     r1, #0x166c                             
+00406b5c  vldr     s12, [r2]                               
+00406b60  str      r3, [sp, #0x24]                         
+00406b64  ldr      r1, [r4, r1]                            
+00406b68  vldr     s14, [r3]                               
+00406b6c  cmn      r1, #1                                  
+00406b70  bne      #0x406b90                               
+00406b74  vcmpe.f32 s0, s2                                  
+00406b78  vmrs     apsr_nzcv, fpscr                        
+00406b7c  bmi      #0x406b90                               
+00406b80  mov      r2, #0x3f800000                         
+00406b84  mov      r1, #0                                  
+00406b88  str      r2, [sp, #0x20]                         
+00406b8c  b        #0x406bdc                               
+00406b90  vsub.f32 s0, s6, s12                             
+00406b94  vsub.f32 s4, s4, s14                             
+00406b98  vsub.f32 s2, s8, s10                             
+00406b9c  vmul.f32 s0, s0, s0                              
+00406ba0  vmla.f32 s0, s4, s4                              
+00406ba4  vmla.f32 s0, s2, s2                              
+00406ba8  vsqrt.f32 s2, s0                                  
+00406bac  vcmpe.f32 s2, s2                                  
+00406bb0  vmrs     apsr_nzcv, fpscr                        
+00406bb4  bvc      #0x406bc0                               
+00406bb8  bl       #0x13ecc14                              
+00406bbc  vmov.f32 s2, s0                                  
+00406bc0  add      r0, r4, #0x1680                         
+00406bc4  mov      r1, #1                                  
+00406bc8  vldr     s0, [r0]                                
+00406bcc  vdiv.f32 s0, s2, s0                              
+00406bd0  vmov     r0, s0                                  
+00406bd4  str      r0, [sp, #0x20]                         
+00406bd8  ldr      r0, [sb]                                
+00406bdc  ldr      r8, [r0, #0x15c]                        
+00406be0  cmp      r8, #0                                  
+00406be4  beq      #0x406d38                               
+00406be8  cmp      r1, #0                                  
+00406bec  beq      #0x406ca4                               
+00406bf0  vldr     s16, [pc, #0x1f4]                       
+00406bf4  movw     r0, #0xfec                              
+00406bf8  mov      r5, #0                                  
+00406bfc  mov      sl, #0                                  
+00406c00  add      r0, r4, r0                              
+00406c04  str      r0, [sp, #0x1c]                         
+00406c08  movw     r0, #0xfe8                              
+00406c0c  add      r7, r4, r0                              
+00406c10  ldr      r0, [sb]                                
+00406c14  add      r0, r0, sl, lsl #2                      
+00406c18  ldr      r6, [r0, #0x150]                        
+00406c1c  cmp      r6, #0                                  
+00406c20  beq      #0x406c90                               
+00406c24  ldr      r0, [sp, #0x24]                         
+00406c28  add      r1, sp, #0x50                           
+00406c2c  ldr      r0, [r0]                                
+00406c30  str      r0, [r6, #0x40]                         
+00406c34  ldr      r0, [sp, #0x2c]                         
+00406c38  ldr      r0, [r0]                                
+00406c3c  str      r0, [r6, #0x44]                         
+00406c40  ldr      r0, [sp, #0x28]                         
+00406c44  ldr      r0, [r0]                                
+00406c48  str      r0, [r6, #0x48]                         
+00406c4c  str      r5, [r6, #0x4c]                         
+00406c50  ldr      r0, [sp, #0x1c]                         
+00406c54  vldr     s0, [r7]                                
+00406c58  vldr     s2, [r0]                                
+00406c5c  mov      r0, r6                                  
+00406c60  vcvt.f32.u32 s0, s0                                  
+00406c64  vcvt.f32.u32 s2, s2                                  
+00406c68  vmul.f32 s0, s0, s16                             
+00406c6c  vmul.f32 s2, s2, s16                             
+00406c70  vstr     s0, [sp, #0x50]                         
+00406c74  vstr     s2, [sp, #0x54]                         
+00406c78  str      r5, [sp, #0x58]                         
+00406c7c  str      r5, [sp, #0x5c]                         
+00406c80  bl       #0x8a4dfc                               
+00406c84  ldr      r0, [sp, #0x20]                         
+00406c88  str      r0, [r6, #0x68]                         
+00406c8c  str      r5, [r6, #0x6c]                         
+00406c90  add      sl, sl, #1                              
+00406c94  cmp      r8, sl                                  
+00406c98  bne      #0x406c10                               
+00406c9c  b        #0x406d38                               
+00406ca0  bllo     #0xff106ca8                             
+00406ca4  vldr     s16, [pc, #0x140]                       
+00406ca8  movw     r0, #0xfec                              
+00406cac  mov      r6, #0                                  
+00406cb0  mov      r5, #0                                  
+00406cb4  add      sl, r4, r0                              
+00406cb8  movw     r0, #0xfe8                              
+00406cbc  add      r7, r4, r0                              
+00406cc0  ldr      r0, [sb]                                
+00406cc4  add      r0, r0, r5, lsl #2                      
+00406cc8  ldr      r0, [r0, #0x150]                        
+00406ccc  cmp      r0, #0                                  
+00406cd0  beq      #0x406d2c                               
+00406cd4  ldr      r1, [sp, #0x24]                         
+00406cd8  ldr      r1, [r1]                                
+00406cdc  str      r1, [r0, #0x40]                         
+00406ce0  ldr      r1, [sp, #0x2c]                         
+00406ce4  ldr      r1, [r1]                                
+00406ce8  str      r1, [r0, #0x44]                         
+00406cec  ldr      r1, [sp, #0x28]                         
+00406cf0  ldr      r1, [r1]                                
+00406cf4  str      r1, [r0, #0x48]                         
+00406cf8  str      r6, [r0, #0x4c]                         
+00406cfc  add      r1, sp, #0x50                           
+00406d00  vldr     s0, [r7]                                
+00406d04  vldr     s2, [sl]                                
+00406d08  vcvt.f32.u32 s0, s0                                  
+00406d0c  vcvt.f32.u32 s2, s2                                  
+00406d10  vmul.f32 s0, s0, s16                             
+00406d14  vmul.f32 s2, s2, s16                             
+00406d18  vstr     s0, [sp, #0x50]                         
+00406d1c  vstr     s2, [sp, #0x54]                         
+00406d20  str      r6, [sp, #0x58]                         
+00406d24  str      r6, [sp, #0x5c]                         
+00406d28  bl       #0x8a4dfc                               
+00406d2c  add      r5, r5, #1                              
+00406d30  cmp      r8, r5                                  
+00406d34  bne      #0x406cc0                               
+00406d38  mov      r0, #3                                  
+00406d3c  mov      r6, #0                                  
+00406d40  add      r5, sp, #0x50                           
+00406d44  str      r0, [sp, #0x4c]                         
+00406d48  ldr      r0, [pc, #0xa0]                            ; literal 0x142b3c4
+00406d4c  str      r6, [sp, #0x58]                         
+00406d50  str      r6, [sp, #0x5c]                         
+00406d54  str      r6, [sp, #0x60]                         
+00406d58  strh     r6, [sp, #0x54]                         
+00406d5c  str      r6, [sp, #0x50]                         
+00406d60  str      r6, [sp, #0x3c]                         
+00406d64  ldr      r0, [pc, r0]                            
+00406d68  ldr      r1, [r0]                                
+00406d6c  str      r1, [sp, #0x70]                         
+00406d70  ldr      r1, [r0, #4]                            
+00406d74  ldr      r0, [r0, #8]                            
+00406d78  str      r1, [sp, #0x74]                         
+00406d7c  str      r0, [sp, #0x78]                         
+00406d80  movw     r0, #0x5000                             
+00406d84  str      r6, [sp, #0x7c]                         
+00406d88  movt     r0, #0xc7c3                             
+00406d8c  str      r0, [sp, #0x64]                         
+00406d90  mov      r0, r5                                  
+00406d94  str      r6, [sp, #0x68]                         
+00406d98  strb     r6, [sp, #0x56]                         
+00406d9c  bl       #0x43ac6c                               
+00406da0  add      r1, sp, #0x30                           
+00406da4  add      r2, sp, #0x4c                           
+00406da8  mov      r0, r4                                  
+00406dac  mov      r3, r5                                  
+00406db0  str      r6, [sp]                                
+00406db4  bl       #0x43ac8c                               
+00406db8  cmp      r0, #1                                  
+00406dbc  bne      #0x406ddc                               
+00406dc0  ldr      r0, [r4]                                
+00406dc4  ldr      r3, [sp, #0x4c]                         
+00406dc8  add      r1, sp, #0x30                           
+00406dcc  add      r2, sp, #0x50                           
+00406dd0  ldr      r7, [r0, #0x150]                        
+00406dd4  mov      r0, r4                                  
+00406dd8  blx      r7                                      
+00406ddc  sub      sp, fp, #0x28                           
+00406de0  vpop     {d8}                                    
+00406de4  add      sp, sp, #4                              
+00406de8  pop      {r4, r5, r6, r7, r8, sb, sl, fp, pc}    
+### fn 0x406df4  extent 0x406df4..0x406df8 (1 words)  calls   tails   tables []
+00406df4  b        #0x7ac4e8                               
+### fn 0x405d64  extent 0x405d64..0x405d6c (2 words)  calls   tails   tables []
+00405d64  mov      r0, #0                                  
+00405d68  bx       lr                                      

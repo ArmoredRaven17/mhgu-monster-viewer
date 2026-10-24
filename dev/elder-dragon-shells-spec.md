@@ -339,7 +339,7 @@ em036_00 L2 M10 (A keeps (7, 3), B keeps (7, 0x11)); Kirin L2 M4 (B (7, 2) keeps
 ## 7. Alatreon (em050_00) -- uEm050_00 (2026-10-19)
 
 - **Which actions**: em050_00_cmdtbl.emc (fb/emcvar.py) closed over the set-action calls (fb/chain050.py; edge (7, 0xf) -> (7, 0x19)).
-  Class main 0xeccc1c, vtable 0x17c7254, band 0xec480c..0xed0a38 (fb/band050.txt). The status-7 table 0xecbc98 (82 offsets on
+  Class main 0xeccc1c, vtable 0x17c7254, band 0xec480c..0xed0a38 [derived 2026-10-24: `0xec4890..0xed0834`; rom-map "Alatreon band (derived)"] (fb/band050.txt). The status-7 table 0xecbc98 (82 offsets on
   e+0x73e1; fb/stdisp.py) gives the helpers' arguments. Not reached (named): (7, 0x48..0x51) (0xec91f0's sp_01) -- **WITHDRAWN
   2026-10-19** for five: (7, 0x10) -> 0x48, (7, 0x41) -> 0x4d, (7, 0x44) -> 0x4f, (7, 0x43) -> 0x50, (7, 0x45) -> 0x51 (vt+0x3d0,
   fb/chainx.py); 0x49..0x4c / 0x4e stay unreached. 0xec91f0(e, k): phase 0 L2 M29 (0x21d); phase 1 at its end L2 M14 (0x20e) ->

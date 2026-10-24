@@ -226,3 +226,17 @@ other low-hover clips: NR here.
 The (4,3) / (4,0x19) choice of the next f2 crossing in the ROM's loop (the harness does not loop); `0x7cb4c`'s fast arm
 above ground + 1000; L2 M12's descent under a real aim; the per-action P+0x5c start values the AI leaves (each row's P5c0);
 which posture-3 action the AI picks; the variants' (em-byte) branches of `0xcff66c`.
+
+## 6. Kecha Wacha's hang, read since (gapK, 2026-10-22; indexed in rom-map, doc audit 2026-10-24)
+
+* The hang is **posture 1 held by v = 0** at 585 S above the ground, with no ceiling or wall pick. Posture 6 is never set. L2 M115 /
+  M116 / M117 / M118 / M126 are set only at `0xf520e8` / `0xf52318` / `0xf523ac` / `0xf527c4` / `0xf5224c` + `0xf5265c`, in his band
+  `0xf48e20..0xf57cd0`. The control finds every phase site. His EMC scripts are NOT checked. rom-map Fanged Beasts row "uEm065_00 L2 M115
+  ... set sites".
+* **The unit integrator** `0x7a820` (`0x7a994..0x7aa98`): pos += dt R v + dt^2 R a / 2; v += dt a. R turns by X / Z only in postures
+  {1, 2, 4, 5, 6} (mask 0x76). rom-map "Shared enemy / command layer". So section 1's "what moves P+0x44" adds the integrator's own terms.
+* **Authored heights**: em065_00 `.dtb` +0x22 FlyOfs / +0x2e TenjoOfs are 0.0 / 0.0. P+0x92c has no store in his band (control:
+  Seregios `0xfe31b0`). The `reference` Y of L2 M126 / M117 / M115 is a constant 584.5 / 400.2 / 255.4 (the authored unit height).
+  These rows moved 2026-10-24 from the PSL table to rom-map "Fanged Beasts". viewer: motion-states.js AIR_HEIGHT.em065_00.
+* The withdrawn chain "M114 -> M115 -> M116 -> M117" is in the Withdrawn table; the drop path is M114 -> M115 -> M126 -> M117 -> M118.
+  Details: `<archive>\gapK\RESULT.md`.

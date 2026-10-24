@@ -154,3 +154,17 @@ The hit object `0x16877c` copies the record (`0x1687d8..0x16886c`); the hunter's
 | byte +0x19 | (passed) | `0x70fa0` | the hit-size set |
 | +0x1a / +0x1c / +0x1d / +0x1e / +0x1f | H+0x52 / +0x55 / +0x56 / +0x6c / +0x9e | -- | copied, not followed |
 
+## 6. Read since, indexed in rom-map (doc audit 2026-10-24)
+
+The hit system's own pieces are read in gapM / gapN. Rows are in rom-map "Shell infrastructure"; the engine summary is in
+`dev/effect-runtime-engine.md` "The shells' hunter contact". This note did not carry them:
+
+* **The beam segment table** (gapN): the enemy-shell ctor clears +0x158a / +0x158c / +0x1590 / +0x1594 (`0x4a0bf0..`). The hit line
+  (base02 `0x3fc1c8..0x3fc374`, base58 `0x4340fc..0x4342a8`) fills n = +0x158c entries of the table +0x1594, from the second call on
+  (+0x1590 >= 2). A j0 1010 hitsize record makes a type-2 capsule of entry j1 (`0x16dd2c..0x16ddcc`). The count is `0x4a14d8`: the j0 1010
+  records in the hit's group, 3 for every class that uses it.
+* **Kinds a standing hunter never takes**: 8 / 9 / 0x34 / 0x45 never hit hunters; 0xc / 0xd / 0x1e need `0x2f5bf0` (a hunter in action
+  group 0x80); 0x41 marks the player (`0x2a6640`), skips the +0x31e0 once-a-frame test, and leaves the shell alone.
+* **The shape chain**: `0x169290` -> `0x16d970` (descriptor from the HTS record) -> `0x16da04` -> `0x17023c`. The HTS layout and the
+  294-folder census are in rom-map; `0x16b4b4` is a serial slot id, not a random draw (Withdrawn table).
+* Details: `<archive>\gapM\RESULT.md`, `<archive>\gapN\RESULT.md`.

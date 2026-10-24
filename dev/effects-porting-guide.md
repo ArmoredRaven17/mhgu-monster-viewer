@@ -11,8 +11,9 @@ already paid for. It does not repeat the detail: that lives in
 - the per-monster specs `dev/emNNN*-effects-spec.md` / `dev/*-shells-spec.md`, and `dev/gu-lessons-for-3u-4u.md` (the
   render / material side, already written for 3U and 4U).
 
-`<archive>` below is `C:\MHGU-RE\offline\decode\monster-viewer-scratch\` (rom-map "2. Tooling" defines it). `efx\` is
-`C:\MHGU-Extract\efx\`. Neither is under git; see "Where things live" at the end.
+`<archive>` below is `dev/archive/` in this repo, the decode scripts and notes. The full set, with the bulk outputs, is the local
+copy `C:\MHGU-RE\offline\decode\monster-viewer-scratch\`; rom-map "2. Tooling" defines both. `efx\` is `C:\MHGU-Extract\efx\` and is
+not under git. See "Where things live" at the end.
 
 ---
 
@@ -256,8 +257,17 @@ routine has been read in that game.
 
 ### FU (PSP)
 
-MHFU is **not MT Framework**: a PSP title (MIPS Allegrex) on Capcom's earlier engine. No record format, runtime routine, address,
-vtable or file layout here transfers. What transfers is the method:
+Both engines involved are Capcom's own, built in-house:
+
+- **MT Framework** dates from 2006. The 3DS games run MT Framework Mobile. GU and, INFERRED, 3U and 4U on the 3DS are built on it.
+- **FU is not MT Framework.** It runs on Capcom's older Monster Hunter engine for the PSP, which comes from the PS2 Monster Hunter
+  line.
+
+The 3U Wii U version's engine is INFERRED (MT Framework, not checked here).
+
+So for FU, no record format, runtime routine, address, vtable or file layout here transfers. The CPU differs as well. The PSP is
+MIPS (Allegrex), little-endian. armdis, the unicorn harnesses, the tracers and the lifter all need a MIPS mode (capstone and unicorn
+both have one), and `cpu.js` would need a MIPS core. What transfers is the method:
 
 - read the consumer before calling a value READ;
 - give every negative a positive control;
@@ -274,6 +284,6 @@ vtable or file layout here transfers. What transfers is the method:
 |---|---|---|
 | viewer runtime, checks, notes | `C:\MHGU-Extract\MHGU-Monster-Viewer` (`docs/render/`, `dev/`) | git |
 | recorder, lifter, exporters, vectors | `C:\MHGU-Extract\efx\` | on disk, **not under git** |
-| decode helpers' scripts and RESULT notes (tracers, censuses, harnesses, meter survey) | `<archive>` = `C:\MHGU-RE\offline\decode\monster-viewer-scratch\` (archived 2026-10-24 from the session scratchpad; what was lost before that is listed in rom-map "2. Tooling") | on disk, not under git |
+| decode helpers' scripts and RESULT notes (tracers, censuses, harnesses, meter survey) | `<archive>` = `dev/archive/` (scripts and notes, in the repo; see its README) and `C:\MHGU-RE\offline\decode\monster-viewer-scratch\` (the full set with bulk outputs; archived 2026-10-24 from the session scratchpad; what was lost before that is listed in rom-map "2. Tooling") | `dev/archive/`: git; the full set: on disk, not under git |
 | decode notes | `C:\MHGU-RE\offline\decode\notes\` | on disk |
 | task board (a SOURCE of reads) | `C:\Coding Repos\MHGU-TASKS.md` | never committed |

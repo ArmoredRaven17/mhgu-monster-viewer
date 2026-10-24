@@ -1,0 +1,98 @@
+(0, 0xff): solo     0: g1s44,g4s0
+(1, 0x00): COMBINED 1: g1s30,g1s76
+(1, 0x01): both     0: g7s10 | 1: g7s10
+(1, 0x03): both     0: g7s10 | 1: g7s10
+(1, 0x06): solo     0: g1s31
+(1, 0x07): solo     0: g8s1,g9s0
+(1, 0x08): solo     0: g6s0
+(1, 0x09): solo     0: g0s0
+(1, 0x0d): both     0: g13s0 | 1: g13s0
+(1, 0x0e): both     0: g13s0 | 1: g13s0
+(1, 0x13): both     0: g7s7 | 1: g1s70,g7s7
+(1, 0x14): solo     0: g1s45,g8s1,g9s0
+(1, 0x15): solo     0: g1s25,g1s47,g1s54,g1s56,g1s58,g1s9
+(1, 0x18): solo     0: g6s0
+(1, 0x19): solo     0: g1s41
+(1, 0x1c): COMBINED 1: g1s17,g8s1,g9s0
+(1, 0x1f): both     0: g7s12 | 1: g7s12
+(1, 0x26): both     0: g16s0 | 1: g16s0
+(1, 0x29): both     0: g16s0 | 1: g16s0
+(2, 0x00): both     0: g18s0,g18s1,g18s2,g18s3,g18s4,g1s16 | 1: g18s0,g18s1,g18s2,g18s3,g18s4,g2s0
+(2, 0x01): solo     0: g1s21,g1s22
+(2, 0x02): solo     0: g4s0
+(2, 0x04): solo     0: g1s19,g1s20,g1s23,g1s43
+(2, 0x08): solo     0: g1s21,g1s22
+(2, 0x09): both     0: g18s0,g18s1,g18s2,g18s3,g18s4,g2s0 | 1: g18s0,g18s1,g18s2,g18s3,g18s4,g2s0
+(2, 0x0a): both     0: g18s0,g18s1,g18s2,g18s3,g18s4,g2s0 | 1: g18s0,g18s1,g18s2,g18s3,g18s4,g2s0
+(3, 0x00): both     0: g12s0,g18s0,g18s1,g18s2,g18s3,g18s4 | 1: g12s0,g18s0,g18s1,g18s2,g18s3,g18s4
+(3, 0x01): both     0: g12s0,g18s0,g18s1,g18s2,g18s3,g18s4 | 1: g12s0,g18s0,g18s1,g18s2,g18s3,g18s4
+(3, 0x02): both     0: g7s1 | 1: g7s1
+(3, 0x03): both     0: g7s4 | 1: g7s4
+(3, 0x05): both     0: g7s4 | 1: g7s4
+(3, 0x07): both     0: g1s32,g1s38,g1s71 | 1: g1s71
+(3, 0x08): solo     0: g1s50
+(3, 0x09): solo     0: g1s50
+(3, 0x0a): solo     0: g1s10
+(3, 0x0b): solo     0: g1s26,g1s62,g1s63
+(3, 0x0e): solo     0: g1s12
+(3, 0x0f): solo     0: g1s15
+(3, 0x10): solo     0: g1s15
+(3, 0x11): solo     0: g1s27,g1s48
+(3, 0x12): solo     0: g1s14,g1s25,g1s28,g1s40,g1s49
+(3, 0x13): solo     0: g1s27,g1s28,g1s52
+(3, 0x14): solo     0: g1s27,g1s28,g1s52
+(3, 0x15): both     0: g1s62,g1s71,g2s0 | 1: g1s71,g2s0
+(3, 0x16): both     0: g1s71 | 1: g1s71
+(3, 0x17): both     0: g0s0,g0s8,g0s9,g18s0,g18s1,g18s2 | 1: g18s0,g18s1,g18s2,g18s3,g18s4,g1s70
+(3, 0x19): both     0: g18s0,g18s1,g18s2,g18s3,g18s4,g1s69 | 1: g18s0,g18s1,g18s2,g18s3,g18s4,g1s70
+(3, 0x1b): both     0: g12s0 | 1: g12s0
+(3, 0x20): both     0: g7s10,g7s4 | 1: g7s10,g7s4
+(3, 0x24): both     0: g12s0,g18s0,g18s1,g18s2,g18s3,g18s4 | 1: g12s0,g18s0,g18s1,g18s2,g18s3,g18s4
+(3, 0x27): both     0: g18s0,g18s1,g18s2,g18s3,g18s4,g1s63 | 1: g18s0,g18s1,g18s2,g18s3,g18s4,g7s15
+(3, 0x28): both     0: g12s0 | 1: g12s0
+(3, 0x32): COMBINED 1: g1s75
+(3, 0x36): both     0: g7s13 | 1: g7s13
+(3, 0x38): both     0: g7s2 | 1: g7s2
+(3, 0x39): both     0: g7s5 | 1: g7s5
+(3, 0x3a): both     0: g7s6 | 1: g7s6
+(3, 0x3b): both     0: g7s8 | 1: g7s8
+(3, 0x3c): both     0: g7s3 | 1: g7s3
+(3, 0x3d): COMBINED 1: g1s64,g8s0
+(3, 0x3e): both     0: g7s9 | 1: g7s9
+(3, 0x3f): both     0: g7s11 | 1: g7s11
+(3, 0x41): both     0: g7s12 | 1: g7s12
+(3, 0x42): both     0: g7s3 | 1: g7s3
+(3, 0x43): COMBINED 1: g1s30,g1s75,g1s76
+(6, 0x00): both     0: g7s15 | 1: g7s15
+(6, 0x01): both     0: g0s0,g1s70,g3s0,g4s0,g5s0,g5s1 | 1: g0s0,g1s70
+(6, 0x02): both     0: g2s0 | 1: g2s0
+(6, 0x03): both     0: g0s0,g5s1,g8s0 | 1: g0s0,g5s1
+(7, 0x00): solo     0: g1s6
+(7, 0x01): solo     0: g1s2
+(7, 0x02): solo     0: g1s14,g1s25,g1s8
+(7, 0x06): solo     0: g1s16,g1s19
+(7, 0x07): solo     0: g1s18,g1s20
+(7, 0x08): solo     0: g1s6,g1s7
+(7, 0x09): solo     0: g1s32
+(7, 0x0b): solo     0: g1s33
+(7, 0x0c): solo     0: g1s42,g1s43
+(7, 0x0d): solo     0: g1s39,g1s40
+(7, 0x0e): solo     0: g1s38,g1s9
+(7, 0x14): solo     0: g1s67
+(7, 0x16): solo     0: g1s56,g1s57
+(7, 0x17): solo     0: g1s58
+(7, 0x32): COMBINED 1: g0s4,g1s1,g8s0
+(7, 0x33): COMBINED 1: g0s4,g1s3,g8s0
+(7, 0x34): COMBINED 1: g1s73
+(7, 0x39): COMBINED 1: g1s74
+(7, 0x3a): COMBINED 1: g1s64
+(7, 0x3b): both     0: g7s14 | 1: g7s14
+(7, 0x3c): COMBINED 1: g1s73
+(7, 0x3d): COMBINED 1: g1s74
+(7, 0x3e): COMBINED 1: g1s64
+(7, 0x3f): both     0: g7s16 | 1: g7s16
+(7, 0x40): both     0: g7s17 | 1: g7s17
+(7, 0x42): both     0: g7s18 | 1: g7s18
+(7, 0x44): solo     0: g1s81
+g0 contexts: s0=01 s1=01 s2=01 s3=0 s4=1 s5=0 s6=01 s7=0 s8=0 s9=0 s10=0 s11=0 s12=0 s13=0
+unreached: g1s0 g1s11 g1s13 g1s24 g1s29 g1s34 g1s35 g1s36 g1s37 g1s46 g1s51 g1s53 g1s59 g1s60 g1s61 g1s65 g1s66 g1s68 g1s72 g1s77 g1s78 g1s79 g1s80 g1s82 g1s83 g1s84 g1s85 g1s86 g1s87 g1s88 g1s89 g1s90 g1s91 g1s92 g1s93 g1s94 g1s95 g1s96 g1s97 g1s98 g1s99 g1s100 g1s101

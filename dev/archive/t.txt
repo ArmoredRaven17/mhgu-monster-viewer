@@ -1,0 +1,17 @@
+000c9cdc  push    {r4, r5, fp, lr}
+000c9ce0  mov     r4, r0
+000c9ce4  ldr     r0, [pc, #0xd0]
+000c9ce8  movw    r1, #0xb720
+000c9cec  mov     r2, r4
+000c9cf0  ldr     r0, [pc, r0]
+000c9cf4  add     r0, r0, #8
+000c9cf8  str     r0, [r2], r1
+000c9cfc  ldrb    r0, [r2]
+000c9d00  cmp     r0, #0
+000c9d04  beq     #0xc9d20
+000c9d08  ldr     r0, [pc, #0xb0]
+000c9d0c  ldr     r0, [pc, r0]
+000c9d10  ldr     r0, [r0]
+000c9d14  cmp     r0, #0
+000c9d18  beq     #0xc9d20
+000c9d1c  bl      #0x17babc

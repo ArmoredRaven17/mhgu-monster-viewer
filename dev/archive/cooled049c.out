@@ -1,0 +1,8 @@
+FAIL stages  -- {"head":0,"chest":0,"legsM01":0,"legsM02":0,"back":0,"tail":0}
+FAIL space  -- ?scene=none colourManagement=?
+FAIL cool peak (op 0.1)  -- {"both":{"px":25845,"meanSumRGB":42.5,"maxSumRGB":95},"litOnly":{"px":25815,"meanSumRGB":37.7,"maxSumRGB":85},"emissionOnly":{"px":25782,"meanSumRGB":36.4,"maxSumRGB":86}}
+FAIL cool trough (op 0)  -- {"px":0,"meanSumRGB":0,"maxSumRGB":0}
+FAIL molten (op 1, col .383)  -- {"px":26172,"meanSumRGB":361,"maxSumRGB":666}
+FAIL rock under the overlay (off)  -- {"px":25845,"meanSumRGB":68.7}
+
+0 passed, 6 failed

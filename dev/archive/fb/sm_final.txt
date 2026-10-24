@@ -1,0 +1,134 @@
+em005_00 em005_00c 0 starts 10 draw-frames 131 lit 122/144 px 32976 draws
+em005_00 em005_00u 130 starts 6 draw-frames 280 lit 280/286 px 1024000 draws
+em005_00 em005_00u 131 NOT STARTED
+em005_00 em005_00u 150 starts 1 draw-frames 41 lit 41/42 px 131108 draws
+em007_00 em007_00c 0 starts 5 draw-frames 66 lit 61/71 px 19309 draws
+em007_00 em007_00c 1 starts 5 draw-frames 66 lit 61/71 px 34116 draws
+em007_00 em007_00c 2 starts 5 draw-frames 58 lit 54/64 px 46492 draws
+em008_00 em008_00c 30 starts 6 draw-frames 78 lit 71/84 px 20650 draws
+em008_00 em008_00c 31 starts 37 draw-frames 458 lit 434/505 px 160436 draws
+em008_00 em008_00u 0 starts 48 draw-frames 505 lit 505/562 px 709467 draws
+em008_00 em008_00u 1 starts 48 draw-frames 675 lit 669/744 px 1013165 draws
+em008_00 em008_00u 2 NOT STARTED
+em009_00 em009_00c 30 starts 28 draw-frames 366 lit 339/400 px 101642 draws
+em009_00 em009_00c 31 starts 1 draw-frames 33 lit 32/34 px 28381 draws
+em009_00 em009_00u 0 starts 19 draw-frames 1406 lit 763/1429 px 722090 draws
+em009_00 em009_00u 1 starts 29 draw-frames 595 lit 585/644 px 37325 draws
+em009_00 em009_00u 2 NOT STARTED
+em009_00 em009_00u 3 NOT STARTED
+em009_00 em009_00u 4 starts 3 draw-frames 343 lit 310/421 px 1024000 draws
+em009_00 em009_00u 10 starts 16 draw-frames 386 lit 386/408 px 1024000 draws
+em009_00 em009_00u 20 starts 16 draw-frames 1678 lit 235/1697 px 74234 draws
+em016_00 em016_00u 0 starts 4 draw-frames 59 lit 59/65 px 284016 draws
+em016_00 em016_00u 30 starts 3 draw-frames 50 lit 47/54 px 328341 draws
+em016_00 em016_00u 50 starts 1 draw-frames 16 lit 16/18 px 93275 draws
+em016_00 em016_00u 60 starts 3 draw-frames 165 lit 131/173 px 608278 draws
+em016_00 em016_00u 80 starts 1 draw-frames 81 lit 79/84 px 712013 draws
+em016_00 em016_00u 90 NOT STARTED
+em016_00 em016_00u 110 NOT STARTED
+em018_00 em018_00u 0 starts 10 draw-frames 576 lit 194/592 px 1024000 draws
+em018_00 em018_00u 1 starts 9 draw-frames 189 lit 189/202 px 769938 draws
+em018_00 em018_00u 2 NOT STARTED
+em018_00 em018_00u 3 starts 9 draw-frames 653 lit 446/667 px 138979 draws
+em018_04 em018_04u 0 starts 12 draw-frames 512 lit 188/527 px 1024000 draws
+em018_04 em018_04u 1 starts 12 draw-frames 253 lit 253/270 px 1024000 draws
+em018_04 em018_04u 2 NOT STARTED
+em018_04 em018_04u 3 starts 12 draw-frames 873 lit 654/890 px 322176 draws
+em018_04 em018_04u 60 starts 6 draw-frames 87 lit 87/94 px 425732 draws
+em018_04 em018_04u 61 starts 3 draw-frames 69 lit 65/73 px 145220 draws
+em018_04 em018_04u 110 starts 4 draw-frames 154 lit 146/167 px 1024000 draws
+em032_00 em032_00c 32 starts 21 draw-frames 271 lit 253/299 px 39516 draws
+em032_00 em032_00u 0 starts 3 draw-frames 86 lit 66/89 px 648287 draws
+em032_00 em032_00u 1 NOT STARTED
+em032_00 em032_00u 3 starts 3 draw-frames 85 lit 67/89 px 901856 draws
+em032_00 em032_00u 30 starts 3 draw-frames 130 lit 0/135 px 0 draws off camera (lit when looked at)
+em032_00 em032_00u 31 NOT STARTED
+em032_00 em032_00u 33 starts 3 draw-frames 129 lit 28/133 px 46496 draws
+em032_04 em032_04u 0 starts 9 draw-frames 237 lit 227/248 px 120056 draws
+em032_04 em032_04u 1 NOT STARTED
+em032_04 em032_04u 3 starts 9 draw-frames 235 lit 229/246 px 210733 draws
+em032_04 em032_04u 30 starts 9 draw-frames 389 lit 351/400 px 582043 draws
+em032_04 em032_04u 31 NOT STARTED
+em032_04 em032_04u 33 starts 9 draw-frames 390 lit 365/404 px 729610 draws
+em032_04 em032_04u 70 starts 36 draw-frames 750 lit 750/798 px 20698 draws
+em032_04 em032_04u 71 starts 36 draw-frames 1410 lit 1291/1458 px 21928 draws
+em032_04 em032_04u 72 starts 18 draw-frames 375 lit 375/399 px 23529 draws
+em032_04 em032_04u 73 starts 18 draw-frames 420 lit 401/465 px 51251 draws
+em032_04 em032_04u 74 starts 6 draw-frames 56 lit 52/64 px 826026 draws
+em032_04 em032_04u 75 starts 6 draw-frames 141 lit 133/156 px 91458 draws
+em032_04 em032_04u 76 starts 6 draw-frames 0 lit 0/104 px 0 live, no draw
+em032_04 em032_04u 77 starts 6 draw-frames 140 lit 134/156 px 222808 draws
+em032_04 em032_04u 78 starts 6 draw-frames 0 lit 0/102 px 0 live, no draw
+em032_04 em032_04u 79 starts 6 draw-frames 186 lit 171/194 px 565500 draws
+em032_04 em032_04u 80 starts 2 draw-frames 32 lit 32/35 px 49360 draws
+em032_04 em032_04u 81 NOT STARTED
+em032_04 em032_04u 83 starts 2 draw-frames 20 lit 20/23 px 90484 draws
+em032_04 em032_04u 90 starts 2 draw-frames 44 lit 43/47 px 254088 draws
+em032_04 em032_04u 91 NOT STARTED
+em032_04 em032_04u 93 starts 1 draw-frames 37 lit 37/38 px 325162 draws
+em032_04 em032_04u 100 starts 2 draw-frames 49 lit 49/51 px 79286 draws
+em032_04 em032_04u 101 NOT STARTED
+em032_04 em032_04u 103 starts 1 draw-frames 37 lit 37/38 px 57010 draws
+em032_04 em032_04u 110 starts 1 draw-frames 65 lit 65/66 px 149027 draws
+em032_04 em032_04u 111 NOT STARTED
+em032_04 em032_04u 113 starts 1 draw-frames 65 lit 65/66 px 248906 draws
+em032_04 em032_04u 122 starts 18 draw-frames 447 lit 417/474 px 120360 draws
+em032_04 em032_04u 123 starts 18 draw-frames 243 lit 227/273 px 73964 draws
+em032_04 em032_04u 124 starts 18 draw-frames 450 lit 436/471 px 183164 draws
+em032_04 em032_04u 125 starts 18 draw-frames 240 lit 225/270 px 69299 draws
+em033_00 em033_00u 10 starts 2 draw-frames 62 lit 60/65 px 85117 draws
+em033_00 em033_00u 30 starts 1 draw-frames 51 lit 51/52 px 331569 draws
+em033_00 em033_00u 31 starts 1 draw-frames 37 lit 37/38 px 275339 draws
+em033_00 em033_00u 40 starts 2 draw-frames 85 lit 84/87 px 89866 draws
+em034_00 em034_00u 10 starts 4 draw-frames 52 lit 52/57 px 887913 draws
+em034_00 em034_00u 20 NOT STARTED
+em034_00 em034_00u 30 starts 4 draw-frames 91 lit 90/96 px 322947 draws
+em034_00 em034_00u 50 starts 4 draw-frames 292 lit 267/303 px 421637 draws
+em042_00 em042_00u 10 starts 5 draw-frames 26 lit 26/34 px 205334 draws
+em042_00 em042_00u 20 NOT STARTED
+em042_00 em042_00u 21 starts 5 draw-frames 177 lit 170/187 px 1024000 draws
+em042_00 em042_00u 30 starts 5 draw-frames 293 lit 241/319 px 1023966 draws
+em044_00 em044_00u 10 starts 104 draw-frames 1766 lit 1766/1903 px 35763 draws
+em044_00 em044_00u 11 starts 1 draw-frames 13 lit 13/14 px 132166 draws
+em044_00 em044_00u 20 NOT STARTED
+em044_00 em044_00u 21 starts 1 draw-frames 23 lit 22/25 px 530617 draws
+em044_00 em044_00u 30 starts 104 draw-frames 1426 lit 1341/1563 px 56932 draws
+em045_00 em045_00u 30 starts 1 draw-frames 22 lit 22/24 px 999019 draws
+em045_00 em045_00u 50 starts 1 draw-frames 17 lit 17/18 px 32075 draws
+em045_00 em045_00u 200 starts 2 draw-frames 58 lit 51/63 px 139283 draws
+em045_04 em045_04u 30 starts 36 draw-frames 15772 lit 15772/15820 px 2607 draws
+em045_04 em045_04u 32 starts 84 draw-frames 1366 lit 1350/1494 px 350 draws
+em045_04 em045_04u 33 NOT STARTED
+em045_04 em045_04u 34 starts 43 draw-frames 1302 lit 1229/1388 px 1024000 draws
+em045_04 em045_04u 40 starts 4 draw-frames 3399 lit 3399/3405 px 140 draws
+em045_04 em045_04u 50 starts 1 draw-frames 18 lit 18/19 px 14441 draws
+em045_04 em045_04u 60 starts 4 draw-frames 121 lit 121/126 px 82854 draws
+em045_04 em045_04u 61 NOT STARTED
+em045_04 em045_04u 62 starts 4 draw-frames 92 lit 85/97 px 110612 draws
+em045_04 em045_04u 80 starts 9 draw-frames 426 lit 426/438 px 456105 draws
+em045_04 em045_04u 200 starts 3 draw-frames 104 lit 104/113 px 885264 draws
+em045_04 em045_04u 230 starts 2 draw-frames 1001 lit 1001/1004 px 20231 draws
+em077_00 em077_00c 30 starts 11 draw-frames 141 lit 131/155 px 14757 draws
+em077_00 em077_00c 32 starts 10 draw-frames 131 lit 120/141 px 51202 draws
+em077_00 em077_00u 30 starts 254 draw-frames 3013 lit 2600/3350 px 8540 draws
+em077_00 em077_00u 31 starts 254 draw-frames 4535 lit 3060/4867 px 936852 draws
+em077_00 em077_00u 32 NOT STARTED
+em077_00 em077_00u 40 starts 160 draw-frames 1804 lit 1294/2030 px 650 draws
+em077_00 em077_00u 41 starts 55 draw-frames 2005 lit 1358/2085 px 349142 draws
+em077_00 em077_00u 42 NOT STARTED
+em080_00 em080_00u 0 starts 9 draw-frames 44 lit 44/57 px 212926 draws
+em080_00 em080_00u 1 starts 8 draw-frames 332 lit 312/342 px 934310 draws
+em080_00 em080_00u 2 starts 7 draw-frames 322 lit 306/335 px 1024000 draws
+em080_00 em080_00u 40 starts 2 draw-frames 43 lit 43/45 px 728389 draws
+em080_04 em080_04u 0 starts 19 draw-frames 64 lit 64/93 px 353066 draws
+em080_04 em080_04u 1 starts 19 draw-frames 789 lit 755/813 px 960406 draws
+em080_04 em080_04u 2 starts 19 draw-frames 658 lit 611/702 px 1024000 draws
+em080_04 em080_04u 3 NOT STARTED
+em080_04 em080_04u 40 starts 2 draw-frames 43 lit 43/45 px 619209 draws
+em080_04 em080_04u 220 starts 12 draw-frames 716 lit 692/740 px 50517 draws
+em080_04 em080_04u 221 starts 4 draw-frames 167 lit 163/173 px 194845 draws
+em080_04 em080_04u 225 starts 7 draw-frames 149 lit 149/158 px 1014447 draws
+em080_04 em080_04u 226 starts 7 draw-frames 23 lit 23/32 px 1017665 draws
+em080_04 em080_04u 227 starts 7 draw-frames 260 lit 253/275 px 1024000 draws
+em080_04 em080_04u 230 starts 16 draw-frames 896 lit 837/928 px 382730 draws
+em080_04 em080_04u 240 starts 2 draw-frames 75 lit 74/78 px 964330 draws

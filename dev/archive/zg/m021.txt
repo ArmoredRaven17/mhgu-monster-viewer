@@ -1,0 +1,30 @@
+(1, 0x09): L0 M28 f0 ph0
+(1, 0x0b): L0 M25 f0 ph0 | L0 M43 f0 ph1
+(1, 0x0c): L0 M25 f0 ph0 | L0 M43 f0 ph1
+(1, 0x0d): L0 M25 f0 ph0 | L0 M43 f0 ph1
+(1, 0x0e): L0 M25 f0 ph0 | L0 M43 f0 ph1
+(1, 0x35): L0 M25 f0 ph0 | L0 M43 f0 ph1
+(1, 0x36): L0 M25 f0 ph0 | L0 M43 f0 ph1
+(1, 0x37): L0 M25 f0 ph0 | L0 M43 f0 ph1
+(1, 0x38): L0 M25 f0 ph0 | L0 M43 f0 ph1
+(1, 0x39): L0 M25 f0 ph0 | L0 M43 f0 ph1
+(1, 0x3c): L0 M43 f0 ph0
+(1, 0x3d): L0 M43 f0 ph0
+(1, 0x3e): L0 M43 f0 ph0
+(1, 0x3f): L0 M43 f0 ph0
+(1, 0x40): L0 M43 f0 ph0
+(1, 0x41): L0 M43 f0 ph0
+(1, 0x42): L0 M43 f0 ph0
+(1, 0x43): L0 M43 f0 ph0
+(7, 0x00): L2 M2 f0 ph1
+(7, 0x01): L2 M2 f0 ph1
+(7, 0x06): L2 M16 f0 ph0
+(7, 0x34): L2 M16 f0 ph0
+(7, 0x35): L2 M16 f0 ph0
+(7, 0x36): L2 M16 f0 ph0
+(7, 0x37): L2 M16 f0 ph0 | L0 M28 f0 ph1
+(7, 0x38): L2 M16 f0 ph0 | L0 M28 f0 ph1
+(7, 0x39): L2 M16 f0 ph0 | L0 M28 f0 ph1
+(7, 0x3a): L2 M16 f0 ph0 | L0 M28 f0 ph1
+(7, 0x45): L2 M2 f0 ph1
+(7, 0x48): L2 M16 f0 ph0 | L0 M28 f0 ph1

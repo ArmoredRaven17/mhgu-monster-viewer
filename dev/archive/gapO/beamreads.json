@@ -1,0 +1,4151 @@
+{
+ "scans": {
+  "em010_00": [
+   "0xd6777c",
+   "0xd67924",
+   "0xd682a8",
+   "0xd684c8",
+   "0xd68d08",
+   "0xd69108",
+   "0xd69554"
+  ],
+  "em033_00": [
+   "0xe3b228",
+   "0xe3b2b8",
+   "0xe3b334",
+   "0xe3bae8",
+   "0xe3bb84",
+   "0xe3bc00",
+   "0xe3c620",
+   "0xe3c6b8"
+  ],
+  "em038_00": [
+   "0xe6100c",
+   "0xe61078",
+   "0xe610c4",
+   "0xe61114",
+   "0xe61174",
+   "0xe611c0",
+   "0xe616c4",
+   "0xe61710"
+  ],
+  "em049_00": [
+   "0xeba564",
+   "0xebb6ac",
+   "0xebb71c"
+  ],
+  "em056_00": [
+   "0xee54e8",
+   "0xee5880"
+  ],
+  "em058_00": [
+   "0xf0d06c",
+   "0xf0d108"
+  ],
+  "em023_00": [
+   "0xde8970"
+  ]
+ },
+ "entries": [
+  {
+   "list": "T",
+   "id": "em004_00:1",
+   "cls": "uShellEm005_sp_02",
+   "mode": 1,
+   "sid": "0x6c",
+   "res": "0x89ba",
+   "hash": "0x0cf3c814",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em004_00_shell02\\em004_00_02",
+   "folder": "shell\\em\\em004_00_shell02",
+   "hitParam": "shell\\em\\em004_00_shell02\\em004_00_02_hit001",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    22,
+    999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em005_00:1",
+   "cls": "uShellEm005_sp_02",
+   "mode": 1,
+   "sid": "0x6e",
+   "res": "0x89bc",
+   "hash": "0x2ba1a687",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em005_00_shell02\\em005_00_02",
+   "folder": "shell\\em\\em005_00_shell02",
+   "hitParam": "shell\\em\\em005_00_shell02\\em005_00_02_hit001",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    16,
+    999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em005_00:7",
+   "cls": "uShellEm005_sp_02",
+   "mode": 7,
+   "sid": "0x6e",
+   "res": "0x89bc",
+   "hash": "0x2ba1a687",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em005_00_shell02\\em005_00_02",
+   "folder": "shell\\em\\em005_00_shell02",
+   "hitParam": "shell\\em\\em005_00_shell02\\em005_00_02_hit007",
+   "hit": [
+    3
+   ],
+   "hit0": 3,
+   "hitrec0": [
+    16,
+    999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em010_00:0",
+   "cls": "uShellEm010_sp_02",
+   "mode": 0,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em010_00:2",
+   "cls": "uShellEm010_sp_02",
+   "mode": 2,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit002",
+   "hit": [
+    2
+   ],
+   "hit0": 2,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em010_00:15",
+   "cls": "uShellEm010_sp_02",
+   "mode": 15,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit015",
+   "hit": [
+    4
+   ],
+   "hit0": 4,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em010_00:17",
+   "cls": "uShellEm010_sp_02",
+   "mode": 17,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit017",
+   "hit": [
+    6
+   ],
+   "hit0": 6,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em013_00:0",
+   "cls": "uShellEm013_00_02",
+   "mode": 0,
+   "sid": "0x84",
+   "res": "0x89d7",
+   "hash": "0x916d517d",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em013_00_shell02\\em013_00_02",
+   "folder": "shell\\em\\em013_00_shell02",
+   "hitParam": "shell\\em\\em013_00_shell02\\em013_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    10,
+    1000,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em013_01:0",
+   "cls": "uShellEm013_01_02",
+   "mode": 0,
+   "sid": "0x88",
+   "res": "0x89db",
+   "hash": "0xb60bb586",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em013_01_shell02\\em013_01_02",
+   "folder": "shell\\em\\em013_01_shell02",
+   "hitParam": "shell\\em\\em013_01_shell02\\em013_01_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    10,
+    1000,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em019_00:0",
+   "cls": "uShellEm019_sp_02",
+   "mode": 0,
+   "sid": "0x9a",
+   "res": "0x89ed",
+   "hash": "0x3e2bfe82",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em019_00_shell02\\em019_00_02",
+   "folder": "shell\\em\\em019_00_shell02",
+   "hitParam": "shell\\em\\em019_00_shell02\\em019_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em019_00:1",
+   "cls": "uShellEm019_sp_02",
+   "mode": 1,
+   "sid": "0x9a",
+   "res": "0x89ed",
+   "hash": "0x3e2bfe82",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em019_00_shell02\\em019_00_02",
+   "folder": "shell\\em\\em019_00_shell02",
+   "hitParam": "shell\\em\\em019_00_shell02\\em019_00_02_hit001",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em019_04:0",
+   "cls": "uShellEm019_sp_02",
+   "mode": 0,
+   "sid": "0x9c",
+   "res": "0x89ef",
+   "hash": "0xa3b06d6e",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em019_04_shell02\\em019_04_02",
+   "folder": "shell\\em\\em019_04_shell02",
+   "hitParam": "shell\\em\\em019_04_shell02\\em019_04_02_hit000",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em020_00:4",
+   "cls": "uShellEm020_sp_02",
+   "mode": 4,
+   "sid": "0x9e",
+   "res": "0x89f1",
+   "hash": "0x43f95378",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em020_00_shell02\\em020_00_02",
+   "folder": "shell\\em\\em020_00_shell02",
+   "hitParam": "shell\\em\\em020_00_shell02\\em020_00_02_hit004",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em020_04:0",
+   "cls": "uShellEm020_04_02",
+   "mode": 0,
+   "sid": "0xa0",
+   "res": "0x89f3",
+   "hash": "0xde62c094",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em020_04_shell02\\em020_04_02",
+   "folder": "shell\\em\\em020_04_shell02",
+   "hitParam": "shell\\em\\em020_04_shell02\\em020_04_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    14,
+    999,
+    31,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em020_04:1",
+   "cls": "uShellEm020_04_02",
+   "mode": 1,
+   "sid": "0xa0",
+   "res": "0x89f3",
+   "hash": "0xde62c094",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em020_04_shell02\\em020_04_02",
+   "folder": "shell\\em\\em020_04_shell02",
+   "hitParam": "shell\\em\\em020_04_shell02\\em020_04_02_hit001",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    0,
+    999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em023_00:0",
+   "cls": "uShellEm023_sp_02",
+   "mode": 0,
+   "sid": "0xa9",
+   "res": "0x89fc",
+   "hash": "0x2a0fe0cd",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em023_00_shell02\\em023_00_02",
+   "folder": "shell\\em\\em023_00_shell02",
+   "hitParam": "shell\\em\\em023_00_shell02\\em023_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    26,
+    99,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em023_00:1",
+   "cls": "uShellEm023_sp_02",
+   "mode": 1,
+   "sid": "0xa9",
+   "res": "0x89fc",
+   "hash": "0x2a0fe0cd",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em023_00_shell02\\em023_00_02",
+   "folder": "shell\\em\\em023_00_shell02",
+   "hitParam": "shell\\em\\em023_00_shell02\\em023_00_02_hit001",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    36,
+    99,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em023_05:0",
+   "cls": "uShellEm023_sp_02",
+   "mode": 0,
+   "sid": "0xad",
+   "res": "0x8a00",
+   "hash": "0x90f297da",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em023_05_shell02\\em023_05_02",
+   "folder": "shell\\em\\em023_05_shell02",
+   "hitParam": "shell\\em\\em023_05_shell02\\em023_05_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    26,
+    99,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em023_05:1",
+   "cls": "uShellEm023_sp_02",
+   "mode": 1,
+   "sid": "0xad",
+   "res": "0x8a00",
+   "hash": "0x90f297da",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em023_05_shell02\\em023_05_02",
+   "folder": "shell\\em\\em023_05_shell02",
+   "hitParam": "shell\\em\\em023_05_shell02\\em023_05_02_hit001",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    36,
+    99,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em024_00:0",
+   "cls": "uShellEm024_sp_02",
+   "mode": 0,
+   "sid": "0xb1",
+   "res": "0x8a04",
+   "hash": "0xdeb0e934",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em024_00_shell02\\em024_00_02",
+   "folder": "shell\\em\\em024_00_shell02",
+   "hitParam": "shell\\em\\em024_00_shell02\\em024_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    999,
+    3,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em024_00:1",
+   "cls": "uShellEm024_sp_02",
+   "mode": 1,
+   "sid": "0xb1",
+   "res": "0x8a04",
+   "hash": "0xdeb0e934",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em024_00_shell02\\em024_00_02",
+   "folder": "shell\\em\\em024_00_shell02",
+   "hitParam": "shell\\em\\em024_00_shell02\\em024_00_02_hit001",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    0,
+    999,
+    21,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em033_00:1",
+   "cls": "uShellEm033_sp_02",
+   "mode": 1,
+   "sid": "0xc2",
+   "res": "0x8a15",
+   "hash": "0x432e705d",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em033_00_shell02\\em033_00_02",
+   "folder": "shell\\em\\em033_00_shell02",
+   "hitParam": "shell\\em\\em033_00_shell02\\em033_00_02_hit001",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    2,
+    200,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em033_00:5",
+   "cls": "uShellEm033_sp_02",
+   "mode": 5,
+   "sid": "0xc2",
+   "res": "0x8a15",
+   "hash": "0x432e705d",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em033_00_shell02\\em033_00_02",
+   "folder": "shell\\em\\em033_00_shell02",
+   "hitParam": "shell\\em\\em033_00_shell02\\em033_00_02_hit005",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    2,
+    200,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em033_00:6",
+   "cls": "uShellEm033_sp_02",
+   "mode": 6,
+   "sid": "0xc2",
+   "res": "0x8a15",
+   "hash": "0x432e705d",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em033_00_shell02\\em033_00_02",
+   "folder": "shell\\em\\em033_00_shell02",
+   "hitParam": "shell\\em\\em033_00_shell02\\em033_00_02_hit006",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    2,
+    200,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em038_00:0",
+   "cls": "uShellEm038_sp_02",
+   "mode": 0,
+   "sid": "0xd0",
+   "res": "0x8a23",
+   "hash": "0xcb3ab131",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em038_00_shell02\\em038_00_02",
+   "folder": "shell\\em\\em038_00_shell02",
+   "hitParam": "shell\\em\\em038_00_shell02\\em038_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    2,
+    130,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em038_00:3",
+   "cls": "uShellEm038_sp_02",
+   "mode": 3,
+   "sid": "0xd0",
+   "res": "0x8a23",
+   "hash": "0xcb3ab131",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em038_00_shell02\\em038_00_02",
+   "folder": "shell\\em\\em038_00_shell02",
+   "hitParam": "shell\\em\\em038_00_shell02\\em038_00_02_hit003",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    2,
+    160,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em049_00:0",
+   "cls": "uShellEm049_sp_02",
+   "mode": 0,
+   "sid": "0xee",
+   "res": "0x8a41",
+   "hash": "0x28fd2a13",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em049_00_shell02\\em049_00_02",
+   "folder": "shell\\em\\em049_00_shell02",
+   "hitParam": "shell\\em\\em049_00_shell02\\em049_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    5,
+    999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em050_00:0",
+   "cls": "uShellEm050_sp_02",
+   "mode": 0,
+   "sid": "0xf1",
+   "res": "0x8a44",
+   "hash": "0x876ca6c9",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em050_00_shell02\\em050_00_02",
+   "folder": "shell\\em\\em050_00_shell02",
+   "hitParam": "shell\\em\\em050_00_shell02\\em050_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    9999,
+    21,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em056_00:0",
+   "cls": "uShellEm056_sp_02",
+   "mode": 0,
+   "sid": "0xf5",
+   "res": "0x8a48",
+   "hash": "0x5481c1a3",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em056_00_shell02\\em056_00_02",
+   "folder": "shell\\em\\em056_00_shell02",
+   "hitParam": "shell\\em\\em056_00_shell02\\em056_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em056_00:1",
+   "cls": "uShellEm056_sp_02",
+   "mode": 1,
+   "sid": "0xf5",
+   "res": "0x8a48",
+   "hash": "0x5481c1a3",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em056_00_shell02\\em056_00_02",
+   "folder": "shell\\em\\em056_00_shell02",
+   "hitParam": "shell\\em\\em056_00_shell02\\em056_00_02_hit001",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    0,
+    999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em058_00:0",
+   "cls": "uShellEm058_sp_02",
+   "mode": 0,
+   "sid": "0xfe",
+   "res": "0x8a51",
+   "hash": "0x668ed410",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em058_00_shell02\\em058_00_02",
+   "folder": "shell\\em\\em058_00_shell02",
+   "hitParam": "shell\\em\\em058_00_shell02\\em058_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    88,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em067_00:0",
+   "cls": "uShellEm067_sp_02",
+   "mode": 0,
+   "sid": "0x123",
+   "res": "0x8a76",
+   "hash": "0xc8b11e80",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em067_00_shell02\\em067_00_02",
+   "folder": "shell\\em\\em067_00_shell02",
+   "hitParam": "shell\\em\\em067_00_shell02\\em067_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em081_04:4",
+   "cls": "uShellEm081_04_02",
+   "mode": 4,
+   "sid": "0x153",
+   "res": "0x8aa0",
+   "hash": "0xd49d0725",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em081_04_shell02\\em081_04_02",
+   "folder": "shell\\em\\em081_04_shell02",
+   "hitParam": "shell\\em\\em081_04_shell02\\em081_04_02_hit004",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    300,
+    49,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em081_04:5",
+   "cls": "uShellEm081_04_02",
+   "mode": 5,
+   "sid": "0x153",
+   "res": "0x8aa0",
+   "hash": "0xd49d0725",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em081_04_shell02\\em081_04_02",
+   "folder": "shell\\em\\em081_04_shell02",
+   "hitParam": "shell\\em\\em081_04_shell02\\em081_04_02_hit005",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    300,
+    49,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em082_00:0",
+   "cls": "uShellEm082_sp_02",
+   "mode": 0,
+   "sid": "0x15a",
+   "res": "0x8aa7",
+   "hash": "0x20f0277c",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em082_00_shell02\\em082_00_02",
+   "folder": "shell\\em\\em082_00_shell02",
+   "hitParam": "shell\\em\\em082_00_shell02\\em082_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    2,
+    400,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em082_00:2",
+   "cls": "uShellEm082_sp_02",
+   "mode": 2,
+   "sid": "0x15a",
+   "res": "0x8aa7",
+   "hash": "0x20f0277c",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em082_00_shell02\\em082_00_02",
+   "folder": "shell\\em\\em082_00_shell02",
+   "hitParam": "shell\\em\\em082_00_shell02\\em082_00_02_hit002",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    2,
+    400,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em082_04:10",
+   "cls": "uShellEm082_sp_02",
+   "mode": 10,
+   "sid": "0x15e",
+   "res": "0x8aab",
+   "hash": "0xbd6bb490",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em082_04_shell02\\em082_04_02",
+   "folder": "shell\\em\\em082_04_shell02",
+   "hitParam": "shell\\em\\em082_04_shell02\\em082_04_02_hit010",
+   "hit": [
+    2
+   ],
+   "hit0": 2,
+   "hitrec0": [
+    2,
+    400,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em082_04:12",
+   "cls": "uShellEm082_sp_02",
+   "mode": 12,
+   "sid": "0x15e",
+   "res": "0x8aab",
+   "hash": "0xbd6bb490",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em082_04_shell02\\em082_04_02",
+   "folder": "shell\\em\\em082_04_shell02",
+   "hitParam": "shell\\em\\em082_04_shell02\\em082_04_02_hit012",
+   "hit": [
+    2
+   ],
+   "hit0": 2,
+   "hitrec0": [
+    2,
+    400,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em084_00:1",
+   "cls": "uShellEm084_sp_02",
+   "mode": 1,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit001",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em084_00:2",
+   "cls": "uShellEm084_sp_02",
+   "mode": 2,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit002",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em084_00:5",
+   "cls": "uShellEm084_sp_02",
+   "mode": 5,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit005",
+   "hit": [
+    3
+   ],
+   "hit0": 3,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    3
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em084_00:14",
+   "cls": "uShellEm084_sp_02",
+   "mode": 14,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit014",
+   "hit": [
+    2
+   ],
+   "hit0": 2,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    2
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em084_00:52",
+   "cls": "uShellEm084_sp_02",
+   "mode": 52,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit052",
+   "hit": [
+    4
+   ],
+   "hit0": 4,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "T",
+   "id": "em084_00:54",
+   "cls": "uShellEm084_sp_02",
+   "mode": 54,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit054",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    4
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em004_00:1",
+   "cls": "uShellEm005_sp_02",
+   "mode": 1,
+   "sid": "0x6c",
+   "res": "0x89ba",
+   "hash": "0x0cf3c814",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em004_00_shell02\\em004_00_02",
+   "folder": "shell\\em\\em004_00_shell02",
+   "hitParam": "shell\\em\\em004_00_shell02\\em004_00_02_hit001",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    22,
+    999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em005_00:1",
+   "cls": "uShellEm005_sp_02",
+   "mode": 1,
+   "sid": "0x6e",
+   "res": "0x89bc",
+   "hash": "0x2ba1a687",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em005_00_shell02\\em005_00_02",
+   "folder": "shell\\em\\em005_00_shell02",
+   "hitParam": "shell\\em\\em005_00_shell02\\em005_00_02_hit001",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    16,
+    999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em005_00:2",
+   "cls": "uShellEm005_sp_02",
+   "mode": 2,
+   "sid": "0x6e",
+   "res": "0x89bc",
+   "hash": "0x2ba1a687",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em005_00_shell02\\em005_00_02",
+   "folder": "shell\\em\\em005_00_shell02",
+   "hitParam": "shell\\em\\em005_00_shell02\\em005_00_02_hit002",
+   "hit": [
+    2
+   ],
+   "hit0": 2,
+   "hitrec0": [
+    16,
+    999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em005_00:3",
+   "cls": "uShellEm005_sp_02",
+   "mode": 3,
+   "sid": "0x6e",
+   "res": "0x89bc",
+   "hash": "0x2ba1a687",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em005_00_shell02\\em005_00_02",
+   "folder": "shell\\em\\em005_00_shell02",
+   "hitParam": "shell\\em\\em005_00_shell02\\em005_00_02_hit003",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    16,
+    999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em005_00:5",
+   "cls": "uShellEm005_sp_02",
+   "mode": 5,
+   "sid": "0x6e",
+   "res": "0x89bc",
+   "hash": "0x2ba1a687",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em005_00_shell02\\em005_00_02",
+   "folder": "shell\\em\\em005_00_shell02",
+   "hitParam": "shell\\em\\em005_00_shell02\\em005_00_02_hit005",
+   "hit": [
+    3
+   ],
+   "hit0": 3,
+   "hitrec0": [
+    16,
+    999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em005_00:6",
+   "cls": "uShellEm005_sp_02",
+   "mode": 6,
+   "sid": "0x6e",
+   "res": "0x89bc",
+   "hash": "0x2ba1a687",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em005_00_shell02\\em005_00_02",
+   "folder": "shell\\em\\em005_00_shell02",
+   "hitParam": "shell\\em\\em005_00_shell02\\em005_00_02_hit006",
+   "hit": [
+    4
+   ],
+   "hit0": 4,
+   "hitrec0": [
+    16,
+    999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em005_00:7",
+   "cls": "uShellEm005_sp_02",
+   "mode": 7,
+   "sid": "0x6e",
+   "res": "0x89bc",
+   "hash": "0x2ba1a687",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em005_00_shell02\\em005_00_02",
+   "folder": "shell\\em\\em005_00_shell02",
+   "hitParam": "shell\\em\\em005_00_shell02\\em005_00_02_hit007",
+   "hit": [
+    3
+   ],
+   "hit0": 3,
+   "hitrec0": [
+    16,
+    999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em005_00:8",
+   "cls": "uShellEm005_sp_02",
+   "mode": 8,
+   "sid": "0x6e",
+   "res": "0x89bc",
+   "hash": "0x2ba1a687",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em005_00_shell02\\em005_00_02",
+   "folder": "shell\\em\\em005_00_shell02",
+   "hitParam": "shell\\em\\em005_00_shell02\\em005_00_02_hit008",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    16,
+    999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em005_00:9",
+   "cls": "uShellEm005_sp_02",
+   "mode": 9,
+   "sid": "0x6e",
+   "res": "0x89bc",
+   "hash": "0x2ba1a687",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em005_00_shell02\\em005_00_02",
+   "folder": "shell\\em\\em005_00_shell02",
+   "hitParam": "shell\\em\\em005_00_shell02\\em005_00_02_hit009",
+   "hit": [
+    3
+   ],
+   "hit0": 3,
+   "hitrec0": [
+    16,
+    999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em005_00:10",
+   "cls": "uShellEm005_sp_02",
+   "mode": 10,
+   "sid": "0x6e",
+   "res": "0x89bc",
+   "hash": "0x2ba1a687",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em005_00_shell02\\em005_00_02",
+   "folder": "shell\\em\\em005_00_shell02",
+   "hitParam": "shell\\em\\em005_00_shell02\\em005_00_02_hit010",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    16,
+    999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em005_00:11",
+   "cls": "uShellEm005_sp_02",
+   "mode": 11,
+   "sid": "0x6e",
+   "res": "0x89bc",
+   "hash": "0x2ba1a687",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em005_00_shell02\\em005_00_02",
+   "folder": "shell\\em\\em005_00_shell02",
+   "hitParam": "shell\\em\\em005_00_shell02\\em005_00_02_hit011",
+   "hit": [
+    3
+   ],
+   "hit0": 3,
+   "hitrec0": [
+    16,
+    999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em010_00:0",
+   "cls": "uShellEm010_sp_02",
+   "mode": 0,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em010_00:1",
+   "cls": "uShellEm010_sp_02",
+   "mode": 1,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit001",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em010_00:2",
+   "cls": "uShellEm010_sp_02",
+   "mode": 2,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit002",
+   "hit": [
+    2
+   ],
+   "hit0": 2,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em010_00:3",
+   "cls": "uShellEm010_sp_02",
+   "mode": 3,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit003",
+   "hit": [
+    3
+   ],
+   "hit0": 3,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em010_00:4",
+   "cls": "uShellEm010_sp_02",
+   "mode": 4,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit004",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em010_00:5",
+   "cls": "uShellEm010_sp_02",
+   "mode": 5,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit005",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em010_00:6",
+   "cls": "uShellEm010_sp_02",
+   "mode": 6,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit006",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em010_00:9",
+   "cls": "uShellEm010_sp_02",
+   "mode": 9,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit009",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em010_00:10",
+   "cls": "uShellEm010_sp_02",
+   "mode": 10,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit010",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em010_00:13",
+   "cls": "uShellEm010_sp_02",
+   "mode": 13,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit013",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em010_00:15",
+   "cls": "uShellEm010_sp_02",
+   "mode": 15,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit015",
+   "hit": [
+    4
+   ],
+   "hit0": 4,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em010_00:16",
+   "cls": "uShellEm010_sp_02",
+   "mode": 16,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit016",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em010_00:17",
+   "cls": "uShellEm010_sp_02",
+   "mode": 17,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit017",
+   "hit": [
+    6
+   ],
+   "hit0": 6,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em010_00:18",
+   "cls": "uShellEm010_sp_02",
+   "mode": 18,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit018",
+   "hit": [
+    7
+   ],
+   "hit0": 7,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em010_00:19",
+   "cls": "uShellEm010_sp_02",
+   "mode": 19,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit019",
+   "hit": [
+    4
+   ],
+   "hit0": 4,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em010_00:20",
+   "cls": "uShellEm010_sp_02",
+   "mode": 20,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit020",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em010_00:21",
+   "cls": "uShellEm010_sp_02",
+   "mode": 21,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit021",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em010_00:24",
+   "cls": "uShellEm010_sp_02",
+   "mode": 24,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit024",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em010_00:25",
+   "cls": "uShellEm010_sp_02",
+   "mode": 25,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit025",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em010_00:28",
+   "cls": "uShellEm010_sp_02",
+   "mode": 28,
+   "sid": "0x7d",
+   "res": "0x89d0",
+   "hash": "0xf89be2c8",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em010_00_shell02\\em010_00_02",
+   "folder": "shell\\em\\em010_00_shell02",
+   "hitParam": "shell\\em\\em010_00_shell02\\em010_00_02_hit028",
+   "hit": [
+    4
+   ],
+   "hit0": 4,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em013_00:0",
+   "cls": "uShellEm013_00_02",
+   "mode": 0,
+   "sid": "0x84",
+   "res": "0x89d7",
+   "hash": "0x916d517d",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em013_00_shell02\\em013_00_02",
+   "folder": "shell\\em\\em013_00_shell02",
+   "hitParam": "shell\\em\\em013_00_shell02\\em013_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    10,
+    1000,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em013_01:0",
+   "cls": "uShellEm013_01_02",
+   "mode": 0,
+   "sid": "0x88",
+   "res": "0x89db",
+   "hash": "0xb60bb586",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em013_01_shell02\\em013_01_02",
+   "folder": "shell\\em\\em013_01_shell02",
+   "hitParam": "shell\\em\\em013_01_shell02\\em013_01_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    10,
+    1000,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em019_00:0",
+   "cls": "uShellEm019_sp_02",
+   "mode": 0,
+   "sid": "0x9a",
+   "res": "0x89ed",
+   "hash": "0x3e2bfe82",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em019_00_shell02\\em019_00_02",
+   "folder": "shell\\em\\em019_00_shell02",
+   "hitParam": "shell\\em\\em019_00_shell02\\em019_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em019_00:1",
+   "cls": "uShellEm019_sp_02",
+   "mode": 1,
+   "sid": "0x9a",
+   "res": "0x89ed",
+   "hash": "0x3e2bfe82",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em019_00_shell02\\em019_00_02",
+   "folder": "shell\\em\\em019_00_shell02",
+   "hitParam": "shell\\em\\em019_00_shell02\\em019_00_02_hit001",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em019_04:0",
+   "cls": "uShellEm019_sp_02",
+   "mode": 0,
+   "sid": "0x9c",
+   "res": "0x89ef",
+   "hash": "0xa3b06d6e",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em019_04_shell02\\em019_04_02",
+   "folder": "shell\\em\\em019_04_shell02",
+   "hitParam": "shell\\em\\em019_04_shell02\\em019_04_02_hit000",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em020_00:4",
+   "cls": "uShellEm020_sp_02",
+   "mode": 4,
+   "sid": "0x9e",
+   "res": "0x89f1",
+   "hash": "0x43f95378",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em020_00_shell02\\em020_00_02",
+   "folder": "shell\\em\\em020_00_shell02",
+   "hitParam": "shell\\em\\em020_00_shell02\\em020_00_02_hit004",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em020_04:0",
+   "cls": "uShellEm020_04_02",
+   "mode": 0,
+   "sid": "0xa0",
+   "res": "0x89f3",
+   "hash": "0xde62c094",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em020_04_shell02\\em020_04_02",
+   "folder": "shell\\em\\em020_04_shell02",
+   "hitParam": "shell\\em\\em020_04_shell02\\em020_04_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    14,
+    999,
+    31,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em020_04:1",
+   "cls": "uShellEm020_04_02",
+   "mode": 1,
+   "sid": "0xa0",
+   "res": "0x89f3",
+   "hash": "0xde62c094",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em020_04_shell02\\em020_04_02",
+   "folder": "shell\\em\\em020_04_shell02",
+   "hitParam": "shell\\em\\em020_04_shell02\\em020_04_02_hit001",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    0,
+    999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em020_04:2",
+   "cls": "uShellEm020_04_02",
+   "mode": 2,
+   "sid": "0xa0",
+   "res": "0x89f3",
+   "hash": "0xde62c094",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em020_04_shell02\\em020_04_02",
+   "folder": "shell\\em\\em020_04_shell02",
+   "hitParam": "shell\\em\\em020_04_shell02\\em020_04_02_hit002",
+   "hit": [
+    2
+   ],
+   "hit0": 2,
+   "hitrec0": [
+    20,
+    999,
+    31,
+    2
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em020_04:3",
+   "cls": "uShellEm020_04_02",
+   "mode": 3,
+   "sid": "0xa0",
+   "res": "0x89f3",
+   "hash": "0xde62c094",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em020_04_shell02\\em020_04_02",
+   "folder": "shell\\em\\em020_04_shell02",
+   "hitParam": "shell\\em\\em020_04_shell02\\em020_04_02_hit003",
+   "hit": [
+    3
+   ],
+   "hit0": 3,
+   "hitrec0": [
+    0,
+    999,
+    2,
+    3
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em023_00:0",
+   "cls": "uShellEm023_sp_02",
+   "mode": 0,
+   "sid": "0xa9",
+   "res": "0x89fc",
+   "hash": "0x2a0fe0cd",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em023_00_shell02\\em023_00_02",
+   "folder": "shell\\em\\em023_00_shell02",
+   "hitParam": "shell\\em\\em023_00_shell02\\em023_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    26,
+    99,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em023_00:1",
+   "cls": "uShellEm023_sp_02",
+   "mode": 1,
+   "sid": "0xa9",
+   "res": "0x89fc",
+   "hash": "0x2a0fe0cd",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em023_00_shell02\\em023_00_02",
+   "folder": "shell\\em\\em023_00_shell02",
+   "hitParam": "shell\\em\\em023_00_shell02\\em023_00_02_hit001",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    36,
+    99,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em023_00:2",
+   "cls": "uShellEm023_sp_02",
+   "mode": 2,
+   "sid": "0xa9",
+   "res": "0x89fc",
+   "hash": "0x2a0fe0cd",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em023_00_shell02\\em023_00_02",
+   "folder": "shell\\em\\em023_00_shell02",
+   "hitParam": "shell\\em\\em023_00_shell02\\em023_00_02_hit002",
+   "hit": [
+    2
+   ],
+   "hit0": 2,
+   "hitrec0": [
+    36,
+    99,
+    2,
+    2
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em023_05:0",
+   "cls": "uShellEm023_sp_02",
+   "mode": 0,
+   "sid": "0xad",
+   "res": "0x8a00",
+   "hash": "0x90f297da",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em023_05_shell02\\em023_05_02",
+   "folder": "shell\\em\\em023_05_shell02",
+   "hitParam": "shell\\em\\em023_05_shell02\\em023_05_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    26,
+    99,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em023_05:1",
+   "cls": "uShellEm023_sp_02",
+   "mode": 1,
+   "sid": "0xad",
+   "res": "0x8a00",
+   "hash": "0x90f297da",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em023_05_shell02\\em023_05_02",
+   "folder": "shell\\em\\em023_05_shell02",
+   "hitParam": "shell\\em\\em023_05_shell02\\em023_05_02_hit001",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    36,
+    99,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em023_05:2",
+   "cls": "uShellEm023_sp_02",
+   "mode": 2,
+   "sid": "0xad",
+   "res": "0x8a00",
+   "hash": "0x90f297da",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em023_05_shell02\\em023_05_02",
+   "folder": "shell\\em\\em023_05_shell02",
+   "hitParam": "shell\\em\\em023_05_shell02\\em023_05_02_hit002",
+   "hit": [
+    2
+   ],
+   "hit0": 2,
+   "hitrec0": [
+    36,
+    99,
+    2,
+    2
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em024_00:0",
+   "cls": "uShellEm024_sp_02",
+   "mode": 0,
+   "sid": "0xb1",
+   "res": "0x8a04",
+   "hash": "0xdeb0e934",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em024_00_shell02\\em024_00_02",
+   "folder": "shell\\em\\em024_00_shell02",
+   "hitParam": "shell\\em\\em024_00_shell02\\em024_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    999,
+    3,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em024_00:1",
+   "cls": "uShellEm024_sp_02",
+   "mode": 1,
+   "sid": "0xb1",
+   "res": "0x8a04",
+   "hash": "0xdeb0e934",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em024_00_shell02\\em024_00_02",
+   "folder": "shell\\em\\em024_00_shell02",
+   "hitParam": "shell\\em\\em024_00_shell02\\em024_00_02_hit001",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    0,
+    999,
+    21,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em033_00:1",
+   "cls": "uShellEm033_sp_02",
+   "mode": 1,
+   "sid": "0xc2",
+   "res": "0x8a15",
+   "hash": "0x432e705d",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em033_00_shell02\\em033_00_02",
+   "folder": "shell\\em\\em033_00_shell02",
+   "hitParam": "shell\\em\\em033_00_shell02\\em033_00_02_hit001",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    2,
+    200,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em033_00:3",
+   "cls": "uShellEm033_sp_02",
+   "mode": 3,
+   "sid": "0xc2",
+   "res": "0x8a15",
+   "hash": "0x432e705d",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em033_00_shell02\\em033_00_02",
+   "folder": "shell\\em\\em033_00_shell02",
+   "hitParam": "shell\\em\\em033_00_shell02\\em033_00_02_hit003",
+   "hit": [
+    3
+   ],
+   "hit0": 3,
+   "hitrec0": [
+    2,
+    220,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em033_00:5",
+   "cls": "uShellEm033_sp_02",
+   "mode": 5,
+   "sid": "0xc2",
+   "res": "0x8a15",
+   "hash": "0x432e705d",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em033_00_shell02\\em033_00_02",
+   "folder": "shell\\em\\em033_00_shell02",
+   "hitParam": "shell\\em\\em033_00_shell02\\em033_00_02_hit005",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    2,
+    200,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em033_00:6",
+   "cls": "uShellEm033_sp_02",
+   "mode": 6,
+   "sid": "0xc2",
+   "res": "0x8a15",
+   "hash": "0x432e705d",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em033_00_shell02\\em033_00_02",
+   "folder": "shell\\em\\em033_00_shell02",
+   "hitParam": "shell\\em\\em033_00_shell02\\em033_00_02_hit006",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    2,
+    200,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em038_00:0",
+   "cls": "uShellEm038_sp_02",
+   "mode": 0,
+   "sid": "0xd0",
+   "res": "0x8a23",
+   "hash": "0xcb3ab131",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em038_00_shell02\\em038_00_02",
+   "folder": "shell\\em\\em038_00_shell02",
+   "hitParam": "shell\\em\\em038_00_shell02\\em038_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    2,
+    130,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em038_00:1",
+   "cls": "uShellEm038_sp_02",
+   "mode": 1,
+   "sid": "0xd0",
+   "res": "0x8a23",
+   "hash": "0xcb3ab131",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em038_00_shell02\\em038_00_02",
+   "folder": "shell\\em\\em038_00_shell02",
+   "hitParam": "shell\\em\\em038_00_shell02\\em038_00_02_hit001",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    2,
+    130,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em038_00:2",
+   "cls": "uShellEm038_sp_02",
+   "mode": 2,
+   "sid": "0xd0",
+   "res": "0x8a23",
+   "hash": "0xcb3ab131",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em038_00_shell02\\em038_00_02",
+   "folder": "shell\\em\\em038_00_shell02",
+   "hitParam": "shell\\em\\em038_00_shell02\\em038_00_02_hit002",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    2,
+    130,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em038_00:3",
+   "cls": "uShellEm038_sp_02",
+   "mode": 3,
+   "sid": "0xd0",
+   "res": "0x8a23",
+   "hash": "0xcb3ab131",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em038_00_shell02\\em038_00_02",
+   "folder": "shell\\em\\em038_00_shell02",
+   "hitParam": "shell\\em\\em038_00_shell02\\em038_00_02_hit003",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    2,
+    160,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em038_00:4",
+   "cls": "uShellEm038_sp_02",
+   "mode": 4,
+   "sid": "0xd0",
+   "res": "0x8a23",
+   "hash": "0xcb3ab131",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em038_00_shell02\\em038_00_02",
+   "folder": "shell\\em\\em038_00_shell02",
+   "hitParam": "shell\\em\\em038_00_shell02\\em038_00_02_hit004",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    2,
+    160,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em038_00:5",
+   "cls": "uShellEm038_sp_02",
+   "mode": 5,
+   "sid": "0xd0",
+   "res": "0x8a23",
+   "hash": "0xcb3ab131",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em038_00_shell02\\em038_00_02",
+   "folder": "shell\\em\\em038_00_shell02",
+   "hitParam": "shell\\em\\em038_00_shell02\\em038_00_02_hit005",
+   "hit": [
+    2
+   ],
+   "hit0": 2,
+   "hitrec0": [
+    2,
+    160,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em038_00:6",
+   "cls": "uShellEm038_sp_02",
+   "mode": 6,
+   "sid": "0xd0",
+   "res": "0x8a23",
+   "hash": "0xcb3ab131",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em038_00_shell02\\em038_00_02",
+   "folder": "shell\\em\\em038_00_shell02",
+   "hitParam": "shell\\em\\em038_00_shell02\\em038_00_02_hit006",
+   "hit": [
+    2
+   ],
+   "hit0": 2,
+   "hitrec0": [
+    2,
+    160,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em038_00:7",
+   "cls": "uShellEm038_sp_02",
+   "mode": 7,
+   "sid": "0xd0",
+   "res": "0x8a23",
+   "hash": "0xcb3ab131",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em038_00_shell02\\em038_00_02",
+   "folder": "shell\\em\\em038_00_shell02",
+   "hitParam": "shell\\em\\em038_00_shell02\\em038_00_02_hit007",
+   "hit": [
+    2
+   ],
+   "hit0": 2,
+   "hitrec0": [
+    2,
+    160,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em049_00:0",
+   "cls": "uShellEm049_sp_02",
+   "mode": 0,
+   "sid": "0xee",
+   "res": "0x8a41",
+   "hash": "0x28fd2a13",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em049_00_shell02\\em049_00_02",
+   "folder": "shell\\em\\em049_00_shell02",
+   "hitParam": "shell\\em\\em049_00_shell02\\em049_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    5,
+    999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em049_00:1",
+   "cls": "uShellEm049_sp_02",
+   "mode": 1,
+   "sid": "0xee",
+   "res": "0x8a41",
+   "hash": "0x28fd2a13",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em049_00_shell02\\em049_00_02",
+   "folder": "shell\\em\\em049_00_shell02",
+   "hitParam": "shell\\em\\em049_00_shell02\\em049_00_02_hit001",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    5,
+    999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em049_00:2",
+   "cls": "uShellEm049_sp_02",
+   "mode": 2,
+   "sid": "0xee",
+   "res": "0x8a41",
+   "hash": "0x28fd2a13",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em049_00_shell02\\em049_00_02",
+   "folder": "shell\\em\\em049_00_shell02",
+   "hitParam": "shell\\em\\em049_00_shell02\\em049_00_02_hit002",
+   "hit": [
+    2
+   ],
+   "hit0": 2,
+   "hitrec0": [
+    0,
+    999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em049_00:3",
+   "cls": "uShellEm049_sp_02",
+   "mode": 3,
+   "sid": "0xee",
+   "res": "0x8a41",
+   "hash": "0x28fd2a13",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em049_00_shell02\\em049_00_02",
+   "folder": "shell\\em\\em049_00_shell02",
+   "hitParam": "shell\\em\\em049_00_shell02\\em049_00_02_hit003",
+   "hit": [
+    3
+   ],
+   "hit0": 3,
+   "hitrec0": [
+    5,
+    999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em049_00:5",
+   "cls": "uShellEm049_sp_02",
+   "mode": 5,
+   "sid": "0xee",
+   "res": "0x8a41",
+   "hash": "0x28fd2a13",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em049_00_shell02\\em049_00_02",
+   "folder": "shell\\em\\em049_00_shell02",
+   "hitParam": "shell\\em\\em049_00_shell02\\em049_00_02_hit005",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    5,
+    999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em049_00:6",
+   "cls": "uShellEm049_sp_02",
+   "mode": 6,
+   "sid": "0xee",
+   "res": "0x8a41",
+   "hash": "0x28fd2a13",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em049_00_shell02\\em049_00_02",
+   "folder": "shell\\em\\em049_00_shell02",
+   "hitParam": "shell\\em\\em049_00_shell02\\em049_00_02_hit006",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    5,
+    999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em049_00:9",
+   "cls": "uShellEm049_sp_02",
+   "mode": 9,
+   "sid": "0xee",
+   "res": "0x8a41",
+   "hash": "0x28fd2a13",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em049_00_shell02\\em049_00_02",
+   "folder": "shell\\em\\em049_00_shell02",
+   "hitParam": "shell\\em\\em049_00_shell02\\em049_00_02_hit009",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    5,
+    999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em050_00:0",
+   "cls": "uShellEm050_sp_02",
+   "mode": 0,
+   "sid": "0xf1",
+   "res": "0x8a44",
+   "hash": "0x876ca6c9",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em050_00_shell02\\em050_00_02",
+   "folder": "shell\\em\\em050_00_shell02",
+   "hitParam": "shell\\em\\em050_00_shell02\\em050_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    9999,
+    21,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em056_00:0",
+   "cls": "uShellEm056_sp_02",
+   "mode": 0,
+   "sid": "0xf5",
+   "res": "0x8a48",
+   "hash": "0x5481c1a3",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em056_00_shell02\\em056_00_02",
+   "folder": "shell\\em\\em056_00_shell02",
+   "hitParam": "shell\\em\\em056_00_shell02\\em056_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em056_00:1",
+   "cls": "uShellEm056_sp_02",
+   "mode": 1,
+   "sid": "0xf5",
+   "res": "0x8a48",
+   "hash": "0x5481c1a3",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em056_00_shell02\\em056_00_02",
+   "folder": "shell\\em\\em056_00_shell02",
+   "hitParam": "shell\\em\\em056_00_shell02\\em056_00_02_hit001",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    0,
+    999,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em058_00:0",
+   "cls": "uShellEm058_sp_02",
+   "mode": 0,
+   "sid": "0xfe",
+   "res": "0x8a51",
+   "hash": "0x668ed410",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em058_00_shell02\\em058_00_02",
+   "folder": "shell\\em\\em058_00_shell02",
+   "hitParam": "shell\\em\\em058_00_shell02\\em058_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    88,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em058_00:1",
+   "cls": "uShellEm058_sp_02",
+   "mode": 1,
+   "sid": "0xfe",
+   "res": "0x8a51",
+   "hash": "0x668ed410",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em058_00_shell02\\em058_00_02",
+   "folder": "shell\\em\\em058_00_shell02",
+   "hitParam": "shell\\em\\em058_00_shell02\\em058_00_02_hit001",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    88,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em067_00:0",
+   "cls": "uShellEm067_sp_02",
+   "mode": 0,
+   "sid": "0x123",
+   "res": "0x8a76",
+   "hash": "0xc8b11e80",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em067_00_shell02\\em067_00_02",
+   "folder": "shell\\em\\em067_00_shell02",
+   "hitParam": "shell\\em\\em067_00_shell02\\em067_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em067_00:1",
+   "cls": "uShellEm067_sp_02",
+   "mode": 1,
+   "sid": "0x123",
+   "res": "0x8a76",
+   "hash": "0xc8b11e80",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em067_00_shell02\\em067_00_02",
+   "folder": "shell\\em\\em067_00_shell02",
+   "hitParam": "shell\\em\\em067_00_shell02\\em067_00_02_hit001",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    9999,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em081_04:4",
+   "cls": "uShellEm081_04_02",
+   "mode": 4,
+   "sid": "0x153",
+   "res": "0x8aa0",
+   "hash": "0xd49d0725",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em081_04_shell02\\em081_04_02",
+   "folder": "shell\\em\\em081_04_shell02",
+   "hitParam": "shell\\em\\em081_04_shell02\\em081_04_02_hit004",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    300,
+    49,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em081_04:5",
+   "cls": "uShellEm081_04_02",
+   "mode": 5,
+   "sid": "0x153",
+   "res": "0x8aa0",
+   "hash": "0xd49d0725",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em081_04_shell02\\em081_04_02",
+   "folder": "shell\\em\\em081_04_shell02",
+   "hitParam": "shell\\em\\em081_04_shell02\\em081_04_02_hit005",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    300,
+    49,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em081_04:7",
+   "cls": "uShellEm081_04_02",
+   "mode": 7,
+   "sid": "0x153",
+   "res": "0x8aa0",
+   "hash": "0xd49d0725",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em081_04_shell02\\em081_04_02",
+   "folder": "shell\\em\\em081_04_shell02",
+   "hitParam": "shell\\em\\em081_04_shell02\\em081_04_02_hit007",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    300,
+    49,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em081_04:8",
+   "cls": "uShellEm081_04_02",
+   "mode": 8,
+   "sid": "0x153",
+   "res": "0x8aa0",
+   "hash": "0xd49d0725",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em081_04_shell02\\em081_04_02",
+   "folder": "shell\\em\\em081_04_shell02",
+   "hitParam": "shell\\em\\em081_04_shell02\\em081_04_02_hit008",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    300,
+    49,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em082_00:0",
+   "cls": "uShellEm082_sp_02",
+   "mode": 0,
+   "sid": "0x15a",
+   "res": "0x8aa7",
+   "hash": "0x20f0277c",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em082_00_shell02\\em082_00_02",
+   "folder": "shell\\em\\em082_00_shell02",
+   "hitParam": "shell\\em\\em082_00_shell02\\em082_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    2,
+    400,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em082_00:1",
+   "cls": "uShellEm082_sp_02",
+   "mode": 1,
+   "sid": "0x15a",
+   "res": "0x8aa7",
+   "hash": "0x20f0277c",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em082_00_shell02\\em082_00_02",
+   "folder": "shell\\em\\em082_00_shell02",
+   "hitParam": "shell\\em\\em082_00_shell02\\em082_00_02_hit001",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    2,
+    400,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em082_00:2",
+   "cls": "uShellEm082_sp_02",
+   "mode": 2,
+   "sid": "0x15a",
+   "res": "0x8aa7",
+   "hash": "0x20f0277c",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em082_00_shell02\\em082_00_02",
+   "folder": "shell\\em\\em082_00_shell02",
+   "hitParam": "shell\\em\\em082_00_shell02\\em082_00_02_hit002",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    2,
+    400,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em082_04:10",
+   "cls": "uShellEm082_sp_02",
+   "mode": 10,
+   "sid": "0x15e",
+   "res": "0x8aab",
+   "hash": "0xbd6bb490",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em082_04_shell02\\em082_04_02",
+   "folder": "shell\\em\\em082_04_shell02",
+   "hitParam": "shell\\em\\em082_04_shell02\\em082_04_02_hit010",
+   "hit": [
+    2
+   ],
+   "hit0": 2,
+   "hitrec0": [
+    2,
+    400,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em082_04:11",
+   "cls": "uShellEm082_sp_02",
+   "mode": 11,
+   "sid": "0x15e",
+   "res": "0x8aab",
+   "hash": "0xbd6bb490",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em082_04_shell02\\em082_04_02",
+   "folder": "shell\\em\\em082_04_shell02",
+   "hitParam": "shell\\em\\em082_04_shell02\\em082_04_02_hit011",
+   "hit": [
+    3
+   ],
+   "hit0": 3,
+   "hitrec0": [
+    2,
+    400,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em082_04:12",
+   "cls": "uShellEm082_sp_02",
+   "mode": 12,
+   "sid": "0x15e",
+   "res": "0x8aab",
+   "hash": "0xbd6bb490",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em082_04_shell02\\em082_04_02",
+   "folder": "shell\\em\\em082_04_shell02",
+   "hitParam": "shell\\em\\em082_04_shell02\\em082_04_02_hit012",
+   "hit": [
+    2
+   ],
+   "hit0": 2,
+   "hitrec0": [
+    2,
+    400,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:0",
+   "cls": "uShellEm084_sp_02",
+   "mode": 0,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit000",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:1",
+   "cls": "uShellEm084_sp_02",
+   "mode": 1,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit001",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:2",
+   "cls": "uShellEm084_sp_02",
+   "mode": 2,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit002",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:3",
+   "cls": "uShellEm084_sp_02",
+   "mode": 3,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit003",
+   "hit": [
+    4
+   ],
+   "hit0": 4,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:4",
+   "cls": "uShellEm084_sp_02",
+   "mode": 4,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit004",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:5",
+   "cls": "uShellEm084_sp_02",
+   "mode": 5,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit005",
+   "hit": [
+    3
+   ],
+   "hit0": 3,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    3
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:6",
+   "cls": "uShellEm084_sp_02",
+   "mode": 6,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit006",
+   "hit": [
+    3
+   ],
+   "hit0": 3,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    3
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:7",
+   "cls": "uShellEm084_sp_02",
+   "mode": 7,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit007",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:8",
+   "cls": "uShellEm084_sp_02",
+   "mode": 8,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit008",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:9",
+   "cls": "uShellEm084_sp_02",
+   "mode": 9,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit009",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:10",
+   "cls": "uShellEm084_sp_02",
+   "mode": 10,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit010",
+   "hit": [
+    4
+   ],
+   "hit0": 4,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:11",
+   "cls": "uShellEm084_sp_02",
+   "mode": 11,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit011",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:14",
+   "cls": "uShellEm084_sp_02",
+   "mode": 14,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit014",
+   "hit": [
+    2
+   ],
+   "hit0": 2,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    2
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:20",
+   "cls": "uShellEm084_sp_02",
+   "mode": 20,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit020",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    4
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:21",
+   "cls": "uShellEm084_sp_02",
+   "mode": 21,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit021",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    4
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:25",
+   "cls": "uShellEm084_sp_02",
+   "mode": 25,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit025",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    4
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:26",
+   "cls": "uShellEm084_sp_02",
+   "mode": 26,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit026",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    4
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:30",
+   "cls": "uShellEm084_sp_02",
+   "mode": 30,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit030",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    4
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:31",
+   "cls": "uShellEm084_sp_02",
+   "mode": 31,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit031",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    4
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:36",
+   "cls": "uShellEm084_sp_02",
+   "mode": 36,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit036",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    4
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:37",
+   "cls": "uShellEm084_sp_02",
+   "mode": 37,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit037",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    4
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:50",
+   "cls": "uShellEm084_sp_02",
+   "mode": 50,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit050",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:51",
+   "cls": "uShellEm084_sp_02",
+   "mode": 51,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit051",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:52",
+   "cls": "uShellEm084_sp_02",
+   "mode": 52,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit052",
+   "hit": [
+    4
+   ],
+   "hit0": 4,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:53",
+   "cls": "uShellEm084_sp_02",
+   "mode": 53,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit053",
+   "hit": [
+    4
+   ],
+   "hit0": 4,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:54",
+   "cls": "uShellEm084_sp_02",
+   "mode": 54,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit054",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    4
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:55",
+   "cls": "uShellEm084_sp_02",
+   "mode": 55,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit055",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    4
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:56",
+   "cls": "uShellEm084_sp_02",
+   "mode": 56,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit056",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:57",
+   "cls": "uShellEm084_sp_02",
+   "mode": 57,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit057",
+   "hit": [
+    1
+   ],
+   "hit0": 1,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    1
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:58",
+   "cls": "uShellEm084_sp_02",
+   "mode": 58,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit058",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    4
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:59",
+   "cls": "uShellEm084_sp_02",
+   "mode": 59,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit059",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    4
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:60",
+   "cls": "uShellEm084_sp_02",
+   "mode": 60,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit060",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:61",
+   "cls": "uShellEm084_sp_02",
+   "mode": 61,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit061",
+   "hit": [
+    0
+   ],
+   "hit0": 0,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    0
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:62",
+   "cls": "uShellEm084_sp_02",
+   "mode": 62,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit062",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    4
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  },
+  {
+   "list": "M",
+   "id": "em084_00:63",
+   "cls": "uShellEm084_sp_02",
+   "mode": 63,
+   "sid": "0x16e",
+   "res": "0x8abb",
+   "hash": "0xf31d4016",
+   "type": "0x4aa69872",
+   "shl": "shell\\em\\em084_00_shell02\\em084_00_02",
+   "folder": "shell\\em\\em084_00_shell02",
+   "hitParam": "shell\\em\\em084_00_shell02\\em084_00_02_hit063",
+   "hit": [
+    5
+   ],
+   "hit0": 5,
+   "hitrec0": [
+    0,
+    10000,
+    2,
+    4
+   ],
+   "inHitshapes": true,
+   "genFolder": true
+  }
+ ]
+}

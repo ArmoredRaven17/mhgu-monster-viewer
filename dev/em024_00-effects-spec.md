@@ -68,3 +68,13 @@ On the snow maps (ctl+0x2d set) vt+0x208 holds id 1004 = u 210 calm / 1005 = u 2
   toggle is what the ROM's test supports (category c, listed; it would also put out Teostra's aura).
 * **Poisoned -- BUILT 2026-10-19** (CLASS_TOGGLES `poisoned`, working label): the word reads P+0x5e08 bit 1 (`aura5e08`), and the
   class timer requests c 1100 at once and every 90 frames (0xa4518's arm: P+0x5c5c reset to 90.0).
+
+## 8. Read since, indexed in rom-map (doc audit 2026-10-24)
+
+* **His aura effect** (gapF, READ, NOT BUILT -- the effects lane's): in vt+0x208, `0xdf0514..0xdf0608`. e+0xcac4 holds id 1000 + L
+  (L 1..3) -> vt+0x1d0 `0xdfd42c` -> `0x6feb8(e, 2, [0x169d3b8][id - 1000])` = **u 1 / u 0 / u 10**; a wrong key (+0x1b4) is stopped and
+  re-requested; any other L stops it. ctl+0x24 -> P+0x5cfc |= 1 (|= 2 with e+0xb5f5 == 1). rom-map row `0xdf0514..0xdf0608`;
+  `<archive>\gapF\RESULT.md` a3.5.
+* **The pulse clock's writers** (ctl+0x1c): ctor `0xdeeebc`, vt+0x1d8 `0xdef070`, the pulse reset `0xdf08a4`, the add `0x7264c` at
+  `0xdf0880`. rom-map row "ctl+0x1c (Kushala's pulse clock) -- writers"; `<archive>\gapF\RESULT.md` a3.6.
+* Which sp_01 modes the page never makes: closed 2026-10-20 (all the frame handler's; rom-map row "Kushala's c 29 / 30 / 32..35").

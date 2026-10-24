@@ -1,0 +1,316 @@
+// The attack-clip effects IN THE VIEWER. dev/effect-clip-soak.mjs plays a monster's CLIP_EFFECTS schedule headless on
+// fixed joints; this plays it the way the page does: every motion by the viewer's own pose driver on its real animation
+// (the joint matrices live.js writeJoints hands the effects), one 1/60 s frame at a time through the viewer's own render
+// (the effect anchor's hook: live.js frame -> writeJoints -> schedule.step -> draw), in headless Edge. A branch of the
+// ROM's code that only the animated joints (or the viewer's camera) reach shows up here as the refusal the live page
+// would stop on -- live.js fail() stops every effect of the monster at the first one.
+//
+//   node dev/effect-live-soak.mjs <monster> [motion key ...] [--url http://localhost:3000] [--swiftshader] [--camera sweep] [--rage] [--wiring] [--rock <variant>]
+//        [--beam-state '{"tired":true,"rage":true,"rank":4,"parts":{"headBroken":true}}']
+//
+// Without --url it serves docs/ itself (dev/serve.py on a free port). Each motion is played whole, twice (a motion the
+// viewer splits: its _start once, then its _loop twice), with the viewer's clip loop on; after a refusal the runtime is
+// remounted for the next motion. The viewer's own animation loop is stopped first, so nothing else steps. The GPU, or
+// software GL with --swiftshader (the same counts, ten times slower). Exit code 1 when any motion refused.
+// --camera sweep: the camera circles the monster's orbit target each frame at a distance that swings from inside the
+// body out past the fitted view -- what a viewer's zoom and orbit reach -- instead of staying where the view was fitted
+// (the effects' draw reads the camera: sort keys, facing, fades). --rage: the effects mounted enraged, so the rage
+// auras run through every motion (live.js setRage, as the viewer's Enraged toggle starts them). --wiring: every 15
+// frames, each visible effect material's compiled program is read back from WebGL: active uniforms the viewer never
+// set (they read 0), attributes the geometry lacks (a constant), samplers with no texture -- per program, at the end.
+// --rock <variant>: a monster's shells with that pick fixed (shells.js pickVariantsFor names them: Savage's shell00_0 /
+// shell00_8 / shell54_0, Nargacuga's 7:0x28 .., Rathian's 7:0x02 ..), everything else as the viewer gives it (its
+// rockInput: the target ahead on the grid floor; its shellExtra). Motions named on the command line play even when they
+// carry no clip effect of their own.
+import { spawn } from 'node:child_process';
+import fs from 'node:fs';
+import net from 'node:net';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const HERE = 'C:/MHGU-Extract/MHGU-Monster-Viewer/dev';
+const EDGE = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
+const argv = process.argv.slice(2);
+const opt = name => { const i = argv.indexOf(name); return i >= 0 ? argv.splice(i, 2)[1] : null; };
+const flag = name => { const i = argv.indexOf(name); return i >= 0 ? (argv.splice(i, 1), true) : false; };
+let site = opt('--url');
+const swiftshader = flag('--swiftshader');
+const camera = opt('--camera') || 'fit';
+const rage = flag('--rage');
+const wiring = flag('--wiring');
+const rockVariant = opt('--rock');
+// --beam-state <json>: the state a beam on its own monster is fired in (render/beam-spawns.js `when`; index.html beamState),
+// merged over the viewer's own for the shells' step -- the pick is --rock's
+const beamStateOpt = opt('--beam-state');
+// --viewer-inputs: the viewer's own shell inputs (index.html rockInput: its pick, the target ahead, the floor, the wall)
+// installed as driveClipEffects installs them in the viewer -- which this soak, stepping frames itself, never runs; without
+// it (and without --rock) a soak's shells get no input.rock at all
+const viewerInputs = flag('--viewer-inputs');
+const [monster, ...only] = argv;
+if (!monster){ console.log('usage: node dev/effect-live-soak.mjs <monster> [motion key ...] [--url <viewer>] [--swiftshader]'); process.exit(2); }
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const freePort = () => new Promise(r => { const s = net.createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => r(p)); }); });
+
+async function json(url, init){
+  for (let i = 0; i < 150; i++){ try { const r = await fetch(url, init); if (r.ok) return r.json(); } catch {} await sleep(100); }
+  throw new Error('nothing at ' + url);
+}
+function connect(wsUrl){
+  const ws = new WebSocket(wsUrl); let id = 0; const pending = new Map(); const listeners = new Map();
+  ws.onmessage = ev => {
+    const m = JSON.parse(ev.data);
+    if (m.id && pending.has(m.id)){ const { res, rej } = pending.get(m.id); pending.delete(m.id); m.error ? rej(new Error(JSON.stringify(m.error))) : res(m.result); }
+    else if (m.method) (listeners.get(m.method) || []).forEach(f => f(m.params));
+  };
+  ws.onclose = () => { for (const { rej } of pending.values()) rej(new Error('socket closed')); pending.clear(); };
+  const send = (method, params = {}) => new Promise((res, rej) => {
+    const i = ++id; pending.set(i, { res, rej }); ws.send(JSON.stringify({ id: i, method, params }));
+    setTimeout(() => { if (pending.has(i)){ pending.delete(i); rej(new Error('timeout ' + method)); } }, 60000);
+  });
+  const on = (method, f) => listeners.set(method, [...(listeners.get(method) || []), f]);
+  return new Promise(r => { ws.onopen = () => r({ send, on, ws }); });
+}
+const evaluate = (c, expression) => c.send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true })
+  .then(r => { if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception ? r.exceptionDetails.exception.description : r.exceptionDetails.text); return r.result.value; });
+
+// Runs IN THE PAGE (serialised): the soak, started and left running; window.__soak holds its progress.
+function pageSoak(MONID, ONLY, CAMERA, RAGE, WIRING, ROCK, BEAMSTATE, VIEWERINPUTS){
+  window.__soak = { status: 'starting', results: [], t0: performance.now() };
+  (async () => {
+    const S = window.__soak;
+    try {
+      const V = window.__view;
+      const M = await import('/render/monster.js');
+      // a task boundary (not a timer: a background page's timers are throttled), so the harness's polls get in
+      const yieldTask = () => new Promise(r => { const ch = new MessageChannel(); ch.port1.onmessage = () => r(); ch.port2.postMessage(0); });
+      const monSel = document.getElementById('monSel'), listSel = document.getElementById('monList'), clipSel = document.getElementById('monClip');
+      if (V.state.id !== MONID){
+        if (![...monSel.options].some(o => o.value === MONID)) monSel.add(new Option(MONID, MONID));
+        monSel.value = MONID; await monSel.onchange();
+      }
+      V.state.loop = true;                                   // the clip loop on: the second pass walks the loop
+      await V.effects(false); await V.effects(true);
+      let fx = M.effectRuntimeInstance();
+      if (RAGE && fx) fx.setRage(true);
+      // the viewer's own shell inputs (index.html rockInput: the target ahead on the grid floor, the floor), the pick
+      // fixed; a page without that hook: the unit's own height as the floor, 2000 ahead
+      const setRock = rt => { if (!ROCK && VIEWERINPUTS && rt && rt.schedule && V.rockInput){ rt.schedule.rockInput = () => V.rockInput(); return; }
+        if (ROCK && rt && rt.schedule) rt.schedule.rockInput = V.rockInput
+        ? () => { const r = V.rockInput(); return r && { ...r, variant: ROCK }; }
+        : () => { const p = rt.parent.position; return { variant: ROCK, target: { x: p[0], y: p[1], z: p[2] + 2000 }, floorY: p[1] }; }; };
+      // and the rest of the viewer's shell inputs (index.html shellExtra: a quest level stand-in, the tail as shown)
+      const setExtra = rt => { if (rt && rt.schedule && V.shellExtra) rt.schedule.shellExtra = !BEAMSTATE ? V.shellExtra : () => {
+        const x = V.shellExtra(), b = x.beamState || {};
+        return { ...x, beamState: { ...b, ...BEAMSTATE, parts: { ...(b.parts || {}), ...(BEAMSTATE.parts || {}) } } };
+      }; };
+      setRock(fx); setExtra(fx);
+      const sched = M.CLIP_EFFECTS[MONID] || {};
+      // a monster with no clip effects (its effects are auras) plays its first clip for 600 frames instead: '(idle)'
+      const keys0 = Object.keys(sched);
+      // motions named on the command line play whether or not they carry clip effects (a shell's clip may have none of
+      // its own: Rathian's L2 Motion[5] throws its fireball and fires no PSL bit)
+      const keys = ONLY.length ? ONLY.slice() : (keys0.length ? keys0 : ['(idle)']);
+      S.total = keys.length;
+      const pose = V.pose;
+      pose.clock.getDelta = () => 1 / 60;                    // one frame a step, whatever the wall clock did
+      const entry = V.MON.monsters.find(e => e.id === MONID);
+      const R0 = V.camera.position.distanceTo(V.controls.target) || 1;
+      // the wiring read-back: what each compiled effect program declares against what the viewer feeds it
+      S.wiring = {};
+      const readWiring = rt => {
+        const kinds = [['batch', rt.meshes], ['model', rt.modelMeshes], ['node', rt.gpuMeshes]];
+        for (const [kind, list] of kinds) for (const mesh of list || []){
+          if (!mesh.visible || !mesh.material) continue;
+          const mat = mesh.material, props = V.renderer.properties.get(mat), prog = props && props.currentProgram;
+          if (!prog) continue;
+          const key = kind + ' ' + (props.programKey || (mat.vertexShader.length + ':' + mat.fragmentShader.length));
+          const w = S.wiring[key] || (S.wiring[key] = { kind, draws: 0, unfed: {}, noAttr: {}, noTex: {}, example: (mesh.userData.programKey && mesh.userData.programKey.label) || '' });
+          w.draws++;
+          const names = [];
+          const walk = (seq, pre) => { for (const u of seq){ if (u.seq) walk(u.seq, pre + u.id + '.'); else names.push(pre + u.id); } };
+          walk(prog.getUniforms().seq, '');
+          for (const n of names){
+            const top = n.split('.')[0];
+            if (/^(modelMatrix|modelViewMatrix|projectionMatrix|viewMatrix|normalMatrix|cameraPosition|isOrthographic)$/.test(top)) continue;
+            if (!(top in mat.uniforms)) w.unfed[n] = (w.unfed[n] || 0) + 1;
+            else { const v = mat.uniforms[top].value; if (v === null || v === undefined) w.noTex[n] = (w.noTex[n] || 0) + 1; }
+          }
+          const attrs = prog.getAttributes();
+          for (const a of Object.keys(attrs)) if (!mesh.geometry.getAttribute(a)) w.noAttr[a] = (w.noAttr[a] || 0) + 1;
+        }
+      };
+      let tick = 0;
+      const placeCamera = () => {
+        if (CAMERA !== 'sweep') return;
+        const c = V.controls.target, k = tick++ / 60;
+        const r = R0 * (0.01 + 1.2 * (0.5 + 0.5 * Math.sin(k * 0.7)));
+        V.camera.position.set(c.x + r * Math.cos(k * 0.9), c.y + r * 0.35 * Math.sin(k * 0.5), c.z + r * Math.sin(k * 0.9));
+        V.camera.lookAt(c);
+        V.camera.updateMatrixWorld();
+      };
+      for (const key of keys){
+        // 'L<list> Motion[N]': that list's slot (split or whole); a bare key is a clip's own name in whichever list
+        // carries it -- a full animation on the joined list (ROM_ANIMATIONS, Khezu's 'Motion 3'), as clipEffectsFor
+        // matches it
+        const m = /^L(\S+) (Motion\[\d+\])$/.exec(key);
+        const idle = key === '(idle)';
+        const list = idle ? entry.lists[0] : m ? entry.lists.find(l => l.id === m[1]) : entry.lists.find(l => l.clips.some(c => c.clip === key));
+        const base = idle ? (list && list.clips[0] && list.clips[0].clip) : m ? m[2] : key;
+        const parts = !list || !base ? [] : idle ? [[base, Math.max(1, Math.ceil(600 / Math.max(1, Math.round(list.clips[0].dur * 60))))]]
+                    : list.clips.some(c => c.clip === base) ? [[base, 2]]
+                    : [[base + '_start', 1], [base + '_loop', 2]].filter(([n]) => list.clips.some(c => c.clip === n));
+        if (!parts.length){ S.results.push({ key, skip: !list ? 'no list carries it' : 'no clip' }); continue; }
+        if (!fx || fx.failed){ await V.effects(false); await V.effects(true); fx = M.effectRuntimeInstance(); if (RAGE && fx) fx.setRage(true); setRock(fx); setExtra(fx); }
+        const starts0 = fx.schedule.starts, regrouped0 = fx.stats.regrouped || 0;
+        fx.schedule.shellTally = { spawned: 0, beams: [], refused: [] };     // this motion's shells (schedule.js stepShells)
+        let frames = 0, fail = null, maxRun = 0, drew = 0;
+        if (V.state.list !== list.id){ listSel.value = list.id; await listSel.onchange(); }
+        for (const [clipName, passes] of parts){
+          clipSel.value = clipName; await clipSel.onchange();
+          // a _start piece stops a step short of its end: the clip loop is on, and a clip of 91.98 frames stepped 92 times
+          // wraps to frame 0 -- a new play to the shells -- before the _loop piece starts, whose jump back to 92 re-crosses
+          // every spawn frame of the _start (a second beam / fireball that the viewer, playing _start into _loop, never makes)
+          const dur60 = list.clips.find(x => x.clip === clipName).dur * 60;
+          const n = clipName.endsWith('_start') ? Math.max(1, Math.ceil(dur60 - 1e-6) - 1) : Math.round(dur60) * passes;
+          // index.html driveClipEffects, as it is: the bare slot name, a _loop clip offset by its _start's length
+          let splitOffset = 0;
+          if (clipName.endsWith('_loop')){ const sib = list.clips.find(x => x.clip === base + '_start'); if (sib) splitOffset = Math.round(sib.dur * 60); }
+          // ...and a Special entry with loop cycles, its motion's own frame folded into the loop (monster.js foldLoopFrame)
+          const fold = M.loopFoldOf ? M.loopFoldOf(MONID, list.id, clipName, (list.clips.find(x => x.clip === clipName) || {}).pieces) : null;
+          for (let f = 0; f < n; f++){
+            pose.step([V.mounted.main]);
+            const act = pose.action;
+            const nm = act && act.getClip ? act.getClip().name : null;
+            const b = nm ? nm.replace(/_(start|loop)$/, '') : null;
+            let frame = act ? act.time * 60 + splitOffset : 0, start = splitOffset, loopSeg = !!(nm && nm.endsWith('_loop'));
+            if (act && fold){ const r = M.foldLoopFrame(act.time * 60, fold.S, fold.L); frame = r.frame; start = r.loopStart || 0; if (r.loopStart != null) loopSeg = true; }
+            fx.schedule.setClip(act ? V.state.id + '|' + V.state.list + '|' + b : null, frame,
+                                b ? M.clipEffectsFor(V.state.id, b, V.state.list) : null, start, null, null, loopSeg);
+            placeCamera();
+            fx.last = null; fx.acc = 1 / 60 + 1e-9;          // exactly one effect step in this render
+            V.renderer.render(V.scene, V.camera);
+            frames++;
+            if (WIRING && (f % 15) === 7) readWiring(fx);
+            maxRun = Math.max(maxRun, fx.stats.running || 0);
+            drew += (fx.stats.prims || 0) + (fx.stats.models || 0) + (fx.stats.gpu || 0);
+            { const sh = fx.schedule.shells && fx.schedule.shells.state.shells.find(x => x.base === 'base02g' && x.state === 1);
+              if (sh && (S.geo || (S.geo = [])).length < 12 && (S.geo.length === 0 || frames % 20 === 0)){
+                const P = fx.parent.position, r = a => a ? a.map(v => Math.round(v)).join(',') : '-';
+                S.geo.push(key + ' frame ' + Math.round(frame) + ': origin ' + r(sh.origin) + ' end ' + r(sh.position) + ' unit ' + r(P.map(v => v / 0.01)) + ' hit ' + (sh.hit ? r(sh.hit.point) : 'none'));
+              } }
+            if (fx.failed){ fail = fx.failed; break; }
+            if ((f & 15) === 15) await yieldTask();
+          }
+          if (fail) break;
+        }
+        const tally = fx.schedule.shellTally || { spawned: 0, beams: [], refused: [] };
+        const lab = document.getElementById('beamLabel');
+        S.labels = (S.labels || []).concat([key + ' -> label ' + (lab.hidden ? 'HIDDEN' : 'SHOWN: ' + lab.textContent.slice(0, 80))]);
+        S.results.push({ key, frames, starts: fx.schedule.starts - starts0, maxRun, drew, regrouped: (fx.stats.regrouped || 0) - regrouped0, fail,
+                         shells: tally.spawned, beams: tally.beams.slice(), shellRefused: [...new Set(tally.refused)] });
+      }
+      S.status = 'done';
+    } catch (e){ S.status = 'error: ' + (e && e.stack || e); }
+    S.secs = Math.round((performance.now() - S.t0) / 1000);
+  })();
+  return 'started';
+}
+
+const children = [];
+let browserWs = null;
+async function main(){
+  if (!site){
+    const port = await freePort();
+    const srv = spawn('python', [path.join(HERE, 'serve.py'), String(port)], { stdio: 'ignore' });
+    children.push(srv);
+    site = 'http://localhost:' + port;
+    await fetch(site + '/index.html').catch(() => null);
+    for (let i = 0; i < 100; i++){ try { if ((await fetch(site + '/monsters.json')).ok) break; } catch {} await sleep(100); }
+  }
+  const dport = await freePort();
+  const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'effect-live-soak-'));
+  const edge = spawn(EDGE, ['--headless=new', '--remote-debugging-port=' + dport, '--user-data-dir=' + profile,
+    '--inprivate', '--no-first-run', '--no-default-browser-check', '--disable-sync', '--disable-extensions',
+    '--disable-features=msImplicitSignin,msEdgeSyncConsent', '--disable-background-timer-throttling',
+    '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows',
+    ...(swiftshader ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : []), '--window-size=1280,800', 'about:blank'],
+    { stdio: 'ignore' });
+  children.push(edge);
+  const version = await json(`http://127.0.0.1:${dport}/json/version`);
+  browserWs = await connect(version.webSocketDebuggerUrl);
+  const targets = await json(`http://127.0.0.1:${dport}/json/list`);
+  const page = targets.find(t => t.type === 'page' && t.url === 'about:blank');
+  for (const t of targets) if (t !== page && t.type === 'page') console.log('warning: another page opened: ' + t.url);
+  if (!page) throw new Error('no about:blank page target');
+  const c = await connect(page.webSocketDebuggerUrl);
+  await c.send('Runtime.enable');
+  const errors = [], logged = new Map();
+  c.on('Runtime.exceptionThrown', p => errors.push(p.exceptionDetails.exception ? p.exceptionDetails.exception.description : p.exceptionDetails.text));
+  // the page's console errors and warnings while the soak runs (a shader that fails to link is logged, not thrown,
+  // and its draw is simply not there); counted from the soak's start, each message once
+  let soaking = false;
+  c.on('Runtime.consoleAPICalled', p => {
+    if (!soaking || (p.type !== 'error' && p.type !== 'warning')) return;
+    const text = p.args.map(a => a.value !== undefined ? String(a.value) : (a.description || '')).join(' ').slice(0, 300);
+    const k = p.type + ': ' + text;
+    logged.set(k, (logged.get(k) || 0) + 1);
+  });
+  await c.send('Page.navigate', { url: site + '/?scene=none' });
+  for (let i = 0; ; i++){
+    if (await evaluate(c, '!!(window.__view && window.__view.renderer)').catch(() => false)) break;
+    if (i > 600) throw new Error('the viewer never came up' + (errors.length ? ': ' + errors[0] : ''));
+    await sleep(200);
+  }
+  await evaluate(c, '__view.renderer.setAnimationLoop(null), true');      // only the soak steps from here on
+  soaking = true;
+  console.log(await evaluate(c, `(${pageSoak.toString()})(${JSON.stringify(monster)}, ${JSON.stringify(only)}, ${JSON.stringify(camera)}, ${JSON.stringify(rage)}, ${JSON.stringify(wiring)}, ${JSON.stringify(rockVariant)}, ${beamStateOpt ? JSON.stringify(JSON.parse(beamStateOpt)) : 'null'}, ${JSON.stringify(viewerInputs)})`), monster, 'in', site, 'camera', camera, rage ? 'enraged' : '');
+  let shown = 0, refused = 0, S;
+  for (;;){
+    await sleep(2000);
+    S = JSON.parse(await evaluate(c, 'JSON.stringify(window.__soak)'));
+    for (const r of S.results.slice(shown)){
+      if (r.skip) console.log(`  ${r.key}: not played (${r.skip})`);
+      else {
+        if (r.fail) refused++;
+        console.log(`  ${r.key}: ${r.frames} frames, ${r.starts} started, up to ${r.maxRun} running, ${r.drew} draws` + (r.regrouped ? `, ${r.regrouped} model draws on a regrouped mesh` : '') + (r.fail ? `  REFUSED: ${r.fail}` : '') +
+                    (r.shells ? `, ${r.shells} shells` + (r.beams && r.beams.length ? ` (beams: ${r.beams.join(' ')})` : '') : '') +
+                    (r.shellRefused && r.shellRefused.length ? `  SHELL REFUSED: ${r.shellRefused.join(' | ')}` : ''));
+      }
+    }
+    shown = S.results.length;
+    if (S.status !== 'starting') { if (S.status === 'done' || S.status.startsWith('error')) break; }
+  }
+  for (const l of (S.labels || [])) console.log('  ' + l);
+  for (const l of (S.geo || [])) console.log('  GEO ' + l);
+  if (S.status !== 'done') console.log(S.status);
+  if (wiring){
+    const W = JSON.parse(await evaluate(c, 'JSON.stringify(window.__soak.wiring || {})'));
+    const keys = Object.keys(W);
+    console.log('wiring: ' + keys.length + ' effect programs drawn');
+    for (const k of keys){
+      const w = W[k], u = Object.keys(w.unfed), a = Object.keys(w.noAttr), t = Object.keys(w.noTex);
+      if (!u.length && !a.length && !t.length) continue;
+      const NL = String.fromCharCode(10);
+      console.log('  ' + w.kind + ' program (' + w.draws + ' draws' + (w.example ? ', e.g. ' + w.example : '') + '):' +
+                  (u.length ? NL + '    uniforms never set: ' + u.join(', ') : '') +
+                  (a.length ? NL + '    attributes the geometry lacks: ' + a.join(', ') : '') +
+                  (t.length ? NL + '    samplers with no texture: ' + t.join(', ') : ''));
+    }
+  }
+  for (const [k, n] of logged) console.log('console ' + k + (n > 1 ? '  (x' + n + ')' : ''));
+  const consoleErrors = [...logged.keys()].filter(k => k.startsWith('error')).length;
+  console.log(`${monster}: ${S.results.filter(r => !r.skip).length} motions played in the viewer, ${refused} refused (${S.secs} s)`);
+  if (consoleErrors) console.log(consoleErrors + ' console error(s) during the soak');
+  return refused || consoleErrors || S.status !== 'done' ? 1 : 0;
+}
+
+let code = 1;
+try { code = await main(); }
+catch (e){ console.log('FAILED: ' + e.message); }
+finally {
+  if (browserWs) await browserWs.send('Browser.close').catch(() => {});
+  await sleep(500);
+  for (const ch of children) try { ch.kill(); } catch {}
+}
+process.exit(code);

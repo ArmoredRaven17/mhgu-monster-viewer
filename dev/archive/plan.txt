@@ -1,0 +1,213 @@
+# Boltreaver Astalos (em081_04): effects bound to its motions
+
+Lists: u.pel em081_04u, c.pel em081_00c. 203 motion bits over 135 motions; 44 records can go in (44 already are).
+
+| motion | frames | bit | record | efl | on | viewer clip | effect | rows |
+|---|---|---|---|---|---|---|---|---|
+| L0 Motion[2] | 339 | 0 | c 15 | em081_00_015 | 57-82 | ok | ok | 2 billboard, 1 type 2, 6 model |
+| L0 Motion[2] | 339 | 1 | c 16 | cm202_004 | 22-52 | ok | ok | 5 type 2, 21 model |
+| L0 Motion[4] | 293 | 0 | c 100 | cm202_050 | 107-130 | ok | ok | 15 model, 2 filter |
+| L0 Motion[5] | 153 | 0 | c 0 | cm202_001 | 32-33 | ok | ok | 5 type 2, 20 model |
+| L0 Motion[5] | 153 | 1 | c 1 | cm202_001 | 108-109 | ok | ok | 5 type 2, 20 model |
+| L0 Motion[6] | 93 | 0 | c 0 | cm202_001 | 30-31 | ok | ok | 5 type 2, 20 model |
+| L0 Motion[6] | 93 | 1 | c 1 | cm202_001 | 1-2 | ok | ok | 5 type 2, 20 model |
+| L0 Motion[7] | 91 | 0 | c 10 | cm202_002 | 56-57 | ok | ok | 5 type 2, 20 model |
+| L0 Motion[7] | 91 | 1 | c 11 | cm202_002 | 4-5 88-89 | ok | ok | 5 type 2, 20 model |
+| L0 Motion[7] | 91 | 2 | c 30 | cm202_000 | 0-90 | ok | ok | 2 model |
+| L0 Motion[8] | 47 | 0 | c 0 | cm202_001 | 2-3 | ok | ok | 5 type 2, 20 model |
+| L0 Motion[16] | 461 | 1 | c 123 | cm202_070 | 0-460 | ok | ok | 1 billboard, 1 model |
+| L0 Motion[18] | 261 | 0 | c 20 | cm202_020 | 120-121 | ok | ok | 5 type 2, 27 model, 5 node |
+| L0 Motion[21] | 307 | 0 | c 10 | cm202_002 | 45-46 | ok | ok | 5 type 2, 20 model |
+| L0 Motion[21] | 307 | 1 | c 11 | cm202_002 | 5-6 75-76 | ok | ok | 5 type 2, 20 model |
+| L0 Motion[21] | 307 | 2 | c 30 | cm202_000 | 0-100 | ok | ok | 2 model |
+| L0 Motion[21] | 307 | 3 | c 20 | cm202_020 | 89-90 | ok | ok | 5 type 2, 27 model, 5 node |
+| L0 Motion[22] | 13 | 0 | c 130 | cm202_021 | 11-12 | ok | ok | 5 type 2, 15 model, 5 node |
+| L0 Motion[23] | 51 | 0 | c 130 | cm202_021 | 7-8 | ok | ok | 5 type 2, 15 model, 5 node |
+| L0 Motion[24] | 27 | 0 | c 20 | cm202_020 | 3-4 | ok | ok | 5 type 2, 27 model, 5 node |
+| L0 Motion[25] | 15 | 0 | c 130 | cm202_021 | 11-12 | ok | ok | 5 type 2, 15 model, 5 node |
+| L0 Motion[26] | 57 | 0 | c 130 | cm202_021 | 7-8 | ok | ok | 5 type 2, 15 model, 5 node |
+| L0 Motion[27] | 27 | 0 | c 20 | cm202_020 | 3-4 | ok | ok | 5 type 2, 27 model, 5 node |
+| L0 Motion[29] | 49 | 0 | c 130 | cm202_021 | 7-8 | ok | ok | 5 type 2, 15 model, 5 node |
+| L0 Motion[30] | 23 | 0 | c 20 | cm202_020 | 3-4 | ok | ok | 5 type 2, 27 model, 5 node |
+| L0 Motion[31] | 81 | 0 | c 130 | cm202_021 | 9-10 | ok | ok | 5 type 2, 15 model, 5 node |
+| L0 Motion[31] | 81 | 1 | c 20 | cm202_020 | 43-44 | ok | ok | 5 type 2, 27 model, 5 node |
+| L1 Motion[1] | 133 | 0 | c 130 | cm202_021 | 2-3 65-66 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[2] | 55 | 0 | c 130 | cm202_021 | 3-4 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[3] | 285 | 0 | c 130 | cm202_021 | 5-6 44-45 247-248 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[3] | 285 | 1 | c 100 | cm202_050 | 87-97 | ok | ok | 15 model, 2 filter |
+| L1 Motion[4] | 39 | 0 | c 130 | cm202_021 | 1-2 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[5] | 75 | 0 | c 130 | cm202_021 | 19-20 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[6] | 123 | 0 | c 140 | cm202_004 | 2-25 26-50 51-75 76-100 101-122 | ok | ok | 5 type 2, 21 model |
+| L1 Motion[7] | 155 | 0 | c 130 | cm202_021 | 30-31 74-75 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[8] | 41 | 0 | c 130 | cm202_021 | 38-39 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[12] | 55 | 0 | c 130 | cm202_021 | 5-6 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[13] | 115 | 0 | c 130 | cm202_021 | 109-110 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[14] | 55 | 0 | c 130 | cm202_021 | 53-54 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[15] | 81 | 1 | c 130 | cm202_021 | 8-9 50-51 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[16] | 51 | 0 | c 130 | cm202_021 | 3-4 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[17] | 107 | 0 | c 130 | cm202_021 | 74-75 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[17] | 107 | 1 | c 20 | cm202_020 | 1-2 | ok | ok | 5 type 2, 27 model, 5 node |
+| L1 Motion[18] | 43 | 0 | c 130 | cm202_021 | 1-2 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[19] | 49 | 0 | c 130 | cm202_021 | 1-2 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[20] | 37 | 0 | c 130 | cm202_021 | 1-2 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[21] | 123 | 0 | c 130 | cm202_021 | 22-23 84-85 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[22] | 133 | 0 | c 130 | cm202_021 | 1-2 74-75 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[23] | 133 | 0 | c 130 | cm202_021 | 1-2 74-75 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[25] | 105 | 0 | c 130 | cm202_021 | 0-1 25-26 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[26] | 29 | 0 | c 140 | cm202_004 | 0-28 | ok | ok | 5 type 2, 21 model |
+| L1 Motion[29] | 9 | 0 | c 140 | cm202_004 | 0-8 | ok | ok | 5 type 2, 21 model |
+| L1 Motion[30] | 91 | 0 | c 130 | cm202_021 | 67-68 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[32] | 127 | 0 | c 130 | cm202_021 | 18-19 89-90 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[35] | 131 | 0 | c 130 | cm202_021 | 1-2 81-82 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[36] | 131 | 0 | c 130 | cm202_021 | 1-2 81-82 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[37] | 151 | 0 | c 130 | cm202_021 | 1-2 64-65 101-102 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[38] | 113 | 0 | c 130 | cm202_021 | 2-3 89-90 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[39] | 71 | 0 | c 130 | cm202_021 | 12-13 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[40] | 67 | 0 | c 130 | cm202_021 | 62-63 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[42] | 49 | 0 | c 130 | cm202_021 | 5-6 | ok | ok | 5 type 2, 15 model, 5 node |
+| L1 Motion[43] | 53 | 0 | c 130 | cm202_021 | 5-6 | ok | ok | 5 type 2, 15 model, 5 node |
+| L2 Motion[1] | 173 | 0 | c 20 | cm202_020 | 63-64 | ok | ok | 5 type 2, 27 model, 5 node |
+| L2 Motion[1] | 173 | 1 | c 40 | cm202_001 | 12-13 | ok | ok | 5 type 2, 20 model |
+| L2 Motion[2] | 183 | 0 | c 10 | cm202_002 | 38-39 56-57 | ok | ok | 5 type 2, 20 model |
+| L2 Motion[2] | 183 | 1 | c 11 | cm202_002 | 0-1 58-59 | ok | ok | 5 type 2, 20 model |
+| L2 Motion[3] | 121 | 1 | c 60 | cm202_030 | 50-51 | ok | ok | 4 model |
+| L2 Motion[4] | 121 | 1 | c 61 | cm202_031 | 50-51 | ok | ok | 4 model |
+| L2 Motion[7] | 145 | 0 | c 130 | cm202_021 | 2-3 106-107 | ok | ok | 5 type 2, 15 model, 5 node |
+| L2 Motion[7] | 145 | 1 | c 140 | cm202_004 | 65-106 | ok | ok | 5 type 2, 21 model |
+| L2 Motion[8] | 365 | 0 | c 20 | cm202_020 | 108-109 | ok | ok | 5 type 2, 27 model, 5 node |
+| L2 Motion[8] | 365 | 1 | c 0 | cm202_001 | 9-10 88-89 | ok | ok | 5 type 2, 20 model |
+| L2 Motion[8] | 365 | 2 | c 1 | cm202_001 | 38-39 | ok | ok | 5 type 2, 20 model |
+| L2 Motion[9] | 91 | 0 | c 130 | cm202_021 | 3-4 | ok | ok | 5 type 2, 15 model, 5 node |
+| L2 Motion[10] | 123 | 0 | c 140 | cm202_004 | 0-122 | ok | ok | 5 type 2, 21 model |
+| L2 Motion[11] | 99 | 0 | c 130 | cm202_021 | 28-29 | ok | ok | 5 type 2, 15 model, 5 node |
+| L2 Motion[11] | 99 | 1 | c 30 | cm202_000 | 0-98 | ok | ok | 2 model |
+| L2 Motion[12] | 91 | 0 | c 130 | cm202_021 | 11-12 | ok | ok | 5 type 2, 15 model, 5 node |
+| L2 Motion[13] | 147 | 0 | c 130 | cm202_021 | 5-6 45-46 122-123 | ok | ok | 5 type 2, 15 model, 5 node |
+| L2 Motion[14] | 109 | 0 | c 132 | - | 5-6 61-62 | the viewer has no L2 Motion[14] | no record in any array |  |
+| L2 Motion[20] | 223 | 9 | u 241 | em081_00_019 | 50-51 | ok | ok | 1 billboard, 3 polyline, 6 model |
+| L2 Motion[20] | 223 | 12 | u 242 | cm202_001 | 50-51 | ok | ok | 5 type 2, 20 model |
+| L2 Motion[22] | 221 | 0 | u 315 | cm202_031 | 112-113 | ok | ok | 4 model |
+| L2 Motion[22] | 221 | 1 | u 316 | cm202_030 | 54-55 | ok | ok | 4 model |
+| L2 Motion[24] | 183 | 0 | c 130 | cm202_021 | 6-7 117-118 | ok | ok | 5 type 2, 15 model, 5 node |
+| L2 Motion[25] | 287 | 0 | u 310 | cm202_031 | 144-145 | ok | ok | 4 model |
+| L2 Motion[25] | 287 | 1 | c 17 | em081_00_015 | 236-264 | ok | ok | 2 billboard, 1 type 2, 6 model |
+| L2 Motion[26] | 287 | 0 | u 311 | cm202_030 | 144-145 | ok | ok | 4 model |
+| L2 Motion[26] | 287 | 1 | c 15 | em081_00_015 | 236-264 | ok | ok | 2 billboard, 1 type 2, 6 model |
+| L2 Motion[26] | 287 | 8 | u 300 | em081_00_016 | 142-143 | ok | ok | 1 model |
+| L2 Motion[27] | 281 | 1 | c 17 | em081_00_015 | 143-144 186-214 | ok | ok | 2 billboard, 1 type 2, 6 model |
+| L2 Motion[28] | 281 | 0 | u 284 | cm202_020 | 71-72 | ok | ok | 5 type 2, 27 model, 5 node |
+| L2 Motion[29] | 53 | 0 | c 130 | cm202_021 | 40-41 | ok | ok | 5 type 2, 15 model, 5 node |
+| L2 Motion[30] | 53 | 0 | c 130 | cm202_021 | 40-41 | ok | ok | 5 type 2, 15 model, 5 node |
+| L2 Motion[36] | 89 | 0 | u 660 | em081_04_012 | 6-88 | ok | ok | 1 polyline, 3 model |
+| L2 Motion[37] | 223 | 0 | u 670 | em081_04_017 | 9-10 | ok | ok | 1 billboard, 2 polyline, 6 model |
+| L2 Motion[37] | 223 | 2 | c 17 | em081_00_015 | 115-140 | ok | ok | 2 billboard, 1 type 2, 6 model |
+| L2 Motion[38] | 77 | 0 | c 130 | cm202_021 | 7-8 42-43 | ok | ok | 5 type 2, 15 model, 5 node |
+| L2 Motion[39] | 275 | 6 | u 321 | em081_00_019 | 7-8 26-27 47-48 | ok | ok | 1 billboard, 3 polyline, 6 model |
+| L2 Motion[39] | 275 | 7 | u 322 | em081_00_019 | 76-77 | ok | ok | 1 billboard, 3 polyline, 6 model |
+| L2 Motion[42] | 249 | 0 | u 273 | cm202_021 | 14-15 | ok | ok | 5 type 2, 15 model, 5 node |
+| L2 Motion[43] | 59 | 0 | c 130 | cm202_021 | 50-51 | ok | ok | 5 type 2, 15 model, 5 node |
+| L2 Motion[47] | 221 | 0 | u 315 | cm202_031 | 112-113 | ok | ok | 4 model |
+| L2 Motion[47] | 221 | 1 | u 316 | cm202_030 | 54-55 | ok | ok | 4 model |
+| L2 Motion[48] | 295 | 6 | u 210 | em081_00_012 | 78-79 | ok | ok | 1 polyline, 4 model |
+| L2 Motion[48] | 295 | 7 | u 212 | em081_00_013 | 20-62 | ok | ok | 2 polyline, 3 model |
+| L2 Motion[48] | 295 | 9 | u 210 | em081_00_012 | 78-79 | ok | ok | 1 polyline, 4 model |
+| L2 Motion[48] | 295 | 12 | u 211 | em081_00_012 | 78-79 | ok | ok | 1 polyline, 4 model |
+| L2 Motion[49] | 59 | 0 | c 140 | cm202_004 | 0-37 43-58 | ok | ok | 5 type 2, 21 model |
+| L2 Motion[49] | 59 | 1 | c 30 | cm202_000 | 0-58 | ok | ok | 2 model |
+| L2 Motion[50] | 69 | 0 | c 140 | cm202_004 | 0-15 19-50 54-68 | ok | ok | 5 type 2, 21 model |
+| L2 Motion[50] | 69 | 1 | c 30 | cm202_000 | 0-68 | ok | ok | 2 model |
+| L3 Motion[3] | 121 | 0 | c 20 | cm202_020 | 41-42 | ok | ok | 5 type 2, 27 model, 5 node |
+| L3 Motion[4] | 121 | 0 | c 20 | cm202_020 | 41-42 | ok | ok | 5 type 2, 27 model, 5 node |
+| L3 Motion[9] | 171 | 0 | c 11 | cm202_002 | 5-6 | ok | ok | 5 type 2, 20 model |
+| L3 Motion[11] | 99 | 0 | c 20 | cm202_020 | 1-2 | ok | ok | 5 type 2, 27 model, 5 node |
+| L3 Motion[12] | 145 | 0 | c 3000 | cm202_080 | 78-79 | ok | ok | 8 type 2, 27 model |
+| L3 Motion[14] | 301 | 0 | c 20 | cm202_020 | 231-232 | ok | ok | 5 type 2, 27 model, 5 node |
+| L3 Motion[15] | 369 | 0 | c 20 | cm202_020 | 85-86 | ok | ok | 5 type 2, 27 model, 5 node |
+| L3 Motion[15] | 369 | 1 | c 1 | cm202_001 | 48-49 | ok | ok | 5 type 2, 20 model |
+| L3 Motion[17] | 617 | 0 | c 20 | cm202_020 | 102-103 390-391 | ok | ok | 5 type 2, 27 model, 5 node |
+| L3 Motion[17] | 617 | 1 | c 0 | cm202_001 | 43-44 | ok | ok | 5 type 2, 20 model |
+| L3 Motion[17] | 617 | 2 | c 1 | cm202_001 | 15-16 | ok | ok | 5 type 2, 20 model |
+| L3 Motion[17] | 617 | 3 | c 3000 | cm202_080 | 567-568 | ok | ok | 8 type 2, 27 model |
+| L3 Motion[18] | 77 | 0 | c 70 | cm202_006 | 5-6 | ok | ok | 5 type 2, 27 model, 5 node |
+| L3 Motion[20] | 153 | 0 | c 3000 | cm202_080 | 91-92 | ok | ok | 8 type 2, 27 model |
+| L3 Motion[23] | 249 | 0 | c 130 | cm202_021 | 56-57 97-98 149-150 | ok | ok | 5 type 2, 15 model, 5 node |
+| L3 Motion[24] | 125 | 0 | c 20 | cm202_020 | 1-2 | ok | ok | 5 type 2, 27 model, 5 node |
+| L3 Motion[26] | 401 | 0 | c 1 | cm202_001 | 27-28 159-160 247-248 384-385 | ok | ok | 5 type 2, 20 model |
+| L3 Motion[26] | 401 | 1 | c 0 | cm202_001 | 62-63 211-212 272-273 373-374 | ok | ok | 5 type 2, 20 model |
+| L3 Motion[28] | 203 | 0 | c 130 | cm202_021 | 17-18 | ok | ok | 5 type 2, 15 model, 5 node |
+| L3 Motion[28] | 203 | 1 | c 0 | cm202_001 | 54-55 | ok | ok | 5 type 2, 20 model |
+| L3 Motion[29] | 39 | 0 | c 20 | cm202_020 | 24-25 | ok | ok | 5 type 2, 27 model, 5 node |
+| L4 Motion[22] | 135 | 0 | c 130 | cm202_021 | 2-3 42-43 90-91 | ok | ok | 5 type 2, 15 model, 5 node |
+| L4 Motion[22] | 135 | 6 | u 210 | em081_00_012 | 82-83 | ok | ok | 1 polyline, 4 model |
+| L4 Motion[22] | 135 | 7 | u 212 | em081_00_013 | 37-65 | ok | ok | 2 polyline, 3 model |
+| L4 Motion[22] | 135 | 9 | u 210 | em081_00_012 | 82-83 | ok | ok | 1 polyline, 4 model |
+| L4 Motion[22] | 135 | 12 | u 211 | em081_00_012 | 82-83 | ok | ok | 1 polyline, 4 model |
+| L4 Motion[23] | 121 | 0 | c 130 | cm202_021 | 2-3 42-43 90-91 | ok | ok | 5 type 2, 15 model, 5 node |
+| L4 Motion[24] | 121 | 0 | c 130 | cm202_021 | 2-3 42-43 90-91 | ok | ok | 5 type 2, 15 model, 5 node |
+| L4 Motion[25] | 93 | 0 | c 140 | cm202_004 | 1-25 26-50 51-75 76-92 | ok | ok | 5 type 2, 21 model |
+| L4 Motion[26] | 91 | 0 | c 130 | cm202_021 | 2-3 | ok | ok | 5 type 2, 15 model, 5 node |
+| L4 Motion[26] | 91 | 1 | c 140 | cm202_004 | 50-74 75-90 | ok | ok | 5 type 2, 21 model |
+| L4 Motion[27] | 103 | 0 | c 130 | cm202_021 | 7-8 42-43 73-74 | ok | ok | 5 type 2, 15 model, 5 node |
+| L4 Motion[28] | 81 | 0 | c 130 | cm202_021 | 5-6 70-71 | ok | ok | 5 type 2, 15 model, 5 node |
+| L4 Motion[29] | 69 | 6 | u 210 | em081_00_012 | 38-39 | ok | ok | 1 polyline, 4 model |
+| L4 Motion[29] | 69 | 7 | u 212 | em081_00_013 | 2-21 | ok | ok | 2 polyline, 3 model |
+| L4 Motion[29] | 69 | 9 | u 210 | em081_00_012 | 38-39 | ok | ok | 1 polyline, 4 model |
+| L4 Motion[29] | 69 | 12 | u 211 | em081_00_012 | 38-39 | ok | ok | 1 polyline, 4 model |
+| L4 Motion[31] | 35 | 0 | c 130 | cm202_021 | 30-31 | ok | ok | 5 type 2, 15 model, 5 node |
+| L4 Motion[32] | 31 | 0 | c 130 | cm202_021 | 2-3 | ok | ok | 5 type 2, 15 model, 5 node |
+| L4 Motion[34] | 117 | 0 | c 20 | cm202_020 | 10-11 | ok | ok | 5 type 2, 27 model, 5 node |
+| L4 Motion[35] | 119 | 0 | c 140 | cm202_004 | 0-25 26-61 | ok | ok | 5 type 2, 21 model |
+| L4 Motion[35] | 119 | 2 | c 30 | cm202_000 | 0-61 | ok | ok | 2 model |
+| L4 Motion[37] | 19 | 0 | c 140 | cm202_004 | 0-18 | ok | ok | 5 type 2, 21 model |
+| L4 Motion[37] | 19 | 2 | c 30 | cm202_000 | 0-18 | ok | ok | 2 model |
+| L4 Motion[48] | 135 | 0 | c 130 | cm202_021 | 5-6 | ok | ok | 5 type 2, 15 model, 5 node |
+| L4 Motion[48] | 135 | 6 | u 210 | em081_00_012 | 82-83 | ok | ok | 1 polyline, 4 model |
+| L4 Motion[48] | 135 | 7 | u 212 | em081_00_013 | 11-66 | ok | ok | 2 polyline, 3 model |
+| L4 Motion[48] | 135 | 9 | u 210 | em081_00_012 | 82-83 | ok | ok | 1 polyline, 4 model |
+| L4 Motion[48] | 135 | 12 | u 211 | em081_00_012 | 82-83 | ok | ok | 1 polyline, 4 model |
+| L4 Motion[60] | 19 | 0 | c 130 | cm202_021 | 14-15 | ok | ok | 5 type 2, 15 model, 5 node |
+| L4 Motion[61] | 85 | 0 | c 130 | cm202_021 | 68-69 | ok | ok | 5 type 2, 15 model, 5 node |
+| L4 Motion[61] | 85 | 1 | u 690 | em081_04_014 | 42-84 | ok | ok | 1 billboard, 1 polyline, 7 model |
+| L4 Motion[62] | 267 | 0 | u 690 | em081_04_014 | 0-25 | ok | ok | 1 billboard, 1 polyline, 7 model |
+| L4 Motion[62] | 267 | 1 | c 151 | cm202_004 | 236-266 | ok | ok | 5 type 2, 21 model |
+| L4 Motion[62] | 267 | 2 | c 150 | cm202_020 | 28-29 | ok | ok | 5 type 2, 27 model, 5 node |
+| L4 Motion[62] | 267 | 3 | u 691 | em081_04_014 | 29-266 | ok | ok | 1 billboard, 1 polyline, 7 model |
+| L4 Motion[63] | 121 | 0 | c 151 | cm202_004 | 0-60 | ok | ok | 5 type 2, 21 model |
+| L4 Motion[63] | 121 | 1 | c 150 | cm202_020 | 57-58 | ok | ok | 5 type 2, 27 model, 5 node |
+| L4 Motion[64] | 81 | 0 | c 20 | cm202_020 | 2-3 | ok | ok | 5 type 2, 27 model, 5 node |
+| L9 Motion[1] | 113 | 0 | u 604 | em081_04_008 | 21-100 | ok | ok | 2 model |
+| L9 Motion[2] | 297 | 0 | u 603 | em081_04_010 | 39-89 | ok | ok | 2 billboard, 5 model, 1 node |
+| L9 Motion[2] | 297 | 1 | u 602 | em081_04_002 | 20-38 | ok | ok | 1 polyline, 11 model, 2 polygon strip |
+| L9 Motion[2] | 297 | 2 | u 242 | cm202_001 | 144-145 | ok | ok | 5 type 2, 20 model |
+| L9 Motion[2] | 297 | 3 | u 604 | em081_04_008 | 0-100 | ok | ok | 2 model |
+| L9 Motion[3] | 397 | 0 | u 212 | em081_00_013 | 29-101 | ok | ok | 2 polyline, 3 model |
+| L9 Motion[3] | 397 | 1 | u 210 | em081_00_012 | 106-107 144-145 187-188 | ok | ok | 1 polyline, 4 model |
+| L9 Motion[6] | 109 | 0 | c 130 | cm202_021 | 3-4 45-46 | ok | ok | 5 type 2, 15 model, 5 node |
+| L9 Motion[6] | 109 | 1 | u 630 | em081_04_005 | 70-108 | ok | ok | 4 model |
+| L9 Motion[7] | 21 | 0 | u 630 | em081_04_005 | 0-18 | ok | ok | 4 model |
+| L9 Motion[8] | 161 | 0 | u 630 | em081_04_005 | 0-48 | ok | ok | 4 model |
+| L9 Motion[9] | 31 | 0 | c 130 | cm202_021 | 25-26 | ok | ok | 5 type 2, 15 model, 5 node |
+| L9 Motion[10] | 97 | 0 | c 130 | cm202_021 | 9-10 82-83 | ok | ok | 5 type 2, 15 model, 5 node |
+| L9 Motion[10] | 97 | 7 | u 212 | em081_00_013 | 25-47 | ok | ok | 2 polyline, 3 model |
+| L9 Motion[11] | 21 | 0 | c 20 | cm202_020 | 2-3 | ok | ok | 5 type 2, 27 model, 5 node |
+| L9 Motion[12] | 89 | 0 | c 130 | cm202_021 | 9-10 45-46 | ok | ok | 5 type 2, 15 model, 5 node |
+| L9 Motion[12] | 89 | 6 | u 212 | em081_00_013 | 37-88 | ok | ok | 2 polyline, 3 model |
+| L9 Motion[12] | 89 | 9 | u 212 | em081_00_013 | 37-88 | ok | ok | 2 polyline, 3 model |
+| L9 Motion[12] | 89 | 12 | u 213 | em081_00_013 | 37-88 | ok | ok | 2 polyline, 3 model |
+| L9 Motion[13] | 31 | 0 | c 130 | cm202_021 | 27-28 | ok | ok | 5 type 2, 15 model, 5 node |
+| L9 Motion[14] | 57 | 0 | c 130 | cm202_021 | 6-7 41-42 | ok | ok | 5 type 2, 15 model, 5 node |
+| L9 Motion[15] | 89 | 0 | c 130 | cm202_021 | 12-13 40-41 | ok | ok | 5 type 2, 15 model, 5 node |
+| L9 Motion[17] | 97 | 0 | c 130 | cm202_021 | 2-3 | ok | ok | 5 type 2, 15 model, 5 node |
+| L9 Motion[18] | 21 | 0 | c 20 | cm202_020 | 5-6 | ok | ok | 5 type 2, 27 model, 5 node |
+| L9 Motion[19] | 89 | 0 | c 130 | cm202_021 | 6-7 70-71 | ok | ok | 5 type 2, 15 model, 5 node |
+| L9 Motion[20] | 179 | 0 | u 630 | em081_04_005 | 51-144 | ok | ok | 4 model |
+| L9 Motion[20] | 179 | 1 | u 660 | em081_04_012 | 1-51 | ok | ok | 1 polyline, 3 model |
+| L9 Motion[21] | 159 | 0 | u 604 | em081_04_008 | 31-126 | ok | ok | 2 model |
+| L9 Motion[21] | 159 | 1 | u 660 | em081_04_012 | 0-60 | ok | ok | 1 polyline, 3 model |
+| L9 Motion[22] | 83 | 0 | u 604 | em081_04_008 | 0-49 | ok | ok | 2 model |
+| L9 Motion[22] | 83 | 1 | u 606 | em081_04_002 | 0-33 | ok | ok | 1 polyline, 11 model, 2 polygon strip |
+| L9 Motion[22] | 83 | 2 | u 605 | em081_04_010 | 25-41 | ok | refused: its ground height is a stage ray (payload +0x52 with +0x5c bit 4: 0x18154c, not read) | 2 billboard, 5 model, 1 node |
+
+Left out: c 132 (the viewer has no L2 Motion[14]); u 605 (refused: its ground height is a stage ray (payload +0x52 with +0x5c bit 4: 0x18154c, not read))
+
+Not bound to a motion (not added here -- their triggers are class code, shared states or shells): see dev/effects-triage/em081_04.md.
