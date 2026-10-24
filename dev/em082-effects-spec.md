@@ -1,6 +1,6 @@
 # Mizutsune (em082_00) / Soulseer (em082_04) -- effects spec (Leviathans walk, 2026-10-17)
 
-One class `uEm082_00` (vtable `0x17ee478`). States transcribed before (states-em082_00.md). Scratch: `<scratchpad>/zg/
+One class `uEm082_00` (vtable `0x17ee478`). States transcribed before (states-em082_00.md). Scratch: `<archive>/zg/
 jscheck082.py`, `actmot.py`, `allmot2.py`, `hit082.py`.
 
 ## 1. The PSL enable word -- vt+0x13c = `0x1038cac` -- R, read whole and emulated
@@ -46,7 +46,7 @@ Mizutsune +6 (c 71 / 72, c 120..122 / 130 ...), Soulseer +6 and u 310 / 320 / 32
 What `0xb97910` tests (R): `0xb978cc` is the flush of the GPU quad batch (vtable `0x178e210` +0xc via `0xb9a5f0`); `[sb+0xf8]` is
 the batch's index count, zeroed by the frame begin and raised only by the quad add `0xb99750` (`+0xf4 += 4`, `+0xf8 += 5 / 6`).
 Zero at the flush -> `r7 = 0x11`, the "nothing staged" return. The caller is the generator draw `0xaf24d8` (`0xaf2654 blx`),
-which flushes `u16[gen+0x1f8] x [.. +0x230]` instances. In the page (`<scratchpad>/zg/dbg082l.mjs`, an ordered trace of renders,
+which flushes `u16[gen+0x1f8] x [.. +0x230]` instances. In the page (`<archive>/zg/dbg082l.mjs`, an ordered trace of renders,
 steps, holds and flushes): the hold's stop (`HOLD 310 false`) landed between steps, and the next render had no step (`advance` 0
 at the clip change), so the generator drew its stopped state with nothing staged. The game cannot: the class stops its handle
 (0x329c40) in the enemy update, ahead of the effects' passes, and every draw follows a move. It was the viewer's ORDER, not an

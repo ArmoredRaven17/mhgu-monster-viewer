@@ -37,7 +37,7 @@ Negative with control: class-effects.json's band `0x108b550..0x1093de8` has exac
 no `ldr`/`str` with an immediate `0x13f4`. A wider scan `0x107b1c0..0x1094124` adds only `0x107f0d4` / `0x107f0f4`, which are
 uEm084_00's tentacle method `0x107f0e4` (rom-map's Nakarkos row) — the positive control, outside his band.
 
-**Emulated** (`<scratchpad>/mm/emu13c_mm.py`; case = motion:status:number:sever:rage:tired):
+**Emulated** (`<archive>/mm/emu13c_mm.py`; case = motion:status:number:sever:rage:tired):
 
 | case | word |
 |---|---|
@@ -89,7 +89,7 @@ Inputs: the action only. With no action (`null`) all three L0 M21 bindings are o
 
 ## 3. What the word changes — whole-block plan (equal to the file-mask plan, 95 rows)
 
-`<scratchpad>/ng/planrows.py em085_00 [--whole]`. Every binding not listed sits on bits 0-4 and stays always-on; **he has no
+`<archive>/ng/planrows.py em085_00 [--whole]`. Every binding not listed sits on bits 0-4 and stays always-on; **he has no
 binding on bits 6-14**, so the base's state groups change nothing he shows.
 
 **Turned ON**: none. **Turned OFF (never enabled)**: none.

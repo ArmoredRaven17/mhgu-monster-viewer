@@ -1,6 +1,6 @@
 # Valstrax (em086_00) -- effects spec (Elder Dragon walk, 2026-10-18)
 
-Class `uEm086_00`; his word is the BASE `0xca170` (`BASE_ONLY`). No states note existed. Scratch: `<scratchpad>/zg/ppemu.py`,
+Class `uEm086_00`; his word is the BASE `0xca170` (`BASE_ONLY`). No states note existed. Scratch: `<archive>/zg/ppemu.py`,
 `hook204b.py`, `states060.py`, `partscr.py`, `scrdump.py`.
 
 ## 3. The states -- R

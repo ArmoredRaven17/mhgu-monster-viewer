@@ -1,6 +1,6 @@
 # Barroth (em044_00) -- his mud (shells agent, 2026-10-19)
 
-Class `uEm044_00` (action main `0xe8c7b0`). Emulator check `dev/shells-barroth-check.mjs` (tool `<scratchpad>/fb/mk044.py`), 13 / 13
+Class `uEm044_00` (action main `0xe8c7b0`). Emulator check `dev/shells-barroth-check.mjs` (tool `<archive>/fb/mk044.py`), 13 / 13
 (9 cases, 4 controls each failing, the contract); page 2 / 2. `R` = the consuming instruction read. The per-frame census finds none.
 
 ## 1. What creates (the census of his reach)

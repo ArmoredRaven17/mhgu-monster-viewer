@@ -1,7 +1,7 @@
 # Barioth (em042_00) -- his shells (shells agent, 2026-10-19)
 
 Class `uEm042_00` (action main `0xe701d4`, band `0xe64d24..0xe727b0`). Emulator check `dev/shells-barioth-check.mjs` (tool
-`<scratchpad>/fb/mk042.py`), 8 / 8. `R` = the consuming instruction read. The per-frame census (fb/pfgen.py) finds none.
+`<archive>/fb/mk042.py`), 8 / 8. `R` = the consuming instruction read. The per-frame census (fb/pfgen.py) finds none.
 
 ## 1. What creates (the census of his reach)
 

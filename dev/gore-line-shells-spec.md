@@ -364,7 +364,7 @@ The page check passes 4/4.
 
 ## 4. Soaks and a runtime fix (2026-10-19)
 
-The live soaks (scratchpad soak_locked.sh, after the one lift) all show 0 refused: em058_00 38 motions, em086_00 100, em071_00 107, em071_05 120, em072_00 110.
+The live soaks (<archive> soak_locked.sh, after the one lift) all show 0 refused: em058_00 38 motions, em086_00 100, em071_00 107, em071_05 120, em072_00 110.
 
 Two refusals in the first run were fixed:
 
@@ -384,7 +384,7 @@ The checks and soaks prove that a shell is made where and when the ROM makes it,
 
 The many clip sets that log 0 do so too: Gore's u 200..u 262 and c 3000, Rathian's c 30 / c 32.
 
-**Tally** (<scratchpad>/fb/drawtally.py, the call counts of each kind's draw routines per set):
+**Tally** (<archive>/fb/drawtally.py, the call counts of each kind's draw routines per set):
 
 - All 136 shell sets of these lanes call draw routines.
   - Most Gore line sets go through the CPU particle path: em071_00u 0 1560 calls, u 150 1200.

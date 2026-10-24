@@ -3,7 +3,7 @@
 Effects lane, 2026-10-05. Scope: the `em084_00u` / `em084_00c` records that `uEm084_00`'s own code asks for through
 vtable `+0x1cc` / `+0x1d0` (not shells, not ordinary PSL bits), the shared break path that resolves in his u list,
 and c 6 / c 70 / c 112 / u 212. Every address was read in this session unless marked otherwise. Static reads with
-`efx/armdis.py`; the action-start machine also run under unicorn (scratchpad `e84/h.py`, `run1.py`, `run2.py`).
+`efx/armdis.py`; the action-start machine also run under unicorn (<archive> `e84/h.py`, `run1.py`, `run2.py` [folder empty by the 2026-10-24 archive: these scripts are lost]).
 Context read first: `dev/beams/em084_00.md` (class layout, the arms), `build/hitzone-states/state-decodes.md`
 (NAKARKOS: stance `E+0xcac4`, charge flag `E+0xcadc`, clips per action), `rom-map.md` rows 297-303, 353, 386, 410.
 

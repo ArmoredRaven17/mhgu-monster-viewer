@@ -24,7 +24,7 @@ import { webAnchors088 } from './shells.js';
 //     (0x10ba418..0x10ba528, host.js stretchRequest); an inactive slot with a handle is stopped, 0x329c40(h, 1) if its
 //     +0x60 byte is 1, else (h, 0), and the handle cleared (0x10b9fe8..0x10ba01c). A held slot whose id changes keeps its
 //     handle (0x10ba3e8 tests the handle alone).
-// THE WINDOWS: the spec's emulated sweep (<scratchpad>\ak\sw_m0.txt: every L2 motion x every tick x object, the pass
+// THE WINDOWS: the spec's emulated sweep (<archive>\ak\sw_m0.txt: every L2 motion x every tick x object, the pass
 // run natively), transcribed below as TICK ranges -- tick t is the one reaching frame t + 1 (spec 3.2's frame model),
 // `E` = to the motion's end. The motions outside L2 M4..M46 are the switch's DEFAULT arm (0x10b78f0 `bhi 0x10b7f60`),
 // READ: object != 4 -> slot 0 = id 1004 (u 11), joint 149 -> object, stop flag 1 (0x10b7f60..0x10b7fa4 -> 0x10b79f4) --

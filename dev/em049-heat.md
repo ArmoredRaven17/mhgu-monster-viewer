@@ -9,7 +9,7 @@ ROM: `C:\MHGU-ROM\exefs` main.text (VA 0) / .rodata (0x13ef000) / .data (0x17280
 vtable **`0x17c5eb4`** (derived from `vt+0x1f4 = 0xec0a20` at .data `0x17c60a8`; `vt+0x1fc = 0xeb4ae0`, the beam note's
 remap, at `0x17c60b0`). **R** = the consuming instruction was read; **I** = inferred; **H** = seen in the unicorn
 harness (a cross-check, not the evidence). Static reads first; the harness is `beamsD/drv.py` driven by the scratch
-script `scratchpad/em049heat/heatprobe.py` (it hooks memory writes to `E+0xcac0..+0xcaef` and `E+0xcb2e`).
+script `<archive>/em049heat/heatprobe.py` [not archived: gone from the scratchpad before the 2026-10-24 archive] (it hooks memory writes to `E+0xcac0..+0xcaef` and `E+0xcb2e`).
 
 Prior reads this builds on (all re-checked here): the board's 2026-09-14 entry ("0xec22c8 runs a state per lava slot")
 and its transcription in `docs/render/monster.js` (ROM_STAGE_CLIPS em049_00, the comment at "AGNAKTOR (uEm049_00) runs

@@ -1,7 +1,7 @@
 # Alatreon (em050_00) -- effects spec (Elder Dragon walk, 2026-10-18)
 
 Class `uEm050_00`. States: states-em050_00.md (transcribed before; every exported record was driven). Scratch:
-`<scratchpad>/zg/w050.asm`, `w050b.asm`, `sweepmot.py`.
+`<archive>/zg/w050.asm`, `w050b.asm`, `sweepmot.py`.
 
 ## 1. The PSL enable word -- vt+0x13c = `0xece27c` -- R, read whole and emulated
 

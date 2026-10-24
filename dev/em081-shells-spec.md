@@ -7,8 +7,8 @@ Research agent for the Viewer agent, 2026-10-07. Scope: the 17 Group D records o
 the class's own handler `0x1023a6c` with the real frame gate `0x72714`, the real spawners and the arc's own
 `em081_00_actiontune` (driver `drv.py`); (b) single functions with stubbed getters (`emu.py`). Positive control for (a):
 (7, 0xca) reproduces `dev/beams/em081_04.md`'s beam -- L9 M1, shell 0x153 mode 4 at f48, chain (7, 0xd2) at f90.
-Scratch (not in the repo): `C:\Users\humph\AppData\Local\Temp\claude\C--MHGU-Extract-MHGU-Monster-Viewer\
-bbae25d7-...\scratchpad\bolt\` (`drv.py`, `allst7.py`, `all_r{5,3}_c{0,2,4}.txt`, `emu.py`, `fn.py`, `shldump2.py`),
+Scratch (not in the repo; archived 2026-10-24):
+`<archive>\bolt\` (`drv.py`, `allst7.py`, `all_r{5,3}_c{0,2,4}.txt`, `emu.py`, `fn.py`, `shldump2.py`),
 `bolt14\` and `bolt15\` (two helper agents: base14 and base15). The effect recorder and lift were NOT run.
 Read first: CLAUDE.md, the census, rom-map's Boltreaver / shell / base00 / base01 / base11 rows, `dev/beams/em081_04.md`,
 `dev/em084-shells-spec.md`, `dev/em084-phase2-bases.md`, `docs/render/shells.js` (base00 / base01 / base03 / base11

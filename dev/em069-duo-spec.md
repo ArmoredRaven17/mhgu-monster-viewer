@@ -61,7 +61,7 @@ own combined clips are now on her Animation list (§9.1).
   massive claw, part 103, from frame 42 -- asserted). The viewer's part 103 of 2026-09-14 (Raven's choice) is
   replaced -- a difference from Raven's call, reported.
 
-## 1. Method and tooling (scratchpad `duo/`)
+## 1. Method and tooling (<archive> `duo/`)
 
 | tool | what it does | control |
 |---|---|---|
@@ -549,7 +549,7 @@ from HIS joints. The viewer now runs a second runtime for him while he is mounte
 
 ### 9.5 The effect audit of every combined entry (effects lane, 2026-10-18; Raven: "not all environment effects from their combined attacks are showing")
 
-Instrument: `<scratchpad>/zg/duoaudit.mjs` -- plays each of the 152 entries once from frame 0 and records her schedule's and his runtime's clip key / frame every frame and every request either runtime starts (by request identity, baseline taken before the pick); the ROM's expectation is each PSL bit of the clip played (monster.js CLIP_EFFECTS) whose `on` window holds a frame played and whose bit the enable word passes (hers with the link, his the base 0xca170). Control: the raw-clip records of the check's raw / combined pairs come out equal.
+Instrument: `<archive>/zg/duoaudit.mjs` -- plays each of the 152 entries once from frame 0 and records her schedule's and his runtime's clip key / frame every frame and every request either runtime starts (by request identity, baseline taken before the pick); the ROM's expectation is each PSL bit of the clip played (monster.js CLIP_EFFECTS) whose `on` window holds a frame played and whose bit the enable word passes (hers with the link, his the base 0xca170). Control: the raw-clip records of the check's raw / combined pairs come out equal.
 
 * **Missing, fixed: her u 500 (em069_00_014, bit 18) on L4 M71 / M72 / M73 / M74 / M75 -- the linked sand.** Her word sets bits 18-20 on those five motions only while P+0x1bb bit 0 (the link) is set (psl-mask.js em069_00 `seltasLink`), and index.html never passed `seltasLink` to the word, so the combined entries ran with the link off. Now `seltasLink: herLinkedForShells()` (Seltas mounted, not released). u 500 starts on the M72 / M73 / M75 entries (M71's window f111-147 and M74's are reached on their entries the same way).
 * **Every other entry: what the ROM fires, fires** -- her clip bits, his bits on his runtime (L4 M31 u 362, M32 c 211 / c 221, M33 / M34 bit 6), her shells' records (u 10 / 20 / 21) and his spits. Her copy B of L0 M8 (the burrow (6, 2), sunk) fires no footfall c 0 / c 10, as her word says (bits 15-16 unless sunk).

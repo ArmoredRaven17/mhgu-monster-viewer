@@ -11,7 +11,7 @@ into the BODY: it takes Nakarkos's HP and goes on his part counter 1 (left tenta
 arm has no damage step of its own.
 
 Status per claim: **R** = the consuming instruction was read; **I** = inferred. Static reads only
-(capstone over `C:\MHGU-ROM\exefs\main.text`, scratchpad `d.py` / `callers.py` / `immscan.py` / `movwscan.py`;
+(capstone over `C:\MHGU-ROM\exefs\main.text`, <archive> `d.py` / `callers.py` / `immscan.py` / `movwscan.py`;
 resource ids against `em084_00.arc` with `resids.py`, the `0x159daa0` hash scheme of rom-map row `0x152530`).
 Every link was read off the instruction that consumes it, so no unicorn run was needed.
 

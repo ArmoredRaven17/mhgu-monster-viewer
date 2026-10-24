@@ -29,18 +29,18 @@ only input it keeps; nothing after the `bl` loads from `r4` but the word itself)
 
 Negative with control: the band `0xd46674..0xd52f04` (from uEm007_00's highest vtable entry `0xd46674` to uEm009_00's
 lowest `0xd52f04`; uEm008_00's own entries span `0xd46da0..0xd51dac`) has exactly one `0x13f4` immediate, `0xd514d0`, inside this method; the same scan
-(`<scratchpad>/ng/immscan.py`) over `0xd31b64..0xd70000` finds uEm007_00's `0xd45354` and uEm009_00's two (`0xd5e7e4`,
+(`<archive>/ng/immscan.py`) over `0xd31b64..0xd70000` finds uEm007_00's `0xd45354` and uEm009_00's two (`0xd5e7e4`,
 `0xd5e828`).
 
 **The plays of L2 M12** (R): the band's only two setMotion sites for `0x20c` are in `0xd48280(e, r1)`: phase 0 takes
 posture 0 (`0xbc7f4`) and setMotion0 L2 M12 (`0xd482d4`, blend 6.0); at the clip's end, `r1 == 0` plays it a second time
 (phase 2, `0xd48398`), else hands to vt+0x3dc. Reached from **(1, 8)** (`0xd4808c`, `r1 = 1`: once) and **(7, 0xe)**
-(`0xd4ef0c`, `r1 = 0`: twice) — the action-main table `0xd4fe00` and each status's table, `<scratchpad>/ng/jt.py`. (1, 8)
+(`0xd4ef0c`, `r1 = 0`: twice) — the action-main table `0xd4fe00` and each status's table, `<archive>/ng/jt.py`. (1, 8)
 is issued by cmdtbl g13 s0 (nine times, in both arms of its op-0x24 block, among op-0x02 draws); no op 00 in `em008_00_cmdtbl.emc` issues (7, 0xe) — what
 reaches it is NR. Neither matters to the word: it reads the motion only, and each setMotion rebuilds it, so the second
 play fires its bits again.
 
-**Emulated** (`<scratchpad>/emu13c.py 179ac54`, `motion:status:number:sever:rage:tired`):
+**Emulated** (`<archive>/emu13c.py 179ac54`, `motion:status:number:sever:rage:tired`):
 
 | case | word |
 |---|---|
@@ -73,7 +73,7 @@ CLIP_ACTIONS entry**.
 
 ## 2. What the word changes — whole-block plan (116 file-mask bindings -> 132 whole-block)
 
-`<scratchpad>/ng/planrows.py em008_00 [--whole]`; `add_effects.py em008_00` (plan): 28 records can go in, 28 already are;
+`<archive>/ng/planrows.py em008_00 [--whole]`; `add_effects.py em008_00` (plan): 28 records can go in, 28 already are;
 whole-block: 29 (u 560 the one new). Every binding not listed sits on bits 0-5 inside the file mask and stays always-on.
 
 **Turned ON — the survey's 16 outside the file mask:**

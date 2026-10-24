@@ -2,7 +2,7 @@
 
 Class `uEm065_00` (band `0xf48e20..0xf57cd0`, action main `0xf55740`, status-7 table `0xf54540`). Ids are immediates (no id
 fields): 0x116 uShellEm065_sp_00 (base00), 0x117 _sp_01 (base01), 0x118 _sp_13 (base13), 0x119 _sp_23 (a NEW base, base23).
-Census: scratchpad `fb/cen_em065.txt`. Transcribed: docs/render/shells.js `SHELL_DATA.em065_00` (params065s00 / s01 / s13 / s23,
+Census: <archive> `fb/cen_em065.txt`. Transcribed: docs/render/shells.js `SHELL_DATA.em065_00` (params065s00 / s01 / s13 / s23,
 init13k, init23 / solve23 / move23 / step23, landing065, spawn065). Check: dev/shells-kecha-check.mjs (16 / 16, controls fail),
 page 10 / 10, soak 74 motions 0 refused. Records exported: u 0 / 1 / 2 / 10 / 11 / 12, c 31.
 
@@ -13,7 +13,7 @@ page 10 / 10, soak 74 motions 0 refused. Records exported: u 0 / 1 / 2 / 10 / 11
   sp_13 3 / 4 / 5 at 116 / 136 / 156. Their twins (7, 0x17 / 0x18 / 0x41) make sp_01 2 at those frames (joint 131, no
   EffectParam: a hit volume).
 - (3, 7) L5 M25 f16 (`0xf4c844`): sp_01 0 (c 31) on the ground 300 ahead, when the owner's y is within 900 of its ground.
-- (7, 0x15 / 0x48) L2 M114 -> M115 -> M116 -> M117, phase 6 at M117 f33 (`0xf5251c`): sp_00 0 from (445 sin Y, -300, 445 cos Y) x
+- (7, 0x15 / 0x48) L2 M114 -> M115 -> M116 -> M117 [this chain is WITHDRAWN (gapK, 2026-10-22): rom-map Withdrawn table and the uEm065_00 M115..M126 set-sites row] [doc audit 2026-10-24], phase 6 at M117 f33 (`0xf5251c`): sp_00 0 from (445 sin Y, -300, 445 cos Y) x
   the size off the owner's block position; (7, 0x16) the same with sp_01 3 (no EffectParam).
 - all of them only at the variant byte `e+0xb5f5` == 0 (the variant-1 arm counts shots through `P+0x1a2`: not his).
 

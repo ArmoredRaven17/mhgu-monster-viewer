@@ -2,8 +2,8 @@
 
 Research agent for the Viewer agent, 2026-10-17. Raven: *"Bird Wyvern: I noticed Malfestio's Hypnosis attack does not turn
 on the Hypnosis effect. Ensure Malfestio's effects also know when to turn that part on and off. I also noticed some missing
-effects."* Static ROM reading (band disassembly `<scratchpad>/m079/band.txt`), the command tables through
-`efx/agents/malfestio-scratch/emc.py`, and a live headless census of the viewer (`<scratchpad>/m079/census.mjs` through
+effects."* Static ROM reading (band disassembly `<archive>/m079/band.txt`), the command tables through
+`efx/agents/malfestio-scratch/emc.py`, and a live headless census of the viewer (`<archive>/m079/census.mjs` through
 `run-check.mjs` / `run_locked.sh`). No docs/ edit. Status words: **R** = the consuming instruction read; **I** = inferred;
 **NR** = not read.
 
@@ -47,7 +47,7 @@ correctly"): the geometry is drawn only mid-dive in the game.
 
 ## 2. Which clips each action plays (R)
 
-Status-7 table `0xff6018` (handler `0xff5fe8`, number - 1; `<scratchpad>/m079/cases.py ff6018 e2 1 ...`). Motion ids are
+Status-7 table `0xff6018` (handler `0xff5fe8`, number - 1; `<archive>/m079/cases.py ff6018 e2 1 ...`). Motion ids are
 `list << 8 | slot`. "end" = `0xb09c8` (the motion ended); setMotion = `0xafe84` (or `0xafce8`, the same with a flags word).
 
 | action | body | phase by phase (P+0x1a1) | the action ends |
@@ -66,7 +66,7 @@ before (7, 0xcb)'s phase 0 sets L2 M20, carries set 14 -- the viewer plays no su
 
 ### 2a. Who else plays those clips (R, negative with control)
 
-* setMotion census of the band `0xfee698..0xffe0dc` (`<scratchpad>/m079/setm.py`): 117 calls (109 `0xafe84`, 8 `0xafce8`), every
+* setMotion census of the band `0xfee698..0xffe0dc` (`<archive>/m079/setm.py`): 117 calls (109 `0xafe84`, 8 `0xafce8`), every
   one with an immediate id (two through `r6`, loaded 0x15 / 8 / 0x1e / 0x12a). Ids `0x210..0x219` appear ONLY in the five bodies
   above. Control: the same scan finds `0x214` at both its known setters and `0x217` at all three landing sites.
 * The class's angle-picked turns (`0x7a258` / `0x7a27c`, 23 calls, 9 tables `0x16a1a6c` .. `0x16a1c2c`, `0x17e99fc`; dumped whole):
@@ -77,7 +77,7 @@ before (7, 0xcb)'s phase 0 sets L2 M20, carries set 14 -- the viewer plays no su
 
 ### 2b. Which monster plays which action (R, data)
 
-`em079_0{0,4}_cmdtbl.emc`, both arcs carry the same g1 streams (`<scratchpad>/m079/emcscan.py`):
+`em079_0{0,4}_cmdtbl.emc`, both arcs carry the same g1 streams (`<archive>/m079/emcscan.py`):
 
 | action | issued in |
 |---|---|
@@ -166,7 +166,7 @@ three bodies): its 64 frames pass in ~43 game frames -- the viewer plays it at 1
 
 ### 5b. What the viewer fires -- measured live (headless, the page's own loop)
 
-`<scratchpad>/m079/census.mjs` (+ `census2.mjs` for the motions the u 10 refusal skipped, `census3.mjs` at timeScale 1 / 3 plays,
+`<archive>/m079/census.mjs` (+ `census2.mjs` for the motions the u 10 refusal skipped, `census3.mjs` at timeScale 1 / 3 plays,
 `loop2.mjs`, `height.mjs`): every clip of every list, two plays, calm and enraged (lists 1 / 2 / 9), every request hooked at
 `host.requestEffect` with its record, `when` and frame; shells from `schedule.shellTally`. Raw: `census.log`, `census2.log`,
 `census3.log`, `loop2.log`, `height.log`; `parse.py` / `cmp.py` compare against CLIP_EFFECTS under the word.

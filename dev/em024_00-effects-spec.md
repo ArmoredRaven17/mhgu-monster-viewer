@@ -1,6 +1,6 @@
 # Kushala Daora (em024_00) -- effects spec (Elder Dragon walk, 2026-10-18)
 
-Class `uEm024_00`. No states note existed. Scratch: `<scratchpad>/zg/c024.asm` (the whole band), `pp024.asm`, `hook204b.py`,
+Class `uEm024_00`. No states note existed. Scratch: `<archive>/zg/c024.asm` (the whole band), `pp024.asm`, `hook204b.py`,
 `jscheckpd.py` (CHG / SNOW / A18), `states060.py`, `partscr.py`, `scrdump.py`.
 
 ## 1. The PSL enable word -- vt+0x13c = `0xdfd19c` -- R, read whole and emulated

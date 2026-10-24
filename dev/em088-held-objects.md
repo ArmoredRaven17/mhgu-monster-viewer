@@ -1,7 +1,7 @@
 # em088_00 Ahtal-Ka -- how the carried object is held (Spike / Wheel / Frame), read for all three k
 
 Research agent for the Viewer agent, 2026-10-16. Raven: "Double check how Frame is held". Static reads of `main.text`
-plus unicorn runs (scratch `<scratchpad>\held\`: `d.py` disassembly, `ia.py` / `ctor.py` init_array + ctor runs,
+plus unicorn runs (scratch `<archive>\held\`: `d.py` disassembly, `ia.py` / `ctor.py` init_array + ctor runs,
 `clos.py` store census, `blscan.py` call sites, `modj.py` mod / glb dump). Nothing in `docs/` was changed.
 
 ## 0. Answer

@@ -1,7 +1,7 @@
 # Gore Magala / Chaotic / Shagaru Magala (em071_00 / em071_05 / em072_00) -- effects spec (Elder Dragon / Gore walk, 2026-10-18)
 
 One class `uEm071_00` (Gore em 0x47, Chaotic em 0x47 variant 5, Shagaru em 0x48). No states note existed. Scratch:
-`<scratchpad>/zg/pp071.asm`, `ppemu.py`, `hook204b.py`, `states060.py`, `partscr.py`, `scrdump.py`.
+`<archive>/zg/pp071.asm`, `ppemu.py`, `hook204b.py`, `states060.py`, `partscr.py`, `scrdump.py`.
 
 ## 1. The PSL enable word -- vt+0x13c = `0xfc08a8` -- R, read whole and emulated
 

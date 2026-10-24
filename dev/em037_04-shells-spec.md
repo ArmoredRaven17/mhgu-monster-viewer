@@ -50,7 +50,7 @@ in `docs/effects/em037_04.json` since commit 18e184e; c 30 (em037_00c) is shell0
 * The effect handles are an ARRAY the init allocates from the engine heap: base45 [+0x162c] x 5 (count +0x1630), base46
   [+0x1614] x 4 (+0x1618). Only [0] (the flight) and one contact handle are ever filled.
 
-## 2. The spawns (the class's status-7 code; tracer `<scratchpad>/sw37/trace.py`, `allmot.json`)
+## 2. The spawns (the class's status-7 code; tracer `<archive>/sw37/trace.py`, `allmot.json`)
 
 Spawners: **`0xe49a78(e, mode)`** (shell00 0xca: setup +0x20.. = e+0xfe8.., +0x2e 0xffff -- unused: flag 0x20 is clear for 8 / 13 /
 14); **`0xe49b24(e, mode, &words)`** (0xcc, +0x2e = 0xffff); **`0xe49bc8(e, mode, h, &words)`** (0xcc, +0x2e = h = P+0xb0a);
@@ -180,7 +180,7 @@ zero, +0x30 words, +0x3c +0x13dc; the literal `mov r2, #0xcb` at 0xe5a024); type
 
 ## 7. The ROM runs and the check
 
-`<scratchpad>/sw37/emu37.py`: the whole executable on unicorn after the static initialisers (nharness's method), hooks: the rShell
+`<archive>/sw37/emu37.py`: the whole executable on unicorn after the static initialisers (nharness's method), hooks: the rShell
 getters (em037_04.arc), 0x43a850 -> 1, **0xc2df8 -> 0 (no hunter unit)**, 0x3f9aec / 0x4a1ad8 (no hit registration), 0x43ab74,
 the setup allocators (0x3f883c, 0x3fa2bc, 0x422bac, 0x4243f0), 0x48b884 (setup logged; each 0xcd / 0xcb setup then run as a
 child), 0x183490 (the plane at floorY, mask 0x10 = the floor), **0x43b2b0 (logged, not run)**, the effect requester / start /

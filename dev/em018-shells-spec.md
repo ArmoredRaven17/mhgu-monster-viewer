@@ -5,7 +5,7 @@ Class `uEm018_00`: vtable `0x17abb38`, action main `0xdb0a2c`; Deadeye is varian
 Emulator checks:
 * `dev/shells-garuga-check.mjs`: 11 / 11 (7 cases, 3 controls, the contract).
 * `dev/shells-deadeye-check.mjs`: 15 / 15 (11 cases).
-* Tool `<scratchpad>/fb/mk018.py <mon>`. Page 3 / 3 and 4 / 4.
+* Tool `<archive>/fb/mk018.py <mon>`. Page 3 / 3 and 4 / 4.
 
 Code in `docs/render/shells.js`, the YIAN GARUGA / DEADEYE block. `R` = the consuming instruction read.
 

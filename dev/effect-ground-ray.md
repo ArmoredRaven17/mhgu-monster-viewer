@@ -102,12 +102,12 @@ way it is the same arm).
 |---|---|---|
 | payload `+0x5c` (a word) → block `+0x6c`: `ldr r5,[r1,#0x5c]` / `str r5,[r0,#0x6c]` at **`0x31c3d8` / `0x31c3e8`** in the field copy `0x31bbe8`'s second-mask loop (mask word block `+8` \|= 0x40000). Same loop, `+0x52` → `+0x62` at `0x31bfb8` / `0x31bfc8` | READ | sweep of `0x31bbe8` |
 | block → descriptor (block − 0x30) → core `+0x50`, so payload `+0x5c` = **core `+0xec`** | INFERRED, with a control | the copy into `core+0x50` itself was not read by me. Five other fields are read at exactly this shift: `+0xc2` joint (payload `+0x32`, `0x328c60`), `+0xc6` mode (`+0x36`, `0x3293c0`), `+0xd0` (`+0x40`, `0x329390`), `+0xe2` (`+0x52`, `0x328c24`), `+0xe8` (`+0x58`, `0x328cd8`); and `+0xec` gives a sensible `+0x5c` on every record (§2 table below) |
-| no other writer: a sweep of `0x40000..0x46000` and `0x31b000..0x32b000` finds **only the two readers `0x427dc` / `0x42918`** for `#0xec` on the core. `0x32a80c str [r7,#0xec]` is r7 = obj+0xffc, another object | READ (control: the scan finds both known readers) | scratchpad s40.txt / s31b.txt |
+| no other writer: a sweep of `0x40000..0x46000` and `0x31b000..0x32b000` finds **only the two readers `0x427dc` / `0x42918`** for `#0xec` on the core. `0x32a80c str [r7,#0xec]` is r7 = obj+0xffc, another object | READ (control: the scan finds both known readers) | <archive> s40.txt / s31b.txt |
 | **em081_04u: 79 records, 8 with `+0x52` set, ONE with `+0x5c` bit 4: u 605** (SEQUENCE, `em081_04_010`, joint −1, mode 1, space 1, `+0x40` = 1, `+0x58` 900, offset (0, 300, 1600)) | READ | payload dump |
 | u 604 (`em081_04_008`, j131), u 606 (`em081_04_002`, j130), u 100 / u 101 (`em081_04_002`, j−1, mode 3): `+0x52` = 0, `+0x5c` = 0, so **they never call `0x42744`** | READ | payload dump |
 | L9 M22's binding: u 605 on bit 2, **f25..40** (monster.js 4957 `on: [[25, 41]]`). The soak's stop at **f26**, after the beam ran from f2, puts the refusal on u 605's first frames | INFERRED (timing + payload; no trace) | census §8 |
 | So **u 606, u 604's L9 M22 binding and the mode-8 beam are collateral**: live.js `fail()` (543) hides every mesh of the runtime | READ (live.js) | |
-| Tree-wide: of 7,346 records, 1,837 have `+0x52` set; their `+0x5c` = 1 on 1,455, 0 on 312, **0x11 on 63, 0x10 on 7** → **70 ray records in 24 `.pel`s** (em081_04u 1; em083_04u 8; em069_00c 6; em083_00u 6; em021_00c 5; em055_00c 5; ...) | READ | scratchpad allray.py; the board's "73 across 23" was a binding count over wired monsters |
+| Tree-wide: of 7,346 records, 1,837 have `+0x52` set; their `+0x5c` = 1 on 1,455, 0 on 312, **0x11 on 63, 0x10 on 7** → **70 ray records in 24 `.pel`s** (em081_04u 1; em083_04u 8; em069_00c 6; em083_00u 6; em021_00c 5; em055_00c 5; ...) | READ | <archive> allray.py; the board's "73 across 23" was a binding count over wired monsters |
 
 ## 3. `0x18154c` and its no-stage answer (Q3)
 

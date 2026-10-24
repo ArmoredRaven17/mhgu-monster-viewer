@@ -73,7 +73,7 @@ scan finds Basarios's `0xd2e308` / `0xd2e338` / `0xd2e3f0`. Caveat: an offset bu
 ## 2. Unicorn cross-check (R, emulated)
 
 These are calls of `0x106cae8` through the meatemu harness (vtable `0x17f11fc`, E/P zeroed except as shown). The
-script is `scratchpad/emu084.py`.
+script is `<archive>/emu084.py`.
 
 | motion | action (E+0x73e0, +0x73e1) | P+0x1a1 | word |
 |---|---|---|---|
@@ -93,7 +93,7 @@ phase 4, L2 M23 (7,6) and L0 M2 with `E+0xcac4 = 1 / 2`, `E+0xcadc = 1`, and the
 `E+0x13f4`, `E+0x1428`, `E+0x73e0`, `E+0x73e1`, `P+0x1a1` and `P+0x505` (tired). Rage goes through the hooked
 `0x81670`. The positive side of the same control is that varying `E+0x73e1` or `P+0x1a1` does change the word.
 
-**Action (13, 0) driven frame by frame** (`scratchpad/emu084g13b.py`). The handler is `0x107a250`, with
+**Action (13, 0) driven frame by frame** (`<archive>/emu084g13b.py`). The handler is `0x107a250`, with
 `0xb09c8` / `0x7206c` / `0x72714` answered "yes", the posture / burrow / move helpers stubbed, and the common tail
 `0x107a4f4` cut. Both stances give the same sequence of motion sets, each with the word the setMotion latch
 computes:
@@ -110,7 +110,7 @@ phase 5: L0 M1 again     word 0x1ff                               <- re-latched,
 ## 3. The bindings, one by one
 
 The viewer's block is `docs/render/monster.js` CLIP_EFFECTS em084_00. It is generated from the file masks. The
-full-block dump (every named bit, `scratchpad/dump084.py`) shows **no body bit outside its file mask that has
+full-block dump (every named bit, `<archive>/dump084.py`) shows **no body bit outside its file mask that has
 events.** L3 M63 bit 4 (u 212) is named but never switched on. So putting em084_00 in PSL_MASK_MONSTERS adds no
 body binding. It only removes or gates the ones below.
 

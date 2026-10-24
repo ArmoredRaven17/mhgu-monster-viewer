@@ -110,7 +110,7 @@ export function detachPartnerEffects(){
 // MORE UNITS OF THE MONSTER'S OWN, EACH ON ITS OWN RUNTIME (Nakarkos's tentacles, board PHASE 3, 2026-10-19): in the game each arm
 // is a unit of its own class (uEmOstgaloaArm) -- its PSL walker reads ITS motion and frame on its own lists, its records come
 // from its own pels and hang from its joints. So each one gets a runtime as the partner's does (attachPartnerEffects), keyed
-// by the attached piece's name, its effects in docs/effects/<piece>.json (efx: <scratchpad>/zg/arm_export.py). index.html
+// by the attached piece's name, its effects in docs/effects/<piece>.json (efx: <archive>/zg/arm_export.py). index.html
 // driveArmEffects makes, feeds and drops them.
 const sideRuntimes = new Map();          // key -> LiveEffects
 const sidePending = new Map();           // key -> token of an attach in flight

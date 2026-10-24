@@ -1,7 +1,7 @@
 # Zamtrios (em067_00) -- effects spec (Amphibians walk, 2026-10-18)
 
 Class `uEm067_00` (vtable `0x17dd730`). States: `states-em067_00.md` and the forms (dev/em067-forms-spec.md), transcribed before
-(c 1105 and the bloated-posture clips included). Scratch: `<scratchpad>/zg/jscheckpd.py` (MOGURI=-2400), `turns.py`, `hit082.py`.
+(c 1105 and the bloated-posture clips included). Scratch: `<archive>/zg/jscheckpd.py` (MOGURI=-2400), `turns.py`, `hit082.py`.
 
 ## 1. The PSL enable word -- vt+0x13c = `0xf772ec` -- R, read whole and emulated
 

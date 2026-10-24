@@ -1,6 +1,6 @@
 # Fatalis / Crimson / Old Fatalis (em013_00 / em013_01 / em013_02) -- effects spec (Elder Dragon walk, 2026-10-18)
 
-One class `uEm013_00` (variant byte e+0xb5f5: 0 / 1 / 2). No states note existed. Scratch: `<scratchpad>/zg/jscheckpd.py` (VAR),
+One class `uEm013_00` (variant byte e+0xb5f5: 0 / 1 / 2). No states note existed. Scratch: `<archive>/zg/jscheckpd.py` (VAR),
 `sweepmot.py`, `states060.py`, `partscr.py`, `scrdump.py`, `pp013.asm`, `pp013b.asm`.
 
 ## 1. The PSL enable word -- vt+0x13c = `0xd8aecc` -- R, read whole and emulated

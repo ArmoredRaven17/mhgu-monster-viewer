@@ -1,7 +1,7 @@
 # Gammoth (em083_00) / Elderfrost Gammoth (em083_04) -- effects spec (Fanged Beasts walk, 2026-10-17)
 
 One class `uEm083_00` (vtable `0x17efaa8`). States: `states-em083_00.md` / `states-em083_04.md` (decode notes), already
-transcribed in motion-states.js before this pass and unchanged by it. Scratch: `<scratchpad>/zg/jscheckgen.py`, `allmot2.py`
+transcribed in motion-states.js before this pass and unchanged by it. Scratch: `<archive>/zg/jscheckgen.py`, `allmot2.py`
 (CLS=uEm083_00), `rec_lod.py`.
 
 ## 1. The PSL enable word -- vt+0x13c = `0x1054b8c` -- R, read whole and emulated
@@ -36,6 +36,6 @@ psl-mask.js `em083` (CLASS_MASK em083_00 / em083_04, PSL_MASK_MONSTERS) + CLIP_A
 Checks dev/checks/em083_00.mjs / em083_04.mjs gained the word asserts and (Elderfrost) the in-page L9 M16 alternation
 (back-to-back plays: index.html counts a clip's plays from 0 again when another clip comes between). Elderfrost's L3 M1
 knock-off asserts assumed the cycle's phase and failed four ways (each arm one late): switching the list to 3 auto-plays L3
-Motion[1], its first clip, which counts one play (debug check `<scratchpad>/zg/dbg083.mjs`). The CHECK was wrong; it now takes
+Motion[1], its first clip, which counts one play (debug check `<archive>/zg/dbg083.mjs`). The CHECK was wrong; it now takes
 four consecutive plays and asserts the set. Checks: **Gammoth 62 / 0, Elderfrost 54 / 0**. Soaks: **Gammoth 80 motions, 0
 refused; Elderfrost 94, 0 refused** (L0 M30 / L2 M21 play; were 2 refused each).

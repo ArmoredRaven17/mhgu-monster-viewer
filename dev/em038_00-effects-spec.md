@@ -39,7 +39,7 @@ here reads the action, the variant, a part break or a charge.**
 Negative with control: the band `0xe5a204..0xe64e24` has exactly two `0x13f4` immediates, both inside this method
 (`0xe62cc0`, `0xe62ce8`); the same scan finds uEm007_00's (`0xd45354`) and uEm033_00's (`0xe3e3cc`) methods.
 
-**Emulated** (`<scratchpad>/ng/emu13c2.py`: unicorn, ARMv8 model, `0x712a0` answered with a MoguriBaseOfs block;
+**Emulated** (`<archive>/ng/emu13c2.py`: unicorn, ARMv8 model, `0x712a0` answered with a MoguriBaseOfs block;
 first reproduced Bloodbath's census words — `0x381ff`, `0x300381c0`, `0x1c01ff`, `0x38e3f`, `0x2381ff` — and Akantor's
 `0xe001ff` / `0x70001ff` / `0x381ff`):
 
@@ -87,7 +87,7 @@ Inputs, and how the viewer supplies each:
 
 ## 2. What the word changes — whole-block plan (153 file-mask bindings -> 156 whole-block)
 
-`<scratchpad>/ng/planrows.py em038_00 [--whole]`. Every binding not listed is on bits 0-5 and stays always-on.
+`<archive>/ng/planrows.py em038_00 [--whole]`. Every binding not listed is on bits 0-5 and stays always-on.
 
 **Turned ON** (outside the file mask today):
 

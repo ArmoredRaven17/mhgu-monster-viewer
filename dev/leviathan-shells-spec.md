@@ -1,9 +1,9 @@
 # Leviathans -- shells spec (shells agent, 2026-10-18)
 
-Census: scratchpad `fb/cen10_em046.txt` / `cen10_em047.txt` / `cen10_em049.txt` / `cen10_em056.txt` / `cen10_em082.txt` /
+Census: <archive> `fb/cen10_em046.txt` / `cen10_em047.txt` / `cen10_em049.txt` / `cen10_em056.txt` / `cen10_em082.txt` /
 `cen10_em082v4.txt` (cengen10: every status x number x phase, each frame-test literal answered alone, the closure per literal),
 plus `fb/cen_heat049r3.py` (Agnaktor with his heat and .dtp opened). Folders READ off the path table (`0x175c3e8` res ->
-`0x159daa0`; scratchpad `shellres.py`). The census answers frame tests only: a shell made on a TIMER (Lagiacrus's sp_25, 1d)
+`0x159daa0`; <archive> `shellres.py`). The census answers frame tests only: a shell made on a TIMER (Lagiacrus's sp_25, 1d)
 does not show in it -- grep the class band for the id immediates before calling a census complete (rom-map trap).
 
 ## 1. Lagiacrus (em046_00) -- DONE
@@ -73,7 +73,7 @@ Ids immediates (`0xe9f3d4..`): 0xe6 sp_00 (base00), 0xe7 sp_01 (base01), 0xe8 sp
 - Maker: L4 M10 (7, 0x6f) f110 modes 0 / 1 / 2, (7, 0x70) 3 / 4 / 5 (no setup field read). One action row (`code 'em046'`) carries
   the spiral and the f160 discharge -- the viewer finds one action per variant.
 
-### 1e. Check instruments added (scratchpad fb/emu_fb.py)
+### 1e. Check instruments added (<archive> fb/emu_fb.py)
 
 `treeDepth` (the child trees past depth 2: sp_00 -> sp_01 -> sp_11 -> sp_01), `slot0Modes` / `slot0Ids` (hit slot 0 held on only
 for those shells: the spiral's 460-move orbit), TOFF base25 / base26; the check's unit-size comparison (+0x60 after the init) and
@@ -85,7 +85,7 @@ for those shells: the spiral's 460-move orbit), TOFF base25 / base26; the check'
 em046_00u 61 (sp_01 0 / 1, L4 M10's discharge at f160) stops the effect runtime, in play and started alone: its generator start
 reaches render/rom/effect/construct.js `generatorFlags`' unread arm `0xae997c` (`[[g+8]+0x118]` bit 27 clear with node block
 +0xbe set: "unverified path: 0xae997c node block +0xbe"). Taken back out of docs/effects/em046_00.json so L4 M10 does not stop
-the viewer's runtime; the shell runs and starts nothing until the arm is read. Re-export with scratchpad `fb/export_plain.py
+the viewer's runtime; the shell runs and starts nothing until the arm is read. Re-export with <archive> `fb/export_plain.py
 em046_00 em046_00u:61` once it is.
 
 ## 2. Royal Ludroth (em047_00) -- DONE
@@ -131,7 +131,7 @@ render/beam-spawns.js), 0x15b / 0x15f sp_13 (the thrown bubbles, base13), 0x160 
 ### 5a. The ids, the census
 
 The ids are FIELDS (`0x1035040`, by e+0xb5f5): e+0xcac0 sp_01, +0xcac4 sp_02, +0xcac8 sp_12, +0xcacc sp_13, +0xcad0 04_26 (variant 4).
-The full census: scratchpad `fb/cen12_em082_00.txt` / `_04.txt` (all 16 statuses; the id fields and the .dtp filled -- cengen10's
+The full census: <archive> `fb/cen12_em082_00.txt` / `_04.txt` (all 16 statuses; the id fields and the .dtp filled -- cengen10's
 FB_POKE). The zero-.dtp census (`cen11_*`) had lost L2 M21's k 9 / 11: the head-break predicate read a zero threshold (rom-map trap 85).
 Two spawns are TIMED and no census shows them: Lagiacrus's sp_25 (1c) and Soulseer's rest flames (5e).
 
@@ -209,7 +209,7 @@ Two spawns are TIMED and no census shows them: Lagiacrus's sp_25 (1c) and Soulse
 
 The Soul Flame control (motion-states.js CLASS_CONTROLS.em082_04 `soulFlame`, the effects lane's; P+0x1bb bit 1, lit by `0x1039320` at
 the rage roars' ends) reaches the shells as input.soulFlame082 (index.html shellExtra). Soulseer only (`e+0xb5f5 == 4` before every
-test of the getter `0x1035ee8`). The arms, by a census with P+0x1bb = 2 against one with 0 (scratchpad fb/runflame.py, cenflame_0 /
+test of the getter `0x1035ee8`). The arms, by a census with P+0x1bb = 2 against one with 0 (<archive> fb/runflame.py, cenflame_0 /
 cenflame_2; cengen11's FB_PPOKE), each site read:
 - (7, 9) L2 M20 f43 / 48 / 56: 188 / 189 / 190 in place of the chooser's k 14..16 -- direct setups (`0x403394`, 0x14 B: +0x10 the tilt
   word from e+0xcb9c, as the chooser's maker), `0x104c4bc` / `0x104c5a0` / `0x104c684`; (7, 0xc / 0x2e) the same at 185..187
@@ -220,7 +220,7 @@ cenflame_2; cengen11's FB_PPOKE), each site read:
 - Nothing lit: the throws (`0x104b15c` / `0x104b338` skip, the maker `0x104a65c` refuses), every 04_26 (`0x104a764`: L2 M69, L2 M38,
   (2, 0x36), the rest's counters), (7, 0) L2 M42, (7, 0x2a / 0x31) L2 M89, (7, 0x64..0x69). Unchanged lit: (7, 1), (7, 0xa / 0x73),
   (7, 0x7d), the trails (no getter in `0x104cdb4` or the makers `0x104a298` / `0x104a840`).
-- THE CLIPS (scratchpad fb/clipphase.py: the motion current at each create's phase, the phases run in order with the motion ended):
+- THE CLIPS (<archive> fb/clipphase.py: the motion current at each create's phase, the phases run in order with the motion ended):
   the status-2 rows were on L2 M39 / M10 / M55 / M58 / M61 / M62 -- the actions' PHASE-0 clips -- and are phase 2's: L2 M40 / M11 /
   M56 / M59; (7, 1) phase 3 L2 M37; (7, 0x68) / (7, 0x69) phase 2 L2 M71 / M72 (now `also` of (7, 0x65) / (7, 0x64)). The ROM checks
   passed before (they call the phase directly); the viewer showed those shells on the wrong clip.

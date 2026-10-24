@@ -3,7 +3,7 @@
 Class `uEm038_00` (action main `0xe62984`). His beams (`uShellEm038_sp_02`) and their children are render/beam-spawns.js /
 beam-types.js's (dev/beams/em038_00.md). The body makes the same child class, **0xce `uShellEm038_sp_00` on base00** (reader
 `0xe63400` params038c, +0x16c / init / landing as the beam children's). Emulator check `dev/shells-ukanlos-check.mjs` (tool
-`<scratchpad>/fb/mk038.py`), 15 / 15. `R` = the consuming instruction read.
+`<archive>/fb/mk038.py`), 15 / 15. `R` = the consuming instruction read.
 
 ## 1. What creates (the census of his reach; the per-frame census finds none)
 

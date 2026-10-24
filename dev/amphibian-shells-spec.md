@@ -118,7 +118,7 @@ next class's starts at +0x164 = `0x17dd730`).
   ef 1 u 40 / 42 (its second phase).
 - shells.js make16 / step16 / end16, the maker spawn066 (`slab066`: the play's first step, the owner as he stands).
 
-### 1e. Check instruments added (scratchpad fb/emu_fb.py, cengen11.py)
+### 1e. Check instruments added (<archive> fb/emu_fb.py, cengen11.py)
 
 - emu_fb `bodydata` {slot: radius}: the resource's BodyDataList (+0xc4) as rBodyData objects (vtable `0x172bd3c`), cleared every flight.
 - emu_fb `rayStart`: `0x183664` with a second point ABOVE the first starts at p.y + max(d, 100) and goes down (the read above); a second
@@ -182,7 +182,7 @@ landings' children are made (shells.js params067s01, efAt all null) and start no
 
 ## 3. The earlier groups' censuses re-run with cengen11 (trap 87's control)
 
-scratchpad fb/recen11.py (20 monsters / variants, all 16 statuses, the .dtp filled, Mizutsune's id fields; uEm062_00 has no class
+<archive> fb/recen11.py (20 monsters / variants, all 16 statuses, the .dtp filled, Mizutsune's id fields; uEm062_00 has no class
 entry in the tracer -- Lagombi is uEm060_00's, already in) and recen11cmp.py (against the earlier census files: cen11r_*.txt). Keys the
 re-run finds that no earlier census had, triaged against shells.js and the specs (Volvidon em062_00 re-run 2026-10-18 on uEm060_00 with FB_EM 62: the
 same census as Arzuros / Redhelm's, every key built or named; em061 is Lagombi / Snowbaron -- the earlier shells specs mislabelled it
@@ -197,7 +197,7 @@ Duramboros / Rustrum, and em062 as Lagombi: corrected, rom-map Withdrawn table):
     fanged-beasts spec (which has (1, 0x39)'s start only). READ 2026-10-18: NOTHING ISSUES (13, 0) -- no action-change call
     (`0x76098` / `0x768c8` / `0x754b8` / `0x75230` / vt+0x3d0) with r1 13 / r2 0 in his band (controls (1, 0x39) `0xde4664`, (13, 1)
     `0xdeca38`), none in shared code, none in his command table at variants 0 / 5 (control (7, 5)), none among the image's 22 script op
-    0xfe changes (control (10, 0x1d)). scratchpad actscan.py. Named, not built.
+    0xfe changes (control (10, 0x1d)). <archive> actscan.py. Named, not built.
 - Found with a frame test too (the earlier census files' format or statuses, not trap 87): Plesioth's beams (beam-spawns.js), Congalala's
   status-3 rows (act021 3:0x3e..), Arzuros-line / Kecha / Gammoth / Duramboros / Agnaktor rows -- each already built or named, except
   **Agnaktor (13, 5) L2 M19 f220 sp_01 0 (`0xec04e8`)**: a hit volume (ef 999) like the (6, 2) / (12, 0) rows the spec names -- named.

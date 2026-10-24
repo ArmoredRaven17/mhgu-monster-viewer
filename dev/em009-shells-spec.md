@@ -1,7 +1,7 @@
 # Gypceros (em009_00) -- his shells (shells agent, 2026-10-20)
 
 Class `uEm009_00`: vtable `0x179c5d8`, action main `0xd5d424`, band `0xd52e04..0xd619c8`.
-* Emulator check `dev/shells-gypceros-check.mjs` (tool `<scratchpad>/fb/mk009.py`): 23 / 23 (18 cases, 4 controls each failing, the
+* Emulator check `dev/shells-gypceros-check.mjs` (tool `<archive>/fb/mk009.py`): 23 / 23 (18 cases, 4 controls each failing, the
   contract). Page 5 / 5.
 * `R` = the consuming instruction read.
 * Code in `docs/render/shells.js`: the GYPCEROS block (`params009s00` .. `SHELL_DATA.em009_00`).

@@ -21,7 +21,7 @@ A record that never started has a named reason.
 
 ## How it was measured
 
-- **The plays** (`<scratchpad>\fb\smfull.mjs`):
+- **The plays** (`<archive>\fb\smfull.mjs`):
   - every clip of the monster whose shells start a record in a node replay of `stepShells`, over every pick of that clip;
   - Tigrex's / Grimclaw's four grounds;
   - every beam row's clip with its partner clips, in a rage pass where the row asks for rage.

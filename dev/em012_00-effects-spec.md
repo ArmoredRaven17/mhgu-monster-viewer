@@ -1,6 +1,6 @@
 # Lao-Shan Lung (em012_00) -- effects spec (Elder Dragon walk, 2026-10-18)
 
-Class `uEm012_00`. No states note existed. Scratch: `<scratchpad>/zg/w012tab.py`, `states060.py`, `partscr.py`, `scrdump.py`,
+Class `uEm012_00`. No states note existed. Scratch: `<archive>/zg/w012tab.py`, `states060.py`, `partscr.py`, `scrdump.py`,
 `ppemu.py`.
 
 ## 1. The PSL enable word -- vt+0x13c = `0xd77ac8` -- R, read whole and emulated

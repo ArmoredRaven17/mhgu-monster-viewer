@@ -11,7 +11,7 @@ Sources opened first: the survey (Gravios: 61 bindings outside the file mask, 15
 `0xc22f8`, the option descriptors; trap 50), docs/render/psl-mask.js whole (Basarios's em004 is this method's other half),
 docs/render/tail-option.js (CUT_TAIL em005_00), motion-states.js (SHELL_PARTS, Gravios's break rows), dev/beams/em005_00.md (the
 head bit), dev/em004-fireball-actions.md (the gas arms), C:\MHGU-RE\offline\decode\notes\states-em005_00.md (parts, .dtp rows,
-the part pass), the task board (u 241 rows; "Khezu + Gravios"). Scratch: `<scratchpad>\kg\` (emu_kg.py, jscheck_kg.py,
+the part pass), the task board (u 241 rows; "Khezu + Gravios"). Scratch: `<archive>\kg\` (emu_kg.py, jscheck_kg.py,
 classify.py, kprobe.py, `g_probe.txt`, the plans, `cls_em005.txt`, `em004band.txt`).
 
 ## 1. The word — uEm004_00 vt+0x13c = `0xd2e0ec`, its em-5 tail `0xd2e35c` — R, emulated
@@ -54,7 +54,7 @@ set 18` (`0xd2431c`), `breakLevel(6) < thr(rows[9], rows[0xa]) ? set 11 : set 12
   bellyBroken: 11 }`, and index.html passes `partsIn.backBroken` / `partsIn.bellyBroken` in the pslMask state. (That the rest
   state reads both groups false, as group 3 does: I — the viewer's rest draw, not the ROM.)
 
-**Emulated** (`<scratchpad>\kg\emu_kg.py`, controls reproduced first — Deviljho `0x381ff` / `0x3f03f` / `0xe3f`, Tigrex `0x1ff` /
+**Emulated** (`<archive>\kg\emu_kg.py`, controls reproduced first — Deviljho `0x381ff` / `0x3f03f` / `0xe3f`, Tigrex `0x1ff` /
 `0x703f`, Basarios L2 M3 (7, 0xa) `0x181ff`, (7, 0x15) enraged `0x600e3f`, L2 M27 (7, 0xd) `0x60001ff`, L0 M7 surface / sunk
 `0x180001ff` / `0x1ff`):
 

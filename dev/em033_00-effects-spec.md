@@ -31,7 +31,7 @@ Extent `0xe3e368..0xe3e3dc` (the `pop`; `0xe3e3e0` / `0xe3e3e4` are unrelated ve
 literal at `0x81db8` (0.9) against `vldr [P+0x5c]`, `movpl r0,#0`. Its meaning "already sunk" is the Basarios row's
 reading (I). Nothing here reads the action, the variant or a part break.
 
-**Emulated control** (`<scratchpad>/emu13c.py`, which first reproduced Bloodbath's published words): L2 M3 intact
+**Emulated control** (`<archive>/emu13c.py`, which first reproduced Bloodbath's published words): L2 M3 intact
 `0xe001ff`, severed `0x70001ff`; L2 M21 enraged `0xe00e3f`; L2 M21 severed + tired `0x700703f`; L0 M2 (posture 0)
 `0x381ff`; L2 M4 / L2 M22 (7,5) severed / L3 M2 severed: `0x1ff`. All as read.
 
@@ -54,7 +54,7 @@ Inputs the viewer must supply:
   depth for.
 * No action input. **He is never tired** (motion-states em033_00, states-em033_00.md 6), so bits 12-14 never fire.
 
-**Per binding, what the word changes** (whole-block plan, `<scratchpad>/planrows.py em033_00 --whole`, 132 bindings;
+**Per binding, what the word changes** (whole-block plan, `<archive>/planrows.py em033_00 --whole`, 132 bindings;
 every one not listed is on bits 0-5 and stays always-on):
 
 | binding | record | game |

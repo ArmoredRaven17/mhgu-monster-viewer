@@ -1,7 +1,7 @@
 # Najarala (em068_00) -- effects spec (Snake Wyvern walk, 2026-10-18)
 
 Class `uEm068_00` (vtable `0x17df180`). No states note existed: the status-10 scripts, the part pass and the eyes were read here.
-Scratch: `<scratchpad>/zg/jscheck068.py`, `tracec.py` (CLS=uEm068_00 EM=68), `pp068.asm` (the part pass).
+Scratch: `<archive>/zg/jscheck068.py`, `tracec.py` (CLS=uEm068_00 EM=68), `pp068.asm` (the part pass).
 
 ## 1. The PSL enable word -- vt+0x13c = `0xf88044` -- R, read whole and emulated
 
@@ -49,7 +49,7 @@ each motion with the wrapper (`via`); `OLD=1` restores the old five. `sweepmot.p
 0 / 1, follows 1) and `sweepev.py` (U1400 / SCRIPT / TURN events) were run old and new over every class walked with the tracer
 (35 class / variant runs: em057_00 / 04, em021, em022, em023_00 / 05, em030, em060_00 / 04, em062, em061_00 / 04, em065, em083_00
 / 04, em010, em017, em036, em046, em047, em049, em056, em082_00 / 04, em066_00 / 04, em067, em068, em070, em019_00 / 04, em020_00 /
-04, em069, em076). Output: `<scratchpad>/zg/sweep/`.
+04, em069, em076). Output: `<archive>/zg/sweep/`.
 
 Motion diff lines: **0** for every class except em047_00 **6** ((7, 0x19..0x1b): the partner layer of `0xb0004`, L2 M16 / M5 /
 M4 -- no word arm, row or CLIP_ACTIONS entry on them), em068_00 **18** (0xb0230 / 0xb00b4 / 0xb0174: L0 M11 / M38 / M16 / M21, L2

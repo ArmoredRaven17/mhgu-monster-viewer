@@ -3,7 +3,7 @@
 Raven, 2026-10-17: "resume checking groups again ... for their effects implementations". One class, `uEm057_00`, vtable
 `0x17ca8ec` (getDTI `0xf02f7c` once in main.data -- no `uEm057_04`; Thunderlord is the variant byte `e+0xb5f5 == 4`).
 Starting point: dev/remaining-classes-effects-survey.md (rows 1-2, Fanged Wyvern). `R` = READ (consuming instruction
-read), `I` = INFERRED, `NR` = NOT READ. Scratch (session-local): `<scratchpad>/zg/` -- `word.asm` (the method),
+read), `I` = INFERRED, `NR` = NOT READ. Scratch (session-local): `<archive>/zg/` -- `word.asm` (the method),
 `jscheck057.py` (unicorn vs the transcription), `trace.py` / `allact.py` / `disch.py` / `hook204.py` (action tracer),
 `bindtable.mjs` (every binding against the live word), `plan_<mon>_{file,whole}.txt`.
 
@@ -283,7 +283,7 @@ Thunderlord's default-rung u 42 never showed.
 
 * **(1, 5) and the catch (9, 1 / 2): no literal issuer anywhere read.** A word-by-word scan of every `b` / `bl` to the
   change family (`0x768c8 / 0x76a40 / 0x7699c / 0x75230 / 0x76098 / 0x754b8 / 0x76088 / 0x76094 / 0x7fba0`) with r1 / r2 from
-  the 30 instructions before (`<scratchpad>/zg/issuers.py`): the class band `0xeeb620..0xf0523c` -- 43 calls, control: the
+  the 30 instructions before (`<archive>/zg/issuers.py`): the class band `0xeeb620..0xf0523c` -- 43 calls, control: the
   five (1, 4) sites, (8, 0) at `0xef74a0`, (1, 0x15) at `0xeff114` -- and the shared enemy layer `0x40000..0xc9000` -- 75
   calls, (10, 0x9a), (11, 0x1b) ... -- name no (1, 5) and no status 9; nor does a dynamic census (`follows.py`: every handled
   action, both variants, phases 0..5, frame tests 0 / 1, charged 0 / 1 -- control: it finds (1, 4) from (1, 0x2c / 0x2d),

@@ -1,7 +1,7 @@
 # Seregios (em077_00) -- his bladescales, shell28 0x13e on base28 (shells agent, 2026-10-19)
 
 Class `uEm077_00` (vtable `0x17e7c08`, action main `0xfdb030`, band `0xfda074..0xfee13c`). Emulator check
-`dev/shells-seregios28-check.mjs` (tool `<scratchpad>/fb/mk077s28.py`), 38 / 38 (29 cases, 8 controls each failing, the contract);
+`dev/shells-seregios28-check.mjs` (tool `<archive>/fb/mk077s28.py`), 38 / 38 (29 cases, 8 controls each failing, the contract);
 page 5 / 5. `R` = the consuming instruction read. His shell01 0x13c (base01, the frame handler's c 30 / c 32) is
 dev/em077_00-effects-spec.md 7 and dev/shells-seregios-check.mjs; shell27 0x13d is not built (no maker in his reach: the census
 finds only 0x13c / 0x13e).
@@ -10,7 +10,7 @@ finds only 0x13c / 0x13e).
 
 Every maker: `0x411068(0x24)` (cSetupParamEmBase28), +4 0x13e, +8 the mode, +0xc the owner, +0x10 the DEGREE INDEX (into the shell's
 common vecs), +0x14 `[ctl+0x7c]` (a u16 the action's phase 0 draws, `0x16b4b4`; base28's init does not read it), +0x18 0, +0x1c the AIM
-byte, +0x20 the CLAMP INDEX; `0x48b884` at once. Found by trgen (`<scratchpad>/fb/s28cap5..12.py`): every action with phase 0 run first
+byte, +0x20 the CLAMP INDEX; `0x48b884` at once. Found by trgen (`<archive>/fb/s28cap5..12.py`): every action with phase 0 run first
 and its ctl / block carried into phases 1 / 2, each frame test answered alone; the `.dtp` rows poked and `0x9d36c` answered 0 / 2
 (FB_WATCH naming the part each site asks); rank 0..7, rage x tired, the sever.
 

@@ -20,7 +20,7 @@ Stonefist's sp_00 has (999, -1) in every mode.
 **uEm020_00, vt+0x158 0xdc3e8c.** e+0xcad8 holds sp_02 (0x9e, variant 4 0xa0). Variant 4 also registers sp_01 0x9f.
 
 **The censuses.** cengen11 ran over all 16 statuses, for both variants of each class. A second pass poked the id fields
-with distinct ids so each create could be told apart (scratchpad fb/cen019ids.txt). Only these sp_01 creates draw anything;
+with distinct ids so each create could be told apart (<archive> fb/cen019ids.txt). Only these sp_01 creates draw anything;
 every other create is a hit volume with (999, -1):
 
 - **Stonefist (7, 0xf2)** (fb/phq.py):

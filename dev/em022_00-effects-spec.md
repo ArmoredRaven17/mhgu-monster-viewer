@@ -1,7 +1,7 @@
 # Blangonga (em022_00) -- effects spec (Fanged Beasts walk, effects agent, 2026-10-17)
 
 Class `uEm022_00`, vtable `0x17b1254`. From dev/fanged-beasts-effects-survey.md row 2 (enable word first-looked only; c 40 /
-41 / 42 unexported; c 1105 and u 1400 "undriven"). Scratch: `<scratchpad>/zg/jscheck022.py`, `tracec.py`.
+41 / 42 unexported; c 1105 and u 1400 "undriven"). Scratch: `<archive>/zg/jscheck022.py`, `tracec.py`.
 
 ## 1. The PSL enable word -- vt+0x13c = `0xdda5ac` -- R, read whole and emulated
 
@@ -34,6 +34,6 @@ No `b` / `bl` to `0xa499c` in his band (survey scan; control: Bulldrome's `0xe1e
 code -- eleven classes (uEm010, 017, 019/020, 045, 049, 055, 056, 066, 067, 068, 069), each before its posture-4 dive or roll;
 the ctor `0x71878` zeroes the word; the shared layer raises bits 21-22 only (`0x8fc28`, `0x90e5c`, `0x91ed4`). Blangonga's band
 writes `e+0x1404` three times: bit 18 (`0xdda514`) and bit 19 (`0xddbca0`, `0xddc25c`). Dynamic census of his action main
-(`<scratchpad>/zg/latchdyn.py`, every status x number x phase x ended): bit 19 only, 8 cases; control, Uragaan the same way:
+(`<archive>/zg/latchdyn.py`, every status x number x phase x ended): bit 19 only, 8 cases; control, Uragaan the same way:
 bit 20 on (6, 3) / (6, 6). So the latch never opens for him and nothing requests u 1400 -- not a gap. (The earlier wording,
 "a one-shot latch the viewer does not model", is withdrawn: rom-map's sweep row.)

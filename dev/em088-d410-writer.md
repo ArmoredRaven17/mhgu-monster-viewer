@@ -1,8 +1,8 @@
 # Ahtal-Ka (em088_00) -- the writer of `e+0xd410` (and `e+0xd440`, `e+0xd408`)
 
 Research agent for the Viewer agent, 2026-10-15. Static reads of `main.text` plus ROM-runs on unicorn
-(`<scratchpad>\ak\emu88b.py`, the class band and the shared layer native). Scripts in `<scratchpad>\d410\`
-(this session's scratchpad: `symscan.py`, `rawimm.py`, `dyn.py`, `slotpts.py`, `formula.py`, `callers.py`, `ad.py`).
+(`<archive>\ak\emu88b.py`, the class band and the shared layer native). Scripts in `<archive>\d410\`
+(<archive>: `symscan.py`, `rawimm.py`, `dyn.py`, `slotpts.py`, `formula.py`, `callers.py`, `ad.py`).
 
 ## 1. The answer
 

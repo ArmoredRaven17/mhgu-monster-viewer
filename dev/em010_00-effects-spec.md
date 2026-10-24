@@ -2,7 +2,7 @@
 
 Class `uEm010_00` (vtable `0x179e2b8`). States: `states-em010_00.md` (transcribed in motion-states.js before this pass; the
 shock trap's c 1105 fourth arm of L3 M2 was already wired 2026-10-15). Survey: dev/amphibians-piscine-effects-survey.md.
-Scratch: `<scratchpad>/zg/jscheckpd.py`, `allmot2.py`, `depth010.py`, `latch*.py`, `latchdyn.py`.
+Scratch: `<archive>/zg/jscheckpd.py`, `allmot2.py`, `depth010.py`, `latch*.py`, `latchdyn.py`.
 
 ## 1. The PSL enable word -- vt+0x13c = `0xd6bbc8` -- R, read whole and emulated
 

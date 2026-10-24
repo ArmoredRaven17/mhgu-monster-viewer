@@ -12,7 +12,7 @@ enable word per class" row uEm055_00 `0xede150` UNREAD; the uEm055_00 section: "
 "(1, 2) the rage entry" are both corrected here), docs/render/psl-mask.js whole, motion-states.js (MOTION_STATES em055_00 and
 its comment block, RAGE_PUFF, TIRED_DROOL, the em045 rows' stun idiom), docs/render/rom/effect/live.js + schedule.js (how
 RAGE_PUFF is consumed), effect-mounts.json `_about_autoOnRage` / `_autoOnRage`, states-em045_00.md §5.3 / §6.1 / §6.2 (the
-shared puff and stun machinery, Uragaan's), the task board (grep Duramboros: no read of these). Scratch: `<scratchpad>/bw2/`
+shared puff and stun machinery, Uragaan's), the task board (grep Duramboros: no read of these). Scratch: `<archive>/bw2/`
 (`emu_bw.py`, `emu_fast.py`, `jscheck.py`, `sweep.py`, `s10.py`, `turntab.py`, `who.py`, `motsites.py`, `blscan.py`, `recs.py`,
 `dura.txt`, `s10_dura.txt`, `emc055_all.txt`, the plans).
 

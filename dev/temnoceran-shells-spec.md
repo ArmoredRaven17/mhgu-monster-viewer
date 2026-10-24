@@ -2,7 +2,7 @@
 
 Shells agent, 2026-10-18. Read from the ROM and transcribed in `docs/render/shells.js` (the NERSCYLLA block). Checked by
 `dev/shells-nerscylla-check.mjs`: 24 / 24 against the ROM's own runs, with every control failing, and the page check
-10 / 10. The scratchpad tools named below live in the shells agent's scratchpad `fb/`.
+10 / 10. The scratchpad tools named below live in <archive> `fb/`.
 
 ## 1. The classes
 

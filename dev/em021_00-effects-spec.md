@@ -3,7 +3,7 @@
 Class `uEm021_00`, vtable `0x17afde4`, action main `0xdd8068`, module band `0xdce690..0xdd9c64`. From
 dev/fanged-beasts-effects-survey.md row 1 (11 bindings outside the file mask; c 150-153 c 190 c 191 c 40 u 241 u 261-263
 u 281 not exported; c 1105 on the paralysis hold). `R` = READ, `I` = INFERRED, `NR` = not read. Scratch (session-local):
-`<scratchpad>/zg/jscheck021.py`, `tracec.py` / `allmot.py` (the tracer, any class: env CLS / EM), `plan_em021_00_*.txt`.
+`<archive>/zg/jscheck021.py`, `tracec.py` / `allmot.py` (the tracer, any class: env CLS / EM), `plan_em021_00_*.txt`.
 
 ## 1. The PSL enable word -- vt+0x13c = `0xdd7cf4` -- R, read whole and emulated
 

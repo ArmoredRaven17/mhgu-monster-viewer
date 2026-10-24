@@ -12,7 +12,7 @@ here with its control. **GU-only** marks what is this build's (the Switch ARM co
 enemy / block structs); everything else is likely shared MT engine. Detail lives in dev/rom-map.md (the row named) and the specs;
 this is where to start, not a copy.
 
-Instruments named below (all in the effects scratchpad or efx/): `tracec.py` / `sweep2.py` / `deep.py` (the action main under
+Instruments named below (all in the effects scratchpad, now archived at `<archive>` -- see rom-map "2. Tooling" -- or in efx/): `tracec.py` / `sweep2.py` / `deep.py` (the action main under
 unicorn), `reqtrace.py` (request census by action), `jscheckpd.py` / `wordsweep.py` / `wordclip.py` (the enable word against its
 transcription), `vecdrawsched.py` / `vecprim.py` / `rec_shellrec.py` (the recorders) and `lift-effects.sh` (the lift that turns
 recorded blocks into docs/render/rom/effect/lifted-*.js). rom-map's tooling table has each one's control.
@@ -221,6 +221,52 @@ recorded blocks into docs/render/rom/effect/lifted-*.js). rom-map's tooling tabl
 - **Trap (viewer):** a seek's hard release is not a game event. Releasing a running particle generator walks its destructor's
   free-list arm (`0xa55ea8` -> `0xa55f20`), which only a recording of that release covers (rom-map trap 115).
 
+## E20. The row EXCLUSION arm (doc audit 2026-10-24: index entry; the reads are 2026-09-29/30)
+
+- **(a)** Besides the two inclusion masks of E17 (a row builds when `(w00 & MASK1) && (w04 & MASK2)`), a row is SKIPPED when
+  `(effect byte +0x116 | a runtime singleton's +0x228) & row[+4]`. The +0x116 byte is AUTHORED data (read off a resource stream by
+  a large loader), not a runtime state; which resource carries it is unread. MASK1 / MASK2 reach the unit through the parameter
+  block: payload +0x48 / +0x4c -> block +0x88 / +0x8c -> unit +0x1c8 / +0x1cc (a parent overwrites +0x8c).
+- **(b)** exclusion `0x9bb904..0x9bb934` (rows: `[[effect+0xf4]+0x70]` stride 0x44, masks `[[effect+0xf4]+0x68]` stride 0x10);
+  inclusion `0x9bb954..0x9bb974`; mask writer `0x9ba670`; loader `0x345d84` (`0x349e44`); copy on clone `0x352b00`; singleton
+  `0x183b9ec` -> `0x211f554`; block hand-off `0x31bf5c` / `0x31bf80`, `0x32a2e8`. Rows: rom-map "Row gate (Effects lane)";
+  dev/row-exclusion-gate-0x9bb904.md.
+- **(c)** Find the row walk (E17's) and read BOTH arms; the exclusion is the `tst` against a byte OR-ed from the effect and a
+  global. INFERRED for 3U / 4U: the same two-mask + exclusion shape (unchecked). **Trap (GU tool):** proof.js `proofStart` and
+  efx/proof.py read the masks at block +0x58 / +0x5c, which are not the masks (board 3916-3920).
+
+## E21. Who issues an action: the command-table (EMC) interpreter (doc audit 2026-10-24: index entry)
+
+- **(a)** A monster's AI is a byte-coded command table (`<em>_cmdtbl.emc`, groups g0.. of streams s0..). The interpreter walks a
+  stream; op `00 st n` issues action (st, n); BLOCK ops (switch / if) carry a mode byte (00 open, 01 case, 02 else, ff close);
+  switches test awareness, posture, distance, percentage draws and class callbacks. An action that no stream issues, no class
+  code changes to and no script op (`0xfe`) names is a NAMED refusal, not a gap -- every negative here was a full census with a
+  control (rom-map "Seltas duo", "Elder Dragons -- the shells" (7, 0x32) row).
+- **(b)** op dispatch `0x836f0 + [0x836f0 + 4 o]` (`0x836e4..0x836ec`); op 00 `0x8456c` -> `0x754b8` -> `0x76098`; the case compare
+  `0x8e088`; latch bytes e+0x73f0 / 0x73f3 / 0x73f4 (+0xba52). Rows: rom-map "EMC ops -- the shared table" (every op, its handler
+  and its "no hunter" answer); tools `emcfind.py` / `emcacts.py` / `fb/emc023.py` (rom-map tooling).
+- **(c)** The .emc file format is the entry point (INFERRED shared by the MT titles with these tables: check 3U / 4U files for the
+  same group / stream / op layout before reusing a parser). Find the interpreter by its op jump table (a word table indexed by the
+  op byte) and op 00's call into the shared setAction. **Trap (method):** a stream can issue the same action in two branches
+  (rom-map trap 143); evaluate op 0x92 / selector splits, do not grep for the bytes alone.
+
+## E22. Motion length, layers and the unit's own motion (doc audit 2026-10-24: index entry)
+
+- **(a)** A motion's frame count is the `.lmt` block's `numFrames` (+0x08; `loopFrame` +0x0c), and a PSL block's frame count is
+  exactly that; an exported glb clip ends at its last KEYFRAME, so it can be shorter -- test "is the viewer playing this motion"
+  against the `.lmt`, never the clip length. The schedule walks real frames. A model plays up to several motion LAYERS: slot 0
+  writes every joint, later slots only the joints their clip tracks (blend, or additive by an attribute bit); setMotion resets the
+  blend. A unit's position is integrated by the shared mover (pos += dt R v + dt^2 R a / 2), and R turns only in some postures.
+- **(b)** `.lmt` v67 (`build/frag/motion-audit/lmt.py`); compositor `0x953ad8` (slots model+0x4b0, 0x140 B, count +0x4a4),
+  property table `0x94cf68`, setMotion `0x951678` (blend reset `0x95173c`); vt+0x78 -> `0x72630`; the second-slot users (Valstrax,
+  Nakarkos, Ahtal-Neset only); integrator `0x7a820` (`0x7a994..0x7aa98`, posture mask 0x76); layer length hold / clamp `0x725fc` /
+  `0x72714`. Rows: rom-map "The viewer's clip duration is NOT the motion's length", "Action dispatch and the per-frame trigger",
+  "Shared enemy / command layer".
+- **(c)** The `.lmt` header is the portable anchor (INFERRED: same LMT family in 3U / 4U; FU is not MT Framework). The compositor
+  is the uModel::Motion property table's owner (find the "mMotionNo" / "mBlend" property names). **Trap (method):** a frame
+  test past the layer's held end never passes (gapI: em027_00 c 30 never fires in the game) -- check the hold before calling a
+  row missing.
+
 ## The shell engine (shells lane, 2026-10-18)
 
 Written to carry over to other MT Framework builds (3U, 4U, FU, ...). For each mechanism: (a) what it is, (b) GU's addresses, (c) how
@@ -310,7 +356,7 @@ init, in order. The spec holds the rest.
 
 ### 4. Finding what a monster makes: the census and its blind spots
 
-- **Method** (scratchpad fb/; GU tools):
+- **Method** (<archive> fb/; GU tools):
   - `cengen11.py` / `rungen11.py` -- every action x phase of the class's main under unicorn (`trgen.py`: the band native, every call
     outside it stubbed); each frame test answered alone; the landing answered; creates recorded with their setups.
   - `rungen11k.py` -- the same with class bytes poked (block P+.., the class block [e+0xcac0]+..).
@@ -400,7 +446,7 @@ init, in order. The spec holds the rest.
     - P: Rathian's L2 M5 fireball lights pixels.
     - N1: with the camera turned away it lights nothing, but does when aimed at.
     - N2: with textures withheld no mesh shows, and the reason is named.
-  - The survey: <scratchpad>/metersurvey.mjs (every clip with records on every monster, both runtimes, calm then enraged) and
+  - The survey: <archive>/metersurvey.mjs (every clip with records on every monster, both runtimes, calm then enraged) and
     msreport.py.
 - **(c)** Elsewhere: wherever the engine draws, count what one request's units submit through the whole draw path alone (the
   batching layer's flush included). Then render those draws alone and count the pixels that change against a mid-grey
@@ -511,7 +557,7 @@ init, in order. The spec holds the rest.
 - **(c)** Elsewhere: before calling a mode-4 record missing, put the hunter inside its payload `+0x58`. A start that never makes a
   unit is the range test, not the schedule.
 
-## The shells' hunter contact (contact type 2) -- shells agent, 2026-10-22 (READ: scratchpad gapM/RESULT.md; rom-map 'Shell infrastructure')
+## The shells' hunter contact (contact type 2) -- shells agent, 2026-10-22 (READ: <archive> gapM/RESULT.md; rom-map 'Shell infrastructure')
 
 Portable to every MT-framework MH (3U / 4U / FU use the same hit manager shape):
 - **Type 2 is a latch, not a callback.** The hit manager's per-frame move 0x16a6ac steps every registered slot (0x168d30), builds
@@ -553,7 +599,7 @@ the shape-type byte 3 the builders leave, and the hunter pass's three-way switch
   the static initialiser `0x7c4708..0x7c473c` -- a harness must run the initialisers or that branch reads zeros); else beside the
   SIDE (normal from the axis point, point on the surface, distance |d| - R, `0x7dcf0c`); else near an END (the nearer end's disk,
   `0x8069d8`, then the face or the rim through `0x7db964`, `0x7dd320..0x7dd380`).
-- **Transcription**: docs/render/hit-type3.js, generated line by line from main.text by `<scratchpad>/t3/arm2js.py` (one statement
+- **Transcription**: docs/render/hit-type3.js, generated line by line from main.text by `<archive>/t3/arm2js.py` (one statement
   per instruction, its address the label; f32 registers, unfused vmla / vmls, the FPSCR flags apart from the APSR until vmrs).
   Bit-exact against the ROM on 1537 cases (t3diff.py / t3hunt*.py -> t3diff.mjs), including the axis through the cylinder, rims,
   parallel and degenerate axes. The same method transcribes any other float leaf routine: generate, then diff against the ROM on

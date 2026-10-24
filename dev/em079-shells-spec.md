@@ -5,7 +5,7 @@ effects."* Every record his class exports was already driven; what was missing w
 `SHELL_DATA` entry. Transcribed: `docs/render/shells.js` (`SHELL_DATA.em079_00` / `.em079_04`, `shell079`, `actions079`,
 `PERFRAME079`, `params079s01`, `params079s00`, base40 `params40` / `make40` / `push40` / `end40` / `step40`, `spawn079`,
 `perFrame079`, `pickVariantsFor`'s `op1c`). Map rows: `dev/rom-map.md` "Malfestio / Nightcloak -- the shells".
-Scratch (disassembly, resolvers, file dumps): `<scratchpad>/m079/` -- `band.txt` (word sweep of `0xfee698..0xffe0dc`),
+Scratch (disassembly, resolvers, file dumps): `<archive>/m079/` -- `band.txt` (word sweep of `0xfee698..0xffe0dc`),
 `cases.py` (a status table's cases to (function, r1, r2)), `motmap.py`, `shl.py` (.shl modes with their FUPs), `hit.py`.
 
 Status words: **R** = the consuming instruction read; **I** = inferred; **NR** = not read.
@@ -172,7 +172,7 @@ deg, vz 10. A clamp range other than 0..0 would need the aim (its point under bi
 
 ## 8. Verified headless (2026-10-15)
 
-`<scratchpad>/m079/probe3.js` through `probe.mjs` (the live viewer, the Enraged toggle where the form needs it), shots in
+`<archive>/m079/probe3.js` through `probe.mjs` (the live viewer, the Enraged toggle where the form needs it), shots in
 `dev/shots/m079/`: every row above spawned its shell and its effect started -- em079_00: L2 M17 u 1 (shell31 2) /
 `p3_m00_L2M17_u1_front`, L2 M18 u 1 (shell31 3, swept) / `m00_L2M18_sweep`, L2 M14 / M15 / M35 / M12 enraged u 20 (shell01 8 / 9
 / 4 / 5) and L2 M12 u 21 (6) / `p3_m00_L2M14_u20`, `p3_m00_L2M12_u21`, `p3_m00_L2M35_u20`, L2 M43 u 20 (7) / `p3_m00_L2M43_u20`,

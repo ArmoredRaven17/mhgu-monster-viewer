@@ -43,7 +43,7 @@ class-effects.json's `0xfef344..0xffd1e4`) has exactly one `0x13f4` immediate, `
 immediate `0x13f4`. The same scan over uEm077_00's band finds its two (`0xfee0b4`, `0xfee118`) and over uEm084_00's its three
 (`0x106cb44`, `0x106cb54`, `0x106cb98`).
 
-**Emulated** (`<scratchpad>/mm/emu13c_mm.py`: emu13c.py plus the variant byte e+0xb5f5; case = motion:status:number:sever:
+**Emulated** (`<archive>/mm/emu13c_mm.py`: emu13c.py plus the variant byte e+0xb5f5; case = motion:status:number:sever:
 rage:tired:variant):
 
 | case | word |
@@ -104,7 +104,7 @@ so the clip needs a CLIP_ACTIONS entry (§2).
 
 ## 3. What the word changes — whole-block plan (equal to the file-mask plan, 121 / 134 rows)
 
-`<scratchpad>/ng/planrows.py em079_0X [--whole]`. Every binding not listed sits on bits 0-5 and stays always-on.
+`<archive>/ng/planrows.py em079_0X [--whole]`. Every binding not listed sits on bits 0-5 and stays always-on.
 
 **Turned ON**: none (whole = file, row for row).
 

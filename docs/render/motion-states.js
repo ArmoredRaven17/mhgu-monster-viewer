@@ -5846,7 +5846,7 @@ const NERSCYLLA_B5 = {
   '4|30': [[0, 'set', 0x10], [14, 'set', 0], [32, 'set', 0x10]], '2|75': [[0, 'set', 0]], '2|76': [[0, 'set', 0]],
 };
 // THE GORE LINE'S RING FILLS (CLASS_TIMERS em071_00 / em071_05 / em072_00; schedule.js ringFill holds the ring). Every fill site
-// of 0xfc05ec, traced over every action x phase x gates x rage x tired x variant (<scratchpad>/zg/goretrace.py, sinf / cosf answered,
+// of 0xfc05ec, traced over every action x phase x gates x rage x tired x variant (<archive>/zg/goretrace.py, sinf / cosf answered,
 // the yaw checked at 0x4000) and placed on its clip by the phase that plays it (actmot.py / the handlers' phase tables, READ):
 // [frame, [x, y, z] in his frame (x to the side, z ahead; rotated by P+0x54 as each site does, NOT scaled), s0, s1, flag, actions].
 // Frame 0 = at the clip's start (the phase change that sets it). `notV5`: Chaotic's (variant 5) arm of 0xfb63d0 takes the damage

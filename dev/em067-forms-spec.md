@@ -5,7 +5,7 @@ parts, turns them back on when it exits the blob form. Also, ensure we use the c
 animations. Then ensure Zamtrios is on the grid floor accordingly."* and *"ensure we follow the ROM, don't take my word for
 everything"*. Tags: **R** = the consuming instruction read; **E** = ROM-run (unicorn) on read code; **I** = inferred;
 **NR** = not read. Built on `C:\MHGU-RE\offline\decode\notes\states-em067_00.md` (the note), which this re-reads where it
-matters and CORRECTS in four places (section 5). Scratch (session-local): `<scratchpad>\z67\` -- `jt.py` (0xf76088's two
+matters and CORRECTS in four places (section 5). Scratch (session-local): `<archive>\z67\` -- `jt.py` (0xf76088's two
 motion jump tables + its window literals), `fq.py` (the frame query 0xb0968 -> 0x72714 run natively, every mode used),
 `zphase.py` / `zturn.py` / `zheight.py` (the action main 0xf75e20 at every phase x form x stub-return: every motion /
 turn table / posture / height call an action reaches), `emcform.py` / `emcpathH.py` (the .emc walked with the form as
@@ -215,7 +215,7 @@ wins). A one-rung table (`calm: [S]`) therefore always yields S -- the way to pu
     const Z_ARMOUR = { sets: [0, 10, 11, 12, 13], tables: Z_ICE_BRK };   // form 1: body + mouth + body / arm ice
 
 (Z_NOICE_BRK own parts 20 / 12 / 18; Z_ICE_BRK own parts 20 / 12 / 18 -- the Broken options at every rung, checked
-against the .mpm sets.) **Checked in node** (`<scratchpad>\z67\rowtest.mjs`: the viewer's own `MotionStates.step` +
+against the .mpm sets.) **Checked in node** (`<archive>\z67\rowtest.mjs`: the viewer's own `MotionStates.step` +
 `showParts` on monsters.json's sets, at each rung's user parts, tail intact and broken): L4 M1 / L3 M103 draw
 `0, 8, 10, 100, 101` + the user's breaks (tail 20 when broken), no ice, at every rung; L4 M2 f0..119 the normal body +
 every ice group, f120..129 the balloon + ice, f130 the balloon alone (tail forced 19 -- 3.4); L4 M3 set 31 to f373, the

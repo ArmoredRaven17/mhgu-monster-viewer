@@ -14,13 +14,13 @@ refusal on L0 Motion[76] "0x9b76e4 falls into unrecorded code" (alive: em032_00c
 So his word is bits 0-5 always plus one state group (6-8 calm, 9-11 enraged, 12-14 tired and calm), and **no bit
 15-31 ever fires** on any Tigrex or Grimclaw motion. No action, part, variant or posture input.
 
-Emulated control (`<scratchpad>/emu13c.py` on vtable `0x17b8748`): L2 M10 calm `0x1ff`; (7,5) severed + enraged
+Emulated control (`<archive>/emu13c.py` on vtable `0x17b8748`): L2 M10 calm `0x1ff`; (7,5) severed + enraged
 `0xe3f`; L9 M15 tired `0x703f` — the base words exactly.
 
 **For psl-mask.js:** `const em032 = () => 0;` and `CLASS_MASK.em032_00 = em032` (Grimclaw `em032_04` the same
 function — one class, no variant test because there is no override); add both to `PSL_MASK_MONSTERS`.
 
-**Per binding** (whole-block plan, `<scratchpad>/planrows.py em032_00 --whole`, 149 bindings): every Tigrex
+**Per binding** (whole-block plan, `<archive>/planrows.py em032_00 --whole`, 149 bindings): every Tigrex
 binding is on bits 0-4 (78 b0, 44 b1, 21 b2, 4 b3, 2 b4), so the word changes exactly two things:
 
 | binding | record | game |

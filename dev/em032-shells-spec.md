@@ -542,7 +542,7 @@ resolved, and the keys 70-79 / 120-125 above belong to it. §7 gap.
 ## 8. Tigrex built (shells agent, 2026-10-19) -- what the ROM fires, and what the viewer now does
 
 Read for the Flying / Brute / Bird build. `R` = the consuming instruction read; emulator check `dev/shells-tigrex-check.mjs`
-(tool `<scratchpad>/fb/mk032.py`), 18 / 18. **Several statements above are superseded here; rom-map's Withdrawn table names them.**
+(tool `<archive>/fb/mk032.py`), 18 / 18. **Several statements above are superseded here; rom-map's Withdrawn table names them.**
 
 ### 8.1 What creates on Tigrex
 
@@ -652,7 +652,7 @@ gravity alone reads it), the owner 1 along x -- each fails. Page 5 / 5 (L2 M5 sh
 
 ## 9. Grimclaw built (shells agent, 2026-10-19)
 
-The class at variant 4. Emulator check `dev/shells-grimclaw-check.mjs` (tool `<scratchpad>/fb/mk032g.py`), 21 / 21. §7 items 1 (his
+The class at variant 4. Emulator check `dev/shells-grimclaw-check.mjs` (tool `<archive>/fb/mk032g.py`), 21 / 21. §7 items 1 (his
 sp_01 body) and 9 (his "second list") are closed here; §5d's L9 reading stands (list 9 is his alone).
 
 ### 9.1 What creates on him (the census of his reach + the per-frame census)

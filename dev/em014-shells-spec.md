@@ -6,7 +6,7 @@ reach no shell.
 Emulator checks:
 * `dev/shells-iodrome-check.mjs`: 9 / 9 (6 cases, 2 controls, the contract).
 * `dev/shells-giadrome-check.mjs`: 9 / 9.
-* Tool `<scratchpad>/fb/mk014.py <mon>`. Page 3 / 3 each.
+* Tool `<archive>/fb/mk014.py <mon>`. Page 3 / 3 each.
 
 Code in `docs/render/shells.js`, the IODROME / GIADROME block. `R` = the consuming instruction read.
 

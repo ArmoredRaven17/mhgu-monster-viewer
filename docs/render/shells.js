@@ -2563,7 +2563,7 @@ SHELL_DATA.em084_00.cannon084 = [
 // dev/em084-shells-spec.md 1 / 5 / 6 / 8, READ; the arm requests 0x107cb9c / 0x107cc68, sp_13's reader / landing and the
 // base13 paths his flags take were read 2026-10-06 for this phase -- dev/rom-map.md "Nakarkos -- the tentacle-form shells,
 // phase 1"). Every one of these .shl lists em084_00u then em084_00u_r, so ef list slot 1 = em084_00u_r -- BOTH arms' shells
-// name u_r keys (never u_l). The files' values, em084_00.arc shell\em\em084_00_shellNN (scratchpad naka_shells/arcmodes.json
+// name u_r keys (never u_l). The files' values, em084_00.arc shell\em\em084_00_shellNN (<archive> naka_shells/arcmodes.json [not archived: gone from the scratchpad before the 2026-10-24 archive]
 // and hitdump.py): only the modes arm (7, 0x1b) Motion[93] and its second generation reach.
 SHELL_DATA.em084_00.lists[1] = { list: 'u_r', pel: 'em084_00u_r' };
 // shell01: global id 0x16d, uShellEm084_sp_01 (vtable 0x17f6a94), base01 by the setup DTI; its own reader 0x10891dc
@@ -2838,7 +2838,7 @@ SHELL_DATA.em084_00.records084 = {
 // dev/em081_04-effects-census.md group D, the spec dev/em081-shells-spec.md, READ statically and emulated; dev/rom-map.md
 // "Boltreaver -- his shells"). Class uEm081_00, variant byte +0xb5f5 = 4: ids 0x150..0x157 (0x1019c1c, vt +0x158). Every .shl
 // of his names em081_04u (list 0); shell01's alone names em081_00c second (list 1: c 30 / 31 / 32). The files' values,
-// em081_04.arc shell\em\em081_04_shellNN (the spec's shldump2.py; scratchpad bolt_shl.txt). Until 2026-10-08 this entry was
+// em081_04.arc shell\em\em081_04_shellNN (the spec's shldump2.py; <archive> bolt_shl.txt). Until 2026-10-08 this entry was
 // the bare beams-only one the loop above makes (his beams stay render/beam-spawns.js rows).
 SHELL_DATA.em081_04.name = 'Boltreaver Astalos';
 SHELL_DATA.em081_04.lists[1] = { list: 'c', pel: 'em081_00c' };
@@ -2969,7 +2969,7 @@ SHELL_DATA.em081_04.shells.shell01_02 = {
   hitdata: [[0, 500], [0, 999], [0, 999]],
 };
 // HIS ACTIONS' SHELLS (spec 7, every status-7 action run under unicorn through the class's handler 0x1023a6c with the real gates,
-// spawners and actiontune: scratchpad bolt/all_r{5,3}_c{0,2,4}.txt). One row per BEHAVIOUR on a clip -- `action` plus the
+// spawners and actiontune: <archive> bolt/all_r{5,3}_c{0,2,4}.txt). One row per BEHAVIOUR on a clip -- `action` plus the
 // actions (`also`) that make exactly the same shells there -- each a viewer pick (pick 'ai': which action the AI issues is NOT
 // READ; pickVariantsFor lists the rows, a play shows the next). `spawns`: each a crossing of `frame` on the clip (0xb0968 /
 // 0xb0974 op 0 on the action code's frame pair: pass001), making `shell` `modes` in order. A clip's blend partners (0xb04d0:
@@ -3131,7 +3131,7 @@ SHELL_DATA.em081_00.shells.shell14 = {
   hitdata: [[0, 999], [0, 999], [0, 999]],
 };
 // HIS ACTIONS' SHELLS: the variant-0 run of every status-7 action through the class's handler 0x1023a6c (Boltreaver's spec-7
-// driver with e+0xb5f5 = 0, his slot ids and em081_00_actiontune; ranks 5 / 3, all three tiers 0 / 2: scratchpad
+// driver with e+0xb5f5 = 0, his slot ids and em081_00_actiontune; ranks 5 / 3, all three tiers 0 / 2: <archive>
 // ast/all_r{5,3}_c{0,2}.txt), restricted to the actions HIS command table can issue -- op 0x00 (7, n) in every stream reached
 // from em081_00_cmdtbl.emc's groups other than 1 through op 0x14 calls (51 actions; Boltreaver's table reaches 77: group 1 is
 // shared, group 0 differs) -- plus the chains those take (vt +0x3d0: 0x3e -> 0x40, 0x3f -> 0x41, 0xc6 -> 0xc7). The conditions
@@ -3400,7 +3400,7 @@ SHELL_DATA.em079_04 = { name: 'Nightcloak Malfestio', lists: { 0: { list: 'u', p
 // AHTAL-KA (em088_00) -- HIS SHELLS (Raven, 2026-10-15: "we will likely follow the ROM as is instead of a proxy";
 // dev/em088-shells-props-spec.md, dev/em088_00-effects-spec.md, dev/rom-map.md "Ahtal-Ka -- shell57 / base57"). Ids
 // 0x17b..0x181 (table 0x175c3e8 rows 379..385), every .shl's one list effect\pel\em\em088_00u; values: em088_00.arc
-// shell\em\em088_00_shellNN (the files' own, shellef.load_typed; scratchpad ahtal/shl088.txt).
+// shell\em\em088_00_shellNN (the files' own, shellef.load_typed; <archive> ahtal/shl088.txt).
 //   SHELL57 = uShellEm088_sp_57 (vtable 0x1809c94; base57 its only class): THE CARRIED OBJECT IN FLIGHT. All its requests
 // come from the fight's control unit (G, GOT 0x1832980 -> 0x2132968; 0x10aebac(G, rec): a 0x60-byte cSetupParamEmBase57,
 // setup +0x14 = rec +0 the object k, +8 rec +4 the mode, +0xc rec +8 the owner, +0x18 rec +0xc the PLACEMENT, +0x1c rec +0x10
@@ -3780,7 +3780,7 @@ SHELL_DATA.em077_00 = {
 // uShellEm076_sp_00 (0x17e77b0, ctor 0xfd97cc) base00, 0x13a uShellEm076_sp_01 (0x17e792c, ctor 0xfd9b94) base01, 0x13b
 // uShellEm076_sp_37 (0x17e7a9c, ctor 0xfd9d50) cSetupParamEmBase37 -- base37 (vtable 0x17519ec), whose only subclass it is. Every
 // spawner names its id as a literal (`movw #0x127` ...), not a field. Values: em069_00.arc / em076_00.arc shell\em\emNNN_00_shellNN
-// (the files' own: scratchpad seltas/shl.txt, hitdata seltas/hit.py). Her shell00 .shl names EffectLists [em069_00u], her shell01
+// (the files' own: <archive> seltas/shl.txt, hitdata seltas/hit.py). Her shell00 .shl names EffectLists [em069_00u], her shell01
 // [em069_00u, em069_00c]; every .shl of his [em076_00u].
 const sh069s00 = (ints, fl, vecs) => ({ scale: 1.0, ef: [[0, 10], [0, 21], [0, 21], [999, -1]], hit: [0],
                                         sh: { ints, floats: fl, vecs } });
@@ -3858,7 +3858,7 @@ SHELL_DATA.em076_00 = {
 };
 // WHO SPAWNS THEM (READ: each action's own code, the status tables -- hers vt+0x1f4 0xf9973c (status byte e+0x73e0, table
 // 0xf99764; status 7 0xf972a0 by e+0x73e1, table 0xf972c8; status 6 by e+0x73e1, table 0xf997e4), his status 7 0xfd7220..0xfd7390;
-// the clips each action plays from the duo agent's census (scratchpad duo/q_agg.txt / s_agg.txt). Frames: the action code's
+// the clips each action plays from the duo agent's census (<archive> duo/q_agg.txt / s_agg.txt). Frames: the action code's
 // crossings (0xb0974, pass001); `atStart`: made in the update that sets the clip (the clip's first step).
 //   HER (em069_00): (7, 0x09) / (7, 0x4f) 0xf938c0 r1 0 / 3: L4 M42 (0x42a; (7, 0x4f) from 90.0, the duo's 7:0x4d -> 0x4e -> 0x4f)
 // f100 / f110 / f120 shell00 0 / 1 / 2 (0xf939a8 / 0xf93a58 / 0xf93b08), setups +0x10 the zero vector, +0x20 the zero words, +0x2e
@@ -5282,7 +5282,7 @@ function spawn02b(state, D, a, ctx, input, out){
 }
 
 // ---- base02: init, activation, move, ending (em004_00 / em005_00 shell02, u 130: the FIRE BEAM) -----------------------
-// Read 2026-09-30, ROM-run under the emulator on the em004_00 arc (scratchpad bshell/b02run.py: kharness's scaffolding
+// Read 2026-09-30, ROM-run under the emulator on the em004_00 arc (<archive> bshell/b02run.py: kharness's scaffolding
 // with the ShellCmnParam getters answered from the real FUP), which is how each link below was checked.
 //   init  = vtable +0x13c 0xd30b84: 0x3fb9bc (the reader; +0x15d4 = the owner's motion id, +0x15cc = life, state 1),
 //           then the base's 0x3fc750 -- the ORIGIN +0x15e0 = the joint's position (0xc164c) + the cmn offset in the
@@ -7244,7 +7244,7 @@ function landing081s00(S, D, hit, ctx){
 }
 
 // ---- BASE15 (uShellEmBase15): Boltreaver's zigzag (shell15, u 25) --------------------------------------------------------------
-// dev/em081-shells-spec.md 3b, READ by the helper agent (scratchpad bolt15: static, then unicorn -- the init chain 36 / 36 against
+// dev/em081-shells-spec.md 3b, READ by the helper agent (<archive> bolt15: static, then unicorn -- the init chain 36 / 36 against
 // this reading, run_full_init.py; the move bit-exact against its Python model over 1,635 steps, run_move.py, whose `step` /
 // `amplitude` / `lateral` this transcribes operation for operation). The chain: sp_15 0x10345a0 -> base15 0x40714c -> base03
 // 0x3fd9d8 -> base00 0x3f8b80, then the move 0x4072f0..0x407bd4 through base00's dispatcher 0x3f96a0 (state 1), and base00's end
@@ -7622,7 +7622,7 @@ function move07(S, ctx, D){
 }
 // ---- BASE14 (uShellEmBase14): Boltreaver's ground bolt (shell14, u 41 then u 40) -----------------------------------------------
 // dev/em081-shells-spec.md 5b (READ, the helper agent's bolt14: static + unicorn run14.py) and the move 0x406704 read again here
-// (scratchpad bolt/b14.txt): the reader 0x1034260 -- hit 0 -> +0x15d8; int 0 the joint +0x15dc (138); flags +0x15e8 = 0x100 iff int
+// (<archive> bolt/b14.txt): the reader 0x1034260 -- hit 0 -> +0x15d8; int 0 the joint +0x15dc (138); flags +0x15e8 = 0x100 iff int
 // 3 != -1 (its only flag); floats 0 / 1 / 2 -> degX / degY / speed; vec 0 -> +0x1610; ef 0 / 1 / 2 -> +0x1660 / +0x1668 / +0x1664;
 // int 1 -> +0x166c (-1), int 2 -> +0x1670; floats 3 delay +0x1674, 4 travel end +0x1678, 5 +0x167c, 6 +0x1684, 9 the length unit
 // +0x1680, 7 / 8 the query's reach +0x1688 / +0x168c, 10 the lift +0x1690.
@@ -9921,7 +9921,7 @@ function perFrame037(state, D, ctx, input, out, fresh, a){
 
 // ---- SELTAS QUEEN (em069_00) / SELTAS (em076_00): readers, landings, base37, the spawners -----------------------------------
 // dev/em069-em076-shells-spec.md; the rows of dev/rom-map.md "Seltas Queen / Seltas -- the shells". Checked against the ROM run on
-// unicorn (scratchpad seltas/emu_seltas.py) by dev/shells-seltas-check.mjs.
+// unicorn (<archive> seltas/emu_seltas.py) by dev/shells-seltas-check.mjs.
 //
 // HER sp_00 READER 0xf9a8ac (READ whole, ..0xf9ab04): ef 0 / 1 / 2 / 3 -> +0x15c8 / +0x15cc / +0x15d4 / +0x15d0 (2 and 3 swapped);
 // hit 0 -> +0x15d8; int 0 -> the joint +0x15dc; the flags +0x15e8 (base00's ctor 0) bfc / orrne: bit 0 = int 1 != -1 (base00's X
@@ -10012,7 +10012,7 @@ function params076s01(sh){
 }
 
 // ---- BASE37 (uShellEmBase37, vtable 0x17519ec; its one subclass uShellEm076_sp_37): SELTAS'S LOB ------------------------------
-// READ whole (scratchpad seltas/b37.txt, 0x41ad38..0x41bf40): ctor 0x41b078, init +0x13c 0x41b1ec with its aim 0x41b844, move +0x24
+// READ whole (<archive> seltas/b37.txt, 0x41ad38..0x41bf40): ctor 0x41b078, init +0x13c 0x41b1ec with its aim 0x41b844, move +0x24
 // 0x41bb10 -> state 1 vt +0x158 0x41bc1c, landing +0x150 0x41ae14 (-> 0x41af6c: shell01), end +0x148 0x41bdf0, +0x15c 0x41bdb8 (hit
 // slot 1, 0x4a15d4: not visual), +0x154 / +0x160 bx lr; the setup cSetupParamEmBase37 (0x50 bytes, allocated through 0x41add8).
 // THE READER 0xfd9d70 (READ whole, ..0xfd9f78): ef 0 / 1 / 3 / 2 -> +0x15c8 / +0x15cc / +0x15d0 / +0x15d4; hit 0 -> +0x15d8; int 0
@@ -10275,7 +10275,7 @@ function spawn076(state, D, a, ctx, input, out, fresh){
 // sp_11 class or file. Table rows 247..251: 0xf7 / 0xf9 uShellEm057_sp_01 (vtable 0x17cbad8, cSetupParamEmBase01), 0xfa
 // uShellEm057_sp_11 (0x17cbc48: base11 over base01), 0xf8 / 0xfb uShellEm057_sp_18 (0x17cbdbc, cSetupParamEmBase00) -- BASE18, base00
 // with its own init +0x13c 0x408980 and step +0x160 0x408a10 (the weave). Values: em057_00.arc / em057_04.arc shell\em\em057_0N_shellNN
-// (scratchpad zs/shl.txt; hitdata zs/hit). Every .shl names EffectList [em057_0Nu]; em057_04_11 names none (it only makes shell01s).
+// (<archive> zs/shl.txt; hitdata zs/hit). Every .shl names EffectList [em057_0Nu]; em057_04_11 names none (it only makes shell01s).
 const m057 = (scale, ef, hit, ints, floats, vecs) => ({ scale, ef, hit, sh: { ints, floats, vecs } });
 SHELL_DATA.em057_00 = {
   name: 'Zinogre',
@@ -10504,7 +10504,7 @@ function params057s18(def, mode){
 }
 
 // ---- BASE18 (uShellEm057_sp_18 is its one subclass): THE WEAVE --------------------------------------------------------------
-// READ whole (scratchpad zs/base18.txt): ctor tail 0x408900 (+0x1660 / +0x1664 / +0x1674 / +0x1678 = 0, +0x1668.. the shared zero
+// READ whole (<archive> zs/base18.txt): ctor tail 0x408900 (+0x1660 / +0x1664 / +0x1674 / +0x1678 = 0, +0x1668.. the shared zero
 // words, +0x15a8 = 0x12); init +0x13c 0x408980 -> base00's 0x3f8b80 (init00), then +0x1678 (the clock) = 0, +0x1674 (the last offset)
 // = 0, +0x1668 = the X word +0xfe8 (after base00's X aim), +0x166c = the Y word +0xfec plus u16(s32(0.5 + degY x 182.04445)) (uxtah
 // -- degY a second time: base00's flag 2 kept it off +0xfec), +0x1670 = 0; the move is base00's 0x3f96a0 -> 0x3f9738, whose vt+0x160
@@ -10845,7 +10845,7 @@ function perFrame057(state, D, ctx, input, out, fresh){
 // Class uEm021_00 (vtable 0x17afde4); every spawner names its id as a literal. Shell table rows 161..163: 0xa1 uShellEm021_00_00
 // (vtable 0x17b0e00) base00 -- its own reader +0x14c 0xdd8dbc, landing +0x150 0xdd9398, state-1 move +0x158 0xdd927c; 0xa2
 // uShellEm021_00_01 (0x17b0f7c) base01, reader 0xdd969c; 0xa3 uShellEm021_00_04 (0x17b10ec) base04 (the breath), reader 0xdd9924 and
-// +0x158 0xdd9a80. Values: em021_00.arc shell\em\em021_00_shellNN (scratchpad fb/shl_em021_00.txt). EffectList [em021_00u].
+// +0x158 0xdd9a80. Values: em021_00.arc shell\em\em021_00_shellNN (<archive> fb/shl_em021_00.txt). EffectList [em021_00u].
 SHELL_DATA.em021_00 = {
   name: 'Congalala',
   lists: { 0: { list: 'u', pel: 'em021_00u' } },
@@ -11060,10 +11060,10 @@ function perFrame021(state, D, ctx, input, out, fresh){
 // Class uEm022_00 (vtable 0x17b1254). Shell table rows 164..166: 0xa4 uShellEm022_sp_00 (vtable 0x17b1e40) base00 -- its reader +0x14c
 // 0xde0d4c, landing +0x150 0xde0e7c; 0xa5 uShellEm022_sp_01 (0x17b1fbc) base01 -- reader 0xde102c, +0x150 0xde1138 (the motion end);
 // 0xa6 uShellEm022_sp_13 (0x17b212c) base13 -- ctor 0xde126c (+0x167c = 2), reader 0xde129c, landing +0x150 0xde1420 (the burst
-// 0xde14ac). Values: em022_00.arc shell\em\em022_00_shellNN (scratchpad fb/shl_em022_00.txt). EffectList [em022_00u]. His own
+// 0xde14ac). Values: em022_00.arc shell\em\em022_00_shellNN (<archive> fb/shl_em022_00.txt). EffectList [em022_00u]. His own
 // spawners: 0xdd9d88(e, mode) (sp_13: setup +0x10 / +0x20 the zero vector 0x19176b0, +0x34 0xffff) from the throw 0xddd6dc(e, kind,
 // sub) at L2 M12 / M14 frame 100.0; 0xdd9cc4(e, mode) (sp_01: +0x10 / +0x20 zero, +0x30.. the owner block's words +0x50..+0x58,
-// +0x3c 0xffff) from 0xddd840(e, sub) at L2 M8 frame 98.0 (once an action: +0x1a3). The census (scratchpad fb/cen_em022.txt, the
+// +0x3c 0xffff) from 0xddd840(e, sub) at L2 M8 frame 98.0 (once an action: +0x1a3). The census (<archive> fb/cen_em022.txt, the
 // action main 0xddce08 under unicorn): (7, 5 / 8 / 9) sp_13 0 / 1 / 2, (7, 0xd / 0xe / 0xf) 3 / 4 / 5, (7, 0x1c / 0x1d) 8 / 9,
 // (7, 0x1e / 0x1f) 12 / 13, (7, 0x18) L2 M14 sp_13 14; (7, 7) sp_01 0, (7, 0xc) sp_01 1.
 SHELL_DATA.em022_00 = {
@@ -11307,7 +11307,7 @@ function spawn022(state, D, a, ctx, input, out, fresh){
 // 0xdee29c (its floor contact makes sp_01 0: 0xdee338); sp_01 base01 -- reader 0xdee5c8, NO EffectParam (its .shl names no
 // EffectList): a hit volume, nothing drawn; sp_02 the beam (render/beam-spawns.js rows, dev/beams/em023_00.md); sp_22 base22 (the
 // carried rock, (1, 0x39) through vt+0x204 0xde220c / 0xdec968: base22 below). The two arcs' shell files are byte-identical
-// (dev/shell-map.md). The census (scratchpad fb/cen_em023_v0.txt / _v5.txt, the action main under unicorn): (7, 5 / 0xc / 0x3b)
+// (dev/shell-map.md). The census (<archive> fb/cen_em023_v0.txt / _v5.txt, the action main under unicorn): (7, 5 / 0xc / 0x3b)
 // L2 M8 sp_00 0 at the frame-84 window (0xde82f8 phase 1: 0xb0968(e, 1, 0, 84.0) -> L2 M9 and, r5 == 3, 0xde859c(e, 0));
 // (7, 7) / (1, 0xc) the leap 0xde554c, phase 3 = L2 M12 frame 22.0 -> sp_00 1; (7, 4 / 0xb / 0x42) L2 M5 and (7, 0x36 / 0x37)
 // L2 M22 / M23 frame 26.0 -> sp_01 1.
@@ -11380,7 +11380,7 @@ const act023 = (status, n, list, clip, spawns) => ({ action: [status, n], code: 
 const ACT023 = [
   ...[0x05, 0x0c, 0x3b].map(n => act023(7, n, '2', 'Motion[8]', [{ frame: 84, shell: 'shell00', mode: 0 }])),
   // (7, 0x3e): L2 M8 with no beam and no shell (0xde86c0 skips the gate, r5 == 2: 0xde8810) -- issued directly by EMC g1 s35 (reached
-  // from g0 s3 / s14 / s17; no op 0x92 around it, so at variants 0 and 5 alike: scratchpad fb/emc023.py) as well as by the tired
+  // from g0 s3 / s14 / s17; no op 0x92 around it, so at variants 0 and 5 alike: <archive> fb/emc023.py) as well as by the tired
   // remap. A pick of its own: the PSL word (table 0xded140) lights bits 15-17 on it
   act023(7, 0x3e, '2', 'Motion[8]', []),
   act023(7, 0x07, '2', 'Motion[12]', [{ frame: 22, shell: 'shell00', mode: 1 }]),
@@ -11675,7 +11675,7 @@ function spawn023r(state, D, a, ctx, input, out, fresh){
 // (vtable 0x17d7288, base00 + reader 0xf23108) / 0x104 _sp_01 (0x17d7404, base01 + its own init 0xf23408 and reader 0xf234e8) --
 // Redhelm's arc ships them, Arzuros's ships no shell file at all (em060_00.arc: none) -- and 0x10d uShellEm062_sp_00 (0x17d7574,
 // base00 + reader 0xf236e4, landing 0xf23818) / 0x10e _sp_01 (0x17d76f0, reader 0xf23a9c) / 0x10f _sp_43 (0x17d7860, base43) --
-// Lagombi's. The census (scratchpad fb/cen_em060_v0 / _v4 / cen_em062.txt, the action main under unicorn, the three alike):
+// Lagombi's. The census (<archive> fb/cen_em060_v0 / _v4 / cen_em062.txt, the action main under unicorn, the three alike):
 // Redhelm's (7, 0xf5) L9 M9 f122 -> sp_00 0 (0xf191d8); (7, 0xfe) L9 M10 then L9 M1 from 68 / (7, 0xff) L9 M1, the window
 // 0xb0968 mode 1 at tune float 0x47 (116) -> the slam 0xf189d8; (7, 0xe0..0xe2) L9 M14 75 -> sp_01 8 and L9 M4's landing
 // (0xbf52c) -> sp_01 0 (both (999, -1): nothing drawn, not listed). Lagombi's (7, 0x56 / 0x57 / 0x65) L2 M28 / (7, 0x6c) L2 M37
@@ -11830,7 +11830,7 @@ function spawn060(state, D, a, ctx, input, out, fresh){
 // with modes 4..6 leave sp_01 0: 0xf332bc); sp_01 (0x17d8cf4) base01 + reader 0xf334f0, NO EffectParam; sp_19 (0x17d8fe0) BASE19 --
 // base00's setup and move, base03's init 0x3fd9d8 and ground follow 0x3fdf18, its own init 0x408ea0 and step 0x408ffc (the rolling
 // ball: it grows from size 0 to size 1 over the grow time, rides the ground at size x the rise, spins by its roll), base03's +0x154
-// 0x3fd820 at the end (ef +0x1660 at +0x40). The census (scratchpad fb/cen2_em061_v0.txt, the action main under unicorn, the id fields
+// 0x3fd820 at the end (ef +0x1660 at +0x40). The census (<archive> fb/cen2_em061_v0.txt, the action main under unicorn, the id fields
 // set): (7, 0x46) L2 M28 / (7, 0x49) L2 M22 at the window 120 (0xf2e478: sp_00 0 / 1); 0xf2e760: (7, 0x47 / 0x48) L2 M21 50 sp_00 0,
 // (7, 0x4a / 0x4b) L2 M23 50 sp_00 1, (7, 0x4d / 0x97) L2 M28 120 sp_00 1, (7, 0x4e / 0x98) L2 M22 120 sp_00 0, (7, 0x4f) L2 M28 120
 // sp_00 3, (7, 0x96) L2 M22 120 sp_00 2; (7, 0xad / 0xae / 0xaf) L2 M56 110 sp_00 4 / 5 / 6 (0xf2f53c); (7, 0xe6 / 0xf7 / 0xfd) L2 M28
@@ -12568,7 +12568,7 @@ SHELL_DATA.em061_04 = {
   },
   actions: null,
 };
-// his actions (scratchpad fb/cen2_em061_v4.txt, the census of uEm061_00's action main 0xf32798 at variant 4; the L9 rows read from
+// his actions (<archive> fb/cen2_em061_v4.txt, the census of uEm061_00's action main 0xf32798 at variant 4; the L9 rows read from
 // 0xf2fd84 (7, 0xed / 0xee / 0xf5), 0xf302a8 (7, 0xf1 / 0xf2 / 0xf9 / 0xfc), 0xf30fxx / 0xf31220 (7, 0xfa / 0xff), 0xf304d4 (7, 0xe5)
 // and 0xf2ffxx (7, 0xf6); the dispatch table 0xf31438). The rocks are Duramboros's actions on his files: (7, 0xe6 / 0xf7 / 0xfd) and
 // (7, 0xf4) throw 17 / 18 / 19, (7, 0xe7 / 0xf8 / 0xfe) and (7, 0xf3) 12 / 13 / 14
@@ -12602,7 +12602,7 @@ SHELL_DATA.em061_04.actions = [
 // READ 2026-10-18 (dev/em065_00-shells-spec.md; rom-map "Fanged Beasts -- the shells"). Ids are immediates: 0x116 uShellEm065_sp_00
 // (base00, reader 0xf569fc, landing 0xf56b14), 0x117 _sp_01 (base01, reader 0xf56ed4), 0x118 _sp_13 (base13, reader 0xf57150,
 // landing 0xf5733c), 0x119 _sp_23 (a NEW base, base23: ctor 0x40c8ac over the plain shell; reader 0xf57710, landing 0xf578c8).
-// The actions (status 7 table 0xf54540; the census scratchpad fb/cen_em065.txt): his water shots -- three a play, the mode the
+// The actions (status 7 table 0xf54540; the census <archive> fb/cen_em065.txt): his water shots -- three a play, the mode the
 // shot's own frame test (0xb0974 at 108 / 130 / 150, or 116 / 136 / 156: the last one passing) --
 //   (7, 6) L2 M78 sp_23 0 / 1 / 2 (0xf5072c, r1 0), (7, 7) L2 M80 sp_13 0 / 1 / 2 (0xf509a0), (7, 0x3b) L2 M77 sp_13 3 / 4 / 5;
 //   their twins (7, 0x17) L2 M78, (7, 0x18) L2 M80, (7, 0x41) L2 M77 make sp_01 2 at the same frames: a hit volume on joint 131
@@ -12949,14 +12949,14 @@ SHELL_DATA.em065_00.actions = [
   act065(7, 0x41, '2', 'Motion[77]', SHOTS065('shell01', [116, 136, 156], 2).map(s => Object.assign(s, { mode: 2 }))),
   act065(3, 0x07, '5', 'Motion[25]', [{ frame: 16, shell: 'shell01', mode: 0, kind: 'ground' }], { pick: 'always' }),
   act065(7, 0x15, '2', 'Motion[117]', [{ frame: 33, shell: 'shell00', mode: 0, kind: 'drop' }], { also: [[7, 0x48]] }),
-  // (7, 0x16) and its twins (7, 0x14 / 0x49 / 0x4d): sp_01 3 at the same f33 (phase 6, 0xf5274c; scratchpad fb/cen9_em065.txt)
+  // (7, 0x16) and its twins (7, 0x14 / 0x49 / 0x4d): sp_01 3 at the same f33 (phase 6, 0xf5274c; <archive> fb/cen9_em065.txt)
   act065(7, 0x16, '2', 'Motion[117]', [{ frame: 33, shell: 'shell01', mode: 3, kind: 'drop' }], { also: [[7, 0x49]] }),   // (7, 0x14) / (7, 0x4d) run r1 0: no phase 6, no shell (gapK READ 0xf51fc4; WITHDRAWN)
 ];
 
 // ---- GAMMOTH (em083_00): uEm083_00 (band 0x104f8c8..0x1064be0, action main 0x1050a1c) -----------------------------------------
 // READ 2026-10-18 (dev/em083-shells-spec.md; rom-map "uEm083_00 shells"). Ids: e+0xcae0 sp_00 (0x161), +0xcae4 sp_01 (0x163),
 // +0xcae8 sp_13 (0x164), the variant-4 ids 0x165 / 0x168 / 0x16a; sp_00_02 (0x162) is an immediate (the snowball's pieces). Census
-// scratchpad fb/cen_em083_v0.txt; each helper's frame its actiontune float (0x6f618, em083_00_action_tune floats 0..13):
+// <archive> fb/cen_em083_v0.txt; each helper's frame its actiontune float (0x6f618, em083_00_action_tune floats 0..13):
 //   L2 M61 (7, 0xc9..0xcb at 26, 0xcc / 0xcd at 28) / L2 M62 (7, 0xce..0xd2 / 0xd3 / 0xd4 at 18): sp_00 0 / 0 / 1 / 2, the aimed
 //     ice shot (0x105c738);
 //   L2 M23 (7, 0x1b / 0x1c / 0x1d, 0x78..0x7d): sp_13 2 / 1 / 0 at 220 (float 8), held on joint 157 (e+0xcb0c = 1), thrown at 266
@@ -13357,7 +13357,7 @@ function make083row(state, D, a, ctx, out, own, J, sp){
   }
 }
 
-// THE FILES (em083_00.arc, shl.py; scratchpad fb/gen083.py); hitdata (s16 delay, s16 duration) from the _hitdata tables (fb/hit.py)
+// THE FILES (em083_00.arc, shl.py; <archive> fb/gen083.py); hitdata (s16 delay, s16 duration) from the _hitdata tables (fb/hit.py)
 SHELL_DATA.em083_00 = {
   name: 'Gammoth',
   lists: { 0: { list: 'u', pel: 'em083_00u' } },
@@ -13415,7 +13415,7 @@ const act083 = (n, clip, spawns, x = {}) => Object.assign({ action: [7, n], code
   variant: '7:0x' + n.toString(16).padStart(2, '0'), spawns }, x);
 const SNOWBALL083 = m => [{ frame: 220, shell: 'shell13', mode: m }, { frame: 266, kind: 'release' }];
 // THE LEG SNOW (0x105fd94 / 0x1053710; make083row legSnow083): { frame (a tune float), leg (0..3 = part 2..5 = snow slot = sp_01 mode
-// 3..6 on joint 7 / 11 / 14 / 17), dmg [variant 0's tune int, variant 4's] }. Census with the slots at 2: scratchpad gapG/cen_legsnow.py
+// 3..6 on joint 7 / 11 / 14 / 17), dmg [variant 0's tune int, variant 4's] }. Census with the slots at 2: <archive> gapG/cen_legsnow.py
 const LEG083 = (frame, leg, d0, d4) => ({ frame, kind: 'legSnow083', leg, dmg: [d0, d4] });
 SHELL_DATA.em083_00.actions = [
   act083(0xc9, 'Motion[61]', [{ frame: 26, shell: 'shell00', mode: 0 }], { also: [[7, 0xca], [7, 0xcb]] }),
@@ -13445,15 +13445,15 @@ SHELL_DATA.em083_00.actions = [
                              LEG083(310, 0, 500, 500), LEG083(388, 0, 0, 0), LEG083(390, 1, 0, 0)], { also: [[7, 0x06]] }),
   // NOT HERE, by name: sp_01 20 on Gammoth's file (u 60 on joint 157) -- its one maker 0x1060e28 returns unless e+0xb5f5 == 4 and
   // makes the immediate 0x168 (Elderfrost's): 0x163 mode 20 is never made. (7, 0x70 / 0x71) run the leg snow on variant 0 too but
-  // set L9 M11 / M14, which em083_00 does not ship (no list 9) and his EMC never asks (scratchpad fb/reach_em083_00.json)
+  // set L9 M11 / M14, which em083_00 does not ship (no list 9) and his EMC never asks (<archive> fb/reach_em083_00.json)
 ];
 
 // ---- ELDERFROST GAMMOTH (em083_04): uEm083_00 with the variant byte e+0xb5f5 = 4 ------------------------------------------------------
 // The same class (dev/em083-shells-spec.md): ids e+0xcae0 0x165 (uShellEm083_sp_00), +0xcae4 0x168 (sp_01), +0xcae8 0x16a (sp_13),
 // written by 0x105f164; immediates 0x166 (uShellEm083_04_00), 0x167 (uShellEm083_sp_00_03), 0x169 (uShellEm083_04_02, base02),
-// 0x16b (uShellEm083_04_13). Folders READ: the shell table 0x175c3e8's res (0x48b79c -> 0x152530) through 0x159daa0's path hashes (scratchpad shellres.py) --
+// 0x16b (uShellEm083_04_13). Folders READ: the shell table 0x175c3e8's res (0x48b79c -> 0x152530) through 0x159daa0's path hashes (<archive> shellres.py) --
 // the ids' order, 0x165..0x16b = 00, 00_02, 00_03, 01, 02, 13, 13_02. His actions (census
-// scratchpad fb/cen_em083_v4.txt; tune floats 0xb7..0xbc = 12 / 12 / 47 / 47 / 30 / 100, ints 0x35 / 0x36 = 15 / 90):
+// <archive> fb/cen_em083_v4.txt; tune floats 0xb7..0xbc = 12 / 12 / 47 / 47 / 30 / 100, ints 0x35 / 0x36 = 15 / 90):
 //   Gammoth's L2 M61 / M62 / M5 / M9 / M14 / M15 / M20 / M21 / M37 rows on his files; L2 M23 is his own snowball (0x105faec ->
 //   0x16b, its tests 0xb0974: (7, 0x7e) mode 4 too), held and thrown as Gammoth's, its split at every rank into 0x166 pieces;
 //   L9 M6 (7, 0x6f; 0x105adf8): at its start sp_01 16 / 18 (0x1060d4c: the zero point, the owner's words) and the leap's landing
@@ -13563,7 +13563,7 @@ SHELL_DATA.em083_04.actions = SHELL_DATA.em083_00.actions.filter(r => r.clip !==
   act083v(0x81, '9', 'Motion[15]', [{ frame: 95, shell: 'shell00', mode: 4, kind: 'turnShot' }], { turn083: [0, 1, 0] }),
   // THE TRUNK SNOW's sp_01 20 (u 62 on joint 157): 0x1060e28 at tune floats 0x53 / 0x54 / 0x55 (158 / 165 / 85) in the actions at
   // 0x1057fc8 (7, 0x10 / 0x35), 0x1058328 (7, 0x11 / 0x36) -- both on L2 M16 (phase 1) -- and 0x10590d4 (7, 0x42) on L2 M19; found by
-  // the census with the gate held open (scratchpad fb/cen_armour.py), each frame / slot ROM-run (dev/shells-elderfrost-check.mjs)
+  // the census with the gate held open (<archive> fb/cen_armour.py), each frame / slot ROM-run (dev/shells-elderfrost-check.mjs)
   act083v(0x10, '2', 'Motion[16]', [{ frame: 158, kind: 'armour083', dmg: 999 }], { also: [[7, 0x35]] }),
   act083v(0x11, '2', 'Motion[16]', [{ frame: 165, kind: 'armour083', dmg: 999 }], { also: [[7, 0x36]] }),
   act083v(0x42, '2', 'Motion[19]', [{ frame: 85, kind: 'armour083', dmg: 0 }]),
@@ -13618,7 +13618,7 @@ const actPlain = (st, n, list, clip, spawns, x = {}) => Object.assign({ action: 
 
 // ---- CEPHADROME (em017_00): uEm017_00 (band 0xd97600..0xda4808, action main 0xd989a4) ---------------------------------------------
 // READ 2026-10-18 (dev/piscine-shells-spec.md). Ids immediates: 0x92 uShellEm017_sp_00 (base00), 0x93 uShellEm017_sp_01 (base01);
-// folders by the path table (0x175c3e8 res 0x89e5 / 0x89e6 -> 0x159daa0). The sand spits (census scratchpad fb/cen9_em017.txt, the
+// folders by the path table (0x175c3e8 res 0x89e5 / 0x89e6 -> 0x159daa0). The sand spits (census <archive> fb/cen9_em017.txt, the
 // helpers read for their second frame tests):
 //   L2 M6 (7, 1 / 0x1c) f78 mode 0 (0xda0450..0xda05c0); L2 M14 (7, 5 / 0x1d / 0x1e / 0x1f) f58 mode 1 -- [0x169c860][r6] (0xda0930..);
 //   L2 M22 (7, 0x10 / 0x16 / 0x19) f84 modes 3 / 4 / 5 (r8 + 3); L2 M23 (7, 0x11 / 0x17 / 0x1a) f25 modes 6 / 7 / 8, f70 9 / 10 / 11;
@@ -13702,7 +13702,7 @@ SHELL_DATA.em017_00.actions = [
 // ---- LAVASIOTH (em036_00): uEm036_00 (band 0xe3e934..0xe47170, action main 0xe3ebe0) ---------------------------------------------
 // READ 2026-10-18 (dev/piscine-shells-spec.md). Ids immediates: 0xc6 uShellEm036_sp_00 (base00), 0xc7 uShellEm036_sp_01 (base01 + its
 // reader 0xe469d8 and end hook +0x154 0xe46ac0); folders by the path table (res 0x8a19 / 0x8a1a). His maker 0xe3f610(e, mode): sp_00
-// with the zero vector's point and words. The actions (census scratchpad fb/cen9_em036.txt; each helper read for its other frames):
+// with the zero vector's point and words. The actions (census <archive> fb/cen9_em036.txt; each helper read for its other frames):
 //   L2 M6 (7, 1 / 2) f78 mode 0; L2 M10 (7, 3) f58 mode 0, (7, 0x11) f58 mode 1; L2 M13 (7, 6) f60 mode 13, f110 mode 12;
 //   L4 M1 (7, 0x16 / 0x17 / 0x18) f130 / 184 / 238 modes 16 / 15 / 14, 19 / 18 / 17, 22 / 21 / 20 -- none while tired (0x81614);
 //   (7, 0x12): L2 M11's leap, and when he comes down (block +0x44 <= the ground +0x5b4, falling) L2 M12 with his facing turned
@@ -13813,7 +13813,7 @@ SHELL_DATA.em036_00.actions = [
 
 // ---- ROYAL LUDROTH (em047_00): uEm047_00 (band 0xeab874..0xeb49d0, action main 0xeb2914) ---------------------------------------------
 // READ 2026-10-18 (dev/leviathan-shells-spec.md). Ids immediates: 0xeb uShellEm047_sp_00 (base00), 0xec uShellEm047_sp_01 (base01);
-// folders by the path table (res 0x8a3e / 0x8a3f). The water spits (census scratchpad fb/cen10_em047.txt, every frame test answered
+// folders by the path table (res 0x8a3e / 0x8a3f). The water spits (census <archive> fb/cen10_em047.txt, every frame test answered
 // alone): L2 M6 (7, 2) f82 mode 0, (7, 0x1f) mode 1; L2 M4 (7, 0x19) f82 / 142 / 202 modes 2 / 3 / 4, L2 M16 (7, 0x1a) 5 / 6 / 7, L2 M5
 // (7, 0x1b) 8 / 9 / 10 (the third in phase 2, the clip playing on); L2 M17 (7, 0x15 / 0x16 / 0x1c / 0x1d / 0x1e / 0x23) f102 18, f140 19,
 // f170 18, f208 19 (the 0x1c family's phases 2 / 4 restart L2 M17 at 164 and fire 170 / 208 again: one pass here); L2 M31 (7, 0x3e) f72
@@ -13898,7 +13898,7 @@ SHELL_DATA.em047_00.actions = [
 // ---- LAGIACRUS (em046_00): uEm046_00 (band 0xe9f1d8..0xeab974, action main 0xea8ad0) ---------------------------------------------
 // READ 2026-10-18 (dev/leviathan-shells-spec.md 1). Ids immediates (the table 0xe9f3d4..): 0xe6 uShellEm046_sp_00 (base00), 0xe7 sp_01
 // (base01), 0xe8 sp_11 (base11), 0xe9 sp_25 (base25), 0xea sp_26 (base26); folders by the path table (res 0x8a39..0x8a3d). His shells
-// (census scratchpad fb/cen10_em046.txt, every frame test answered alone; the owner's makers read: base00 setups from the zero
+// (census <archive> fb/cen10_em046.txt, every frame test answered alone; the owner's makers read: base00 setups from the zero
 // vector, base01's from his own point +0x40 and words +0xfe8):
 //   the thunderballs, sp_00: L4 M6 (7, 0x36 / 0x56) f98 mode 10, (7, 0x41 / 0x50 / 0x57 / 0x58) mode 7; L4 M15 (7, 0x48 / 0x49) f16 1;
 //     L4 M30 (7, 0x72 / 0x75 / 0x77) f96 7, (7, 0x73 / 0x79) 5; L4 M32 (7, 0x74 / 0x7a) 2, (7, 0x76 / 0x78 / 0x7c) 6; L4 M31 (7, 0x7d /
@@ -14331,7 +14331,7 @@ SHELL_DATA.em046_00.actions = SHELL_DATA.em046_00.actions.concat([
 // ---- MIZUTSUNE / SOULSEER (em082_00 / em082_04): uEm082_00's bubbles (sp_12, NEW base12) -----------------------------------------
 // READ 2026-10-18 (dev/leviathan-shells-spec.md 5). One class for both (variant byte e+0xb5f5 0 / 4); the ids are fields
 // (0x1035040): e+0xcac8 sp_12 (0x158 / 0x15c), +0xcacc sp_13, +0xcac0 sp_01, +0xcac4 sp_02 (the beam, render/beam-spawns.js), +0xcad0
-// 04_26 (Soulseer). Folders by the path table (res 0x8aa5 / 0x8aa9). Census: scratchpad fb/cen12_em082_00.txt / _04.txt (all 16
+// 04_26 (Soulseer). Folders by the path table (res 0x8aa5 / 0x8aa9). Census: <archive> fb/cen12_em082_00.txt / _04.txt (all 16
 // statuses, the ids and the .dtp filled).
 // THE CHOOSER 0x104b540(e, k, r2) (READ; run natively for every k, fb/chooser082.py): -1 while tired for k in 0x22243495, with the
 // head broken (0x1036e24) for k 9 / 11, with the tail severed (0x103780c) for k 3 / 19 / 22 / 24 / 28; else by the action number
@@ -15044,7 +15044,7 @@ SHELL_DATA.em049_00.actions = (SHELL_DATA.em049_00.actions || []).concat([
 // dev/rom-map.md "Ahtal-Ka -- shell57 / base57" (READ whole: ctor 0x42ecb8, init 0x42f070, move 0x4303a8, after-move 0x430694,
 // vt+0x98 0x430714, end 0x433180; helpers 0x42fc78 (the throw's aim), 0x430160 (the launch), 0x4307e0 / 0x430e04 / 0x431244 /
 // 0x4314c8 (behaviours 1 / 2 / 3 / 4), 0x432470 (the trail), 0x43252c (the spin), 0x432c58 (the throw's landing), 0x432efc
-// (the turn to rest); vtable 0x1809c94, base57 is uShellEm088_sp_57's alone). Checked against the ROM run on unicorn (scratchpad
+// (the turn to rest); vtable 0x1809c94, base57 is uShellEm088_sp_57's alone). Checked against the ROM run on unicorn (<archive>
 // sh88/emu57.py: the band and the engine's pure math native) by dev/shells-ahtal-check.mjs.
 // THE READER 0x10c4598 (READ whole): +0x15c8 = cmn vec 0 (a pointer); ef 0..4 -> +0x15cc..+0x15dc; hit 0 / 1 -> +0x15e0 / +0x15e4;
 // int 0 -> +0x15e8 (the joint), int 2 -> +0x15ec, int 1 -> +0x15f0 (the camera request's id); floats 0..8 -> +0x15f4..+0x1614;
@@ -15571,7 +15571,7 @@ export function pullClip088(list, clip){
 // ---- TETSUCABRA / DRILLTUSK (em066_00 / em066_04): uEm066_00's shells -------------------------------------------------------------
 // READ 2026-10-18 (dev/amphibian-shells-spec.md 1). The ids are FIELDS (vt+0x158 0xf57ce8, by e+0xb5f5): e+0xcac4 sp_13 (0x11c /
 // 0x120), +0xcac8 sp_00 (0x11a / 0x11e), +0xcacc sp_01 (0x11b / 0x11f), +0xcad0 sp_16 (0x11d / 0x121); folders by the path table
-// (0x175c3e8 res 0x8a6d..0x8a74 -> 0x159daa0). Census scratchpad fb/cen11_em066_0N_k1.txt (all 16 statuses, the ids and the .dtp filled,
+// (0x175c3e8 res 0x8a6d..0x8a74 -> 0x159daa0). Census <archive> fb/cen11_em066_0N_k1.txt (all 16 statuses, the ids and the .dtp filled,
 // the landing answered: cengen11) plus the id fields' loads in the band (the sp_16 is made at the ACTION START, vt+0x204, which no
 // census runs):
 //   (7, 0x55 / 0x83 / 0x85) L4 M1 and (7, 0x56 / 0x84 / 0x86) L4 M2 at f124 (0xf5e94c..): sp_00 by the tusks (part 0's level against
@@ -15936,7 +15936,7 @@ for (const [mon, v4] of [['em066_00', false], ['em066_04', true]]){
 
 // ---- ZAMTRIOS (em067_00): uEm067_00's sp_13 (0x124) and its children, beside his beams (render/beam-spawns.js, sp_02 0x123) ----------
 // READ 2026-10-18 (dev/amphibian-shells-spec.md 2). vt+0x158 0xf77488 registers 0x122 sp_01, 0x123 sp_02 AND 0x124 sp_13 (immediates;
-// states-em067_00.md 1.6 lists two); res 0x8a75..0x8a77. Census scratchpad fb/cen11_em067_a/b/c.txt (all 16 statuses, the .dtp filled,
+// states-em067_00.md 1.6 lists two); res 0x8a75..0x8a77. Census <archive> fb/cen11_em067_a/b/c.txt (all 16 statuses, the .dtp filled,
 // cengen11):
 //   (7, 0x21 / 0x36) L2 M12 f58 (0xf70448..0xf70784): sp_13 4 at the target, then (r7 0) sp_13 3 with +0x30 = 0 and 1; (7, 0x22 / 0x37)
 //   the first only -- each at variant 0 alone (e+0xb5f5);
@@ -16755,7 +16755,7 @@ SHELL_DATA.em070_00 = {
 // their beams (render/beam-spawns.js, sp_02) -- READ 2026-10-18 (dev/carapaceon-shells-spec.md). uEm019_00's vt+0x158 0xdc09d4: e+0xcac8
 // sp_01 (0x99, variant 4 0x9b), +0xcacc sp_02 (0x9a / 0x9c), +0xcad0 0x19d (no shell-table row: variant 0 makes no sp_00) / 0x9d (variant
 // 4's sp_00, every mode (999, -1)); uEm020_00's 0xdc3e8c: e+0xcad8 sp_02 0x9e / 0xa0 and, variant 4, 0x9f registered. The censuses
-// (cengen11, all 16 statuses, both variants each; the id fields poked distinct: scratchpad fb/cen019ids.txt) leave ONE drawing sp_01 a
+// (cengen11, all 16 statuses, both variants each; the id fields poked distinct: <archive> fb/cen019ids.txt) leave ONE drawing sp_01 a
 // monster:
 //   Stonefist (7, 0xf2; the class's code at variant 0 too, but Daimyo carries no L9 motion): L9 M11 -> M12 (its end) -> landed -> L9 M13; phase 3 at f16 (0xb0968 mode 1, once: P+0x1a3), the maker
 //     0xdb5ebc(e, 0, P+0xb0a): sp_01 [e+0xcac8] mode 0 (0x3fa2bc(0x40): +0x10 the block point P+0x40, +0x30.. the block's words P+0x50..,
@@ -18366,9 +18366,9 @@ function spawn024(state, D, a, ctx, input, out, fresh){
     }
   }
 }
-// HIS FRAME HANDLER, vt+0x208 0xdeffc4 -- READ WHOLE (..0xdf10b4) and emulated (gapF 2026-10-20: <scratchpad>/gapF/emu208.py, 63 cases;
+// HIS FRAME HANDLER, vt+0x208 0xdeffc4 -- READ WHOLE (..0xdf10b4) and emulated (gapF 2026-10-20: <archive>/gapF/emu208.py, 63 cases;
 // the barrier 0xdeffc4..0xdf00fc is CLASS_TIMERS.em024_00's). It makes sp_01 0xb0 MODES 0 / 1 / 2 / 3 / 4 / 9 / 10 / 12 / 13 -- the
-// makers of c 29 / 30 / 31 / 32 / 33 / 34 / 35 (the census of the band 0xdeee40..0xdfeec4, <scratchpad>/gapF/census.py: no other
+// makers of c 29 / 30 / 31 / 32 / 33 / 34 / 35 (the census of the band 0xdeee40..0xdfeec4, <archive>/gapF/census.py: no other
 // create of 0xb0 than these, 0xdf8610's mode 11 and the three children's):
 //   THE MOTION SWITCH (0xb0944: 0x202..0x212 by table 0xdf0128; 5; 0x22), each on a channel-1 crossing (0xb09b0):
 //     L2 M2 (0x202) f50, with e+0x1054 == G+0x49 (0xb6fac: the machine that made him -- always here) and P+0x44 <= P+0x5b4 + 1000.0
@@ -18388,7 +18388,7 @@ function spawn024(state, D, a, ctx, input, out, fresh){
 // The viewer: L is the Wind Aura control (input.windAura024) and ctl+0x18 the Poisoned toggle (input.poisoned024: P+0x5e08 bit 1,
 // rebuilt at each action start -- dev/em024_00-effects-spec.md 1; absent: off). The action is the play's row's, else the forced one
 // (input.action), else the clip's own when every action that plays it is a pulse action (PULSE024_CLIPS, traced:
-// <scratchpad>/gapF/actsall.py / actsall2.py), else the pulse is refused by name; the posture is the one those plays set
+// <archive>/gapF/actsall.py / actsall2.py), else the pulse is refused by name; the posture is the one those plays set
 // (PULSE024_CLIPS). The clock state.c024 runs across plays, counted on the steps the frame moves (as perFrame009's clock).
 const PULSE024_ACTS = { 0: null, 1: [0x02, 0x03, 0x13], 2: [0x03, 0x08, 0x09, 0x0a, 0x0b, 0x0d, 0x14, 0x15, 0x16, 0x17],
                         4: [0x03, 0x05, 0x07, 0x09, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x17], 7: [0x0f, 0x10, 0x11, 0x30] };
@@ -21182,7 +21182,7 @@ SHELL_DATA.em072_00 = {
 // made by the shared per-motion EVENT walker 0x6c590 (rom-map; his table 0x1803de8, the selector e+0xcac8 set by EMC op a3 (0, n) and
 // taken at the action's start 0x6cb14): a row of the action's selector, of the playing motion (0xb0950), fires its type when its kind
 // holds -- kind 1 = the frame crossing of f0 (0xb0968 mode 0 = 0x72714 mode 0: pass001) -- and types > 6 go to his vt+0x480 0x10ab6c0.
-// Here: type 10 (sp_01). Rows: <scratchpad>/neset/rows087.json (seq087.txt x emcpair087.txt, the walk's reach).
+// Here: type 10 (sp_01). Rows: <archive>/neset/rows087.json (seq087.txt x emcpair087.txt, the walk's reach).
 //
 // sp_01's reader 0x10c229c (READ whole): ef 0 -> +0x15c8; hit 0 -> +0x15d8; int 0 -> +0x15e8 (a sound); float 1 -> the timer +0x15f0;
 // &vec 0 -> +0x1608; float 0 -> +0x1654, a DELAY. No flag (+0x15ec the ctor's 0): base01's init places it at the setup's point plus the
@@ -21245,7 +21245,7 @@ function spawn087(state, D, a, ctx, input, out, fresh){
 }
 
 // ---- BASE48 (uShellEmBase48; his sp_48 0x178): THE MORTAR -- dev/ahtal-neset-shells-spec.md §4. Band 0x426634..0x427b24 (rom-map; the
-// Ka agent's read <scratchpad>\sh88\b48\shell48-spec.txt, re-read here for Neset's own path: the joint start and the block target).
+// Ka agent's read <archive>\sh88\b48\shell48-spec.txt, re-read here for Neset's own path: the joint start and the block target).
 // READ: init 0x426abc, move 0x427294, step +0x158 0x4273a0, impact +0x150 0x4267e8, end +0x148 0x4278b0; his reader 0x10c25cc,
 // +0x160 0x10c27b4 (the impact test), +0x164 0x10c28f4 (a sound, 0x4a1430 id 0xff: not visual).
 // His reader 0x10c25cc (READ whole; NOT Ka's 0x10c415c): ef 0..3 -> +0x15c8..+0x15d4; hit 0 -> +0x15d8; int 0 -> +0x15dc (the target
@@ -21597,7 +21597,7 @@ SHELL_DATA.em087_00 = {
     act087(7, 0x04, '2', 'Motion[3]', [{ start: true, ev: 10, mode: 0, joint: 17, deg: 0 }, { frame: 204, ev: 10, mode: 0, joint: 13, deg: 0 }]),
     // THE EVENT ROWS, type 9 (vt+0x480 0x10ab7ac: sp_48 mode a0), type 10 (0x10ab800: sp_01 mode a0 at joint a1, the Y word + a2 deg) and
     // type 11 (0x10ab8fc: sp_58 mode a0, the yaw offset a1 deg, the sound a2), kind 1 (the crossing of f0) -- the
-    // selector's rows on the motion they name (<scratchpad>/neset/rows087.json)
+    // selector's rows on the motion they name (<archive>/neset/rows087.json)
     act087(1, 0x01, '0', 'Motion[3]', [{ frame: 60, ev: 9, mode: 0 }], { variant: '1:0x01/s32' }),   // selector 32
     act087(1, 0x01, '0', 'Motion[5]', [{ frame: 60, ev: 9, mode: 0 }], { variant: '1:0x01/s32' }),   // selector 32
     act087(1, 0x01, '0', 'Motion[6]', [{ frame: 60, ev: 9, mode: 0 }], { variant: '1:0x01/s32' }),   // selector 32
@@ -21969,7 +21969,7 @@ SHELL_DATA.em087_00.shells.shell00 = { id: 0x176, cls: 'uShellEm087_sp_00', base
            1: m057(2.0, [[0, 90]], [0], [], [60.0, 300.0], [[0.0, 0.0, 0.0]]),
            2: m057(1.0, [[0, 90]], [0], [], [60.0, 180.0], [[0.0, 0.0, 0.0]]) },
   hitdata: [[0, 99]], lists: { 0: { list: 'u', pel: 'em087_00u' } } };
-// THE ROWS (<scratchpad>\neset\seq087.txt): type 8 kind 5 (f0: the action clock) -> ev 8 { objs, mot }; type 14 kind 14 -> ev 14
+// THE ROWS (<archive>\neset\seq087.txt): type 8 kind 5 (f0: the action clock) -> ev 8 { objs, mot }; type 14 kind 14 -> ev 14
 // { obj, mot, at (the object clock), mode, joint, deg }
 {
   const all = [0, 1, 2, 3, 4, 5];
@@ -24796,7 +24796,7 @@ function counter008(state, D, ctx, input, out, fresh){
 // 0x438214, release 0x438204, gate 0x4381d8; base61 band 0x4385f8..0x43a78c -- init 0x438838, move 0x438c10, state-1 0x438e6c,
 // sub-states 0..3 0x438f98 / 0x439400 / 0x4397ec / 0x439c10, launch 0x439db8, dive 0x439f9c, orbit 0x43a1f4, orbit-on 0x43a374,
 // end 0x43a3ac, release 0x43a39c, gate 0x43a388). Checked against the ROM run on unicorn by dev/shells-ahtal-check.mjs
-// (scratchpad sh88/emu60.py; sub-states 2 / 3: scratchpad gapE/emu60x.py, the re-aim / orbit-on called as the action start does).
+// (<archive> sh88/emu60.py; sub-states 2 / 3: <archive> gapE/emu60x.py, the re-aim / orbit-on called as the action start does).
 // Readers: sp_60 0x10c4cf0 -- cmn float 0 (R, 2500) +0x15c8; ef 0..7 +0x15cc..+0x15e8 (u 332 / 300 / 330 / 331 / 231 / 310 / 311 /
 // 301); hit 0 / 1; ints 0 / 1 +0x15f4 / +0x15f8; floats 0..14 +0x15fc..; vec 0 / 1 / 2 pointers +0x1638 / +0x163c / +0x1640.
 // sp_61 0x10c5144 -- ef 0..7 +0x15c8..+0x15e4 (u 332 / 300 / 330 / 331 / 360 / none / 310 / 311); hit 0..2; ints; floats 0..23
@@ -25332,7 +25332,7 @@ function releaseWebs088(state){
 // ---- AHTAL-KA'S SILK BALLS: shell00 = uShellEm088_sp_00 on base00, and the motion event table that fires them --------------
 // dev/rom-map.md "Ahtal-Ka -- his shells read and built" (READ: sp_00 ctor 0x10c30d4, init 0x10c315c, reader 0x10c34c0, +0x158
 // 0x10c3224, +0x168 0x10c375c, +0x150 0x10c389c; base00's init / move / X aim as transcribed above). Checked against the ROM run
-// (scratchpad sh88/emu00.py) by dev/shells-ahtal-check.mjs.
+// (<archive> sh88/emu00.py) by dev/shells-ahtal-check.mjs.
 // THE READER 0x10c34c0: ef 0..3 -> +0x15c8..+0x15d4, ef 4 -> +0x1670; hit 0 / 1 -> +0x15d8 / +0x1668; int 0 the joint; the flags
 // (base00's ctor 0) bit 0 = int 1, bit 1 = int 2, bit 2 = int 3, 0x10 = int 4, 0x20 = int 5 (each != -1); floats 0..6 -> vz, vy,
 // flight, X lo / hi, Y lo / hi; vec 0 the offset, vec 1 the aim offset +0x1618; float 7 -> +0x1660 (the split factor); +0x15ec
@@ -25444,7 +25444,7 @@ function events088(state, D, a, ctx, input, out, fresh){
 // ---- SILVERWIND NARGACUGA (em037_04): base45 (shell45, the tail blades), base46 (shell46, the falling spike), the rising spike's
 // end create and the drawn shell01 of the landings -- dev/em037_04-shells-spec.md; SHELL_DATA.em037_04. Every line transcribes
 // the address it names; dev/shells-silverwind-check.mjs runs this against the ROM (the whole executable on unicorn after its
-// static initialisers, <scratchpad>/sw37/emu37.py), move by move, bit for bit.
+// static initialisers, <archive>/sw37/emu37.py), move by move, bit for bit.
 
 const degWord45 = d => s32(mla(0.5, d, DEG_TO_U16));       // s32(0.5 + deg x 182.04445): uxtah takes its low half
 
@@ -25749,7 +25749,7 @@ function spawn037w(state, D, a, ctx, input, out, fresh){
 }
 
 // ---- SEREGIOS (em077_00): shell01 0x13c from the frame handler 0xfddfcc -- dev/em077_00-effects-spec.md 7; SHELL_DATA.em077_00.
-// dev/shells-seregios-check.mjs runs make001 / step011 with params077s01 against the ROM (<scratchpad>/sw77/emu77.py).
+// dev/shells-seregios-check.mjs runs make001 / step011 with params077s01 against the ROM (<archive>/sw77/emu77.py).
 // The handler runs in the +0x28 pass after the action (line 4), as Malfestio's perFrame079. Each row's spawn: 0x3fa2bc(0x40),
 // +4 0x13c, +8 the mode, +0xc the owner, +0x10.. P+0x40.., +0x20.. the zero vector, +0x30.. P+0x50 / +0x54 / +0x58, +0x3c
 // 0xffff, through 0xfdf3e0 -> 0x48b884; base01's 0x80 arm then puts it at his ground (and deletes it 900 above it: the ROM's own

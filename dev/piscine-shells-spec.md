@@ -1,9 +1,9 @@
 # Piscine Wyverns -- shells spec (shells agent, 2026-10-18)
 
-Census: scratchpad `fb/cen9_em010.txt` / `cen9_em017.txt` / `cen9_em036.txt` (every status x number x phase, G rank) and
+Census: <archive> `fb/cen9_em010.txt` / `cen9_em017.txt` / `cen9_em036.txt` (every status x number x phase, G rank) and
 `cen9r3_em017.txt` / `cen9r3_em036.txt` (rank 3: the same rows). The census answers every frame test at once, so a helper with
 several tests shows only its first: each helper was read for the rest. Folders READ off the path table (`0x175c3e8` res ->
-`0x159daa0`; scratchpad `shellres.py`). Generic machinery: docs/render/shells.js `spawnPlain` / `makePlain` (code 'plain'):
+`0x159daa0`; <archive> `shellres.py`). Generic machinery: docs/render/shells.js `spawnPlain` / `makePlain` (code 'plain'):
 a row `{ frame, shell, mode }` (or `at: 'start'`, `untired`), the shell made from the zero vector's setup and placed / aimed by
 its own reader.
 

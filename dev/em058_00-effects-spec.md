@@ -1,6 +1,6 @@
 # Amatsu (em058_00) -- effects spec (Elder Dragon walk, 2026-10-18)
 
-Class `uEm058_00`; his word is the BASE `0xca170` (`BASE_ONLY`). No states note existed. Scratch: `<scratchpad>/zg/c058.asm`,
+Class `uEm058_00`; his word is the BASE `0xca170` (`BASE_ONLY`). No states note existed. Scratch: `<archive>/zg/c058.asm`,
 `pp058.asm`, `hook204b.py`, `states060.py`, `partscr.py`, `scrdump.py`.
 
 ## 3. The states -- R

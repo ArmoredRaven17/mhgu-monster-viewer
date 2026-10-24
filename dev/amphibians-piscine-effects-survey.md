@@ -2,7 +2,7 @@
 
 Raven: "For each category of large monster remaining, have a sub agent assess the missing effects."
 
-Assess only: no edit under docs/, no recorder or lift run. Method and format: dev/bird-wyverns-effects-survey.md and dev/brute-wyverns-effects-survey.md (their scripts, copied to the scratchpad's `survey_ap/`), plus two additions marked below.
+Assess only: no edit under docs/, no recorder or lift run. Method and format: dev/bird-wyverns-effects-survey.md and dev/brute-wyverns-effects-survey.md (their scripts, copied to <archive> `survey_ap/`), plus two additions marked below.
 
 ## How it was measured
 

@@ -2,7 +2,7 @@
 
 One class `uEm060_00` (vtable `0x17d52f8`; no `uEm062_00` string or DTI exists -- Volvidon is em byte 0x3e on it,
 Arzuros / Redhelm 0x3c with variant 0 / 4). There is **no states note** for any of the three: everything below was read
-here. Scratch: `<scratchpad>/zg/tracec.py`, `states060.py`, `jscheck060.py`, akantor-scratch `scr.py` (the scripts).
+here. Scratch: `<archive>/zg/tracec.py`, `states060.py`, `jscheck060.py`, akantor-scratch `scr.py` (the scripts).
 
 ## 1. The PSL enable word -- vt+0x13c = `0xf1911c` -- R, read whole and emulated
 

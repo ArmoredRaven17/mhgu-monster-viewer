@@ -1203,7 +1203,7 @@ so this is reported, not changed.
 
 #### Tooling note
 
-`scratchpad/mpm.py` drops SINGLE-ENTRY visibility groups -- em010_00's g7/g8 (`on 1` / `off 1`) and
+`<archive>/mpm.py` [not archived: gone from the scratchpad before the 2026-10-24 archive] drops SINGLE-ENTRY visibility groups -- em010_00's g7/g8 (`on 1` / `off 1`) and
 em043_05's g1/g5 came out empty, and the app's own shipped table is right where it is wrong. The
 `(.*?)</classref>` non-greedy match is the suspect. Anything read from that script wants checking
 against `monsters.json`'s `groups` before it is believed.
@@ -2606,7 +2606,7 @@ than against it: he is seeing this in MOTION.
 Two ways to close it, both cheap:
 
 1. Re-run the separation measurement with the Browser pane VISIBLE so rAF ticks, sampling across a
-   clip. The script is `scratchpad/seams.py` for the static half and the in-page pass for the posed
+   clip. The script is `<archive>/seams.py` [not archived: gone from the scratchpad before the 2026-10-24 archive] for the static half and the in-page pass for the posed
    half.
 2. Or replicate the proxy-bone copy so the pose can be driven headlessly.
 

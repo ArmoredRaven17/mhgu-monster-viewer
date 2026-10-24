@@ -2,7 +2,7 @@
 
 Class `uEm087_00`. His word was read and transcribed before (base | bits 15-23 always: psl-mask.js em087_00). The survey's soak
 (2026-10-15) refused 37 of 77 motions (calls to `0xaaeb90` / `0xa996b0` not translated, `0x44158` -> `0x441cc` unrecorded): the
-cure was recording his sets and lifting. Scratch: `<scratchpad>/zg/ppemu.py`, `states060.py`, `partscr.py`, `scrdump.py`.
+cure was recording his sets and lifting. Scratch: `<archive>/zg/ppemu.py`, `states060.py`, `partscr.py`, `scrdump.py`.
 
 ## 3. The states -- R
 

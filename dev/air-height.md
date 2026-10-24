@@ -5,7 +5,7 @@ ground probe) and what sets it; is the viewer's Grid Floor (index.html `monsterF
 loop) where the game's ground is. Seregios (em077_00, uEm077_00) first; controls Rathian / Rathalos (uEm001_00), Astalos
 (uEm081_00), Malfestio (uEm079_00). `P` = `[e+0x1428]` = `e + 0x1440` (the enemy ctor's own store, `0x6dcb0`: `r8 = r4 +
 0x1440`, `0x6d830`). Tags: **R** = the consuming instruction read; **E** = ROM-run (unicorn) on read code; **I** = inferred;
-**NR** = not read. Scratch (session-local): `<scratchpad>\air\` -- `emu_takeoff.py` (a class's takeoff handler frame by
+**NR** = not read. Scratch (session-local): `<archive>\air\` -- `emu_takeoff.py` (a class's takeoff handler frame by
 frame on the ROM), `curves.py` (every `0xc1010` velocity curve in a band, with its sum), `glbroot.py` (a motion glb's
 `reference` and joint-0 translation tracks).
 

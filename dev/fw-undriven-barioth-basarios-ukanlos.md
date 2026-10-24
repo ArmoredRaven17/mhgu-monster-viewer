@@ -4,7 +4,7 @@ Research agent for the Viewer agent, 2026-10-14. Static ROM reading (capstone ov
 unicorn controls (`efx/agents/notice-scratch/probe.py`, `efx/agents/cephadrome-scratch/scr.py`). No recorder, no
 lift, no `add_effects.py --apply/--record`, no `docs/` edit: this is a spec for the implementation agent.
 `R` = READ (the consuming instruction read, here or in the cited note), `I` = INFERRED, `NR` = NOT READ.
-Scratch scripts: `<scratchpad>/fwread.py` (disassembly / words), `b7scan.py`, `sevscan.py`.
+Scratch scripts: `<archive>/fwread.py` (disassembly / words), `b7scan.py`, `sevscan.py`.
 
 Sources opened before reading: dev/rom-map.md (rows 256, 393, 453, 592-601, the Seregios / Barioth section),
 dev/flying-wyverns-effects-survey.md, dev/effects-walk-order.md (#8, #17, #18), the task board (c 1105 / u 905 /

@@ -1,7 +1,7 @@
 # Chameleos (em025_00) -- effects spec (Elder Dragon walk, 2026-10-18)
 
 Class `uEm025_00`; his word is the BASE `0xca170` (`BASE_ONLY`, already in psl-mask.js). No states note existed. Scratch:
-`<scratchpad>/zg/c025.asm`, `pp025.asm`, `hook204b.py`, `states060.py`, `partscr.py`, `scrdump.py`.
+`<archive>/zg/c025.asm`, `pp025.asm`, `hook204b.py`, `states060.py`, `partscr.py`, `scrdump.py`.
 
 ## 3. The states -- R
 
@@ -86,7 +86,7 @@ The rows are in rom-map "Chameleos's invisibility levels".
   frame (the uncloak plays), and with On still set the next cloak starts 90 frames later at the new level. Breaks set before On take
   effect at once. The (1, 0x16) always-semi and the (1, 0x11) fading look are no longer options. Note: the AI's command-table cloak
   (1, 3) is 0xe03b70, which sets +0x17 = 1 -- the FADING look (alpha 1 -> 0 over 30) with the horn intact; On drew 0xe06b04's cut (superseded in 8.7: On now fades)
-  (as asked). Draw meter (`<scratchpad>/chmeter2.mjs`): On -> horn -> tail: full, uncloak, semi, uncloak, semi; On -> tail -> horn:
+  (as asked). Draw meter (`<archive>/chmeter2.mjs`): On -> horn -> tail: full, uncloak, semi, uncloak, semi; On -> tail -> horn:
   full, uncloak, full, uncloak, semi; set before On: none full, horn semi, tail full, both semi. Elders 403 / 0.
 
 ### 8.7 Every cloak entry, and the breaks (2026-10-22, second pass)
@@ -125,7 +125,7 @@ The rows are in rom-map "Chameleos's invisibility levels" (the entries table, th
 
 ### 8.8 Verify pass: does horn + tail stop the cloak? (2026-10-22; Raven: "I have seen a lot of people claim breaking both prevents him cloaking")
 
-The rows are in rom-map "Chameleos's invisibility levels" (the VERIFY PASS rows) and the Withdrawn table. Scratch `<scratchpad>\cv\`.
+The rows are in rom-map "Chameleos's invisibility levels" (the VERIFY PASS rows) and the Withdrawn table. Scratch `<archive>\cv\`.
 
 * **No.** No instruction refuses a cloak because both parts are broken. With both broken he still cloaks, semi.
 * **Correction to 8.6 / 8.7.** "Once the horn is broken the AI no longer picks (1, 3)" is withdrawn. The table issues (1, 3)

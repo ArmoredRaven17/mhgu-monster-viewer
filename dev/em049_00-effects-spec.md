@@ -1,7 +1,7 @@
 # Agnaktor (em049_00) -- effects spec (Leviathans walk, 2026-10-17)
 
 Class `uEm049_00` (vtable `0x17c5eb4`). **No states note existed** (the survey's largest gap): everything in 2-4 was read here.
-His heat machine is dev/em049-heat.md (render/monster.js ROM_HEAT_REGIONS). Scratch: `<scratchpad>/zg/jscheckpd.py`
+His heat machine is dev/em049-heat.md (render/monster.js ROM_HEAT_REGIONS). Scratch: `<archive>/zg/jscheckpd.py`
 (MOGURI=-1000 SEV=1), `states060.py`, `partscr.py`, `turns.py`, `allmot2.py`; akantor-scratch `scr.py`.
 
 ## 1. The PSL enable word -- vt+0x13c = `0xec3114` -- R, read whole and emulated

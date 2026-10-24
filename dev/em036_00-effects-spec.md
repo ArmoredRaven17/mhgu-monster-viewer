@@ -1,7 +1,7 @@
 # Lavasioth (em036_00) -- effects spec (Piscine Wyverns walk, 2026-10-17)
 
 Class `uEm036_00` (vtable `0x17baff4`). States: `states-em036_00.md` (transcribed before this pass; c 1105 was wired). Survey:
-dev/amphibians-piscine-effects-survey.md. Scratch: `<scratchpad>/zg/jscheckpd.py` (MOGURI=-2000), `allmot2.py`, `tracec.py`,
+dev/amphibians-piscine-effects-survey.md. Scratch: `<archive>/zg/jscheckpd.py` (MOGURI=-2000), `allmot2.py`, `tracec.py`,
 `depth010.py`, `latch*.py`, `latchdyn.py`.
 
 ## 1. The PSL enable word -- vt+0x13c = `0xe3f6c4` -- R, read whole and emulated

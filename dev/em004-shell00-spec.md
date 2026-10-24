@@ -88,7 +88,7 @@ Offsets his reader also writes that have **no runtime name**:
 | `+0x1604` | `sh.floats[2]` | `0xd305d8` | ~~0.0 every mode~~ **90.0 on mode 4**, 0.0 elsewhere (WITHDRAWN 2026-10-19, §10) | the clamp's high end, `0x3f953c` |
 | `+0x1618` | `accVec(0)` | `0xd30630` | `(0,0,0)` every mode | **READ** at `0x3f9e10` in the point (`ldr r2,[r4,r2]`) |
 | `+0x15c8 / +0x15d4 / +0x15cc` | `getEffect(0/1/2)` | `0xd304bc / d4 / ec` | the three ef handles | used by the landing |
-| `+0x15d8` | `accA(0)` — accessor `0x4a23f4` | `0xd30500` | **UNREAD** | |
+| `+0x15d8` | `accA(0)` — accessor `0x4a23f4` | `0xd30500` | **UNREAD** [READ since: rom-map "Shell infrastructure" `0x4a23f4..0x4a246c` (gapO, 2026-10-22)] [doc audit 2026-10-24] | |
 
 ---
 
@@ -511,7 +511,7 @@ literal ROM addresses), `params04r`, the `init00` bit-`0x10` test, and `landing0
 ## 10. (7, 0x12) and mode 4, and the degree offsets the runtime never applied (shells agent, 2026-10-19)
 
 Read for the Flying / Brute / Bird build (the cengen11 re-run's triage named `7:0x12 0x6a m4` as a create no row carried).
-`R` = the consuming instruction read; the emulator check is `dev/shells-basarios-check.mjs` (`<scratchpad>\fb\mk004.py`).
+`R` = the consuming instruction read; the emulator check is `dev/shells-basarios-check.mjs` (`<archive>\fb\mk004.py`).
 
 ### 10.1 How he gets there: his own code, not a command
 

@@ -51,10 +51,10 @@ The ROM rows are in rom-map ("Monster attack shapes"). This note is written to b
   - j0 255 is the unit itself, not a joint (drawn on the model root).
   - Codes 4 / 6: the third type, a flat-ended cylinder (section 4).
 * **Which records a clip arms** is class code: the action functions call 0x7db70.
-  - The census `<scratchpad>/zg/attrace.py` runs every action of every large monster through the action tracer: statuses 0..0x11 x
+  - The census `<archive>/zg/attrace.py` runs every action of every large monster through the action tracer: statuses 0..0x11 x
     numbers 0..0xff x phases 0..5 x ended / frame. For each call it records the slot, id, flags, the motion of that action and the
     frame gate asked before.
-  - **The per-frame arms** (`<scratchpad>/fb/pfarm.py`): every per-frame vtable slot a class overrides (+0x190..+0x240, +0x13c,
+  - **The per-frame arms** (`<archive>/fb/pfarm.py`): every per-frame vtable slot a class overrides (+0x190..+0x240, +0x13c,
     +0x298..+0x2a8, +0x488) run per motion id with every frame test answered. 391 arms on 45 monsters, merged as action `pf+<slot>`
     (shown in every action of their motion). Dropped: vt+0x1f4, the action dispatcher (a switch on e+0x73e0 / +0x73e1 at its head,
     e.g. uEm001 `0xcee3d8`), whose arms the action census already places, and any arm in more than 30% of a monster's motions.
@@ -69,7 +69,7 @@ The ROM rows are in rom-map ("Monster attack shapes"). This note is written to b
 
 ## 3. In the viewer
 
-* Data: `docs/attack-hitshapes.json` (exporter `<scratchpad>/zg/attexport.py`): records / sets (and records2 / sets2), and per clip the
+* Data: `docs/attack-hitshapes.json` (exporter `<archive>/zg/attexport.py`): records / sets (and records2 / sets2), and per clip the
   arms.
 * Overlay: `render/attack-hitboxes.js`.
   - It is drawn with the hit-zone capsules' own `zoneCapsules`: the same shapes, the same two-pass material.
@@ -80,14 +80,14 @@ The ROM rows are in rom-map ("Monster attack shapes"). This note is written to b
     (stepAttackBoxes after driveMotionStates) and the row now follows the monster by itself (it was painted from the zone chart's
     buildZoneCapSel). Opening Hit Zones keeps the overlay's setting, but that panel plays its own idle clip (List 0 Motion[1]),
     which arms nothing, so no shape shows there; back in Animation the selected clip returns and its shapes with it.
-    Check `<scratchpad>/atkcheck3.mjs` 8 / 8: the row's place, the overlay stepping with a playing clip (Rathian L4 M6, 5 armed at
+    Check `<archive>/atkcheck3.mjs` 8 / 8: the row's place, the overlay stepping with a playing clip (Rathian L4 M6, 5 armed at
     f40), a pixel check (the frame with the overlay group shown vs hidden: 160059 pixels change, 159591 red-leaning), the hover pick
     ("Attack record 28, slot 0, shape set 15, frames 6-80"), the panel switch; atkcheck2 21 / 21.
   - Colours: red, can hit a hunter; orange, only other monsters; blue, neither; grey, not armed now; yellow, touching the Solid
     stand-in hunter (Hunter Body: Solid; the shells' 0x2821e4 stand-in capsule).
   - A clip several actions play shows only the play's own action's arms where the viewer names that action (CLIP_ACTIONS / copies).
     Elsewhere it shows the union.
-* Measured (`<scratchpad>/atkcheck.mjs`):
+* Measured (`<archive>/atkcheck.mjs`):
   - **Rathian L4 M6** (the tail spin: (7, 5) / (7, 9) / (4, 0x1a) / (9, 2)): capsules on the tail joints 142 / 144, r 140 (set 13; set
     15 r 300 on (9, 2)). Armed from frame 4..8 to 70..80. With the hunter 500 ahead the r 300 pair touches at frames 16 and 60.
   - **Tigrex L0 M34** (the charge, (7, 0x10)): set 14, nine shapes on legs and body (spheres r 90..185, capsules r 130..220), armed
@@ -122,11 +122,11 @@ The ROM rows are in rom-map ("Monster attack shapes"). This note is written to b
   `0x806ce4`, `0x7ebfd8` -> `0x80017c`, `0x7db964` -> `0x8069d8`, `0x80448c` -> `0x8060ac`) fills info: point +0x10, normal +0x20,
   distance +0x30. `0x7dda24` meets when the distance <= the hunter's radius (`movwls`); out = point + (distance - r) x normal
   (`0x7ddadc..`), w 0 (`0x167fd0`). Its structure: dev/effect-runtime-engine.md, "The third hit-shape type".
-* **ROM-RUN** (`<scratchpad>/t3/t3emu.py`, 0x167f70 native; R 50 on (0,0,0)-(0,100,0), hunter r 10): the side meets to x 60, above
+* **ROM-RUN** (`<archive>/t3/t3emu.py`, 0x167f70 native; R 50 on (0,0,0)-(0,100,0), hunter r 10): the side meets to x 60, above
   to y 110, below to y -10, so the ends are **flat** (a capsule reaches 160); the rim (58, 105) meets, out (49.52, 99.7). Control:
   `0x1676f0` meets at (45, 130) where `0x167f70` does not.
 * **The viewer's test is the ROM's** (`render/hit-type3.js`, shared with the shells' hunter pass): `0x167f70`, `0x7dda24`,
-  `0x7dc9a0` and its seven callees TRANSCRIBED LINE BY LINE, generated from main.text by `<scratchpad>/t3/arm2js.py` (2392
+  `0x7dc9a0` and its seven callees TRANSCRIBED LINE BY LINE, generated from main.text by `<archive>/t3/arm2js.py` (2392
   instructions, one statement each under its address). Diffed against the ROM run natively after the static initialisers
   (`t3diff.py`, `t3hunt.py`, `t3hunt2.py` -> `t3diff.mjs`), **1537 cases**: the first check's 480 (20 aligned, 60 + 400 random),
   300 with the hunter's axis through the cylinder, 300 skimming a rim, 150 parallel, 100 degenerate, 200 game-sized, 7 targeted at

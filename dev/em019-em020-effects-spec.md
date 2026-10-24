@@ -2,7 +2,7 @@
 
 Two classes: `uEm019_00` (em byte 0x13; Daimyo, and Stonefist as variant 4) and `uEm020_00` (em 0x14; Shogun, Rustrazor as
 variant 4). Their states were wired before (states-em019_00.md, `crabLine` in motion-states.js); this walk reads the enable
-words. Scratch: `<scratchpad>/zg/jscheck019.py`, `w019.asm`, `tracec.py`.
+words. Scratch: `<archive>/zg/jscheck019.py`, `w019.asm`, `tracec.py`.
 
 ## 1. The PSL enable words -- R, read whole and emulated
 

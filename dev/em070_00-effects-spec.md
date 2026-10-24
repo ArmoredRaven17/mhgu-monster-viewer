@@ -1,7 +1,7 @@
 # Nerscylla (em070_00) -- effects spec (Temnoceran walk, 2026-10-18)
 
 Class `uEm070_00` (vtable `0x17e222c`). No states note existed: the reaction scripts, the per-part depletion and the part pass's
-break sets were read here. The jaws (part 13, set 16) are dev/em070-part50-spec.md. Scratch: `<scratchpad>/zg/jscheckpd.py`.
+break sets were read here. The jaws (part 13, set 16) are dev/em070-part50-spec.md. Scratch: `<archive>/zg/jscheckpd.py`.
 
 ## 1. The PSL enable word -- vt+0x13c = `0xfab634` -- R, read whole and emulated
 

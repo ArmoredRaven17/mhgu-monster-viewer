@@ -3,7 +3,7 @@
 Class `uEm003_00` (action main `0xd1f658`). His shells were built before (shells.js SHELL_DATA.em003_00, dev/shells-khezu-check.mjs
 76 / 76: the lightning, the orb, the drips, the ring, the ground patch, the per-frame c 31). The Flying-Wyvern census (fb/runfbb.py ->
 fbbcmp.mjs) found seven actions of his status 3 making shell01 (0x66, `[e+0xcac8]`) mode 4 (c 31, em003_00c) that no row had.
-Emulator check `dev/shells-khezu-st-check.mjs` (tool `<scratchpad>/fb/mk003st.py`), 12 / 12; page 4 / 4.
+Emulator check `dev/shells-khezu-st-check.mjs` (tool `<archive>/fb/mk003st.py`), 12 / 12; page 4 / 4.
 
 ## 1. What creates
 

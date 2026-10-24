@@ -5,7 +5,7 @@ Shells agent for the Viewer agent, 2026-10-17. The Fanged Wyvern effects agent f
 16)"). Read from the ROM, transcribed in docs/render/shells.js (`SHELL_DATA.em057_00` / `.em057_04`, `actions057`, `spawn057`,
 `perFrame057`, base18 `init18` / `step18` / `move18`, the readers `params057s01` / `params057s18` / `params057s11`, `create057s11`,
 `endCreate057`, `landing057s18`), checked bit for bit against the ROM by dev/shells-zinogre-check.mjs. Index rows: dev/rom-map.md
-"Zinogre / Thunderlord -- the shells". Scratchpad: `zs/` (band57.txt, base18.txt, the tracer tr57.py, the census cen4.txt, the
+"Zinogre / Thunderlord -- the shells". <archive>: `zs/` (band57.txt, base18.txt, the tracer tr57.py, the census cen4.txt, the
 direct-call probe callf.py, the harness emu_zinogre.py).
 
 ## 1. The classes

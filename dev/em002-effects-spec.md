@@ -10,7 +10,7 @@ per class": uEm001_00 `0x1793c28` / `0xd09054` "override UNREAD"), docs/render/p
 (the format), C:\MHGU-RE\offline\decode\notes\states-em001.md §1 / §8, breaks-em001.md §5 (names this slot "attack hit groups",
 reads the L2 M3 / M4 arm), states-em002_04.md §1 / §3.3 / §4 / §6, motion-states.js (SHELL_TAIL, RAGE_PUFF, TIRED_DROOL),
 shells.js (pickVariantsFor, questLevel), index.html playNow, the task board (no read of this slot). Scratch:
-`<scratchpad>\rath2\` (emu13c_r.py, jscheck_r.py, cliprev2.py, pv.mjs, the plans em002_0X_file / _whole.txt).
+`<archive>\rath2\` (emu13c_r.py, jscheck_r.py, cliprev2.py, pv.mjs, the plans em002_0X_file / _whole.txt).
 
 ## 0. There is no uEm002_00 — the Rathalos line runs RATHIAN'S CLASS, uEm001_00 — R
 
@@ -68,7 +68,7 @@ Dreadking), L4 M38 (7, 0xf5), L0 M16 / M17 (1, 7 / 8).
 `0xd092b4`, `0xd092fc`, `0xd093c8`, `0xd093f0`, `0xd09410`, all in the method; the same scan over uEm043_00's band finds its two
 (`0xe81018`, `0xe8108c`).
 
-**Emulated** (`<scratchpad>\rath2\emu13c_r.py`: bw1/emu13c_bw.py plus e+0xb5f4 / e+0xb5f0, the quest number hooked at `0x49930`,
+**Emulated** (`<archive>\rath2\emu13c_r.py`: bw1/emu13c_bw.py plus e+0xb5f4 / e+0xb5f0, the quest number hooked at `0x49930`,
 the monster's own .dtp array). **Controls first:** Deviljho L2 M10 calm / tired `0x381ff` / `0x3f03f`; Garuga L2 M2 `0x1bf`;
 Deadeye L0 M7 (7, 0xe5) `0x380001ff`, L2 M12 level 2 `0x1c01ff` — all the earlier specs' words.
 
@@ -146,7 +146,7 @@ Inputs, and how the viewer supplies each:
 
 ## 2. What the word changes — whole-block plan (each monster: 42 bindings outside the file mask)
 
-`<scratchpad>\bw1\planrows.py <mon> [--whole]` and `recs.py` (rath2/em002_0X_file.txt / _whole.txt). Rathalos 174 file-mask ->
+`<archive>\bw1\planrows.py <mon> [--whole]` and `recs.py` (rath2/em002_0X_file.txt / _whole.txt). Rathalos 174 file-mask ->
 216 whole, Silver 186 -> 228, Dreadking 206 -> 248. The three monsters' out-of-mask rows are the same bindings (records differ).
 
 **Turned ON, always** (outside the file mask, bits 0-5 — 5): L2 M5 b0 u 200; L2 M9 b0 u 260; L4 M42 b2 u 321, b3 u 380; L4 M43
@@ -193,7 +193,7 @@ Silver u 522 / 523 / 600 / 602.
 ## 3. Which plays reach the keyed clips — CLIP_ACTIONS: NONE NEEDED
 
 * **L4 M32**: the ROM-run sweeps (efx/agents/rathian-variants-scratch actions3 / actions2 `em002_0X`, rank 5, theirs;
-  `<scratchpad>\rath2\cliprev2.py`) play it at step 34 (after L4 M31) for (2, 4 / 5 / 6), (7, 3 / 0x29 / 0x2b / 0x2c / 0x35..0x38 /
+  `<archive>\rath2\cliprev2.py`) play it at step 34 (after L4 M31) for (2, 4 / 5 / 6), (7, 3 / 0x29 / 0x2b / 0x2c / 0x35..0x38 /
   0x48 / 0x49), (9, 3 / 4) — the same on all three. The viewer's shell picks for it (pv.mjs) are those actions, and index.html
   playNow takes `ri.variant` before CLIP_ACTIONS — so the word already gets each play's action. R (the sweep) / R (the code path).
 * **L4 M38**: Silver and Dreadking (7, 0x43 / 0x45 / 0x46 / 0xf5), (7, 0x70) from f70; ABSENT from Rathalos's list 4. Dreadking's

@@ -25,7 +25,7 @@ states-em042_00.md 11 lists "+0x13c (attack hit groups)" as NOT READ: that label
     0xe70cf0  P+0x3b4 bit 0 set -> nothing; else |= 0x18000 (bits 15-16)
     every other motion: the base alone
 
-**Emulated control** (`<scratchpad>/emu13c.py`): L2 M8 (7,0/1/0xf/0x14/0x1c/0x1e) `0x181ff`; (7,0x21) / (7,2)
+**Emulated control** (`<archive>/emu13c.py`): L2 M8 (7,0/1/0xf/0x14/0x1c/0x1e) `0x181ff`; (7,0x21) / (7,2)
 `0x1ff`; severed `0x1ff`; L2 M9 (7,0) `0x181ff`, (7,0x21) `0x601ff`; L2 M10 (7,0x22) `0x601ff`, severed `0x1ff`;
 enraged (7,0x1e) `0x18e3f`; status 6 `0x1ff`; L0 M4 (1,0) / (1,0xe) `0x1801ff`, (1,1) / (7,0) `0x1ff`; tired +
 severed (1,0xe) `0x18703f`; L2 M11 / L2 M32 / L2 M33 (7,0x21) `0x1ff`. All match the read.
@@ -82,8 +82,8 @@ sever-gated), CLIP_ACTIONS for those clips, and the "what to implement, in order
 
 ## 4. What the word changes — whole-block plan (124 file-mask bindings -> 130 whole-block) — R
 
-`<scratchpad>/bw1/planrows.py em042_00 [--whole]` (add_effects.plan with em042_00 forced into psl_mask_monsters; outputs
-`<scratchpad>/bs/em042_00_{file,whole}.txt`). **Barioth has no binding on bits 6-14 at all** — every binding but the ten
+`<archive>/bw1/planrows.py em042_00 [--whole]` (add_effects.plan with em042_00 forced into psl_mask_monsters; outputs
+`<archive>/bs/em042_00_{file,whole}.txt`). **Barioth has no binding on bits 6-14 at all** — every binding but the ten
 below sits on bits 0-5 and stays always-on, so the state groups change nothing for him.
 
 **Gated** (in the file mask — the viewer fires them today on every play and after the sever):
@@ -107,7 +107,7 @@ So the class turns ON nothing new, keeps the six L2 M32 / M33 bindings off, and 
 ## 5. Who plays each clip, and the remap that decides it — R
 
 Action main vt+0x1f4 `0xe701d4` (statuses 0..0x11, table `0xe701f4`); status 7 `0xe6e550`, status 1 `0xe65f5c`
-(`<scratchpad>/ng/jt.py`; first motions by `efx/agents/notice-scratch/probe.py`, every (1, n) / (7, n), postures 0 and 1
+(`<archive>/ng/jt.py`; first motions by `efx/agents/notice-scratch/probe.py`, every (1, n) / (7, n), postures 0 and 1
 the same). Later phases read by hand.
 
 * **L2 M9 / L2 M10**: (7, 0) / (7, 0x21) -> `0xe6e684` / `0xe6e978` setMotion0 **0x209**; (7, 1) / (7, 0x22) ->
@@ -139,7 +139,7 @@ the same). Later phases read by hand.
 
 ## 6. The transcription, checked against the ROM — R (emulated)
 
-`<scratchpad>/bs/jscheck.py`: the JS below ported line for line against `0xe70b78` under unicorn (`bw1/emu13c_bw.py`, one
+`<archive>/bs/jscheck.py`: the JS below ported line for line against `0xe70b78` under unicorn (`bw1/emu13c_bw.py`, one
 instance, ARMv8; control first: Ukanlos's spec words `0x381ff` / `0x1c01ff` reproduced) over 13 motions (L0 M1 / M4 / M5,
 L1 M17, L2 M7 / M8 / M9 / M10 / M11 / M16 / M32 / M33, L3 M13) x status 0 / 1 / 6 / 7 / 13 x number 0..0x47 x P+0x3b4
 0..3 x rage x tired: **74880 runs, 0 mismatches.**
@@ -200,7 +200,7 @@ would never fire once em042_00 is in PSL_MASK_MONSTERS.
    plays, not the third; c 90 on the rage roar only.
 Nothing else is open in the survey's Barioth section: u 905 is driven by CUT_TAIL.em042_00 (§2).
 
-NOT READ, by name: who issues (13, 5) (no stream, no class follow found by `<scratchpad>/bs/actsites.py`; it fires
+NOT READ, by name: who issues (13, 5) (no stream, no class follow found by `<archive>/bs/actsites.py`; it fires
 nothing, so it changes no word); what g0 s0 / g13 s0 are as behaviours; the e+0x7420 writer's arm for this class
 (the remap's gate) is I from the shared reading.
 

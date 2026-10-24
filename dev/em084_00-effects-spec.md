@@ -1,6 +1,6 @@
 # Nakarkos (em084_00) -- effects spec (Elder Dragon walk, 2026-10-18)
 
-Class `uEm084_00`. His word was read and transcribed before (dev/em084-psl-mask.md). Scratch: `<scratchpad>/zg/sweepev.py`,
+Class `uEm084_00`. His word was read and transcribed before (dev/em084-psl-mask.md). Scratch: `<archive>/zg/sweepev.py`,
 `states060.py`, `scrdump.py`.
 
 ## 3. This walk -- R
@@ -32,9 +32,9 @@ u 1121 is both his puff (ragePuff) and his class request: the json now carries a
 
 * **Each arm on its own effect runtime.** In the game each arm is a unit of its own class (uEmOstgaloaArm, vtable 0x17f6498). Its
   PSL walker reads its own motion and frame on its own lists (em084_00_l_N / r_N), and its enable word is its class's: 0x107f0e4,
-  transcribed as psl-mask.js `armMask084` / `armPlay084` and emulated with every call native (`<scratchpad>/zg/jscheckarm.py`:
+  transcribed as psl-mask.js `armMask084` / `armPlay084` and emulated with every call native (`<archive>/zg/jscheckarm.py`:
   5602 runs, 0 mismatches; the control mismatches). Its records come from its own pels and hang from its joints.
-  * Built: docs/effects/em084_00_left.json / _right.json (32 records each, `<scratchpad>/zg/arm_export.py`), and CLIP_EFFECTS
+  * Built: docs/effects/em084_00_left.json / _right.json (32 records each, `<archive>/zg/arm_export.py`), and CLIP_EFFECTS
     em084_00_left (72 motions) / _right (69), keyed `'Ll_2 Motion[1]'`.
   * One runtime per arm (render/rom/effect-mounts.js `attachSideEffects`). Its root is the arm's mounted model, and its unit is
     the frame the arm hangs on (attachFrame: body joint 200 / 203).
@@ -48,7 +48,7 @@ u 1121 is both his puff (ragePuff) and his class request: the json now carries a
   * l_2 M5: u 200 on, u 201 off;
   * a step back clears the arm's requests;
   * effects off, effects on, and a monster change drop and remake the runtimes.
-* **Soak:** `<scratchpad>/armsoak.mjs`, every body and arm clip (254) on the page's own loop: **0 refused**, 698 arm starts.
+* **Soak:** `<archive>/armsoak.mjs`, every body and arm clip (254) on the page's own loop: **0 refused**, 698 arm starts.
 * **A step back is an open gap -- the body's too, and in HEAD.** clearClipEffects hard-releases the running generators. An
   em084_00_050 / _007 record alive (u 135 holds through every idle) takes the destructor 0xa55ea8's +0xb8 != 0 case, 0xa55f20,
   which no recording has; the host is dead after the throw.
@@ -88,7 +88,7 @@ u 1121 is both his puff (ragePuff) and his class request: the json now carries a
 * **c 800:** sets add_em084_00_c800 / _stop / _near.
   * Two --grow rounds: 0xaf6ac0 (called from 0xaf6740), then 0x13b7264 (a game matrix routine, from 0xaf6fa4). Each went onto
     lifted-added.js's line, the sets were recorded again, and a lift followed. The earlier sets are in
-    <scratchpad>/zg/sets_c800_r1 / _r2.
+    <archive>/zg/sets_c800_r1 / _r2.
   * **C800.on = true.** dev/checks/em084_00.mjs passes 26/26: three requests at the ROM's points and block, held across the
     loop with no refusal, stopped at the next play.
 

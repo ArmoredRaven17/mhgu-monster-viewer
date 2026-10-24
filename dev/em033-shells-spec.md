@@ -1,7 +1,7 @@
 # Akantor (em033_00) -- his shells (shells agent, 2026-10-19)
 
 Class `uEm033_00` (vtable `0x17ba1c4`, band `0xe360a0..0xe3ea34`; action main `0xe3e098`). His beams are render/beam-spawns.js's.
-Emulator check `dev/shells-akantor-check.mjs` (tool `<scratchpad>/fb/mk033.py`), 5 / 5. `R` = the consuming instruction read.
+Emulator check `dev/shells-akantor-check.mjs` (tool `<archive>/fb/mk033.py`), 5 / 5. `R` = the consuming instruction read.
 
 ## 1. What creates on him
 

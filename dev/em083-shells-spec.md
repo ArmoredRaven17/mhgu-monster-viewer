@@ -1,7 +1,7 @@
 # Gammoth / Elderfrost Gammoth (em083_00 / em083_04) -- shells spec (shells agent, 2026-10-18)
 
 Class `uEm083_00` (band `0x104f8c8..0x1064be0`, action main `0x1050a1c`), both variants (byte `e+0xb5f5`: 0 Gammoth, 4
-Elderfrost). Census: scratchpad `fb/cen_em083_v0.txt` / `cen_em083_v4.txt`; files `fb/shl_em083_00.txt` / `_04.txt`; hitdata
+Elderfrost). Census: <archive> `fb/cen_em083_v0.txt` / `cen_em083_v4.txt`; files `fb/shl_em083_00.txt` / `_04.txt`; hitdata
 `fb/hit.py`. Ids: `e+0xcae0` sp_00, `+0xcae4` sp_01, `+0xcae8` sp_13 (0x161 / 0x163 / 0x164 for variant 0; 0x165 / 0x168 / 0x16a
 for 4, written by `0x105f164`); sp_00_02 0x162 an immediate.
 
@@ -103,7 +103,7 @@ Records exported: u 1, 2, 31, 32, 41..44, 51..55, 60, 62, 70, 80, 100, 101, 150.
 - 04_00 `0x1061084` = sp_00_02's map; its +0x13c `0x106128c` spreads the request's words by floats 2..5 (two RNG draws when int
   0 != 0) -- all 0 in his files (params083s040 refuses any other); landing `0x1061158` = sp_00_02's (id 0x168).
 
-### 3. Harness options added (scratchpad fb/emu_fb.py)
+### 3. Harness options added (<archive> fb/emu_fb.py)
 
 `precall` (the owner's own call before the steps: the setter arm), `noTurn` (0x783fc answered: the viewer's facing is its
 input), `rng0` (0x3f76d8 answered 0: the pieces' init draws times zero floats), `noEm`, `slot0Depths`, `post28`.
@@ -112,7 +112,7 @@ input), `rng0` (0x3f76d8 answered 0: the pieces' init draws times zero floats), 
 
 - THE TRUNK SNOW's sp_01 20 (u 62 on joint 157): `0x1060e28(e, tune int)` is called from the actions at `0x1057fc8` ((7, 0x10 /
   0x35), L2 M16 phase 1, f158 = tune float 0x53, dmg tune int 0x22 = 999), `0x1058328` ((7, 0x11 / 0x36), L2 M16, f165, dmg 999)
-  and `0x10590d4` ((7, 0x42), L2 M19, f85, dmg int 0x24 = 0) -- found by the census with the gate held open (scratchpad
+  and `0x10590d4` ((7, 0x42), L2 M19, f85, dmg int 0x24 = 0) -- found by the census with the gate held open (<archive>
   `fb/cen_armour.py`). The gate `0x1053d8c(e, 1, dmg)` is the trunk snow's hit (slot 5, e+0xcb64): 0 / 4 never; 1 breaks at any
   damage on variant 4; 2 / 3 when dmg x the rate takes part 1's durability (P+0x3cc) to 0 -- and `0x9d36c(e, 1)` (part 1's break
   level) must be 0. The viewer drives it from the trunk row shown (motion-states.js `trunkSnow083`, index.html shellExtra
@@ -123,9 +123,9 @@ input), `rng0` (0x3f76d8 answered 0: the pieces' init draws times zero floats), 
   left unbuilt.
 - THE FOLDERS are READ: the shell table `0x175c3e8` row's res (`0x48b79c` -> `0x152530`) names the file through `0x159daa0`'s
   ~crc32 path hashes; 0x161..0x16b = em083_00_shell00 / 00_02 / 01 / 13, em083_04_shell00 / 00_02 / 00_03 / 01 / 02 / 13 / 13_02
-  (scratchpad `shellres.py`) -- the order taken before, now read.
+  (<archive> `shellres.py`) -- the order taken before, now read.
 
-## 6. THE LEG SNOW (2026-10-20, shells agent's decode helper; scratchpad gapG/RESULT.md) -- BUILT
+## 6. THE LEG SNOW (2026-10-20, shells agent's decode helper; <archive> gapG/RESULT.md) -- BUILT
 
 - `0x105fd94` (callers 0x1057224 / 0x105781c / 0x1059e3c / 0x1059f70 / 0x105b4bc): `0x1053710` sets four leg flags from the action
   number's frame tests ((7, 0 / 0x32) L2 M1 f116 leg 0; (7, 1) L2 M2 f100 leg 1; (7, 5 / 6) L2 M6 f208..390; (7, 0x5a..0x5d) L2 M37

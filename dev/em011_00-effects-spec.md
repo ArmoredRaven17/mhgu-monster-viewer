@@ -1,6 +1,6 @@
 # Kirin (em011_00) -- effects spec (Elder Dragon walk, 2026-10-18)
 
-Class `uEm011_00` (vtable `0x179f740`). States: states-em011_00.md (transcribed before). Scratch: `<scratchpad>/zg/jscheckpd.py`,
+Class `uEm011_00` (vtable `0x179f740`). States: states-em011_00.md (transcribed before). Scratch: `<archive>/zg/jscheckpd.py`,
 `sweepmot.py`, `vt208_011.asm`.
 
 ## 1. The PSL enable word -- vt+0x13c = `0xd73a18` -- R, read whole and emulated

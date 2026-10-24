@@ -203,7 +203,7 @@ dev/shells-gravios13-check.mjs.
 
 ## 9. shell01 from the frame handler -- READ and built (shells agent, 2026-10-19)
 
-Found by the per-frame census (`<scratchpad>/fb/pfgen.py`: the class's overriding vtable slots x every motion id he ships; the
+Found by the per-frame census (`<archive>/fb/pfgen.py`: the class's overriding vtable slots x every motion id he ships; the
 action-main census cannot see it -- rom-map trap 121). The class's vt+0x208 `0xd2329c` switches on the motion id (`0xb0944`):
 
 | motion | frames (channel 1, `0xb09b0`) | site | shell |

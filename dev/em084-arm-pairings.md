@@ -1,8 +1,8 @@
 # em084_00 Nakarkos — which body action orders which arm action, and what the body and the other arm play meanwhile
 
 Research agent for the PM, 2026-10-05, follow-up to `dev/em084-shells-spec.md`. Every row was read in this session.
-- Static reads used `efx/armdis.py` and the scratchpad wrapper `naka_shells/dd.py`.
-- Cross-checks ran under unicorn with the beams lane's driver (`scratchpad/beamsD/drv.py`). The scratch scripts are
+- Static reads used `efx/armdis.py` and the scratchpad wrapper `<archive>/naka_shells/dd.py` [not archived: gone from the scratchpad before the 2026-10-24 archive] (a `dd.py` of the same name survives in `<archive>/gapC/`; whether it is the same wrapper is not checked).
+- Cross-checks ran under unicorn with the beams lane's driver (`<archive>/beamsD/drv.py` [not archived: gone from the scratchpad before the 2026-10-24 archive]). The scratch scripts are
   `naka_shells/b3cls.py` (hooks `0x107f4c8` and implements the timer `0x7206c`), `run_body3.py` (every body
   status × number, stance 1 and 2), `run_phase.py`, `run_arm_misc.py` and `run_held.py`.
 

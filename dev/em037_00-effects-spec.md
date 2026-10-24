@@ -23,7 +23,7 @@ Negative with control: an immediate scan of the band `0xe47070..0xe5a204` for `0
 writer of the word in the class); the same scan finds the methods of uEm007_00 (`0xd45354`), uEm033_00 (`0xe3e3cc`)
 and uEm038_00 (`0xe62cc0` / `0xe62ce8`).
 
-**Emulated** (`<scratchpad>/ng/emu13c2.py`, unicorn with the ARMv8 model; the harness first reproduced Bloodbath's
+**Emulated** (`<archive>/ng/emu13c2.py`, unicorn with the ARMv8 model; the harness first reproduced Bloodbath's
 census words and Akantor's spec words exactly): L2 M5 calm `0x1ff`; L2 M21 severed + enraged `0xe3f`; L3 M4 tired
 `0x703f`; L0 M38 posture 4 under ground `0x1ff`; Silverwind (variant 4) L9 M6 calm `0x1ff`, severed + enraged `0xe3f`,
 L9 M8 (7, 0x10) tired `0x703f`. The base words exactly, for both variants.
@@ -39,7 +39,7 @@ L9 M8 (7, 0x10) tired `0x703f`. The base words exactly, for both variants.
 
 ## 2. What the word changes — whole-block plan, per binding
 
-`add_effects.plan` with the monster added to `psl_mask_monsters()` (`<scratchpad>/ng/planrows.py <mon> --whole`;
+`add_effects.plan` with the monster added to `psl_mask_monsters()` (`<archive>/ng/planrows.py <mon> --whole`;
 `--file` for the file masks). Nargacuga 96 -> 99 bindings, Silverwind 100 -> 104. **Every binding of both monsters
 sits on bits 0-2** (Nargacuga: 60 b0, 28 b1, 11 b2; Silverwind: 65 / 28 / 11) — so nothing is gated by state, and
 the word only turns bindings ON:

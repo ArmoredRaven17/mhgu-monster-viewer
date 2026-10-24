@@ -6,8 +6,8 @@ currently strobing and I am not sure that is correct, consult the ROM."* Class u
 1.2 and 2 (the material machine), re-read here instruction by instruction.
 
 Status: **R** = the consuming instruction was read; **I** = inferred; **NR** = not read (reason given).
-Scratch (session-local): `<scratchpad>\furprobe.mjs` / `furfix.mjs` (page checks run by `<scratchpad>\run-check.mjs`
-under `run_locked.sh`), `furshow.py` (prints them), `<scratchpad>\fur\fdis.py` (ARM disassembly with literals),
+Scratch (session-local): `<archive>\furprobe.mjs` / `furfix.mjs` (page checks run by `<archive>\run-check.mjs`
+under `run_locked.sh`), `furshow.py` (prints them), `<archive>\fur\fdis.py` (ARM disassembly with literals),
 `fur\strscan.py` (every pc-relative string a band forms, decoded word by word), `fur\blscan.py` (every B/BL to a
 target in main.text).
 

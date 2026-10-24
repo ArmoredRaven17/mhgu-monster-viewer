@@ -2,7 +2,7 @@
 
 The Elder Dragons in the in-app order. Each section: what the class makes, from which code, the files, what the viewer does
 (docs/render/shells.js), and the check that holds it to the ROM. Addresses are main.text / main.data of the Switch build.
-Scratch: `<scratchpad>/fb/` (emu_fb.py the harness, rungen11.py / cengen11.py the census, motqx.py the clips).
+Scratch: `<archive>/fb/` (emu_fb.py the harness, rungen11.py / cengen11.py the census, motqx.py the clips).
 
 ## 1. Kirin (em011_00) -- uEm011_00
 
@@ -152,7 +152,7 @@ em036_00 L2 M10 (A keeps (7, 3), B keeps (7, 0x11)); Kirin L2 M4 (B (7, 2) keeps
   0xa5846c in L_a583c4), em013_02u u100 / u110 (the lightning's strike: 0xae9d38), em013_02u u200 / u201 (Old's mode-2 fireball,
   with the clip's 202 / 601 on L4 M7: 0xcace4c). The shells spawn; those effects are not drawn until the lift.
 - **Not built (named)**: the turning flame (7, 0x28 / 0x29 / 0x2f / 0x30 / 0x34 / 0x35: the bearing machine 0xd854fc / 0xd85e18 /
-  0xd844e8 picks the clip and the fire's words mid-action); (7, 0x49) (Old, L2 M25 f146: a pitch from joint 3's world point, 0xd8716c);
+  0xd844e8 picks the clip and the fire's words mid-action); (7, 0x49) (Old, L2 M25 f146: a pitch from joint 3's world point, 0xd8716c) [READ 2026-10-20 (gapA), see the addenda below and rom-map "Elder Dragons -- the shells"; gapA asked for it to leave this list] [doc audit 2026-10-24];
   the phase-3 dust of (7, 0x2d / 0x4d / 0x0c / 0x3d / 0x51) (the clip that phase plays is set on a branch not read); (3, 0x0b / 0x0f /
   0x11), (4, 0x04 / 0x05) (no EMC stream or set-action call reaches them; one 0x768c8 site behind e+0x7420).
 
@@ -272,7 +272,7 @@ em036_00 L2 M10 (A keeps (7, 3), B keeps (7, 0x11)); Kirin L2 M4 (B (7, 2) keeps
   - Page 11/11; soak 54 motions, 0 refused.
   - Exports em025_00u 0 / 1 / 2 / 3 / 11, em025_00c 30 / 31. [**u 4 BACK IN 2026-10-18 (effects lane)**: 0xa953f0 is the arm for generator flag bit 28 (`ubfx r0, r4, #0x1c, #1` of [[g+0x34]+0x10c] at 0xa94100, kept at sp+0x38 and tested at 0xa953e8) in 0xa93ff0; recorded as the UNIQUE record (rec_shellrec add_em025_00_shellrec_u4 / _near), lifted, exported; shells-chameleos-check 20 + page 12, soak 54 / 0] **u 4 (the mode-1 cloud) withheld**: the runtime refuses it at 0xa953f0
     (unrecorded path) -- the effects lane's.
-- **Seen**: L2 M45's gob (f70) starts about 13 below the viewer's floor (the head at the ground, offset (0, -80, 140)) and falls through
+- **Seen** [WITHDRAWN 2026-10-22 (gapP): the floor there is the lowest-reach stand-in; the head is 297 x size below the unit's ground -- rom-map Withdrawn table] [doc audit 2026-10-24]: L2 M45's gob (f70) starts about 13 below the viewer's floor (the head at the ground, offset (0, -80, 140)) and falls through
   it: no landing, no cloud, as the ROM's query would answer for that geometry.
 
 ## 6. Teostra (em027_00) -- uEm027_00 (2026-10-18)
@@ -473,7 +473,7 @@ em036_00 L2 M10 (A keeps (7, 3), B keeps (7, 0x11)); Kirin L2 M4 (B (7, 2) keeps
     - **FIXED 2026-10-19 (the page check's 20-minute timeout):** the module deleted the shell in the same step it stopped the splashes, so
       the stops (applied only to ended / alive shells) were lost and every play left ~13 u 51 running (19 -> 69 requests over five
       plays). As the ROM does (0xf10da8..0xf10eac), the stops now go out with the 0xfe shell and it is deleted only when every slot is
-      EMPTY (each handle dropped once its unit left states 1 / 2). Measured (scratchpad diag042.mjs): back to the 2 base requests
+      EMPTY (each handle dropped once its unit left states 1 / 2). Measured (<archive> diag042.mjs): back to the 2 base requests
       between plays. Nothing ends the line at a clip change or a loop wrap in the ROM either: it runs its travel out.
   - Check: dev/shells-amatsu-check.mjs 18/18 -- w19 / w1a / w1b fly the three lines (700 moves each equal, the ground rays and 14
     starts each); emu_fb `activate` runs vt+0x18 before move 1, `stubs` 0x420fe0 (the sound's ray). Controls: the target (w1a), joint
@@ -521,7 +521,7 @@ em036_00 L2 M10 (A keeps (7, 3), B keeps (7, 0x11)); Kirin L2 M4 (B (7, 2) keeps
   controls: the facing, the target (two), the floor, the owner, joint 165. Page 3/3. The records (u 10 / 20 / 21 / 30 / 500 / 501) are
   NOT exported yet: recording requested.
 
-## Addenda 2026-10-20 (shells agent; the draw table's gaps, decode helpers' scratchpad gapA / gapD)
+## Addenda 2026-10-20 (shells agent; the draw table's gaps, decode helpers' <archive> gapA / gapD)
 
 - **Kirin (1)**: the status-2 strikes (2, 0xb..0xe) L4 M2 phase 1 f84 sp_11 17 / 16 / 19 / 18 and (2, 0x20..0x23) L0 M11 / M12 f10
   sp_11 25 (census cen11_ed011_a; setups 0xd6f978.. / 0xd6f66c.. READ, as (7, 3)'s; issued g1 s14..s17 / s46) are BUILT -- the only

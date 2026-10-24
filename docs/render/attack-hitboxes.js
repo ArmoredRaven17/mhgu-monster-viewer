@@ -4,7 +4,7 @@
 // one joint, 2 a capsule between two), the same two-pass material -- one group per armed record, coloured by what it can hit.
 // dev/attack-hitshapes.md.
 //
-// THE DATA (docs/attack-hitshapes.json, exporter <scratchpad>/zg/attexport.py):
+// THE DATA (docs/attack-hitshapes.json, exporter <archive>/zg/attexport.py):
 //   records[id] = [start, duration, kind, set, flagsWord, power, u16 +8, byte +0xa, byte +0xb, status +0x10, status +0x14, value +0x18]
 //     -- enemy\hit_data\<id>_attackdata.hde, 0x20-byte records (0x7db70 copies one): s16 +0 the start frame, s16 +2 the duration,
 //     byte +6 the kind, u32 +0xc the flags word, byte +0x19 the hit-size set; the rest as describeRecord below
@@ -13,8 +13,8 @@
 //     (0x16ded0..0x16dffc); codes 4 / 6 the third type, a flat-ended cylinder (render/hit-type3.js); j0 255 the unit itself (the
 //     model root)
 //   ids >= 1000 index the SECOND table (0x70f40 / 0x70fa0: [unit+0x75d8] / [+0x75e0]) -- records2 / sets2, a deviant's own file
-//   arms['<list>|Motion[N]'] = [[slot, id, flags, gate, action], ...] -- the action census (<scratchpad>/zg/attrace.py) and the
-//     per-frame census (<scratchpad>/fb/pfarm.py: action 'pf+<vtable slot>')
+//   arms['<list>|Motion[N]'] = [[slot, id, flags, gate, action], ...] -- the action census (<archive>/zg/attrace.py) and the
+//     per-frame census (<archive>/fb/pfarm.py: action 'pf+<vtable slot>')
 // THE WINDOW (0x7db70 0x7dc70..0x7dd18): start < 1 -> from the arm for `duration`; else max(start, the arm) .. start + duration, in the
 // motion's frames. THE TARGET MASK (0x7dd44..0x7ddb0): 0x17; flag 0x40 -> 0x10, 0x100 -> 2, 0x200 -> 5, 0x4000 -> 8; | flag 0x80 -> 0x20,
 // record +0xc bit 0x100000 -> 0x20, flag 0x1000 or record bit 0x80000 -> 8. Bit 0 = the hunters (the pair pass 0x16acf0), bit 1 = monsters.

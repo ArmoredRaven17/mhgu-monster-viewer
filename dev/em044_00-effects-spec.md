@@ -11,7 +11,7 @@ dev/em043_00-effects-spec.md (written just before, same method), E:\offline\deco
 §4.6 name this slot "attack hit groups -- and it reads the mud mask" and read the L2 M12 / M13 arm's three values; **the slot is
 the PSL enable word** (rom-map's withdrawn "hit groups" trap) and it has four more arms; §4.1 the mud byte, §4.5 the wallow, §5.1
 the (2, 6) turn table, §7 the shared clips, §8.1 the burrow — theirs, cited where used), motion-states.js MOTION_STATES em044_00,
-part-rest.json, the task board (grep: only the survey's line 1096). Scratch: `<scratchpad>/bw1/` (emu13c_bw.py, jscheck_bw.py,
+part-rest.json, the task board (grep: only the survey's line 1096). Scratch: `<archive>/bw1/` (emu13c_bw.py, jscheck_bw.py,
 b44act.py — a copy of efx/agents/barroth-scratch/b44act.py — turntabs.py, calls.py, motsites.py, the plans).
 
 ## 1. The word — uEm044_00 vt+0x13c = `0xe8d714` — R, emulated
@@ -54,7 +54,7 @@ enemy byte e+0xcada (not P); the sever bit; the rank byte. No break level, no ra
 Negative with control: the band has exactly five `0x13f4` immediates, all in the method (above); the same scan finds uEm043_00's
 two (`0xe81018`, `0xe8108c`) and, over `0xe60000..0xe72738`, uEm038_00's and uEm042_00's.
 
-**Emulated** (`<scratchpad>/bw1/emu13c_bw.py`; controls reproduced first — Deadeye / Garuga, Akantor and Ukanlos words, see
+**Emulated** (`<archive>/bw1/emu13c_bw.py`; controls reproduced first — Deadeye / Garuga, Akantor and Ukanlos words, see
 dev/em043_00-effects-spec.md §1; mud = e+0xcada, rank = the byte behind `0x3a8430`):
 
 | case | word |
@@ -123,7 +123,7 @@ Inputs, and how the viewer supplies each:
 
 ## 2. What the word changes — whole-block plan (93 file-mask -> 106 whole)
 
-`add_effects.py em044_00` (plan: "29 records can go in (29 already are)") and `<scratchpad>/bw1/planrows.py em044_00 [--whole]`;
+`add_effects.py em044_00` (plan: "29 records can go in (29 already are)") and `<archive>/bw1/planrows.py em044_00 [--whole]`;
 `recs.py`. Every binding not listed sits on bits 0-5 inside the file mask and stays always-on. No binding of his sits on bits 6-14,
 so the base's state groups change nothing on screen.
 
@@ -167,7 +167,7 @@ Counts: 13 out-of-mask = 4 always + 8 surface + 1 tail (the survey's 13); 8 in-m
 
 ## 3. Which plays reach the keyed clips — CLIP_ACTIONS
 
-Sources: the action main under unicorn (`<scratchpad>/bw1/b44act.py`, statuses 0 / 1 / 2 / 6 / 7 / 12 at postures 0 and 4),
+Sources: the action main under unicorn (`<archive>/bw1/b44act.py`, statuses 0 / 1 / 2 / 6 / 7 / 12 at postures 0 and 4),
 `motsites.py`, `turntabs.py` (turn tables, `0x772b4` plays `+0x10` straight / `+0x20` / `+0x30` sides), the command table
 (`em044_00_cmdtbl.emc`, barroth-scratch/emcfind.py).
 

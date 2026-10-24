@@ -11,7 +11,7 @@ plays `Motion[4]..Motion[30]` (27 clips; slots 0–3 hold no PSL block). Lists: 
 `docs/render/psl-mask.js`, `docs/render/monster.js` CLIP_EFFECTS em007_04, `docs/render/motion-states.js` em007_04,
 `docs/render/shells.js` (no em007 entry), `docs/effects/em007_04.json` (86 records), the task board entries of
 2026-09-20 / 09-28, `efx/class-effects.json`. Scratch (session-local, copy before relying on it):
-`<scratchpad>/bb9/` — `d.py` (disassembler), `plan9.py` (add_effects' plan with the whole block), `emu13c.py`
+`<archive>/bb9/` — `d.py` (disassembler), `plan9.py` (add_effects' plan with the whole block), `emu13c.py`
 (unicorn run of vt+0x13c), `probe7_v4.txt` (actprobe7 over group 7, variant 4), `psl_all.txt`.
 
 ## 0. Headline

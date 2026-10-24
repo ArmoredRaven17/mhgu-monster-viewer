@@ -12,7 +12,7 @@ sweep row `0xf3ccbc` / `0xf3cd9c`; `0x81d6c`, `0xa3bf4`), E:\offline\decode\note
 the enable word, rom-map's trap), the task board (grep Brachydios / slime: Render's 2026-09-13..20 reads of Raging's
 Yellow/Red slime machine `0xf36328` / `0xf36588`, the eruption `0xf36984`, the hit handler `0xf46f34` -- **the word reads
 none of them**, §1), docs/render/psl-mask.js whole, monster.js ROM_ARM_SLIME / setArmSlimeLevel / armSlimeLevels,
-motion-states.js MOTION_STATES em063_00 / em063_05, index.html playNow. Scratch: `<scratchpad>/bw3/` (emu_bw.py,
+motion-states.js MOTION_STATES em063_00 / em063_05, index.html playNow. Scratch: `<archive>/bw3/` (emu_bw.py,
 jscheck.py, words.mjs, classify.py, ctltrack.py, armmap.py, s7tab.py, siemu.py, phprobe.py, the plans and rows).
 
 ## 1. The word — uEm063_00 vt+0x13c = `0xf469a8` — R, emulated
@@ -92,7 +92,7 @@ Level 0 is reached only through `0xf4653c`'s decrement (the init sets 2, the bre
 action-start hook vt+0x204 `0xf35998` restores the per-frame mirror P+0x1bb that vt+0x1e8 `0xf36014` packs at `0xadd64`),
 so **level 0 <=> row 3** while it lasts, and an increase rewrites the row. That is the viewer's handle on it (§3).
 
-**Emulated** (`<scratchpad>/bw3/emu_bw.py`: emu13c.py plus VFP, the variant byte, ctl at `[e+0xcacc]` with the two rows,
+**Emulated** (`<archive>/bw3/emu_bw.py`: emu13c.py plus VFP, the variant byte, ctl at `[e+0xcacc]` with the two rows,
 the posture P+0x1ba, P+0x5c and `0xbf62c` answered with the .dtb's MoguriBaseOfs -1500.0; case = motion:status:number:
 sever:rage:tired:variant:rowL(ctl+0x20):rowR(ctl+0x2c):posture:p5c). Controls first, earlier specs' words: Ukanlos L2 M3
 `0x381ff` / severed `0x1c01ff` / severed enraged `0x1c0e3f`; Deadeye L0 M7 (7, 0xe5) `0x380001ff`, Garuga `0x1ff`; Akantor
@@ -170,7 +170,7 @@ Inputs, and how the viewer supplies each:
 
 ## 2. What the word changes — whole-block plan (147 file-mask -> 179 whole, both monsters)
 
-`add_effects.py em063_00` / `em063_05` (plan; `<scratchpad>/bw3/planwhole.py <mon> [--whole]` for the whole block):
+`add_effects.py em063_00` / `em063_05` (plan; `<archive>/bw3/planwhole.py <mon> [--whole]` for the whole block):
 24 records in the file plan (all exported), 29 in the whole -- **c 120, c 121, c 140, c 141, c 210 come in**. Every
 binding not listed sits on bits 0-5 and stays always-on. Classified against the transcription (`classify.py`).
 

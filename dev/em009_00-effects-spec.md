@@ -45,7 +45,7 @@ changes nothing for him** (its byte's meaning stays NR, rom-map's `0x3a8430` row
 while the crest is unbroken, and stops on the depletion that draws set 9.** No sever: he has none (note §3.4); P+0x3b4
 is not read here.
 
-**The action arm's actions** (R): the status-7 handler `0xd5c234` (table `0xd5c260`, `cmp r0, #0x52`; `<scratchpad>/ng/
+**The action arm's actions** (R): the status-7 handler `0xd5c234` (table `0xd5c260`, `cmp r0, #0x52`; `<archive>/ng/
 jt.py`) sends **(7, 0x0a / 0x26 / 0x29)** to `0xd5c3ac` and **(7, 0x0c / 0x28 / 0x2b)** to `0xd5c3d0`, both of whose phase 0
 (`0xd5c3f8`) takes posture 0 and setMotion0 **L4 M9** (`0xd5c418`, blend 4.0); **(7, 0x1c / 0x27 / 0x2a)** go to `0xd5c428`
 -> setMotion0 **L4 M7** (`0xd5c464`). These are the band's only setMotion sites for 0x407 / 0x409 (the other immediates,
@@ -67,7 +67,7 @@ Who issues them — `em009_00_cmdtbl.emc` (`emcfind.py`), the only streams namin
 * (7, 0x29 / 0x2a / 0x2b) share the handlers and are issued by no op 00 in the file — the arm's range (0x26..0x28)
   excludes them anyway.
 
-**Emulated** (`<scratchpad>/ng/emu13c9.py 179c5d8`, a copy of `emu13c.py` that also sets the crest level `P+0x404`, the
+**Emulated** (`<archive>/ng/emu13c9.py 179c5d8`, a copy of `emu13c.py` that also sets the crest level `P+0x404`, the
 `.dtp` rows behind `[e+0x75f0]+0x64` (default `{6, 2, 2, 1}`) and the rank byte behind `0x3a8430`'s global; case =
 `motion:status:number:sever:rage:tired[:crest[:rank[:thr1[:thr2]]]]`):
 
@@ -125,7 +125,7 @@ Inputs, and how the viewer supplies each:
 
 ## 2. What the word changes — whole-block plan (110 file-mask bindings -> 127 whole-block)
 
-`<scratchpad>/ng/planrows.py em009_00 [--whole]`; `add_effects.py em009_00` (plan): 27 records can go in, 25 already are —
+`<archive>/ng/planrows.py em009_00 [--whole]`; `add_effects.py em009_00` (plan): 27 records can go in, 25 already are —
 the two missing are **c 140 / c 141** (`cm202_002`, L4 M13 b0 / b1, L4 M23 b1, L4 M48 b0 / b1): **inside the file mask on
 bits 0-1, always enabled**; the word does not touch them, `--apply` / `--record` export them. Whole-block: the same 27
 records (no new record comes in with the word).

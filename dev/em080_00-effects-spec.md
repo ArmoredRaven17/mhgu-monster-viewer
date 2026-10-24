@@ -13,7 +13,7 @@ word** -- "what reads e+0x13f4: NOT READ", answered by rom-map's PSL section; §
 P+0x1bb bit table for variant 4), docs/render/psl-mask.js whole, motion-states.js em080_00 / em080_04 (the heat comment,
 H_TAIL), part-review.json em080_00 / em080_04 (Tail, Throat rows), monsters.json groups, index.html playNow / synthIndex,
 the task board (grep Glavenus / Hellblade: the 2026-09-23 "glow layer's display flag" item and the enrage material
-machine; nothing on this word). Scratch: `<scratchpad>/bw3/` (emu_bw.py, jscheck.py, words.mjs, classify.py, the plans).
+machine; nothing on this word). Scratch: `<archive>/bw3/` (emu_bw.py, jscheck.py, words.mjs, classify.py, the plans).
 
 **A correction to the brief first.** "c 0 bound only outside the mask (L0 M3 / M4 / M6 b27, L3 M23 b1; Hellblade L0 M6
 b30)" is the survey's **Barroth** line (c 0, line 75) and **Uragaan** line (line 87), not Glavenus's. Glavenus's and
@@ -63,7 +63,7 @@ So the word, per state:
 Negative with control: the class band `0xffe0dc..0x100c340` has exactly one `0x13f4` immediate, `0x100091c`; the same
 scan over uEm018_00's band finds its four.
 
-**Emulated** (`<scratchpad>/bw3/emu_bw.py`, the same emulator and controls as dev/em063_00-effects-spec.md §1 -- Ukanlos,
+**Emulated** (`<archive>/bw3/emu_bw.py`, the same emulator and controls as dev/em063_00-effects-spec.md §1 -- Ukanlos,
 Deadeye / Garuga, Akantor reproduced; case field 12 = the byte P+0x1bb):
 
 | P+0x1bb (L2 M5, calm) | word |

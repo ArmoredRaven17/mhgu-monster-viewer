@@ -1,6 +1,6 @@
 # Tetsucabra (em066_00) / Drilltusk (em066_04) -- effects spec (Amphibians walk, 2026-10-18)
 
-One class `uEm066_00` (vtable `0x17dc1ec`). States: `states-em066_00.md` (transcribed before). Scratch: `<scratchpad>/zg/
+One class `uEm066_00` (vtable `0x17dc1ec`). States: `states-em066_00.md` (transcribed before). Scratch: `<archive>/zg/
 jscheck066.py`, `allmot2.py`, `tracec.py`.
 
 ## 1. The PSL enable word -- vt+0x13c = `0xf63fc0` -- R, read whole and emulated

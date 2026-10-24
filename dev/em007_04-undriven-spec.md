@@ -3,7 +3,7 @@
 Research agent for the Viewer agent, 2026-10-14 (Raven: the Flying Wyverns' gaps, easiest first, from the bottom of
 the lists). Static ROM reading plus unicorn controls (the option code under efx/agents/tail-scratch's harness, the
 action prober, the script reader); no recorder, no lift, no `--apply`, no docs/ edit. `R` = READ (the consuming
-instruction read), `I` = INFERRED, `NR` = NOT READ. Scratch: `<scratchpad>/ng/` — `fwread.py` / `rdis.py`
+instruction read), `I` = INFERRED, `NR` = NOT READ. Scratch: `<archive>/ng/` — `fwread.py` / `rdis.py`
 (disassembly), `brscan.py` (every b / bl to a target), `immscan.py`, `headdrop.py` / `headtable.py` (the option runs).
 
 Sources opened first: rom-map.md (the uEm007_00 section, "Bloodbath -- List 9", "Barioth / Basarios / Ukanlos", the

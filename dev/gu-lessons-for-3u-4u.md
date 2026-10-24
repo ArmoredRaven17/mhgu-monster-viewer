@@ -100,7 +100,7 @@ Lessons that come with it:
    glow went "blobby" (C4, `assets.js:21-48`). 3U removed GU's `ROM_NO_MIPMAP` list. The 3DS `.tex` header
    carries a level count too (inferred: check the field).
 
-6. **Skins: measured, mostly clean.** Census over every shipped model (script in this session's scratchpad,
+6. **Skins: measured, mostly clean.** Census over every shipped model (script in <archive>,
    `skin_census.py`):
    - Unskinned primitives inside a skinned mesh (GU A3): none in either app.
    - `JOINTS_1` / more than four influences (A2): none in either app.

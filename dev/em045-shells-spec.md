@@ -1,7 +1,7 @@
 # Uragaan (em045_00) and Crystalbeard (em045_04) -- their shells (shells agent, 2026-10-19)
 
 Class `uEm045_00` (action main `0xe9bb88`). The ids come from the enemy fields: e+0xcb14 for sp_01, e+0xcb18 for sp_13. Uragaan's
-emulator check is `dev/shells-uragaan-check.mjs` (tool `<scratchpad>/fb/mk045.py`): 10 / 10 (6 cases, 3 controls each failing, the
+emulator check is `dev/shells-uragaan-check.mjs` (tool `<archive>/fb/mk045.py`): 10 / 10 (6 cases, 3 controls each failing, the
 contract), page 3 / 3. Crystalbeard follows in section 4.
 
 ## 1. Uragaan -- what creates (the census of his reach)
@@ -60,7 +60,7 @@ em045_00u 200 / 50 / 30 are not exported, so the slot request carries them.
 
 ## 4. Crystalbeard (em045_04, variant 4) -- sp_00 0xe2, sp_01 0xe3, sp_13 0xe4 and the crystals sp_32 0xe5 (base32)
 
-The ids come from e+0xcb10 / +0xcb14 / +0xcb18 / +0xcb1c. Emulator check `dev/shells-crystalbeard-check.mjs` (tool `<scratchpad>/fb/mk045c.py`):
+The ids come from e+0xcb10 / +0xcb14 / +0xcb18 / +0xcb1c. Emulator check `dev/shells-crystalbeard-check.mjs` (tool `<archive>/fb/mk045c.py`):
 15 / 15 (11 cases, 3 controls each failing, the contract), page 4 / 4. The census of his reach (trgen c45cap.py / c45cap2.py):
 
 | action | clip (phase) | frame | shell, mode |

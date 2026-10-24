@@ -1,7 +1,7 @@
 # Glavenus (em080_00) and Hellblade Glavenus (em080_04) -- their shells (shells agent, 2026-10-20)
 
 Class `uEm080_00` (action main `0xffe7fc`; the same class runs Hellblade, variant 4, in section 5). Emulator check
-`dev/shells-glavenus-check.mjs` (tool `<scratchpad>/fb/mk080.py`), 12 / 12 (8 cases, 3 controls each failing, the contract); page 4 / 4.
+`dev/shells-glavenus-check.mjs` (tool `<archive>/fb/mk080.py`), 12 / 12 (8 cases, 3 controls each failing, the contract); page 4 / 4.
 `R` = the consuming instruction read. Code in `docs/render/shells.js`, the GLAVENUS block (`params080s00` .. `SHELL_DATA.em080_00`).
 
 His ids are read from e+0xcbe0 (sp_00 0x146), +0xcbe4 (sp_01 0x147) and +0xcbe8 (sp_03 0x148); Hellblade's are 0x149 / 0x14a / 0x14b.
@@ -70,7 +70,7 @@ base03's init is `0x3fd9d8` and its move `0x3fdce4`.
 ## 5. Hellblade (em080_04)
 
 The same class, variant 4. Ids are 0x149 / 0x14a / 0x14b, and his own ShellInfoLists live under `em080_04_shell00/01/03`. Code is
-`SHELL_DATA.em080_04`. Check `dev/shells-hellblade-check.mjs` (tool `<scratchpad>/fb/mk080h.py`): 23 / 23 (19 cases, 3 controls each
+`SHELL_DATA.em080_04`. Check `dev/shells-hellblade-check.mjs` (tool `<archive>/fb/mk080h.py`): 23 / 23 (19 cases, 3 controls each
 failing, the contract). Page 7 / 7.
 
 * The readers' Hellblade arms (`0x100fd3c` for sp_00, `0x1010b88` for sp_03) are the 0x146 / 0x148 arms without the int that sets

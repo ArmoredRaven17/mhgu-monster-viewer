@@ -1,6 +1,6 @@
 # Teostra (em027_00) -- effects spec (Elder Dragon walk, 2026-10-18)
 
-Class `uEm027_00`. No states note existed. Scratch: `<scratchpad>/zg/c027.asm`, `vt208_027.asm`, `pp027.asm`, `hook204b.py`,
+Class `uEm027_00`. No states note existed. Scratch: `<archive>/zg/c027.asm`, `vt208_027.asm`, `pp027.asm`, `hook204b.py`,
 `jscheckpd.py` (CHG / A18).
 
 ## 1. The PSL enable word -- vt+0x13c = `0xe1a9d8` -- R, read whole and emulated

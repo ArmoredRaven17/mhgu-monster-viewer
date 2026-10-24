@@ -1,8 +1,8 @@
 # 0xbb43ac's flag-8 arm: why no recording covers it, and the one recording that does
 
 Research agent for the Viewer agent, 2026-10-05. Static reads (`efx/armdis.py`), the recorded sets
-(`efx/vectors/*/*.blocks`, `prim.json`, `draw.json`), and the agent's own unicorn scripts in the session scratchpad
-(`scratchpad/bb43ac/`: `probe1.py`..`probe5.py`, `mk_vds.py` -> `vds_prim.py`). **No efx recorder or lift was run**:
+(`efx/vectors/*/*.blocks`, `prim.json`, `draw.json`), and the agent's own unicorn scripts in the session scratchpad, archived as
+(`<archive>/bb43ac/`: `probe1.py`..`probe5.py`, `mk_vds.py` -> `vds_prim.py`; the folder was emptied before the 2026-10-24 archive: these scripts are lost). **No efx recorder or lift was run**:
 the scripts write only to the scratchpad. (`shellplan.mjs` was run in `--list` mode, and once with the plan written
 to the scratchpad. Both scratch plans are byte-identical to `efx/plans/em084_00/shell_em084_00_L2M82_start_70x33_{0,1}.json`.)
 
@@ -90,9 +90,9 @@ are INFERRED from the mfx record names.
 | claim | st | evidence |
 |---|---|---|
 | `vecdrawsched.py` `draw_all` (`:196-218`) draws each live effect with `0x9b75e8` and nothing more. **There is no `0xbad710` / `0xbad790` call** and no `0x881584` service. The viewer calls both every frame (`host.js:535`, `:543`) | R | the source |
-| So in every `draw.json` set, `0xbab58c`, `0xbac62c` and `0xbb43ac` are keys (LIFTED_FNS) with **0 calls**. The `.blocks` census: **11,701 sets list `0xbb43ac` with no blocks**. In the L2M82 sets, `0xbab58c` = `0xbb43ac` = 0 calls | R | `scratchpad/bb43ac/blk2.py`; `draw.json` `functions` |
+| So in every `draw.json` set, `0xbab58c`, `0xbac62c` and `0xbb43ac` are keys (LIFTED_FNS) with **0 calls**. The `.blocks` census: **11,701 sets list `0xbb43ac` with no blocks**. In the L2M82 sets, `0xbab58c` = `0xbb43ac` = 0 calls | R | `<archive>/bb43ac/blk2.py` [not archived: gone from the scratchpad before the 2026-10-24 archive]; `draw.json` `functions` |
 | **The record IS built in the existing recordings.** `shell_em084_00_L2M82_start_70x33_1` (u 100): `0x889100` 38 calls, `0xa996c8` 39, `0xa9dd14` 38. The same in `_70x34_1` and `_70x35_1`. So it is not a missing motion, a camera test or a short window | R | `draw.json` call counts |
-| **Positive control: the only sets that cover `0xbb43ac` are the 23 `vecprim.py` sets** (`vectors/*/prim.json`: em043_*, em027_00_019, unit003*, unit02406k160, unit07000k270draw, unit08204k*draw, add_em002_04_u380prim). Their vectors read word 1 as `0x400200`, `0x600200`, `0x400000` and `0x200`. **None has bit 8.** Their path is `0xbb43ac -> 43cc -> 4404 -> 4480 -> 449c -> (44a8) -> 44b8`, the one now lifted | R | `scratchpad/bb43ac/ctrl.py` reads the 4 bytes at `args.r2+4` from each vector's reads |
+| **Positive control: the only sets that cover `0xbb43ac` are the 23 `vecprim.py` sets** (`vectors/*/prim.json`: em043_*, em027_00_019, unit003*, unit02406k160, unit07000k270draw, unit08204k*draw, add_em002_04_u380prim). Their vectors read word 1 as `0x400200`, `0x600200`, `0x400000` and `0x200`. **None has bit 8.** Their path is `0xbb43ac -> 43cc -> 4404 -> 4480 -> 449c -> (44a8) -> 44b8`, the one now lifted | R | `<archive>/bb43ac/ctrl.py` reads the 4 bytes at `args.r2+4` from each vector's reads |
 | Set naming: **`_0` = u 101 (`em084_00_062_s`), `_1` = u 100 (`em084_00_064`)**. The brief's "u 101's log `_1`" is u 100's. `shellplan --list` gives `[{k:0, u 101}, {k:1, u 100}]`, and `draw.json` `file` agrees. u 100's set calls `0x9b75e8` only 57 times because its effect is short; u 101's calls it 339 times | R | — |
 | `_near` changes nothing: the 8 is fixed at init from row data, and the per-frame rewrite (`0xa578cc`) reads only `[owner+0x1c4]`. The `_near` sets also have 0 calls at `0xbb43ac` | R (the writes) / R (the census) | §1 |
 
@@ -140,7 +140,7 @@ Expected: `0xbb43c8` is gone, and no other primitive-path refusal comes from thi
 
 **B. Close the class: the recorder never draws the primitive layer.** Every shell and `add_effects --record` set
 records 0 calls on the whole primitive path. Any primitive-path refusal reached only by an effect that no vecprim set
-draws will repeat this one. The change, as `scratchpad/bb43ac/mk_vds.py` applies it to a copy:
+draws will repeat this one. The change, as `<archive>/bb43ac/mk_vds.py` [not archived: gone from the scratchpad before the 2026-10-24 archive] applies it to a copy:
 - in `draw_all`, under `GPU_DRAW_ROM` (or a new flag), once: the draw system's ROM constructor
   `0xbab054..0xbab168` on `o['SYS']`, `SYS+0x54 = 1`, and a registry at `SYS+0x58` pointing at `o['TEXSETS']`
   (engprim.PrimDraw `__init__`). Every frame: `LIST+0x64 = 0`, `PRIM+0x54 = 0`, the stack-top word 0,
@@ -183,7 +183,7 @@ In the Traps list:
 
 ---
 
-## 6. Scratch (session scratchpad, `bb43ac/`)
+## 6. Scratch (session scratchpad, `bb43ac/`; archived path `<archive>/bb43ac/`, but the folder held only an empty `liftset/` by 2026-10-24: everything listed here is lost)
 
 `blk2.py` / `blk3.py` (block census), `ctrl.py` (word 1 in the prim sets), `probe1.py` (request + PrimDraw + hooks),
 `probe2.py` (vecprim-equivalent + refusal-site check), `probe3.py` / `probe4.py` / `probe5.py` (descriptor, `gen+0xf4`,

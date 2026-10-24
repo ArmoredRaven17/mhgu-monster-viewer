@@ -15,7 +15,7 @@ breaks-em001.md §5 ("Attack hit groups: vtable +0x13c 0xd09054 ... 0x38000 whil
 thunk to the quest getter `0x3a8470`), shells.js (`input.questLevel`: "the quest id mod 100 for an ordinary quest, 0x3b8eb4; 0
 or 0x10 for others"), index.html (`SHELL_QUEST_LEVEL = 10`, `SHELL_QUEST_RANK = 5`, `tired = !rage && ...`), motion-states.js
 SHELL_TAIL (em001_00 / 02 `{severed: 8}`, em001_04 `{severed: 8, broken: 12, level: 2}`), the task board (grep: Rathian's L2 M5
-fireball bits named as "the next known case", no read of this method). Scratch: `<scratchpad>/rath1/` (emu13c_rath.py,
+fireball bits named as "the next known case", no read of this method). Scratch: `<archive>/rath1/` (emu13c_rath.py,
 em001.js, jscheck_rath.py, classify.py, planrows / recs outputs).
 
 ## 1. The word -- uEm001_00 vt+0x13c = `0xd09054` -- R, emulated
@@ -65,7 +65,7 @@ immediates, `0xd091e0` / `0xd092b4` / `0xd092fc` / `0xd093c8` / `0xd093f0` / `0x
 `ldr r0,[r4,r0]!`, `str r0,[r4]` -- trap 58's shape); the same scan (`bw1/immscan.py`) over `0xe72738..0xe83434` finds
 Deviljho's two (`0xe81018`, `0xe8108c`).
 
-**Emulated** (`<scratchpad>/rath1/emu13c_rath.py`: bw1/emu13c_bw.py plus the em byte, the id halfword, the em001_04 .dtp,
+**Emulated** (`<archive>/rath1/emu13c_rath.py`: bw1/emu13c_bw.py plus the em byte, the id halfword, the em001_04 .dtp,
 and `0x49930` answered by a hook with the quest number -- it is answered, not run). **Controls first:** Deviljho L2 M10 calm
 `0x381ff`, severed + enraged `0xe3f`; Garuga L2 M2 `0x1bf` -- reproduced. Then:
 
@@ -144,7 +144,7 @@ Inputs, and how the viewer supplies each:
 
 ## 2. What the word changes -- whole-block plan
 
-`<scratchpad>/rath1/planrows.py <mon> [--whole]` (add_effects.plan, the monster forced into psl_mask_monsters) and
+`<archive>/rath1/planrows.py <mon> [--whole]` (add_effects.plan, the monster forced into psl_mask_monsters) and
 `classify.py <mon>` (each whole-plan binding evaluated against §1 over calm / enraged / tired x tail intact / broken /
 severed x actions null / (1, 7) / (7, 0xf5); quest 10, rank 5). `*` = outside the file mask. Bits 0-5 inside the file mask
 stay always on and are not listed.

@@ -9,7 +9,7 @@ Class: **uEm070_00**, vtable `0x17e222c`, module band `0xf9b08c..0xfad3fc` (efx/
 One class, one monster: `dti.json` holds `uEm070_00` and his four shell classes only; monsters.json has `em070_00` alone
 and no model shares it. The part pass has no variant test (no `e+0xb5f5` read in it). **R**
 
-Disassembly: `<scratchpad>/n70/em070_dis.txt` (barroth-scratch/sweepdis.py over the band).
+Disassembly: `<archive>/n70/em070_dis.txt` (barroth-scratch/sweepdis.py over the band).
 
 ## 0. Answer
 
@@ -172,8 +172,8 @@ proposed `name` "Jaws" (or "Extended Jaws"), options `"none"` "Retracted" / `"13
 
 ### 6.1 Measured headless (in memory only, nothing on disk changed)
 
-`<scratchpad>/n70/run-check70.mjs` (run-check.mjs + `PATCH70=1`: part-review's row 13 default set to `none` inside the
-page's fetch) with `<scratchpad>/n70/em070_part13.mjs` / `em070_part13b.mjs`, through run_locked.sh:
+`<archive>/n70/run-check70.mjs` (run-check.mjs + `PATCH70=1`: part-review's row 13 default set to `none` inside the
+page's fetch) with `<archive>/n70/em070_part13.mjs` / `em070_part13b.mjs`, through run_locked.sh:
 
 * **today** (as shipped): part 13 drawn on all 17 clips tried (L0 M2, L0 M16, L2 M5, L3 M25, L4 M33, the Special copies
   ... and the seven).

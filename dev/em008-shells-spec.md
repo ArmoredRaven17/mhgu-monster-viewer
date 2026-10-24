@@ -1,7 +1,7 @@
 # Yian Kut-Ku (em008_00) -- his shells (shells agent, 2026-10-20)
 
 Class `uEm008_00` (vtable `0x179ac54`, action main `0xd4fdd8`, band `0xd46ca0..0xd52f04`). Emulator check `dev/shells-kutku-check.mjs`
-(tool `<scratchpad>/fb/mk008.py`), 22 / 22 (17 cases, 4 controls each failing, the contract); page 7 / 7. `R` = the consuming instruction
+(tool `<archive>/fb/mk008.py`), 22 / 22 (17 cases, 4 controls each failing, the contract); page 7 / 7. `R` = the consuming instruction
 read. Code in `docs/render/shells.js`, the YIAN KUT-KU block (`params008s00` .. `SHELL_DATA.em008_00`).
 
 The ids are immediates in his band (`mov #0x73` / `#0x74` / `#0x75`): sp_00 0x73, sp_01 0x74, sp_13 0x75.

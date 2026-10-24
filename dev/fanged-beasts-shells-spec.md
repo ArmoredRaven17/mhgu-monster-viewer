@@ -4,11 +4,11 @@ The walk in em-id order behind the effects agent: em021_00 Congalala, em022_00 B
 Furious Rajang, em030_00 Bulldrome (no shell class: none), em060_00 / em060_04 Arzuros / Redhelm, em062_00 Lagombi (uEm060_00's
 class), em061_00 / em061_04 Duramboros / Rustrum, em065_00, em083_00 / em083_04. Addresses are READ unless marked; every row of
 `docs/render/shells.js` named here is checked bit for bit against the ROM by its `dev/shells-*-check.mjs` (the harness
-`<scratchpad>/fb/emu_fb.py`: the whole executable on unicorn after its static initialisers, the class's own spawner run at the
+`<archive>/fb/emu_fb.py`: the whole executable on unicorn after its static initialisers, the class's own spawner run at the
 row's frame, each shell flown from the setup the ROM built, children from theirs). The index of addresses is dev/rom-map.md
 "Fanged Beasts -- the shells".
 
-Tooling (scratchpad `fb/`): `fbt.py` (a class band's create sites and callers, a range shown with its pc-literals, vtable slots),
+Tooling (<archive> `fb/`): `fbt.py` (a class band's create sites and callers, a range shown with its pc-literals, vtable slots),
 `trgen.py` (one action phase under unicorn, the band native; FB_CLASS / FB_MON / FB_EM / FB_WATCH), `cengen.py` (the census: every
 (status, n)'s motions and shell creates), `shl.py` (an arc's .shl modes with the cmn FUP: shellef.load_typed), `hit.py` (the
 _hitdata records), `gen.py` (mode literals), `vtof.py` (a shell's vtable by constructing it), `rng.py` (a disassembly range).
@@ -30,7 +30,7 @@ switches on the generator's TYPE, gen+0x40 bits 20..23 -- the efl row's column w
 carries type-6 generators, so any play of the record takes it: it was never a distance or camera branch. No set reached it because
 vecdrawsched.py records only the routines on lift-effects.sh's lift lines, and the sets so far recorded the CLIP (SEQUENCE u 200),
 not the shell's UNIQUE record. Fixed by putting 0xa60744 and 0xa63efc's static callee closure on the lifted-added line, recording
-the UNIQUE records standalone (scratchpad fb/rec_shellrec.py: add_em021_00_shellrec_u200 / _u0, plain and _near) and lifting from a
+the UNIQUE records standalone (<archive> fb/rec_shellrec.py: add_em021_00_shellrec_u200 / _u0, plain and _near) and lifting from a
 copy: soak em021_00 56 motions, 0 refused; page check 18 / 18 (the L2 M16 gas breath, which had failed behind the L2 M12 refusal,
 passes). The closure's 0xa7719c / 0xa74884 / 0xa75290 / 0xa75434 / 0xa74d18 / 0xa70678 / 0xaf8b40 / 0xaf873c / 0xaf85b8 / 0xa66224
 have no recorded blocks (these records do not reach them).

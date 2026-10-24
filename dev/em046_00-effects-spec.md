@@ -1,7 +1,7 @@
 # Lagiacrus (em046_00) -- effects spec (Leviathans walk, 2026-10-17)
 
 Class `uEm046_00` (vtable `0x17c3a70`). States: `states-em046_00.md`, transcribed 2026-10-15 (MOTION_STATES, RAGE_PUFF,
-TIRED_DROOL, CUT_TAIL). Survey: dev/leviathans-effects-survey.md. Scratch: `<scratchpad>/zg/jscheckpd.py` (TUNEI / CHG), `allmot2.py`.
+TIRED_DROOL, CUT_TAIL). Survey: dev/leviathans-effects-survey.md. Scratch: `<archive>/zg/jscheckpd.py` (TUNEI / CHG), `allmot2.py`.
 
 ## 1. The PSL enable word -- vt+0x13c = `0xea9a0c` -- R, read whole and emulated
 

@@ -10,7 +10,7 @@ UNREAD; the `0x6fe88` row; "Khezu -- the turn clips' postures"), docs/render/psl
 Gypceros as the models: the `rage` form of a CLIP_ACTIONS entry is Gypceros's), C:\MHGU-RE\offline\decode\notes\states-em003_00.md
 (§0, §4 rage, §5 tired, §8 the Taiden question — its table of the status-7 functions and the motions each plays is the
 starting point of §3 here, §9 the projectile / discharge families), the task board (grep: no read of this slot; rom-map
-"posture-em003_00.md 11.2" rows), dev/em043_00-effects-spec.md (format). Scratch: `<scratchpad>\kg\` (emu_kg.py, jscheck_kg.py,
+"posture-em003_00.md 11.2" rows), dev/em043_00-effects-spec.md (format). Scratch: `<archive>\kg\` (emu_kg.py, jscheck_kg.py,
 classify.py, kprobe.py, the plans `em003_00_file.txt` / `_whole.txt`, `cls_em003.txt`).
 
 ## 1. The word — uEm003_00 vt+0x13c = `0xd0f728` — R, emulated
@@ -63,7 +63,7 @@ So in the game **the charged forms are the enraged plays and the plain forms the
 group follow that choice: an enraged walk, an enraged (7, 0x11) jump, a (7, 0x12) wall jump fire nothing of bits 9-11; a charged
 play fires them even if the rage flag were down (it is not, on the AI's own path — except `e+0x1409 & 0x40`, NR).
 
-**Emulated** (`<scratchpad>\kg\emu_kg.py`: bw1/emu13c_bw.py plus the em byte `e+0xb5f4`, the ctl pointer `e+0xcac0`, part
+**Emulated** (`<archive>\kg\emu_kg.py`: bw1/emu13c_bw.py plus the em byte `e+0xb5f4`, the ctl pointer `e+0xcac0`, part
 levels, the phase byte `P+0x1a1`; everything in main.text runs, nothing stubbed but `0x712a0`). **Controls first**, reproduced:
 Deviljho L2 M10 calm / tired / severed + enraged `0x381ff` / `0x3f03f` / `0xe3f` (em043 spec), Tigrex L2 M10 `0x1ff`, L9 M15 tired
 `0x703f`, Basarios L2 M3 (7, 0xa) `0x181ff`, (7, 0x15) enraged `0x600e3f`, L2 M27 (7, 0xd) `0x60001ff`, L0 M7 surface / sunk
@@ -128,7 +128,7 @@ Inputs, and how the viewer supplies each:
 
 ## 2. What the word changes — whole-block plan (150 file-mask -> 155 whole)
 
-`add_effects.py plan` on the file masks and on the whole blocks (`<scratchpad>\bw1\planrows.py em003_00 [--whole]`), every binding
+`add_effects.py plan` on the file masks and on the whole blocks (`<archive>\bw1\planrows.py em003_00 [--whole]`), every binding
 run through the ROM word per play (`classify.py` -> `cls_em003.txt`). **No record to export**: all 24 records the whole blocks
 name are in docs/effects/em003_00.json (`bw2/recs.py`: 24 / 24). Every binding not listed sits on bits 0-5 and stays always on.
 
@@ -160,7 +160,7 @@ calm u 260. 82 in-mask bindings (every file-mask bit >= 6) change in all.
 
 ## 3. Which plays reach the keyed clips — CLIP_ACTIONS
 
-Sources: the action main under unicorn (`<scratchpad>\kg\kprobe.py` over efx/agents/notice-scratch/probe.py, em byte 3, statuses
+Sources: the action main under unicorn (`<archive>\kg\kprobe.py` over efx/agents/notice-scratch/probe.py, em byte 3, statuses
 2 / 3 / 7, numbers 0..0x5f, postures 0 / 1 / 5 / 6: `k_probe0.txt`, `k_probe156.txt`), the setMotion sites (bw1/motsites.py over
 `0xd0f1f0..0xd22438`), the status-7 dispatcher `0xd1c920` (table `0xd1c94c`, 0x5a words) and status-3 dispatcher `0xd15870`
 (table `0xd158a0`, 0x63 words), the command table (emcfind; ops 0x1c / 0x24 per rom-map).

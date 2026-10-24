@@ -11,7 +11,7 @@ PSL enable word per class": uEm018_00 `0x17abb38` / `0xdb0d10` UNREAD; "THE PSL 
 action main, §2 the part pass, §3.1 the .dtp rows, §3.4 the sever; its vtable row for +0x13c lists the motions and says
 "what reads e+0x13f4: NOT READ" — that is answered by rom-map's PSL section, not here), docs/render/psl-mask.js whole,
 motion-states.js SHELL_TAIL / shellTailInput / garugaLine, index.html playNow, the task board (grep: no read of this
-word). Scratch: `<scratchpad>/g18/` (emu13c_g.py, jscheck.py, classify.py, motsites.py, s7tab.py, who.py, the plans).
+word). Scratch: `<archive>/g18/` (emu13c_g.py, jscheck.py, classify.py, motsites.py, s7tab.py, who.py, the plans).
 
 ## 1. The word — uEm018_00 vt+0x13c = `0xdb0d10` — R, emulated
 
@@ -53,7 +53,7 @@ show.
 Negative with control: the class band `0xda4778..0xdb3140` has exactly four `0x13f4` immediates, all inside this method
 (`0xdb0d44`, `0xdb0de4`, `0xdb0e30`, `0xdb0e40`); the same scan over `0xd36000..0xd46da0` finds uEm007_00's `0xd45354`.
 
-**Emulated** (`<scratchpad>/g18/emu13c_g.py`: emu13c.py plus the variant byte, part 7's level, the real .dtp array A at
+**Emulated** (`<archive>/g18/emu13c_g.py`: emu13c.py plus the variant byte, part 7's level, the real .dtp array A at
 `[[e+0x75f0]+0x64]`, and the rank chain `[0x1883c70] -> +0xa4 -> +0xf`. Controls first: Ukanlos L2 M3 `0x381ff` /
 `0x1c01ff` / `0x1c0e3f`, Bloodbath L2 M22 (7,0x67) v4 `0x2381ff` / v0 `0x381ff`, L2 M15 (7,0xb4) `0x80381c0` — the
 earlier specs' words):
@@ -118,7 +118,7 @@ Inputs, and how the viewer supplies each:
 
 ## 2. What the word changes — whole-block plan (Garuga 193 file-mask -> 219 whole; Deadeye 210 -> 236)
 
-`add_effects.py em018_00` / `em018_04` (plan) and `<scratchpad>/planrows.py <mon> [--whole]`, classified against the
+`add_effects.py em018_00` / `em018_04` (plan) and `<archive>/planrows.py <mon> [--whole]`, classified against the
 transcription (`classify.py`). Every binding not listed sits on bits 0-5 and stays always-on.
 
 **Turned ON, always** (outside the file mask, both monsters, 15 each — records exported):

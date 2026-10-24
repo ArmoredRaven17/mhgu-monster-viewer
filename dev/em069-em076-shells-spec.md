@@ -7,7 +7,7 @@ Shells agent for the Viewer agent, 2026-10-17. Raven: *"Seltas and Queen's proje
 `spit076`, `link076`, `spawn069`, `spawn076`, the stepShells / stepRock arms, `variantActionFor`'s `duo` pick) and
 `docs/index.html` (`partnerRockInput` / `partnerShellExtra` / `partnerShellState` on his runtime's schedule, `herLinkedForShells`
 in `shellExtra`). Map rows: `dev/rom-map.md` "Seltas Queen / Seltas -- the shells". Check: `dev/shells-seltas-check.mjs`.
-Scratch (listings, harness): `<scratchpad>/seltas/` -- `band69.txt` / `band76.txt` / `base37.txt` / `b37.txt` (sweeps), `fn.py`
+Scratch (listings, harness): `<archive>/seltas/` -- `band69.txt` / `band76.txt` / `base37.txt` / `b37.txt` (sweeps), `fn.py`
 (function starts and callers), `jt.py` (jump tables), `show.py` (a function with its literals), `shl.py` / `hit.py` (the files),
 `emu_seltas.py` (the ROM run), `smoke.mjs`, `export_shells.py`.
 
@@ -47,7 +47,7 @@ Files (the .shl's own; hitdata (delay, duration)):
 
 Her status dispatcher vt+0x1f4 `0xf9973c` (status byte e+0x73e0, table `0xf99764`; status 6 by e+0x73e1, table `0xf997e4`;
 status 7 `0xf972a0`, table `0xf972c8`); his status 7 `0xfd7220..0xfd7390`. The clips are the duo agent's census
-(`<scratchpad>/duo/q_agg.txt`, `s_agg.txt`). Frames are the action code's crossings (`0xb0974`: pass001).
+(`<archive>/duo/q_agg.txt`, `s_agg.txt`). Frames are the action code's crossings (`0xb0974`: pass001).
 
 | action | function | clip | spawn |
 |---|---|---|---|

@@ -13,7 +13,7 @@ E:\offline\decode\notes\breaks-em043.md (§5.2 names this slot "attack hit group
 withdrawn "hit groups" trap), and it has two more arms), states-em043.md (Savage: §1.2 rage, §1.4 the other L0 M5 plays, §2
 tired), states-em043_00.md (Deviljho: §2.1 the rage entry L0 M5), tail-option-em043.md (nothing on this slot), motion-states.js
 MOTION_STATES em043_00 / em043_05 and SHELL_TAIL, part-review.json (the drivers `0xe806a0` / `0xe809e8`), the task board (grep:
-only the survey's line 1096 — no read of this word). Scratch: `<scratchpad>/bw1/` (emu13c_bw.py, jscheck_bw.py, b43act.py,
+only the survey's line 1096 — no read of this word). Scratch: `<archive>/bw1/` (emu13c_bw.py, jscheck_bw.py, b43act.py,
 turntabs.py, calls.py, immscan.py, motsites.py, the plans).
 
 ## 1. The word — uEm043_00 vt+0x13c = `0xe80fd0` — R, emulated
@@ -58,7 +58,7 @@ same scan over `0xe60000..0xe72738` finds uEm038_00's `0xe62cc0` / `0xe62ce8` an
 15-17), so bit 13 is the base's: **c 91 fires tired and calm, on both monsters**, as c 90 on bit 12 does. Savage can be tired and
 calm (states-em043.md §1.3 / §2: rage ends on its timer, tired is the shared machine; theirs).
 
-**Emulated** (`<scratchpad>/bw1/emu13c_bw.py`: g18/emu13c_g.py plus emu13c2.py's posture / P+0x5c / MoguriBaseOfs
+**Emulated** (`<archive>/bw1/emu13c_bw.py`: g18/emu13c_g.py plus emu13c2.py's posture / P+0x5c / MoguriBaseOfs
 (`0x712a0` answered) and the ARMv8 model; one unicorn instance reused. **Controls first** — the earlier specs' words: Deadeye L0 M7
 (7, 0xe5) v4 `0x380001ff`, L2 M12 v4 level 2 `0x1c01ff`, Garuga L2 M2 `0x1bf`, v0 L0 M7 `0x1ff`; Akantor L0 M2 sunk / surface
 `0x1c01ff` / `0x381ff`; Ukanlos L0 M2 sunk / not `0x1ff` / `0xe001ff` — all reproduced):
@@ -117,7 +117,7 @@ Inputs, and how the viewer supplies each:
 
 ## 2. What the word changes — whole-block plan (180 file-mask -> 206 whole, both monsters)
 
-`add_effects.py em043_00` / `em043_05` (plan: "26 records can go in (26 already are)") and `<scratchpad>/bw1/planrows.py <mon>
+`add_effects.py em043_00` / `em043_05` (plan: "26 records can go in (26 already are)") and `<archive>/bw1/planrows.py <mon>
 [--whole]`; records from `recs.py` (the whole plan's records not in docs/effects/<mon>.json). The two monsters' rows are identical
 (same blocks, one c.pel `em043_00c`). Every binding not listed sits on bits 0-5 inside the file mask and stays always-on.
 
@@ -173,7 +173,7 @@ Counts, each monster: 26 out-of-mask = 10 always + 5 surface + 4 tail + 7 tired-
 
 ## 3. Which plays reach the keyed clips — CLIP_ACTIONS
 
-Sources: the action main under unicorn (`<scratchpad>/bw1/b43act.py`: a copy of efx/agents/barroth-scratch/b44act.py pointed at
+Sources: the action main under unicorn (`<archive>/bw1/b43act.py`: a copy of efx/agents/barroth-scratch/b44act.py pointed at
 vtable `0x17bfd1c`, action main `0xe7e9d4`, band `0xe72738..0xe83434`; statuses 0 / 1 / 2 / 6 / 7 / 10, variants 0 and 5 —
 identical first motions), every setMotion site with its r1 immediate (`motsites.py`), the angle-picked turn tables
 (`turntabs.py`: every `0x7a258` / `0x7a27c` call, its table through `ldr r1,[pc,r0]` (a GOT word) and the posture taken before it;

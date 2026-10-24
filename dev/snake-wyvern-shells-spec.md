@@ -2,7 +2,7 @@
 
 Shells agent, 2026-10-18. Read from the ROM, transcribed in `docs/render/shells.js` (the NAJARALA block, base36), checked
 by `dev/shells-najarala-check.mjs` (30 / 30 against the ROM's own runs; page 12 / 12). Scratchpad tools named below live in
-the shells agent's scratchpad `fb/`.
+<archive> `fb/`.
 
 ## 1. The scales (sp_36 0x126, base36) and their blast (sp_01 0x125 mode 2)
 

@@ -1,7 +1,7 @@
 # Ahtal-Ka (em088_00) and Ahtal-Neset (em087_00) -- effects spec: the PSL enable word, and the records his class requests
 
 Research agent for the Viewer agent, 2026-10-15. Read only: nothing under `docs/` changed. Scratch:
-`<scratchpad>\ak\` -- `emu88.py` (unicorn harness: the class band `0x10a2e44..0x10c1fc4` and the shared enemy layer
+`<archive>\ak\` -- `emu88.py` (unicorn harness: the class band `0x10a2e44..0x10c1fc4` and the shared enemy layer
 `0x60000..0xd0000` run natively, everything else a logged stub returning 0; ARM_MAX CPU for `vsel`), `sweep*.py` (the
 frame handler per motion / frame / state), `classify88.py` (the whole-block plan rows against the transcription),
 `closure.py` (static call closure: every immediate in a function's direct-call closure), `rows_*.txt` / `plan.txt`.

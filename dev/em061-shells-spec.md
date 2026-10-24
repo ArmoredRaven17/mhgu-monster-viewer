@@ -15,7 +15,7 @@ by the variant byte `e+0xb5f5`:
 | `e+0xcad4` | 0x107 | 0x10b | uShellEm061_sp_19 (base19 over base03) |
 | `e+0xcad8` | 0x19d (none) | 0x10c | uShellEm061_sp_24 (base24) |
 
-Census of the action main per variant: scratchpad `fb/cen2_em061_v0.txt` / `_v4.txt`. Transcribed: docs/render/shells.js
+Census of the action main per variant: <archive> `fb/cen2_em061_v0.txt` / `_v4.txt`. Transcribed: docs/render/shells.js
 `SHELL_DATA.em061_00` / `SHELL_DATA.em061_04`. Checks: dev/shells-duramboros-check.mjs (20 / 20), dev/shells-rustrum-check.mjs
 (24 / 24, page 19 / 19, soak em061_04 98 motions, 0 refused).
 
@@ -70,7 +70,7 @@ Census of the action main per variant: scratchpad `fb/cen2_em061_v0.txt` / `_v4.
   the burst `0xf33b1c`: sp_01 1, sp_00 0x17 / 0x18 / 0x19 at the contact, words (0, Y, 0). Another motion crumbles it: ef 3 at
   the unit's +0xe0 (INFERRED its position) and the end.
 
-## 4. The harness (scratchpad fb/emu_fb.py), for these runs
+## 4. The harness (<archive> fb/emu_fb.py), for these runs
 
 - `convert` {id, fn, args, after}: the monster's own conversion call on the held shell, before the move of the `after`-th frame
   that starts with it landed in state 1 (the enemy's line 4 runs before the shells' line 18).

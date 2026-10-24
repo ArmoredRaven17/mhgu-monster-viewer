@@ -2,7 +2,7 @@
 
 Shell / prop implementation agent for the Viewer agent, 2026-10-15. Raven: *"They use additional models in their
 attacks, things like broken dragonators"*, *"So, similar to Nakarkos, we will have multiple models to contend with."*
-Static reads with `efx/armdis.py` (PIC- and GOT-resolving helpers in the scratchpad `ahtal/`: `picrefs.py`,
+Static reads with `efx/armdis.py` (PIC- and GOT-resolving helpers in <archive> `ahtal/`: `picrefs.py`,
 `gotrefs.py`, `seqdump.py`, `shldump088.py`, `resids088.py`, `eflres.py`); the effect lists' model resources from the
 game's own loader (`efx_load.LoadedEffect`); headless probes `ahtal/rubble_probe.js` / `ahtal/fx_probe.js` (nothing
 they do ships). The efx recorder / lift were not used. Read first: `dev/rom-map.md` (the Ahtal-Ka states section and the
@@ -298,7 +298,7 @@ numbers.)
 - Whether the uCoord parent joint `+0x34` is a joint NUMBER or an index (`0x457c8` stores it; the consumer not read).
   The probe's coherent placement and Ahtal-Ka having only 43 joints (index 130 impossible) say number: INFERRED.
 
-## Addendum 2026-10-20 (shells agent's decode helper; scratchpad gapE/RESULT.md) -- the anchors' sub-states 2 / 3, BUILT
+## Addendum 2026-10-20 (shells agent's decode helper; <archive> gapE/RESULT.md) -- the anchors' sub-states 2 / 3, BUILT
 
 - shell60: the re-aim `0x4380e4` ((7, 0x2c) L2 M16, (7, 0x2f) / (7, 0x36) L2 M3 / M2, (7, 0x31) L2 M17 -> the throw (7, 0x32) at 160)
   sets sub 2 with T = target + vec 2 turned by the yaw H -> target; sub 2 `0x436c94` (back to H, timer f6 x 60, the drop f8 to D,

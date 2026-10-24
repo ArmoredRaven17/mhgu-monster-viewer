@@ -13,7 +13,7 @@ both variants -- there is no states-em045_04.md: §1 "There is no uEm045_04"; §
 word ... the only variant site is 0xe9cb94..0xe9cbc8", corrected below; §2 the part pass; §4 the severs; §5 rage; §6.1 / 6.2
 the stun; §7.3 the `.dtb` diff), docs/render/psl-mask.js whole, motion-states.js (MOTION_STATES em045_00 / em045_04 and the
 em055_00 block's roll comment: "the SAME machine Uragaan has, function for function"), effect-mounts.json, the task board
-(grep Uragaan / Crystalbeard: no read of this word). Scratch: `<scratchpad>/bw2/` (`emu_bw.py` = a copy of ng/emu13c2.py,
+(grep Uragaan / Crystalbeard: no read of this word). Scratch: `<archive>/bw2/` (`emu_bw.py` = a copy of ng/emu13c2.py,
 `emu_fast.py` the same with one reused unicorn instance, `jscheck.py`, `sweep.py`, `s7tab.py`, `who.py`, `motsites.py`,
 `blscan.py`, `recs.py`, the plans `em045_0X_file.txt` / `_whole.txt` / `_planout.txt`, `ura_v0.txt` / `ura_v4.txt` probes).
 

@@ -2,7 +2,7 @@
 
 Context: `dev/em084-shells-spec.md` §5 / §6 / §8, and rom-map's "Nakarkos -- the tentacle-form shells, phase 1". Four
 questions block the arm shells shell00 11..59 (base00) and shell01 15..85 (base01). All reads are static (`efx/armdis.py`),
-with two unicorn cross-checks and one census run from the scratchpad (`p2bases/uc_check.py`, `p2bases/census.py`). The
+with two unicorn cross-checks and one census run from <archive> (`p2bases/uc_check.py`, `p2bases/census.py` [folder empty by the 2026-10-24 archive: these scripts are lost]). The
 shared efx slot was not used. **R** = READ (the consuming instruction was read); **I** = INFERRED.
 
 Conventions follow `docs/render/shells.js`: `u16`, `s32`, `mla`, `DEG_TO_U16` (0x43360b61 = 182.04445), `U16_TO_RAD`
@@ -436,7 +436,7 @@ dev/em084-phase2-bases.md)":
 | `0x3fb0fc..0x3fb118` | base01 move: the ONLY `0x20` test (census over sp_01's 92 slots, depth 3, 442 functions; controls `0x800` / `0x40` / `0x100`) → vt `+0x164` | uShellEmBase01 | R | §2a, §2c |
 | `0x3fb3a4` | base01 vt `+0x164`: `+0x15d0` set and slot 0 delay `+0x1404` − `[[0x211f764]+0x68]` ≤ 0 → `0x43b058(h, 1)` on `+0x1624` / `+0x1628` / `+0x162c`, ef `+0x15d0` at `+0x40` → `+0x162c`, `0x40` → `0x43ac04(+0x15e8)`, `+0x15d0` = 0 | uShellEmBase01 | R | §2b |
 | `0x3fafd0..0x3fb010` | base01 ending: deletes when `+0x1624`, `+0x1628`, `+0x162c`, `+0x1630` are all gone, or past `[0x162493c] × 60.0` (GOT `0x1835c58`) | uShellEmBase01 | R | §4b.5 |
-| tooling | scratchpad `p2bases/census.py` (recursive-descent field / bit census over a vtable's closure; validated on base01 bits 0x800 / 0x40 / 0x100) and `p2bases/uc_check.py` (unicorn: base01 offset block; base00 move exits) | — | — | not in the repo |
+| tooling | <archive> `p2bases/census.py` (recursive-descent field / bit census over a vtable's closure; validated on base01 bits 0x800 / 0x40 / 0x100) and `p2bases/uc_check.py` (unicorn: base01 offset block; base00 move exits) | — | — | not in the repo; [folder empty by the 2026-10-24 archive: these scripts are lost] |
 
 **Withdrawn (proposed):**
 

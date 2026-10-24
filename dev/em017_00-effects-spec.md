@@ -1,7 +1,7 @@
 # Cephadrome (em017_00) -- effects spec (Piscine Wyverns walk, 2026-10-17)
 
 Class `uEm017_00` (vtable `0x17a9d80`). States: `states-em017_00.md` (already transcribed; c 1105 already wired). Survey:
-dev/amphibians-piscine-effects-survey.md (no undriven record). Scratch: `<scratchpad>/zg/jscheckgen.py`, `allmot2.py`.
+dev/amphibians-piscine-effects-survey.md (no undriven record). Scratch: `<archive>/zg/jscheckgen.py`, `allmot2.py`.
 
 ## 1. The PSL enable word -- vt+0x13c = `0xda3738` -- R, read whole and emulated
 

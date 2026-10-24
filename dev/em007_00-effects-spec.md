@@ -11,9 +11,9 @@ Bloodbath), dev/em007_04-undriven-spec.md §1.1, dev/em043_00-effects-spec.md (t
 C:\MHGU-RE\offline\decode\notes\states-em007_00.md (Diablos: §1.4 the op-0x6f selectors, §2 the part pass, the death /
 pit rows), render/motion-states.js MOTION_STATES em007_00 and SHELL_TAIL, render/tail-option.js, render/monster.js
 CLIP_EFFECTS em007_00, the task board (grep "Diablos" / "em007_00": nothing on this word). Scratch:
-`<scratchpad>/d07/` — `jscheck07.py` (JS vs ROM), `issued_var.py` / `issued_var2.py` (the EMC walk per variant),
+`<archive>/d07/` — `jscheck07.py` (JS vs ROM), `issued_var.py` / `issued_var2.py` (the EMC walk per variant),
 `p7_v0.txt` / `p7_v4.txt` / `p{0,1,2,6}_p{0,4}_v0.txt` (actprobe7 at variant 0), `em007_00_file.txt` / `em007_00_whole.txt`
-(the two plans); `<scratchpad>/bw1/emu13c_bw.py` (the emulator), `planrows.py`, `recs.py`.
+(the two plans); `<archive>/bw1/emu13c_bw.py` (the emulator), `planrows.py`, `recs.py`.
 
 ## 0. Headline
 
@@ -50,7 +50,7 @@ by instruction. The only `e+0xb5f5` read:
 (states-em007_00.md §2). For the word it does not matter: **every value but 4 gives the same word** (emulated below at 0,
 1, 2, 3, 5).
 
-**Emulated** (`<scratchpad>/d07/jscheck07.py`: `bw1/emu13c_bw.py` on vtable `0x17994cc`, `e+0x13f4` zeroed as setMotion
+**Emulated** (`<archive>/d07/jscheck07.py`: `bw1/emu13c_bw.py` on vtable `0x17994cc`, `e+0x13f4` zeroed as setMotion
 `0x7256c` does; node runs the JS). Controls first — the census's Bloodbath words reproduced (L2 M22 (7, 0x67) v4
 `0x2381ff`, L0 M7 posture 0 `0x70381ff`, L2 M15 (7, 0xb4) `0x80381c0`), and the shipped `em007_04` transcription matches
 the ROM at variant 4 on every case. Diablos (v0):
@@ -108,7 +108,7 @@ Inputs, and how the viewer supplies each:
 
 ## 2. What the word changes — whole-block plan (115 file-mask -> 134 whole)
 
-`<scratchpad>/bw1/planrows.py em007_00 [--whole]` (add_effects.plan with em007_00 forced into `psl_mask_monsters`) and
+`<archive>/bw1/planrows.py em007_00 [--whole]` (add_effects.plan with em007_00 forced into `psl_mask_monsters`) and
 `recs.py em007_00` (the whole plan's records not in docs/effects/em007_00.json). R (the tool's output; the bits' gating is
 §1's). Every binding not listed sits on bits 0-5 inside the file mask and stays always-on.
 

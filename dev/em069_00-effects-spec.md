@@ -1,7 +1,7 @@
 # Seltas Queen (em069_00) -- solo effects spec (Neopteron walk, 2026-10-18)
 
 Class `uEm069_00` (vtable `0x17e0eb8`). Solo only: the duo list is dev/em069-duo-spec.md and is left alone. States:
-states-em069_00.md (transcribed before). Scratch: `<scratchpad>/zg/jscheckpd.py`, `tracec.py` (CLS=uEm069_00 EM=69).
+states-em069_00.md (transcribed before). Scratch: `<archive>/zg/jscheckpd.py`, `tracec.py` (CLS=uEm069_00 EM=69).
 
 ## 1. The PSL enable word -- vt+0x13c = `0xf99960` -- R, read whole and emulated
 

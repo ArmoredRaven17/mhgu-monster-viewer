@@ -4,7 +4,7 @@ Research agent for the Viewer agent, 2026-10-15 (dev/brute-wyverns-effects-surve
 "the second severed piece: Barroth's head and Crystalbeard's beard (u 906)"). Static ROM reading plus unicorn controls
 (the tail_emu harness on the option's own code, the action prober, the script reader); no recorder, no lift, no
 `--apply`, no docs/ edit. `R` = READ (the consuming instruction read), `E` = emulated (the ROM's own code run), `I` =
-INFERRED, `NR` = NOT READ. Scratch: `<scratchpad>/sp2/` -- `rdis.py` / `fwread.py` / `brscan.py` (disassembly, every
+INFERRED, `NR` = NOT READ. Scratch: `<archive>/sp2/` -- `rdis.py` / `fwread.py` / `brscan.py` (disassembly, every
 b / bl to a target), `vtband.py` (class bands from the vtables), `desc.py` (option descriptors and their resource
 hashes), `act72.py` (the action prober on (10, 0x72) per part), `piece2.py` (the option code run per kind with the
 monster's own option list and `.dtp` option rows, compared step by step with `CutTail`).

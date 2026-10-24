@@ -1,8 +1,8 @@
 # em084_00 Nakarkos — the non-beam shells: who spawns them, on which clip and frame, with which mode
 
 Research agent for the PM, 2026-10-05. Scope: every Nakarkos shell except shell02 (`0x16e`, the beams — done in
-`dev/beams/em084_00.md`). Static reads with `efx/armdis.py` (and a PIC-resolving wrapper in the scratchpad
-`naka_shells/dd.py`); cross-checks under unicorn with the beams lane's driver (`scratchpad/beamsD/drv.py`, arm class
+`dev/beams/em084_00.md`). Static reads with `efx/armdis.py` (and a PIC-resolving wrapper in
+`<archive>/naka_shells/dd.py` [not archived: gone from the scratchpad before the 2026-10-24 archive]); cross-checks under unicorn with the beams lane's driver (`<archive>/beamsD/drv.py` [not archived: gone from the scratchpad before the 2026-10-24 archive], arm class
 registered as in `run_arm2.py`; scratch `naka_shells/sweep.py`, `run_arms.py`, `run_body.py`, `run_held.py`,
 `tables.py`, `armstate.py`). The efx recorder / lift were not used. Read first: `dev/beams/em084_00.md` (in full),
 `dev/rom-map.md` (shell rows, base00/01/13 rows, the Nakarkos section), `dev/em084-class-effects.md`,
@@ -433,7 +433,7 @@ Not withdrawn here (the beams note is not mine to edit) — the beams lane shoul
 | `0x1088c5c` / `0x10891dc` / `0x1089c08` / `0x108a04c` / `0x108a954` / `0x108ae98` / `0x108b118` | the seven readers | uShellEm084_* | R | §8 |
 | trap | `dev/beams/em084_00.md`'s "arm actions in EMC group 0 s35/s36" — those numbers are also body actions (§9) | — | I | §9 |
 
-## Addendum 2026-10-20 (shells agent's decode helper; scratchpad gapC/RESULT.md) -- the rank pair, sp_11 2's fall, the record table
+## Addendum 2026-10-20 (shells agent's decode helper; <archive> gapC/RESULT.md) -- the rank pair, sp_11 2's fall, the record table
 
 - The arm's (7, 0xb) (0x10851bc, M1 + M2, tune 1 = 120) and (7, 0x25) (0x10879a4, M50 + M51, tune 8 = 108) call `0x107c0cc(arm, 0 /
   1)`: modes 0 / 3 and 2 / 4 by the kind +0xcae0, G rank (> 4) 5 / 7 and 6 / 8. No form test. BUILT (arm084 `any` rows).

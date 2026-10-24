@@ -26,7 +26,7 @@ getDTI thunk).
 Inputs: the motion id; `P+0x3b4` bit 0 (R: set by the sever `0xc2274`, states-em077_00.md 4.4 — the only P+0x3b4
 bit his class sets); the action (status 7, number) on L2 M26 / L2 M34 only. No variant, posture or map byte.
 
-**Emulated control** (`<scratchpad>/emu13c.py`, unicorn, real vtable, e+0x13f4 zeroed as setMotion 0x7256c does;
+**Emulated control** (`<archive>/emu13c.py`, unicorn, real vtable, e+0x13f4 zeroed as setMotion 0x7256c does;
 the same harness reproduced Bloodbath's six published words from em007_04-list9-census.md 1.1 first):
 
 | case | word |
@@ -92,7 +92,7 @@ removes (§5).]**
   `0xfde89c`, `0xfdea04`, `0xfdeae8`, `0xfdeba4`, `0xfdec98`. Three mode-0 sites are gated on the byte
   **`[e+0xcac0]+0x80` != 0** (`0xfde1d4`, `0xfde56c`, `0xfde630`), the first also on `0x6fe88(e, 4, 0x15) == 0`; the
   others on `0xb09a4` frame tests.
-* Emulated (`<scratchpad>/frameprobe.py`, the handler frame by frame, frame queries real, other calls stubbed 0):
+* Emulated (`<archive>/frameprobe.py`, the handler frame by frame, frame queries real, other calls stubbed 0):
   with `[e+0xcac0]+0x80 = 1`, **L1 M1, L1 M2, L1 M12, L1 M13 create shell 0x13c mode 0 EVERY frame**; with it 0,
   none. **Limit:** 21 motion ids (0x005, 0x00b, 0x00c, 0x018, 0x01b, 0x01e, 0x030, 0x031, 0x104, 0x105, 0x113, 0x114,
   0x11d, 0x120, 0x122, 0x13e, 0x21d, 0x230, 0x30b, 0x311, 0x312) fault at `0x72750` (`vseleq`, an ARMv8 VFP op the
@@ -111,7 +111,7 @@ em077_00_000 ×2), the remaining frame-tested spawn sites, and the "what to impl
 
 ## 4. Who plays L2 M26 and L2 M34 — R
 
-Action main vt+0x1f4 `0xfdb030`; status 7 `0xfdca44` (`ldrb n; cmp #0x40`, table `0xfdca70`). (`<scratchpad>/ng/jt.py`
+Action main vt+0x1f4 `0xfdb030`; status 7 `0xfdca44` (`ldrb n; cmp #0x40`, table `0xfdca70`). (`<archive>/ng/jt.py`
 printed this table with a bias of 8: it took the handler's `sub sp, sp, #8` for an index bias — subtract 8 from its
 numbers. Named so it is not trusted for a handler that opens with a stack adjust.) First motions by
 `efx/agents/notice-scratch/probe.py`; the phases by hand.
@@ -141,7 +141,7 @@ So with the word (§1): **L2 M26 fires bits 15-17 (u 233, in the mask) on (7, 0x
 
 ## 5. What the word changes — whole-block plan (139 file-mask bindings -> 148 whole-block) — R
 
-`<scratchpad>/bw1/planrows.py em077_00 [--whole]` (outputs `<scratchpad>/bs/em077_00_{file,whole}.txt`). Every binding not
+`<archive>/bw1/planrows.py em077_00 [--whole]` (outputs `<archive>/bs/em077_00_{file,whole}.txt`). Every binding not
 listed is on bits 0-4 and stays always-on. No binding sits on bit 5 or bit 7; none on bits 10-14 or 16-17, 19-31.
 
 **Turned ON** (outside the file mask today):
@@ -171,7 +171,7 @@ nothing of his, so a tired, intact L2 M3 / M4 / M20 fires none of these. (Joints
 
 ## 6. The transcription, checked against the ROM — R (emulated)
 
-`<scratchpad>/bs/jscheck.py` (with Barioth's; control Ukanlos `0x381ff` / `0x1c01ff`): §1's `em077_00` ported line for line
+`<archive>/bs/jscheck.py` (with Barioth's; control Ukanlos `0x381ff` / `0x1c01ff`): §1's `em077_00` ported line for line
 against `0xfee088` over 12 motions (L0 M1, L1 M1, L2 M3 / M4 / M20 / M25 / M26 / M33 / M34 / M35 / M70, L3 M15) x status
 0 / 1 / 6 / 7 / 13 x number 0..0x47 x P+0x3b4 0..3 x rage x tired: **69120 runs, 0 mismatches.** §1's function is the
 one to paste, with this header:
@@ -266,7 +266,7 @@ thirteenth, `0xfda0d0`, is the vt+0x158 registration).
 `0x7294c`.) The request (`0xfde1f4..0xfde6e8`): +4 id 0x13c, +8 mode, +0xc the owner, **+0x10..+0x18 = P+0x40 / +0x44
 / +0x48** (the monster's position), +0x1c / +0x2c 0, +0x20..+0x28 the shared empty vec (GOT `0x1831a78` -> `0x19176b0`),
 **+0x30..+0x38 = P+0x50 / +0x54 / +0x58**, +0x3c = 0xffff; created through `0xfdf3e0`.
-Emulated control (`<scratchpad>/bs/frameprobe2.py` = frameprobe.py with the ARMv8 model and a zero .dtp block, `ctl+0x80`
+Emulated control (`<archive>/bs/frameprobe2.py` = frameprobe.py with the ARMv8 model and a zero .dtp block, `ctl+0x80`
 0): L1 M4 shell 0x13c mode 0 at f2, L1 M20 mode 0 at f52, L1 M5 mode 1 at f46 — the static table (2.5 min for 61 frames
 x 3 motions: the rest of the 21 the first probe lost are read statically only — L1 M19 / M29 / M32 / M34 / M62 and L0 M24
 / M27 / M30 above; the other ten (L0 M5 / M11 / M12 / M48 / M49, L2 M29 / M48, L3 M11 / M17 / M18) have no 0x13c site).
