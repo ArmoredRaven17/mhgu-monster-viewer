@@ -1,0 +1,1 @@
+{"id": "em024_00", "steps": [{"set": {"monClassCtl": "1"}}, {"wait": 200}, {"set": {"monClassCtl": "2"}}, {"wait": 200}, {"set": {"monClassCtl": "3"}}, {"wait": 200}, {"set": {"monClassCtl": "0"}}, {"wait": 60}], "want": ["em024_00|em024_00u|1|event", "em024_00|em024_00u|0|event", "em024_00|em024_00u|10|event"]}

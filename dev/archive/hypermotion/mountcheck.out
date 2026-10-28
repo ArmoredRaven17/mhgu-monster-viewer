@@ -1,0 +1,6 @@
+PASS MOUNT  -- em001_00
+PASS TABLE  -- 45 keys
+PASS STEP RUNS (Hyper Off = null)  -- null
+PASS TIMESCALE 1 (Off)  -- 1
+
+4 passed, 0 failed

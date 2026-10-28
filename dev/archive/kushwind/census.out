@@ -1,0 +1,2055 @@
+em003_00 em003_00u:201 (clip) files/em003_00_004.efl joint 2 mode 0 space 0 mask 1/ffffffff
+    el 0 node 0 cm100_010 face 0 push 0 shape 6 off 50
+    el 1 node 0 cm100_000 face 9 push 12 shape 6 off 60  <-- CAMERA-DEPENDENT
+    el 3 node 0 cm100_010 face 0 push 0 shape 6 off 50
+    el 4 node 0 cm100_000 face 9 push 0 shape 6 off 40
+em003_00 em003_00u:211 (clip) files/em003_00_004.efl joint 2 mode 0 space 0 mask 2/ffffffff
+    el 0 node 0 cm100_010 face 0 push 0 shape 6 off 50
+    el 1 node 0 cm100_000 face 9 push 12 shape 6 off 60  <-- CAMERA-DEPENDENT
+    el 2 node 0 cm100_000 face 9 push 0 shape 6 off 40
+em004_00 em004_00u:160 (shell) files/em004_00_003.efl joint -1 mode 0 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm101_002 face 0 push 0 shape 0 off 0
+    el 1 node 1 cm100_000 face 9 push -150 shape 6 off 200  <-- CAMERA-DEPENDENT
+    el 2 node 2 cm190_000 face 0 push 0 shape 0 off 0
+    el 3 node 0 cm150_002 face 0 push -200 shape 5 off 0
+    el 4 node 3 genType 0 shape 6 off -12
+    el 5 node 0 cm151_001 face 0 push -20 shape 6 off 0
+    el 6 node 4 cm102_003 face 9 push -20 shape 0 off 0
+    el 7 node 5 cm101_002 face 0 push 0 shape 6 off 50
+    el 8 node 3 genType 0 shape 0 off 0
+    el 9 node 3 genType 0 shape 0 off 0
+em004_00 em004_00u:130 (shell) files/em005_00_002_s.efl joint -1 mode 3 space 0 mask 2/ffffffff
+    el 0 node 0 cm100_000 face 9 push -150 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 1 node 0 cm101_002 face 0 push 0 shape 6 off 150
+    el 2 node 1 cm120_022 face 0 push 0 shape 3 off 1600
+    el 4 node 2 cm100_012 face 0 push 60 shape 6 off 3600  <-- CAMERA-DEPENDENT
+    el 6 node 2 cm120_026 face 0 push 0 shape 6 off 341
+    el 7 node 3 cm100_000 face 9 push -50 shape 0 off 0
+    el 8 node 0 cm102_003 face 9 push -50 shape 5 off 20
+    el 9 node 0 genType 0 shape 5 off 0
+    el 10 node 0 cm150_002 face 0 push -200 shape 5 off 0
+    el 11 node 4 cm150_002 face 0 push 0 shape 7 off 30
+    el 12 node 5 cm150_002 face 0 push 0 shape 0 off 0
+    el 13 node 2 genType 0 shape 0 off 0
+    el 14 node 2 genType 0 shape 0 off 0
+em005_00 em005_00u:130 (shell) files/em005_00_002_s.efl joint -1 mode 3 space 0 mask 2/ffffffff
+    el 0 node 0 cm100_000 face 9 push -150 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 1 node 0 cm101_002 face 0 push 0 shape 6 off 150
+    el 2 node 1 cm120_022 face 0 push 0 shape 3 off 1600
+    el 4 node 2 cm100_012 face 0 push 60 shape 6 off 3600  <-- CAMERA-DEPENDENT
+    el 6 node 2 cm120_026 face 0 push 0 shape 6 off 341
+    el 7 node 3 cm100_000 face 9 push -50 shape 0 off 0
+    el 8 node 0 cm102_003 face 9 push -50 shape 5 off 20
+    el 9 node 0 genType 0 shape 5 off 0
+    el 10 node 0 cm150_002 face 0 push -200 shape 5 off 0
+    el 11 node 4 cm150_002 face 0 push 0 shape 7 off 30
+    el 12 node 5 cm150_002 face 0 push 0 shape 0 off 0
+    el 13 node 2 genType 0 shape 0 off 0
+    el 14 node 2 genType 0 shape 0 off 0
+em005_00 em005_00u:131 (shell) files/em005_00_002_s.efl joint -1 mode 3 space 0 mask 1/ffffffff
+    el 0 node 0 cm100_000 face 9 push -150 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 1 node 0 cm101_002 face 0 push 0 shape 6 off 150
+    el 3 node 1 cm120_022 face 0 push 0 shape 3 off 1600
+    el 5 node 2 cm100_012 face 0 push 60 shape 6 off 3600  <-- CAMERA-DEPENDENT
+    el 6 node 2 cm120_026 face 0 push 0 shape 6 off 341
+    el 7 node 3 cm100_000 face 9 push -50 shape 0 off 0
+    el 8 node 0 cm102_003 face 9 push -50 shape 5 off 20
+    el 9 node 0 genType 0 shape 5 off 0
+    el 10 node 0 cm150_002 face 0 push -200 shape 5 off 0
+    el 12 node 5 cm150_002 face 0 push 0 shape 0 off 0
+    el 13 node 2 genType 0 shape 0 off 0
+    el 14 node 2 genType 0 shape 0 off 0
+em007_04 em007_04u:120 (shell) files/em007_04_007.efl joint -1 mode 0 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm202_040 face 0 push 0 shape 5 off 0
+    el 1 node 1 cm202_020_g face 0 push -150 shape 6 off 250  <-- CAMERA-DEPENDENT
+    el 2 node 2 genType 0 shape 5 off 350
+    el 3 node 3 cm150_003 face 1 push -80 shape 3 off 300
+    el 4 node 4 cm202_022_g face 1 push 0 shape 6 off 450
+    el 5 node 5 cm202_020_g face 0 push 0 shape 0 off 100
+    el 6 node 6 cm202_020_g face 0 push 0 shape 5 off 0
+    el 7 node 4 cm202_020_g face 0 push 0 shape 6 off 300
+    el 8 node 7 genType 2 shape 3 off 200
+    el 9 node 3 genType 0 shape 3 off 400
+    el 10 node 4 cm125_001 face 0 push 0 shape 5 off 0
+    el 11 node 2 genType 0 shape 3 off 350
+    el 12 node 4 cm202_022_g face 1 push 0 shape 6 off 450
+    el 13 node 4 cm100_008 face 1 push 0 shape 5 off 0
+    el 14 node 8 cm102_003 face 9 push 0 shape 3 off 400
+    el 15 node 9 cm151_001 face 9 push 0 shape 3 off 450
+    el 16 node 10 cm101_000 face 0 push 0 shape 3 off 500
+    el 17 node 2 genType 0 shape 3 off 350
+    el 18 node 4 cm100_008 face 1 push 0 shape 5 off 0
+    el 19 node 11 cm102_003 face 9 push 0 shape 3 off 400
+    el 20 node 9 cm151_001 face 9 push 0 shape 3 off 450
+    el 21 node 3 genType 0 shape 3 off 400
+    el 22 node 5 cm202_020_g face 0 push 0 shape 0 off 100
+    el 23 node 6 cm202_020_g face 0 push 0 shape 5 off 0
+    el 24 node 4 cm202_020_g face 0 push 0 shape 1 off 0
+em009_00 em009_00u:0 (shell) files/em009_00_001.efl joint -1 mode 0 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm101_002 face 9 push 0 shape 0 off 0
+    el 1 node 1 cm102_003 face 9 push -150 shape 6 off -50  <-- CAMERA-DEPENDENT
+    el 2 node 0 em009_00_001 face 0 push 0 shape 0 off 290
+    el 3 node 2 genType 0 shape 6 off 50
+em009_00 em009_00u:3 (shell) files/em009_00_006.efl joint -1 mode 1 space 0 mask 1/ffffffff
+    el 0 node 0 genType 0 shape 6 off -50
+    el 1 node 0 cm150_002 face 1 push 0 shape 0 off 80
+    el 2 node 0 genType 0 shape 1 off 0
+    el 3 node 0 em009_00_000 face 0 push -10 shape 6 off -80  <-- CAMERA-DEPENDENT
+    el 4 node 1 cm150_000 face 0 push 0 shape 3 off 100
+    el 5 node 2 cm150_003 face 1 push -20 shape 3 off 70
+    el 6 node 2 genType 0 shape 3 off 100
+em009_00 em009_00u:4 (shell) files/em009_00_006.efl joint -1 mode 1 space 0 mask 2/ffffffff
+    el 0 node 0 genType 0 shape 6 off -50
+    el 1 node 0 cm150_002 face 1 push 0 shape 0 off 80
+    el 7 node 0 em009_00_000 face 0 push -10 shape 6 off -180  <-- CAMERA-DEPENDENT
+    el 8 node 0 genType 0 shape 5 off 150
+    el 9 node 3 cm150_000 face 0 push 0 shape 3 off 150
+    el 10 node 4 cm150_003 face 1 push -20 shape 0 off 150
+    el 11 node 4 genType 0 shape 3 off 130
+em010_00 em010_00u:261 (clip) files/em055_00_007.efl joint -1 mode 1 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm150_003 face 1 push 0 shape 5 off 0
+    el 1 node 0 cm202_022_g face 0 push -50 shape 5 off 200
+    el 2 node 0 cm102_003 face 1 push -50 shape 1 off 0
+    el 3 node 0 cm150_003 face 1 push 0 shape 5 off 0
+    el 4 node 1 cm100_008 face 1 push -50 shape 6 off 100  <-- CAMERA-DEPENDENT
+em010_00 em010_00u:260 (clip) files/em010_00_019.efl joint -1 mode 1 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm101_000 face 0 push -100 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 1 node 0 cm101_000 face 0 push 0 shape 6 off 100
+em011_00 em011_00u:201 (clip) files/em011_00_008.efl joint 0 mode 0 space 1 mask ffffffff/ffffffff
+    el 0 node 0 cm100_010 face 0 push 0 shape 0 off 0
+    el 1 node 1 cm100_010 face 0 push 0 shape 6 off 0
+    el 2 node 2 cm100_000 face 1 push -50 shape 0 off 0
+    el 3 node 3 cm100_000 face 1 push -50 shape 6 off -30  <-- CAMERA-DEPENDENT
+em013_00 em013_00u:201 (clip) files/em013_00_003.efl joint 3 mode 0 space 0 mask 2/ffffffff
+    el 5 node 3 genType 0 shape 0 off 0
+    el 6 node 4 cm150_003 face 1 push 0 shape 0 off 0
+    el 7 node 4 cm150_002 face 1 push 0 shape 5 off 0
+    el 8 node 5 cm100_000 face 9 push -50 shape 6 off 200  <-- CAMERA-DEPENDENT
+    el 9 node 3 genType 0 shape 0 off 0
+    el 10 node 6 genType 0 shape 0 off 1100
+em013_00 em013_00u:31 (shell) files/em013_00_011.efl joint -1 mode 1 space 0 mask ffffffff/ffffffff
+    el 0 node 0 genType 0 shape 3 off 1400
+    el 1 node 1 cm150_002 face 0 push 0 shape 3 off 1400
+    el 2 node 1 cm150_003 face 1 push 0 shape 3 off 1000
+    el 3 node 2 genType 0 shape 3 off 1500
+    el 4 node 2 cm102_002 face 1 push 0 shape 3 off 1500
+    el 5 node 2 cm102_002 face 1 push 0 shape 3 off 1500
+    el 6 node 3 cm101_000 face 1 push 0 shape 3 off 700
+    el 7 node 4 em013_00_000 face 0 push 0 shape 3 off 1000
+    el 8 node 5 cm100_000 face 1 push 0 shape 3 off 1500
+    el 9 node 6 cm100_000 face 1 push -500 shape 6 off -400  <-- CAMERA-DEPENDENT
+    el 10 node 7 cm120_016 face 9 push 0 shape 3 off 1000
+    el 11 node 8 genType 0 shape 0 off 0
+    el 12 node 8 genType 0 shape 0 off 0
+em013_01 em013_01u:201 (clip) files/em013_00_003.efl joint 3 mode 1 space 0 mask 2/ffffffff
+    el 5 node 3 genType 0 shape 0 off 0
+    el 6 node 4 cm150_003 face 1 push 0 shape 0 off 0
+    el 7 node 4 cm150_002 face 1 push 0 shape 5 off 0
+    el 8 node 5 cm100_000 face 9 push -50 shape 6 off 200  <-- CAMERA-DEPENDENT
+    el 9 node 3 genType 0 shape 0 off 0
+    el 10 node 6 genType 0 shape 0 off 1100
+em013_01 em013_01u:31 (shell) files/em013_00_011.efl joint -1 mode 1 space 0 mask ffffffff/ffffffff
+    el 0 node 0 genType 0 shape 3 off 1400
+    el 1 node 1 cm150_002 face 0 push 0 shape 3 off 1400
+    el 2 node 1 cm150_003 face 1 push 0 shape 3 off 1000
+    el 3 node 2 genType 0 shape 3 off 1500
+    el 4 node 2 cm102_002 face 1 push 0 shape 3 off 1500
+    el 5 node 2 cm102_002 face 1 push 0 shape 3 off 1500
+    el 6 node 3 cm101_000 face 1 push 0 shape 3 off 700
+    el 7 node 4 em013_00_000 face 0 push 0 shape 3 off 1000
+    el 8 node 5 cm100_000 face 1 push 0 shape 3 off 1500
+    el 9 node 6 cm100_000 face 1 push -500 shape 6 off -400  <-- CAMERA-DEPENDENT
+    el 10 node 7 cm120_016 face 9 push 0 shape 3 off 1000
+    el 11 node 8 genType 0 shape 0 off 0
+    el 12 node 8 genType 0 shape 0 off 0
+em013_02 em013_02u:600 (clip) files/em013_02_010.efl joint 3 mode 0 space 0 mask 1/ffffffff
+    el 0 node 0 cm100_000 face 1 push 0 shape 0 off 0
+    el 1 node 1 genType 0 shape 7 off 400
+    el 2 node 2 genType 1 shape 7 off 400
+    el 3 node 2 genType 1 shape 7 off 100
+    el 4 node 3 genType 1 shape 7 off 100
+    el 5 node 4 genType 1 shape 7 off 400
+    el 6 node 5 genType 1 shape 7 off 400
+    el 7 node 6 genType 1 shape 7 off 100
+    el 8 node 7 genType 1 shape 7 off 100
+    el 9 node 8 cm100_000 face 1 push 0 shape 0 off 0
+    el 10 node 9 cm100_010 face 0 push -50 shape 6 off -30  <-- CAMERA-DEPENDENT
+    el 11 node 10 cm100_000 face 1 push 0 shape 0 off 0
+    el 12 node 11 cm100_000 face 1 push 0 shape 0 off 0
+    el 13 node 12 cm100_000 face 1 push 0 shape 0 off 0
+    el 14 node 13 cm100_000 face 1 push 0 shape 0 off 0
+    el 15 node 14 cm100_000 face 1 push 0 shape 0 off 0
+    el 16 node 15 cm100_000 face 1 push -50 shape 0 off 0
+    el 17 node 16 genType 1 shape 7 off 100
+    el 18 node 17 genType 1 shape 7 off 100
+    el 19 node 18 genType 1 shape 7 off 100
+    el 20 node 19 genType 1 shape 7 off 100
+    el 21 node 20 genType 1 shape 7 off 100
+    el 22 node 21 genType 1 shape 7 off 100
+    el 23 node 22 cm100_000 face 1 push 0 shape 0 off 0
+    el 24 node 22 cm100_000 face 9 push -150 shape 5 off 0
+    el 25 node 22 cm120_022 face 9 push -150 shape 0 off 0
+    el 26 node 22 cm120_022 face 9 push -150 shape 0 off 0
+    el 27 node 22 cm100_010 face 0 push 0 shape 5 off 0
+    el 28 node 23 cm150_000 face 0 push 0 shape 5 off 0
+    el 29 node 23 genType 1 shape 7 off 50
+em013_02 em013_02u:0 (shell) files/em013_02_004.efl joint -1 mode 0 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm202_020_g face 0 push -50 shape 0 off 0
+    el 1 node 1 cm100_010 face 0 push -50 shape 6 off -30  <-- CAMERA-DEPENDENT
+    el 2 node 0 cm100_000 face 1 push 100 shape 7 off 30
+    el 3 node 0 cm100_000 face 1 push 50 shape 7 off 0
+    el 4 node 1 cm150_000 face 0 push 0 shape 6 off -2
+    el 5 node 2 cm150_000 face 0 push 0 shape 6 off -20
+em013_02 em013_02u:1 (shell) files/em013_02_005.efl joint -1 mode 3 space 0 mask 1/ffffffff
+    el 0 node 0 genType 25 shape 0 off 0
+    el 1 node 1 genType 1 shape 5 off 50
+    el 2 node 2 cm102_002 face 0 push 0 shape 0 off 0
+    el 3 node 2 cm202_022_g face 0 push -50 shape 5 off 0
+    el 4 node 3 cm101_000 face 0 push 0 shape 5 off 0
+    el 5 node 4 cm100_010 face 0 push -50 shape 6 off -20  <-- CAMERA-DEPENDENT
+    el 6 node 1 cm100_000 face 9 push 0 shape 0 off 0
+    el 7 node 4 cm120_022 face 9 push 0 shape 0 off 0
+    el 8 node 5 cm120_022 face 9 push 0 shape 0 off 0
+    el 9 node 6 cm100_000 face 9 push 0 shape 0 off 0
+    el 10 node 5 cm100_010 face 0 push -50 shape 6 off -20  <-- CAMERA-DEPENDENT
+    el 11 node 7 cm100_000 face 9 push 0 shape 0 off 0
+    el 12 node 8 cm100_010 face 0 push -50 shape 6 off -20  <-- CAMERA-DEPENDENT
+    el 13 node 9 genType 2 shape 5 off 0
+em013_02 em013_02u:2 (shell) files/em013_02_005.efl joint -1 mode 3 space 0 mask 2/ffffffff
+    el 0 node 0 genType 25 shape 0 off 0
+    el 1 node 1 genType 1 shape 5 off 50
+    el 2 node 2 cm102_002 face 0 push 0 shape 0 off 0
+    el 3 node 2 cm202_022_g face 0 push -50 shape 5 off 0
+    el 4 node 3 cm101_000 face 0 push 0 shape 5 off 0
+    el 5 node 4 cm100_010 face 0 push -50 shape 6 off -20  <-- CAMERA-DEPENDENT
+    el 6 node 1 cm100_000 face 9 push 0 shape 0 off 0
+    el 7 node 4 cm120_022 face 9 push 0 shape 0 off 0
+    el 8 node 5 cm120_022 face 9 push 0 shape 0 off 0
+    el 9 node 6 cm100_000 face 9 push 0 shape 0 off 0
+    el 10 node 5 cm100_010 face 0 push -50 shape 6 off -20  <-- CAMERA-DEPENDENT
+    el 11 node 7 cm100_000 face 9 push 0 shape 0 off 0
+    el 12 node 8 cm100_010 face 0 push -50 shape 6 off -20  <-- CAMERA-DEPENDENT
+    el 13 node 9 genType 2 shape 5 off 0
+em013_02 em013_02u:11 (shell) files/em013_02_041.efl joint -1 mode 0 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm100_000 face 9 push 0 shape 0 off 0
+    el 1 node 1 cm100_010 face 0 push -50 shape 6 off -20  <-- CAMERA-DEPENDENT
+    el 2 node 2 cm101_002 face 9 push 0 shape 0 off 0
+    el 3 node 3 cm100_010 face 0 push -50 shape 6 off -20  <-- CAMERA-DEPENDENT
+    el 4 node 4 cm100_000 face 9 push 0 shape 0 off 0
+    el 5 node 5 cm202_022_g face 0 push -200 shape 1 off 0
+    el 6 node 6 cm100_010 face 0 push -50 shape 6 off -20  <-- CAMERA-DEPENDENT
+    el 7 node 6 cm153_000 face 0 push 0 shape 5 off 300
+    el 8 node 7 genType 2 shape 5 off 0
+    el 9 node 8 genType 25 shape 0 off 0
+    el 10 node 4 genType 1 shape 5 off 10
+    el 11 node 9 cm101_000 face 0 push 0 shape 5 off 0
+em013_02 em013_02u:12 (shell) files/em013_02_042.efl joint -1 mode 0 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm100_000 face 9 push 0 shape 3 off 0
+    el 1 node 1 cm100_010 face 0 push -50 shape 3 off 0
+    el 2 node 2 cm101_002 face 9 push 0 shape 0 off 0
+    el 3 node 3 cm100_010 face 0 push -50 shape 6 off -20  <-- CAMERA-DEPENDENT
+    el 4 node 4 cm100_000 face 9 push 0 shape 0 off 0
+    el 5 node 5 cm100_010 face 0 push -50 shape 6 off -20  <-- CAMERA-DEPENDENT
+    el 6 node 5 cm153_000 face 0 push 0 shape 5 off 300
+    el 7 node 6 genType 2 shape 5 off 0
+    el 8 node 4 genType 1 shape 5 off 10
+    el 9 node 7 cm100_000 face 9 push 0 shape 3 off 0
+    el 10 node 8 cm100_010 face 0 push -50 shape 3 off 0
+    el 11 node 9 cm101_002 face 9 push 0 shape 0 off 0
+    el 12 node 10 cm100_010 face 0 push -50 shape 6 off -20  <-- CAMERA-DEPENDENT
+    el 13 node 11 cm100_000 face 9 push 0 shape 0 off 0
+    el 14 node 12 cm100_010 face 0 push -50 shape 6 off -20  <-- CAMERA-DEPENDENT
+    el 15 node 12 cm153_000 face 0 push 0 shape 5 off 300
+    el 16 node 13 genType 2 shape 5 off 0
+    el 17 node 11 genType 1 shape 5 off 10
+em016_00 em016_00u:0 (shell) files/em016_00_001.efl joint -1 mode 0 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm101_002 face 9 push 0 shape 0 off 0
+    el 1 node 0 cm102_003 face 9 push -150 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 2 node 1 em009_00_001 face 0 push 0 shape 0 off 290
+    el 3 node 0 genType 0 shape 6 off 50
+em018_04 em018_04u:90 (clip) files/cm202_050.efl joint 4 mode 0 space 0 mask c0/ffffffff
+    el 0 node 0 cm202_014 face 9 push 100 shape 0 off 0
+    el 5 node 0 cm202_014 face 0 push 0 shape 5 off 0
+    el 6 node 0 cm202_014 face 9 push 0 shape 0 off 0
+    el 7 node 0 cm202_003 face 9 push 0 shape 5 off 0
+    el 8 node 0 cm202_014 face 9 push 0 shape 0 off 0
+    el 9 node 0 cm202_014 face 9 push 0 shape 5 off 0
+    el 10 node 0 cm202_014 face 0 push 0 shape 5 off 0
+    el 12 node 2 cm120_016 face 0 push 0 shape 3 off 400
+    el 13 node 2 cm120_016 face 0 push -100 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 14 node 0 genType 9 shape 0 off 0
+em019_04 em019_04u:405 (clip) files/em019_04_012.efl joint -1 mode 1 space 1 mask 3/ffffffff
+    el 0 node 0 cm202_020_g face 0 push 0 shape 0 off 100
+    el 1 node 1 cm202_020_g face 0 push 0 shape 5 off 0
+    el 2 node 2 cm202_020_g face 0 push 0 shape 1 off 0
+    el 4 node 3 cm150_003 face 1 push 0 shape 0 off 0
+    el 5 node 4 cm101_000 face 1 push -10 shape 0 off 0
+    el 6 node 5 genType 2 shape 1 off 0
+    el 7 node 6 cm120_006 face 0 push 0 shape 5 off 0
+    el 9 node 7 cm150_003 face 1 push 0 shape 0 off 50
+    el 10 node 8 cm202_022_g face 0 push -50 shape 5 off 100
+    el 11 node 8 cm202_022_g face 0 push -50 shape 5 off 100
+    el 12 node 9 cm150_003 face 1 push 0 shape 6 off 100
+    el 15 node 11 genType 2 shape 1 off 50
+    el 16 node 12 genType 25 shape 0 off 0
+    el 17 node 2 cm102_003 face 1 push -50 shape 6 off 50  <-- CAMERA-DEPENDENT
+    el 18 node 2 cm100_008 face 1 push -50 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 19 node 1 cm202_020_g face 0 push 0 shape 5 off 0
+    el 20 node 0 cm202_020_g face 0 push 0 shape 0 off 100
+    el 21 node 2 cm202_020_g face 0 push 0 shape 1 off 0
+    el 23 node 3 cm150_003 face 1 push 0 shape 0 off 0
+    el 24 node 13 genType 2 shape 1 off 0
+    el 25 node 4 cm101_000 face 1 push -10 shape 0 off 0
+    el 26 node 6 cm120_006 face 0 push 0 shape 5 off 0
+    el 27 node 8 cm202_022_g face 0 push -50 shape 5 off 100
+    el 28 node 8 cm202_022_g face 0 push -50 shape 5 off 100
+    el 29 node 7 cm150_003 face 1 push 0 shape 0 off 50
+    el 31 node 12 genType 25 shape 0 off 0
+    el 32 node 9 cm150_003 face 1 push 0 shape 6 off 100
+    el 33 node 11 genType 2 shape 1 off 50
+em019_04 em019_04u:406 (clip) files/em019_04_012.efl joint -1 mode 1 space 1 mask 401/ffffffff
+    el 3 node 2 cm202_020_g face 0 push 0 shape 1 off 0
+    el 4 node 3 cm150_003 face 1 push 0 shape 0 off 0
+    el 5 node 4 cm101_000 face 1 push -10 shape 0 off 0
+    el 6 node 5 genType 2 shape 1 off 0
+    el 7 node 6 cm120_006 face 0 push 0 shape 5 off 0
+    el 8 node 7 cm150_003 face 1 push 0 shape 0 off 50
+    el 10 node 8 cm202_022_g face 0 push -50 shape 5 off 100
+    el 11 node 8 cm202_022_g face 0 push -50 shape 5 off 100
+    el 13 node 9 cm150_003 face 1 push 0 shape 6 off 100
+    el 14 node 10 genType 2 shape 1 off 50
+    el 16 node 12 genType 25 shape 0 off 0
+    el 17 node 2 cm102_003 face 1 push -50 shape 6 off 50  <-- CAMERA-DEPENDENT
+    el 18 node 2 cm100_008 face 1 push -50 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 22 node 2 cm202_020_g face 0 push 0 shape 1 off 0
+    el 23 node 3 cm150_003 face 1 push 0 shape 0 off 0
+    el 24 node 13 genType 2 shape 1 off 0
+    el 25 node 4 cm101_000 face 1 push -10 shape 0 off 0
+    el 26 node 6 cm120_006 face 0 push 0 shape 5 off 0
+    el 27 node 8 cm202_022_g face 0 push -50 shape 5 off 100
+    el 28 node 8 cm202_022_g face 0 push -50 shape 5 off 100
+    el 30 node 7 cm150_003 face 1 push 0 shape 0 off 50
+    el 31 node 12 genType 25 shape 0 off 0
+    el 34 node 9 cm150_003 face 1 push 0 shape 6 off 100
+    el 35 node 10 genType 2 shape 1 off 50
+em020_00 em020_00u:230 (clip) files/em020_00_002.efl joint 143 mode 0 space 1 mask 1/ffffffff
+    el 0 node 0 cm100_000 face 11 push -150 shape 6 off 80  <-- CAMERA-DEPENDENT
+    el 1 node 0 genType 0 shape 6 off 0
+    el 2 node 0 cm102_003 face 11 push 0 shape 6 off 80
+em020_04 em020_04u:230 (clip) files/em020_00_002.efl joint 143 mode 0 space 1 mask 1/ffffffff
+    el 0 node 0 cm100_000 face 11 push -150 shape 6 off 80  <-- CAMERA-DEPENDENT
+    el 1 node 0 genType 0 shape 6 off 0
+    el 2 node 0 cm102_003 face 11 push 0 shape 6 off 80
+em022_00 em022_00u:0 (shell) files/em022_00_003_s.efl joint -1 mode 0 space 0 mask 2/ffffffff
+    el 6 node 0 genType 25 shape 7 off 125
+    el 7 node 1 genType 0 shape 6 off 0
+    el 8 node 1 cm120_006 face 0 push -200 shape 6 off -300  <-- CAMERA-DEPENDENT
+    el 9 node 1 cm120_006 face 0 push -200 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 10 node 1 cm101_000 face 0 push 0 shape 0 off 0
+    el 11 node 1 cm101_004 face 0 push 0 shape 6 off 70
+em022_00 em022_00u:10 (shell) files/em022_00_003_s.efl joint -1 mode 0 space 0 mask 1/ffffffff
+    el 0 node 0 genType 25 shape 7 off 125
+    el 1 node 1 genType 0 shape 6 off 0
+    el 2 node 1 cm120_006 face 0 push -200 shape 6 off -300  <-- CAMERA-DEPENDENT
+    el 3 node 1 cm120_006 face 0 push -200 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 4 node 1 cm101_000 face 0 push 0 shape 0 off 0
+    el 5 node 1 cm101_004 face 0 push 0 shape 6 off 70
+em024_00 em024_00u:0 (event) files/em024_00_004.efl joint 0 mode 0 space 2 mask 2/ffffffff
+    el 3 node 1 cm101_000 face 0 push 0 shape 0 off 0
+    el 4 node 0 cm101_000 face 0 push 200 shape 6 off 0
+    el 5 node 1 cm120_016 face 0 push -300 shape 3 off 400
+    el 6 node 1 cm120_016 face 0 push -100 shape 6 off 500  <-- CAMERA-DEPENDENT
+em024_00 em024_00u:10 (event) files/em024_00_004.efl joint 0 mode 0 space 2 mask 4/ffffffff
+    el 7 node 1 cm101_002 face 9 push 500 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 8 node 1 cm101_002 face 9 push 400 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 9 node 0 cm101_000 face 0 push 0 shape 6 off 0
+    el 10 node 1 cm101_000 face 0 push -200 shape 0 off 0
+    el 11 node 0 cm101_000 face 0 push -200 shape 6 off 0
+    el 12 node 1 cm120_016 face 0 push -100 shape 6 off 500  <-- CAMERA-DEPENDENT
+em025_00 em025_00u:200 (clip) files/em025_00_002.efl joint 3 mode 1 space 0 mask 1/ffffffff
+    el 0 node 0 cm100_000 face 0 push -200 shape 6 off 80  <-- CAMERA-DEPENDENT
+    el 1 node 0 cm102_003 face 11 push 0 shape 6 off 80
+    el 2 node 0 genType 0 shape 6 off 0
+em025_00 em025_00u:230 (clip) files/em025_00_003.efl joint -1 mode 1 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm202_022_g face 0 push 0 shape 0 off 0
+    el 1 node 0 cm120_006 face 0 push -100 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 2 node 0 genType 0 shape 6 off 100
+em025_00 em025_00u:231 (clip) files/em025_00_003.efl joint -1 mode 1 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm202_022_g face 0 push 0 shape 0 off 0
+    el 1 node 0 cm120_006 face 0 push -100 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 2 node 0 genType 0 shape 6 off 100
+em025_00 em025_00u:340 (clip) files/em025_00_009.efl joint 5 mode 1 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm100_000 face 0 push -150 shape 6 off 80  <-- CAMERA-DEPENDENT
+    el 1 node 0 genType 0 shape 6 off 80
+    el 2 node 0 cm102_003 face 11 push 0 shape 6 off 80
+    el 3 node 1 cm150_000 face 0 push 50 shape 5 off 0
+em025_00 em025_00u:310 (clip) files/em025_00_009.efl joint 5 mode 1 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm100_000 face 0 push -150 shape 6 off 80  <-- CAMERA-DEPENDENT
+    el 1 node 0 genType 0 shape 6 off 80
+    el 2 node 0 cm102_003 face 11 push 0 shape 6 off 80
+    el 3 node 1 cm150_000 face 0 push 50 shape 5 off 0
+em027_00 em027_00u:0 (event) files/em027_00_011.efl joint -1 mode 0 space 1 mask 1/ffffffff
+    el 0 node 0 cm150_000 face 0 push -500 shape 2 off 0
+    el 1 node 1 cm151_001 face 0 push 0 shape 2 off 0
+    el 2 node 2 cm100_000 face 1 push -500 shape 6 off -400  <-- CAMERA-DEPENDENT
+    el 3 node 3 cm150_002 face 0 push 0 shape 5 off 0
+    el 4 node 4 cm150_000 face 0 push 0 shape 5 off 0
+    el 5 node 5 cm150_000 face 0 push 0 shape 5 off 0
+em027_00 em027_00u:10 (event) files/em027_00_011.efl joint -1 mode 0 space 1 mask 2/ffffffff
+    el 0 node 0 cm150_000 face 0 push -500 shape 2 off 0
+    el 1 node 1 cm151_001 face 0 push 0 shape 2 off 0
+    el 2 node 2 cm100_000 face 1 push -500 shape 6 off -400  <-- CAMERA-DEPENDENT
+    el 3 node 3 cm150_002 face 0 push 0 shape 5 off 0
+    el 4 node 4 cm150_000 face 0 push 0 shape 5 off 0
+    el 5 node 5 cm150_000 face 0 push 0 shape 5 off 0
+    el 6 node 6 cm150_000 face 0 push 0 shape 5 off 0
+    el 7 node 7 cm150_000 face 0 push 0 shape 5 off 0
+em032_00 em032_00u:10 (clip) files/cm202_050.efl joint 3 mode 0 space 1 mask c0/ffffffff
+    el 0 node 0 cm202_014 face 9 push 100 shape 0 off 0
+    el 5 node 0 cm202_014 face 0 push 0 shape 5 off 0
+    el 6 node 0 cm202_014 face 9 push 0 shape 0 off 0
+    el 7 node 0 cm202_003 face 9 push 0 shape 5 off 0
+    el 8 node 0 cm202_014 face 9 push 0 shape 0 off 0
+    el 9 node 0 cm202_014 face 9 push 0 shape 5 off 0
+    el 10 node 0 cm202_014 face 0 push 0 shape 5 off 0
+    el 12 node 2 cm120_016 face 0 push 0 shape 3 off 400
+    el 13 node 2 cm120_016 face 0 push -100 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 14 node 0 genType 9 shape 0 off 0
+em032_00 em032_00u:12 (clip) files/cm202_050.efl joint 3 mode 0 space 1 mask c0/ffffffff
+    el 0 node 0 cm202_014 face 9 push 100 shape 0 off 0
+    el 5 node 0 cm202_014 face 0 push 0 shape 5 off 0
+    el 6 node 0 cm202_014 face 9 push 0 shape 0 off 0
+    el 7 node 0 cm202_003 face 9 push 0 shape 5 off 0
+    el 8 node 0 cm202_014 face 9 push 0 shape 0 off 0
+    el 9 node 0 cm202_014 face 9 push 0 shape 5 off 0
+    el 10 node 0 cm202_014 face 0 push 0 shape 5 off 0
+    el 12 node 2 cm120_016 face 0 push 0 shape 3 off 400
+    el 13 node 2 cm120_016 face 0 push -100 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 14 node 0 genType 9 shape 0 off 0
+em032_00 em032_00u:13 (clip) files/cm202_050.efl joint 3 mode 0 space 1 mask c0/ffffffff
+    el 0 node 0 cm202_014 face 9 push 100 shape 0 off 0
+    el 5 node 0 cm202_014 face 0 push 0 shape 5 off 0
+    el 6 node 0 cm202_014 face 9 push 0 shape 0 off 0
+    el 7 node 0 cm202_003 face 9 push 0 shape 5 off 0
+    el 8 node 0 cm202_014 face 9 push 0 shape 0 off 0
+    el 9 node 0 cm202_014 face 9 push 0 shape 5 off 0
+    el 10 node 0 cm202_014 face 0 push 0 shape 5 off 0
+    el 12 node 2 cm120_016 face 0 push 0 shape 3 off 400
+    el 13 node 2 cm120_016 face 0 push -100 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 14 node 0 genType 9 shape 0 off 0
+em032_04 em032_04u:12 (clip) files/cm202_050.efl joint 3 mode 0 space 1 mask c0/ffffffff
+    el 0 node 0 cm202_014 face 9 push 100 shape 0 off 0
+    el 5 node 0 cm202_014 face 0 push 0 shape 5 off 0
+    el 6 node 0 cm202_014 face 9 push 0 shape 0 off 0
+    el 7 node 0 cm202_003 face 9 push 0 shape 5 off 0
+    el 8 node 0 cm202_014 face 9 push 0 shape 0 off 0
+    el 9 node 0 cm202_014 face 9 push 0 shape 5 off 0
+    el 10 node 0 cm202_014 face 0 push 0 shape 5 off 0
+    el 12 node 2 cm120_016 face 0 push 0 shape 3 off 400
+    el 13 node 2 cm120_016 face 0 push -100 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 14 node 0 genType 9 shape 0 off 0
+em032_04 em032_04u:13 (clip) files/cm202_050.efl joint 3 mode 0 space 1 mask c0/ffffffff
+    el 0 node 0 cm202_014 face 9 push 100 shape 0 off 0
+    el 5 node 0 cm202_014 face 0 push 0 shape 5 off 0
+    el 6 node 0 cm202_014 face 9 push 0 shape 0 off 0
+    el 7 node 0 cm202_003 face 9 push 0 shape 5 off 0
+    el 8 node 0 cm202_014 face 9 push 0 shape 0 off 0
+    el 9 node 0 cm202_014 face 9 push 0 shape 5 off 0
+    el 10 node 0 cm202_014 face 0 push 0 shape 5 off 0
+    el 12 node 2 cm120_016 face 0 push 0 shape 3 off 400
+    el 13 node 2 cm120_016 face 0 push -100 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 14 node 0 genType 9 shape 0 off 0
+em033_00 em033_00c:91 (clip) files/cm202_050.efl joint -1 mode 0 space 0 mask c0/ffffffff
+    el 0 node 0 cm202_014 face 9 push 100 shape 0 off 0
+    el 5 node 0 cm202_014 face 0 push 0 shape 5 off 0
+    el 6 node 0 cm202_014 face 9 push 0 shape 0 off 0
+    el 7 node 0 cm202_003 face 9 push 0 shape 5 off 0
+    el 8 node 0 cm202_014 face 9 push 0 shape 0 off 0
+    el 9 node 0 cm202_014 face 9 push 0 shape 5 off 0
+    el 10 node 0 cm202_014 face 0 push 0 shape 5 off 0
+    el 12 node 2 cm120_016 face 0 push 0 shape 3 off 400
+    el 13 node 2 cm120_016 face 0 push -100 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 14 node 0 genType 9 shape 0 off 0
+em033_00 em033_00u:410 (clip) files/em033_00_009.efl joint 3 mode 0 space 1 mask 1/ffffffff
+    el 0 node 0 genType 9 shape 0 off 0
+    el 1 node 1 genType 0 shape 5 off 0
+    el 2 node 2 cm101_000 face 0 push -200 shape 0 off 0
+    el 3 node 3 cm120_006 face 0 push 0 shape 5 off 0
+    el 4 node 4 cm120_022 face 0 push -10 shape 6 off 224  <-- CAMERA-DEPENDENT
+    el 5 node 0 cm100_000 face 9 push 0 shape 6 off 224
+    el 6 node 0 cm101_002 face 9 push 0 shape 6 off 224
+    el 7 node 5 cm125_001 face 9 push -100 shape 6 off 224  <-- CAMERA-DEPENDENT
+    el 8 node 6 cm101_000 face 0 push 0 shape 6 off 0
+    el 9 node 0 cm120_008 face 0 push 0 shape 6 off -285
+    el 10 node 0 cm120_008 face 0 push 0 shape 6 off -285
+    el 11 node 1 cm202_022_g face 9 push 0 shape 6 off 521
+em033_00 em033_00u:30 (shell) files/em033_00_004_s.efl joint -1 mode 3 space 0 mask 1/ffffffff
+    el 0 node 0 genType 9 shape 0 off 0
+    el 1 node 1 em024_00_001 face 0 push 0 shape 6 off 150
+    el 2 node 1 em024_00_001 face 0 push 0 shape 5 off 0
+    el 3 node 1 cm120_006 face 0 push 0 shape 5 off 0
+    el 4 node 2 cm120_022 face 0 push -10 shape 6 off 224  <-- CAMERA-DEPENDENT
+    el 5 node 0 cm100_000 face 9 push 0 shape 6 off 224
+    el 6 node 0 cm101_002 face 9 push 0 shape 6 off 224
+    el 7 node 3 cm125_001 face 9 push -100 shape 6 off 224  <-- CAMERA-DEPENDENT
+    el 8 node 4 cm101_000 face 0 push 0 shape 6 off 0
+    el 9 node 1 cm150_002 face 0 push 0 shape 6 off 0
+    el 10 node 0 cm120_008 face 0 push 0 shape 6 off 180
+    el 11 node 0 cm120_008 face 0 push 0 shape 6 off 180
+    el 12 node 5 genType 0 shape 0 off 0
+em033_00 em033_00u:31 (shell) files/em033_00_003.efl joint -1 mode 3 space 0 mask 400/ffffffff
+    el 12 node 2 genType 9 shape 0 off 0
+    el 13 node 5 em024_00_001 face 0 push 0 shape 6 off 150
+    el 14 node 5 em024_00_001 face 0 push 0 shape 5 off 0
+    el 15 node 5 cm120_006 face 0 push 0 shape 5 off 0
+    el 16 node 6 cm120_022 face 0 push -10 shape 6 off 224  <-- CAMERA-DEPENDENT
+    el 17 node 2 cm100_000 face 9 push 0 shape 6 off 224
+    el 18 node 2 cm101_002 face 9 push 0 shape 6 off 224
+    el 19 node 7 cm125_001 face 9 push -100 shape 6 off 224  <-- CAMERA-DEPENDENT
+    el 20 node 8 cm101_000 face 0 push 0 shape 6 off 0
+    el 21 node 5 cm150_002 face 0 push 0 shape 6 off 0
+    el 22 node 2 cm120_008 face 0 push 0 shape 6 off 180
+    el 23 node 2 cm120_008 face 0 push 0 shape 6 off 180
+em034_00 em034_00u:10 (shell) files/em034_00_000.efl joint -1 mode 0 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm101_002 face 9 push 50 shape 0 off 0
+    el 1 node 1 genType 0 shape 6 off 50
+    el 2 node 2 em009_00_001 face 0 push 0 shape 0 off 290
+    el 3 node 3 cm101_002 face 0 push -10 shape 6 off 50  <-- CAMERA-DEPENDENT
+em038_00 em038_00c:90 (clip) files/cm202_050.efl joint 3 mode 1 space 0 mask 2c0/ffffffff
+    el 0 node 0 cm202_014 face 9 push 100 shape 0 off 0
+    el 5 node 0 cm202_014 face 0 push 0 shape 5 off 0
+    el 6 node 0 cm202_014 face 9 push 0 shape 0 off 0
+    el 7 node 0 cm202_003 face 9 push 0 shape 5 off 0
+    el 8 node 0 cm202_014 face 9 push 0 shape 0 off 0
+    el 9 node 0 cm202_014 face 9 push 0 shape 5 off 0
+    el 10 node 0 cm202_014 face 0 push 0 shape 5 off 0
+    el 12 node 2 cm120_016 face 0 push 0 shape 3 off 400
+    el 13 node 2 cm120_016 face 0 push -100 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 14 node 0 genType 9 shape 0 off 0
+    el 16 node 4 cm120_016 face 0 push 1000 shape 0 off 500
+em038_00 em038_00u:232 (clip) files/em038_00_008.efl joint 132 mode 1 space 1 mask ffffffff/ffffffff
+    el 0 node 0 genType 0 shape 1 off 400
+    el 1 node 1 cm202_014 face 1 push 0 shape 0 off 0
+    el 2 node 2 cm100_000 face 0 push -100 shape 6 off 150  <-- CAMERA-DEPENDENT
+    el 3 node 1 cm100_000 face 1 push 0 shape 6 off 150
+    el 4 node 1 genType 9 shape 0 off 0
+    el 5 node 3 cm101_000 face 0 push 0 shape 6 off 150
+    el 6 node 4 cm100_000 face 1 push 0 shape 6 off 150
+    el 7 node 4 cm100_000 face 1 push 0 shape 6 off 150
+em038_00 em038_00u:234 (clip) files/em038_00_008.efl joint 132 mode 1 space 1 mask ffffffff/ffffffff
+    el 0 node 0 genType 0 shape 1 off 400
+    el 1 node 1 cm202_014 face 1 push 0 shape 0 off 0
+    el 2 node 2 cm100_000 face 0 push -100 shape 6 off 150  <-- CAMERA-DEPENDENT
+    el 3 node 1 cm100_000 face 1 push 0 shape 6 off 150
+    el 4 node 1 genType 9 shape 0 off 0
+    el 5 node 3 cm101_000 face 0 push 0 shape 6 off 150
+    el 6 node 4 cm100_000 face 1 push 0 shape 6 off 150
+    el 7 node 4 cm100_000 face 1 push 0 shape 6 off 150
+em042_00 em042_00u:260 (clip) files/em010_00_019.efl joint -1 mode 1 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm101_000 face 0 push -100 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 1 node 0 cm101_000 face 0 push 0 shape 6 off 100
+em042_00 em042_00u:270 (clip) files/em055_00_007.efl joint -1 mode 1 space 1 mask ffffffff/ffffffff
+    el 0 node 0 cm150_003 face 1 push 0 shape 5 off 0
+    el 1 node 0 cm202_022_g face 0 push -50 shape 5 off 200
+    el 2 node 0 cm102_003 face 1 push -50 shape 1 off 0
+    el 3 node 0 cm150_003 face 1 push 0 shape 5 off 0
+    el 4 node 1 cm100_008 face 1 push -50 shape 6 off 100  <-- CAMERA-DEPENDENT
+em042_00 em042_00u:261 (clip) files/em010_00_019.efl joint -1 mode 1 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm101_000 face 0 push -100 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 1 node 0 cm101_000 face 0 push 0 shape 6 off 100
+em042_00 em042_00u:271 (clip) files/em055_00_007.efl joint -1 mode 1 space 1 mask ffffffff/ffffffff
+    el 0 node 0 cm150_003 face 1 push 0 shape 5 off 0
+    el 1 node 0 cm202_022_g face 0 push -50 shape 5 off 200
+    el 2 node 0 cm102_003 face 1 push -50 shape 1 off 0
+    el 3 node 0 cm150_003 face 1 push 0 shape 5 off 0
+    el 4 node 1 cm100_008 face 1 push -50 shape 6 off 100  <-- CAMERA-DEPENDENT
+em043_05 em043_05u:30 (rage) files/em043_05_000.efl joint 103 mode 0 space 0 mask 1/ffffffff
+    el 0 node 0 genType 1 shape 6 off -148
+    el 1 node 1 cm202_042 face 0 push -50 shape 6 off 60  <-- CAMERA-DEPENDENT
+    el 2 node 2 cm150_000 face 1 push -60 shape 3 off -130
+    el 3 node 1 cm150_000 face 0 push -50 shape 6 off 60  <-- CAMERA-DEPENDENT
+em046_00 em046_00u:290 (clip) files/em046_00_011.efl joint 100 mode 0 space 1 mask 4/ffffffff
+    el 3 node 2 cm100_010 face 0 push -128 shape 6 off -50  <-- CAMERA-DEPENDENT
+em046_00 em046_00u:260 (clip) files/em046_00_011.efl joint 1 mode 0 space 1 mask 2/ffffffff
+    el 1 node 0 cm101_000 face 0 push 0 shape 6 off 1200
+    el 2 node 1 cm100_010 face 0 push -128 shape 6 off -300  <-- CAMERA-DEPENDENT
+em046_00 em046_00u:380 (clip) files/em046_00_017.efl joint -1 mode 0 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm101_000 face 0 push 0 shape 0 off 0
+    el 1 node 1 cm100_000 face 1 push 0 shape 0 off 0
+    el 2 node 2 cm100_000 face 1 push -240 shape 5 off 0
+    el 3 node 2 cm100_010 face 0 push 0 shape 0 off 0
+    el 4 node 3 cm100_000 face 1 push -240 shape 6 off 450  <-- CAMERA-DEPENDENT
+    el 5 node 3 cm100_010 face 0 push 0 shape 6 off 450
+    el 6 node 4 cm100_000 face 1 push -240 shape 5 off 0
+    el 7 node 4 cm100_010 face 0 push 0 shape 0 off 0
+    el 8 node 5 genType 1 shape 6 off 5
+em047_00 em047_00u:290 (clip) files/em047_00_007.efl joint 3 mode 1 space 0 mask 3/ffffffff
+    el 0 node 0 cm120_006 face 0 push -150 shape 6 off 50  <-- CAMERA-DEPENDENT
+    el 1 node 0 genType 0 shape 6 off 50
+    el 2 node 0 cm102_003 face 9 push 0 shape 6 off 50
+    el 3 node 1 genType 25 shape 0 off 0
+    el 4 node 0 genType 0 shape 6 off 30
+em047_00 em047_00u:0 (shell) files/em047_00_010.efl joint -1 mode 0 space 0 mask 2/ffffffff
+    el 0 node 0 em047_00_000 face 0 push 0 shape 0 off 0
+    el 1 node 0 cm202_022_g face 9 push -100 shape 0 off 0
+    el 2 node 0 cm102_003 face 9 push -150 shape 6 off 40  <-- CAMERA-DEPENDENT
+    el 3 node 0 genType 0 shape 0 off 0
+    el 4 node 0 cm100_000 face 9 push -100 shape 0 off 150
+em050_00 em050_00u:1121 (ragePuff) files/em050_00_039.efl joint 2 mode 0 space 0 mask ffffffff/ffffffff
+    el 0 node 0 genType 0 shape 3 off 80
+    el 1 node 1 cm101_000 face 0 push 0 shape 5 off 0
+    el 2 node 1 genType 0 shape 6 off 150
+    el 3 node 1 cm202_022_g face 1 push -300 shape 6 off 150  <-- CAMERA-DEPENDENT
+    el 4 node 1 cm100_000 face 1 push -250 shape 0 off 0
+em055_00 em055_00u:400 (clip) files/em055_00_008.efl joint 144 mode 1 space 0 mask 1/ffffffff
+    el 0 node 0 genType 2 shape 0 off 0
+    el 1 node 1 cm150_003 face 1 push 0 shape 5 off 0
+    el 2 node 0 cm150_003 face 1 push 0 shape 0 off 100
+    el 3 node 2 cm202_022_g face 0 push -50 shape 5 off 100
+    el 4 node 1 cm120_006 face 9 push 0 shape 0 off 300
+    el 5 node 1 genType 2 shape 2 off 0
+    el 6 node 1 genType 1 shape 5 off 0
+    el 7 node 0 genType 2 shape 0 off 0
+    el 8 node 1 cm150_003 face 1 push 0 shape 5 off 0
+    el 9 node 0 cm150_003 face 1 push 0 shape 0 off 100
+    el 10 node 2 cm202_022_g face 0 push -50 shape 5 off 100
+    el 11 node 1 cm120_006 face 9 push 0 shape 0 off 300
+    el 12 node 1 cm100_008 face 1 push -50 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 13 node 1 cm102_003 face 1 push 0 shape 2 off 0
+    el 14 node 1 genType 1 shape 5 off 0
+em055_00 em055_00u:290 (clip) files/em010_00_019.efl joint -1 mode 1 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm101_000 face 0 push -100 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 1 node 0 cm101_000 face 0 push 0 shape 6 off 100
+em055_00 em055_00u:291 (clip) files/em055_00_007.efl joint -1 mode 1 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm150_003 face 1 push 0 shape 5 off 0
+    el 1 node 0 cm202_022_g face 0 push -50 shape 5 off 200
+    el 2 node 0 cm102_003 face 1 push -50 shape 1 off 0
+    el 3 node 0 cm150_003 face 1 push 0 shape 5 off 0
+    el 4 node 1 cm100_008 face 1 push -50 shape 6 off 100  <-- CAMERA-DEPENDENT
+em055_00 em055_00u:370 (clip) files/em055_00_003.efl joint -1 mode 0 space 2 mask ffffffff/ffffffff
+    el 0 node 0 cm150_003 face 1 push 50 shape 1 off 0
+    el 1 node 1 cm150_003 face 1 push -100 shape 6 off 200  <-- CAMERA-DEPENDENT
+    el 2 node 2 cm202_022_g face 9 push 0 shape 5 off 0
+    el 3 node 2 cm202_022_g face 1 push 0 shape 5 off 200
+    el 4 node 2 cm102_003 face 1 push -50 shape 5 off 200
+    el 5 node 2 cm151_001 face 0 push -50 shape 5 off 200
+    el 6 node 2 genType 2 shape 5 off 100
+em057_00 em057_00u:232 (clip) files/em057_00_023.efl joint 13 mode 0 space 0 mask 3/ffffffff
+    el 0 node 0 em057_00_102 face 0 push 0 shape 5 off 0
+    el 1 node 1 cm120_001 face 9 push -200 shape 2 off 50
+    el 2 node 1 cm120_001 face 9 push -110 shape 6 off 30  <-- CAMERA-DEPENDENT
+    el 3 node 2 genType 1 shape 6 off -25
+em057_00 em057_00u:233 (clip) files/em057_00_023.efl joint 9 mode 0 space 0 mask 3/ffffffff
+    el 0 node 0 em057_00_102 face 0 push 0 shape 5 off 0
+    el 1 node 1 cm120_001 face 9 push -200 shape 2 off 50
+    el 2 node 1 cm120_001 face 9 push -110 shape 6 off 30  <-- CAMERA-DEPENDENT
+    el 3 node 2 genType 1 shape 6 off -25
+em057_00 em057_00u:235 (clip) files/em057_00_023.efl joint 9 mode 0 space 0 mask 8/ffffffff
+    el 4 node 3 cm100_010 face 0 push -200 shape 0 off 0
+    el 5 node 3 cm120_001 face 9 push -110 shape 6 off 30  <-- CAMERA-DEPENDENT
+    el 6 node 3 cm101_002 face 1 push 0 shape 1 off 0
+em057_00 em057_00u:234 (clip) files/em057_00_023.efl joint 13 mode 0 space 0 mask 8/ffffffff
+    el 4 node 3 cm100_010 face 0 push -200 shape 0 off 0
+    el 5 node 3 cm120_001 face 9 push -110 shape 6 off 30  <-- CAMERA-DEPENDENT
+    el 6 node 3 cm101_002 face 1 push 0 shape 1 off 0
+em057_00 em057_00u:651 (clip) files/em057_00_000.efl joint 2 mode 0 space 0 mask 1/ffffffff
+    el 6 node 3 genType 0 shape 7 off 100
+    el 7 node 3 cm100_010 face 0 push -50 shape 6 off -20  <-- CAMERA-DEPENDENT
+    el 8 node 3 cm153_000 face 0 push -50 shape 5 off 140
+em057_00 em057_00u:32 (event) files/em057_00_000.efl joint 2 mode 0 space 0 mask 1/ffffffff
+    el 6 node 3 genType 0 shape 7 off 100
+    el 7 node 3 cm100_010 face 0 push -50 shape 6 off -20  <-- CAMERA-DEPENDENT
+    el 8 node 3 cm153_000 face 0 push -50 shape 5 off 140
+em057_00 em057_00u:320 (clip) files/em057_00_012.efl joint -1 mode 1 space 1 mask 1/ffffffff
+    el 0 node 0 cm100_010 face 0 push -128 shape 6 off -300  <-- CAMERA-DEPENDENT
+    el 1 node 1 cm100_010 face 0 push -128 shape 6 off -300  <-- CAMERA-DEPENDENT
+em057_00 em057_00u:350 (clip) files/em057_00_012.efl joint 1 mode 1 space 1 mask 1/ffffffff
+    el 0 node 0 cm100_010 face 0 push -128 shape 6 off -300  <-- CAMERA-DEPENDENT
+    el 1 node 1 cm100_010 face 0 push -128 shape 6 off -300  <-- CAMERA-DEPENDENT
+em057_00 em057_00u:410 (clip) files/em057_00_020.efl joint -1 mode 1 space 1 mask 2/7f
+    el 0 node 0 cm100_000 face 9 push 0 shape 6 off 500
+    el 1 node 1 cm100_010 face 0 push -200 shape 6 off 300  <-- CAMERA-DEPENDENT
+    el 2 node 2 genType 1 shape 3 off 350
+em057_04 em057_04u:244 (clip) files/em057_04_023.efl joint 13 mode 0 space 0 mask 8/ffffffff
+    el 11 node 5 cm101_002 face 1 push 0 shape 1 off 0
+    el 12 node 4 cm100_010 face 0 push 0 shape 5 off 0
+    el 13 node 5 cm120_001 face 9 push 0 shape 6 off 30
+    el 14 node 5 cm120_001 face 9 push -350 shape 6 off 30  <-- CAMERA-DEPENDENT
+em057_04 em057_04u:232 (clip) files/em057_04_023.efl joint 13 mode 0 space 0 mask 1/ffffffff
+    el 0 node 0 em057_00_102 face 0 push 0 shape 5 off 0
+    el 1 node 1 cm120_001 face 9 push -200 shape 2 off 50
+    el 2 node 1 cm120_001 face 9 push -110 shape 6 off 30  <-- CAMERA-DEPENDENT
+    el 3 node 2 genType 1 shape 6 off -25
+em057_04 em057_04u:233 (clip) files/em057_04_023.efl joint 9 mode 0 space 0 mask 1/ffffffff
+    el 0 node 0 em057_00_102 face 0 push 0 shape 5 off 0
+    el 1 node 1 cm120_001 face 9 push -200 shape 2 off 50
+    el 2 node 1 cm120_001 face 9 push -110 shape 6 off 30  <-- CAMERA-DEPENDENT
+    el 3 node 2 genType 1 shape 6 off -25
+em057_04 em057_04u:245 (clip) files/em057_04_023.efl joint 9 mode 0 space 0 mask 8/ffffffff
+    el 11 node 5 cm101_002 face 1 push 0 shape 1 off 0
+    el 12 node 4 cm100_010 face 0 push 0 shape 5 off 0
+    el 13 node 5 cm120_001 face 9 push 0 shape 6 off 30
+    el 14 node 5 cm120_001 face 9 push -350 shape 6 off 30  <-- CAMERA-DEPENDENT
+em057_04 em057_04u:235 (clip) files/em057_04_023.efl joint 9 mode 0 space 0 mask 2/ffffffff
+    el 4 node 3 cm101_002 face 1 push 0 shape 1 off 0
+    el 5 node 4 cm100_010 face 0 push 0 shape 5 off 0
+    el 6 node 3 cm120_001 face 9 push 0 shape 6 off 30
+    el 7 node 3 cm120_001 face 9 push -350 shape 6 off 30  <-- CAMERA-DEPENDENT
+em057_04 em057_04u:234 (clip) files/em057_04_023.efl joint 13 mode 0 space 0 mask 2/ffffffff
+    el 4 node 3 cm101_002 face 1 push 0 shape 1 off 0
+    el 5 node 4 cm100_010 face 0 push 0 shape 5 off 0
+    el 6 node 3 cm120_001 face 9 push 0 shape 6 off 30
+    el 7 node 3 cm120_001 face 9 push -350 shape 6 off 30  <-- CAMERA-DEPENDENT
+em057_04 em057_04u:681 (clip) files/em057_04_000.efl joint 2 mode 0 space 0 mask 1/ffffffff
+    el 0 node 0 genType 0 shape 7 off 100
+    el 1 node 0 cm100_010 face 0 push -50 shape 6 off -20  <-- CAMERA-DEPENDENT
+    el 2 node 0 cm153_000 face 0 push -50 shape 5 off 140
+em057_04 em057_04u:32 (event) files/em057_04_024.efl joint 2 mode 0 space 0 mask 3/ffffffff
+    el 0 node 0 genType 0 shape 7 off 100
+    el 1 node 1 cm100_010 face 0 push 0 shape 5 off 0
+    el 2 node 2 genType 1 shape 7 off 120
+    el 3 node 3 genType 1 shape 7 off 50
+    el 4 node 4 genType 1 shape 7 off 50
+    el 5 node 5 genType 1 shape 7 off 50
+    el 6 node 6 cm100_010 face 0 push -50 shape 6 off -20  <-- CAMERA-DEPENDENT
+em057_04 em057_04u:330 (clip) files/em057_04_012.efl joint -1 mode 1 space 1 mask 4/ffffffff
+    el 4 node 0 cm100_010 face 0 push -128 shape 6 off -300  <-- CAMERA-DEPENDENT
+    el 5 node 2 cm100_010 face 0 push -128 shape 6 off -300  <-- CAMERA-DEPENDENT
+em057_04 em057_04u:320 (clip) files/em057_04_012.efl joint -1 mode 1 space 1 mask 2/ffffffff
+    el 6 node 2 cm100_010 face 0 push -128 shape 6 off -300  <-- CAMERA-DEPENDENT
+    el 7 node 0 cm100_010 face 0 push -128 shape 6 off -300  <-- CAMERA-DEPENDENT
+em057_04 em057_04u:360 (clip) files/em057_04_012.efl joint -1 mode 1 space 1 mask 4/ffffffff
+    el 4 node 0 cm100_010 face 0 push -128 shape 6 off -300  <-- CAMERA-DEPENDENT
+    el 5 node 2 cm100_010 face 0 push -128 shape 6 off -300  <-- CAMERA-DEPENDENT
+em057_04 em057_04u:350 (clip) files/em057_04_012.efl joint -1 mode 1 space 1 mask 2/ffffffff
+    el 6 node 2 cm100_010 face 0 push -128 shape 6 off -300  <-- CAMERA-DEPENDENT
+    el 7 node 0 cm100_010 face 0 push -128 shape 6 off -300  <-- CAMERA-DEPENDENT
+em057_04 em057_04u:420 (clip) files/em057_04_020.efl joint -1 mode 1 space 0 mask 4/7f
+    el 0 node 0 cm100_010 face 0 push -200 shape 6 off 300  <-- CAMERA-DEPENDENT
+    el 1 node 1 cm100_000 face 9 push 0 shape 6 off 500
+    el 2 node 2 genType 1 shape 3 off 350
+em057_04 em057_04u:410 (clip) files/em057_04_020.efl joint -1 mode 1 space 0 mask 2/7f
+    el 3 node 0 cm100_010 face 0 push -200 shape 6 off 300  <-- CAMERA-DEPENDENT
+    el 4 node 1 cm100_000 face 9 push 0 shape 6 off 500
+    el 5 node 2 genType 1 shape 3 off 350
+em057_04 em057_04u:242 (clip) files/em057_04_023.efl joint 13 mode 0 space 0 mask 4/ffffffff
+    el 0 node 0 em057_00_102 face 0 push 0 shape 5 off 0
+    el 8 node 2 genType 1 shape 6 off -25
+    el 9 node 1 cm120_001 face 9 push -110 shape 6 off 30  <-- CAMERA-DEPENDENT
+    el 10 node 1 cm120_001 face 9 push -200 shape 2 off 50
+em057_04 em057_04u:243 (clip) files/em057_04_023.efl joint 9 mode 0 space 0 mask 4/ffffffff
+    el 0 node 0 em057_00_102 face 0 push 0 shape 5 off 0
+    el 8 node 2 genType 1 shape 6 off -25
+    el 9 node 1 cm120_001 face 9 push -110 shape 6 off 30  <-- CAMERA-DEPENDENT
+    el 10 node 1 cm120_001 face 9 push -200 shape 2 off 50
+em057_04 em057_04u:42 (event) files/em057_04_000.efl joint 2 mode 0 space 0 mask 1/ffffffff
+    el 0 node 0 genType 0 shape 7 off 100
+    el 1 node 0 cm100_010 face 0 push -50 shape 6 off -20  <-- CAMERA-DEPENDENT
+    el 2 node 0 cm153_000 face 0 push -50 shape 5 off 140
+em058_00 em058_00u:270 (clip) files/em058_00_100.efl joint 0 mode 0 space 2 mask 2/ffffffff
+    el 4 node 0 cm101_000 face 0 push -200 shape 6 off 400  <-- CAMERA-DEPENDENT
+    el 5 node 1 cm202_022_g face 1 push -100 shape 0 off 0
+    el 6 node 0 cm120_016 face 0 push -300 shape 3 off 400
+    el 7 node 0 cm120_016 face 0 push -100 shape 6 off 500  <-- CAMERA-DEPENDENT
+em058_00 em058_00u:271 (clip) files/em058_00_100.efl joint 0 mode 0 space 2 mask 1/ffffffff
+    el 0 node 0 cm101_000 face 0 push 200 shape 6 off 0
+    el 1 node 1 cm202_022_g face 1 push -100 shape 0 off 0
+    el 2 node 0 cm120_016 face 0 push -300 shape 3 off 400
+    el 3 node 0 cm120_016 face 0 push -100 shape 6 off 500  <-- CAMERA-DEPENDENT
+em058_00 em058_00c:100 (clip) files/em058_00_100.efl joint 0 mode 0 space 2 mask 1/ffffffff
+    el 0 node 0 cm101_000 face 0 push 200 shape 6 off 0
+    el 1 node 1 cm202_022_g face 1 push -100 shape 0 off 0
+    el 2 node 0 cm120_016 face 0 push -300 shape 3 off 400
+    el 3 node 0 cm120_016 face 0 push -100 shape 6 off 500  <-- CAMERA-DEPENDENT
+em058_00 em058_00c:101 (clip) files/em058_00_100.efl joint 0 mode 0 space 2 mask 2/ffffffff
+    el 4 node 0 cm101_000 face 0 push -200 shape 6 off 400  <-- CAMERA-DEPENDENT
+    el 5 node 1 cm202_022_g face 1 push -100 shape 0 off 0
+    el 6 node 0 cm120_016 face 0 push -300 shape 3 off 400
+    el 7 node 0 cm120_016 face 0 push -100 shape 6 off 500  <-- CAMERA-DEPENDENT
+em058_00 em058_00u:0 (event) files/em058_00_100.efl joint 0 mode 0 space 2 mask 1/ffffffff
+    el 0 node 0 cm101_000 face 0 push 200 shape 6 off 0
+    el 1 node 1 cm202_022_g face 1 push -100 shape 0 off 0
+    el 2 node 0 cm120_016 face 0 push -300 shape 3 off 400
+    el 3 node 0 cm120_016 face 0 push -100 shape 6 off 500  <-- CAMERA-DEPENDENT
+em058_00 em058_00u:1 (event) files/em058_00_100.efl joint 0 mode 0 space 2 mask 2/ffffffff
+    el 4 node 0 cm101_000 face 0 push -200 shape 6 off 400  <-- CAMERA-DEPENDENT
+    el 5 node 1 cm202_022_g face 1 push -100 shape 0 off 0
+    el 6 node 0 cm120_016 face 0 push -300 shape 3 off 400
+    el 7 node 0 cm120_016 face 0 push -100 shape 6 off 500  <-- CAMERA-DEPENDENT
+em058_00 em058_00u:2 (event) files/em058_00_100.efl joint -1 mode 0 space 2 mask 4/ffffffff
+    el 8 node 2 cm101_000 face 0 push -200 shape 6 off 400  <-- CAMERA-DEPENDENT
+    el 9 node 1 cm202_022_g face 1 push -100 shape 0 off 0
+em058_00 em058_00u:3 (event) files/em058_00_100.efl joint -1 mode 0 space 2 mask 8/ffffffff
+    el 10 node 3 cm101_000 face 0 push -200 shape 5 off 600
+    el 11 node 1 cm202_022_g face 1 push -100 shape 0 off 0
+    el 12 node 4 cm120_016 face 0 push -300 shape 3 off 400
+    el 13 node 4 cm120_016 face 0 push -100 shape 6 off 500  <-- CAMERA-DEPENDENT
+em058_00 em058_00u:30 (shell) files/em058_00_110.efl joint -1 mode 0 space 0 mask 4/ffffffff
+    el 4 node 1 genType 0 shape 0 off 0
+    el 5 node 2 cm102_003 face 1 push -100 shape 6 off 70  <-- CAMERA-DEPENDENT
+    el 6 node 2 genType 0 shape 6 off 70
+    el 7 node 3 cm202_020_g face 9 push 0 shape 0 off 0
+    el 8 node 3 cm120_016 face 9 push -50 shape 0 off 0
+    el 9 node 4 cm150_000 face 0 push 0 shape 6 off -10
+em061_00 em061_00u:450 (clip) files/em061_00_002.efl joint -1 mode 1 space 1 mask 1/100
+    el 0 node 0 genType 0 shape 6 off 80
+    el 1 node 0 cm202_022_g face 9 push 0 shape 0 off 0
+    el 2 node 0 cm120_006 face 0 push -200 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 3 node 0 genType 0 shape 6 off 150
+    el 4 node 0 genType 0 shape 0 off 0
+em061_00 em061_00u:451 (clip) files/em061_00_002.efl joint -1 mode 1 space 1 mask 1/100
+    el 0 node 0 genType 0 shape 6 off 80
+    el 1 node 0 cm202_022_g face 9 push 0 shape 0 off 0
+    el 2 node 0 cm120_006 face 0 push -200 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 3 node 0 genType 0 shape 6 off 150
+    el 4 node 0 genType 0 shape 0 off 0
+em061_00 em061_00u:481 (clip) files/em061_00_004.efl joint 3 mode 1 space 1 mask 3/ffffffff
+    el 0 node 0 genType 0 shape 6 off 80
+    el 1 node 0 cm202_022_g face 9 push 0 shape 0 off 0
+    el 2 node 0 cm120_006 face 0 push -200 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 3 node 0 genType 0 shape 0 off 0
+    el 4 node 0 cm100_000 face 0 push -100 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 5 node 0 cm120_006 face 0 push -100 shape 6 off 200  <-- CAMERA-DEPENDENT
+em061_00 em061_00u:480 (clip) files/em061_00_004.efl joint 3 mode 1 space 1 mask 3/ffffffff
+    el 0 node 0 genType 0 shape 6 off 80
+    el 1 node 0 cm202_022_g face 9 push 0 shape 0 off 0
+    el 2 node 0 cm120_006 face 0 push -200 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 3 node 0 genType 0 shape 0 off 0
+    el 4 node 0 cm100_000 face 0 push -100 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 5 node 0 cm120_006 face 0 push -100 shape 6 off 200  <-- CAMERA-DEPENDENT
+em061_00 em061_00u:300 (clip) files/em061_00_001.efl joint -1 mode 1 space 1 mask 2/100
+    el 3 node 2 cm202_022_g face 9 push 0 shape 6 off -200
+    el 4 node 3 cm150_003 face 1 push 50 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 5 node 3 genType 0 shape 6 off -300
+em061_00 em061_00u:231 (clip) files/em061_00_001.efl joint -1 mode 1 space 1 mask 2/ffffffff
+    el 3 node 2 cm202_022_g face 9 push 0 shape 6 off -200
+    el 4 node 3 cm150_003 face 1 push 50 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 5 node 3 genType 0 shape 6 off -300
+em061_04 em061_04u:450 (clip) files/em061_00_002.efl joint -1 mode 1 space 1 mask 1/100
+    el 0 node 0 genType 0 shape 6 off 80
+    el 1 node 0 cm202_022_g face 9 push 0 shape 0 off 0
+    el 2 node 0 cm120_006 face 0 push -200 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 3 node 0 genType 0 shape 6 off 150
+    el 4 node 0 genType 0 shape 0 off 0
+em061_04 em061_04u:451 (clip) files/em061_00_002.efl joint -1 mode 1 space 1 mask 1/100
+    el 0 node 0 genType 0 shape 6 off 80
+    el 1 node 0 cm202_022_g face 9 push 0 shape 0 off 0
+    el 2 node 0 cm120_006 face 0 push -200 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 3 node 0 genType 0 shape 6 off 150
+    el 4 node 0 genType 0 shape 0 off 0
+em061_04 em061_04u:481 (clip) files/em061_00_004.efl joint 3 mode 1 space 1 mask 3/ffffffff
+    el 0 node 0 genType 0 shape 6 off 80
+    el 1 node 0 cm202_022_g face 9 push 0 shape 0 off 0
+    el 2 node 0 cm120_006 face 0 push -200 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 3 node 0 genType 0 shape 0 off 0
+    el 4 node 0 cm100_000 face 0 push -100 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 5 node 0 cm120_006 face 0 push -100 shape 6 off 200  <-- CAMERA-DEPENDENT
+em061_04 em061_04u:480 (clip) files/em061_00_004.efl joint 3 mode 1 space 1 mask 3/ffffffff
+    el 0 node 0 genType 0 shape 6 off 80
+    el 1 node 0 cm202_022_g face 9 push 0 shape 0 off 0
+    el 2 node 0 cm120_006 face 0 push -200 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 3 node 0 genType 0 shape 0 off 0
+    el 4 node 0 cm100_000 face 0 push -100 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 5 node 0 cm120_006 face 0 push -100 shape 6 off 200  <-- CAMERA-DEPENDENT
+em061_04 em061_04u:300 (clip) files/em061_00_001.efl joint -1 mode 1 space 1 mask 2/100
+    el 3 node 2 cm202_022_g face 9 push 0 shape 6 off -200
+    el 4 node 3 cm150_003 face 1 push 50 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 5 node 3 genType 0 shape 6 off -300
+em061_04 em061_04u:231 (clip) files/em061_00_001.efl joint -1 mode 1 space 1 mask 2/ffffffff
+    el 3 node 2 cm202_022_g face 9 push 0 shape 6 off -200
+    el 4 node 3 cm150_003 face 1 push 50 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 5 node 3 genType 0 shape 6 off -300
+em061_04 em061_04u:302 (clip) files/em061_00_001.efl joint -1 mode 1 space 1 mask 2/100
+    el 3 node 2 cm202_022_g face 9 push 0 shape 6 off -200
+    el 4 node 3 cm150_003 face 1 push 50 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 5 node 3 genType 0 shape 6 off -300
+em061_04 em061_04u:380 (clip) files/em061_04_000.efl joint -1 mode 0 space 1 mask ffffffff/ffffffff
+    el 0 node 0 cm154_001 face 0 push 0 shape 6 off 0
+    el 1 node 1 cm150_003 face 1 push 50 shape 1 off 0
+    el 2 node 2 cm202_022_g face 9 push 0 shape 5 off 0
+    el 3 node 1 genType 0 shape 6 off -150
+    el 4 node 3 genType 0 shape 6 off 30
+    el 5 node 4 cm100_008 face 1 push -50 shape 6 off -200  <-- CAMERA-DEPENDENT
+em061_04 em061_04u:502 (clip) files/em061_00_001.efl joint -1 mode 1 space 1 mask 2/100
+    el 3 node 2 cm202_022_g face 9 push 0 shape 6 off -200
+    el 4 node 3 cm150_003 face 1 push 50 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 5 node 3 genType 0 shape 6 off -300
+em062_00 em062_00u:0 (shell) files/em062_00_000.efl joint -1 mode 0 space 0 mask ffffffff/ffffffff
+    el 0 node 0 em062_00_000 face 0 push 0 shape 0 off 0
+    el 1 node 1 cm100_000 face 0 push -100 shape 6 off 50  <-- CAMERA-DEPENDENT
+    el 2 node 0 cm120_006 face 0 push 0 shape 6 off 70
+    el 3 node 0 genType 0 shape 0 off 0
+    el 4 node 0 cm102_003 face 9 push -150 shape 0 off 0
+em065_00 em065_00u:210 (clip) files/em065_00_003.efl joint 131 mode 1 space 0 mask 1/ffffffff
+    el 0 node 0 cm120_006 face 0 push -150 shape 6 off -50  <-- CAMERA-DEPENDENT
+    el 1 node 0 genType 0 shape 6 off 50
+    el 2 node 1 cm100_000 face 0 push 0 shape 6 off 0
+    el 3 node 0 cm102_003 face 9 push 0 shape 6 off 0
+em065_00 em065_00u:211 (clip) files/em065_00_003.efl joint 131 mode 1 space 0 mask 1/ffffffff
+    el 0 node 0 cm120_006 face 0 push -150 shape 6 off -50  <-- CAMERA-DEPENDENT
+    el 1 node 0 genType 0 shape 6 off 50
+    el 2 node 1 cm100_000 face 0 push 0 shape 6 off 0
+    el 3 node 0 cm102_003 face 9 push 0 shape 6 off 0
+em066_00 em066_00u:410 (clip) files/em066_00_005.efl joint -1 mode 1 space 1 mask c05/ffffffff
+    el 0 node 0 cm202_022_g face 0 push 100 shape 5 off 50
+    el 1 node 1 cm150_003 face 1 push 0 shape 5 off 0
+    el 2 node 1 cm101_000 face 9 push 0 shape 5 off 0
+    el 3 node 2 cm150_003 face 1 push 0 shape 6 off 150
+    el 4 node 2 cm150_003 face 1 push 0 shape 1 off 0
+    el 7 node 3 cm202_020_g face 0 push 100 shape 6 off 200  <-- CAMERA-DEPENDENT
+    el 8 node 0 cm202_020_g face 0 push 0 shape 1 off 0
+    el 12 node 0 cm202_022_g face 0 push 100 shape 5 off 50
+    el 13 node 1 cm150_003 face 1 push 0 shape 5 off 0
+    el 14 node 1 cm101_000 face 9 push 0 shape 5 off 0
+    el 15 node 2 cm150_003 face 1 push 0 shape 1 off 0
+    el 16 node 2 cm150_003 face 1 push 0 shape 6 off 150
+    el 19 node 3 cm202_020_g face 0 push 100 shape 6 off 200  <-- CAMERA-DEPENDENT
+    el 20 node 0 cm202_020_g face 0 push 0 shape 1 off 0
+em066_00 em066_00u:412 (clip) files/em066_00_005.efl joint -1 mode 1 space 1 mask 1409/ffffffff
+    el 0 node 0 cm202_022_g face 0 push 100 shape 5 off 50
+    el 5 node 1 cm150_003 face 1 push 0 shape 6 off 150
+    el 6 node 1 cm101_000 face 9 push 0 shape 5 off 0
+    el 7 node 3 cm202_020_g face 0 push 100 shape 6 off 200  <-- CAMERA-DEPENDENT
+    el 9 node 4 genType 0 shape 0 off 0
+    el 10 node 0 cm202_020_g face 0 push 0 shape 1 off 0
+    el 11 node 5 genType 0 shape 1 off 0
+    el 12 node 0 cm202_022_g face 0 push 100 shape 5 off 50
+    el 17 node 1 cm150_003 face 1 push 0 shape 6 off 150
+    el 18 node 1 cm101_000 face 9 push 0 shape 5 off 0
+    el 19 node 3 cm202_020_g face 0 push 100 shape 6 off 200  <-- CAMERA-DEPENDENT
+    el 21 node 0 genType 0 shape 0 off 0
+    el 22 node 0 cm202_020_g face 0 push 0 shape 1 off 0
+    el 23 node 5 genType 0 shape 1 off 0
+em066_00 em066_00u:0 (shell) files/em066_00_001.efl joint -1 mode 0 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm102_003 face 9 push -200 shape 6 off 60  <-- CAMERA-DEPENDENT
+    el 1 node 1 cm202_020_g face 0 push 0 shape 0 off 100
+    el 2 node 1 cm120_006 face 0 push -50 shape 6 off 80  <-- CAMERA-DEPENDENT
+em066_00 em066_00u:40 (shell) files/em066_00_008.efl joint -1 mode 1 space 0 mask ffffffff/ffffffff
+    el 0 node 0 em066_00_001 face 0 push 0 shape 0 off 8
+    el 1 node 1 cm150_003 face 9 push 0 shape 6 off 150
+    el 2 node 1 genType 0 shape 0 off 0
+    el 3 node 2 genType 0 shape 3 off 300
+    el 4 node 2 cm202_022_g face 0 push 0 shape 3 off 150
+    el 5 node 3 cm202_020_g face 0 push 100 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 6 node 4 cm202_020_g face 0 push 0 shape 3 off 100
+    el 7 node 5 cm101_000 face 0 push -100 shape 5 off 0
+    el 8 node 6 cm202_022_g face 1 push 5 shape 6 off 600  <-- CAMERA-DEPENDENT
+    el 9 node 7 genType 0 shape 1 off 0
+    el 10 node 8 cm150_003 face 9 push 0 shape 5 off 0
+    el 11 node 9 cm120_006 face 9 push -200 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 12 node 9 genType 0 shape 5 off 700
+    el 13 node 10 cm150_003 face 9 push 0 shape 6 off 600
+    el 14 node 11 genType 0 shape 0 off 0
+    el 15 node 1 cm150_003 face 9 push 0 shape 6 off 150
+    el 16 node 1 genType 0 shape 0 off 0
+    el 17 node 9 cm102_003 face 1 push 0 shape 6 off 550
+    el 18 node 9 cm100_008 face 9 push -100 shape 6 off 400  <-- CAMERA-DEPENDENT
+    el 19 node 8 cm150_003 face 9 push 0 shape 5 off 0
+    el 20 node 9 cm120_006 face 9 push -200 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 21 node 7 genType 0 shape 1 off 0
+    el 22 node 10 cm150_003 face 9 push 0 shape 6 off 600
+    el 23 node 11 genType 0 shape 0 off 0
+    el 24 node 1 cm150_003 face 9 push 0 shape 6 off 150
+    el 25 node 1 genType 0 shape 0 off 0
+    el 26 node 9 cm150_002 face 1 push 0 shape 6 off 500
+    el 27 node 9 cm102_003 face 1 push 0 shape 6 off 550
+    el 28 node 8 cm150_003 face 9 push 0 shape 5 off 0
+    el 29 node 9 cm120_006 face 9 push -200 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 30 node 7 genType 0 shape 1 off 0
+    el 31 node 10 cm150_003 face 9 push 0 shape 6 off 600
+    el 32 node 11 genType 0 shape 0 off 0
+    el 33 node 0 em066_00_001 face 0 push 0 shape 0 off 8
+    el 34 node 1 cm150_003 face 9 push 0 shape 6 off 150
+    el 35 node 1 genType 0 shape 0 off 0
+    el 36 node 2 genType 0 shape 3 off 300
+    el 37 node 2 cm202_022_g face 0 push 0 shape 3 off 150
+    el 38 node 9 cm202_022_g face 0 push 0 shape 6 off 450
+    el 39 node 3 cm202_020_g face 0 push 100 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 40 node 4 cm202_020_g face 0 push 0 shape 3 off 100
+    el 41 node 5 cm101_000 face 0 push -100 shape 5 off 0
+    el 42 node 6 cm202_022_g face 1 push 5 shape 6 off 600  <-- CAMERA-DEPENDENT
+    el 43 node 9 genType 0 shape 5 off 700
+    el 44 node 8 cm150_003 face 9 push 0 shape 5 off 0
+    el 45 node 7 genType 0 shape 1 off 0
+    el 46 node 9 cm120_006 face 9 push -200 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 47 node 10 cm150_003 face 9 push 0 shape 6 off 600
+    el 48 node 11 genType 0 shape 0 off 0
+em066_00 em066_00u:42 (shell) files/em066_00_008.efl joint -1 mode 1 space 0 mask ffffffff/ffffffff
+    el 0 node 0 em066_00_001 face 0 push 0 shape 0 off 8
+    el 1 node 1 cm150_003 face 9 push 0 shape 6 off 150
+    el 2 node 1 genType 0 shape 0 off 0
+    el 3 node 2 genType 0 shape 3 off 300
+    el 4 node 2 cm202_022_g face 0 push 0 shape 3 off 150
+    el 5 node 3 cm202_020_g face 0 push 100 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 6 node 4 cm202_020_g face 0 push 0 shape 3 off 100
+    el 7 node 5 cm101_000 face 0 push -100 shape 5 off 0
+    el 8 node 6 cm202_022_g face 1 push 5 shape 6 off 600  <-- CAMERA-DEPENDENT
+    el 9 node 7 genType 0 shape 1 off 0
+    el 10 node 8 cm150_003 face 9 push 0 shape 5 off 0
+    el 11 node 9 cm120_006 face 9 push -200 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 12 node 9 genType 0 shape 5 off 700
+    el 13 node 10 cm150_003 face 9 push 0 shape 6 off 600
+    el 14 node 11 genType 0 shape 0 off 0
+    el 15 node 1 cm150_003 face 9 push 0 shape 6 off 150
+    el 16 node 1 genType 0 shape 0 off 0
+    el 17 node 9 cm102_003 face 1 push 0 shape 6 off 550
+    el 18 node 9 cm100_008 face 9 push -100 shape 6 off 400  <-- CAMERA-DEPENDENT
+    el 19 node 8 cm150_003 face 9 push 0 shape 5 off 0
+    el 20 node 9 cm120_006 face 9 push -200 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 21 node 7 genType 0 shape 1 off 0
+    el 22 node 10 cm150_003 face 9 push 0 shape 6 off 600
+    el 23 node 11 genType 0 shape 0 off 0
+    el 24 node 1 cm150_003 face 9 push 0 shape 6 off 150
+    el 25 node 1 genType 0 shape 0 off 0
+    el 26 node 9 cm150_002 face 1 push 0 shape 6 off 500
+    el 27 node 9 cm102_003 face 1 push 0 shape 6 off 550
+    el 28 node 8 cm150_003 face 9 push 0 shape 5 off 0
+    el 29 node 9 cm120_006 face 9 push -200 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 30 node 7 genType 0 shape 1 off 0
+    el 31 node 10 cm150_003 face 9 push 0 shape 6 off 600
+    el 32 node 11 genType 0 shape 0 off 0
+    el 33 node 0 em066_00_001 face 0 push 0 shape 0 off 8
+    el 34 node 1 cm150_003 face 9 push 0 shape 6 off 150
+    el 35 node 1 genType 0 shape 0 off 0
+    el 36 node 2 genType 0 shape 3 off 300
+    el 37 node 2 cm202_022_g face 0 push 0 shape 3 off 150
+    el 38 node 9 cm202_022_g face 0 push 0 shape 6 off 450
+    el 39 node 3 cm202_020_g face 0 push 100 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 40 node 4 cm202_020_g face 0 push 0 shape 3 off 100
+    el 41 node 5 cm101_000 face 0 push -100 shape 5 off 0
+    el 42 node 6 cm202_022_g face 1 push 5 shape 6 off 600  <-- CAMERA-DEPENDENT
+    el 43 node 9 genType 0 shape 5 off 700
+    el 44 node 8 cm150_003 face 9 push 0 shape 5 off 0
+    el 45 node 7 genType 0 shape 1 off 0
+    el 46 node 9 cm120_006 face 9 push -200 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 47 node 10 cm150_003 face 9 push 0 shape 6 off 600
+    el 48 node 11 genType 0 shape 0 off 0
+em066_00 em066_00u:41 (shell) files/em066_00_008.efl joint -1 mode 1 space 0 mask ffffffff/100
+    el 33 node 0 em066_00_001 face 0 push 0 shape 0 off 8
+    el 34 node 1 cm150_003 face 9 push 0 shape 6 off 150
+    el 35 node 1 genType 0 shape 0 off 0
+    el 36 node 2 genType 0 shape 3 off 300
+    el 37 node 2 cm202_022_g face 0 push 0 shape 3 off 150
+    el 38 node 9 cm202_022_g face 0 push 0 shape 6 off 450
+    el 39 node 3 cm202_020_g face 0 push 100 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 40 node 4 cm202_020_g face 0 push 0 shape 3 off 100
+    el 41 node 5 cm101_000 face 0 push -100 shape 5 off 0
+    el 42 node 6 cm202_022_g face 1 push 5 shape 6 off 600  <-- CAMERA-DEPENDENT
+    el 43 node 9 genType 0 shape 5 off 700
+    el 44 node 8 cm150_003 face 9 push 0 shape 5 off 0
+    el 45 node 7 genType 0 shape 1 off 0
+    el 46 node 9 cm120_006 face 9 push -200 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 47 node 10 cm150_003 face 9 push 0 shape 6 off 600
+    el 48 node 11 genType 0 shape 0 off 0
+em066_00 em066_00u:43 (shell) files/em066_00_008.efl joint -1 mode 1 space 0 mask ffffffff/100
+    el 33 node 0 em066_00_001 face 0 push 0 shape 0 off 8
+    el 34 node 1 cm150_003 face 9 push 0 shape 6 off 150
+    el 35 node 1 genType 0 shape 0 off 0
+    el 36 node 2 genType 0 shape 3 off 300
+    el 37 node 2 cm202_022_g face 0 push 0 shape 3 off 150
+    el 38 node 9 cm202_022_g face 0 push 0 shape 6 off 450
+    el 39 node 3 cm202_020_g face 0 push 100 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 40 node 4 cm202_020_g face 0 push 0 shape 3 off 100
+    el 41 node 5 cm101_000 face 0 push -100 shape 5 off 0
+    el 42 node 6 cm202_022_g face 1 push 5 shape 6 off 600  <-- CAMERA-DEPENDENT
+    el 43 node 9 genType 0 shape 5 off 700
+    el 44 node 8 cm150_003 face 9 push 0 shape 5 off 0
+    el 45 node 7 genType 0 shape 1 off 0
+    el 46 node 9 cm120_006 face 9 push -200 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 47 node 10 cm150_003 face 9 push 0 shape 6 off 600
+    el 48 node 11 genType 0 shape 0 off 0
+em066_04 em066_04u:410 (clip) files/em066_04_001.efl joint -1 mode 1 space 1 mask c05/ffffffff
+    el 0 node 0 cm202_022_g face 0 push 100 shape 5 off 50
+    el 3 node 2 genType 0 shape 1 off 0
+    el 6 node 1 cm150_003 face 1 push 0 shape 5 off 0
+    el 7 node 1 cm101_000 face 9 push 0 shape 5 off 0
+    el 8 node 3 cm150_003 face 1 push 0 shape 6 off 150
+    el 9 node 3 cm150_003 face 1 push 0 shape 1 off 0
+    el 12 node 5 cm202_020_g face 0 push 100 shape 6 off 200  <-- CAMERA-DEPENDENT
+    el 13 node 0 cm202_020_g face 0 push 0 shape 1 off 0
+    el 35 node 0 cm202_022_g face 0 push 100 shape 5 off 50
+    el 38 node 2 genType 0 shape 1 off 0
+    el 41 node 1 cm150_003 face 1 push 0 shape 5 off 0
+    el 42 node 1 cm101_000 face 9 push 0 shape 5 off 0
+    el 43 node 3 cm150_003 face 1 push 0 shape 1 off 0
+    el 44 node 3 cm150_003 face 1 push 0 shape 6 off 150
+    el 47 node 5 cm202_020_g face 0 push 100 shape 6 off 200  <-- CAMERA-DEPENDENT
+    el 48 node 0 cm202_020_g face 0 push 0 shape 1 off 0
+em066_04 em066_04u:412 (clip) files/em066_04_001.efl joint -1 mode 1 space 1 mask 1409/ffffffff
+    el 0 node 0 cm202_022_g face 0 push 100 shape 5 off 50
+    el 10 node 1 cm150_003 face 1 push 0 shape 6 off 150
+    el 11 node 1 cm101_000 face 9 push 0 shape 5 off 0
+    el 12 node 5 cm202_020_g face 0 push 100 shape 6 off 200  <-- CAMERA-DEPENDENT
+    el 14 node 6 genType 0 shape 0 off 0
+    el 15 node 0 cm202_020_g face 0 push 0 shape 1 off 0
+    el 16 node 7 genType 0 shape 1 off 0
+    el 35 node 0 cm202_022_g face 0 push 100 shape 5 off 50
+    el 45 node 1 cm150_003 face 1 push 0 shape 6 off 150
+    el 46 node 1 cm101_000 face 9 push 0 shape 5 off 0
+    el 47 node 5 cm202_020_g face 0 push 100 shape 6 off 200  <-- CAMERA-DEPENDENT
+    el 49 node 0 genType 0 shape 0 off 0
+    el 50 node 0 cm202_020_g face 0 push 0 shape 1 off 0
+    el 51 node 7 genType 0 shape 1 off 0
+em066_04 em066_04u:460 (clip) files/em066_04_007.efl joint -1 mode 0 space 1 mask 3/ffffffff
+    el 0 node 0 cm101_000 face 0 push -100 shape 6 off 400  <-- CAMERA-DEPENDENT
+    el 2 node 2 genType 0 shape 6 off 100
+    el 3 node 2 genType 0 shape 6 off 100
+em066_04 em066_04u:463 (clip) files/em066_04_007.efl joint -1 mode 0 space 1 mask 5/ffffffff
+    el 1 node 1 cm101_000 face 0 push -100 shape 6 off 400  <-- CAMERA-DEPENDENT
+    el 2 node 2 genType 0 shape 6 off 100
+    el 3 node 2 genType 0 shape 6 off 100
+em066_04 em066_04u:500 (clip) files/em066_04_001.efl joint -1 mode 1 space 1 mask 1000001/ffffffff
+    el 0 node 0 cm202_022_g face 0 push 100 shape 5 off 50
+    el 27 node 14 cm150_003 face 1 push 0 shape 3 off 250
+    el 28 node 1 cm202_022_g face 1 push 5 shape 6 off 400  <-- CAMERA-DEPENDENT
+    el 29 node 1 cm101_000 face 9 push 0 shape 3 off 400
+    el 30 node 15 cm202_020_g face 0 push 100 shape 3 off 300
+    el 31 node 16 cm202_020_g face 0 push 0 shape 3 off 300
+    el 32 node 17 cm150_003 face 1 push 0 shape 3 off 300
+    el 33 node 18 genType 0 shape 3 off 400
+    el 34 node 19 genType 0 shape 3 off 300
+    el 35 node 0 cm202_022_g face 0 push 100 shape 5 off 50
+    el 62 node 14 cm150_003 face 1 push 0 shape 3 off 250
+    el 63 node 1 cm202_022_g face 1 push 5 shape 6 off 400  <-- CAMERA-DEPENDENT
+    el 64 node 1 cm101_000 face 9 push 0 shape 3 off 400
+    el 65 node 15 cm202_020_g face 0 push 100 shape 3 off 300
+    el 66 node 16 cm202_020_g face 0 push 0 shape 3 off 300
+    el 67 node 17 cm150_003 face 1 push 0 shape 3 off 300
+    el 68 node 18 genType 0 shape 3 off 400
+    el 69 node 19 genType 0 shape 3 off 300
+em066_04 em066_04u:0 (shell) files/em066_00_001.efl joint -1 mode 0 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm102_003 face 9 push -200 shape 6 off 60  <-- CAMERA-DEPENDENT
+    el 1 node 1 cm202_020_g face 0 push 0 shape 0 off 100
+    el 2 node 1 cm120_006 face 0 push -50 shape 6 off 80  <-- CAMERA-DEPENDENT
+em066_04 em066_04u:40 (shell) files/em066_00_008.efl joint -1 mode 1 space 0 mask ffffffff/fffffeff
+    el 0 node 0 em066_00_001 face 0 push 0 shape 0 off 8
+    el 1 node 1 cm150_003 face 9 push 0 shape 6 off 150
+    el 2 node 1 genType 0 shape 0 off 0
+    el 3 node 2 genType 0 shape 3 off 300
+    el 4 node 2 cm202_022_g face 0 push 0 shape 3 off 150
+    el 5 node 3 cm202_020_g face 0 push 100 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 6 node 4 cm202_020_g face 0 push 0 shape 3 off 100
+    el 7 node 5 cm101_000 face 0 push -100 shape 5 off 0
+    el 8 node 6 cm202_022_g face 1 push 5 shape 6 off 600  <-- CAMERA-DEPENDENT
+    el 9 node 7 genType 0 shape 1 off 0
+    el 10 node 8 cm150_003 face 9 push 0 shape 5 off 0
+    el 11 node 9 cm120_006 face 9 push -200 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 12 node 9 genType 0 shape 5 off 700
+    el 13 node 10 cm150_003 face 9 push 0 shape 6 off 600
+    el 14 node 11 genType 0 shape 0 off 0
+    el 15 node 1 cm150_003 face 9 push 0 shape 6 off 150
+    el 16 node 1 genType 0 shape 0 off 0
+    el 17 node 9 cm102_003 face 1 push 0 shape 6 off 550
+    el 18 node 9 cm100_008 face 9 push -100 shape 6 off 400  <-- CAMERA-DEPENDENT
+    el 19 node 8 cm150_003 face 9 push 0 shape 5 off 0
+    el 20 node 9 cm120_006 face 9 push -200 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 21 node 7 genType 0 shape 1 off 0
+    el 22 node 10 cm150_003 face 9 push 0 shape 6 off 600
+    el 23 node 11 genType 0 shape 0 off 0
+    el 24 node 1 cm150_003 face 9 push 0 shape 6 off 150
+    el 25 node 1 genType 0 shape 0 off 0
+    el 26 node 9 cm150_002 face 1 push 0 shape 6 off 500
+    el 27 node 9 cm102_003 face 1 push 0 shape 6 off 550
+    el 28 node 8 cm150_003 face 9 push 0 shape 5 off 0
+    el 29 node 9 cm120_006 face 9 push -200 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 30 node 7 genType 0 shape 1 off 0
+    el 31 node 10 cm150_003 face 9 push 0 shape 6 off 600
+    el 32 node 11 genType 0 shape 0 off 0
+em066_04 em066_04u:42 (shell) files/em066_00_008.efl joint -1 mode 1 space 0 mask 7/fffffeff
+    el 0 node 0 em066_00_001 face 0 push 0 shape 0 off 8
+    el 1 node 1 cm150_003 face 9 push 0 shape 6 off 150
+    el 2 node 1 genType 0 shape 0 off 0
+    el 3 node 2 genType 0 shape 3 off 300
+    el 4 node 2 cm202_022_g face 0 push 0 shape 3 off 150
+    el 5 node 3 cm202_020_g face 0 push 100 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 6 node 4 cm202_020_g face 0 push 0 shape 3 off 100
+    el 7 node 5 cm101_000 face 0 push -100 shape 5 off 0
+    el 8 node 6 cm202_022_g face 1 push 5 shape 6 off 600  <-- CAMERA-DEPENDENT
+    el 9 node 7 genType 0 shape 1 off 0
+    el 10 node 8 cm150_003 face 9 push 0 shape 5 off 0
+    el 11 node 9 cm120_006 face 9 push -200 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 12 node 9 genType 0 shape 5 off 700
+    el 13 node 10 cm150_003 face 9 push 0 shape 6 off 600
+    el 14 node 11 genType 0 shape 0 off 0
+    el 15 node 1 cm150_003 face 9 push 0 shape 6 off 150
+    el 16 node 1 genType 0 shape 0 off 0
+    el 17 node 9 cm102_003 face 1 push 0 shape 6 off 550
+    el 18 node 9 cm100_008 face 9 push -100 shape 6 off 400  <-- CAMERA-DEPENDENT
+    el 19 node 8 cm150_003 face 9 push 0 shape 5 off 0
+    el 20 node 9 cm120_006 face 9 push -200 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 21 node 7 genType 0 shape 1 off 0
+    el 22 node 10 cm150_003 face 9 push 0 shape 6 off 600
+    el 23 node 11 genType 0 shape 0 off 0
+    el 24 node 1 cm150_003 face 9 push 0 shape 6 off 150
+    el 25 node 1 genType 0 shape 0 off 0
+    el 26 node 9 cm150_002 face 1 push 0 shape 6 off 500
+    el 27 node 9 cm102_003 face 1 push 0 shape 6 off 550
+    el 28 node 8 cm150_003 face 9 push 0 shape 5 off 0
+    el 29 node 9 cm120_006 face 9 push -200 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 30 node 7 genType 0 shape 1 off 0
+    el 31 node 10 cm150_003 face 9 push 0 shape 6 off 600
+    el 32 node 11 genType 0 shape 0 off 0
+em066_04 em066_04u:41 (shell) files/em066_00_008.efl joint -1 mode 1 space 0 mask 1/100
+    el 33 node 0 em066_00_001 face 0 push 0 shape 0 off 8
+    el 34 node 1 cm150_003 face 9 push 0 shape 6 off 150
+    el 35 node 1 genType 0 shape 0 off 0
+    el 36 node 2 genType 0 shape 3 off 300
+    el 37 node 2 cm202_022_g face 0 push 0 shape 3 off 150
+    el 38 node 9 cm202_022_g face 0 push 0 shape 6 off 450
+    el 39 node 3 cm202_020_g face 0 push 100 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 40 node 4 cm202_020_g face 0 push 0 shape 3 off 100
+    el 41 node 5 cm101_000 face 0 push -100 shape 5 off 0
+    el 42 node 6 cm202_022_g face 1 push 5 shape 6 off 600  <-- CAMERA-DEPENDENT
+    el 43 node 9 genType 0 shape 5 off 700
+    el 44 node 8 cm150_003 face 9 push 0 shape 5 off 0
+    el 45 node 7 genType 0 shape 1 off 0
+    el 46 node 9 cm120_006 face 9 push -200 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 47 node 10 cm150_003 face 9 push 0 shape 6 off 600
+    el 48 node 11 genType 0 shape 0 off 0
+em066_04 em066_04u:43 (shell) files/em066_00_008.efl joint -1 mode 1 space 0 mask 1/100
+    el 33 node 0 em066_00_001 face 0 push 0 shape 0 off 8
+    el 34 node 1 cm150_003 face 9 push 0 shape 6 off 150
+    el 35 node 1 genType 0 shape 0 off 0
+    el 36 node 2 genType 0 shape 3 off 300
+    el 37 node 2 cm202_022_g face 0 push 0 shape 3 off 150
+    el 38 node 9 cm202_022_g face 0 push 0 shape 6 off 450
+    el 39 node 3 cm202_020_g face 0 push 100 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 40 node 4 cm202_020_g face 0 push 0 shape 3 off 100
+    el 41 node 5 cm101_000 face 0 push -100 shape 5 off 0
+    el 42 node 6 cm202_022_g face 1 push 5 shape 6 off 600  <-- CAMERA-DEPENDENT
+    el 43 node 9 genType 0 shape 5 off 700
+    el 44 node 8 cm150_003 face 9 push 0 shape 5 off 0
+    el 45 node 7 genType 0 shape 1 off 0
+    el 46 node 9 cm120_006 face 9 push -200 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 47 node 10 cm150_003 face 9 push 0 shape 6 off 600
+    el 48 node 11 genType 0 shape 0 off 0
+em069_00 em069_00u:470 (clip) files/em010_00_019.efl joint -1 mode 1 space 1 mask ffffffff/ffffffff
+    el 0 node 0 cm101_000 face 0 push -100 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 1 node 0 cm101_000 face 0 push 0 shape 6 off 100
+em069_00 em069_00u:10 (shell) files/em069_00_011.efl joint -1 mode 0 space 0 mask ffffffff/ffffffff
+    el 0 node 0 genType 0 shape 6 off 0
+    el 1 node 1 cm102_003 face 9 push -100 shape 6 off 70  <-- CAMERA-DEPENDENT
+    el 2 node 1 cm101_004 face 0 push 0 shape 0 off 0
+    el 3 node 0 cm202_020_g face 0 push 0 shape 0 off 0
+    el 4 node 1 cm100_000 face 9 push -30 shape 0 off 0
+    el 5 node 2 cm120_006 face 0 push 0 shape 6 off -70
+    el 6 node 0 genType 1 shape 6 off -70
+    el 7 node 2 cm100_000 face 0 push 0 shape 6 off -70
+em070_00 em070_00u:260 (clip) files/em070_00_007.efl joint 130 mode 0 space 0 mask 1/ffffffff
+    el 0 node 0 cm101_002 face 0 push 0 shape 6 off 0
+    el 1 node 1 genType 0 shape 7 off 30
+    el 2 node 1 cm102_003 face 9 push 0 shape 6 off 250
+    el 3 node 2 genType 1 shape 5 off 40
+    el 4 node 3 genType 1 shape 6 off 0
+    el 5 node 4 cm150_000 face 0 push -40 shape 6 off -200  <-- CAMERA-DEPENDENT
+em070_00 em070_00u:261 (clip) files/em070_00_007.efl joint 131 mode 0 space 0 mask 1/ffffffff
+    el 0 node 0 cm101_002 face 0 push 0 shape 6 off 0
+    el 1 node 1 genType 0 shape 7 off 30
+    el 2 node 1 cm102_003 face 9 push 0 shape 6 off 250
+    el 3 node 2 genType 1 shape 5 off 40
+    el 4 node 3 genType 1 shape 6 off 0
+    el 5 node 4 cm150_000 face 0 push -40 shape 6 off -200  <-- CAMERA-DEPENDENT
+em070_00 em070_00u:282 (clip) files/em070_00_007.efl joint 130 mode 0 space 0 mask 2/ffffffff
+    el 6 node 0 cm101_002 face 0 push 0 shape 6 off 0
+    el 7 node 1 genType 0 shape 7 off 30
+    el 8 node 1 cm102_003 face 9 push 0 shape 6 off 250
+    el 9 node 2 genType 1 shape 5 off 40
+    el 10 node 3 genType 1 shape 6 off 0
+    el 11 node 4 cm150_000 face 0 push -40 shape 6 off -200  <-- CAMERA-DEPENDENT
+em070_00 em070_00u:283 (clip) files/em070_00_007.efl joint 131 mode 0 space 0 mask 2/ffffffff
+    el 6 node 0 cm101_002 face 0 push 0 shape 6 off 0
+    el 7 node 1 genType 0 shape 7 off 30
+    el 8 node 1 cm102_003 face 9 push 0 shape 6 off 250
+    el 9 node 2 genType 1 shape 5 off 40
+    el 10 node 3 genType 1 shape 6 off 0
+    el 11 node 4 cm150_000 face 0 push -40 shape 6 off -200  <-- CAMERA-DEPENDENT
+em070_00 em070_00u:262 (clip) files/em070_00_007.efl joint 134 mode 1 space 0 mask 1/ffffffff
+    el 0 node 0 cm101_002 face 0 push 0 shape 6 off 0
+    el 1 node 1 genType 0 shape 7 off 30
+    el 2 node 1 cm102_003 face 9 push 0 shape 6 off 250
+    el 3 node 2 genType 1 shape 5 off 40
+    el 4 node 3 genType 1 shape 6 off 0
+    el 5 node 4 cm150_000 face 0 push -40 shape 6 off -200  <-- CAMERA-DEPENDENT
+em070_00 em070_00u:284 (clip) files/em070_00_007.efl joint 134 mode 1 space 0 mask 2/ffffffff
+    el 6 node 0 cm101_002 face 0 push 0 shape 6 off 0
+    el 7 node 1 genType 0 shape 7 off 30
+    el 8 node 1 cm102_003 face 9 push 0 shape 6 off 250
+    el 9 node 2 genType 1 shape 5 off 40
+    el 10 node 3 genType 1 shape 6 off 0
+    el 11 node 4 cm150_000 face 0 push -40 shape 6 off -200  <-- CAMERA-DEPENDENT
+em076_00 em076_00u:270 (clip) files/em076_00_006.efl joint -1 mode 0 space 1 mask ffffffff/ffffffff
+    el 0 node 0 genType 0 shape 6 off 80
+    el 1 node 0 cm202_022_g face 9 push 0 shape 0 off 0
+    el 2 node 0 cm120_006 face 0 push -200 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 3 node 0 genType 0 shape 0 off 0
+em076_00 em076_00u:271 (clip) files/em076_00_006.efl joint -1 mode 0 space 0 mask 1/ffffffff
+    el 0 node 0 genType 0 shape 6 off 80
+    el 1 node 0 cm202_022_g face 9 push 0 shape 0 off 0
+    el 2 node 0 cm120_006 face 0 push -200 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 3 node 0 genType 0 shape 0 off 0
+em079_00 em079_00u:0 (shell) files/em079_00_000.efl joint -1 mode 3 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm101_000 face 0 push -100 shape 0 off 400
+    el 1 node 0 cm101_000 face 0 push 0 shape 6 off 0
+    el 2 node 0 cm101_000 face 0 push -100 shape 6 off 800  <-- CAMERA-DEPENDENT
+    el 3 node 1 genType 25 shape 0 off 0
+em079_00 em079_00u:1 (shell) files/em079_00_000.efl joint -1 mode 3 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm101_000 face 0 push -100 shape 0 off 400
+    el 1 node 0 cm101_000 face 0 push 0 shape 6 off 0
+    el 2 node 0 cm101_000 face 0 push -100 shape 6 off 800  <-- CAMERA-DEPENDENT
+    el 3 node 1 genType 25 shape 0 off 0
+em079_04 em079_04u:0 (shell) files/em079_00_000.efl joint -1 mode 3 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm101_000 face 0 push -100 shape 0 off 400
+    el 1 node 0 cm101_000 face 0 push 0 shape 6 off 0
+    el 2 node 0 cm101_000 face 0 push -100 shape 6 off 800  <-- CAMERA-DEPENDENT
+    el 3 node 1 genType 25 shape 0 off 0
+em079_04 em079_04u:1 (shell) files/em079_00_000.efl joint -1 mode 3 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm101_000 face 0 push -100 shape 0 off 400
+    el 1 node 0 cm101_000 face 0 push 0 shape 6 off 0
+    el 2 node 0 cm101_000 face 0 push -100 shape 6 off 800  <-- CAMERA-DEPENDENT
+    el 3 node 1 genType 25 shape 0 off 0
+em080_04 em080_04u:510 (clip) files/em080_04_012.efl joint 143 mode 0 space 1 mask ffffffff/ffffffff
+    el 0 node 0 cm150_002 face 0 push -100 shape 5 off 0
+    el 1 node 1 cm120_016 face 11 push 0 shape 5 off 0
+    el 2 node 2 cm120_016 face 11 push -20 shape 5 off 20
+    el 3 node 3 genType 2 shape 5 off 0
+    el 4 node 0 cm150_002 face 0 push -100 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 5 node 4 genType 0 shape 0 off 0
+    el 6 node 5 cm150_000 face 0 push -200 shape 5 off 60
+    el 7 node 6 cm150_000 face 0 push 0 shape 5 off 10
+    el 8 node 7 cm150_000 face 0 push -200 shape 5 off 60
+em080_04 em080_04u:201 (event) files/em080_00_130.efl joint -1 mode 0 space 0 mask 10/ffffffff
+    el 4 node 3 cm150_002 face 0 push -100 shape 6 off -600  <-- CAMERA-DEPENDENT
+em080_04 em080_04u:202 (event) files/em080_00_130.efl joint -1 mode 0 space 0 mask 8/ffffffff
+    el 3 node 2 cm150_002 face 0 push -100 shape 6 off -200  <-- CAMERA-DEPENDENT
+em080_04 em080_04u:203 (event) files/em080_00_130.efl joint -1 mode 0 space 0 mask 20/ffffffff
+    el 3 node 2 cm150_002 face 0 push -100 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 4 node 3 cm150_002 face 0 push -100 shape 6 off -600  <-- CAMERA-DEPENDENT
+em080_04 em080_04u:204 (event) files/em080_00_130.efl joint -1 mode 0 space 0 mask 40/ffffffff
+    el 3 node 2 cm150_002 face 0 push -100 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 5 node 4 cm101_000 face 0 push 0 shape 6 off -500
+em081_00 em081_00u:201 (clip) files/em081_00_003.efl joint 131 mode 0 space 0 mask 2/ffffffff
+    el 1 node 0 cm120_026 face 0 push -20 shape 0 off 0
+    el 2 node 1 cm100_010 face 0 push -20 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 3 node 2 genType 1 shape 0 off 0
+em081_00 em081_00u:200 (clip) files/em081_00_003.efl joint 131 mode 0 space 0 mask 1/ffffffff
+    el 0 node 0 cm100_010 face 0 push -20 shape 6 off 100  <-- CAMERA-DEPENDENT
+em081_04 em081_04u:201 (clip) files/em081_00_003.efl joint 131 mode 0 space 0 mask 2/ffffffff
+    el 1 node 0 cm120_026 face 0 push -20 shape 0 off 0
+    el 2 node 1 cm100_010 face 0 push -20 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 3 node 2 genType 1 shape 0 off 0
+em081_04 em081_04u:200 (clip) files/em081_00_003.efl joint 131 mode 0 space 0 mask 1/ffffffff
+    el 0 node 0 cm100_010 face 0 push -20 shape 6 off 100  <-- CAMERA-DEPENDENT
+em083_00 em083_00u:291 (clip) files/em083_00_003.efl joint -1 mode 1 space 0 mask 2/ffffffff
+    el 3 node 2 cm101_000 face 0 push 0 shape 3 off 100
+    el 4 node 1 cm202_022_g face 0 push -200 shape 6 off 200  <-- CAMERA-DEPENDENT
+    el 5 node 3 genType 0 shape 3 off 300
+    el 6 node 4 cm100_008 face 1 push -50 shape 3 off 300
+    el 7 node 5 cm120_006 face 0 push 0 shape 6 off 0
+em083_04 em083_04u:291 (clip) files/em083_00_003.efl joint -1 mode 1 space 0 mask 2/ffffffff
+    el 3 node 2 cm101_000 face 0 push 0 shape 3 off 100
+    el 4 node 1 cm202_022_g face 0 push -200 shape 6 off 200  <-- CAMERA-DEPENDENT
+    el 5 node 3 genType 0 shape 3 off 300
+    el 6 node 4 cm100_008 face 1 push -50 shape 3 off 300
+    el 7 node 5 cm120_006 face 0 push 0 shape 6 off 0
+em084_00 em084_00u:206 (clip) files/em084_00_012.efl joint -1 mode 0 space 1 mask 1/ffffffff
+    el 0 node 0 cm101_000 face 0 push -200 shape 5 off 600
+    el 1 node 0 cm202_022_g face 1 push -100 shape 0 off 0
+    el 2 node 1 cm120_016 face 0 push -300 shape 3 off 400
+    el 3 node 1 cm120_016 face 0 push -100 shape 6 off 500  <-- CAMERA-DEPENDENT
+em084_00 em084_00u:20 (shell) files/em084_00_110.efl joint -1 mode 3 space 0 mask 1/ffffffff
+    el 0 node 0 cm102_003 face 1 push -100 shape 6 off 200  <-- CAMERA-DEPENDENT
+    el 1 node 1 cm202_022_g face 1 push -200 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 2 node 0 genType 0 shape 5 off 0
+    el 3 node 2 em084_00_001 face 0 push 0 shape 0 off 0
+    el 4 node 3 cm102_003 face 1 push 0 shape 6 off 13000
+    el 5 node 4 genType 0 shape 6 off 13000
+em084_00 em084_00u:91 (event) files/em084_00_060.efl joint 0 mode 0 space 0 mask 8/ffffffff
+    el 0 node 0 genType 0 shape 5 off 0
+    el 5 node 3 cm202_042 face 0 push -500 shape 6 off -400  <-- CAMERA-DEPENDENT
+    el 6 node 4 genType 1 shape 6 off -800
+    el 7 node 5 genType 0 shape 0 off 0
+    el 8 node 5 cm100_000 face 9 push 0 shape 0 off 0
+    el 9 node 6 cm120_001 face 9 push -100 shape 5 off 0
+em084_00 em084_00u:92 (event) files/em084_00_060.efl joint 0 mode 0 space 0 mask 10/ffffffff
+    el 0 node 0 genType 0 shape 5 off 0
+    el 10 node 7 genType 1 shape 6 off -10
+    el 11 node 3 cm202_042 face 0 push -800 shape 6 off -400  <-- CAMERA-DEPENDENT
+    el 12 node 8 genType 1 shape 7 off 0.1
+    el 13 node 9 genType 0 shape 0 off 0
+    el 14 node 9 cm100_000 face 9 push 0 shape 0 off 0
+    el 15 node 10 cm120_001 face 9 push -100 shape 5 off 0
+em086_00 em086_00c:90 (clip) files/cm202_050.efl joint 3 mode 0 space 0 mask 2c0/ffffffff
+    el 0 node 0 cm202_014 face 9 push 100 shape 0 off 0
+    el 5 node 0 cm202_014 face 0 push 0 shape 5 off 0
+    el 6 node 0 cm202_014 face 9 push 0 shape 0 off 0
+    el 7 node 0 cm202_003 face 9 push 0 shape 5 off 0
+    el 8 node 0 cm202_014 face 9 push 0 shape 0 off 0
+    el 9 node 0 cm202_014 face 9 push 0 shape 5 off 0
+    el 10 node 0 cm202_014 face 0 push 0 shape 5 off 0
+    el 12 node 2 cm120_016 face 0 push 0 shape 3 off 400
+    el 13 node 2 cm120_016 face 0 push -100 shape 6 off 500  <-- CAMERA-DEPENDENT
+    el 14 node 0 genType 9 shape 0 off 0
+    el 16 node 4 cm120_016 face 0 push 1000 shape 0 off 500
+em086_00 em086_00u:100 (clip) files/em086_00_100.efl joint -1 mode 0 space 0 mask ffffffff/ffffffff
+    el 0 node 0 em086_00_000 face 0 push 0 shape 6 off 0
+    el 1 node 1 em086_00_000 face 0 push 0 shape 6 off 0
+    el 2 node 2 cm100_000 face 9 push -20 shape 6 off -50  <-- CAMERA-DEPENDENT
+    el 3 node 3 cm100_000 face 9 push -20 shape 6 off -50  <-- CAMERA-DEPENDENT
+    el 4 node 4 cm150_000 face 0 push 0 shape 6 off -60
+    el 5 node 5 cm150_000 face 0 push 0 shape 6 off -60
+    el 6 node 6 em086_00_001 face 0 push 0 shape 6 off -150
+    el 7 node 7 em086_00_001 face 0 push 0 shape 6 off -150
+    el 8 node 8 cm120_008 face 0 push 0 shape 5 off 30
+    el 9 node 9 cm120_008 face 0 push 0 shape 5 off 30
+    el 10 node 10 cm150_002 face 0 push 0 shape 4 off 0
+    el 11 node 11 cm150_002 face 0 push 0 shape 4 off 0
+    el 12 node 12 genType 0 shape 0 off 0
+    el 13 node 12 genType 0 shape 0 off 0
+em086_00 em086_00u:121 (clip) files/em086_00_110.efl joint -1 mode 0 space 0 mask 1/ffffffff
+    el 24 node 0 em086_00_000 face 0 push -10 shape 6 off 0
+    el 25 node 1 em086_00_000 face 0 push -10 shape 6 off 0
+    el 26 node 2 em086_00_000 face 0 push -10 shape 6 off 0
+    el 27 node 3 em086_00_000 face 0 push -10 shape 6 off 0
+    el 28 node 5 em086_00_000 face 0 push -10 shape 6 off 0
+    el 29 node 4 em086_00_000 face 0 push -10 shape 6 off 0
+    el 30 node 12 em086_00_000 face 0 push -10 shape 6 off 0
+    el 31 node 13 em086_00_000 face 0 push -10 shape 6 off 0
+    el 32 node 14 em086_00_000 face 0 push -10 shape 6 off 0
+    el 33 node 16 em086_00_000 face 0 push -10 shape 6 off 0
+    el 34 node 15 em086_00_000 face 0 push -10 shape 6 off 0
+    el 35 node 17 em086_00_000 face 0 push -10 shape 6 off 0
+    el 36 node 18 cm100_000 face 9 push -10 shape 4 off 0
+    el 37 node 19 cm100_000 face 9 push -10 shape 4 off 0
+    el 38 node 20 cm100_000 face 9 push -10 shape 4 off 0
+    el 39 node 21 cm100_000 face 9 push -10 shape 4 off 0
+    el 40 node 22 cm100_000 face 9 push -10 shape 4 off 0
+    el 41 node 23 cm100_000 face 9 push -10 shape 4 off 0
+    el 42 node 24 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 43 node 25 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 44 node 26 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 45 node 27 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 46 node 28 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 47 node 29 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 80 node 32 genType 0 shape 0 off 0
+    el 81 node 32 genType 0 shape 0 off 0
+em086_00 em086_00u:120 (clip) files/em086_00_110.efl joint -1 mode 0 space 0 mask c03030/ffffffff
+    el 0 node 0 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 1 node 1 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 2 node 2 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 3 node 3 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 4 node 4 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 5 node 5 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 6 node 6 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 7 node 7 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 8 node 8 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 9 node 9 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 10 node 10 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 11 node 11 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 12 node 12 em086_00_000 face 0 push -10 shape 6 off 0
+    el 13 node 12 em086_00_000 face 0 push -10 shape 6 off 0
+    el 14 node 13 em086_00_000 face 0 push -10 shape 6 off 0
+    el 15 node 13 em086_00_000 face 0 push -10 shape 6 off 0
+    el 16 node 14 em086_00_000 face 0 push -10 shape 6 off 0
+    el 17 node 14 em086_00_000 face 0 push -10 shape 6 off 0
+    el 18 node 15 em086_00_000 face 0 push -10 shape 6 off 0
+    el 19 node 15 em086_00_000 face 0 push -10 shape 6 off 0
+    el 20 node 16 em086_00_000 face 0 push -10 shape 6 off 0
+    el 21 node 16 em086_00_000 face 0 push -10 shape 6 off 0
+    el 22 node 17 em086_00_000 face 0 push -10 shape 6 off 0
+    el 23 node 17 em086_00_000 face 0 push -10 shape 6 off 0
+    el 80 node 32 genType 0 shape 0 off 0
+    el 81 node 32 genType 0 shape 0 off 0
+em086_00 em086_00u:106 (clip) files/em086_00_106.efl joint -1 mode 0 space 0 mask c030300c/ffffffff
+    el 12 node 12 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 13 node 13 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 14 node 14 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 15 node 15 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 16 node 16 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 17 node 17 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 26 node 20 cm100_000 face 9 push -10 shape 4 off 0
+    el 27 node 21 cm100_000 face 9 push -10 shape 4 off 0
+    el 28 node 22 cm100_000 face 9 push -10 shape 4 off 0
+    el 29 node 23 cm100_000 face 9 push -10 shape 4 off 0
+    el 30 node 24 cm100_000 face 9 push -10 shape 4 off 0
+    el 31 node 25 cm100_000 face 9 push -10 shape 4 off 0
+    el 46 node 28 cm150_002 face 0 push -10 shape 4 off 20
+    el 47 node 29 cm150_002 face 0 push -10 shape 4 off 20
+    el 48 node 6 em086_00_000 face 0 push -10 shape 6 off 0
+    el 49 node 6 em086_00_000 face 0 push -10 shape 6 off 0
+    el 50 node 6 em086_00_000 face 0 push -10 shape 6 off 0
+    el 51 node 7 em086_00_000 face 0 push -10 shape 6 off 0
+    el 52 node 7 em086_00_000 face 0 push -10 shape 6 off 0
+    el 53 node 7 em086_00_000 face 0 push -10 shape 6 off 0
+    el 54 node 8 em086_00_000 face 0 push -10 shape 6 off 0
+    el 55 node 8 em086_00_000 face 0 push -10 shape 6 off 0
+    el 56 node 8 em086_00_000 face 0 push -10 shape 6 off 0
+    el 57 node 9 em086_00_000 face 0 push -10 shape 6 off 0
+    el 58 node 9 em086_00_000 face 0 push -10 shape 6 off 0
+    el 59 node 9 em086_00_000 face 0 push -10 shape 6 off 0
+    el 60 node 10 em086_00_000 face 0 push -10 shape 6 off 0
+    el 61 node 10 em086_00_000 face 0 push -10 shape 6 off 0
+    el 62 node 10 em086_00_000 face 0 push -10 shape 6 off 0
+    el 63 node 11 em086_00_000 face 0 push -10 shape 6 off 0
+    el 64 node 11 em086_00_000 face 0 push -10 shape 6 off 0
+    el 65 node 11 em086_00_000 face 0 push -10 shape 6 off 0
+em086_00 em086_00u:101 (clip) files/em086_00_101.efl joint -1 mode 0 space 1 mask c0303c03/ffffffff
+    el 0 node 0 em086_00_000 face 0 push 0 shape 6 off 10
+    el 1 node 0 em086_00_000 face 0 push 0 shape 6 off 10
+    el 4 node 0 cm100_000 face 9 push 0 shape 6 off -150
+    el 5 node 0 em086_00_000 face 0 push 0 shape 6 off -10
+    el 6 node 1 em086_00_000 face 0 push 0 shape 6 off 10
+    el 7 node 1 em086_00_000 face 0 push 0 shape 6 off 10
+    el 10 node 1 cm100_000 face 9 push 0 shape 6 off -150
+    el 11 node 1 em086_00_000 face 0 push 0 shape 6 off -10
+    el 12 node 2 cm150_000 face 0 push 0 shape 6 off -200
+    el 13 node 3 cm150_000 face 0 push 0 shape 6 off -200
+    el 14 node 4 cm150_002 face 0 push 0 shape 4 off 0
+    el 15 node 5 cm150_002 face 0 push 0 shape 4 off 0
+    el 16 node 6 cm100_000 face 9 push -50 shape 6 off -75  <-- CAMERA-DEPENDENT
+    el 17 node 7 cm100_000 face 9 push -50 shape 6 off -75  <-- CAMERA-DEPENDENT
+    el 18 node 8 genType 0 shape 0 off 0
+    el 19 node 8 genType 0 shape 0 off 0
+em086_00 em086_00u:112 (clip) files/em086_00_106.efl joint -1 mode 0 space 0 mask c0303000/ffffffff
+    el 12 node 12 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 13 node 13 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 14 node 14 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 15 node 15 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 16 node 16 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 17 node 17 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 26 node 20 cm100_000 face 9 push -10 shape 4 off 0
+    el 27 node 21 cm100_000 face 9 push -10 shape 4 off 0
+    el 28 node 22 cm100_000 face 9 push -10 shape 4 off 0
+    el 29 node 23 cm100_000 face 9 push -10 shape 4 off 0
+    el 30 node 24 cm100_000 face 9 push -10 shape 4 off 0
+    el 31 node 25 cm100_000 face 9 push -10 shape 4 off 0
+    el 46 node 28 cm150_002 face 0 push -10 shape 4 off 20
+    el 47 node 29 cm150_002 face 0 push -10 shape 4 off 20
+em086_00 em086_00u:510 (clip) files/em086_00_105.efl joint -1 mode 0 space 0 mask 80882002/ffffffff
+    el 9 node 3 em086_00_000 face 0 push -10 shape 6 off 0
+    el 10 node 3 em086_00_000 face 0 push -10 shape 6 off 0
+    el 11 node 3 em086_00_000 face 0 push -10 shape 6 off 0
+    el 12 node 4 em086_00_000 face 0 push -10 shape 6 off 0
+    el 13 node 4 em086_00_000 face 0 push -10 shape 6 off 0
+    el 14 node 4 em086_00_000 face 0 push -10 shape 6 off 0
+    el 15 node 5 em086_00_000 face 0 push -10 shape 6 off 0
+    el 16 node 5 em086_00_000 face 0 push -10 shape 6 off 0
+    el 17 node 5 em086_00_000 face 0 push -10 shape 6 off 0
+    el 63 node 21 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 64 node 22 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 65 node 23 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 81 node 27 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 82 node 28 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 83 node 29 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 91 node 37 cm150_002 face 0 push -10 shape 4 off 20
+    el 95 node 41 cm100_000 face 9 push -10 shape 4 off 0
+    el 96 node 42 cm100_000 face 9 push -10 shape 4 off 0
+    el 97 node 43 cm100_000 face 9 push -10 shape 4 off 0
+    el 98 node 44 genType 0 shape 0 off 0
+    el 99 node 44 genType 0 shape 0 off 0
+em086_00 em086_00u:511 (clip) files/em086_00_106.efl joint -1 mode 0 space 0 mask 80202008/ffffffff
+    el 15 node 15 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 16 node 16 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 17 node 17 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 29 node 23 cm100_000 face 9 push -10 shape 4 off 0
+    el 30 node 24 cm100_000 face 9 push -10 shape 4 off 0
+    el 31 node 25 cm100_000 face 9 push -10 shape 4 off 0
+    el 47 node 29 cm150_002 face 0 push -10 shape 4 off 20
+    el 57 node 9 em086_00_000 face 0 push -10 shape 6 off 0
+    el 58 node 9 em086_00_000 face 0 push -10 shape 6 off 0
+    el 59 node 9 em086_00_000 face 0 push -10 shape 6 off 0
+    el 60 node 10 em086_00_000 face 0 push -10 shape 6 off 0
+    el 61 node 10 em086_00_000 face 0 push -10 shape 6 off 0
+    el 62 node 10 em086_00_000 face 0 push -10 shape 6 off 0
+    el 63 node 11 em086_00_000 face 0 push -10 shape 6 off 0
+    el 64 node 11 em086_00_000 face 0 push -10 shape 6 off 0
+    el 65 node 11 em086_00_000 face 0 push -10 shape 6 off 0
+em086_00 em086_00u:500 (clip) files/em086_00_105.efl joint -1 mode 0 space 0 mask 40441001/ffffffff
+    el 0 node 0 em086_00_000 face 0 push -10 shape 6 off 0
+    el 1 node 0 em086_00_000 face 0 push -10 shape 6 off 0
+    el 2 node 0 em086_00_000 face 0 push -10 shape 6 off 0
+    el 3 node 1 em086_00_000 face 0 push -10 shape 6 off 0
+    el 4 node 1 em086_00_000 face 0 push -10 shape 6 off 0
+    el 5 node 1 em086_00_000 face 0 push -10 shape 6 off 0
+    el 6 node 2 em086_00_000 face 0 push -10 shape 6 off 0
+    el 7 node 2 em086_00_000 face 0 push -10 shape 6 off 0
+    el 8 node 2 em086_00_000 face 0 push -10 shape 6 off 0
+    el 60 node 18 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 61 node 19 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 62 node 20 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 78 node 24 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 79 node 25 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 80 node 26 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 90 node 36 cm150_002 face 0 push -10 shape 4 off 20
+    el 92 node 38 cm100_000 face 9 push -10 shape 4 off 0
+    el 93 node 39 cm100_000 face 9 push -10 shape 4 off 0
+    el 94 node 40 cm100_000 face 9 push -10 shape 4 off 0
+    el 98 node 44 genType 0 shape 0 off 0
+    el 99 node 44 genType 0 shape 0 off 0
+em086_00 em086_00u:501 (clip) files/em086_00_106.efl joint -1 mode 0 space 0 mask 40101004/ffffffff
+    el 12 node 12 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 13 node 13 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 14 node 14 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 26 node 20 cm100_000 face 9 push -10 shape 4 off 0
+    el 27 node 21 cm100_000 face 9 push -10 shape 4 off 0
+    el 28 node 22 cm100_000 face 9 push -10 shape 4 off 0
+    el 46 node 28 cm150_002 face 0 push -10 shape 4 off 20
+    el 48 node 6 em086_00_000 face 0 push -10 shape 6 off 0
+    el 49 node 6 em086_00_000 face 0 push -10 shape 6 off 0
+    el 50 node 6 em086_00_000 face 0 push -10 shape 6 off 0
+    el 51 node 7 em086_00_000 face 0 push -10 shape 6 off 0
+    el 52 node 7 em086_00_000 face 0 push -10 shape 6 off 0
+    el 53 node 7 em086_00_000 face 0 push -10 shape 6 off 0
+    el 54 node 8 em086_00_000 face 0 push -10 shape 6 off 0
+    el 55 node 8 em086_00_000 face 0 push -10 shape 6 off 0
+    el 56 node 8 em086_00_000 face 0 push -10 shape 6 off 0
+em086_00 em086_00u:620 (clip) files/em086_00_600.efl joint -1 mode 0 space 0 mask 80202802/ffffffff
+    el 3 node 1 em086_00_000 face 0 push 0 shape 6 off 0
+    el 4 node 1 em086_00_000 face 0 push 0 shape 6 off 0
+    el 5 node 1 em086_00_000 face 0 push 0 shape 6 off 0
+    el 7 node 3 cm100_000 face 9 push -20 shape 6 off -80  <-- CAMERA-DEPENDENT
+    el 9 node 5 cm100_000 face 9 push -20 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 13 node 6 cm150_000 face 0 push 0 shape 6 off -200
+    el 17 node 10 cm150_002 face 0 push 0 shape 2 off 50
+    el 18 node 11 genType 0 shape 0 off 0
+    el 19 node 11 genType 0 shape 0 off 0
+em086_00 em086_00u:621 (clip) files/em086_00_600.efl joint -1 mode 1 space 0 mask 80202000/ffffffff
+    el 9 node 5 cm100_000 face 9 push -20 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 13 node 6 cm150_000 face 0 push 0 shape 6 off -200
+    el 17 node 10 cm150_002 face 0 push 0 shape 2 off 50
+em086_00 em086_00u:623 (clip) files/em086_00_600.efl joint -1 mode 0 space 0 mask 80808802/ffffffff
+    el 3 node 1 em086_00_000 face 0 push 0 shape 6 off 0
+    el 4 node 1 em086_00_000 face 0 push 0 shape 6 off 0
+    el 5 node 1 em086_00_000 face 0 push 0 shape 6 off 0
+    el 7 node 3 cm100_000 face 9 push -20 shape 6 off -80  <-- CAMERA-DEPENDENT
+    el 11 node 5 cm100_000 face 9 push -20 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 15 node 8 cm150_000 face 0 push 0 shape 6 off -150
+    el 17 node 10 cm150_002 face 0 push 0 shape 2 off 50
+    el 18 node 11 genType 0 shape 0 off 0
+    el 19 node 11 genType 0 shape 0 off 0
+em086_00 em086_00u:400 (clip) files/em086_00_105.efl joint -1 mode 0 space 0 mask 40141004/ffffffff
+    el 18 node 6 em086_00_000 face 0 push -10 shape 6 off 0
+    el 19 node 6 em086_00_000 face 0 push -10 shape 6 off 0
+    el 20 node 6 em086_00_000 face 0 push -10 shape 6 off 0
+    el 21 node 7 em086_00_000 face 0 push -10 shape 6 off 0
+    el 22 node 7 em086_00_000 face 0 push -10 shape 6 off 0
+    el 23 node 7 em086_00_000 face 0 push -10 shape 6 off 0
+    el 24 node 8 em086_00_000 face 0 push -10 shape 6 off 0
+    el 25 node 8 em086_00_000 face 0 push -10 shape 6 off 0
+    el 26 node 8 em086_00_000 face 0 push -10 shape 6 off 0
+    el 60 node 18 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 61 node 19 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 62 node 20 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 72 node 18 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 73 node 19 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 74 node 20 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 90 node 36 cm150_002 face 0 push -10 shape 4 off 20
+    el 92 node 38 cm100_000 face 9 push -10 shape 4 off 0
+    el 93 node 39 cm100_000 face 9 push -10 shape 4 off 0
+    el 94 node 40 cm100_000 face 9 push -10 shape 4 off 0
+    el 98 node 44 genType 0 shape 0 off 0
+    el 99 node 44 genType 0 shape 0 off 0
+em086_00 em086_00u:401 (clip) files/em086_00_106.efl joint -1 mode 0 space 0 mask 40101004/ffffffff
+    el 12 node 12 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 13 node 13 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 14 node 14 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 26 node 20 cm100_000 face 9 push -10 shape 4 off 0
+    el 27 node 21 cm100_000 face 9 push -10 shape 4 off 0
+    el 28 node 22 cm100_000 face 9 push -10 shape 4 off 0
+    el 46 node 28 cm150_002 face 0 push -10 shape 4 off 20
+    el 48 node 6 em086_00_000 face 0 push -10 shape 6 off 0
+    el 49 node 6 em086_00_000 face 0 push -10 shape 6 off 0
+    el 50 node 6 em086_00_000 face 0 push -10 shape 6 off 0
+    el 51 node 7 em086_00_000 face 0 push -10 shape 6 off 0
+    el 52 node 7 em086_00_000 face 0 push -10 shape 6 off 0
+    el 53 node 7 em086_00_000 face 0 push -10 shape 6 off 0
+    el 54 node 8 em086_00_000 face 0 push -10 shape 6 off 0
+    el 55 node 8 em086_00_000 face 0 push -10 shape 6 off 0
+    el 56 node 8 em086_00_000 face 0 push -10 shape 6 off 0
+em086_00 em086_00u:410 (clip) files/em086_00_105.efl joint -1 mode 0 space 0 mask 80282008/ffffffff
+    el 27 node 9 em086_00_000 face 0 push -10 shape 6 off 0
+    el 28 node 9 em086_00_000 face 0 push -10 shape 6 off 0
+    el 29 node 9 em086_00_000 face 0 push -10 shape 6 off 0
+    el 30 node 10 em086_00_000 face 0 push -10 shape 6 off 0
+    el 31 node 10 em086_00_000 face 0 push -10 shape 6 off 0
+    el 32 node 10 em086_00_000 face 0 push -10 shape 6 off 0
+    el 33 node 11 em086_00_000 face 0 push -10 shape 6 off 0
+    el 34 node 11 em086_00_000 face 0 push -10 shape 6 off 0
+    el 35 node 11 em086_00_000 face 0 push -10 shape 6 off 0
+    el 63 node 21 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 64 node 22 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 65 node 23 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 75 node 21 cm150_000 face 0 push -10 shape 6 off -60  <-- CAMERA-DEPENDENT
+    el 76 node 23 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 77 node 22 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 91 node 37 cm150_002 face 0 push -10 shape 4 off 20
+    el 95 node 41 cm100_000 face 9 push -10 shape 4 off 0
+    el 96 node 42 cm100_000 face 9 push -10 shape 4 off 0
+    el 97 node 43 cm100_000 face 9 push -10 shape 4 off 0
+    el 98 node 44 genType 0 shape 0 off 0
+    el 99 node 44 genType 0 shape 0 off 0
+em086_00 em086_00u:411 (clip) files/em086_00_106.efl joint -1 mode 0 space 0 mask 80202008/ffffffff
+    el 15 node 15 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 16 node 16 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 17 node 17 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 29 node 23 cm100_000 face 9 push -10 shape 4 off 0
+    el 30 node 24 cm100_000 face 9 push -10 shape 4 off 0
+    el 31 node 25 cm100_000 face 9 push -10 shape 4 off 0
+    el 47 node 29 cm150_002 face 0 push -10 shape 4 off 20
+    el 57 node 9 em086_00_000 face 0 push -10 shape 6 off 0
+    el 58 node 9 em086_00_000 face 0 push -10 shape 6 off 0
+    el 59 node 9 em086_00_000 face 0 push -10 shape 6 off 0
+    el 60 node 10 em086_00_000 face 0 push -10 shape 6 off 0
+    el 61 node 10 em086_00_000 face 0 push -10 shape 6 off 0
+    el 62 node 10 em086_00_000 face 0 push -10 shape 6 off 0
+    el 63 node 11 em086_00_000 face 0 push -10 shape 6 off 0
+    el 64 node 11 em086_00_000 face 0 push -10 shape 6 off 0
+    el 65 node 11 em086_00_000 face 0 push -10 shape 6 off 0
+em086_00 em086_00u:600 (clip) files/em086_00_600.efl joint -1 mode 0 space 0 mask 40101001/ffffffff
+    el 0 node 0 em086_00_000 face 0 push 0 shape 6 off 0
+    el 1 node 0 em086_00_000 face 0 push 0 shape 6 off 0
+    el 2 node 0 em086_00_000 face 0 push 0 shape 6 off 0
+    el 8 node 4 cm100_000 face 9 push -20 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 12 node 2 cm150_000 face 0 push 0 shape 6 off -200
+    el 16 node 9 cm150_002 face 0 push 0 shape 2 off 50
+    el 18 node 11 genType 0 shape 0 off 0
+    el 19 node 11 genType 0 shape 0 off 0
+em086_00 em086_00u:601 (clip) files/em086_00_600.efl joint -1 mode 0 space 0 mask 40101000/ffffffff
+    el 8 node 4 cm100_000 face 9 push -20 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 12 node 2 cm150_000 face 0 push 0 shape 6 off -200
+    el 16 node 9 cm150_002 face 0 push 0 shape 2 off 50
+em086_00 em086_00u:604 (clip) files/em086_00_600.efl joint -1 mode 0 space 0 mask 40404401/ffffffff
+    el 0 node 0 em086_00_000 face 0 push 0 shape 6 off 0
+    el 1 node 0 em086_00_000 face 0 push 0 shape 6 off 0
+    el 2 node 0 em086_00_000 face 0 push 0 shape 6 off 0
+    el 6 node 2 cm100_000 face 9 push -20 shape 6 off -80  <-- CAMERA-DEPENDENT
+    el 10 node 4 cm100_000 face 9 push -20 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 14 node 7 cm150_000 face 0 push 0 shape 6 off -150
+    el 16 node 9 cm150_002 face 0 push 0 shape 2 off 50
+    el 18 node 11 genType 0 shape 0 off 0
+    el 19 node 11 genType 0 shape 0 off 0
+em086_00 em086_00u:610 (clip) files/em086_00_600.efl joint -1 mode 0 space 0 mask 80202002/ffffffff
+    el 3 node 1 em086_00_000 face 0 push 0 shape 6 off 0
+    el 4 node 1 em086_00_000 face 0 push 0 shape 6 off 0
+    el 5 node 1 em086_00_000 face 0 push 0 shape 6 off 0
+    el 9 node 5 cm100_000 face 9 push -20 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 13 node 6 cm150_000 face 0 push 0 shape 6 off -200
+    el 17 node 10 cm150_002 face 0 push 0 shape 2 off 50
+    el 18 node 11 genType 0 shape 0 off 0
+    el 19 node 11 genType 0 shape 0 off 0
+em086_00 em086_00u:611 (clip) files/em086_00_600.efl joint -1 mode 1 space 0 mask 80202000/ffffffff
+    el 9 node 5 cm100_000 face 9 push -20 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 13 node 6 cm150_000 face 0 push 0 shape 6 off -200
+    el 17 node 10 cm150_002 face 0 push 0 shape 2 off 50
+em086_00 em086_00u:614 (clip) files/em086_00_600.efl joint -1 mode 0 space 0 mask 80808802/ffffffff
+    el 3 node 1 em086_00_000 face 0 push 0 shape 6 off 0
+    el 4 node 1 em086_00_000 face 0 push 0 shape 6 off 0
+    el 5 node 1 em086_00_000 face 0 push 0 shape 6 off 0
+    el 7 node 3 cm100_000 face 9 push -20 shape 6 off -80  <-- CAMERA-DEPENDENT
+    el 11 node 5 cm100_000 face 9 push -20 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 15 node 8 cm150_000 face 0 push 0 shape 6 off -150
+    el 17 node 10 cm150_002 face 0 push 0 shape 2 off 50
+    el 18 node 11 genType 0 shape 0 off 0
+    el 19 node 11 genType 0 shape 0 off 0
+em086_00 em086_00u:420 (clip) files/em086_00_110.efl joint -1 mode 0 space 0 mask 2/ffffffff
+    el 48 node 12 em086_00_000 face 0 push -10 shape 6 off 0
+    el 49 node 12 em086_00_000 face 0 push -10 shape 6 off 0
+    el 50 node 13 em086_00_000 face 0 push -10 shape 6 off 0
+    el 51 node 13 em086_00_000 face 0 push -10 shape 6 off 0
+    el 52 node 14 em086_00_000 face 0 push -10 shape 6 off 0
+    el 53 node 14 em086_00_000 face 0 push -10 shape 6 off 0
+    el 54 node 15 em086_00_000 face 0 push -10 shape 6 off 0
+    el 55 node 15 em086_00_000 face 0 push -10 shape 6 off 0
+    el 56 node 16 em086_00_000 face 0 push -10 shape 6 off 0
+    el 57 node 16 em086_00_000 face 0 push -10 shape 6 off 0
+    el 58 node 17 em086_00_000 face 0 push -10 shape 6 off 0
+    el 59 node 17 em086_00_000 face 0 push -10 shape 6 off 0
+    el 60 node 0 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 61 node 1 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 62 node 2 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 63 node 5 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 64 node 3 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 65 node 4 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 66 node 18 cm100_000 face 9 push -10 shape 4 off 0
+    el 67 node 20 cm100_000 face 9 push -10 shape 4 off 0
+    el 68 node 19 cm100_000 face 9 push -10 shape 4 off 0
+    el 69 node 21 cm100_000 face 9 push -10 shape 4 off 0
+    el 70 node 22 cm100_000 face 9 push -10 shape 4 off 0
+    el 71 node 23 cm100_000 face 9 push -10 shape 4 off 0
+    el 72 node 6 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 73 node 7 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 74 node 8 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 75 node 9 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 76 node 10 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 77 node 11 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 80 node 32 genType 0 shape 0 off 0
+    el 81 node 32 genType 0 shape 0 off 0
+em086_00 em086_00u:421 (clip) files/em086_00_106.efl joint -1 mode 0 space 0 mask c030300c/ffffffff
+    el 12 node 12 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 13 node 13 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 14 node 14 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 15 node 15 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 16 node 16 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 17 node 17 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 26 node 20 cm100_000 face 9 push -10 shape 4 off 0
+    el 27 node 21 cm100_000 face 9 push -10 shape 4 off 0
+    el 28 node 22 cm100_000 face 9 push -10 shape 4 off 0
+    el 29 node 23 cm100_000 face 9 push -10 shape 4 off 0
+    el 30 node 24 cm100_000 face 9 push -10 shape 4 off 0
+    el 31 node 25 cm100_000 face 9 push -10 shape 4 off 0
+    el 46 node 28 cm150_002 face 0 push -10 shape 4 off 20
+    el 47 node 29 cm150_002 face 0 push -10 shape 4 off 20
+    el 48 node 6 em086_00_000 face 0 push -10 shape 6 off 0
+    el 49 node 6 em086_00_000 face 0 push -10 shape 6 off 0
+    el 50 node 6 em086_00_000 face 0 push -10 shape 6 off 0
+    el 51 node 7 em086_00_000 face 0 push -10 shape 6 off 0
+    el 52 node 7 em086_00_000 face 0 push -10 shape 6 off 0
+    el 53 node 7 em086_00_000 face 0 push -10 shape 6 off 0
+    el 54 node 8 em086_00_000 face 0 push -10 shape 6 off 0
+    el 55 node 8 em086_00_000 face 0 push -10 shape 6 off 0
+    el 56 node 8 em086_00_000 face 0 push -10 shape 6 off 0
+    el 57 node 9 em086_00_000 face 0 push -10 shape 6 off 0
+    el 58 node 9 em086_00_000 face 0 push -10 shape 6 off 0
+    el 59 node 9 em086_00_000 face 0 push -10 shape 6 off 0
+    el 60 node 10 em086_00_000 face 0 push -10 shape 6 off 0
+    el 61 node 10 em086_00_000 face 0 push -10 shape 6 off 0
+    el 62 node 10 em086_00_000 face 0 push -10 shape 6 off 0
+    el 63 node 11 em086_00_000 face 0 push -10 shape 6 off 0
+    el 64 node 11 em086_00_000 face 0 push -10 shape 6 off 0
+    el 65 node 11 em086_00_000 face 0 push -10 shape 6 off 0
+em086_00 em086_00u:105 (clip) files/em086_00_105.efl joint -1 mode 0 space 0 mask c0cc3c03/ffffffff
+    el 0 node 0 em086_00_000 face 0 push -10 shape 6 off 0
+    el 1 node 0 em086_00_000 face 0 push -10 shape 6 off 0
+    el 2 node 0 em086_00_000 face 0 push -10 shape 6 off 0
+    el 3 node 1 em086_00_000 face 0 push -10 shape 6 off 0
+    el 4 node 1 em086_00_000 face 0 push -10 shape 6 off 0
+    el 5 node 1 em086_00_000 face 0 push -10 shape 6 off 0
+    el 6 node 2 em086_00_000 face 0 push -10 shape 6 off 0
+    el 7 node 2 em086_00_000 face 0 push -10 shape 6 off 0
+    el 8 node 2 em086_00_000 face 0 push -10 shape 6 off 0
+    el 9 node 3 em086_00_000 face 0 push -10 shape 6 off 0
+    el 10 node 3 em086_00_000 face 0 push -10 shape 6 off 0
+    el 11 node 3 em086_00_000 face 0 push -10 shape 6 off 0
+    el 12 node 4 em086_00_000 face 0 push -10 shape 6 off 0
+    el 13 node 4 em086_00_000 face 0 push -10 shape 6 off 0
+    el 14 node 4 em086_00_000 face 0 push -10 shape 6 off 0
+    el 15 node 5 em086_00_000 face 0 push -10 shape 6 off 0
+    el 16 node 5 em086_00_000 face 0 push -10 shape 6 off 0
+    el 17 node 5 em086_00_000 face 0 push -10 shape 6 off 0
+    el 54 node 12 cm100_000 face 9 push -10 shape 6 off -50  <-- CAMERA-DEPENDENT
+    el 55 node 13 cm100_000 face 9 push -10 shape 6 off -50  <-- CAMERA-DEPENDENT
+    el 56 node 14 cm100_000 face 9 push -10 shape 6 off -50  <-- CAMERA-DEPENDENT
+    el 57 node 15 cm100_000 face 9 push -10 shape 6 off -50  <-- CAMERA-DEPENDENT
+    el 58 node 16 cm100_000 face 9 push -10 shape 6 off -50  <-- CAMERA-DEPENDENT
+    el 59 node 17 cm100_000 face 9 push -10 shape 6 off -50  <-- CAMERA-DEPENDENT
+    el 60 node 18 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 61 node 19 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 62 node 20 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 63 node 21 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 64 node 22 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 65 node 23 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 78 node 24 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 79 node 25 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 80 node 26 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 81 node 27 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 82 node 28 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 83 node 29 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 90 node 36 cm150_002 face 0 push -10 shape 4 off 20
+    el 91 node 37 cm150_002 face 0 push -10 shape 4 off 20
+    el 92 node 38 cm100_000 face 9 push -10 shape 4 off 0
+    el 93 node 39 cm100_000 face 9 push -10 shape 4 off 0
+    el 94 node 40 cm100_000 face 9 push -10 shape 4 off 0
+    el 95 node 41 cm100_000 face 9 push -10 shape 4 off 0
+    el 96 node 42 cm100_000 face 9 push -10 shape 4 off 0
+    el 97 node 43 cm100_000 face 9 push -10 shape 4 off 0
+    el 98 node 44 genType 0 shape 0 off 0
+    el 99 node 44 genType 0 shape 0 off 0
+em086_00 em086_00u:110 (clip) files/em086_00_105.efl joint -1 mode 0 space 0 mask c0cc3030/ffffffff
+    el 36 node 0 em086_00_000 face 0 push -10 shape 6 off 0
+    el 37 node 0 em086_00_000 face 0 push -10 shape 6 off 0
+    el 38 node 0 em086_00_000 face 0 push -10 shape 6 off 0
+    el 39 node 1 em086_00_000 face 0 push -10 shape 6 off 0
+    el 40 node 1 em086_00_000 face 0 push -10 shape 6 off 0
+    el 41 node 1 em086_00_000 face 0 push -10 shape 6 off 0
+    el 42 node 2 em086_00_000 face 0 push -10 shape 6 off 0
+    el 43 node 2 em086_00_000 face 0 push -10 shape 6 off 0
+    el 44 node 2 em086_00_000 face 0 push -10 shape 6 off 0
+    el 45 node 3 em086_00_000 face 0 push -10 shape 6 off 0
+    el 46 node 3 em086_00_000 face 0 push -10 shape 6 off 0
+    el 47 node 3 em086_00_000 face 0 push -10 shape 6 off 0
+    el 48 node 4 em086_00_000 face 0 push -10 shape 6 off 0
+    el 49 node 4 em086_00_000 face 0 push -10 shape 6 off 0
+    el 50 node 4 em086_00_000 face 0 push -10 shape 6 off 0
+    el 51 node 5 em086_00_000 face 0 push -10 shape 6 off 0
+    el 52 node 5 em086_00_000 face 0 push -10 shape 6 off 0
+    el 53 node 5 em086_00_000 face 0 push -10 shape 6 off 0
+    el 60 node 18 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 61 node 19 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 62 node 20 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 63 node 21 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 64 node 22 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 65 node 23 cm100_000 face 9 push -10 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 78 node 24 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 79 node 25 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 80 node 26 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 81 node 27 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 82 node 28 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 83 node 29 cm150_000 face 0 push -10 shape 6 off -150  <-- CAMERA-DEPENDENT
+    el 90 node 36 cm150_002 face 0 push -10 shape 4 off 20
+    el 91 node 37 cm150_002 face 0 push -10 shape 4 off 20
+    el 92 node 38 cm100_000 face 9 push -10 shape 4 off 0
+    el 93 node 39 cm100_000 face 9 push -10 shape 4 off 0
+    el 94 node 40 cm100_000 face 9 push -10 shape 4 off 0
+    el 95 node 41 cm100_000 face 9 push -10 shape 4 off 0
+    el 96 node 42 cm100_000 face 9 push -10 shape 4 off 0
+    el 97 node 43 cm100_000 face 9 push -10 shape 4 off 0
+    el 98 node 44 genType 0 shape 0 off 0
+    el 99 node 44 genType 0 shape 0 off 0
+em086_00 em086_00u:502 (clip) files/em086_00_106.efl joint -1 mode 0 space 0 mask 40101000/ffffffff
+    el 12 node 12 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 13 node 13 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 14 node 14 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 26 node 20 cm100_000 face 9 push -10 shape 4 off 0
+    el 27 node 21 cm100_000 face 9 push -10 shape 4 off 0
+    el 28 node 22 cm100_000 face 9 push -10 shape 4 off 0
+    el 46 node 28 cm150_002 face 0 push -10 shape 4 off 20
+em086_00 em086_00u:512 (clip) files/em086_00_106.efl joint -1 mode 0 space 0 mask 80202000/ffffffff
+    el 15 node 15 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 16 node 16 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 17 node 17 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 29 node 23 cm100_000 face 9 push -10 shape 4 off 0
+    el 30 node 24 cm100_000 face 9 push -10 shape 4 off 0
+    el 31 node 25 cm100_000 face 9 push -10 shape 4 off 0
+    el 47 node 29 cm150_002 face 0 push -10 shape 4 off 20
+em086_00 em086_00u:205 (clip) files/em086_00_106.efl joint -1 mode 0 space 0 mask c0010000/ffffffff
+    el 46 node 28 cm150_002 face 0 push -10 shape 4 off 20
+    el 47 node 29 cm150_002 face 0 push -10 shape 4 off 20
+    el 66 node 30 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 67 node 31 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 68 node 32 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 69 node 33 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 70 node 34 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 71 node 35 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 72 node 36 cm100_000 face 9 push -10 shape 4 off 0
+    el 73 node 37 cm100_000 face 9 push -10 shape 4 off 0
+    el 74 node 38 cm100_000 face 9 push -10 shape 4 off 0
+    el 75 node 39 cm100_000 face 9 push -10 shape 4 off 0
+    el 76 node 40 cm100_000 face 9 push -10 shape 4 off 0
+    el 77 node 41 cm100_000 face 9 push -10 shape 4 off 0
+    el 78 node 37 cm100_000 face 9 push -10 shape 4 off 0
+    el 79 node 36 cm100_000 face 9 push -10 shape 4 off 0
+    el 80 node 38 cm100_000 face 9 push -10 shape 4 off 0
+    el 81 node 39 cm100_000 face 9 push -10 shape 4 off 0
+    el 82 node 40 cm100_000 face 9 push -10 shape 4 off 0
+    el 83 node 41 cm100_000 face 9 push -10 shape 4 off 0
+    el 84 node 6 em086_00_000 face 0 push -10 shape 6 off 0
+    el 85 node 6 em086_00_000 face 0 push -10 shape 6 off 0
+    el 86 node 7 em086_00_000 face 0 push -10 shape 6 off 0
+    el 87 node 7 em086_00_000 face 0 push -10 shape 6 off 0
+    el 88 node 8 em086_00_000 face 0 push -10 shape 6 off 0
+    el 89 node 8 em086_00_000 face 0 push -10 shape 6 off 0
+    el 90 node 9 em086_00_000 face 0 push -10 shape 6 off 0
+    el 91 node 9 em086_00_000 face 0 push -10 shape 6 off 0
+    el 92 node 10 em086_00_000 face 0 push -10 shape 6 off 0
+    el 93 node 10 em086_00_000 face 0 push -10 shape 6 off 0
+    el 94 node 11 em086_00_000 face 0 push -10 shape 6 off 0
+    el 95 node 11 em086_00_000 face 0 push -10 shape 6 off 0
+    el 96 node 0 cm150_000 face 0 push -10 shape 6 off -300  <-- CAMERA-DEPENDENT
+    el 97 node 1 cm150_000 face 0 push -10 shape 6 off -300  <-- CAMERA-DEPENDENT
+    el 98 node 2 cm150_000 face 0 push -10 shape 6 off -300  <-- CAMERA-DEPENDENT
+    el 99 node 3 cm150_000 face 0 push -10 shape 6 off -300  <-- CAMERA-DEPENDENT
+    el 100 node 5 cm150_000 face 0 push -10 shape 6 off -300  <-- CAMERA-DEPENDENT
+    el 101 node 4 cm150_000 face 0 push -10 shape 6 off -300  <-- CAMERA-DEPENDENT
+em086_00 em086_00u:114 (clip) files/em086_00_106.efl joint -1 mode 0 space 0 mask c0010000/ffffffff
+    el 46 node 28 cm150_002 face 0 push -10 shape 4 off 20
+    el 47 node 29 cm150_002 face 0 push -10 shape 4 off 20
+    el 66 node 30 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 67 node 31 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 68 node 32 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 69 node 33 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 70 node 34 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 71 node 35 cm150_000 face 0 push -10 shape 6 off -200  <-- CAMERA-DEPENDENT
+    el 72 node 36 cm100_000 face 9 push -10 shape 4 off 0
+    el 73 node 37 cm100_000 face 9 push -10 shape 4 off 0
+    el 74 node 38 cm100_000 face 9 push -10 shape 4 off 0
+    el 75 node 39 cm100_000 face 9 push -10 shape 4 off 0
+    el 76 node 40 cm100_000 face 9 push -10 shape 4 off 0
+    el 77 node 41 cm100_000 face 9 push -10 shape 4 off 0
+    el 78 node 37 cm100_000 face 9 push -10 shape 4 off 0
+    el 79 node 36 cm100_000 face 9 push -10 shape 4 off 0
+    el 80 node 38 cm100_000 face 9 push -10 shape 4 off 0
+    el 81 node 39 cm100_000 face 9 push -10 shape 4 off 0
+    el 82 node 40 cm100_000 face 9 push -10 shape 4 off 0
+    el 83 node 41 cm100_000 face 9 push -10 shape 4 off 0
+    el 84 node 6 em086_00_000 face 0 push -10 shape 6 off 0
+    el 85 node 6 em086_00_000 face 0 push -10 shape 6 off 0
+    el 86 node 7 em086_00_000 face 0 push -10 shape 6 off 0
+    el 87 node 7 em086_00_000 face 0 push -10 shape 6 off 0
+    el 88 node 8 em086_00_000 face 0 push -10 shape 6 off 0
+    el 89 node 8 em086_00_000 face 0 push -10 shape 6 off 0
+    el 90 node 9 em086_00_000 face 0 push -10 shape 6 off 0
+    el 91 node 9 em086_00_000 face 0 push -10 shape 6 off 0
+    el 92 node 10 em086_00_000 face 0 push -10 shape 6 off 0
+    el 93 node 10 em086_00_000 face 0 push -10 shape 6 off 0
+    el 94 node 11 em086_00_000 face 0 push -10 shape 6 off 0
+    el 95 node 11 em086_00_000 face 0 push -10 shape 6 off 0
+    el 96 node 0 cm150_000 face 0 push -10 shape 6 off -300  <-- CAMERA-DEPENDENT
+    el 97 node 1 cm150_000 face 0 push -10 shape 6 off -300  <-- CAMERA-DEPENDENT
+    el 98 node 2 cm150_000 face 0 push -10 shape 6 off -300  <-- CAMERA-DEPENDENT
+    el 99 node 3 cm150_000 face 0 push -10 shape 6 off -300  <-- CAMERA-DEPENDENT
+    el 100 node 5 cm150_000 face 0 push -10 shape 6 off -300  <-- CAMERA-DEPENDENT
+    el 101 node 4 cm150_000 face 0 push -10 shape 6 off -300  <-- CAMERA-DEPENDENT
+em086_00 em086_00u:1120 (event) files/em086_00_010.efl joint -1 mode 0 space 0 mask 200400/ffffffff
+    el 13 node 8 cm101_000 face 0 push -50 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 14 node 8 cm101_000 face 0 push -50 shape 6 off 0
+    el 15 node 8 cm150_002 face 0 push -50 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 16 node 9 cm101_000 face 0 push -50 shape 5 off 0
+    el 17 node 10 cm101_000 face 0 push -70 shape 5 off 0
+    el 18 node 11 em086_00_000 face 0 push 0 shape 4 off 0
+    el 21 node 13 genType 25 shape 7 off 125
+em086_00 em086_00u:200 (event) files/em086_00_010.efl joint -1 mode 0 space 0 mask 100000/ffffffff
+    el 8 node 8 cm101_000 face 0 push -50 shape 6 off 0
+    el 9 node 8 cm101_000 face 0 push -50 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 10 node 8 cm150_002 face 0 push -50 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 11 node 9 cm101_000 face 0 push -50 shape 5 off 0
+    el 12 node 10 cm101_000 face 0 push -70 shape 5 off 0
+em086_00 em086_00u:1130 (event) files/em086_00_010.efl joint -1 mode 0 space 0 mask 200800/ffffffff
+    el 13 node 8 cm101_000 face 0 push -50 shape 6 off 100  <-- CAMERA-DEPENDENT
+    el 14 node 8 cm101_000 face 0 push -50 shape 6 off 0
+    el 15 node 8 cm150_002 face 0 push -50 shape 6 off -100  <-- CAMERA-DEPENDENT
+    el 16 node 9 cm101_000 face 0 push -50 shape 5 off 0
+    el 17 node 10 cm101_000 face 0 push -70 shape 5 off 0
+    el 19 node 12 cm150_000 face 0 push 0 shape 4 off 0
+    el 20 node 11 em086_00_000 face 0 push 0 shape 4 off 0
+    el 21 node 13 genType 25 shape 7 off 125
+em086_00 em086_00u:10 (shell) files/em086_00_001.efl joint -1 mode 0 space 0 mask ffffffff/ffffffff
+    el 0 node 0 cm100_000 face 9 push 0 shape 6 off -40
+    el 1 node 0 cm150_000 face 0 push -50 shape 0 off 0
+    el 2 node 1 em086_00_000 face 0 push 0 shape 6 off 40
+    el 3 node 1 cm100_000 face 9 push -20 shape 6 off -80  <-- CAMERA-DEPENDENT
+    el 4 node 2 cm150_000 face 0 push 0 shape 6 off -80
+    el 5 node 3 genType 0 shape 0 off 0
+    el 6 node 4 genType 0 shape 0 off 0
+em088_00 em088_00u:203 (clip) files/em088_00_001.efl joint 130 mode 1 space 1 mask 1/ffffffff
+    el 0 node 0 cm150_003 face 1 push 0 shape 6 off 0
+    el 1 node 1 genType 0 shape 5 off 600
+    el 2 node 2 cm202_022_g face 0 push 100 shape 6 off 300  <-- CAMERA-DEPENDENT
+    el 3 node 2 cm202_022_g face 0 push 100 shape 6 off 300  <-- CAMERA-DEPENDENT
+    el 4 node 3 cm100_008 face 1 push -50 shape 2 off 100
+em088_00 em088_00u:213 (clip) files/em088_00_001.efl joint 130 mode 1 space 1 mask 1/ffffffff
+    el 0 node 0 cm150_003 face 1 push 0 shape 6 off 0
+    el 1 node 1 genType 0 shape 5 off 600
+    el 2 node 2 cm202_022_g face 0 push 100 shape 6 off 300  <-- CAMERA-DEPENDENT
+    el 3 node 2 cm202_022_g face 0 push 100 shape 6 off 300  <-- CAMERA-DEPENDENT
+    el 4 node 3 cm100_008 face 1 push -50 shape 2 off 100
+em088_00 em088_00u:223 (clip) files/em088_00_001.efl joint 130 mode 1 space 1 mask 1/ffffffff
+    el 0 node 0 cm150_003 face 1 push 0 shape 6 off 0
+    el 1 node 1 genType 0 shape 5 off 600
+    el 2 node 2 cm202_022_g face 0 push 100 shape 6 off 300  <-- CAMERA-DEPENDENT
+    el 3 node 2 cm202_022_g face 0 push 100 shape 6 off 300  <-- CAMERA-DEPENDENT
+    el 4 node 3 cm100_008 face 1 push -50 shape 2 off 100
+em088_00 em088_00u:30 (shell) files/em088_00_008.efl joint -1 mode 0 space 0 mask 1/ffffffff
+    el 0 node 0 em088_00_102 face 0 push 20 shape 6 off -242  <-- CAMERA-DEPENDENT
+    el 1 node 0 em088_00_102 face 0 push 0 shape 6 off 6
+    el 2 node 0 em088_00_102 face 0 push 20 shape 6 off 22  <-- CAMERA-DEPENDENT
+
+flagged records: 207

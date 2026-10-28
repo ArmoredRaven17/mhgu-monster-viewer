@@ -1214,6 +1214,11 @@ export const MOTION_STATES = {
   em076_00: {
     '3|Motion[9]':  { start: [['em076_00c', 1109]] },
     '3|Motion[1]':  { every: [['em076_00c', 1105], 42] },
+    // THE PART-0 BREAK (lane B, 2026-10-25; READ): his part pass vt+0x210 0xfc6318 shows set 7 once breakLevel(0) (0x9d36c) reaches
+    // .dtp row 0's level (byte +1, +2 above rank 4: 0xfc6474..0xfc64c4), else set 3 -- and em076_00_dtbparts.dtp's (part 0, level 1)
+    // row makes the break code 0xa442c ask id 0 x 5 + 1 + 6 = 7 -> u 1000 (cm202_060) at that depletion (effects_triage.py's dtp read).
+    // The reaction to parts 0 and 7 is L3 M2 ((10, 7), the category survey's probe); part 7 has no set and no row, so it shows nothing.
+    '3|Motion[2]':  { levels: [[3], [7]], fire: [null, ['em076_00u', 1000]] },
     '0|Motion[19]': { every: [['em076_00c', 1102], 90], puffOff: true },          // copy A: asleep
     '3|Motion[13]': { every: [['em076_00c', 1101], 60] },                         // copy A: paralysed
     '3|Motion[26]': { hold: ['em076_00c', 1103] },
@@ -1296,7 +1301,9 @@ export const MOTION_STATES = {
     '3|Motion[56]': { cycle: [{ levels: [[6], [12]], fire: [null, null] }, { levels: [[5], [11]], fire: [null, null] }, { hold: ['em068_00c', 1103] }] },
     // RAGE: (1, 0) L0 M50. TIRED: (0, 2) L0 M38 (also (1, 0xe)); the drool is TIRED_DROOL's.
     '0|Motion[50]': { rage: true },
-    '0|Motion[38]': { rage: false, tired: true },
+    // NO tired row (Khezu AoE lane audit, 2026-10-27; docs/action-motions.json): L0 M38 is ALSO his aware idle (0, 1), which the idle
+    // chooser 0x75168 picks when he is NOT tired -- so playing it does not say he is exhausted; the Exhausted state shows it
+    //'0|Motion[38]': { rage: false, tired: true },
     // ASLEEP: (10, 0x1d) L3 M28 -> L0 M51 f100 (held), (10, 0x1e) holds L0 M56: eyes shut (set 7), c 1102 every 90, the puff paused.
     // Capture (11, 0x10) plays L3 M28 -> L0 M51 -> L0 M56.
     '3|Motion[28]': { sets: [7] },
@@ -3031,7 +3038,10 @@ export const MOTION_STATES = {
     // TIRED: the tired idle (0, 2) is L0 M8, with drool c 1104 every 48 -- the same file and the same record as
     // Glavenus's, from the shared em080_00c. Glavenus's "tiredness puts the throat out" branch (0xfff3cc) is
     // VARIANT-0 ONLY, so nothing on Hellblade's model changes when he tires.
-    '0|Motion[8]':  { rage: false, tired: true },
+    // WITHDRAWN (Khezu AoE lane audit, 2026-10-27): HE NEVER TIRES. His flag word 0x159c2dc[65] (em 0x450 via 0x1594ca4) = 0x4c0001 has
+    // bit 19 (stamina off: the updater 0xbd1a4 returns, every P+0x505 writer writes 0; rom-map "P+0x1a8 bit 19"), and no bit-19 clear
+    // exists in uEm080_00's band (the only clears are 0xfae63c / 0x10b394c). So (0, 2) is never chosen and no drool runs: no row.
+    //'0|Motion[8]':  { rage: false, tired: true },
     // ASLEEP: (10, 0x1d) plays L3 M14 and (10, 0x1e) holds L3 M25, with the zzz c 1102 every 90 and the puff
     // paused. His eyes shut -- set 3 -> set 2 (group 9, the lid, on; 8, the eye, off; 78, the eye's m06_nodo_r
     // glow, off) -- while `P+0x5d02` is up. L3 M14 -> L3 M25 is also CAPTURE ((11, 0x10)).
@@ -3316,6 +3326,10 @@ export const MOTION_STATES = {
   // (6, 2) / (12, 0). The Special list's copies of L2 M7 / M10 resolve to no list-2 row (no `motions` flag), so they
   // carry their own.
   em070_00: {
+    // THE GRABS WITH A TARGET HELD (lane B, 2026-10-25; CLASS_TIMERS em070_00 / NERSCYLLA_B5): copy B of L2 M75 / M76 / M24 / M25 is the
+    // play whose target slot holds a live hunter (or kind 2) passing the 0x100000 test -- C+0xb5 |= 8, u 34 held on joint 1. The rows
+    // are empty: they only name the copy, so the class timer sees '#B'.
+    '2|Motion[75]#B': {}, '2|Motion[76]#B': {}, '2|Motion[24]#B': {}, '2|Motion[25]#B': {},
     '2|Motion[6]':  { sets: [16] }, '2|Motion[7]':  { sets: [16] }, '2|Motion[10]': { sets: [16] },
     '2|Motion[26]': { sets: [16] }, '2|Motion[84]': { sets: [16] }, '2|Motion[85]': { sets: [16] },
     '4|Motion[34]': { sets: [16] },
@@ -3561,6 +3575,12 @@ export const MOTION_STATES = {
   //   other side by firing c 72 at f270 / f313 / f403 on those same three motions. Duramboros is the tree's
   //   worst stage-ray case by a wide margin.
   em055_00: {
+    // u 100 HELD from the ground-impact frame of each slam (em055_00 0xed3a80 / 0xed3c40 / 0xed3dd0 at 270.0 / 313.0 / 403.0 -- the
+    // frame handler's motion table 0xed2aec binds the same literals to L2 M29 / M31 / M32), stopped at the next motion (holdAt above);
+    // the PSL fires c 72 at the same frames on the same motions (rom-map `0xed3adc` row). Was refused by the old stage-ray rule.
+    '2|Motion[29]': { holdAt: [[270, 'em055_00u', 100]] },
+    '2|Motion[31]': { holdAt: [[313, 'em055_00u', 100]] },
+    '2|Motion[32]': { holdAt: [[403, 'em055_00u', 100]] },
     // L3 M1 IS TWO REACTIONS -- the generic break (10, 7) and the tune+0x44 status (10, 0x1b), whose setAction
     // requests c 1109 once at frame 0 -- so each play shows the next, as Rathian's L3 M2 does. The break arm
     // shows nothing until his part rows are read.
@@ -4210,7 +4230,9 @@ export const MOTION_STATES = {
     // TIRED: the tired idle (0, 2) is L0 Motion[2] -- the SAME clip as his combat idle, so nothing on the model says
     // it -- with drool c 1104 every 48 (cm200_006 on joint 3, pos (0, -30, 80) at 1.2x) and, calm and tired, the
     // shared puff's countdown zeroed.
-    '0|Motion[2]':  { rage: false, tired: true },
+    // NO ROW (Khezu AoE lane audit, 2026-10-27): being his combat idle (0, 1) too, the clip is played when he is NOT tired (the idle
+    // chooser 0x75168), so a row forcing tired (and calm) on it was wrong; the Exhausted state (TIRED_DROOL) shows the tired idle
+    //'0|Motion[2]':  { rage: false, tired: true },
     // ASLEEP: (10, 0x1d) L3 Motion[12] lies down, (10, 0x1e) holds L0 Motion[19], then L0 Motion[20] -> L3 Motion[14]
     // gets up. His eyes DO shut -- eye set 2 -> set 1, the lid mesh drawn -- while P+0x5d02 is up, and the hold has
     // the zzz c 1102 every 90 and pauses the puff. L3 Motion[12] and L0 Motion[19] are also CAPTURE's clips
@@ -4918,7 +4940,9 @@ export const MOTION_STATES = {
     '0|Motion[22]': { rage: true },
     // TIRED: L0 Motion[1], which is ALSO his peaceful idle (0, 0) -- not his combat idle. So the clip itself says
     // nothing and the drool is the whole signal: c 1104 every 48 (cm200_006 on joint 3, pos (0, 30, 70) at 1x).
-    '0|Motion[1]':  { rage: false, tired: true },
+    // NO ROW (Khezu AoE lane audit, 2026-10-27): the same clip is his peaceful idle (0, 0), the idle chooser's NOT-tired arm, so a
+    // row forcing tired (and calm) on it was wrong; the Exhausted state (TIRED_DROOL) shows the tired idle
+    //'0|Motion[1]':  { rage: false, tired: true },
     // ASLEEP: (10, 0x1d) L3 Motion[10] lies down, (10, 0x1e) holds L3 Motion[17], then L0 M38 -> L3 M11 gets up.
     // NO `sets`: he has no lid and the eye applier is dead, so sleep shows nothing on him at all. The zzz c 1102
     // every 90 (cm200_002 on joint 3, offset (0, 80, 130) at 2x) and the puff paused are the whole of it.
@@ -5266,7 +5290,7 @@ export const CLIP_VARIANTS = {
   em018_04: { '0|Motion[7]': ['A', 'B'] },     // B: (7, 0xe3) / (7, 0xe5), begun at frame 18 (psl-mask.js `startFrame`)
   em076_00: { '0|Motion[19]': ['A', 'B'], '3|Motion[13]': ['A', 'B'] },
   em023_00: { '3|Motion[13]': ['A', 'B'] }, em023_05: { '3|Motion[13]': ['A', 'B'] },
-  em021_00: { '3|Motion[6]': ['A', 'B'] },  em022_00: { '3|Motion[9]': ['A', 'B'] },
+  em021_00: { '3|Motion[6]': ['A', 'B'] },  em022_00: { '3|Motion[9]': ['A', 'B'], '0|Motion[20]': ['A', 'B'] },   // L0 M20 B: (7, 0x14..0x16), u 60
   em060_00: { '3|Motion[10]': ['A', 'B'] }, em060_04: { '3|Motion[10]': ['A', 'B'] }, em062_00: { '3|Motion[5]': ['A', 'B'] },
   // KECHA WACHA: L0 M16 / M14 A the rest chain ((1, 3) / (1, 9)), B the sleep; L3 M6 A paralysis, B the shock trap
   em065_00: { '0|Motion[16]': ['A', 'B'], '0|Motion[14]': ['A', 'B'], '3|Motion[6]': ['A', 'B'] },
@@ -5293,7 +5317,7 @@ export const CLIP_VARIANTS = {
   em036_00: { '0|Motion[21]': ['A', 'B', 'C'], '0|Motion[30]': ['A', 'B'], '2|Motion[10]': ['A', 'B'], '0|Motion[18]': ['A', 'B'],
               '0|Motion[16]': ['A', 'B'] },
   // LAGIACRUS L2 M6: A the land attacks (bits 21-23), B (6, 2) in posture 4 (bits 24-26)
-  em046_00: { '2|Motion[6]': ['A', 'B'] },
+  em046_00: { '2|Motion[6]': ['A', 'B'], '4|Motion[34]': ['A', 'B'], '4|Motion[37]': ['A', 'B'] },   // L4 M34 / M37: A u 300's action, B u 310's
   // ROYAL LUDROTH L2 M8: A the land turns, B (6, 7 / 8) burrowed
   em047_00: { '2|Motion[8]': ['A', 'B'] },
   // AGNAKTOR: L3 M9 A paralysis / B the trap's hold; L0 M6..M8 (turn table 0x169eb9c) A on the surface, B burrowed (psl-mask.js)
@@ -5309,9 +5333,11 @@ export const CLIP_VARIANTS = {
   // NAJARALA: L3 M37 A paralysis / B the trap's hold; L0 M44 A the surface plays, B burrowed (u 1400); L2 M61 by the part-2 break
   em068_00: { '3|Motion[37]': ['A', 'B'], '0|Motion[44]': ['A', 'B'] },
   // NERSCYLLA: L3 M37 A the sleep hold / B the stun's held clip; L3 M13 A paralysis / B the trap's hold
-  em070_00: { '3|Motion[37]': ['A', 'B'], '3|Motion[13]': ['A', 'B'] },
+  em070_00: { '3|Motion[37]': ['A', 'B'], '3|Motion[13]': ['A', 'B'],
+              // lane B, 2026-10-25: the grabs' B copies -- a target held (NERSCYLLA_B5 '#B' rows: C+0xb5 |= 8 -> u 34)
+              '2|Motion[75]': ['A', 'B'], '2|Motion[76]': ['A', 'B'], '2|Motion[24]': ['A', 'B'], '2|Motion[25]': ['A', 'B'] },
   // SELTAS QUEEN: L0 M16 A (1, 0x14) / B (1, 0x1c); L0 M8 A the walks / B (6, 2) burrowed
-  em069_00: { '0|Motion[16]': ['A', 'B'], '0|Motion[8]': ['A', 'B'] },
+  em069_00: { '0|Motion[16]': ['A', 'B'], '0|Motion[8]': ['A', 'B'], '0|Motion[1]': ['A', 'B'] },   // L0 M1 B: (7, 0x4d), queenLevel069
   // KIRIN: L4 M7 A the rage roar (1, 6), B (1, 7), C the attacks; L2 M4 A / B (7, 2) (psl-mask.js em011_00)
   em011_00: { '4|Motion[7]': ['A', 'B', 'C'], '2|Motion[4]': ['A', 'B'] },
   // LAO-SHAN LUNG: L0 M30 A (1, 2), B the death's first clip (script 0x17a55d0)
@@ -5327,14 +5353,17 @@ export const CLIP_VARIANTS = {
               '4|Motion[9]': ['A', 'B', 'C', 'D', 'E'], '4|Motion[10]': ['A', 'B', 'C', 'D', 'E'] },
   // ALATREON: each word-arm clip A (the plays it lights) / B (psl-mask.js CLIP_ACTIONS.em050_00)
   em050_00: Object.fromEntries(['1|Motion[10]', '1|Motion[11]', '2|Motion[23]', '2|Motion[25]', '2|Motion[5]', '2|Motion[6]', '2|Motion[7]', '2|Motion[8]',
-                                '2|Motion[16]', '2|Motion[17]', '1|Motion[2]', '1|Motion[3]', '0|Motion[9]', '0|Motion[10]'].map(k => [k, ['A', 'B']])),
+                                '2|Motion[16]', '2|Motion[17]', '1|Motion[2]', '1|Motion[3]', '0|Motion[9]', '0|Motion[10]',
+                                // L1 M1: A the high hover after the takeoff (posture 1), B the low one at 600 (posture 3) -- AIR_HEIGHT.em050_00
+                                // (shells lane, 2026-10-26; not a word split: the word has no L1 M1 case)
+                                '1|Motion[1]'].map(k => [k, ['A', 'B']])),
   // AMATSU: L3 M4 / M5 A the stun / B the sleep; L1 M9 A the rage entry (1, 0) / B (1, 0xb)
   em058_00: { '3|Motion[4]': ['A', 'B'], '3|Motion[5]': ['A', 'B'], '1|Motion[9]': ['A', 'B'], '3|Motion[18]': ['A', 'B'] },
   // GORE LINE: L2 M7 A (7, 0x58) / B (7, 0x60) / C the others (psl-mask.js em071)
   em071_00: { '2|Motion[7]': ['A', 'B', 'C'], ...GORE_COPIES }, em071_05: { '2|Motion[7]': ['A', 'B', 'C'], ...GORE_COPIES },
   em072_00: { '2|Motion[7]': ['A', 'B', 'C'], ...GORE_COPIES },
   // NAKARKOS: L0 M50 A the idle and other plays / B the dives (6, 0x64 / 0x66) with the class's u 1121
-  em084_00: { '0|Motion[50]': ['A', 'B'] },
+  em084_00: { '0|Motion[50]': ['A', 'B'], '0|Motion[1]': ['A', 'B'] },   // L0 M1 B: (13, 0) phase 4, the buried hold (c 140)
   // VALSTRAX: the stun chains A / B the (10, 0x14) / (10, 0x72) twins; L0 M5 A the rage entry (1, 4) / B (1, 0xfe)
   em086_00: { ...Object.fromEntries(['3|Motion[9]', '3|Motion[10]', '3|Motion[11]', '3|Motion[5]', '3|Motion[6]', '3|Motion[7]', '0|Motion[5]'].map(k => [k, ['A', 'B']])),
               '1|Motion[5]': ['A', 'B', 'C'] },
@@ -5572,7 +5601,9 @@ MOTION_STATES.em027_00 = {
   '3|Motion[7]':    { hold: ['em027_00c', 1103] }, '3|Motion[7]#B': {},
   '3|Motion[15]':   { levels: [[4], [10]], fire: [null, ['em027_00u', 900]], drops: true },
   '3|Motion[13]':   { every: [['em027_00c', 1101], 60] },
-  '0|Motion[22]':   { rage: false, tired: true },
+  // NO tired row (Khezu AoE lane audit, 2026-10-27): L0 M22 is uEm027_00's tired idle (0, 2), but Teostra's flag word 0x159c2dc[25]
+  // = 0x404c0001 has bit 19 (stamina off: rom-map "P+0x1a8 bit 19") -- he never tires, so the clip never shows him exhausted
+  //'0|Motion[22]':   { rage: false, tired: true },
   '0|Motion[5]':    { rage: true }, '0|Motion[5]#B': {},
   '3|Motion[18]':   { dead: true },
   // THE NOVA (dev/em027_00-effects-spec.md 4; 0xe17ce8, READ + traced -- nova027.py): nine actions call it with a selector, (7, 5) 0,
@@ -5676,7 +5707,9 @@ MOTION_STATES.em058_00 = {
       '3|Motion[3]':    { hold: [cPel, 1103] }, '3|Motion[3]#B': {},
       '3|Motion[4]':    { hold: [cPel, 1103] }, '3|Motion[4]#B': {},
       '3|Motion[5]':    { hold: [cPel, 1103] }, '3|Motion[5]#B': {},
-      '3|Motion[23]':   { rage: false, tired: true },
+      // the tired idle (0, 2) -- not on Shagaru: his flag word 0x159c2dc[60] = 0x404c0201 has bit 19 (stamina off, rom-map
+      // "P+0x1a8 bit 19"), so 0x81614 never answers tired and (0, 2) is never chosen (Khezu AoE lane audit, 2026-10-27)
+      ...(v === 'shagaru' ? {} : { '3|Motion[23]': { rage: false, tired: true } }),
       '0|Motion[5]':    { rage: true }, '0|Motion[5]#B': {},
       '0|Motion[31]':   { rage: true }, '0|Motion[31]#B': {},
       ...(v === 'shagaru' ? { '4|Motion[2]': { rage: true } } : {}),
@@ -5844,6 +5877,13 @@ const NERSCYLLA_B5 = {
   '2|78': [[20, 'or', 1]], '4|11': [[0, 'set', 1]], '4|13': [[0, 'set', 0]], '4|16': [[0, 'set', 0]],
   '2|48': [[0, 'set', 0x20]], '2|50': [[0, 'set', 0]], '2|59': [[0, 'set', 0x10]], '3|30': [[0, 'set', 0]],
   '4|30': [[0, 'set', 0x10], [14, 'set', 0], [32, 'set', 0x10]], '2|75': [[0, 'set', 0]], '2|76': [[0, 'set', 0]],
+  // lane B, 2026-10-25: the (1, 0x16..0x19 / 0x22..0x25) grabs, by their phase-0 setMotion (zg/tracec.py): (1, 0x16 / 0x22) L2 M75,
+  // (1, 0x18 / 0x23) L2 M24 (0xf9e450 kind r8 1 / 3: posture 6), (1, 0x17 / 0x24) L2 M76, (1, 0x19 / 0x25) L2 M25. Copy A: no target
+  // -- phase 1 clears the byte (0xf9e644 / 0xf9ea7c); COPY B: the target slot P+0x230 holds a live one (kind 1 a hunter, 0x27482c; kind
+  // 2 0xc2ecc's, I: the Palico) that passes the 0x100000 test (vt+0x1b0 / 0x1125f58) -> its point to C+0x10 and C+0xb5 |= 8 at
+  // phase 0 (0xf9e6f8 / 0xf9e9b8) -> u 34
+  '2|24': [[0, 'set', 0]], '2|25': [[0, 'set', 0]],
+  '2|75#B': [[0, 'or', 8]], '2|76#B': [[0, 'or', 8]], '2|24#B': [[0, 'or', 8]], '2|25#B': [[0, 'or', 8]],
 };
 // THE GORE LINE'S RING FILLS (CLASS_TIMERS em071_00 / em071_05 / em072_00; schedule.js ringFill holds the ring). Every fill site
 // of 0xfc05ec, traced over every action x phase x gates x rage x tired x variant (<archive>/zg/goretrace.py, sinf / cosf answered,
@@ -5929,11 +5969,44 @@ function goreFills(t, c, pel, variant){
     if (F > prev && F <= c.frame) out.push([pel, 30, 'UNIQUE', { ring: { offset, s0, s1, flag } }]);
   return out;
 }
+// SELTAS QUEEN's held glow by P+0x1bb bits 1-2, the LEVEL (effects lane B, 2026-10-25; READ, rom-map "Seltas Queen P+0x1bb level"):
+//   the frame handler vt+0x208 0xf8b2ec..0xf8b59c keeps ONE handle by the level -- 1 -> id 1001 (u 0) at e+0xcac4, 2 -> id 1002 (u 1)
+//   at +0xcac8, 3 -> id 1003 (u 2) at +0xcacc (vt+0x1d0 0xf99ad8, table 0x16a0ed4 = {-1, 0, 1, 2}: all em069_00_001, joint 1), requested through e+0xb640 when its slot
+//   is empty, the other two stopped (vt+0x40); level 0 stops all three (0xf8b53c).
+//   The WRITES are the action-start hook vt+0x204 0xf89228 (emulated over every (status, n), <archive>/laneB/duo/hook204 run): (1, 1)
+//   -> 1 (0xf899fc); (7, 0x4d) -> 3 unless already 3 (0xf897d8); -> 0 on (1, 0x16) (0xf89ac8), (1, 0x26), (7, 9 / 0xf / 0x22 / 0x38 /
+//   0x4f) (0xf898e4), (7, 0x10..0x13) (0xf89944), (10, 0x1d) / (10, 0x63) and every status-11 start (0xf89740). The vt+0x1dc pass
+//   0xf8a978 (0xf8ad30..0xf8ae44) counts C+0x1c up by the frame while the level is 1 or 2: level 1 at >= 3000 (questRank > 1: 2400,
+//   0xf8ae84 / 0xf8ae88) -> 2; level 2 at >= 900 (0xf8ae8c) -> 3; the count is zeroed at each step and by vt+0x204 when the level is
+//   not the one it last saw (C+0x1b, 0xf89300).
+//   The viewer's clips for those actions (<archive>/duo/q_agg.txt): (1, 1) L4 M66 (its only player); (7, 0x4d) L0 M1 -> copy B
+//   (psl-mask.js CLIP_ACTIONS); the clears L4 M42 ((7, 9) / (7, 0x4f), both), L4 M38 ((7, 0xf) / (7, 0x22), both), L4 M20 ((7, 0x38)),
+//   L0 M18 ((1, 0x16); (1, 0x2b) plays it too and writes nothing: a play with no action is taken as (1, 0x16)), L3 M23 ((1, 0x26)),
+//   L3 M14 ((10, 0x1d) and the capture (11, 0x10)), and every death row. Not placed: (7, 0x10..0x13) and (10, 0x63) (no clip traced).
+const QUEEN_LEVEL_SET = { '4|66': 1, '4|42': 0, '4|38': 0, '4|20': 0, '3|23': 0, '3|14': 0 };
+function queenLevel069(t, c){
+  if (t.lv == null){ t.lv = 0; t.n = 0; }
+  const set = v => { if (v !== t.lv){ t.lv = v; t.n = 0; } };
+  if (c.dead) set(0);
+  else if (c.fresh){
+    const a = c.action, k = c.list + '|' + c.slot;
+    if (a && a[0] === 7 && a[1] === 0x4d){ if (t.lv !== 3) set(3); }
+    else if (k === '0|18'){ if (!a || (a[0] === 1 && a[1] === 0x16)) set(0); }
+    else if (k in QUEEN_LEVEL_SET) set(QUEEN_LEVEL_SET[k]);
+  }
+  if (t.lv === 1 || t.lv === 2){
+    t.n += c.dt;
+    if (t.lv === 1 && t.n >= (c.rank > 1 ? 2400 : 3000)) set(2);
+    else if (t.lv === 2 && t.n >= 900) set(3);
+  }
+  c.level069 = t.lv;
+  return [];
+}
 const NERSCYLLA_HELD = { 1: [30, 1], 2: [32, 144], 4: [33, 144], 32: [33, 144], 8: [34, 1], 16: [32, 144] };
 function nerscyllaB5(t, c){
   const out = [];
   if (t.b5 == null){ t.b5 = 0; t.last = 0; t.held = null; }
-  const w = NERSCYLLA_B5[c.list + '|' + c.slot];
+  const w = (c.copy && NERSCYLLA_B5[c.list + '|' + c.slot + '#' + c.copy]) || NERSCYLLA_B5[c.list + '|' + c.slot];
   if (w){
     const from = c.fresh ? -1 : (t.wf == null ? -1 : t.wf);
     for (const [f, op, v] of w) if (f > from && f <= c.frame) t.b5 = op === 'or' ? (t.b5 | v) : v;
@@ -5961,7 +6034,88 @@ const poison1100 = (t, c, pel) => {           // 0xa4518's poison arm: P+0x5c5c 
   t.p5c -= c.dt; if (t.p5c <= 0){ t.p5c = 90; return [[pel, 1100, 'UNIQUE']]; }
   return [];
 };
+// RAGING BRACHYDIOS's SLIME ERUPTION (Raven 2026-10-25: "I would like anything related to attacks such as the slime pools"; READ
+// 2026-10-25, dev/em063_00-effects-spec.md 5, rom-map "uEm063_00 slime"): four slots (0 left arm, 1 right arm, 2 head, 3 tail; the
+// block [e+0xcacc]: countdown +0x50+8k, state +0x54+8k (0 Yellow / 1 to Red / 2 Red / 3 to Yellow), trigger +0x56+8k, fuse +0xb0+4k,
+// handle +0xc0+4k). THE HIT (the class's hit handler 0xf46f34 -> 0xf36984(e, part), variant 5 only, the unit live e+0x7420): the
+// struck shape's part -- 0 head -> slot 2, 2 right arm -> slot 1, 3 left arm -> slot 0, 6 tail -> 0xf36c74 slot 3 (parts 1 / 4 / 5
+// nothing) -- on a RED slot (state 2) with its fuse spent (<= 0) and its countdown > 0 sets the trigger (and e+0xb7c0 |= 4); a
+// triggered slot with its fuse spent stops its old handle and requests id 0x3e9 + slot through vt+0x1d0 (0xf46978: table 0x16a0364,
+// ids 1001..1004 -> u 200..203, em063_05_001 on joints 7 / 10 / 3 / 143), keeps the handle, and sets the fuse to 30.0
+// (0xf36a94 / 0xf36b68 / 0xf36c3c / 0xf36dd0). 0xf36100 burns each fuse by 1.0 a frame (0x7206c); at <= 0 the explosion 0xf46234
+// stops that handle (0x329c40(h, 1)), sets the slot's countdown to -1 (Yellow the next tick), clears the trigger and posts the
+// explosion SHELL (0x3fa2bc(0x40) -> 0x48b884: shell [e+0xcac0], mode 0x17..0x26 by slot, the part's break level against its .dtp
+// row and rage -- the shells' side). u 204 (joint 142) has no request site in the class (ids 1001..1004 only; control: the same
+// scan finds those four). THE VIEWER: a slot is Red while Red Slime (his rage, Raven 2026-09-16: "red slime covers his whole body")
+// is on; the Slime Hit control (CLASS_CONTROLS em063_05) is the hit on that part; an erupted slot is Yellow (no second eruption)
+// until Red Slime is set again (his Move 6, L0 M15 f158, turns all four Red) -- the 2700-frame per-slot countdown is not shown.
+// THE HIT IS A CLICK (Raven, 2026-10-25: "we would need to simulate hits for the effects (could do this with mouse clicks that cause
+// the explosion, it goes yellow then back to red)"): index.html's click on a slime part pushes its SLOT here (0xf36984's map of the
+// struck shape's .dtt part: 0 -> slot 2 head, 2 -> slot 1 right arm, 3 -> slot 0 left arm, 6 -> slot 3 tail). The Slime Hit dropdown
+// it replaces is gone. The per-slot machine below is 0xf36100's, READ 2026-10-25 (0xf36100..0xf3628c; the spawn 0xf352e0..0xf353bc):
+//   spawn: every slot state 0 (Yellow), countdown +0x50+8k = 2700.0, trigger +0x70+k = 0, fuse +0xb0+4k = 0;
+//   each frame, per slot: a fuse > 0 burns 1.0 (0x7206c) and at <= 0 the explosion 0xf46234 (countdown -1, fuse 0) -- nothing else
+//   that frame; else, dying (vt+0x3f4) sends state 1 / 2 to 3; else, live, the countdown -= e+0x1c and below 0 flips the slot
+//   (state 0 -> 1 to Red, any other -> 3 to Yellow) and is set to 2700.0 again; then a set trigger on a Yellow (0) slot -> 1, 2700.0;
+//   the colour machine 0xf36588 settles 1 -> 2 and 3 -> 0 when the 15-frame transition clip ends (Yellow_to_Red / Red_to_Yellow);
+//   the hit 0xf46f34 on a Yellow part adds 180 to its countdown; on a Red (2) part with no fuse and a countdown > 0 it arms the fuse.
+// So an erupted part is Yellow for 2700 frames (+ its 15-frame transition) and then Red again by itself.
+// THE VIEWER'S ONE DEVIATION, named (a choice for Raven): Red Slime (his rage toggle, Raven 2026-09-16 "red slime covers his whole
+// body") is Move 6 -- all four triggered Red on its rise -- and while it is on a RED slot's countdown is held (the ROM would flip it
+// back to Yellow after 2700 frames whatever the rage); a Yellow one runs. Off sends all four to Yellow (calming changes nothing in the
+// ROM; this is the toggle's own meaning in the viewer). Hits on a Yellow part add the ROM's 180.
+export const SLIME063_HITS = [];                         // slots clicked since the last step (index.html slimeClick)
+const SLIME_CD063 = 2700, SLIME_TR063 = 15, SLIME_FUSE063 = 30, SLIME_YHIT063 = 180;
+// VIEWER RE-ARM (Raven, 2026-10-25: "it should explode, go to yellow briefly then revert to red again", "This way people can do it
+// multiple times if desired"); in game the part stays Yellow until its cycle turns it Red -- the countdown 0xf46234 leaves at -1, which
+// 0xf36100 resets to 2700.0 (movw/movt 0x4528c000 at 0xf36224 / 0xf3622c) on the flip to Yellow, so 2700 frames (45 s) Yellow.
+// The viewer's erupted part is Yellow for SLIME_REARM063 frames from that flip instead, then Red and armed again. One constant:
+export const SLIME_REARM063 = 60;
+function slime063(t, c){
+  if (!t.s){ t.s = [0, 1, 2, 3].map(() => ({ col: 0, cd: SLIME_CD063, fuse: 0, trig: false, held: false, age: 1e6 })); t.rage = false; t.seq = 0; }
+  if (c.rage && !t.rage) for (const s of t.s) s.trig = true;                   // Move 6 (0xf37b64): all four asked Red
+  if (!c.rage && t.rage) for (const s of t.s){ s.trig = false; s.fuse = 0; s.held = false; if (s.col === 1 || s.col === 2){ s.col = 3; s.age = 0; } s.cd = SLIME_CD063; }
+  t.rage = c.rage;
+  // the hits since the last step (0xf46f34 -> 0xf36984)
+  while (SLIME063_HITS.length){
+    const k = SLIME063_HITS.shift(), s = t.s[k];
+    if (!s || c.dead) continue;
+    if (s.col === 2 && s.fuse <= 0 && s.cd > 0){ s.fuse = SLIME_FUSE063; s.held = true; }
+    else if (s.col === 0) s.cd += SLIME_YHIT063;
+  }
+  // a FRESH step (a clip change, a replay, a scrub back: stepClassTimers then gives dt = the new frame) is not game time for this
+  // clip-independent machine: it holds (the shells lane, 2026-10-25 -- a backward scrub burnt a fuse out at once)
+  const dt = c.fresh ? 0 : c.dt;
+  t.erupt = []; t.seq = (t.seq | 0) + 1;
+  t.s.forEach((s, k) => {
+    s.age += dt;
+    if (s.fuse > 0){                                                            // 0xf36138..0xf3618c
+      s.fuse -= dt;
+      if (s.fuse <= 0){ s.fuse = 0; s.held = false; s.cd = -1; s.erupted = true; t.erupt.push(k);   // 0xf46234
+        // ...and into the eruption LOG the shells take from (shells lane, 2026-10-25): this timer steps once per viewer frame, the
+        // shells once per 1/60 s effect step (zero or several a frame), so a one-step list is lost on a frame with no effect step;
+        // each entry keeps its id, its slot and the state 0xf46234 tested (col: still 2, the countdown -1 turns it next step)
+        t.eid = (t.eid | 0) + 1; (t.elog || (t.elog = [])).push({ id: t.eid, slot: k, col: s.col, n: t.seq });
+        if (t.elog.length > 32) t.elog.shift();
+      }
+      return;
+    }
+    if (c.dead){ if (s.col === 1 || s.col === 2){ s.col = 3; s.age = 0; } return; }   // vt+0x3f4
+    if (c.rage && !(s.col === 2 && s.cd >= 0)) s.cd -= dt;                    // the countdown: Red Slime on, not on a settled Red slot
+    if (s.cd < 0){ s.col = s.col === 0 ? 1 : 3; s.age = 0; s.cd = s.erupted ? SLIME_REARM063 : SLIME_CD063; s.erupted = false; }   // the re-arm: see SLIME_REARM063
+    // the viewer re-arm turns the part Red again only while Red Slime is on (its countdown then runs out at 60, 0 -> 1 above); off, it waits
+    if (s.trig && s.col === 0){ s.col = 1; s.age = 0; s.cd = SLIME_CD063; s.trig = false; }
+    if (!c.rage && s.col === 1){ s.col = 3; s.age = 0; }                        // Red Slime off: back to Yellow
+    if ((s.col === 1 || s.col === 3) && s.age >= SLIME_TR063){ s.col = s.col === 1 ? 2 : 0; }   // 0xf36588 settles
+  });
+  // the slot states the shells read (0 Yellow, 1 to Red, 2 Red, 3 to Yellow) and the material clips index.html drives (stepSlime063)
+  t.lv = t.s.map(s => s.col);
+  c.held063 = t.s.map((s, k) => s.held ? ['em063_05u', 200 + k] : null).filter(Boolean);
+  return [];
+}
 export const CLASS_TIMERS = {
+  em063_05: { step: (t, c) => slime063(t, c), holds: c => c.held063 || [],
+              records: [200, 201, 202, 203].map(k => ['em063_05u', k, 'UNIQUE']) },
   // ---- THE CLASS REQUESTS THE CONTROL-BLOCK RE-CHECK FOUND UNDRIVEN (effects lane, 2026-10-20; dev/rom-map.md "Class requests driven") ----
   // CONGALALA u 500 (cm103_100, joint 2): the eating handler 0xdd0568's phase 0 (READ 0xdd05b4..0xdd0644) reads the gas byte ctl+1,
   // sets posture 0 and L0 M43 (0x2b), and when (gas - 2) & 0xff >= 3 heals 2% (0x9a6fc) and requests id 1001 (vt+0x1d0, table
@@ -5999,6 +6153,9 @@ export const CLASS_TIMERS = {
   //   L2 M55's end = 0 (the chains that begin on L4 M30, 0xfa8d20 / 0xfaac40) -- (2, 0x2b / 0x2e / 0x2f), (7, 0xa / 0xb), (13, 3)
   //   play L2 M55 and write nothing. The byte otherwise keeps its value across clips, as it does across actions.
   em070_00: { step: (t, c) => nerscyllaB5(t, c), records: [30, 31, 32, 33, 34].map(k => ['em070_00u', k, 'UNIQUE']) },
+  // SELTAS QUEEN's level glow (queenLevel069 above): one of u 0 / 1 / 2 held by P+0x1bb bits 1-2, across clips
+  em069_00: { step: queenLevel069, holds: c => c.level069 ? [['em069_00u', [0, 1, 2][c.level069 - 1]]] : [],
+              records: [0, 1, 2].map(k => ['em069_00u', k, 'UNIQUE']) },
   // THE GORE LINE'S SLOT RING (rom-map "Class requests driven"): the fills above; the ring itself (0xfc05ec / 0xfaf318 / the timers)
   // runs in the effect schedule (schedule.js ringFill / stepRing), which the shells' owner calls (sp_00 / sp_03 -> 0xfc083c) also feed.
   em071_00: { step: (t, c) => goreFills(t, c, 'em071_00u', 0), records: [30, 31].map(k => ['em071_00u', k, 'UNIQUE']) },
@@ -6013,8 +6170,15 @@ export const CLASS_TIMERS = {
   // u 240 (em024_00_101), held across every clip.
   // ...and on the SNOW maps (ctl+0x2d set: the Snow Variants list, c.snowMap) ids 1004 / 1005 = u 210 calm / u 220 enraged
   // (em024_00_100) in place of 1006 / 1007 (re-walk 2026-10-18, the same 0xdeffc4 read)
-  em024_00: { step: (t, c) => poison1100(t, c, 'em024_00c'), holds: c => c.dead ? [] : [['em024_00u', c.snowMap ? (c.rage ? 220 : 210) : (c.rage ? 240 : 230)]],
-              records: [...[210, 220, 230, 240].map(k => ['em024_00u', k, 'UNIQUE']), ['em024_00c', 1100, 'UNIQUE']] },
+  // ...and HIS AURA, the second handle e+0xcac4 (lane B2, 2026-10-25; READ 0xdf0514..0xdf0608, past the motion dispatch every path of
+  // which rejoins at 0xdf04c0, and NOT behind the death test 0xdf0034, which guards e+0xcac8 only): L from the wind aura P+0x1bb --
+  // 0xff -> 0; 2 -> ctl+0x18 ? 1 : 2; 3 -> ctl+0x18 ? 2 : 3; any other value itself -- and L 1..3 holds id 1000 + L = [0x169d3b8]
+  // u 1 / u 0 / u 10 (em024_00_004), another L stops it. ctl+0x18 (P+0x5e08 bit 1) is not held: off, as in his PSL word. The Wind Aura
+  // control is P+0x1bb (c.ctl): Level 1 u 1, Level 2 u 0, Level 3 u 10, Level 0 none.
+  em024_00: { step: (t, c) => poison1100(t, c, 'em024_00c'),
+              holds: c => [...(c.dead ? [] : [['em024_00u', c.snowMap ? (c.rage ? 220 : 210) : (c.rage ? 240 : 230)]]),
+                           ...((c.ctl | 0) >= 1 && (c.ctl | 0) <= 3 ? [['em024_00u', [1, 0, 10][(c.ctl | 0) - 1]]] : [])],
+              records: [...[210, 220, 230, 240, 0, 1, 10].map(k => ['em024_00u', k, 'UNIQUE']), ['em024_00c', 1100, 'UNIQUE']] },
   // DEADEYE's HELD EFFECT (vtable +0x208 0xda528c, read 0xda52f8..0xda539c, re-walk 2026-10-18): variant 4 only, every frame --
   // asleep (0x81bb0(e, 0): P+0x5e08 bit 0 or P+0x522, the test that shuts the eyes, 0xae3e8) or dying (vt+0x3f4): the handle
   // e+0xcae0 is stopped (0x329c40(h, 0)); else, with none held, id 1001 = u 30 (em018_04_003, joint 3) is requested and kept.
@@ -6168,15 +6332,47 @@ function valstraxGlow(a){
 //             (id 0) on its timer.
 const BURROWED = { key: 'burrowed', label: 'Begins Burrowed',
                    title: '0x81d6c: posture 4 and P+0x5c below 0.9 x MoguriBaseOfs at the play\'s start -- the burrow clips read "already sunk".' };
-const TIRED_RAGE = { key: 'tiredRage', label: 'Tired (with Rage)',
+// `debug: true` (2026-10-27, Raven: "Make Tired (with Rage) a Debug option for now, until I know what it entails"): index.html paints
+// it in the Debug panel, not with the class toggles, and resetHiddenDebug turns it off while that panel is hidden. Behaviour unchanged.
+const TIRED_RAGE = { key: 'tiredRage', label: 'Tired (with Rage)', debug: true,
                      title: '0x81614 (P+0x505) has no rage test: with Enraged on, the play reads tired too (L2 M1 / L4 M32 lose bits 24-26).' };
 const POISONED = { key: 'poisoned', label: 'Poisoned',
                    title: 'P+0x5e08 bit 1 (0xa239c): the aura / wind is held off and c 1100 is requested every 90 frames (0xa4518).' };
+// NIGHTCLOAK's cloak, e+0xcafc (& ~1) == 2 (effects lane A, 2026-10-25; READ 0xff036c / 0xff01a8): the gate of his two class requests --
+// u 100 held while cloaked AND tired (vt frame pass 0xff036c: 0x81614 == 1, handle e+0xcb50, stopped otherwise) and u 200 at a death start
+// while cloaked (vt+0x204 status 11, 0xff01a8..0xff0204). The stealth materials themselves are not shown (the viewer has no cloak machine).
+// ZINOGRE's gauge tier 3 (effects lane A, 2026-10-25; READ the aura machine 0xeed68c..0xeedaa0 with the op-0x6f selector 1, 0xeefec8: ctl+0 < 25 /
+// < 50 / < 75 / else -> tier 0..3): uncharged at tier 2 the action start holds id 1001 = u 30, at tier 3 id 1002 = u 31. The Charge State rung
+// 'Charging' stands for both tiers; this switch says which.
+const GAUGE_TIER3 = { key: 'gaugeTier3', label: 'Gauge Tier 3',
+                      title: 'ctl+0 at 75 or more (tier 3, 0xeefec8): while Charging his action starts hold u 31 (id 1002) instead of u 30 (tier 2). Working name.' };
+const CLOAKED = { key: 'cloaked', label: 'Cloaked',
+                  title: 'e+0xcafc = 2, the cloak up: tired, u 100 is held (0xff036c); a death while cloaked requests u 200 (0xff01a8). Working name; the stealth look itself is not drawn.' };
+// AHTAL-NESET's ROCKET POINTS (dev/em087_00-effects-spec.md 5, READ; Raven 2026-10-27: "Toggle until I can see what they are"):
+// point k = his body part 8 + k, destroyed in the game when hunter hits run its counter e+0xcd36[k] out while the gate e+0xcdba is open
+// and the point is armed (e+0xcd34 bit k). Destroyed here = what that does, without the hits: its u effect once (vt+0x1dc 0x10a53b8:
+// ids 1002..1008 -> u 500 / 505 / 510 / 515 / 520 / 600 / 605, each record placed at its point: root joint 0 + the payload offset) and
+// his part pass (vt+0x210 0x10a7ed4) switching the point's set pair -- read from his .mpm set table (monsters.json `groups`): points
+// 0..4 set 2k + 1 = group k + 1 drawn (the intact pod), 2k + 2 = it hidden; point 5 set 0x14 = group 14 on / 15 off, destroyed while
+// e+0xcdb7 == 5 -> set 0x15 = 14 off / 15 on; point 6 set 0x11 = 12 on / 13 off, destroyed while e+0xcdb7 == 6 -> 0x12 = 12 off / 13
+// on. The groups are the rows of Raven's Parts panel (part-review em087_00): the toggle sets that row. Armed: points 0 / 1 / 5 from
+// spawn, points 0..4 / 6 from (1, 8) (the second phase). The flinch it also asks ((1, 5) / (1, 6) / (1, 7)) is animation: HELD.
+// Working labels "Point 0".. for Raven to name.
+const POINT087 = [
+  [0, 500, '1', '1', 'none', 'spawn and the second phase'], [1, 505, '2', '2', 'none', 'spawn and the second phase'],
+  [2, 510, '3', '3', 'none', 'the second phase'], [3, 515, '4', '4', 'none', 'the second phase'], [4, 520, '5', '5', 'none', 'the second phase'],
+  [5, 600, '14,15', '14', '15', 'spawn'], [6, 605, '12,13', '12', '13', 'the second phase'],
+].map(([k, fx, row, intact, destroyed, armed]) => ({
+  key: 'point087_' + k, label: 'Point ' + k + ' destroyed', point087: k, pel: 'em087_00u', fx, row, intact, destroyed,
+  title: 'Rocket point ' + k + ' (body part ' + (8 + k) + '), armed in ' + armed + ': destroying it fires u ' + fx + ' once at the point ' +
+         'and switches the part pass to its destroyed set (Parts row ' + row + ': ' + intact + ' -> ' + destroyed + '). Working name.' }));
 export const CLASS_TOGGLES = {
+  em087_00: POINT087,
   em004_00: [BURROWED], em005_00: [BURROWED], em033_00: [BURROWED], em038_00: [BURROWED], em043_00: [BURROWED], em043_05: [BURROWED],
   em044_00: [BURROWED], em045_00: [BURROWED], em063_00: [BURROWED], em063_05: [BURROWED], em060_00: [BURROWED], em060_04: [BURROWED],
   em001_00: [TIRED_RAGE], em001_02: [TIRED_RAGE], em001_04: [TIRED_RAGE], em002_00: [TIRED_RAGE], em002_02: [TIRED_RAGE], em002_04: [TIRED_RAGE],
   em024_00: [POISONED], em027_00: [POISONED],
+  em079_04: [CLOAKED], em057_00: [GAUGE_TIER3],
 };
 export const CLASS_CONTROLS2 = {
   // CHAOTIC GORE MAGALA's control-block counter C+0x84 (approved 2026-10-20; READ: it accumulates per frame from the hunters around him,
@@ -6248,6 +6444,9 @@ export const CLASS_CONTROLS = {
   // when the cloak starts; a break while cloaked ends it, then the next cloak. Working labels.
   em025_00: { key: 'invisible', label: 'Invisible', options: [[0, 'Off'], [1, 'On']],
               title: 'ctl+0xc, his invisibility. On: the cloak at the level his horn allows when it starts -- horn intact, he fades out over 30 frames (his AI cloak, (1, 3)); horn broken, the semi-invisible stealth materials (the tail does not change the level). Breaking or restoring the horn or the tail while he is cloaked ends the cloak (a break is his flinch; a restore is the viewer mirroring it), and the next one starts 90 frames later at the new level -- that wait is a stand-in, the re-cloak timing in the game is not read. Both broken: no ROM gate found yet, so he still cloaks semi. Working names.' },
+  // RAGING BRACHYDIOS's slime hit (CLASS_TIMERS em063_05 above; READ 0xf46f34 -> 0xf36984): the hit on a slime part -- each pick is one
+  // hit; a Red part (Red Slime on) erupts: its warning u 200..203 for 30 frames, then the explosion (a shell). Working labels.
+  // em063_05's Slime Hit dropdown: REMOVED 2026-10-25 -- the hit is a click on the part (slime063 above, index.html slimeClick)
   em058_00: { key: 'hpState', label: 'HP State', options: [[0, 'Before'], [1, 'Past the threshold']],
               title: 'e+0x15fb, set once by (10, 0x8e) when his HP fraction falls to P+0x380: head sets 15-17 (groups 25 / 27 / 28), puff u 1121, u 101.' },
   // AHTAL-NESET's ROCKETS (render/shells.js rockets087; dev/ahtal-neset-shells-spec.md 3C; READ 2026-10-20): the mask e+0xcdc0 his AI
@@ -6284,6 +6483,19 @@ Object.assign(MOTION_STATES.em036_00, {
   '0|Motion[16]#B': { hold: ['em036_00u', 60] },
 });
 MOTION_STATES.em022_00['3|Motion[9]#B'] = TRAP_B('em022_00c');
+// BLANGONGA L0 M20 copy B, (7, 0x14 / 0x15 / 0x16) (lane A2, 2026-10-26): phase 0 (0xdddbc8) tail-calls 0xdda664(e, &P+0x40), which
+// asks id 1001 = u 60 (table 0x169cea4 = {-1, 60}) with a block holding the position alone (+0x1c |= 3, +0xc0 = P+0x40.., +8 = 2,
+// +0xd0 = vt+0x130): `unitPos` -> index.html places it at his unit position. Once, at the action's start
+MOTION_STATES.em022_00['0|Motion[20]#B'] = { start: [['em022_00u', 60, null, { unitPos: true, type8: 2 }]] };
+// LAGIACRUS u 300 / u 310 (effects lane A3, 2026-10-26; READ: rom-map "Effects lane A3"): 0xea6404 (the dive chain, r1 = 0 / 1 / 2 ->
+// id 1002 u 300 / 1003 u 310 / none; table 0x169eaf0) stops e+0xcb2c and requests into it -- (7, 0x8f) / (7, 0x90) on L4 M34 at its start
+// (phase 0, 0xea682c), (7, 0x96) / (7, 0x97) on L4 M37 at f80 (0xb0974 with 80.0, 0xea6624). The frame handler 0xea8ca0 keeps it
+// through the chain's actions (mask 0x3b87 from 0x8f) and the emergence 0xea688c stops it when its hit slot ends (L4 M36, ~f28);
+// the viewer's separate plays hold it to the clip's change (holdAt). Copy A = u 300's action, B = u 310's.
+MOTION_STATES.em046_00['4|Motion[34]'] = { holdAt: [[0, 'em046_00u', 300]] };
+MOTION_STATES.em046_00['4|Motion[34]#B'] = { holdAt: [[0, 'em046_00u', 310]] };
+MOTION_STATES.em046_00['4|Motion[37]'] = { holdAt: [[80, 'em046_00u', 300]] };
+MOTION_STATES.em046_00['4|Motion[37]#B'] = { holdAt: [[80, 'em046_00u', 310]] };
 // ARZUROS / REDHELM L3 M10 and VOLVIDON L3 M5: A the paralysis hold ((10, 0x1f)'s second clip), B the shock trap ((10, 0x6e))
 MOTION_STATES.em060_00['3|Motion[10]#B'] = TRAP_B('em060_00c');
 MOTION_STATES.em060_04['3|Motion[10]#B'] = TRAP_B('em060_00c');
@@ -6291,6 +6503,13 @@ MOTION_STATES.em062_00['3|Motion[5]#B'] = TRAP_B('em062_00c');
 MOTION_STATES.em065_00['3|Motion[6]#B'] = TRAP_B('em065_00c');
 for (const id of ['em061_00', 'em061_04'])
   Object.assign(MOTION_STATES[id], { '3|Motion[13]#B': TRAP_B('em061_00c'), '3|Motion[73]#B': TRAP_B('em061_00c') });
+// LAGOMBI / SNOWBARON L0 M32 (lane A2, 2026-10-26; zg/reqtrace.py): (1, 0x15), 0xf257b0 -- phase 0 sets L0 M32, phase 1 at f217
+// (0xb0974, literal 0xf25974) stops e+0xcae0's old handle and asks id 1001 = u 30 (table 0x169f830) through e+0xb640 with +8 = 2
+// (0xf25878); the one setMotion of L0 M32 in the band. BULLDROME L0 M23: (1, 0x14), 0xe1d558 -- L0 M23, f143 (literal 0xe1d690) ->
+// id 1001 = u 0 (table 0x169d7d4) through e+0xb640, handle e+0xcae0; the one setMotion of L0 M23 in his band
+for (const id of ['em061_00', 'em061_04'])
+  Object.assign(MOTION_STATES[id], { '0|Motion[32]': { fireFrom: [[217, [[id + 'u', 30, null, { type8: 2 }]]]] } });
+MOTION_STATES.em030_00['0|Motion[23]'] = { fireFrom: [[143, [['em030_00u', 0]]]] };
 MOTION_STATES.em056_00['3|Motion[3]#B'] = TRAP_B('em056_00c');
 for (const id of ['em007_00', 'em007_04'])
   Object.assign(MOTION_STATES[id], { '0|Motion[1]#B': { hold: ['em007_00c', 30, 'UNIQUE'] }, '0|Motion[1]#C': { hold: ['em007_00c', 40, 'UNIQUE'] } });
@@ -6892,6 +7111,40 @@ const RATH_AIR = { flyOfs: 500, clips: {
   '4|Motion[27]': { posture: 3, drawn: (f, S, m) => 500 * S - 200 * m * Math.max(0, 1 - (f + 1) / 40) },
 } };
 const MALF_GROUND = { '2|Motion[35]': { posture: 3 }, '1|Motion[22]': { posture: 3 }, '1|Motion[27]': { posture: 3 }, '1|Motion[28]': { posture: 3 } };
+// ALATREON's POSTURE-1 HEIGHTS (shells lane, 2026-10-26; the coordinator: "unread means read it"). His P+0x92c is never written by his class
+// (no `#0x92c` store in 0xec4890..0xed0834; control: the same scan finds Seregios's nine; the shared writers are the enemy clears 0x6e3a4 /
+// 0xa51f4 / 0xba398) -- 0, so the 0xbf284 posture-1 floor is the bare ground; his P+0x5c is never set (no 0xbf700 / 0xbf71c call and no
+// store; control: Astalos's 17 calls) -- 0, so a posture-3 body is drawn exactly FlyOfs x S up. The heights below are the ROM's own code
+// run frame by frame (<archive>/gapX/emu_rate.py: the air lane's emu_takeoff.Run, its frame stepped by the motion's rate 0xb0900 = e+0x50c,
+// which 0xb07b4 forms from P+0x38c x +0x394 x +0x398), at his size 1.2, the ground 0: H(f) = FlyOfs x S (the 0xbc984 lift) + D(f), D
+// the curve's part (not scaled by size). (7, 0x1f) 0xeca9cc: L1 M19 from the ground lifted FlyOfs, then 0xc1010 on curve 0x17c7194 each
+// frame -- D = the sum of the curve's values over frames 0..f (0 to f198, 2299 at f360), then L1 M1 at 2902 (S 1.2). (4, 0xa)
+// 0xec6db0: L1 M16 on the ground (posture 0), L1 M17 lifted FlyOfs on curve 0x17c7124 (up to 1298 at f33, then down) until 0xbf4e4 meets
+// the FlyOfs line at f85 -> posture 3, L1 M1 at 600. (7, 5) 0xec7f14: L2 M1 at rate 0.6 (posture 0), L2 M2 lifted FlyOfs, rate 0.65 then
+// 0.9 from f28, on curve 0x17c71dc (up to 969 at f34.5) until the FlyOfs line at f47.5 -> posture 0, L2 M3. Each is posture 1: the unit
+// is the body (the clip origin), the ground H(f) below. Past the frame the action leaves the clip, the last value. (L2 M2's _loop piece
+// starts its frame at 0 here: the ROM leaves L2 M2 at f47.5, inside its _start.)
+const ALA_C19 = [[0, 0], [198, 0], [200, 15], [215, 35], [240, 40], [260, 15], [280, 3], [360, 3]];   // 0x17c7194
+const alaV19 = f => { for (let i = 1; i < ALA_C19.length; i++){ const [a, va] = ALA_C19[i - 1], [b, vb] = ALA_C19[i]; if (f <= b) return va + (vb - va) * (f - a) / (b - a); } return 3; };
+const ALA_D19 = (() => { const d = []; let s = 0; for (let k = 0; k <= 360; k++){ s += alaV19(k); d.push(s); } return d; })();
+const ALA_L1M17 = [116.4, 158.4, 198.4, 236.4, 272.4, 306.4, 338.4, 368.4, 396.4, 422.4, 446.4, 469.2, 490.8, 511.2, 530.4, 548.4, 565.2, 580.8, 595.2, 608.4, 620.4, 631.54, 641.83, 651.26, 659.83, 667.54, 674.4, 680.4, 685.54, 689.83, 693.26, 695.83, 697.54, 698.4, 698.4, 697.4, 695.4, 692.4, 688.4, 683.4, 677.4, 671.0, 664.2, 657.0, 649.4, 641.4, 633.0, 624.2, 615.0, 605.4, 595.4, 584.8, 573.6, 561.8, 549.4, 536.4, 522.8, 508.6, 493.8, 478.4, 462.4, 446.2, 429.8, 413.2, 396.4, 379.4, 362.2, 344.8, 327.2, 309.4, 291.4, 273.2, 254.8, 236.2, 217.4, 198.4, 179.2, 159.8, 140.2, 120.4, 100.4, 80.4, 60.4, 40.4, 20.4, 0.4];
+const ALA_L2M2 = [[0.0,23.0],[0.65,33.21],[1.3,42.57],[1.95,51.08],[2.6,58.75],[3.25,65.58],[3.9,71.55],[4.55,77.2],[5.2,82.59],[5.85,87.74],[6.5,92.64],[7.15,97.3],[7.8,101.71],[8.45,105.87],[9.1,109.79],[9.75,113.46],[10.4,117.13],[11.05,120.96],[11.7,124.95],[12.35,129.1],[13.0,133.4],[13.65,137.87],[14.3,142.49],[14.95,147.27],[15.6,152.21],[16.25,157.31],[16.9,162.57],[17.55,167.98],[18.2,173.8],[18.85,180.57],[19.5,188.29],[20.15,196.96],[20.8,206.58],[21.45,217.15],[22.1,228.48],[22.75,239.55],[23.4,250.36],[24.05,260.9],[24.7,271.18],[25.35,281.19],[26.0,290.94],[26.65,300.22],[27.3,309.02],[27.95,317.34],[28.6,325.19],[29.5,335.15],[30.4,344.1],[31.3,351.94],[32.2,358.67],[33.1,364.28],[34.0,368.78],[34.9,368.42],[35.8,363.2],[36.7,353.28],[37.6,338.7],[38.5,319.58],[39.4,296.0],[40.3,268.87],[41.2,240.03],[42.1,209.46],[43.0,177.17],[43.9,143.16],[44.8,108.96],[45.7,74.76],[46.6,40.56],[47.5,6.36]];
+const alaLerp = (pts, f) => { if (!(f > pts[0][0])) return pts[0][1]; for (let i = 1; i < pts.length; i++) if (f <= pts[i][0]){ const [a, va] = pts[i - 1], [b, vb] = pts[i]; return va + (vb - va) * (f - a) / (b - a); } return pts[pts.length - 1][1]; };
+const alaIdx = (arr, f) => arr[Math.max(0, Math.min(arr.length - 1, Math.round(f)))];
+const ALA_CURVE_ROWS = [
+  ['1|Motion[19]', { at: (f, S) => 500 * S + alaIdx(ALA_D19, f) }],                       // (7, 0x1f): the takeoff
+  ['1|Motion[17]', { at: (f, S) => 500 * S + alaIdx(ALA_L1M17, f) }],                     // (4, 0xa): the hop to the 600 line
+  ['2|Motion[2]',  { at: (f, S) => 500 * S + alaLerp(ALA_L2M2, f) }],                     // (7, 5 / 6): the leap
+  // L1 M1, BOTH heights -- A (the clip's plays (0, 3), (3, 0..4), (7, 0x1f): posture 1 after the takeoff, the unit at the body 2802 + the
+  // lift (FlyOfs x S + L1 M19's 2302) above the ground; the fly moves keep it -- 0xbf284 holds no height, their own curves are their
+  // clips') and B ((0, 6), (4, 1 / 2 / 4 / 5 / 6 / 0xa / 0xe): posture 3, pinned, the body FlyOfs x S up). psl-mask.js CLIP_ACTIONS has
+  // the split; airLift reads a copy's row by its '#B' key
+  ['1|Motion[1]',   { at: (f, S) => 500 * S + ALA_D19[360] + 3 }],
+  ['1|Motion[1]#B', { posture: 3 }],
+];
+const AST_P3 = Object.fromEntries(['1|Motion[16]', '1|Motion[21]', '1|Motion[2]', '1|Motion[3]', '2|Motion[13]', '2|Motion[24]', '2|Motion[7]', '4|Motion[22]', '4|Motion[26]', '4|Motion[62]', '9|Motion[12]', '9|Motion[15]', '9|Motion[19]', '9|Motion[20]', '9|Motion[21]', '9|Motion[22]', '9|Motion[6]', '9|Motion[7]', '9|Motion[8]'].map(k => [k, { posture: 3 }]));
+// (7, 1) / (7, 0x14) / (7, 0x2a) L4 M26 enter 0x10247ec: P+0x5c -3.333 a frame (0x10248a4) to -200 (0x102496c) -- the Rath line's L4 M26 literals
+AST_P3['4|Motion[26]'] = { posture: 3, drawn: (f, S, m) => 500 * S - m * Math.min(200, 3.3333 * f) };
 export const AIR_HEIGHT = {
   em001_00: RATH_AIR, em001_02: RATH_AIR, em001_04: RATH_AIR, em002_00: RATH_AIR, em002_02: RATH_AIR, em002_04: RATH_AIR,
   // Seregios: L1 M2 (0, 6) is posture 3 too (0xfdb29c) -- his P+0x5c on it is NOT READ, so the body is drawn at FlyOfs x S
@@ -6900,13 +7153,55 @@ export const AIR_HEIGHT = {
   // Malfestio / Nightcloak: L2 M35 (0xff7aec), L1 M22 / M27 / M28 set posture 3 -- the unit on the ground (dev/em079-hypnosis-
   // and-gaps.md G5; his shells' floor snap needs it)
   em079_00: { flyOfs: 300, clips: MALF_GROUND }, em079_04: { flyOfs: 300, clips: MALF_GROUND },
-  em081_00: { flyOfs: 500 }, em081_04: { flyOfs: 500 },
+  // ASTALOS / BOLTREAVER (uEm081_00): the actions that set POSTURE 3 (0xbc7f4(e, 3)) before their first motion -- the action main
+  // run per (status, number), variants 0 and 4 alike (<archive>/bolt605/posture81.py, post81_all.txt; control: the takeoff (3, 0)
+  // sets 0 and lifts later, dev/air-height.md 2.3). In posture 3 the unit is pinned to the ground (0xbf284) and every 900 test sees
+  // it there -- Boltreaver's u 605 on L9 M22 ended at its spawn-height check while the standard air rule put the ground 1060 below
+  // (effects lane, 2026-10-25). The body is drawn P+0x1cc x S + P+0x5c x m above it (0xa5db8). uEm081's P+0x5c (READ, coordinator's
+  // ask): 17 setter calls (0xbf700 / 0xbf71c) in six functions (<archive>/bolt605/p5c081_sites.txt); the actions entering them in
+  // phase 0 (p5cact.txt): 0x10247ec on L4 M26 (-3.333 a frame to -200, the row below), 0x101aafc (+-2.5 a frame toward a target NOT
+  // READ) on L1 M2 / M3 / M16 / M21, L2 M13, L4 M22 / M23 / M24, 0x1025478 / 0x1025b48 on L2 M12 / M7, 0x102c1dc on L4 M31. L9 M22's
+  // (7, 0xd1) / (7, 0xe5) enter none, so P+0x5c decays to 0 (0xa5e18..0xa5e7c) and the body is drawn FlyOfs x S above the unit --
+  // airLift's posture-3 default. 0x101aafc's target (READ, effects lane A, 2026-10-25): e+0xb69c x (1 - max(n.y, 0.866)) / 0.134, n the
+  // floor normal e+0x1080.. (the floor block's hit normal) dotted with the world Y axis 0x19176f0 -- a slope term, 0 on flat ground, so on
+  // the viewer's one flat floor P+0x5c steps to 0 there and those clips' default is the ROM's. The later phases' calls are NOT READ.
+  // L4 M23 / M24 are played in posture 1 by (3, 0x21..0x26) as well and keep the rule above.
+  em081_00: { flyOfs: 500, clips: AST_P3 }, em081_04: { flyOfs: 500, clips: AST_P3 },
   // KECHA WACHA (uEm065_00): the hang drop 0xf51fc4 ((7, 0x15) / (7, 0x48) sp_00 0, (7, 0x16) / (7, 0x49) sp_01 3 at L2 M117
   // f33). Phase 2 -> 5 (0xf52200..0xf52258): posture 1 (0xbc984(0)), P+0x44 = P+0x5b4 + 585 x S, v 0 -- L2 M126; at M126 f20
   // (0xf52390..0xf52430): L2 M117, 0x7bd18, P+0x44 -= 250 x S (335 S); f30 vy 26, ay -1 (raw, 0xf52460..), integrated by
   // 0x7a820 (d = f - 29: one step per frame, the update order I). No surface, no FlyOfs (0.0), no P+0x92c in the class.
   // His clips carry that height on the `reference` track (M126 584.5, M117 400.2), which the viewer draws: `hang`.
   // (7, 0x14) / (7, 0x4d) play M126 in posture 3 instead (unit on the ground, drawn 585 m): the drop path's value stands.
+  // ALATREON (uEm050_00; shells lane, 2026-10-26 -- his (7, 0x19) meteors fell to the lowest-reach stand-in floor, 459 under the clip
+  // origin, and sank to y -537): L2 M21 played by (7, 0x19) 0xec9af0 (setMotion 0x215 at 0xec9b38, no posture call), whose only issuer is
+  // (7, 0xf)'s follow at 0xecc428 (issuers.py over the band; no EMC stream issues it -- control: (7, 0xf) at g1 s32), and (7, 0xf) sets
+  // POSTURE 3 at its start (0xbc7f4(e, 3) at 0xecc134); the follow 0x768c8 / 0x76098 and his vt+0x204 0xec4b3c call no posture setter
+  // directly (the same scan finds 0xecc134 -- deeper calls not scanned, I). In posture 3 the engine pins the unit to the ground (0xbf284:
+  // P+0x44 = P+0x5b4) and draws the body P+0x1cc = FlyOfs x S above it (0xbf74c; his dtbase FlyOfs 500, loader 0x53800 under tune_emu --
+  // <archive>/gapV/flyofs.py, controls Seregios / Rathian / Astalos 500, Malfestio 300). His other L2 M21 sites: (7, 0x20) 0xecaed8 in
+  // posture 1 (0xbc984(FlyOfs) at 0xecad88: the unit FlyOfs x S above the ground, the body with it) and three that set posture 3 first
+  // (0xecb914 / 0xecba20 / 0xecbb18): the ground is FlyOfs x S below the drawn body in every one. No standard rule: only this row.
+  // THE AUDIT (2026-10-26, coordinator: every action that sets a posture, and the clips it plays): his action main vt+0x1f4 0xeccc1c run
+  // under unicorn for every (status, number), phase 0..7 x sub-phase 0..3 (<archive>/gapW/actpost.py, actpost.json; every setter's
+  // argument read at its site -- every 0xbc984 takes FlyOfs, 0xbf4d4 before it). POSTURE 3 (pinned, body FlyOfs x S above the ground) is
+  // the only posture these clips are played in: L1 M2 / M4 ((7, 0x1d / 0x1e / 0x26)), L1 M6 ((4, 3)), L1 M7 ((4, 4)), L1 M8 ((4, 5)),
+  // L1 M9 ((4, 0xd / 0xe / 0xf)), L1 M11 ((4, 0 / 6 / 9)), L1 M12 ((4, 6 / 0xe)), L1 M15 ((4, 0xc)), L1 M20 ((4, 0x10)), L2 M8 / M12
+  // ((7, 0xd / 0xe / 0x25 / 0x40)), L2 M9 / M10 ((7, 0xd / 0x40)), L2 M11 ((7, 0xe / 0x25)), L2 M18 ((7, 0xb / 0x46)), L2 M19 ((7, 0xc /
+  // 0x47)), L2 M23 ((3, 2), (4, 8 / 0xb)), L3 M53 ((1, 0x63)), L3 M54 ((1, 0x62)). TWO postures, one ground: L2 M7 and L2 M21 -- posture 3
+  // under (7, 0xf / 0x38 / 0x39 / 0x3f) and (7, 0x19) (inherited from (7, 0xf)), posture 1 under (7, 0x20) (0xbc984(FlyOfs) from the
+  // ground: the unit FlyOfs x S up, with the body) -- the ground is FlyOfs x S below the drawn body either way; the row is posture 3, the
+  // four-of-five plays and every shell row but (7, 0x20)'s, whose drops take the ARENA's points (V050M), not the unit. L2 M24: posture 3
+  // under (4, 7), posture 1 under (3, 3) (lifted by FlyOfs off L2 M22): the same ground; posture 3 (no shell reads its unit). NOT ROWED
+  // (named): L1 M1 -- posture 1 in the fly moves (3, 0..4) after the takeoff (7, 0x1f), whose L1 M19 runs the rise curve 0x17c7194 (0 to
+  // f198, up to 40 a frame, 3 from f280: about 2296 over its 361 frames), and posture 3 in (0, 6) / (4, 1..0xa / 0xe): the heights differ;
+  // L1 M17 ((4, 0xa), curve 0x17c7124) and L2 M2 ((7, 5 / 6), curve 0x17c71dc): posture 1 driven by a velocity curve and the floor clamp
+  // 0xbf284 (P+0x92c not read for him); L1 M19 (the takeoff itself). Posture 0's clips keep the standard floor. The drawn body: P+0x1cc x S
+  // + P+0x5c x m (0xa5db8) -- his P+0x5c is not read (L1 M4 / L3 M53 hang 931 / 617 below their origin at size 1, past the 500 line).
+  em050_00: { flyOfs: 500, standard: false, clips: Object.fromEntries(['1|Motion[2]', '1|Motion[4]', '1|Motion[6]', '1|Motion[7]',
+    '1|Motion[8]', '1|Motion[9]', '1|Motion[11]', '1|Motion[12]', '1|Motion[15]', '1|Motion[20]', '2|Motion[7]', '2|Motion[8]',
+    '2|Motion[9]', '2|Motion[10]', '2|Motion[11]', '2|Motion[12]', '2|Motion[18]', '2|Motion[19]', '2|Motion[21]', '2|Motion[23]',
+    '2|Motion[24]', '3|Motion[53]', '3|Motion[54]'].map(k => [k, { posture: 3 }]).concat(ALA_CURVE_ROWS)) },
   em065_00: { flyOfs: 0, standard: false, clips: {
     '2|Motion[126]': { hang: (f, S) => 585 * S },
     '2|Motion[117]': { hang: (f, S) => { const d = f - 29; return 335 * S + (d > 0 ? 26 * d - 0.5 * d * d : 0); } },
@@ -6919,7 +7214,9 @@ export const AIR_HEIGHT = {
 export function airLift(monId, list, clip, frame, size, sizeBase = 1, air = true){
   const t = AIR_HEIGHT[monId];
   if (!t) return null;
-  const c = t.clips && t.clips[list + '|' + String(clip).replace(/_(start|loop)$/, '')];
+  // a clip-menu copy ('Motion[N]#B', index.html airNow) takes its own row when it has one, else the clip's (shells lane, 2026-10-26)
+  const cs = String(clip), cp = (/#(.+)$/.exec(cs) || [])[1], ck = list + '|' + cs.replace(/#.*$/, '').replace(/_(start|loop)$/, '');
+  const c = t.clips && ((cp && t.clips[ck + '#' + cp]) || t.clips[ck]);
   const m = size / (sizeBase || 1);
   if (c && c.posture === 3){ const d = c.drawn ? c.drawn(frame, size, m) : t.flyOfs * size; return { ground: d, unit: d }; }
   if (c && c.at) return { ground: c.at(frame, size), unit: 0 };
@@ -6928,6 +7225,270 @@ export function airLift(monId, list, clip, frame, size, sizeBase = 1, air = true
   if (c && c.hang) return { ground: 0, unit: -c.hang(frame, size) };
   if (!air || t.standard === false) return null;
   return { ground: t.flyOfs * size + AIR_STANDARD_CURVE, unit: 0 };
+}
+
+// THE POSTURE-4 SINK (effects lane A4, 2026-10-26; one shared rule, rom-map "Effects lane A4"). The drawn offset e+0x1384 = (posture 3 ?
+// P+0x1cc x S : 0) + P+0x5c x m (0xa50dc zeroes it, 0xa5db8 adds it, 0xa807c draws the unit at P+0x40 + e+0x1380..; dev/air-height.md
+// 5.1), and in posture 4 (P+0x1ba == 4) 0xa5e04 skips P+0x5c's decay: whatever the action set holds for the whole play. The unit is on the
+// ground (0xbf284 pins P+0x44 = P+0x5b4 in posture 4), so the body is drawn P+0x5c x m BELOW the ground -- the burrow / the dive.
+// Built from each class's own writers, every action and phase under unicorn (<archive>/laneA4/p4audit: p4trace.py -> p4group.txt;
+// control Blangonga (7, 0x14..0x16) 0xdddbc8: 0xbc7f4(e, 4), 0xbf62c -> 0xbf700 = MoguriBaseOfs -500, L0 M20) and the .dtb
+// MoguriBaseOfs (+0x32; moguri_dtb.txt), by <archive>/laneA4/sink4/gen_sink4.py + gen_js.py. Per clip: v = P+0x5c (game units) or
+// ramp [from, per frame] (to 0); acts = the posture-4 actions that set it ('status,number'); shared = the clip is also a phase-0 play
+// of an action that sets no posture 4 (players.py) -- then only a play whose action the viewer knows (psl-mask.js CLIP_ACTIONS /
+// a copy's pick) and that is one of `acts` sinks. Left out, with the reason (sink4_left.txt / gen_sink4.py `skipped`): values held
+// from the previous action (no write), tune or computed values (Lavasioth's e+0xcae0 / -353, Lagiacrus / Royal Ludroth tune ints,
+// Zamtrios's computed sites), values that change mid-play at a phase not read (Brachydios L0 M39, Nibelsnarf L0 M10, Lavasioth L0 M18)
+// and Nibelsnarf's dive ramp (its rate's G+0x68 factor INFERRED).
+export const SINK4 = {
+  em004_00: {
+    '0|Motion[1]': { v: -2000, acts: ['0,7', '6,2'], shared: true },
+    '0|Motion[7]': { v: -2000, acts: ['6,3'], shared: true },
+    '4|Motion[2]': { v: -500, acts: ['12,0'], shared: true },
+  },
+  em005_00: {
+    '0|Motion[1]': { v: -2000, acts: ['0,7', '6,2'], shared: true },
+    '0|Motion[7]': { v: -2000, acts: ['6,3'], shared: true },
+    '4|Motion[2]': { v: -500, acts: ['12,0'], shared: true },
+  },
+  em007_00: {
+    '0|Motion[10]': { v: -1100, acts: ['6,4', '6,10', '6,11', '6,18', '6,46'] },
+    '0|Motion[13]': { v: -1100, acts: ['6,4', '6,10', '6,11', '6,18', '6,46'] },
+    '0|Motion[1]': { v: -1100, acts: ['0,7', '1,13', '6,1', '6,19', '6,45', '6,14', '6,17', '6,24', '6,27', '6,38', '6,39', '6,50'], shared: true },
+    '0|Motion[5]': { v: -1100, acts: ['6,2'], shared: true },
+    '0|Motion[7]': { v: -1100, acts: ['6,3', '6,6', '6,16', '6,33', '6,34', '6,35', '6,42', '6,15', '6,23', '6,28', '6,29', '6,36', '6,37', '6,40', '6,41', '6,43', '6,44'], shared: true },
+    '0|Motion[9]': { v: -1100, acts: ['6,4', '6,10', '6,11', '6,18', '6,46'] },
+    '2|Motion[18]': { v: -1100, acts: ['7,15', '7,33', '12,0', '7,40', '7,127', '7,130', '7,132', '7,134'] },
+  },
+  em007_04: {
+    '0|Motion[10]': { v: -1100, acts: ['6,4', '6,10', '6,11', '6,18', '6,46'] },
+    '0|Motion[13]': { v: -1100, acts: ['6,4', '6,10', '6,11', '6,18', '6,46'] },
+    '0|Motion[1]': { v: -1100, acts: ['0,7', '1,13', '6,1', '6,19', '6,45', '6,14', '6,17', '6,24', '6,27', '6,38', '6,39', '6,50'], shared: true },
+    '0|Motion[5]': { v: -1100, acts: ['6,2'], shared: true },
+    '0|Motion[7]': { v: -1100, acts: ['6,3', '6,6', '6,16', '6,33', '6,34', '6,35', '6,42', '6,15', '6,23', '6,28', '6,29', '6,36', '6,37', '6,40', '6,41', '6,43', '6,44'], shared: true },
+    '0|Motion[9]': { v: -1100, acts: ['6,4', '6,10', '6,11', '6,18', '6,46'] },
+    '2|Motion[18]': { v: -1100, acts: ['7,15', '7,33', '12,0', '7,40', '7,127', '7,130', '7,132', '7,134'] },
+  },
+  em010_00: {
+    '0|Motion[18]': { v: -100, acts: ['0,4', '0,5', '0,7', '2,14', '2,16', '2,24', '2,18', '2,19', '6,3', '6,4', '6,5', '6,6', '6,10', '6,11', '6,12', '6,15', '6,16', '6,112', '12,0'] },
+    '0|Motion[19]': { v: -100, acts: ['2,16', '2,24', '6,10'] },
+    '0|Motion[20]': { v: -100, acts: ['2,16', '2,24', '6,10'] },
+    '0|Motion[21]': { v: -100, acts: ['2,17', '6,3', '6,4', '6,5', '6,6'] },
+    '0|Motion[22]': { v: -100, acts: ['6,1', '6,9'] },
+    '0|Motion[26]': { v: -100, acts: ['2,14', '2,18', '2,19', '6,3', '6,4', '6,5', '6,6', '6,11'] },
+    '0|Motion[27]': { v: -100, acts: ['2,14', '2,18', '2,19', '6,3', '6,4', '6,5', '6,6', '6,11'] },
+    '0|Motion[32]': { v: -100, acts: ['1,1'] },
+    '0|Motion[33]': { v: -100, acts: ['1,1'] },
+    '0|Motion[35]': { v: -100, acts: ['1,1'] },
+    '2|Motion[10]': { v: -100, acts: ['7,6'] },
+    '2|Motion[11]': { v: -100, acts: ['7,9'] },
+    '2|Motion[12]': { v: -100, acts: ['7,8'] },
+    '3|Motion[22]': { v: -100, acts: ['6,13'] },
+  },
+  em019_00: {
+    '0|Motion[19]': { v: -1100, acts: ['0,7', '6,1', '6,3', '6,9', '6,10', '6,50', '7,17', '12,2', '7,18', '7,20', '7,34', '7,35', '7,37', '7,38', '7,42', '7,43', '7,21', '8,0'] },
+    '0|Motion[4]': { v: -1100, acts: ['6,2', '6,4', '6,5', '6,7', '6,8'], shared: true },
+  },
+  em019_04: {
+    '0|Motion[19]': { v: -1100, acts: ['0,7', '6,1', '6,3', '6,9', '6,10', '6,50', '7,17', '12,2', '7,18', '7,20', '7,34', '7,35', '7,37', '7,38', '7,42', '7,43', '7,21', '8,0'] },
+    '0|Motion[4]': { v: -1100, acts: ['6,2', '6,4', '6,5', '6,7', '6,8'], shared: true },
+  },
+  em020_00: {
+    '0|Motion[19]': { v: -1100, acts: ['0,7', '6,1', '6,3', '6,10', '6,12', '7,17', '7,18', '7,20', '7,34', '7,35', '7,37', '7,38', '7,42', '7,43', '7,21'] },
+    '0|Motion[4]': { v: -1100, acts: ['6,2', '6,4', '6,7', '6,8'], shared: true },
+  },
+  em020_04: {
+    '0|Motion[19]': { v: -1100, acts: ['0,7', '6,1', '6,3', '6,10', '6,12', '7,17', '7,18', '7,20', '7,34', '7,35', '7,37', '7,38', '7,42', '7,43', '7,21'] },
+    '0|Motion[4]': { v: -1100, acts: ['6,2', '6,4', '6,7', '6,8'], shared: true },
+  },
+  em022_00: {
+    '0|Motion[0]': { v: -500, acts: ['6,4', '6,13', '6,14', '6,9', '6,15', '6,16'] },
+    '0|Motion[18]': { v: -500, acts: ['6,7', '6,8', '6,12'], shared: true },
+    '0|Motion[20]': { v: -500, acts: ['0,7', '6,2', '6,6', '6,5', '6,10', '6,11', '7,20', '7,21', '7,22'] },
+    '0|Motion[5]': { v: -500, acts: ['6,4', '6,13', '6,14'] },
+    '0|Motion[6]': { v: -500, acts: ['6,4', '6,13', '6,14'] },
+    '0|Motion[7]': { v: -500, acts: ['6,9', '6,15', '6,16'] },
+    '0|Motion[8]': { v: -500, acts: ['6,9', '6,15', '6,16'] },
+  },
+  em030_00: {
+    '0|Motion[14]': { v: -1000, acts: ['0,7'], shared: true },
+    '0|Motion[5]': { v: -1000, acts: ['6,2'], shared: true },
+    '0|Motion[6]': { v: -1000, acts: ['6,1'] },
+    '0|Motion[7]': { v: -1000, acts: ['6,1'], shared: true },
+  },
+  em033_00: {
+    '0|Motion[2]': { v: -2000, acts: ['0,7', '1,11', '1,12', '1,13', '6,1', '6,2', '6,7', '6,3', '6,12', '6,5', '6,6', '6,8', '6,9', '6,13', '6,14', '6,15', '7,6', '7,7', '7,8', '7,9', '7,10', '7,11', '7,12', '7,13'], shared: true },
+  },
+  em036_00: {
+    '0|Motion[0]': { v: -2000, acts: ['6,17', '6,18'] },
+    '0|Motion[17]': { v: -303, acts: ['6,35'] },
+    '0|Motion[21]': { v: -2000, acts: ['6,0', '6,1', '7,19'] },
+    '0|Motion[26]': { v: -2000, acts: ['6,17', '6,18'] },
+    '0|Motion[27]': { v: -2000, acts: ['6,17', '6,18'] },
+  },
+  em038_00: {
+    '0|Motion[2]': { v: -2000, acts: ['0,7', '6,1', '6,16', '6,2', '6,7', '6,3', '6,5', '6,6', '6,8', '6,10', '6,12', '6,13', '6,19'], shared: true },
+  },
+  em043_00: {
+    '0|Motion[10]': { v: -2000, acts: ['6,4'] },
+    '0|Motion[11]': { v: -2000, acts: ['6,4'] },
+    '0|Motion[14]': { v: -2000, acts: ['6,4'], shared: true },
+    '0|Motion[1]': { v: -2000, acts: ['0,7', '6,1'], shared: true },
+    '0|Motion[6]': { v: -2000, acts: ['6,3'], shared: true },
+  },
+  em043_05: {
+    '0|Motion[10]': { v: -2000, acts: ['6,4'] },
+    '0|Motion[11]': { v: -2000, acts: ['6,4'] },
+    '0|Motion[14]': { v: -2000, acts: ['6,4'], shared: true },
+    '0|Motion[1]': { v: -2000, acts: ['0,7', '6,1'], shared: true },
+    '0|Motion[6]': { v: -2000, acts: ['6,3'], shared: true },
+  },
+  em044_00: {
+    '0|Motion[13]': { v: -1500, acts: ['6,2'] },
+    '0|Motion[15]': { v: -1500, acts: ['6,4'] },
+    '0|Motion[1]': { v: -1500, acts: ['0,7', '6,1'], shared: true },
+    '0|Motion[3]': { v: -1500, acts: ['6,4'] },
+    '0|Motion[4]': { v: -1500, acts: ['6,4'] },
+    '0|Motion[6]': { v: -1500, acts: ['6,3', '6,6', '6,14'], shared: true },
+    '4|Motion[3]': { v: -1500, acts: ['6,7'] },
+    '4|Motion[5]': { ramp: [-600, 25], acts: ['6,5', '12,0'] },
+  },
+  em045_00: {
+    '0|Motion[10]': { v: -2000, acts: ['6,5'], shared: true },
+    '0|Motion[15]': { v: -2000, acts: ['1,6', '6,4', '6,10', '6,11', '6,12', '6,20', '6,21', '6,22', '6,13', '6,14', '6,15', '6,16', '6,17', '6,18', '6,19'], shared: true },
+    '0|Motion[1]': { v: -2000, acts: ['0,7', '6,1', '6,5'], shared: true },
+    '0|Motion[3]': { v: -2000, acts: ['1,6', '6,4', '6,10', '6,11', '6,12', '6,20', '6,21', '6,22', '6,13', '6,14', '6,15', '6,16', '6,17', '6,18', '6,19'] },
+    '0|Motion[4]': { v: -2000, acts: ['1,6', '6,4', '6,10', '6,11', '6,12', '6,20', '6,21', '6,22', '6,13', '6,14', '6,15', '6,16', '6,17', '6,18', '6,19'] },
+    '0|Motion[6]': { v: -2000, acts: ['1,6', '6,2', '6,3', '6,6', '6,10', '6,11', '6,12', '6,20', '6,21', '6,22', '6,13', '6,14', '6,15', '6,16', '6,17', '6,18', '6,19', '6,4'], shared: true },
+  },
+  em049_00: {
+    '0|Motion[1]': { v: -1000, acts: ['0,7', '6,0', '6,7', '6,11', '13,2'], shared: true },
+    '0|Motion[6]': { v: -1000, acts: ['6,5', '6,9', '6,10', '13,3'] },
+    '0|Motion[7]': { v: -1000, acts: ['6,5', '6,9', '6,10', '13,3'] },
+    '0|Motion[8]': { v: -1000, acts: ['6,5', '6,9', '6,10', '13,3'] },
+    '2|Motion[6]': { v: -1000, acts: ['6,3', '6,4', '6,6', '6,8', '6,15', '13,4'], shared: true },
+  },
+  em055_00: {
+    '0|Motion[15]': { v: -2000, acts: ['6,4'] },
+    '0|Motion[1]': { v: -2000, acts: ['0,7', '6,2'], shared: true },
+    '0|Motion[3]': { v: -2000, acts: ['6,4'] },
+    '0|Motion[4]': { v: -2000, acts: ['6,4'] },
+    '0|Motion[6]': { v: -2000, acts: ['6,3', '6,5', '6,6'], shared: true },
+  },
+  em056_00: {
+    '0|Motion[1]': { v: -350, acts: ['0,7', '2,10', '2,11', '2,15', '2,16', '6,20', '7,27', '7,28', '7,33', '7,34', '13,2', '13,6'], shared: true },
+    '0|Motion[2]': { v: -350, acts: ['6,1', '6,11', '6,12', '6,3', '6,4', '6,6', '6,13', '6,17', '6,18', '13,3', '13,5'], shared: true },
+  },
+  em060_00: {
+    '0|Motion[1]': { v: -1000, acts: ['6,1'], shared: true },
+    '0|Motion[4]': { v: -1000, acts: ['6,2'], shared: true },
+    '0|Motion[8]': { v: -1000, acts: ['6,1'] },
+    '0|Motion[9]': { v: -1000, acts: ['6,1'] },
+  },
+  em060_04: {
+    '0|Motion[1]': { v: -1000, acts: ['6,1'], shared: true },
+    '0|Motion[4]': { v: -1000, acts: ['6,2'], shared: true },
+    '0|Motion[8]': { v: -1000, acts: ['6,1'] },
+    '0|Motion[9]': { v: -1000, acts: ['6,1'] },
+  },
+  em061_00: {
+    '0|Motion[51]': { v: -1000, acts: ['6,1'] },
+    '0|Motion[60]': { v: -1000, acts: ['6,1'] },
+    '0|Motion[61]': { v: -1000, acts: ['6,1'] },
+    '0|Motion[6]': { v: -1000, acts: ['6,2'], shared: true },
+  },
+  em061_04: {
+    '0|Motion[51]': { v: -1000, acts: ['6,1'] },
+    '0|Motion[60]': { v: -1000, acts: ['6,1'] },
+    '0|Motion[61]': { v: -1000, acts: ['6,1'] },
+    '0|Motion[6]': { v: -1000, acts: ['6,2'], shared: true },
+  },
+  em062_00: {
+    '0|Motion[1]': { v: -1000, acts: ['6,1'], shared: true },
+    '0|Motion[4]': { v: -1000, acts: ['6,2'], shared: true },
+    '0|Motion[8]': { v: -1000, acts: ['6,1'] },
+    '0|Motion[9]': { v: -1000, acts: ['6,1'] },
+  },
+  em063_00: {
+    '0|Motion[10]': { v: -1500, acts: ['6,2', '6,3', '6,6'], shared: true },
+    '0|Motion[1]': { v: -1500, acts: ['0,7', '6,1'], shared: true },
+    '0|Motion[32]': { v: -1500, acts: ['6,4'] },
+    '0|Motion[7]': { v: -1500, acts: ['6,4'] },
+    '0|Motion[8]': { v: -1500, acts: ['6,4'] },
+  },
+  em063_05: {
+    '0|Motion[10]': { v: -1500, acts: ['6,2', '6,3', '6,6'], shared: true },
+    '0|Motion[1]': { v: -1500, acts: ['0,7', '6,1'], shared: true },
+    '0|Motion[32]': { v: -1500, acts: ['6,4'] },
+    '0|Motion[7]': { v: -1500, acts: ['6,4'] },
+    '0|Motion[8]': { v: -1500, acts: ['6,4'] },
+  },
+  em066_00: {
+    '0|Motion[11]': { v: -2400, acts: ['6,80'] },
+    '0|Motion[12]': { v: -2400, acts: ['6,80'] },
+    '0|Motion[13]': { v: -2400, acts: ['6,80'] },
+    '0|Motion[1]': { v: -2400, acts: ['0,7'], shared: true },
+    '0|Motion[7]': { v: -2400, acts: ['6,81'], shared: true },
+  },
+  em066_04: {
+    '0|Motion[11]': { v: -2400, acts: ['6,80'] },
+    '0|Motion[12]': { v: -2400, acts: ['6,80'] },
+    '0|Motion[13]': { v: -2400, acts: ['6,80'] },
+    '0|Motion[1]': { v: -2400, acts: ['0,7'], shared: true },
+    '0|Motion[7]': { v: -2400, acts: ['6,81'], shared: true },
+  },
+  em067_00: {
+    '4|Motion[16]': { v: -2400, acts: ['6,8'] },
+    '4|Motion[17]': { v: -2400, acts: ['6,10', '6,12', '6,36', '6,41', '7,71'] },
+    '4|Motion[31]': { v: -2400, acts: ['6,13', '6,19', '6,40'] },
+    '4|Motion[32]': { v: -2400, acts: ['6,13', '6,19', '6,40'] },
+    '4|Motion[33]': { v: -2400, acts: ['6,13', '6,19', '6,40'] },
+  },
+  em068_00: {
+    '0|Motion[11]': { v: -3000, acts: ['0,7', '6,2', '6,6', '6,4', '13,0'], shared: true },
+    '0|Motion[44]': { v: -3000, acts: ['6,3', '6,7', '6,9', '13,1'] },
+  },
+  em069_00: {
+    '0|Motion[1]': { v: -1000, acts: ['0,7', '6,1', '6,3', '12,0'], shared: true },
+    '0|Motion[71]': { v: -100, acts: ['6,3', '12,0'] },
+    '0|Motion[8]': { v: -1000, acts: ['6,2'], shared: true },
+  },
+  em070_00: {
+    '0|Motion[1]': { v: -1000, acts: ['0,7', '3,36', '3,38', '3,37', '3,39', '3,40', '3,41', '3,44', '6,1'], shared: true },
+  },
+  em080_00: {
+    '0|Motion[10]': { v: -2000, acts: ['6,4'] },
+    '0|Motion[11]': { v: -2000, acts: ['6,4'] },
+    '0|Motion[14]': { v: -2000, acts: ['6,4'], shared: true },
+    '0|Motion[1]': { v: -2000, acts: ['0,7', '6,1'], shared: true },
+    '0|Motion[6]': { v: -2000, acts: ['6,3'], shared: true },
+  },
+  em080_04: {
+    '0|Motion[10]': { v: -2000, acts: ['6,4'] },
+    '0|Motion[11]': { v: -2000, acts: ['6,4'] },
+    '0|Motion[14]': { v: -2000, acts: ['6,4'], shared: true },
+    '0|Motion[1]': { v: -2000, acts: ['0,7', '6,1'], shared: true },
+    '0|Motion[6]': { v: -2000, acts: ['6,3'], shared: true },
+  },
+  em084_00: {
+    '0|Motion[1]': { v: -3000, acts: ['13,0'], shared: true },
+    '0|Motion[50]': { v: -3000, acts: ['0,7', '6,100', '6,102', '7,113', '7,114'], shared: true },
+  },
+};
+// { ground, unit } as airLift's (game units below the drawn clip origin): the unit on the ground, both at P+0x5c x m -- negative, so
+// the ground lies ABOVE the clip origin. null when the clip has no row, or the play's action says it is not a sink play.
+// action: the play's [status, number] when the viewer knows it (index.html plays.action), else null
+export function sinkLift(monId, list, clip, frame, size, sizeBase = 1, action = null){
+  const t = SINK4[monId];
+  if (!t) return null;
+  const r = t[list + '|' + String(clip).replace(/#.*$/, '').replace(/_(start|loop)$/, '')];
+  if (!r) return null;
+  const a = action ? action[0] + ',' + action[1] : null;
+  if (a ? !r.acts.includes(a) : r.shared) return null;
+  const m = size / (sizeBase || 1);
+  const v = r.ramp ? Math.min(0, r.ramp[0] + r.ramp[1] * Math.max(0, frame)) : r.v;
+  const d = v * m;
+  return d ? { ground: d, unit: d, sink: v } : null;
 }
 
 export const postureOf = (monId, list, clip) => {
@@ -7311,8 +7872,20 @@ export const TIRED_DROOL = {
   em009_00: ['em009_00c', 1104], em010_00: ['em010_00c', 1104], em014_00: ['em014_00c', 1104],
   em015_00: ['em015_00c', 1104], em016_00: ['em016_00c', 1104], em017_00: ['em017_00c', 1104],
   em018_00: ['em018_00c', 1104], em018_04: ['em018_00c', 1104], em019_00: ['em019_00c', 1104],
+  // STONEFIST / SHOGUN / RUSTRAZOR (lane B, 2026-10-25): P+0x1a8 = 0x440041 for all three as for Daimyo (0x159c2dc via 0x1594ca4's
+  // pairs: indices 18 / 19 / 120; bit 0 set, bit 19 clear), tune+0x30 present (daimyo-scratch/tune_dump.py: stamina 6000 / 5400 /
+  // 3600) and no e+0xb7d2 / b7d3 write in the uEm019_00 / uEm020_00 band 0xdb3e64..0xdce790 (control: Rajang's 0xde1dd0 found the same
+  // way) -- so they tire and the shared drool runs; their c 1104 is their c list's (Stonefist em019_00c, the Shogun line em020_00c)
+  em019_04: ['em019_00c', 1104], em020_00: ['em020_00c', 1104], em020_04: ['em020_00c', 1104],
   // SELTAS QUEEN: states-em069_00.md 5 (cm200_006 on joint 1; the class writes neither e+0xb7d2 nor e+0xb7d3)
   em069_00: ['em069_00c', 1104],
+  // GORE MAGALA / CHAOTIC (lane B, 2026-10-25): P+0x1a8 = 0x40440241 (0x159c2dc indices 59 / 127: bit 0 set, bit 19 clear), tune+0x30
+  // present (stamina 4800 both, daimyo-scratch/tune_dump.py), no e+0xb7d2 / b7d3 write in uEm071_00's band 0xfad1fc..0xfc40ec (control:
+  // Rajang's 0xde1dd0) -- they tire; the tired idle (0, 2) L3 M23 is their row above. Shagaru (same class) is 0x404c0201: never tired
+  em071_00: ['em071_00c', 1104], em071_05: ['em071_00c', 1104],
+  // SELTAS (lane B, 2026-10-25): P+0x1a8 = 0x40043 (0x159c2dc index 61: bits 0 and 6, bit 19 clear), tune+0x30 present (stamina 3000,
+  // daimyo-scratch/tune_dump.py), and no e+0xb7d2 / b7d3 write in his band 0xfc3fec..0xfda0ac (control: Rajang's 0xde1dd0) -- he tires
+  em076_00: ['em076_00c', 1104],
   // LAGIACRUS: states-em046_00.md 5 (cm200_006 on joint 3, rot (70, 0, 0) at 1.4x; the class writes neither e+0xb7d2
   // nor e+0xb7d3, and P+0x1a8 bit 6 gives him the tired idle (0, 2) = L0 M19)
   em046_00: ['em046_00c', 1104],
@@ -7337,7 +7910,9 @@ export const TIRED_DROOL = {
   em063_00: ['em063_00c', 1104], em063_05: ['em063_00c', 1104], em066_00: ['em066_00c', 1104],
   em066_04: ['em066_00c', 1104], em067_00: ['em067_00c', 1104], em077_00: ['em077_00c', 1104],
   em079_00: ['em079_00c', 1104], em079_04: ['em079_00c', 1104], em080_00: ['em080_00c', 1104],
-  em080_04: ['em080_00c', 1104], em081_00: ['em081_00c', 1104], em081_04: ['em081_00c', 1104],
+  // em080_04 (Hellblade) REMOVED (Khezu AoE lane audit, 2026-10-27): 0x159c2dc[65] = 0x4c0001 has bit 19 -- stamina off, never tired
+  // (the only TIRED_DROOL monster of 76 whose (P+0x1a8 & 0x80001) != 1; <archive>/khezuaoe/tiredrows.out)
+  em081_00: ['em081_00c', 1104], em081_04: ['em081_00c', 1104],
   // MIZUTSUNE and SOULSEER: P+0x1a8 bits 0 and 6, tired timer 2500 for both, the class leaves e+0xb7d3 at 1, and the
   // drool is em082_00c 1104 for both (cm200_006 on joint 3, (0, -20, 70)) -- there is no em082_04c.pel.
   // (states-em082_00.md 5, 12.1)
@@ -7403,6 +7978,11 @@ export const SHELL_TAIL = {
   // drawn only on sets 8 and 12. Barroth: his part pass picks set 8 or 7 on the same test; part 12 is drawn only on set 8
   // (monsters.json groups). Their words read it (psl-mask.js em043 / em044_00; dev/em043_00- / em044_00-effects-spec.md).
   em043_00: { severed: 8 }, em043_05: { severed: 8 }, em044_00: { severed: 12 },
+  // Alatreon (lane B2, 2026-10-25): his part pass draws set 10 on vt+0x370(e, 1) -- the sever bit -- else set 3
+  // (states-em050_00.md, the part pass: `setVisibleGroup(e, vt+0x370(e, 1) == 1 ? 10 : 3)`); set 10 is the only set that draws
+  // part 13 (monsters.json em050_00 groups[10]: 13 on, 103 off; set 3 draws it off). His enable word 0xece27c reads the bit on
+  // L2 M5 under (7, 0x18): bits 27-29 severed (u 240), 15-17 intact (psl-mask.js em050_00)
+  em050_00: { severed: 13 },
 };
 export function shellTailInput(monId, drawn){
   const t = SHELL_TAIL[monId];
@@ -7505,6 +8085,19 @@ export function nakarkosParts084(monId, table, drawn){
   for (const [part, L] of Object.entries(NAKARKOS084)) out[part] = L.lv[userLevel(L.sets, table, drawn)];
   return out;
 }
+// Brachydios's / Raging's break levels as the eruption reads them (render/shells.js mode063erupt: 0x9d36c(e, part) against the .dtp
+// +0x64 row, rank > 4 the second byte). The part pass sets its broken group on the SAME test (states-em063_00.md 2.1 / 2.5: 0xf373b4..
+// head breakLevel(0) >= thr, part 3 / part 2 the row-1 thr), and every threshold is 2 (both .dtp files, both ranks), so a part whose
+// broken set is drawn is at level >= 2 -> 2, else 0. Brachydios: head sets 2 -> 7 (gauge < 10) / 12 -> 13 (gauge >= 10), part 3 3 -> 8,
+// part 2 4 -> 9; Raging: head 3 -> 4, part 3 5 -> 6, part 2 7 -> 8. { 0: head, 2: right arm, 3: left arm }
+export function brachyBreaks063(monId, table, drawn){
+  const L = monId === 'em063_00' ? { 0: [[[2], [7]], [[12], [13]]], 3: [[[3], [8]]], 2: [[[4], [9]]] }
+          : monId === 'em063_05' ? { 0: [[[3], [4]]], 3: [[[5], [6]]], 2: [[[7], [8]]] } : null;
+  if (!L) return undefined;
+  const out = {};
+  for (const [part, ladders] of Object.entries(L)) out[part] = ladders.some(l => userLevel(l, table, drawn) > 0) ? 2 : 0;
+  return out;
+}
 // Nerscylla's Back (part 1) as the drip reads it (render/shells.js drip070: P+0x3b4 0x2000 at its second level, vt+0x1dc 0xf9d350):
 // the part pass's Back sets 9 + 12 / 10 + 12 / 11 + 13 (0xf9bd10) -> 0 / 1 / 2
 export function nerscyllaBack070(monId, table, drawn){
@@ -7517,7 +8110,14 @@ export function agnaktorBroken049(monId, table, drawn){
 }
 export const SNOW083_TRUNK = [[6], [33], [31], [32], [7]];
 export function trunkSnow083(monId, table, drawn){
-  return monId === 'em083_04' ? userLevel(SNOW083_TRUNK, table, drawn) : undefined;
+  if (monId !== 'em083_04') return undefined;
+  // the row's option that IS a level's set, exactly (effects lane A4, 2026-10-26): Partial Ice {3, 41, 54, 76} draws the fur 3, which
+  // userLevel took for Broken's own part ({3, 4, 64}: none of the three in rung 3's set) -> level 4, so Ice -> Partial Ice never formed 1
+  if (table && drawn) for (let k = 0; k < SNOW083_TRUNK.length; k++){
+    const set = table[SNOW083_TRUNK[k][0]] || [];
+    if (set.length && set.every(([p, v]) => (drawn.get(p) === true) === !!v)) return k;
+  }
+  return userLevel(SNOW083_TRUNK, table, drawn);
 }
 // Gammoth's / Elderfrost's leg snow as the leg-snow shells read it (render/shells.js make083row legSnow083: 0x1053d8c on snow slots
 // 0..3 = parts 2..5): each leg row's level as the parts show it, on the applier's ladders (0x105418c: levels 0..4 -> sets 10 / 9 / 8
@@ -7666,7 +8266,10 @@ function userLevel(levels, table, drawn){
   const at = levels.map(sets => { const m = new Map(); for (const s of sets) for (const [p, v] of table[s] || []) m.set(p, v); return m; });
   let lv = 0;
   for (let k = 1; k < at.length; k++){
-    const own = [...at[k]].filter(([p, v]) => v && at[k - 1].get(p) === false).map(([p]) => p);
+    // a rung's own part: drawn by its sets and NOT drawn by the rung below's -- set false there, or not named by its sets at all
+    // (lane B2, 2026-10-26: Shagaru's horns 3 -> 10 -> 11 + 10 add part 4 at rung 2, which set 10 does not name; the old `=== false`
+    // test never reached rung 2. Audit <archive>/laneB2/levelaudit.mjs: of 638 ladders this changes that one only)
+    const own = [...at[k]].filter(([p, v]) => v && at[k - 1].get(p) !== true).map(([p]) => p);
     if (own.some(p => drawn.get(p) === true)) lv = k;
   }
   return lv;
@@ -7755,7 +8358,9 @@ export const CHARGE_EFFECTS = {
   //     stand-in for: hunter hits (the (1, 0x1c..0x21) / (10, 0x72 / 0xa7 / 0xaf / 0x60..) reactions cost 15..50, 0xeed37c /
   //     0xeed08c / 0xeed258 / 0xeed2a0); attacks cost 1..5 (0xeedaf0, 0 / 1 / 2 at G) but never below 1.
   em057_00: {
-    1: { hold: [['em057_00u', 30, 'UNIQUE']], alive: true },
+    // (effects lane A, 2026-10-25: tier 3 -- ctl+0 >= 75 -- is id 1002 = u 31, its own record; the class toggle `gaugeTier3` picks it
+    // while the Charging rung shows, tier 2 keeps u 30. READ: the aura machine 0xeed68c..0xeedaa0, rom-map `0xeecd58`)
+    1: { hold: [['em057_00u', 30, 'UNIQUE']], holdWhen: { gaugeTier3: [['em057_00u', 31, 'UNIQUE']] }, alive: true },
     2: { hold: [['em057_00u', 32]], calm: true, alive: true, leave: [['em057_00u', 90, 'UNIQUE']] },
   },
   em057_04: {
@@ -7879,7 +8484,9 @@ export class MotionStates {
                 ctl: user.classCtl | 0, ctl2: user.classCtl2 | 0, snowMap: !!user.snowMap, toggles: user.toggles || {}, eyesOff: this.eyesOff().length > 0, sets: sets || [], hornBroken: T.hornBroken ? T.hornBroken(this.userDrawn, sets, this.table) : false,
                 // the level rung (Rajang's Armor Mode, part-review `levels`) and whether this step began a NEW play of the clip (a
                 // clip change, or its frame going back outside a loop segment -- the viewer's form of an action start, vt+0x204)
-                level: user.level | 0, fresh: k.fresh, rank: user.rank == null ? 5 : user.rank | 0, ctl2Raw: user.classCtl2 | 0 };
+                level: user.level | 0, fresh: k.fresh, rank: user.rank == null ? 5 : user.rank | 0, ctl2Raw: user.classCtl2 | 0,
+                // the copy played past A ('B' for '<clip>#B': the row key index.html passes when MOTION_STATES has that copy's row)
+                copy: (/#(.+)$/.exec(String(clip)) || [])[1] || '' };
     for (const r of T.step(k.t, c)) out.fire.push(r);
     // `alpha`: [pel, key, a] -- the class writes unit 0's colour block (+0x180..+0x19c) of that held request to a each frame
     // (Amatsu 0xf09ac8, Valstrax 0x109f110); index.html hands it to the runtime (alphaEvent)
@@ -7931,13 +8538,16 @@ export class MotionStates {
     // aura machine in the action-start hook (0xeed68c..0xeedaa0) and the status-11 start (0xeed0e4 / 0xeecc2c)
     if (sp.calm && this.rage(this.userRage)) return [];
     if (sp.alive && this.dead()) return [];
+    // `holdWhen: { <toggle>: [records] }` -- the hold a class toggle swaps in (Zinogre's gauge tier 3, u 31 for u 30)
+    if (sp.holdWhen) for (const [k, h] of Object.entries(sp.holdWhen)) if (this.userToggles && this.userToggles[k]) return h;
     return sp.hold || [];
   }
   puffOff(){ return !!(this.cur && this.cur.spec.puffOff); }
   // EXHAUSTED: the motion's own (a tired idle row), or the user's Exhausted state (TIRED_DROOL above) -- which holds
   // over every clip, as P+0x505 does. A motion the ROM plays enraged (a rage entry) shows rage over it, and every
   // reader of this flag already lets rage win (0xa41b8, 0xca170, 0x81634), so it is not cleared here.
-  tired(){ return !!(this.cur && this.cur.spec.tired) || !!this.userTired; }
+  // ...and never under Hyper (user.hyper: P+0x1a8 bit 19 holds P+0x505 at 0 -- rom-map "P+0x1a8 bit 19"), whatever the row says
+  tired(){ return !this.userHyper && (!!(this.cur && this.cur.spec.tired) || !!this.userTired); }
   dead(){ return !!(this.cur && this.cur.spec.dead); }
 
   // Once a frame, after the clip has been advanced. monId; list; clip: the motion's bare slot name (a _start/_loop pair
@@ -7971,8 +8581,8 @@ export class MotionStates {
     // THE CHARGE DIFF, taken around the monId/level change so a monster switch stops the old one's records.
     // Deliberately outside the clip logic below: these hold across clips, so `spec` must not touch them.
     const chargeBefore = this.chargeHold(), levelBefore = this.chargeLevel | 0, monBefore = this.monId;
-    this.monId = monId; this.userRage = !!user.rage; this.userTired = !!user.tired; this.userPosture = user.posture;
-    this.chargeLevel = user.level | 0;
+    this.monId = monId; this.userRage = !!user.rage; this.userTired = !!user.tired; this.userHyper = !!user.hyper; this.userPosture = user.posture;
+    this.chargeLevel = user.level | 0; this.userToggles = Object.assign({}, user.toggles);   // a copy: the caller mutates state.toggles in place, which would hide the change from chargeBefore
     const idOf = r => r[0] + '|' + r[1];
     const out = { parts: false, rage: false, entry: false, fire: [], clips: false, settled: false, drop: false,
                   holdOn: [], holdOff: [], eyesOff: [], eyesOn: [], alpha: [] };
@@ -8079,6 +8689,24 @@ export class MotionStates {
       for (const [a, b, ss] of this.cur.spec.setsAt || []) if (frame >= a && frame <= b) extra.push(...ss);
       const all = (this.cur.baseSets || []).concat(extra);
       this.cur.sets = all.length ? all : this.cur.baseSets;
+    }
+    // `holdAt: [[frame, pel, key], ...]` (a general row type, 2026-10-25): a class request HELD from the frame the motion reaches -- the
+    // class stops its old handle, requests and stores the new one -- and STOPPED when the motion changes. Duramboros's u 100 (READ:
+    // em055_00 0xed3a80..0xed3ae8, `0xb09a4(e, 0, 0)` at 270.0 then `0x329c40(h, 0)` and vt+0x1d0(1001), stored at e+0xcbf0; the frame
+    // handler's 0xed2ab0..0xed2b7c stops e+0xcbf0 on any other motion -- it keeps it through L2 M23 and L3 M22 before f112, which the
+    // viewer's separate plays do not model). A loop or a replay crosses the frame again and restarts it, as a new pass does in game.
+    {
+      const hk = this.cur && this.cur.spec && this.cur.spec.holdAt ? this.cur : null;
+      if (this.heldAt && this.heldAt.owner !== hk){ for (const r of this.heldAt.recs) out.holdOff.push(r); this.heldAt = null; }
+      if (hk){
+        const lf = hk.holdAtFrame == null || frame < hk.holdAtFrame ? -Infinity : hk.holdAtFrame;
+        for (const [f, pel, k] of hk.spec.holdAt) if (lf < f && frame >= f){
+          out.holdOff.push([pel, k]); out.holdOn.push([pel, k]);
+          if (!this.heldAt) this.heldAt = { owner: hk, recs: [] };
+          if (!this.heldAt.recs.some(r => r[0] === pel && r[1] === k)) this.heldAt.recs.push([pel, k]);
+        }
+        hk.holdAtFrame = frame;
+      }
     }
     this.stepRock(monId, list, clip, frame, at, user, out);
     this.stepClassTimers(monId, list, clip, frame, at, user, out);

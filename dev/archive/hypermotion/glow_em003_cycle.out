@@ -1,0 +1,14 @@
+PASS em003_00 2|Motion[3] f191 #0 off  -- {"pick":null,"blue":53482,"redPixels":292,"frame":191}
+PASS em003_00 2|Motion[3] f191 #1 off  -- {"pick":null,"blue":21,"redPixels":717,"frame":191}
+PASS em003_00 2|Motion[3] f191 #2 off  -- {"pick":null,"blue":3162,"redPixels":594,"frame":191}
+PASS em003_00 2|Motion[3] f191 #3 off  -- {"pick":null,"blue":0,"redPixels":0,"frame":191}
+PASS em003_00 2|Motion[3] f191 #4 off  -- {"pick":null,"blue":90,"redPixels":4,"frame":191}
+PASS em003_00 2|Motion[3] f191 #5 off  -- {"pick":null,"blue":0,"redPixels":1,"frame":191}
+PASS em003_00 2|Motion[3] f190 #6 built  -- {"pick":null,"blue":0,"redPixels":0,"frame":190.4}
+PASS em003_00 2|Motion[3] f190 #7 built  -- {"pick":null,"blue":0,"redPixels":0,"frame":190.4}
+PASS em003_00 2|Motion[3] f190 #8 built  -- {"pick":null,"blue":0,"redPixels":0,"frame":190.4}
+PASS em003_00 2|Motion[3] f190 #9 built  -- {"pick":null,"blue":0,"redPixels":0,"frame":190.4}
+PASS em003_00 2|Motion[3] f190 #10 built  -- {"pick":null,"blue":0,"redPixels":0,"frame":190.4}
+PASS em003_00 2|Motion[3] f190 #11 built  -- {"pick":null,"blue":0,"redPixels":0,"frame":190.4}
+
+12 passed, 0 failed

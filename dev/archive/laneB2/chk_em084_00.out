@@ -1,0 +1,28 @@
+PASS Nakarkos arms: mounted, with both tentacles  -- ["main","em084_00_left","em084_00_right"]
+PASS Nakarkos arms: both arm runtimes are up, each on its own mounted model  -- [["em084_00_left",true],["em084_00_right",true]]
+PASS Nakarkos arms: each runtime's unit is the frame its arm hangs on (a matrix)
+PASS Nakarkos arms: the left runtime walks the arm's own clip, l_2 Motion[1]  -- "em084_00_left|l_2|Motion[1]"
+PASS Nakarkos arms: its mask is the arm word 0x107f0e4 (armMask084)  -- [511,511]
+PASS Nakarkos arms: u 10 (bit 0, on 114) starts on the left runtime at the arm's frame 114  -- {"efl":"em084_00_001.efl","key":10,"frame":115,"clip":"em084_00_left|l_2|Motion[1]"}
+PASS Nakarkos arms: u 130 (bit 1, on 105) at 105  -- {"efl":"em084_00_050.efl","key":130,"frame":106,"clip":"em084_00_left|l_2|Motion[1]"}
+PASS Nakarkos arms: u 201 (bit 18) does not start: the arm word leaves it off under (7, 0x9a)  -- [{"efl":"em084_00_050.efl","key":130,"frame":106,"clip":"em084_00_left|l_2|Motion[1]"},{"efl":"em084_00_001.efl","key":10,"frame":115,"clip":"em084_00_left|l_2|Motion[1]"}]
+PASS Nakarkos arms: nor do they start on the body's runtime  -- []
+PASS Nakarkos arms: l_2 Motion[5]: u 200 (bit 15) starts on the left runtime  -- [{"efl":"em084_00_015.efl","key":200,"frame":3,"clip":"em084_00_left|l_2|Motion[5]"}]
+PASS Nakarkos arms: and u 201 (bit 18) does not, under (7, 0x9b)  -- [{"efl":"em084_00_015.efl","key":200,"frame":3,"clip":"em084_00_left|l_2|Motion[5]"}]
+PASS Nakarkos arms: a step back clears the arm's clip requests (u 200), on the same runtime  -- [[200],[],true]
+PASS Nakarkos arms: L0 Motion[2] (u 135 running on the body and both arms): the step back does not throw  -- [[[135],[135]],[135],null]
+PASS Nakarkos arms: no runtime refused or was dropped  -- [null,null]
+PASS Nakarkos arms: the clip requests are cleared on all three  -- [[],[],[]]
+PASS Nakarkos arms: and u 135 runs again on the body and the left arm  -- [[135],[135]]
+PASS Nakarkos arms: c 800 is in the schedule as an event record (em084_00_200)  -- "files/em084_00_200.efl"
+PASS Nakarkos arms: L3 Motion[66] alone: no c 800  -- 0
+PASS Nakarkos arms: L3 Motion[65]: three c 800 requests, running  -- 3
+PASS Nakarkos arms: each at P+0x40 + its turned tune vec x size (+0xc0..)  -- {"got":[[473.0349426269531,275,1488.98583984375],[462.0349426269531,308,1323.98583984375],[451.0349426269531,341,1158.98583984375]],"want":[[473.0349426269531,275,1488.98583984375],[462.0349426269531,308,1323.98583984375],[451.0349426269531,341,1158.98583984375]]}
+PASS Nakarkos arms: its block: +0x14 |= 0x40000000, +0x40.. (1.8, 2.3, 1.8), +0x1c |= 3, +8 = 3
+PASS Nakarkos arms: held across the loop, no more requested, no refusal  -- [3,null]
+PASS Nakarkos arms: the next play stops all three
+PASS Nakarkos arms: effects off: both arm runtimes are gone
+PASS Nakarkos arms: effects on: made again
+PASS Nakarkos arms: another monster: both arm runtimes are gone
+
+26 passed, 0 failed

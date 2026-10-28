@@ -1,0 +1,1 @@
+{"id": "em084_00", "shellEvery": 60, "steps": [{"set": {"monStance": "1"}}, {"clip": "0|Motion[63]", "frames": 1500}], "want": ["em084_00|em084_00u|3|shell", "em084_00|em084_00u|2|shell", "em084_00|em084_00u|1|shell", "em084_00|em084_00u|21|shell", "em084_00|em084_00u|10|shell"]}

@@ -1,0 +1,1 @@
+{"id":"em080_00","steps":[{"clip":"0|Motion[4]","frames":200},{"partSweep":{"clip":"0|Motion[4]","frames":60,"reps":1}},{"set":{"monLevel":"1"}},{"clip":"0|Motion[4]","frames":200},{"set":{"monLevel":"2"}},{"clip":"0|Motion[4]","frames":200}],"want":["em080_00|em080_00u|200|event"]}

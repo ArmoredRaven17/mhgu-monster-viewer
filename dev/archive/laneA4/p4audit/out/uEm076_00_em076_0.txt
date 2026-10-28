@@ -1,0 +1,36 @@
+uEm076_00 em076 v0 (0, 0x7) ph0A: SET MOG@fc7af4 | PH 1 | POST 4@fc7b24 | M L0M1@fc7b44 | SET MOG@4ffffffc
+uEm076_00 em076 v0 (0, 0x7) ph0B: CHG follow(6,0x1)
+uEm076_00 em076 v0 (0, 0x7) ph1A: SET MOG@fc7af4 | SET MOG@fc7b6c | VT3E8@4ffffffc
+uEm076_00 em076 v0 (0, 0x7) ph1B: CHG follow(6,0x1)
+uEm076_00 em076 v0 (0, 0x7) ph2A?: SET MOG@fc7af4
+uEm076_00 em076 v0 (0, 0x7) ph2B?: CHG follow(6,0x1)
+uEm076_00 em076 v0 (0, 0x7) ph3A?: SET MOG@fc7af4
+uEm076_00 em076 v0 (0, 0x7) ph3B?: CHG follow(6,0x1)
+uEm076_00 em076 v0 (0, 0x7) ph4A?: SET MOG@fc7af4
+uEm076_00 em076 v0 (0, 0x7) ph4B?: CHG follow(6,0x1)
+uEm076_00 em076 v0 (0, 0x7) ph5A?: SET MOG@fc7af4
+uEm076_00 em076 v0 (0, 0x7) ph5B?: CHG follow(6,0x1)
+uEm076_00 em076 v0 (0, 0x7) ph6A?: SET MOG@fc7af4
+uEm076_00 em076 v0 (0, 0x7) ph6B?: CHG follow(6,0x1)
+uEm076_00 em076 v0 (0, 0x7) ph7A?: SET MOG@fc7af4
+uEm076_00 em076 v0 (0, 0x7) ph7B?: CHG follow(6,0x1)
+uEm076_00 em076 v0 (0, 0x7) ph8A?: SET MOG@fc7af4
+uEm076_00 em076 v0 (0, 0x7) ph8B?: CHG follow(6,0x1)
+uEm076_00 em076 v0 (0, 0x7) ph9A?: SET MOG@fc7af4
+uEm076_00 em076 v0 (0, 0x7) ph9B?: CHG follow(6,0x1)
+uEm076_00 em076 v0 (0, 0x7) ph10A?: SET MOG@fc7af4
+uEm076_00 em076 v0 (0, 0x7) ph10B?: CHG follow(6,0x1)
+uEm076_00 em076 v0 (0, 0x7) ph11A?: SET MOG@fc7af4
+uEm076_00 em076 v0 (0, 0x7) ph11B?: CHG follow(6,0x1)
+uEm076_00 em076 v0 (6, 0x0) ph0A: PH 1 | P1 | M L4M90@fd0dc8
+uEm076_00 em076 v0 (6, 0x0) ph1B: PH 2 | POST 4@fd0e1c | M L4M93@4ffffffc
+uEm076_00 em076 v0 (6, 0x0) ph2B: PH 3 | VT3E8@4ffffffc
+uEm076_00 em076 v0 (6, 0x1) ph0A: PH 1 | POST 4@fd0f34 | POST 0@fd1004 | M L4M91@fd1020
+uEm076_00 em076 v0 (6, 0x1) ph1B: PH 2 | M L4M94@fd112c | P1 | POST 1@4ffffffc
+uEm076_00 em076 v0 (6, 0x1) ph2A: PH 3 | P1
+uEm076_00 em076 v0 (6, 0x2) ph0A: PH 1 | POST 4@fd11f0 | M L0M1@fd1214 | SET MOG@fd1224
+uEm076_00 em076 v0 (6, 0x2) ph1B: VT3E8@4ffffffc
+uEm076_00 em076 v0 (6, 0x3) ph0A: PH 1 | POST 4@fd12f4 | M L0M1@fd1318 | SET MOG@fd1328
+uEm076_00 em076 v0 (6, 0x3) ph1A: SET MOG@4ffffffc
+uEm076_00 em076 v0 (6, 0x5) ph0A: PH 1 | POST 4@fd11f0 | M L0M1@fd1214 | SET MOG@fd1224
+uEm076_00 em076 v0 (6, 0x5) ph1B: VT3E8@4ffffffc

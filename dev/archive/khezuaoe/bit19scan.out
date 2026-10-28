@@ -1,0 +1,241 @@
+00013a44 ldr r1, [pc, #0x1a8]  ->  00013a50  ARITH add r1, pc, r1
+0006f504 ldr r1, [r0, #0x1a8]  ->  0006f50c  CALL-ARG r1 (bit at 19) blx r1
+000a0f04 ldr r0, [r1, #0x1a8]  ->  000a0f08  test-other tst r0, #1 (bit at 19, mask 0x1)
+000a0f04 ldr r0, [r1, #0x1a8]  ->  000a1090  test-other tst r0, #1 (bit at 19, mask 0x1)
+000a1088 ldr r0, [r1, #0x1a8]  ->  000a1090  test-other tst r0, #1 (bit at 19, mask 0x1)
+000a168c ldr r1, [r0, #0x1a8]  ->  000a17fc  test-other tst r1, #1 (bit at 19, mask 0x1)
+000a168c ldr r1, [r0, #0x1a8]  ->  000a16a0  test-other ands r2, r1, #0x800 (bit at 19, mask 0x800)
+000a6bb0 ldrb r0, [r0, #0x1aa]  ->  000a6bb4  test-other tst r0, #0x80 (bit at 3, mask 0x80)
+000a736c ldrb r0, [r1, #0x1aa]  ->  000a7370  test-other tst r0, #2 (bit at 3, mask 0x2)
+000a7500 ldrb r0, [r1, #0x1aa]  ->  000a7504  test-other tst r0, #2 (bit at 3, mask 0x2)
+000a867c ldrb r1, [r0, #0x1aa]  ->  000a8680  test-other tst r1, #0x40 (bit at 3, mask 0x40)
+000aa1f4 ldr r1, [r1, #0x1a8]  ->  000aa1f8  CMP cmp r1, #0 (bit at 19, value 0x0)
+000af190 ldrb r0, [r0, #0x1aa]  ->  000af194  test-other tst r0, #4 (bit at 3, mask 0x4)
+000b99b0 ldr r1, [r0, #0x1a8]  ->  000b99c8  MODIFY orr r1, r1, #8
+000b99b0 ldr r1, [r0, #0x1a8]  ->  000b99c0  test-other ands r2, r1, r2 (bit at 19, mask 0x2001)
+000ba1b8 ldr r2, [r1, #0x1a8]  ->  000ba1bc  MODIFY orr r2, r2, #0x80000
+000ba1b8 ldr r2, [r1, #0x1a8]  ->  000ba1f8  CALL-ARG r2 (bit at 19) blx r1
+000bc784 ldr r1, [r1, #0x1a8]  ->  000bc788  test-other ands r1, r1, #8 (bit at 19, mask 0x8)
+000bd0e4 ldr r2, [r0, #0x1a8]  ->  000bd0e8  MASK and r2, r2, r3 (bit at 19, mask 0x80001)
+000bd0e4 ldr r2, [r0, #0x1a8]  ->  000bd0ec  CMP cmp r2, #1 (bit at 19, value 0x1)
+000bd0e4 ldr r2, [r0, #0x1a8]  ->  000bd114  CALL-ARG r2 (bit at 19) bl #0x7112c
+000bd1c8 ldr r0, [r0, #0x1a8]  ->  000bd1cc  MASK and r0, r0, r8 (bit at 19, mask 0x80001)
+000bd1c8 ldr r0, [r0, #0x1a8]  ->  000bd1d0  CMP cmp r0, #1 (bit at 19, value 0x1)
+000bd23c ldr r0, [r1, #0x1a8]  ->  000bd244  MASK and r0, r0, r8 (bit at 19, mask ?)
+000bd23c ldr r0, [r1, #0x1a8]  ->  000bd248  CMP cmp r0, #1 (bit at 19, value 0x1)
+000bd2c4 ldr r1, [r0, #0x1a8]  ->  000bd2c8  MASK and r1, r1, r8 (bit at 19, mask ?)
+000bd2c4 ldr r1, [r0, #0x1a8]  ->  000bd2cc  CMP cmp r1, #1 (bit at 19, value 0x1)
+000bd784 ldr r3, [r2, #0x1a8]  ->  000bd788  test-other tst r3, #0x100 (bit at 19, mask 0x100)
+000bd784 ldr r3, [r2, #0x1a8]  ->  000bd7ac  test-other tst r3, r1 (bit at 19, mask 0x200001)
+0013e180 ldr r0, [r8, #0x1a8]  ->  0013e184  CMP cmp r0, #0 (bit at 19, value 0x0)
+0013e180 ldr r0, [r8, #0x1a8]  ->  0013e18c  CALL-ARG r0 (bit at 19) bl #0x884698
+0018c414 ldr r1, [fp, #0x1a8]  ->  0018c434  CALL-ARG r1 (bit at 19) bl #0x1948f0
+0018c424 ldr r1, [fp, #0x1a8]  ->  0018c434  CALL-ARG r1 (bit at 19) bl #0x1948f0
+0018c714 ldr r1, [r4, #0x1a8]  ->  0018c744  CALL-ARG r1 (bit at 19) bl #0x1948f0
+0018c724 ldr r1, [r4, #0x1a8]  ->  0018c744  CALL-ARG r1 (bit at 19) bl #0x1948f0
+0018ce84 ldr r1, [r4, #0x1a8]  ->  0018cea8  CALL-ARG r1 (bit at 19) bl #0x19495c
+0018cf80 ldr r1, [r4, #0x1a8]  ->  0018cf8c  CALL-ARG r1 (bit at 19) bl #0x194860
+0027e054 ldr r0, [pc, #0x1a8]  ->  0027e060  ARITH add r0, pc, r0
+002a2fd8 ldr r1, [r0, #0x1a8]  ->  002a2fe0  CALL-ARG r1 (bit at 19) blx r1
+002a4ad8 ldr r1, [r0, #0x1a8]  ->  002a4ae0  CALL-ARG r1 (bit at 19) blx r1
+002de06c ldr r1, [r0, #0x1a8]  ->  002de074  CALL-ARG r1 (bit at 19) blx r1
+002de4d0 ldr r1, [r0, #0x1a8]  ->  002de4d8  CALL-ARG r1 (bit at 19) blx r1
+00316c44 ldr r0, [pc, #0x1a8]  ->  00316c48  ARITH add r0, pc, r0
+0033474c ldr r1, [pc, #0x1a8]  ->  00334758  ARITH add r1, pc, r1
+0036872c ldr r1, [pc, #0x1a8]  ->  00368738  ARITH add r1, pc, r1
+0044c894 ldr r1, [r0, #0x1a8]  ->  0044c89c  CALL-ARG r1 (bit at 19) blx r1
+004d71c0 ldrb r0, [r5, #0x1aa]  ->  004d71c4  CMP cmp r0, #0 (bit at 3, value 0x0)
+004d7520 ldrb r0, [r5, #0x1aa]  ->  004d7524  CMP cmp r0, #0 (bit at 3, value 0x0)
+004d777c ldrb r1, [r5, #0x1aa]  ->  004d7790  CALL-ARG r1 (bit at 3) bl #0x4efb5c
+00505870 ldr r0, [r4, #0x1a8]  ->  00505874  CMP cmp r0, #0 (bit at 19, value 0x0)
+00505870 ldr r0, [r4, #0x1a8]  ->  0050587c  CALL-ARG r0 (bit at 19) bl #0x884698
+00505928 ldr r0, [r4, #0x1a8]  ->  0050592c  CMP cmp r0, #0 (bit at 19, value 0x0)
+00505928 ldr r0, [r4, #0x1a8]  ->  00505934  CALL-ARG r0 (bit at 19) bl #0x884698
+00505fd4 ldr r0, [r4, #0x1a8]  ->  00505fd8  CMP cmp r0, #0 (bit at 19, value 0x0)
+00505fd4 ldr r0, [r4, #0x1a8]  ->  00505fe0  CALL-ARG r0 (bit at 19) bl #0x884698
+005063d4 ldr r0, [r4, #0x1a8]  ->  005063d8  CMP cmp r0, #0 (bit at 19, value 0x0)
+005063d4 ldr r0, [r4, #0x1a8]  ->  005063e0  CALL-ARG r0 (bit at 19) bl #0x884698
+0053829c ldr r0, [r4, #0x1a8]  ->  005382a0  CMP cmp r0, #0 (bit at 19, value 0x0)
+0053829c ldr r0, [r4, #0x1a8]  ->  005382a8  CALL-ARG r0 (bit at 19) bl #0x884698
+0053bc38 ldr r0, [pc, #0x1a8]  ->  0053bc3c  ARITH add r2, pc, r0
+00557438 ldr r1, [pc, #0x1a8]  ->  00557454  ARITH add r1, pc, r1
+005742a4 ldr r0, [pc, #0x1a8]  ->  005742a8  ARITH add r0, pc, r0
+005841e8 ldr r1, [pc, #0x1a8]  ->  005841f0  ARITH add r1, pc, r1
+005ca3b0 ldr r3, [r6, #0x1a8]  ->  005ca3b8  CMP cmp r3, r5 (bit at 19, value ?)
+005ca910 ldr r3, [r2, #0x1a8]  ->  005ca918  CMP cmp r3, r6 (bit at 19, value ?)
+005d7cbc ldr r1, [pc, #0x1a8]  ->  005d7cc0  ARITH add r1, pc, r1
+0063049c ldr r0, [pc, #0x1a8]  ->  006304a8  ARITH add r0, pc, r0
+00643914 ldr r1, [r0, #0x1a8]  ->  0064391c  CALL-ARG r1 (bit at 19) blx r1
+00645fe0 ldr r1, [pc, #0x1a8]  ->  00645fe8  ARITH add r1, pc, r1
+00790924 ldr r0, [pc, #0x1a8]  ->  0079092c  CALL-ARG r0 (bit at 19) bl #0x65d5c0
+0079f3e4 ldrb r2, [sl, #0x1aa]  ->  0079f3e8  OTHER mla r0, r2, r0, r1
+0079fb74 ldrb r2, [sl, #0x1aa]  ->  0079fb78  OTHER mla r0, r2, r1, r0
+0079fb74 ldrb r2, [sl, #0x1aa]  ->  0079fb98  CALL-ARG r2 (bit at 3) bl #0x5224a4
+007a0274 ldrb r2, [sl, #0x1aa]  ->  007a027c  OTHER mla r0, r2, r0, r1
+007a0274 ldrb r2, [sl, #0x1aa]  ->  007a029c  CALL-ARG r2 (bit at 3) bl #0x5224a4
+007a1150 ldrb r2, [r4, #0x1aa]  ->  007a1160  OTHER udiv r0, r1, r2
+007a1150 ldrb r2, [r4, #0x1aa]  ->  007a1164  OTHER mls r1, r0, r2, r1
+007ce9d0 ldr r1, [pc, #0x1a8]  ->  007cea8c  CALL-ARG r1 (bit at 19) bl #0x13ecc14
+0084246c ldr r0, [pc, #0x1a8]  ->  00842470  ARITH add r8, pc, r0
+008706fc ldr r1, [pc, #0x1a8]  ->  00870704  ARITH add r1, pc, r1
+0087d07c ldr r2, [r2, #0x1a8]  ->  0087d080  CMP cmp r2, #0 (bit at 19, value 0x0)
+0087f9d0 ldr r0, [r0, #0x1a8]  ->  0087f9d4  CMP cmp r0, #0 (bit at 19, value 0x0)
+00882368 ldr r0, [pc, #0x1a8]  ->  00882434  CALL-ARG r0 (bit at 19) bl #0x13ecc14
+008ad5cc ldr r2, [pc, #0x1a8]  ->  008ad5d8  ARITH add r2, pc, r2
+008b7734 ldr r0, [r0, #0x1a8]  ->  008b7738  CMP cmp r0, #0 (bit at 19, value 0x0)
+008c0b70 ldr r1, [r1, #0x1a8]  ->  008c0b74  CMP cmp r1, #0 (bit at 19, value 0x0)
+008cde6c ldr r1, [pc, #0x1a8]  ->  008cde78  ARITH add r1, pc, r1
+008dafcc ldrb r3, [r5, #0x1aa]  ->  008dafe4  CMP cmp r3, #0 (bit at 3, value 0x0)
+008db72c ldrb r2, [r5, #0x1aa]  ->  008db738  CMP cmp r2, #0 (bit at 3, value 0x0)
+008dc3f0 ldrb r3, [lr, #0x1aa]  ->  008dc408  CMP cmp r3, #0 (bit at 3, value 0x0)
+008dd088 ldrb r1, [r6, #0x1aa]  ->  008dd098  CMP cmp r1, #0 (bit at 3, value 0x0)
+00963ec0 ldr r1, [pc, #0x1a8]  ->  00963ec8  ARITH add r1, pc, r1
+00966814 ldr r1, [pc, #0x1a8]  ->  00966820  ARITH add r1, pc, r1
+009c65d0 ldr r2, [r6, #0x1a8]  ->  009c65dc  CALL-ARG r2 (bit at 19) bl #0xc14924
+009f3704 ldr r3, [r3, #0x1a8]  ->  009f37a4  CALL-ARG r3 (bit at 19) bl #0x87f734
+009f3a78 ldr r3, [r3, #0x1a8]  ->  009f3b18  CALL-ARG r3 (bit at 19) bl #0x87f734
+00a39ff4 ldr r1, [pc, #0x1a8]  ->  00a39ffc  ARITH add r1, pc, r1
+00a57e44 ldr r2, [r5, #0x1a8]  ->  00a57e4c  CMP cmp r3, r2, lsr #16 (bit at 19, value ?)
+00a57e44 ldr r2, [r5, #0x1a8]  ->  00a57e54  OTHER lsr r3, r2, #0x10
+00a57e44 ldr r2, [r5, #0x1a8]  ->  00a57e60  OTHER pkhbt r2, r2, r3, lsl #0x10
+00a58120 ldr r0, [r5, #0x1a8]  ->  00a58128  CMP cmp r1, r0, lsr #16 (bit at 19, value ?)
+00a58120 ldr r0, [r5, #0x1a8]  ->  00a58130  OTHER lsr r1, r0, #0x10
+00a58120 ldr r0, [r5, #0x1a8]  ->  00a5813c  OTHER pkhbt r0, r0, r1, lsl #0x10
+00a8a920 ldr r2, [r0, #0x1a8]  ->  00a8a928  CALL-ARG r2 (bit at 19) bl #0xa683f8
+00a99578 ldr r2, [r0, #0x1a8]  ->  00a99580  CMP cmp r2, #0 (bit at 19, value 0x0)
+00a9d030 ldr r0, [sb, #0x1a8]  ->  00a9d034  CMP cmp r0, #0 (bit at 19, value 0x0)
+00a9d030 ldr r0, [sb, #0x1a8]  ->  00a9d03c  ARITH add r2, sb, r0
+00a9d78c ldr r2, [r1, #0x1a8]  ->  00a9d790  CMP cmp r2, #0 (bit at 19, value 0x0)
+00a9d78c ldr r2, [r1, #0x1a8]  ->  00a9d794  OTHER addne r2, r1, r2
+00a9d78c ldr r2, [r1, #0x1a8]  ->  00a9d79c  CALL-ARG r2 (bit at 19) bl #0xa68c44
+00aa0160 ldr r0, [sl, #0x1a8]  ->  00aa0164  extract-other ubfx r0, r0, #8, #8 (bit 19 dropped)
+00aa018c ldr r1, [sl, #0x1a8]  ->  00aa0194  OTHER bfi r0, r1, #8, #8
+00aa018c ldr r1, [sl, #0x1a8]  ->  00aa0198  test-other tst r2, r1, lsl #8 (bit at 19, mask 0x100)
+00aa3a1c ldr r2, [r0, #0x1a8]  ->  00aa3a24  CMP cmp r2, #0 (bit at 19, value 0x0)
+00ab541c ldr r1, [r0, #0x1a8]  ->  00ab5420  CMP cmp r2, r1, lsr #16 (bit at 19, value 0x0)
+00ab541c ldr r1, [r0, #0x1a8]  ->  00ab5424  OTHER lsr r6, r1, #0x10
+00ab541c ldr r1, [r0, #0x1a8]  ->  00ab542c  OTHER addne r6, r0, r1, lsr #16
+00ae64b8 ldr r4, [fp, #0x1a8]  ->  00ae64c0  OTHER lsr sb, r4, #0x10
+00ae64b8 ldr r4, [fp, #0x1a8]  ->  00ae6548  OTHER uxtah r2, r2, r4
+00b06c00 ldr r1, [pc, #0x1a8]  ->  00b06c04  ARITH add r1, pc, r1
+00b4ffe8 ldr r1, [pc, #0x1a8]  ->  00b4ffec  ARITH add r1, pc, r1
+00b9e5a4 ldr r1, [pc, #0x1a8]  ->  00b9e5b0  ARITH add r1, pc, r1
+00bad554 ldr r1, [pc, #0x1a8]  ->  00bad560  ARITH add r1, pc, r1
+00bc3924 ldr r1, [pc, #0x1a8]  ->  00bc3928  ARITH add r1, pc, r1
+00bca53c ldr r2, [r0, #0x1a8]  ->  00bca540  CALL-ARG r2 (bit at 19) bl #0xbcb178
+00bca550 ldr r2, [r0, #0x1a8]  ->  00bca554  CALL-ARG r2 (bit at 19) bl #0xbcbbfc
+00bca798 ldr r2, [r0, #0x1a8]  ->  00bca79c  CALL-ARG r2 (bit at 19) bl #0xbcb178
+00bca7ac ldr r2, [r0, #0x1a8]  ->  00bca7b0  CALL-ARG r2 (bit at 19) bl #0xbccb78
+00bde6a0 ldr r0, [r4, #0x1a8]  ->  00bde6a4  CMP cmp r5, r0 (bit at 19, value ?)
+00c02b2c ldr r0, [pc, #0x1a8]  ->  00c02b44  ARITH add r0, pc, r0
+00c44754 ldr r0, [pc, #0x1a8]  ->  00c4475c  CALL-ARG r0 (bit at 19) bl #0x13ece0c
+00c5bb04 ldr r1, [pc, #0x1a8]  ->  00c5bb08  ARITH add r1, pc, r1
+00c67644 ldr r0, [r4, #0x1a8]  ->  00c67648  ARITH add r0, r0, #1
+00ca6674 ldr r0, [pc, #0x1a8]  ->  00ca668c  ARITH add r0, pc, r0
+00cb7024 ldr r0, [r8, #0x1a8]  ->  00cb7028  CMP cmp r0, #0 (bit at 19, value 0x0)
+00cb7024 ldr r0, [r8, #0x1a8]  ->  00cb702c  OTHER addsne r6, r8, r0
+00cb7ab4 ldr r0, [r8, #0x1a8]  ->  00cb7ab8  CMP cmp r0, #0 (bit at 19, value 0x0)
+00cb7ab4 ldr r0, [r8, #0x1a8]  ->  00cb7abc  OTHER addsne r6, r8, r0
+00cbb138 ldr r0, [r1, #0x1a8]  ->  00cbb13c  CMP cmp r0, #0 (bit at 19, value 0x0)
+00cbb138 ldr r0, [r1, #0x1a8]  ->  00cbb140  OTHER addne r0, r1, r0
+00cbb138 ldr r0, [r1, #0x1a8]  ->  00cbb1d0  CALL-ARG r0 (bit at 19) bl #0xaf7714
+00cbb7fc ldr r0, [r1, #0x1a8]  ->  00cbb800  CMP cmp r0, #0 (bit at 19, value 0x0)
+00cbb7fc ldr r0, [r1, #0x1a8]  ->  00cbb804  OTHER addne r0, r1, r0
+00cbb7fc ldr r0, [r1, #0x1a8]  ->  00cbb874  CALL-ARG r0 (bit at 19) bl #0xaf4990
+00cda16c ldr r1, [pc, #0x1a8]  ->  00cda178  ARITH add r1, pc, r1
+00d32084 ldr r1, [r0, #0x1a8]  ->  00d32088  MODIFY orr r1, r1, #0x80000
+00d32a94 ldr r1, [r0, #0x1a8]  ->  00d32a98  MODIFY orr r1, r1, #0x80000
+00d32a94 ldr r1, [r0, #0x1a8]  ->  00d32aa4  CALL-ARG r1 (bit at 19) bl #0xba8dc
+00d4f9fc ldr r0, [pc, #0x1a8]  ->  00d4fa00  ARITH add r0, pc, r0
+00d5cfdc ldr r0, [pc, #0x1a8]  ->  00d5cfe0  ARITH add r1, pc, r0
+00d5ecf8 ldr r0, [pc, #0x1a8]  ->  00d5ed04  ARITH add r0, pc, r0
+00d6d170 ldr r3, [r1, #0x1a8]!  ->  00d6d188  OTHER orreq r0, r3, #0x10000000
+00d6de98 ldr r3, [r1, #0x1a8]!  ->  00d6deb0  OTHER orreq r0, r3, #0x10000000
+00d8e33c ldr r1, [r0, #0x1a8]!  ->  00d8e35c  MODIFY orr r1, r1, #0x10000000
+00d8e358 ldr r1, [r0, #0x1a8]!  ->  00d8e35c  MODIFY orr r1, r1, #0x10000000
+00d8f0fc ldr r1, [r0, #0x1a8]!  ->  00d8f11c  MODIFY orr r1, r1, #0x10000000
+00d8f118 ldr r1, [r0, #0x1a8]!  ->  00d8f11c  MODIFY orr r1, r1, #0x10000000
+00d95084 ldr r0, [pc, #0x1a8]  ->  00d95088  ARITH add r0, pc, r0
+00d99480 ldr r0, [pc, #0x1a8]  ->  00d99484  ARITH add r1, pc, r0
+00db4114 ldr r1, [r0, #0x1a8]  ->  00db4118  MODIFY orr r1, r1, #0x80000000
+00def1a0 ldr r2, [r1, #0x1a8]  ->  00def1a4  MODIFY orr r2, r2, #0x80000
+00e085dc ldr r0, [pc, #0x1a8]  ->  00e085e0  ARITH add r1, pc, r0
+00e19c54 ldr r0, [pc, #0x1a8]  ->  00e19c58  ARITH add r0, pc, r0
+00e1c0dc ldr r1, [r0, #0x1a8]!  ->  00e1c0f8  MODIFY orr r1, r1, #0x10000000
+00e1c0f4 ldr r1, [r0, #0x1a8]!  ->  00e1c0f8  MODIFY orr r1, r1, #0x10000000
+00e1c428 ldr r1, [r0, #0x1a8]!  ->  00e1c448  MODIFY orr r1, r1, #0x10000000
+00e1c444 ldr r1, [r0, #0x1a8]!  ->  00e1c448  MODIFY orr r1, r1, #0x10000000
+00e26f84 ldr r3, [pc, #0x1a8]  ->  00e26f98  ARITH add r6, pc, r3
+00e33488 ldr r0, [pc, #0x1a8]  ->  00e3348c  ARITH add r0, pc, r0
+00e3d708 ldr r0, [pc, #0x1a8]  ->  00e3d70c  ARITH add r0, pc, r0
+00e44cc4 ldr r0, [pc, #0x1a8]  ->  00e44cc8  ARITH add r1, pc, r0
+00e73e38 ldr r0, [r0, #0x1a8]  ->  00e73e3c  test-other ands r0, r0, #1 (bit at 19, mask 0x1)
+00e9b834 ldr r0, [pc, #0x1a8]  ->  00e9b838  ARITH add r0, pc, r0
+00eb20bc ldr r0, [pc, #0x1a8]  ->  00eb20c0  ARITH add r0, pc, r0
+00f6fd54 ldr r0, [pc, #0x1a8]  ->  00f6fd60  OTHER addeq r1, pc, r0
+00f99210 ldr r0, [pc, #0x1a8]  ->  00f99214  ARITH add r0, pc, r0
+00faa1f4 ldr r0, [pc, #0x1a8]  ->  00faa1f8  ARITH add r1, pc, r0
+00fadc78 ldr r1, [r0, #0x1a8]  ->  00fadc7c  MODIFY orr r1, r1, #0x80000
+00fae4a8 ldr r1, [r0, #0x1a8]  ->  00fae4ac  MODIFY orr r1, r1, #0x80000
+00fbc85c ldr r1, [r0, #0x1a8]  ->  00fbc860  MODIFY eor r1, r1, #0x80000
+00fbc85c ldr r1, [r0, #0x1a8]  ->  00fbc86c  CALL-ARG r1 (bit at 19) bl #0xb09c8
+00fd897c ldr r0, [pc, #0x1a8]  ->  00fd8980  ARITH add r1, pc, r0
+00fdd6ec ldr r0, [pc, #0x1a8]  ->  00fdd6f0  ARITH add r1, pc, r0
+010089bc ldr r1, [pc, #0x1a8]  ->  010089c8  ARITH add r1, pc, r1
+010224c8 ldr r0, [pc, #0x1a8]  ->  010224cc  ARITH add r1, pc, r0
+0104fdd4 ldr r0, [pc, #0x1a8]  ->  0104fdd8  ARITH add r0, pc, r0
+01057238 ldr r0, [pc, #0x1a8]  ->  0105723c  ARITH add r1, pc, r0
+0105d860 ldr r0, [pc, #0x1a8]  ->  0105d864  ARITH add r1, pc, r0
+0105d86c ldr r0, [pc, #0x1a8]  ->  0105d870  ARITH add r1, pc, r0
+0108bc84 ldr r1, [r0, #0x1a8]!  ->  0108bca4  MODIFY orr r1, r1, #0x10000000
+0108bca0 ldr r1, [r0, #0x1a8]!  ->  0108bca4  MODIFY orr r1, r1, #0x10000000
+0108e670 ldr r1, [r0, #0x1a8]!  ->  0108e690  MODIFY orr r1, r1, #0x10000000
+0108e68c ldr r1, [r0, #0x1a8]!  ->  0108e690  MODIFY orr r1, r1, #0x10000000
+0109d180 ldr r0, [pc, #0x1a8]  ->  0109d184  ARITH add r1, pc, r0
+010b39b4 ldr r1, [r0, #0x1a8]  ->  010b39b8  MODIFY orr r1, r1, #0x80000
+010c9a38 ldr r0, [pc, #0x1a8]  ->  010c9a44  ARITH add r0, pc, r0
+010c9dfc ldr r0, [r1, #0x1a8]  ->  010c9e00  MODIFY orr r0, r0, #0x80
+010c9e30 ldr r1, [r0, #0x1a8]  ->  010c9e34  MODIFY orr r1, r1, #0x80
+010c9e30 ldr r1, [r0, #0x1a8]  ->  010c9e40  CALL-ARG r1 (bit at 19) bl #0xbc744
+010ca640 ldr r0, [pc, #0x1a8]  ->  010ca64c  ARITH add r1, pc, r0
+010cbe60 ldr r0, [pc, #0x1a8]  ->  010cbe74  ARITH add r3, pc, r0
+010d2cd4 ldr r1, [pc, #0x1a8]  ->  010d2cdc  ARITH add r1, pc, r1
+010d6868 ldr r1, [r0, #0x1a8]  ->  010d686c  MODIFY orr r1, r1, #0x80
+010eba1c ldr r0, [pc, #0x1a8]  ->  010eba28  ARITH add r1, pc, r0
+011005f4 ldr r1, [pc, #0x1a8]  ->  011005fc  ARITH add r1, pc, r1
+01105b7c ldr r0, [pc, #0x1a8]  ->  01105b80  ARITH add r0, pc, r0
+0116a9e8 ldr r1, [pc, #0x1a8]  ->  0116a9f0  ARITH add r1, pc, r1
+01242d4c ldr r0, [pc, #0x1a8]  ->  01242d50  ARITH add r0, pc, r0
+0124ba30 ldr r1, [pc, #0x1a8]  ->  0124ba3c  ARITH add r1, pc, r1
+01257db8 ldr r0, [pc, #0x1a8]  ->  01257dbc  ARITH add r0, pc, r0
+0125d704 ldr r0, [pc, #0x1a8]  ->  0125d708  ARITH add r1, pc, r0
+0126758c ldr r1, [sl, #0x1a8]  ->  01267590  ARITH sub r2, r1, #1
+0126758c ldr r1, [sl, #0x1a8]  ->  0126759c  CMP cmp r1, #3 (bit at 19, value 0x3)
+0126758c ldr r1, [sl, #0x1a8]  ->  012675a4  CMP cmp r1, #0 (bit at 19, value 0x0)
+01268478 ldr r0, [r0, #0x1a8]  ->  0126847c  CMP cmp r0, #2 (bit at 19, value 0x2)
+01277dfc ldr r1, [pc, #0x1a8]  ->  01277e08  ARITH add r1, pc, r1
+01283a94 ldr r0, [r6, #0x1a8]  ->  01283a98  CMP cmp r0, #0 (bit at 19, value 0x0)
+01283da0 ldr r0, [r5, #0x1a8]  ->  01283da4  CMP cmp r0, #2 (bit at 19, value 0x2)
+012c1240 ldr r0, [r4, #0x1a8]  ->  012c125c  CALL-ARG r0 (bit at 19) blx r3
+012c2018 ldr r0, [r4, #0x1a8]  ->  012c201c  CMP cmp r0, #0 (bit at 19, value 0x0)
+012c2018 ldr r0, [r4, #0x1a8]  ->  012c2038  CALL-ARG r0 (bit at 19) blx r2
+012c22a4 ldr r0, [r4, #0x1a8]  ->  012c22b0  CALL-ARG r0 (bit at 19) bl #0x12484e8
+012c22b8 ldr r0, [r4, #0x1a8]  ->  012c22c0  CALL-ARG r0 (bit at 19) bl #0x124848c
+012c6618 ldr r0, [pc, #0x1a8]  ->  012c662c  ARITH add r0, pc, r0
+012e4d80 ldr r1, [r4, #0x1a8]  ->  012e4d84  CMP cmp r1, r0 (bit at 19, value ?)
+012e4d80 ldr r1, [r4, #0x1a8]  ->  012e4d8c  CALL-ARG r1 (bit at 19) bl #0x1226624
+012e6234 ldr r0, [r4, #0x1a8]  ->  012e6238  CMP cmp r1, r0 (bit at 19, value ?)
+012e6234 ldr r0, [r4, #0x1a8]  ->  012e6240  ARITH sub r2, r0, r1
+012e7f50 ldr r1, [r4, #0x1a8]  ->  012e7f54  CMP cmp r1, r0 (bit at 19, value ?)
+012e7f50 ldr r1, [r4, #0x1a8]  ->  012e7f5c  CALL-ARG r1 (bit at 19) bl #0x1226624
+012e94cc ldr r0, [fp, #0x1a8]  ->  012e94d0  CMP cmp r1, r0 (bit at 19, value ?)
+012e94cc ldr r0, [fp, #0x1a8]  ->  012e94d8  ARITH sub r2, r0, r1
+01304e04 ldr r1, [r7, #0x1a8]  ->  01304e10  CALL-ARG r1 (bit at 19) bl #0x1308150
+0130615c ldr r2, [r7, #0x1a8]  ->  01306168  CALL-ARG r2 (bit at 19) bl #0x13080cc
+0131d5e8 ldr r1, [pc, #0x1a8]  ->  0131d5f8  ARITH add r1, pc, r1
+01325edc ldr r0, [pc, #0x1a8]  ->  01325ee0  ARITH add r0, pc, r0
+01328348 ldr r0, [pc, #0x1a8]  ->  01328354  ARITH add r0, pc, r0
+0132b200 ldr r0, [pc, #0x1a8]  ->  0132b208  ARITH add r0, pc, r0
+013bd050 ldr r0, [pc, #0x1a8]  ->  013bd054  ARITH add r0, pc, r0
+013e86e4 ldr r0, [pc, #0x1a8]  ->  013e86f8  ARITH add r0, pc, r0
+0034d808 ldrh r1, [r5, r0]  ->  0034d818  CALL-ARG r1 (bit at 3) blx r2

@@ -1,0 +1,8 @@
+PASS em003_00 2|Motion[3] f190 #0 built  -- {"pick":null,"blue":118548,"redPixels":47,"frame":190.4}
+PASS em003_00 2|Motion[3] f190 #1 built  -- {"pick":null,"blue":16,"redPixels":734,"frame":190.4}
+PASS em003_00 2|Motion[3] f190 #2 built  -- {"pick":null,"blue":45117,"redPixels":751,"frame":190.4}
+PASS em003_00 2|Motion[3] f190 #3 built  -- {"pick":null,"blue":53759,"redPixels":0,"frame":190.4}
+PASS em003_00 2|Motion[3] f190 #4 built  -- {"pick":null,"blue":39614,"redPixels":0,"frame":190.4}
+PASS em003_00 2|Motion[3] f190 #5 built  -- {"pick":null,"blue":0,"redPixels":1,"frame":190.4}
+
+6 passed, 0 failed

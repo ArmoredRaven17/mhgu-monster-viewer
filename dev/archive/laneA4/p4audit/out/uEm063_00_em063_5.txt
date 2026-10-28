@@ -1,0 +1,21 @@
+uEm063_00 em063 v5 (0, 0x7) ph0A: PH 1 | POST 4@f3775c | M L0M1@f37770 | SET MOG@4ffffffc
+uEm063_00 em063 v5 (0, 0x7) ph1B: VT3E8@4ffffffc
+uEm063_00 em063 v5 (6, 0x0) ph0A: PH 1 | POST 0@f3cacc | M L0M38@f3cae0
+uEm063_00 em063 v5 (6, 0x0) ph1B: VT3E8@4ffffffc
+uEm063_00 em063 v5 (6, 0x1) ph0A: PH 1 | POST 4@f3cba0 | M L0M1@f3cbb4 | SET MOG@f3cbc4
+uEm063_00 em063 v5 (6, 0x1) ph1B: VT3E8@4ffffffc
+uEm063_00 em063 v5 (6, 0x2) ph0A: PH 1 | POST 4@f3cc74 | M L0M10@f3cc88 | SET MOG@f3ccac
+uEm063_00 em063 v5 (6, 0x2) ph1C: VT3E8@4ffffffc
+uEm063_00 em063 v5 (6, 0x3) ph0A: PH 1 | POST 4@f3cd50 | M L0M10@f3cd64 | SET MOG@f3cd88
+uEm063_00 em063 v5 (6, 0x3) ph1C: VT3E8@4ffffffc
+uEm063_00 em063 v5 (6, 0x4) ph0A: PH 1 | POST 4@f3ce30 | TURN 0x169fb64 {L0M32; L0M7 / L0M8}@f3ce50 | SET MOG@4ffffffc
+uEm063_00 em063 v5 (6, 0x4) ph1C: VT3E8@4ffffffc
+uEm063_00 em063 v5 (6, 0x5) ph0A: PH 1 | POST 4@f3cef0 | M L0M39@f3cf04 | SET -600@f3cf10
+uEm063_00 em063 v5 (6, 0x5) ph1A: SET 0@f3cf70
+uEm063_00 em063 v5 (6, 0x5) ph1B: SET 0@f3cf70 | IDLE
+uEm063_00 em063 v5 (6, 0x6) ph0A: PH 1 | POST 4@f3cd50 | M L0M10@f3cd64 | SET MOG@f3cd88
+uEm063_00 em063 v5 (6, 0x6) ph1C: VT3E8@4ffffffc
+uEm063_00 em063 v5 (11, 0x26) ph0A: S 0x17da058 m4
+uEm063_00 em063 v5 (12, 0x0) ph0A: PH 1 | POST 4@f3cef0 | M L0M39@f3cf04 | SET -600@f3cf10
+uEm063_00 em063 v5 (12, 0x0) ph1A: SET 0@f3cf70
+uEm063_00 em063 v5 (12, 0x0) ph1B: SET 0@f3cf70 | IDLE

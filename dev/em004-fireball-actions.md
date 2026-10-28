@@ -153,3 +153,12 @@ distinct attack shapes, two of which have a flare / no-flare variant --
 attack power, and byte[4] like an element or status value, but I have not traced a single consumer
 of any field in this record, so I am not naming them. The groupings above are byte-position facts
 and stand on their own; the labels would be a guess.
+
+
+## 6. (7, 0x1e) and u 211 (effects lane, 2026-10-25)
+
+(7, 0x1e) is not a fireball arm: the status-7 table 0xd2c944 sends it to its own body `0xd2cec0` -- phase 0 setMotion0 L4 M5
+(blend 6.0, 0xd2cefc), phase 1 waits for the end (0xb09c8) and hands to vt+0x3dc. No shell. It is issued in em004_00_cmdtbl g1 s30
+(`00 07 1e`, op 0x83's else). Its enable word (psl-mask.js em004: 0x40082000) lights bits 25 / 26, so this play carries **u 211**
+at L4 M5 f75, where the four fireball plays (bits 23 / 24) carry u 201. Built: a no-spawn row (7, 0x1e) in SHELL_DATA.em004_00, so
+the clip's pick cycle includes it (pickVariantsFor L4 M5: 5 picks). Measured: u 211 draws (census3).

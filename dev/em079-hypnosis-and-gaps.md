@@ -200,3 +200,11 @@ motion frames, right as they stand; only their wall time differs.
 * L2 M43's height at its setMotion (G6). * c 31's requester (G10). * What cloaks Nightcloak (`e+0xcafc` / `e+0xcb00` writers).
 * Op 0x14 as "run g1 stream N" (the issuer reading for (7, 0x10) s95 / (7, 0xd2)) -- I. * The shared status-10 / 11 scripts were
 not re-scanned for L2 M16-M25 (I from the notes). * The one-frame L1 M1 / M2 at the (7, 0xca) -> (7, 0xcb) seam: not shown.
+
+## Nightcloak's cloak-gated requests, built (effects lane A, 2026-10-25)
+
+uEm079_00's vt+0x1d0 table (`0x16a194c`) is {-1, 200, 100}: id 1001 = u 200, 1002 = u 100. **u 100** is held by `0xff036c` while
+Nightcloak is cloaked (`(e+0xcafc & ~1) == 2`) and tired (`0x81614`), stopped otherwise; **u 200** is requested at a death start
+while cloaked (`0xff01a8`) and on three other cloak-cancel sites (not wired). The viewer had no cloak state, so the gate is a new
+class toggle, **Cloaked** (working label, for Raven), which drives only these two requests -- the stealth materials are not drawn.
+Both draw (`<archive>/laneA/cloak079.mjs`, control: toggle off, nothing). u 100 needed a recording (`add_em079_04_u100*`) and a lift.

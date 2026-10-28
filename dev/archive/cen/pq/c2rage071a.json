@@ -1,0 +1,1 @@
+{"id": "em071_00", "steps": [{"set": {"monRage": true}}, {"wait": 400}], "want": ["em071_00|em071_00u|1121|ragePuff", "em071_00|em071_00u|1120|ragePuff"]}

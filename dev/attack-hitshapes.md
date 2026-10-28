@@ -71,6 +71,79 @@ The ROM rows are in rom-map ("Monster attack shapes"). This note is written to b
 
 * Data: `docs/attack-hitshapes.json` (exporter `<archive>/zg/attexport.py`): records / sets (and records2 / sets2), and per clip the
   arms.
+  - **The class that runs a monster without its own (fixed 2026-10-27, atkfix lane; rom-map trap 176).** Until then the census
+    runner `zg/attrace_all.py` took "the first uEmNNN_00 at or below the em number", so **Giadrome (em034_00) carried Akantor's
+    arms and Volvidon (em062_00) Lagombi's**, byte for byte (their records / sets were their own: the arms indexed them with another
+    class's ids -- 24 of Giadrome's 52 arms named an id past his 27 records, 5 of Volvidon's 34). The runner now takes the spawn-table map (dev/notice-marks.md
+    step 3: em002 -> uEm001, em005 -> uEm004, em015 / 016 / 034 -> uEm014, em062 -> uEm060, em072 -> uEm071). **Audit of all 94
+    entries** (each census header's class, EM and variant against the map; `fb/pfarm.py` already used it): those two the only wrong
+    ones. Re-run as uEm014_00 EM=34 / uEm060_00 EM=62, and only their `arms` replaced in place (`<archive>/atkfix/patch_arms.py`:
+    the other 92 entries byte-identical; the file equals a full re-export from the corrected census). Giadrome now arms the drome
+    class's actions with his own ids (Velocidrome / Gendrome / Iodrome / Giadrome: 3 / 8 / 9 / 24 on (7, 2)), 14 / 14 inside his
+    table; Volvidon 42 / 42 below 1000 inside his.
+  - Checked headless (`<archive>/atkfix/atkfix_check.mjs`, before / after shots in `<archive>/atkfix/shots/`): Giadrome L2 M18
+    (nothing before; records 26 / 21 / 22 on joints 2 / 1 / 100, frames 70..90, after), Giadrome L2 M1 (Akantor's ids 2 / 25 / 48
+    before, 48 missing and 2 at 60..250 on a 23-frame clip), Volvidon L2 M17 (Lagombi's record 16 before; his own 12 / 14 / 21 after)
+    and L2 M16, Akantor L2 M1 and Lagombi L2 M17 unchanged; no shape skipped for a missing joint. atkcheck2 21 / 21; atkcheck3 8 / 8
+    (its row-order item now accepts the "Effects drawn before" row, `monFxPassRow`, between Ground and Attack Hitboxes).
+  - **The motion lock and the carry (READ 2026-10-27).** An arm whose flags have bit 0 CLEAR locks the hit to the motion it was armed
+    in (`0x7ddb8` -> `0x169258`: H+0x74 = the motion, H+0x30 bit 0x100); the per-tick countdown (`0x168d44..0x168eb0`) kills a locked
+    hit on any other motion. Bit 0 SET: no lock, the delay H+0x5c and then the duration H+0x60 count down by the tick through motion
+    changes (x the motion rate e+0x50c when flags bit 2 is clear). The delay the arm writes is the record's start less the motion's
+    frames already run (`0x7dc88..0x7dd18`: start - (e+0x500 - e+0x4f4)), so a window is in the arm motion's frames. **The dromes'
+    (7, 2)** (Velocidrome 3, Gendrome 8, Iodrome 9, Giadrome 24: start 40, duration 26, flags 3) arms in phase 0 on L2 M1, 23 frames;
+    unlocked, it runs on into L2 M2, set at phase 1 on M1's end (docs/action-motions.json), so it is live on **M2 frames 21..47**
+    (M2_start 21..30, M2_loop 30..47; first given as 17..43 without the lead -- Withdrawn, next bullets). Exported as a carried row:
+    `arms['2|Motion[2]']` gets the arm with `shift` = 23 (M1's length) and `windowOf` subtracts it; the M1 row stays (live on no M1
+    frame). Checked (`<archive>/atkfix/atkfix_carry.mjs`): all four dromes, never live on M1, live on M2 21..46.
+  - **The lead (READ 2026-10-27).** The layer's setMotion `0x951678` writes the blend into the gate +0x4f4 and zeroes the frame +0x4fc;
+    the layer update counts the gate down by the tick (`0x94ed14..0x94ed90`) but advances the frame regardless (`0x94eee8..0x94ef08`).
+    The arm's delay is start + the gate - the frame (`0x7dc88..0x7dd18`; the gate counts 0 when the setMotion flags have bit 0, e+0x13c0
+    via `0x7256c` -- setMotion0 / setMotionL pass flags 0). So a record armed t frames into a motion set with blend b goes live at the
+    motion's frame **start + max(0, b - t)**: exported as row field 7 `lead` (`<archive>/atkfix/leadcases.py`, from the action census's
+    raw runs), 1546 arms (321 logged `lead-unknown`, left 0: `leadlog.txt`). windowOf also takes arm flag 0x800 now (the record's start
+    ignored, `0x7dc74`; 8 arms). The Measured frames above predate the lead (Rathian L4 M6's records start later by M6's blend).
+  - **The carry, simulated (same day; `<archive>/atkfix/carrysim.py`, replaces the first pass below).** Each unlocked arm whose window
+    (with its lead) outlasts its finite clip -- 159 -- is stepped through its action main under actmot/amtrace.py from the state the arm
+    left: while the motion plays, the runs must agree across the frame and RET answers (else `frame-gated` / `stub-answer`, the stubs
+    named), unconditional phase changes are stepped; at the motion's end the setMotion is the next motion, a follow hands to the followed
+    action's first motion. The shift is the frames since the arm motion's frame 0 -- **no blend term** (the frame runs through the
+    blend). A motion the action plays again is carried with `lap` (row field 8) and shown on that pass of the clip. **110 carried** (9
+    stop short by name) into 139 rows; **49 refused by name**: several 16, action-ends 6, per-frame 8 (kept: they depend on the AI or
+    have no action; the simulator's answer for 12 of them is in the report, not applied), not-in-lists 11 (motions absent from the
+    game's own files: Rathian / Gold / Dreadqueen 4|M26 an empty LMT slot, em013_00 / _01 and em071_00 no list 4 file, em071_05 slot
+    12 empty, em047_00 15|M255 = the 0xfff sentinel -- none a clip the viewer lacks), frame-gated 5 (the frame is data: 0x6f618's
+    return), stub-answer 3. `<archive>/atkfix/carry_report_sim.txt`, one line each. Patched in place: 90 entries' `arms`.
+  - **The carry, frame by frame (same day; `<archive>/atkfix/carrysim2.py`, supersedes the simulated pass).** One frame per tick, with
+    what the action actually reads answered: the frame tests by their mode against the concrete frame (the dispatch `0x728b8`: 0 a
+    crossing, 1 / 6 from f0, 2 before f0, 3 / 7 / 10 f0..f1, 4 / 5 / 8 / 9, the blend gate's rule), the ended test at the clip's
+    length, the action-tune getters from the monster's own `<id>_actiontune.fup` (the frames the 0 / 1 pass called frame-gated are
+    tune values), the motion getter, and the hit-live test `0x168ebc` from the carried arm itself (another slot unarmed: a monster
+    standing alone). Every other stubbed call must not matter. Applied to every case. **159: 125 carried** (174 rows, 46 on a replay
+    lap), **5 held** (the window runs out while the action holds the ended motion), **29 refused by name**: not-in-lists 11, per-frame
+    8, ground-contact 4 (`0xbf52c`: how high the leap is), arrival 3 (`0x78b78`: where the target is), waits 3. The leads too: the
+    follow-credited arms take the followed action's blend, the arms set in an earlier phase have their frame stepped -- 1692 leads, 37
+    named (several-in-phase 16, follow-unresolved 13, sentinel-motion 7, several 1; `leadlog.txt`). `carry_report_sim2.txt`.
+  - (First pass, SUPERSEDED: its "next motion's blend in the shift" is Withdrawn in rom-map.) **The carry, every monster (same day; `<archive>/zg/atkcarry.py`, called by attexport.py).** For each arm with flags bit 0 set
+    whose window outlasts its finite clip (158), the next motion is read from docs/action-motions.json: the same action, a different
+    motion in the arm motion's phases or the next phase, set only with the ended answer 1 (entered on the arm motion's end). The shift
+    adds the motion's length and the next motion's census blend (frame 0 comes `blend` ticks after the set -- INFERRED from the delay
+    formula's gate term). A window that outlasts that motion too is carried on (chains), and an _start / _loop motion takes the rest.
+    **98 carried** (84 one hop, 12 two, 2 five; 5 stop short by name) into 117 rows; **60 refused by name**: several 16, not-in-lists 11,
+    follow 8, per-frame 8, action-ends 6, phase-gap 5, replayed 3, stub-answer 2, phase-entry 1 (`<archive>/atkfix/carry_report.txt`,
+    one line each; the reasons are defined in atkcarry.py's header). Patched in place: 48 entries' `arms`.
+  - **Once per play.** The game counts a carried window down once, so the page shows a carried row on its own lap of a looping clip
+    only -- the first, or the pass the action replays the motion on (index.html `atkLap`: a wrap while playing; another clip or a
+    replay starts at lap 0; scrubbing counts none). Checked (`<archive>/atkfix/atkfix_carry2.mjs`, shots
+    `<archive>/atkfix/shots/atkfix-carry3/`): 8 carried rows on 8 monsters live exactly on their window less the shift; Giadrome's
+    L2 M2_loop through 5 wraps shows record 24 on the first lap only (30..46); em027_00 L4 M1 looped shows its replay row (record 29,
+    lap 1) on the second pass only. Like every
+    arm, a carried row is filtered out where the viewer names a different action for the clip (e.g. em083_00 L2 M5, whose own arms are 7:0x4's).
+  - **Ids past the table** (`0x70f40`, `0x70f8c`: count <= id returns 0, so `0x7db70` arms nothing). Arzuros / Redhelm's 13 arms with
+    ids 24..34 (their table has 24 records; Volvidon's 35): the shared uEm060_00 class arms these ids for EM 60 and 62 alike, and the
+    census runs every action the class handles -- whether Arzuros's AI picks those actions is not read, but if it does, the game arms
+    nothing. Not a second table and not a Redhelm split. 55 such arms in the file (em002_04 15, em018_00 1, em019_00 / _04 5 each,
+    em060_00 / _04 13 each, em066_04 3); the page draws none and names them "id past the table".
 * Overlay: `render/attack-hitboxes.js`.
   - It is drawn with the hit-zone capsules' own `zoneCapsules`: the same shapes, the same two-pass material.
   - The **Attack Hitboxes** row (Off / Armed only / All (unarmed greyed)) is in the **Animation panel, after the Ground row**, shown

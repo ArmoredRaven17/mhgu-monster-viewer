@@ -1,0 +1,10 @@
+PASS em003_00 1,3 L0 M12  -- {"off":49,"on":34,"predicted":34,"factor":1,"how":"census","rates":[[2,1.5]],"bursts":[]}
+PASS em003_00 1,3 L2 M1  -- {"off":171,"on":159,"predicted":158,"factor":1,"how":"census","rates":[[2,0.8],[20,0.6],[38,1.5],[80,1.2]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":36,"verdict":"draws"}]}
+PASS em003_00 1,3 L2 M3  -- no play-once clip (split or absent): skipped
+PASS em003_00 1,3 L2 M36  -- {"off":239,"on":224,"predicted":224,"factor":1,"how":"census","rates":[[2,0.5],[32,1.4],[120,1.2]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":31,"verdict":"draws"}]}
+PASS em003_00 1,3 L2 M39  -- {"off":103,"on":70,"predicted":70,"factor":1,"how":"action","rates":[[2,1.5]],"bursts":[]}
+PASS em003_00 1,3 L2 M4  -- {"off":77,"on":88,"predicted":89,"factor":1,"how":"action","rates":[[2,0.8],[32,0.7],[56,1.5]],"bursts":[{"u":1313,"expected":1,"starts":1,"lit":24,"verdict":"draws"}]}
+PASS em003_00 1,3 L2 M5  -- {"off":205,"on":172,"predicted":172,"factor":1,"how":"action","rates":[[2,1.2]],"bursts":[]}
+PASS em003_00 1,3 L4 M1  -- {"off":233,"on":205,"predicted":205,"factor":1,"how":"census","rates":[[2,0.8],[30,0.7],[44,1.5],[104,1.2]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":27,"verdict":"draws"}]}
+
+8 passed, 0 failed

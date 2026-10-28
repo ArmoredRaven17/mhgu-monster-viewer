@@ -1,0 +1,248 @@
+uEm001_00: 78 sites, 30 not reached by any traced action
+     0xcf2c70 p5c_add bl s0=#2.500000e+00
+     0xcf2d18 p5c_add bl s0=#2.500000e+00
+     0xcf8c9c p5c_add bl s0=#2.500000e+00
+     0xcf8d50 p5c_add bl s0=#2.500000e+00
+     0xcfa994 p5c_add bl s0=#2.500000e+00
+     0xcfad14 p5c_add bl s0=#2.500000e+00
+     0xcfae30 p5c_add bl s0=#2.500000e+00
+     0xcfb1f0 p5c_add bl s0=#2.500000e+00
+     0xcfb3cc p5c_add bl s0=#2.500000e+00
+     0xcfb658 p5c_add bl s0=#2.500000e+00
+     0xcfb7d0 p5c_add bl s0=#2.500000e+00
+     0xcfba44 p5c_add bl s0=#2.500000e+00
+     0xcfbc2c p5c_add bl s0=#2.500000e+00
+     0xcfbde8 p5c_add bl s0=#2.500000e+00
+     0xcfc4f0 p5c_add bl s0=#2.500000e+00
+     0xcfc5c8 p5c_add bl s0=#2.500000e+00
+     0xcfc8fc p5c_add bl s0=#2.500000e+00
+     0xcfd138 p5c_add bl s0=#2.500000e+00
+     0xcfd218 p5c_add bl s0=#2.500000e+00
+     0xcfdc40 p5c_set b s0=?
+     0xcfe18c p5c_set b s0=?
+     0xcfeac4 p5c_add bl s0=#2.500000e+00
+     0xcff244 p5c_add bl s0=#2.500000e+00
+     0xcff4f8 p5c_add bl s0=#2.500000e+00
+     0xd001dc p5c_add bl s0=#2.500000e+00
+     0xd00a80 p5c_add bl s0=#2.500000e+00
+     0xd02cc8 p5c_add bl s0=vmul.f32 s0, s0, s2 @0xd02cc4
+     0xd057d8 p5c_add bl s0=#2.500000e+00
+     0xd06774 p5c_add bl s0=#2.500000e+00
+     0xd0681c p5c_add bl s0=#2.500000e+00
+uEm004_00: 11 sites, 1 not reached by any traced action
+     0xd2de90 p5c_set b s0=?
+uEm007_00: 31 sites, 7 not reached by any traced action
+     0xd328f4 p5c_set bl s0=0 (lit 0xd329fc)
+     0xd34114 p5c_set b s0=?
+     0xd3740c posture bl r1=4
+     0xd375c4 p5c_set b s0=?
+     0xd38560 p5c_set b s0=?
+     0xd3b9ec p5c_set b s0=?
+     0xd3c184 p5c_set b s0=?
+uEm010_00: 55 sites, 4 not reached by any traced action
+     0xd62120 posture bl r1=4
+     0xd659cc p5c_set b s0=?
+     0xd668bc posture bl r1=4
+     0xd668c8 p5c_set bl s0=-100 (lit 0xd668fc)
+uEm013_00: 7 sites, 2 not reached by any traced action
+     0xd83548 p5c_add bl s0=#-5.000000e+00
+     0xd835d8 p5c_set bl s0=-250 (lit 0xd83604)
+uEm017_00: 43 sites, 14 not reached by any traced action
+     0xd98cac p5c_set b s0=?
+     0xd9cf68 p5c_set bl s0=-80 (lit 0xd9cff8)
+     0xd9d048 p5c_set bl s0=-80 (lit 0xd9d120)
+     0xd9d170 p5c_set bl s0=-80 (lit 0xd9d4c8)
+     0xd9d52c p5c_set bl s0=-80 (lit 0xd9d914)
+     0xd9decc p5c_set bl s0=-80 (lit 0xd9dfe0)
+     0xd9e038 p5c_set bl s0=-80 (lit 0xd9e41c)
+     0xd9e710 p5c_set bl s0=-80 (lit 0xd9eac8)
+     0xd9ec30 p5c_set bl s0=-80 (lit 0xd9ee28)
+     0xd9ee8c p5c_set bl s0=-80 (lit 0xd9f084)
+     0xd9f4e4 p5c_set bl s0=-80 (lit 0xd9f4f8)
+     0xd9f9fc p5c_set b s0=?
+     0xd9fdf8 p5c_set bl s0=-80 (lit 0xd9febc)
+     0xda0278 p5c_set bl s0=-80 (lit 0xda0328)
+uEm018_00: 4 sites, 0 not reached by any traced action
+uEm019_00/uEm020_00: 44 sites, 12 not reached by any traced action
+     0xdb67ac posture bl r1=4
+     0xdb67bc p5c_set bl s0=MoguriBaseOfs(0xbf62c@0xdb67b4)
+     0xdb6f58 p5c_set b s0=?
+     0xdb70d8 p5c_set b s0=?
+     0xdbd7c4 p5c_set b s0=?
+     0xdbf17c posture bl r1=4
+     0xdbf18c p5c_set bl s0=vmov.f32 s0, s16 @0xdbf188
+     0xdbf7a0 posture bl r1=4
+     0xdbf7b0 p5c_set bl s0=vmov.f32 s0, s16 @0xdbf7ac
+     0xdc54a8 posture bl r1=4
+     0xdc54b8 p5c_set bl s0=MoguriBaseOfs(0xbf62c@0xdc54b0)
+     0xdc9768 p5c_set b s0=?
+uEm022_00: 13 sites, 0 not reached by any traced action
+uEm024_00: 4 sites, 1 not reached by any traced action
+     0xdfca1c p5c_add bl s0=#-5.000000e+00
+uEm027_00: 2 sites, 0 not reached by any traced action
+uEm030_00: 10 sites, 2 not reached by any traced action
+     0xe1e700 p5c_set b s0=?
+     0xe1e99c p5c_set b s0=?
+uEm033_00: 18 sites, 0 not reached by any traced action
+uEm036_00: 67 sites, 9 not reached by any traced action
+     0xe3eae0 p5c_set bl s0=vstr s0, [r0] @0xe3ead4
+     0xe3eb04 posture bl r1=4
+     0xe4069c posture bl r1=4
+     0xe40bb4 posture bl r1=4
+     0xe40bc0 p5c_set bl s0=vadd.f32 s0, s16, s18 @0xe40bb8
+     0xe4291c p5c_set b s0=?
+     0xe42b1c p5c_set b s0=?
+     0xe42f0c p5c_set b s0=?
+     0xe44020 posture bl r1=4
+uEm038_00: 18 sites, 2 not reached by any traced action
+     0xe5e688 p5c_set b s0=?
+     0xe5fc74 p5c_set b s0=?
+uEm042_00: 3 sites, 0 not reached by any traced action
+uEm043_00: 12 sites, 3 not reached by any traced action
+     0xe744dc p5c_set b s0=?
+     0xe77168 p5c_set b s0=?
+     0xe80e8c posture bl r1=4
+uEm044_00: 33 sites, 6 not reached by any traced action
+     0xe83e28 p5c_set b s0=?
+     0xe863f4 p5c_set b s0=?
+     0xe865d4 p5c_set b s0=?
+     0xe86800 p5c_set b s0=?
+     0xe8d1e8 posture bl r1=4
+     0xe8d1fc p5c_set b s0=?
+uEm045_00: 22 sites, 8 not reached by any traced action
+     0xe8f2a4 posture bl r1=4
+     0xe918cc p5c_set b s0=?
+     0xe923e8 p5c_set b s0=?
+     0xe940dc p5c_set b s0=?
+     0xe941e4 p5c_set b s0=?
+     0xe942a0 p5c_set b s0=?
+     0xe94820 p5c_set b s0=?
+     0xe9c7c0 posture bl r1=4
+uEm046_00: 6 sites, 2 not reached by any traced action
+     0xea2058 p5c_set bl s0=?call #0x6f618@0xea2050
+     0xea2064 posture bl r1=4
+uEm047_00: 24 sites, 6 not reached by any traced action
+     0xeace68 p5c_set b s0=?
+     0xead034 p5c_set b s0=?
+     0xead544 p5c_set bl s0=?call #0x6f618@0xead53c
+     0xead550 posture bl r1=4
+     0xeada48 p5c_set b s0=?
+     0xeb2788 p5c_set b s0=?
+uEm049_00: 30 sites, 6 not reached by any traced action
+     0xeb4a90 posture bl r1=4
+     0xeb9070 p5c_set b s0=?
+     0xeb9968 p5c_set b s0=?
+     0xeb9aec p5c_set b s0=?
+     0xeb9be4 p5c_set b s0=?
+     0xec2f50 posture bl r1=4
+uEm055_00: 14 sites, 2 not reached by any traced action
+     0xed0be8 posture bl r1=4
+     0xed4d58 posture bl r1=4
+uEm056_00: 55 sites, 14 not reached by any traced action
+     0xee0ed8 posture bl r1=4
+     0xee3de4 p5c_set b s0=?
+     0xee6ef8 p5c_set bl s0=MoguriBaseOfs(0xbf62c@0xee6ef0)
+     0xee7240 p5c_set b s0=?
+     0xee7618 p5c_set bl s0=#-3.000000e+01
+     0xee767c p5c_set b s0=?
+     0xee78e0 p5c_set bl s0=-350 (lit 0xee7934)
+     0xee7914 p5c_set b s0=?
+     0xee7a7c posture bl r1=4
+     0xee7aac p5c_set b s0=?
+     0xee7b78 p5c_set b s0=?
+     0xee7eec p5c_set b s0=?
+     0xee88b8 p5c_set b s0=?
+     0xeea4f8 posture bl r1=4
+uEm058_00: 1 sites, 0 not reached by any traced action
+uEm060_00: 11 sites, 3 not reached by any traced action
+     0xf14668 p5c_set b s0=?
+     0xf14770 p5c_set b s0=?
+     0xf14864 p5c_set b s0=?
+uEm061_00: 7 sites, 3 not reached by any traced action
+     0xf2c93c p5c_set b s0=?
+     0xf2ca40 p5c_set b s0=?
+     0xf2cb20 p5c_set b s0=?
+uEm063_00: 14 sites, 3 not reached by any traced action
+     0xf37784 p5c_set b s0=?
+     0xf3ce68 p5c_set b s0=?
+     0xf3cf60 p5c_add bl s0=50 (lit 0xf3cfa4)
+uEm065_00: 14 sites, 4 not reached by any traced action
+     0xf51888 p5c_set b s0=?
+     0xf52244 p5c_set bl s0=vmov.f32 s0, s16 @0xf52238
+     0xf52650 p5c_set bl s0=585 (lit 0xf52818)
+     0xf52f84 p5c_set b s0=?
+uEm066_00: 10 sites, 0 not reached by any traced action
+uEm067_00: 67 sites, 5 not reached by any traced action
+     0xf65e54 p5c_set bl s0=0 (lit 0xf65edc)
+     0xf65e70 posture bl r1=4
+     0xf6c8c4 p5c_set bl s0=0 (lit 0xf6c914)
+     0xf6cfe0 posture bl r1=4
+     0xf6d2a8 posture bl r1=4
+uEm068_00: 14 sites, 0 not reached by any traced action
+uEm069_00: 14 sites, 1 not reached by any traced action
+     0xf9288c p5c_set b s0=?
+uEm070_00: 14 sites, 3 not reached by any traced action
+     0xf9d9e8 p5c_set b s0=?
+     0xfa3d78 p5c_set b s0=?
+     0xfa4a24 p5c_set b s0=?
+uEm071_00: 7 sites, 2 not reached by any traced action
+     0xfb2310 p5c_add bl s0=#2.500000e+00
+     0xfb9a2c p5c_add bl s0=#2.500000e+00
+uEm076_00: 12 sites, 3 not reached by any traced action
+     0xfc445c posture bl r1=4
+     0xfc7b5c p5c_set b s0=?
+     0xfd14a4 p5c_set b s0=?
+uEm077_00: 2 sites, 0 not reached by any traced action
+uEm079_00: 4 sites, 1 not reached by any traced action
+     0xfface0 p5c_set bl s0=vstr s0, [r5] @0xffacdc
+uEm080_00: 11 sites, 3 not reached by any traced action
+     0x1000c2c p5c_set b s0=?
+     0x1002eac p5c_set b s0=?
+     0x1002f6c p5c_set b s0=?
+uEm081_00: 17 sites, 4 not reached by any traced action
+     0x101ab7c p5c_add bl s0=#2.500000e+00
+     0x101c090 p5c_set b s0=?
+     0x1024b88 p5c_set b s0=?
+     0x1025bd4 p5c_set b s0=?
+uEm083_00: 2 sites, 0 not reached by any traced action
+uEm084_00: 30 sites, 14 not reached by any traced action
+     0x107ff58 posture bl r1=4
+     0x107ff68 p5c_set bl s0=MoguriBaseOfs(0xbf62c@0x107ff60)
+     0x1080934 posture bl r1=4
+     0x1080964 p5c_set b s0=?
+     0x1081df4 posture bl r1=4
+     0x1081e00 p5c_set bl s0=-1500 (lit 0x1081efc)
+     0x1081ecc p5c_set bl s0=vmov.f32 s0, s16 @0x1081ec8
+     0x1081f90 p5c_set bl s0=vmov.f32 s0, s16 @0x1081f88
+     0x1082288 p5c_set bl s0=vmov.f32 s0, s16 @0x1082280
+     0x10824b4 p5c_set b s0=?
+     0x1083658 posture bl r1=4
+     0x1083668 p5c_set bl s0=MoguriBaseOfs(0xbf62c@0x1083660)
+     0x10881b0 posture bl r1=4
+     0x10881bc p5c_set bl s0=-1500 (lit 0x10884a0)
+uEm087_00/uEm088_00: 7 sites, 2 not reached by any traced action
+     0x10a59d8 p5c_set b s0=?
+     0x10b046c p5c_set bl s0=vldr s0, [r0, #0x5c] @0x10b0464
+uEms004_00: 2 sites, 0 not reached by any traced action
+uEms007_00: 1 sites, 0 not reached by any traced action
+uEms013_00: 3 sites, 1 not reached by any traced action
+     0x10e0c04 p5c_set b s0=?
+uEms017_00: 1 sites, 1 not reached by any traced action
+     0x10e59c4 p5c_set b s0=?
+uEms035_00: 1 sites, 0 not reached by any traced action
+uEms040_00: 36 sites, 10 not reached by any traced action
+     0x1103744 posture bl r1=4
+     0x1103768 posture bl r1=4
+     0x1103b2c p5c_set b s0=?
+     0x1103c50 p5c_set b s0=?
+     0x110477c p5c_set b s0=?
+     0x1104980 p5c_set b s0=?
+     0x1104f60 p5c_set b s0=?
+     0x1105330 p5c_set b s0=?
+     0x1105f04 p5c_set b s0=?
+     0x1106058 posture bl r1=4
+uEms045_00: 12 sites, 4 not reached by any traced action
+     0x110e0a4 posture bl r1=4
+     0x110e3f8 p5c_set b s0=?
+     0x1111dd4 p5c_set b s0=?
+     0x1113b3c p5c_set b s0=?

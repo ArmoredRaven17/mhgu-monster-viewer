@@ -279,3 +279,11 @@ u 201 / u 230 / u 240 / u 26x / u 28x look like (Raven's).
 * **Begins Burrowed -- BUILT 2026-10-19** (CLASS_TOGGLES `burrowed`, working label, approved by Raven): on, every posture-4 play
   reads sunk (0x81d6c: posture 4 and P+0x5c below 0.9 x MoguriBaseOfs); off, only the entries that name sunk. Checked on
   Basarios's L0 M7 B (dev/checks/class-toggles.mjs).
+
+## Re-metered 2026-10-25 (effects lane A)
+
+* c 211 / c 212 / c 222 (L0 M20 bits 1 / 2 / 3, base bits) draw: L0 M20 is a split motion and the old census played only its
+  `_start` piece. u 1400 (L0 M6 copy B) and c 1500 (lying, Ground H) draw, both variants.
+* **u 267 / u 284 / u 285 (L2 M2 bits 27 / 30 / 31) are never enabled** -- the word `0xe9cb64` gives L2 M2 the action bits 17-24
+  only (section 1; emulated 39936 runs per variant). A ROM reason for the coordinator; control: u 261 / 263 / 280-283 on the same
+  clip draw (rom-map "Uragaan / Crystalbeard u 267").

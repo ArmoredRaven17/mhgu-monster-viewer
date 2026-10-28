@@ -37,3 +37,20 @@ writes `e+0x1404` three times: bit 18 (`0xdda514`) and bit 19 (`0xddbca0`, `0xdd
 (`<archive>/zg/latchdyn.py`, every status x number x phase x ended): bit 19 only, 8 cases; control, Uragaan the same way:
 bit 20 on (6, 3) / (6, 6). So the latch never opens for him and nothing requests u 1400 -- not a gap. (The earlier wording,
 "a one-shot latch the viewer does not model", is withdrawn: rom-map's sweep row.)
+
+## Lane A2 (2026-10-26): u 60 built, u 1400 a ROM reason
+
+* **u 60** (the snow dive's burst): (7, 0x14 / 0x15 / 0x16) phase 0 (`0xdddbc8`) sets posture 4, sinks (`0xbf62c` / `0xbf700`),
+  sets L0 M20 and asks id 1001 = u 60 at his unit position (`0xdda664`: the position alone, +0x1c |= 3, +8 = 2). Built as L0 M20 copy B
+  (CLIP_ACTIONS / CLIP_VARIANTS / MOTION_STATES `start` with `{ unitPos, type8: 2 }`); copy A is the idle (0, 7). It draws.
+  L0 M20 is a clip of no length, which froze the effect clock; index.html animAdvance now hands such a clip the wall clock while it
+  plays (rom-map "VIEWER FIX: a clip of no length"). The sink itself is not modelled (what `0xbf700` writes is NOT READ).
+* **u 1400**: never requested -- no `0xa499c` call in his band, his one class request is u 60, and the shared latch needs bits only
+  other classes raise. Brought to the coordinator (rom-map "Effects lane A2").
+
+## Lane A3 (2026-10-26): u 60's sink
+
+(7, 0x14..0x16) phase 0 sets posture 4 and P+0x5c = MoguriBaseOfs (`0xbf62c` = dtbase +0xa8; the .dtb's -500.0) through `0xbf700`.
+In posture 4 the drawn offset's decay is skipped (`0xa5e04`), so the body is drawn 500 x the spawn size under his unit for the
+whole play, and u 60 stands at the unit on the ground. The viewer draws no posture-4 offset for any monster: a viewer limit,
+brought to the coordinator (one rule for every posture-4 play, not a Blangonga row).

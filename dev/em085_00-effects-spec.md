@@ -136,3 +136,9 @@ what e+0x13a0 = 15.0 (set at `0x108e874` when a phase-2 play ends) is for; what 
   copies show both, which the ROM picks by the map.
 * **`0x7206c` -- READ** (the shared countdown, schedule.js); **e+0x13a0 = 15.0** sets layer 0's flag bit 0 for 15 frames (the motion
   advance `0x71984` counts it down); what bit 0 does is NR.
+
+## Re-metered 2026-10-25 (effects lane A)
+
+c 118 / c 112 (L0 M21 bits 18 / 19, action (1, 0x0f)) draw on the clip's second play. Before, they could not start: L0 M21 exists only
+as `Motion[21]_loop`, and the viewer read each replay as a loop wrap, so the CLIP_ACTIONS entry never advanced past (1, 4). Fixed in
+index.html playNow (rom-map "VIEWER FIX: a Clip-menu replay"). c 117 (L0 M24) and c 1500 (lying, Ground H) draw.

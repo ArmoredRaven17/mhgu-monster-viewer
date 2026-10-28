@@ -1,5 +1,9 @@
 # Effects open items -- one table (Fanged-Wyvern / effects lane, 2026-10-19)
 
+> **Superseded for coverage (2026-10-24): the current, draw-level census is `dev/effects-coverage.md`** -- every non-shell record of
+> all 94 monsters measured with the draw meter under every input, bucketed draws / starts-no-draw / not requested / named refusal /
+> open. This file is kept as the 2026-10-19 list of named reads.
+
 Every item marked "named", "not shown", "NOT READ" / NR, "INFERRED" / I or "stand-in" in the effects specs
 (`dev/*effects-spec*.md`) and in the 2026-10-18 rom-map rows, in walk order (dev/effects-walk-order.md). Extraction:
 `grep -i -E "not shown|NOT READ|INFERRED|stand-in|named|NR"` over the specs (243 lines, 44 specs) plus each spec's own

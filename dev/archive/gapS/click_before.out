@@ -1,0 +1,39 @@
+
+real	1m3.257s
+user	0m0.060s
+sys	0m0.137s
+rc=1
+CASE  -- fixed60 dist 1 play_parts
+CLICK play L0 M1 slot 2  -- {"label":"play L0 M1 slot 2","slot":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":39,"s":41,"v":"draws"}
+CLICK play L0 M1 slot 0  -- {"label":"play L0 M1 slot 0","slot":0,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":38,"s":40,"v":"draws"}
+CLICK play L0 M1 slot 1  -- {"label":"play L0 M1 slot 1","slot":1,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":38,"s":40,"v":"draws"}
+CLICK play L0 M1 slot 3  -- {"label":"play L0 M1 slot 3","slot":3,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":38,"s":40,"v":"draws"}
+CLICK play L0 M1 slot 0 again after re-arm  -- {"label":"play L0 M1 slot 0 again after re-arm","slot":0,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":38,"s":40,"v":"draws"}
+CASE  -- fixed60 dist 1 rapid
+CLICK rapid x4  -- {"label":"rapid 4 parts","burn":3,"shell":3,"st":3,"d":0,"lit":114,"s":120,"v":"draws"}
+CASE  -- 144 dist 1 play_parts
+CLICK play L0 M1 slot 2  -- {"label":"play L0 M1 slot 2","slot":2,"clicked":true,"burn":1,"shell":0,"st":0,"d":0,"lit":0,"s":0,"v":"-"}
+CLICK play L0 M1 slot 0  -- {"label":"play L0 M1 slot 0","slot":0,"clicked":true,"burn":1,"shell":0,"st":0,"d":0,"lit":0,"s":0,"v":"-"}
+CLICK play L0 M1 slot 1  -- {"label":"play L0 M1 slot 1","slot":1,"clicked":true,"burn":1,"shell":0,"st":0,"d":0,"lit":0,"s":0,"v":"-"}
+CLICK play L0 M1 slot 3  -- {"label":"play L0 M1 slot 3","slot":3,"clicked":true,"burn":1,"shell":0,"st":0,"d":0,"lit":0,"s":0,"v":"-"}
+CLICK play L0 M1 slot 0 again after re-arm  -- {"label":"play L0 M1 slot 0 again after re-arm","slot":0,"clicked":true,"burn":1,"shell":0,"st":0,"d":0,"lit":0,"s":0,"v":"-"}
+CASE  -- 144 dist 1 rapid
+CLICK rapid x4  -- {"label":"rapid 4 parts","burn":3,"shell":1,"st":1,"d":0,"lit":91,"s":96,"v":"draws"}
+CASE  -- jitter dist 1 play_parts
+CLICK play L0 M1 slot 2  -- {"label":"play L0 M1 slot 2","slot":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":37,"s":39,"v":"draws"}
+CLICK play L0 M1 slot 0  -- {"label":"play L0 M1 slot 0","slot":0,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":41,"s":42,"v":"draws"}
+CLICK play L0 M1 slot 1  -- {"label":"play L0 M1 slot 1","slot":1,"clicked":true,"burn":1,"shell":0,"st":0,"d":0,"lit":0,"s":0,"v":"-"}
+CLICK play L0 M1 slot 3  -- {"label":"play L0 M1 slot 3","slot":3,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":37,"s":38,"v":"draws"}
+CLICK play L0 M1 slot 0 again after re-arm  -- {"label":"play L0 M1 slot 0 again after re-arm","slot":0,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":39,"s":40,"v":"draws"}
+CASE  -- jitter dist 1 rapid
+CLICK rapid x4  -- {"label":"rapid 4 parts","burn":3,"shell":3,"st":3,"d":0,"lit":111,"s":118,"v":"draws"}
+CASE  -- 144 dist 2.5 play_parts
+CLICK play L0 M1 slot 2  -- {"label":"play L0 M1 slot 2","slot":2,"clicked":true,"burn":1,"shell":0,"st":0,"d":0,"lit":0,"s":0,"v":"-"}
+CLICK play L0 M1 slot 0  -- {"label":"play L0 M1 slot 0","slot":0,"clicked":true,"burn":1,"shell":0,"st":0,"d":0,"lit":0,"s":0,"v":"-"}
+CLICK play L0 M1 slot 1  -- {"label":"play L0 M1 slot 1","slot":1,"clicked":true,"burn":1,"shell":0,"st":0,"d":0,"lit":0,"s":0,"v":"-"}
+CLICK play L0 M1 slot 3  -- {"label":"play L0 M1 slot 3","slot":3,"clicked":true,"burn":1,"shell":0,"st":0,"d":0,"lit":0,"s":0,"v":"-"}
+CLICK play L0 M1 slot 0 again after re-arm  -- {"label":"play L0 M1 slot 0 again after re-arm","slot":0,"clicked":true,"burn":1,"shell":0,"st":0,"d":0,"lit":0,"s":0,"v":"-"}
+CASE  -- 144 dist 2.5 rapid
+CLICK rapid x4  -- {"label":"rapid 4 parts","burn":3,"shell":1,"st":1,"d":0,"lit":91,"s":96,"v":"draws"}
+
+[exited with code 0]

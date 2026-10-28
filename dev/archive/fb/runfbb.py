@@ -8,7 +8,8 @@ mons = [l.split()[0] for l in open(LIST) if l.startswith('em')]
 only = sys.argv[1:]
 if only: mons = [m for m in mons if m in only]
 # the shared classes (trgen's FB_EM = the monster's em byte): the Rath line, Basarios / Gravios (rom-map 'uEm004_00 em 5'), the dromes
-SHARED = {'002': 'uEm001_00', '005': 'uEm004_00', '015': 'uEm014_00', '016': 'uEm014_00', '034': 'uEm014_00'}
+# the full spawn-table map (dev/notice-marks.md step 3; 062 / 072 added 2026-10-27, atkfix lane, rom-map trap 176)
+SHARED = {'002': 'uEm001_00', '005': 'uEm004_00', '015': 'uEm014_00', '016': 'uEm014_00', '034': 'uEm014_00', '062': 'uEm060_00', '072': 'uEm071_00'}
 # the Rath line's shell ids (shells-em001.md 1: the loader 0xd09918 by em / variant -> e+0xcac4 sp_00, +0xcac8 sp_01, +0xcacc sp_11;
 # 0x19d = none): poked so the census names the shell (unpoked it logs id 0)
 import json, struct

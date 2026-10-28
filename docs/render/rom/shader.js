@@ -345,8 +345,13 @@ export function injectFeatures(mat, rom, lit, ref){
           // the second map. Applying both would double-count it.
           // the factor is fAlbedoBlendColor's ALPHA, a scalar -- the ROM's leaf reads
           // `tmp1 | tmp2 | $Globals.fAlbedoBlendColor | .a | LERP/3`
+          // THE LERP IS ON THE ALBEDO, so the second map takes the material colour too (fAlbedoColor x fDiffuseColor, three's
+          // `diffuse`): diffuseColor is already diffuse x the first map here. Mixing in the raw ext.rgb dropped it -- on Raging
+          // Brachydios's four slime layers (cbm fDiffuseColor 0,0,0: emission only) the Red end state (alpha 1) drew a lit white
+          // albedo on top of the emission, brighter than the ROM (rom-map trap 147; 2026-10-25). The emission's gBase below is
+          // the albedo before the colour, as applyTint's is.
           '\t  if ( uExtMode > 2.5 ) {\n' +
-          '\t    diffuseColor.rgb = mix( diffuseColor.rgb, ext.rgb, uExtTint.a );\n' +
+          '\t    diffuseColor.rgb = mix( diffuseColor.rgb, diffuse * ext.rgb, uExtTint.a );\n' +
           '\t    gBase = mix( gBase, ext.rgb, uExtTint.a );\n' +
           '\t  } else {\n' +
           '\t    ext.rgb *= uExtTint.rgb;\n' +

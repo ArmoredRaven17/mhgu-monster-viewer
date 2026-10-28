@@ -22,3 +22,8 @@ u 1400, posture: 4 }` -- the row gate keeps it to the burrowed play.
 ## 4. Implemented
 
 psl-mask.js `em030_00` + CLIP_ACTIONS (each clip surface then burrowed); nothing new to export.
+
+## Lane A2 (2026-10-26): u 0 built
+
+* (1, 0x14) `0xe1d558`: L0 M23, and at f143 it asks id 1001 = **u 0** through the class block (handle e+0xcae0). Built as
+  MOTION_STATES em030_00 `'0|Motion[23]'` fireFrom 143. It draws (`<archive>/cen/pq/a2_030`).

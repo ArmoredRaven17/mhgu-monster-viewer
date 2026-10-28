@@ -1,0 +1,753 @@
+000c3088  push     {r4, r5, r6, r7, r8, sb, sl, fp, lr}    
+000c308c  add      fp, sp, #0x1c                           
+000c3090  sub      sp, sp, #4                              
+000c3094  vpush    {d8, d9, d10, d11, d12, d13, d14, d15}  
+000c3098  sub      sp, sp, #0x118                          
+000c309c  bfc      sp, #0, #4                              
+000c30a0  mov      sl, r0                                  
+000c30a4  movw     r0, #0x1428                             
+000c30a8  mov      r1, #0                                  
+000c30ac  mov      r4, sl                                  
+000c30b0  ldr      r0, [r4, r0]!                           
+000c30b4  strb     r1, [r0, #0x24c]                        
+000c30b8  ldr      r0, [r4]                                
+000c30bc  strb     r1, [r0, #0x24e]                        
+000c30c0  ldrb     r0, [r4, #-0x20]                        
+000c30c4  tst      r0, #4                                  
+000c30c8  bne      #0xc30fc                                
+000c30cc  ldr      r0, [r4]                                
+000c30d0  ldrb     r0, [r0, #0x504]                        
+000c30d4  cmp      r0, #0                                  
+000c30d8  bne      #0xc30fc                                
+000c30dc  movw     r0, #0x73e0                             
+000c30e0  ldrb     r0, [sl, r0]                            
+000c30e4  cmp      r0, #0xe                                
+000c30e8  bhi      #0xc310c                                
+000c30ec  mov      r1, #1                                  
+000c30f0  mov      r2, #0x5800                             
+000c30f4  tst      r2, r1, lsl r0                          
+000c30f8  beq      #0xc310c                                
+000c30fc  sub      sp, fp, #0x60                           
+000c3100  vpop     {d8, d9, d10, d11, d12, d13, d14, d15}  
+000c3104  add      sp, sp, #4                              
+000c3108  pop      {r4, r5, r6, r7, r8, sb, sl, fp, pc}    
+000c310c  mov      r0, sl                                  
+000c3110  mov      r1, #0                                  
+000c3114  mov      r5, #0                                  
+000c3118  bl       #0x81bb0                                
+000c311c  cmp      r0, #0                                  
+000c3120  bne      #0xc30fc                                
+000c3124  mov      r0, sl                                  
+000c3128  add      sb, sp, #0xe4                           
+000c312c  str      r5, [sp, #0x10c]                        
+000c3130  bl       #0x71088                                
+000c3134  ldm      r0!, {r2, r3, r6, r7}                   
+000c3138  add      r1, sp, #0xe0                           
+000c313c  stm      r1!, {r2, r3, r6, r7}                   
+000c3140  ldm      r0, {r2, r3, r6, r7}                    
+000c3144  stm      r1, {r2, r3, r6, r7}                    
+000c3148  ldr      r1, [sp, #0xe0]                         
+000c314c  cmn      r1, #1                                  
+000c3150  beq      #0xc3474                                
+000c3154  add      r2, sp, #0xa0                           
+000c3158  mov      r0, sl                                  
+000c315c  bl       #0xc15a4                                
+000c3160  ldr      r0, [sp, #0xd0]                         
+000c3164  ldrh     r1, [sb]                                
+000c3168  vldr     s0, [sp, #0xa0]                         
+000c316c  movw     r2, #0xffff                             
+000c3170  str      r0, [sp, #0x100]                        
+000c3174  ldr      r0, [sp, #0xd4]                         
+000c3178  str      r0, [sp, #0x104]                        
+000c317c  ldr      r0, [sp, #0xd8]                         
+000c3180  str      r0, [sp, #0x108]                        
+000c3184  ldrh     r0, [sb, #2]                            
+000c3188  orr      r1, r0, r1                              
+000c318c  tst      r1, r2                                  
+000c3190  beq      #0xc34c0                                
+000c3194  vldr     s2, [sp, #0xa4]                         
+000c3198  vldr     s4, [sp, #0xa8]                         
+000c319c  ldr      r1, [sp, #0xac]                         
+000c31a0  vmov     s6, r0                                  
+000c31a4  ldr      r0, [sp, #0xb4]                         
+000c31a8  vldr     s24, [pc, #0x304]                       
+000c31ac  vldr     s22, [pc, #0x304]                       
+000c31b0  vmov.f32 s20, #5.000000e-01                      
+000c31b4  vldr     s18, [pc, #0x300]                       
+000c31b8  ldr      r2, [pc, #0xa08]                           ; literal 0x176efdc
+000c31bc  vmov.f32 s16, #1.000000e+00                      
+000c31c0  vmov.f32 s1, #-2.000000e+00                      
+000c31c4  mov      r6, #0                                  
+000c31c8  add      r5, sp, #0xa0                           
+000c31cc  mov      r8, #0x3f800000                         
+000c31d0  vmov.f32 s11, s16                                
+000c31d4  ldr      r7, [pc, r2]                            
+000c31d8  vstr     s2, [sp, #0x64]                         
+000c31dc  vstr     s4, [sp, #0x68]                         
+000c31e0  str      r1, [sp, #0x6c]                         
+000c31e4  ldr      r1, [sp, #0xb0]                         
+000c31e8  vmov.f32 s8, s22                                 
+000c31ec  str      r1, [sp, #0x70]                         
+000c31f0  vcvt.f32.u32 s6, s6                                  
+000c31f4  str      r0, [sp, #0x74]                         
+000c31f8  ldr      r0, [sp, #0xb8]                         
+000c31fc  str      r0, [sp, #0x78]                         
+000c3200  vmul.f32 s6, s6, s24                             
+000c3204  vmul.f32 s6, s6, s20                             
+000c3208  vmla.f32 s8, s6, s18                             
+000c320c  vmov     r0, s8                                  
+000c3210  add      r1, r0, #0x400                          
+000c3214  bfc      r0, #0xc, #0x14                         
+000c3218  bfc      r1, #0xc, #0x14                         
+000c321c  add      r0, r7, r0, lsl #2                      
+000c3220  vldr     s6, [r0]                                
+000c3224  add      r0, r7, r1, lsl #2                      
+000c3228  add      r1, sp, #0x60                           
+000c322c  vldr     s8, [r0]                                
+000c3230  mov      r0, r5                                  
+000c3234  vmul.f32 s2, s2, s6                              
+000c3238  vmul.f32 s4, s4, s6                              
+000c323c  vmul.f32 s0, s0, s6                              
+000c3240  vmul.f32 s6, s4, s4                              
+000c3244  vmul.f32 s10, s2, s2                             
+000c3248  vmul.f32 s12, s8, s4                             
+000c324c  vmul.f32 s14, s0, s2                             
+000c3250  vmul.f32 s5, s8, s2                              
+000c3254  vmul.f32 s7, s0, s4                              
+000c3258  vmul.f32 s2, s2, s4                              
+000c325c  vadd.f32 s3, s10, s6                             
+000c3260  vadd.f32 s9, s14, s12                            
+000c3264  vsub.f32 s12, s14, s12                           
+000c3268  vmla.f32 s11, s3, s1                             
+000c326c  vadd.f32 s3, s9, s9                              
+000c3270  vmul.f32 s9, s0, s0                              
+000c3274  vsub.f32 s1, s7, s5                              
+000c3278  vmul.f32 s0, s8, s0                              
+000c327c  vadd.f32 s6, s9, s6                              
+000c3280  vadd.f32 s8, s0, s2                              
+000c3284  vadd.f32 s1, s1, s1                              
+000c3288  vstr     s11, [sp, #0x60]                        
+000c328c  vstr     s3, [sp, #0x64]                         
+000c3290  vsub.f32 s0, s2, s0                              
+000c3294  vadd.f32 s4, s6, s6                              
+000c3298  vadd.f32 s6, s12, s12                            
+000c329c  vstr     s1, [sp, #0x68]                         
+000c32a0  str      r6, [sp, #0x6c]                         
+000c32a4  vadd.f32 s0, s0, s0                              
+000c32a8  vstr     s6, [sp, #0x70]                         
+000c32ac  vsub.f32 s4, s16, s4                             
+000c32b0  vadd.f32 s6, s8, s8                              
+000c32b4  vstr     s4, [sp, #0x74]                         
+000c32b8  vstr     s6, [sp, #0x78]                         
+000c32bc  vadd.f32 s4, s5, s7                              
+000c32c0  vadd.f32 s6, s9, s10                             
+000c32c4  str      r6, [sp, #0x7c]                         
+000c32c8  vadd.f32 s2, s4, s4                              
+000c32cc  vadd.f32 s4, s6, s6                              
+000c32d0  vstr     s2, [sp, #0x80]                         
+000c32d4  vsub.f32 s2, s16, s4                             
+000c32d8  vstr     s0, [sp, #0x84]                         
+000c32dc  vstr     s2, [sp, #0x88]                         
+000c32e0  str      r6, [sp, #0x8c]                         
+000c32e4  str      r6, [sp, #0x90]                         
+000c32e8  str      r6, [sp, #0x94]                         
+000c32ec  str      r6, [sp, #0x98]                         
+000c32f0  str      r8, [sp, #0x9c]                         
+000c32f4  bl       #0x1ebe8                                
+000c32f8  ldrh     r0, [sb]                                
+000c32fc  vldr     s0, [sp, #0xb0]                         
+000c3300  vldr     s2, [sp, #0xb4]                         
+000c3304  vldr     s4, [sp, #0xb8]                         
+000c3308  vmov     s6, r0                                  
+000c330c  vcvt.f32.u32 s6, s6                                  
+000c3310  vmul.f32 s6, s6, s24                             
+000c3314  vmul.f32 s6, s6, s20                             
+000c3318  vmla.f32 s22, s6, s18                            
+000c331c  vmov     r0, s22                                 
+000c3320  add      r1, r0, #0x400                          
+000c3324  bfc      r0, #0xc, #0x14                         
+000c3328  bfc      r1, #0xc, #0x14                         
+000c332c  add      r0, r7, r0, lsl #2                      
+000c3330  vldr     s6, [r0]                                
+000c3334  add      r0, r7, r1, lsl #2                      
+000c3338  add      r1, sp, #0x20                           
+000c333c  vldr     s8, [r0]                                
+000c3340  mov      r0, r5                                  
+000c3344  vmul.f32 s4, s4, s6                              
+000c3348  vmul.f32 s2, s2, s6                              
+000c334c  vmul.f32 s0, s0, s6                              
+000c3350  vmul.f32 s10, s4, s4                             
+000c3354  vmul.f32 s12, s2, s2                             
+000c3358  vmul.f32 s14, s8, s4                             
+000c335c  vmul.f32 s1, s0, s2                              
+000c3360  vmul.f32 s3, s8, s2                              
+000c3364  vmul.f32 s5, s0, s4                              
+000c3368  vmul.f32 s2, s2, s4                              
+000c336c  vadd.f32 s6, s12, s10                            
+000c3370  vadd.f32 s7, s1, s14                             
+000c3374  vsub.f32 s9, s5, s3                              
+000c3378  vsub.f32 s14, s1, s14                            
+000c337c  vadd.f32 s6, s6, s6                              
+000c3380  vadd.f32 s7, s7, s7                              
+000c3384  vadd.f32 s9, s9, s9                              
+000c3388  vsub.f32 s6, s16, s6                             
+000c338c  vstr     s6, [sp, #0x20]                         
+000c3390  vmul.f32 s6, s0, s0                              
+000c3394  vmul.f32 s0, s8, s0                              
+000c3398  vadd.f32 s8, s14, s14                            
+000c339c  vstr     s7, [sp, #0x24]                         
+000c33a0  vstr     s9, [sp, #0x28]                         
+000c33a4  str      r6, [sp, #0x2c]                         
+000c33a8  vadd.f32 s10, s6, s10                            
+000c33ac  vstr     s8, [sp, #0x30]                         
+000c33b0  vadd.f32 s6, s6, s12                             
+000c33b4  vadd.f32 s4, s10, s10                            
+000c33b8  vadd.f32 s10, s0, s2                             
+000c33bc  vsub.f32 s0, s2, s0                              
+000c33c0  vsub.f32 s4, s16, s4                             
+000c33c4  vadd.f32 s8, s10, s10                            
+000c33c8  vadd.f32 s0, s0, s0                              
+000c33cc  vstr     s4, [sp, #0x34]                         
+000c33d0  vadd.f32 s4, s3, s5                              
+000c33d4  vstr     s8, [sp, #0x38]                         
+000c33d8  str      r6, [sp, #0x3c]                         
+000c33dc  vadd.f32 s2, s4, s4                              
+000c33e0  vadd.f32 s4, s6, s6                              
+000c33e4  vstr     s2, [sp, #0x40]                         
+000c33e8  vsub.f32 s2, s16, s4                             
+000c33ec  vstr     s0, [sp, #0x44]                         
+000c33f0  vstr     s2, [sp, #0x48]                         
+000c33f4  str      r6, [sp, #0x4c]                         
+000c33f8  str      r6, [sp, #0x50]                         
+000c33fc  str      r6, [sp, #0x54]                         
+000c3400  str      r6, [sp, #0x58]                         
+000c3404  str      r8, [sp, #0x5c]                         
+000c3408  bl       #0x1ebe8                                
+000c340c  vldr     s16, [sp, #0xc0]                        
+000c3410  vldr     s18, [sp, #0xc8]                        
+000c3414  vldr     s22, [sp, #0xc4]                        
+000c3418  vmov.f32 s0, s16                                 
+000c341c  vmov.f32 s1, s18                                 
+000c3420  bl       #0x13ecba8                              
+000c3424  vldr     s24, [pc, #0x1a4]                       
+000c3428  vmov.f32 s2, s20                                 
+000c342c  vmla.f32 s2, s0, s24                             
+000c3430  vmul.f32 s0, s18, s18                            
+000c3434  vmla.f32 s0, s16, s16                            
+000c3438  vcvt.s32.f32 s2, s2                                  
+000c343c  vsqrt.f32 s1, s0                                  
+000c3440  vmov     r0, s2                                  
+000c3444  uxth     r0, r0                                  
+000c3448  str      r0, [sp, #0x18]                         
+000c344c  vcmpe.f32 s1, s1                                  
+000c3450  vmrs     apsr_nzcv, fpscr                        
+000c3454  bvc      #0xc3460                                
+000c3458  bl       #0x13ecc14                              
+000c345c  vmov.f32 s1, s0                                  
+000c3460  vneg.f32 s0, s22                                 
+000c3464  bl       #0x13ecba8                              
+000c3468  vmla.f32 s20, s0, s24                            
+000c346c  vcvt.s32.f32 s0, s20                                 
+000c3470  b        #0xc3564                                
+000c3474  ldr      r0, [r4]                                
+000c3478  vldr     s2, [pc, #0x154]                        
+000c347c  ldr      r1, [r0, #0x40]                         
+000c3480  str      r1, [sp, #0x100]                        
+000c3484  vldr     s0, [r0, #0x44]                         
+000c3488  ldr      r1, [r0, #0x48]                         
+000c348c  str      r1, [sp, #0x108]                        
+000c3490  mov      r1, #0                                  
+000c3494  vadd.f32 s0, s0, s2                              
+000c3498  str      r1, [sp, #0x10c]                        
+000c349c  vstr     s0, [sp, #0x104]                        
+000c34a0  ldr      r1, [r0, #0x50]                         
+000c34a4  ldr      r0, [r0, #0x54]                         
+000c34a8  str      r1, [sp, #0x14]                         
+000c34ac  str      r0, [sp, #0x18]                         
+000c34b0  b        #0xc3570                                
+000c34b4  stmlo    sb, {r0, r1, r3, r4, r6, r7, r8, sb, sl, fp} ^
+000c34b8  blmi     #0x10c34c0                              
+000c34bc  strtmi   pc, [r2], #-0x983                       
+000c34c0  vldr     s24, [pc, #0x110]                       
+000c34c4  vldr     s4, [sp, #0xb0]                         
+000c34c8  vldr     s6, [sp, #0xb8]                         
+000c34cc  vldr     s2, [sp, #0xa8]                         
+000c34d0  vldr     s8, [sp, #0xc8]                         
+000c34d4  vldr     s10, [sp, #0xc0]                        
+000c34d8  vldr     s26, [sp, #0xa4]                        
+000c34dc  vldr     s28, [sp, #0xb4]                        
+000c34e0  vldr     s30, [sp, #0xc4]                        
+000c34e4  vmul.f32 s4, s4, s24                             
+000c34e8  vmul.f32 s6, s6, s24                             
+000c34ec  vmla.f32 s4, s0, s24                             
+000c34f0  vmla.f32 s6, s2, s24                             
+000c34f4  vadd.f32 s16, s10, s4                            
+000c34f8  vadd.f32 s18, s8, s6                             
+000c34fc  vmov.f32 s0, s16                                 
+000c3500  vmov.f32 s1, s18                                 
+000c3504  bl       #0x13ecba8                              
+000c3508  vmov.f32 s22, #5.000000e-01                      
+000c350c  vldr     s20, [pc, #0xbc]                        
+000c3510  vmul.f32 s2, s28, s24                            
+000c3514  vmla.f32 s2, s26, s24                            
+000c3518  vmov.f32 s4, s22                                 
+000c351c  vmla.f32 s4, s0, s20                             
+000c3520  vmul.f32 s0, s18, s18                            
+000c3524  vmla.f32 s0, s16, s16                            
+000c3528  vadd.f32 s16, s30, s2                            
+000c352c  vcvt.s32.f32 s4, s4                                  
+000c3530  vsqrt.f32 s1, s0                                  
+000c3534  vmov     r0, s4                                  
+000c3538  uxth     r0, r0                                  
+000c353c  str      r0, [sp, #0x18]                         
+000c3540  vcmpe.f32 s1, s1                                  
+000c3544  vmrs     apsr_nzcv, fpscr                        
+000c3548  bvc      #0xc3554                                
+000c354c  bl       #0x13ecc14                              
+000c3550  vmov.f32 s1, s0                                  
+000c3554  vneg.f32 s0, s16                                 
+000c3558  bl       #0x13ecba8                              
+000c355c  vmla.f32 s22, s0, s20                            
+000c3560  vcvt.s32.f32 s0, s22                                 
+000c3564  vmov     r0, s0                                  
+000c3568  uxth     r0, r0                                  
+000c356c  str      r0, [sp, #0x14]                         
+000c3570  bl       #0x49e74                                
+000c3574  mov      r5, r0                                  
+000c3578  cmp      r5, #0                                  
+000c357c  beq      #0xc35e0                                
+000c3580  movw     r0, #0x1054                             
+000c3584  mov      r8, #0                                  
+000c3588  mov      r6, #0                                  
+000c358c  add      r7, sl, r0                              
+000c3590  mov      r0, r6                                  
+000c3594  bl       #0x49ea8                                
+000c3598  vldr     s0, [r0]                                
+000c359c  vcmpe.f32 s0, #0                                  
+000c35a0  vmrs     apsr_nzcv, fpscr                        
+000c35a4  ble      #0xc35c0                                
+000c35a8  ldrb     r0, [r0, #4]                            
+000c35ac  ldrb     r1, [r7]                                
+000c35b0  cmp      r1, r0                                  
+000c35b4  mov      r0, #0                                  
+000c35b8  movweq   r0, #1                                  
+000c35bc  orr      r8, r8, r0                              
+000c35c0  add      r6, r6, #1                              
+000c35c4  cmp      r5, r6                                  
+000c35c8  bne      #0xc3590                                
+000c35cc  b        #0xc35e4                                
+000c35d0  strtmi   pc, [r2], -r3, lsl #19                  
+000c35d4  submi    r0, r8, #0                              
+000c35d8  andeq    r0, r0, r0                              
+000c35dc  sbcmi    r0, r8, #0                              
+000c35e0  mov      r8, #0                                  
+000c35e4  ldr      r0, [pc, #0x5e8]                           ; literal 0x176e4f8
+000c35e8  ldr      r1, [r4]                                
+000c35ec  ldr      r0, [pc, r0]                            
+000c35f0  ldrb     r7, [r1, #0x1b5]                        
+000c35f4  ldr      r2, [r0]                                
+000c35f8  movw     r0, #0x2a28                             
+000c35fc  ldr      r3, [r2, r0]                            
+000c3600  mov      r0, #1                                  
+000c3604  cmp      r3, r7                                  
+000c3608  bne      #0xc3624                                
+000c360c  movw     r0, #0x2a24                             
+000c3610  ldr      r0, [r2, r0]!                           
+000c3614  orr      r0, r0, #1                              
+000c3618  str      r0, [r2]                                
+000c361c  mov      r0, #0                                  
+000c3620  ldr      r1, [r4]                                
+000c3624  mov      r2, #0                                  
+000c3628  str      r2, [sp, #0x6c]                         
+000c362c  movw     r2, #0x59c                              
+000c3630  add      r2, r1, r2                              
+000c3634  vldr     s0, [r2]                                
+000c3638  vcmpe.f32 s0, #0                                  
+000c363c  vmrs     apsr_nzcv, fpscr                        
+000c3640  bgt      #0xc30fc                                
+000c3644  movw     r2, #0x5a4                              
+000c3648  add      r2, r1, r2                              
+000c364c  vldr     s0, [r2]                                
+000c3650  vcmpe.f32 s0, #0                                  
+000c3654  vmrs     apsr_nzcv, fpscr                        
+000c3658  bgt      #0xc30fc                                
+000c365c  ldrb     r1, [r1, #0x24a]                        
+000c3660  mov      r2, #0                                  
+000c3664  mov      r5, #0                                  
+000c3668  tst      r1, #1                                  
+000c366c  movweq   r2, #1                                  
+000c3670  orrs     r0, r0, r2                              
+000c3674  bne      #0xc3940                                
+000c3678  movw     r0, #0x1054                             
+000c367c  vldr     s16, [pc, #-0xa8]                       
+000c3680  mov      sb, #0x2e8                              
+000c3684  add      r0, sl, r0                              
+000c3688  str      r0, [sp, #0x10]                         
+000c368c  ldr      r0, [pc, #0x544]                           ; literal 0x176e614
+000c3690  ldr      r0, [pc, r0]                            
+000c3694  str      r0, [sp, #0x1c]                         
+000c3698  ldr      r0, [sp, #0x1c]                         
+000c369c  mov      r1, r5                                  
+000c36a0  ldr      r0, [r0]                                
+000c36a4  bl       #0x27482c                               
+000c36a8  mov      r7, r0                                  
+000c36ac  cmp      r7, #0                                  
+000c36b0  beq      #0xc381c                                
+000c36b4  ldr      r0, [r7]                                
+000c36b8  ldr      r1, [r0, #0x88]                         
+000c36bc  mov      r0, r7                                  
+000c36c0  blx      r1                                      
+000c36c4  cmp      r0, #1                                  
+000c36c8  bne      #0xc381c                                
+000c36cc  mov      r6, r7                                  
+000c36d0  movw     r0, #0x1051                             
+000c36d4  ldrb     r0, [r6, r0]!                           
+000c36d8  bl       #0x49184                                
+000c36dc  cmp      r0, #0                                  
+000c36e0  bne      #0xc381c                                
+000c36e4  ldr      r0, [r7]                                
+000c36e8  ldr      r1, [r0, #0x270]                        
+000c36ec  mov      r0, r7                                  
+000c36f0  blx      r1                                      
+000c36f4  cmp      r0, #1                                  
+000c36f8  bne      #0xc3710                                
+000c36fc  ldr      r0, [r4]                                
+000c3700  mov      r1, #1                                  
+000c3704  ldrb     r0, [r0, #0x24d]                        
+000c3708  tst      r0, r1, lsl r5                          
+000c370c  beq      #0xc381c                                
+000c3710  ldrb     r0, [r6]                                
+000c3714  bl       #0x49184                                
+000c3718  cmp      r0, #0                                  
+000c371c  bne      #0xc381c                                
+000c3720  ldr      r1, [sp, #0x10]                         
+000c3724  movw     r0, #0x1054                             
+000c3728  ldrb     r0, [r7, r0]                            
+000c372c  ldrb     r1, [r1]                                
+000c3730  cmp      r0, r1                                  
+000c3734  bne      #0xc381c                                
+000c3738  movw     r0, #0x1470                             
+000c373c  ldr      r0, [r7, r0]                            
+000c3740  cmp      r0, #0                                  
+000c3744  bne      #0xc381c                                
+000c3748  ldr      r0, [r4]                                
+000c374c  add      r1, r0, sb                              
+000c3750  vldr     s0, [r1]                                
+000c3754  vcmpe.f32 s0, #0                                  
+000c3758  vmrs     apsr_nzcv, fpscr                        
+000c375c  blt      #0xc381c                                
+000c3760  ldr      r1, [r7, #0x40]                         
+000c3764  tst      r8, #1                                  
+000c3768  str      r1, [sp, #0x60]                         
+000c376c  vldr     s2, [r7, #0x44]                         
+000c3770  ldr      r1, [r7, #0x48]                         
+000c3774  str      r1, [sp, #0x68]                         
+000c3778  mov      r1, #0                                  
+000c377c  vadd.f32 s2, s2, s16                             
+000c3780  str      r1, [sp, #0x6c]                         
+000c3784  vstr     s2, [sp, #0x64]                         
+000c3788  beq      #0xc37a0                                
+000c378c  add      r1, r0, r5, lsl #2                      
+000c3790  ldr      r1, [r1, #0x254]                        
+000c3794  cmp      r1, #0                                  
+000c3798  mov      r1, #0                                  
+000c379c  movweq   r1, #1                                  
+000c37a0  ldrb     r2, [r0, #0x1a9]                        
+000c37a4  tst      r2, #0x80                               
+000c37a8  bne      #0xc37dc                                
+000c37ac  ldr      r0, [sp, #0x14]                         
+000c37b0  add      r2, sp, #0x100                          
+000c37b4  add      r3, sp, #0x60                           
+000c37b8  str      r0, [sp]                                
+000c37bc  ldr      r0, [sp, #0x18]                         
+000c37c0  stmib    sp, {r0, r1}                            
+000c37c4  mov      r0, sl                                  
+000c37c8  add      r1, sp, #0xe0                           
+000c37cc  bl       #0xc3c4c                                
+000c37d0  cmp      r0, #1                                  
+000c37d4  bne      #0xc381c                                
+000c37d8  ldr      r0, [r4]                                
+000c37dc  ldrb     r1, [r0, #0x24c]                        
+000c37e0  mov      r2, #1                                  
+000c37e4  orr      r1, r1, r2, lsl r5                      
+000c37e8  strb     r1, [r0, #0x24c]                        
+000c37ec  ldr      r0, [r4]                                
+000c37f0  ldrb     r1, [r0, #0x24d]                        
+000c37f4  orr      r1, r1, r2, lsl r5                      
+000c37f8  strb     r1, [r0, #0x24d]                        
+000c37fc  mov      r0, sl                                  
+000c3800  bl       #0x71248                                
+000c3804  ldrsh    r0, [r0]                                
+000c3808  ldr      r1, [r4]                                
+000c380c  vmov     s0, r0                                  
+000c3810  add      r0, r1, sb                              
+000c3814  vcvt.f32.s32 s0, s0                                  
+000c3818  vstr     s0, [r0, #-0x20]                        
+000c381c  add      r5, r5, #1                              
+000c3820  add      sb, sb, #4                              
+000c3824  cmp      r5, #4                                  
+000c3828  bne      #0xc3698                                
+000c382c  ldr      r0, [pc, #0x3a8]                           ; literal 0x176e2a8
+000c3830  mov      sb, #0x2d8                              
+000c3834  mov      r5, #0                                  
+000c3838  ldr      r7, [pc, r0]                            
+000c383c  and      r0, r8, #1                              
+000c3840  str      r0, [sp, #0x1c]                         
+000c3844  ldr      r0, [r7]                                
+000c3848  mov      r1, r5                                  
+000c384c  bl       #0x258b44                               
+000c3850  mov      r6, r0                                  
+000c3854  cmp      r6, #0                                  
+000c3858  beq      #0xc3924                                
+000c385c  mov      r0, sl                                  
+000c3860  mov      r1, r6                                  
+000c3864  bl       #0xb6fe8                                
+000c3868  cmp      r0, #1                                  
+000c386c  bne      #0xc3924                                
+000c3870  ldr      r0, [r4]                                
+000c3874  add      r0, r0, sb                              
+000c3878  vldr     s0, [r0, #0x20]                         
+000c387c  vcmpe.f32 s0, #0                                  
+000c3880  vmrs     apsr_nzcv, fpscr                        
+000c3884  blt      #0xc3924                                
+000c3888  ldr      r0, [r6, #0x40]                         
+000c388c  add      r1, sp, #0xe0                           
+000c3890  add      r2, sp, #0x100                          
+000c3894  add      r3, sp, #0x60                           
+000c3898  str      r0, [sp, #0x60]                         
+000c389c  ldr      r0, [r6, #0x48]                         
+000c38a0  vldr     s2, [r6, #0x44]                         
+000c38a4  str      r0, [sp, #0x68]                         
+000c38a8  mov      r0, #0                                  
+000c38ac  str      r0, [sp, #0x6c]                         
+000c38b0  ldr      r0, [sp, #0x14]                         
+000c38b4  vadd.f32 s2, s2, s16                             
+000c38b8  str      r0, [sp]                                
+000c38bc  ldr      r0, [sp, #0x18]                         
+000c38c0  vstr     s2, [sp, #0x64]                         
+000c38c4  str      r0, [sp, #4]                            
+000c38c8  ldr      r0, [sp, #0x1c]                         
+000c38cc  str      r0, [sp, #8]                            
+000c38d0  mov      r0, sl                                  
+000c38d4  bl       #0xc3c4c                                
+000c38d8  cmp      r0, #1                                  
+000c38dc  bne      #0xc3924                                
+000c38e0  ldr      r0, [r4]                                
+000c38e4  mov      r2, #1                                  
+000c38e8  ldrb     r1, [r0, #0x24e]                        
+000c38ec  orr      r1, r1, r2, lsl r5                      
+000c38f0  strb     r1, [r0, #0x24e]                        
+000c38f4  ldr      r0, [r4]                                
+000c38f8  ldrb     r1, [r0, #0x24f]                        
+000c38fc  orr      r1, r1, r2, lsl r5                      
+000c3900  strb     r1, [r0, #0x24f]                        
+000c3904  mov      r0, sl                                  
+000c3908  bl       #0x71248                                
+000c390c  ldrsh    r0, [r0]                                
+000c3910  ldr      r1, [r4]                                
+000c3914  vmov     s0, r0                                  
+000c3918  add      r0, r1, sb                              
+000c391c  vcvt.f32.s32 s0, s0                                  
+000c3920  vstr     s0, [r0]                                
+000c3924  add      r5, r5, #1                              
+000c3928  add      sb, sb, #4                              
+000c392c  cmp      r5, #4                                  
+000c3930  bne      #0xc3844                                
+000c3934  ldr      r0, [r4]                                
+000c3938  add      sb, sp, #0xe4                           
+000c393c  ldrb     r1, [r0, #0x24a]                        
+000c3940  tst      r1, #2                                  
+000c3944  beq      #0xc30fc                                
+000c3948  mov      r0, sl                                  
+000c394c  mov      r1, #4                                  
+000c3950  bl       #0x99c58                                
+000c3954  cmp      r0, #1                                  
+000c3958  bne      #0xc30fc                                
+000c395c  ldr      r0, [r4]                                
+000c3960  movw     r1, #0x5a4                              
+000c3964  add      r0, r0, r1                              
+000c3968  vldr     s0, [r0]                                
+000c396c  mov      r0, #0                                  
+000c3970  vcmpe.f32 s0, #0                                  
+000c3974  vmrs     apsr_nzcv, fpscr                        
+000c3978  movwgt   r0, #1                                  
+000c397c  orr      r0, r8, r0                              
+000c3980  tst      r0, #1                                  
+000c3984  bne      #0xc30fc                                
+000c3988  movw     r0, #0x1054                             
+000c398c  mov      r7, sl                                  
+000c3990  ldrb     r1, [r7, r0]!                           
+000c3994  ldr      r0, [pc, #0x244]                           ; literal 0x176e14c
+000c3998  ldr      r0, [pc, r0]                            
+000c399c  ldr      r0, [r0]                                
+000c39a0  bl       #0x5c1a8                                
+000c39a4  cmp      r0, #0                                  
+000c39a8  bne      #0xc30fc                                
+000c39ac  movw     r0, #0x7420                             
+000c39b0  ldrb     r0, [sl, r0]                            
+000c39b4  cmp      r0, #0                                  
+000c39b8  beq      #0xc30fc                                
+000c39bc  mov      r0, sl                                  
+000c39c0  mov      r1, #8                                  
+000c39c4  bl       #0x99c58                                
+000c39c8  cmp      r0, #0                                  
+000c39cc  bne      #0xc39e0                                
+000c39d0  ldr      r0, [r4]                                
+000c39d4  ldrb     r0, [r0, #0x1ba]                        
+000c39d8  cmp      r0, #4                                  
+000c39dc  beq      #0xc30fc                                
+000c39e0  mov      r0, sl                                  
+000c39e4  bl       #0x810d4                                
+000c39e8  cmp      r0, #0                                  
+000c39ec  bne      #0xc30fc                                
+000c39f0  bl       #0x49e6c                                
+000c39f4  ldrh     r8, [sb, #0x18]                         
+000c39f8  mov      r5, r0                                  
+000c39fc  mov      r0, sb                                  
+000c3a00  cmp      r5, #0                                  
+000c3a04  strh     r8, [sb, #0x14]                         
+000c3a08  ldrh     sb, [r0, #0x1a]                         
+000c3a0c  strh     sb, [r0, #0x16]                         
+000c3a10  beq      #0xc30fc                                
+000c3a14  vldr     s16, [sp, #0xf0]                        
+000c3a18  vldr     s18, [sp, #0xf4]                        
+000c3a1c  vldr     s20, [pc, #0x1ac]                       
+000c3a20  vldr     s22, [pc, #0x1a4]                       
+000c3a24  vmov.f32 s24, #5.000000e-01                      
+000c3a28  rsb      r0, sb, #0x10000                        
+000c3a2c  mov      r6, #0                                  
+000c3a30  str      r0, [sp, #0x10]                         
+000c3a34  rsb      r0, r8, #0x10000                        
+000c3a38  str      r0, [sp, #0x1c]                         
+000c3a3c  mov      r0, r6                                  
+000c3a40  bl       #0x49e7c                                
+000c3a44  ldrb     r1, [r0, #0x15]                         
+000c3a48  cmp      r1, #1                                  
+000c3a4c  bne      #0xc3b60                                
+000c3a50  ldrb     r1, [r7]                                
+000c3a54  ldrb     r2, [r0, #0x14]                         
+000c3a58  cmp      r2, r1                                  
+000c3a5c  bne      #0xc3b60                                
+000c3a60  vldr     s0, [sp, #0x100]                        
+000c3a64  vldr     s26, [r0]                               
+000c3a68  vldr     s2, [sp, #0x108]                        
+000c3a6c  vldr     s28, [r0, #8]                           
+000c3a70  vldr     s4, [r0, #0xc]                          
+000c3a74  vsub.f32 s0, s26, s0                             
+000c3a78  vsub.f32 s1, s28, s2                             
+000c3a7c  vmov.f32 s2, s20                                 
+000c3a80  vmul.f32 s4, s4, s4                              
+000c3a84  vmla.f32 s2, s0, s0                              
+000c3a88  vmla.f32 s2, s1, s1                              
+000c3a8c  vcmpe.f32 s2, s4                                  
+000c3a90  vmrs     apsr_nzcv, fpscr                        
+000c3a94  bhi      #0xc3b60                                
+000c3a98  vldr     s30, [r0, #4]                           
+000c3a9c  bl       #0x13ecba8                              
+000c3aa0  vmov.f32 s2, s24                                 
+000c3aa4  vmla.f32 s2, s0, s22                             
+000c3aa8  vcvt.s32.f32 s0, s2                                  
+000c3aac  ldr      r1, [sp, #0x18]                         
+000c3ab0  vmov     r0, s0                                  
+000c3ab4  sub      r0, r1, r0                              
+000c3ab8  uxth     r0, r0                                  
+000c3abc  cmp      r0, r8                                  
+000c3ac0  bls      #0xc3ad0                                
+000c3ac4  ldr      r1, [sp, #0x1c]                         
+000c3ac8  cmp      r0, r1                                  
+000c3acc  blo      #0xc3b60                                
+000c3ad0  vldr     s2, [sp, #0x104]                        
+000c3ad4  vadd.f32 s0, s2, s16                             
+000c3ad8  vcmpe.f32 s30, s0                                 
+000c3adc  vmrs     apsr_nzcv, fpscr                        
+000c3ae0  bhi      #0xc3b60                                
+000c3ae4  vsub.f32 s0, s2, s18                             
+000c3ae8  vcmpe.f32 s30, s0                                 
+000c3aec  vmrs     apsr_nzcv, fpscr                        
+000c3af0  blt      #0xc3b60                                
+000c3af4  vldr     s4, [sp, #0x108]                        
+000c3af8  vldr     s0, [sp, #0x100]                        
+000c3afc  vsub.f32 s6, s26, s0                             
+000c3b00  vsub.f32 s4, s28, s4                             
+000c3b04  vsub.f32 s26, s30, s2                            
+000c3b08  vmul.f32 s0, s4, s4                              
+000c3b0c  vmla.f32 s0, s6, s6                              
+000c3b10  vsqrt.f32 s1, s0                                  
+000c3b14  vcmpe.f32 s1, s1                                  
+000c3b18  vmrs     apsr_nzcv, fpscr                        
+000c3b1c  bvc      #0xc3b28                                
+000c3b20  bl       #0x13ecc14                              
+000c3b24  vmov.f32 s1, s0                                  
+000c3b28  vneg.f32 s0, s26                                 
+000c3b2c  bl       #0x13ecba8                              
+000c3b30  vmov.f32 s2, s24                                 
+000c3b34  vmla.f32 s2, s0, s22                             
+000c3b38  vcvt.s32.f32 s0, s2                                  
+000c3b3c  ldr      r1, [sp, #0x14]                         
+000c3b40  vmov     r0, s0                                  
+000c3b44  sub      r0, r1, r0                              
+000c3b48  uxth     r0, r0                                  
+000c3b4c  cmp      r0, sb                                  
+000c3b50  bls      #0xc3b70                                
+000c3b54  ldr      r1, [sp, #0x10]                         
+000c3b58  cmp      r0, r1                                  
+000c3b5c  bhs      #0xc3b70                                
+000c3b60  add      r6, r6, #1                              
+000c3b64  cmp      r6, r5                                  
+000c3b68  blo      #0xc3a3c                                
+000c3b6c  b        #0xc30fc                                
+000c3b70  ldr      r0, [r4]                                
+000c3b74  movw     r1, #0x59c                              
+000c3b78  add      r0, r0, r1                              
+000c3b7c  vldr     s0, [r0]                                
+000c3b80  vcmpe.f32 s0, #0                                  
+000c3b84  vmrs     apsr_nzcv, fpscr                        
+000c3b88  bhi      #0xc30fc                                
+000c3b8c  movw     r1, #0xba47                             
+000c3b90  ldrb     r1, [sl, r1]                            
+000c3b94  tst      r1, #0x26                               
+000c3b98  beq      #0xc3ba8                                
+000c3b9c  mov      r1, #0                                  
+000c3ba0  str      r1, [r0]                                
+000c3ba4  b        #0xc30fc                                
+000c3ba8  mov      r0, sl                                  
+000c3bac  mov      r1, #1                                  
+000c3bb0  bl       #0xa1a88                                
+000c3bb4  mov      r0, sl                                  
+000c3bb8  mov      r1, #0x18                               
+000c3bbc  mov      r2, #0                                  
+000c3bc0  bl       #0x82cd0                                
+000c3bc4  b        #0xc30fc                                
+000c3bc8  ldrsbeq  lr, [r6, #-0xfc]!                       
+000c3bcc  strtmi   pc, [r2], -r3, lsl #19                  
+000c3bd0  andeq    r0, r0, r0                              
+000c3bd4  ldrsheq  lr, [r6, #-0x48]!                       
+000c3bd8  cmneq    r6, r4, lsl r6                          
+000c3bdc  cmneq    r6, r8, lsr #5                          
+000c3be0  cmneq    r6, ip, asr #2                          
+000c3be4  ldr      r2, [pc, #0x3c]                            ; literal 0x176def8
+000c3be8  movw     r3, #0x2a28                             
+000c3bec  ldr      r2, [pc, r2]                            
+000c3bf0  ldr      r2, [r2]                                
+000c3bf4  ldr      ip, [r2, r3]                            
+000c3bf8  movw     r3, #0x1428                             
+000c3bfc  ldr      r0, [r0, r3]                            
+000c3c00  ldrb     r3, [r0, #0x1b5]                        
+000c3c04  mov      r0, #0                                  
+000c3c08  cmp      ip, r3                                  
+000c3c0c  bxne     lr                                      
+000c3c10  movw     r0, #0x2a24                             
+000c3c14  ldr      r3, [r2, r0]!                           
+000c3c18  mov      r0, #1                                  
+000c3c1c  orr      r1, r3, r0, lsl r1                      
+000c3c20  str      r1, [r2]                                
+000c3c24  bx       lr                                      
+000c3c28  ldrsheq  sp, [r6, #-0xe8]!                       
+000c3c2c  movw     r2, #0x1428                             
+000c3c30  ldr      r0, [r0, r2]                            
+000c3c34  mov      r2, #1                                  
+000c3c38  ldrb     r0, [r0, #0x24d]                        
+000c3c3c  and      r0, r0, r2, lsl r1                      
+000c3c40  cmp      r0, #0                                  
+000c3c44  movwne   r0, #1                                  
+000c3c48  bx       lr                                      

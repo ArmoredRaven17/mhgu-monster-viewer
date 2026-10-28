@@ -1,0 +1,3 @@
+PASS DBG1050  -- ["default: level 2 drawn [false,false,true,true,false,false,true,false]","req0 1051:event:0/event 1050:event:0/event clip 0|Motion[1]_loop","options 31=Ice / 33=Partial Ice / 6=Intact / 7=Broken","after Partial Ice: level 1 drawn [true,false,true,true,false,false,false,true]","req 1051:event:0/event 1050:event:1/event clip 0|Motion[1]_loop"]
+
+1 passed, 0 failed

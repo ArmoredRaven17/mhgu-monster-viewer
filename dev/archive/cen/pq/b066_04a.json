@@ -1,0 +1,1 @@
+{"id": "em066_04", "steps": [{"partsAll": "last"}, {"set": {"monBoulder": "1"}}, {"clip": "4|Motion[7]*", "frames": 270}, {"set": {"monBoulder": "0"}}, {"partsAll": "first"}, {"partSweep": {"clip": "3|Motion[2]", "frames": 60, "reps": 3}}], "want": ["em066_04|em066_04u|412|clip", "em066_04|em066_04u|1001|event"]}

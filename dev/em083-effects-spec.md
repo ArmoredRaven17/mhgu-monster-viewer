@@ -39,3 +39,46 @@ knock-off asserts assumed the cycle's phase and failed four ways (each arm one l
 Motion[1], its first clip, which counts one play (debug check `<archive>/zg/dbg083.mjs`). The CHECK was wrong; it now takes
 four consecutive plays and asserts the set. Checks: **Gammoth 62 / 0, Elderfrost 54 / 0**. Soaks: **Gammoth 80 motions, 0
 refused; Elderfrost 94, 0 refused** (L0 M30 / L2 M21 play; were 2 refused each).
+
+## Lane A2 (2026-10-26): the frame handler's requests (partial)
+
+* vt+0x208 `0x10528ac` (rom-map "Effects lane A2"): u 120 (id 1013, held at e+0xcb20 by (7, 0x6a..0x6c)) is stopped at a frame of
+  L9 M16..M18, or stopped with **u 140** (id 1014) asked once when the action or motion leaves them; and a per-part state pass over
+  e+0xcb50.. that asks u 1040 / 1041, 1045 / 1046, 1050 / 1051, 1055 / 1056 on a part's state change (variant 4: 1 / 0; variant 0 the
+  same, skipped on L2 M1 / M2 / M6 / M37 / M39). The state writers are NOT READ yet.
+* u 256 is placement mode 4 (range 2000): it waits for the hunter within 2000 (E19); u 242 / 400 / 472 / 473 / 520 are mode 1.
+
+## Lane A3 (2026-10-26): the snow-slot pass, u 120 / u 140, the u 242 group (rom-map "Effects lane A3")
+
+* **The snow-slot pass** (vt+0x208 `0x10528ac`, `0x10529ac..0x1052d68`, READ whole). Each frame, each snow slot (e+0xcb50 + 4k: slots
+  0..3 = parts 2..5 the legs, 4 the tail, 5 the trunk) is compared with last frame's copy (e+0xcb80 + 4k); a change asks through
+  vt+0x1d0 (table `0x16a2534`): Elderfrost (variant 4) slot 0 -> 1 u 1040, -> 0 u 1041; slot 1 u 1045 / 1046; slot 5 (trunk) u 1050 /
+  1051 except on L2 M16. Gammoth (variant 0) nothing while L2 M1 / M2 / M6 / M37 / M39 play; slots 0..3 -> 1 u 1040 / 1045 / 1050 /
+  1055, -> 0 u 1041 / 1046 / 1051 / 1056, any other value u 1120 (the shared table's id 0); slot 4 -> 0 u 1060.
+  Viewer: index.html `stepSnow083` reads the slots from the Parts rows (render/motion-states.js legSnow083 / trunkSnow083 on the
+  user's rows alone). All eight of Gammoth's and Elderfrost's four leg records draw (partSweep probe). Not built: Gammoth's u 1120
+  edge (the record is exported as the rage puff only).
+* **u 120 / u 140** (Elderfrost's pel only). u 120 is held in e+0xcb20 from (7, 0x6a) / (7, 0x6b) on L9 M16 (at a tune frame not read)
+  and from (7, 0x6c) on L9 M17 (from its start). It ends quietly at L9 M17 f110 (L9 M16 f72 for (7, 0x6a)); leaving the clips
+  any other way stops it and asks u 140 once. Viewer: index.html `stepHold083`, L9 M17 only. Both draw.
+* **The u 242 group** (u 242 / 400, Elderfrost also 472 / 473 / 520; all mode 1, no joint, 1000 ahead): the ROM makes the unit
+  (recorder sets reach the build `0x9bb330`). The viewer's request ends at the base step's spawn-height test (limit 300) because
+  the point stands at his hips (joint -1 at the gid-0 bone, live.js) over a floor the lowest-reach rule put under the trunk tip.
+  Every action that plays these clips takes posture 0 first, so the floor is the unit: built (index.html FLOOR_AT_UNIT_CLIPS).
+  The joint -1 origin (0x939278: the model's world matrix) is the coordinator's call -- with both, u 242 draws.
+
+## Lane A4 (2026-10-26)
+
+* **Elderfrost u 1050** -- the trunk's levels (`SNOW083_TRUNK`, sets 6 / 33 / 31 / 32 / 7): Intact {3, 4, 54} / **Partial Ice {3, 41, 54, 76}** /
+  Ice {41, 54, 75} (default) / Animated Ice {54, 74} / Broken {3, 4, 64}. Level 1 is Partial Ice, which the Parts row hid; part-review.json now
+  shows it (hide keeps Animated Ice only), so Ice -> Partial Ice is the slot-5 edge 2 -> 1 and asks id 1011 = u 1050. The option's name is
+  unchanged (for Raven).
+* **Elderfrost u 120 on L9 M16**: (7, 0x6a) / (7, 0x6b) phase 1 ask it when `0xb0974` crosses **f10** (`vmov.f32 s0, #10` at `0x105a700` /
+  `0x105a804`, then `0x10547c4`). index.html stepHold083 holds it from f10 -- to f72 under (7, 0x6a) (stopped, nothing asked: `0x1052be4`),
+  while L9 M16 plays under (7, 0x6b); cut off by another clip or play -> u 140 once.
+* **Gammoth u 1120 on the snow-slot edge**: a leg slot changed to a value other than 0 / 1 asks id 0 = u 1120 (`0x10529ac..`). The record is
+  exported as the rage puff only, so schedule.js `fire(pel, key, also)` starts the `ragePuff` entry: stepSnow083 `rt.fire(pel, 1120, 'ragePuff')`.
+* **Posture 4** (rom-map "THE POSTURE-4 SINK"): (2, 0x11) / (12, 0) play L0 M40 in posture 4 with **no P+0x5c write** in the band (the class
+  has no writer), so nothing is drawn below the ground.
+* **Joint -1** (the u 242 group): the audit is in rom-map "Effects lane A4"; the shipped rule is unchanged (Raven decides).
+* (later, lane A4) motion-states.js trunkSnow083 now matches the row's option to a level's set exactly (userLevel read Partial Ice as Broken through the fur part 3). Ice -> Partial Ice requests u 1050 (1 request, laneA4/sink4/dbg1050.mjs); its draw is not yet metered (open). u 120 on L9 M16 draws (2 starts); Gammoth's u 1120 on a leg -> Broken draws (1 start).

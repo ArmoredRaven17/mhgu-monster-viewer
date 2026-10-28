@@ -314,3 +314,31 @@ Thunderlord's default-rung u 42 never showed.
   one with the request.
 
 Results: check 169 passed / 0 failed; soaks em057_00 87 / 0, em057_04 92 / 0. No new records.
+
+## Re-metered 2026-10-25 (effects lane A)
+
+* **Zinogre u 31**: the action-start aura machine (`0xeed68c..0xeedaa0`) holds u 30 at gauge tier 2 and u 31 at tier 3 (ctl+0 >= 75,
+  op-0x6f selector `0xeefec8`). The two records are byte-identical but are two records; the Charging rung showed u 30 for both. New
+  class toggle **Gauge Tier 3** (working label) swaps the hold to u 31 (CHARGE_EFFECTS `holdWhen`). Draws (`<archive>/laneA/tier057.mjs`).
+* Thunderlord u 220 / u 221 (L2 M2 / M1 bit 9) fire only below G and enraged -- at G his word clears bits 9-11 on every motion; the
+  shared puff u 1121 likewise below G. Both draw at High Rank with Enraged (`<archive>/cen/pq/z57.json`). u 1011 draws.
+* Open with ROM reasons for the coordinator: Thunderlord u 30 / u 31 (his aura machine asks 1006 / 1007, never the tier arm's 1001 /
+  1002) and c 1104 (no stamina block: never tired).
+
+## Thunderlord c 1104 -- the consumer read (effects lane A2, 2026-10-26)
+
+* u 30 / u 31 accepted as named refusals (coordinator, 2026-10-26).
+* c 1104: lane A's "no stamina block" was not enough, because the code that consumes the block had not been read. Now read
+  (rom-map "Effects lane A2"). Thunderlord is never tired, for two reasons, and either one is enough:
+  1. **P+0x1a8 = 0x4c0201** (`0x159c2dc[45]`, em 0x439) has **bit 19**. Every writer that can set the tired byte P+0x505 to a
+     nonzero value requires `(P+0x1a8 & 0x80001) == 1`: `0xbd0c8` (the flip 1 -> 2, the 2 -> 3, the state-record restore),
+     `0xbd250` and `0xbd2d4`. The stamina updater `0xbd1a4` also returns at once (`0xbd1d4`). Zinogre's word is 0x440241: no
+     bit 19, and bit 6 is set (the tired idle).
+  2. **`[tune+0x30]` NULL.** `0x7112c` reads `[[e+0x75ec]+0x94]`, which is tune+0x30. When it is NULL, `0xbd1a4` returns at
+     `0xbd1e4` before it touches the stamina count P+0x508, and setAction skips the drain call (`0x75614`). The only write that
+     takes P+0x505 off 0 is `0xbd2d4`, when the stamina drains to 0, so it never happens.
+
+  So `0x81614` never returns 1, and the drool `0xa41b8` never asks for c 1104. Emulated with `<archive>/laneA2/stam1104.py`.
+  Positive control: Zinogre's word with a block reaches 1, 2 and 3 on the same runs, and his c 1104 draws. With the block NULL,
+  Zinogre's drain is skipped as well, so the block stop works on its own. Brought to the coordinator as a ROM reason.
+

@@ -1,0 +1,4 @@
+PASS em060_00: ids past the 24-record table named, no shape built  -- {"past":13,"named":13,"built":0}
+PASS em060_04: ids past the 24-record table named, no shape built  -- {"past":13,"named":13,"built":0}
+
+2 passed, 0 failed

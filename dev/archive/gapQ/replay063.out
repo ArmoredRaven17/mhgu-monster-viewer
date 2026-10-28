@@ -1,0 +1,134 @@
+== L2 M28 (7, 3) calm: a pool at f72, its explosion 300 later (em063_00)
+  step   73 Motion[28] f73: + shell35 112 mode 0 #1 at (160.0, 5.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_00u:0 hit slot (0, 998) timer 299
+  step  372 Motion[28] (held) f120: + shell01 110 mode 6 (by #1) #2 at (160.0, 5.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_00u:1 hit slot (0, 9)
+  step  372: - shell35 mode 0 #1 ends (lived 299) stops 0 flag 0
+  step  383: - shell01 mode 6 #2 ends (lived 11) stops 1 flag 0
+== L2 M28 (7, 3), left arm Depleted: nothing (em063_00)
+  (nothing)
+== L2 M11 (7, 0x1a) enraged: the explosion at once (sp_01 3, u 50) (em063_00)
+  step   27 Motion[11] f27: + shell01 110 mode 3 #1 at (160.0, 0.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_00u:50 hit slot (9, 8)
+  step   46: - shell01 mode 3 #1 ends (lived 19) stops 50 flag 0
+== L2 M3 (7, 0x13) calm: two pools at 8 (em063_00)
+  step    9 Motion[3] f9: + shell35 112 mode 0 #1 at (-160.0, 10.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_00u:0 hit slot (0, 998) timer 299
+  step    9 Motion[3] f9: + shell35 112 mode 0 #2 at (160.0, 10.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_00u:0 hit slot (0, 998) timer 299
+  step  308 Motion[3] (held) f80: + shell01 110 mode 6 (by #1) #3 at (-160.0, 10.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_00u:1 hit slot (0, 9)
+  step  308 Motion[3] (held) f80: + shell01 110 mode 6 (by #2) #4 at (160.0, 10.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_00u:1 hit slot (0, 9)
+  step  308: - shell35 mode 0 #1 ends (lived 299) stops 0 flag 0
+  step  308: - shell35 mode 0 #2 ends (lived 299) stops 0 flag 0
+  step  319: - shell01 mode 6 #3 ends (lived 11) stops 1 flag 0
+  step  319: - shell01 mode 6 #4 ends (lived 11) stops 1 flag 0
+== L2 M3 (7, 0x13) enraged: both fists sp_01 4 (u 40) at 34 (em063_00)
+  step   35 Motion[3] f35: + shell01 110 mode 4 #1 at (260.0, 0.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_00u:40 hit slot (0, 7)
+  step   35 Motion[3] f35: + shell01 110 mode 4 #2 at (-60.0, 0.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_00u:40 hit slot (0, 7)
+  step   44: - shell01 mode 4 #1 ends (lived 9) stops 40 flag 0
+  step   44: - shell01 mode 4 #2 ends (lived 9) stops 40 flag 0
+== L2 M3 (7, 0xb2) enraged, right arm Depleted: the left alone, sp_01 5 (u 41) at 30 (em063_00)
+  step   31 Motion[3] f31: + shell01 110 mode 5 #1 at (260.0, 0.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_00u:41 hit slot (0, 7)
+  step   40: - shell01 mode 5 #1 ends (lived 9) stops 41 flag 0
+== L2 M42 (7, 8): the slime line sp_11 1 -> eight sp_01 1 (u 30) (em063_00)
+  step  126 Motion[42] f126: + shell11 111 mode 1 #1 at (0.0, 0.0, 0.0) words (0x0, 0x4000, 0x0) starts nothing timer 52
+  step  126 Motion[42] f126: + shell01 110 mode 1 (by #1) #2 at (400.0, 4.0, -0.0) words (0x0, 0x4000, 0x0) starts em063_00u:30 hit slot (0, 9)
+  step  132 Motion[42] f132: + shell01 110 mode 1 (by #1) #3 at (700.0, 4.0, -0.0) words (0x0, 0x4000, 0x0) starts em063_00u:30 hit slot (0, 9)
+  step  137: - shell01 mode 1 #2 ends (lived 11) stops 30 flag 0
+  step  138 Motion[42] f138: + shell01 110 mode 1 (by #1) #4 at (1000.0, 4.0, -100.0) words (0x0, 0x4000, 0x0) starts em063_00u:30 hit slot (0, 9)
+  step  143: - shell01 mode 1 #3 ends (lived 11) stops 30 flag 0
+  step  144 Motion[42] f144: + shell01 110 mode 1 (by #1) #5 at (1300.0, 4.0, 100.0) words (0x0, 0x4000, 0x0) starts em063_00u:30 hit slot (0, 9)
+  step  149: - shell01 mode 1 #4 ends (lived 11) stops 30 flag 0
+  step  150 Motion[42] f150: + shell01 110 mode 1 (by #1) #6 at (1600.0, 4.0, -0.0) words (0x0, 0x4000, 0x0) starts em063_00u:30 hit slot (0, 9)
+  step  155: - shell01 mode 1 #5 ends (lived 11) stops 30 flag 0
+  step  156 Motion[42] f156: + shell01 110 mode 1 (by #1) #7 at (1900.0, 4.0, -200.0) words (0x0, 0x4000, 0x0) starts em063_00u:30 hit slot (0, 9)
+  step  161: - shell01 mode 1 #6 ends (lived 11) stops 30 flag 0
+  step  162 Motion[42] f162: + shell01 110 mode 1 (by #1) #8 at (2200.0, 4.0, 200.0) words (0x0, 0x4000, 0x0) starts em063_00u:30 hit slot (0, 9)
+  step  167: - shell01 mode 1 #7 ends (lived 11) stops 30 flag 0
+  step  168 Motion[42] f168: + shell01 110 mode 1 (by #1) #9 at (2500.0, 4.0, -0.0) words (0x0, 0x4000, 0x0) starts em063_00u:30 hit slot (0, 9)
+  step  168: - shell11 mode 1 #1 ends (lived 42)
+  step  173: - shell01 mode 1 #8 ends (lived 11) stops 30 flag 0
+  step  179: - shell01 mode 1 #9 ends (lived 11) stops 30 flag 0
+== L2 M41 (7, 9): sp_11 0 -> twelve sp_01 0 (u 31) scattered (em063_00)
+  step  191 Motion[41] f191: + shell11 111 mode 0 #1 at (0.0, 0.0, 0.0) words (0x0, 0x4000, 0x0) starts nothing timer 88
+  step  191 Motion[41] f191: + shell01 110 mode 0 (by #1) #2 at (282.8, 4.0, -282.8) words (0x0, 0x6000, 0x0) starts em063_00u:31 hit slot (31, 10)
+  step  197 Motion[41] f197: + shell01 110 mode 0 (by #1) #3 at (-396.0, 4.0, -169.7) words (0x0, 0xa000, 0x0) starts em063_00u:31 hit slot (31, 10)
+  step  203 Motion[41] f203: + shell01 110 mode 0 (by #1) #4 at (-282.8, 4.0, 282.8) words (0x0, 0xe000, 0x0) starts em063_00u:31 hit slot (31, 10)
+  step  209 Motion[41] f209: + shell01 110 mode 0 (by #1) #5 at (169.7, 4.0, 396.0) words (0x0, 0x2000, 0x0) starts em063_00u:31 hit slot (31, 10)
+  step  221 Motion[41] f221: + shell01 110 mode 0 (by #1) #6 at (693.0, 4.0, -297.0) words (0x0, 0x6000, 0x0) starts em063_00u:31 hit slot (31, 10)
+  step  227 Motion[41] f227: + shell01 110 mode 0 (by #1) #7 at (-693.0, 4.0, -297.0) words (0x0, 0xa000, 0x0) starts em063_00u:31 hit slot (31, 10)
+  step  233 Motion[41] f233: + shell01 110 mode 0 (by #1) #8 at (-495.0, 4.0, 495.0) words (0x0, 0xe000, 0x0) starts em063_00u:31 hit slot (31, 10)
+  step  234: - shell01 mode 0 #2 ends (lived 43) stops 31 flag 0
+  step  239 Motion[41] f239: + shell01 110 mode 0 (by #1) #9 at (495.0, 4.0, 495.0) words (0x0, 0x2000, 0x0) starts em063_00u:31 hit slot (31, 10)
+  step  240: - shell01 mode 0 #3 ends (lived 43) stops 31 flag 0
+  step  246: - shell01 mode 0 #4 ends (lived 43) stops 31 flag 0
+  step  251 Motion[41] f251: + shell01 110 mode 0 (by #1) #10 at (707.1, 4.0, -707.1) words (0x0, 0x6000, 0x0) starts em063_00u:31 hit slot (31, 10)
+  step  252: - shell01 mode 0 #5 ends (lived 43) stops 31 flag 0
+  step  257 Motion[41] f257: + shell01 110 mode 0 (by #1) #11 at (-424.3, 4.0, -989.9) words (0x0, 0xa000, 0x0) starts em063_00u:31 hit slot (31, 10)
+  step  263 Motion[41] (held) f260: + shell01 110 mode 0 (by #1) #12 at (-424.3, 4.0, 989.9) words (0x0, 0xe000, 0x0) starts em063_00u:31 hit slot (31, 10)
+  step  264: - shell01 mode 0 #6 ends (lived 43) stops 31 flag 0
+  step  269 Motion[41] (held) f260: + shell01 110 mode 0 (by #1) #13 at (424.3, 4.0, 989.9) words (0x0, 0x2000, 0x0) starts em063_00u:31 hit slot (31, 10)
+  step  269: - shell11 mode 0 #1 ends (lived 78)
+  step  270: - shell01 mode 0 #7 ends (lived 43) stops 31 flag 0
+  step  276: - shell01 mode 0 #8 ends (lived 43) stops 31 flag 0
+  step  282: - shell01 mode 0 #9 ends (lived 43) stops 31 flag 0
+  step  294: - shell01 mode 0 #10 ends (lived 43) stops 31 flag 0
+  step  300: - shell01 mode 0 #11 ends (lived 43) stops 31 flag 0
+  step  306: - shell01 mode 0 #12 ends (lived 43) stops 31 flag 0
+  step  312: - shell01 mode 0 #13 ends (lived 43) stops 31 flag 0
+== L2 M42 (7, 0x15): the big pool sp_35 1 (u 10) 550 ahead, sp_01 7 (u 11) 300 later (em063_00)
+  step   91 Motion[42] f91: + shell35 112 mode 1 #1 at (550.0, 9.0, -0.0) words (0x0, 0x4000, 0x0) starts em063_00u:10 hit slot (0, 998) timer 299
+  step  390 Motion[42] (held) f200: + shell01 110 mode 7 (by #1) #2 at (550.0, 9.0, -0.0) words (0x0, 0x4000, 0x0) starts em063_00u:11 hit slot (0, 9)
+  step  390: - shell35 mode 1 #1 ends (lived 299) stops 10 flag 0
+  step  401: - shell01 mode 7 #2 ends (lived 11) stops 11 flag 0
+== L2 M22 (the frame handler): three fists at 114 / 152 / 180 (em063_00)
+  step  115 Motion[22] f115: + shell35 112 mode 0 #1 at (160.0, 5.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_00u:0 hit slot (0, 998) timer 299
+  step  153 Motion[22] f153: + shell35 112 mode 0 #2 at (-160.0, 5.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_00u:0 hit slot (0, 998) timer 299
+  step  181 Motion[22] f181: + shell35 112 mode 0 #3 at (160.0, 5.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_00u:0 hit slot (0, 998) timer 299
+  step  414 Motion[22] (held) f200: + shell01 110 mode 6 (by #1) #4 at (160.0, 5.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_00u:1 hit slot (0, 9)
+  step  414: - shell35 mode 0 #1 ends (lived 299) stops 0 flag 0
+  step  425: - shell01 mode 6 #4 ends (lived 11) stops 1 flag 0
+  step  452 Motion[22] (held) f200: + shell01 110 mode 6 (by #2) #5 at (-160.0, 5.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_00u:1 hit slot (0, 9)
+  step  452: - shell35 mode 0 #2 ends (lived 299) stops 0 flag 0
+  step  463: - shell01 mode 6 #5 ends (lived 11) stops 1 flag 0
+  step  480 Motion[22] (held) f200: + shell01 110 mode 6 (by #3) #6 at (160.0, 5.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_00u:1 hit slot (0, 9)
+  step  480: - shell35 mode 0 #3 ends (lived 299) stops 0 flag 0
+  step  491: - shell01 mode 6 #6 ends (lived 11) stops 1 flag 0
+== L0 M62 (3, 4): three fists at 9 / 29 / 58 (em063_00)
+  step   10 Motion[62] f10: + shell01 110 mode 3 #1 at (-160.0, 0.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_00u:50 hit slot (9, 8)
+  step   29: - shell01 mode 3 #1 ends (lived 19) stops 50 flag 0
+  step   30 Motion[62] f30: + shell01 110 mode 3 #2 at (160.0, 0.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_00u:50 hit slot (9, 8)
+  step   49: - shell01 mode 3 #2 ends (lived 19) stops 50 flag 0
+  step   59 Motion[62] f59: + shell01 110 mode 3 #3 at (-160.0, 0.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_00u:50 hit slot (9, 8)
+  step   78: - shell01 mode 3 #3 ends (lived 19) stops 50 flag 0
+== Raging, Red Slime off: L2 M28 -> pool sp_35 0 (u 100), 150 later sp_01 6 (u 1) (em063_05)
+  step   73 Motion[28] f73: + shell35 115 mode 0 #1 at (160.0, 0.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_05u:100 hit slot (0, 998) timer 149
+  step  222 Motion[28] (held) f120: + shell01 113 mode 6 (by #1) #2 at (160.0, 0.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_05u:1 hit slot (0, 9)
+  step  222: - shell35 mode 0 #1 ends (lived 149) stops 100 flag 0
+  step  233: - shell01 mode 6 #2 ends (lived 11) stops 1 flag 0
+== Raging, Red Slime on: L2 M28 -> sp_01 14 (u 50) at once (em063_05)
+  step   73 Motion[28] f73: + shell01 113 mode 14 #1 at (160.0, 0.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_05u:50 hit slot (9, 10)
+  step   94: - shell01 mode 14 #1 ends (lived 21) stops 50 flag 0
+== Raging, Red Slime on, left arm erupted (Yellow): L2 M28 -> pool sp_35 4 (u 110), then sp_01 21 (u 111) (em063_05)
+  step   73 Motion[28] f73: + shell35 115 mode 4 #1 at (160.0, 0.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_05u:110 hit slot (0, 998) timer 149
+  step  222 Motion[28] (held) f120: + shell01 113 mode 21 (by #1) #2 at (160.0, 0.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_05u:111 hit slot (0, 9)
+  step  222: - shell35 mode 4 #1 ends (lived 149) stops 110 flag 0
+  step  233: - shell01 mode 21 #2 ends (lived 11) stops 111 flag 0
+== Raging, Red Slime on: L2 M3 (7, 0x13) -> both sp_01 17 (u 130) at 34 (em063_05)
+  step   35 Motion[3] f35: + shell01 113 mode 17 #1 at (160.0, 0.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_05u:130 hit slot (0, 9)
+  step   35 Motion[3] f35: + shell01 113 mode 17 #2 at (-160.0, 0.0, 300.0) words (0x0, 0x4000, 0x0) starts em063_05u:130 hit slot (0, 9)
+  step   46: - shell01 mode 17 #1 ends (lived 11) stops 130 flag 0
+  step   46: - shell01 mode 17 #2 ends (lived 11) stops 130 flag 0
+== Raging, Red Slime on: the four eruptions (fuse out at step 5): sp_01 0x1a / 0x1c / 0x18 / 0x1e at joints 40 / 50 / 3 / 143 (em063_05)
+  step    5 Motion[0] (held) f1: + shell01 113 mode 26 #1 at (180.0, 78.0, 240.0) words (0x0, 0x4000, 0x0) starts em063_05u:210 hit slot (9, 10)
+  step    5 Motion[0] (held) f1: + shell01 113 mode 28 #2 at (-180.0, 78.0, 240.0) words (0x0, 0x4000, 0x0) starts em063_05u:210 hit slot (9, 10)
+  step    5 Motion[0] (held) f1: + shell01 113 mode 24 #3 at (0.0, 420.0, 530.0) words (0x0, 0x4000, 0x0) starts em063_05u:210 hit slot (9, 10)
+  step    5 Motion[0] (held) f1: + shell01 113 mode 30 #4 at (0.0, 250.0, -730.0) words (0x0, 0x4000, 0x0) starts em063_05u:210 hit slot (9, 10)
+  step   26: - shell01 mode 26 #1 ends (lived 21) stops 210 flag 0
+  step   26: - shell01 mode 28 #2 ends (lived 21) stops 210 flag 0
+  step   26: - shell01 mode 24 #3 ends (lived 21) stops 210 flag 0
+  step   26: - shell01 mode 30 #4 ends (lived 21) stops 210 flag 0
+== Raging, calm Red slots, head broken (2) and tail severed: the eruptions 0x19 / 0x1b / 0x1f / 0x25 (em063_05)
+  step    5 Motion[0] (held) f1: + shell01 113 mode 25 #1 at (180.0, 78.0, 240.0) words (0x0, 0x4000, 0x0) starts em063_05u:210 hit slot (9, 10)
+  step    5 Motion[0] (held) f1: + shell01 113 mode 27 #2 at (-180.0, 78.0, 240.0) words (0x0, 0x4000, 0x0) starts em063_05u:210 hit slot (9, 10)
+  step    5 Motion[0] (held) f1: + shell01 113 mode 31 #3 at (0.0, 420.0, 530.0) words (0x0, 0x4000, 0x0) starts em063_05u:210 hit slot (9, 10)
+  step    5 Motion[0] (held) f1: + shell01 113 mode 37 #4 at (0.0, 250.0, -730.0) words (0x0, 0x4000, 0x0) starts em063_05u:210 hit slot (9, 10)
+  step   26: - shell01 mode 25 #1 ends (lived 21) stops 210 flag 0
+  step   26: - shell01 mode 27 #2 ends (lived 21) stops 210 flag 0
+  step   26: - shell01 mode 31 #3 ends (lived 21) stops 210 flag 0
+  step   26: - shell01 mode 37 #4 ends (lived 21) stops 210 flag 0

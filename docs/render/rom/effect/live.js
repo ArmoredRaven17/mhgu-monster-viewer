@@ -508,9 +508,9 @@ export class LiveEffects {
     catch (e){ this.fail(e); }
   }
   // an event's effect -- a part break, an ailment (schedule.js fire; render/motion-states.js says when)
-  fire(pel, key){
+  fire(pel, key, also){
     if (this.failed || !this.schedule) return;
-    try { this.schedule.fire(pel, key); }
+    try { this.schedule.fire(pel, key, also); }
     catch (e){ this.fail(e); }
   }
   // an event's effect requested at a point (schedule.js fireAt: the cut tail's landing)

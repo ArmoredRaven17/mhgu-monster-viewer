@@ -1,0 +1,10 @@
+off   mode 15 steps 340 from [ 33, 0, 323 ] reach 2840 bearing 55.0
+off   mode 16 steps 340 from [ 0, 0, 340 ] reach 2840 bearing 0.0
+off   mode 17 steps 340 from [ -33, 0, 323 ] reach 2840 bearing -55.0
+off   mode 18 steps 179 from [ 22, 0, 334 ] reach 2840 bearing 33.0
+off   mode 19 steps 179 from [ -22, 0, 334 ] reach 2840 bearing -33.0
+HYPER mode 15 steps 340 from [ 33, 0, 323 ] reach 2840 bearing 55.0
+HYPER mode 16 steps 340 from [ 0, 0, 340 ] reach 2840 bearing 0.0
+HYPER mode 17 steps 340 from [ -33, 0, 323 ] reach 2840 bearing -55.0
+HYPER mode 18 steps 179 from [ 22, 0, 334 ] reach 2840 bearing 33.0
+HYPER mode 19 steps 179 from [ -22, 0, 334 ] reach 2840 bearing -33.0

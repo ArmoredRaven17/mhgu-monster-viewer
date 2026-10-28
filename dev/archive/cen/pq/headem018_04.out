@@ -1,0 +1,3 @@
+PASS PROBE em018_04  -- {"log":["partSweep 3|Motion[1] over 6 rows"],"rows":[{"k":"em018_04|em018_04u|1031|event","st":1,"live":40,"lit":10,"s":10,"px":29055,"verdict":"draws","clips":["em018_04|3|Motion[1]"]},{"k":"em018_04|em018_04u|1032|event","st":10,"live":400,"lit":98,"s":104,"px":43793,"verdict":"draws","clips":["em018_04|3|Motion[1]"],"nodraw":{"clip":"em018_04|3|Motion[1]","units":[{"w0c":"14cb3","gens":6,"mask1":"ffffffff","mask2":"ffffffff","nrow":4032,"rows":[["ffffffff","ffffffff"],["ffffffff","ffffffff"],["ffffffff","ffffffff"],["ffffffff","ffffffff"],["ffffffff","ffffffff"],["ffffffff","ffffffff"],["3000000d","10000001"],["0","0"],["0","0"],["0","0"],["7000","37000"],["0","0"],["7000","37000"]]}]}}],"missing":[]}
+
+1 passed, 0 failed

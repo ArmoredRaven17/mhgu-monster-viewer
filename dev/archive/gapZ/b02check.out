@@ -1,0 +1,7 @@
+base02 ctor 0x3fb7f8 +0x15a8 2 +0x15ac 1 +0x15bc -1 ran 0x43a78c True None
+   base02 0x3fb9bc reaches copies: []
+   Zamtrios sp_02 0xf78788 reaches copies: []
+base04 ctor 0x3ff080 +0x15a8 4 +0x15ac 1 +0x15bc -1 ran 0x43a78c True None
+   Deviljho sp_04 0x3ff1a0 reaches copies: []
+base55 ctor 0x42c484 +0x15a8 55 +0x15ac 1 +0x15bc -1 ran 0x43a78c True None
+   Deviljho sp_55 0x42c5cc reaches copies: []

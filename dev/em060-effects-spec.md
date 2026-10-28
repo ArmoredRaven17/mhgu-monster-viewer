@@ -77,3 +77,12 @@ NAMED: (6, 2)'s sunk (I, above); the sleep hold's c 1102 also on L3 M13 (the lie
   - With the Ground control (index.html GROUND_TYPES; dev/effect-runtime-engine.md E17) it DRAWS on Ground C (flag 0x800000) and
     Ground E (attribute bit 1), lit 12 / 12.
   - On plain, A, B, D and F it is live with no draw.
+
+## Lane A4 (2026-10-26) -- Arzuros c 60, and the posture-4 sink
+
+* **Arzuros c 60 never fires -- a ROM reason brought to the coordinator.** The PSL binds c 60 (cm202_050) to L0 M13 / L0 M17 bit 15 only, and
+  the word `0xf1911c` (section 1) sets bit 15 there only for variant 4 with em 0x3c (Redhelm); `0xca170` sets bits 0-14. Control: Redhelm's
+  c 60 draws through the same bit (census st 2, lit 51). rom-map "Effects lane A4".
+* **The burrow sink is drawn now** (motion-states.js SINK4, rom-map "THE POSTURE-4 SINK"): (6, 1) / (6, 2) set posture 4 and
+  P+0x5c = MoguriBaseOfs -1000 (all three: em060_00 / em060_04 / em062_00), so L0 M1 (6, 1) / L0 M4 (6, 2) and the turn clips L0 M8 / M9 draw the
+  body 1000 x size below the ground; (6, 3) L0 M25 (Volvidon L0 M22) is the emerge, P+0x5c 0.

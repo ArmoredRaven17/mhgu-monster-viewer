@@ -84,7 +84,7 @@ def acc_span(js, bin_off, ai):
     return base, stride, ac["count"], ac["componentType"]
 
 
-def patch(mod_path, glb_path, apply_it):
+def patch(mod_path, glb_path, apply_it, secondary=frozenset()):
     d, meshes = mod_meshes(mod_path)
     if d is None:
         return ("mod unreadable or the stride check failed", 0, 0, 0)
@@ -98,11 +98,19 @@ def patch(mod_path, glb_path, apply_it):
         for pr in mesh.get("primitives", []):
             a = pr["attributes"]
             if "TEXCOORD_0" in a and "TEXCOORD_1" in a:
-                prims.append((a["TEXCOORD_0"], a["TEXCOORD_1"]))
+                mi = pr.get("material")
+                name = js["materials"][mi].get("name") if mi is not None else None
+                prims.append((a["TEXCOORD_0"], a["TEXCOORD_1"], name))
 
     done = skipped = unmatched = 0
     used = set()
-    for a0, a1 in prims:
+    for a0, a1, name in prims:
+        # 2026-10-25 (rom-map trap 147): the "dead field" is the layout's UV_Unique + UV_Secondary (IASkinTBNLA1/2/4wt in
+        # docs/effects/model-shaders.json) and the tail is UV_Extend. A material whose second map samples UVSecondary reads the
+        # zeros in the ROM (Khezu's XfBA_A0__m03_blood: a U ramp scrolled by fUVTransform2), so its TEXCOORD_1 stays zero.
+        if name in secondary:
+            skipped += 1
+            continue
         b1, s1, n1, ct1 = acc_span(js, bin_off, a1)
         if ct1 != 5126:                                   # only the float form is written here
             skipped += 1
@@ -150,6 +158,23 @@ def patch(mod_path, glb_path, apply_it):
     return (None, done, skipped, unmatched)
 
 
+def secondary_mats(stem):
+    """The stem's two-map materials whose second map samples UVSecondary (materials.json feat), by name."""
+    try:
+        M = json.load(open(os.path.join(buildlib.DOCS, "materials.json"), encoding="utf-8"))
+    except OSError:
+        return frozenset()
+    mon = stem.split("_tail")[0].split("_head")[0]
+    sub = "/tail" if "_tail" in stem else "/head" if "_head" in stem else ""
+    ent = M.get("monsters", {}).get("em/" + mon[2:] + sub) or {}
+    out = set()
+    for n, r in ent.get("mats", {}).items():
+        f = M["feat"][r["f"]] if r.get("f") is not None else {}
+        if r.get("t", {}).get("tAlbedoBlendMap") and (f.get("uvAlbedoExtendMap") or f.get("uvAlbedoBlendMap")) == "UVSecondary":
+            out.add(n)
+    return frozenset(out)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--repo", default="MHGU-Monster-Viewer")
@@ -175,7 +200,7 @@ def main():
         if not os.path.isfile(mod):
             missing.append(stem)
             continue
-        err, done, skip, unm = patch(mod, os.path.join(glb_dir, fn), args.apply)
+        err, done, skip, unm = patch(mod, os.path.join(glb_dir, fn), args.apply, secondary_mats(stem))
         tot += 1
         if err:
             print("  %-24s %s" % (stem, err))

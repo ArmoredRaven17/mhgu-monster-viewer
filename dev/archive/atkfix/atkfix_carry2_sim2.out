@@ -1,0 +1,16 @@
+PASS em003_00 Motion[39]: carried record 29 live exactly on its window less the shift  -- {"clipFrames":103,"carried":77,"action":"7:0x0","win":[0,42],"want":[0,41],"liveFrom":0,"liveTo":41,"n":42,"shot":200}
+PASS em009_00 Motion[29]: carried record 52 live exactly on its window less the shift  -- {"clipFrames":19,"carried":33,"action":"3:0x24","win":[0,66],"want":[0,19],"liveFrom":0,"liveTo":19,"n":20,"shot":200}
+PASS em019_00 Motion[34]: carried record 49 live exactly on its window less the shift  -- {"clipFrames":51,"carried":158,"action":"1:0x1a","win":[0,33],"want":[0,32],"liveFrom":0,"liveTo":32,"n":33,"shot":200}
+PASS em063_00 Motion[13]: carried record 23 live exactly on its window less the shift  -- {"clipFrames":175,"carried":59,"action":"13:0x3","win":[17,27],"want":[17,26],"liveFrom":17,"liveTo":26,"n":10,"shot":200}
+PASS em025_00 Motion[41]: carried record 18 live exactly on its window less the shift  -- {"clipFrames":13,"carried":15,"action":"2:0x8","win":[0,84],"want":[0,13],"liveFrom":0,"liveTo":13,"n":14,"shot":200}
+PASS em032_04 Motion[2]: carried record 25 live exactly on its window less the shift  -- {"clipFrames":261,"carried":27,"action":"13:0x4","win":[0,87],"want":[0,86],"liveFrom":0,"liveTo":86,"n":87,"shot":200}
+PASS em076_00 Motion[33]: carried record 8 live exactly on its window less the shift  -- {"clipFrames":97,"carried":99,"action":"9:0x2","win":[0,27],"want":[0,26],"liveFrom":0,"liveTo":26,"n":27,"shot":200}
+PASS em086_00 Motion[84]: carried record 2 live exactly on its window less the shift  -- {"clipFrames":191,"carried":29,"action":"7:0x19","win":[0,9],"want":[0,8],"liveFrom":0,"liveTo":8,"n":9,"shot":200}
+PASS em001_04 Motion[10]_loop: carried record 1030 live exactly on its window less the shift  -- {"clipFrames":123,"carried":129,"action":"7:0xfc","win":[0,95],"want":[0,94],"liveFrom":0,"liveTo":94,"n":95,"shot":200}
+PASS em002_00 Motion[25]_loop: carried record 14 live exactly on its window less the shift  -- {"clipFrames":93,"carried":91,"action":"7:0x1","win":[0,18],"want":[0,17],"liveFrom":0,"liveTo":17,"n":18,"shot":200}
+PASS em049_00 Motion[23]_loop: carried record 19 live exactly on its window less the shift  -- {"clipFrames":63,"carried":101,"action":"7:0xd","win":[0,72],"want":[0,63],"liveFrom":0,"liveTo":63,"n":64,"shot":200}
+PASS em037_00 Motion[11]: carried record 23 live exactly on its window less the shift  -- {"clipFrames":39,"carried":27,"action":"13:0x4","win":[0,19],"want":[0,18],"liveFrom":0,"liveTo":18,"n":19,"shot":200}
+PASS em034_00 L2 M2_loop played through 5 wraps: the carried record 24 live on the first lap only (frames 30..46; playback samples from 31)  -- {"first":"Motion[2]_loop@31","last":"Motion[2]_loop@46","n":16,"onLaterLaps":0,"laps":5}
+PASS em027_00 L4 M1 looped 4 times: the carried replay row (record 29, lap 1) live on the second pass only  -- {"laps":["1"],"from":1,"to":24,"n":24}
+
+14 passed, 0 failed

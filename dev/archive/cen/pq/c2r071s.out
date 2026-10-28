@@ -1,0 +1,3 @@
+FAIL PROBE em071_00  -- {"log":["rageLevel=4","[rt rage true, state.rage true]","swept 1 x17","swept 3 x56","no list 4","no list 5","no list 9"],"rows":[{"k":"em071_00|em071_00u|1120|ragePuff","st":253,"live":14525,"lit":3319,"s":3510,"px":5107,"verdict":"draws","clips":["em071_00|0|Motion[2]","em071_00|1|Motion[1]","em071_00|1|Motion[2]"],"nodraw":{"clip":"em071_00|1|Motion[5]","units":[{"w0c":"14cb3","gens":4,"mask1":"ffffffff","mask2":"ffffffff","nrow":2848,"rows":[["ffffffff","ffffffff"],["ffffffff","ffffffff"],["ffffffff","ffffffff"],["ffffffff","ffffffff"],["2000890","8d0"],["0","0"],["0","0"],["0","0"],["5000","29000"],["0","0"],["5000","29000"],["0","0"],["0","0"]]}]}}],"missing":["em071_00|em071_00u|1121|ragePuff"]}
+
+0 passed, 1 failed

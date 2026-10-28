@@ -1,0 +1,1 @@
+{"id": "em071_00", "steps": [{"set": {"monRageLevel": "1"}}, {"wait": 300}, {"set": {"monRageLevel": "2"}}, {"wait": 300}, {"set": {"monRageLevel": "3"}}, {"wait": 300}], "want": ["em071_00|em071_00u|1121|ragePuff", "em071_00|em071_00u|1120|ragePuff"]}

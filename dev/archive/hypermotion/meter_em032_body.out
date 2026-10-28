@@ -1,0 +1,4 @@
+PASS em032_00 3,2@0|Motion[9]  -- no play-once clip: skipped
+FAIL em032_00 3,2@2|Motion[26] (ModifyData only)  -- {"off":177,"on":200,"predicted":177,"factor":1,"how":"census"}
+
+1 passed, 1 failed

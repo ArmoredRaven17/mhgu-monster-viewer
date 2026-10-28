@@ -1,0 +1,1 @@
+{"id": "em027_00", "steps": [{"clip": "2|Motion[1]*", "frames": 140}, {"set": {"monClassCtl": "1"}}, {"wait": 120}, {"set": {"monClassCtl2": "1"}}, {"wait": 300}, {"clip": "2|Motion[1]*", "frames": 140}, {"set": {"monClassCtl2": "0"}}, {"wait": 60}], "want": ["em027_00|em027_00u|286|clip", "em027_00|em027_00u|10|event", "em027_00|em027_00u|0|event"]}

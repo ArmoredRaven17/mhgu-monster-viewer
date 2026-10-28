@@ -1,0 +1,5 @@
+PASS PASS-PAIR em002_00 em002_00u|1301 event SUB  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":1021499,"verdict":"draws"},"diffPx":12237,"dLuma":19,"shot":"em002_00_em002_00u_1301"}
+PASS PASS-PAIR em002_00 em002_00c|0 clip OCC  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":38621,"verdict":"draws"},"diffPx":1051,"dLuma":0.4,"shot":"em002_00_em002_00c_0"}
+PASS PASS-PAIR em002_00 em002_00c|0 shell OCC  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":235980,"verdict":"draws"},"diffPx":28515,"dLuma":-30.6,"shot":"em002_00_em002_00c_0"}
+
+3 passed, 0 failed

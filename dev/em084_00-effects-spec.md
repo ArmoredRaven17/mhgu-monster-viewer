@@ -93,3 +93,24 @@ u 1121 is both his puff (ragePuff) and his class request: the json now carries a
     loop with no refusal, stopped at the next play.
 
 * **Draw meter (2026-10-19):** 73 of 74 records draw (the body, 34; each arm, 20). u 220 (L3 M63) draws at its payload's absolute point (5000, 50000, 5000), space 2, off camera -- the ROM's data.
+
+## Lane B3 (2026-10-25)
+
+* **u 215 (L3 M63 bit 17, f420..430) -- a ROM reason, read to the draw (rom-map "Nakarkos u 215 -- the draw-level read").** Its
+  record's MASK1 0x2 selects row 10 of em084_00_122.efl only: one Model generator (type 5), emission mode B (2 particles, first
+  interval 1, period 13). The row's life block (col2) is fade-in 0 / hold 0 / fade-out 0, so spawnLife (0xaea108) starts each
+  particle in the fade-out with a counter of 1, and the life pass of its own spawn frame (0xa60f68 -> 0xaeae40) ends and frees it
+  before the frame is drawn. The ROM's own run (the recorder's add_em084_00_u215 / _near) takes the same blocks and never reaches
+  the Model draw 0xa92710; u 213 on the same file (col2 holds of 20..40 frames) is the control and draws. The viewer is right:
+  nothing to fix. Tool: `<archive>/laneB3/gen215.mjs` (per-frame generator state, headless).
+  Portable: a particle row with an all-zero life block never draws -- check col2 before looking for a draw fault.
+* **u 3 -- built: a shell effect, not a class request (rom-map "Nakarkos u 1 / u 3 -- who requests them").** The body's u table
+  0x16a2858 is seven words (ids 1000..1006; its one reader is vt+0x1d0, and no caller in the whole text passes more than 1006 --
+  `<archive>/laneB3/ptrscan.py`, `vt1d0all.py`); lane B's "1010..1026 u 1, 1018 / 1019 / 1027.. u 3" read the data after it
+  (now in rom-map's Withdrawn table). u 1 and u 3 are the ef 0 of shell00 modes 0..4 and of shell01 modes 0 / 1 / 10, started
+  through the shell's own effect list. shell01 0 / 1 were built in render/shells.js but the u 3 record was not exported; it now is
+  (docs/effects/em084_00.json, `when: 'shell'`). Measured on body L0 M63 looping, stance revealed: (7, 0x43) at f460 makes shell11
+  mode 2, whose creates drop shell00 1 from 7000 up; each landing makes shell01 1 -- **u 3 starts 7 times and draws**.
+  Played once, the clip holds f651 and the falling rock freezes (the shells' step stops with the clip): a shells-lane note.
+  Portable: a key in a class's id table is only an id if some caller passes it -- derive a table's length from its readers and
+  callers, never from where the next nonzero words look like keys.

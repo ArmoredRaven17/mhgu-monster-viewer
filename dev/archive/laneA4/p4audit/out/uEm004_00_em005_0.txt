@@ -1,0 +1,14 @@
+uEm004_00 em005 v0 (0, 0x7) ph0A: PH 1 | POST 4@d245e4 | SET MOG@d245f4 | M L0M1@4ffffffc
+uEm004_00 em005 v0 (0, 0x7) ph1B: VT3E8@4ffffffc
+uEm004_00 em005 v0 (6, 0x0) ph0A: PH 1 | POST 0@d27cf4 | M L4M3@4ffffffc
+uEm004_00 em005 v0 (6, 0x0) ph1B: VT3E8@4ffffffc
+uEm004_00 em005 v0 (6, 0x1) ph0A: PH 1 | POST 4@d279e0 | M L4M57@4ffffffc
+uEm004_00 em005 v0 (6, 0x1) ph1B: POST 0@d27a30 | IDLE
+uEm004_00 em005 v0 (6, 0x2) ph0A: PH 1 | POST 4@d27ab8 | SET MOG@d27ad4 | TURN 0x169bae0 {L0M1; L0M1 / L0M1}@d27af4
+uEm004_00 em005 v0 (6, 0x2) ph1C: VT3E8@4ffffffc
+uEm004_00 em005 v0 (6, 0x3) ph0A: PH 1 | POST 4@d27b94 | SET MOG@d27ba4 | M L0M7@d27bbc
+uEm004_00 em005 v0 (6, 0x3) ph1C: VT3E8@4ffffffc
+uEm004_00 em005 v0 (11, 0x26) ph0A: S 0x1798b80 m4
+uEm004_00 em005 v0 (12, 0x0) ph0A: PH 1 | POST 4@d2de08 | M L4M2@d2de1c | SET -500@d2de28
+uEm004_00 em005 v0 (12, 0x0) ph1A: SET -500@4ffffffc
+uEm004_00 em005 v0 (12, 0x0) ph2B?: IDLE

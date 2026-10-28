@@ -88,3 +88,10 @@ after it: em057_00 169, em060_00 72, em036_00 61, em046_00 66, em010_00 55, em04
 (The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
 
 * **L0 M4 copy D -- BUILT 2026-10-19**: (2, 0x36) repeated -- u 330 at its start (selector 2) and u 310 held as copy C.
+
+## Lane A3 (2026-10-26): (10, 0xaf) -- L3 M3 / L3 M6's bits 21-23 (rom-map "Effects lane A3")
+
+(10, 0xaf) is the shared reaction 0x1c: his durability counter (P+0x5d30, chipped only inside vt+0x1dc's motion windows) ran out.
+His handler plays L3 M3 -> M4 -> M5 or L3 M6 -> M7 -> M8 by a side vt+0x1fc writes from the interrupted action (never 0). The
+word gives it bits 21-23 on any motion, so L3 M3 fires u 255 / u 265 / u 257 and L3 M6 u 256 / u 265 / u 257. Built: (10, 0xaf)
+added to both clips' CLIP_ACTIONS (both variants). It is not the mount reaction.

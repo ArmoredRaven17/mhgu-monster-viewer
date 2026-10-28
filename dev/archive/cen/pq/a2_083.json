@@ -1,0 +1,1 @@
+{"id": "em083_00", "steps": [{"set": {"monHunterDist": "1200"}}, {"clip": "0|Motion[30]*", "frames": 400}, {"clip": "2|Motion[21]*", "frames": 400}, {"clip": "2|Motion[23]*", "frames": 400}, {"clip": "2|Motion[33]*", "frames": 400}], "want": ["em083_00|em083_00u|256|clip", "em083_00|em083_00u|242|clip", "em083_00|em083_00u|400|clip"]}

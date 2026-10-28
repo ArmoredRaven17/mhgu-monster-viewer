@@ -1124,7 +1124,8 @@ export const PSL_MASK_MONSTERS = ['em004_00', 'em084_00', 'em081_04', 'em081_00'
 //     form 0..3 -> {0x38000, 0x1c0000, 0xe00000, 0x7000000} (table 0x1592ae8).
 // The actions per arm clip are the orders render/monster.js ROM_ARM_PAIRS reads (arm action <- body action, by side); where an
 // arm clip has two orders (M86: (7, 0x21) / (7, 0x22) <- (7, 0x44 / 0x45 / 0x4a / 0x4b)) its plays take them in turn (which body
-// action orders which arm action: I). The body's skull form is not a viewer state: M92 lights nothing (named).
+// action orders which arm action: I). M92's body form byte is the body's copy of that side's form, which the arm's vt+0x24 0x107b544
+// settles its own +0xcb30 to (0x107b74c compare, 0x107b8d0 store; lane B2 2026-10-26): index.html passes the form row as both.
 const ARM084_X = new Set([0x44, 0x45, 0x69, 0x6a, 0x9b, 0x9c]), ARM084_Y = new Set([0x4a, 0x4b]);
 const ARM084_XN = new Set([0x0c, 0x0d, 0x21, 0x2a, 0x2c]), ARM084_ALWAYS = new Set([0x0f, 0x10, 0x11, 0x12, 0x22, 0x26]);
 const ARM084_FORM = [0x38000, 0x1c0000, 0xe00000, 0x7000000];
@@ -1246,8 +1247,11 @@ const EM082_ACTIONS = {
   '2|Motion[2]':  [{ action: [7, 0x08] }, { action: [7, 0x24] }],
   '2|Motion[69]': [{ action: [7, 0x19] }, { action: [7, 0x26] }, { action: [7, 0x70] }, { action: [7, 0x71] }, { action: [7, 0x7b] }],
   '2|Motion[70]': [{ action: [7, 0x19] }, { action: [7, 0x26] }, { action: [7, 0x7b], variant: 'B' }],
-  '3|Motion[3]':  [{ action: [10, 0x07] }],
-  '3|Motion[6]':  [{ action: [10, 0x07] }],
+  // (10, 0xaf) (effects lane A3, 2026-10-26; READ: rom-map "Effects lane A3"): the shared reaction 0x1c (his durability counter P+0x5d30
+  // emptied) -> 0x9b078; his handler 0x10488b4 plays script 0x17ef1a8 (L3 M3 -> M4 -> M5) on side 1, 0x17ef1d0 (L3 M6 -> M7 -> M8) on side
+  // 2, the side written by vt+0x1fc 0x1036714 from the action it interrupts. The word gives it bits 21-23 (u 255 / 256, u 265, u 257)
+  '3|Motion[3]':  [{ action: [10, 0x07] }, { action: [10, 0xaf] }],
+  '3|Motion[6]':  [{ action: [10, 0x07] }, { action: [10, 0xaf] }],
 };
 const EM066_ACTIONS = own => {
   const rock = acts => [...acts.map(n => ({ action: [7, n], boulder: own })), ...acts.map(n => ({ action: [7, n], boulder: 3, variant: 'B' }))];
@@ -1406,6 +1410,9 @@ export const CLIP_ACTIONS = {
                               { action: [13, 0x00], variant: 'B' }, { action: [13, 0x02], variant: 'B' }],
               '3|Motion[3]': [{ action: [10, 0x20] }, { action: [10, 0x1b], variant: 'B' }, { action: [10, 0x72], variant: 'C' }, { action: [10, 0x07], variant: 'D' }],
               '3|Motion[5]': [{ action: [10, 0x20] }, { action: [10, 0x07], variant: 'B' }],
+              // L2 M1 (lane B2, 2026-10-25): its only players are (7, 0x0a) / (7, 0x15) / (7, 0x16), phase 0 (<archive>/laneB2/allmot027_201.txt,
+              // zg/allmot.py over every (status, number), phases 0..3) -- each a number in the word's 0x600400, so every play lights bits 24-26 (u 286)
+              '2|Motion[1]': [{ action: [7, 0x0a] }, { action: [7, 0x15] }, { action: [7, 0x16] }],
               // the sleep hold: (10, 0x1d)'s last clip, held through (10, 0x1e) (op 1 sets no motion -- motion-states.js)
               '3|Motion[17]': [{ action: [1, 0x08] }, { action: [10, 0x44] }, { action: [10, 0x1d], variant: 'B' }, { action: [10, 0x1e], variant: 'B' }],
               // THE NOVA (motion-states.js em027_00): L4 M9 / M10 by the nova selector -- A 0 / 1 / 3, B 2 / 4, C 5, D 6, E 7 / 8 (L4 M10 E
@@ -1433,6 +1440,11 @@ export const CLIP_ACTIONS = {
       '1|Motion[3]':  [...E(7, [0x1d, 0x26]), ...E(7, [0x1e], 'B')],
       '0|Motion[9]':  [...E(7, [0x00, 0x22, 0x27, 0x28, 0x2b, 0x2c, 0x2f, 0x30]), ...E(7, [0x0a, 0x23, 0x29, 0x2a, 0x2d, 0x2e, 0x31, 0x32], 'B')],
       '0|Motion[10]': [...E(7, [0x00, 0x22, 0x27, 0x28, 0x2b, 0x2c, 0x2f, 0x30]), ...E(7, [0x0a, 0x23, 0x29, 0x2a, 0x2d, 0x2e, 0x31, 0x32], 'B')],
+      // L1 M1 by POSTURE, not by the word (no L1 M1 case in it): A posture 1 -- the fly moves (3, 0..4), (0, 3) and the takeoff (7, 0x1f)'s
+      // hover; B posture 3 -- (0, 6) and status 4's (4, 1 / 2 / 4 / 5 / 6 / 0xa / 0xe) (<archive>/gapW/actpost.json; motion-states.js
+      // AIR_HEIGHT.em050_00, shells lane 2026-10-26)
+      '1|Motion[1]':  [...E(7, [0x1f]), ...E(3, [0x00, 0x01, 0x02, 0x03, 0x04]), ...E(0, [0x03]),
+                       ...E(4, [0x01, 0x02, 0x04, 0x05, 0x06, 0x0a, 0x0e], 'B'), ...E(0, [0x06], 'B')],
     };
   })(),
   // AMATSU (dev/em058_00-effects-spec.md 3; tracer): the copies his state rows read
@@ -1550,7 +1562,10 @@ export const CLIP_ACTIONS = {
               '2|Motion[4]': [...[0x03, 0x04, 0x06, 0x08, 0x09, 0x0a, 0x0c, 0x0e, 0x11, 0x12, 0x14, 0x15, 0x16, 0x17, 0x20, 0x21, 0x22, 0x23,
                                   0x26, 0x27, 0x39, 0x3c, 0x3d].map(n => ({ action: [7, n] })), { action: [7, 0x02], variant: 'B' }] },
   em069_00: { '0|Motion[16]': [{ action: [1, 0x14] }, { action: [1, 0x1c], variant: 'B' }],
-              '0|Motion[8]':  [{ action: [2, 0x01] }, { action: [2, 0x02] }, { action: [2, 0x03] }, { action: [6, 0x02], posture: 4, sunk: true, variant: 'B' }] },
+              '0|Motion[8]':  [{ action: [2, 0x01] }, { action: [2, 0x02] }, { action: [2, 0x03] }, { action: [6, 0x02], posture: 4, sunk: true, variant: 'B' }],
+              // L0 M1: the idles (0, 0 / 1 / 7) and copy B (7, 0x4d), whose start raises her P+0x1bb level to 3 (motion-states.js
+              // queenLevel069; vt+0x204 0xf897d8) before (7, 0x4e) L0 M65 -- lane B, 2026-10-25
+              '0|Motion[1]':  [{ action: [0, 0x00] }, { action: [7, 0x4d], variant: 'B' }] },
   em010_00: {
     '0|Motion[18]': [{ action: [0, 0x04], posture: 4, depth: -100 }, { action: [0, 0x05], posture: 4, depth: -100 },
                      { action: [0, 0x07], posture: 4, depth: -100 }, { action: [6, 0x0c], posture: 4, depth: -100 },
@@ -1583,6 +1598,10 @@ export const CLIP_ACTIONS = {
     '0|Motion[7]':  [{ action: [2, 0x04] }, { action: [6, 0x09], posture: 4, sunk: true }],
     '0|Motion[8]':  [{ action: [2, 0x04] }, { action: [6, 0x09], posture: 4, sunk: true }],
     '0|Motion[18]': [{ action: [2, 0x11] }, { action: [6, 0x07], posture: 4, sunk: true }],
+    // L0 M20 (lane A2, 2026-10-26; zg/reqtrace.py): A the idle (0, 7); B (7, 0x14 / 0x15 / 0x16), whose phase 0 (0xdddbc8) sets
+    // posture 4, sinks (0xbf62c / 0xbf700), sets L0 M20 and asks u 60 at his unit position (0xdda664: id 1001, +0x1c |= 3, +8 = 2)
+    '0|Motion[20]': [{ action: [0, 0x07] }, { action: [7, 0x14], posture: 4, variant: 'B' }, { action: [7, 0x15], posture: 4, variant: 'B' },
+                     { action: [7, 0x16], posture: 4, variant: 'B' }],
   },
   // CONGALALA (dev/em021_00-effects-spec.md 2; plays from the action main 0xdd8068 under unicorn, allmot.py). L0 M25 is the
   // eating clip: (1, 0x35 / 0x0b / 0x0c / 0x0e) -- with the Item row at Nothing their number decides (c 150..153). L0 M43 is the
@@ -1628,6 +1647,12 @@ export const CLIP_ACTIONS = {
     // L0 M50 (dev/em084_00-effects-spec.md 3; tracer): A the idle (0, 0) and the many other plays, B the dive actions (6, 0x64) / (6,
     // 0x66), whose own code asks for u 1121 (0xa499c(e, 1): 0x1073474 / 0x10739d0) -- not in his word's arms
     '0|Motion[50]': [{ action: [0, 0x00] }, { action: [6, 0x64], variant: 'B' }, { action: [6, 0x66], variant: 'B' }],
+    // L0 M1 (lane B, 2026-10-25): A the idle (0, 0); B the buried hold of (13, 0), phase 4 (0x107a250: after the dive, posture 4, L0 M1
+    // with bits 15-17 -> c 140, the debris pulse; the word em084 above). In game phase 5 re-sets L0 M1 without the bits after the
+    // 300-frame wait (0x7206c), so the game shows the pulses of f1..f271; the copy plays the whole clip (f300 / 330 / 360 too)
+    // B: the buried hold of (13, 0) phase 4 (bits 15-17, c 140); after its 300-frame wait phase 5 sets L0 M1 again without them
+    // (0x107a250) -- `bitsUntil` stops the pulses there (lane B2, 2026-10-26; the clip itself plays on)
+    '0|Motion[1]':  [{ action: [0, 0x00] }, { action: [13, 0x00], phase: 4, posture: 4, variant: 'B', bitsUntil: { frame: 300, bits: 0x38000 } }],
   },
   // BLOODBATH DIABLOS (em007_04): the plays of each motion his enable word (0xd4532c, above) keys on an action or the
   // posture. Group 7 from the action main under unicorn, variant 4 (actprobe7.py; phase 1 by the same probe with
@@ -1652,6 +1677,11 @@ export const CLIP_ACTIONS = {
     '2|Motion[31]': [{ action: [7, 0x5a] }, { action: [7, 0xb5] }, { action: [7, 0xb7] }],
     '2|Motion[15]': [{ action: [7, 0x03] }, { action: [7, 0xb4] }, { action: [7, 0xb6] }, { action: [7, 0xb8] }],
     '2|Motion[19]': [{ action: [7, 0x83] }, { action: [7, 0xb8] }],
+    // L2 M22 (effects lane, 2026-10-25; allmot2.py CLS=uEm007_00 EM=7 variant 4): from frame 0 it is played by (7, 0x5c / 0x5f /
+    // 0x65 / 0x67) phase 0 ((7, 0x5d / 0x61) set it from f200, (7, 0x5c / 0x65) again in phase 1). Only (7, 0x67) lights bit 21
+    // (0xd45494, variant 4) = u 900 (em007_04_000) at f7; (7, 0x5c) stands for the three base plays. Issued: (7, 0x67) g7 s1,
+    // (7, 0x5c) five streams, of the shared em007_00_cmdtbl (emc.py).
+    '2|Motion[22]': [{ action: [7, 0x5c] }, { action: [7, 0x67] }],
     '3|Motion[20]': [{ action: [10, 0x63] }, { action: [11, 0x03] }],
     '0|Motion[5]':  [{ action: null, posture: 0 }, { action: null, posture: 4 }],
     '0|Motion[7]':  [{ action: null, posture: 0 }, { action: [6, 3], posture: 4, variant: 'B' }, { action: [6, 0xf], posture: 4, variant: 'C' }],
@@ -1866,6 +1896,12 @@ export const ACTION_EFFECTS = {
       '7:0x05': ['em004_00u', 60, 'UNIQUE'],  '7:0x0f': ['em004_00u', 70, 'UNIQUE'],
       '7:0x15': ['em004_00u', 90, 'UNIQUE'],  '7:0x10': ['em004_00u', 100, 'UNIQUE'],
     } },
+  },
+  // AHTAL-KA's (1, 0x21), phase 9 (0x10bdba4 -> 0x10be1c4..0x10be20c): on L2 M14 the crossing of 230.0 (0xb0968 mode 0, literal
+  // 0x10be29c) requests id 0x406 = 1030 -> u 420 UNIQUE (em088_00_014) through vt+0x1d0, the handle dropped (a one-shot). Only on the
+  // combined list, where M14 plays under (1, 0x21) (render/monster.js ROM_PARTNER_BODY.em088_00; dev/em088-em087-combined-spec.md 5)
+  em088_00: {
+    '2|Motion[14]': { frame: 230, by: { '1:0x21': ['em088_00u', 420, 'UNIQUE'] } },
   },
 };
 export const actionName = a => a ? a[0] + ':0x' + a[1].toString(16).padStart(2, '0') : null;

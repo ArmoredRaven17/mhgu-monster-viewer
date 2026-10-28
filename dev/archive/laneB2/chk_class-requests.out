@@ -1,0 +1,16 @@
+PASS METER em021_00|em021_00u|500|event  -- {"starts":1,"lit":"11/13","px":82901,"aimed":"0/1","verdict":"draws"}
+PASS em021_00: the runtime did not stop
+PASS METER em023_00|em023_00c|30|event  -- {"starts":1,"lit":"12/14","px":70259,"aimed":"0/2","verdict":"draws"}
+PASS em023_00: the runtime did not stop
+PASS METER em023_05|em023_00c|30|event  -- {"starts":1,"lit":"12/14","px":73846,"aimed":"0/1","verdict":"draws"}
+PASS em023_05: the runtime did not stop
+PASS METER em027_00|em027_00u|2|event  -- {"starts":1,"lit":"44/45","px":432939,"aimed":"0/0","verdict":"draws"}
+PASS METER em027_00|em027_00u|3|event  -- {"starts":1,"lit":"21/22","px":163180,"aimed":"0/0","verdict":"draws"}
+PASS em027_00: the runtime did not stop
+PASS METER em070_00|em070_00u|32|event  -- {"starts":3,"lit":"41/41","px":728,"aimed":"0/0","verdict":"draws"}
+PASS METER em070_00|em070_00u|30|event  -- {"starts":1,"lit":"21/21","px":2542,"aimed":"0/0","verdict":"draws"}
+PASS METER em070_00|em070_00u|31|event  -- {"starts":1,"lit":"2/3","px":224,"aimed":"0/0","verdict":"draws"}
+PASS METER em070_00|em070_00u|33|event  -- {"starts":1,"lit":"37/38","px":712,"aimed":"0/0","verdict":"draws"}
+PASS em070_00: the runtime did not stop
+
+14 passed, 0 failed

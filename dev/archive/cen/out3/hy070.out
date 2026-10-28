@@ -1,0 +1,3 @@
+PASS PROBE em070_00  -- {"log":["played 0|Motion[1]_loop","monHyper=4,1","played 0|Motion[1]_loop","monHyper=4,2","played 0|Motion[1]_loop"],"rows":[{"k":"em070_00|em070_00u|1301|event","st":1,"live":159,"lit":34,"s":34,"px":152934,"verdict":"draws","clips":["em070_00|0|Motion[1]"]},{"k":"em070_00|em070_00u|1304|event","st":1,"live":248,"lit":52,"s":52,"px":145827,"verdict":"draws","clips":["em070_00|0|Motion[1]"]},{"k":"em070_00|em070_00u|1302|event","st":1,"live":124,"lit":27,"s":27,"px":177753,"verdict":"draws","clips":["em070_00|0|Motion[1]"]}],"missing":[]}
+
+1 passed, 0 failed

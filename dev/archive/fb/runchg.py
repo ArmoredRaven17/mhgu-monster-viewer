@@ -4,7 +4,8 @@ import os, sys, subprocess, time, json, struct
 D = os.path.dirname(os.path.abspath(__file__))
 mons = [l.split()[0] for l in open(os.path.join(D, '..', 'neset', 'fbb_list.txt')) if l.startswith('em')]
 if sys.argv[1:]: mons = [m for m in mons if m in sys.argv[1:]]
-SHARED = {'002': 'uEm001_00', '005': 'uEm004_00', '015': 'uEm014_00', '016': 'uEm014_00', '034': 'uEm014_00'}
+# the full spawn-table map (dev/notice-marks.md step 3; 062 / 072 added 2026-10-27, atkfix lane, rom-map trap 176)
+SHARED = {'002': 'uEm001_00', '005': 'uEm004_00', '015': 'uEm014_00', '016': 'uEm014_00', '034': 'uEm014_00', '062': 'uEm060_00', '072': 'uEm071_00'}
 IDS = json.load(open(os.path.join(D, 'ids_fbb.json')))
 # a monster already passed (its .done marker) is skipped: a second runner (queued earlier) does only what is left
 queue = [m for m in mons if not os.path.exists(os.path.join(D, 'chg_%s_v%d_t.done' % (m, int(m[6:8]))))]; running = []

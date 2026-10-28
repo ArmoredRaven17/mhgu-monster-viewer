@@ -1,0 +1,283 @@
+00f3552c  push     {r4, r5, r6, r7, fp, lr}
+00f35530  add      fp, sp, #0x10
+00f35534  sub      sp, sp, #0x48
+00f35538  bfc      sp, #0, #4
+00f3553c  mov      r4, r0
+00f35540  movw     r0, #0xcacc
+00f35544  mov      r1, r4
+00f35548  ldr      r0, [r1, r0]!
+00f3554c  ldr      r2, [r0, #0xc0]
+00f35550  cmp      r2, #0
+00f35554  beq      #0xf35578
+00f35558  ldr      r2, [r2, #0xc]
+00f3555c  and      r2, r2, #7
+00f35560  sub      r2, r2, #1
+00f35564  cmp      r2, #2
+00f35568  blo      #0xf35578
+00f3556c  mov      r2, #0
+00f35570  str      r2, [r0, #0xc0]
+00f35574  ldr      r0, [r1]
+00f35578  ldr      r2, [r0, #0xc4]
+00f3557c  cmp      r2, #0
+00f35580  beq      #0xf355a4
+00f35584  ldr      r2, [r2, #0xc]
+00f35588  and      r2, r2, #7
+00f3558c  sub      r2, r2, #1
+00f35590  cmp      r2, #2
+00f35594  blo      #0xf355a4
+00f35598  mov      r2, #0
+00f3559c  str      r2, [r0, #0xc4]
+00f355a0  ldr      r0, [r1]
+00f355a4  ldr      r2, [r0, #0xc8]
+00f355a8  cmp      r2, #0
+00f355ac  beq      #0xf355d0
+00f355b0  ldr      r2, [r2, #0xc]
+00f355b4  and      r2, r2, #7
+00f355b8  sub      r2, r2, #1
+00f355bc  cmp      r2, #2
+00f355c0  blo      #0xf355d0
+00f355c4  mov      r2, #0
+00f355c8  str      r2, [r0, #0xc8]
+00f355cc  ldr      r0, [r1]
+00f355d0  ldr      r1, [r0, #0xcc]
+00f355d4  cmp      r1, #0
+00f355d8  beq      #0xf355f4
+00f355dc  ldr      r1, [r1, #0xc]
+00f355e0  and      r1, r1, #7
+00f355e4  sub      r1, r1, #1
+00f355e8  cmp      r1, #2
+00f355ec  movhs    r1, #0
+00f355f0  strhs    r1, [r0, #0xcc]
+00f355f4  movw     r0, #0xb5f5
+00f355f8  ldrb     r0, [r4, r0]
+00f355fc  cmp      r0, #5
+00f35600  moveq    r0, r4
+00f35604  bleq     #0xf3588c
+00f35608  mov      r0, r4
+00f3560c  bl       #0xb0944
+00f35610  movw     r1, #0x216
+00f35614  cmp      r0, r1
+00f35618  bne      #0xf3586c
+00f3561c  vldr     s0, [pc, #0x250]
+00f35620  mov      r0, r4
+00f35624  add      r7, sp, #0x24
+00f35628  bl       #0xb0974
+00f3562c  cmp      r0, #1
+00f35630  bne      #0xf356e4
+00f35634  mov      r0, #0
+00f35638  add      r5, sp, #0x30
+00f3563c  add      r6, sp, #0x20
+00f35640  mov      r1, #0
+00f35644  str      r0, [sp, #0x3c]
+00f35648  str      r0, [sp, #0x2c]
+00f3564c  add      r0, sp, #0x1e
+00f35650  mov      r2, r5
+00f35654  mov      r3, r6
+00f35658  str      r0, [sp]
+00f3565c  mov      r0, r4
+00f35660  bl       #0xf454e0
+00f35664  cmp      r0, #1
+00f35668  bne      #0xf356d4
+00f3566c  vldr     s0, [r7]
+00f35670  vmov.f32 s2, #7.500000e-01
+00f35674  vcmpe.f32 s0, s2
+00f35678  vmrs     apsr_nzcv, fpscr
+00f3567c  bpl      #0xf356a8
+00f35680  ldr      r0, [pc, #0x1f0]
+00f35684  ldr      r0, [pc, r0]
+00f35688  ldr      r1, [r0]
+00f3568c  str      r1, [sp, #0x20]
+00f35690  ldr      r1, [r0, #4]
+00f35694  ldr      r0, [r0, #8]
+00f35698  str      r1, [sp, #0x24]
+00f3569c  str      r0, [sp, #0x28]
+00f356a0  mov      r0, #0
+00f356a4  str      r0, [sp, #0x2c]
+00f356a8  ldrh     r0, [sp, #0x1e]
+00f356ac  mvn      r2, #0
+00f356b0  mov      r1, #0
+00f356b4  mov      r3, #0
+00f356b8  stm      sp, {r2, r5, r6}
+00f356bc  mov      r2, #0
+00f356c0  str      r0, [sp, #0xc]
+00f356c4  str      r1, [sp, #0x10]
+00f356c8  mov      r0, r4
+00f356cc  mov      r1, #0
+00f356d0  bl       #0xf458ec
+00f356d4  mov      r0, r4
+00f356d8  mov      r1, #0
+00f356dc  mvn      r2, #0
+00f356e0  bl       #0xf4653c
+00f356e4  vldr     s0, [pc, #0x190]
+00f356e8  mov      r0, r4
+00f356ec  bl       #0xb0974
+00f356f0  cmp      r0, #1
+00f356f4  bne      #0xf357a8
+00f356f8  mov      r0, #0
+00f356fc  add      r5, sp, #0x30
+00f35700  add      r6, sp, #0x20
+00f35704  mov      r1, #1
+00f35708  str      r0, [sp, #0x3c]
+00f3570c  str      r0, [sp, #0x2c]
+00f35710  add      r0, sp, #0x1e
+00f35714  mov      r2, r5
+00f35718  mov      r3, r6
+00f3571c  str      r0, [sp]
+00f35720  mov      r0, r4
+00f35724  bl       #0xf454e0
+00f35728  cmp      r0, #1
+00f3572c  bne      #0xf35798
+00f35730  vldr     s0, [r7]
+00f35734  vmov.f32 s2, #7.500000e-01
+00f35738  vcmpe.f32 s0, s2
+00f3573c  vmrs     apsr_nzcv, fpscr
+00f35740  bpl      #0xf3576c
+00f35744  ldr      r0, [pc, #0x134]
+00f35748  ldr      r0, [pc, r0]
+00f3574c  ldr      r1, [r0]
+00f35750  str      r1, [sp, #0x20]
+00f35754  ldr      r1, [r0, #4]
+00f35758  ldr      r0, [r0, #8]
+00f3575c  str      r1, [sp, #0x24]
+00f35760  str      r0, [sp, #0x28]
+00f35764  mov      r0, #0
+00f35768  str      r0, [sp, #0x2c]
+00f3576c  ldrh     r0, [sp, #0x1e]
+00f35770  mvn      r2, #0
+00f35774  mov      r1, #0
+00f35778  mov      r3, #0
+00f3577c  stm      sp, {r2, r5, r6}
+00f35780  mov      r2, #0
+00f35784  str      r0, [sp, #0xc]
+00f35788  str      r1, [sp, #0x10]
+00f3578c  mov      r0, r4
+00f35790  mov      r1, #1
+00f35794  bl       #0xf458ec
+00f35798  mov      r0, r4
+00f3579c  mov      r1, #1
+00f357a0  mvn      r2, #0
+00f357a4  bl       #0xf4653c
+00f357a8  vldr     s0, [pc, #0xd4]
+00f357ac  mov      r0, r4
+00f357b0  bl       #0xb0974
+00f357b4  cmp      r0, #1
+00f357b8  bne      #0xf3586c
+00f357bc  mov      r0, #0
+00f357c0  add      r5, sp, #0x30
+00f357c4  add      r6, sp, #0x20
+00f357c8  mov      r1, #0
+00f357cc  str      r0, [sp, #0x3c]
+00f357d0  str      r0, [sp, #0x2c]
+00f357d4  add      r0, sp, #0x1e
+00f357d8  mov      r2, r5
+00f357dc  mov      r3, r6
+00f357e0  str      r0, [sp]
+00f357e4  mov      r0, r4
+00f357e8  bl       #0xf454e0
+00f357ec  cmp      r0, #1
+00f357f0  bne      #0xf3585c
+00f357f4  vldr     s0, [r7]
+00f357f8  vmov.f32 s2, #7.500000e-01
+00f357fc  vcmpe.f32 s0, s2
+00f35800  vmrs     apsr_nzcv, fpscr
+00f35804  bpl      #0xf35830
+00f35808  ldr      r0, [pc, #0x78]
+00f3580c  ldr      r0, [pc, r0]
+00f35810  ldr      r1, [r0]
+00f35814  str      r1, [sp, #0x20]
+00f35818  ldr      r1, [r0, #4]
+00f3581c  ldr      r0, [r0, #8]
+00f35820  str      r1, [sp, #0x24]
+00f35824  str      r0, [sp, #0x28]
+00f35828  mov      r0, #0
+00f3582c  str      r0, [sp, #0x2c]
+00f35830  ldrh     r0, [sp, #0x1e]
+00f35834  mvn      r2, #0
+00f35838  mov      r1, #0
+00f3583c  mov      r3, #0
+00f35840  stm      sp, {r2, r5, r6}
+00f35844  mov      r2, #0
+00f35848  str      r0, [sp, #0xc]
+00f3584c  str      r1, [sp, #0x10]
+00f35850  mov      r0, r4
+00f35854  mov      r1, #0
+00f35858  bl       #0xf458ec
+00f3585c  mov      r0, r4
+00f35860  mov      r1, #0
+00f35864  mvn      r2, #0
+00f35868  bl       #0xf4653c
+00f3586c  sub      sp, fp, #0x10
+00f35870  pop      {r4, r5, r6, r7, fp, pc}
+00f35874  rscmi    r0, r4, #0
+00f35878  addeq    ip, pc, r4, lsr #21
+00f3587c  tstmi    r8, #0
+00f35880  addeq    ip, pc, r0, ror #19
+00f35884  teqmi    r4, #0
+00f35888  addeq    ip, pc, ip, lsl sb
+00f3588c  push     {r4, r5, fp, lr}
+00f35890  mov      r4, r0
+00f35894  movw     r0, #0xcacc
+00f35898  mov      r5, r4
+00f3589c  ldr      r0, [r5, r0]!
+00f358a0  ldrh     r0, [r0, #0x54]
+00f358a4  cmp      r0, #2
+00f358a8  bne      #0xf358c0
+00f358ac  mov      r0, r4
+00f358b0  mov      r1, #3
+00f358b4  mov      r2, #3
+00f358b8  bl       #0xbaafc
+00f358bc  b        #0xf358cc
+00f358c0  mov      r0, r4
+00f358c4  mov      r1, #3
+00f358c8  bl       #0xbaacc
+00f358cc  ldr      r0, [r5]
+00f358d0  ldrh     r0, [r0, #0x5c]
+00f358d4  cmp      r0, #2
+00f358d8  bne      #0xf358f0
+00f358dc  mov      r0, r4
+00f358e0  mov      r1, #7
+00f358e4  mov      r2, #7
+00f358e8  bl       #0xbaafc
+00f358ec  b        #0xf358fc
+00f358f0  mov      r0, r4
+00f358f4  mov      r1, #7
+00f358f8  bl       #0xbaacc
+00f358fc  ldr      r0, [r5]
+00f35900  ldrh     r0, [r0, #0x64]
+00f35904  cmp      r0, #2
+00f35908  bne      #0xf35930
+00f3590c  mov      r0, r4
+00f35910  mov      r1, #0
+00f35914  mov      r2, #0
+00f35918  bl       #0xbaafc
+00f3591c  mov      r0, r4
+00f35920  mov      r1, #1
+00f35924  mov      r2, #1
+00f35928  bl       #0xbaafc
+00f3592c  b        #0xf35948
+00f35930  mov      r0, r4
+00f35934  mov      r1, #0
+00f35938  bl       #0xbaacc
+00f3593c  mov      r0, r4
+00f35940  mov      r1, #1
+00f35944  bl       #0xbaacc
+00f35948  ldr      r0, [r5]
+00f3594c  ldrh     r0, [r0, #0x6c]
+00f35950  cmp      r0, #2
+00f35954  bne      #0xf3597c
+00f35958  mov      r0, r4
+00f3595c  mov      r1, #5
+00f35960  mov      r2, #5
+00f35964  bl       #0xbaafc
+00f35968  mov      r0, r4
+00f3596c  mov      r1, #6
+00f35970  mov      r2, #6
+00f35974  pop      {r4, r5, fp, lr}
+00f35978  b        #0xbaafc
+00f3597c  mov      r0, r4
+00f35980  mov      r1, #5
+00f35984  bl       #0xbaacc
+00f35988  mov      r0, r4
+00f3598c  mov      r1, #6
+00f35990  pop      {r4, r5, fp, lr}
+00f35994  b        #0xbaacc

@@ -1,0 +1,297 @@
+step   0 motion 0x201 frame    0.00 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+    ('posture', 0)
+    ('setMotion', '0x201', 0.0)
+step   1 motion 0x201 frame    0.60 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step   2 motion 0x201 frame    1.20 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step   3 motion 0x201 frame    1.80 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step   4 motion 0x201 frame    2.40 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step   5 motion 0x201 frame    3.00 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step   6 motion 0x201 frame    3.60 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step   7 motion 0x201 frame    4.20 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step   8 motion 0x201 frame    4.80 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step   9 motion 0x201 frame    5.40 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step  10 motion 0x201 frame    6.00 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step  11 motion 0x201 frame    6.60 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step  12 motion 0x201 frame    7.20 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step  13 motion 0x201 frame    7.80 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step  14 motion 0x201 frame    8.40 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step  15 motion 0x201 frame    9.00 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step  16 motion 0x201 frame    9.60 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step  17 motion 0x201 frame   10.20 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step  18 motion 0x201 frame   10.80 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step  19 motion 0x201 frame   11.40 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step  20 motion 0x201 frame   12.00 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step  21 motion 0x201 frame   12.60 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step  22 motion 0x201 frame   13.20 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step  23 motion 0x201 frame   13.80 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+step  24 motion 0x201 frame   14.40 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+    ('call', '0x76c08', 1024, 0)
+step  25 motion 0x201 frame   15.00 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+    ('call', '0x76c08', 1024, 0)
+step  26 motion 0x201 frame   15.60 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+    ('call', '0x76c08', 1024, 0)
+step  27 motion 0x201 frame   16.20 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+    ('call', '0x76c08', 1024, 0)
+step  28 motion 0x201 frame   16.80 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+    ('call', '0x76c08', 1024, 0)
+step  29 motion 0x201 frame   17.40 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+    ('call', '0x76c08', 1024, 0)
+step  30 motion 0x201 frame   18.00 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+    ('call', '0x76c08', 1024, 0)
+step  31 motion 0x201 frame   18.60 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+    ('call', '0x76c08', 1024, 0)
+step  32 motion 0x201 frame   19.20 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+    ('call', '0x76c08', 1024, 0)
+step  33 motion 0x201 frame   19.80 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+    ('call', '0x76c08', 1024, 0)
+step  34 motion 0x201 frame   20.40 rate 0.60 posture 0 phase 1 above     0.00 vy    0.00 drawn     0.00
+    ('call', '0x76c08', 1024, 0)
+step  35 motion 0x202 frame    0.00 rate 0.65 posture 1 phase 2 above   623.00 vy   23.00 drawn   623.00
+    ('call', '0x76c08', 1024, 0)
+    ('setMotion', '0x202', 0.0)
+step  36 motion 0x202 frame    0.65 rate 0.65 posture 1 phase 2 above   633.21 vy   10.20 drawn   633.21
+step  37 motion 0x202 frame    1.30 rate 0.65 posture 1 phase 2 above   642.57 vy    9.36 drawn   642.57
+step  38 motion 0x202 frame    1.95 rate 0.65 posture 1 phase 2 above   651.08 vy    8.52 drawn   651.08
+step  39 motion 0x202 frame    2.60 rate 0.65 posture 1 phase 2 above   658.75 vy    7.67 drawn   658.75
+step  40 motion 0x202 frame    3.25 rate 0.65 posture 1 phase 2 above   665.58 vy    6.82 drawn   665.58
+step  41 motion 0x202 frame    3.90 rate 0.65 posture 1 phase 2 above   671.55 vy    5.98 drawn   671.55
+step  42 motion 0x202 frame    4.55 rate 0.65 posture 1 phase 2 above   677.20 vy    5.64 drawn   677.20
+step  43 motion 0x202 frame    5.20 rate 0.65 posture 1 phase 2 above   682.59 vy    5.39 drawn   682.59
+step  44 motion 0x202 frame    5.85 rate 0.65 posture 1 phase 2 above   687.74 vy    5.15 drawn   687.74
+step  45 motion 0x202 frame    6.50 rate 0.65 posture 1 phase 2 above   692.64 vy    4.90 drawn   692.64
+step  46 motion 0x202 frame    7.15 rate 0.65 posture 1 phase 2 above   697.30 vy    4.66 drawn   697.30
+step  47 motion 0x202 frame    7.80 rate 0.65 posture 1 phase 2 above   701.71 vy    4.41 drawn   701.71
+step  48 motion 0x202 frame    8.45 rate 0.65 posture 1 phase 2 above   705.87 vy    4.16 drawn   705.87
+step  49 motion 0x202 frame    9.10 rate 0.65 posture 1 phase 2 above   709.79 vy    3.92 drawn   709.79
+step  50 motion 0x202 frame    9.75 rate 0.65 posture 1 phase 2 above   713.46 vy    3.67 drawn   713.46
+step  51 motion 0x202 frame   10.40 rate 0.65 posture 1 phase 2 above   717.13 vy    3.67 drawn   717.13
+step  52 motion 0x202 frame   11.05 rate 0.65 posture 1 phase 2 above   720.96 vy    3.83 drawn   720.96
+step  53 motion 0x202 frame   11.70 rate 0.65 posture 1 phase 2 above   724.95 vy    3.99 drawn   724.95
+step  54 motion 0x202 frame   12.35 rate 0.65 posture 1 phase 2 above   729.10 vy    4.15 drawn   729.10
+step  55 motion 0x202 frame   13.00 rate 0.65 posture 1 phase 2 above   733.40 vy    4.31 drawn   733.40
+step  56 motion 0x202 frame   13.65 rate 0.65 posture 1 phase 2 above   737.87 vy    4.46 drawn   737.87
+step  57 motion 0x202 frame   14.30 rate 0.65 posture 1 phase 2 above   742.49 vy    4.62 drawn   742.49
+step  58 motion 0x202 frame   14.95 rate 0.65 posture 1 phase 2 above   747.27 vy    4.78 drawn   747.27
+step  59 motion 0x202 frame   15.60 rate 0.65 posture 1 phase 2 above   752.21 vy    4.94 drawn   752.21
+step  60 motion 0x202 frame   16.25 rate 0.65 posture 1 phase 2 above   757.31 vy    5.10 drawn   757.31
+    ('call', '0x76c08', 1024, 0)
+step  61 motion 0x202 frame   16.90 rate 0.65 posture 1 phase 2 above   762.57 vy    5.26 drawn   762.57
+    ('call', '0x76c08', 1024, 0)
+step  62 motion 0x202 frame   17.55 rate 0.65 posture 1 phase 2 above   767.98 vy    5.42 drawn   767.98
+step  63 motion 0x202 frame   18.20 rate 0.65 posture 1 phase 2 above   773.80 vy    5.82 drawn   773.80
+step  64 motion 0x202 frame   18.85 rate 0.65 posture 1 phase 2 above   780.57 vy    6.77 drawn   780.57
+step  65 motion 0x202 frame   19.50 rate 0.65 posture 1 phase 2 above   788.29 vy    7.72 drawn   788.29
+step  66 motion 0x202 frame   20.15 rate 0.65 posture 1 phase 2 above   796.96 vy    8.67 drawn   796.96
+step  67 motion 0x202 frame   20.80 rate 0.65 posture 1 phase 2 above   806.58 vy    9.62 drawn   806.58
+step  68 motion 0x202 frame   21.45 rate 0.65 posture 1 phase 2 above   817.15 vy   10.57 drawn   817.15
+step  69 motion 0x202 frame   22.10 rate 0.65 posture 1 phase 2 above   828.48 vy   11.33 drawn   828.48
+step  70 motion 0x202 frame   22.75 rate 0.65 posture 1 phase 2 above   839.55 vy   11.07 drawn   839.55
+step  71 motion 0x202 frame   23.40 rate 0.65 posture 1 phase 2 above   850.36 vy   10.81 drawn   850.36
+step  72 motion 0x202 frame   24.05 rate 0.65 posture 1 phase 2 above   860.90 vy   10.54 drawn   860.90
+step  73 motion 0x202 frame   24.70 rate 0.65 posture 1 phase 2 above   871.18 vy   10.28 drawn   871.18
+step  74 motion 0x202 frame   25.35 rate 0.65 posture 1 phase 2 above   881.19 vy   10.01 drawn   881.19
+step  75 motion 0x202 frame   26.00 rate 0.65 posture 1 phase 2 above   890.94 vy    9.75 drawn   890.94
+step  76 motion 0x202 frame   26.65 rate 0.65 posture 1 phase 2 above   900.22 vy    9.27 drawn   900.22
+step  77 motion 0x202 frame   27.30 rate 0.65 posture 1 phase 2 above   909.02 vy    8.80 drawn   909.02
+step  78 motion 0x202 frame   27.95 rate 0.65 posture 1 phase 2 above   917.34 vy    8.32 drawn   917.34
+step  79 motion 0x202 frame   28.60 rate 0.90 posture 1 phase 2 above   925.19 vy    7.85 drawn   925.19
+step  80 motion 0x202 frame   29.50 rate 0.90 posture 1 phase 2 above   935.15 vy    9.96 drawn   935.15
+step  81 motion 0x202 frame   30.40 rate 0.90 posture 1 phase 2 above   944.10 vy    8.96 drawn   944.10
+step  82 motion 0x202 frame   31.30 rate 0.90 posture 1 phase 2 above   951.94 vy    7.84 drawn   951.94
+step  83 motion 0x202 frame   32.20 rate 0.90 posture 1 phase 2 above   958.67 vy    6.73 drawn   958.67
+step  84 motion 0x202 frame   33.10 rate 0.90 posture 1 phase 2 above   964.28 vy    5.61 drawn   964.28
+step  85 motion 0x202 frame   34.00 rate 0.90 posture 1 phase 2 above   968.78 vy    4.50 drawn   968.78
+step  86 motion 0x202 frame   34.90 rate 0.90 posture 1 phase 2 above   968.42 vy   -0.36 drawn   968.42
+step  87 motion 0x202 frame   35.80 rate 0.90 posture 1 phase 2 above   963.20 vy   -5.22 drawn   963.20
+step  88 motion 0x202 frame   36.70 rate 0.90 posture 1 phase 2 above   953.28 vy   -9.92 drawn   953.28
+step  89 motion 0x202 frame   37.60 rate 0.90 posture 1 phase 2 above   938.70 vy  -14.58 drawn   938.70
+step  90 motion 0x202 frame   38.50 rate 0.90 posture 1 phase 2 above   919.58 vy  -19.12 drawn   919.58
+step  91 motion 0x202 frame   39.40 rate 0.90 posture 1 phase 2 above   896.00 vy  -23.58 drawn   896.00
+step  92 motion 0x202 frame   40.30 rate 0.90 posture 1 phase 2 above   868.87 vy  -27.12 drawn   868.87
+step  93 motion 0x202 frame   41.20 rate 0.90 posture 1 phase 2 above   840.03 vy  -28.84 drawn   840.03
+step  94 motion 0x202 frame   42.10 rate 0.90 posture 1 phase 2 above   809.46 vy  -30.57 drawn   809.46
+step  95 motion 0x202 frame   43.00 rate 0.90 posture 1 phase 2 above   777.17 vy  -32.29 drawn   777.17
+step  96 motion 0x202 frame   43.90 rate 0.90 posture 1 phase 2 above   743.16 vy  -34.01 drawn   743.16
+step  97 motion 0x202 frame   44.80 rate 0.90 posture 1 phase 2 above   708.96 vy  -34.20 drawn   708.96
+step  98 motion 0x202 frame   45.70 rate 0.90 posture 1 phase 2 above   674.76 vy  -34.20 drawn   674.76
+step  99 motion 0x202 frame   46.60 rate 0.90 posture 1 phase 2 above   640.56 vy  -34.20 drawn   640.56
+step 100 motion 0x202 frame   47.50 rate 0.90 posture 1 phase 2 above   606.36 vy  -34.20 drawn   606.36
+step 101 motion 0x203 frame    0.00 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+    ('posture', 0)
+    ('setMotion', '0x203', 0.0)
+step 102 motion 0x203 frame    0.90 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 103 motion 0x203 frame    1.80 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 104 motion 0x203 frame    2.70 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 105 motion 0x203 frame    3.60 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 106 motion 0x203 frame    4.50 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 107 motion 0x203 frame    5.40 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 108 motion 0x203 frame    6.30 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 109 motion 0x203 frame    7.20 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 110 motion 0x203 frame    8.10 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 111 motion 0x203 frame    9.00 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 112 motion 0x203 frame    9.90 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 113 motion 0x203 frame   10.80 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 114 motion 0x203 frame   11.70 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 115 motion 0x203 frame   12.60 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 116 motion 0x203 frame   13.50 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 117 motion 0x203 frame   14.40 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 118 motion 0x203 frame   15.30 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 119 motion 0x203 frame   16.20 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 120 motion 0x203 frame   17.10 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 121 motion 0x203 frame   18.00 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 122 motion 0x203 frame   18.90 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 123 motion 0x203 frame   19.80 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 124 motion 0x203 frame   20.70 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 125 motion 0x203 frame   21.60 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 126 motion 0x203 frame   22.50 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 127 motion 0x203 frame   23.40 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 128 motion 0x203 frame   24.30 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 129 motion 0x203 frame   25.20 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 130 motion 0x203 frame   26.10 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 131 motion 0x203 frame   27.00 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 132 motion 0x203 frame   27.90 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 133 motion 0x203 frame   28.80 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 134 motion 0x203 frame   29.70 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 135 motion 0x203 frame   30.60 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 136 motion 0x203 frame   31.50 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 137 motion 0x203 frame   32.40 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 138 motion 0x203 frame   33.30 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 139 motion 0x203 frame   34.20 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 140 motion 0x203 frame   35.10 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 141 motion 0x203 frame   36.00 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 142 motion 0x203 frame   36.90 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 143 motion 0x203 frame   37.80 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 144 motion 0x203 frame   38.70 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 145 motion 0x203 frame   39.60 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 146 motion 0x203 frame   40.50 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 147 motion 0x203 frame   41.40 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 148 motion 0x203 frame   42.30 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 149 motion 0x203 frame   43.20 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 150 motion 0x203 frame   44.10 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 151 motion 0x203 frame   45.00 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 152 motion 0x203 frame   45.90 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 153 motion 0x203 frame   46.80 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 154 motion 0x203 frame   47.70 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 155 motion 0x203 frame   48.60 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 156 motion 0x203 frame   49.50 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 157 motion 0x203 frame   50.40 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 158 motion 0x203 frame   51.30 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 159 motion 0x203 frame   52.20 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 160 motion 0x203 frame   53.10 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 161 motion 0x203 frame   54.00 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 162 motion 0x203 frame   54.90 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 163 motion 0x203 frame   55.80 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 164 motion 0x203 frame   56.70 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 165 motion 0x203 frame   57.60 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 166 motion 0x203 frame   58.50 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 167 motion 0x203 frame   59.40 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 168 motion 0x203 frame   60.30 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 169 motion 0x203 frame   61.20 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 170 motion 0x203 frame   62.10 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 171 motion 0x203 frame   63.00 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 172 motion 0x203 frame   63.90 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 173 motion 0x203 frame   64.80 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 174 motion 0x203 frame   65.70 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 175 motion 0x203 frame   66.60 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 176 motion 0x203 frame   67.50 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 177 motion 0x203 frame   68.40 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 178 motion 0x203 frame   69.30 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 179 motion 0x203 frame   70.20 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 180 motion 0x203 frame   71.10 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 181 motion 0x203 frame   72.00 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 182 motion 0x203 frame   72.90 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 183 motion 0x203 frame   73.80 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 184 motion 0x203 frame   74.70 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 185 motion 0x203 frame   75.60 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 186 motion 0x203 frame   76.50 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 187 motion 0x203 frame   77.40 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 188 motion 0x203 frame   78.30 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 189 motion 0x203 frame   79.20 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 190 motion 0x203 frame   80.10 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 191 motion 0x203 frame   81.00 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 192 motion 0x203 frame   81.90 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 193 motion 0x203 frame   82.80 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 194 motion 0x203 frame   83.70 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 195 motion 0x203 frame   84.60 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 196 motion 0x203 frame   85.50 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 197 motion 0x203 frame   86.40 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 198 motion 0x203 frame   87.30 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 199 motion 0x203 frame   88.20 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 200 motion 0x203 frame   89.10 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 201 motion 0x203 frame   90.00 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 202 motion 0x203 frame   90.90 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 203 motion 0x203 frame   91.80 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 204 motion 0x203 frame   92.70 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 205 motion 0x203 frame   93.60 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 206 motion 0x203 frame   94.50 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 207 motion 0x203 frame   95.40 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 208 motion 0x203 frame   96.30 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 209 motion 0x203 frame   97.20 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 210 motion 0x203 frame   98.10 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 211 motion 0x203 frame   99.00 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 212 motion 0x203 frame   99.90 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 213 motion 0x203 frame  100.80 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 214 motion 0x203 frame  101.70 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 215 motion 0x203 frame  102.60 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 216 motion 0x203 frame  103.50 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 217 motion 0x203 frame  104.40 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 218 motion 0x203 frame  105.30 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 219 motion 0x203 frame  106.20 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 220 motion 0x203 frame  107.10 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 221 motion 0x203 frame  108.00 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 222 motion 0x203 frame  108.90 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 223 motion 0x203 frame  109.80 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 224 motion 0x203 frame  110.70 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 225 motion 0x203 frame  111.60 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 226 motion 0x203 frame  112.50 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 227 motion 0x203 frame  113.40 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 228 motion 0x203 frame  114.30 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 229 motion 0x203 frame  115.20 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 230 motion 0x203 frame  116.10 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 231 motion 0x203 frame  117.00 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 232 motion 0x203 frame  117.90 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 233 motion 0x203 frame  118.80 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 234 motion 0x203 frame  119.70 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 235 motion 0x203 frame  120.60 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 236 motion 0x203 frame  121.50 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 237 motion 0x203 frame  122.40 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 238 motion 0x203 frame  123.30 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 239 motion 0x203 frame  124.20 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 240 motion 0x203 frame  125.10 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 241 motion 0x203 frame  126.00 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 242 motion 0x203 frame  126.90 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 243 motion 0x203 frame  127.80 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 244 motion 0x203 frame  128.70 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 245 motion 0x203 frame  129.60 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 246 motion 0x203 frame  130.50 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 247 motion 0x203 frame  131.40 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 248 motion 0x203 frame  132.30 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 249 motion 0x203 frame  133.20 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 250 motion 0x203 frame  134.10 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 251 motion 0x203 frame  135.00 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 252 motion 0x203 frame  135.90 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 253 motion 0x203 frame  136.80 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 254 motion 0x203 frame  137.70 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 255 motion 0x203 frame  138.60 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 256 motion 0x203 frame  139.50 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 257 motion 0x203 frame  140.40 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 258 motion 0x203 frame  141.30 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 259 motion 0x203 frame  142.20 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 260 motion 0x203 frame  143.10 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 261 motion 0x203 frame  144.00 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 262 motion 0x203 frame  144.90 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 263 motion 0x203 frame  145.80 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+step 264 motion 0x203 frame  146.70 rate 0.90 posture 0 phase 3 above     0.00 vy  -34.20 drawn     0.00
+FAULT pc 15810030 lr 60000000 ['0xec8094', '0xec8200', '0xec8204', '0xb09c8', '0xec8208', '0xec820c', '0xec8210', '0xec8214', '0xec8218', '0xec821c', '0xec8220', '0xec8224']
+Traceback (most recent call last):
+  File "C:\Users\humph\AppData\Local\Temp\claude\C--MHGU-Extract-MHGU-Monster-Viewer\bbae25d7-5c4a-424f-bb47-777ad4066372\scratchpad\gapX\emu_rate.py", line 39, in <module>
+    y = R.step()
+  File "C:\Users\humph\AppData\Local\Temp\claude\C--MHGU-Extract-MHGU-Monster-Viewer\bbae25d7-5c4a-424f-bb47-777ad4066372\scratchpad\gapX\emu_rate.py", line 20, in step
+    self.call(self.handler, args=M.ARGS)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\MHGU-Extract\MHGU-Monster-Viewer\dev\archive\air\emu_takeoff.py", line 105, in call
+    try: mu.emu_start(fn, RET, count=2_000_000)
+         ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\humph\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\unicorn\unicorn_py3\unicorn.py", line 766, in emu_start
+    raise UcError(status)
+unicorn.unicorn_py3.unicorn.UcError: Invalid memory fetch (UC_ERR_FETCH_UNMAPPED)

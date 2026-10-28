@@ -1,0 +1,4 @@
+PASS PROBE em020_04  -- {"log":["sink OFF rows 0","played 0|Motion[19] {\"f\":null,\"unitY\":0,\"originY\":0}"],"rows":[{"k":"em020_04|em020_00c|1200|event","st":1,"live":239,"lit":50,"s":50,"px":583,"verdict":"draws","clips":["em020_04|0|Motion[19]"]}],"missing":[]}
+PASS PROBE em020_04  -- {"log":["sink ON rows 2","played 0|Motion[19] {\"f\":null,\"unitY\":1100,\"originY\":0}"],"rows":[{"k":"em020_04|em020_00c|1200|event","st":1,"live":239,"lit":50,"s":50,"px":948,"verdict":"draws","clips":["em020_04|0|Motion[19]"]}],"missing":[]}
+
+2 passed, 0 failed

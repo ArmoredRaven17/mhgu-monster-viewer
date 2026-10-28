@@ -1,0 +1,10 @@
+PASS the Attack Hitboxes row is in the Animation panel
+FAIL it sits right after the Ground row  -- monFxPassRow
+PASS Animation panel open, Hit Zones closed, the row shown (Rathian has data)
+PASS the overlay steps with the playing clip (frames seen, the most armed at once)
+PASS PIXELS: the attack shapes draw (pixels that change with the overlay group shown vs hidden, of them red-leaning)
+PASS the hover pick answers over a drawn shape in the Animation panel
+PASS switch to Hit Zones: the clip and the overlay
+PASS back to Animation: the clip and the overlay
+
+7 passed, 1 failed

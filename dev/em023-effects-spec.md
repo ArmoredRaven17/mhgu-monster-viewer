@@ -45,3 +45,30 @@ action the viewer does not show, named (a pick with no shell is the shells side'
   table 0x169d238) = c 30.
 * Driven off the Armor Mode rung (CLASS_TIMERS em023_00 / em023_05): c 30 fires on the frame the rung leaves Armor Mode, at death,
   or when L2 M24 plays while pumped. Measured on both: 1 start, draws (lit 12 / 14).
+
+## Lane A2 (2026-10-26): Rajang u 1121
+
+* Never requested on Rajang: vt+0x1d8 `0xde1ae0` clears e+0xb7d2 (the shared puff's gate) when the variant is 0 (`0xde1dd4`).
+  Furious Rajang keeps it and draws u 1121 (the control). Brought to the coordinator.
+
+## Lane A4 (2026-10-26) -- Furious Rajang u 310 and c 1109: ROM reasons brought to the coordinator
+
+* **u 310** (em023_00_014, L2 M8 / M20 / M21 bit 12): bit 12 is the base word's tired-calm group (`0xca170`: 0x7000 when `0x81614` and not
+  `0x81670`, `0xca1b4..0xca1c4`). Furious Rajang never tires (P+0x1a8 = 0x404c0201, bit 19: every P+0x505 writer writes 0 -- the accepted
+  c 1104 reason), and his word `0xded0f4` adds bits 15-17 on L2 M8 only, so bit 12 is never set; no Ground type changes that. Control:
+  Rajang's u 310 draws tired (census st 3, lit 85).
+* **c 1109** (the tune+0x44 status, (10, 0x1b) on L3 M2): (10, 0x1b) comes only from the reaction builder `0x9a76c` code 8 (`0x9a9ac..0x9a9b8`,
+  posture 0); code 8 is stored to P+0x3ae only at `0x9993c` (every store to P+0x3ae in main.text scanned, `<archive>/laneA4/issue101b.py`;
+  control: the scan finds Mizutsune's code 0x1c at `0x98df0` / `0x99960`), behind `0x9a290`'s code 5, which only `0xa3028` gives; `0xa3028`
+  loads `[0x70fbc(e) + 0x44]` and returns 0 when it is NULL (`0xa3044`), and his tune+0x44 is NULL. Control: Rajang's block procs, his c 1109
+  draws (census st 3, lit 16). rom-map "Effects lane A4".
+
+## Notice marks c 1200 / c 1201 on Furious Rajang (lane B3, 2026-10-27)
+
+Raven: "Should be the same as Rajang since they share a model". They were blocked by the viewer's combat stand-in: index.html
+stepNotice HELD the combat byte at 1 while the viewer showed rage, and both of Furious Rajang's State rungs are rage: true -- his
+look; his real shared rage runs as Rajang's (states-em023_05.md 2). The ROM's byte P+0x2c0 is set to 1 by hit reactions, forced
+transitions and class code, never by the rage setter 0xbcdb0, and falls back to 0 by its timeout (rom-map "THE COMBAT BYTE"). The
+stand-in is now the rising edge of the shown rage after mount, for every monster. Measured: Furious Rajang c 1200 3 starts, c 1201
+2 starts, both draw (`<archive>/laneB3/notice-rage.mjs`); the census takes them (cenreport, pq/b3notice023_05.out). The notice turn
+and walk stay held.

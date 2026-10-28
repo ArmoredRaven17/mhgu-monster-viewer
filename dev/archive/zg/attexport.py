@@ -44,6 +44,7 @@ def hts(p):
     return sets
 LINE = re.compile(r'^\((\d+), (0x[0-9a-f]+)\) (\w+) slot (\d+) hit (0x[0-9a-f]+) flags (0x[0-9a-f]+)\s+motion L(\d+) M(\d+)\s+phase (\d+) gate (-?[\d.]+)')
 res = {}
+CARRYLOG = []
 for m in mj['monsters']:
     if m.get('small'): continue
     i = m['id']
@@ -52,6 +53,7 @@ for m in mj['monsters']:
     sp = os.path.join(SCR, base, 'enemy', 'hit_data', base + '_hitsize.hts')
     if not (os.path.exists(hp) and os.path.exists(sp)): continue
     arms = {}
+    PHASE = {}                                                            # (key, row...) -> the phase the census armed it in
     cp = os.path.join(HERE, 'ctl', i + '.txt')
     if os.path.exists(cp):
         for l in open(cp, encoding='utf8', errors='replace'):
@@ -62,7 +64,7 @@ for m in mj['monsters']:
             key = L + '|Motion[' + M + ']'
             row = [int(slot), int(hid, 16), int(fl, 16), float(gate), '%s:%s' % (st, n)]
             arms.setdefault(key, [])
-            if not any(r[:4] == row[:4] for r in arms[key]): arms[key].append(row)
+            if not any(r[:4] == row[:4] for r in arms[key]): arms[key].append(row); PHASE[(key,) + tuple(row)] = int(ph)
     # + the per-frame arms (fb/pfarm.py: the vtable slots run every frame -- vt+0x13c / 0x298..0x2a8 / 0x488 -- per motion, with the
     # frame gate before the arm): Lao-Shan's, Neset's and every class arming outside its action main
     PF = re.compile(r'^PFARM (\+0x[0-9a-f]+) mot L(\d+) M(\d+) (\w+) slot (\d+) hit (0x[0-9a-f]+) flags (0x[0-9a-f]+) gate (-?[\d.]+)')
@@ -98,5 +100,33 @@ for m in mj['monsters']:
         res[i] = {'files': [first, i], 'records': hde(hp), 'sets': hts(sp), 'records2': hde(hp2), 'sets2': hts(sp2), 'arms': arms}
     else:
         res[i] = {'files': [base], 'records': hde(hp), 'sets': hts(sp), 'arms': arms}
+    # + THE LEAD AND THE CARRY (atkfix lane 2026-10-27; READ: dev/attack-hitshapes.md 3, rom-map "Monster attack shapes").
+    #   LEAD (<archive>/atkfix/leadcases.py -> leads.json): the arm's delay is start + the blend gate e+0x4f4 - the motion's frame
+    #   (0x7dc88..0x7dd18), and the frame advances through the blend (0x94eee8..0x94ef08), so a record armed t frames into a motion
+    #   set with blend b goes live at frame start + max(0, b - t). Row field 7.
+    #   (leads.json now from leadcases2.py: unknowns resolved through the follow credit and the stepped arm frame.)
+    #   CARRY (<archive>/atkfix/carrysim2.py, the action main stepped frame by frame with the frame tests, the ended test, the action
+    #   tune and the hit-live test answered -> carries.json, merged by mergecarry2.py; carrysim.py was the first, 0 / 1 pass): an arm with flags bit 0 SET is not locked to its motion (0x7ddb8 skips 0x169258), so a window that outlasts the
+    #   arm motion runs on into the motions the action plays next. Each hop gets a row [.., shift, lead, lap]: the frames run before
+    #   that motion, the lead, and the pass of that clip (a motion played again). Every case not resolved is REFUSED BY NAME in
+    #   <archive>/atkfix/carry_report_sim2.txt. (zg/atkcarry.py, the first census-JSON rule, is superseded by this: kept as the record.)
+    FIX = os.path.join(HERE, '..', 'atkfix') if os.path.exists(os.path.join(HERE, '..', 'atkfix', 'leads.json')) else r'C:\MHGU-Extract\MHGU-Monster-Viewer\dev\archive\atkfix'
+    LEADS = json.load(open(os.path.join(FIX, 'leads.json'))).get(i, {})
+    CARR = json.load(open(os.path.join(FIX, 'carries.json'))).get(i, {})
+    for key in list(arms):
+        for row in list(arms[key]):
+            if len(row) > 5: continue
+            rk = '%s|%d|%d|%d|%s|%s' % (key, row[0], row[1], row[2], row[3], row[4])
+            lead = LEADS.get(rk, 0)
+            c = CARR.get(rk)
+            if c and c['kind'] == 'carried':
+                for k2, sh, lap in c['hops']:
+                    r2 = row[:5] + ([sh, lead, lap] if lap else [sh, lead])
+                    arms.setdefault(k2, [])
+                    if not any(r[:4] == r2[:4] and r[5:] == r2[5:] for r in arms[k2]): arms[k2].append(r2)
+            if lead: row.extend([0, lead])
+            if c: CARRYLOG.append('%s %s: %s %s%s' % (i, rk, c['kind'], ' '.join('%s+%d%s' % (h[0], h[1], ('@lap%d' % h[2]) if h[2] else '') for h in c['hops']),
+                                                     (' -- ' + c['why']) if c['why'] else ''))
 json.dump(res, open(OUT, 'w'), separators=(',', ':'))
+open(os.path.join(os.path.dirname(os.path.abspath(OUT)), 'carry_report.txt'), 'w').write('\n'.join(CARRYLOG) + '\n')
 print(len(res), 'monsters ->', OUT, os.path.getsize(OUT) // 1024, 'KB', 'arms:', sum(len(v['arms']) for v in res.values()), 'clips')

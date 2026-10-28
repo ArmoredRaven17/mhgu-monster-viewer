@@ -1,0 +1,164 @@
+// BOOT CHECK for the combined list (derived from combined_probe.mjs). Ahtal-Ka + Ahtal-Neset: the combined list played headless (dev/em088-em087-combined-spec.md 6). Edge headless, the page from
+// --url (or a server of its own), dev/archive/ahtalduo/combined_page.js evaluated in it. Usage:
+//   node dev/archive/ahtalduo/combined_probe.mjs --url http://localhost:5713 [--only <entry substring>] [--lift]
+// The attack-clip effects IN THE VIEWER. dev/effect-clip-soak.mjs plays a monster's CLIP_EFFECTS schedule headless on
+// fixed joints; this plays it the way the page does: every motion by the viewer's own pose driver on its real animation
+// (the joint matrices live.js writeJoints hands the effects), one 1/60 s frame at a time through the viewer's own render
+// (the effect anchor's hook: live.js frame -> writeJoints -> schedule.step -> draw), in headless Edge. A branch of the
+// ROM's code that only the animated joints (or the viewer's camera) reach shows up here as the refusal the live page
+// would stop on -- live.js fail() stops every effect of the monster at the first one.
+//
+//   node dev/effect-live-soak.mjs <monster> [motion key ...] [--url http://localhost:3000] [--swiftshader] [--camera sweep] [--rage] [--wiring] [--rock <variant>]
+//        [--beam-state '{"tired":true,"rage":true,"rank":4,"parts":{"headBroken":true}}']
+//
+// Without --url it serves docs/ itself (dev/serve.py on a free port). Each motion is played whole, twice (a motion the
+// viewer splits: its _start once, then its _loop twice), with the viewer's clip loop on; after a refusal the runtime is
+// remounted for the next motion. The viewer's own animation loop is stopped first, so nothing else steps. The GPU, or
+// software GL with --swiftshader (the same counts, ten times slower). Exit code 1 when any motion refused.
+// --camera sweep: the camera circles the monster's orbit target each frame at a distance that swings from inside the
+// body out past the fitted view -- what a viewer's zoom and orbit reach -- instead of staying where the view was fitted
+// (the effects' draw reads the camera: sort keys, facing, fades). --rage: the effects mounted enraged, so the rage
+// auras run through every motion (live.js setRage, as the viewer's Enraged toggle starts them). --wiring: every 15
+// frames, each visible effect material's compiled program is read back from WebGL: active uniforms the viewer never
+// set (they read 0), attributes the geometry lacks (a constant), samplers with no texture -- per program, at the end.
+// --rock <variant>: a monster's shells with that pick fixed (shells.js pickVariantsFor names them: Savage's shell00_0 /
+// shell00_8 / shell54_0, Nargacuga's 7:0x28 .., Rathian's 7:0x02 ..), everything else as the viewer gives it (its
+// rockInput: the target ahead on the grid floor; its shellExtra). Motions named on the command line play even when they
+// carry no clip effect of their own.
+import { spawn } from 'node:child_process';
+import fs from 'node:fs';
+import net from 'node:net';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const HERE = 'C:/MHGU-Extract/MHGU-Monster-Viewer/dev';
+const EDGE = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
+const argv = process.argv.slice(2);
+const opt = name => { const i = argv.indexOf(name); return i >= 0 ? argv.splice(i, 2)[1] : null; };
+const flag = name => { const i = argv.indexOf(name); return i >= 0 ? (argv.splice(i, 1), true) : false; };
+let site = opt('--url');
+const swiftshader = flag('--swiftshader');
+const camera = opt('--camera') || 'fit';
+const rage = flag('--rage');
+const wiring = flag('--wiring');
+const rockVariant = opt('--rock');
+// --beam-state <json>: the state a beam on its own monster is fired in (render/beam-spawns.js `when`; index.html beamState),
+// merged over the viewer's own for the shells' step -- the pick is --rock's
+const beamStateOpt = opt('--beam-state');
+// --viewer-inputs: the viewer's own shell inputs (index.html rockInput: its pick, the target ahead, the floor, the wall)
+// installed as driveClipEffects installs them in the viewer -- which this soak, stepping frames itself, never runs; without
+// it (and without --rock) a soak's shells get no input.rock at all
+const viewerInputs = flag('--viewer-inputs');
+const only = opt('--only');
+const lift = flag('--lift');
+const edgeOpt = opt('--edge');       // 'sub:from:to' -> pageEdge
+const travel = opt('--travel');   // 'L:clip:n;L:clip:n' -> each clip's unit travel (pageTravel)
+const shots = opt('--shots');   // 'sub:f1,f2;sub2:f3' -> PNGs in --out (default the OS temp dir)
+const outDir = opt('--out') || os.tmpdir();
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const freePort = () => new Promise(r => { const s = net.createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => r(p)); }); });
+
+async function json(url, init){
+  for (let i = 0; i < 150; i++){ try { const r = await fetch(url, init); if (r.ok) return r.json(); } catch {} await sleep(100); }
+  throw new Error('nothing at ' + url);
+}
+function connect(wsUrl){
+  const ws = new WebSocket(wsUrl); let id = 0; const pending = new Map(); const listeners = new Map();
+  ws.onmessage = ev => {
+    const m = JSON.parse(ev.data);
+    if (m.id && pending.has(m.id)){ const { res, rej } = pending.get(m.id); pending.delete(m.id); m.error ? rej(new Error(JSON.stringify(m.error))) : res(m.result); }
+    else if (m.method) (listeners.get(m.method) || []).forEach(f => f(m.params));
+  };
+  ws.onclose = () => { for (const { rej } of pending.values()) rej(new Error('socket closed')); pending.clear(); };
+  const send = (method, params = {}) => new Promise((res, rej) => {
+    const i = ++id; pending.set(i, { res, rej }); ws.send(JSON.stringify({ id: i, method, params }));
+    setTimeout(() => { if (pending.has(i)){ pending.delete(i); rej(new Error('timeout ' + method)); } }, 60000);
+  });
+  const on = (method, f) => listeners.set(method, [...(listeners.get(method) || []), f]);
+  return new Promise(r => { ws.onopen = () => r({ send, on, ws }); });
+}
+const evaluate = (c, expression) => c.send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true })
+  .then(r => { if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception ? r.exceptionDetails.exception.description : r.exceptionDetails.text); return r.result.value; });
+
+// Runs IN THE PAGE (serialised): the soak, started and left running; window.__soak holds its progress.
+
+
+const children = [];
+let browserWs = null;
+async function main(){
+  if (!site){
+    const port = await freePort();
+    const srv = spawn('python', [path.join(HERE, 'serve.py'), String(port)], { stdio: 'ignore' });
+    children.push(srv);
+    site = 'http://localhost:' + port;
+    await fetch(site + '/index.html').catch(() => null);
+    for (let i = 0; i < 100; i++){ try { if ((await fetch(site + '/monsters.json')).ok) break; } catch {} await sleep(100); }
+  }
+  const dport = await freePort();
+  const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'effect-live-soak-'));
+  const edge = spawn(EDGE, ['--headless=new', '--remote-debugging-port=' + dport, '--user-data-dir=' + profile,
+    '--inprivate', '--no-first-run', '--no-default-browser-check', '--disable-sync', '--disable-extensions',
+    '--disable-features=msImplicitSignin,msEdgeSyncConsent', '--disable-background-timer-throttling',
+    '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows',
+    ...(swiftshader ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : []), '--window-size=1280,800', 'about:blank'],
+    { stdio: 'ignore' });
+  children.push(edge);
+  const version = await json(`http://127.0.0.1:${dport}/json/version`);
+  browserWs = await connect(version.webSocketDebuggerUrl);
+  const targets = await json(`http://127.0.0.1:${dport}/json/list`);
+  const page = targets.find(t => t.type === 'page' && t.url === 'about:blank');
+  for (const t of targets) if (t !== page && t.type === 'page') console.log('warning: another page opened: ' + t.url);
+  if (!page) throw new Error('no about:blank page target');
+  const c = await connect(page.webSocketDebuggerUrl);
+  await c.send('Runtime.enable');
+  const errors = [], logged = new Map();
+  c.on('Runtime.exceptionThrown', p => errors.push(p.exceptionDetails.exception ? p.exceptionDetails.exception.description : p.exceptionDetails.text));
+  // the page's console errors and warnings while the soak runs (a shader that fails to link is logged, not thrown,
+  // and its draw is simply not there); counted from the soak's start, each message once
+  let soaking = false;
+  c.on('Runtime.consoleAPICalled', p => {
+    if (!soaking || (p.type !== 'error' && p.type !== 'warning')) return;
+    const text = p.args.map(a => a.value !== undefined ? String(a.value) : (a.description || '')).join(' ').slice(0, 300);
+    const k = p.type + ': ' + text;
+    logged.set(k, (logged.get(k) || 0) + 1);
+  });
+  // BOOT CHECK (2026-10-27, the TDZ crash Raven hit loading Ahtal-Ka): the page WITHOUT ?scene (so it restores its saved state), each
+  // case picked through the menus, then the page RELOADED onto the last pick -- the first play() then runs from the top-level boot,
+  // where a `let` declared further down is not yet initialised. window.__errors and thrown exceptions are reported per case.
+  const up = async () => { for (let i = 0; ; i++){ if (await evaluate(c, '!!(window.__view && window.__view.renderer && window.__view.mounted && window.__view.mounted.main)').catch(() => false)) break;
+    if (i > 900) throw new Error('the viewer never came up' + (errors.length ? ': ' + errors[0] : '')); await sleep(200); } };
+  await c.send('Page.navigate', { url: site + '/' }); await up();
+  soaking = true;
+  const pick = (MON, L, C) => `(async () => { const V = window.__view; const e0 = window.__errors.length;
+    const frames = n => new Promise(r => { let k = 0; const f = () => (++k >= n ? r() : requestAnimationFrame(f)); requestAnimationFrame(f); });
+    const monSel = document.getElementById('monSel'), listSel = document.getElementById('monList'), clipSel = document.getElementById('monClip');
+    if (![...monSel.options].some(o => o.value === ${JSON.stringify(MON)})) monSel.add(new Option(${JSON.stringify(MON)}, ${JSON.stringify(MON)}));
+    monSel.value = ${JSON.stringify(MON)}; await monSel.onchange(); await frames(5);
+    ${L ? `listSel.value = ${JSON.stringify(L)}; await listSel.onchange(); await frames(5);` : ''}
+    ${C ? `{ const o = [...clipSel.options].find(x => x.value.includes(${JSON.stringify(C || '')})); if (o){ clipSel.value = o.value; await clipSel.onchange(); } }` : ''}
+    await frames(90);
+    return JSON.stringify({ id: V.state.id, list: V.state.list, clip: V.state.clip, main: !!V.mounted.main, partners: Object.keys(V.mounted).filter(k => k !== 'main'),
+                            errors: window.__errors.slice(e0).filter(x => !/unknown scene/.test(x)).slice(0, 5) }); })()`;
+  const cases = [['em088_00'], ['em088_00', 'neset', 'raises'], ['em088_00', 'neset', 'falls'], ['em087_00'], ['em069_00'], ['em069_00', 'duo', 'Queen L4 Motion[6]'],
+                 ['em001_00'], ['em088_00', 'neset', 'raises']];
+  for (const [M, L, C] of cases) console.log('case', M, L || '', C || '', await evaluate(c, pick(M, L, C)));
+  // the reload onto the last pick (Ahtal-Ka on the combined list): the boot's own play()
+  const n0 = errors.length;
+  await c.send('Page.reload', {}); await sleep(1500); await up();
+  await evaluate(c, 'new Promise(r => setTimeout(r, 4000))');
+  console.log('reload', await evaluate(c, `JSON.stringify({ id: window.__view.state.id, list: window.__view.state.list, clip: window.__view.state.clip, partners: Object.keys(window.__view.mounted).filter(k => k !== 'main'), errors: window.__errors.filter(x => !/unknown scene/.test(x)).slice(0, 5) })`));
+  console.log('thrown after reload', JSON.stringify(errors.slice(n0)));
+  for (const e of errors) console.log('error', e);
+  return 0;
+}
+
+let code = 1;
+try { code = await main(); }
+catch (e){ console.log('FAILED: ' + e.message); }
+finally {
+  if (browserWs) await browserWs.send('Browser.close').catch(() => {});
+  await sleep(500);
+  for (const ch of children) try { ch.kill(); } catch {}
+}
+process.exit(code);

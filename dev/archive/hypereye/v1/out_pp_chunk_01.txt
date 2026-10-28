@@ -1,0 +1,39 @@
+PASS PASS-PAIR em002_02 em002_00c|0 clip OCC  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":39978,"verdict":"draws"},"diffPx":1546,"dLuma":-13.5,"shot":"em002_02_em002_00c_0_clip"}
+PASS PASS-PAIR em002_02 em002_00c|1200 event SOLO  -- {"meter11":{"st":2,"lit":40,"s":41,"pxMax":10307,"verdict":"draws"},"diffPx":0,"dLuma":0,"shot":null}
+PASS PASS-PAIR em004_00 em004_00u|1400 event OCC  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":167850,"verdict":"draws"},"diffPx":24631,"dLuma":6,"shot":"em004_00_em004_00u_1400_event"}
+PASS PASS-PAIR em004_00 em004_00c|1200 event SOLO  -- {"meter11":{"st":2,"lit":40,"s":41,"pxMax":7271,"verdict":"draws"},"diffPx":0,"dLuma":0,"shot":null}
+PASS PASS-PAIR em005_00 em005_00c|0 clip OCC  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":162591,"verdict":"draws"},"diffPx":3675,"dLuma":-9.8,"shot":"em005_00_em005_00c_0_clip"}
+PASS PASS-PAIR em005_00 em005_00c|1200 event SOLO  -- {"meter11":{"st":2,"lit":40,"s":41,"pxMax":8723,"verdict":"draws"},"diffPx":0,"dLuma":0,"shot":null}
+FAIL PASS-PAIR em007_00 em007_00c|0  -- Failed to fetch
+PASS PASS-PAIR em007_00 em007_00c|1200 event SOLO  -- {"meter11":{"st":2,"lit":42,"s":42,"pxMax":10902,"verdict":"draws"},"diffPx":0,"dLuma":0,"shot":null}
+PASS PASS-PAIR em008_00 em008_00c|0 clip OCC  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":102241,"verdict":"draws"},"diffPx":2525,"dLuma":-10.3,"shot":"em008_00_em008_00c_0_clip"}
+PASS PASS-PAIR em008_00 em008_00c|1200 event SOLO  -- {"meter11":{"st":2,"lit":40,"s":41,"pxMax":4314,"verdict":"draws"},"diffPx":0,"dLuma":0,"shot":null}
+FAIL PASS-PAIR em009_00 em009_00c|0  -- Failed to fetch
+PASS PASS-PAIR em009_00 em009_00u|260 clip SOLO  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":239804,"verdict":"draws"},"diffPx":31676,"dLuma":-3.6,"shot":"em009_00_em009_00u_260_clip"}
+PASS PASS-PAIR em010_00 em010_00c|0 clip OCC  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":130882,"verdict":"draws"},"diffPx":3184,"dLuma":-9.8,"shot":"em010_00_em010_00c_0_clip"}
+PASS PASS-PAIR em010_00 em010_00c|1200 event SOLO  -- {"meter11":{"st":2,"lit":40,"s":41,"pxMax":9474,"verdict":"draws"},"diffPx":0,"dLuma":0,"shot":null}
+PASS PASS-PAIR em018_00 em018_00c|0 clip OCC  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":47583,"verdict":"draws"},"diffPx":1832,"dLuma":-11.9,"shot":"em018_00_em018_00c_0_clip"}
+PASS PASS-PAIR em018_00 em018_00c|1200 event SOLO  -- {"meter11":{"st":2,"lit":40,"s":41,"pxMax":4314,"verdict":"draws"},"diffPx":0,"dLuma":0,"shot":null}
+PASS PASS-PAIR em021_00 em021_00c|0 clip OCC  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":96297,"verdict":"draws"},"diffPx":2599,"dLuma":-9.5,"shot":"em021_00_em021_00c_0_clip"}
+PASS PASS-PAIR em021_00 em021_00u|290 clip SOLO  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":78199,"verdict":"draws"},"diffPx":23192,"dLuma":11.4,"shot":null}
+PASS PASS-PAIR em032_00 em032_00c|10 clip OCC  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":33842,"verdict":"draws"},"diffPx":1455,"dLuma":-13.5,"shot":null}
+PASS PASS-PAIR em032_00 em032_00u|350 clip SOLO  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":144329,"verdict":"draws"},"diffPx":4210,"dLuma":-0.2,"shot":null}
+PASS PASS-PAIR em036_00 em036_00u|60 event OCC  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":531972,"verdict":"draws"},"diffPx":153640,"dLuma":-6,"shot":null}
+PASS PASS-PAIR em036_00 em036_00u|3 shell SOLO  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":155564,"verdict":"draws"},"diffPx":2463,"dLuma":1.8,"shot":null}
+PASS PASS-PAIR em042_00 em042_00u|21 shell OCC  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":798393,"verdict":"draws"},"diffPx":187131,"dLuma":1.3,"shot":null}
+PASS PASS-PAIR em042_00 em042_00c|100 clip SOLO  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":927,"verdict":"draws"},"diffPx":1255,"dLuma":7.5,"shot":null}
+PASS PASS-PAIR em043_00 em043_00u|1400 event OCC  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":164080,"verdict":"draws"},"diffPx":38617,"dLuma":3.4,"shot":null}
+PASS PASS-PAIR em043_00 em043_00c|150 clip SOLO  -- {"meter11":{"st":1,"lit":17,"s":21,"pxMax":2505,"verdict":"draws"},"diffPx":6611,"dLuma":0.4,"shot":null}
+PASS PASS-PAIR em044_00 em044_00u|1400 event OCC  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":234482,"verdict":"draws"},"diffPx":48409,"dLuma":2.8,"shot":null}
+PASS PASS-PAIR em044_00 em044_00c|1200 event SOLO  -- {"meter11":{"st":2,"lit":0,"s":41,"pxMax":0,"verdict":"draws off camera (lit when looked at)"},"diffPx":0,"dLuma":0,"shot":null}
+PASS PASS-PAIR em046_00 em046_00c|0 clip OCC  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":21650,"verdict":"draws"},"diffPx":964,"dLuma":-14.6,"shot":null}
+PASS PASS-PAIR em046_00 em046_00c|120 clip SOLO  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":1975,"verdict":"draws"},"diffPx":1948,"dLuma":0.2,"shot":null}
+PASS PASS-PAIR em047_00 em047_00c|0 clip OCC  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":167855,"verdict":"draws"},"diffPx":4196,"dLuma":-9.7,"shot":null}
+PASS PASS-PAIR em047_00 em047_00c|1200 event SOLO  -- {"meter11":{"st":2,"lit":40,"s":41,"pxMax":9383,"verdict":"draws"},"diffPx":0,"dLuma":0,"shot":null}
+PASS PASS-PAIR em049_00 em049_00u|232 clip OCC  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":796702,"verdict":"draws"},"diffPx":387320,"dLuma":-3.6,"shot":null}
+PASS PASS-PAIR em049_00 em049_00c|120 clip SOLO  -- {"meter11":{"st":1,"lit":17,"s":21,"pxMax":2348,"verdict":"draws"},"diffPx":2980,"dLuma":0.2,"shot":null}
+PASS PASS-PAIR em055_00 em055_00u|1400 event OCC  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":357019,"verdict":"draws"},"diffPx":80953,"dLuma":6.3,"shot":null}
+PASS PASS-PAIR em055_00 em055_00c|240 clip SOLO  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":4321,"verdict":"draws"},"diffPx":934,"dLuma":1.5,"shot":null}
+PASS PASS-PAIR em057_00 em057_00c|0 clip OCC  -- {"meter11":{"st":1,"lit":21,"s":21,"pxMax":118503,"verdict":"draws"},"diffPx":1827,"dLuma":-15,"shot":null}
+
+35 passed, 2 failed

@@ -109,10 +109,12 @@ export class EffectSchedule {
 
   // AN EVENT'S EFFECT: every 'event' record with this pel and key, started now -- a new request each time, as the
   // game's request is (render/motion-states.js decides when). Returns the requests it started.
-  fire(pel, key){
+  // `also`: one more `when` whose entries a class request may start the same way -- a record the export keeps under another
+  // trigger only (it dedupes on (pel, key, array)): Gammoth's snow-slot u 1120 is the rage puff's record (effects lane A4, 2026-10-26)
+  fire(pel, key, also){
     const out = [];
     for (const e of this.entries)
-      if (e.when === 'event' && e.def.record && e.def.record.pel === pel && e.def.record.key === key){
+      if ((e.when === 'event' || (also && e.when === also)) && e.def.record && e.def.record.pel === pel && e.def.record.key === key){
         this.start(e);
         out.push(e.requests[e.requests.length - 1]);
       }
@@ -599,17 +601,30 @@ export class EffectSchedule {
       T.latch(inp ? inp.action : null, P ? { position: P.position, scale: P.scale, yaw16: this.ownerYaw16() } : null, R.mem);
     }
     const anchors = T.anchors ? T.anchors(this.shells ? this.shells.state : null) : null;
-    const now = T.at({ motion, tick, carry, pending: inp ? inp.pending : 4, action: inp ? inp.action : null, anchors });
+    const neset = inp && inp.neset ? inp.neset : null;          // Ahtal-Neset's joints where he is on screen (class-threads.js em088Neset)
+    const now = T.at({ motion, tick, carry, pending: inp ? inp.pending : 4, action: inp ? inp.action : null, anchors, neset,
+                       timer: inp && inp.timer != null ? inp.timer : null });
     const bySlot = new Map(now.on.map(s => [s.slot, s]));
     // 0xc164c: a joint's position, the translation row of its world matrix; a number the model does not map reads joint 0's
     const pos = g => { const M = R.joints(g) || R.joints(0); return M ? [M[12], M[13], M[14]] : null; };
     // an end that is an OBJECT: its point by its slot state (class-threads.js objectPoint), the shells' own state as the viewer's G
     // a POINT the class keeps (start kind 3 / end kind 4: R.mem, zero until written, as the ctor's fill leaves it)
     const kept = k => (R.mem[k] || [0, 0, 0]).slice();
-    const start = a => typeof a === 'number' ? pos(a) : kept(a.point);
+    // start kind 2 (Ahtal-Neset's 0x10a88f4..0x10a898c): the joint's position (0xc164c) + the offset turned by its matrix rows (0xc15a4)
+    const jointOff = a => { const M = R.joints(a.joint) || R.joints(0); if (!M) return null; const [x, y, z] = a.offset;
+      return [M[12] + x * M[0] + y * M[4] + z * M[8], M[13] + x * M[1] + y * M[5] + z * M[9], M[14] + x * M[2] + y * M[6] + z * M[10]]; };
+    const start = a => typeof a === 'number' ? pos(a) : a.joint != null ? jointOff(a) : kept(a.point);
     const end = b => {
       if (typeof b === 'number') return { point: pos(b), why: 'joint ' + b + ' not in the model' };
       if (b.point) return { point: kept(b.point) };
+      // END KINDS 7 / 8 (0x10ba25c / 0x10ba280): the partner's joint -- its position (0xc164c), plus `off` through its rows (0xc15a4)
+      if (b.neset != null){
+        const M = neset && neset(b.neset);
+        if (!M) return { point: null, why: 'Ahtal-Neset joint ' + b.neset + (neset ? ' not in his model' : ': no Neset on screen') };
+        const o = b.off || [0, 0, 0];
+        return { point: [M[12] + o[0] * M[0] + o[1] * M[4] + o[2] * M[8], M[13] + o[0] * M[1] + o[1] * M[5] + o[2] * M[9],
+                         M[14] + o[0] * M[2] + o[1] * M[6] + o[2] * M[10]] };
+      }
       if (b.anchor){ const A = anchors && anchors[b.anchor][b.p]; return { point: A ? A.point.slice(0, 3) : null, why: 'anchor ' + b.anchor + '+' + b.p + ' gone' }; }
       return T.objectPoint(b.object, { carry, joint: pos, shells: this.shells ? this.shells.state : null });
     };

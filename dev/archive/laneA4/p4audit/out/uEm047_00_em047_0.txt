@@ -1,0 +1,24 @@
+uEm047_00 em047 v0 (0, 0x7) ph0A: PH 1 | POST 4@eabf2c | SET 20@eabf40 | M L0M1@eb2988
+uEm047_00 em047 v0 (0, 0x7) ph1B: VT3E8@eb2988
+uEm047_00 em047 v0 (6, 0x0) ph0A: PH 1 | POST 0@eace3c | M L2M18@eace54 | SET 0@eb29ac
+uEm047_00 em047 v0 (6, 0x0) ph1B: POST 4@eace94
+uEm047_00 em047 v0 (6, 0x1) ph0A: PH 1 | POST 4@eacf10 | M L2M20@eacf28 | SET 0@eacf34
+uEm047_00 em047 v0 (6, 0x1) ph1B: VT3E8@eb29ac
+uEm047_00 em047 v0 (6, 0x2) ph0A: PH 1 | POST 4@ead8c0 | M L2M21@eada34 | SET 0@eb29ac
+uEm047_00 em047 v0 (6, 0x2) ph1B: VT3E8@eb29ac
+uEm047_00 em047 v0 (6, 0x3) ph0A: PH 1 | POST 4@ead008 | M L2M22@ead020 | SET 0@eb29ac
+uEm047_00 em047 v0 (6, 0x4) ph0A: PH 1 | POST 4@ead924 | M L2M23@eada34 | SET 0@eb29ac
+uEm047_00 em047 v0 (6, 0x4) ph1B: VT3E8@eb29ac
+uEm047_00 em047 v0 (6, 0x5) ph0A: PH 1 | POST 4@ead0c8 | M L0M1@ead0dc | SET MOG@ead0ec
+uEm047_00 em047 v0 (6, 0x6) ph0A: POST 4@ead990
+uEm047_00 em047 v0 (6, 0x6) ph0C: POST 4@ead990 | VT3E8@eb29ac
+uEm047_00 em047 v0 (6, 0x7) ph0A: PH 1 | POST 4@ead170 | M L2M8@ead184
+uEm047_00 em047 v0 (6, 0x7) ph1C: VT3E8@eb29ac
+uEm047_00 em047 v0 (6, 0x8) ph0A: PH 1 | POST 4@ead170 | M L2M8@ead184
+uEm047_00 em047 v0 (6, 0x8) ph1C: VT3E8@eb29ac
+uEm047_00 em047 v0 (6, 0x9) ph0A: PH 1 | POST 4@eadabc | M L0M17@eadad0 | SET MOG@eadae0
+uEm047_00 em047 v0 (6, 0xa) ph0A: PH 1 | POST 4@ead238 | M L0M17@ead24c | SET MOG@ead25c
+uEm047_00 em047 v0 (6, 0xb) ph0A: PH 1 | POST 4@eada1c | M L2M28@eada34 | SET 0@eb29ac
+uEm047_00 em047 v0 (6, 0xb) ph1C: VT3E8@eb29ac
+uEm047_00 em047 v0 (12, 0x1) ph0A: PH 1 | POST 4@eb275c | M L2M20@eb2774 | SET 0@eb2a48
+uEm047_00 em047 v0 (12, 0x1) ph1B: VT3E8@eb2a48

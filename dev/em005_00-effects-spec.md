@@ -268,3 +268,11 @@ calls); (13, 1)'s issuer; what u 260 / 270 / 271 / 290 / 301 / 380 / 390 look li
 * **Begins Burrowed -- BUILT 2026-10-19** (CLASS_TOGGLES `burrowed`, working label, approved by Raven): on, every posture-4 play
   reads sunk (0x81d6c: posture 4 and P+0x5c below 0.9 x MoguriBaseOfs); off, only the entries that name sunk. Checked on
   Basarios's L0 M7 B (dev/checks/class-toggles.mjs).
+
+
+## u 10 / u 40 -- the never-issued ids, with controls (effects lane, 2026-10-25)
+
+ids 1007 / 1008 (u 10 / u 40) are reached only by (7, 0x3c) / (7, 0x3b). Neither em004_00_cmdtbl nor em005_00_cmdtbl issues `00 07 3b`
+or `00 07 3c` (emc.py over every group; control: (7, 0x0a) x3 and (7, 0x07) x1 found the same way), and none of the 22 change calls
+in the uEm004_00 band (0x768c8 / 0x75230 / 0x76088 / 0x76094 / 0x76098, 0xd22538..0xd2e6ac) targets them (control: 0xd25e84's
+(7, 0x12), the code-entered action, is found and resolved). So the ROM never requests u 10 / u 40 on Gravios. Brought to the coordinator.

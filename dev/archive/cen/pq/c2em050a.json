@@ -1,0 +1,1 @@
+{"id": "em050_00", "steps": [{"dumpParts": true}, {"set": {"monLevel": "1"}}, {"rage": true}, {"wait": 400}, {"rage": false}, {"partsAll": "last"}, {"dumpParts": true}, {"clip": "2|Motion[5]", "frames": 257}, {"clip": "2|Motion[5]", "frames": 257}], "want": ["em050_00|em050_00u|1121|ragePuff", "em050_00|em050_00u|1120|ragePuff", "em050_00|em050_00u|240|clip"]}

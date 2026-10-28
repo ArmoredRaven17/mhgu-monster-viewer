@@ -1,0 +1,5 @@
+PASS MOUNT
+PASS OFF: no change  -- null
+FAIL ON: attack x1.4 / +10 on L2 M3  -- {"rate":1.2,"hookRate":1.2,"factor":1,"how":"action","hook":true,"bursts":[],"attack":null}
+
+2 passed, 1 failed

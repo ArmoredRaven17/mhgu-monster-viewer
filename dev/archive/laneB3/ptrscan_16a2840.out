@@ -1,0 +1,5 @@
+text   00191254 -> 016a28a0
+data   0183f8b0 -> 016a2848
+data   0183f8b4 -> 016a2858
+PIC load 0106f89c (lit 0106f8bc) .. 0106f8a0 -> GOT 0183f8b0
+PIC load 0106f8cc (lit 0106f8ec) .. 0106f8d0 -> GOT 0183f8b4

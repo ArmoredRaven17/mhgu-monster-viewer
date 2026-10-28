@@ -1,0 +1,4 @@
+uEms035_00 em035 v0 (2, 0x6) ph0A: PH 1 | POST 0@10ff1bc | M L0M10@4ffffffc
+uEms035_00 em035 v0 (2, 0x6) ph1B: PH 2 | BCA@10ff2f0 | M L0M11@10ff304
+uEms035_00 em035 v0 (2, 0x6) ph2C: PH 3 | POST 0@10ff274 | M L0M12@10ff288
+uEms035_00 em035 v0 (2, 0x6) ph3B: IDLE

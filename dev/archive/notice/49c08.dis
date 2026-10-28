@@ -1,0 +1,155 @@
+00049c08  push     {fp, lr}                                
+00049c0c  sub      sp, sp, #8                              
+00049c10  mov      ip, r2                                  
+00049c14  mov      r2, r1                                  
+00049c18  mov      r1, r0                                  
+00049c1c  ldr      r0, [pc, #0x1c]                            ; literal 0x17e8620
+00049c20  ldr      lr, [sp, #0x10]                         
+00049c24  ldr      r0, [pc, r0]                            
+00049c28  ldr      r0, [r0]                                
+00049c2c  stm      sp, {r3, lr}                            
+00049c30  mov      r3, ip                                  
+00049c34  bl       #0x182f04                               
+00049c38  add      sp, sp, #8                              
+00049c3c  pop      {fp, pc}                                
+00049c40  cmneq    lr, r0, lsr #12                         
+00049c44  push     {fp, lr}                                
+00049c48  sub      sp, sp, #0x18                           
+00049c4c  mov      ip, r2                                  
+00049c50  ldr      r2, [sp, #0x2c]                         
+00049c54  mov      lr, r1                                  
+00049c58  mov      r1, r0                                  
+00049c5c  ldr      r0, [pc, #0x38]                            ; literal 0x17e85dc
+00049c60  str      r2, [sp, #0x10]                         
+00049c64  ldr      r2, [sp, #0x28]                         
+00049c68  ldr      r0, [pc, r0]                            
+00049c6c  str      r2, [sp, #0xc]                          
+00049c70  ldr      r2, [sp, #0x24]                         
+00049c74  ldr      r0, [r0]                                
+00049c78  str      r2, [sp, #8]                            
+00049c7c  ldr      r2, [sp, #0x20]                         
+00049c80  str      r2, [sp, #4]                            
+00049c84  str      r3, [sp]                                
+00049c88  mov      r2, lr                                  
+00049c8c  mov      r3, ip                                  
+00049c90  bl       #0x182cd4                               
+00049c94  add      sp, sp, #0x18                           
+00049c98  pop      {fp, pc}                                
+00049c9c  ldrsbeq  r8, [lr, #-0x5c]!                       
+00049ca0  mov      r2, r1                                  
+00049ca4  mov      r1, r0                                  
+00049ca8  ldr      r0, [pc, #8]                               ; literal 0x17e8008
+00049cac  ldr      r0, [pc, r0]                            
+00049cb0  ldr      r0, [r0]                                
+00049cb4  b        #0x194e8                                
+00049cb8  cmneq    lr, r8                                  
+00049cbc  mov      r2, r1                                  
+00049cc0  mov      r1, r0                                  
+00049cc4  ldr      r0, [pc, #8]                               ; literal 0x17e7fec
+00049cc8  ldr      r0, [pc, r0]                            
+00049ccc  ldr      r0, [r0]                                
+00049cd0  b        #0x19838                                
+00049cd4  cmneq    lr, ip, ror #31                         
+00049cd8  mov      r3, r2                                  
+00049cdc  mov      r2, r1                                  
+00049ce0  mov      r1, r0                                  
+00049ce4  ldr      r0, [pc, #8]                               ; literal 0x17e7fcc
+00049ce8  ldr      r0, [pc, r0]                            
+00049cec  ldr      r0, [r0]                                
+00049cf0  b        #0x19384                                
+00049cf4  cmneq    lr, ip, asr #31                         
+00049cf8  mov      r1, r0                                  
+00049cfc  ldr      r0, [pc, #8]                               ; literal 0x17e7fb4
+00049d00  ldr      r0, [pc, r0]                            
+00049d04  ldr      r0, [r0]                                
+00049d08  b        #0x1965c                                
+00049d0c  ldrheq   r7, [lr, #-0xf4]!                       
+00049d10  push     {fp, lr}                                
+00049d14  sub      sp, sp, #0x10                           
+00049d18  ldr      r3, [sp, #0x24]                         
+00049d1c  mov      ip, r2                                  
+00049d20  mov      r2, r1                                  
+00049d24  mov      r1, r0                                  
+00049d28  ldr      r0, [pc, #0x30]                            ; literal 0x17e7f80
+00049d2c  str      r3, [sp, #0xc]                          
+00049d30  ldr      r3, [sp, #0x20]                         
+00049d34  ldr      r0, [pc, r0]                            
+00049d38  str      r3, [sp, #8]                            
+00049d3c  ldr      r3, [sp, #0x1c]                         
+00049d40  ldr      r0, [r0]                                
+00049d44  str      r3, [sp, #4]                            
+00049d48  ldr      r3, [sp, #0x18]                         
+00049d4c  str      r3, [sp]                                
+00049d50  mov      r3, ip                                  
+00049d54  bl       #0x19240                                
+00049d58  add      sp, sp, #0x10                           
+00049d5c  pop      {fp, pc}                                
+00049d60  cmneq    lr, r0, lsl #31                         
+00049d64  push     {fp, lr}                                
+00049d68  sub      sp, sp, #8                              
+00049d6c  mov      ip, r2                                  
+00049d70  mov      r2, r1                                  
+00049d74  mov      r1, r0                                  
+00049d78  ldr      r0, [pc, #0x1c]                            ; literal 0x17e7f34
+00049d7c  ldr      lr, [sp, #0x10]                         
+00049d80  ldr      r0, [pc, r0]                            
+00049d84  ldr      r0, [r0]                                
+00049d88  stm      sp, {r3, lr}                            
+00049d8c  mov      r3, ip                                  
+00049d90  bl       #0x19564                                
+00049d94  add      sp, sp, #8                              
+00049d98  pop      {fp, pc}                                
+00049d9c  cmneq    lr, r4, lsr pc                          
+00049da0  push     {r4, r5, r6, lr}                        
+00049da4  sub      sp, sp, #8                              
+00049da8  mov      r4, r2                                  
+00049dac  mov      r6, r1                                  
+00049db0  mov      r5, r0                                  
+00049db4  bl       #0xb6fc4                                
+00049db8  cmp      r0, #1                                  
+00049dbc  bne      #0x49de4                                
+00049dc0  ldr      r0, [pc, #0x24]                            ; literal 0x17e7edc
+00049dc4  mov      r1, #0                                  
+00049dc8  mov      r2, r4                                  
+00049dcc  mov      r3, r5                                  
+00049dd0  str      r1, [sp]                                
+00049dd4  mov      r1, r6                                  
+00049dd8  ldr      r0, [pc, r0]                            
+00049ddc  ldr      r0, [r0]                                
+00049de0  bl       #0x19148                                
+00049de4  add      sp, sp, #8                              
+00049de8  pop      {r4, r5, r6, pc}                        
+00049dec  ldrsbeq  r7, [lr, #-0xec]!                       
+00049df0  push     {r4, r5, r6, r7, fp, lr}                
+00049df4  sub      sp, sp, #8                              
+00049df8  mov      r4, r3                                  
+00049dfc  mov      r7, r2                                  
+00049e00  mov      r6, r1                                  
+00049e04  mov      r5, r0                                  
+00049e08  bl       #0xb6fc4                                
+00049e0c  cmp      r0, #1                                  
+00049e10  bne      #0x49e34                                
+00049e14  ldr      r0, [pc, #0x20]                            ; literal 0x17e7e8c
+00049e18  mov      r1, r6                                  
+00049e1c  mov      r2, r4                                  
+00049e20  mov      r3, r5                                  
+00049e24  str      r7, [sp]                                
+00049e28  ldr      r0, [pc, r0]                            
+00049e2c  ldr      r0, [r0]                                
+00049e30  bl       #0x19148                                
+00049e34  add      sp, sp, #8                              
+00049e38  pop      {r4, r5, r6, r7, fp, pc}                
+00049e3c  cmneq    lr, ip, lsl #29                         
+00049e40  ldr      r0, [pc, #8]                               ; literal 0x17e7e54
+00049e44  ldr      r0, [pc, r0]                            
+00049e48  ldr      r0, [r0]                                
+00049e4c  b        #0x3bfc00                               
+00049e50  cmneq    lr, r4, asr lr                          
+00049e54  mov      r1, r0                                  
+00049e58  ldr      r0, [pc, #8]                               ; literal 0x17e7ca8
+00049e5c  ldr      r0, [pc, r0]                            
+00049e60  ldr      r0, [r0]                                
+00049e64  b        #0x4ef320                               
+00049e68  cmneq    lr, r8, lsr #25                         
+00049e6c  mov      r0, #8                                  
+00049e70  bx       lr                                      

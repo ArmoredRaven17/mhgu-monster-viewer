@@ -1,0 +1,1 @@
+{"id": "em070_00", "steps": [{"clip": "0|Motion[1]*", "frames": 30, "loop": true}, {"set": {"monHyper": "4,1"}}, {"clip": "0|Motion[1]*", "frames": 120, "loop": true}, {"set": {"monHyper": "4,2"}}, {"clip": "0|Motion[1]*", "frames": 120, "loop": true}], "want": ["em070_00|em070_00u|1301|event", "em070_00|em070_00u|1302|event", "em070_00|em070_00u|1304|event"]}

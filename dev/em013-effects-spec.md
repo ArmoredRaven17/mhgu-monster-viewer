@@ -60,5 +60,10 @@ Check dev/checks/elders.mjs (all three) pass. Soaks **96 / 96 / 103 motions, 0 r
 * **c 1103's other two conditions -- READ**: P+0x5cde is set only by small-monster classes (never on him); P+0x59c is a float
   timer from the ailment data's +0x58 entry (I: a flash's blindness -- a hunter's item, category a). With the stun bit read, c
   1103 on the Fatalis line is a named refusal on ROM reasons only.
+* **The flash -- READ (Flashed state, 2026-10-25; dev/flashed-state.md)**: P+0x59c is the flash's blindness, set only by the sense
+  scan's flash test (`0xc3bb0`). **The Fatalis line cannot be flashed**: all three variants' dtbase +0x6c = 0x400402, bit 2 clear, so
+  the test refuses at `0x99c58(e, 4)` (`<archive>\flashed\flashemu.py`; control: the same run blinds Rathian, and Fatalis with the bit
+  forced on). So none of `0xa3ef0`'s arms is reachable on him and c 1103 stays a ROM reason; the viewer offers no Flashed switch on
+  the Fatalis line. The record draws when held by force (flashmeter.mjs, FORCED).
 
 * **Draw meter (2026-10-19):** u 202 draws nothing in the game either: its MASK1 0x4 selects no row of em013_00_003, whose rows carry 0x1 / 0x2. Every other record draws.

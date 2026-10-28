@@ -1,0 +1,1 @@
+{"id":"em080_04","steps":[{"set":{"monLevel":"1"}},{"clip":"0|Motion[4]","frames":200},{"partSweep":{"clip":"0|Motion[4]","frames":60,"reps":1}},{"set":{"monLevel":"0"}},{"clip":"0|Motion[4]","frames":200}],"want":["em080_04|em080_04u|200|event","em080_04|em080_04u|201|event","em080_04|em080_04u|202|event","em080_04|em080_04u|203|event","em080_04|em080_04u|204|event"]}

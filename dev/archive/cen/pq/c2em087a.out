@@ -1,0 +1,3 @@
+PASS PROBE em087_00  -- {"log":["played 0|Motion[9]","played 0|Motion[1]_loop","played 0|Motion[9]","played 0|Motion[1]_loop","played 0|Motion[9]"],"rows":[{"k":"em087_00|em087_00u|150|thread","st":6,"live":674,"lit":139,"s":150,"px":435,"verdict":"draws","clips":["em087_00|0|Motion[9]"],"nodraw":{"clip":"em087_00|0|Motion[9]","units":[{"w0c":"14cb1","gens":4,"mask1":"1","mask2":"ffffffff","nrow":4688,"rows":[["400","ffffffff"],["5","ffffffff"],["5","ffffffff"],["1","ffffffff"],["1","ffffffff"],["2","ffffffff"],["2","ffffffff"],["14000","5c005"],["44005","fe011"],["0","0"],["0","0"],["8000","44005"],["0","0"],["8000","44005"]]}]}}],"missing":[]}
+
+1 passed, 0 failed

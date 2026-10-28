@@ -1,0 +1,31 @@
+uEm060_00 em060 v4 (0, 0x7) ph0A: POST 4@f11e64 | SET MOG@f11e74 | PH 1
+uEm060_00 em060 v4 (0, 0x7) ph1B: VT3E8@4ffffffc
+uEm060_00 em060 v4 (1, 0xd) ph0A: PH 1 | POST 0@f13040 | M L0M24@f13174
+uEm060_00 em060 v4 (1, 0xd) ph1B: VT3E8@f18310
+uEm060_00 em060 v4 (2, 0x59) ph0A: W5C 0xf132d0 -200 | PH 1 | POST 0@f1330c | M L0M4@f13338
+uEm060_00 em060 v4 (2, 0x59) ph1A: W5C 0xf132d0 -200
+uEm060_00 em060 v4 (2, 0x59) ph1C: W5C 0xf132d0 -200 | IDLE
+uEm060_00 em060 v4 (2, 0x59) ph2A?: W5C 0xf132d0 -200
+uEm060_00 em060 v4 (2, 0x59) ph3A?: W5C 0xf132d0 -200
+uEm060_00 em060 v4 (2, 0x59) ph4A?: W5C 0xf132d0 -200
+uEm060_00 em060 v4 (2, 0x59) ph5A?: W5C 0xf132d0 -200
+uEm060_00 em060 v4 (2, 0x59) ph6A?: W5C 0xf132d0 -200
+uEm060_00 em060 v4 (2, 0x59) ph7A?: W5C 0xf132d0 -200
+uEm060_00 em060 v4 (2, 0x59) ph8A?: W5C 0xf132d0 -200
+uEm060_00 em060 v4 (2, 0x59) ph9A?: W5C 0xf132d0 -200
+uEm060_00 em060 v4 (2, 0x59) ph10A?: W5C 0xf132d0 -200
+uEm060_00 em060 v4 (2, 0x59) ph11A?: W5C 0xf132d0 -200
+uEm060_00 em060 v4 (6, 0x0) ph0A: PH 1 | POST 0@f1450c | M L0M24@f14540
+uEm060_00 em060 v4 (6, 0x0) ph1B: SET MOG@f14594 | VT3E8@f1837c
+uEm060_00 em060 v4 (6, 0x1) ph0A: PH 1 | POST 4@f14628 | TURN 0x169f4a0 {L0M1; L0M9 / L0M8}@f14648 | SET MOG@f184b0
+uEm060_00 em060 v4 (6, 0x1) ph1C: VT3E8@f184b0
+uEm060_00 em060 v4 (6, 0x2) ph0A: PH 1 | POST 4@f14720 | M L0M4@f14750 | SET MOG@f184bc
+uEm060_00 em060 v4 (6, 0x2) ph1C: VT3E8@f184bc
+uEm060_00 em060 v4 (6, 0x3) ph0A: PH 1 | POST 4@f14810 | M L0M25@f14848 | SET 0@f184c8
+uEm060_00 em060 v4 (6, 0x3) ph1B: IDLE
+uEm060_00 em060 v4 (7, 0xd) ph0A: M L2M10@f19dc8 | SET 0@f19ddc | PH 1
+uEm060_00 em060 v4 (7, 0xd) ph1B: PH 255
+uEm060_00 em060 v4 (7, 0x36) ph0A: M L2M10@f19dc8 | SET 0@f19ddc | PH 1
+uEm060_00 em060 v4 (7, 0x36) ph1B: PH 255
+uEm060_00 em060 v4 (7, 0x3f) ph0A: M L2M30@f1b49c | SET 0@f1b4b0 | PH 1
+uEm060_00 em060 v4 (7, 0x3f) ph1B: PH 255 | IDLE

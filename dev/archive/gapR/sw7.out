@@ -1,0 +1,97 @@
+(7, 0x08) ROCK r1 0 index 0 kind 0 sub 0  ISSUED
+(7, 0x09) ROCK r1 1 index 0 kind 0 sub 0  ISSUED
+(7, 0x13) ROCK r1 2 index 0 kind 0 sub 0  ISSUED
+(7, 0x14) ROCK r1 3 index 0 kind 0 sub 0  ISSUED
+(7, 0x15) ROCK r1 0 index 1 kind 0 sub 0
+(7, 0x16) ROCK r1 1 index 1 kind 0 sub 0
+(7, 0x17) ROCK r1 2 index 1 kind 0 sub 0
+(7, 0x18) ROCK r1 3 index 1 kind 0 sub 0
+(7, 0x19) ROCK r1 0 index 2 kind 0 sub 0
+(7, 0x1a) ROCK r1 1 index 2 kind 0 sub 0
+(7, 0x1b) ROCK r1 2 index 2 kind 0 sub 0
+(7, 0x1c) ROCK r1 3 index 2 kind 0 sub 0
+(7, 0x22) ROCK r1 0 index 3 kind 0 sub 0
+(7, 0x23) ROCK r1 1 index 3 kind 0 sub 0
+(7, 0x24) ROCK r1 2 index 3 kind 0 sub 0
+(7, 0x25) ROCK r1 3 index 3 kind 0 sub 0
+(7, 0x3e) ROCK r1 0 index 0 kind 1 sub 0
+(7, 0x3f) ROCK r1 1 index 0 kind 1 sub 0
+(7, 0x40) ROCK r1 2 index 0 kind 1 sub 0
+(7, 0x41) ROCK r1 3 index 0 kind 1 sub 0
+(7, 0x42) ROCK r1 0 index 1 kind 1 sub 0
+(7, 0x43) ROCK r1 1 index 1 kind 1 sub 0
+(7, 0x44) ROCK r1 2 index 1 kind 1 sub 0
+(7, 0x45) ROCK r1 3 index 1 kind 1 sub 0
+(7, 0x46) ROCK r1 0 index 2 kind 1 sub 0
+(7, 0x47) ROCK r1 1 index 2 kind 1 sub 0
+(7, 0x48) ROCK r1 2 index 2 kind 1 sub 0
+(7, 0x49) ROCK r1 3 index 2 kind 1 sub 0
+(7, 0x4a) ROCK r1 0 index 3 kind 1 sub 0
+(7, 0x4b) ROCK r1 1 index 3 kind 1 sub 0
+(7, 0x4c) ROCK r1 2 index 3 kind 1 sub 0
+(7, 0x4d) ROCK r1 3 index 3 kind 1 sub 0
+(7, 0x4e) ROCK r1 0 index 0 kind 2 sub 0  ISSUED
+(7, 0x4f) ROCK r1 1 index 0 kind 2 sub 0  ISSUED
+(7, 0x50) ROCK r1 2 index 0 kind 2 sub 0  ISSUED
+(7, 0x51) ROCK r1 3 index 0 kind 2 sub 0  ISSUED
+(7, 0x52) ROCK r1 0 index 1 kind 2 sub 0
+(7, 0x53) ROCK r1 1 index 1 kind 2 sub 0
+(7, 0x54) ROCK r1 2 index 1 kind 2 sub 0
+(7, 0x55) ROCK r1 3 index 1 kind 2 sub 0
+(7, 0x56) ROCK r1 0 index 2 kind 2 sub 0
+(7, 0x57) ROCK r1 1 index 2 kind 2 sub 0
+(7, 0x58) ROCK r1 2 index 2 kind 2 sub 0
+(7, 0x59) ROCK r1 3 index 2 kind 2 sub 0
+(7, 0x5a) ROCK r1 0 index 3 kind 2 sub 0
+(7, 0x5b) ROCK r1 1 index 3 kind 2 sub 0
+(7, 0x5c) ROCK r1 2 index 3 kind 2 sub 0
+(7, 0x5d) ROCK r1 3 index 3 kind 2 sub 0
+(7, 0x5e) ROCK r1 0 index 0 kind 3 sub 0  ISSUED
+(7, 0x5f) ROCK r1 1 index 0 kind 3 sub 0  ISSUED
+(7, 0x60) ROCK r1 2 index 0 kind 3 sub 0  ISSUED
+(7, 0x61) ROCK r1 3 index 0 kind 3 sub 0  ISSUED
+(7, 0x62) ROCK r1 0 index 1 kind 3 sub 0
+(7, 0x63) ROCK r1 1 index 1 kind 3 sub 0
+(7, 0x64) ROCK r1 2 index 1 kind 3 sub 0
+(7, 0x65) ROCK r1 3 index 1 kind 3 sub 0
+(7, 0x66) ROCK r1 0 index 2 kind 3 sub 0
+(7, 0x67) ROCK r1 1 index 2 kind 3 sub 0
+(7, 0x68) ROCK r1 2 index 2 kind 3 sub 0
+(7, 0x69) ROCK r1 3 index 2 kind 3 sub 0
+(7, 0x6a) ROCK r1 0 index 3 kind 3 sub 0
+(7, 0x6b) ROCK r1 1 index 3 kind 3 sub 0
+(7, 0x6c) ROCK r1 2 index 3 kind 3 sub 0
+(7, 0x6d) ROCK r1 3 index 3 kind 3 sub 0
+(7, 0x6e) ROCK r1 0 index 0 kind 2 sub 1
+(7, 0x6f) ROCK r1 1 index 0 kind 2 sub 1
+(7, 0x70) ROCK r1 2 index 0 kind 2 sub 1
+(7, 0x71) ROCK r1 3 index 0 kind 2 sub 1
+(7, 0x72) ROCK r1 0 index 1 kind 2 sub 1
+(7, 0x73) ROCK r1 1 index 1 kind 2 sub 1
+(7, 0x74) ROCK r1 2 index 1 kind 2 sub 1
+(7, 0x75) ROCK r1 3 index 1 kind 2 sub 1
+(7, 0x76) ROCK r1 0 index 2 kind 2 sub 1
+(7, 0x77) ROCK r1 1 index 2 kind 2 sub 1
+(7, 0x78) ROCK r1 2 index 2 kind 2 sub 1
+(7, 0x79) ROCK r1 3 index 2 kind 2 sub 1
+(7, 0x7a) ROCK r1 0 index 3 kind 2 sub 1
+(7, 0x7b) ROCK r1 1 index 3 kind 2 sub 1
+(7, 0x7c) ROCK r1 2 index 3 kind 2 sub 1
+(7, 0x7d) ROCK r1 3 index 3 kind 2 sub 1
+(7, 0x7e) ROCK r1 0 index 0 kind 3 sub 1
+(7, 0x7f) ROCK r1 1 index 0 kind 3 sub 1
+(7, 0x80) ROCK r1 2 index 0 kind 3 sub 1
+(7, 0x81) ROCK r1 3 index 0 kind 3 sub 1
+(7, 0x82) ROCK r1 0 index 1 kind 3 sub 1
+(7, 0x83) ROCK r1 1 index 1 kind 3 sub 1
+(7, 0x84) ROCK r1 2 index 1 kind 3 sub 1
+(7, 0x85) ROCK r1 3 index 1 kind 3 sub 1
+(7, 0x86) ROCK r1 0 index 2 kind 3 sub 1
+(7, 0x87) ROCK r1 1 index 2 kind 3 sub 1
+(7, 0x88) ROCK r1 2 index 2 kind 3 sub 1
+(7, 0x89) ROCK r1 3 index 2 kind 3 sub 1
+(7, 0x8a) ROCK r1 0 index 3 kind 3 sub 1
+(7, 0x8b) ROCK r1 1 index 3 kind 3 sub 1
+(7, 0x8c) ROCK r1 2 index 3 kind 3 sub 1
+(7, 0x8d) ROCK r1 3 index 3 kind 3 sub 1
+rock cases 96

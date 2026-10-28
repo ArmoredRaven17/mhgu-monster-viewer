@@ -1,0 +1,1 @@
+{"id": "em024_00", "steps": [{"rage": true}, {"sweep": {"list": "snow", "frames": 180}}, {"wait": 200}, {"rage": false}, {"sweep": {"list": "snow", "frames": 180}}], "want": ["em024_00|em024_00u|210|clip", "em024_00|em024_00u|240|clip", "em024_00|em024_00u|220|event", "em024_00|em024_00u|210|event", "em024_00|em024_00u|220|clip"]}

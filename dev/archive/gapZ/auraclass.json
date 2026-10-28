@@ -1,0 +1,1985 @@
+{
+ "em001_00/shell00": {
+  "vt": "0x1795490",
+  "init": "0x3f8b80",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7
+  ]
+ },
+ "em001_00/shell01": {
+  "vt": "0x179560c",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8
+  ]
+ },
+ "em001_00/shell11": {
+  "vt": "0x179577c",
+  "init": "0x402fd8",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": []
+ },
+ "em001_02/shell00": {
+  "vt": "0x1795490",
+  "init": "0x3f8b80",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7
+  ]
+ },
+ "em001_02/shell01": {
+  "vt": "0x179560c",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8
+  ]
+ },
+ "em001_02/shell11": {
+  "vt": "0x179577c",
+  "init": "0x402fd8",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": []
+ },
+ "em002_00/shell00": {
+  "vt": "0x1795490",
+  "init": "0x3f8b80",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7
+  ]
+ },
+ "em002_00/shell01": {
+  "vt": "0x179560c",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8
+  ]
+ },
+ "em002_02/shell00": {
+  "vt": "0x1795490",
+  "init": "0x3f8b80",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7
+  ]
+ },
+ "em002_02/shell01": {
+  "vt": "0x179560c",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8
+  ]
+ },
+ "em002_02/shell11": {
+  "vt": "0x179577c",
+  "init": "0x402fd8",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": []
+ },
+ "em003_00/shell00": {
+  "vt": "0x1797540",
+  "init": "0x3f8b80",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0
+  ]
+ },
+ "em003_00/shell01": {
+  "vt": "0x17976bc",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ]
+ },
+ "em003_00/shell03": {
+  "vt": "0x179782c",
+  "init": "0x3fd9d8",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1
+  ]
+ },
+ "em003_00/shell05": {
+  "vt": "0x17979a8",
+  "init": "0x400a50",
+  "copies": []
+ },
+ "em003_00/shell13": {
+  "vt": "0x1797b10",
+  "init": "0x4044d8",
+  "copies": [
+   "base13"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1634",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2
+  ]
+ },
+ "em004_00/shell00": {
+  "vt": "0x1798ee8",
+  "init": "0xd304a8",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2
+  ]
+ },
+ "em004_00/shell01": {
+  "vt": "0x1799064",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2
+  ]
+ },
+ "em004_00/shell02": {
+  "vt": "0x17991d4",
+  "init": "0xd30b84",
+  "copies": []
+ },
+ "em005_00/shell13": {
+  "vt": "0x1799350",
+  "init": "0xd31390",
+  "copies": [
+   "base13"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1634",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0
+  ]
+ },
+ "em005_00/shell02": {
+  "vt": "0x17991d4",
+  "init": "0xd30b84",
+  "copies": []
+ },
+ "em005_00/shell01": {
+  "vt": "0x1799064",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2
+  ]
+ },
+ "em021_00/shell00": {
+  "vt": "0x17b0e00",
+  "init": "0x3f8b80",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   4,
+   5,
+   6,
+   7,
+   8
+  ]
+ },
+ "em021_00/shell01": {
+  "vt": "0x17b0f7c",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7
+  ]
+ },
+ "em021_00/shell04": {
+  "vt": "0x17b10ec",
+  "init": "0x3ff1a0",
+  "copies": []
+ },
+ "em023_00/shell00": {
+  "vt": "0x17b3110",
+  "init": "0x3f8b80",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5
+  ]
+ },
+ "em023_00/shell01": {
+  "vt": "0x17b328c",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2
+  ]
+ },
+ "em023_00/shell22": {
+  "vt": "0x17b3578",
+  "init": "0x40af70",
+  "copies": []
+ },
+ "em032_00/shell00": {
+  "vt": "0x17b9d48",
+  "init": "0x3f8b80",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2
+  ]
+ },
+ "em032_00/shell01": {
+  "vt": "0x17b9ec4",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5
+  ]
+ },
+ "em036_00/shell00": {
+  "vt": "0x17bc070",
+  "init": "0x3f8b80",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6
+  ]
+ },
+ "em036_00/shell01": {
+  "vt": "0x17bc1ec",
+  "init": "0xe469d4",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1
+  ]
+ },
+ "em042_00/shell00": {
+  "vt": "0x17bfa30",
+  "init": "0x3f8b80",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0
+  ]
+ },
+ "em042_00/shell01": {
+  "vt": "0x17bfbac",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1
+  ]
+ },
+ "em043_00/shell00": {
+  "why": "no reader in SHELL_DATA"
+ },
+ "em043_00/shell04": {
+  "why": "no reader in SHELL_DATA"
+ },
+ "em043_00/shell54": {
+  "why": "no reader in SHELL_DATA"
+ },
+ "em043_00/shell55": {
+  "why": "no reader in SHELL_DATA"
+ },
+ "em044_00/shell00": {
+  "vt": "0x17c2270",
+  "init": "0xe8e614",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5
+  ]
+ },
+ "em044_00/shell01": {
+  "vt": "0x17c240c",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1
+  ]
+ },
+ "em046_00/shell00": {
+  "vt": "0x17c4920",
+  "init": "0x3f8b80",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   3,
+   4,
+   5
+  ]
+ },
+ "em046_00/shell01": {
+  "vt": "0x17c4a9c",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   4083,
+   2147483395,
+   19,
+   35,
+   67,
+   131
+  ],
+  "alt": {
+   "value": 524035,
+   "int": 3,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": 1003,
+  "int": 3,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3
+  ]
+ },
+ "em046_00/shell11": {
+  "vt": "0x17c4c0c",
+  "init": "0x402fd8",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0
+  ]
+ },
+ "em046_00/shell25": {
+  "vt": "0x17c4d80",
+  "init": "0x40f198",
+  "copies": []
+ },
+ "em046_00/shell26": {
+  "vt": "0x17c4ee0",
+  "init": "0x40fbfc",
+  "copies": []
+ },
+ "em049_00/shell01": {
+  "vt": "0x17c6e40",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5
+  ]
+ },
+ "em057_00/shell01": {
+  "vt": "0x17cbad8",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2
+  ]
+ },
+ "em057_00/shell18": {
+  "vt": "0x17cbdbc",
+  "init": "0x408980",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   4082,
+   2147483394,
+   18,
+   34,
+   66,
+   130
+  ],
+  "alt": {
+   "value": 524034,
+   "int": 2,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": 1002,
+  "int": 2,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2
+  ]
+ },
+ "em065_00/shell00": {
+  "vt": "0x17dbc20",
+  "init": "0x3f8b80",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0
+  ]
+ },
+ "em065_00/shell01": {
+  "vt": "0x17dbd9c",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5
+  ]
+ },
+ "em065_00/shell13": {
+  "vt": "0x17dbf0c",
+  "init": "0x4044d8",
+  "copies": [
+   "base13"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1634",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2
+  ]
+ },
+ "em065_00/shell23": {
+  "vt": "0x17dc088",
+  "init": "0x40c9f4",
+  "copies": []
+ },
+ "em066_00/shell00": {
+  "vt": "0x17dd160",
+  "init": "0x3f8b80",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": []
+ },
+ "em066_00/shell01": {
+  "vt": "0x17dd2dc",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3
+  ]
+ },
+ "em066_00/shell13": {
+  "vt": "0x17dd44c",
+  "init": "0x4044d8",
+  "copies": [
+   "base13"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1634",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2
+  ]
+ },
+ "em066_00/shell16": {
+  "vt": "0x17dd5cc",
+  "init": "0x407ef0",
+  "copies": []
+ },
+ "em067_00/shell13": {
+  "vt": "0x17df004",
+  "init": "0x4044d8",
+  "copies": [
+   "base13"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1634",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1
+  ]
+ },
+ "em067_00/shell01": {
+  "vt": "0x17ded18",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2
+  ]
+ },
+ "em070_00/shell00": {
+  "vt": "0x17e3ba0",
+  "init": "0x3f8b80",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   4082,
+   2147483394,
+   18,
+   34,
+   66,
+   130
+  ],
+  "alt": {
+   "value": 524034,
+   "int": 2,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": 1002,
+  "int": 2,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2
+  ]
+ },
+ "em070_00/shell00_02": {
+  "vt": "0x17e3d1c",
+  "init": "0x3f8b80",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   4081,
+   2147483393,
+   17,
+   33,
+   65,
+   129
+  ],
+  "alt": {
+   "value": 524033,
+   "int": 1,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": 1001,
+  "int": 1,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1
+  ]
+ },
+ "em070_00/shell01": {
+  "vt": "0x17e3e98",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   4080,
+   2147483392,
+   16,
+   32,
+   64,
+   128
+  ],
+  "alt": {
+   "value": 524032,
+   "int": 0,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": 1000,
+  "int": 0,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2
+  ]
+ },
+ "em070_00/shell13": {
+  "vt": "0x17e4008",
+  "init": "0x4044d8",
+  "copies": [
+   "base13"
+  ],
+  "probes": [
+   4080,
+   2147483392,
+   16,
+   32,
+   64,
+   128
+  ],
+  "alt": {
+   "value": 524032,
+   "int": 0,
+   "err": null
+  },
+  "field": "0x1634",
+  "value": 1000,
+  "int": 0,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0
+  ]
+ },
+ "em071_00/shell00": {
+  "vt": "0x17e58a8",
+  "init": "0x3f8b80",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1
+  ]
+ },
+ "em071_00/shell01": {
+  "vt": "0x17e5a24",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   3,
+   4,
+   5,
+   6
+  ]
+ },
+ "em071_00/shell03": {
+  "vt": "0x17e5b94",
+  "init": "0x3fd9d8",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ]
+ },
+ "em071_00/shell11": {
+  "vt": "0x17e5d10",
+  "init": "0x402fd8",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1
+  ]
+ },
+ "em080_00/shell00": {
+  "vt": "0x17ebd48",
+  "init": "0x3f8b80",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8
+  ]
+ },
+ "em080_00/shell01": {
+  "vt": "0x17ebec4",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3
+  ]
+ },
+ "em080_00/shell03": {
+  "vt": "0x17ec034",
+  "init": "0x3fd9d8",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3
+  ]
+ },
+ "em081_00/shell01": {
+  "vt": "0x17ee00c",
+  "init": "0x1033e20",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   4087,
+   2147483399,
+   23,
+   39,
+   71,
+   135
+  ],
+  "alt": {
+   "value": 524039,
+   "int": 7,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": 1007,
+  "int": 7,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8
+  ]
+ },
+ "em081_00/shell00": {
+  "vt": "0x17ede90",
+  "init": "0x3f8b80",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1
+  ]
+ },
+ "em081_00/shell15": {
+  "vt": "0x17ee2f8",
+  "init": "0x10345a0",
+  "copies": [
+   "base00"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1620",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ]
+ },
+ "em081_00/shell14": {
+  "vt": "0x17ee17c",
+  "init": "0x405e90",
+  "copies": []
+ },
+ "em082_00/shell12": {
+  "vt": "0x17ef7c0",
+  "init": "0x403854",
+  "copies": [
+   "base12"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x15fc",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1,
+   2,
+   3
+  ]
+ },
+ "em082_00/shell13": {
+  "vt": "0x17ef92c",
+  "init": "0x4044d8",
+  "copies": [
+   "base13"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1634",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1
+  ]
+ },
+ "em082_00/shell01": {
+  "vt": "0x17ef4d4",
+  "init": "0x3fa498",
+  "copies": [
+   "base01"
+  ],
+  "probes": [
+   -1,
+   -1,
+   -1,
+   -1,
+   -1,
+   -1
+  ],
+  "alt": {
+   "value": -1,
+   "int": null,
+   "err": null
+  },
+  "field": "0x1610",
+  "value": -1,
+  "int": null,
+  "cint": null,
+  "err": null,
+  "ints_read": [
+   0,
+   1
+  ]
+ }
+}

@@ -1,0 +1,1 @@
+{"id": "em020_00", "steps": [{"clip": "0|Motion[15]*", "frames": 790}, {"set": {"monTired": true}}, {"clip": "0|Motion[1]*", "frames": 120}, {"set": {"monTired": false}}], "want": ["em020_00|em020_00c|320|clip", "em020_00|em020_00c|1104|event"]}

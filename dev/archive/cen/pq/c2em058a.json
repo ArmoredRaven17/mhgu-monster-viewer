@@ -1,0 +1,1 @@
+{"id": "em058_00", "steps": [{"dumpParts": true}, {"partSweep": {"clip": "3|Motion[20]", "frames": 60, "reps": 1}}], "want": ["em058_00|em058_00u|1001|event", "em058_00|em058_00u|1003|event"]}

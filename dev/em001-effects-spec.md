@@ -257,3 +257,4 @@ who issues (7, 0xf5); what any record looks like.
 * **Tired (with Rage) -- BUILT 2026-10-19** (CLASS_TOGGLES `tiredRage`, working label): with Enraged on, the play reads tired
   (0x81614 is P+0x505 alone; the stamina machine 0xbd1a4 sets it with no rage test), so L2 M1 / L4 M32 lose bits 24-26 as the ROM
   does. Checked on Rathalos L2 M3 (class-toggles.mjs).
+  [**Moved to the Debug panel 2026-10-27** -- Raven: "Make Tired (with Rage) a Debug option for now, until I know what it entails". Behaviour, effects and ROM note unchanged; motion-states.js `debug: true` paints it in #monDebugToggles, and resetHiddenDebug (DEBUG_TOGGLES) turns it off while the panel is hidden. Checked: `<archive>/laneB3/tiredrage-debug.mjs` -- on none of the six Rath-line monsters in the normal panels, in the Debug panel on all six, switches on with the panel shown, off again on the hidden reset.]

@@ -1,0 +1,3 @@
+PASS PROBE em080_00  -- {"log":["played 0|Motion[4]","partSweep 0|Motion[4] over 6 rows","monLevel=1","played 0|Motion[4]","monLevel=2","played 0|Motion[4]"],"rows":[{"k":"em080_00|em080_00u|200|event","st":1,"live":204,"lit":40,"s":43,"px":436,"verdict":"draws","clips":["em080_00|0|Motion[4]"]}],"missing":[]}
+
+1 passed, 0 failed

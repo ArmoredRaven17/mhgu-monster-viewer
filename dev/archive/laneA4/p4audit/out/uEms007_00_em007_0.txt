@@ -1,0 +1,5 @@
+uEms007_00 em007 v0 (12, 0x0) ph0A: PH 1 | P1 | M L0M9@10da44c | SET -78@10da458
+uEms007_00 em007 v0 (12, 0x0) ph1C: PH 2 | POST 0@10da500 | M L0M10@4ffffffc
+uEms007_00 em007 v0 (12, 0x0) ph2B: PH 3 | POST 0@10da53c | M L0M11@4ffffffc
+uEms007_00 em007 v0 (12, 0x0) ph3B: PH 4 | POST 0@10da580 | M L0M12@4ffffffc
+uEms007_00 em007 v0 (12, 0x0) ph4B: IDLE

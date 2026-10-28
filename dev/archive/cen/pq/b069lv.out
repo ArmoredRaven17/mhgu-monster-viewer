@@ -1,0 +1,3 @@
+PASS PROBE em069_00  -- {"log":["played 4|Motion[66]","played 0|Motion[1]_loop","played 4|Motion[42]","played 0|Motion[1]_loop#B","played 0|Motion[65]"],"rows":[{"k":"em069_00|em069_00u|0|event","st":1,"live":2430,"lit":487,"s":489,"px":391,"verdict":"draws","clips":["em069_00|4|Motion[66]"]},{"k":"em069_00|em069_00u|1|event","st":1,"live":933,"lit":187,"s":189,"px":2867,"verdict":"draws","clips":["em069_00|0|Motion[1]"]},{"k":"em069_00|em069_00u|2|event","st":2,"live":1197,"lit":243,"s":244,"px":13656,"verdict":"draws","clips":["em069_00|0|Motion[1]"]}],"missing":[]}
+
+1 passed, 0 failed

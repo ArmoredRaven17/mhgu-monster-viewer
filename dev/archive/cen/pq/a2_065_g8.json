@@ -1,0 +1,1 @@
+{"id":"em065_00","steps":[{"set":{"monGroundType":"g8"}},{"clip":"2|Motion[78]*","frames":200},{"clip":"2|Motion[57]*","frames":200}],"want":["em065_00|em065_00c|230|clip","em065_00|em065_00c|240|clip"]}

@@ -241,6 +241,17 @@ after its motion); Deviljho's MoguriBaseOfs value; the end of his dive (6, 0) / 
 
 **L0 M6's u 1400 is (6, 3)'s alone** (reqtrace.py, `0xe770a8`); the walks (2, n), (13, 1), (16, 0xd) play it with none. The row held it on every play: now copy B (EM043_ACTIONS (6, 3) `variant: 'B'`), both variants.
 
+## 6. The rocks' unmade modes (shells lane, 2026-10-25; <archive>\gapR\)
+
+The shell files name an effect for every mode they hold (shell00 0..15, shell54 0..7). Savage's modes 12..15 / 4..7 name u 40..43 /
+50..53 / 100, Deviljho's u 30..33 / 40..43 / 50, and modes 1..3 / 5..7 / 9..11 name u 1..3 / 11..13 in both. **None of those modes is
+made.** The maker 0xe78e34 has one caller, the status-7 switch's tail at 0xe7c084; each of the 96 rock action numbers sets its own
+(r1, index, kind, sub) (emulated, sw7.py), and the command table (one file for both monsters) issues only twelve of them -- (7, 0x08 /
+0x09 / 0x13 / 0x14), (7, 0x4e..0x51), (7, 0x5e..0x61) -- which give shell00 mode 0, shell00 mode 8 and shell54 mode 0, the three the
+viewer plays and the meter shows drawing. No stream (all 155, reached or not), no class chain and no shared-layer change issues any
+other rock number. So: **ROM GIVES NOTHING** for Savage u 1..3 / 11..13 / 41..43 / 51..53 (with u 40 / 50 / 100) and Deviljho u 1..3 /
+11..13 / 31..33 / 41..43 (with u 30 / 40 / 50). The records exist in UNIQUE and are not exported. rom-map: the rows under "Savage u 51".
+
 ## Open items read (2026-10-19)
 
 (The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)

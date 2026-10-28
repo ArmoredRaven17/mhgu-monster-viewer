@@ -1,0 +1,6 @@
+uEm027_00 em027 v0 (3, 0x1c) ph0A: PH 1 | P1 | M L1M24@e14e94
+uEm027_00 em027 v0 (3, 0x1c) ph1B: PH 2 | M L1M25@e155e0
+uEm027_00 em027 v0 (3, 0x1c) ph2A: PH 3 | M L1M26@e1514c
+uEm027_00 em027 v0 (3, 0x1c) ph3B: PH 4 | M L1M2@e152b4
+uEm027_00 em027 v0 (3, 0x1c) ph4C: PH 5 | POST 3@e15324 | ADD -5@e15330
+uEm027_00 em027 v0 (3, 0x1c) ph5A: ADD -5@e15368

@@ -19,18 +19,6 @@ async function shellMeter(MON, plays, pre, sweep){
   cam.position.copy(C.target.clone().add(cam.position.clone().sub(C.target).multiplyScalar(2.5))); C.update();
   // the clip loop ON, the page's default: with it off the frame handler's shells (Kut-Ku's L0 M24 dust, Diablos's L0 M33) never start
   V.state.loop = true;
-  // pre: the Parts panel rows to set first ([{ row: '2,3', text: 'Broken' }], the em005_00 check's pick)
-  for (const q of (pre || [])){
-    if (q.hunter){ if (window.__hunter) window.__hunter.set(q.hunter[0], q.hunter[1], q.hunter[2]); await frames(3); continue; }   // the Hunter control (dist, side, body)
-    if (q.quest){ if (window.__quest) window.__quest.set(q.quest[0], q.quest[1]); await frames(3); continue; }   // the Quest Rank / Level (rank, level)
-    if (q.select){ const el = document.getElementById(q.select); if (el){ el.value = q.value; el.onchange({ target: el }); await frames(2); } else out.push([false, 'PRE ' + q.select, 'no such control']); continue; }
-    const fr = q.rowName ? [...document.querySelectorAll('[data-row]')].find(x => x.textContent.includes(q.rowName)) : document.querySelector('[data-row="' + q.row + '"]'), sel = fr && fr.querySelector('select');   // rowName: by the row's label (an attached body's)
-    const o = sel && [...sel.options].find(x => x.textContent.trim() === q.text);
-    if (!o){ out.push([false, 'PRE ' + q.row + ' ' + q.text, 'no such row / option']); continue; }
-    sel.value = o.value; sel.dispatchEvent(new Event('change')); await frames(2);
-  }
-  V.effectMeter(true, { every: 3 });
-  const missing = []; let played = 0;
   // the State dropdown's enraged option, else the Enraged switch (the effects agent's metersurvey setRage)
   const setRage = async on => {
     const st = document.getElementById('monState'), opts = st ? [...st.options] : [];
@@ -41,6 +29,23 @@ async function shellMeter(MON, plays, pre, sweep){
     else { const b = document.getElementById('monRage'); if (b){ b.checked = on; b.onchange({ target: b }); } }
     await frames(2);
   };
+  // pre: the Parts panel rows to set first ([{ row: '2,3', text: 'Broken' }], the em005_00 check's pick); { rage: true } the
+  // enraged state (kept through the plays); { wait: n } n frames
+  // pre: the Parts panel rows to set first ([{ row: '2,3', text: 'Broken' }], the em005_00 check's pick)
+  for (const q of (pre || [])){
+    if (q.rage != null){ await setRage(!!q.rage); continue; }
+    if (q.wait){ await frames(q.wait); continue; }
+    if (q.slimeHit != null){ if (window.__slime063) window.__slime063.hit(q.slimeHit); await frames(2); continue; }   // Raging's slime hit (index.html __slime063)
+    if (q.hunter){ if (window.__hunter) window.__hunter.set(q.hunter[0], q.hunter[1], q.hunter[2]); await frames(3); continue; }   // the Hunter control (dist, side, body)
+    if (q.quest){ if (window.__quest) window.__quest.set(q.quest[0], q.quest[1]); await frames(3); continue; }   // the Quest Rank / Level (rank, level)
+    if (q.select){ const el = document.getElementById(q.select); if (el){ el.value = q.value; el.onchange({ target: el }); await frames(2); } else out.push([false, 'PRE ' + q.select, 'no such control']); continue; }
+    const fr = q.rowName ? [...document.querySelectorAll('[data-row]')].find(x => x.textContent.includes(q.rowName)) : document.querySelector('[data-row="' + q.row + '"]'), sel = fr && fr.querySelector('select');   // rowName: by the row's label (an attached body's)
+    const o = sel && [...sel.options].find(x => x.textContent.trim() === q.text);
+    if (!o){ out.push([false, 'PRE ' + q.row + ' ' + q.text, 'no such row / option']); continue; }
+    sel.value = o.value; sel.dispatchEvent(new Event('change')); await frames(2);
+  }
+  V.effectMeter(true, { every: 3 });
+  const missing = []; let played = 0;
   const runPlays = async list => { for (const p of list){
     if (window.__ground) window.__ground.set(p.ground || 'plain');
     if (p.rage) await setRage(true);

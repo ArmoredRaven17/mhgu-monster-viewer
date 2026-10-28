@@ -1,0 +1,60 @@
+# 86 hits, 4355406 of 4379648 words decoded
+00075bec  str sl, [r0, #0x5a4]
+0007ea40  movw r1, #0x5a4
+0007edf8  movw r1, #0x5a4
+0007f2a4  movw r1, #0x5a4
+000827fc  movw r1, #0x5a4
+00085a74  movw r1, #0x5a4
+00086e70  movw r2, #0x5a4
+0009fb5c  movw r1, #0x5a4
+000a2888  str r6, [r0, #0x5a4]
+000a53b4  str r6, [r0, #0x5a4]
+000a5ce0  str r5, [r0, #0x5a4]
+000b8dbc  str r8, [r0, #0x5a4]
+000b9d90  str r6, [r0, #0x5a4]
+000c3644  movw r2, #0x5a4
+000c3960  movw r1, #0x5a4
+000c90d8  movw r1, #0x5a4
+000c9110  movw r1, #0x5a4
+000cb634  movw r1, #0x5a4
+000cbb14  movw r1, #0x5a4
+000cbef0  movw r1, #0x5a4
+000cc59c  str r1, [r0, #0x5a4]
+000ccaa0  movw r2, #0x5a4
+00160e58  ldr r2, [pc, #0x5a4]
+0017ad20  ldr r2, [pc, #0x5a4]
+001c03e8  ldr r1, [pc, #0x5a4]
+001f09c0  ldr r1, [pc, #0x5a4]
+001f69cc  movw r1, #0x5a4
+001fb0e0  movw r3, #0x5a4
+00212284  ldr r1, [pc, #0x5a4]
+002269bc  ldr r6, [r0, #0x5a4]
+0022bf80  ldr r0, [r4, #0x5a4]
+0022bfb0  str r0, [r4, #0x5a4]
+0026c530  ldr r0, [pc, #0x5a4]
+00297c1c  ldr r0, [pc, #0x5a4]
+002ab728  ldr r0, [pc, #0x5a4]
+002f4f0c  ldr r1, [r0, #0x5a4]
+0033855c  ldr r1, [pc, #0x5a4]
+0037944c  ldr r1, [pc, #0x5a4]
+003878bc  ldr r0, [pc, #0x5a4]
+003b6b9c  ldr r1, [pc, #0x5a4]
+003c7cb8  str r1, [r0, #0x5a4]
+003e2198  ldr r1, [pc, #0x5a4]
+003e49ac  ldr r0, [pc, #0x5a4]
+004b4d50  ldr r1, [pc, #0x5a4]
+004ba658  ldr r1, [pc, #0x5a4]
+004dacbc  ldr r1, [pc, #0x5a4]
+00527904  ldr r1, [pc, #0x5a4]
+0059d8a8  ldr r0, [pc, #0x5a4]
+0059e230  ldr r0, [r4, #0x5a4]
+0059fdec  ldr r5, [r4, #0x5a4]
+005a8000  ldr r0, [r4, #0x5a4]
+005a81f8  ldr r0, [r4, #0x5a4]
+005ac9e0  ldr r0, [pc, #0x5a4]
+005b24ac  str r1, [r0, #0x5a4]
+005c8950  ldr r1, [pc, #0x5a4]
+0060167c  ldr r0, [pc, #0x5a4]
+0061b358  str r3, [r0, #0x5a4]
+006ac560  str r1, [lr, #0x5a4]
+00722c44  ldr r0, [pc, #0x5a4]

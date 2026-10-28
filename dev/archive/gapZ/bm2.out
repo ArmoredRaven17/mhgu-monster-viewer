@@ -1,0 +1,4 @@
+FAIL OFF em049_00 2|Motion[4]  -- {"hyper":"","shells":[{"play":0,"shell":"beam","type":"em049_00:0","unit":null,"hyper":null},{"play":1,"shell":"beam","type":"em049_00:6","unit":null,"hyper":null}],"meter":[{"k":"em049_00u|0|shell","st":2,"lit":"160/162","px":1024000,"v":"draws"}]}
+FAIL ON em049_00 2|Motion[4]  -- {"hyper":"1,2","shells":[{"play":0,"shell":"beam","type":"em049_00:0","unit":1.6,"hyper":[1,1.600000023841858,1.2999999523162842]},{"play":1,"shell":"beam","type":"em049_00:6","unit":1.6,"hyper":[1,1.600000023841858,1.2999999523162842]}],"meter":[{"k":"em049_00u|0|shell","st":2,"lit":"160/162","px":1024000,"v":"draws"}]}
+
+0 passed, 6 failed

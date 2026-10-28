@@ -1,0 +1,433 @@
+== em004_00 sink OFF rows 0 / sink ON rows 3
+   0|Motion[7]_start            f120  unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[7]_start#B          f120  unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[7]_loop             f51   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[7]_loop#B           f51   unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   em004_00|em004_00c|1200|event          st 1 -> 1  lit 19 -> 18  draws -> draws
+   em004_00|em004_00c|2|clip              st 8 -> 8  lit 80 -> 82  draws -> draws
+   em004_00|em004_00c|3|clip              st 8 -> 8  lit 87 -> 89  draws -> draws
+   em004_00|em004_00u|1400|event          st 2 -> 2  lit 107 -> 106  draws -> draws
+   records started: 4  draws OFF 4 ON 4  changed: []
+== em005_00 sink OFF rows 0 / sink ON rows 3
+   records started: 0  draws OFF 0 ON 0  changed: []
+== em007_00 sink OFF rows 0 / sink ON rows 7
+   0|Motion[10]                 f20   unit y OFF      0.0  ON   1100.0  (dy +1100.0)  origin 0
+   0|Motion[13]                 f4    unit y OFF      0.0  ON   1100.0  (dy +1100.0)  origin 0
+   0|Motion[7]_start            f18   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[7]_start#B          f18   unit y OFF      0.0  ON   1100.0  (dy +1100.0)  origin 0
+   0|Motion[7]_start#C          f18   unit y OFF      0.0  ON   1100.0  (dy +1100.0)  origin 0
+   0|Motion[7]_loop             f49   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[7]_loop#B           f49   unit y OFF      0.0  ON   1100.0  (dy +1100.0)  origin 0
+   0|Motion[7]_loop#C           f49   unit y OFF      0.0  ON   1100.0  (dy +1100.0)  origin 0
+   0|Motion[9]                  f20   unit y OFF      0.0  ON   1100.0  (dy +1100.0)  origin 0
+   2|Motion[18]                 f120  unit y OFF      0.0  ON   1100.0  (dy +1100.0)  origin 0
+   em007_00|em007_00c|0|clip              st 1 -> 1  lit 7 -> 7  draws -> draws
+   em007_00|em007_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em007_00|em007_00c|1|clip              st 1 -> 1  lit 11 -> 11  draws -> draws
+   em007_00|em007_00c|2|clip              st 1 -> 1  lit 11 -> 11  draws -> draws
+   em007_00|em007_00c|30|clip             st 5 -> 5  lit 124 -> 124  draws -> draws
+   em007_00|em007_00c|3|clip              st 3 -> 3  lit 33 -> 33  draws -> draws
+   em007_00|em007_00u|1121|event          st 2 -> 2  lit 10 -> 10  draws -> draws
+   em007_00|em007_00u|1400|event          st 2 -> 2  lit 121 -> 121  draws -> draws
+   em007_00|em007_00u|350|clip            st 1 -> 1  lit 20 -> 20  draws -> draws
+   records started: 9  draws OFF 9 ON 9  changed: []
+== em007_04 sink OFF rows 0 / sink ON rows 7
+   0|Motion[10]                 f20   unit y OFF      0.0  ON   1100.0  (dy +1100.0)  origin 0
+   0|Motion[13]                 f4    unit y OFF      0.0  ON   1100.0  (dy +1100.0)  origin 0
+   0|Motion[7]_start            f18   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[7]_start#B          f18   unit y OFF      0.0  ON   1100.0  (dy +1100.0)  origin 0
+   0|Motion[7]_start#C          f18   unit y OFF      0.0  ON   1100.0  (dy +1100.0)  origin 0
+   0|Motion[7]_loop             f49   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[7]_loop#B           f49   unit y OFF      0.0  ON   1100.0  (dy +1100.0)  origin 0
+   0|Motion[7]_loop#C           f49   unit y OFF      0.0  ON   1100.0  (dy +1100.0)  origin 0
+   0|Motion[9]                  f20   unit y OFF      0.0  ON   1100.0  (dy +1100.0)  origin 0
+   2|Motion[18]                 f120  unit y OFF      0.0  ON   1100.0  (dy +1100.0)  origin 0
+   em007_04|em007_00c|0|clip              st 1 -> 1  lit 7 -> 7  draws -> draws
+   em007_04|em007_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em007_04|em007_00c|1|clip              st 1 -> 1  lit 11 -> 11  draws -> draws
+   em007_04|em007_00c|2|clip              st 1 -> 1  lit 11 -> 11  draws -> draws
+   em007_04|em007_00c|30|clip             st 5 -> 5  lit 124 -> 124  draws -> draws
+   em007_04|em007_00c|3|clip              st 3 -> 3  lit 33 -> 33  draws -> draws
+   em007_04|em007_04u|1121|event          st 2 -> 2  lit 10 -> 10  draws -> draws
+   em007_04|em007_04u|1400|event          st 2 -> 2  lit 121 -> 121  draws -> draws
+   em007_04|em007_04u|350|clip            st 1 -> 1  lit 20 -> 20  draws -> draws
+   records started: 9  draws OFF 9 ON 9  changed: []
+== em010_00 sink OFF rows 0 / sink ON rows 14
+   0|Motion[18]_loop            f120  unit y OFF      0.0  ON    100.0  (dy +100.0)  origin 0
+   0|Motion[18]_loop#B          f120  unit y OFF      0.0  ON    100.0  (dy +100.0)  origin 0
+   0|Motion[19]                 f28   unit y OFF      0.0  ON    100.0  (dy +100.0)  origin 0
+   0|Motion[20]_loop            f30   unit y OFF      0.0  ON    100.0  (dy +100.0)  origin 0
+   0|Motion[21]_start           f120  unit y OFF      0.0  ON    100.0  (dy +100.0)  origin 0
+   0|Motion[21]_loop            f4    unit y OFF      0.0  ON    100.0  (dy +100.0)  origin 0
+   0|Motion[22]_start           f27   unit y OFF      0.0  ON    100.0  (dy +100.0)  origin 0
+   0|Motion[22]_loop            f6    unit y OFF      0.0  ON    100.0  (dy +100.0)  origin 0
+   0|Motion[26]                 f56   unit y OFF      0.0  ON    100.0  (dy +100.0)  origin 0
+   0|Motion[27]                 f56   unit y OFF      0.0  ON    100.0  (dy +100.0)  origin 0
+   0|Motion[32]_start           f22   unit y OFF      0.0  ON    100.0  (dy +100.0)  origin 0
+   0|Motion[32]_loop            f2    unit y OFF      0.0  ON    100.0  (dy +100.0)  origin 0
+   0|Motion[33]_start           f120  unit y OFF      0.0  ON    100.0  (dy +100.0)  origin 0
+   0|Motion[33]_loop            f120  unit y OFF      0.0  ON    100.0  (dy +100.0)  origin 0
+   0|Motion[35]                 f120  unit y OFF      0.0  ON    100.0  (dy +100.0)  origin 0
+   2|Motion[10]                 f120  unit y OFF      0.0  ON    100.0  (dy +100.0)  origin 0
+   2|Motion[11]                 f120  unit y OFF      0.0  ON    100.0  (dy +100.0)  origin 0
+   2|Motion[12]                 f120  unit y OFF      0.0  ON    100.0  (dy +100.0)  origin 0
+   3|Motion[22]_start           f15   unit y OFF      0.0  ON    100.0  (dy +100.0)  origin 0
+   3|Motion[22]_loop            f21   unit y OFF      0.0  ON    100.0  (dy +100.0)  origin 0
+   em010_00|em010_00c|111|clip            st 2 -> 2  lit 28 -> 28  draws -> draws
+   em010_00|em010_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em010_00|em010_00c|120|clip            st 4 -> 4  lit 44 -> 44  draws -> draws
+   em010_00|em010_00c|121|clip            st 4 -> 4  lit 44 -> 44  draws -> draws
+   em010_00|em010_00c|180|clip            st 5 -> 5  lit 103 -> 103  draws -> draws
+   em010_00|em010_00c|182|clip            st 5 -> 5  lit 152 -> 152  draws -> draws
+   em010_00|em010_00c|190|clip            st 11 -> 11  lit 210 -> 210  draws -> draws
+   em010_00|em010_00c|200|clip            st 12 -> 12  lit 306 -> 306  draws -> draws
+   em010_00|em010_00c|201|clip            st 3 -> 3  lit 68 -> 68  draws -> draws
+   em010_00|em010_00c|270|clip            st 8 -> 8  lit 177 -> 177  draws -> draws
+   em010_00|em010_00u|1121|ragePuff       st 17 -> 17  lit 92 -> 92  draws -> draws
+   em010_00|em010_00u|200|clip            st 3 -> 3  lit 30 -> 30  draws -> draws
+   em010_00|em010_00u|212|clip            st 3 -> 3  lit 27 -> 27  draws -> draws
+   em010_00|em010_00u|213|clip            st 3 -> 3  lit 44 -> 44  draws -> draws
+   em010_00|em010_00u|230|clip            st 1 -> 1  lit 98 -> 98  draws -> draws
+   records started: 15  draws OFF 15 ON 15  changed: []
+== em019_00 sink OFF rows 0 / sink ON rows 2
+   0|Motion[19]                 fNone unit y OFF      0.0  ON   1100.0  (dy +1100.0)  origin 0
+   em019_00|em019_00c|1200|event          st 1 -> 1  lit 50 -> 50  draws -> draws
+   records started: 1  draws OFF 1 ON 1  changed: []
+== em019_04 sink OFF rows 0 / sink ON rows 2
+   0|Motion[19]                 fNone unit y OFF      0.0  ON   1100.0  (dy +1100.0)  origin 0
+   em019_04|em019_00c|1200|event          st 1 -> 1  lit 50 -> 50  draws -> draws
+   records started: 1  draws OFF 1 ON 1  changed: []
+== em020_00 sink OFF rows 0 / sink ON rows 2
+   0|Motion[19]                 fNone unit y OFF      0.0  ON   1100.0  (dy +1100.0)  origin 0
+   em020_00|em020_00c|1200|event          st 1 -> 1  lit 50 -> 51  draws -> draws
+   records started: 1  draws OFF 1 ON 1  changed: []
+== em020_04 sink OFF rows 0 / sink ON rows 2
+   0|Motion[19]                 fNone unit y OFF      0.0  ON   1100.0  (dy +1100.0)  origin 0
+   em020_04|em020_00c|1200|event          st 1 -> 1  lit 50 -> 50  draws -> draws
+   records started: 1  draws OFF 1 ON 1  changed: []
+== em030_00 sink OFF rows 0 / sink ON rows 4
+   0|Motion[14]                 f14   unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   0|Motion[5]_start            f2    unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   0|Motion[5]_loop             f30   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[6]                  f14   unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   0|Motion[7]                  f14   unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   em030_00|em030_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em030_00|em030_00c|30|clip             st 5 -> 5  lit 52 -> 52  draws -> draws
+   em030_00|em030_00c|31|clip             st 4 -> 4  lit 44 -> 44  draws -> draws
+   em030_00|em030_00c|91|clip             st 1 -> 1  lit 11 -> 11  draws -> draws
+   em030_00|em030_00u|1400|event          st 80 -> 80  lit 692 -> 692  draws -> draws
+   records started: 5  draws OFF 5 ON 5  changed: []
+== em033_00 sink OFF rows 0 / sink ON rows 1
+   0|Motion[2]_loop             f120  unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[2]_loop#B           f120  unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[2]_loop#C           f120  unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   em033_00|em033_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em033_00|em033_00c|71|clip             st 3 -> 3  lit 60 -> 60  draws -> draws
+   em033_00|em033_00u|1121|event          st 1 -> 1  lit 6 -> 6  draws -> draws
+   records started: 3  draws OFF 3 ON 3  changed: []
+== em036_00 sink OFF rows 0 / sink ON rows 5
+   0|Motion[17]                 f120  unit y OFF      0.0  ON    303.0  (dy +303.0)  origin 0
+   0|Motion[21]_start           f120  unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[21]_start#B         f120  unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[21]_start#C         f120  unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[21]_loop            f4    unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[21]_loop#B          f4    unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[21]_loop#C          f4    unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[26]                 f56   unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[27]                 f56   unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   em036_00|em036_00c|1200|event          st 1 -> 1  lit 19 -> 18  draws -> draws
+   em036_00|em036_00c|16|clip             st 2 -> 2  lit 53 -> 53  draws -> draws
+   em036_00|em036_00u|1120|event          st 6 -> 6  lit 40 -> 41  draws -> draws
+   em036_00|em036_00u|500|clip            st 3 -> 3  lit 47 -> 48  draws -> draws
+   em036_00|em036_00u|60|event            st 2 -> 2  lit 128 -> 128  draws -> draws
+   records started: 5  draws OFF 5 ON 5  changed: []
+== em038_00 sink OFF rows 0 / sink ON rows 1
+   records started: 0  draws OFF 0 ON 0  changed: []
+== em043_00 sink OFF rows 0 / sink ON rows 5
+   0|Motion[10]                 f32   unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[11]                 f32   unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[6]_start            f20   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[6]_start#B          f20   unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[6]_loop             f120  unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[6]_loop#B           f120  unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   em043_00|em043_00c|0|clip              st 7 -> 7  lit 81 -> 81  draws -> draws
+   em043_00|em043_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em043_00|em043_00c|1|clip              st 11 -> 11  lit 123 -> 123  draws -> draws
+   em043_00|em043_00u|1400|event          st 2 -> 2  lit 108 -> 108  draws -> draws
+   records started: 4  draws OFF 4 ON 4  changed: []
+== em043_05 sink OFF rows 0 / sink ON rows 5
+   0|Motion[10]                 f32   unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[11]                 f32   unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[6]_start            f20   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[6]_start#B          f20   unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[6]_loop             f120  unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[6]_loop#B           f120  unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   em043_05|em043_00c|0|clip              st 7 -> 7  lit 81 -> 81  draws -> draws
+   em043_05|em043_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em043_05|em043_00c|1|clip              st 11 -> 11  lit 123 -> 123  draws -> draws
+   em043_05|em043_05u|1400|event          st 2 -> 2  lit 108 -> 108  draws -> draws
+   records started: 4  draws OFF 4 ON 4  changed: []
+== em044_00 sink OFF rows 0 / sink ON rows 8
+   0|Motion[13]                 f60   unit y OFF      0.0  ON   1500.0  (dy +1500.0)  origin 0
+   0|Motion[15]                 f24   unit y OFF      0.0  ON   1500.0  (dy +1500.0)  origin 0
+   0|Motion[3]                  f44   unit y OFF      0.0  ON   1500.0  (dy +1500.0)  origin 0
+   0|Motion[4]                  f44   unit y OFF      0.0  ON   1500.0  (dy +1500.0)  origin 0
+   0|Motion[6]_start            f20   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[6]_start#B          f20   unit y OFF      0.0  ON   1500.0  (dy +1500.0)  origin 0
+   0|Motion[6]_start#C          f20   unit y OFF      0.0  ON   1500.0  (dy +1500.0)  origin 0
+   0|Motion[6]_loop             f43   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[6]_loop#B           f43   unit y OFF      0.0  ON   1500.0  (dy +1500.0)  origin 0
+   0|Motion[6]_loop#C           f43   unit y OFF      0.0  ON   1500.0  (dy +1500.0)  origin 0
+   4|Motion[3]_loop             f31   unit y OFF      0.0  ON   1500.0  (dy +1500.0)  origin 0
+   4|Motion[5]                  f120  unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   em044_00|em044_00c|0|clip              st 9 -> 9  lit 102 -> 102  draws -> draws
+   em044_00|em044_00c|10|clip             st 2 -> 2  lit 19 -> 19  draws -> draws
+   em044_00|em044_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em044_00|em044_00c|130|clip            st 3 -> 3  lit 0 -> 0  live, no draw -> live, no draw
+   em044_00|em044_00c|180|clip            st 1 -> 1  lit 27 -> 27  draws -> draws
+   em044_00|em044_00c|1|clip              st 19 -> 19  lit 211 -> 211  draws -> draws
+   em044_00|em044_00c|2|clip              st 4 -> 4  lit 44 -> 44  draws -> draws
+   em044_00|em044_00c|3|clip              st 4 -> 4  lit 45 -> 45  draws -> draws
+   em044_00|em044_00u|1120|event          st 2 -> 2  lit 13 -> 13  draws -> draws
+   em044_00|em044_00u|1400|event          st 2 -> 2  lit 113 -> 113  draws -> draws
+   em044_00|em044_00u|200|clip            st 1 -> None  lit 12 -> None  draws -> None  <-- CHANGED
+   em044_00|em044_00u|210|clip            st 1 -> None  lit 13 -> None  draws -> None  <-- CHANGED
+   records started: 10  draws OFF 11 ON 9  changed: ['em044_00|em044_00u|200|clip', 'em044_00|em044_00u|210|clip']
+== em045_00 sink OFF rows 0 / sink ON rows 6
+   0|Motion[3]                  f32   unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[4]                  f32   unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[6]_start            f20   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[6]_start#B          f20   unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[6]_loop             f120  unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[6]_loop#B           f120  unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   em045_00|em045_00c|0|clip              st 3 -> 3  lit 36 -> 36  draws -> draws
+   em045_00|em045_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em045_00|em045_00c|1|clip              st 11 -> 11  lit 122 -> 122  draws -> draws
+   em045_00|em045_00u|1400|event          st 2 -> 2  lit 107 -> 107  draws -> draws
+   records started: 4  draws OFF 4 ON 4  changed: []
+== em049_00 sink OFF rows 0 / sink ON rows 5
+   0|Motion[6]                  f60   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[6]#B                f60   unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   0|Motion[7]                  f18   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[7]#B                f18   unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   0|Motion[8]                  f18   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[8]#B                f18   unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   2|Motion[6]_start            f22   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   2|Motion[6]_start#B          f22   unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   2|Motion[6]_loop             f22   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   2|Motion[6]_loop#B           f22   unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   em049_00|em049_00c|0|clip              st 8 -> 8  lit 102 -> 97  draws -> draws
+   em049_00|em049_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em049_00|em049_00c|1|clip              st 8 -> 8  lit 102 -> 98  draws -> draws
+   em049_00|em049_00c|2|clip              st 10 -> 10  lit 125 -> 126  draws -> draws
+   em049_00|em049_00c|30|clip             st 1 -> 1  lit 46 -> 48  draws -> draws
+   em049_00|em049_00c|3|clip              st 8 -> 8  lit 90 -> 88  draws -> draws
+   em049_00|em049_00c|92|clip             st 4 -> 4  lit 82 -> 79  draws -> draws
+   em049_00|em049_00c|93|clip             st 4 -> 4  lit 81 -> 81  draws -> draws
+   em049_00|em049_00c|9|clip              st 2 -> None  lit 24 -> None  draws -> None  <-- CHANGED
+   records started: 8  draws OFF 9 ON 8  changed: ['em049_00|em049_00c|9|clip']
+== em055_00 sink OFF rows 0 / sink ON rows 5
+   0|Motion[15]                 f46   unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[3]                  f26   unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[4]                  f26   unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[6]_start            f15   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[6]_start#B          f15   unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[6]_loop             f120  unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[6]_loop#B           f120  unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   em055_00|em055_00c|0|clip              st 14 -> 14  lit 174 -> 174  draws -> draws
+   em055_00|em055_00c|100|clip            st 8 -> 8  lit 102 -> 102  draws -> draws
+   em055_00|em055_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em055_00|em055_00u|1400|event          st 2 -> 2  lit 107 -> 107  draws -> draws
+   records started: 4  draws OFF 4 ON 4  changed: []
+== em056_00 sink OFF rows 0 / sink ON rows 2
+   records started: 0  draws OFF 0 ON 0  changed: []
+== em060_00 sink OFF rows 0 / sink ON rows 4
+   0|Motion[1]_loop             f120  unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   0|Motion[4]_start            f53   unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   0|Motion[4]_loop             f120  unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   0|Motion[8]                  f16   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[9]                  f16   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   em060_00|em060_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em060_00|em060_00c|30|clip             st 1 -> 1  lit 11 -> 11  draws -> draws
+   em060_00|em060_00c|31|clip             st 3 -> 3  lit 34 -> 34  draws -> draws
+   em060_00|em060_00c|34|clip             st 5 -> 5  lit 46 -> 46  draws -> draws
+   records started: 4  draws OFF 4 ON 4  changed: []
+== em060_04 sink OFF rows 0 / sink ON rows 4
+   0|Motion[1]_loop             f120  unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   0|Motion[4]_start            f53   unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   0|Motion[4]_loop             f120  unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   0|Motion[8]                  f16   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[9]                  f16   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   em060_04|em060_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em060_04|em060_00c|30|clip             st 1 -> 1  lit 11 -> 11  draws -> draws
+   em060_04|em060_00c|31|clip             st 3 -> 3  lit 34 -> 34  draws -> draws
+   em060_04|em060_00c|34|clip             st 5 -> 5  lit 46 -> 46  draws -> draws
+   records started: 4  draws OFF 4 ON 4  changed: []
+== em061_00 sink OFF rows 0 / sink ON rows 4
+   0|Motion[51]_loop            f120  unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[60]                 f16   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[61]                 f16   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[6]_start            f53   unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   0|Motion[6]_loop             f120  unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   em061_00|em061_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em061_00|em061_00c|31|clip             st 6 -> 6  lit 66 -> 66  draws -> draws
+   em061_00|em061_00c|50|clip             st 1 -> 1  lit 11 -> 11  draws -> draws
+   em061_00|em061_00c|51|clip             st 3 -> 3  lit 31 -> 31  draws -> draws
+   records started: 4  draws OFF 4 ON 4  changed: []
+== em061_04 sink OFF rows 0 / sink ON rows 4
+   0|Motion[51]_loop            f120  unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[60]                 f16   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[61]                 f16   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[6]_start            f53   unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   0|Motion[6]_loop             f120  unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   em061_04|em061_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em061_04|em061_00c|31|clip             st 6 -> 6  lit 66 -> 66  draws -> draws
+   em061_04|em061_00c|50|clip             st 1 -> 1  lit 11 -> 11  draws -> draws
+   em061_04|em061_00c|51|clip             st 3 -> 3  lit 31 -> 31  draws -> draws
+   records started: 4  draws OFF 4 ON 4  changed: []
+== em062_00 sink OFF rows 0 / sink ON rows 4
+   0|Motion[1]_loop             f120  unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   0|Motion[4]_start            f53   unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   0|Motion[4]_loop             f120  unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   0|Motion[8]                  f16   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[9]                  f16   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   em062_00|em062_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em062_00|em062_00c|20|clip             st 1 -> 1  lit 11 -> 11  draws -> draws
+   em062_00|em062_00c|21|clip             st 3 -> 3  lit 34 -> 34  draws -> draws
+   em062_00|em062_00c|50|clip             st 6 -> 6  lit 60 -> 60  draws -> draws
+   records started: 4  draws OFF 4 ON 4  changed: []
+== em063_00 sink OFF rows 0 / sink ON rows 5
+   0|Motion[10]_start           f20   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[10]_start#B         f20   unit y OFF      0.0  ON   1500.0  (dy +1500.0)  origin 0
+   0|Motion[10]_loop            f43   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[10]_loop#B          f43   unit y OFF      0.0  ON   1500.0  (dy +1500.0)  origin 0
+   0|Motion[32]                 f24   unit y OFF      0.0  ON   1500.0  (dy +1500.0)  origin 0
+   0|Motion[7]                  f44   unit y OFF      0.0  ON   1500.0  (dy +1500.0)  origin 0
+   0|Motion[8]                  f44   unit y OFF      0.0  ON   1500.0  (dy +1500.0)  origin 0
+   em063_00|em063_00c|0|clip              st 11 -> 11  lit 119 -> 122  draws -> draws
+   em063_00|em063_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em063_00|em063_00c|1|clip              st 11 -> 11  lit 126 -> 125  draws -> draws
+   em063_00|em063_00c|2|clip              st 24 -> 24  lit 268 -> 264  draws -> draws
+   em063_00|em063_00c|3|clip              st 6 -> 6  lit 68 -> 68  draws -> draws
+   em063_00|em063_00u|1400|event          st 2 -> 2  lit 113 -> 113  draws -> draws
+   records started: 6  draws OFF 6 ON 6  changed: []
+== em063_05 sink OFF rows 0 / sink ON rows 5
+   0|Motion[10]_start           f20   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[10]_start#B         f20   unit y OFF      0.0  ON   1500.0  (dy +1500.0)  origin 0
+   0|Motion[10]_loop            f43   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[10]_loop#B          f43   unit y OFF      0.0  ON   1500.0  (dy +1500.0)  origin 0
+   0|Motion[32]                 f24   unit y OFF      0.0  ON   1500.0  (dy +1500.0)  origin 0
+   0|Motion[7]                  f44   unit y OFF      0.0  ON   1500.0  (dy +1500.0)  origin 0
+   0|Motion[8]                  f44   unit y OFF      0.0  ON   1500.0  (dy +1500.0)  origin 0
+   em063_05|em063_00c|0|clip              st 11 -> 11  lit 122 -> 119  draws -> draws
+   em063_05|em063_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em063_05|em063_00c|1|clip              st 11 -> 11  lit 125 -> 126  draws -> draws
+   em063_05|em063_00c|2|clip              st 24 -> 24  lit 264 -> 268  draws -> draws
+   em063_05|em063_00c|3|clip              st 6 -> 6  lit 68 -> 68  draws -> draws
+   em063_05|em063_05u|1400|event          st 2 -> 2  lit 113 -> 113  draws -> draws
+   records started: 6  draws OFF 6 ON 6  changed: []
+== em066_00 sink OFF rows 0 / sink ON rows 5
+   0|Motion[11]                 f16   unit y OFF      0.0  ON   2400.0  (dy +2400.0)  origin 0
+   0|Motion[12]                 f16   unit y OFF      0.0  ON   2400.0  (dy +2400.0)  origin 0
+   0|Motion[13]                 f16   unit y OFF      0.0  ON   2400.0  (dy +2400.0)  origin 0
+   0|Motion[7]_start            f38   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[7]_start#B          f38   unit y OFF      0.0  ON   2400.0  (dy +2400.0)  origin 0
+   0|Motion[7]_loop             f30   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[7]_loop#B           f30   unit y OFF      0.0  ON   2400.0  (dy +2400.0)  origin 0
+   em066_00|em066_00c|0|clip              st 10 -> 10  lit 112 -> 112  draws -> draws
+   em066_00|em066_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em066_00|em066_00c|1|clip              st 15 -> 15  lit 166 -> 166  draws -> draws
+   em066_00|em066_00u|1400|event          st 2 -> 2  lit 108 -> 108  draws -> draws
+   records started: 4  draws OFF 4 ON 4  changed: []
+== em066_04 sink OFF rows 0 / sink ON rows 5
+   0|Motion[11]                 f16   unit y OFF      0.0  ON   2400.0  (dy +2400.0)  origin 0
+   0|Motion[12]                 f16   unit y OFF      0.0  ON   2400.0  (dy +2400.0)  origin 0
+   0|Motion[13]                 f16   unit y OFF      0.0  ON   2400.0  (dy +2400.0)  origin 0
+   0|Motion[7]_start            f38   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[7]_start#B          f38   unit y OFF      0.0  ON   2400.0  (dy +2400.0)  origin 0
+   0|Motion[7]_loop             f30   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[7]_loop#B           f30   unit y OFF      0.0  ON   2400.0  (dy +2400.0)  origin 0
+   em066_04|em066_00c|0|clip              st 10 -> 10  lit 112 -> 112  draws -> draws
+   em066_04|em066_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em066_04|em066_00c|1|clip              st 15 -> 15  lit 166 -> 166  draws -> draws
+   em066_04|em066_04u|1400|event          st 2 -> 2  lit 108 -> 108  draws -> draws
+   records started: 4  draws OFF 4 ON 4  changed: []
+== em067_00 sink OFF rows 0 / sink ON rows 5
+   4|Motion[16]_start           f2    unit y OFF      0.0  ON   2400.0  (dy +2400.0)  origin 0
+   4|Motion[16]_loop            f120  unit y OFF      0.0  ON   2400.0  (dy +2400.0)  origin 0
+   4|Motion[17]_start           f15   unit y OFF      0.0  ON   2400.0  (dy +2400.0)  origin 0
+   4|Motion[17]_loop            f2    unit y OFF      0.0  ON   2400.0  (dy +2400.0)  origin 0
+   4|Motion[31]                 f16   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   4|Motion[31]#B               f16   unit y OFF      0.0  ON   2400.0  (dy +2400.0)  origin 0
+   4|Motion[32]                 f16   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   4|Motion[32]#B               f16   unit y OFF      0.0  ON   2400.0  (dy +2400.0)  origin 0
+   4|Motion[33]                 f16   unit y OFF      0.0  ON   2400.0  (dy +2400.0)  origin 0
+   em067_00|em067_00c|1103|event          st 1 -> None  lit 4 -> None  draws -> None  <-- CHANGED
+   em067_00|em067_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em067_00|em067_00u|330|clip            st 28 -> 28  lit 289 -> 291  draws -> draws
+   em067_00|em067_00u|340|clip            st 10 -> 10  lit 144 -> 144  draws -> draws
+   records started: 3  draws OFF 4 ON 3  changed: ['em067_00|em067_00c|1103|event']
+== em068_00 sink OFF rows 0 / sink ON rows 2
+   0|Motion[44]_loop            f120  unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[44]_loop#B          f120  unit y OFF      0.0  ON   3000.0  (dy +3000.0)  origin 0
+   em068_00|em068_00c|0|clip              st 2 -> 2  lit 50 -> 51  draws -> draws
+   em068_00|em068_00c|1200|event          st 1 -> 1  lit 19 -> 18  draws -> draws
+   em068_00|em068_00c|1|clip              st 2 -> 2  lit 48 -> 48  draws -> draws
+   em068_00|em068_00c|2|clip              st 2 -> 2  lit 47 -> 49  draws -> draws
+   em068_00|em068_00u|1400|event          st 1 -> 1  lit 50 -> 50  draws -> draws
+   records started: 5  draws OFF 5 ON 5  changed: []
+== em069_00 sink OFF rows 0 / sink ON rows 3
+   0|Motion[71]                 f120  unit y OFF      0.0  ON    100.0  (dy +100.0)  origin 0
+   0|Motion[8]_start            f120  unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[8]_start#B          f120  unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   0|Motion[8]_loop             f1    unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[8]_loop#B           f1    unit y OFF      0.0  ON   1000.0  (dy +1000.0)  origin 0
+   em069_00|em069_00c|0|clip              st 4 -> 4  lit 46 -> 44  draws -> draws
+   em069_00|em069_00c|10|clip             st 4 -> 4  lit 46 -> 45  draws -> draws
+   em069_00|em069_00c|111|clip            st 1 -> 1  lit 13 -> 12  draws -> draws
+   em069_00|em069_00c|1200|event          st 1 -> 1  lit 19 -> 18  draws -> draws
+   em069_00|em069_00c|140|clip            st 2 -> 2  lit 53 -> 53  draws -> draws
+   em069_00|em069_00u|1400|event          st 2 -> 2  lit 106 -> 107  draws -> draws
+   records started: 6  draws OFF 6 ON 6  changed: []
+== em070_00 sink OFF rows 0 / sink ON rows 1
+   records started: 0  draws OFF 0 ON 0  changed: []
+== em080_00 sink OFF rows 0 / sink ON rows 5
+   0|Motion[10]                 f32   unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[11]                 f32   unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   em080_00|em080_00c|0|clip              st 6 -> 6  lit 67 -> 67  draws -> draws
+   em080_00|em080_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em080_00|em080_00c|1|clip              st 4 -> 4  lit 45 -> 45  draws -> draws
+   records started: 3  draws OFF 3 ON 3  changed: []
+== em080_04 sink OFF rows 0 / sink ON rows 5
+   0|Motion[10]                 f32   unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   0|Motion[11]                 f32   unit y OFF      0.0  ON   2000.0  (dy +2000.0)  origin 0
+   em080_04|em080_00c|0|clip              st 6 -> 6  lit 66 -> 68  draws -> draws
+   em080_04|em080_00c|1200|event          st 1 -> 1  lit 19 -> 19  draws -> draws
+   em080_04|em080_00c|1|clip              st 4 -> 4  lit 45 -> 44  draws -> draws
+   em080_04|em080_04u|201|event           st 1 -> 1  lit 192 -> 192  draws -> draws
+   records started: 4  draws OFF 4 ON 4  changed: []
+== em084_00 sink OFF rows 0 / sink ON rows 2
+   0|Motion[1]_loop             f120  unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[1]_loop#B           f120  unit y OFF      0.0  ON   3000.0  (dy +3000.0)  origin 0
+   0|Motion[50]_loop            f120  unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[50]_loop#B          f120  unit y OFF      0.0  ON   3000.0  (dy +3000.0)  origin 0
+   em084_00|em084_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em084_00|em084_00c|140|clip            st 8 -> 8  lit 111 -> 111  draws -> draws
+   em084_00|em084_00u|1121|event          st 1 -> 1  lit 11 -> 11  draws -> draws
+   records started: 3  draws OFF 3 ON 3  changed: []
+== em022_00 sink OFF rows 0 / sink ON rows 7
+   0|Motion[18]_start           f4    unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[18]_loop            f21   unit y OFF      0.0  ON    500.0  (dy +500.0)  origin 0
+   0|Motion[20]_loop            fNone unit y OFF      0.0  ON    500.0  (dy +500.0)  origin 0
+   0|Motion[20]_loop#B          fNone unit y OFF      0.0  ON    500.0  (dy +500.0)  origin 0
+   0|Motion[5]                  f26   unit y OFF      0.0  ON    500.0  (dy +500.0)  origin 0
+   0|Motion[6]                  f26   unit y OFF      0.0  ON    500.0  (dy +500.0)  origin 0
+   0|Motion[7]                  f28   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   0|Motion[8]                  f28   unit y OFF      0.0  ON      0.0  (dy +0.0)  origin 0
+   em022_00|em022_00c|0|clip              st 1 -> 1  lit 11 -> 11  draws -> draws
+   em022_00|em022_00c|1200|event          st 1 -> 1  lit 18 -> 18  draws -> draws
+   em022_00|em022_00c|1|clip              st 1 -> 1  lit 11 -> 11  draws -> draws
+   em022_00|em022_00c|30|clip             st 6 -> 6  lit 66 -> 66  draws -> draws
+   em022_00|em022_00c|43|clip             st 6 -> 6  lit 64 -> 63  draws -> draws
+   em022_00|em022_00u|60|event            st 1 -> 1  lit 33 -> 32  draws -> draws
+   records started: 6  draws OFF 6 ON 6  changed: []

@@ -1,0 +1,6 @@
+PASS SHOT before_l1  -- {"it": {"level": 1, "frame": 120, "label": "before_l1"}, "f": 120, "units": [{"key": 1, "game": [-27, 273, 192], "screen": [1034, 429]}], "running": 2, "prims": 0, "failed": null, "world": [0, -11.17725067138672, 0.8], "pngs": "saved by saveshots.py (data URLs stripped)"}
+PASS SHOT before_l2  -- {"it": {"level": 2, "frame": 120, "label": "before_l2"}, "f": 120, "units": [{"key": 0, "game": [0, 320, 0], "screen": [1120, 411]}], "running": 2, "prims": 0, "failed": null, "world": [0, -11.17725067138672, 0.8], "pngs": "saved by saveshots.py (data URLs stripped)"}
+PASS SHOT before_l3  -- {"it": {"level": 3, "frame": 120, "label": "before_l3"}, "f": 120, "units": [{"key": 10, "game": [0, 320, 0], "screen": [1120, 411]}], "running": 2, "prims": 0, "failed": null, "world": [0, -11.17725067138672, 0.8], "pngs": "saved by saveshots.py (data URLs stripped)"}
+PASS SHOT before_l0  -- {"it": {"level": 0, "frame": 120, "label": "before_l0"}, "f": 120, "units": [], "running": 1, "prims": 0, "failed": null, "world": [0, -11.17725067138672, 0.8], "pngs": "saved by saveshots.py (data URLs stripped)"}
+
+4 passed, 0 failed

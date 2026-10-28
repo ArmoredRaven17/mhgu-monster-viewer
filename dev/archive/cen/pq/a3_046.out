@@ -1,0 +1,3 @@
+PASS PROBE em046_00  -- {"log":["played 4|Motion[34]","played 4|Motion[34]#B","played 0|Motion[1]_loop","played 4|Motion[37]","played 4|Motion[37]#B"],"rows":[{"k":"em046_00|em046_00u|300|event","st":2,"live":163,"lit":37,"s":37,"px":1568,"verdict":"draws","clips":["em046_00|4|Motion[34]","em046_00|4|Motion[37]"]},{"k":"em046_00|em046_00u|310|event","st":2,"live":156,"lit":36,"s":36,"px":1794,"verdict":"draws","clips":["em046_00|4|Motion[34]","em046_00|4|Motion[37]"]}],"missing":[]}
+
+1 passed, 0 failed

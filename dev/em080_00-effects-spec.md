@@ -245,3 +245,37 @@ theirs).
   top (int 2 = 100) and cleared at int 3 (0). The decode notes' table (section 1) is now the class's own read, not theirs.
 * Still open, category c: the dark state as a viewer input (a "Tail state" select: Normal / Hot / Dark -- the dark forms bits 22-23
   are the same records at the same frames as the normal ones, so on screen it changes nothing but which bits light).
+
+## 4. The heat-held class request -- u 200..204 from P+0x1bb (effects lane A, 2026-10-25) -- R, built
+
+**The ROM.** uEm080_00's frame handler (vt+0x208, `0xfffb24..0xfffc5c`) is the class's only request site. Every frame:
+the handle e+0xcbd8 is dropped unless its core's state (+0xc & 7) is 1 or 2; the heat byte P+0x1bb picks an id --
+
+| bit 4 | bit 3 | bit 1 | id | key (table `0x16a1c6c`, 1004 / 1005 crossed) |
+|---|---|---|---|---|
+| 0 | 1 | - | 1002 | u 201 |
+| 0 | 0 | 1 | 1001 | u 200 |
+| 0 | 0 | 0 | none: the handle is stopped (`0x329c40(h, 0)`) | -- |
+| 1 | 1 | - | 1005 | u 203 |
+| 1 | 0 | 0 | 1003 | u 202 |
+| 1 | 0 | 1 | 1004 | u 204 |
+
+-- a live handle whose key (+0x1b4) matches is kept; any other is stopped, and the id is requested through vt+0x1d0 with the
+class's own block e+0xb640 (+0xc = the area byte e+0x1054, +8 = 2 during the call, then 0). Glavenus's .pel holds UNIQUE 200 only,
+so only bit 1 (the hot tail) requests anything for him. Every key is UNIQUE `em080_00_130` -- the SEQUENCE twins on keys 200 / 201 /
+203 / 204 are different files (PSL clip records), which is why the census, keying on the number, missed these.
+
+**The viewer.** Exported `em080_04u` UNIQUE 200..204 and `em080_00u` UNIQUE 200 as `event`. index.html `stepHeat080` runs the
+selector every frame on the viewer's heat byte (motion-states.js `glavenusHeat`: Hellblade's Tail State rung Blasted = bit 3, the
+Throat row's Blasted = bit 4; Glavenus's hot tail = part 40 drawn), holds the key (proof.js requester `{ positionOnly, type8: 2 }`),
+stops the old one on a change, and requests again when the request has ended. Hellblade's death rows clear bits 4 / 3 / 1 (below).
+Metered: Hellblade u 200 / 201 / 203 / 204 and Glavenus u 200 **draw**.
+
+**u 202 (1003) is never requested -- a ROM reason for the coordinator.** It needs bit 4 with bits 3 and 1 clear. On variant 4 bit 1
+is set by the per-reset init (`0xffe43c`) and cleared only by the tail machine's death state (`0x100bcac`, through the post-indexed
+pointer `ldrb r1, [r0, #0x1bb]!` at `0x100bc90` -- an immediate-offset scan of the band misses it; the band's `0xffe4e0` writers of
+bits 0 / 1 all branch past on variant != 0, `0xffe51c` / `0xffe5d4`). That death state runs inside vt+0x210 `0x100acf8` AFTER
+machine B's death state, which clears bit 4 unconditionally (`0x100b564..0x100b590`, both arms) in the same call; the death entry
+(`0x100acf8..0x100ad74`) sets all three machines to 7 together. So no frame shows bit 4 with bit 1 clear, and the selector (vt+0x208,
+a separate call) never forms 1003. Bit 4 is raised only at an action start (7, 8) / (7, 0xf2) (`0xfff940`), not after death
+(INFERRED: a dead unit starts neither). Tools: `<archive>/laneA/heat080dbg.mjs`; probes `<archive>/cen/pq/heat080b.json` / `heat080c.json`.

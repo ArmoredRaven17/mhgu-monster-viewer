@@ -13,8 +13,9 @@
 //     (0x16ded0..0x16dffc); codes 4 / 6 the third type, a flat-ended cylinder (render/hit-type3.js); j0 255 the unit itself (the
 //     model root)
 //   ids >= 1000 index the SECOND table (0x70f40 / 0x70fa0: [unit+0x75d8] / [+0x75e0]) -- records2 / sets2, a deviant's own file
-//   arms['<list>|Motion[N]'] = [[slot, id, flags, gate, action], ...] -- the action census (<archive>/zg/attrace.py) and the
-//     per-frame census (<archive>/fb/pfarm.py: action 'pf+<vtable slot>')
+//   arms['<list>|Motion[N]'] = [[slot, id, flags, gate, action, shift?, lead?, lap?], ...] -- the action census (<archive>/zg/attrace.py) and the
+//     per-frame census (<archive>/fb/pfarm.py: action 'pf+<vtable slot>'); shift (optional): a CARRIED arm, made in an earlier motion
+//     of the action and still counting down here, with the frames already run; lead: the blend frames the delay adds; lap (windowOf)
 // THE WINDOW (0x7db70 0x7dc70..0x7dd18): start < 1 -> from the arm for `duration`; else max(start, the arm) .. start + duration, in the
 // motion's frames. THE TARGET MASK (0x7dd44..0x7ddb0): 0x17; flag 0x40 -> 0x10, 0x100 -> 2, 0x200 -> 5, 0x4000 -> 8; | flag 0x80 -> 0x20,
 // record +0xc bit 0x100000 -> 0x20, flag 0x1000 or record bit 0x80000 -> 8. Bit 0 = the hunters (the pair pass 0x16acf0), bit 1 = monsters.
@@ -42,11 +43,23 @@ export function targetMask(flags, recFlags){
   m |= (recFlags & 0x80000) ? 8 : ((flags >>> 9) & 8);
   return m;
 }
-export function windowOf(rec, gate){
+// THE WINDOW, in the motion's frames (READ, 0x7db70 0x7dc70..0x7dd18 with the hit countdown 0x168d44..):
+//   arm flag 0x800, or record start < 1: the delay is -start (0 with 0x800) from the arm, for the duration;
+//   else the delay is start + g - the motion's frame, g the blend gate e+0x4f4 (0x951678 sets it to the setMotion blend, 0x94ed14..
+//   counts it down by the tick; 0 when the setMotion flags have bit 0) -- and the frame ADVANCES through the blend (0x94eee8..0x94ef08),
+//   so a record armed t frames into a motion set with blend b goes live at frame start + max(0, b - t): `lead` (exporter row field 7,
+//   <archive>/atkfix/leadcases.py); a delay below 0 starts it at the arm with the duration shortened, none left arms nothing.
+// shift: a CARRIED arm (row field 6). Flags bit 0 set: not locked to its motion (0x7ddb8 skips 0x169258; the countdown kills only a
+//   locked hit on a motion change), so its window runs on into the motions its action plays next -- the exporter
+//   (<archive>/atkfix/carrysim.py: the action main stepped tick by tick) credits it there with the frames run before as the shift, and
+//   `lap` (row field 8) the pass of that clip it falls on (a motion the action plays again); update() shows a carried row on that lap only
+export function windowOf(rec, gate, shift = 0, lead = 0, flags = 0){
   const arm = gate >= 0 ? gate : 0, start = rec[0], dur = rec[1];
-  if (start < 1) return dur >= 1 ? [arm, arm + dur] : null;
-  const from = Math.max(start, arm), to = start + dur;
-  return to > from ? [from, to] : null;
+  let w = null;
+  if (start < 1 || (flags & 0x800)){ const d = (flags & 0x800) ? 0 : -start; w = dur >= 1 ? [arm + d, arm + d + dur] : null; }
+  else { const S = start + lead, from = Math.max(S, arm), to = S + dur; w = to > from ? [from, to] : null; }
+  if (!w || !shift) return w;
+  return w[1] - shift > 0 ? [Math.max(0, w[0] - shift), w[1] - shift] : null;
 }
 // the clip's armed records: [{ id, slot, rec, mask, win, set, shapes, action }] (or { why } where the record is not exported)
 // (action: the play's own '<status>:0x<number>' where the viewer names one -- only that action's arms; else every action's, the union)
@@ -57,11 +70,13 @@ export function armedFor(monId, clipKey, action){
   let arms = D.arms[clipKey] || [];
   // (the per-frame arms, action 'pf+<slot>', run in every action of their motion: kept)
   if (action && arms.some(a => a[4] === action)) arms = arms.filter(a => a[4] === action || String(a[4]).startsWith('pf'));
-  for (const [slot, id, flags, gate, action] of arms){
+  for (const [slot, id, flags, gate, action, shift, lead, lap] of arms){
     const second = id >= 1000, recs = second ? D.records2 : D.records, sets = second ? D.sets2 : D.sets;
     const rec = recs && recs[second ? id - 1000 : id];
-    if (!rec){ out.push({ id, slot, flags, action, why: second ? 'id >= 1000: no second table for this monster' : 'no record' }); continue; }
-    out.push({ id, slot, flags, action, rec, mask: targetMask(flags, rec[4] >>> 0), win: windowOf(rec, gate), set: rec[3],
+    // an id past the table: 0x70f40 returns 0 (0x70f8c: count <= id -> r0 0), so 0x7db70 arms nothing -- e.g. Arzuros / Redhelm
+    // under the shared uEm060_00 class: 13 arms with ids 24..34 (Arzuros's file has 24 records, Volvidon's 35)
+    if (!rec){ out.push({ id, slot, flags, action, why: second ? 'id >= 1000: no second table for this monster' : 'id past the table: the game arms nothing' }); continue; }
+    out.push({ id, slot, flags, action, rec, mask: targetMask(flags, rec[4] >>> 0), win: windowOf(rec, gate, shift || 0, lead || 0, flags), carried: shift || 0, lap: lap || 0, lead: lead || 0, set: rec[3],
                shapes: (sets && sets[rec[3]]) || [] });
   }
   return out;
@@ -146,13 +161,14 @@ export function buildAttackHitboxes(root, monId){
         if (t < 0){ t = 0; s = Math.min(1, Math.max(0, -c / a)); } else if (t > 1){ t = 1; s = Math.min(1, Math.max(0, (b - c) / a)); } } }
     return p1.clone().add(d1.multiplyScalar(s)).distanceTo(p2.clone().add(d2.multiplyScalar(t)));
   };
-  // opts: { mode: 'armed' | 'all', hunter: { p0, p1, r } in view units or null }
+  // opts: { mode: 'armed' | 'all', hunter: { p0, p1, r } in view units or null, lap: the playing clip's lap (0 the first) }
   const update = (key, frame, opts = {}) => {
     setClip(key, opts.action || null);
     let armed = 0, touching = 0;
     const rows = [];
     for (const it of items){
-      const a = it.a, on = !!a.win && frame >= a.win[0] && frame < a.win[1];
+      // a CARRIED window (a.carried: armed in an earlier motion, one countdown in the game, 0x168d44..) shows on its own lap only
+      const a = it.a, on = !!a.win && frame >= a.win[0] && frame < a.win[1] && !(a.carried && (opts.lap | 0) !== (a.lap | 0));
       const kind = (a.mask & 1) ? 'hunter' : (a.mask & 2) ? 'monster' : 'other';
       let touch = false, shapes = null;
       if (on && opts.hunter && (a.mask & 1)){
@@ -170,7 +186,7 @@ export function buildAttackHitboxes(root, monId){
       if (on) armed++; if (touch) touching++;
       it.g.userData.setColor(ATTACK_COLOURS[touch ? 'touch' : on ? kind : 'off']);
       it.g.visible = on || opts.mode === 'all';
-      rows.push({ id: a.id, slot: a.slot, set: a.set, shapes: a.shapes.map(s => [s[2], s[0], s[1], s[4]]), mask: a.mask, kind, on, touch,
+      rows.push({ id: a.id, slot: a.slot, set: a.set, carried: a.carried || 0, lap: a.lap || 0, lead: a.lead || 0, shapes: a.shapes.map(s => [s[2], s[0], s[1], s[4]]), mask: a.mask, kind, on, touch,
                   win: a.win, action: a.action, skipped: it.skipped, type3: !!a.type3, info: describeRecord(a) });
     }
     group.userData.last = { key, action: opts.action || null, frame, armed, touching, rows };

@@ -1,0 +1,12 @@
+uEm061_00 em061 v4 (0, 0x7) ph0A: PH 1 | POST 4@f2535c | M L0M1@4ffffffc
+uEm061_00 em061 v4 (0, 0x7) ph1B: VT3E8@4ffffffc
+uEm061_00 em061 v4 (6, 0x0) ph0A: PH 1 | POST 0@f2c818 | M L0M30@f2c82c
+uEm061_00 em061 v4 (6, 0x0) ph1B: VT3E8@4ffffffc
+uEm061_00 em061 v4 (6, 0x1) ph0A: PH 1 | POST 4@f2c900 | TURN 0x169f720 {L0M51; L0M61 / L0M60}@f2c920 | SET -1000@4ffffffc
+uEm061_00 em061 v4 (6, 0x1) ph1C: VT3E8@4ffffffc
+uEm061_00 em061 v4 (6, 0x2) ph0A: PH 1 | POST 4@f2c9f8 | M L0M6@f2ca24 | SET -1000@4ffffffc
+uEm061_00 em061 v4 (6, 0x2) ph1C: VT3E8@4ffffffc
+uEm061_00 em061 v4 (6, 0x3) ph0A: PH 1 | POST 4@f2cae8 | M L0M31@f2cb00 | SET 0@4ffffffc
+uEm061_00 em061 v4 (6, 0x3) ph1B: IDLE
+uEm061_00 em061 v4 (12, 0x0) ph0A: PH 1 | POST 4@f2cae8 | M L0M31@f2cb00 | SET 0@4ffffffc
+uEm061_00 em061 v4 (12, 0x0) ph1B: IDLE

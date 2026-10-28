@@ -1,0 +1,14 @@
+PASS em003_00 Hyper 1,2  -- {"offRow":true,"offOpts":["normal","rage","tired"],"setTired":true,"onRow":false,"onTired":false,"onOpts":["normal","rage"],"backRow":true,"lvOn":-1,"lvBefore":0,"lvHeld":0,"dis":[],"backDis":[]}
+PASS em001_00 Hyper 1,2  -- {"offRow":true,"offOpts":["normal","rage","tired"],"setTired":true,"onRow":false,"onTired":false,"onOpts":["normal","rage"],"backRow":true,"lvOn":-1,"lvBefore":0,"lvHeld":0,"dis":[],"backDis":[]}
+PASS em043_00 Hyper 1,2  -- {"offRow":true,"offOpts":["normal","rage","tired"],"setTired":true,"onRow":false,"onTired":false,"onOpts":["normal","rage"],"backRow":true,"lvOn":-1,"lvBefore":0,"lvHeld":0,"dis":[],"backDis":[]}
+PASS em082_00 Hyper 1,3  -- {"offRow":false,"offOpts":["normal"],"setTired":false,"onRow":false,"onTired":false,"onOpts":["normal"],"backRow":false,"lvOn":2,"lvBefore":2,"lvHeld":0,"dis":["2"],"backDis":[]}
+PASS em003_00 0|Motion[15] clip gate  -- {"offTired":true,"disabled":true,"disabledN":2,"movedTo":"Motion[1]_loop","heldTired":false,"back":true}
+PASS em001_00 0|Motion[14] clip gate  -- {"offTired":true,"disabled":true,"disabledN":1,"movedTo":"Motion[1]_loop","heldTired":false,"back":true}
+PASS em043_00 0|Motion[15] clip gate  -- {"offTired":true,"disabled":true,"disabledN":1,"movedTo":"Motion[1]_loop","heldTired":false,"back":true}
+PASS em057_00 0|Motion[10] clip gate  -- {"offTired":true,"disabled":true,"disabledN":1,"movedTo":"Motion[1]_loop","heldTired":false,"back":true}
+PASS em071_00 3|Motion[23] clip gate  -- {"offTired":true,"disabled":true,"disabledN":1,"movedTo":"Motion[1]","heldTired":false,"back":true}
+PASS em010_00 0|Motion[1] plays untired (row withdrawn)  -- {"tired":false}
+PASS em042_00 0|Motion[2] plays untired (row withdrawn)  -- {"tired":false}
+PASS em080_04 offers no Exhausted (never tires)  -- {"row":false,"opts":["normal","rage"]}
+
+12 passed, 0 failed

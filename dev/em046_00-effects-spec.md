@@ -75,3 +75,18 @@ c 11, u 30), recorded, lifted.
 - The looping play then reached the pool's RELEASE `0x419e0` ("0x41a94 branch to unrecorded 0x41ac8": a bitmap word run out
   without the object). Read whole (..0x41b14); a native in bridge.js, controlled the same way (`zg/pool2ctl.py` + `pool2ctl.mjs`,
   3000 cases, 1356 releasing, 0 differ).
+
+## Lane A3 (2026-10-26): u 300 / u 310 (rom-map "Effects lane A3")
+
+The dive chain 0xea6404 asks u 300 (r7 0) or u 310 (r7 1) into e+0xcb2c: (7, 0x8f) / (7, 0x90) at L4 M34's start, (7, 0x96) / (7, 0x97)
+at L4 M37 f80. The handle lives through the chain (L4 M35, then the emergence L4 M36) and is stopped when the emergence's hit slot
+ends (about f28), or at once on any other action. Built: CLIP_VARIANTS L4 M34 / M37 copy A (u 300) / B (u 310), MOTION_STATES
+holdAt at f0 / f80, held to the clip's change. u 1400: no class site, and the shared latch needs e+0x1408 bit 0 (Lavasioth's
+alone) -- a ROM reason for the coordinator.
+
+## Lane A4 (2026-10-26) -- (2, 0x1e)
+
+`0xea16f8` -> `0xea1c10`: phase 0 posture 0, P+0x1bc = 120.0, no motion; phase 1 counts it down (`0x7206c`) and issues (2, 0x1e) again
+(`0x75230`). It is the only issuer: none in his band or the shared enemy code by immediates, none in em046_00_cmdtbl.emc (control: his (2, 0xc)
+issuer `0xea1cc8`; `00 02 0c` in the table). A 120-frame wait in the u 300 / u 310 keep set: a held handle survives it; it plays no clip, so the
+viewer has nothing to build. (0, 7)'s burrow P+0x5c is tune[0x26] (`0xea0720`, the value not read): not drawn by the sink rule.

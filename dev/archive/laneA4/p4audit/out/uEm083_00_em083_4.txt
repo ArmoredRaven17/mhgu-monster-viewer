@@ -1,0 +1,4 @@
+uEm083_00 em083 v4 (2, 0x11) ph0A: POST 4@1055f38 | M L0M40@1055f4c | PH 1
+uEm083_00 em083 v4 (2, 0x11) ph1B: IDLE
+uEm083_00 em083 v4 (12, 0x0) ph0A: POST 4@105dbcc | M L0M40@105dbe0 | PH 1
+uEm083_00 em083 v4 (12, 0x0) ph1B: IDLE

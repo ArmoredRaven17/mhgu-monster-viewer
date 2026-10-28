@@ -344,6 +344,128 @@ Not effect-runtime code. Effect models and monster models share this pass, so a 
   type can mean a different thing per class; do not reuse GU's numbers. **Trap (method):** a record picked by the size type looks
   "never fired" at the viewer's default type. Check P+0x5cb6 gates before calling a record missing.
 
+## E26. GU Hyper: a quest flag, a part-aura table, two held auras (2026-10-25) -- GU-ONLY
+
+**GU-only** (Raven, 2026-10-25: "4U lacks hyper, hyper is a GU only thing"). Only the method carries over: a state field that
+drives a held aura on a part and switches per-part biases. Do not look for this mechanism in 3U / 4U / FU (4U's Apex state is
+added parts, Raven's lead, unread there: dev/effects-porting-guide.md 5).
+- **(a) What it is.** A quest's monster entry flags the monster hyper; the class attaches a per-monster data file listing aura
+  "parts" in two groups; the shared code holds one aura of each group (an ordinary held effect record), stepping both at HP
+  thresholds tied to an action (the rage roar), and per-class hooks fire burst records and change motion rates on chosen frames.
+- **(b) GU's addresses.** Flag e+0xb720 (vt+0x170 0xca664, from the spawn setup 0x6fa58 reading byte +0xb of the quest's monster
+  entry); data rEmDouMouKaData (`enemy\dou_mou_ka\<id>_doumouka.mdd`, vt+0x150 0xca68c); the aura step 0xca1f8 (u id 47 + ID ->
+  u 1300 + ID through the base u table 0x159c7fc; handles e+0xca8c / +0xcaa0; stop 0x329c40(h, 0)); the HP step vt+0x194 0xca980;
+  bursts 0xca4e0 (u 1310 + ID) from per-class hooks (Rathian vt+0x478 / +0x490); part biases 0xca6b0 / 0xca754 (per part).
+- **(c) How to find it elsewhere in GU.** Grep a monster's arc for `dou_mou_ka`; the class names `cEmDouMouKa_*` are in rodata.
+- **(d) Viewer.** The Hyper part toggle (index.html stepHyper, docs/hyper-auras.json); ~~the motion side is held~~ the motion side
+  built 2026-10-27 (index.html stepHyperMotion, docs/hyper-motion.json; (g) below; dev/hyper-states.md 6).
+- **(e) Which data, and what the bias touches (READ 2026-10-25).** The data file is chosen by quest rank at spawn (G -> the `_g` file:
+  e+0xb736 = rank > 4, the loader 0x4bd64's column 0x26 / 0x27); the MeatChange bias (vt+0x18c 0xca900) reaches only the DEFLECT
+  classifier (cut / impact x bias -- the Hardness) and the shot deflect paths (+ bias), never damage. Method for another game: find
+  the loader by the data class's getDTI (here 0x51400) and its GOT slot's loads; find the bias consumers by the vtable slot's
+  `ldr [vt,#slot]; blx` sites behind the state flag.
+- **(f) The eyes (2026-10-27, dev/hyper-states.md 5).** The glow is effect DATA, not code: the head aura's own file carries a pair of
+  rows per eye selected by a per-monster MASK1 bit -- a reverse-subtract halo (1.22, 1.84, 1.15; bias -15) and an HDR core
+  (4.0, 0.99, 0; bias -10) -- placed at the eyes by the effect's own node offsets from the head joint (no eye joint). No class's
+  hyper code calls a material / clip / part-set routine (90 sites). **The engine point (likely shared MT):** an opaque-colour model
+  particle's depth state depends on the context pass left by whatever drew before it in the frame -- not 0x11: the unsorted emit
+  with a fixed depth-WRITE slot (GU 0xc8ea44 / 0xc8f2dc); 0x11 (a GPU node particle's draw leaves it): the sorted emit with the
+  row's own flags (here DSZTest, no write) and depth / bias order. A halo drawn in front of its core hides the core on the first
+  path and frames it on the second. **Trap:** a harness frame that holds only the effects under test starts every frame at the
+  scene setup's pass and shows the first path; compare with an in-game image before calling such a row black or missing.
+  **Which pass, READ (GU addresses; the shape is MT's):** a model unit's draw pushes / pops the context state around the model
+  render (0x93815c: 0x8777e4 / 0x8787b0), an effect unit's (0x9b75e8) does not, so only an earlier effect unit's node draw changes
+  it; sUnit's draw (0xc03cd0) either runs every unit on one context in line order or copies the context to the job workers
+  (0x878b38), which take units in a dynamic order -- the pass depends on what else is live and can change frame to frame. Viewer:
+  the input "Effects drawn before" (None 0x15 / a GPU-particle effect 0x11) for the units it does not have, render/rom/effect/host.js
+  `framePass`. (c) elsewhere: look for the context-state push / pop pair around the model render (a memcpy of the state block onto a
+  stack in the context) and check whether the effect unit's draw has it. (c) elsewhere: find the pass setter by its callers' immediates (here
+  0x87cf70, 241 sites; the node draw's `movwhi rX, #0x13` default 0x11), and the model draw's unsorted test by the pass compare.
+- **(g) The motion side (2026-10-27, dev/hyper-states.md 6).** Two mechanisms change a held aura's motions, neither joins clips:
+  (1) a CLASS HOOK per frame (GU: vt+0x1ec below G from the action main, vt+0x1f0 at G from the running frame before the motion
+  advance) switches on each held slot's aura ID and the motion id, and at frame tests sets the motion's rate factor (a layer-speed
+  factor the next setMotion puts back to 1.0) and requests a burst record (u 1310 + ID); the G hooks test their rates "at or past"
+  (re-set each frame), bursts as crossings. (2) the data file's per-ID ACTION table: at every action set, with both groups held,
+  group 0's then group 1's entries are searched for the new action (status, number) and a percentage roll; the hit's
+  MotionSpeedRate (clamped by its Limit) multiplies the action's base speed, so every motion of that action starts at it. Speed =
+  data factor x hook rate. Shell entries (class number, attack, scale) resize the shells that carry a held ID. **Method for
+  another build:** don't transcribe hooks by hand -- run each class's dispatcher under an emulator with the slot IDs and motion id
+  set, the frame predicate answered from a swept clock, every shared call stubbed and logged (GU:
+  `<archive>/hypermotion/hookemu.py`; one class dispatched on a second em field, e+0xb5f0). **Trap:** a hook's own switch is on
+  the motion id, the data table on the action -- a viewer that plays clips needs an action -> motion census for the second.
+  **Attacks (2026-10-27, dev/hyper-states.md 7):** the data table's AttackRate / PowerRate reach only the hit object's POWER (GU
+  0x1689b0: power x rate, a byte + power), never the hit shape; the class action code has no hyper path at all (every action
+  emulated off / on, with a positive control). So a hyper attack differs by speed, its bursts, its power and its shells' scale.
+
+## E27. The notice marks: a sense scan, a memory timer and a combat byte (2026-10-25)
+
+- **(a) What it is.** Every frame the enemy's pre-action tests each hunter against a SENSE RECORD from the monster's own tuning
+  file: inside a near radius he is seen outright; otherwise he must be inside a horizontal range, inside a yaw cone about the eye's
+  facing, inside a height band about the eye (or a pitch cone), with a clear stage segment from his chest to the eye. A seen hunter
+  gets a per-hunter MEMORY (a frame count from the base data file), counted down by 1 a frame. A byte moves 0 -> 2 on the first
+  sighting while calm ("!" record) and 2 -> 0 when every memory has run out ("?" record); 2 -> 1 (combat) and 1 -> 0 (a timeout of
+  its own) fire nothing. The eye is a joint: its translation, and the yaw / pitch of its Z row (optionally turned by two angles).
+- **(b) GU's addresses.** Pre-action 0xa50dc: 0xc8d20 (memory 0xc9548, 2 -> 0) -> 0xa5468 (distances) -> 0xc3088 (the scan; test
+  0xc3c4c, cone 0xc411c, segment 0x49c08 -> 0x182f04) -> 0x7f010 -> 0x7e9c8 (0 -> 2). Both edges go 0xbcae0 -> 0xa4388 (c 1200 /
+  c 1201). Sense records: dttune [obj+0x78], 32 bytes x obj+0xf9, picked by P+0x249 (0x71088); memory: dtbase [obj+0x8c] s16 pair
+  (0x71248). Gates: P+0x1a8 bit 0 (0x159c2dc per em id), P+0x24a bit 0 (3 at spawn), the enemy manager's round-robin (one enemy
+  scans per frame, 0x5a3b8). All rows: dev/rom-map.md after `0xa4388`.
+- **(c) How to find it in another MT build.** Find the "!" / "?" record ids in the shared request table (here 1200 / 1201); the
+  request's only callers are the combat-byte setter (0xbcae0 here); its callers with 2 are the notice path, with 0 the timer. The scan
+  is the routine that ORs the per-hunter detection bytes; its test reads a 32-byte record from the tune file (range, height, two u16
+  half-angles) and converts atan2 to u16 with 10430.378 (65536 / 2 pi). The memory is the s16 loaded into a per-hunter float right
+  after the OR. 4U's notice marks (an older note: 1000 / 1001 on a combat flip at 0x91aa88, task board) are UNREAD against this.
+- **(d) Viewer.** render/notice-sense.js (the table, senseCone / senseTest / NoticeEdges / eyeOf), index.html stepNotice: the
+  stand-in hunter is the Hunter control's point, the stage is the floor plane. The combat byte 1 is set by EVENTS in the ROM (hit
+  reactions, group-5 forced transitions, class code -- 0xbcae0(e, 1)), never by rage (0xbcdb0 writes P+0x518 only), and falls back
+  to 0 by its own timeout; the viewer's stand-in is the RISING EDGE of the rage it shows after the monster is up (INFERRED: the hits
+  that enraged him), a rage held from the mount being no event (lane B3, 2026-10-27; until then Enraged HELD the byte at 1). The Hunter
+  control's Far (25000) is beyond every record, so "?" can be reached on every monster. The notice turn (command group 4) is
+  animation and is not built.
+- **(e) Traps.** The record count varies (1..3 records); reading a fixed 3 gives garbage rows 1 / 2 on 67 monsters. The near radius
+  is not small on every monster (Kirin 5000; Lao-Shan, Nakarkos and Ahtal-Neset 20000): a hunter behind at 2100 is still seen. A flag bit (GU: P+0x1a9 bit 7, from the per-em table) sees every hunter outright, so
+  the "?" never fires on those monsters (GU: Lao-Shan Lung, Ahtal-Neset, Ahtal-Ka). Rage is not the combat byte: a stand-in that
+  holds the byte at 1 while the viewer shows rage hides both marks on a monster whose viewer state is always enraged (GU's Furious
+  Rajang, whose "permanent rage" is a look; fixed 2026-10-27: the edge, above) and never lets an enraged monster lose the hunter.
+
+## E28. Flashed: a shared enemy state -- a flash-source list, a cone test, a blindness timer, one held record (2026-10-25)
+
+- **(a) What it is.** A flash item does not hit the monster: its shell REGISTERS A SOURCE (point, radius, area, live) in a small
+  table the enemy manager owns. Each frame the enemy's sense scan, after the hunter test, tests every live source in its area
+  against the EYE of its sense record: horizontal distance within the source's radius, height within the record's band, and yaw /
+  pitch within a second pair of half-angles in the same record (the FLASH cone, wider or narrower than the sight cone). A pass sets
+  a BLINDNESS TIMER from the monster's tuning file: a row of three durations (calm / enraged / tired), reduced by a fixed amount for
+  each earlier flash (the count is capped) with a floor, counted down 1 a frame and zeroed at death. While it runs, the shared
+  per-frame state pass holds ONE record -- the same record and the same handle as the stun's stars, requested once and stopped when
+  neither blindness nor stun nor a third (small-monster) condition holds -- and the sense scan sees no hunter, so the notice
+  cannot fire; the command interpreter restarts into the flash reaction group (animation). Immunity is DATA: a bit in the base
+  data file's flag word (with a second bit allowing it while burrowed); a class can also close the scan's own gate byte at every
+  action start, or flip the data bit per state (enraged, underwater).
+- **(b) GU's addresses.** Source table G+0x28f8 (8 x 24 B; adder 0x5bacc from uShellPlcom_000 / uShellOt001 / uShellPlw04_000;
+  reader 0x49e7c). The test 0xc3934..0xc3bc4 inside the scan 0xc3088: gates P+0x24a bit 1, 0x99c58(e, 4) (P+0x3a8 = dtbase obj
+  +0x6c: bit 2 flashable, bit 3 in posture 4), P+0x5a4, the Chameleos area timer 0x5c1a8, e+0x7420, 0x810d4; the cone = sense
+  record +0x1c / +0x1e. Timer 0xa1a88 -> P+0x59c = s16 [[dttune obj+0x64]+0x58][1][calm | enraged | tired] (null 1800) - 300 x
+  P+0x5a1, floor 300, P+0x5a1 capped 3; countdown 0xc9080; zeroed 0x75be4 (death). The record: 0xa3ef0 (vt+0x28) -> vt+0x1cc id 3
+  = c 1103 into e+0xb62c, stop 0x6f124. Hunter test skipped 0xc362c, notice refused 0x7ea24. GU-only: every offset, the bit
+  positions, the id 3 / key 1103. Rows: dev/rom-map.md section "Flashed".
+- **(c) How to find it in another MT build.** Start from the stun-stars record (here c 1103): its shared requester tests THREE
+  conditions; the float one is the blindness timer. Its only setter reads a three-entry s16 row from the tuning file and contains
+  the constants 300.0 and 1800.0 (GU; check the build's own) and a count byte capped at 3. The setter's caller is in the sense scan
+  (the routine that ORs the per-hunter detection bytes): the loop just after the hunter loop that walks a fixed-size global table and
+  converts atan2 with 10430.378. The source table's adder is called by the flash item shells (find them by class name: the player
+  common shell, the Palico shell). The immunity bit is the one tested with an AND-equals helper on the per-unit copy of the base
+  data's flag word just before that loop. 3U / 4U / FU: UNREAD against this.
+- **(d) Viewer.** shared-states.js FLASH / FLASH_BLIND / FLASH_IMMUNE / flashable / flashFrames; index.html `#monFlashed`
+  ("Flashed", in the shared row) and stepFlashed (schedule.holdEvent of c 1103, one handle shared with the stun rows; a `dead` row
+  stops it; noticeSeen / 0x7f010 refuse while it holds). Held until switched off (the game's time is flashFrames). The flash
+  reactions are not built. Instruments: `<archive>/flashed/flashemu.py` (the test under unicorn, controls), `census.py`,
+  `flashmeter.mjs` (the draw meter on the switch).
+- **(e) Traps.** The flash cone's two u16 are read through a pointer to the record copy + 4, so an offset scan for the record's
+  +0x1c finds nothing (rom-map trap 155). Immunity is not only the data bit: GU's Chaotic Gore Magala has the bit and a tune row,
+  but its class writes the scan's gate byte to 1 at every action start (trap 156). A row of zeros is not immunity (the floor makes
+  it 300: Ahtal-Ka), and a null row is not immunity either (the default: Valstrax 1800). The stun-stars record being the same
+  handle means a stun that ends while blind does not stop it, and a blind that ends during a stun does not either.
+
 ## The shell engine (shells lane, 2026-10-18)
 
 Written to carry over to other MT Framework builds (3U, 4U, FU, ...). For each mechanism: (a) what it is, (b) GU's addresses, (c) how
@@ -388,6 +510,13 @@ to find it elsewhere. Pointers, not copies: the per-monster detail is in dev/*-s
   ...)` (mask 0x10 floor, 0x20 wall), hit / land -> vt+0x150 (base00's landing; a class may override), end vt+0x148(flag).
 - **End** vt+0x148(0): handles stopped gracefully, state 0xfe, an end effect maybe; (1) deletes.
 - The frame step every move reads: the unit's +0x1c (dt) or the global `[[0x211f764]+0x68]`.
+- **After the motion ends** (2026-10-26): shells and effects run on -- they are units on the move line, stepped every frame whatever
+  the monster's motion (`0xc044c4`). A viewer that drives its effects from the clip's time must keep stepping them, on the wall clock,
+  once a play-once clip has finished, and freeze them only for the user's pause or scrub (index.html animAdvance, `act.userHeld`).
+- **Clip frame vs action frame** (2026-10-26): a maker's frame test reads the ACTION's own counters (dt timers, "on the first
+  move", `0xb0968` on the motion it set) -- the same thing as the clip frame only while the action plays its motion from 0 at rate 1. An
+  action that enters its motion mid-way (Ahtal-Neset's (1, 0x15): L0 M9 from 230.0 at 0.6) or holds it (his (1, 8): rate 0) needs the
+  count from the action's start; the viewer keeps both (render/shells.js: clip rows `frame`, action rows `act`; rom-map trap 162).
 - (c) In another build: start from one known shell id's class DTI -> its vtable -> slots +0x13c / +0x24 / +0x14c / +0x148 / +0x150;
   the base's code is shared by every class of that base (a slot-for-slot vtable comparison finds the base: rom-map 139).
 
@@ -503,6 +632,10 @@ init, in order. The spec holds the rest.
   - The measure: what the record's requests submit to the draw, and the pixels they light when drawn alone.
   - Three ways a started record can draw nothing:
     1. Its effect builds no generator. The ROM decides this: a row mask that selects no row, a floor-flag row.
+       Or its generator spawns particles with a ZERO life: a row whose col2 block (fade-in / hold / fade-out) is 0 / 0 / 0 puts
+       each particle straight into the fade-out with a counter of 1 (spawnLife 0xaea108), and the life pass of its own spawn
+       frame (0xa60f68 -> 0xaeae40) frees it before the frame is drawn -- the ROM's own run draws nothing too (Nakarkos u 215,
+       lane B3; `<archive>/laneB3/gen215.mjs` shows a record's generators and life steps per frame, headless).
     2. It draws, but no mesh shows. The viewer decides this: a texture or model not loaded, a technique not drawn.
     3. It draws off camera, at zero alpha or at zero scale.
   - The primitive layer queues each unit's primitives and emits every batch at its end (merged across units). So a per-request
@@ -690,3 +823,41 @@ the shape-type byte 3 the builders leave, and the hunter pass's three-way switch
   The beam's query (0x43ac8c) takes slot 0's hunter latch before the stage, as every shell's does.
 - **Hit kinds a standing hunter never takes:** 8 / 9 / 0x34 / 0x45 (never hunters), 0xc / 0xd / 0x1e (0x2f5bf0: only a hunter in action
   group 0x80); 0x41 marks the player (0x2a6640) and leaves the shell alone. Codes 4 / 6 are the flat-ended cylinder (hit-type3.js).
+
+## Class threads: the stretched-effect slots (lane B2, 2026-10-25)
+
+Some classes hold effects in numbered SLOTS that their own pass marks active every frame and re-aims between two points it computes
+(Ahtal-Ka's vt+0x208 head 0x10b7798, Ahtal-Neset's 0x10a8438). A slot: +0 handle, +4 active (cleared each call), +8 id, +0xc / +0xd
+start kind / param, +0x10 start point, +0x20 start offset, +0x30 / +0x31 end kind / param, +0x40 end point, +0x50 end offset, +0x60
+the stop byte (1: stop hard, 0: graceful). An active slot with no handle is requested, then stretched the same frame; an inactive one
+with a handle is stopped. POINT KINDS (the same numbers in both classes' passes): 1 a joint's position (0xc164c), 2 a joint +
+an offset turned by the joint's matrix rows (0xc15a4: p = t + ox row0 + oy row1 + oz row2), 3 a kept point; end 3 = an OBJECT k by its
+slot state in the fight object (0x10ae8d0: 3 a free unit's +0x40, 2 the carrier's joint 0x82, 1 its spot, else (0, 0, 0)). The viewer:
+render/class-threads.js (rows) and schedule.js stepThreads (starts: a joint number, `{ joint, offset }`, or `{ point }`). Portable: a
+port reads the class's own pass for its slot writes; the kinds and the slot layout are the shared request system's.
+
+## Joint -1 is the unit (effects lane A4, 2026-10-26; audit only -- the shipped rule is unchanged, Raven decides)
+
+* A record's joint is `ldrsh [desc+0x72]` (0xffff = -1). Every placement arm of `0x31d16c..0x31f9b0` sends -1 to the parent's +0xb0 (vt+0x54(-1):
+  uModel `0x939278`, the enemy's override `0xc156c`, same body), its translation +0xe0, or (no model) +0x40. **+0xb0 is the unit's world matrix**:
+  `0x8a53bc` copies +0x40 into the local translation and `0x8a5480` builds +0xb0 from it (rows x scale; a parent's vt+0x54 x local otherwise).
+* The spawn-height test's point (`0x328c10` -> core vt+0xac `0x329b7c`): joint -1 is the parent's +0x40 -- no joint getter at all.
+* The viewer (live.js unitMatrix / originBone) puts joint -1 at the gid-0 bone (the hips): ~214 game units above the unit at the median over all
+  1436 joint -1 clip records (`<archive>/laneA4/joint1/joint1_table.csv`). Measured what-if (joint -1 = the unit): the seven Gammoth / Elderfrost
+  records that die at their 300 limit start and draw; nothing loses a start. For a port: take joint -1 from the unit (P+0x40), not a bone.
+
+## Nodes that face the camera (kushwind, 2026-10-27; READ; rom-map "Kushala's wind aura")
+* The node update's tail (`0x9bca10`) calls `0x9bca30(owner, node)` when the node's +0x110 bit 12 is set (node init `0xae83c8`: bit 12 =
+  node block +4 & 0x30000, bit 13 = block +4 bit 17). It takes the camera of the first viewport the owner draws in (sCamera `*0x211f504`,
+  slot +0x54 + 0x1b0 k for owner +0xc bit 16 + k) and turns the NODE: bit 13 -> `0xafb350` aims the node's Z at camera +0x70 (its
+  position) with the camera's up +0x50; bit 12 alone -> rows x inverse(the camera's view). Translation kept; the +0x40 copy follows.
+* Every emitter spawns through the node's matrix (`0xa59c1c`), so an emitter offset along Z (shape 6: z = base +0x70) goes TOWARD THE
+  CAMERA. Data pair it with the model draw's view-ray push (param +0x10c bit 28, +0x110): Kushala's / Amatsu's aura discs emit 500 toward
+  the camera and push 500 back -- on the body from every side. Without the turn they sit 600 along world +Z: right from the front only.
+* 1055 of the GU export's records hang rows on such nodes (the shared break flashes cm202_060 and state puffs cm200_004 among them). A
+  port must run this per node per frame with the GAME camera, before the spawns. A recorder whose camera is identity-rotation at +z
+  cannot show its absence.
+* The camera's +0x70 (the point the node aims at, and the effects' distance tests measure from) is written every frame by uCamera
+  vt+0x28 (`0x895af8`): the eye recovered from the look-at view, -(translation through the view's 3x3). The bit-12-only arm's inverse
+  is `0x232e24`, a straight-line single-precision cofactor inverse (identity on a zero determinant); docs/render/rom/effect/rom-inv44.js
+  is its line-by-line transcription, bit-exact against the ROM.

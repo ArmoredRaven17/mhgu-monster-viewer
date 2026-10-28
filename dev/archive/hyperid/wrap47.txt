@@ -1,0 +1,4 @@
+002abbfc  002abbdc r1, #0x3a    -> 00204f48
+002abc84  002abc64 r1, #0x32    -> 002047e0
+00d153a4  00d15398 r2, #0x3a    -> 000ca5d0
+total 3 targets checked 298 reaching 3

@@ -275,6 +275,63 @@ issuing the L2 M41 / M42 actions; P+0x5c at the burrow plays (`0xf3cc88` / `0xf3
 
 **L0 M10's u 1400 is the burrows' (6, 2 / 3 / 6)** (reqtrace.py); the walks and the (7, n) plays set L0 M10 with none -- now copy B, both variants. **The arm rows are at [e+0xcacc]**, not ctl = [e+0xcac0]: `ldrh [[e+0xcacc] + 0x2c]` / `+ 0x20` (0xf469c8..0xf46a00); re-emulated with them there -- 657920 runs, 0 mismatches, 72 words (the transcription was right; the earlier emulation matched with both rows unread).
 
+## 5. Raging Brachydios's slime eruption (2026-10-25; Raven: "I would like anything related to attacks such as the slime pools")
+
+* **The four slots**: 0 left arm, 1 right arm, 2 head, 3 tail, in the block [e+0xcacc]: countdown +0x50+8k (2700 per cycle, burnt by
+  e+0x1c while live), state +0x54+8k (0 Yellow, 1 to Red, 2 Red, 3 to Yellow; the material clips), trigger +0x56+8k, fuse +0xb0+4k,
+  warning handle +0xc0+4k.
+* **The hit** (0xf46f34 -> 0xf36984): a Red slot with its fuse spent erupts: the warning **u 200 + slot** (em063_05_001 on joints 7 /
+  10 / 3 / 143) held for a **30-frame fuse**, then **the explosion** (0xf46234): the warning stopped, the slot Yellow, an explosion
+  **shell** (mode 0x17..0x26 by slot, break level and rage). u 204 (joint 142) has no request site.
+* **The pools** (Brachydios and Raging): shell01 / shell35 records (u 0 / 1 / 10 / 11 / 30 / 31 / 40 / 41 / 50 / 51, triage), with no
+  SHELL_DATA yet -- the shells lane. -> **Built 2026-10-25: section 5a.**
+* **Built**: the Slime Hit control and the warning (motion-states.js CLASS_TIMERS em063_05). Working labels, for Raven: **Slime Hit**:
+  None / Head / Left Pounder / Right Pounder / Tail. The 2700-frame per-slot cycle is not shown (Red is Raven's Red Slime, whole
+  body); a spent slot waits for Red Slime to be set again -- a choice for Raven.
+
+## 5a. The shells: the slime pools, the explosions, the lines and the eruption (shells lane, 2026-10-25; <archive>\gapQ\RESULT.md)
+
+Built in render/shells.js (SHELL_DATA em063_00 / em063_05; the code under "Brachydios / Raging"); rom-map "Brachydios / Raging -- the
+shells". Every value below is READ (the consuming instruction read), except where marked.
+
+* **Three shells per class** (vt+0x158 0xf35108): Brachydios 0x110 **sp_01** (base01: the explosions, reader 0xf4815c), 0x111 **sp_11**
+  (base11: the slime line and the scatter), 0x112 **sp_35** (a NEW base, base35 0x175169c: **the slime pool**); Raging the same as
+  0x113 / 0x114 / 0x115. Raging's EffectList is index 1 (em063_05u; index 0 null).
+* **The pool** (sp_35, base35): a timer (float 0: **300 frames Brachydios, 150 Raging**), one ef from its init to its end (u 0 / 10
+  Brachydios; u 100 / 10 / 110 Raging), then at timer-out an sp_01 at its spot (int 1: Brachydios mode 6 u 1 / mode 7 u 11; Raging 6
+  u 1 / 7 u 11 / **21 u 111**). **No warning stage in the shell**: nothing else starts before the explosion (a flash inside the pool's own
+  .efl is not read).
+* **The fists** (0xf458ec, probe 0xf454e0: joint 40 left / 50 right, a ray down to the ground within +-300): a calm fist leaves a pool
+  (sp_35 0); an **enraged Brachydios** fist explodes at once (sp_01 3, u 50); a Depleted arm (level 0) makes nothing. **Raging**: a Red
+  slot's fist explodes at once (sp_01 14, u 50), a Yellow slot's leaves a pool -- with Red Slime off sp_35 0 (u 100), with the slot spent
+  under Red Slime sp_35 4 (u 110) and its explosion sp_01 21 (u 111). The two-fist slam L2 M3 (0xf3b7e8): two pools, or sp_01 4 (u 40) /
+  5 (u 41) with one arm Depleted; Raging sp_01 17 (u 130) / 18 (u 131).
+* **The sites**: L2 M28 / M29 f72; L2 M11 / M13 f26 (an instant explosion); L2 M54 f72; L2 M5 / M8 f6 (the turn punches); L2 M3 f8 / 34
+  (f30 for (7, 0xb2)); L2 M42 f125 the slime line (sp_11 1 -> eight sp_01 1, u 30) and f90 the big pool (sp_35 1 550 ahead, u 10 -> sp_01
+  7 u 11); L2 M41 f190 the scatter (sp_11 0 -> twelve sp_01 0, u 31) and f124 the big pool 400 ahead; the frame handler 0xf3552c on L2 M22
+  (f114 / 152 / 180); the status-3 walks L0 M52 / 54 / 57..63.
+* **The eruption** (Raging, 0xf46234): on the fuse's burn-out, sp_01 modes 23..38 AT A JOINT (head 3, left arm 40, right arm 50, tail
+  143; the file's int 4 = 0), u 210: head 0x17 / 0x18, left arm 0x19 / 0x1a, right arm 0x1b / 0x1c, tail 0x1d / 0x1e (calm / enraged);
+  the broken head / arms 0x1f.. / 0x21.. / 0x23.., the severed tail 0x25 / 0x26. A slot not Red at the burn-out makes none.
+* **The viewer's inputs** (index.html shellExtra): `arm063` [left, right] (monster.js armSlimeLevels; Brachydios only), `breaks063`
+  (motion-states.js brachyBreaks063: a part whose broken set is drawn is at level 2 -- the part pass's own test against the same .dtp
+  threshold, 2 everywhere), `slime063` / `erupt063` (the effects lane's slime timer: Red while Red Slime is on and the slot not spent;
+  the burn-out slots with a sequence number), `tailSevered`. The shells take each `erupt063` sequence once, and a burned-out slot as Red
+  for its own explosion (the timer has already marked it spent; the ROM turns it Yellow the next tick) -- rom-map trap 146.
+* **Exported** `when: shell`: em063_00u 0 / 1 / 10 / 11 / 30 / 31 / 40 / 41 / 50 / 51; em063_05u 1 / 10 / 11 / 30 / 31 / 40 / 41 / 50 /
+  100 / 110 / 111 / 130 / 131 / 210. Not exported: em063_05u 21 (no such record; only the unmade sp_01 mode 8 names it).
+* **No maker** (negative, control: the 8 submit sites): sp_01 modes 2, 8, 10..13, 15, 16, 19, 20, 22.
+* **Check**: `node dev/shells-brachydios-check.mjs` (stepShells on a stand-in pose: the modes, timers and keys above).
+* **The eruption hand-off (fixed 2026-10-25; Raven: "the explosion doesn't render each time")**: the slime timer steps once per viewer
+  frame and the shells once per 1/60 s effect step, so a burn-out kept for one timer step was lost on any frame that ran no effect step
+  (0 of 5 real clicks drew at a 144 Hz clock, 4 of 5 at a jittered 60). The timer now logs each burn-out (`t.elog`: id, slot, the state at
+  the burn-out) and the shells take each id once (eruptStep063); the effects lane's slime063 burns nothing on a fresh step (5b). Re-metered
+  with real clicks (<archive>\gapS\slimeclick.mjs, one row per click): 60 of 60 eruptions drew u 210 over three clocks, two camera
+  distances, parts in turn, the same part after its re-arm, rapid clicks, paused, scrubbed back / forward, Red Slime set mid-clip, four
+  clips and a clip change during the fuse. A click on a part that is still Yellow (the 60-frame re-arm and the 15-frame turns) makes no
+  eruption -- 0xf36984 needs it Red -- and adds 180 frames to its wait (0xf46f34): the rule, not a miss. rom-map trap 154.
+* **Metered** (2026-10-25, slot 1; dev/shells-draw-table.md): **22 of 24 draw**. Brachydios: u 0 / 1 / 10 / 11 / 30 / 31 / 40 / 41 / 50 (u 41 with the Right Pounder Depleted, enraged L2 M3); u 51 ROM GIVES NOTHING (mode 8, no maker). Raging: u 1 / 10 / 11 / 30 / 31 / 40 / 50 / 100 / 110 / 111 / 130 / 131 / 210 -- re-metered against the rebuilt slime timer (the hit through window.__slime063.hit, as a click on the model): u 210 on each hit Red part's burn-out, three eruptions of one slot in a row (the 60-frame re-arm), u 110 / 111 / 131 while a hit part is Yellow; u 41 INPUT MISSING (sp_01 mode 5 wants one arm Red with rage off: with Red Slime off the viewer's four slots are Yellow; the ROM's slots cycle on their own -- put to Raven by the effects lane).
+
 ## Open items read (2026-10-19)
 
 (The sweep of dev/effects-open-items.md: each item below was named open above; the rom-map row is in the section "Effects open items -- the sweep's reads".)
@@ -295,3 +352,57 @@ issuing the L2 M41 / M42 actions; P+0x5c at the burrow plays (`0xf3cc88` / `0xf3
 * **Begins Burrowed -- BUILT 2026-10-19** (CLASS_TOGGLES `burrowed`, working label, approved by Raven): on, every posture-4 play
   reads sunk (0x81d6c: posture 4 and P+0x5c below 0.9 x MoguriBaseOfs); off, only the entries that name sunk. Checked on
   Basarios's L0 M7 B (dev/checks/class-toggles.mjs).
+
+
+## 5b. The slime hit as a click, and the per-slot cycle (2026-10-25; Raven: "we would need to simulate hits for the effects (could do this with mouse clicks that cause the explosion, it goes yellow then back to red)", "it should explode, go to yellow briefly then revert to red again", "This way people can do it multiple times if desired", "In game, it stays yellow until it goes red again")
+
+* **The cycle (R, 0xf36100 whole; spawn 0xf352e0..0xf353bc).** Each slot starts Yellow (state 0) with its countdown at 2700.0. While
+  the unit is live the countdown burns by e+0x1c; below 0 the slot flips (0 -> 1 to Red, else -> 3 to Yellow) and the countdown is
+  2700.0 again (0xf36224 / 0xf3622c). A set trigger byte +0x70+k turns a Yellow slot to Red at once (Move 6 at L0 M15 f158 sets all
+  four). The explosion 0xf46234 leaves the countdown at -1, so an erupted part flips to Yellow the next frame and **stays Yellow for
+  2700 frames (45 s)** before its own cycle turns it Red. A hit on a Yellow part adds 180 to its countdown (0xf46f34). Rage is not read
+  on the colour path (only the explosion's mode).
+* **Built.** A left click on the model (4 px / 350 ms; not a drag; not the first-person camera) is a ray against the .bdd hit shapes
+  (hitzones.json `capsules`); the nearest shape's part maps to the slot as 0xf36984 maps it. The **Slime Hit dropdown is removed**.
+  Red Slime is Move 6 (all four Red). A Red part hit erupts (the warning u 200 + slot 30 frames, then the shells' u 210) and turns Yellow;
+  each slot's colour is its own material clip (ROM_STAGE_CLIPS em063_05: Yellow_to_Red / Red_to_Yellow, held).
+* **Viewer re-arm (Raven, 2026-10-25); in game the part stays Yellow until its cycle turns it Red**: the erupted part is Yellow for
+  `SLIME_REARM063` = 60 frames (motion-states.js, one constant), then Red and armed again -- the ROM's value is 2700 (0xf36224 /
+  0xf3622c). Also named: while Red Slime is on, a settled Red part's countdown is held (the ROM would flip it Yellow after 2700 frames).
+* **Measured** (`<archive>/cen/pq/slime2.mjs`, `pq/slimeclick.mjs`): four eruptions of one part in a row with the re-arm between; a
+  click inside the Yellow window erupts nothing (+180); real clicks arm the head and both pounders; a 20 px drag arms nothing.
+* **"One arm Red, rage off"**: reachable in the ROM (the colour cycles per slot whatever the rage); not in the viewer, where Red Slime off
+  sends all four Yellow (the toggle's meaning, Raven's) -- the shells' u 41 stays INPUT MISSING unless the per-slot cycle runs with the
+  toggle off (a choice for Raven).
+* **The Red look (2026-10-25; Raven: "The Red Slime effect reverted back to its less rendered form", then "When clicking, it partially
+  renders the explosion, reverts to the correct looking red state instead of yellow").** The ROM's Red is the MapBlend alpha alone:
+  albedo = lerp(tAlbedoMap @ UVPrimary, the same texture @ UVSecondary with fUVTransform2's U +0.5 (the red column), fAlbedoBlendColor.a),
+  with fDiffuseColor 0,0,0 (the look is emission x albedo). Two viewer faults met when the per-slot clips started driving the alpha:
+  (1) the slime meshes are one-UV layouts (IASkinTB2wt / TBC1wt / TBC4wt / TB1wt / TB4wt, which declare UV_Secondary on UV_Primary's
+  bytes), the glb has no TEXCOORD_1, and the shader's `uv1` read (0, 0) -- Red was one texel, flat amber; (2) ROM_ARM_SLIME em063_05's
+  enrage U +0.5 on the albedo (HEAD's whole Red Slime) is not Raging's (0xf36dfc returns into 0xf36328 before the gauge block; no UV
+  setter on his path -- WITHDRAWN in rom-map) and still applied, so Yellow (alpha 0) drew the shifted albedo = full Red. Plus
+  rom/shader.js's MapBlend mixed the raw second map in, dropping the black fDiffuseColor (a lit albedo over the emission).
+  **Fixed** (monster.js buildMesh: `uv1` aliased to `uv` on MapBlend prims without one; ROM_ARM_SLIME em063_05 `enragedU: 0`;
+  rom/shader.js MapBlend `mix(diffuseColor.rgb, diffuse * ext.rgb, a)`). Per slot, from the ROM's clips: Red = Yellow_to_Red held = the
+  HEAD look (same camera and pose: the slime pixels match; red-classed pixels 24968 vs HEAD 24928, mean (191.8, 61.4, 26.1) vs
+  (191.9, 61.4, 26.1)); an erupted head is Yellow for the re-arm window, then the full Red again. The eruption's draw is unchanged by
+  the fix and not cut by the slot's colour change: u 202 lit on every sample (~52 frames live), the shells' u 210 lit 48/49 (~95 frames)
+  in both the pre-fix and fixed runs (draw meter, same camera). Shots: `<scratchpad>/slimefix/shots/` head2-rest, pre2-*, fix2-* (rest,
+  fuse, erupt, yellow, red). rom-map trap 147.
+  **Audit across the viewer, same day** (trap 147): MapBlend and so the shader line exist on em063_05 alone; the `uv1` alias now covers
+  every two-map albedo with no TEXCOORD_1 (all one-TexCoord layouts after the re-export), which changes em045_04 / em080_00 / em080_04
+  as well, and Khezu's (em003_00) TEXCOORD_1 is the ROM's UV_Secondary (zeros) instead of add-uv2's UV_Extend. Brachydios (em063_00) has
+  no two-map material: unchanged.
+
+## Re-metered 2026-10-25 (effects lane A)
+
+* Brachydios c 140 / c 141 draw with the matching arm at slime level 0 (the Parts row's level-0 option; `<archive>/cen/pq/arm063.json`);
+  u 1001 / u 1016 (break cycle arms) and u 1400 draw under census3; c 1500 draws lying on Ground H, both variants.
+* **Raging c 140 / c 141 are never enabled**: the arm-slime bits 19-22 of `0xf469a8` sit behind `e+0xb5f5 == 0` (section 1). A ROM
+  reason for the coordinator; control `cen/pq/arm063r.json` (none start) against arm063 (both draw on Brachydios).
+* **The hand-off to the shells (shells lane, 2026-10-25).** The timer steps once per viewer frame and the shells once per 1/60 s effect
+  step, so a one-step `erupt063` could fall on a frame with no effect step (144 Hz, jitter, a scrub). slime063 also appends each
+  eruption to `t.elog` (the last 32, `{ id, slot, col, n }`) and slimeShellInput hands it on; the shells take each id once. A FRESH
+  timer step (a clip change, replay or backward scrub, where stepClassTimers gives dt = the new frame) is held at dt 0, so a scrub no
+  longer burns a fuse out at once.

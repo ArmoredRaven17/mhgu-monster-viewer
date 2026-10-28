@@ -1,0 +1,26 @@
+uEm079_00 em079 v4 (3, 0x4f) ph0A: PH 1 | POST 0@ffa958 | M L0M29@ffa96c
+uEm079_00 em079 v4 (3, 0x4f) ph1B: PH 2 | P1 | M L1M42@ffac00
+uEm079_00 em079 v4 (3, 0x4f) ph3A?: SET 0@ffab20
+uEm079_00 em079 v4 (7, 0xc) ph0A: PH 1 | POST 3@ff7ccc | M L2M12@ff7ce0
+uEm079_00 em079 v4 (7, 0xc) ph1B: PH 2 | POST 0@ff7e34 | SET 0@ff7e44 | M L2M13@4ffffffc
+uEm079_00 em079 v4 (7, 0xc) ph2B: IDLE
+uEm079_00 em079 v4 (7, 0xd) ph0A: PH 1 | POST 3@ff7ccc | M L2M12@ff7ce0
+uEm079_00 em079 v4 (7, 0xd) ph1B: PH 2 | POST 0@ff7e34 | SET 0@ff7e44 | M L2M13@4ffffffc
+uEm079_00 em079 v4 (7, 0xd) ph2B: IDLE
+uEm079_00 em079 v4 (7, 0x29) ph0A: PH 1 | POST 0@ff7a88 | M L2M34@ff7a9c
+uEm079_00 em079 v4 (7, 0x29) ph1B: PH 2 | POST 3@ff7af0 | M L2M35@4ffffffc
+uEm079_00 em079 v4 (7, 0x29) ph2B: PH 3 | POST 0@ff7bdc | SET 0@ff7bec | M L2M13@4ffffffc
+uEm079_00 em079 v4 (7, 0x29) ph3B: IDLE
+uEm079_00 em079 v4 (7, 0x2a) ph0A: PH 1 | POST 0@ff7a88 | M L2M34@ff7a9c
+uEm079_00 em079 v4 (7, 0x2a) ph1B: PH 2 | POST 3@ff7af0 | M L2M35@4ffffffc
+uEm079_00 em079 v4 (7, 0x2a) ph2B: PH 3 | POST 0@ff7bdc | SET 0@ff7bec | M L2M13@4ffffffc
+uEm079_00 em079 v4 (7, 0x2a) ph3B: IDLE
+uEm079_00 em079 v4 (7, 0xd3) ph0A: PH 1 | POST 0@ff7a88 | M L2M34@ff7a9c
+uEm079_00 em079 v4 (7, 0xd3) ph1B: PH 2 | POST 3@ff7af0 | M L2M35@4ffffffc
+uEm079_00 em079 v4 (7, 0xd3) ph2B: PH 3 | POST 0@ff7bdc | SET 0@ff7bec | M L2M13@4ffffffc
+uEm079_00 em079 v4 (7, 0xd3) ph3B: IDLE
+uEm079_00 em079 v4 (7, 0xd4) ph0A: PH 1 | POST 3@ff7ccc | M L2M12@ff7ce0
+uEm079_00 em079 v4 (7, 0xd4) ph1B: PH 2 | POST 0@ff7e34 | SET 0@ff7e44 | M L2M13@4ffffffc
+uEm079_00 em079 v4 (7, 0xd4) ph2B: IDLE
+uEm079_00 em079 v4 (13, 0x3) ph0A: PH 1 | POST 3@ff7ccc | M L2M12@ff7ce0
+uEm079_00 em079 v4 (13, 0x3) ph1B: PH 2 | POST 0@ff7e34 | SET 0@ff7e44 | M L2M13@4ffffffc

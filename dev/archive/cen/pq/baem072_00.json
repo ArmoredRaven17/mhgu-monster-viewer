@@ -1,0 +1,1 @@
+{"id": "em072_00", "steps": [{"set": {"monRage": true}}, {"set": {"monRage": false}}, {"set": {"monTired": true}}, {"set": {"monTired": false}}, {"partsAll": "last"}, {"partsAll": "first"}], "want": ["em072_00|em072_00u|1001|event", "em072_00|em072_00u|1121|ragePuff"]}

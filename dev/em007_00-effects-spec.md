@@ -265,3 +265,13 @@ Bloodbath's (7, 0xb8) reaches L2 M19 only with `0x78b78` answered (0xd3d7a0..0xd
 * **Bloodbath (em007_04)**: the same dust drew under neither rule. His 0x71 modes 10 / 11 / 12 name ef list 1 = em007_00c c 0 / 2 / 1,
   and docs/effects/em007_04.json had no 'shell' entries for them. The three were appended in place, copied from em007_00.json.
   Metered: L0 M24 c 2, L0 M33 c 1 and L0 M43 c 1 now start 1 / 7 / 3 and draw.
+
+
+## u 200 and Bloodbath's u 900 (effects lane, 2026-10-25)
+
+* **u 200 (Diablos)**: both class sites (0xd363a4, 0xd36620) are behind `ldrb [e+0xb5f5] / cmp #4 / bne` (0xd36348, 0xd365c4) -- variant
+  4 only -- and em007_00u holds no UNIQUE 200 (its 200 is SEQUENCE cm202_035; the request resolves UNIQUE). Control: Bloodbath's u 200
+  draws. Brought to the coordinator.
+* **u 900 (Bloodbath) on L2 M22**: (7, 0x5c / 0x5f / 0x65 / 0x67) play it from frame 0 (allmot2.py, variant 4); only (7, 0x67) lights bit
+  21 (0xd45494) -> u 900 at f7. CLIP_ACTIONS em007_04 '2|Motion[22]': (7, 0x5c) (the three base plays), (7, 0x67). (7, 0x67) is issued
+  in g7 s1 of the shared cmdtbl.

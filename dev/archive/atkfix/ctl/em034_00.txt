@@ -1,0 +1,21 @@
+# em034_00 uEm014_00 EM=34 variant=0
+# uEm014_00
+(1, 0x14) arm0 slot 0 hit 0x2 flags 0x0  motion L3 M31  phase 0 gate -1.0
+(7, 0x0) arm0 slot 0 hit 0x17 flags 0x0  motion L2 M4  phase 0 gate -1.0
+(7, 0x2) arm slot 0 hit 0x18 flags 0x3  motion L2 M1  phase 0 gate -1.0
+(7, 0x3) arm0 slot 0 hit 0x19 flags 0x0  motion L2 M5  phase 0 gate -1.0
+(7, 0x4) arm slot 0 hit 0x18 flags 0x3  motion L2 M1  phase 0 gate -1.0
+(7, 0x5) arm slot 0 hit 0x18 flags 0x3  motion L2 M1  phase 0 gate -1.0
+(7, 0x7) arm0 slot 0 hit 0x17 flags 0x0  motion L2 M4  phase 0 gate -1.0
+(7, 0xc) arm slot 0 hit 0x18 flags 0x3  motion L2 M1  phase 0 gate -1.0
+(7, 0xd) arm0 slot 0 hit 0x17 flags 0x0  motion L2 M4  phase 0 gate -1.0
+(7, 0x14) arm0 slot 0 hit 0x1a flags 0x0  motion L2 M18  phase 0 gate -1.0
+(7, 0x15) arm0 slot 0 hit 0x1a flags 0x0  motion L2 M17  phase 0 gate -1.0
+(7, 0x16) arm slot 0 hit 0x10 flags 0x3  motion L2 M20  phase 1 gate -1.0
+(7, 0x17) arm slot 0 hit 0x11 flags 0x2  motion L2 M12  phase 1 gate -1.0
+(7, 0x1b) arm0 slot 0 hit 0x15 flags 0x0  motion L2 M18  phase 0 gate -1.0
+(7, 0x1c) arm0 slot 0 hit 0x15 flags 0x0  motion L2 M17  phase 0 gate -1.0
+(7, 0x1d) arm0 slot 0 hit 0x16 flags 0x0  motion L2 M18  phase 0 gate -1.0
+(7, 0x1e) arm0 slot 0 hit 0x16 flags 0x0  motion L2 M17  phase 0 gate -1.0
+(9, 0x0) arm slot 0 hit 0x13 flags 0x200  motion L2 M22  phase 1 gate 220.0
+(9, 0x1) arm0 slot 0 hit 0x14 flags 0x0  motion L2 M23  phase 0 gate -1.0

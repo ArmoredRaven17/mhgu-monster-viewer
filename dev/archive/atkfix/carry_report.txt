@@ -1,0 +1,158 @@
+em001_00 1|Motion[32] 3:0x33 id 40 flags 0x3 phase 0: carried 1|Motion[29]+127
+em001_00 4|Motion[26] 7:0x1 id 14 flags 0x3 phase 1: refused  -- not-in-lists
+em001_02 1|Motion[32] 3:0x33 id 40 flags 0x3 phase 0: carried 1|Motion[29]+127
+em001_02 4|Motion[26] 7:0x1 id 14 flags 0x3 phase 1: refused  -- not-in-lists
+em001_04 1|Motion[32] 3:0x33 id 40 flags 0x3 phase 0: carried 1|Motion[29]+127
+em001_04 4|Motion[26] 7:0x1 id 14 flags 0x3 phase 1: refused  -- not-in-lists
+em001_04 9|Motion[4] 7:0xfc id 1030 flags 0x1 phase 0: refused  -- phase-gap
+em002_00 1|Motion[32] 3:0x33 id 40 flags 0x3 phase 0: carried 1|Motion[29]+127
+em002_00 4|Motion[26] 7:0x1 id 14 flags 0x3 phase 1: refused  -- several
+em002_02 1|Motion[32] 3:0x33 id 40 flags 0x3 phase 0: carried 1|Motion[29]+127
+em002_02 4|Motion[26] 7:0x1 id 14 flags 0x3 phase 1: refused  -- several
+em002_04 1|Motion[32] 3:0x33 id 40 flags 0x3 phase 0: carried 1|Motion[29]+127
+em002_04 4|Motion[26] 7:0x1 id 14 flags 0x3 phase 1: refused  -- several
+em003_00 2|Motion[4] 2:0x3 id 29 flags 0x9 phase 1: refused  -- follow:7:0x00
+em003_00 2|Motion[4] 7:0x0 id 29 flags 0x9 phase 0: carried 2|Motion[39]+77
+em003_00 2|Motion[4] 7:0x9 id 41 flags 0x1409 phase 0: carried 2|Motion[39]+77
+em003_00 0|Motion[21] 3:0x43 id 29 flags 0x9 phase 0: carried 2|Motion[39]+77
+em007_00 3|Motion[24] 1:0x8 id 46 flags 0xc1 phase 2: refused  -- action-ends
+em007_04 3|Motion[24] 1:0x8 id 46 flags 0xc1 phase 2: refused  -- action-ends
+em007_04 9|Motion[26] 7:0xc8 id 1029 flags 0x1 phase 0: carried 9|Motion[27]+19
+em007_04 9|Motion[27] 7:0xc8 id 1030 flags 0xb phase 1: refused  -- several
+em009_00 4|Motion[26] 3:0xe id 52 flags 0xb phase 0: carried 4|Motion[27]+23 -- action-ends
+em009_00 4|Motion[28] 3:0x24 id 52 flags 0xb phase 0: carried 4|Motion[29]+33 4|Motion[4]+52
+em009_00 4|Motion[40] 3:0x26 id 52 flags 0xb phase 0: carried 4|Motion[41]+21 4|Motion[4]+30
+em010_00 2|Motion[3] 2:0x14 id 1 flags 0xb phase 0: carried 2|Motion[4]+73
+em013_00 2|Motion[16] 7:0x2d id 15 flags 0x3 phase 0: carried 2|Motion[54]+159 -- frame-gated
+em013_00 4|Motion[14] 7:0x51 id 30 flags 0xb phase 1: refused  -- not-in-lists
+em013_01 2|Motion[16] 7:0x2d id 15 flags 0x3 phase 0: carried 2|Motion[54]+159 -- frame-gated
+em013_01 4|Motion[14] 7:0x51 id 30 flags 0xb phase 1: refused  -- not-in-lists
+em013_02 2|Motion[16] 7:0x2d id 15 flags 0x3 phase 0: carried 2|Motion[54]+159 -- frame-gated
+em014_00 2|Motion[1] 7:0x2 id 3 flags 0x3 phase 0: carried 2|Motion[2]+23
+em015_00 2|Motion[1] 7:0x2 id 8 flags 0x3 phase 0: carried 2|Motion[2]+23
+em016_00 2|Motion[1] 7:0x2 id 9 flags 0x3 phase 0: carried 2|Motion[2]+23
+em017_00 2|Motion[12] pf+0x208 id 14 flags 0x1 phase 0: refused  -- per-frame
+em018_00 1|Motion[32] 3:0xe id 2 flags 0x3 phase 0: carried 1|Motion[29]+127
+em018_00 1|Motion[24] 3:0x19 id 2 flags 0x3 phase 0: carried 1|Motion[25]+31 1|Motion[26]+136
+em018_04 1|Motion[32] 3:0xe id 2 flags 0x3 phase 0: carried 1|Motion[29]+127
+em018_04 1|Motion[24] 3:0x19 id 2 flags 0x3 phase 0: carried 1|Motion[25]+31 1|Motion[26]+136
+em019_00 3|Motion[30] 1:0x1a id 49 flags 0x3 phase 1: carried 3|Motion[31]+15 3|Motion[32]+36 3|Motion[33]+57 3|Motion[34]+80 3|Motion[35]+131
+em019_04 3|Motion[30] 1:0x1a id 1049 flags 0x3 phase 1: carried 3|Motion[31]+15 3|Motion[32]+36 3|Motion[33]+57 3|Motion[34]+80 3|Motion[35]+131
+em021_00 0|Motion[29] 1:0x9 id 11 flags 0x5 phase 1: refused  -- action-ends
+em021_00 0|Motion[34] 3:0x33 id 22 flags 0x3 phase 1: carried 0|Motion[35]+69
+em021_00 5|Motion[29] 7:0x52 id 30 flags 0x3 phase 1: refused  -- follow:7:0x55
+em021_00 5|Motion[29] 7:0x55 id 30 flags 0x3 phase 0: carried 2|Motion[14]+43
+em021_00 5|Motion[29] 7:0x59 id 33 flags 0x3 phase 1: refused  -- follow:7:0x5c
+em021_00 5|Motion[29] 7:0x5c id 33 flags 0x3 phase 0: carried 2|Motion[14]+43
+em022_00 4|Motion[10] 7:0x25 id 33 flags 0x1 phase 1: refused  -- several
+em024_00 1|Motion[24] 3:0x1c id 31 flags 0x3 phase 0: carried 1|Motion[25]+109
+em025_00 0|Motion[40] 2:0x8 id 6 flags 0x3 phase 0: carried 0|Motion[41]+15 0|Motion[42]+28
+em025_00 0|Motion[40] 2:0x8 id 18 flags 0x3 phase 0: carried 0|Motion[41]+15 0|Motion[42]+28
+em025_00 0|Motion[43] 2:0x9 id 6 flags 0x3 phase 0: carried 0|Motion[44]+15 0|Motion[45]+42
+em025_00 0|Motion[43] 2:0x9 id 18 flags 0x3 phase 0: carried 0|Motion[44]+15 0|Motion[45]+42
+em025_00 0|Motion[30] 2:0xa id 6 flags 0x3 phase 0: carried 0|Motion[31]+15 0|Motion[32]+34
+em025_00 0|Motion[30] 2:0xa id 18 flags 0x3 phase 0: carried 0|Motion[31]+15 0|Motion[32]+34
+em025_00 0|Motion[33] 2:0xb id 6 flags 0x3 phase 0: carried 0|Motion[34]+15 0|Motion[35]+48
+em025_00 0|Motion[33] 2:0xb id 18 flags 0x3 phase 0: carried 0|Motion[34]+15 0|Motion[35]+48
+em025_00 2|Motion[51] 7:0x21 id 17 flags 0x3 phase 1: refused  -- replayed
+em027_00 1|Motion[24] 3:0x1c id 39 flags 0x3 phase 0: carried 1|Motion[25]+109
+em027_00 4|Motion[1] 7:0x8 id 29 flags 0x3 phase 1: carried 4|Motion[11]+25 -- action-ends
+em032_00 0|Motion[53] 7:0x1e id 6 flags 0xb phase 1: refused  -- stub-answer
+em032_00 2|Motion[3] 13:0x4 id 25 flags 0x1 phase 0: carried 2|Motion[2]+27
+em032_00 2|Motion[7] pf+0x208 id 5 flags 0x3 phase 0: refused  -- per-frame
+em032_04 0|Motion[53] 7:0x1e id 1003 flags 0xb phase 1: refused  -- stub-answer
+em032_04 2|Motion[3] 13:0x4 id 25 flags 0x1 phase 0: carried 2|Motion[2]+27
+em032_04 2|Motion[7] pf+0x208 id 1002 flags 0x3 phase 0: refused  -- per-frame
+em034_00 2|Motion[1] 7:0x2 id 24 flags 0x3 phase 0: carried 2|Motion[2]+23
+em037_00 2|Motion[10] 7:0x3c id 7 flags 0x1 phase 2: carried 2|Motion[11]+29
+em037_00 2|Motion[10] 13:0x4 id 23 flags 0x1 phase 0: refused  -- several
+em037_00 2|Motion[10] pf+0x208 id 7 flags 0x1 phase 0: refused  -- per-frame
+em037_00 2|Motion[14] 7:0xe7 id 8 flags 0x1 phase 0: carried 2|Motion[15]+29
+em037_00 2|Motion[14] pf+0x208 id 8 flags 0x1 phase 0: refused  -- per-frame
+em037_04 2|Motion[10] 7:0x3c id 7 flags 0x1 phase 2: carried 2|Motion[11]+29
+em037_04 2|Motion[10] 13:0x4 id 23 flags 0x1 phase 0: refused  -- several
+em037_04 2|Motion[10] pf+0x208 id 7 flags 0x1 phase 0: refused  -- per-frame
+em037_04 2|Motion[14] 7:0xe7 id 8 flags 0x1 phase 0: carried 2|Motion[15]+29
+em037_04 2|Motion[14] pf+0x208 id 8 flags 0x1 phase 0: refused  -- per-frame
+em037_04 9|Motion[8] 7:0xef id 1059 flags 0x9 phase 0: refused  -- several
+em037_04 9|Motion[8] 7:0xef id 1060 flags 0x1 phase 0: refused  -- several
+em038_00 2|Motion[26] pf+0x208 id 30 flags 0x3 phase 0: refused  -- per-frame
+em042_00 2|Motion[4] 7:0xe id 13 flags 0xb phase 1: refused  -- action-ends
+em042_00 2|Motion[8] 7:0xf id 10 flags 0xb phase 1: refused  -- action-ends
+em045_00 0|Motion[32] 3:0x4 id 40 flags 0x1 phase 0: carried 0|Motion[33]+225
+em045_04 0|Motion[32] 3:0x4 id 1049 flags 0x1 phase 0: carried 0|Motion[33]+225
+em046_00 2|Motion[7] 7:0xd id 8 flags 0xb phase 1: refused  -- follow:7:0x8a
+em046_00 2|Motion[7] 7:0x4f id 63 flags 0x1b phase 1: refused  -- follow:7:0x8d
+em046_00 2|Motion[7] 7:0x93 id 30 flags 0x1b phase 1: refused  -- follow:7:0x95
+em047_00 15|Motion[255] 7:0x3 id 5 flags 0x3 phase 2: refused  -- not-in-lists
+em047_00 15|Motion[255] 7:0x3 id 17 flags 0x3 phase 2: refused  -- not-in-lists
+em047_00 15|Motion[255] 7:0xc id 5 flags 0x3 phase 2: refused  -- not-in-lists
+em047_00 15|Motion[255] 7:0xc id 17 flags 0x3 phase 2: refused  -- not-in-lists
+em047_00 2|Motion[25] 7:0x3d id 37 flags 0x1 phase 0: refused  -- several
+em049_00 2|Motion[21] 7:0xd id 19 flags 0x3 phase 0: carried 2|Motion[23]+101
+em049_00 2|Motion[35] 7:0x26 id 36 flags 0xb phase 0: refused  -- phase-entry
+em049_00 2|Motion[35] 7:0x33 id 36 flags 0xb phase 0: carried 2|Motion[8]+69
+em050_00 1|Motion[16] 4:0xa id 30 flags 0x3 phase 0: carried 1|Motion[17]+251
+em050_00 1|Motion[2] 7:0x1d id 14 flags 0xb phase 0: refused  -- several
+em050_00 1|Motion[2] 7:0x1d id 15 flags 0x1b phase 0: refused  -- several
+em055_00 2|Motion[29] 7:0x1e id 31 flags 0x1 phase 1: carried 2|Motion[23]+385
+em055_00 2|Motion[29] 7:0x1e id 43 flags 0x1 phase 1: carried 2|Motion[23]+385
+em057_00 0|Motion[40] 3:0x0 id 63 flags 0x3 phase 0: carried 0|Motion[41]+5
+em057_00 0|Motion[46] 3:0x1 id 64 flags 0x3 phase 0: carried 0|Motion[47]+21
+em057_00 2|Motion[16] 7:0x0 id 1 flags 0x1 phase 1: refused  -- phase-gap
+em057_00 2|Motion[19] 7:0x1 id 1 flags 0x1 phase 1: refused  -- phase-gap
+em057_00 2|Motion[12] 7:0x14 id 9 flags 0x3 phase 0: carried 2|Motion[8]+79
+em057_00 2|Motion[37] 7:0x7d id 26 flags 0x1 phase 0: carried 2|Motion[16]+155
+em057_00 2|Motion[38] 7:0x7e id 26 flags 0x1 phase 0: carried 2|Motion[19]+155
+em057_04 0|Motion[40] 3:0x0 id 63 flags 0x3 phase 0: carried 0|Motion[41]+5
+em057_04 0|Motion[46] 3:0x1 id 64 flags 0x3 phase 0: carried 0|Motion[47]+21
+em057_04 2|Motion[16] 7:0x0 id 39 flags 0x1 phase 1: refused  -- phase-gap
+em057_04 2|Motion[19] 7:0x1 id 39 flags 0x1 phase 1: refused  -- phase-gap
+em057_04 2|Motion[12] 7:0x14 id 9 flags 0x3 phase 0: carried 2|Motion[8]+79
+em057_04 2|Motion[37] 7:0x7d id 26 flags 0x1 phase 0: carried 2|Motion[16]+155
+em057_04 2|Motion[38] 7:0x7e id 26 flags 0x1 phase 0: carried 2|Motion[19]+155
+em061_04 0|Motion[3] 1:0xa id 1049 flags 0x1 phase 0: carried 0|Motion[52]+43
+em063_00 2|Motion[12] 13:0x3 id 23 flags 0x109 phase 0: carried 2|Motion[13]+59
+em063_05 2|Motion[12] 13:0x3 id 23 flags 0x109 phase 0: carried 2|Motion[13]+59
+em065_00 2|Motion[88] 7:0x2 id 6 flags 0x3 phase 3: refused  -- replayed
+em065_00 2|Motion[121] 7:0x1a id 36 flags 0xb phase 1: carried 2|Motion[122]+63
+em065_00 2|Motion[67] 7:0x35 id 12 flags 0x1 phase 0: carried 2|Motion[68]+101
+em069_00 4|Motion[25] 7:0x3c id 5 flags 0x3 phase 0: refused  -- action-ends
+em069_00 4|Motion[71] 7:0x3d id 25 flags 0xb phase 0: carried 4|Motion[72]+149
+em071_00 4|Motion[12] 7:0x53 id 9 flags 0x5 phase 2: refused  -- not-in-lists
+em071_05 4|Motion[12] 7:0x53 id 9 flags 0x5 phase 2: refused  -- not-in-lists
+em076_00 2|Motion[18] 7:0x0 id 6 flags 0x1 phase 0: carried 2|Motion[32]+155
+em076_00 2|Motion[21] 9:0x2 id 8 flags 0x1 phase 0: carried 2|Motion[33]+99
+em077_00 1|Motion[57] 3:0x33 id 13 flags 0x3 phase 0: carried 1|Motion[55]+127
+em079_00 2|Motion[34] 7:0x29 id 0 flags 0x1 phase 0: carried 2|Motion[35]+19
+em079_00 2|Motion[34] 7:0x2a id 1 flags 0x1 phase 0: carried 2|Motion[35]+19
+em079_04 2|Motion[34] 7:0x29 id 0 flags 0x1 phase 0: carried 2|Motion[35]+19
+em079_04 2|Motion[34] 7:0x2a id 1 flags 0x1 phase 0: carried 2|Motion[35]+19
+em079_04 2|Motion[34] 7:0xd3 id 1010 flags 0x1 phase 0: carried 2|Motion[35]+19
+em081_00 4|Motion[26] 7:0x1 id 0 flags 0x3 phase 1: refused  -- several
+em081_04 4|Motion[26] 7:0x1 id 0 flags 0x3 phase 1: refused  -- several
+em082_00 0|Motion[21] 3:0x0 id 49 flags 0x1 phase 0: carried 0|Motion[22]+19
+em082_00 0|Motion[24] 3:0x1 id 51 flags 0x1 phase 0: carried 0|Motion[25]+21
+em082_04 0|Motion[21] 3:0x0 id 49 flags 0x1 phase 0: carried 0|Motion[22]+19
+em082_04 0|Motion[24] 3:0x1 id 51 flags 0x1 phase 0: carried 0|Motion[25]+21
+em083_00 2|Motion[39] 7:0x3 id 1 flags 0x1 phase 1: refused  -- follow:7:0x5c
+em083_00 2|Motion[39] 7:0x5c id 1 flags 0x1 phase 0: carried 2|Motion[37]+127
+em083_00 2|Motion[50] 7:0x45 id 59 flags 0x1 phase 0: carried 2|Motion[5]+59
+em083_00 2|Motion[50] 7:0x45 id 60 flags 0x1 phase 0: carried 2|Motion[5]+59
+em083_04 2|Motion[39] 7:0x3 id 1018 flags 0x1 phase 1: refused  -- follow:7:0x5c
+em083_04 2|Motion[39] 7:0x5c id 1018 flags 0x1 phase 0: carried 2|Motion[37]+127
+em083_04 2|Motion[50] 7:0x45 id 1024 flags 0x1 phase 0: carried 2|Motion[5]+59
+em083_04 2|Motion[50] 7:0x45 id 1025 flags 0x1 phase 0: carried 2|Motion[5]+59
+em084_00 0|Motion[8] 2:0x0 id 21 flags 0x1 phase 0: carried 0|Motion[4]+221
+em084_00 0|Motion[8] 2:0x0 id 22 flags 0x1 phase 0: carried 0|Motion[4]+221
+em084_00 0|Motion[9] 2:0x2 id 23 flags 0x1 phase 0: carried 0|Motion[5]+201
+em084_00 0|Motion[9] 2:0x2 id 24 flags 0x1 phase 0: carried 0|Motion[5]+201
+em085_00 2|Motion[31] 7:0x1f id 15 flags 0x1 phase 0: carried 2|Motion[46]+27
+em085_00 2|Motion[31] 7:0x63 id 1 flags 0x1 phase 3: refused  -- replayed
+em086_00 1|Motion[2] 3:0x0 id 42 flags 0x3 phase 1: carried 1|Motion[5]+23
+em086_00 2|Motion[76] 7:0x0 id 21 flags 0x19 phase 4: refused  -- several
+em086_00 2|Motion[79] 7:0x1 id 21 flags 0x19 phase 4: refused  -- several
+em086_00 2|Motion[98] 7:0x18 id 3 flags 0x1 phase 0: carried 2|Motion[86]+29
+em086_00 2|Motion[101] 7:0x19 id 2 flags 0x1 phase 0: carried 2|Motion[84]+29
+em086_00 2|Motion[70] 7:0x32 id 24 flags 0x1 phase 0: carried 2|Motion[71]+137
+em086_00 2|Motion[72] 7:0x32 id 19 flags 0x1 phase 2: carried 1|Motion[5]+17

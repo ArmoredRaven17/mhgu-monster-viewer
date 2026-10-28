@@ -1,0 +1,6 @@
+FAIL OFF em043_00 2|Motion[25]  -- {"hyper":"","shells":[{"play":0,"shell":"shell04","mode":0,"unit":null,"hyper":null}],"meter":[{"k":"em043_00u|60|shell","st":1,"lit":"60/61","px":444427,"v":"draws"}]}
+FAIL CAM off  -- [["off",[0.1,2.7,35.9],[0.1,2.7,-1.9]]]
+FAIL ON em043_00 2|Motion[25]  -- {"hyper":"1,2","shells":[{"play":0,"shell":"shell04","mode":0,"unit":1.3,"hyper":[1,1.2999999523162842,1.5]}],"meter":[{"k":"em043_00u|60|shell","st":1,"lit":"60/61","px":999620,"v":"draws"}]}
+FAIL CAM on  -- [["off",[0.1,2.7,35.9],[0.1,2.7,-1.9]],["on",[0.1,2.7,35.9],[0.1,2.7,-1.9]]]
+
+0 passed, 6 failed

@@ -1,0 +1,405 @@
+PASS Lao-Shan Lung: mounted  -- "em012_00"
+PASS Lao-Shan Lung: the effect runtime is up
+PASS Lao-Shan Lung: the word: L0 M1 null {} = 0x7ff81ff  -- "0x7ff81ff"
+PASS Lao-Shan Lung: the word: L2 M5 [7,1] {} = 0x7ff81ff  -- "0x7ff81ff"
+PASS Lao-Shan Lung: the table entry 3|Motion[1] is a clip he carries
+PASS Lao-Shan Lung: the table entry 0|Motion[30]#B is a clip he carries
+PASS Lao-Shan Lung: the table entry 3|Motion[10] is a clip he carries
+PASS Lao-Shan Lung: every record his rows name is an event record in his schedule  -- []
+PASS Lao-Shan Lung: L3 Motion[1]: the break record u 1000 at once  -- [1000,1005]
+PASS Lao-Shan Lung: the effect runtime never stopped
+PASS Fatalis: mounted  -- "em013_00"
+PASS Fatalis: the effect runtime is up
+PASS Fatalis: the word: L2 M5 [7,59] {} = 0x1ff  -- "0x1ff"
+PASS Fatalis: the word: L0 M5 [1,3] {} = 0xe001ff  -- "0xe001ff"
+PASS Fatalis: the word: L0 M5 [3,14] {} = 0x1ff  -- "0x1ff"
+PASS Fatalis: the table entry 3|Motion[1] is a clip he carries
+PASS Fatalis: the table entry 3|Motion[9] is a clip he carries
+PASS Fatalis: the table entry 3|Motion[13] is a clip he carries
+PASS Fatalis: the table entry 3|Motion[13]#B is a clip he carries
+PASS Fatalis: the table entry 3|Motion[13]#C is a clip he carries
+PASS Fatalis: the table entry 3|Motion[25] is a clip he carries
+PASS Fatalis: the table entry 0|Motion[5] is a clip he carries
+PASS Fatalis: the table entry 0|Motion[5]#B is a clip he carries
+PASS Fatalis: the table entry 0|Motion[5]#C is a clip he carries
+PASS Fatalis: the table entry 3|Motion[17] is a clip he carries
+PASS Fatalis: every record his rows name is an event record in his schedule  -- []
+PASS Fatalis: L3 Motion[1]: the break record u 1000 at once  -- [1000,1036]
+PASS Fatalis: L0 Motion[5]: the rage entry shows rage  -- {"rage":true}
+PASS Fatalis: the effect runtime never stopped
+PASS Crimson Fatalis: mounted  -- "em013_01"
+PASS Crimson Fatalis: the effect runtime is up
+PASS Crimson Fatalis: the word: L2 M5 [7,59] {} = 0x381ff  -- "0x381ff"
+PASS Crimson Fatalis: the word: L2 M6 [7,19] {} = 0x1ff  -- "0x1ff"
+PASS Crimson Fatalis: the table entry 3|Motion[1] is a clip he carries
+PASS Crimson Fatalis: the table entry 3|Motion[9] is a clip he carries
+PASS Crimson Fatalis: the table entry 3|Motion[13] is a clip he carries
+PASS Crimson Fatalis: the table entry 3|Motion[13]#B is a clip he carries
+PASS Crimson Fatalis: the table entry 3|Motion[13]#C is a clip he carries
+PASS Crimson Fatalis: the table entry 3|Motion[25] is a clip he carries
+PASS Crimson Fatalis: the table entry 0|Motion[5] is a clip he carries
+PASS Crimson Fatalis: the table entry 0|Motion[5]#B is a clip he carries
+PASS Crimson Fatalis: the table entry 0|Motion[5]#C is a clip he carries
+PASS Crimson Fatalis: the table entry 3|Motion[17] is a clip he carries
+PASS Crimson Fatalis: every record his rows name is an event record in his schedule  -- []
+PASS Crimson Fatalis: L3 Motion[1]: the break record u 1000 at once  -- [1000]
+PASS Crimson Fatalis: L0 Motion[5]: the rage entry shows rage  -- {"rage":true}
+PASS Crimson Fatalis: the effect runtime never stopped
+PASS Old Fatalis: mounted  -- "em013_02"
+PASS Old Fatalis: the effect runtime is up
+PASS Old Fatalis: the word: L2 M5 [7,0] {} = 0x1c01ff  -- "0x1c01ff"
+PASS Old Fatalis: the word: L2 M5 [7,59] {} = 0x1ff  -- "0x1ff"
+PASS Old Fatalis: the table entry 3|Motion[1] is a clip he carries
+PASS Old Fatalis: the table entry 3|Motion[9] is a clip he carries
+PASS Old Fatalis: the table entry 3|Motion[13] is a clip he carries
+PASS Old Fatalis: the table entry 3|Motion[13]#B is a clip he carries
+PASS Old Fatalis: the table entry 3|Motion[13]#C is a clip he carries
+PASS Old Fatalis: the table entry 3|Motion[25] is a clip he carries
+PASS Old Fatalis: the table entry 0|Motion[5] is a clip he carries
+PASS Old Fatalis: the table entry 0|Motion[5]#B is a clip he carries
+PASS Old Fatalis: the table entry 0|Motion[5]#C is a clip he carries
+PASS Old Fatalis: the table entry 3|Motion[17] is a clip he carries
+PASS Old Fatalis: every record his rows name is an event record in his schedule  -- []
+PASS Old Fatalis: L3 Motion[1]: the break record u 1000 at once  -- [1000]
+PASS Old Fatalis: L0 Motion[5]: the rage entry shows rage  -- {"rage":true}
+PASS Old Fatalis: the effect runtime never stopped
+PASS Kushala Daora: mounted  -- "em024_00"
+PASS Kushala Daora: the effect runtime is up
+PASS Kushala Daora: the word: L0 M1 null {"windAura":0} = 0x381ff  -- "0x381ff"
+PASS Kushala Daora: the word: L0 M1 null {"windAura":3} = 0xe001ff  -- "0xe001ff"
+PASS Kushala Daora: the word: L0 M1 null {"windAura":5} = 0x1ff  -- "0x1ff"
+PASS Kushala Daora: the table entry 3|Motion[1] is a clip he carries
+PASS Kushala Daora: the table entry 3|Motion[3] is a clip he carries
+PASS Kushala Daora: the table entry 3|Motion[3]#B is a clip he carries
+PASS Kushala Daora: the table entry 3|Motion[3]#C is a clip he carries
+PASS Kushala Daora: the table entry 3|Motion[3]#D is a clip he carries
+PASS Kushala Daora: the table entry 3|Motion[5] is a clip he carries
+PASS Kushala Daora: the table entry 3|Motion[5]#B is a clip he carries
+PASS Kushala Daora: the table entry 3|Motion[7] is a clip he carries
+PASS Kushala Daora: the table entry 3|Motion[7]#B is a clip he carries
+PASS Kushala Daora: the table entry 3|Motion[15] is a clip he carries
+PASS Kushala Daora: the table entry 3|Motion[14] is a clip he carries
+PASS Kushala Daora: the table entry 3|Motion[55] is a clip he carries
+PASS Kushala Daora: the table entry 3|Motion[13] is a clip he carries
+PASS Kushala Daora: the table entry 0|Motion[22] is a clip he carries
+PASS Kushala Daora: the table entry 2|Motion[18] is a clip he carries
+PASS Kushala Daora: the table entry 0|Motion[5] is a clip he carries
+PASS Kushala Daora: the table entry 0|Motion[5]#B is a clip he carries
+PASS Kushala Daora: the table entry 3|Motion[18] is a clip he carries
+PASS Kushala Daora: every record his rows name is an event record in his schedule  -- []
+PASS Kushala Daora: L3 Motion[1]: the break record u 1025 at once  -- [1025,1025]
+PASS Kushala Daora: L2 Motion[18]: the rage entry shows rage  -- {"rage":true}
+PASS Kushala Daora: the Wind Aura row is shown with 0,1,2,3  -- ["0","1","2","3"]
+PASS Kushala Daora: the Wind Aura control sets the class byte  -- 3
+PASS Kushala Daora: the class holds u 230 on L0 Motion[1]  -- true
+PASS Kushala Daora: Snow Variants L2 Motion[7]: u 210 held, not u 230  -- [true,true,false]
+PASS Kushala Daora: off the snow list: back to u 230  -- [false,true]
+PASS Kushala Daora: the effect runtime never stopped
+PASS Chameleos: mounted  -- "em025_00"
+PASS Chameleos: the effect runtime is up
+PASS Chameleos: the word: L0 M1 null {} = 0x1ff  -- "0x1ff"
+PASS Chameleos: the table entry 3|Motion[3] is a clip he carries
+PASS Chameleos: the table entry 3|Motion[3]#B is a clip he carries
+PASS Chameleos: the table entry 3|Motion[12] is a clip he carries
+PASS Chameleos: the table entry 3|Motion[12]#B is a clip he carries
+PASS Chameleos: the table entry 3|Motion[6] is a clip he carries
+PASS Chameleos: the table entry 3|Motion[6]#B is a clip he carries
+PASS Chameleos: the table entry 3|Motion[7] is a clip he carries
+PASS Chameleos: the table entry 3|Motion[7]#B is a clip he carries
+PASS Chameleos: the table entry 3|Motion[2] is a clip he carries
+PASS Chameleos: the table entry 3|Motion[2]#B is a clip he carries
+PASS Chameleos: the table entry 3|Motion[13] is a clip he carries
+PASS Chameleos: the table entry 3|Motion[13]#B is a clip he carries
+PASS Chameleos: the table entry 3|Motion[10] is a clip he carries
+PASS Chameleos: the table entry 3|Motion[10]#B is a clip he carries
+PASS Chameleos: the table entry 3|Motion[9] is a clip he carries
+PASS Chameleos: the table entry 3|Motion[8] is a clip he carries
+PASS Chameleos: the table entry 4|Motion[1] is a clip he carries
+PASS Chameleos: every record his rows name is an event record in his schedule  -- []
+PASS Chameleos: L3 Motion[3]: the break record u 1000 at once  -- [1000]
+PASS Chameleos: L4 Motion[1]: the rage entry shows rage  -- {"rage":true}
+PASS Chameleos: the Invisible row is shown with 0,1 (Off / On; breaks live, 2026-10-22)  -- ["0","1"]
+PASS Chameleos: Invisible: the eyes go (set 9: groups 1 and 6 off)  -- [false,false]
+PASS Chameleos: and the body / wing machine plays stealth_start_S  -- "stealth_start_S"
+PASS Chameleos: after 30 frames the model is not drawn, no PSL record starts, and the effects keep stepping  -- {"shown":0,"refuse":true,"steps":90}
+PASS Chameleos: Off: drawn again at once, translucent (the 60-frame alpha), stealth01 in slot 1, the gate open  -- {"shown":11,"refuse":false,"swapped":true,"translucent":11}
+PASS Chameleos: and after the uncloak: the eyes back (phase 4), the body material back, opaque  -- {"eyes":[false,true]}
+PASS Chameleos: the damage table on the Invisible byte: slots 0-6 on table 1 while cloaked, slot 7 unchanged  -- {"t1":[{"cut":40,"impact":45,"shot":35,"fire":40,"water":0,"ice":0,"thunder":20,"dragon":35,"stun":100,"exhaust":100}],"axis":"ctl"}
+PASS Chameleos: a Parts row draws the broken horn (set 4: group 5 off, group 2 on)
+PASS Chameleos: horn broken, Invisible: the shimmer -- stealth01 / stealth02 drawn in place of the body / wing, the PSL gate open  -- {"mats":["#a525c570","#15178149"],"refuse":false}
+PASS Chameleos: the effect runtime never stopped
+PASS Teostra: mounted  -- "em027_00"
+PASS Teostra: the effect runtime is up
+PASS Teostra: the word: L2 M1 [7,10] {} = 0x70001ff  -- "0x70001ff"
+PASS Teostra: the word: L0 M1 null {"fireAura":1} = 0x381ff  -- "0x381ff"
+PASS Teostra: the word: L4 M6 null {"fireAura":1} = 0x3803f  -- "0x3803f"
+PASS Teostra: the table entry 3|Motion[1] is a clip he carries
+PASS Teostra: the table entry 3|Motion[3] is a clip he carries
+PASS Teostra: the table entry 3|Motion[3]#B is a clip he carries
+PASS Teostra: the table entry 3|Motion[3]#C is a clip he carries
+PASS Teostra: the table entry 3|Motion[3]#D is a clip he carries
+PASS Teostra: the table entry 3|Motion[5] is a clip he carries
+PASS Teostra: the table entry 3|Motion[5]#B is a clip he carries
+PASS Teostra: the table entry 3|Motion[17] is a clip he carries
+PASS Teostra: the table entry 3|Motion[17]#B is a clip he carries
+PASS Teostra: the table entry 3|Motion[7] is a clip he carries
+PASS Teostra: the table entry 3|Motion[7]#B is a clip he carries
+PASS Teostra: the table entry 3|Motion[15] is a clip he carries
+PASS Teostra: the table entry 3|Motion[13] is a clip he carries
+PASS Teostra: the table entry 0|Motion[22] is a clip he carries
+PASS Teostra: the table entry 0|Motion[5] is a clip he carries
+PASS Teostra: the table entry 0|Motion[5]#B is a clip he carries
+PASS Teostra: the table entry 3|Motion[18] is a clip he carries
+PASS Teostra: the table entry 4|Motion[9] is a clip he carries
+PASS Teostra: the table entry 4|Motion[9]#B is a clip he carries
+PASS Teostra: the table entry 4|Motion[9]#C is a clip he carries
+PASS Teostra: the table entry 4|Motion[9]#D is a clip he carries
+PASS Teostra: the table entry 4|Motion[9]#E is a clip he carries
+PASS Teostra: the table entry 4|Motion[10] is a clip he carries
+PASS Teostra: the table entry 4|Motion[10]#B is a clip he carries
+PASS Teostra: the table entry 4|Motion[10]#C is a clip he carries
+PASS Teostra: the table entry 4|Motion[10]#D is a clip he carries
+PASS Teostra: the table entry 4|Motion[10]#E is a clip he carries
+PASS Teostra: every record his rows name is an event record in his schedule  -- []
+PASS Teostra: L0 Motion[5]: the rage entry shows rage  -- {"rage":true}
+PASS Teostra: the Fire Aura row is shown with 0,1  -- ["0","1"]
+PASS Teostra: the Fire Aura control sets the class byte  -- 1
+PASS Teostra: Fire Aura on: the class holds u 0  -- true
+PASS Teostra: Fire Aura off: u 0 is let go  -- false
+PASS Teostra: Fire Aura off: u 1 once as it goes out  -- [1]
+PASS Teostra: the Size Type row is shown with 0,1  -- ["0","1"]
+PASS Teostra: the Size Type control sets the second class byte  -- 1
+PASS Teostra: Size Type 1: u 10 held, not u 0  -- [false,true]
+PASS Teostra: Size Type 0: back to u 0  -- [true,false]
+PASS Teostra: the class holds u 160 on L4 Motion[9]  -- true
+PASS Teostra: the effect runtime never stopped
+PASS Alatreon: mounted  -- "em050_00"
+PASS Alatreon: the effect runtime is up
+PASS Alatreon: the word: L2 M5 [7,24] {"severed":true} = 0x380001ff  -- "0x380001ff"
+PASS Alatreon: the word: L2 M7 [7,56] {} = 0x70001ff  -- "0x70001ff"
+PASS Alatreon: the word: L0 M9 [7,34] {} = 0x381ff  -- "0x381ff"
+PASS Alatreon: the table entry 3|Motion[1] is a clip he carries
+PASS Alatreon: the table entry 3|Motion[12] is a clip he carries
+PASS Alatreon: the table entry 3|Motion[13] is a clip he carries
+PASS Alatreon: the table entry 0|Motion[14] is a clip he carries
+PASS Alatreon: the table entry 3|Motion[11] is a clip he carries
+PASS Alatreon: the table entry 3|Motion[9] is a clip he carries
+PASS Alatreon: the table entry 3|Motion[6] is a clip he carries
+PASS Alatreon: the table entry 3|Motion[7] is a clip he carries
+PASS Alatreon: the table entry 3|Motion[8] is a clip he carries
+PASS Alatreon: every record his rows name is an event record in his schedule  -- []
+PASS Alatreon: the effect runtime never stopped
+PASS Amatsu: mounted  -- "em058_00"
+PASS Amatsu: the effect runtime is up
+PASS Amatsu: the word: L0 M1 null {} = 0x1ff  -- "0x1ff"
+PASS Amatsu: the table entry 3|Motion[20] is a clip he carries
+PASS Amatsu: the table entry 3|Motion[1] is a clip he carries
+PASS Amatsu: the table entry 3|Motion[4] is a clip he carries
+PASS Amatsu: the table entry 3|Motion[4]#B is a clip he carries
+PASS Amatsu: the table entry 3|Motion[5] is a clip he carries
+PASS Amatsu: the table entry 3|Motion[5]#B is a clip he carries
+PASS Amatsu: the table entry 3|Motion[3] is a clip he carries
+PASS Amatsu: the table entry 1|Motion[9] is a clip he carries
+PASS Amatsu: the table entry 1|Motion[9]#B is a clip he carries
+PASS Amatsu: the table entry 3|Motion[13] is a clip he carries
+PASS Amatsu: the table entry 3|Motion[9] is a clip he carries
+PASS Amatsu: the table entry 3|Motion[18] is a clip he carries
+PASS Amatsu: the table entry 3|Motion[18]#B is a clip he carries
+PASS Amatsu: the table entry 3|Motion[14] is a clip he carries
+PASS Amatsu: the table entry 3|Motion[15] is a clip he carries
+PASS Amatsu: the table entry 3|Motion[17] is a clip he carries
+PASS Amatsu: every record his rows name is an event record in his schedule  -- []
+PASS Amatsu: L3 Motion[1]: the break record u 1005 at once  -- [1005,1010]
+PASS Amatsu: L1 Motion[9]: the rage entry shows rage  -- {"rage":true}
+PASS Amatsu: the HP State row is shown with 0,1  -- ["0","1"]
+PASS Amatsu: the HP State control sets the class byte  -- 1
+PASS Amatsu: the class holds u 0 on L1 Motion[1]  -- true
+PASS Amatsu: the class holds u 100 on L1 Motion[1]  -- true
+PASS Amatsu: the effect runtime never stopped
+PASS Gore Magala: mounted  -- "em071_00"
+PASS Gore Magala: the effect runtime is up
+PASS Gore Magala: the word: L2 M7 [7,88] {} = 0x381bf  -- "0x381bf"
+PASS Gore Magala: the word: L2 M7 [7,96] {} = 0x1c01bf  -- "0x1c01bf"
+PASS Gore Magala: the table entry 3|Motion[2] is a clip he carries
+PASS Gore Magala: the table entry 3|Motion[1] is a clip he carries
+PASS Gore Magala: the table entry 3|Motion[39] is a clip he carries
+PASS Gore Magala: the table entry 0|Motion[18] is a clip he carries
+PASS Gore Magala: the table entry 0|Motion[19] is a clip he carries
+PASS Gore Magala: the table entry 3|Motion[15] is a clip he carries
+PASS Gore Magala: the table entry 3|Motion[15]#B is a clip he carries
+PASS Gore Magala: the table entry 3|Motion[9] is a clip he carries
+PASS Gore Magala: the table entry 3|Motion[9]#B is a clip he carries
+PASS Gore Magala: the table entry 3|Motion[10] is a clip he carries
+PASS Gore Magala: the table entry 3|Motion[10]#B is a clip he carries
+PASS Gore Magala: the table entry 3|Motion[11] is a clip he carries
+PASS Gore Magala: the table entry 3|Motion[11]#B is a clip he carries
+PASS Gore Magala: the table entry 3|Motion[3] is a clip he carries
+PASS Gore Magala: the table entry 3|Motion[3]#B is a clip he carries
+PASS Gore Magala: the table entry 3|Motion[4] is a clip he carries
+PASS Gore Magala: the table entry 3|Motion[4]#B is a clip he carries
+PASS Gore Magala: the table entry 3|Motion[5] is a clip he carries
+PASS Gore Magala: the table entry 3|Motion[5]#B is a clip he carries
+PASS Gore Magala: the table entry 3|Motion[23] is a clip he carries
+PASS Gore Magala: the table entry 0|Motion[5] is a clip he carries
+PASS Gore Magala: the table entry 0|Motion[5]#B is a clip he carries
+PASS Gore Magala: the table entry 0|Motion[31] is a clip he carries
+PASS Gore Magala: the table entry 0|Motion[31]#B is a clip he carries
+PASS Gore Magala: the table entry 3|Motion[22] is a clip he carries
+PASS Gore Magala: the table entry 3|Motion[21] is a clip he carries
+PASS Gore Magala: the table entry 3|Motion[34] is a clip he carries
+PASS Gore Magala: every record his rows name is an event record in his schedule  -- []
+PASS Gore Magala: L3 Motion[2]: the break record u 1000 at once  -- [1000,1035]
+PASS Gore Magala: L0 Motion[5]: the rage entry shows rage  -- {"rage":true}
+PASS Gore Magala: the effect runtime never stopped
+PASS Chaotic Gore Magala: mounted  -- "em071_05"
+PASS Chaotic Gore Magala: the effect runtime is up
+PASS Chaotic Gore Magala: the word: L2 M7 [7,88] {} = 0x381bf  -- "0x381bf"
+PASS Chaotic Gore Magala: the table entry 3|Motion[2] is a clip he carries
+PASS Chaotic Gore Magala: the table entry 3|Motion[1] is a clip he carries
+PASS Chaotic Gore Magala: the table entry 3|Motion[39] is a clip he carries
+PASS Chaotic Gore Magala: the table entry 0|Motion[18] is a clip he carries
+PASS Chaotic Gore Magala: the table entry 0|Motion[19] is a clip he carries
+PASS Chaotic Gore Magala: the table entry 3|Motion[15] is a clip he carries
+PASS Chaotic Gore Magala: the table entry 3|Motion[15]#B is a clip he carries
+PASS Chaotic Gore Magala: the table entry 3|Motion[9] is a clip he carries
+PASS Chaotic Gore Magala: the table entry 3|Motion[9]#B is a clip he carries
+PASS Chaotic Gore Magala: the table entry 3|Motion[10] is a clip he carries
+PASS Chaotic Gore Magala: the table entry 3|Motion[10]#B is a clip he carries
+PASS Chaotic Gore Magala: the table entry 3|Motion[11] is a clip he carries
+PASS Chaotic Gore Magala: the table entry 3|Motion[11]#B is a clip he carries
+PASS Chaotic Gore Magala: the table entry 3|Motion[3] is a clip he carries
+PASS Chaotic Gore Magala: the table entry 3|Motion[3]#B is a clip he carries
+PASS Chaotic Gore Magala: the table entry 3|Motion[4] is a clip he carries
+PASS Chaotic Gore Magala: the table entry 3|Motion[4]#B is a clip he carries
+PASS Chaotic Gore Magala: the table entry 3|Motion[5] is a clip he carries
+PASS Chaotic Gore Magala: the table entry 3|Motion[5]#B is a clip he carries
+PASS Chaotic Gore Magala: the table entry 3|Motion[23] is a clip he carries
+PASS Chaotic Gore Magala: the table entry 0|Motion[5] is a clip he carries
+PASS Chaotic Gore Magala: the table entry 0|Motion[5]#B is a clip he carries
+PASS Chaotic Gore Magala: the table entry 0|Motion[31] is a clip he carries
+PASS Chaotic Gore Magala: the table entry 0|Motion[31]#B is a clip he carries
+PASS Chaotic Gore Magala: the table entry 3|Motion[22] is a clip he carries
+PASS Chaotic Gore Magala: the table entry 3|Motion[21] is a clip he carries
+PASS Chaotic Gore Magala: the table entry 3|Motion[34] is a clip he carries
+PASS Chaotic Gore Magala: every record his rows name is an event record in his schedule  -- []
+PASS Chaotic Gore Magala: L3 Motion[2]: the break record u 1000 at once  -- [1000,1035]
+PASS Chaotic Gore Magala: L0 Motion[5]: the rage entry shows rage  -- {"rage":true}
+PASS Chaotic Gore Magala: the effect runtime never stopped
+PASS Shagaru Magala: mounted  -- "em072_00"
+PASS Shagaru Magala: the effect runtime is up
+PASS Shagaru Magala: the word: L2 M7 [7,96] {} = 0x1c01bf  -- "0x1c01bf"
+PASS Shagaru Magala: the table entry 3|Motion[2] is a clip he carries
+PASS Shagaru Magala: the table entry 3|Motion[1] is a clip he carries
+PASS Shagaru Magala: the table entry 3|Motion[39] is a clip he carries
+PASS Shagaru Magala: the table entry 0|Motion[18] is a clip he carries
+PASS Shagaru Magala: the table entry 0|Motion[19] is a clip he carries
+PASS Shagaru Magala: the table entry 3|Motion[15] is a clip he carries
+PASS Shagaru Magala: the table entry 3|Motion[15]#B is a clip he carries
+PASS Shagaru Magala: the table entry 3|Motion[9] is a clip he carries
+PASS Shagaru Magala: the table entry 3|Motion[9]#B is a clip he carries
+PASS Shagaru Magala: the table entry 3|Motion[10] is a clip he carries
+PASS Shagaru Magala: the table entry 3|Motion[10]#B is a clip he carries
+PASS Shagaru Magala: the table entry 3|Motion[11] is a clip he carries
+PASS Shagaru Magala: the table entry 3|Motion[11]#B is a clip he carries
+PASS Shagaru Magala: the table entry 3|Motion[3] is a clip he carries
+PASS Shagaru Magala: the table entry 3|Motion[3]#B is a clip he carries
+PASS Shagaru Magala: the table entry 3|Motion[4] is a clip he carries
+PASS Shagaru Magala: the table entry 3|Motion[4]#B is a clip he carries
+PASS Shagaru Magala: the table entry 3|Motion[5] is a clip he carries
+PASS Shagaru Magala: the table entry 3|Motion[5]#B is a clip he carries
+PASS Shagaru Magala: the table entry 3|Motion[23] is a clip he carries
+PASS Shagaru Magala: the table entry 0|Motion[5] is a clip he carries
+PASS Shagaru Magala: the table entry 0|Motion[5]#B is a clip he carries
+PASS Shagaru Magala: the table entry 0|Motion[31] is a clip he carries
+PASS Shagaru Magala: the table entry 0|Motion[31]#B is a clip he carries
+PASS Shagaru Magala: the table entry 4|Motion[2] is a clip he carries
+PASS Shagaru Magala: the table entry 3|Motion[22] is a clip he carries
+PASS Shagaru Magala: the table entry 3|Motion[21] is a clip he carries
+PASS Shagaru Magala: the table entry 3|Motion[34] is a clip he carries
+PASS Shagaru Magala: every record his rows name is an event record in his schedule  -- []
+PASS Shagaru Magala: L3 Motion[2]: the break record u 1000 at once  -- [1000]
+PASS Shagaru Magala: L4 Motion[2]: the rage entry shows rage  -- {"rage":true}
+PASS Shagaru Magala: the effect runtime never stopped
+PASS Nakarkos: mounted  -- "em084_00"
+PASS Nakarkos: the effect runtime is up
+PASS Nakarkos: the table entry 0|Motion[50]#B is a clip he carries
+PASS Nakarkos: the table entry 3|Motion[63] is a clip he carries
+PASS Nakarkos: every record his rows name is an event record in his schedule  -- []
+PASS Nakarkos: the effect runtime never stopped
+PASS Valstrax: mounted  -- "em086_00"
+PASS Valstrax: the effect runtime is up
+PASS Valstrax: the word: L0 M1 null {} = 0x1ff  -- "0x1ff"
+PASS Valstrax: the table entry 3|Motion[1] is a clip he carries
+PASS Valstrax: the table entry 3|Motion[21] is a clip he carries
+PASS Valstrax: the table entry 1|Motion[5] is a clip he carries
+PASS Valstrax: the table entry 1|Motion[5]#B is a clip he carries
+PASS Valstrax: the table entry 1|Motion[5]#C is a clip he carries
+PASS Valstrax: the table entry 0|Motion[24] is a clip he carries
+PASS Valstrax: the table entry 0|Motion[25] is a clip he carries
+PASS Valstrax: the table entry 3|Motion[13] is a clip he carries
+PASS Valstrax: the table entry 3|Motion[14] is a clip he carries
+PASS Valstrax: the table entry 3|Motion[9] is a clip he carries
+PASS Valstrax: the table entry 3|Motion[9]#B is a clip he carries
+PASS Valstrax: the table entry 3|Motion[10] is a clip he carries
+PASS Valstrax: the table entry 3|Motion[10]#B is a clip he carries
+PASS Valstrax: the table entry 3|Motion[11] is a clip he carries
+PASS Valstrax: the table entry 3|Motion[11]#B is a clip he carries
+PASS Valstrax: the table entry 3|Motion[5] is a clip he carries
+PASS Valstrax: the table entry 3|Motion[5]#B is a clip he carries
+PASS Valstrax: the table entry 3|Motion[6] is a clip he carries
+PASS Valstrax: the table entry 3|Motion[6]#B is a clip he carries
+PASS Valstrax: the table entry 3|Motion[7] is a clip he carries
+PASS Valstrax: the table entry 3|Motion[7]#B is a clip he carries
+PASS Valstrax: the table entry 0|Motion[5] is a clip he carries
+PASS Valstrax: the table entry 0|Motion[5]#B is a clip he carries
+PASS Valstrax: the table entry 3|Motion[17] is a clip he carries
+PASS Valstrax: every record his rows name is an event record in his schedule  -- []
+PASS Valstrax: L3 Motion[1]: the break record u 1000 at once  -- [1000]
+PASS Valstrax: L0 Motion[5]: the rage entry shows rage  -- {"rage":true}
+PASS Valstrax: the class holds u 200 on L1 Motion[1]  -- true
+PASS Valstrax: the effect runtime never stopped
+PASS Soulseer Mizutsune: mounted  -- "em082_04"
+PASS Soulseer Mizutsune: the effect runtime is up
+PASS Soulseer Mizutsune: the table entry 3|Motion[2] is a clip he carries
+PASS Soulseer Mizutsune: the table entry 3|Motion[3] is a clip he carries
+PASS Soulseer Mizutsune: the table entry 3|Motion[6] is a clip he carries
+PASS Soulseer Mizutsune: the table entry 3|Motion[7] is a clip he carries
+PASS Soulseer Mizutsune: the table entry 3|Motion[8] is a clip he carries
+PASS Soulseer Mizutsune: the table entry 3|Motion[13] is a clip he carries
+PASS Soulseer Mizutsune: the table entry 2|Motion[14] is a clip he carries
+PASS Soulseer Mizutsune: the table entry 2|Motion[17] is a clip he carries
+PASS Soulseer Mizutsune: the table entry 0|Motion[9] is a clip he carries
+PASS Soulseer Mizutsune: the table entry 0|Motion[15] is a clip he carries
+PASS Soulseer Mizutsune: the table entry 3|Motion[9] is a clip he carries
+PASS Soulseer Mizutsune: the table entry 3|Motion[12] is a clip he carries
+PASS Soulseer Mizutsune: the table entry 3|Motion[17] is a clip he carries
+PASS Soulseer Mizutsune: the table entry 9|Motion[5] is a clip he carries
+PASS Soulseer Mizutsune: the table entry 9|Motion[8] is a clip he carries
+PASS Soulseer Mizutsune: the table entry 9|Motion[1]#B is a clip he carries
+PASS Soulseer Mizutsune: the table entry 0|Motion[4]#C is a clip he carries
+PASS Soulseer Mizutsune: the table entry 0|Motion[4]#D is a clip he carries
+PASS Soulseer Mizutsune: the table entry 9|Motion[6] is a clip he carries
+PASS Soulseer Mizutsune: the table entry 9|Motion[6]#B is a clip he carries
+PASS Soulseer Mizutsune: the table entry 9|Motion[6]#C is a clip he carries
+PASS Soulseer Mizutsune: the table entry 9|Motion[6]#D is a clip he carries
+PASS Soulseer Mizutsune: the table entry 9|Motion[9] is a clip he carries
+PASS Soulseer Mizutsune: the table entry 9|Motion[9]#B is a clip he carries
+PASS Soulseer Mizutsune: the table entry 9|Motion[9]#C is a clip he carries
+PASS Soulseer Mizutsune: the table entry 9|Motion[9]#D is a clip he carries
+PASS Soulseer Mizutsune: every record his rows name is an event record in his schedule  -- []
+PASS Soulseer Mizutsune: the Soul Flame row is shown with 0,1  -- ["0","1"]
+PASS Soulseer Mizutsune: the Soul Flame control sets the class byte  -- 1
+PASS Soulseer Mizutsune: Soul Flame on: the class holds u 300  -- true
+PASS Soulseer Mizutsune: Soul Flame off: u 300 is let go  -- false
+PASS Soulseer Mizutsune: the effect runtime never stopped
+PASS Ahtal-Neset: mounted  -- "em087_00"
+PASS Ahtal-Neset: the effect runtime is up
+PASS Ahtal-Neset: the word: L0 M1 null {} = 0xff81ff  -- "0xff81ff"
+PASS Ahtal-Neset: the table entry 3|Motion[1] is a clip he carries
+PASS Ahtal-Neset: the table entry 3|Motion[6] is a clip he carries
+PASS Ahtal-Neset: the table entry 3|Motion[9] is a clip he carries
+PASS Ahtal-Neset: every record his rows name is an event record in his schedule  -- []
+PASS Ahtal-Neset: L3 Motion[6]: the break record u 1015 at once  -- [1014,1015]
+PASS Ahtal-Neset: the effect runtime never stopped
+
+403 passed, 0 failed

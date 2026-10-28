@@ -1,0 +1,7 @@
+FAIL GRAB A frame 194  -- [{"mode":12,"unit":null,"hyper":null,"pos":[612,-15,958]},{"mode":13,"unit":null,"hyper":null,"pos":[22,-15,1265]},{"mode":14,"unit":null,"hyper":null,"pos":[-568,-15,958]}]
+FAIL STATS A  -- {"frames":226,"steps":228,"prims":2,"models":13,"gpu":0,"running":4,"filters":0,"reordered":0,"regrouped":199}
+FAIL GRAB B frame 194  -- [{"mode":12,"unit":1.3,"hyper":1,"pos":[567,-15,1098]},{"mode":13,"unit":1.3,"hyper":1,"pos":[-23,-15,1405]},{"mode":14,"unit":1.3,"hyper":1,"pos":[-613,-15,1098]}]
+FAIL CAMSHIFT  -- {"dx":-0.4540899785359701,"dz":1.401873779296875}
+FAIL STATS B  -- {"frames":223,"steps":221,"prims":2,"models":13,"gpu":0,"running":4,"filters":0,"reordered":0,"regrouped":199}
+
+0 passed, 7 failed

@@ -1,6 +1,6 @@
 # Shell draw table -- every shell record of every monster with SHELL_DATA (shells agent, 2026-10-20)
 
-For every record in `docs/effects/<mon>.json` with `when: 'shell'` (946 of them, on 86 monsters), what the effects agent's
+For every record in `docs/effects/<mon>.json` with `when: 'shell'` (973 of them, on 88 monsters), what the effects agent's
 draw meter (`__view.effectMeter`) measured when the page played every clip that makes its shells:
 - **starts**: how often it started;
 - **lit**: lit samples / samples;
@@ -12,12 +12,12 @@ A record that never started has a named reason.
 
 | verdict | records |
 |---|---|
-| DRAWS | 852 |
+| DRAWS | 874 |
+| ROM GIVES NOTHING | 40 |
 | NO WALL / HUNTER | 40 |
-| ROM GIVES NOTHING | 39 |
 | ROM CONDITION | 15 |
-| INPUT MISSING | 3 |
-| **all** | **949** |
+| INPUT MISSING | 4 |
+| **all** | **973** |
 
 ## How it was measured
 
@@ -111,7 +111,7 @@ A record that never started has a named reason.
 
 | record | starts | lit | verdict | why |
 |---|---|---|---|---|
-| c 0 | 17 | 270/519 | DRAWS |  |
+| c 0 | 17 | 272/521 | DRAWS |  |
 | c 1 | 13 | 126/289 | DRAWS |  |
 | c 2 | 9 | 99/111 | DRAWS | with the Hunter control's Solid body (a type-2 contact) |
 | c 3 | 26 | 1506/2094 | DRAWS |  |
@@ -239,7 +239,7 @@ A record that never started has a named reason.
 |---|---|---|---|---|
 | c 0 | 5 | 62/73 | DRAWS |  |
 | c 1 | 5 | 61/71 | DRAWS |  |
-| c 2 | 5 | 53/62 | DRAWS |  |
+| c 2 | 5 | 54/64 | DRAWS |  |
 
 ### em007_04 (Bloodbath Diablos)
 
@@ -261,8 +261,8 @@ A record that never started has a named reason.
 | record | starts | lit | verdict | why |
 |---|---|---|---|---|
 | c 30 | 6 | 71/84 | DRAWS |  |
-| c 31 | 37 | 430/507 | DRAWS |  |
-| u 0 | 48 | 497/564 | DRAWS |  |
+| c 31 | 37 | 434/505 | DRAWS |  |
+| u 0 | 48 | 505/562 | DRAWS |  |
 | u 1 | 48 | 677/742 | DRAWS |  |
 | u 2 | - | - | NO WALL / HUNTER | the Solid hunter is met in the NODE replay (synthetic joints within ~100 of the unit, the shells launched at the origin) but not on the page at any of the Hunter control's points (front 0 / 500 / 1200, left / right 500 / 1200, behind 0 / 500): the page's real launch joints put the shells on other paths -- measured on em008 L2 M1: the fan shots pass at x -566 / +604 by z 1360 while the hunter stands near x 0, z 550. Not timing or pass order: hunterPass runs after the slot countdown on the page as in node |
 
@@ -271,12 +271,12 @@ A record that never started has a named reason.
 | record | starts | lit | verdict | why |
 |---|---|---|---|---|
 | c 30 | 28 | 340/400 | DRAWS |  |
-| c 31 | 1 | 12/14 | DRAWS |  |
+| c 31 | 1 | 33/35 | DRAWS |  |
 | u 0 | 44 | 793/2029 | DRAWS |  |
-| u 1 | 29 | 583/643 | DRAWS |  |
+| u 1 | 29 | 585/644 | DRAWS |  |
 | u 2 | - | - | NO WALL / HUNTER | the Solid hunter is met in the NODE replay (synthetic joints within ~100 of the unit, the shells launched at the origin) but not on the page at any of the Hunter control's points (front 0 / 500 / 1200, left / right 500 / 1200, behind 0 / 500): the page's real launch joints put the shells on other paths -- measured on em008 L2 M1: the fan shots pass at x -566 / +604 by z 1360 while the hunter stands near x 0, z 550. Not timing or pass order: hunterPass runs after the slot countdown on the page as in node |
 | u 3 | 7 | 260/367 | DRAWS |  |
-| u 4 | 9 | 302/427 | DRAWS |  |
+| u 4 | 3 | 310/421 | DRAWS |  |
 | u 10 | 28 | 675/712 | DRAWS |  |
 | u 20 | 28 | 403/3212 | DRAWS |  |
 
@@ -364,9 +364,9 @@ A record that never started has a named reason.
 |---|---|---|---|---|
 | u 0 | 19 | 101/125 | DRAWS |  |
 | u 30 | 3 | 47/54 | DRAWS |  |
-| u 50 | 1 | 15/18 | DRAWS |  |
+| u 50 | 1 | 16/18 | DRAWS |  |
 | u 60 | 3 | 131/173 | DRAWS |  |
-| u 80 | 1 | 59/65 | DRAWS |  |
+| u 80 | 1 | 80/85 | DRAWS |  |
 | u 90 | 10 | 148/167 | DRAWS | with the Hunter control's Solid body (a type-2 contact) |
 | u 110 | 9 | 143/162 | DRAWS | with the Hunter control's Solid body (a type-2 contact) |
 
@@ -381,7 +381,7 @@ A record that never started has a named reason.
 
 | record | starts | lit | verdict | why |
 |---|---|---|---|---|
-| u 0 | 13 | 165/398 | DRAWS |  |
+| u 0 | 10 | 194/592 | DRAWS |  |
 | u 1 | 9 | 189/202 | DRAWS |  |
 | u 2 | 10 | 106/119 | DRAWS | with the Hunter control's Solid body (a type-2 contact) |
 | u 3 | 9 | 446/667 | DRAWS |  |
@@ -391,9 +391,9 @@ A record that never started has a named reason.
 | record | starts | lit | verdict | why |
 |---|---|---|---|---|
 | u 0 | 16 | 207/560 | DRAWS |  |
-| u 1 | 12 | 252/266 | DRAWS |  |
+| u 1 | 12 | 253/270 | DRAWS |  |
 | u 2 | 10 | 106/120 | DRAWS | with the Hunter control's Solid body (a type-2 contact) |
-| u 3 | 12 | 653/887 | DRAWS |  |
+| u 3 | 12 | 654/890 | DRAWS |  |
 | u 60 | 6 | 87/94 | DRAWS |  |
 | u 61 | 3 | 65/73 | DRAWS |  |
 | u 110 | 4 | 146/167 | DRAWS |  |
@@ -566,12 +566,12 @@ A record that never started has a named reason.
 | record | starts | lit | verdict | why |
 |---|---|---|---|---|
 | c 32 | 28 | 338/401 | DRAWS |  |
-| u 0 | 3 | 65/90 | DRAWS |  |
+| u 0 | 3 | 66/89 | DRAWS |  |
 | u 1 | 3 | 67/90 | DRAWS |  |
-| u 3 | 3 | 66/89 | DRAWS |  |
+| u 3 | 3 | 67/89 | DRAWS |  |
 | u 30 | 3 | 0/72 | DRAWS | off the meter's camera, lit when aimed at |
 | u 31 | 3 | 0/71 | DRAWS | off the meter's camera, lit when aimed at |
-| u 33 | 3 | 0/72 | DRAWS | off the meter's camera, lit when aimed at |
+| u 33 | 3 | 28/133 | DRAWS |  |
 
 ### em032_04 (Grimclaw Tigrex)
 
@@ -580,9 +580,9 @@ A record that never started has a named reason.
 | u 0 | 9 | 227/247 | DRAWS |  |
 | u 1 | 9 | 227/247 | DRAWS |  |
 | u 3 | 9 | 229/246 | DRAWS |  |
-| u 30 | 9 | 165/216 | DRAWS |  |
+| u 30 | 9 | 351/400 | DRAWS |  |
 | u 31 | 9 | 171/211 | DRAWS |  |
-| u 33 | 9 | 156/214 | DRAWS |  |
+| u 33 | 9 | 365/404 | DRAWS |  |
 | u 70 | 48 | 1000/1064 | DRAWS |  |
 | u 71 | 48 | 1721/1944 | DRAWS |  |
 | u 72 | 24 | 500/532 | DRAWS |  |
@@ -602,9 +602,9 @@ A record that never started has a named reason.
 | u 100 | 2 | 49/51 | DRAWS |  |
 | u 101 | 1 | 24/25 | DRAWS |  |
 | u 103 | 2 | 50/52 | DRAWS |  |
-| u 110 | 1 | 44/45 | DRAWS |  |
+| u 110 | 1 | 65/66 | DRAWS |  |
 | u 111 | 1 | 45/46 | DRAWS |  |
-| u 113 | 1 | 44/45 | DRAWS |  |
+| u 113 | 1 | 65/66 | DRAWS |  |
 | u 122 | 24 | 546/617 | DRAWS |  |
 | u 123 | 24 | 350/415 | DRAWS |  |
 | u 124 | 24 | 560/617 | DRAWS |  |
@@ -623,7 +623,7 @@ A record that never started has a named reason.
 
 | record | starts | lit | verdict | why |
 |---|---|---|---|---|
-| u 10 | 9 | 51/63 | DRAWS |  |
+| u 10 | 4 | 52/57 | DRAWS |  |
 | u 20 | 9 | 201/216 | DRAWS | with the Hunter control's Solid body (a type-2 contact) |
 | u 30 | 4 | 90/96 | DRAWS |  |
 | u 50 | 4 | 267/303 | DRAWS |  |
@@ -729,7 +729,7 @@ A record that never started has a named reason.
 | u 10 | 104 | 1766/1903 | DRAWS |  |
 | u 11 | 1 | 13/14 | DRAWS |  |
 | u 20 | - | - | NO WALL / HUNTER | its ef slot is the type-0 (wall) / type-2 (hunter) contact of its base's +0x150: the stage is a floor only, and the Solid hunter (the Hunter control) did not meet it at 0 / 500 / 1200 in front or 500 behind |
-| u 21 | 1 | 21/24 | DRAWS |  |
+| u 21 | 1 | 22/25 | DRAWS |  |
 | u 30 | 104 | 1341/1563 | DRAWS |  |
 
 ### em045_00 (Uragaan)
@@ -748,14 +748,14 @@ A record that never started has a named reason.
 | u 32 | 84 | 1350/1494 | DRAWS |  |
 | u 33 | - | - | ROM GIVES NOTHING | sp_32 ef 2 (+0x15d0) has no read in base32, the class methods or their callees; the controls +0x15c8 / +0x15cc found by the same scan (rom-map 3154 (e)) |
 | u 34 | 43 | 1229/1388 | DRAWS |  |
-| u 40 | 6 | 2583/2589 | DRAWS |  |
-| u 50 | 1 | 17/18 | DRAWS |  |
+| u 40 | 4 | 3399/3405 | DRAWS |  |
+| u 50 | 1 | 18/19 | DRAWS |  |
 | u 60 | 9 | 170/185 | DRAWS |  |
 | u 61 | 5 | 107/122 | DRAWS | with the Hunter control's Solid body (a type-2 contact) |
 | u 62 | 4 | 85/97 | DRAWS |  |
 | u 80 | 9 | 426/438 | DRAWS |  |
 | u 200 | 3 | 104/113 | DRAWS |  |
-| u 230 | 2 | 876/879 | DRAWS |  |
+| u 230 | 2 | 1001/1004 | DRAWS |  |
 
 ### em046_00 (Lagiacrus)
 
@@ -929,6 +929,40 @@ A record that never started has a named reason.
 | u 1 | 7 | 121/163 | DRAWS |  |
 | u 2 | 3 | 67/71 | DRAWS | with the Hunter control's Solid body (a type-2 contact) |
 
+### em063_00 (Brachydios)
+
+| record | starts | lit | verdict | why |
+|---|---|---|---|---|
+| u 0 | 129 | 12538/12937 | DRAWS |  |
+| u 1 | 127 | 1691/1933 | DRAWS |  |
+| u 10 | 4 | 402/407 | DRAWS |  |
+| u 11 | 4 | 145/169 | DRAWS |  |
+| u 30 | 48 | 719/768 | DRAWS |  |
+| u 31 | 12 | 264/276 | DRAWS |  |
+| u 40 | 15 | 187/232 | DRAWS |  |
+| u 41 | 5 | 64/79 | DRAWS |  |
+| u 50 | 38 | 466/575 | DRAWS |  |
+| u 51 | - | - | ROM GIVES NOTHING | sp_01 mode 8 names it and no maker makes mode 8 (gapQ: the 8 submit sites + 2 shell sites read, the control; 0xf458ec kind 3 passed by none of its 23 callers) |
+
+### em063_05 (Raging Brachydios)
+
+| record | starts | lit | verdict | why |
+|---|---|---|---|---|
+| u 1 | 80 | 1109/1218 | DRAWS |  |
+| u 10 | 4 | 203/208 | DRAWS |  |
+| u 11 | 4 | 144/168 | DRAWS |  |
+| u 30 | 40 | 600/640 | DRAWS |  |
+| u 31 | 12 | 252/264 | DRAWS |  |
+| u 40 | 8 | 101/125 | DRAWS |  |
+| u 41 | - | - | INPUT MISSING | sp_01 mode 5 (0xf3b7e8: one arm Red with rage 0x81670 off); the viewer shows a Red slot only as Red Slime, his rage (the effects lane slime063, Raven 2026-09-16), so a Red arm with rage off cannot be set -- whether the game reaches it (the per-slot 2700-frame ladder) is not read |
+| u 50 | 65 | 800/989 | DRAWS |  |
+| u 100 | 82 | 4026/4135 | DRAWS |  |
+| u 110 | 8 | 401/412 | DRAWS |  |
+| u 111 | 8 | 112/122 | DRAWS |  |
+| u 130 | 10 | 130/160 | DRAWS |  |
+| u 131 | 2 | 23/27 | DRAWS |  |
+| u 210 | 4 | 56/60 | DRAWS |  |
+
 ### em065_00 (Kecha Wacha)
 
 | record | starts | lit | verdict | why |
@@ -1043,17 +1077,17 @@ A record that never started has a named reason.
 | record | starts | lit | verdict | why |
 |---|---|---|---|---|
 | c 30 | 1 | 12/14 | DRAWS |  |
-| c 31 | 4 | 47/56 | DRAWS |  |
+| c 31 | 4 | 48/56 | DRAWS |  |
 | u 0 | 2 | 28/30 | DRAWS |  |
-| u 1 | 2 | 30/34 | DRAWS |  |
+| u 1 | 2 | 31/36 | DRAWS |  |
 | u 10 | 3 | 122/133 | DRAWS |  |
-| u 11 | 3 | 35/54 | DRAWS |  |
+| u 11 | 3 | 37/54 | DRAWS |  |
 | u 150 | 35 | 442/483 | DRAWS |  |
 | u 151 | 4 | 60/64 | DRAWS |  |
-| u 152 | 8 | 101/113 | DRAWS |  |
-| u 162 | 15 | 188/210 | DRAWS |  |
-| u 172 | 15 | 189/210 | DRAWS |  |
-| u 210 | 4 | 62/68 | DRAWS |  |
+| u 152 | 8 | 102/112 | DRAWS |  |
+| u 162 | 15 | 191/210 | DRAWS |  |
+| u 172 | 15 | 191/210 | DRAWS |  |
+| u 210 | 4 | 64/68 | DRAWS |  |
 | u 220 | 4 | 62/68 | DRAWS |  |
 | u 230 | 2 | 32/34 | DRAWS |  |
 
@@ -1132,11 +1166,11 @@ A record that never started has a named reason.
 |---|---|---|---|---|
 | c 30 | 11 | 131/156 | DRAWS |  |
 | c 32 | 10 | 120/141 | DRAWS |  |
-| u 30 | 254 | 2575/3345 | DRAWS |  |
-| u 31 | 254 | 3053/4861 | DRAWS |  |
+| u 30 | 254 | 2600/3350 | DRAWS |  |
+| u 31 | 254 | 3060/4867 | DRAWS |  |
 | u 32 | - | - | NO WALL / HUNTER | the Solid hunter is met in the NODE replay (synthetic joints within ~100 of the unit, the shells launched at the origin) but not on the page at any of the Hunter control's points (front 0 / 500 / 1200, left / right 500 / 1200, behind 0 / 500): the page's real launch joints put the shells on other paths -- measured on em008 L2 M1: the fan shots pass at x -566 / +604 by z 1360 while the hunter stands near x 0, z 550. Not timing or pass order: hunterPass runs after the slot countdown on the page as in node |
-| u 40 | 160 | 1293/2020 | DRAWS |  |
-| u 41 | 156 | 1093/1941 | DRAWS |  |
+| u 40 | 160 | 1294/2030 | DRAWS |  |
+| u 41 | 55 | 1358/2085 | DRAWS |  |
 | u 42 | - | - | NO WALL / HUNTER | the Solid hunter is met in the NODE replay (synthetic joints within ~100 of the unit, the shells launched at the origin) but not on the page at any of the Hunter control's points (front 0 / 500 / 1200, left / right 500 / 1200, behind 0 / 500): the page's real launch joints put the shells on other paths -- measured on em008 L2 M1: the fan shots pass at x -566 / +604 by z 1360 while the hunter stands near x 0, z 550. Not timing or pass order: hunterPass runs after the slot countdown on the page as in node |
 
 ### em079_00 (Malfestio)
@@ -1173,7 +1207,7 @@ A record that never started has a named reason.
 |---|---|---|---|---|
 | u 0 | 9 | 44/57 | DRAWS |  |
 | u 1 | 8 | 312/342 | DRAWS |  |
-| u 2 | 8 | 249/283 | DRAWS |  |
+| u 2 | 7 | 306/335 | DRAWS |  |
 | u 40 | 2 | 43/45 | DRAWS |  |
 
 ### em080_04 (Hellblade Glavenus)
@@ -1189,9 +1223,9 @@ A record that never started has a named reason.
 | u 221 | 4 | 165/175 | DRAWS |  |
 | u 225 | 7 | 153/161 | DRAWS |  |
 | u 226 | 7 | 25/34 | DRAWS |  |
-| u 227 | 7 | 250/273 | DRAWS |  |
-| u 230 | 28 | 629/767 | DRAWS |  |
-| u 240 | 1 | 38/39 | DRAWS |  |
+| u 227 | 7 | 253/276 | DRAWS |  |
+| u 230 | 16 | 841/931 | DRAWS |  |
+| u 240 | 2 | 74/78 | DRAWS |  |
 
 ### em081_00 (Astalos)
 

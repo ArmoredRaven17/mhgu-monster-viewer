@@ -1,0 +1,130 @@
+em001_00  Rathian                    L     flags=0x08400066 blind=[1080, 1080, 1800] cone=18204/14564 
+em001_02  Gold Rathian               L     flags=0x08400066 blind=[1500, 1500, 2100] cone=18204/14564 
+em001_04  Dreadqueen Rathian         L     flags=0x08400066 blind=[1080, 1080, 1800] cone=18204/14564 
+em002_00  Rathalos                   L     flags=0x08400066 blind=[1080, 1080, 1800] cone=18204/14564 
+em002_02  Silver Rathalos            L     flags=0x08400066 blind=[1500, 1500, 2100] cone=18204/14564 
+em002_04  Dreadking Rathalos         L     flags=0x08400066 blind=[1080, 1080, 1800] cone=18204/14564 
+em003_00  Khezu                      L IMM flags=0x00400062 blind=None               cone=0/0 
+em004_00  Basarios                   L     flags=0x00400066 blind=[900, 900, 1800]   cone=18204/14564 
+em005_00  Gravios                    L     flags=0x00400066 blind=[900, 900, 1800]   cone=18204/14564 
+em007_00  Diablos                    L     flags=0x08400076 blind=[1200, 900, 1500]  cone=18204/14564 
+em007_04  Bloodbath Diablos          L     flags=0x08400076 blind=[1200, 900, 1500]  cone=18204/14564 
+em008_00  Yian Kut-Ku                L     flags=0x00400076 blind=[1200, 1200, 1800] cone=18204/14564 
+em009_00  Gypceros                   L IMM flags=0x00400022 blind=[0, 0, 0]          cone=18204/8192 
+em010_00  Plesioth                   L     flags=0x00001076 blind=[450, 300, 750]    cone=18204/14564 
+em011_00  Kirin                      L IMM flags=0x00000002 blind=None               cone=18204/8192 
+em012_00  Lao-Shan Lung              L IMM flags=0x00040402 blind=None               cone=0/0 
+em013_00  Fatalis                    L IMM flags=0x00400402 blind=None               cone=18204/8192 
+em013_01  Crimson Fatalis            L IMM flags=0x00400402 blind=None               cone=18204/8192 
+em013_02  Old Fatalis                L IMM flags=0x00400402 blind=None               cone=18204/8192 
+em014_00  Velocidrome                L     flags=0x00400066 blind=[1200, 900, 1800]  cone=24576/14564 
+em015_00  Gendrome                   L     flags=0x00400066 blind=[1200, 900, 1800]  cone=24576/14564 
+em016_00  Iodrome                    L     flags=0x00400066 blind=[1200, 900, 1800]  cone=24576/14564 
+em017_00  Cephadrome                 L IMM flags=0x08000072 blind=[0, 0, 0]          cone=18204/8192 
+em018_00  Yian Garuga                L     flags=0x00400066 blind=[1800, 1800, 1800] cone=18204/8192 
+em018_04  Deadeye Yian Garuga        L     flags=0x00400066 blind=[1800, 1800, 1800] cone=18204/8192 
+em019_00  Daimyo Hermitaur           L IMM flags=0x00400072 blind=[0, 0, 0]          cone=18204/8192 
+em019_04  Stonefist Hermitaur        L IMM flags=0x00400072 blind=[0, 0, 0]          cone=18204/8192 
+em020_00  Shogun Ceanataur           L IMM flags=0x00000072 blind=[0, 0, 0]          cone=18204/8192 
+em020_04  Rustrazor Ceanataur        L IMM flags=0x00000072 blind=[0, 0, 0]          cone=18204/8192 
+em021_00  Congalala                  L     flags=0x00000066 blind=[1800, 1200, 1800] cone=18204/14564 
+em022_00  Blangonga                  L     flags=0x00000066 blind=[1200, 1200, 1800] cone=18204/14564 
+em023_00  Rajang                     L     flags=0x00000066 blind=[1800, 900, 1800]  cone=18204/14564 
+em023_05  Furious Rajang             L     flags=0x00000066 blind=[1800, 900, 1800]  cone=18204/14564 
+em024_00  Kushala Daora              L     flags=0x00400006 blind=[900, 900, 900]    cone=18204/14564 
+em025_00  Chameleos                  L     flags=0x00400006 blind=[1800, 1200, 0]    cone=18204/14564 
+em027_00  Teostra                    L     flags=0x00400006 blind=[1200, 600, 1800]  cone=18204/14564 
+em030_00  Bulldrome                  L     flags=0x00000066 blind=[1200, 1200, 1800] cone=18204/8192 
+em032_00  Tigrex                     L     flags=0x04400066 blind=[1200, 1200, 1800] cone=18204/14564 
+em032_04  Grimclaw Tigrex            L     flags=0x04400066 blind=[1200, 1200, 1800] cone=18204/14564 
+em033_00  Akantor                    L     flags=0x00000016 blind=[60, 60, 60]       cone=21845/14564 
+em034_00  Giadrome                   L     flags=0x00400066 blind=[1200, 900, 1800]  cone=24576/16384 
+em036_00  Lavasioth                  L IMM flags=0x00400072 blind=[0, 0, 0]          cone=18204/8192 
+em037_00  Nargacuga                  L     flags=0x00000076 blind=[1200, 1200, 1800] cone=18204/14564 
+em037_04  Silverwind Nargacuga       L     flags=0x00000076 blind=[1200, 1200, 1800] cone=18204/14564 
+em038_00  Ukanlos                    L     flags=0x00000016 blind=[60, 60, 60]       cone=18204/14564 
+em042_00  Barioth                    L     flags=0x00400066 blind=[1200, 1200, 1800] cone=18204/14564 
+em043_00  Deviljho                   L     flags=0x08000066 blind=[900, 900, 1800]   cone=14564/14564 
+em043_05  Savage Deviljho            L     flags=0x08000066 blind=[900, 900, 1800]   cone=14564/14564 
+em044_00  Barroth                    L     flags=0x00000066 blind=[1200, 1200, 1800] cone=18204/14564 
+em045_00  Uragaan                    L     flags=0x00000066 blind=[1200, 900, 1500]  cone=18204/14564 
+em045_04  Crystalbeard Uragaan       L     flags=0x00000066 blind=[1200, 900, 1500]  cone=18204/14564 
+em046_00  Lagiacrus                  L     flags=0x00000066 blind=[1200, 600, 1800]  cone=18204/14564 
+em047_00  Royal Ludroth              L     flags=0x00000066 blind=[1200, 600, 1500]  cone=18204/14564 
+em049_00  Agnaktor                   L     flags=0x00004076 blind=[1200, 600, 1800]  cone=18204/14564 
+em050_00  Alatreon                   L     flags=0x00c00006 blind=[450, 450, 450]    cone=21845/15474 
+em055_00  Duramboros                 L     flags=0x00000066 blind=[1200, 1200, 1500] cone=18204/14564 
+em056_00  Nibelsnarf                 L IMM flags=0x00000042 blind=[0, 0, 0]          cone=0/0 
+em057_00  Zinogre                    L     flags=0x00000066 blind=[1200, 900, 1800]  cone=14564/8192 
+em057_04  Thunderlord Zinogre        L     flags=0x00000066 blind=[1200, 900, 1800]  cone=14564/14564 
+em058_00  Amatsu                     L     flags=0x00c18c06 blind=[480, 480, 480]    cone=16384/8192 
+em060_00  Arzuros                    L     flags=0x00100076 blind=[1200, 1200, 1800] cone=18204/14564 
+em060_04  Redhelm Arzuros            L     flags=0x00000066 blind=[1200, 1200, 1800] cone=18204/14564 
+em061_00  Lagombi                    L     flags=0x00000076 blind=[1200, 1200, 1800] cone=18204/14564 
+em061_04  Snowbaron Lagombi          L     flags=0x00000076 blind=[1200, 1200, 1800] cone=18204/14564 
+em062_00  Volvidon                   L     flags=0x00000066 blind=[1200, 1200, 1800] cone=18204/14564 
+em063_00  Brachydios                 L     flags=0x00400066 blind=[1200, 1200, 1800] cone=18204/14564 
+em063_05  Raging Brachydios          L     flags=0x00400066 blind=[1200, 1200, 1800] cone=18204/14564 
+em065_00  Kecha Wacha                L     flags=0x02400076 blind=[1200, 1200, 1800] cone=18204/14564 
+em066_00  Tetsucabra                 L     flags=0x01400066 blind=[1800, 1200, 1800] cone=18204/8192 
+em066_04  Drilltusk Tetsucabra       L     flags=0x01400066 blind=[1800, 1200, 1800] cone=18204/14564 
+em067_00  Zamtrios                   L     flags=0x01000076 blind=[1800, 1200, 1800] cone=18204/14564 
+em068_00  Najarala                   L     flags=0x00000066 blind=[1200, 1200, 1800] cone=18204/8192 
+em069_00  Seltas Queen               L     flags=0x00000066 blind=[1200, 1200, 1800] cone=18204/14564 
+em070_00  Nerscylla                  L     flags=0x00002866 blind=[1200, 1200, 1800] cone=18204/14564 
+em071_00  Gore Magala                L IMM flags=0x08400062 blind=[0, 0, 0]          cone=18204/10923 
+em071_05  Chaotic Gore Magala        L     flags=0x08400066 blind=[1200, 1200, 1800] cone=18204/14564 
+em072_00  Shagaru Magala             L     flags=0x08400006 blind=[1200, 1200, 1800] cone=18204/14564 
+em076_00  Seltas                     L     flags=0x00400866 blind=[1200, 1200, 1800] cone=18204/14564 
+em077_00  Seregios                   L     flags=0x48400066 blind=[1080, 1080, 1800] cone=18204/14564 
+em079_00  Malfestio                  L     flags=0x00400066 blind=[1080, 900, 1800]  cone=18204/14564 
+em079_04  Nightcloak Malfestio       L     flags=0x00400066 blind=[1080, 900, 1800]  cone=18204/14564 
+em080_00  Glavenus                   L     flags=0x00000066 blind=[900, 900, 1800]   cone=18204/14564 
+em080_04  Hellblade Glavenus         L     flags=0x00000066 blind=[900, 900, 1800]   cone=18204/14564 
+em081_00  Astalos                    L     flags=0x08400066 blind=[1080, 1080, 1800] cone=18204/14564 
+em081_04  Boltreaver Astalos         L     flags=0x08400066 blind=[1080, 1080, 1800] cone=18204/14564 
+em082_00  Mizutsune                  L     flags=0x00400066 blind=[1080, 1080, 1800] cone=18204/14564 
+em082_04  Soulseer Mizutsune         L IMM flags=0x00400062 blind=[1080, 1080, 1800] cone=18204/14564   <-- bit2 clear, blind row nonzero
+em083_00  Gammoth                    L     flags=0x00000066 blind=[1080, 1080, 1800] cone=18204/14564 
+em083_04  Elderfrost Gammoth         L     flags=0x00000066 blind=[1080, 1080, 1800] cone=18204/14564 
+em084_00  Nakarkos                   L IMM flags=0x00000412 blind=[0, 0, 0]          cone=0/0 
+em085_00  Great Maccao               L     flags=0x00400076 blind=[1200, 1200, 1800] cone=18204/14564 
+em086_00  Valstrax                   L     flags=0x00400006 blind=None               cone=21845/14564   <-- bit2 set, blind row zero/null
+em087_00  None                       L IMM flags=0x00050402 blind=None               cone=0/0 
+em088_00  Ahtal-Ka                   L     flags=0x00000006 blind=[0, 0, 0]          cone=18204/14564   <-- bit2 set, blind row zero/null
+ems001_00 Aptonoth                   s     flags=0x00100107 blind=[1800, 1800, 1800] cone=16384/8192 
+ems002_00 Apceros                    s     flags=0x00100007 blind=[1800, 1800, 1800] cone=16384/8192 
+ems003_00 Kelbi                      s     flags=0x00020007 blind=[1800, 1800, 1800] cone=16384/8192 
+ems004_00 Mosswine                   s     flags=0x00000007 blind=[1800, 1800, 1800] cone=18204/8192 
+ems005_00 Hornetaur                  s     flags=0x00000a05 blind=[1800, 1800, 1800] cone=18204/8192 
+ems006_00 Vespoid                    s     flags=0x10000a07 blind=[1800, 1800, 1800] cone=18204/8192 
+ems007_00 Felyne                     s     flags=0x00000017 blind=[1800, 1800, 1800] cone=20025/8192 
+ems008_00 Melynx                     s     flags=0x00000017 blind=[1800, 1800, 1800] cone=20025/8192 
+ems009_00 Velociprey                 s     flags=0x00100007 blind=[1800, 1800, 1800] cone=24576/8192 
+ems010_00 Genprey                    s     flags=0x00100007 blind=[1800, 1800, 1800] cone=24576/8192 
+ems011_00 Ioprey                     s     flags=0x00100007 blind=[1800, 1800, 1800] cone=24576/8192 
+ems012_00 Cephalos                   s IMM flags=0x08200013 blind=[0, 0, 0]          cone=18204/8192 
+ems013_00 Bullfango                  s     flags=0x00000006 blind=[1800, 1800, 1800] cone=14564/8192 
+ems014_00 Popo                       s     flags=0x00100107 blind=[1800, 1800, 1800] cone=16384/8192 
+ems015_00 Giaprey                    s     flags=0x00100007 blind=[1800, 1800, 1800] cone=24576/8192 
+ems016_00 Anteka                     s     flags=0x00020007 blind=[1800, 1800, 1800] cone=16384/8192 
+ems017_00 Great Thunderbug           s IMM flags=0x00100203 blind=None               cone=0/0 
+ems019_00 Remobra                    s IMM flags=0x00000813 blind=[0, 0, 0]          cone=18204/8192 
+ems020_00 Hermitaur                  s IMM flags=0x00000013 blind=[0, 0, 0]          cone=18204/8192 
+ems021_00 Ceanataur                  s IMM flags=0x00000013 blind=[0, 0, 0]          cone=18204/8192 
+ems022_00 Conga                      s     flags=0x00100007 blind=None               cone=18204/10923   <-- bit2 set, blind row zero/null
+ems023_00 Blango                     s     flags=0x00100007 blind=[1800, 1800, 1800] cone=18204/8192 
+ems025_00 Rhenoplos                  s     flags=0x00100006 blind=[1800, 1800, 1800] cone=18204/8192 
+ems026_00 Bnahabra                   s     flags=0x10000a07 blind=[1800, 1800, 1800] cone=18204/8192 
+ems027_00 Altaroth                   s     flags=0x10000a07 blind=[1800, 1800, 1800] cone=18204/8192 
+ems034_00 Jaggi                      s     flags=0x00000007 blind=[1800, 1800, 1800] cone=18204/8192 
+ems035_00 Jaggia                     s     flags=0x00204007 blind=[1800, 1800, 1800] cone=18204/8192 
+ems039_00 Ludroth                    s     flags=0x00100006 blind=[1800, 1800, 1800] cone=18204/8192 
+ems040_00 Uroktor                    s     flags=0x0010001e blind=[1800, 1800, 1800] cone=18204/8192 b3 
+ems041_00 Slagtoth                   s     flags=0x00100006 blind=[1800, 1800, 1800] cone=16384/8192 
+ems042_00 Gargwa                     s     flags=0x00000007 blind=[1800, 1800, 1800] cone=18204/8192 
+ems044_00 Zamite                     s     flags=0x00000007 blind=[1800, 1800, 1800] cone=18204/8192 
+ems045_00 Konchu                     s IMM flags=0x10000012 blind=[0, 0, 0]          cone=18204/21845 
+ems046_00 Maccao                     s     flags=0x00000017 blind=[1800, 1800, 1800] cone=18204/8192 
+ems047_00 Larinoth                   s     flags=0x00000006 blind=[1800, 1800, 1800] cone=18204/8192 
+ems048_00 Moofah                     s     flags=0x00100007 blind=[1800, 1800, 1800] cone=16384/8192 

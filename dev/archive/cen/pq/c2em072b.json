@@ -1,0 +1,1 @@
+{"id": "em072_00", "steps": [{"partsAll": "last"}, {"clip": "3|Motion[2]*", "frames": 80}, {"clip": "3|Motion[2]*", "frames": 80}], "want": ["em072_00|em072_00u|1001|event", "em072_00|em072_00u|1000|event"]}

@@ -1,0 +1,160 @@
+PASS em001_00 1,4 L2 M1  -- {"off":181,"on":157,"predicted":157,"factor":1,"how":"census","rates":[[2,0.75],[32,1.3]],"bursts":[{"u":1314,"expected":1,"starts":1,"lit":36,"verdict":"draws"}]}
+PASS em001_00 1,4 L2 M13  -- {"off":147,"on":136,"predicted":136,"factor":1,"how":"census","rates":[[2,0.75],[40,1.3]],"bursts":[{"u":1314,"expected":1,"starts":1,"lit":38,"verdict":"draws"}]}
+PASS em001_00 1,4 L2 M2  -- {"off":183,"on":142,"predicted":142,"factor":1,"how":"census","rates":[[2,1.3]],"bursts":[{"u":1314,"expected":1,"starts":1,"lit":24,"verdict":"draws"}]}
+PASS em001_02 1,4 L2 M1  -- {"off":181,"on":157,"predicted":157,"factor":1,"how":"action","rates":[[2,0.75],[32,1.3]],"bursts":[{"u":1314,"expected":1,"starts":1,"lit":36,"verdict":"draws"}]}
+PASS em001_02 1,4 L2 M13  -- {"off":147,"on":136,"predicted":136,"factor":1,"how":"census","rates":[[2,0.75],[40,1.3]],"bursts":[{"u":1314,"expected":1,"starts":1,"lit":38,"verdict":"draws"}]}
+PASS em001_02 1,4 L2 M2  -- {"off":183,"on":142,"predicted":142,"factor":1,"how":"census","rates":[[2,1.3]],"bursts":[{"u":1314,"expected":1,"starts":1,"lit":25,"verdict":"draws"}]}
+PASS em002_00 1,3 L2 M1  -- {"off":181,"on":157,"predicted":157,"factor":1,"how":"census","rates":[[2,0.75],[32,1.3]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":36,"verdict":"draws"}]}
+PASS em002_00 1,3 L2 M13  -- {"off":147,"on":136,"predicted":136,"factor":1,"how":"action","rates":[[2,0.75],[40,1.3]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":38,"verdict":"draws"}]}
+PASS em002_00 1,3 L2 M5  -- {"off":295,"on":315,"predicted":315,"factor":1,"how":"action","rates":[[2,0.75],[60,1]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":42,"verdict":"draws"}]}
+PASS em002_02 1,3 L2 M1  -- {"off":181,"on":157,"predicted":157,"factor":1,"how":"action","rates":[[2,0.75],[32,1.3]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":36,"verdict":"draws"}]}
+PASS em002_02 1,3 L2 M13  -- {"off":147,"on":136,"predicted":136,"factor":1,"how":"action","rates":[[2,0.75],[40,1.3]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":38,"verdict":"draws"}]}
+PASS em002_02 1,3 L2 M5  -- {"off":295,"on":315,"predicted":315,"factor":1,"how":"action","rates":[[2,0.75],[60,1]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":43,"verdict":"draws"}]}
+PASS em003_00 1,2 L0 M13  -- {"off":49,"on":34,"predicted":34,"factor":1,"how":"census","rates":[[2,1.5]],"bursts":[]}
+PASS em003_00 1,2 L2 M1  -- {"off":171,"on":159,"predicted":158,"factor":1,"how":"census","rates":[[2,0.8],[20,0.6],[38,1.5],[80,1.2]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":37,"verdict":"draws"}]}
+PASS em003_00 1,2 L2 M3  -- no play-once clip (split or absent): skipped
+PASS em003_00 1,2 L2 M36  -- {"off":239,"on":224,"predicted":224,"factor":1,"how":"census","rates":[[2,0.5],[32,1.4],[120,1.2]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":32,"verdict":"draws"}]}
+PASS em004_00 1,3 L0 M10  -- {"off":101,"on":79,"predicted":79,"factor":1,"how":"census","rates":[[2,1.3]],"bursts":[]}
+PASS em004_00 1,3 L0 M7  -- no play-once clip (split or absent): skipped
+PASS em004_00 1,3 L0 M9  -- {"off":101,"on":79,"predicted":79,"factor":1,"how":"census","rates":[[2,1.3]],"bursts":[]}
+PASS em004_00 1,3 L2 M1  -- {"off":371,"on":378,"predicted":378,"factor":1,"how":"census","rates":[[2,0.9],[20,0.8],[62,1.2],[100,1]],"bursts":[{"u":1313,"expected":1,"starts":1,"lit":40,"verdict":"draws"}]}
+PASS em005_00 1,3 L0 M7  -- no play-once clip (split or absent): skipped
+PASS em005_00 1,3 L2 M1  -- {"off":371,"on":353,"predicted":353,"factor":1,"how":"census","rates":[[2,0.9],[20,0.8],[62,1.2],[100,1.1]],"bursts":[{"u":1313,"expected":1,"starts":1,"lit":40,"verdict":"draws"}]}
+PASS em005_00 1,3 L2 M13  -- {"off":463,"on":460,"predicted":460,"factor":1,"how":"census","rates":[[2,1],[140,0.9],[320,1.2]],"bursts":[{"u":1313,"expected":1,"starts":1,"lit":32,"verdict":"draws"}]}
+PASS em005_00 1,3 L2 M22  -- {"off":463,"on":460,"predicted":460,"factor":1,"how":"census","rates":[[2,1],[140,0.9],[320,1.2]],"bursts":[{"u":1313,"expected":1,"starts":1,"lit":32,"verdict":"draws"}]}
+PASS em007_00 1,2 L0 M11  -- {"off":49,"on":45,"predicted":45,"factor":1,"how":"census","rates":[[2,1.1]],"bursts":[]}
+PASS em007_00 1,2 L0 M12  -- {"off":49,"on":45,"predicted":45,"factor":1,"how":"census","rates":[[2,1.1]],"bursts":[]}
+PASS em007_00 1,2 L0 M7  -- no play-once clip (split or absent): skipped
+PASS em007_00 1,2 L2 M1  -- {"off":181,"on":152,"predicted":152,"factor":1,"how":"census","rates":[[2,1.2]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":26,"verdict":"draws"}]}
+PASS em008_00 1,2 L2 M2  -- no play-once clip (split or absent): skipped
+PASS em008_00 1,2 L2 M23  -- {"off":171,"on":151,"predicted":151,"factor":1,"how":"census","rates":[[2,0.8],[40,1.3]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":39,"verdict":"draws"}]}
+PASS em008_00 1,2 L2 M24  -- {"off":171,"on":149,"predicted":149,"factor":1,"how":"census","rates":[[2,0.8],[50,1.4]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":40,"verdict":"draws"}]}
+PASS em008_00 1,2 L2 M4  -- {"off":147,"on":128,"predicted":128,"factor":1,"how":"census","rates":[[2,0.8],[30,1.3]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":34,"verdict":"draws"}]}
+PASS em009_00 1,2 L2 M23  -- {"off":171,"on":195,"predicted":195,"factor":1,"how":"census","rates":[[2,1.3],[40,0.8]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":25,"verdict":"draws"}]}
+PASS em009_00 1,2 L2 M24  -- {"off":171,"on":191,"predicted":190,"factor":1,"how":"census","rates":[[2,1.3],[50,0.8]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":24,"verdict":"draws"}]}
+PASS em009_00 1,2 L2 M9  -- {"off":183,"on":183,"predicted":183,"factor":1,"how":"census","rates":[[2,1]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":32,"verdict":"draws"}]}
+PASS em010_00 1,3 L2 M1  -- {"off":183,"on":147,"predicted":147,"factor":1,"how":"census","rates":[[2,1.25]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":26,"verdict":"draws"}]}
+PASS em010_00 1,3 L2 M16  -- {"off":183,"on":204,"predicted":203,"factor":1,"how":"census","rates":[[2,0.9]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":35,"verdict":"draws"}]}
+PASS em010_00 1,3 L2 M3  -- {"off":69,"on":143,"predicted":141,"factor":1,"how":"census","rates":[[2,0.6],[60,0.2]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":53,"verdict":"draws"}]}
+PASS em018_00 1,2 L4 M64  -- {"off":315,"on":339,"predicted":339,"factor":1,"how":"census","rates":[[2,0.8],[200,1.3]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":40,"verdict":"draws"}]}
+PASS em018_00 1,2 L4 M7  -- {"off":147,"on":181,"predicted":181,"factor":1,"how":"census","rates":[[2,0.8],[140,1.3]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":40,"verdict":"draws"}]}
+PASS em018_00 1,2 L4 M79  -- {"off":315,"on":339,"predicted":339,"factor":1,"how":"census","rates":[[2,0.8],[200,1.3]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":40,"verdict":"draws"}]}
+PASS em019_00 1,2 L2 M10  -- {"off":131,"on":134,"predicted":135,"factor":1,"how":"census","rates":[[2,0.8],[45,1.1]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":40,"verdict":"draws"}]}
+PASS em019_00 1,2 L2 M15  -- {"off":121,"on":111,"predicted":111,"factor":1,"how":"census","rates":[[2,1.1]],"bursts":[{"u":1312,"expected":1,"starts":1,"lit":28,"verdict":"draws"}]}
+PASS em019_00 1,2 L2 M2  -- {"off":139,"on":147,"predicted":145,"factor":1,"how":"action","rates":[[2,0.3],[10,1.1]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":49,"verdict":"draws"}]}
+PASS em020_00 1,3 L2 M10  -- {"off":131,"on":161,"predicted":160,"factor":1,"how":"census","rates":[[2,0.6],[20,0.5],[50,1.2]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":43,"verdict":"draws"}]}
+PASS em020_00 1,3 L2 M12  -- no play-once clip (split or absent): skipped
+PASS em020_00 1,3 L2 M13  -- no play-once clip (split or absent): skipped
+PASS em020_00 1,3 L2 M14  -- {"off":67,"on":62,"predicted":62,"factor":1,"how":"census","rates":[[2,1.1]],"bursts":[]}
+PASS em020_00 1,3 L2 M3  -- no play-once clip (split or absent): skipped
+PASS em020_00 1,3 L4 M1  -- {"off":115,"on":121,"predicted":121,"factor":1,"how":"census","rates":[[2,0.95]],"bursts":[]}
+PASS em021_00 2,3 L0 M20  -- {"off":235,"on":290,"predicted":292,"factor":1,"how":"census","rates":[[2,1],[30,0.5],[38,0.3],[50,0.5],[70,1]],"bursts":[{"u":1313,"expected":1,"starts":1,"lit":67,"verdict":"draws"}]}
+PASS em021_00 2,3 L2 M1  -- no play-once clip (split or absent): skipped
+PASS em021_00 2,3 L2 M10  -- no play-once clip (split or absent): skipped
+PASS em021_00 2,3 L2 M11  -- {"off":151,"on":117,"predicted":117,"factor":1,"how":"census","rates":[[2,1.3]],"bursts":[]}
+PASS em021_00 2,3 L2 M13  -- {"off":31,"on":39,"predicted":39,"factor":1,"how":"census","rates":[[10,0.5],[18,1]],"bursts":[{"u":1312,"expected":1,"starts":1,"lit":38,"verdict":"draws"}]}
+PASS em022_00 1,2 L2 M1  -- {"off":49,"on":70,"predicted":69,"factor":1,"how":"census","rates":[[2,0.7]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":14,"verdict":"draws"}]}
+PASS em022_00 1,2 L2 M2  -- {"off":71,"on":60,"predicted":60,"factor":1,"how":"census","rates":[[2,1.2]],"bursts":[]}
+PASS em022_00 1,2 L2 M21  -- no play-once clip (split or absent): skipped
+PASS em022_00 1,2 L2 M22  -- {"off":99,"on":83,"predicted":83,"factor":1,"how":"census","rates":[[2,1.2]],"bursts":[]}
+PASS em023_00 3,1 L2 M10  -- {"off":27,"on":62,"predicted":61,"factor":1,"how":"census","rates":[[2,0.3],[17,1]],"bursts":[{"u":1313,"expected":1,"starts":1,"lit":61,"verdict":"draws"}]}
+PASS em023_00 3,1 L2 M12  -- no play-once clip (split or absent): skipped
+PASS em023_00 3,1 L2 M15  -- {"off":199,"on":192,"predicted":192,"factor":1,"how":"census","rates":[[2,0.7],[45,1.2]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":45,"verdict":"draws"}]}
+PASS em023_00 3,1 L2 M18  -- no play-once clip (split or absent): skipped
+PASS em023_00 3,1 L2 M19  -- no play-once clip (split or absent): skipped
+PASS em023_00 3,1 L2 M20  -- no play-once clip (split or absent): skipped
+PASS em023_00 3,1 L2 M21  -- no play-once clip (split or absent): skipped
+PASS em023_00 3,1 L2 M22  -- no play-once clip (split or absent): skipped
+PASS em023_00 3,1 L2 M23  -- no play-once clip (split or absent): skipped
+PASS em023_00 3,1 L2 M25  -- no play-once clip (split or absent): skipped
+PASS em023_00 3,1 L2 M28  -- {"off":183,"on":142,"predicted":142,"factor":1,"how":"census","rates":[[2,1.3]],"bursts":[]}
+PASS em032_00 3,2 L0 M12  -- {"off":131,"on":131,"predicted":131,"factor":1,"how":"ambiguous","rates":[[2,1]],"bursts":[{"u":1313,"expected":1,"starts":1,"lit":32,"verdict":"draws"}]}
+PASS em032_00 3,2 L0 M13  -- {"off":131,"on":131,"predicted":131,"factor":1,"how":"ambiguous","rates":[[2,1]],"bursts":[{"u":1313,"expected":1,"starts":1,"lit":32,"verdict":"draws"}]}
+PASS em032_00 3,2 L0 M62  -- {"off":97,"on":97,"predicted":97,"factor":1,"how":"census","rates":[[2,1]],"bursts":[]}
+PASS em036_00 1,2 L2 M10  -- {"off":183,"on":183,"predicted":183,"factor":1,"how":"action","rates":[[2,1]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":32,"verdict":"draws"}]}
+PASS em036_00 1,2 L2 M11  -- no play-once clip (split or absent): skipped
+PASS em036_00 1,2 L2 M14  -- {"off":181,"on":213,"predicted":213,"factor":1,"how":"census","rates":[[2,0.6],[50,1]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":49,"verdict":"draws"}]}
+PASS em036_00 1,2 L2 M15  -- {"off":183,"on":214,"predicted":214,"factor":1,"how":"census","rates":[[2,0.6],[48,1]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":48,"verdict":"draws"}]}
+PASS em037_00 5,3 L0 M27  -- {"off":101,"on":93,"predicted":93,"factor":1,"how":"census","rates":[[4,1.1]],"bursts":[]}
+PASS em037_00 5,3 L0 M28  -- {"off":147,"on":123,"predicted":123,"factor":1,"how":"census","rates":[[2,1.2]],"bursts":[]}
+PASS em037_00 5,3 L0 M33  -- {"off":39,"on":37,"predicted":37,"factor":1,"how":"census","rates":[[10,1.1]],"bursts":[]}
+PASS em042_00 2,4 L0 M33  -- {"off":83,"on":80,"predicted":80,"factor":1,"how":"census","rates":[[2,1.05]],"bursts":[]}
+PASS em042_00 2,4 L0 M34  -- {"off":83,"on":80,"predicted":80,"factor":1,"how":"census","rates":[[2,1.05]],"bursts":[]}
+PASS em042_00 2,4 L0 M37  -- {"off":23,"on":22,"predicted":23,"factor":1,"how":"census","rates":[[2,1.05]],"bursts":[]}
+PASS em043_00 1,3 L0 M10  -- {"off":89,"on":65,"predicted":65,"factor":1,"how":"census","rates":[[2,1.4]],"bursts":[]}
+PASS em043_00 1,3 L0 M11  -- {"off":89,"on":65,"predicted":65,"factor":1,"how":"census","rates":[[2,1.4]],"bursts":[]}
+PASS em043_00 1,3 L0 M12  -- {"off":117,"on":85,"predicted":85,"factor":1,"how":"census","rates":[[2,1.4]],"bursts":[]}
+PASS em044_00 1,2 L0 M20  -- {"off":123,"on":103,"predicted":103,"factor":1,"how":"census","rates":[[2,1.2]],"bursts":[]}
+PASS em044_00 1,2 L0 M3  -- {"off":77,"on":65,"predicted":65,"factor":1,"how":"census","rates":[[2,1.2]],"bursts":[]}
+PASS em044_00 1,2 L0 M4  -- {"off":77,"on":65,"predicted":65,"factor":1,"how":"census","rates":[[2,1.2]],"bursts":[]}
+PASS em045_00 1,3 L2 M1  -- {"off":449,"on":271,"predicted":268,"factor":1,"how":"action","rates":[[2,2],[130,0.5],[160,2]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":16,"verdict":"draws"}]}
+PASS em045_00 1,3 L2 M10  -- {"off":441,"on":425,"predicted":424,"factor":1,"how":"action","rates":[[2,0.7],[80,1.5],[230,1]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":45,"verdict":"draws"}]}
+PASS em045_00 1,3 L2 M13  -- {"off":239,"on":185,"predicted":185,"factor":1,"how":"census","rates":[[2,1.3]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":24,"verdict":"draws"}]}
+PASS em046_00 1,5 L2 M1  -- {"off":191,"on":163,"predicted":163,"factor":1,"how":"census","rates":[[20,1.2]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":29,"verdict":"draws"}]}
+PASS em046_00 1,5 L2 M36  -- {"off":225,"on":281,"predicted":280,"factor":1,"how":"action","rates":[[4,0.8]],"bursts":[{"u":1315,"expected":1,"starts":1,"lit":40,"verdict":"draws"}]}
+PASS em046_00 1,5 L2 M37  -- {"off":147,"on":124,"predicted":124,"factor":1,"how":"action","rates":[[4,1.2]],"bursts":[]}
+PASS em047_00 1,2 L2 M1  -- {"off":191,"on":204,"predicted":204,"factor":1,"how":"census","rates":[[2,0.5],[40,1.2]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":63,"verdict":"draws"}]}
+PASS em047_00 1,2 L2 M12  -- {"off":267,"on":274,"predicted":274,"factor":1,"how":"census","rates":[[2,0.7],[60,1.1]],"bursts":[{"u":1312,"expected":1,"starts":1,"lit":45,"verdict":"draws"}]}
+PASS em047_00 1,2 L2 M14  -- {"off":163,"on":178,"predicted":178,"factor":1,"how":"census","rates":[[2,0.7],[36,1]],"bursts":[{"u":1312,"expected":1,"starts":1,"lit":45,"verdict":"draws"}]}
+PASS em049_00 1,4 L0 M10  -- {"off":103,"on":87,"predicted":87,"factor":1,"how":"census","rates":[[2,1.2]],"bursts":[]}
+PASS em049_00 1,4 L0 M4  -- no play-once clip (split or absent): skipped
+PASS em049_00 1,4 L0 M5  -- no play-once clip (split or absent): skipped
+PASS em049_00 1,4 L0 M6  -- {"off":61,"on":52,"predicted":52,"factor":1,"how":"action","rates":[[2,1.2]],"bursts":[]}
+PASS em049_00 1,4 L0 M7  -- {"off":103,"on":87,"predicted":87,"factor":1,"how":"action","rates":[[2,1.2]],"bursts":[]}
+PASS em055_00 3,4 L0 M13  -- {"off":121,"on":94,"predicted":94,"factor":1,"how":"census","rates":[[2,1.3]],"bursts":[]}
+PASS em055_00 3,4 L0 M14  -- {"off":121,"on":94,"predicted":94,"factor":1,"how":"census","rates":[[2,1.3]],"bursts":[]}
+PASS em055_00 3,4 L0 M15  -- {"off":75,"on":59,"predicted":59,"factor":1,"how":"action","rates":[[2,1.3]],"bursts":[]}
+PASS em056_00 1,2 L2 M10  -- {"off":169,"on":151,"predicted":151,"factor":1,"how":"census","rates":[[2,0.5],[30,1.5]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":21,"verdict":"draws"}]}
+PASS em056_00 1,2 L2 M16  -- {"off":341,"on":214,"predicted":215,"factor":1,"how":"census","rates":[[2,1.6]],"bursts":[]}
+PASS em056_00 1,2 L2 M18  -- no play-once clip (split or absent): skipped
+PASS em056_00 1,2 L2 M25  -- {"off":101,"on":85,"predicted":85,"factor":1,"how":"census","rates":[[2,1.2]],"bursts":[]}
+PASS em057_00 1,4 L2 M15  -- {"off":133,"on":125,"predicted":125,"factor":1,"how":"census","rates":[[2,1.5],[46,1],[106,0.8]],"bursts":[{"u":1314,"expected":1,"starts":1,"lit":21,"verdict":"draws"}]}
+PASS em057_00 1,4 L2 M17  -- {"off":225,"on":273,"predicted":273,"factor":1,"how":"census","rates":[[34,0.8]],"bursts":[]}
+PASS em057_00 1,4 L2 M18  -- {"off":133,"on":125,"predicted":125,"factor":1,"how":"census","rates":[[2,1.5],[46,1],[106,0.8]],"bursts":[{"u":1314,"expected":1,"starts":1,"lit":21,"verdict":"draws"}]}
+PASS em063_00 2,3 L2 M10  -- {"off":59,"on":89,"predicted":89,"factor":1,"how":"census","rates":[[2,0.8],[38,0.5]],"bursts":[{"u":1313,"expected":1,"starts":1,"lit":39,"verdict":"draws"}]}
+PASS em063_00 2,3 L2 M11  -- {"off":175,"on":171,"predicted":171,"factor":1,"how":"census","rates":[[2,1.2],[26,1]],"bursts":[]}
+PASS em063_00 2,3 L2 M12  -- {"off":59,"on":89,"predicted":89,"factor":1,"how":"census","rates":[[2,0.8],[38,0.5]],"bursts":[{"u":1312,"expected":1,"starts":1,"lit":39,"verdict":"draws"}]}
+PASS em065_00 1,2 L2 M117  -- no play-once clip (split or absent): skipped
+PASS em065_00 1,2 L2 M77  -- {"off":261,"on":278,"predicted":278,"factor":1,"how":"action","rates":[[2,0.8],[30,0.6],[70,1.1]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":46,"verdict":"draws"}]}
+PASS em065_00 1,2 L2 M78  -- {"off":251,"on":255,"predicted":255,"factor":1,"how":"action","rates":[[2,1],[52,0.6],[80,1.1]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":41,"verdict":"draws"}]}
+PASS em065_00 1,2 L2 M80  -- {"off":251,"on":272,"predicted":272,"factor":1,"how":"action","rates":[[2,0.8],[40,0.6],[80,1.1]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":37,"verdict":"draws"}]}
+PASS em066_00 1,2 L4 M1  -- {"off":259,"on":286,"predicted":286,"factor":1,"how":"action","rates":[[2,0.8],[80,0.6],[114,1.5],[160,1]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":40,"verdict":"draws"}]}
+PASS em066_00 1,2 L4 M2  -- {"off":259,"on":286,"predicted":286,"factor":1,"how":"action","rates":[[2,0.8],[80,0.6],[114,1.5],[160,1]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":40,"verdict":"draws"}]}
+PASS em066_00 1,2 L4 M24  -- {"off":141,"on":158,"predicted":158,"factor":1,"how":"census","rates":[[2,1],[70,0.6],[100,1.1]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":32,"verdict":"draws"}]}
+PASS em067_00 3,1 L2 M10  -- {"off":155,"on":157,"predicted":157,"factor":1,"how":"census","rates":[[2,0.5],[36,1.2],[50,1.4]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":57,"verdict":"draws"}]}
+PASS em067_00 3,1 L2 M12  -- {"off":147,"on":152,"predicted":152,"factor":1,"how":"action","rates":[[2,1.2],[34,0.6],[50,1]],"bursts":[{"u":1313,"expected":1,"starts":1,"lit":26,"verdict":"draws"}]}
+PASS em067_00 3,1 L2 M8  -- {"off":93,"on":78,"predicted":78,"factor":1,"how":"census","rates":[[2,1.2]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":27,"verdict":"draws"}]}
+PASS em068_00 1,2 L0 M104  -- {"off":207,"on":162,"predicted":162,"factor":1,"how":"census","rates":[[10,1.3],[206,0.8]],"bursts":[{"u":1312,"expected":1,"starts":1,"lit":26,"verdict":"draws"}]}
+PASS em068_00 1,2 L0 M105  -- {"off":207,"on":162,"predicted":162,"factor":1,"how":"census","rates":[[10,1.3],[206,0.8]],"bursts":[{"u":1312,"expected":1,"starts":1,"lit":26,"verdict":"draws"}]}
+PASS em068_00 1,2 L0 M114  -- {"off":195,"on":155,"predicted":155,"factor":1,"how":"census","rates":[[10,1.3],[190,0.8]],"bursts":[{"u":1312,"expected":1,"starts":1,"lit":27,"verdict":"draws"}]}
+PASS em069_00 1,4 L4 M33  -- {"off":147,"on":114,"predicted":114,"factor":1,"how":"census","rates":[[2,1.3]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":25,"verdict":"draws"}]}
+PASS em069_00 1,4 L4 M34  -- no play-once clip (split or absent): skipped
+PASS em069_00 1,4 L4 M36  -- {"off":263,"on":191,"predicted":191,"factor":1,"how":"census","rates":[[2,1.8],[60,1.3]],"bursts":[{"u":1314,"expected":1,"starts":1,"lit":18,"verdict":"draws"}]}
+PASS em069_00 1,4 L4 M37  -- {"off":263,"on":287,"predicted":287,"factor":1,"how":"census","rates":[[2,1.8],[60,0.8]],"bursts":[{"u":1314,"expected":1,"starts":1,"lit":18,"verdict":"draws"}]}
+PASS em070_00 4,1 L2 M1  -- {"off":227,"on":236,"predicted":236,"factor":1,"how":"census","rates":[[2,0.7],[22,1]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":40,"verdict":"draws"}]}
+PASS em070_00 4,1 L2 M10  -- {"off":235,"on":266,"predicted":264,"factor":1,"how":"census","rates":[[2,0.3],[15,1]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":63,"verdict":"draws"}]}
+PASS em070_00 4,1 L2 M26  -- {"off":193,"on":202,"predicted":201,"factor":1,"how":"census","rates":[[2,0.8],[34,1]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":40,"verdict":"draws"}]}
+PASS em071_00 1,5 L2 M20  -- {"off":325,"on":289,"predicted":289,"factor":1,"how":"census","rates":[[2,0.7],[30,1.2]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":39,"verdict":"draws"}]}
+PASS em071_00 1,5 L2 M21  -- {"off":325,"on":289,"predicted":289,"factor":1,"how":"census","rates":[[2,0.7],[30,1.2]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":39,"verdict":"draws"}]}
+PASS em071_00 1,5 L2 M28  -- {"off":63,"on":54,"predicted":54,"factor":1,"how":"census","rates":[[20,1.3]],"bursts":[{"u":1315,"expected":1,"starts":1,"lit":28,"verdict":"draws"}]}
+PASS em077_00 1,2 L2 M23  -- {"off":95,"on":97,"predicted":97,"factor":1,"how":"census","rates":[[2,0.6],[22,1.2]],"bursts":[{"u":1312,"expected":1,"starts":1,"lit":32,"verdict":"draws"}]}
+PASS em077_00 1,2 L2 M26  -- {"off":165,"on":235,"predicted":234,"factor":1,"how":"action","rates":[[2,0.5],[40,0.8]],"bursts":[{"u":1312,"expected":1,"starts":1,"lit":63,"verdict":"draws"}]}
+PASS em077_00 1,2 L2 M34  -- {"off":171,"on":258,"predicted":257,"factor":1,"how":"action","rates":[[2,0.5],[60,0.8]],"bursts":[{"u":1312,"expected":1,"starts":1,"lit":63,"verdict":"draws"}]}
+PASS em079_00 2,3 L2 M12  -- {"off":73,"on":66,"predicted":67,"factor":1,"how":"action","rates":[[2,0.7],[20,1.4]],"bursts":[{"u":1313,"expected":1,"starts":1,"lit":30,"verdict":"draws"}]}
+PASS em079_00 2,3 L2 M15  -- {"off":155,"on":146,"predicted":147,"factor":1,"how":"action","rates":[[2,0.7],[50,1.4]],"bursts":[{"u":1312,"expected":1,"starts":1,"lit":30,"verdict":"draws"}]}
+PASS em079_00 2,3 L2 M2  -- {"off":99,"on":107,"predicted":107,"factor":1,"how":"census","rates":[[2,0.6],[24,1.1]],"bursts":[{"u":1312,"expected":1,"starts":1,"lit":41,"verdict":"draws"}]}
+PASS em080_00 1,2 L2 M1  -- {"off":165,"on":194,"predicted":194,"factor":1,"how":"census","rates":[[2,0.8],[24,1],[30,1.3],[52,0.8]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":29,"verdict":"draws"}]}
+PASS em080_00 1,2 L2 M11  -- {"off":333,"on":366,"predicted":366,"factor":1,"how":"action","rates":[[2,0.9],[50,1],[150,0.8],[200,0.9]],"bursts":[{"u":1312,"expected":2,"starts":2,"lit":64,"verdict":"draws"}]}
+PASS em080_00 1,2 L2 M14  -- {"off":317,"on":338,"predicted":338,"factor":1,"how":"ambiguous","rates":[[2,0.8],[52,1.3],[78,1.4],[110,0.9]],"bursts":[{"u":1312,"expected":1,"starts":1,"lit":35,"verdict":"draws"}]}
+PASS em081_00 1,3 L2 M13  -- {"off":147,"on":147,"predicted":147,"factor":1,"how":"census","rates":[[2,1]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":32,"verdict":"draws"}]}
+PASS em081_00 1,3 L2 M20  -- {"off":223,"on":258,"predicted":257,"factor":1,"how":"census","rates":[[2,1.2],[52,0.8]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":27,"verdict":"draws"}]}
+PASS em081_00 1,3 L2 M22  -- {"off":221,"on":229,"predicted":229,"factor":1,"how":"census","rates":[[2,0.6],[38,1.1]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":52,"verdict":"draws"}]}
+PASS em082_00 1,3 L2 M10  -- {"off":43,"on":50,"predicted":50,"factor":1,"how":"census","rates":[[2,0.8],[28,1]],"bursts":[{"u":1313,"expected":1,"starts":1,"lit":34,"verdict":"draws"}]}
+PASS em082_00 1,3 L2 M2  -- {"off":177,"on":178,"predicted":178,"factor":1,"how":"action","rates":[[2,0.65],[28,1.1]],"bursts":[{"u":1313,"expected":1,"starts":1,"lit":45,"verdict":"draws"}]}
+PASS em082_00 1,3 L2 M20  -- {"off":85,"on":85,"predicted":85,"factor":1,"how":"action","rates":[[2,1]],"bursts":[{"u":1313,"expected":1,"starts":1,"lit":32,"verdict":"draws"}]}
+PASS em083_00 1,3 L2 M1  -- {"off":291,"on":195,"predicted":195,"factor":1,"how":"action","rates":[[2,1.5]],"bursts":[{"u":1313,"expected":1,"starts":1,"lit":21,"verdict":"draws"}]}
+PASS em083_00 1,3 L2 M11  -- no play-once clip (split or absent): skipped
+PASS em083_00 1,3 L2 M13  -- {"off":381,"on":324,"predicted":324,"factor":1,"how":"census","rates":[[130,1.3]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":32,"verdict":"draws"}]}
+PASS em083_00 1,3 L2 M16  -- {"off":279,"on":246,"predicted":246,"factor":1,"how":"census","rates":[[2,1.2],[100,0.5],[120,1.3]],"bursts":[{"u":1311,"expected":1,"starts":1,"lit":27,"verdict":"draws"}]}
+
+158 passed, 0 failed

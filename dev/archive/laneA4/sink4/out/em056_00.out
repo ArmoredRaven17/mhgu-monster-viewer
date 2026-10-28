@@ -1,0 +1,4 @@
+PASS PROBE em056_00  -- {"log":["sink OFF rows 0"],"rows":[],"missing":[]}
+PASS PROBE em056_00  -- {"log":["sink ON rows 2"],"rows":[],"missing":[]}
+
+2 passed, 0 failed

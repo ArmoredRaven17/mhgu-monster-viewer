@@ -267,3 +267,13 @@ vt+0x24c (the mud shed) `0xe8d490`: id 1006 once, behind e+0xcada bit 0x20 -- th
 
   On plain it is still live with no draw (dev/checks/ground-control.mjs). +0x1074 / +0x1078 are the water height and the hit below the chosen floor (0x18154c, read 2026-10-20), so H is shallow water over
   a surface and G is water more than 5 deep over it (the meaning is INFERRED from the arithmetic).
+
+## Re-metered 2026-10-25 (effects lane A): u 340, c 130, u 1400 / u 1120
+
+* **u 340** (L2 M12 / M13 bit 15) needs the mud byte = 2 -- the torso (back) mud gone with the head mud on (`0xe8d714`: bits 15-16).
+  The Parts rows give it as **Torso: Clean** with Head: Mud. Measured: starts and draws (`<archive>/cen/pq/mud044b.json`). The
+  earlier "never" was the census's parts sweep, which leaves each row on its last option and so never formed head-muddy +
+  torso-clean.
+* **c 130** (L4 M3 bit 0, cm200_041) builds nothing on a plain floor (MASK2 3, engine E17); on Ground G / H / A / B it draws
+  (`cen/pq/c130_044.json`). Plain floor = "starts, no draw" by the floor rows, not a fault.
+* u 1400 (the L0 M6 copy B) and u 1120 draw under census3; c 1500 draws lying on Ground H (`<archive>/laneA/lying.mjs`).

@@ -1,0 +1,130 @@
+em001_00 bit2 [('em001_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em001_02 bit2 [('em001_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em001_04 bit2 [('em001_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em002_00 bit2 [('em002_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em002_02 bit2 [('em002_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em002_04 bit2 [('em002_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em003_00 IMM  [('em003_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em004_00 bit2 [('em004_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em005_00 bit2 [('em005_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em007_00 bit2 [('em007_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em007_04 bit2 [('em007_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em008_00 bit2 [('em008_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em009_00 IMM  [('em009_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em010_00 bit2 [('em010_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em011_00 IMM  [('em011_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em012_00 IMM  []
+em013_00 IMM  [('em013_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em013_01 IMM  [('em013_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em013_02 IMM  [('em013_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em014_00 bit2 [('em014_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em015_00 bit2 [('em015_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em016_00 bit2 [('em016_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em017_00 IMM  [('em017_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em018_00 bit2 [('em018_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em018_04 bit2 [('em018_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em019_00 IMM  [('em019_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em019_04 IMM  [('em019_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em020_00 IMM  [('em020_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em020_04 IMM  [('em020_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em021_00 bit2 [('em021_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em022_00 bit2 [('em022_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em023_00 bit2 [('em023_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em023_05 bit2 [('em023_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em024_00 bit2 [('em024_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em025_00 bit2 [('em025_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em027_00 bit2 [('em027_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em030_00 bit2 [('em030_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em032_00 bit2 [('em032_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em032_04 bit2 [('em032_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em033_00 bit2 [('em033_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em034_00 bit2 [('em034_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em036_00 IMM  [('em036_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em037_00 bit2 [('em037_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em037_04 bit2 [('em037_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em038_00 bit2 [('em038_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em042_00 bit2 [('em042_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em043_00 bit2 [('em043_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em043_05 bit2 [('em043_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em044_00 bit2 [('em044_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em045_00 bit2 [('em045_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em045_04 bit2 [('em045_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em046_00 bit2 [('em046_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em047_00 bit2 [('em047_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em049_00 bit2 [('em049_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em050_00 bit2 [('em050_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em055_00 bit2 [('em055_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em056_00 IMM  [('em056_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em057_00 bit2 [('em057_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em057_04 bit2 [('em057_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em058_00 bit2 [('em058_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em060_00 bit2 [('em060_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em060_04 bit2 [('em060_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em061_00 bit2 [('em061_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em061_04 bit2 [('em061_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em062_00 bit2 [('em062_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em063_00 bit2 [('em063_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em063_05 bit2 [('em063_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em065_00 bit2 [('em065_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em066_00 bit2 [('em066_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em066_04 bit2 [('em066_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em067_00 bit2 [('em067_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em068_00 bit2 [('em068_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em069_00 bit2 [('em069_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em070_00 bit2 [('em070_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em071_00 IMM  [('em071_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em071_05 bit2 [('em071_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em072_00 bit2 [('em072_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em076_00 bit2 [('em076_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em077_00 bit2 [('em077_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em079_00 bit2 [('em079_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em079_04 bit2 [('em079_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em080_00 bit2 [('em080_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em080_04 bit2 [('em080_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em081_00 bit2 [('em081_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em081_04 bit2 [('em081_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em082_00 bit2 [('em082_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em082_04 IMM  [('em082_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em083_00 bit2 [('em083_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em083_04 bit2 [('em083_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em084_00 IMM  []
+em085_00 bit2 [('em085_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em086_00 bit2 [('em086_00c', 'effect\\cm\\cm200_003', [], 'event')]
+em087_00 IMM  []
+em088_00 bit2 [('em088_00c', 'effect\\cm\\cm200_003', [], 'event')]
+ems001_00 no effects json
+ems002_00 no effects json
+ems003_00 no effects json
+ems004_00 no effects json
+ems005_00 no effects json
+ems006_00 no effects json
+ems007_00 no effects json
+ems008_00 no effects json
+ems009_00 no effects json
+ems010_00 no effects json
+ems011_00 no effects json
+ems012_00 no effects json
+ems013_00 no effects json
+ems014_00 no effects json
+ems015_00 no effects json
+ems016_00 no effects json
+ems017_00 no effects json
+ems019_00 no effects json
+ems020_00 no effects json
+ems021_00 no effects json
+ems022_00 no effects json
+ems023_00 no effects json
+ems025_00 no effects json
+ems026_00 no effects json
+ems027_00 no effects json
+ems034_00 no effects json
+ems035_00 no effects json
+ems039_00 no effects json
+ems040_00 no effects json
+ems041_00 no effects json
+ems042_00 no effects json
+ems044_00 no effects json
+ems045_00 no effects json
+ems046_00 no effects json
+ems047_00 no effects json
+ems048_00 no effects json

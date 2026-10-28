@@ -1,0 +1,3 @@
+PASS NOTICE em001_00  -- {"seen":{"cb":2,"fired":{"c1200":1,"c1201":0},"eye":{"A":[3,156,444],"yaw":65399,"pitch":64747,"unitYaw":0,"dist":6308}},"away":{"cb":0,"fired":{"c1200":1,"c1201":1}},"rows":[{"k":"em001_00|em001_00c|1200|event","st":1,"live":80,"lit":18,"s":19,"px":836,"verdict":"draws"},{"k":"em001_00|em001_00c|1201|event","st":1,"live":91,"lit":19,"s":21,"px":504,"verdict":"draws"}]}
+
+1 passed, 0 failed

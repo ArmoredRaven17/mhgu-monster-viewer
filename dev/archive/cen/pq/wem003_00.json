@@ -1,0 +1,1 @@
+{"id": "em003_00", "steps": [{"set": {"monGroundType": "g2shallow"}}, {"clip": "0|Motion[19]*", "frames": 150, "loop": true}, {"clip": "3|Motion[18]*", "frames": 150}, {"set": {"monGroundType": "plain"}}], "want": ["em003_00|em003_00c|1500|event"]}

@@ -1,0 +1,1 @@
+{"id": "em072_00", "steps": [{"dumpParts": true}, {"rage": true}, {"dumpParts": true}, {"wait": 300}, {"rage": false}, {"partsAll": "last"}, {"dumpParts": true}, {"clip": "3|Motion[2]*", "frames": 80}], "want": ["em072_00|em072_00u|1001|event", "em072_00|em072_00u|1000|event", "em072_00|em072_00u|1121|ragePuff", "em072_00|em072_00u|1120|ragePuff"]}

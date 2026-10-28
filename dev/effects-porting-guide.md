@@ -163,6 +163,7 @@ new build. The validated control for each is in rom-map's tooling table.
 | `armdis.py` | disassembly of `main.text` with PIC address resolution (the `ldr` literal + `add pc` pair, resolved at the ADD) | resolves known strings | its first version resolved from the literal's address and landed on a nearby string. It maps `.text` / `.rodata` / `.data` but not `.bss` | `efx\armdis.py` |
 | unicorn harnesses | run the ROM's own code: `efx_emu.py` (particle generators on a real `.efl`), `emu_fb.py` (whole executable after the static initialisers, shells flown from their own setups), `t3emu.py` (one leaf routine) | the static-init machine: init_array 2334 / 2334 clean, Khezu's ORB_SLOT_POINT 18 / 18 (rom-map `0x1917xxx` row); `emu_fb`: each check's controls that must FAIL | anything the harness does not set up reads 0: the collision singleton, the camera, the frame step, a stand-in parent. Answer these; never run into them | `efx\` ; `<archive>\fb\emu_fb.py` ; `<archive>\t3\` |
 | tracers | the action main under unicorn with the band native and the rest stubbed: `tracec.py` / `sweep2.py` / `deep.py` (motions), `reqtrace.py` (requests), `trgen.py` / `cengen11.py` (shell creates with setups), `gapD\issuers8.py` / `fb\emcvar.py` / `chain*.py` (who issues an action) | Barroth (6, 6) r1 = 2; every known sp_01 maker found | stubs give one answer per address (trap 132); stubbed rage / tired tests hide arms (112); vt+0x3d0 chains (111); zeroed class blocks (117) | `<archive>\zg\`, `<archive>\fb\` |
+| action -> motion census | `<archive>\actmot\amtrace.py` + `census.py` / `runall.py` / `build.py` (dev/action-motions.md): every handled action of a class run per phase x sub-phase x (ended, frame) x the stubbed shared calls all-0 / all-1, logging every setMotion (blend, start, flags), the partner layer, the rate, the posture, the TURN records (`0x794f0` / `0x772b4` read out) and the status SCRIPTS (`0xa1290`'s records), the chains and the PSL word -> action -> motions and the inverse clip -> actions. Reuse it whenever a viewer system is keyed on the action (a speed factor, a CLIP_ACTIONS copy, a word bit, a posture rule): the clip alone never says which | Alatreon's actpost.json; Rathian's ModifyData actions; the attack census (3751 direct + 347 through a follow, of 4116) | turn records and scripts are data -- a tracer that stubs them sees no motion (trap 94); credit a followed action's motions to IT, not the follower; map shared classes from the spawn table, never "the nearest class number" (trap 176) | `<archive>\actmot\` |
 | static census | `reqcensus.py` + `sitefn.py` (request sites -> function), `xref.py`, `movwscan.py`, `picref.py`, `st3a8.py`, `vst.py`, `gotrefs.py` | each has a known site it must find (rom-map tooling rows) | accept the tail-call form (trap 27); `movweq` / `stmib` hide values (28); flag tests are `tst` / `ands` / `bics` / `teq` (2) | `<archive>\` root and lane folders |
 | efx recorder | records the ROM's call vectors for a draw or a schedule: `vecdrawsched.py` (several effects in one frame, PSL bit states, a hunter path), `vecprim.py` (the only recorder that runs the primitive layer), `record_shells.py` (shell plans from the viewer's own inputs) | the sets on `lift-effects.sh`'s V | the recorder's collision singleton is null; `vecdrawsched` / `record_shells` never draw the primitive layer (rom-map "primitive layer"); one recorder and one lift at a time (shared with the Armor Viewer agent) | `efx\` |
 | lift | `lift.py` / `lift-effects.sh`: every instruction the vectors executed becomes JS over `cpu.js`; unreached branches throw `Unverified` | `dev/effect-check.mjs`: byte for byte against the same vectors | regenerate, never hand-patch. A missing path is fixed by recording a set that takes it | `efx\lift.py`, `efx\lift-effects.sh` |
@@ -260,6 +261,13 @@ routine has been read in that game.
 - **`lifted-*.js`** is GU machine code turned into JS. It does not port. The lifter's method (record vectors, lift what ran,
   check byte for byte) does.
 - **The alpha-test and colour state:** NVN in the Switch MRL. The PICA's is encoded elsewhere and must be read for the 3DS.
+- **GU Hyper (GU only, Raven 2026-10-25: "4U lacks hyper, hyper is a GU only thing"):** the quest's hyper flag (e+0xb720), the
+  per-monster rEmDouMouKaData `.mdd` (part auras u 1300+ID, HP-step cycling, ModifyData rates / shells) -- dev/hyper-states.md. Do
+  not look for it in 3U / 4U / FU. The general method (a state field driving a part aura and switching per-part biases / materials /
+  hit zones) is portable as a method only. Its motion side (2026-10-27: per-class hooks setting motion rates and bursts by held aura
+  and motion id, and the data file's per-action speed) was extracted by EMULATING each class's hook rather than reading it by hand
+  (engine doc E26 (g), `<archive>/hypermotion/hookemu.py`) -- the reusable part for any per-class, per-motion frame hook in an MT
+  title: stub the shared calls, answer the frame predicate from a swept clock, sweep the motion ids.
 
 ### Other builds, as read
 
@@ -277,6 +285,10 @@ lives in the cited notes.
 - **The contrast with GU.** GU copies the PSL block and the enemy overwrites the copy's mask with its enable word, then fires
   rise / held / fall (effect-runtime-engine.md E2). 4U walks the pages IN PLACE, with no copy and no enable-word overwrite, and
   fires on RISE only. Do not carry GU's enable-word machinery into 4U.
+- **Apex (4U's closest to GU Hyper; Raven 2026-10-25: "4U has Apex state changes, which are added parts"):** a parts-driven state
+  change -- added parts -- not GU's hyper aura. Raven's description, a lead to read in 4U's code; the mechanism is UNREAD there. A
+  likely model for a 4U "Apex" toggle that switches the added parts: GU's Hyper part toggle (dev/hyper-states.md 3). Any likeness
+  to 4U's frenzy virus states is INFERRED and unchecked.
 - **The generator factory** `0xafe1d8`, jump table `0xafe33c`: types 0 Billboard, 1 Polyline, 2 Polygon, 5 Model, 9 Filter, with a
   full / Lite pick on row word 3 & 0xf0. Compare GU: there only 5 Model is pinned, and 0 / 1 carry "Lite" names as unpinned
   guesses (construct.js GENERATOR_TYPES).

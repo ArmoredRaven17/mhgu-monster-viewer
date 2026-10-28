@@ -1,0 +1,7 @@
+uEm046_00 em046 v0 (0, 0x7) ph0A: PH 1 | SET 20@ea0720 | POST 4@ea072c | M L0M1@ea8b44
+uEm046_00 em046 v0 (0, 0x7) ph0B: PH 1 | SET 40@ea0720 | POST 4@ea072c | M L0M1@ea8b44
+uEm046_00 em046 v0 (0, 0x7) ph1B: VT3E8@ea8b44
+uEm046_00 em046 v0 (6, 0x2) ph0A: POST 4@ea2368 | M L2M6@ea2380 | PH 1
+uEm046_00 em046 v0 (6, 0x2) ph1C: VT3E8@ea8bb0
+uEm046_00 em046 v0 (6, 0x3) ph0A: POST 4@ea249c
+uEm046_00 em046 v0 (6, 0x3) ph0C: POST 4@ea249c | VT3E8@ea8bb0

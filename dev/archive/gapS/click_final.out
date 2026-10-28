@@ -1,0 +1,99 @@
+rc=1
+CASE  -- fixed60 dist 1 play_parts
+CLICK play L0 M1 slot 2  -- {"label":"play L0 M1 slot 2 [slot 2]","slot":2,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":39,"s":41,"v":"draws"}
+CLICK play L0 M1 slot 0  -- {"label":"play L0 M1 slot 0 [slot 0]","slot":0,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":38,"s":40,"v":"draws"}
+CLICK play L0 M1 slot 1  -- {"label":"play L0 M1 slot 1 [slot 1]","slot":1,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":38,"s":40,"v":"draws"}
+CLICK play L0 M1 slot 3  -- {"label":"play L0 M1 slot 3 [slot 3]","slot":3,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":38,"s":40,"v":"draws"}
+CLICK play L0 M1 slot 0 again after re-arm  -- {"label":"play L0 M1 slot 0 again after re-arm [slot 0]","slot":0,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":38,"s":40,"v":"draws"}
+CASE  -- fixed60 dist 1 rapid
+CLICK rapid  -- {"label":"rapid 3 parts on screen","expect":3,"clicked":[2,0,1],"colsBefore":[2,2,2,2],"burns":[2,0,1],"shells":[2,0,1],"burn":3,"shell":3,"st":3,"d":0,"lit":114,"s":120,"v":"draws"}
+CASE  -- fixed60 dist 1 paused
+CLICK paused click, resumed after 60 rAF  -- {"label":"paused click, resumed after 60 rAF [slot 0]","slot":0,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":38,"s":40,"v":"draws"}
+CASE  -- fixed60 dist 1 scrub_back
+CLICK scrub back during fuse  -- {"label":"scrub back during fuse [slot 3]","slot":3,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":38,"s":40,"v":"draws"}
+CASE  -- fixed60 dist 1 scrub_fwd
+CLICK scrub forward during fuse  -- {"label":"scrub forward during fuse [slot 2]","slot":2,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":39,"s":41,"v":"draws"}
+CASE  -- fixed60 dist 1 rage_mid
+CLICK Red Slime mid-clip then click  -- {"label":"Red Slime mid-clip then click [slot 2]","slot":2,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":38,"s":40,"v":"draws"}
+CASE  -- fixed60 dist 1 clips
+CLICK clip 2 Motion[42]  -- {"label":"clip 2 Motion[42] [slot 2]","slot":2,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":38,"s":40,"v":"draws"}
+CLICK clip 0 Motion[62]  -- {"label":"clip 0 Motion[62] [slot 3]","slot":3,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":37,"s":39,"v":"draws"}
+CLICK clip 2 Motion[11]  -- {"label":"clip 2 Motion[11] [slot 2]","slot":2,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":38,"s":40,"v":"draws"}
+CLICK click then clip change at once  -- {"label":"click then clip change at once [slot 0]","slot":0,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":38,"s":40,"v":"draws"}
+CASE  -- fixed60 dist 1 yellow
+CLICK slot 0 erupts  -- {"label":"slot 0 erupts [slot 0]","slot":0,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":38,"s":40,"v":"draws"}
+CLICK slot 0 again while Yellow (expected: no eruption)  -- {"label":"slot 0 again while Yellow (expected: no eruption) [slot 0]","slot":0,"colAtClick":0,"clicked":true,"burn":0,"shell":0,"st":0,"d":0,"lit":0,"s":0,"v":"-"}
+CASE  -- 144 dist 1 play_parts
+CLICK play L0 M1 slot 2  -- {"label":"play L0 M1 slot 2 [slot 2]","slot":2,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":92,"s":96,"v":"draws"}
+CLICK play L0 M1 slot 0  -- {"label":"play L0 M1 slot 0 [slot 0]","slot":0,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":91,"s":96,"v":"draws"}
+CLICK play L0 M1 slot 1  -- {"label":"play L0 M1 slot 1 [slot 1]","slot":1,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":91,"s":96,"v":"draws"}
+CLICK play L0 M1 slot 3  -- {"label":"play L0 M1 slot 3 [slot 3]","slot":3,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":91,"s":96,"v":"draws"}
+CLICK play L0 M1 slot 0 again after re-arm  -- {"label":"play L0 M1 slot 0 again after re-arm [slot 0]","slot":0,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":91,"s":96,"v":"draws"}
+CASE  -- 144 dist 1 rapid
+CLICK rapid  -- {"label":"rapid 3 parts on screen","expect":3,"clicked":[2,0,1],"colsBefore":[2,2,2,2],"burns":[2,0,1],"shells":[2,0,1],"burn":3,"shell":3,"st":3,"d":0,"lit":273,"s":288,"v":"draws"}
+CASE  -- 144 dist 1 paused
+CLICK paused click, resumed after 60 rAF  -- {"label":"paused click, resumed after 60 rAF [slot 0]","slot":0,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":91,"s":96,"v":"draws"}
+CASE  -- 144 dist 1 scrub_back
+CLICK scrub back during fuse  -- {"label":"scrub back during fuse [slot 3]","slot":3,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":92,"s":96,"v":"draws"}
+CASE  -- 144 dist 1 scrub_fwd
+CLICK scrub forward during fuse  -- {"label":"scrub forward during fuse [slot 2]","slot":2,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":92,"s":96,"v":"draws"}
+CASE  -- 144 dist 1 rage_mid
+CLICK Red Slime mid-clip then click  -- {"label":"Red Slime mid-clip then click [slot 2]","slot":2,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":91,"s":96,"v":"draws"}
+CASE  -- 144 dist 1 clips
+CLICK clip 2 Motion[42]  -- {"label":"clip 2 Motion[42] [slot 2]","slot":2,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":91,"s":96,"v":"draws"}
+CLICK clip 0 Motion[62]  -- {"label":"clip 0 Motion[62] [slot 3]","slot":3,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":90,"s":95,"v":"draws"}
+CLICK clip 2 Motion[11]  -- {"label":"clip 2 Motion[11] [slot 2]","slot":2,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":92,"s":96,"v":"draws"}
+CLICK click then clip change at once  -- {"label":"click then clip change at once [slot 0]","slot":0,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":91,"s":96,"v":"draws"}
+CASE  -- 144 dist 1 yellow
+CLICK slot 0 erupts  -- {"label":"slot 0 erupts [slot 0]","slot":0,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":91,"s":96,"v":"draws"}
+CLICK slot 0 again while Yellow (expected: no eruption)  -- {"label":"slot 0 again while Yellow (expected: no eruption) [slot 0]","slot":0,"colAtClick":0,"clicked":true,"burn":0,"shell":0,"st":0,"d":0,"lit":0,"s":0,"v":"-"}
+CASE  -- jitter dist 1 play_parts
+CLICK play L0 M1 slot 2  -- {"label":"play L0 M1 slot 2 [slot 2]","slot":2,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":38,"s":38,"v":"draws"}
+CLICK play L0 M1 slot 0  -- {"label":"play L0 M1 slot 0 [slot 0]","slot":0,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":41,"s":41,"v":"draws"}
+CLICK play L0 M1 slot 1  -- {"label":"play L0 M1 slot 1 [slot 1]","slot":1,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":2,"d":0,"lit":40,"s":42,"v":"draws"}
+CLICK play L0 M1 slot 3  -- {"label":"play L0 M1 slot 3 [slot 3]","slot":3,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":37,"s":39,"v":"draws"}
+CLICK play L0 M1 slot 0 again after re-arm  -- {"label":"play L0 M1 slot 0 again after re-arm [slot 0]","slot":0,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":36,"s":38,"v":"draws"}
+CASE  -- jitter dist 1 rapid
+CLICK rapid  -- {"label":"rapid 3 parts on screen","expect":3,"clicked":[2,0,1],"colsBefore":[2,2,2,2],"burns":[0,2,1],"shells":[0,2,1],"burn":3,"shell":3,"st":3,"d":0,"lit":111,"s":118,"v":"draws"}
+CASE  -- jitter dist 1 paused
+CLICK paused click, resumed after 60 rAF  -- {"label":"paused click, resumed after 60 rAF [slot 0]","slot":0,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":41,"s":42,"v":"draws"}
+CASE  -- jitter dist 1 scrub_back
+CLICK scrub back during fuse  -- {"label":"scrub back during fuse [slot 3]","slot":3,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":38,"s":41,"v":"draws"}
+CASE  -- jitter dist 1 scrub_fwd
+CLICK scrub forward during fuse  -- {"label":"scrub forward during fuse [slot 2]","slot":2,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":35,"s":38,"v":"draws"}
+CASE  -- jitter dist 1 rage_mid
+CLICK Red Slime mid-clip then click  -- {"label":"Red Slime mid-clip then click [slot 2]","slot":2,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":38,"s":40,"v":"draws"}
+CASE  -- jitter dist 1 clips
+CLICK clip 2 Motion[42]  -- {"label":"clip 2 Motion[42] [slot 2]","slot":2,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":42,"s":43,"v":"draws"}
+CLICK clip 0 Motion[62]  -- {"label":"clip 0 Motion[62] [slot 3]","slot":3,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":37,"s":39,"v":"draws"}
+CLICK clip 2 Motion[11]  -- {"label":"clip 2 Motion[11] [slot 2]","slot":2,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":35,"s":35,"v":"draws"}
+CLICK click then clip change at once  -- {"label":"click then clip change at once [slot 0]","slot":0,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":35,"s":37,"v":"draws"}
+CASE  -- jitter dist 1 yellow
+CLICK slot 0 erupts  -- {"label":"slot 0 erupts [slot 0]","slot":0,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":35,"s":37,"v":"draws"}
+CLICK slot 0 again while Yellow (expected: no eruption)  -- {"label":"slot 0 again while Yellow (expected: no eruption) [slot 0]","slot":0,"colAtClick":0,"clicked":true,"burn":0,"shell":0,"st":0,"d":0,"lit":0,"s":0,"v":"-"}
+CASE  -- 144 dist 2.5 play_parts
+CLICK play L0 M1 slot 2  -- {"label":"play L0 M1 slot 2 [slot 2]","slot":2,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":92,"s":96,"v":"draws"}
+CLICK play L0 M1 slot 0  -- {"label":"play L0 M1 slot 0 [slot 0]","slot":0,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":91,"s":96,"v":"draws"}
+CLICK play L0 M1 slot 1  -- {"label":"play L0 M1 slot 1 [slot 1]","slot":1,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":91,"s":96,"v":"draws"}
+CLICK play L0 M1 slot 3  -- {"label":"play L0 M1 slot 3 [slot 3]","slot":3,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":91,"s":96,"v":"draws"}
+CLICK play L0 M1 slot 0 again after re-arm  -- {"label":"play L0 M1 slot 0 again after re-arm [slot 0]","slot":0,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":91,"s":96,"v":"draws"}
+CASE  -- 144 dist 2.5 rapid
+CLICK rapid  -- {"label":"rapid 3 parts on screen","expect":3,"clicked":[2,0,1],"colsBefore":[2,2,2,2],"burns":[2,0,1],"shells":[2,0,1],"burn":3,"shell":3,"st":3,"d":0,"lit":273,"s":288,"v":"draws"}
+CASE  -- 144 dist 2.5 paused
+CLICK paused click, resumed after 60 rAF  -- {"label":"paused click, resumed after 60 rAF [slot 0]","slot":0,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":91,"s":96,"v":"draws"}
+CASE  -- 144 dist 2.5 scrub_back
+CLICK scrub back during fuse  -- {"label":"scrub back during fuse [slot 2]","slot":2,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":92,"s":96,"v":"draws"}
+CASE  -- 144 dist 2.5 scrub_fwd
+CLICK scrub forward during fuse  -- {"label":"scrub forward during fuse [slot 2]","slot":2,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":92,"s":96,"v":"draws"}
+CASE  -- 144 dist 2.5 rage_mid
+CLICK Red Slime mid-clip then click  -- {"label":"Red Slime mid-clip then click [slot 2]","slot":2,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":91,"s":96,"v":"draws"}
+CASE  -- 144 dist 2.5 clips
+CLICK clip 2 Motion[42]  -- {"label":"clip 2 Motion[42] [slot 2]","slot":2,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":91,"s":96,"v":"draws"}
+CLICK clip 0 Motion[62]  -- {"label":"clip 0 Motion[62] [slot 3]","slot":3,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":90,"s":95,"v":"draws"}
+CLICK clip 2 Motion[11]  -- {"label":"clip 2 Motion[11] [slot 2]","slot":2,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":92,"s":96,"v":"draws"}
+CLICK click then clip change at once  -- {"label":"click then clip change at once [slot 0]","slot":0,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":91,"s":96,"v":"draws"}
+CASE  -- 144 dist 2.5 yellow
+CLICK slot 0 erupts  -- {"label":"slot 0 erupts [slot 0]","slot":0,"colAtClick":2,"clicked":true,"burn":1,"shell":1,"st":1,"d":0,"lit":91,"s":96,"v":"draws"}
+CLICK slot 0 again while Yellow (expected: no eruption)  -- {"label":"slot 0 again while Yellow (expected: no eruption) [slot 0]","slot":0,"colAtClick":0,"clicked":true,"burn":0,"shell":0,"st":0,"d":0,"lit":0,"s":0,"v":"-"}
+
+[exited with code 0]

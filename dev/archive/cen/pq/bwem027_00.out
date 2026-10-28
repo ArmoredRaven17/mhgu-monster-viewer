@@ -1,0 +1,3 @@
+PASS PROBE em027_00  -- {"log":["monGroundType=g2shallow [rt rage false]","played 3|Motion[17]#B","played 3|Motion[18]","monGroundType=plain [rt rage false]"],"rows":[{"k":"em027_00|em027_00c|1500|event","st":3,"live":355,"lit":65,"s":77,"px":10460,"verdict":"draws","clips":["em027_00|3|Motion[17]","em027_00|3|Motion[18]"],"nodraw":{"clip":"em027_00|3|Motion[17]","units":[{"w0c":"14cb2","gens":3,"mask1":"ffffffff","mask2":"ffffffff","nrow":2352,"rows":[["ffffffff","14"],["ffffffff","14"],["ffffffff","14"],["77012","7a001"],["0","0"],["0","0"],["0","0"],["4000","28002"],["0","0"],["4000","28002"],["0","0"],["0","0"]]}]}}],"missing":[]}
+
+1 passed, 0 failed

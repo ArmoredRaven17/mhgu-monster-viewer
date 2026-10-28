@@ -1,0 +1,101 @@
+3f8b04 fn 3f8a04 | movw r0, #0x15a8 | str r5, [r4, #4] | str r5, [r4, r0] | mov r0, r4 | pop {r4, r5, r6, pc} | .word | smlaltteq r8, r3, ip, pc
+3fa420 fn 3fa2f8 | movw r1, #0x15a8 | mov r2, #1 | str r2, [r0, r1] | pop {r4, pc} | .word | strheq r7, [r3, #-0x6c] | ldr r1, [pc, #0xc]
+3fb9a4 fn 3fb7f8 | movw r1, #0x15a8 | str lr, [r0, #4] | str r2, [r0, r1] | pop {r4, pc} | hvc #0x3a48 | .word | push {r4, r5, r6, lr}
+3fd9b0 fn 3fd830 | movw r0, #0x15a8 | mov r1, #3 | str r1, [r4, r0] | mov r0, r4 | pop {r4, pc} | qdaddeq r8, r0, r3 | .word
+3ff184 fn 3ff080 | movw r0, #0x15a8 | str ip, [r4, #4] | str r1, [r4, r0] | mov r0, r4 | pop {r4, pc} | .word | strheq r2, [r3, #-0x94]
+400a08 fn 40098c | movw r1, #0x15a8 | mov r2, #5 | str r2, [r0, r1] | pop {fp, pc} | .word | b #0x43a81c | push {r4, lr}
+401480 fn 4013b8 | movw r1, #0x15a8 | mov r2, #6 | str r2, [r0, r1] | pop {fp, pc} | .word | .word | ldr r1, [pc, #0xc]
+402230 fn 402148 | movw r1, #0x15a8 | mov r2, #7 | str r2, [r0, r1] | pop {fp, pc} | swpbeq r3, ip, [r3] | strheq pc, [r2, #-0x80] | ldr r1, [pc, #0xc]
+402fc4 fn 402f80 | movw r1, #0x15a8 | mov r2, #0xb | str r2, [r0, r1] | pop {fp, pc} | hvc #0x32d8 | push {r4, r5, r6, r7, r8, sb, fp, lr} | mov sb, r0
+403494 fn 4033e0 | movw r1, #0x15a8 | mov r2, #0xc | str r2, [r0, r1] | pop {fp, pc} | .word | .word | ldr r1, [pc, #0xc]
+40445c fn 404350 | movw r0, #0x15a8 | str r5, [r4, #4] | str r1, [r4, r0] | mov r0, r4 | pop {r4, r5, r6, pc} | smlalbteq r1, r3, ip, sb | swpbeq sp, r8, [r2]
+405e78 fn 405d70 | movw r1, #0x15a8 | mov r2, #0xe | str r2, [r0, r1] | pop {fp, pc} | smlalbteq pc, r2, r4, pc | .word | push {r4, r5, r6, r7, r8, sb, sl, fp, lr}
+407084 fn 406f6c | movw r1, #0x15a8 | str r2, [r0, r1] | pop {fp, pc} | ldrdeq lr, pc, [r2, #-0xd4] | swpbeq sl, r8, [r2] | .word | push {r4, r5, fp, lr}
+407ea4 fn 407de8 | movw r1, #0x15a8 | mov r2, #0x10 | str r2, [r0, r1] | pop {fp, pc} | .word | strdeq sb, sl, [r2, #-0xb8] | b #0x43a81c
+40896c fn 4088fc | movw r1, #0x15a8 | str r2, [r0, r1] | pop {fp, pc} | .word | .word | push {r4, lr} | mov r4, r0
+408e88 fn 408df4 | movw r1, #0x15a8 | mov r2, #0x13 | str r2, [r0, r1] | pop {fp, pc} | hvc #0x2cfc | b #0x4a0ec4 | push {r4, r5, r6, lr}
+409640 fn 409544 | movw r1, #0x15a8 | mov r2, #0x14 | str r2, [r0, r1] | pop {fp, pc} | .word | strheq r8, [r2, #-0x4c] | b #0x43a81c
+40a2d0 fn 40a214 | movw r1, #0x15a8 | mov r2, #0x15 | str r2, [r0, r1] | pop {fp, pc} | smlalbbeq fp, r2, r8, fp | b #0x43a81c | push {r4, lr}
+40af20 fn 40ad94 | movw r1, #0x15a8 | mov r2, #0x16 | str r2, [r0, r1] | pop {fp, pc} | .word | .word | smlalbteq r7, r2, ip, r2
+40c97c fn 40c8ac | movw r1, #0x15a8 | mov r2, #0x17 | str r2, [r0, r1] | pop {fp, pc} | .word | .word | ldr r1, [pc, #0xc]
+40db9c fn 40da80 | movw r1, #0x15a8 | mov r2, #0x18 | str r2, [r0, r1] | pop {fp, pc} | .word | qdaddeq r3, r8, r2 | ldr r1, [pc, #0xc]
+40f14c fn 40f0c8 | movw r1, #0x15a8 | mov r2, #0x19 | str r2, [r0, r1] | pop {fp, pc} | .word | qdaddeq r2, r8, r2 | b #0x43a81c
+40fb80 fn 40faec | movw r0, #0x15a8 | str r5, [r4, #4] | str r1, [r4, r0] | mov r0, r4 | pop {r4, r5, fp, pc} | .word | .word
+41087c fn 4107f0 | movw r1, #0x15a8 | mov r2, #0x1b | str r2, [r0, r1] | pop {fp, pc} | .word | b #0x43a81c | push {r4, lr}
+411198 fn 4110a4 | movw r1, #0x15a8 | mov r2, #0x1c | str r2, [r0, r1] | pop {fp, pc} | swpbeq r4, ip, [r2] | .word | b #0x43a81c
+412388 fn 412200 | movw r1, #0x15a8 | str r2, [r0, r1] | pop {r4, pc} | qdaddeq r3, r0, r2 | .word | b #0x43a81c | push {r4, lr}
+413034 fn 412fb8 | movw r1, #0x15a8 | mov r2, #0x1e | str r2, [r0, r1] | pop {fp, pc} | strheq r2, [r2, #-0xe8] | .word | b #0x43a81c
+413a80 fn 413894 | movw r1, #0x15a8 | str ip, [r0, #4] | str r2, [r0, r1] | pop {fp, pc} | strdeq r2, r3, [r2, #-0x50] | .word | .word
+41514c fn 415010 | movw r0, #0x15a8 | str r5, [r4, #4] | str r1, [r4, r0] | ldr r0, [pc, #0x1c] | ldr r0, [pc, r0] | ldr r1, [r0] | add r1, r1, #1
+416610 fn 416504 | movw r1, #0x15a8 | mov r2, #0x21 | str r2, [r0, r1] | pop {fp, pc} | strheq pc, [r1, #-0x9c] | smlalbteq fp, r1, r4, r4 | ldr r1, [pc, #0xc]
+4177b8 fn 41767c | movw r1, #0x15a8 | mov r2, #0x22 | str r2, [r0, r1] | pop {fp, pc} | qdaddeq lr, ip, r1 | .word | .word
+41883c fn 4187a8 | movw r1, #0x15a8 | mov r2, #0x23 | str r2, [r0, r1] | pop {fp, pc} | .word | .word | b #0x43a81c
+4191cc fn 41900c | movw r1, #0x15a8 | mov r2, #0x24 | str r2, [r0, r1] | pop {fp, pc} | strdeq ip, sp, [r1, #-0xe8] | hvc #0x1890 | b #0x43a81c
+41b174 fn 41b078 | movw r1, #0x15a8 | mov r2, #0x25 | str r2, [r0, r1] | pop {fp, pc} | smlaltbeq sl, r1, r8, lr | qdaddeq r6, r8, r1 | ldr r1, [pc, #0xc]
+41c250 fn 41c14c | movw r0, #0x15a8 | str r5, [r4, #4] | str r1, [r4, r0] | mov r0, r4 | pop {r4, r5, fp, pc} | smlaltteq sb, r1, r8, sp | strheq r5, [r1, #-0x84]
+41d5d0 fn 41d514 | movw r1, #0x15a8 | mov r2, #0x27 | str r2, [r0, r1] | pop {fp, pc} | .word | ldrdeq r4, r5, [r1, #-0x44] | push {r4, r5, fp, lr}
+41e248 fn 41e194 | movw r1, #0x15a8 | mov r2, #0x28 | str r2, [r0, r1] | pop {fp, pc} | ldrdeq r7, r8, [r1, #-0xd4] | qdaddeq r3, ip, r1 | push {r4, r5, fp, lr}
+41f31c fn 41f210 | movw r0, #0x15a8 | mov r1, #0x29 | str r1, [r4, r0] | mov r0, r4 | pop {r4, pc} | hvc #0x16d0 | ldrdeq r2, r3, [r1, #-0x78]
+420798 fn 4206c0 | movw r1, #0x15a8 | str ip, [r0, #4] | str r2, [r0, r1] | pop {fp, pc} | ldrdeq r5, r6, [r1, #-0x84] | .word | b #0x43a81c
+421920 fn 4218c4 | movw r1, #0x15a8 | mov r2, #0x2b | str r2, [r0, r1] | pop {fp, pc} | smlaltteq r4, r1, ip, r6 | b #0x43a81c | push {r4, lr}
+422100 fn 42207c | movw r1, #0x15a8 | mov r2, #0x2c | str r2, [r0, r1] | pop {fp, pc} | qdaddeq r3, r0, r1 | smlaltbeq pc, r0, r0, sb | push {r4, r5, fp, lr}
+422cd0 fn 422bec | movw r0, #0x15a8 | str r1, [r4, r0] | mov r0, r4 | pop {r4, r5, fp, pc} | strdeq r3, r4, [r1, #-0x30] | .word | push {r4, r5, fp, lr}
+42471c fn 42461c | movw r1, #0x15a8 | mov r2, #0x2e | str r2, [r0, r1] | pop {fp, pc} | smlaltteq r1, r1, r0, sb | strheq sp, [r0, #-0x38] | push {r4, r5, fp, lr}
+425d54 fn 425cd8 | movw r1, #0x15a8 | mov r2, #0x2f | str r2, [r0, r1] | pop {fp, pc} | .word | qdaddeq fp, r0, r0 | push {r4, r5, fp, lr}
+426a70 fn 4268e0 | movw r1, #0x15a8 | str ip, [r0, #4] | str r2, [r0, r1] | pop {fp, pc} | .word | smlaltteq fp, r0, r4, r0 | b #0x43a81c
+427d28 fn 427c3c | movw r0, #0x15a8 | str r1, [r4, r0] | mov r0, r4 | pop {r4, r5, fp, pc} | mrseq lr, spsr | strheq sb, [r0, #-0xd8] | b #0x4a180c
+428bac fn 428af4 | movw r1, #0x15a8 | str r2, [r0, r1] | pop {fp, pc} | .word | .word | b #0x4a180c | push {r4, r5, r6, r7, fp, lr}
+429558 fn 4294d4 | movw r1, #0x15a8 | mov r2, #0x34 | str r2, [r0, r1] | pop {fp, pc} | smlaltbeq ip, r0, r4, fp | qdaddeq r8, r0, r0 | push {r4, r5, fp, lr}
+42a158 fn 42a0c4 | movw r1, #0x15a8 | mov r2, #0x35 | str r2, [r0, r1] | pop {fp, pc} | ldrdeq fp, ip, [r0, #-0xf0] | qdaddeq r7, r0, r0 | push {r4, r5, fp, lr}
+42ae50 fn 42ad30 | movw r0, #0x15a8 | str r5, [r4, #4] | str r1, [r4, r0] | mov r0, r4 | pop {r4, r5, r6, pc} | hvc #0xb34 | swpbeq r6, ip, [r0]
+42c5b4 fn 42c484 | movw r1, #0x15a8 | mov r2, #0x37 | str r2, [r0, r1] | pop {r4, pc} | .word | smlalbbeq r5, r0, ip, r5 | push {r4, r5, r6, r7, r8, sb, sl, fp, lr}
+42dc6c fn 42db7c | movw r1, #0x15a8 | mov r2, #0x38 | str r2, [r0, r1] | pop {fp, pc} | qdaddeq r8, ip, r0 | hvc #0x3ec | ldr r1, [pc, #0xc]
+42f01c fn 42ecb8 | movw r0, #0x15a8 | str r1, [r4, r0] | mov r0, r4 | pop {r4, r5, r6, r7, r8, pc} | .word | swpbeq r2, r0, [r0] | strdeq r3, r4, [r0, #-0xcc]
+4336cc fn 433570 | movw r0, #0x15a8 | str r5, [r4, #4] | str r1, [r4, r0] | mov r0, r4 | pop {r4, r5, r6, pc} | swpbeq r2, r0, [r0] | ldrheq lr, [pc, -r8]!
+434b38 fn 434a94 | movw r0, #0x15a8 | str r6, [r5] | str r1, [r4, r0] | mov r0, r4 | pop {r4, r5, r6, pc} | swpbeq r1, r4, [r0] | qdaddeq r1, ip, r0
+434cb4 fn 434c34 | movw r0, #0x15a8 | str r1, [r4, r0] | mov r0, r4 | pop {r4, r5, fp, pc} | smlaltteq r1, r0, r4, r4 | push {r4, r5, fp, lr} | mov r4, r0
+435cd8 fn 435be4 | movw r0, #0x15a8 | mov r1, #0x3c | str r1, [r4, r0] | mov r0, r4 | pop {r4, pc} | qdaddeq r0, r8, r0 | teqeq pc, r8, lsl r5
+4387e4 fn 438698 | movw r0, #0x15a8 | str r5, [r4, #4] | str r1, [r4, r0] | mov r0, r4 | pop {r4, r5, fp, pc} | ldrheq sp, [pc, -r8]! | teqeq pc, r4, lsr #6
+43a7c4 fn 43a78c | movw r1, #0x15a8 | str ip, [r0, r1] | mov r1, #1 | strb r1, [r0, lr] | movw r1, #0x15ad | movw lr, #0x15b0 | strb r4, [r0, r1]
+44b50c fn 44b500 | movw r2, #0x15a8 | mov r3, r0 | ldr r1, [pc, r1] | add r1, r1, #8 | str r1, [r3], r2 | movw r1, #0x15a4 | mov r2, #8
+44b5f0 fn 44b570 | movw r1, #0x15a8 | strb r0, [r4, r1] | mov r0, #1 | pop {r4, pc} | push {r4, r5, fp, lr} | sub sp, sp, #0x10 | mov r5, r0
+44b93c fn 44b92c | movw r1, #0x15a8 | mov r5, r4 | ldr r0, [pc, r0] | add r0, r0, #8 | str r0, [r5], r1 | add r0, r4, #0x15c0 | bl #0x40a54
+45b0bc fn 45b068 | movw r1, #0x15a8 | str r2, [r0, r1] | str r2, [r3] | pop {r4, pc} | teqeq sp, r0, lsr #6 | ldrsheq fp, [sp, -r0]! | b #0x47ba20
+45b3b8 fn 45b2a4 | movw r2, #0x15a8 | strb r0, [r4, #4] | ldr r1, [r5, r1] | str r1, [r4, r2] | ldr r1, [sp, #0x1c] | ldr r1, [r1] | cmp r1, #0
+45ec40 fn 45ebe8 | movw r1, #0x15a8 | str ip, [r0, r1] | movw r1, #0x15ac | str ip, [r0, r1] | ldr r1, [pc, #0x30] | ldr r1, [pc, r1] | ldr r4, [r1]
+460238 fn 460204 | movw r2, #0x15a8 | mov r3, r0 | mov r4, r0 | ldr r1, [pc, r1] | add r1, r1, #8 | str r1, [r3], r2 | movw r1, #0x15b4
+4613e0 fn 4611ec | movw r1, #0x15a8 | str r0, [r4, r1] | mov r0, #6 | strb r0, [r4, #4] | b #0x461408 | movw r0, #0x15b0 | str r5, [r4, r0]
+461c04 fn 461bd0 | movw r2, #0x15a8 | mov r3, r0 | ldr r1, [pc, r1] | add r1, r1, #8 | str r1, [r3], r2 | mov r1, #0 | str r1, [r3]
+4625c4 fn 462534 | movw r4, #0x15a8 | str r2, [r0, r4] | movw r4, #0x15d0 | str lr, [r0, r4] | movw r4, #0x15d4 | str r1, [r0, r4] | movw r1, #0x15d8
+4634d0 fn 4632f4 | movw r0, #0x15a8 | str r6, [r4, r0] | mov r0, r4 | bl #0x4636ac | add r2, r5, #0x20 | add r3, sp, #0x10 | ldm r2, {r0, r1, r2}
+463e5c fn 463df8 | movw r2, #0x15a8 | str ip, [r0, r2] | movw r2, #0x15ac | str lr, [r0, r2] | ldr r2, [pc, #0x90] | str lr, [r3] | ldr r2, [pc, r2]
+46670c fn 46669c | movw r1, #0x15a8 | str ip, [r0, r1] | str r4, [r3] | pop {r4, pc} | teqeq ip, r4, lsr #27 | teqeq ip, r4, ror sp | ldrheq fp, [ip, -r0]!
+4673c8 fn 467370 | movw r1, #0x15a8 | str ip, [r0, r1] | movw r1, #0x15ac | str ip, [r0, r1] | ldr r1, [pc, #0x30] | ldr r1, [pc, r1] | ldr r4, [r1]
+468f70 fn 468f1c | movw r1, #0x15a8 | str r2, [r0, r1] | str r2, [r3] | pop {r4, pc} | teqeq ip, r0, ror #10 | teqeq ip, r0, lsr r5 | push {r4, lr}
+469fc4 fn 469f68 | movw r1, #0x15a8 | str r2, [r0, r1] | pop {r4, pc} | teqeq ip, r4, asr #10 | teqeq ip, r8, lsl r5 | b #0x47ba20 | push {r4, lr}
+46a8c0 fn 46a88c | movw r2, #0x15a8 | mov r3, r0 | mov r4, #0x15c0 | ldr r1, [pc, r1] | add r1, r1, #8 | str r1, [r3], r2 | movw r2, #0x1614
+47132c fn 4712d4 | movw r1, #0x15a8 | str r4, [r0, r1] | movw r1, #0x15ac | str r2, [r0, r1] | str r2, [r3] | pop {r4, pc} | teqeq ip, r8, lsl #4
+4714b8 fn 471470 | movw r8, #0x15a8 | str r0, [r4, r1] | ldr r0, [r5, #0x14] | str r0, [r4, r8] | ldr r0, [r4, #4] | bfc r0, #8, #8 | str r0, [r4, #4]
+472910 fn 4728dc | movw r2, #0x15a8 | mov r3, r0 | ldr r1, [pc, r1] | add r1, r1, #8 | str r1, [r3], r2 | movw r1, #0x15a4 | mov r2, #0
+476cf8 fn 476cc4 | movw r2, #0x15a8 | mov r3, r0 | ldr r1, [pc, r1] | add r1, r1, #8 | str r1, [r3], r2 | movw r1, #0x15b0 | mov r2, #0
+476ecc fn 476d6c | movw r1, #0x15a8 | str r0, [r4, r1] | mov r0, r5 | bl #0x539330 | movw r1, #0x15ac | str r0, [r4, r1] | mov r0, r4
+47ae54 fn 47ade0 | movw r1, #0x15a8 | str r2, [r0, r1] | ldr r1, [r0, #4] | bfc r1, #8, #8 | str r1, [r0, #4] | pop {r4, pc} | teqeq fp, r8, asr #15
+47b0d8 fn 47af64 | movw r0, #0x15a8 | mov r8, #0 | str r8, [r4, r0] | str r8, [r4, #0xfe8] | ldr r0, [sb, #0x24] | str r0, [r4, #0xfec] | mov r0, r4
+47e52c fn 47e4ac | movw r2, #0x15a8 | str r1, [r0, r2] | movw r2, #0x15a4 | str r1, [r0, r2] | movw r2, #0x15be | strh r3, [r0, r2] | ldr r2, [pc, #0x13c]
+4872b8 fn 48725c | movw r3, #0x15a8 | str r4, [r0, r3] | ldr r3, [pc, #0x78] | ldr r3, [pc, r3] | ldr r4, [r3] | str r4, [r0, r1] | movw r4, #0x15b4
+4874d0 fn 48744c | movw r2, #0x15a8 | str r3, [r4, r0] | ldr r0, [r6, #0x10] | str r0, [r4, r1] | ldrsh r1, [r6, #0x30] | cmp r1, #0xff | str r1, [r4, r2]
+487ea8 fn 487e60 | movw r1, #0x15a8 | mov r2, #0 | str r2, [r0, r1] | movw r1, #0x15b0 | str r2, [r3] | strh r2, [r0, r1] | pop {r4, pc}
+490520 fn 4904ec | movw r2, #0x15a8 | mov r3, r0 | ldr r1, [pc, r1] | add r1, r1, #8 | str r1, [r3], r2 | movw r1, #0x15b0 | mov r2, #0
+4907e4 fn 490778 | movw r0, #0x15a8 | cmp r5, #0 | str r5, [r4, r0] | beq #0x4907fc | mov r0, r5 | bl #0x884698 | tst r7, #0x1000
+493320 fn 493294 | movw r1, #0x15a8 | ldr r0, [r6, #0x28] | str r0, [r4, r1] | movw r1, #0x15b0 | ldr r0, [r6, #0x2c] | str r0, [r4, r1] | movw r0, #0x15b4
+493ebc fn 493e88 | movw r2, #0x15a8 | mov r3, r0 | ldr r1, [pc, r1] | add r1, r1, #8 | str r1, [r3], r2 | movw r2, #0x15b0 | mov r1, #0
+4943ac fn 4941c8 | movw r0, #0x15a8 | mov r8, sl | mov r1, #1 | mov r2, #0x13 | str r7, [r8, r0]! | ldr r0, [pc, #0x6fc] | str r1, [sp]
+496980 fn 49694c | movw r2, #0x15a8 | mov r3, r0 | ldr r1, [pc, r1] | add r1, r1, #8 | str r1, [r3], r2 | movw r1, #0x15b0 | mov r2, #0
+497d6c fn 497d38 | movw r2, #0x15a8 | mov r3, r0 | ldr r1, [pc, r1] | add r1, r1, #8 | str r1, [r3], r2 | movw r1, #0x15a4 | mov r2, #0
+498578 fn 498558 | movw r1, #0x15a8 | mov r2, #1 | strb r2, [r0, r1] | ldr r0, [pc, #8] | ldr r0, [pc, r0] | ldr r0, [r0] | b #0x503914
+498830 fn 4987fc | movw r2, #0x15a8 | mov r3, r0 | ldr r1, [pc, r1] | add r1, r1, #8 | str r1, [r3], r2 | movw r1, #0x15a4 | mov r2, #0
+498a74 fn 498968 | movw r1, #0x15a8 | strh r0, [sb, r1]! | mov r0, r4 | mov r1, #0 | bl #0x4a2264 | mov r0, r4 | mov r1, #4
+499b48 fn 499b14 | movw r2, #0x15a8 | mov r3, r0 | ldr r1, [pc, r1] | add r1, r1, #8 | str r1, [r3], r2 | movw r1, #0x15a4 | mov r2, #0
+73e964 fn 73e8f4 | movw r1, #0x15a8 | strh r2, [r8, r1]! | movw r1, #0x15a4 | str r2, [sb, r1]! | beq #0x73ea98 | ldr r0, [r4, #0xd68] | cmp r0, #0
+7425c8 fn 7424f0 | movw r0, #0x15a8 | mov r1, #0 | mov r2, r5 | strh r1, [r2, r0]! | ldrh r0, [r6] | add r1, sb, r8, lsl #3 | str r0, [r2, #-4]
+10da924 fn 10da918 | movw r2, #0x15a8 | mov r3, r0 | ldr r1, [pc, r1] | add r1, r1, #8 | str r1, [r3], r2 | movw r1, #0x15cc | mov r2, #0

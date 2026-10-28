@@ -1,0 +1,1 @@
+{"id": "em037_04", "steps": [{"partsAll": "last", "frames": 30}, {"set": {"monRage": true}}, {"clip": "0|Motion[1]*", "frames": 150, "loop": true}], "want": ["em037_04|em037_04u|1121|rage", "em037_04|em037_04u|1120|rage"]}

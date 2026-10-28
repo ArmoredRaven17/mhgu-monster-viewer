@@ -1,0 +1,1 @@
+{"id": "em071_00", "steps": [{"rage": true}, {"sweep": {"list": "1", "frames": 200}}, {"sweep": {"list": "3", "frames": 200}}, {"sweep": {"list": "4", "frames": 200}}, {"sweep": {"list": "5", "frames": 200}}, {"sweep": {"list": "9", "frames": 200}}], "want": ["em071_00|em071_00u|1121|ragePuff", "em071_00|em071_00u|1120|ragePuff"]}

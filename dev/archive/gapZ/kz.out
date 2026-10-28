@@ -1,0 +1,4 @@
+FAIL OFF em003_00 2|Motion[3]  -- {"hyper":"","shells":[{"play":0,"shell":"shell03","mode":12,"unit":null,"hyper":null},{"play":0,"shell":"shell03","mode":13,"unit":null,"hyper":null},{"play":0,"shell":"shell03","mode":14,"unit":null,"hyper":null}],"meter":[{"k":"em003_00u|0|shell","st":3,"lit":"83/153","px":157030,"v":"draws"}]}
+FAIL ON em003_00 2|Motion[3]  -- {"hyper":"1,2","shells":[{"play":0,"shell":"shell03","mode":12,"unit":1.3,"hyper":[1,1.2999999523162842,1.2000000476837158]},{"play":0,"shell":"shell03","mode":13,"unit":1.3,"hyper":[1,1.2999999523162842,1.2000000476837158]},{"play":0,"shell":"shell03","mode":14,"unit":1.3,"hyper":[1,1.2999999523162842,1.2000000476837158]}],"meter":[{"k":"em003_00u|0|shell","st":3,"lit":"95/150","px":319400,"v":"draws"}]}
+
+0 passed, 4 failed

@@ -599,6 +599,14 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           <div class="field" id="monGroundRow" title="The ground under the monster: the floor flag word (e+0x1068) and attribute byte (e+0x1066) the game's ground probe reports. Picks the effects' floor rows and the shells' floor choices; changing it replays the clip. Working names.">
             <label for="monGroundType">Ground</label>
             <select id="monGroundType"></select></div>
+          <!-- THE EFFECTS DRAWN BEFORE (hyper-eye lane, 2026-10-27; dev/hyper-states.md 5, rom-map "0x87cf70"): the draw context's pass
+               when the monster's effects draw depends on the units drawn before them on the same context this frame (the scene setup
+               leaves 0x15; a model unit pushes / pops it, 0x8777e4 / 0x8787b0; an effect unit whose cParticleNode draws leaves 0x11).
+               The viewer's own effects already do this among themselves; this is the units the viewer does not have (the stage's,
+               the hunter's, other monsters'). WORKING labels: Raven names them. -->
+          <div class="field" id="monFxPassRow" title="What the game drew before this monster's effects in the frame: nothing that changes the draw pass, or an effect with GPU particles (pass 0x11). Opaque effect models then draw without writing depth, in depth order -- e.g. the GU Hyper eyes' core over its halo. Working names.">
+            <label for="monFxPass">Effects drawn before</label>
+            <select id="monFxPass"><option value="none">None (0x15)</option><option value="node">A GPU-particle effect (0x11)</option></select></div>
           <!-- THE MONSTER'S ATTACK SHAPES (Raven, 2026-10-22: "can you look into Monster Attack Hit Capsules? ... I want to see what hits a
                hunter or not"): render/attack-hitboxes.js, the ROM's records armed for the playing clip on their joints. Red: can hit a
                hunter (target mask bit 0); orange: other monsters only; blue: neither; yellow: touching the Solid stand-in hunter. Working
@@ -662,6 +670,16 @@ input[type=range]{width:100%;accent-color:var(--accent)}
                every reader of their rows is unchanged. paintStateSelect builds it. -->
           <div class="field" id="monStateRow" hidden><label for="monState">State</label>
             <select id="monState"></select></div>
+          <!-- HYPER (GU only; Raven, 2026-10-25: "We could add the part toggles, but hold off on the animations"; MOVED to the Parts panel
+               beside the State rows 2026-10-25, Raven's placement): the quest's hyper flag
+               (byte +0xb of its monster entry -> vt+0x170 0xca664: e+0xb720 = 1) and the monster's rEmDouMouKaData aura table
+               (docs/hyper-auras.json, dev/hyper-states.md): one held aura per group, u 1300 + DouMouKaID (0xca1f8). Off, then one entry per
+               pair of auras the ROM can hold together. Which aura table: the Quest Rank's -- at G rank the _g.mdd (e+0xb736 = rank > 4,
+               0x6f1c0; loader 0x4bd64), below it the plain one. The motions' hyper changes (rates, bursts, ModifyData) are NOT built. Working
+               labels. -->
+          <div class="field" id="monHyperRow" hidden title="GU Hyper: the auras the monster's hyper data holds, one per group (u 1300 + the aura ID, on its part); the Quest Rank picks the data file (G rank: the _g file). While a pair is held its motions change as the ROM changes them: the class's hyper speeds and bursts per clip, and the data file's per-attack speed. Working names.">
+            <label for="monHyper">Hyper</label>
+            <select id="monHyper"></select></div>
           <label class="chk switch" id="monRageRow" hidden><input type="checkbox" id="monRage"><span class="toggle"></span>Enraged</label>
           <!-- EXHAUSTED (render/motion-states.js TIRED_DROOL). Raven, 2026-09-30: "We are missing the Exhausted state,
                outside of some animations and the effect showing the status, which impacts some animations". A state the
@@ -695,6 +713,10 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           <div id="monSharedRow" hidden>
             <label class="chk switch" title="c 1100 — requested while ailment bit 2 of P+0x5e08 is set, at once then every 90 frames, for 3600. Plays over whatever clip runs. The note infers poison; that is not read."><input type="checkbox" id="monC1100"><span class="toggle"></span>Poisoned</label>
             <label class="chk switch" title="c 1108 — requested while the timer P+0x5d24 runs, at once then every 36 frames, for 3600. No clip of its own. The note infers dung from the record's brown colour word; that is not read."><input type="checkbox" id="monC1108"><span class="toggle"></span>Dung Bombed</label>
+            <!-- FLASHED (render/rom/effect/shared-states.js FLASH; dev/flashed-state.md): the blindness timer P+0x59c, set by a flash
+                 (0xc3088 -> 0xa1a88) on the monsters whose data lets it (FLASH_BLIND) -- shown only there. 0xa3ef0 holds c 1103 in one
+                 handle while it runs, over whatever clip plays. Working label, listed for Raven (2026-10-25). -->
+            <label class="chk switch" id="monFlashedRow" hidden title="c 1103 — held in one handle by 0xa3ef0 while the blindness timer P+0x59c runs (a flash: 0xc3088 -> 0xa1a88), over whatever clip plays; stopped at a death (0x75be4 zeroes the timer). Held here until turned off; in the game it runs the monster's own time (its tune row, 300 less for each earlier flash, never under 300 frames). The flash reactions (the flinch, the fall, the blinded wander) are animation and are not built."><input type="checkbox" id="monFlashed"><span class="toggle"></span>Flashed</label>
           </div>
           <div class="field" id="monRageLevelRow" hidden><label for="monRageLevel">Rage</label>
             <select id="monRageLevel"></select></div>
@@ -739,7 +761,9 @@ input[type=range]{width:100%;accent-color:var(--accent)}
             <label for="monClassCtl2" id="monClassCtl2Lab">State</label>
             <select id="monClassCtl2"></select></div>
           <!-- THE CLASS TOGGLES (render/motion-states.js CLASS_TOGGLES): one switch per class input no other control holds --
-               Begins Burrowed, Tired (with Rage), Poisoned. Working labels, listed for Raven (2026-10-19). -->
+               Begins Burrowed, Tired (with Rage), Poisoned. Working labels, listed for Raven (2026-10-19). Tired (with Rage) is
+               painted in the Debug panel since 2026-10-27 (Raven: "Make Tired (with Rage) a Debug option for now, until I know
+               what it entails"): render/motion-states.js `debug: true`, #monDebugToggles. -->
           <div id="monClassToggles"></div>
           <!-- A GAG, off by default and offered only where render/monster.js GAG_EYES names a monster: Nibelsnarf's
                eye piece, lifted from its own model and hand-placed on this one. Raven, 2026-09-20: "Khezu, keep in
@@ -932,6 +956,10 @@ input[type=range]{width:100%;accent-color:var(--accent)}
                reviewing it, without deleting the entry to find out. -->
           <label class="chk"><input type="checkbox" id="monRawParts">Parts: Ignore the Review File (raw ids)</label>
           <label class="chk"><input type="checkbox" id="monGap">Gap Detection</label>
+          <!-- CLASS TOGGLES MARKED `debug` (render/motion-states.js CLASS_TOGGLES; paintClassToggles puts them here). Raven, 2026-10-27:
+               "Make Tired (with Rage) a Debug option for now, until I know what it entails" -- the Rath line's tiredRage. Off while
+               this panel is hidden (resetHiddenDebug / DEBUG_TOGGLES). -->
+          <div id="monDebugToggles"></div>
           <label class="chk" id="monProxyRow" hidden><input type="checkbox" id="monProxy"><span id="monProxyText">Draw Mask-Hidden Meshes</span></label>
           <label class="chk" id="monExtendRow" hidden><input type="checkbox" id="monExtend"><span id="monExtendText">Draw the Overlays Whose Albedo Needs a Second Map</span></label>
           <div class="field"><label for="monNormalScale">Normal Strength <span id="monNormalScaleVal" class="hint"></span></label>
@@ -1506,16 +1534,19 @@ setNoMipmap([
 ]);
 import { PoseDriver } from './render/pose.js';
 import { gidBonesOf } from './render/skeleton.js';
-import { loadAttackData, buildAttackHitboxes, hasAttackData } from './render/attack-hitboxes.js';
+import { loadAttackData, buildAttackHitboxes, hasAttackData, attackDataFor } from './render/attack-hitboxes.js';
 import { loadMaterialsDb } from './render/materials-db.js';
 import { createBackground } from './render/background.js';
 import { createFloorGrid, createGrid } from './render/grid.js';
 import { MotionStates, MOTION_STATES, RAGE_BY_LEVEL, CLASS_HOLD_OFF, RAGE_PUFF, TIRED_DROOL, JOINT_SCALE, JointScale, shellTailInput, shellPartsInput, shellMudInput, glavenusHeat, rustrazorInput,
          CLIP_VARIANTS, clipVariantOf, clipVariantsFor,
-         postureOf, turnAt, CEILING_ABOVE_GAME, clipHeat, airLift, BOULDER, CLASS_CONTROLS, CLASS_CONTROLS2, gauge071, gauge071Tier, charges021, CLASS_TOGGLES, trunkSnow083, legSnow083, agnaktorBroken049, mizutsuneHead082, tetsucabraTusks066, nerscyllaBack070, seregiosParts077, nakarkosParts084 } from './render/motion-states.js';
-import { hunterCapsuleOf, pickVariantsFor, BEAM_TYPES, AURA084_STANCE, AURA084_CASE_A, heldUntil088, pullClip088, SHELL_DATA, SNOW_VARIANTS } from './render/shells.js';
+         postureOf, turnAt, CEILING_ABOVE_GAME, clipHeat, airLift, sinkLift, BOULDER, CLASS_CONTROLS, CLASS_CONTROLS2, gauge071, gauge071Tier, charges021, CLASS_TOGGLES, trunkSnow083, legSnow083, agnaktorBroken049, mizutsuneHead082, tetsucabraTusks066, nerscyllaBack070, seregiosParts077, nakarkosParts084, brachyBreaks063 } from './render/motion-states.js';
+import { hunterCapsuleOf, pickVariantsFor, BEAM_TYPES, AURA084_STANCE, AURA084_CASE_A, heldUntil088, pullClip088, SHELL_DATA, SNOW_VARIANTS, shellHitShapesLive } from './render/shells.js';
 import { pslMask, clipActionFor, clipCopyActions, clipPostureFor, clipPhaseFor, clipSunkFor, clipFieldFor, clipEntryIndex, ACTION_EFFECTS, actionName, actionOf, em088CarryAt, em021Item, em021Gas, armPlay084, armMask084 } from './render/psl-mask.js';
 import { CUT_TAIL, CutTail, FLIGHTS } from './render/tail-option.js';
+import { SLIME063_HITS, SLIME_REARM063 } from './render/motion-states.js';      // Raging Brachydios's slime hits (stepSlime063 / the click below)
+import { NOTICE_SENSE, senseTest, NoticeEdges, eyeOf } from './render/notice-sense.js';   // the notice marks c 1200 / c 1201 (stepNotice)
+import { FLASH, FLASH_BLIND, flashable, flashFrames } from './render/rom/effect/shared-states.js';   // the Flashed switch (stepFlashed)
 // a combined partner's own effect runtime (Seltas on the Queen: drivePartnerEffects) -- the same module monster.js re-exports
 import { partnerEffectRuntime, attachPartnerEffects, detachPartnerEffects, partnerEffectsPending, effectRuntimeOn,
          sideEffectRuntime, attachSideEffects, detachSideEffects, sideEffectsPending, setEffectFloor } from './render/rom/effect-mounts.js';
@@ -1538,7 +1569,7 @@ import { loadMonster, releaseMonster, trimTextureCache, restoreBind, clipFor, cl
          deflectLadder, DEFLECT_TIERS, TIER_LABEL, tierRule, stepMatAnim, setRomBiasUnitsPerStep,
          setProxyVisible, proxyCount, enrageParts, ROM_SPAWN_CLIP,
          ROM_ARM_SLIME, setArmSlimeLevel, armSlimeLevels, levelClipFor, setClipFor,
-         attachedBodyOf, attachedClipFor, partnerBodyOf, partnerClassOf, partnerPairOf, clawStageAt, clawSetOf, wingPartsAt, wingStateOf, freeTimeline, seedOf, composeClip, sequenceClipFor, seqFrames, armPairOf,
+         attachedBodyOf, attachedClipFor, partnerBodyOf, partnerWorldAt, partnerClassOf, partnerPairOf, clawStageAt, clawSetOf, wingPartsAt, wingStateOf, freeTimeline, seedOf, composeClip, sequenceClipFor, seqFrames, armPairOf,
          FULL_ANIM_LIST, romAnimationsOf, romAnimationMotion, piecesOf, foldLoopFrame, loopFoldOf, specialMotionAt,
          stepEarFold, stepTailSwell, stepHornRaise, stepRageFur, romFormsOf,
          GAG_EYES, gagEyesOf, setGagEyes, mountGagEyes, HELD_PROP,
@@ -1601,10 +1632,14 @@ for (const m of MON.monsters){
   for (const an of anims){
     if (an.duo) continue;                // a duo animation lives on the combined list (ROM_PARTNER_BODY partnerList)
     // the chain with its loop cycles (render/monster.js piecesOf: an entry's `loops`)
-    const pieces = piecesOf(an).map(([lid, cn, blend]) => {
+    // a piece's 4th element is its frame range { from, to } (render/monster.js ROM_ANIMATIONS: Khezu's (7, 0x4d) sets L2 M3 again from 40)
+    const pieces = piecesOf(an).map(([lid, cn, blend, rng]) => {
       const l = (m.lists || []).find(x => String(x.id) === String(lid));
       const c = l && (l.clips || []).find(x => x.clip === cn);
-      return c ? { list: l, clip: cn, dur: c.dur, blend: blend || 0 } : null;
+      if (!c) return null;
+      if (!rng) return { list: l, clip: cn, dur: c.dur, blend: blend || 0 };
+      const all = Math.round(c.dur * 60), from = rng.from || 0, to = rng.to != null ? Math.min(rng.to, all) : all;
+      return { list: l, clip: cn, dur: Math.max(1, to - from) / 60, blend: blend || 0, from, to };
     });
     if (pieces.some(p => !p)){ noteError('full animation ' + an.name + ': a piece is missing from ' + m.id); continue; }
     clips.push({ clip: an.name, dur: pieces.reduce((t, p) => t + p.dur, 0), pieces });
@@ -1659,8 +1694,12 @@ for (const m of MON.monsters){
     const hc = Array.isArray(ent) ? name : ent.his, body = Array.isArray(ent) ? ent : ent.body;
     const c = (his.clips || []).find(x => x.clip === hc);
     if (!c){ noteError('partner list ' + pl.id + ': his ' + hc + ' is missing'); continue; }
-    hisClips.push({ clip: pl.prefix + name, his: hc, dur: Array.isArray(ent) || !ent.drop ? c.dur : 10, body, hisSeq: Array.isArray(ent) ? null : ent.hisSeq || null,
-                    drop: !Array.isArray(ent) && !!ent.drop, group: 'his' });
+    // (`frames`: an entry laid out on its own length, both sides -- the world-placed partner's, Ahtal-Ka + Ahtal-Neset; `place` /
+    // `hide` / `lift` / `nodes`: its coupling, render/monster.js partnerWorldAt)
+    const own = !Array.isArray(ent) && ent.frames ? ent.frames / 60 : null;
+    hisClips.push({ clip: pl.prefix + name, his: hc, dur: own != null ? own : Array.isArray(ent) || !ent.drop ? c.dur : 10, body, hisSeq: Array.isArray(ent) ? null : ent.hisSeq || null,
+                    drop: !Array.isArray(ent) && !!ent.drop, group: 'his',
+                    world: own != null ? { place: ent.place, ka: ent.ka, hide: ent.hide, lift: ent.lift, nodes: ent.nodes } : null });
   }
   const clips = [...req, ...joined, ...leaves, ...hisClips, ...free];
   if (clips.length) m.lists.push({ id: pl.id, label: pl.label, file: herList.file, clips, partner: true,
@@ -2770,7 +2809,16 @@ const POSTURE_TABLE_OF = { em007_04: 'em007_00' };
 // nothing else in the handler writes it, so P+0x44 = P+0x5b4 throughout (0xbc8e4, 0xbf284). L2 M45 dips the neck 297 below his
 // feet at f70 (the tongue to -431), which the lowest-reach rule took for the ground (-443 x size). His other below-origin clips
 // (L2 M15's body hangs under a raised unit) keep the old rule until their posture is read. (shells lane gapP, 2026-10-22)
-const FLOOR_AT_UNIT_CLIPS = { em025_00: ['2|Motion[43]', '2|Motion[45]'] };
+// Duramboros (em055_00) L2 M29 -- (7, 0xc) calls 0xbc7f4(e, 0) before it plays the clip (POSTURE 0, the unit pinned; <archive>/laneA/
+// posture_any.py, control Astalos's (3, 0) L1 M13 = 0 as posture81.py). The lowest-reach rule put the floor 21.8 below his feet, so u 100's
+// point (378.7 above the unit at f271) stood 400.5 above it and the base step's spawn-height test (payload +0x40 = 1, +0x58 = 400.0,
+// 0x329390 -> 0x328c10) ended the held request on its first move. (effects lane A, 2026-10-25; <archive>/laneA/u100ray.mjs)
+// Gammoth / Elderfrost (em083_00 / em083_04) L2 M23 / M33, L9 M6 / M8 / M16 -- every action that plays them calls 0xbc7f4(e, 0) first
+// (both variants: (7, 0x1b..0x1d / 0x78..0x7e) L2 M23, (7, 0x73 / 0x74) L2 M33, (7, 0x6f) L9 M6, (7, 0x72) L9 M8, (7, 0x6a / 0x6b) L9 M16;
+// <archive>/laneA/posture_any.py). L2 M23's trunk tip dips 381 under his feet (f121..f201), which the lowest-reach rule took for the
+// ground (-396). (effects lane A3, 2026-10-26: the u 242 group's spawn-height test -- rom-map "Effects lane A3")
+const EM083_PINNED = ['2|Motion[23]', '2|Motion[33]', '9|Motion[6]', '9|Motion[8]', '9|Motion[16]'];
+const FLOOR_AT_UNIT_CLIPS = { em025_00: ['2|Motion[43]', '2|Motion[45]'], em055_00: ['2|Motion[29]'], em083_00: EM083_PINNED, em083_04: EM083_PINNED };
 const PINNED_POSTURES = [0, 3, 4, 6];
 var clipPostureNow = [0];   // the playing clip's postures (stepBox), read by monsterFloorY
 // AN AIR CLIP, as the floor rule has always told it: the body hangs below the clip's own origin by more than AIR_REACH (in
@@ -2784,8 +2832,15 @@ function airNow(){
   const e = entry();
   // (a combined entry: the clip of hers it plays now, at its own frame -- seqMotionNow)
   const pq = listOf(e) && (listOf(e).partner || listOf(e).routed) ? seqMotionNow() : null;
+  // THE POSTURE-4 SINK first (motion-states.js SINK4 / sinkLift: P+0x5c held below the ground; effects lane A4, 2026-10-26): the play's
+  // own action where the viewer knows it (plays.action; a partner's clip on a combined entry has none here)
+  const sink = sinkLift(state.id, pq ? pq.list : state.list, pq ? pq.raw : act.getClip().name,
+                        pq ? pq.frame - (pq.loopSeg ? pq.loopStart : 0) : act.time * 60, world.scale.y || 1, (e && e.sizeBase) || 1,
+                        pq ? null : plays.action);
+  if (sink) return sink;
   // a clip with its own AIR_HEIGHT row applies as it is; any other only when it hangs below its origin
-  return airLift(state.id, pq ? pq.list : state.list, pq ? pq.raw : act.getClip().name,
+  // (the clip-menu copy, 'Motion[N]#B', reaches its own row: Alatreon's L1 M1 A / B -- shells lane, 2026-10-26)
+  return airLift(state.id, pq ? pq.list : state.list, pq ? pq.raw : act.getClip().name + (state.clipVariant ? '#' + state.clipVariant : ''),
                  pq ? pq.frame - (pq.loopSeg ? pq.loopStart : 0) : act.time * 60, world.scale.y || 1, (e && e.sizeBase) || 1,
                  reach < clipRoot.position.y - AIR_REACH);
 }
@@ -3440,10 +3495,14 @@ const DEBUG_DEFAULTS = Object.fromEntries(['anchor', 'groundLock', 'normalFlip',
 // screen to turn it off. Run after the boot restore and after Open, NOT inside applySet, so a dev scene
 // (runScene sets state itself) and a test calling __view.applySet still get what they ask for. Tied to
 // the panel's own `hidden`: unhide it and saved debug settings come back into force.
+// The class toggles that live in the Debug panel (render/motion-states.js `debug: true`: the Rath line's Tired (with Rage), Raven
+// 2026-10-27) are part of it: hidden, they go back to off like the rest.
+const DEBUG_TOGGLES = [...new Set(Object.values(CLASS_TOGGLES).flat().filter(t => t.debug).map(t => t.key))];
 function resetHiddenDebug(){
   if (!document.getElementById('debugPanel').hidden) return;
   Object.assign(state, DEBUG_DEFAULTS);
   rawParts = state.rawParts;
+  if (state.toggles && typeof state.toggles === 'object') for (const k of DEBUG_TOGGLES) state.toggles[k] = false;
 }
 function saveState(){
   if (restoring || SCENE) return;
@@ -3676,6 +3735,34 @@ function buildClips(){
   }
   monClipSel.value = state.clip + (state.clipVariant ? '#' + state.clipVariant : '');
   if (monClipSel.value === '' && state.clip){ state.clipVariant = ''; monClipSel.value = state.clip; }
+  paintHyperClips(false);
+}
+// HYPER NEVER TIRES -- THE CLIP MENU (Khezu AoE lane, 2026-10-27; paintTired's comment, rom-map "P+0x1a8 bit 19"): a clip whose
+// MOTION_STATES row (or one of its cycle arms) is a tired idle shows the monster exhausted -- the ROM's (0, 2), which the idle chooser
+// 0x75168 takes only on a tired P+0x505 -- and a hyper monster's P+0x505 stays 0. While a Hyper pair is held such clips are disabled
+// (kept in the menu), and a play standing on one moves to a clip that is not (the monster's opening clip where it qualifies, else the
+// first). The row the same lookup playNow / motionStates.step use: the list's own, or a Special entry's one whole motion.
+function tiredOnlyClip(list, value){
+  const v = clipVariantOf(value), rows = MOTION_STATES[state.id];
+  if (!rows || !v.clip) return false;
+  let l = list, clip = v.clip.replace(/_(start|loop)$/, '');
+  const an = list === FULL_ANIM_LIST.id ? romAnimationMotion(state.id, v.clip) : null;
+  if (an){ l = an.motion[0]; clip = an.motion[1]; }
+  const row = (v.variant && rows[l + '|' + clip + '#' + v.variant]) || rows[l + '|' + clip];
+  return !!row && (!!row.tired || (Array.isArray(row.cycle) && row.cycle.some(a => a && a.tired)));
+}
+function paintHyperClips(move = true){
+  const hyper = !!state.hyper;
+  let cur = null;
+  for (const o of monClipSel.options){
+    o.disabled = hyper && !!o.value && tiredOnlyClip(state.list, o.value);
+    if (o.selected) cur = o;
+  }
+  if (!move || !cur || !cur.disabled) return;
+  const dv = DEFAULT_VIEW[state.id] || {};
+  const ok = [...monClipSel.options].filter(o => o.value && !o.disabled);
+  const pick = ok.find(o => dv.list === state.list && clipVariantOf(o.value).clip === dv.clip) || ok[0];
+  if (pick){ monClipSel.value = pick.value; monClipSel.onchange(); }
 }
 // ICONS PICKED BY HAND, keyed by id, and they win over the harvest's. Raven, 2026-09-13: "Fatalis line,
 // Alatreon use the Forbidden icon" -- the Forbidden theme's question mark -- and "Ahtal-Neset, should
@@ -4960,7 +5047,10 @@ function applyPartState(){
       const groups = (a.part && a.part.groups) || [];
       // ...and his claw set by his claw stage (stepAttached), the first set until a stage has been read
       // (released: his bit is clear, so the combined glow's group 8 is not drawn -- group 0, 0xfc6468)
-      const base = a.pick && (a.pick.release || a.deadNow) ? a.spec.groups.map(x => x === 8 ? 0 : x) : a.spec.groups;
+      // (a partner with no `groups` of its own -- Ahtal-Neset beside Ahtal-Ka -- draws the set his class registers, as he does alone)
+      const sg = a.spec.groups || a.defaultGroups || (a.defaultGroups = defaultGroupsOn(groups, a.part && a.part.em, a.spec.monster, false,
+        DEFAULT_PARTS_OFF[a.spec.monster], forcedOn(a.spec.monster)).map((v, i) => v ? i : -1).filter(i => i >= 0));
+      const base = a.pick && (a.pick.release || a.deadNow) ? sg.map(x => x === 8 ? 0 : x) : sg;
       const on = base.concat(a.spec.claws ? [a.clawSet != null ? a.clawSet : a.spec.claws.sets[0]] : []);
       a.groupsOn = on;
       const drawn = partsDrawn(groups, groups.map((_, i) => on.includes(i)));
@@ -5135,7 +5225,7 @@ function buildPartnerRow(e){
   row.dataset.row = 'partner:' + spec.monster;
   const lab = document.createElement('label');
   lab.textContent = prec.name;
-  lab.title = prec.name + ' (' + spec.monster + '), combined on body joint ' + spec.joint;
+  lab.title = prec.name + ' (' + spec.monster + '), combined ' + (spec.place === 'world' ? 'beside the body, a unit of his own (the combined list)' : 'on body joint ' + spec.joint);
   const sel = document.createElement('select');
   for (const [v, t] of [['0', 'Off'], ['1', 'Combined']]){
     const o = document.createElement('option'); o.value = v; o.textContent = t; sel.appendChild(o);
@@ -5154,7 +5244,10 @@ function setupPartner(e){
   const spec = e && partnerBodyOf(e.id);
   if (!spec || !mounted[spec.monster] || !mounted.main) return;
   let jointNode = null;
-  for (const b of gidBonesOf(mounted.main)) if (b.gid === spec.joint){ jointNode = b.node; break; }
+  // a WORLD-PLACED partner (ROM_PARTNER_BODY `place: 'world'`: Ahtal-Neset beside Ahtal-Ka, two units of their own) hangs from no
+  // joint of the body: attachFrame places him in the world group by the entry's coupling (partnerWorldAt)
+  if (spec.place === 'world') jointNode = mounted.main;
+  else for (const b of gidBonesOf(mounted.main)) if (b.gid === spec.joint){ jointNode = b.node; break; }
   if (!jointNode){ noteError('partner ' + spec.monster + ': body joint ' + spec.joint + ' not found'); return; }
   const frame = new THREE.Object3D();
   frame.matrixAutoUpdate = false;
@@ -5171,6 +5264,8 @@ function dropPartner(spec){
   if (a){ a.driver.stop(); attached.delete(spec.monster); }
   const g = mounted[spec.monster];
   if (g){ world.remove(g); releaseMonster(g); delete mounted[spec.monster]; }
+  if (spec.place === 'world') setMeshesDrawn(mounted.main, true);   // Ka drawn again off the combined list (stepWorldPartner)
+  if (spec.place === 'world' && kaSlideOn){ mountFrame.position.set(0, 0, 0); kaSlideOn = false; }   // ...and his code slide let go
 }
 // Mount the partner alone, so the body keeps its parts, clip and camera (the caller plays his clip).
 async function mountPartner(e){
@@ -5328,6 +5423,7 @@ function attachFrame(a){
     if (m){ a.frame.matrix.copy(m); a.frame.matrixWorld.copy(m); return; }
   }
   if (a.partner && a.pick && a.pick.release && a.releaseMat){ a.frame.matrix.copy(a.releaseMat); a.frame.matrixWorld.copy(a.frame.matrix); return; }
+  if (a.partner && a.spec.place === 'world'){ worldPartnerFrame(a); return; }
   if (a.partner){
     // the ROM's link mode 3: the joint's position and rotation with its scale dropped, at the partner's own
     // size -- its dtbase multiplier, as a monster shown alone is scaled (sizeScale)
@@ -5342,6 +5438,66 @@ function attachFrame(a){
     a.frame.matrix.multiplyMatrices(a.jointNode.matrixWorld, a.restInv).multiply(world.matrixWorld);
   } else a.frame.matrix.copy(a.jointNode.matrixWorld);
   a.frame.matrixWorld.copy(a.frame.matrix);
+}
+// AHTAL-NESET BESIDE AHTAL-KA (render/monster.js ROM_PARTNER_BODY.em088_00 / partnerWorldAt; dev/em088-em087-combined-spec.md). Two
+// units of their own, coupled only by the fight's flags: he stands at the entry's place in Ka's frame -- the WORLD GROUP, Ka's unit
+// as the pass began, so Ka's own clip travel moves Ka and not him -- Ka-local game units x 0.01 over the group's scale, turned by the
+// relative yaw, at his own size, his body drawn P+0x5c x his size higher (the drawn offset e+0x1384, 0xa5db8).
+const _wq = new THREE.Quaternion(), _wy = new THREE.Vector3(0, 1, 0), _wp = new THREE.Vector3(), _ws = new THREE.Vector3();
+let kaSlideOn = false;          // Ahtal-Ka's code slide is on mountFrame (stepWorldPartner); declared here, above the first play()
+function worldPartnerNow(){
+  const l = listOf(entry()), c = l && l.partner ? clipOf(l) : null;
+  return c && c.world ? partnerWorldAt(c.world, pose.action ? Math.round(pose.action.time * 60 * 1e4) / 1e4 : 0) : null;
+}
+function worldPartnerFrame(a){
+  const w = worldPartnerNow() || { pos: [0, 0, 0], yaw: 0, lift: 0 };
+  world.updateWorldMatrix(true, false);
+  const ws = world.scale.y || 1, s = (a.part && a.part.sizeBase) || 1;
+  _wp.set(w.pos[0] * 0.01 / ws, (w.pos[1] + (w.lift || 0) * s) * 0.01 / ws, w.pos[2] * 0.01 / ws);
+  _wq.setFromAxisAngle(_wy, w.yaw || 0);
+  a.frame.matrix.compose(_wp, _wq, _ws.set(s / ws, s / ws, s / ws)).premultiply(world.matrixWorld);
+  a.frame.matrixWorld.copy(a.frame.matrix);
+}
+// a model not drawn (the ROM's alpha 0, 0xbee74(e, 0, 0): Ka inside the Neset, the Neset after his second collapse) -- its meshes
+// only, as the model alpha does (applyCloakAlpha025): the root stays, the effect runtime hangs from it
+function setMeshesDrawn(root, on){
+  if (!root || !!root.userData.alphaHid088 === !on) return;
+  root.userData.alphaHid088 = !on;
+  root.traverse(o => {
+    if (!(o.isMesh || o.isSkinnedMesh) || !o.material) return;
+    for (const m of Array.isArray(o.material) ? o.material : [o.material]){
+      const u = m.userData || (m.userData = {});
+      if (!on){ if (m.visible){ m.visible = false; u.alphaHid088 = true; } }
+      else if (u.alphaHid088){ m.visible = true; u.alphaHid088 = false; }
+    }
+  });
+}
+// after his pose: his six node turns (vt+0x2a0 0x10a6d58 -> 0x7237c: the joint's local rotation turned by Y, then X, then Z,
+// degrees x the ramp e+0xd4cc -- ROM_PARTNER_BODY.em088_00 `nodes`), and which of the two is drawn
+const _nq = new THREE.Quaternion(), _nx = new THREE.Vector3(1, 0, 0), _nz = new THREE.Vector3(0, 0, 1), D2R = Math.PI / 180;
+function stepWorldPartner(a, root){
+  const w = worldPartnerNow();
+  // KA'S CODE SLIDE (`ka.slide`: (1, 0x21) phase 9 moves his unit back to the jump's target over M14 f0..20) on the bones' frame
+  // (mountFrame: the pose maps the proxy through it; at rest the identity, and Ahtal-Ka has no MOUNT posture to share it with) -- the
+  // next pose step draws it, as stepTurn's yaw. (Its own flag, kaSlideOn, not stepMount's mountedOn: that `let` sits much further down
+  // and this runs from the first play(), before it is initialised -- the 2026-10-27 TDZ crash on loading Ahtal-Ka. Only an entry with a
+  // `ka.slide` writes the frame, and only what it wrote is let go.)
+  {
+    const o = w && w.kaOff, ws = world.scale.y || 1;
+    if (o && (o[0] || o[1] || o[2])){ mountFrame.position.set(o[0] * 0.01 / ws, o[1] * 0.01 / ws, o[2] * 0.01 / ws); kaSlideOn = true; }
+    else if (kaSlideOn){ mountFrame.position.set(0, 0, 0); kaSlideOn = false; }
+  }
+  setMeshesDrawn(root, !(w && w.partnerHidden));
+  setMeshesDrawn(mounted.main, !(w && w.hostHidden));
+  const k = w ? w.nodes : 0;
+  if (!(k > 0) || !a.spec.nodes) return;
+  for (const b of gidBonesOf(root)){
+    const n = a.spec.nodes.find(x => x[0] === b.gid);
+    if (!n) continue;
+    const [x, y, z] = n[1];
+    b.node.quaternion.multiply(_nq.setFromAxisAngle(_wy, y * k * D2R)).multiply(_nq.setFromAxisAngle(_nx, x * k * D2R))
+      .multiply(_nq.setFromAxisAngle(_nz, z * k * D2R));
+  }
 }
 // WHERE HE WAS RELEASED: her joint (ROM_PARTNER_BODY `joint`) at HER frame 0, the frame he unlinks on -- sampled from
 // her own driver at time 0 and put back, so a pick that loads late, a scrub or a pause cannot move it
@@ -5519,9 +5675,10 @@ async function partnerComposeClip(a, pick){
     if (!pc) return null;
     const st = x.start || 0, fr = x.frames || Math.max(1, seqFrames(pc) - st);
     const md = x.mode || (/_loop$/.test(x.clip) ? 'wrap' : 'play');
-    pieces.push({ clip: pc, frames: fr, mode: md, start: st / 60, blend: x.blend || 0, period: x.period ? x.period / 60 : 0 });
+    // (`rate`: a piece at another motion speed -- Ahtal-Neset's L0 M9 at 0.6 / 0.1, render/monster.js composeClip)
+    pieces.push({ clip: pc, frames: fr, mode: md, start: st / 60, blend: x.blend || 0, period: x.period ? x.period / 60 : 0, rate: x.rate || 1 });
     layout.push({ from: at, frames: fr, clip: x.clip, list: x.list || null, mode: md, start: st, dur: seqFrames(pc),
-                  spitSet: x.spitSet || null });
+                  spitSet: x.spitSet || null, rate: x.rate || 1, act: x.act || null });
     at += fr;
   }
   pick.layout = layout;
@@ -5551,7 +5708,7 @@ function partnerLocalAt(a, f){
   if (!seg) return null;
   const j = f - seg.from;
   const fr = seg.mode === 'hold' ? seg.start : seg.mode === 'wrap' ? (seg.dur > 0 ? (seg.start + j) % seg.dur : 0)
-           : Math.min(seg.start + j, seg.dur);
+           : Math.min(seg.start + j * (seg.rate || 1), seg.dur);
   return { clip: seg.clip, frame: fr, list: seg.list || null };
 }
 async function playAttached(l, c){
@@ -5639,6 +5796,7 @@ function stepAttached(){
       a.driver.clock.getDelta();
       if (a.driver.action) a.driver.step([root]);
       else placeOnFrame(root, a.frame);
+      if (a.spec.place === 'world') stepWorldPartner(a, root);        // Ahtal-Neset's node turns, either model's alpha 0
       // HIS CLAWS follow his own claw stage at this frame (render/monster.js clawStageAt: 0 at every action start,
       // grown only by his own attacks) -- part 10 under every clip of hers the ROM pairs
       if (a.spec.claws){
@@ -6386,7 +6544,7 @@ async function applyHeat(){
     const tier = 2;
     const bySlot = {};
     table.forEach((row, slot) => {
-      const lv = hardnessLevel(row[type], t, tier);
+      const lv = hardnessLevel(row[type] * hyperMeatBias(slot), t, tier);     // Hyper's meat change (0x16d800 x vt+0x18c)
       if (lv !== null) bySlot[slot] = SHARP_RGB[lv];
     });
     heatEach(e, g => applyHeatmap(g, zoneCache.zones.slots, null, 1, THREE, bySlot),
@@ -6829,7 +6987,8 @@ function buildHardnessChart(rec, table){
     tr.appendChild(th);
     for (const key of ['cut', 'impact']){
       const td = tr.insertCell();
-      const hz = z.row && z.row[key];
+      // Hyper's meat change on the body's slots (0x16d800 x vt+0x18c, hyperMeatBias); a tentacle is its own unit
+      const hz = z.row && z.row[key] != null ? z.row[key] * (z.kind === 'slot' ? hyperMeatBias(sl) : 1) : z.row && z.row[key];
       // The floor rung only: the sharpness a hit needs to NOT BOUNCE. Tiers 3 and 4 are not hardness --
       // they never make a hit bounce -- so they are not drawn (Raven, 2026-09-21).
       const lv = deflectLadder(hz, t)[2];
@@ -7363,14 +7522,30 @@ function tiredRung(){
 // Offered where the monster's exhaustion has something to show: a tired idle and its drool, read per monster
 // (TIRED_DROOL). A monster without one -- Akantor never tires (stamina forced 0), several drools the notes could not
 // settle -- keeps the state off rather than a toggle that changes nothing.
+// HYPER NEVER TIRES (Khezu AoE lane, 2026-10-27; dev/hyper-states.md 8.2, rom-map "P+0x1a8 bit 19"): the spawn init 0xb8b98 copies the
+// flag word (0xb8ce8 -> 0xa4b90 -> 0x6b340) and then, with e+0xb720 set, P+0x1a8 |= 0x80000 (0xba1a0..0xba1c0). Bit 19's only readers in
+// main.text are the stamina routines: the updater 0xbd1a4 returns unless (P+0x1a8 & 0x80001) == 1 (0xbd1c0..0xbd1d4) and every P+0x505
+// writer (0xbd0c8, 0xbd250, 0xbd2d4) writes 0 -- so a hyper monster's P+0x505 stays 0 and 0x81614 never answers tired: no tired PSL bits
+// 12-14, no drool c 1104, no tired arms. While a Hyper pair is held the Exhausted state is not offered (nor a rung that names it).
 function paintTired(){
   const row = document.getElementById('monTiredRow');
-  const can = !!TIRED_DROOL[state.id] && !tiredRung();
+  const hyper = !!state.hyper;
+  const can = !!TIRED_DROOL[state.id] && !tiredRung() && !hyper;
   if (!can) state.tired = false;
+  hyperTiredRung(hyper);
   if (state.rage) state.tired = false;                       // never both (0xbcd20, 0x76224)
   row.hidden = !can;
   document.getElementById('monTired').checked = !!state.tired;
   paintStateSelect();
+}
+// A level rung that IS exhaustion (levels.mat 'tired': Mizutsune's "State: Exhausted") is disabled while Hyper is held; a play standing
+// on it moves to rung 0 through the rung's own handler
+function hyperTiredRung(hyper){
+  if (!tiredRung()) return;
+  const lv = (reviewFor(state.id) || {}).levels, sel = document.getElementById('monLevel');
+  if (!sel) return;
+  for (const o of sel.options) o.disabled = hyper && lv.mat[+o.value] === 'tired';
+  if (hyper && lv.mat[state.level | 0] === 'tired' && sel.onchange){ sel.value = '0'; sel.onchange({ target: sel }); }
 }
 // THE STATE DROPDOWN (monStateRow): Normal, then Enraged (the rage toggle's own label: part-review `rage.name`, e.g. Raging
 // Brachydios's "Red slime") or -- where the rage has levels (a ladder that IS the enrage) -- each level by its rung name,
@@ -7599,14 +7774,16 @@ async function partnerListBodyClip(e, l, c){
     if (!bc){ noteError('partner list: her ' + lid + '|' + cn + ' is missing'); return null; }
     // `start` / `frames` / `blend`: a piece of hers entered mid-clip or cut short (her 7:0x4f's M42 from 90, her M65 to 105)
     const st = o.start || 0, fr = o.frames || Math.max(1, seqFrames(bc) - st);
-    pieces.push({ clip: bc, frames: fr, mode: /_loop$/.test(cn) || o.loop ? 'wrap' : 'play', start: st / 60, blend: o.blend || 0, name: lid + '|' + cn + (st ? '@' + st : '') });
+    // (`hold`: a pose held at `start` -- Ahtal-Ka's (1, 0x10), L2 M28 set at its last frame, 0x10bd544..0x10bd564)
+    pieces.push({ clip: bc, frames: fr, mode: o.hold ? 'hold' : /_loop$/.test(cn) || o.loop ? 'wrap' : 'play', start: st / 60, blend: o.blend || 0, name: lid + '|' + cn + (st ? '@' + st : '') });
   }
   const herF = pieces.reduce((n, p) => n + p.frames, 0);
   const hisF = c.hisSeq ? herF : hisClip ? seqFrames(hisClip) : herF;
   const F = /_loop$/.test(c.his) || hisF < 2 ? herF : Math.max(hisF, herF);
   pieces[pieces.length - 1].frames += F - herF;
   partnerBodyShown = { his: c.his, body: pieces.map(p => p.name), frames: F, entry: c.clip,
-                       layout: c.body.map(([lid, cn, o = {}], i) => ({ list: String(lid), clip: cn, start: o.start || 0, frames: pieces[i].frames, loop: !!o.loop })) };
+                       layout: c.body.map(([lid, cn, o = {}], i) => ({ list: String(lid), clip: cn, start: o.start || 0, frames: pieces[i].frames, loop: !!o.loop,
+                                                                       hold: !!o.hold, act: o.act || null })) };
   return composeClip(c.clip, pieces, e.glb);
 }
 let playSeq = 0;
@@ -7762,7 +7939,7 @@ function seekTo(t){
   const act = pose.action;
   if (!act) return;
   const was = act.time;
-  act.paused = true; act.enabled = true;
+  act.paused = true; act.enabled = true; act.userHeld = true;    // the user's hold (animAdvance: not a finished one-shot)
   act.time = Math.max(0, Math.min(t, clipDur(act)));
   // STEPPING BACK CLEARS THE CLIP'S EFFECTS (schedule.clearClipEffects). Forward, a seek hands the effects the
   // frames it passed and they run them; backwards there is nothing to run, since the game has no reverse and
@@ -7807,8 +7984,8 @@ animPlayBtn.onclick = () => {
   if (!act) return;
   if (act.paused || !act.isRunning()){
     if (act.time >= clipDur(act)) act.time = 0;
-    act.paused = false; act.enabled = true; act.play();
-  } else act.paused = true;
+    act.paused = false; act.enabled = true; act.userHeld = false; act.play();
+  } else { act.paused = true; act.userHeld = true; }
 };
 animLoopBtn.onclick = () => {
   state.loop = !state.loop;
@@ -7819,7 +7996,7 @@ animLoopBtn.onclick = () => {
     act.clampWhenFinished = !state.loop; act.repetitions = Infinity;
     if (state.loop && (act.paused || !act.isRunning())){
       if (act.time >= clipDur(act)) act.time = 0;
-      act.paused = false; act.enabled = true; act.play();
+      act.paused = false; act.enabled = true; act.userHeld = false; act.play();
     }
   }
   saveState();
@@ -7909,6 +8086,9 @@ monListSel.onchange = async () => {
 monClipSel.onchange = async () => {
   const v = clipVariantOf(monClipSel.value);
   state.clip = v.clip; state.clipVariant = v.variant;
+  // a pick from the Clip menu is a new play even on a lone _loop clip, whose restart playNow would otherwise read as a wrap (Great
+  // Maccao's L0 M21: its second CLIP_ACTIONS entry (1, 0x0f) -- c 118 / c 112 -- was unreachable; effects lane A, 2026-10-25)
+  plays.replay = true;
   await play(); saveState();
 };
 // placeParts on the way in: the monster may have been posed or resized since it mounted, and
@@ -7990,6 +8170,7 @@ document.getElementById('monGag').onchange = e => { state.gagEyes = e.target.che
 // thrown once, not repeatedly, and c 1500 goes with STEPPING in shallow water rather than the lying
 // gate the decode reads — and either way a loop that runs with no walking is wrong. See shared-states.js.
 const SHARED_TOGGLES = { monC1100: 'c1100', monC1108: 'c1108' };
+let flashed = { rt: null, held: false, pel: null, mon: null };      // the Flashed switch's hold (stepFlashed, below)
 for (const id of Object.keys(SHARED_TOGGLES)){
   const el = document.getElementById(id);
   if (el) el.onchange = e => {
@@ -8002,10 +8183,16 @@ function refreshSharedRow(){
   const row = document.getElementById('monSharedRow');
   if (!row) return;
   const rt = effectRuntimeInstance();
-  row.hidden = !(rt && rt.sharedStates);
-  if (row.hidden) for (const id of Object.keys(SHARED_TOGGLES)){
-    const el = document.getElementById(id); if (el) el.checked = false;
-  }
+  // FLASHED rides in the same row (stepFlashed): offered on the monsters FLASH_BLIND lists whose runtime holds the c 1103 record;
+  // a new monster starts unflashed; the row hiding (no runtime: the Effects switch off) clears it, as it clears Poisoned
+  if (flashed.mon !== state.id){ flashed.mon = state.id; const fb = document.getElementById('monFlashed'); if (fb) fb.checked = false; }
+  const flashOk = !!(rt && flashable(state.id) && flashRecord(rt));
+  const fr = document.getElementById('monFlashedRow');
+  if (fr){ fr.hidden = !flashOk; if (!flashOk){ const fb = document.getElementById('monFlashed'); if (fb) fb.checked = false; } }
+  row.hidden = !(rt && (rt.sharedStates || flashOk));
+  if (!(rt && rt.sharedStates)) for (const id of Object.keys(SHARED_TOGGLES)){
+    const el = document.getElementById(id); if (el){ el.checked = false; const lab = el.closest('label'); if (lab) lab.hidden = !!rt; }
+  } else for (const id of Object.keys(SHARED_TOGGLES)){ const el = document.getElementById(id), lab = el && el.closest('label'); if (lab) lab.hidden = false; }
   // ONE POISONED, NOT TWO. Raven, 2026-10-22: "Teostra has two Poisoned toggles, we only need one" (Kushala too). Where the class has its
   // own Poisoned toggle (motion-states.js CLASS_TOGGLES POISONED: P+0x5e08 bit 1 -- it holds off Teostra's aura / Kushala's wind AND
   // requests c 1100 on 0xa4518's timer, CLASS_TIMERS poison1100) the shared row's c 1100 switch is the same bit's other half, so it is
@@ -8019,6 +8206,39 @@ function refreshSharedRow(){
   }
 }
 window.__refreshSharedRow = refreshSharedRow;
+
+// FLASHED (render/rom/effect/shared-states.js FLASH; dev/flashed-state.md; READ 2026-10-25). The switch stands for P+0x59c > 0, the
+// blindness a flash leaves (0xc3088's flash test -> 0xa1a88). What the ROM shows for it, short of animation:
+//   0xa3ef0 (vt+0x28, after the action main) requests c 1103 ONCE into the handle e+0xb62c while P+0x59c > 0 -- or the stun bit
+//   P+0x5e08 bit 4, or P+0x5cde == 1 -- and 0x6f124 stops it when none of the three holds. So it is ONE held c 1103, the stun's own
+//   handle: a stun clip's `hold` row that ends while he is still blind does not stop it, and turning Flashed off during a stun clip
+//   leaves the stun's. P+0x59c is zeroed at a death (0x75be4): a `dead` row stops it, and it comes back on the next play.
+//   0xc3088 skips the hunter test while P+0x59c > 0 (0xc362c) and 0x7e9c8 refuses the notice (0x7ea24): stepNotice sees no one.
+// The game ends the state after the monster's own time (flashFrames: its dttune row, 300 less per earlier flash, 300 at least);
+// the switch holds it until it is turned off. The flinch / fall / blinded wander (command group 8) are animation: not built.
+function flashRecord(rt){
+  const e = rt && rt.def && (rt.def.effects || []).find(x => x.when === 'event' && x.record && x.record.key === FLASH.key && /c$/.test(x.record.pel));
+  return e ? e.record.pel : null;
+}
+// the state the ROM would be in this frame: blind, and not in a death row (the timer zeroed)
+function flashedNow(){
+  const el = document.getElementById('monFlashed');
+  return !!(el && el.checked && flashed.mon === state.id && flashable(state.id) && !motionStates.dead());
+}
+function stepFlashed(rt){
+  if (flashed.rt !== rt){ flashed = { rt: rt || null, held: false, pel: rt ? flashRecord(rt) : null, mon: flashed.mon }; }
+  if (!rt || !flashed.pel) return;
+  const want = flashedNow();
+  if (want && !flashed.held){ rt.holdEvent(flashed.pel, FLASH.key, true); flashed.held = true; }
+  else if (!want && flashed.held){
+    // 0x6f124 runs only when none of the three holds: a stun row still holding c 1103 keeps the handle
+    if (!motionStates.holds().includes(flashed.pel + '|' + FLASH.key)) rt.holdEvent(flashed.pel, FLASH.key, false);
+    flashed.held = false;
+  }
+}
+document.getElementById('monFlashed').onchange = () => stepFlashed(effectRuntimeInstance());
+window.__flashed = { now: () => ({ on: flashedNow(), held: flashed.held, pel: flashed.pel, flashable: flashable(state.id),
+                                   frames: [0, 1, 2].map(s => flashFrames(state.id, s)), row: FLASH_BLIND[state.id] }) };
 
 // EXHAUSTED (paintTired): turning it on takes rage off through rage's own control, so the parts and materials follow
 // exactly as unticking Enraged makes them; everything exhaustion changes is read per frame from motionStates.tired().
@@ -8254,6 +8474,353 @@ function paintClassControl(){
 // The horn: P+0x3b4 bit 1 -> the part pass's set 4 (group 5 off) in place of set 3.
 let cloak025 = { on: false, since: 0, full: true };
 let cloakAlpha025 = 1;
+// HYPER (GU; dev/hyper-states.md): the selected pair of auras held on the runtime (0xca1f8: stop the old handle 0x329c40(h, 0),
+// request u 1300 + ID per group). The data: docs/hyper-auras.json (the .mdd's PartsAuraData), one table per file: the loader 0x4bd64
+// takes the _g file when e+0xb736 is set, which 0x6f1c0..0x6f1d8 sets to (quest rank 0x3a8430 > 4) -- the Quest Rank control picks it.
+let HYPER = null, hyperHeld = { rt: null, keys: [] };
+fetch('hyper-auras.json').then(r => r.json()).then(d => { HYPER = d; paintHyperRow(); }).catch(() => {});
+// (the module's top-level awaits can run this before QUEST_RANKS is declared further down: the rank is then the default, G)
+const hyperRank = () => { try { return shellQuestRank(); } catch (_) { return 5; } };
+const hyperFile = id => { const h = HYPER && HYPER[id]; return h ? h[hyperRank() > 4 ? 'g' : 'normal'] : null; };
+// HYPER'S MEAT CHANGE (READ 2026-10-25; dev/hyper-states.md): every enemy vtable's +0x18c is 0xca900(e, slot) -- with the hyper flag
+// e+0xb720 set and BOTH groups' auras held (e+0xca90 and e+0xcaa4 non-null), a damage slot in either held aura's MeatChange_Group[0..3]
+// (0x463dc: element +0x18..+0x1b) takes that aura's MeatChange_SpecificParts_Bias (+0x14), else 1.0. The deflect classifier 0x16d800
+// multiplies the row's cut and impact by it (0x16d8a8..0x16d8dc, floored at 0) for the struck capsule's slot ([rec+6], the 0xbaaa4 row):
+// the Hardness the Hit Zones panel grades. Damage reads no part of it. (The shot paths 0x171164 / 0x178298 ADD it to the shot value
+// instead -- the viewer grades blades only, so it is not shown.)
+function hyperMeatBias(slot){
+  // first: the Hardness chart runs at mount, before `HYPER` (below) and QUEST_RANKS are initialised (a TDZ throw otherwise)
+  if (!state.hyper) return 1;
+  try { if (!HYPER) return 1; } catch (_) { return 1; }
+  const h = hyperFile(state.id);
+  if (!h) return 1;
+  const held = state.hyper.split(',').map(Number).map(id => h.auras.find(a => a.id === id)).filter(Boolean);
+  if (!(held.some(a => a.group === 0) && held.some(a => a.group === 1))) return 1;
+  for (const a of held) if ((a.meat || []).includes(slot)) return a.meatBias == null ? 1 : a.meatBias;
+  return 1;
+}
+function hyperOptions(id){
+  const h = hyperFile(id);
+  if (!h) return [];
+  const g0 = h.auras.filter(a => a.group === 0), g1 = h.auras.filter(a => a.group === 1);
+  const name = a => 'Part ' + a.part;
+  const out = [];
+  for (const a of g0.length ? g0 : [null]) for (const b of g1.length ? g1 : [null]){
+    const pair = [a, b].filter(Boolean);
+    if (pair.length) out.push([pair.map(x => x.id).join(','), pair.map(name).join(' + ')]);
+  }
+  return out;
+}
+function paintHyperRow(){
+  const row = document.getElementById('monHyperRow'), sel = document.getElementById('monHyper');
+  if (!row || !sel) return;
+  const opts = hyperOptions(state.id);
+  row.hidden = !opts.length;
+  sel.textContent = '';
+  for (const [v, t] of [['', 'Off'], ...opts]){ const o = document.createElement('option'); o.value = v; o.textContent = t; sel.appendChild(o); }
+  if (![...sel.options].some(o => o.value === (state.hyper || ''))) state.hyper = '';
+  sel.value = state.hyper || '';
+}
+document.getElementById('monHyper').onchange = e => { state.hyper = e.target.value; if (state.hyper) loadActionMotions(); paintTired(); paintHyperClips(); };
+let hyperFor = null, hyperFileFor = null, hyperBiasFor = null;
+function stepHyper(rt){
+  if (hyperFor !== state.id){ const was = state.hyper; hyperFor = state.id; state.hyper = ''; paintHyperRow(); if (was){ paintTired(); paintHyperClips(false); } }
+  const h = hyperFile(state.id);
+  // the Quest Rank crossing G loads the other file: its own aura table (an option it lacks reads as Off)
+  if (hyperFileFor !== (h && h.file)){ const was = state.hyper; hyperFileFor = h && h.file; paintHyperRow(); if (state.hyper !== was){ paintTired(); paintHyperClips(); } }
+  // the Hardness reads the held pair (hyperMeatBias): repainted when it changes
+  const biasKey = state.id + '|' + (h && h.file) + '|' + (state.hyper || '');
+  if (biasKey !== hyperBiasFor){ const first = hyperBiasFor == null; hyperBiasFor = biasKey; if (!first) applyHeat().then(applyGap).catch(noteError); }
+  const want = (h && state.hyper) ? state.hyper.split(',').map(Number).map(id => [state.id + 'u', 1300 + id]) : [];
+  if (!rt){ hyperHeld = { rt: null, keys: [] }; return; }
+  if (hyperHeld.rt !== rt) hyperHeld = { rt, keys: [] };
+  const id = k => k[0] + '|' + k[1];
+  for (const k of hyperHeld.keys) if (!want.some(w => id(w) === id(k))) rt.holdEvent(k[0], k[1], false);
+  for (const k of want) if (!hyperHeld.keys.some(w => id(w) === id(k))) rt.holdEvent(k[0], k[1], true);
+  hyperHeld.keys = want;
+  // THE EYES (hyper-eye lane, 2026-10-27; dev/hyper-states.md 5): every head aura (the monster's own _500 file) carries an eye pair
+  // per eye -- a RevSub halo (bias -15) and a (4.0, 0.99, 0) core (bias -10) -- drawn at the eyes. Whether the core shows is the
+  // frame's draw pass, a viewer-wide input now (the Animation panel's "Effects drawn before", fxPassNow below), not a Hyper switch.
+}
+// HYPER MOTION (hyper-motion lane, 2026-10-27; Raven: "This should modify existing animations based on what set of hyper parts are
+// enabled"; dev/hyper-states.md 6, rom-map "GU Hyper -- the motion side"). While a Hyper pair is held the PLAYED clip changes -- its
+// speed and its bursts -- and nothing is joined or replaced:
+//   * THE CLASS HOOK: vt+0x1ec below G (the action main 0xa5b84) / vt+0x1f0 at G (the running frame 0xae0e4; e+0xb736 = rank > 4):
+//     per held aura ID (e+0xca88 + 0x14 g) and motion id e+0x4b4, at frame tests (0xb0974 a crossing, 0xb098c at-or-past) it sets the
+//     motion rate 0xb07b4 (P+0x398, a factor of the layer speed, held to the motion's end -- setMotion 0xafce8 puts it back to 1.0) and
+//     fires bursts 0xca4e0(e, ID) = u 1310 + ID (the record's own joint). docs/hyper-motion.json `hooks`, from each class's own hook
+//     run under unicorn per held PAIR (dev/archive/hypermotion/hookemu.py: per frame slot 0's calls then slot 1's, the last rate wins).
+//   * MODIFYDATA: at every action set (0x767c8) vt+0x16c 0xc9e88 takes, with BOTH groups' ActionElements held (e+0xca94 / e+0xcaa8),
+//     group 0's entries then group 1's, the first naming the new action (status, number) whose Rate beats the roll (every Rate in the
+//     files is 100) -> e+0xb724 / +0xb728; vt+0x368 0xc046c then sets P+0x38c = base x MotionSpeedRate, clamped to the Limit -- the
+//     speed every motion of that action starts at (0xafdd0) and 0xb07b4 multiplies (0xb082c). The action is the play's (playNow); a
+//     play with none named takes the clip's census actions (attack-hitshapes.json `arms`) when their factors all agree, else 1 (named).
+// The clip's speed = the ModifyData factor x the hook's rate, as the action's timeScale (the frame step). Hyper Off: exactly 1.
+let HYPER_MOTION = null;
+fetch('hyper-motion.json').then(r => r.json()).then(d => { HYPER_MOTION = d; }).catch(() => {});
+// the action -> motion census (action-motion census lane, 2026-10-27; docs/action-motions.json, dev/action-motions.md): loaded on the
+// first Hyper play that names no action; its `motions` (clip -> every action that plays it) feeds hyperMotionAt's census branch
+let ACTION_MOTIONS = null, actionMotionsLoad = null;
+function loadActionMotions(){
+  return actionMotionsLoad || (actionMotionsLoad = fetch('action-motions.json').then(r => r.json()).then(d => { ACTION_MOTIONS = d; }).catch(() => {}));
+}
+const hyperMotionFile = id => { const h = HYPER_MOTION && HYPER_MOTION[id]; return h ? h[hyperRank() > 4 ? 'g' : 'normal'] : null; };
+// the ModifyData factor of an action ([status, number]) for the held pair: 1 when either group's element is not held
+function hyperModifyEntry(f, act){
+  const h = hyperFile(state.id);
+  if (!h || !act) return null;
+  const ids = state.hyper.split(',').map(Number);
+  const g = [0, 1].map(k => ids.find(i => (h.auras.find(a => a.id === i) || {}).group === k));
+  if (g[0] == null || g[1] == null || !f.modify[g[0]] || !f.modify[g[1]]) return null;
+  for (const i of g) for (const e of f.modify[i]) if (e[0] === act[0] && e[1] === act[1] && e[2] > 0) return e;
+  return null;
+}
+function hyperModifyFactor(f, act){ const e = hyperModifyEntry(f, act); return e ? Math.min(e[3], e[4]) : 1; }
+// the same pick's AttackRate / PowerRate (entry [5] / [6]): the hit object fill 0x1689b0 (owner kind 1, hyper) -- H+0x38 (the power)
+// x AttackRate, H+0x3c (record byte +0xb) + PowerRate, H+0xa0 = PlHealVital_SpecificRemain. Not a shape change: listed in the
+// Attack Hitboxes tooltip, nothing drawn differs
+function hyperAttackOf(f, act){ const e = hyperModifyEntry(f, act); return e && e.length > 6 ? { rate: e[5], power: e[6] } : null; }
+// this frame's Hyper motion for a play: { rate, factor, hook, bursts: [IDs crossed since prevFrame] } or null (Hyper off / no change)
+function hyperMotionAt(play, frame){
+  if (!state.hyper || !play || !play.motion || !Number.isFinite(play.motion.slot)) return null;
+  const f = hyperMotionFile(state.id);
+  if (!f) return null;
+  const hk = (f.hooks[state.hyper] || {})['L' + play.motion.list + ' M' + play.motion.slot] || null;
+  let factor = 1, how = null, attack = null;
+  if (play.action){ factor = hyperModifyFactor(f, play.action); attack = hyperAttackOf(f, play.action); how = 'action'; }
+  else {
+    // the actions known to set this motion: ModifyData's own (`actMotions`, each action's main under the tracer), the attack
+    // census's (attack-hitshapes.json `arms`) and the FULL action census (action-motions.json `motions`: every handled action of
+    // the class, its setMotions, turn-table records and status scripts; dev/action-motions.md) -- so an unmodified action sharing
+    // the clip now counts, and a clip its actions disagree on stays 1 ('ambiguous', not guessed)
+    const D = attackDataFor(state.id);
+    if (!D) loadAttackData();
+    const mk = play.motion.list + '|' + play.motion.clip, am = (HYPER_MOTION[state.id] || {}).actMotions || {};
+    if (!ACTION_MOTIONS){ loadActionMotions(); how = 'loading'; }          // (the census not in yet: 1, never the partial answer)
+    else {
+      const full = ((ACTION_MOTIONS[state.id] || {}).motions || {})[mk] || [];
+      const names = new Set([...(D && D.arms ? (D.arms[mk] || []).map(a => a[4]) : []), ...Object.keys(am).filter(a => am[a].includes(mk)), ...full]);
+      const acts = [...names].map(actionOf).filter(Boolean);
+      const fs = [...new Set(acts.map(a => hyperModifyFactor(f, a)))];
+      if (fs.length === 1){ factor = fs[0]; how = 'census'; } else if (fs.length > 1) how = 'ambiguous';
+      const as = [...new Set(acts.map(a => JSON.stringify(hyperAttackOf(f, a))))];
+      if (as.length === 1) attack = JSON.parse(as[0]);
+    }
+  }
+  let rate = 1;
+  if (hk) for (const [fr, x] of hk.rates) if (frame >= fr) rate = x;
+  const bursts = hk ? hk.bursts.filter(([fr]) => play.prevFrame < fr && frame >= fr).map(b => b[1]) : [];
+  if (!hk && factor === 1 && !attack) return null;
+  return { rate: rate * factor, hookRate: rate, factor, how, hook: !!hk, bursts, attack };
+}
+let hyperSpeedAct = null;                           // the action whose timeScale Hyper set (mixer actions are cached per clip)
+function stepHyperMotion(rt, play, frame){
+  const act = pose.action;
+  const hm = hyperMotionAt(play, frame);
+  window.__hyperMotion = hm;                         // (the meter reads it)
+  // the frame step: the hook's rate x the ModifyData factor; a harness freeze (timeScale 0) is left alone
+  if (hyperSpeedAct && hyperSpeedAct !== act){ if (hyperSpeedAct.timeScale !== 0) hyperSpeedAct.timeScale = 1; hyperSpeedAct = null; }
+  if (act && act.timeScale !== 0){
+    const want = hm ? hm.rate : 1;
+    if (want !== 1 || hyperSpeedAct === act){ act.timeScale = want; hyperSpeedAct = want !== 1 ? act : null; }
+  }
+  if (rt && hm) for (const id of hm.bursts) rt.fire(state.id + 'u', 1310 + id);
+}
+// THE EFFECTS DRAWN BEFORE (READ 2026-10-27, rom-map "0x87cf70 -- who sets the context pass"): the pass a monster's effect unit draws
+// in is the one the units drawn before it on the same draw context left this frame. The scene setup leaves 0x15; a model unit (monster,
+// hunter, stage model: uModel's draw 0x93815c) pushes and pops the context state around its draw (0x8777e4 / 0x8787b0, the block
+// +0xac..+0x204 that holds the pass); an effect unit (0x9b75e8) does not, and a cParticleNode it draws leaves 0x11 (0xb91aac ..). With
+// the job system's workers each unit draws on its worker's copy of the context (0xc03cd0 -> 0x878b38), taken in a dynamic order
+// (0xba356c), so in the game it varies with what else is live. The viewer's own effects already set it among themselves (the lifted
+// node draw); this input stands for the units the viewer does not have. 'node' = a GPU-particle effect drew first (0x11); the default
+// 'none' assumes none (the viewer's live set alone decides). Both occur in the game: the GU Hyper eyes are lit only under 'node'
+// (dev/hyper-states.md 5), Rathalos's fireball flames are brighter under 'none' (<archive>/hypereye/pagepass.out).
+function fxPassNow(){ return state.fxPass === 'node' ? 0x11 : 0x15; }
+function applyFxPass(rt){ if (rt && rt.host) rt.host.framePass = fxPassNow(); }
+{
+  const sel = document.getElementById('monFxPass');
+  if (sel){ sel.value = state.fxPass === 'node' ? 'node' : 'none'; sel.onchange = () => { state.fxPass = sel.value; }; }
+}
+// GLAVENUS / HELLBLADE's HEAT-HELD REQUEST (effects lane A, 2026-10-25; READ uEm080_00 vt+0x208 0xfffb24..0xfffc5c, rom-map `0xfffb24`):
+// every frame the handle e+0xcbd8 is dropped unless its core is in state 1 / 2; the heat byte P+0x1bb picks the id -- bit 4 clear: bit 3
+// -> 1002, else bit 1 -> 1001, else none (the handle stopped, 0x329c40(h, 0)); bit 4 set: bit 3 -> 1005, else 1003 + (bit 1) -- and a
+// live handle whose key (+0x1b4) is the table's (0x16a1c6c: 1001..1005 -> u 200 / 201 / 202 / 204 / 203) is kept; any other is stopped and
+// the id requested through vt+0x1d0 with the class's own block e+0xb640 (+0xc the area byte, +8 = 2 for the call). Glavenus's .pel holds
+// UNIQUE 200 only (1002..1005 find no record). Hellblade's death entry (vt+0x210 0x100acf8: all three machines to 7) clears bit 4
+// (machine B, 0x100b58c) and then bits 3 / 1 (machine C, 0x100bc84 / 0x100bcac) in the same call: on his death rows the byte has
+// neither (glavenusHeat is the byte in life).
+let heat080Held = { rt: null, key: null };
+function heat080Key(b){
+  if (b & 0x10) return (b & 8) ? 203 : (b & 2) ? 204 : 202;
+  return (b & 8) ? 201 : (b & 2) ? 200 : null;
+}
+function stepHeat080(rt){
+  const on080 = /^em080_0[04]$/.test(state.id);
+  if (!rt || !on080){ if (heat080Held.rt && heat080Held.key != null && heat080Held.rt === rt) rt.holdEvent(heat080Held.pel, heat080Held.key, false); heat080Held = { rt: rt || null, key: null }; return; }
+  if (heat080Held.rt !== rt || heat080Held.mon !== state.id) heat080Held = { rt, key: null, mon: state.id, pel: state.id + 'u' };
+  let b = glavenusHeat(state.id, mounted.main && mounted.main.userData.partsDrawn,
+                       (state.id === 'em080_04' && levelClip() === 'overheat_Loop') || synthClipPicked(state.id, 'XfBA1__m04_tail', 'overheat_Loop'),
+                       state.id === 'em080_00' && levelClip() === 'dark_Change_Loop_End');
+  const cur = motionStates.cur;
+  if (state.id === 'em080_04' && cur && cur.spec && cur.spec.dead) b &= ~(0x10 | 8 | 2);
+  const key = heat080Key(b), pel = heat080Held.pel;
+  if (heat080Held.key != null && heat080Held.key !== key) rt.holdEvent(pel, heat080Held.key, false);
+  // (each frame: a request that ended is requested again, as the handler's state test drops the handle)
+  if (key != null) rt.holdEvent(pel, key, true, { positionOnly: true, type8: 2 });
+  heat080Held.key = key;
+}
+// NIGHTCLOAK's cloak-gated class requests (effects lane A, 2026-10-25; READ, motion-states.js CLOAKED): u 100 = id 1002 held while cloaked
+// and tired (0xff036c: handle e+0xcb50 dropped unless its core is in state 1 / 2; variant 4; 0x81614 == 1 and (e+0xcafc & ~1) == 2 ->
+// requested when empty, else stopped 0x329c40(h, 0)); u 200 = id 1001 once at a death start while cloaked (vt+0x204 status 11,
+// 0xff01a8..0xff0204: e+0xcb08 == 0). Both through vt+0x1d0 with his block e+0xb640 (+0xc the area byte). NOT wired: his other three
+// u 200 sites (0xff005c, the (10, 0xe8) / (10, 0xaf) branch 0xff0220, 0xff02f4's callers) -- their actions are not mapped to clips here.
+let cloak079 = { rt: null, held: false, cur: null };
+function stepCloak079(rt){
+  if (!rt || state.id !== 'em079_04'){ if (cloak079.rt && cloak079.held && cloak079.rt === rt) rt.holdEvent('em079_04u', 100, false); cloak079 = { rt: rt || null, held: false, cur: null }; return; }
+  if (cloak079.rt !== rt) cloak079 = { rt, held: false, cur: null };
+  const cloaked = ctog('cloaked');
+  const want = cloaked && motionStates.tired();
+  if (want) rt.holdEvent('em079_04u', 100, true);
+  else if (cloak079.held) rt.holdEvent('em079_04u', 100, false);
+  cloak079.held = want;
+  const cur = motionStates.cur;
+  if (cur !== cloak079.cur){ cloak079.cur = cur; if (cloaked && cur && cur.spec && cur.spec.dead) rt.fire('em079_04u', 200); }
+}
+// GAMMOTH's / ELDERFROST's SNOW-SLOT PASS (vt+0x208 0x10528ac, 0x10529ac..0x1052d68, READ whole; effects lane A3, 2026-10-26): every frame
+// each snow slot e+0xcb50.. is compared with last frame's copy e+0xcb80..; on a change it asks through vt+0x1d0 0x1054bd4 (table
+// 0x16a2534) with his block e+0xb640 (+0xc the area byte):
+//   variant 4 (Elderfrost): slot 0 (part 2) -> 1: id 1001 u 1040, -> 0: 1002 u 1041; slot 1 (part 3) 1003 u 1045 / 1004 u 1046; slot 5
+//     (the trunk, part 1) 1011 u 1050 / 1012 u 1051, not while L2 M16 plays (e+0x4b4 0x210); other values ask nothing;
+//   variant 0 (Gammoth): nothing while L2 M1 / M2 / M6 / M37 / M39 play (jump table 0x1052b3c); slots 0..3 (parts 2..5) -> 1: 1001 /
+//     1003 / 1005 / 1007 (u 1040 / 1045 / 1050 / 1055), -> 0: 1002 / 1004 / 1006 / 1008 (u 1041 / 1046 / 1051 / 1056), ANY OTHER VALUE
+//     id 0 -> the shared table 0x159c7fc[0] = u 1120 (0xa3ddc); slot 4 (the tail) -> 0 only: 1009 u 1060.
+// The slots are the snow levels the user's Parts rows choose (motion-states.js legSnow083 / trunkSnow083 on the rows alone, not on a
+// motion's sets over them -- those revert when the clip ends, which the ROM's slots do not; the knock-off's own edge on L3 M1 is the
+// MOTION_STATES cycle's start, as before). Gammoth's tail slot has no ladder read here (its knock-off stays on the L3 M1 cycle).
+// NOT READ: who copies e+0xcb50.. to e+0xcb80.. (taken as every frame, so a change during a skipped motion asks nothing).
+let snow083 = { rt: null, mon: null, lv: null };
+const SNOW083_ASK = { em083_00: [[1040, 1041], [1045, 1046], [1050, 1051], [1055, 1056]], em083_04: [[1040, 1041], [1045, 1046]] };
+function stepSnow083(rt){
+  if (!rt || !/^em083_0[04]$/.test(state.id) || !mounted.main){ snow083 = { rt: rt || null, mon: null, lv: null }; return; }
+  const e = entry();
+  const userDrawn = partsDrawn((e && e.groups) || [], state.groups);
+  const legs = legSnow083(state.id, motionStates.table, userDrawn) || [];
+  const v4 = state.id === 'em083_04';
+  const lv = v4 ? [legs[0] | 0, legs[1] | 0, trunkSnow083(state.id, motionStates.table, userDrawn) | 0] : legs.map(x => x | 0);
+  const was = snow083.rt === rt && snow083.mon === state.id ? snow083.lv : null;
+  snow083 = { rt, mon: state.id, lv };
+  if (!was) return;                                       // a new monster / runtime: the copy starts equal
+  const clip = state.list + '|' + String(pose.action && pose.action.getClip ? pose.action.getClip().name : '').replace(/_(start|loop)$/, '');
+  if (!v4 && ['2|Motion[1]', '2|Motion[2]', '2|Motion[6]', '2|Motion[37]', '2|Motion[39]'].includes(clip)) return;
+  const pel = state.id + 'u', ask = SNOW083_ASK[state.id];
+  lv.forEach((v, k) => {
+    if (v === was[k]) return;
+    if (v4 && k === 2){ if (clip !== '2|Motion[16]' && (v === 0 || v === 1)) rt.fire(pel, v === 1 ? 1050 : 1051); return; }
+    if (v === 1 || v === 0) rt.fire(pel, ask[k][v === 1 ? 0 : 1]);
+    // variant 0, any other value: the ROM asks id 0 = u 1120 (the shared table 0x159c7fc through 0xa3ddc). em083_00u UNIQUE 1120 is
+    // exported as the rage puff only (`ragePuff`; the export dedupes on (pel, key, array)), so the request starts that entry through
+    // schedule.fire's `also` (effects lane A4, 2026-10-26)
+    else if (!v4) rt.fire(pel, 1120, 'ragePuff');
+  });
+}
+// ELDERFROST's u 120 / u 140 (READ, effects lane A3, 2026-10-26): id 1013 = u 120 is requested by 0x10547c4 into e+0xcb20 from (7, 0x6a) /
+// (7, 0x6b) phase 1 at a tune frame on L9 M16 (0x105a708 / 0x105a80c: NOT READ which frame) and from (7, 0x6c) phase 0 (0x105a8d4, when
+// e+0xcb20 is empty), which plays L9 M17 (0x911). The frame handler 0x10528ac..0x10529a8 keeps it while (7, 0x6b / 0x6c) plays L9 M16 /
+// M18, and stops it ((h, 1), no u 140) at L9 M17 f110 (literal 0x1052be0) -- or for (7, 0x6a) at L9 M16 f72 (0x1052be4); on any other
+// action or motion it stops it and asks id 1014 = u 140 ONCE (0x10529a8). Built for the L9 M17 play ((7, 0x6c)): u 120 held from f0 to
+// f110; the clip left before f110 stops it and fires u 140.
+// L9 M16 (READ, effects lane A4, 2026-10-26): (7, 0x6a) / (7, 0x6b) phase 1 (0x105a6d0.. / 0x105a7d4..) asks u 120 when 0xb0974 crosses
+// s0 = 10.0 (`vmov.f32 s0, #10` at 0x105a700 / 0x105a804; the tune 0xa8 test before it is the 0x7db70(e, 1, 0x3f3, 1) call) -- L9 M16
+// f10. Held: (7, 0x6a) to its f72 stop (no u 140), (7, 0x6b) while L9 M16 plays (psl-mask.js CLIP_ACTIONS: the play's action).
+let hold083 = { rt: null, held: false };
+function stepHold083(rt){
+  const on = rt && state.id === 'em083_04';
+  const clip = on ? state.list + '|' + String(pose.action && pose.action.getClip ? pose.action.getClip().name : '').replace(/_(start|loop)$/, '') : '';
+  const f = on && pose.action ? pose.action.time * 60 : 0;
+  const a = on ? plays.action : null, a6a = !!(a && a[0] === 7 && a[1] === 0x6a);
+  const want = on && ((clip === '9|Motion[17]' && f < 110) || (clip === '9|Motion[16]' && f >= 10 && !(a6a && f >= 72)));
+  if (hold083.held && hold083.rt && hold083.rt !== rt){ hold083.rt.holdEvent('em083_04u', 120, false); hold083.held = false; }
+  if (want){ rt.holdEvent('em083_04u', 120, true); hold083 = { rt, held: true, clip, a6a }; return; }
+  if (hold083.held && hold083.rt === rt){
+    rt.holdEvent('em083_04u', 120, false);
+    // the frame stops ask nothing (L9 M17 f110, L9 M16 f72 under (7, 0x6a)); cut off by another motion or play -> 0x10529a8 asks u 140
+    const frameStop = clip === hold083.clip && (clip === '9|Motion[17]' ? f >= 110 : hold083.a6a && a6a && f >= 72);
+    if (!frameStop) rt.fire('em083_04u', 140);
+  }
+  hold083 = { rt: rt || null, held: false };
+}
+// RAGING BRACHYDIOS's SLIME (motion-states.js slime063 = 0xf36100's per-slot machine; render/monster.js ROM_STAGE_CLIPS em063_05): each
+// slot's colour clip from its state -- 1 / 2 (to Red / Red): Yellow_to_Red from the change; 3 / 0 (to Yellow / Yellow): Red_to_Yellow
+// from the change -- on the material clock (performance.now, as stepCloak025's). Before any change the spawn pin shows (Yellow).
+function stepSlime063(){
+  const root = mounted.main, rr = document.getElementById('monRageRow');
+  if (state.id !== 'em063_05'){ if (rr && rr.dataset.slimeTip === '1'){ rr.title = rr.dataset.tipWas || ''; delete rr.dataset.slimeTip; } return; }
+  if (!root || !root.userData) return;
+  const k = motionStates.classT, t = k && k.mon === 'em063_05' ? k.t : null;
+  if (rr && rr.dataset.slimeTip !== '1'){
+    rr.dataset.slimeTip = '1'; rr.dataset.tipWas = rr.title || '';
+    rr.title = 'Red Slime: all four slime parts Red (his Move 6). Click a part on the model (head, left / right pounder, tail; a click, not a drag) '
+      + 'to hit it: a Red part glows for 30 frames and erupts, then shows Yellow for ' + SLIME_REARM063 + ' frames and turns Red again, armed -- '
+      + 'viewer re-arm (Raven, 2026-10-25); in game the part stays Yellow until its cycle turns it Red (2700 frames, 0xf36224 / 0xf3622c). '
+      + 'A hit on a Yellow part adds 180 frames to its wait (0xf46f34).';
+  }
+  const mc = root.userData.manualClips = {};
+  const tMat = performance.now() / 1000;
+  (t && t.s ? t.s : [0, 1, 2, 3].map(() => ({ col: 0, age: 1e6 }))).forEach((s, i) => {
+    mc['slime' + i] = [(s.col === 1 || s.col === 2) ? 'Yellow_to_Red' : 'Red_to_Yellow', tMat - Math.min(s.age, 1e5) / 60];
+  });
+}
+// THE SLIME HIT IS A CLICK (Raven, 2026-10-25): a left click on the model -- pressed and released within 4 px and 350 ms, so an
+// orbit drag never counts, and not in the first-person camera -- on Raging Brachydios hits the slime part under the pointer. The
+// part is the struck SHAPE's: the click's ray against the monster's own hit shapes (hitzones.json `capsules`, the .bdd records the
+// Hit Zones panel draws -- [slot, part, shape, joint a, joint b, radius, a.xyz, b.xyz], the joints' current matrices), the nearest
+// shape the ray passes through; its .dtt part index (bdd record +8, the one 0xf46f34 hands on) mapped as 0xf36984 maps it: part 0 ->
+// slot 2 (head), 2 -> slot 1 (right arm), 3 -> slot 0 (left arm), 6 -> slot 3 (tail, 0xf36c74); any other part hits no slime. The hit
+// goes to the slot machine (motion-states.js slime063): a Red part arms its 30-frame fuse and erupts, a Yellow part adds 180 to its
+// countdown (0xf46f34). window.__slime063.hit(slot) is the same hit.
+const SLIME_PART063 = { 0: 2, 2: 1, 3: 0, 6: 3 };
+let slimeDown063 = null;
+function slimePartAt(clientX, clientY){
+  const root = mounted.main, rec = HITZONES.monsters && HITZONES.monsters[state.id];
+  if (!root || !rec || !rec.capsules) return null;
+  const r = viewport.getBoundingClientRect();
+  const ndc = new THREE.Vector2(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
+  const ray = new THREE.Raycaster(); ray.setFromCamera(ndc, camera);
+  const O = ray.ray.origin, D = ray.ray.direction;
+  const bones = new Map(); for (const b of gidBonesOf(root)) if (!bones.has(b.gid)) bones.set(b.gid, b.leaf || b.node);
+  const sc = new THREE.Vector3().setFromMatrixColumn(root.matrixWorld, 0).length();
+  const A = new THREE.Vector3(), B = new THREE.Vector3(), w = new THREE.Vector3(), u = new THREE.Vector3();
+  let best = null;
+  for (const c of rec.capsules){
+    const [, part, shape, a, b, rad, ax, ay, az, bx, by, bz] = c;
+    const ja = bones.get(a), jb = shape === 2 ? bones.get(b) : ja;
+    if (!(shape === 0 || shape === 1 || shape === 2) || !ja || !jb) continue;
+    A.set(ax, ay, az).multiplyScalar(0.01).applyMatrix4(ja.matrixWorld);
+    if (shape === 0) B.copy(A); else B.set(bx, by, bz).multiplyScalar(0.01).applyMatrix4(jb.matrixWorld);
+    // the closest points of the ray O + tD and the segment A + s(B - A)
+    u.subVectors(B, A); w.subVectors(O, A);
+    const uu = u.dot(u), ud = u.dot(D), uw = u.dot(w), dw = D.dot(w), den = uu - ud * ud;
+    let sP = uu > 1e-12 ? (den > 1e-12 ? (uw - ud * dw) / den : 0) : 0;
+    sP = Math.max(0, Math.min(1, sP));
+    const P = A.clone().addScaledVector(u, sP), t = Math.max(0, P.clone().sub(O).dot(D));
+    const dist = O.clone().addScaledVector(D, t).distanceTo(P);
+    if (dist <= rad * 0.01 * sc && (!best || t < best.t)) best = { t, part };
+  }
+  return best ? best.part : null;
+}
+viewport.addEventListener('pointerdown', e => { if (e.button === 0) slimeDown063 = { x: e.clientX, y: e.clientY, t: performance.now() }; });
+viewport.addEventListener('pointerup', e => {
+  const d = slimeDown063; slimeDown063 = null;
+  if (!d || e.button !== 0 || state.id !== 'em063_05' || camMode === 'fly') return;
+  if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 4 || performance.now() - d.t > 350) return;   // a drag, not a click
+  const part = slimePartAt(e.clientX, e.clientY);
+  const slot = SLIME_PART063[part];
+  if (slot != null) SLIME063_HITS.push(slot);
+});
+// (a global of its own: window.__view is made further down)
+window.__slime063 = { hit: slot => { if (state.id === 'em063_05' && slot >= 0 && slot <= 3) SLIME063_HITS.push(slot | 0); } };
+window.__slime063.pick = (x, y) => slimePartAt(x, y);     // the part under a client point (checks)
+window.__slime063.state = () => { const k = motionStates.classT; return k && k.mon === 'em063_05' && k.t.s ? k.t.s.map(s => ({ col: s.col, cd: s.cd, fuse: s.fuse })) : null; };
 function stepCloak025(rt){
   const root = mounted.main;
   if (!root || !root.userData) return;
@@ -8387,11 +8954,26 @@ function setGround(key){
   }
 }
 window.__ground = { types: GROUND_TYPES, set: setGround, now: () => groundNow() };
+// AHTAL-NESET's ROCKET POINTS (render/motion-states.js POINT087; dev/em087_00-effects-spec.md 5): destroyed -> its u effect ONCE (the
+// record places itself at the point: root joint 0 + its offset) and his part pass's destroyed set, which is the Parts row Raven named
+// for that group set to the option the set draws; restored -> the intact option, no effect. Lane B3, 2026-10-27.
+function point087(spec, on){
+  const row = [...document.querySelectorAll('[data-row]')].find(r => r.dataset.row === spec.row);
+  const sel = row && row.querySelector('select');
+  const o = sel && [...sel.options].find(x => x.dataset.key === (on ? spec.destroyed : spec.intact));
+  if (o && sel.value !== o.value){ sel.value = o.value; sel.onchange(); }
+  if (!state.toggles || typeof state.toggles !== 'object') state.toggles = {};
+  state.toggles[spec.key] = !!on; saveState();               // the row's change may have rebuilt the state: keep the toggle's own value
+  if (on){ const rt = effectRuntimeInstance(); if (rt) rt.fire(spec.pel, spec.fx); }
+}
+window.__debugReset = () => { resetHiddenDebug(); paintClassToggles(); return state.toggles; };   // dev checks: the hidden-panel reset (laneB3/tiredrage-debug.mjs)
+window.__point087 = { set: (k, on) => { const b = document.querySelector('#monTog_point087_' + k + ' input'); if (b){ b.checked = !!on; b.onchange({ target: b }); } } };
 function paintClassToggles(){
-  const box = document.getElementById('monClassToggles');
-  box.textContent = '';
+  const box = document.getElementById('monClassToggles'), dbg = document.getElementById('monDebugToggles');
+  box.textContent = ''; dbg.textContent = '';
   if (!state.toggles || typeof state.toggles !== 'object') state.toggles = {};
   for (const spec of (CLASS_TOGGLES[state.id] || [])){
+    const into = spec.debug ? dbg : box;          // `debug` toggles go to the Debug panel (Raven, 2026-10-27: Tired (with Rage))
     const lab = document.createElement('label');
     lab.className = 'chk switch'; lab.title = spec.title || ''; lab.id = 'monTog_' + spec.key;
     const box2 = document.createElement('input');
@@ -8399,11 +8981,12 @@ function paintClassToggles(){
     box2.onchange = e => {
       state.toggles[spec.key] = !!e.target.checked;
       saveState();
+      if (spec.point087 !== undefined){ point087(spec, !!e.target.checked); return; }   // Ahtal-Neset's points: no replay
       plays.key = null; plays.motion = null;          // the next frame starts the play again with the input
     };
     const sw = document.createElement('span'); sw.className = 'toggle';
     lab.append(box2, sw, document.createTextNode(spec.label));
-    box.appendChild(lab);
+    into.appendChild(lab);
   }
 }
 // the second class byte (render/motion-states.js CLASS_CONTROLS2): Teostra's size type P+0x5cb6
@@ -8500,7 +9083,23 @@ function threadInput(){
   let action = null, motion = null;
   try { if (plays.key){ action = plays.action; motion = plays.motion; } } catch (_) {}
   const pull = state.id === 'em088_00' && !!motion && pullClip088(motion.list, motion.clip);
-  return { carry: carryNow(), pending: pull ? state.carry : 4, action, motion };
+  // AHTAL-NESET'S JOINTS, where he is on screen (the combined list, render/monster.js ROM_PARTNER_BODY.em088_00): end kinds 7 / 8 read
+  // [G+0x34] -> 0xc164c / 0xc15a4 -- his joint's world matrix in the game's convention, as live.js writeJoints gives Ka's (translation in
+  // game units); `timer`: the action's P+0x1bc where the pass reads it (L2 M26: frames since the piece began -- phase 1 zeroes it with the setMotion, phase 2 adds dt before the pass)
+  return { carry: carryNow(), pending: pull ? state.carry : 4, action, motion, neset: nesetJointOf(), timer: seqPieceT };
+}
+function nesetJointOf(){
+  const spec = state.id === 'em088_00' ? partnerBodyOf(state.id) : null, a = spec && attached.get(spec.monster), g = spec && mounted[spec.monster];
+  if (!a || !a.partner || !g) return null;
+  const bones = gidBonesOf(g);
+  return gid => {
+    const b = bones.find(x => x.gid === gid);
+    if (!b) return null;
+    b.node.updateWorldMatrix(true, false);
+    const el = Array.from(b.node.matrixWorld.elements);
+    el[12] /= 0.01; el[13] /= 0.01; el[14] /= 0.01;
+    return el;
+  };
 }
 // Every frame, before the render: the uCoord parent is his joint 130 with no local transform of its own (0x10af348 ->
 // 0x457c8), so the piece takes the joint's world matrix with its scale taken out and the world group's size put back,
@@ -8971,6 +9570,17 @@ function animAdvance(){
   if (!act || !act.getClip){ effectClipAction = null; return null; }
   const t = act.time;
   if (act !== effectClipAction){ effectClipAction = act; effectClipTime = t; return 0; }
+  // A HELD POSE -- a clip of no length (one keyframe: Blangonga's L0 M20 `Motion[20]_loop`, 0.000 s) -- never moves its time, so it
+  // froze every effect while it played: his u 60 was requested and never stepped to a unit (lane A2, 2026-10-26). The game steps
+  // effects every frame whatever the motion is; playing, such a clip hands the effects the wall clock (null), paused it holds them
+  if (!(act.getClip().duration > 0)){ effectClipTime = t; return act.paused ? 0 : null; }
+  // A ONE-SHOT CLIP THAT HAS ENDED (shells lane, 2026-10-26; lane B3: Nakarkos's L0 M63 rock froze mid-air at y 5991 with the clip held at
+  // f651): the game's units do not stop with the monster's motion -- the move line steps every unit each frame (0xc044c4 walks it head ->
+  // next, rom-map 'the unit update order'), so a shell in flight lands and its effects run on. three.js marks a finished LoopOnce action
+  // paused (clampWhenFinished), the same flag the Play button and the scrubber set; the viewer's own holds carry act.userHeld. Ended and
+  // not held by the user: the wall clock (null), as a held pose above; the clip's frame stays at its end, so nothing of the clip's own
+  // fires again. Paused or scrubbed by the user: still 0 -- everything freezes.
+  if (act.loop === THREE.LoopOnce && act.paused && !act.userHeld && t >= clipDur(act) - 1e-3){ effectClipTime = t; return null; }
   const was = effectClipTime;
   effectClipTime = t;
   // WHATEVER MOVES THE CLIP MOVES THE EFFECT, playback or the scrubber: seekTo() pauses the action and writes
@@ -9013,8 +9623,9 @@ function playNow(act, base, frame, loopSeg, loopStart = 0, onList = state.list){
   // ...but another COPY of the clip picked from the Clip menu (CLIP_VARIANTS) is another play even on a _loop clip: its own
   // entries decide its action and posture (Diablos's L0 M7 copies B / C, whose rows gate on the posture -- re-walk 2026-10-18)
   const variantNow = state.clipVariant || '';
-  if (key === plays.key && plays.variant === variantNow && (frame >= prevFrame || loopSeg))
+  if (key === plays.key && plays.variant === variantNow && (frame >= prevFrame || (loopSeg && !(plays.replay && frame < prevFrame))))
     return Object.assign({}, plays, { prevFrame: frame >= prevFrame ? prevFrame : loopStart - 1e-6 });
+  plays.replay = false;
   plays.n = key === plays.key ? plays.n + 1 : 0;
   plays.key = key; plays.variant = variantNow;
   let list = onList, clip = base;
@@ -9027,7 +9638,8 @@ function playNow(act, base, frame, loopSeg, loopStart = 0, onList = state.list){
   const row = (MOTION_STATES[state.id] || {})[vkey] || (MOTION_STATES[state.id] || {})[list + '|' + clip] || null;
   const rage = row && row.rage === true ? true : (row && (row.rage === false || row.dead)) ? false : !!state.rage;
   // Tired (with Rage), the Rath line's toggle: 0x81614 = P+0x505 alone, which the stamina machine 0xbd1a4 sets with no rage test
-  const tired = (!rage && (!!(row && row.tired) || exhausted())) || (rage && ctog('tiredRage'));
+  // under Hyper no play is tired, whatever its row says (P+0x1a8 bit 19: P+0x505 stays 0; paintTired)
+  const tired = !state.hyper && ((!rage && (!!(row && row.tired) || exhausted())) || (rage && ctog('tiredRage')));
   let action = null;
   if (an) action = (tired && an.tired) ? an.tired : (an.action || null);
   else {
@@ -9039,6 +9651,9 @@ function playNow(act, base, frame, loopSeg, loopStart = 0, onList = state.list){
     action = (ri && ri.variant && (!copyActs || copyActs.includes(actionName(actionOf(ri.variant))))) ? actionOf(ri.variant)
            : clipActionFor(state.id, list, clip, plays.cn, { tired, rage, charged: chargedAt });
   }
+  // THE COMBINED LIST'S OWN ACTION (Ahtal-Ka + Ahtal-Neset, render/monster.js ROM_PARTNER_BODY.em088_00: each piece of his names the
+  // action the ROM plays it under -- (1, 0x21)'s threads and u 420, (1, 0x10) / (1, 6) / (1, 0x11) / (1, 0x12))
+  if (seqActNow) action = seqActNow;
   if (actionName(action) !== actionName(plays.action) || !plays.motion || plays.motion.clip !== clip || plays.motion.list !== list)
     plays.token++;                                       // another action: to the walker, another motion start
   plays.motion = { list, clip, slot };
@@ -9107,6 +9722,10 @@ function playNow(act, base, frame, loopSeg, loopStart = 0, onList = state.list){
   const { shellType, claw5Off, claw6Off } = rz;
   const claw5Broken = !!partsIn.claw5Broken, shellBroken2 = !!partsIn.shellBroken2;   // Stonefist's word (psl-mask.js crab019)     // Najarala's word reads part 2's break (set 9's group 5: psl-mask.js em068_00)
   plays.mask = Number.isFinite(slot) ? pslMask(state.id, list, slot, action, { rage, tired, severed, breakLevel7, crestBroken, beardOff, armEmpty, mud, rank: shellQuestRank(), questLevel: shellQuestLevel(), heat, posture, charge, charged, sunk, carry, backBroken, bellyBroken, phase, item, gas, asleep, fangsBroken, depth, boulder, tusksBroken, part2Broken, claw5Broken, shellBroken2, shellType, claw5Off, claw6Off, snowMap: snowNow(), floorFlag8: !!(groundNow().flags & 8), aura5e08: ctog('poisoned'), seltasLink: state.id === 'em069_00' ? herLinkedForShells() : false, ...(CLASS_CONTROLS[state.id] ? { [CLASS_CONTROLS[state.id].key]: state.classCtl | 0 } : {}), ...(state.id === 'em024_00' ? { windAura: windNow024() } : {}), ...(state.id === 'em027_00' ? { fireAura: fireNow027() } : {}) }) : null;
+  // A PLAY'S BITS STOPPED AT A FRAME (psl-mask.js CLIP_ACTIONS `bitsUntil: { frame, bits }`, lane B2 2026-10-26): where the game
+  // sets the same motion again at that frame with a word lacking those bits, the walker stops acting on them from there; the
+  // motion itself plays on unchanged (the viewer does not replay the clip)
+  plays.bitsUntil = clipFieldFor(state.id, list, clip, clipEntryIndex(state.id, list, clip, plays.cn, vkey ? state.clipVariant : ''), 'bitsUntil') || null;
   return Object.assign({}, plays, { prevFrame: frame });
 }
 
@@ -9140,7 +9759,7 @@ function partnerMotionNow(l, name, act){
   const cur = clipOf(l);
   const e = entry(), c = (l.clips || []).find(x => x.clip === name) || (cur && cur.her && cur.her.clip === name ? cur : null);
   if (!c || !e) return null;
-  const t = act.time * 60;
+  const t = Math.round(act.time * 60 * 1e4) / 1e4;      // (snapped: a hair under a whole frame is that frame, partnerFxClip)
   const listIn = id => (e.lists || []).find(x => String(x.id) === String(id));
   const at = (lid, cn, f, whole) => {
     const hl = listIn(lid), bare = cn.replace(/_(start|loop)$/, ''), loop = /_loop$/.test(cn);
@@ -9179,9 +9798,14 @@ function partnerMotionNow(l, name, act){
     if (t < a0 + r.frames || i === lay.length - 1){
       const own = (listIn(r.list) && listIn(r.list).clips || []).find(x => x.clip === r.clip);
       const len = own ? Math.round(own.dur * 60) : 0;
-      let f = r.start + (t - a0);
+      let f = r.hold ? r.start : r.start + (t - a0);
       if (len > 0) f = /_loop$/.test(r.clip) || r.loop ? f % len : Math.min(f, len);     // a _loop piece (or a looped one) wraps, a play holds its end
-      return at(r.list, r.clip, f, false);
+      // (a piece's own action -- Ahtal-Ka's (1, 0x21) / (1, 0x10) / ... on the combined list, playNow takes it -- and the frames since the
+      // piece began, unfolded: his (1, 0x21) timer P+0x1bc over the three M26 passes)
+      const o = at(r.list, r.clip, f, false);
+      if (r.act) o.act = r.act;
+      o.pieceT = t - a0;
+      return o;
     }
     a0 += r.frames;
   }
@@ -9194,11 +9818,13 @@ function stateRawClip(){
   return h && c.her ? h : { list: state.list, clip: state.clip };
 }
 let fxAdvance = null;                               // this frame's animation advance, for every runtime (drivePartnerEffects)
+let seqActNow = null, seqPieceT = null;             // the combined piece's action and its frames so far (driveClipEffects -> playNow / threadInput)
 function driveClipEffects(){
   const rt = effectRuntimeInstance();
   fxAdvance = animAdvance();
   if (rt) rt.advance = fxAdvance;                   // the effects step on the animation, not on wall time
-  if (!rt || !rt.schedule) return;
+  applyFxPass(rt);                                  // the pass the units drawn before leave (fxPassNow)
+  const noFx = !rt || !rt.schedule;                 // (the Hyper motion below runs with the effects off too)
   const act = pose.action;
   const clipName = act && act.getClip ? act.getClip().name : null;
   // A looping motion is shown as TWO clips, Motion[N]_start and Motion[N]_loop, but the PSL numbers its
@@ -9213,9 +9839,11 @@ function driveClipEffects(){
     const sib = ((listOf(entry()) || {}).clips || []).find(c => c.clip === base + '_start');
     if (sib) splitOffset = Math.round(sib.dur * 60);
   }
-  if (!rt.schedule.rockInput) rt.schedule.rockInput = rockInput;
-  if (!rt.schedule.shellExtra) rt.schedule.shellExtra = shellExtra;
-  if (!rt.schedule.threadInput) rt.schedule.threadInput = threadInput;
+  if (!noFx){
+    if (!rt.schedule.rockInput) rt.schedule.rockInput = rockInput;
+    if (!rt.schedule.shellExtra) rt.schedule.shellExtra = shellExtra;
+    if (!rt.schedule.threadInput) rt.schedule.threadInput = threadInput;
+  }
   let frame = act ? act.time * 60 + splitOffset : 0, loopSeg = !!(clipName && clipName.endsWith('_loop'));
   // a Special entry that is one whole motion played with loop cycles: the motion's own frame, folded into its loop
   // (render/monster.js foldLoopFrame) -- each cycle is the motion looping, not a new play
@@ -9226,10 +9854,15 @@ function driveClipEffects(){
   // own list, at its own frame -- Rajang's 'S. Motion 8 Beam' is L2 M8 (its beam rows, its PSL) and then L2 M9
   const seq = seqMotionNow();
   if (seq){ onList = seq.list; base = seq.clip; frame = seq.frame; splitOffset = seq.loopStart != null ? seq.loopStart : 0; loopSeg = seq.loopSeg; }
+  seqActNow = seq && seq.act ? seq.act : null;       // a combined piece's own action (partnerMotionNow), which playNow takes
+  seqPieceT = seq && seq.pieceT != null ? seq.pieceT : null;
   const play = playNow(act, base, frame, loopSeg, splitOffset, onList);
+  stepHyperMotion(noFx ? null : rt, play, frame);   // Hyper: the played clip's speed and bursts (above)
+  if (noFx) return;
   // the enable word (null: a monster whose word is not read -- every listed bit, as before) and, with it, the play's
   // token: a new action is a new motion start to the walker (0x7256c flags the sequence +0xc0 |= 4)
-  const mask = play ? play.mask : null;
+  const bu = play && play.bitsUntil;
+  const mask = play ? (play.mask != null && bu && frame >= bu.frame ? (play.mask & ~bu.bits) >>> 0 : play.mask) : null;
   rt.schedule.setClip(act ? state.id + '|' + onList + '|' + base : null, frame,
                       base ? clipEffectsFor(state.id, base, onList) : null, splitOffset, mask, mask != null ? play.token : null, loopSeg);
   // the action's own requests at a frame of its motion (ACTION_EFFECTS: the frame passed this step)
@@ -9260,7 +9893,9 @@ function partnerFxClip(a, spec){
   const pk = a && a.pick;
   if (!pose.action || !pk || !a.driver.action) return null;
   const t60 = pose.action.time * 60;
-  const f = pk.mode === 'free' ? Math.round(t60) : t60;            // as stepAttached times his driver
+  // (a time a hair under a whole frame -- 300.99999 for 301 -- is that frame: unsnapped, each piece of his layout began one frame late,
+  // Ahtal-Neset's (1, 8) at 302 for 301 -- the shells lane's dev/archive/gapT/probe2.out, 2026-10-26)
+  const f = pk.mode === 'free' ? Math.round(t60) : Math.round(t60 * 1e4) / 1e4;            // as stepAttached times his driver
   const loc = partnerLocalAt(a, f);
   if (!loc) return null;
   // (a piece of an unlinked dismount may come from another list of his: L1 M1, L3 M11 / M29, L0 M1 -- partnerLocalAt's list)
@@ -9318,6 +9953,7 @@ function driveArmEffects(){
       continue;
     }
     rt.advance = fxAdvance;
+    applyFxPass(rt);
     if (!rt.schedule) continue;
     const at = armFxAt(e, a);
     if (!at){ rt.schedule.setClip(null, 0, null); continue; }
@@ -9328,7 +9964,11 @@ function driveArmEffects(){
     // P+0x505, jscheckarm.py); the viewer gives the body's (INFERRED: the arm's own rage / tired bytes are not read)
     const side = sides[name], arms = armsInput(), form = arms && arms[side === 'l' ? 'left' : 'right'] ? arms[side === 'l' ? 'left' : 'right'].form : undefined;
     const play = Number.isFinite(slot) ? armPlay084(a.fxList, slot, a.fxN | 0) : null;
-    const mask = Number.isFinite(slot) ? armMask084(a.fxList, slot, side, play, { rage: !!state.rage, tired: exhausted(), armForm: typeof form === 'number' && form <= 3 ? form : undefined }) : null;
+    // M92 reads the BODY's copy of this side's form (B+0xcb0c / +0xcb0d); the arm's vt+0x24 0x107b544 compares its +0xcb30 with that
+    // copy every frame and, on a mismatch, stores the copy into +0xcb30 (0x107b8d0) once its action allows (lane B2, 2026-10-26, READ):
+    // settled, the two are equal, so the tentacle's form row gives both
+    const form3 = typeof form === 'number' && form <= 3 ? form : undefined;
+    const mask = Number.isFinite(slot) ? armMask084(a.fxList, slot, side, play, { rage: !!state.rage, tired: exhausted(), armForm: form3, skullForm: form3 }) : null;
     rt.schedule.setClip(name + '|' + a.fxList + '|' + base, frame, clipEffectsFor(name, base, a.fxList), start, mask, 'arm:' + (a.fxPlay | 0), loopSeg);
   }
 }
@@ -9350,6 +9990,7 @@ function drivePartnerEffects(){
     return;
   }
   rt.advance = fxAdvance;
+  applyFxPass(rt);
   if (!rt.schedule) return;
   // his SHELLS (render/shells.js SHELL_DATA.em076_00) step on his runtime's schedule: his pick, his target and his unit
   if (!rt.schedule.rockInput) rt.schedule.rockInput = partnerRockInput;
@@ -9400,6 +10041,11 @@ function partnerRockInput(){
       if (c.key !== partnerPlays.key || c.token !== partnerPlays.token || c.frame < partnerPlays.frame) partnerPlays.n++;
       partnerPlays.names = names.join();
       variant = names[Math.max(0, partnerPlays.n) % names.length];
+      // A PIECE OF HIS THAT NAMES ITS ACTION (Ahtal-Neset on the combined list, ROM_PARTNER_BODY.em088_00 `act`): that action's rows
+      // or none -- his (1, 0x14) rise makes no lift, so the clip's (1, 0x15) / (1, 8) lift rows must not take it
+      const pk = p.a.pick, hf = pose.action ? Math.round(pose.action.time * 60) : 0;
+      const seg = pk && pk.layout ? pk.layout.find(x => hf >= x.from && hf < x.from + x.frames) : null;
+      if (seg && seg.act){ const want = actionName(seg.act); variant = names.find(n => n === want || n.startsWith(want + '/')) || null; }
     }
   }
   if (c){ partnerPlays.key = c.key; partnerPlays.token = c.token; partnerPlays.frame = c.frame; }
@@ -9525,6 +10171,9 @@ function steerAt(base, frame, list = state.list){
 }
 function stepTurn(base, frame, list = state.list){
   turnYaw = base ? (turnAt(state.id, list, base, frame) + steerAt(base, frame, list)) * Math.PI / 180 : 0;
+  // AHTAL-KA'S OWN TURN ON THE COMBINED LIST (render/monster.js ROM_PARTNER_BODY.em088_00 `ka`: (1, 0x21)'s M14, 180 degrees clockwise over
+  // f18..48) -- on him, about where he stands, as every unit turn here; the Neset stays put (Raven, 2026-10-27)
+  { const w = worldPartnerNow(); if (w && w.kaYaw) turnYaw += w.kaYaw; }
   // THE TURN GOES ON THE PROXY, NOT ON THE MONSTER'S GROUP. render/pose.js poses every bone by WORLD matrix --
   // `inv(node.parent.matrixWorld) * proxy.matrixWorld` -- so whatever is on the group is divided straight back
   // out on the next pose step and the body never moves. Measured: driving the group to 169.9 degrees through
@@ -9697,7 +10346,9 @@ const TARGET_LEVEL_BY_MON = { em023_00: true, em023_05: true };
 // the per-monster distance straight ahead, as before; the side turns the monster's facing by the angle (+90 = his left: forward is
 // (sin Y, 0, cos Y), so Y + 90 degrees points at +x when he faces +z). The BODY option makes the same point a body the shells'
 // hunter contact can hit (input.hunterBody, render/shells.js -- the shells agent's contact test); off by default.
-const HUNTER_DISTS = [[-1, 'Default (2100 ahead)'], [0, 'At Target (0)'], [500, 'Near (500)'], [1200, 'Mid (1200)']];
+// Far (25000): beyond every monster's sense range and near radius (dttune record 0: at most 15000 / 20000, render/notice-sense.js), so the
+// sense scan loses him and the notice memory runs out -- the "?" c 1201 (effects lane, 2026-10-25; a new label for Raven)
+const HUNTER_DISTS = [[-1, 'Default (2100 ahead)'], [0, 'At Target (0)'], [500, 'Near (500)'], [1200, 'Mid (1200)'], [25000, 'Far (25000)']];
 const HUNTER_SIDES = [[0, 'Front'], [90, 'Left (+90°)'], [-90, 'Right (−90°)'], [180, 'Behind']];
 const HUNTER_BODIES = [[0, 'None'], [1, 'Solid']];
 const hunterDist = () => HUNTER_DISTS.some(([v]) => v === state.hunterDist) ? state.hunterDist : -1;
@@ -9762,6 +10413,16 @@ window.__quest = { set: (rank, level) => { if (rank != null) state.questRank = r
                                           if (rs) rs.value = String(shellQuestRank()); if (ls) ls.value = String(shellQuestLevel());
                                           syncGaugeLadder(); play(); },
                    now: () => ({ rank: shellQuestRank(), level: shellQuestLevel() }) };
+// the slime timer's state for the shells (CLASS_TIMERS em063_05 -> motionStates.classT.t)
+function slimeShellInput(){
+  const k = motionStates.classT, t = k && k.mon === 'em063_05' ? k.t : null;
+  if (!t || !t.lv) return { slime063: [0, 0, 0, 0] };
+  // erupt063.events: the timer's eruption LOG (every burn-out, id / slot / state; shells lane 2026-10-25), passed every step so a
+  // burn-out on a viewer frame without an effect step still reaches the shells (render/shells.js eruptStep063 takes each id once)
+  return { slime063: t.lv.slice(),
+           erupt063: (t.elog && t.elog.length) || (t.erupt && t.erupt.length)
+             ? { slots: (t.erupt || []).slice(), seq: t.seq, events: (t.elog || []).slice(), now: t.seq } : undefined };
+}
 function shellExtra(){
   return { questLevel: shellQuestLevel(), rank: shellQuestRank(), beamState: beamState(), attachedJoints: attachedJointsInput(),
            // the Hunter control's BODY: the stand-in hunter is a body the shells' hunter contact can hit, standing at input.rock.target
@@ -9772,6 +10433,20 @@ function shellExtra(){
            // Chaotic Gore Magala's control-block counter C+0x84 (the Gauge control, CLASS_CONTROLS2 em071_05: 0 / 5000 / 10000 / 20000 /
            // 28000), under the rank's per-frame cap (motion-states.js gauge071: 0x16a1530)
            gauge071: state.id === 'em071_05' ? gauge071(state.classCtl2, shellQuestRank()) : undefined,
+           // Raging Brachydios's slime slots (motion-states.js slime063, the effects lane): `slime063` [left arm, right arm, head, tail], 2 Red /
+           // 0 Yellow, every step; `erupt063` { slots, seq } on the timer step a fuse ran out (0xf46234) -- one timer step is one viewer frame,
+           // so a reader stepping several game frames in it takes each `seq` once
+           ...(state.id === 'em063_05' ? slimeShellInput() : {}),
+           // GU Hyper's ShellElements (render/shells.js hyperShellElement): the held pair's IDs and the file's ShellElements (hyper-motion.json
+           // `shells`, the Quest Rank's file) -- undefined while Hyper is off
+           hyperShells: (state.hyper && hyperMotionFile(state.id) && hyperMotionFile(state.id).shells)
+             ? { ids: state.hyper.split(',').map(Number), shells: hyperMotionFile(state.id).shells } : undefined,
+           // Brachydios's arm levels [ctl+0x24 + 12k] (render/shells.js state063: the fists' kind and L2 M22's gate) -- [left, right] from the
+           // arm levels the viewer holds (monster.js armSlimeLevels); Raging's are not read (0xf46558: variant 5 has no arm row)
+           arm063: state.id === 'em063_00' ? (armSlimeLevels(mounted.main) || undefined) : undefined,
+           // ...and both classes' break levels 0x9d36c { 0 head, 2 right arm, 3 left arm } as the parts show them (motion-states.js
+           // brachyBreaks063: the part pass's own test) -- Raging's eruption mode reads them (render/shells.js mode063erupt)
+           breaks063: brachyBreaks063(state.id, motionStates.table, mounted.main && mounted.main.userData.partsDrawn),
            // Ahtal-Neset's rockets (render/shells.js rockets087): the Rockets control as his mask e+0xcdc0; the points his own area_patrol
            // record holds (the viewer stands in for his arena, map 27 area 1), anchored on him (Raven's Lao / Alatreon precedent)
            rockets087: state.id === 'em087_00' ? (state.classCtl | 0) : undefined, patrol087: state.id === 'em087_00' || undefined,
@@ -9985,6 +10660,12 @@ function rockInput(){
     const copyActs = clipCopyActions(state.id, pList, pBase, vSel);
     if (copyActs) names = names.filter(v => !actionOf(v) || copyActs.includes(actionName(actionOf(v))));
   }
+  // A SPECIAL ENTRY THAT NAMES ITS ACTION IS THAT ACTION (render/monster.js ROM_ANIMATIONS `action` with `motions`): the shells' pick is it,
+  // not the clip's rotation -- Khezu's 'S. Motion 3 (7:0x4d)' plays (7, 0x4d) only
+  if (names.length && state.list === FULL_ANIM_LIST.id){
+    const anA = romAnimationsOf(state.id).find(x => x.name === (act && act.getClip ? act.getClip().name : null));
+    if (anA && anA.motions && anA.action) names = names.filter(v => !actionOf(v) || actionName(actionOf(v)) === actionName(anA.action));
+  }
   if (names.length){
     // ONE PLAY IS ONE MOTION: keyed on the bare motion, so a _start running on into its own _loop, and a _loop wrapping,
     // continue the play (the action goes on) -- counting each piece made every split clip advance its pick twice a play,
@@ -10130,7 +10811,44 @@ function paintAtkBoxRow(){
 }
 loadAttackData('').then(paintAtkBoxRow);
 let atkRowFor = null;
+const atkLap = { act: null, n: 0, t: 0 };   // the playing clip's laps, for the carried attack windows (stepAttackBoxes)
+// THE SHELLS' HIT SHAPES ON THE SAME OVERLAY (shells lane, 2026-10-27; render/shells.js shellHitShapesLive): every live shell's armed slot,
+// in world units x 0.01 (the shells' world is the effects' -- live.js MT_TO_VIEW), red as a record that can hit a hunter (a kind the
+// hunter pass skips -- 8 / 9 / 0x34 / 0x45 -- blue). Khezu's bolts: one capsule each over its last step, along its own line
+let shellHits = null;
+function stepShellHits(){
+  if (window.__view && !window.__view.shellHits) window.__view.shellHits = () => shellHits ? shellHits.userData.last : null;
+  const rt = effectRuntimeInstance(), st = rt && rt.schedule && rt.schedule.shells && rt.schedule.shells.state;
+  if (atkMode === 'off' || !st){ if (shellHits){ shellHits.visible = false; shellHits.userData.last = []; } return; }
+  if (!shellHits){
+    shellHits = new THREE.Group(); shellHits.name = 'shell-hit-shapes'; scene.add(shellHits);
+    shellHits.userData.pool = [];
+    shellHits.userData.mats = { hunter: new THREE.MeshBasicMaterial({ color: 0xff4033, transparent: true, opacity: 0.35, depthWrite: false }),
+                                other: new THREE.MeshBasicMaterial({ color: 0x40b3ff, transparent: true, opacity: 0.35, depthWrite: false }) };
+  }
+  shellHits.visible = true;
+  const list = shellHitShapesLive(st), pool = shellHits.userData.pool, M = shellHits.userData.mats;
+  const A = new THREE.Vector3(), B = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
+  let n = 0;
+  for (const e of list) for (const sh of e.shapes){
+    const p0 = sh.type === 1 ? sh.c : sh.p0, p1 = sh.type === 1 ? sh.c : sh.p1;
+    if (!p0 || !p1 || !(sh.r > 0)) continue;
+    A.fromArray(p0).multiplyScalar(0.01); B.fromArray(p1).multiplyScalar(0.01);
+    const r = sh.r * 0.01, L = A.distanceTo(B);
+    let m = pool[n];
+    if (!m){ m = new THREE.Mesh(new THREE.CapsuleGeometry(1, 1, 4, 16), M.hunter); m.renderOrder = 10; pool.push(m); shellHits.add(m); }
+    if (m.userData.r !== r || m.userData.L !== L){ m.geometry.dispose(); m.geometry = new THREE.CapsuleGeometry(r, Math.max(L, 1e-4), 4, 16); m.userData.r = r; m.userData.L = L; }
+    m.material = [8, 9, 0x34, 0x45].includes(e.kind) ? M.other : M.hunter;
+    m.position.copy(A).add(B).multiplyScalar(0.5);
+    if (L > 1e-6) m.quaternion.setFromUnitVectors(up, B.clone().sub(A).normalize()); else m.quaternion.identity();
+    m.visible = true; n++;
+  }
+  for (let i = n; i < pool.length; i++) pool[i].visible = false;
+  shellHits.userData.last = list.map(e => ({ id: e.id, shell: e.shell, mode: e.mode, slot: e.slot, kind: e.kind, hyper: e.hyper,
+                                             shapes: e.shapes.map(sh => ({ type: sh.type, r: sh.r, p0: sh.p0 || sh.c, p1: sh.p1 || sh.c })) }));
+}
 function stepAttackBoxes(){
+  stepShellHits();
   if (window.__view && !window.__view.attackBoxes) window.__view.attackBoxes = () => atkBoxes ? atkBoxes.userData.last : null;
   // the row (Animation panel, after Ground) follows the monster on its own -- no Hit Zones chart needed
   if (atkRowFor !== state.id){ atkRowFor = state.id; paintAtkBoxRow(); }
@@ -10151,6 +10869,11 @@ function stepAttackBoxes(){
     if (clipName.endsWith('_loop')){ const sib = ((listOf(entry()) || {}).clips || []).find(c => c.clip === base + '_start'); if (sib) loopStart = Math.round(sib.dur * 60); }
     frame = act.time * 60 + loopStart;
   }
+  // THE LAP (atkfix lane 2026-10-27): a CARRIED attack window (render/attack-hitboxes.js, row field 6) is one countdown in the game
+  // (0x168d44..), so it shows on the first lap of a looping clip only. A lap = the playing action's time wrapping back; a new action
+  // (another clip, a replay) starts again at lap 0, and a scrub (paused) counts none
+  if (act !== atkLap.act){ atkLap.act = act; atkLap.n = 0; atkLap.t = act ? act.time : 0; }
+  else if (act){ if (!act.paused && act.time < atkLap.t - 1e-4) atkLap.n++; atkLap.t = act.time; }
   // the Solid hunter (Hunter Body), in view units: the stand-in capsule at the hunter point (rockInput's target)
   let hunter = null;
   if (hunterSolid() && hunterCapsuleOf){
@@ -10164,7 +10887,7 @@ function stepAttackBoxes(){
   // the play's own action where the viewer names one (CLIP_ACTIONS / a copy's pick: plays.action), so a clip several actions play shows
   // that action's arms only
   const pa = shellPlayAction057(), action = Array.isArray(pa) ? pa[0] + ':0x' + (pa[1] | 0).toString(16) : null;
-  atkBoxes.userData.update(base ? list + '|' + base : null, frame, { mode: atkMode, hunter, action });
+  atkBoxes.userData.update(base ? list + '|' + base : null, frame, { mode: atkMode, hunter, action, lap: seq ? 0 : atkLap.n });
 }
 // the hover tooltip: what the attack shape under the pointer is (render/attack-hitboxes.js describeText -- power, element, status bits,
 // kind, window), while the overlay is on
@@ -10180,7 +10903,9 @@ function stepAttackBoxes(){
     const box = el.getBoundingClientRect();
     const hit = atkBoxes.userData.pick(e.clientX - box.left, e.clientY - box.top, lensCamera(), box.width, box.height);
     if (!hit){ tip.style.display = 'none'; return; }
-    tip.textContent = hit.text;
+    // Hyper: this play's ModifyData attack change (the hit fill 0x1689b0: power x AttackRate, byte +0xb + PowerRate) -- not a shape
+    const ha = window.__hyperMotion && window.__hyperMotion.attack;
+    tip.textContent = hit.text + (ha && (ha.rate !== 1 || ha.power) ? String.fromCharCode(10) + 'Hyper: power x' + ha.rate + ', byte +0xb +' + ha.power + ' (the shape is unchanged)' : '');
     tip.style.left = (e.clientX + 14) + 'px'; tip.style.top = (e.clientY + 14) + 'px';
     tip.style.display = 'block';
   });
@@ -10211,7 +10936,7 @@ function driveMotionStates(){
   // ONE user input for every path: a routed entry (the combined list's, the Snow Variants') reads the same controls, class bytes and
   // snow map as the raw clip -- the routed calls had only rage / level / tired, so a class timer on them never saw its byte or the
   // snow (re-walk 2026-10-18: Kushala's barrier on a Snow Variants entry held u 230, not u 210)
-  const userIn = { rage: !!state.rage, level: chargeRungOf(), tired: exhausted(), posture: plays.key ? plays.posture : undefined,
+  const userIn = { rage: !!state.rage, level: chargeRungOf(), tired: exhausted(), hyper: !!state.hyper, posture: plays.key ? plays.posture : undefined,
                    rank: shellQuestRank(), questLevel: shellQuestLevel(),
                    boulder: state.boulder | 0, action: plays.key ? plays.action : undefined, classCtl: state.classCtl | 0,
                    classCtl2: state.classCtl2 | 0, snowMap: snowNow(), toggles: state.toggles || {} };
@@ -10269,10 +10994,18 @@ function driveMotionStates(){
   syncRageRecords(rt);
   syncClassHolds(rt, wq ? wq.list + '|' + wRow : seq ? seq.list + '|' + seq.clip : state.list + '|' + rowClip);
   stepCloak025(rt);
+  stepSlime063();                          // Raging Brachydios's four slime slots: their colour clips (the timer's state)
+  stepHyper(rt);
+  stepHeat080(rt);                         // Glavenus / Hellblade: the heat byte's held class request (0xfffb24)
+  stepCloak079(rt);                        // Nightcloak: u 100 (cloaked + tired) and u 200 (death while cloaked)
+  stepSnow083(rt);                         // Gammoth / Elderfrost: the snow-slot pass's requests (u 1040.., u 1120 on Gammoth)
+  stepHold083(rt);                         // Elderfrost: u 120 held on L9 M17 to f110, u 140 when cut off
+  stepFlashed(rt);                         // Flashed: c 1103 held while P+0x59c runs (0xa3ef0)
   if (rt){
     for (const [pel, key] of r.eyesOff) rt.holdRage(pel, key, true);
     for (const [pel, key] of r.eyesOn) rt.holdRage(pel, key, false);
-    for (const [pel, key] of r.holdOff) rt.holdEvent(pel, key, false);
+    // a stun row's c 1103 ending while he is still blind: 0xa3ef0 keeps the one handle (0x6f124 only when none of its three holds)
+    for (const [pel, key] of r.holdOff) if (!(flashed.held && flashedNow() && pel === flashed.pel && key === FLASH.key)) rt.holdEvent(pel, key, false);
     if (rt !== chargeHoldRt){
       chargeHoldRt = rt;
       const now = new Set(r.holdOn.map(h => h[0] + '|' + h[1]));
@@ -10308,6 +11041,14 @@ function driveMotionStates(){
         rt.placeEvent(pel, key, [classBlockOf(at)]);
         continue;
       }
+      // `{ unitPos: true, type8 }`: a request at his unit position P+0x40.. with the position alone (+0x1c |= 3, +0xc0, +8 = type8):
+      // Blangonga's u 60 on L0 M20 copy B (0xdda664; lane A2, 2026-10-26). `{ type8 }` alone: the class block e+0xb640 with +8 set and
+      // the record's own parent (Lagombi's u 30, 0xf25878: +8 = 2)
+      if (at && (at.unitPos || at.type8 != null)){
+        rt.placeEvent(pel, key, [at.unitPos ? { position: unitGamePos(), flags1c: 3, positionOnly: true, type8: at.type8 }
+                                            : { positionOnly: true, type8: at.type8 }]);
+        continue;
+      }
       if (at && at.ahead != null && mounted.main){
         const bones = gidBonesOf(mounted.main), b0 = bones.find(x => x.gid === 0), unit = (b0 && b0.node) || mounted.main;
         const U = unit.getWorldPosition(new THREE.Vector3()).divideScalar(0.01);
@@ -10317,10 +11058,106 @@ function driveMotionStates(){
       } else rt.fire(pel, key);
     }
     stepC800(rt);                          // Nakarkos's three placed c 800 on L3 M65
+    stepC1500(rt);                         // the shared c 1500 (0xa409c): lying on a water-class floor
+    stepNotice(rt);                        // the notice marks c 1200 / c 1201: the stand-in hunter in the sense scan (0xc3088)
     // the rage puff's gates (render/motion-states.js RAGE_PUFF): paused in the sleep hold, zeroed calm and tired
     rt.puffGates(motionStates.puffOff(), motionStates.tired(), { rung: state.level | 0, rank: shellQuestRank() });
   }
 }
+
+// THE SHARED c 1500 (READ: 0xa409c, every +0x28 pass from 0xae784 / 0xaf0f0; shared-state-effects.md 1 / 8; dev/rom-map.md rows 0xa409c /
+// 0x7fefc). Each pass: P+0x1a8 bit 0 (0xa40b0: set on every large monster's entry of 0x159c2dc, ids < 0x1000 -- the small ones 71..111
+// clear), the body alpha P+0x5dfc > 0, the posture P+0x1ba == 0, the ground P+0x5b4 <= the water height e+0x1074, the floor flags
+// e+0x1068 & 0x1002 and not & 0x800000, and LYING: 0x81bb0(e, 1) (the sleep hold / rest) or 0x7fefc (status 11 / 14, or action
+// (12, 0xff)). While all hold, the countdown P+0x5c78 (0x7206c) fires c id 0x18 = c 1500 and is set to 100.0; the test failing zeroes
+// it, so the next lying fires at once. THE VIEWER'S INPUTS: lying = the play's row is a sleep hold (it carries the c 1102 `every`, the
+// same 0x81bb0(e, 1) state, or `puffOff`) or a death row (`dead`, status 11); the posture is the play's (clipPostureFor); the ground
+// is the Ground control's flags (Ground A / G / H pass, the others fail) with the stand-in floor at 0 against its water height (f74);
+// the alpha is taken as up (only Chameleos's cloak lowers a body alpha in the viewer, and whether that is P+0x5dfc is NOT READ).
+// (Raven, 2026-09-28, removed the old free-running toggle -- "it simply loops even if there is no walking being done"; this is the
+// ROM's gate, which only runs while he lies on such a floor. The stepping splash is each monster's own PSL record, not this one.)
+let c1500 = { rt: null, left: 0, frame: null, pel: null };
+function stepC1500(rt){
+  if (c1500.rt !== rt){
+    const e = rt && rt.def && (rt.def.effects || []).find(x => x.when === 'event' && x.record && x.record.key === 1500 && /c$/.test(x.record.pel));
+    c1500 = { rt, left: 0, frame: null, pel: e ? e.record.pel : null };
+  }
+  if (!c1500.pel || !rt.schedule) return;
+  const f = rt.schedule.frame | 0, d = c1500.frame == null ? 0 : Math.max(0, f - c1500.frame);
+  c1500.frame = f;
+  const spec = motionStates.cur && motionStates.cur.spec;
+  const sleepHold = !!(spec && (spec.puffOff || (spec.every && spec.every[0] && spec.every[0][1] === 1102)));   // `every: [[pel, 1102], 90]`
+  const lying = sleepHold || motionStates.dead();
+  const g = groundNow();
+  const floorOk = !!(g.flags & 0x1002) && !(g.flags & 0x800000) && 0 <= (g.f74 || 0);
+  const posture0 = ((plays && plays.posture) | 0) === 0;
+  if (!(lying && floorOk && posture0)){ c1500.left = 0; return; }
+  c1500.left -= d;                                   // 0x7206c: count down, <= 0 fires
+  if (c1500.left <= 0){ rt.fire(c1500.pel, 1500); c1500.left = 100; }
+}
+
+// THE NOTICE MARKS c 1200 ("!") / c 1201 ("?") (READ: render/notice-sense.js, its header the whole path, 0xa50dc -> 0xc8d20 / 0xc3088 /
+// 0x7f010; dev/rom-map.md the notice rows). The stand-in hunter is the Hunter control's point; each frame the sense scan tests it
+// against the monster's own sense record (his dttune, joint, range, cone, height band) and the floor plane, the combat byte moves,
+// and the edge requests its record: 0 -> 2 c 1200 as he is first seen, 2 -> 0 c 1201 when the memory (2700 frames on most, the
+// dtbase's +0x8c) runs out with him out of sight (Hunter Side: Behind, outside every record's cone). The notice turn the game
+// then plays (command group 4) is animation and is not built (held). Enraged = combat (1): no marks.
+let notice = { rt: null, frame: null, edges: null, pel: null, last: null };
+function noticeStatus(){ const pa = shellPlayAction057(); return Array.isArray(pa) ? pa[0] | 0 : null; }
+function noticeSeen(S, rt){
+  const P = rt.parent && rt.parent.position;
+  if (!P || !mounted.main) return null;
+  const st = noticeStatus(), spec = motionStates.cur && motionStates.cur.spec;
+  const asleep = !!(spec && (spec.puffOff || (spec.every && spec.every[0] && spec.every[0][1] === 1102)));   // 0x81bb0(e, 0)
+  if (motionStates.dead() || asleep || st === 11 || st === 12 || st === 14) return { seen: false, asleep };        // 0xc30c0..0xc3120
+  if (flashedNow()) return { seen: false, asleep, blind: true };              // 0xc362c..0xc3640: P+0x59c > 0, no hunter test (Flashed)
+  const yaw = rt.schedule.ownerYaw16() * 2 * Math.PI / 65536, d = hunterAhead(state.id), hy = hunterYaw(yaw);
+  const fy = monsterFloorY() / 0.01, H = [P[0] + d * Math.sin(hy), fy, P[2] + d * Math.cos(hy)];                 // hunter 0's +0x40
+  const B = [H[0], H[1] + 100, H[2]];                                                                            // 0xc3760..0xc3784
+  const dist = Math.hypot(H[0] - P[0], H[1] - P[1], H[2] - P[2]);                                                // 0xa5534..0xa5588
+  if ((S.f >> 8) & 0x80) return { seen: true, asleep };                                                          // P+0x1a9 bit 7
+  const rec = S.s[0];                                                                                            // P+0x249 = 0
+  let eye;
+  if (rec[0] < 0) eye = { A: [P[0], P[1] + 50, P[2]], yaw: rt.schedule.ownerYaw16() & 0xffff, pitch: 0 };       // 0xc3474
+  else {
+    const bones = gidBonesOf(mounted.main), b = bones.find(x => x.gid === rec[0]) || bones.find(x => x.gid === 0);   // 0xc15a4
+    if (!b || !b.node) return null;
+    b.node.updateWorldMatrix(true, false);
+    const m = b.node.matrixWorld.clone(), e = m.elements;
+    for (const k of [12, 13, 14]) e[k] /= 0.01;
+    eye = eyeOf(rec, m, THREE);
+  }
+  // the stage: the floor plane -- the segment B -> A is blocked only when it crosses it
+  const blocked = (eye.A[1] < fy) !== (B[1] < fy) || (eye.A[1] < fy && B[1] < fy);
+  notice.last = { dist, A: eye.A, B, yaw: eye.yaw, pitch: eye.pitch, blocked };
+  return { seen: senseTest(rec, notice.last), asleep };
+}
+function stepNotice(rt){
+  if (notice.rt !== rt){
+    const e = rt && rt.def && (rt.def.effects || []).find(x => x.when === 'event' && x.record && x.record.key === 1200 && /c$/.test(x.record.pel));
+    const S = NOTICE_SENSE[state.id];
+    notice = { rt, frame: null, edges: S && e ? new NoticeEdges(S) : null, pel: e ? e.record.pel : null, last: null };
+  }
+  if (!notice.edges || !rt.schedule) return;
+  const f = rt.schedule.frame | 0, n = notice.frame == null ? 1 : Math.min(600, Math.max(0, f - notice.frame));
+  notice.frame = f;
+  if (!n) return;
+  const r = noticeSeen(notice.edges.sense, rt);
+  if (!r) return;
+  const st = noticeStatus(), may = !r.asleep && !r.blind && !(st != null && ((st >= 8 && st <= 14) || st === 16));   // 0x7f010's gates (0x7ea24: the flash timer)
+  // THE COMBAT BYTE P+0x2c0 is set to 1 by EVENTS (a hit reaction, a group-5 forced transition, class code -- 0xbcae0(e, 1)), never by
+  // rage itself (0xbcdb0 writes P+0x518 only), and falls back to 0 by its own timeout (render/notice-sense.js NoticeEdges). The
+  // viewer has no hit, so a RISING EDGE of the rage it shows after the monster is up stands for the hits that enraged him (INFERRED:
+  // rage is reached through damage, and the damage step's reactions set the byte); a rage held from the start -- Furious Rajang's
+  // rungs are both enraged, his permanent look, while his real shared rage runs as Rajang's (states-em023_05.md 2) -- is no event, so
+  // his ! / ? fire as calm Rajang's do (Raven, 2026-10-27: "Should be the same as Rajang since they share a model"). Lane B3.
+  const rageNow = !!motionStates.rage(state.rage);
+  const combat = notice.rageWas === false && rageNow;
+  notice.rageWas = rageNow;
+  for (let i = 0; i < n; i++)
+    for (const name of notice.edges.frame(r.seen, i === 0 && combat, may)) rt.fire(notice.pel, name === 'c1200' ? 1200 : 1201);
+}
+window.__notice = { now: () => notice.edges ? { cb: notice.edges.cb, mem: notice.edges.mem, bit: notice.edges.bit, fired: { ...notice.edges.fired }, last: notice.last } : null };
 
 // NAKARKOS'S c 800, THREE PLACED (dev/em084-class-effects.md 3; READ 0x1069b88 / 0x1069cbc / 0x106af68 / 0x106eff4..0x106f214 /
 // 0x10698d0). Per frame his vt+0x2a8 asks: the motion 0x341 (L3 M65) and the latch E+0xcb20 clear -> 0x106af68 sets the latch
@@ -10613,7 +11450,8 @@ window.__view.driveMotionStates = () => driveMotionStates();
 // the break / state driver as it stands (render/motion-states.js; dev/motion-states-check.mjs reads it back)
 window.__view.motionStates = () => ({ cur: motionStates.cur && { key: motionStates.cur.key, sets: motionStates.cur.sets,
                                                              rage: motionStates.cur.rage, clips: motionStates.clips() },
-                                      mat: { shown: shownMatState(), prev: prevMatState, cur: curMatState, t: tStateChanged } });
+                                      mat: { shown: shownMatState(), prev: prevMatState, cur: curMatState, t: tStateChanged },
+                                      tired: motionStates.tired() });   // exhaustion shown (the row's or the user's; never under Hyper)
 // The sustained-clip fallback: on by default. Off restores the previous behaviour, where a material
 // whose clips match no name and carry no auto bit was left on its static constant.
 window.__view.clipFallback = on => {

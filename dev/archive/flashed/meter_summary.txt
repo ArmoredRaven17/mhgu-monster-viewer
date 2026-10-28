@@ -1,0 +1,96 @@
+monster    result kind              offered  starts drawFrames lit/samples verdict  liveAfter
+em001_00   PASS   Flashed                True     1      39         39/39       draws    0
+em001_02   PASS   Flashed                True     1      39         39/39       draws    0
+em001_04   PASS   Flashed                True     1      39         39/39       draws    0
+em002_00   PASS   Flashed                True     1      39         39/39       draws    0
+em002_02   PASS   Flashed                True     1      39         39/39       draws    0
+em002_04   PASS   Flashed                True     1      39         39/39       draws    0
+em003_00   PASS   FORCED (immune)        False    1      39         39/39       draws    0
+em004_00   PASS   Flashed                True     1      39         39/39       draws    0
+em005_00   PASS   Flashed                True     1      39         39/39       draws    0
+em007_00   PASS   Flashed                True     1      39         39/39       draws    0
+em007_04   PASS   Flashed                True     1      39         39/39       draws    0
+em008_00   PASS   Flashed                True     1      39         39/39       draws    0
+em009_00   PASS   FORCED (immune)        False    1      39         39/39       draws    0
+em010_00   PASS   Flashed                True     1      39         39/39       draws    0
+em011_00   PASS   FORCED (immune)        False    1      39         39/39       draws    0
+em012_00   PASS   (no record)            False    -      -          -/-         -        None
+em013_00   PASS   FORCED (immune)        False    1      39         39/39       draws    0
+em013_01   PASS   FORCED (immune)        False    1      39         39/39       draws    0
+em013_02   PASS   FORCED (immune)        False    1      39         39/39       draws    0
+em014_00   PASS   Flashed                True     1      39         39/39       draws    0
+em015_00   PASS   Flashed                True     1      39         39/39       draws    0
+em016_00   PASS   Flashed                True     1      39         39/39       draws    0
+em017_00   PASS   FORCED (immune)        False    1      39         39/39       draws    0
+em018_00   PASS   Flashed                True     1      39         39/39       draws    0
+em018_04   PASS   Flashed                True     1      39         39/39       draws    0
+em019_00   PASS   FORCED (immune)        False    1      39         39/39       draws    0
+em019_04   PASS   FORCED (immune)        False    1      39         39/39       draws    0
+em020_00   PASS   FORCED (immune)        False    1      39         39/39       draws    0
+em020_04   PASS   FORCED (immune)        False    1      39         39/39       draws    0
+em021_00   PASS   Flashed                True     1      39         39/39       draws    0
+em022_00   PASS   Flashed                True     1      39         39/39       draws    0
+em023_00   PASS   Flashed                True     1      39         39/39       draws    0
+em023_05   PASS   Flashed                True     1      39         39/39       draws    0
+em024_00   PASS   Flashed                True     1      39         39/39       draws    0
+em025_00   PASS   Flashed                True     1      74         74/74       draws    0
+em027_00   PASS   Flashed                True     1      39         39/39       draws    0
+em030_00   PASS   Flashed                True     1      39         39/39       draws    0
+em032_00   PASS   Flashed                True     1      39         39/39       draws    0
+em032_04   PASS   Flashed                True     1      39         39/39       draws    0
+em033_00   PASS   Flashed                True     1      39         39/39       draws    0
+em034_00   PASS   Flashed                True     1      39         39/39       draws    0
+em036_00   PASS   FORCED (immune)        False    1      39         39/39       draws    0
+em037_00   PASS   Flashed                True     1      39         39/39       draws    0
+em037_04   PASS   Flashed                True     1      39         39/39       draws    0
+em038_00   PASS   Flashed                True     1      39         39/39       draws    0
+em042_00   PASS   Flashed                True     1      39         39/39       draws    0
+em043_00   PASS   Flashed                True     1      39         39/39       draws    0
+em043_05   PASS   Flashed                True     1      39         39/39       draws    0
+em044_00   PASS   Flashed                True     1      39         39/39       draws    0
+em045_00   PASS   Flashed                True     1      39         39/39       draws    0
+em045_04   PASS   Flashed                True     1      39         39/39       draws    0
+em046_00   PASS   Flashed                True     1      39         39/39       draws    0
+em047_00   PASS   Flashed                True     1      39         39/39       draws    0
+em049_00   PASS   Flashed                True     1      39         39/39       draws    0
+em050_00   PASS   Flashed                True     1      39         39/39       draws    0
+em055_00   PASS   Flashed                True     1      39         39/39       draws    0
+em056_00   PASS   FORCED (immune)        False    1      21         21/21       draws    0
+em057_00   PASS   Flashed                True     1      39         39/39       draws    0
+em057_04   PASS   Flashed                True     1      39         39/39       draws    0
+em058_00   PASS   Flashed                True     1      39         39/39       draws    0
+em060_00   PASS   Flashed                True     1      39         39/39       draws    0
+em060_04   PASS   Flashed                True     1      39         39/39       draws    0
+em061_00   PASS   Flashed                True     1      39         39/39       draws    0
+em061_04   PASS   Flashed                True     1      39         39/39       draws    0
+em062_00   PASS   Flashed                True     1      39         39/39       draws    0
+em063_00   PASS   Flashed                True     1      39         39/39       draws    0
+em063_05   PASS   Flashed                True     1      39         39/39       draws    0
+em065_00   PASS   Flashed                True     1      39         39/39       draws    0
+em066_00   PASS   Flashed                True     1      39         39/39       draws    0
+em066_04   PASS   Flashed                True     1      39         39/39       draws    0
+em067_00   PASS   Flashed                True     1      39         39/39       draws    0
+em068_00   PASS   Flashed                True     1      39         39/39       draws    0
+em069_00   PASS   Flashed                True     1      39         39/39       draws    0
+em070_00   PASS   Flashed                True     1      39         39/39       draws    0
+em071_00   PASS   FORCED (immune)        False    1      39         39/39       draws    0
+em071_05   PASS   FORCED (immune)        False    1      39         39/39       draws    0
+em072_00   PASS   Flashed                True     1      39         39/39       draws    0
+em076_00   PASS   Flashed                True     1      39         39/39       draws    0
+em077_00   PASS   Flashed                True     1      39         39/39       draws    0
+em079_00   PASS   Flashed                True     1      39         39/39       draws    0
+em079_04   PASS   Flashed                True     1      39         39/39       draws    0
+em080_00   PASS   Flashed                True     1      39         39/39       draws    0
+em080_04   PASS   Flashed                True     1      74         74/74       draws    0
+em081_00   PASS   Flashed                True     1      74         74/74       draws    0
+em081_04   PASS   Flashed                True     1      74         74/74       draws    0
+em082_00   PASS   Flashed                True     1      39         39/39       draws    0
+em082_04   PASS   FORCED (immune)        False    1      39         39/39       draws    0
+em083_00   PASS   Flashed                True     1      39         39/39       draws    0
+em083_04   PASS   Flashed                True     1      39         39/39       draws    0
+em084_00   PASS   (no record)            False    -      -          -/-         -        None
+em085_00   PASS   Flashed                True     1      39         39/39       draws    0
+em086_00   PASS   Flashed                True     1      39         39/39       draws    0
+em087_00   PASS   (no record)            False    -      -          -/-         -        None
+em088_00   PASS   Flashed                True     1      39         39/39       draws    0
+94 monsters {'flash': 75, 'forced': 16, 'none': 3}

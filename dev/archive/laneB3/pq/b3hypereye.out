@@ -1,0 +1,7 @@
+FAIL HYPER-EYE em023_00  -- no head aura with an _500 effect
+PASS HYPER-EYE em043_00  -- {"head":{"id":1,"group":0,"part":0,"key":1301,"joint":3,"exported":true,"meat":[0],"meatBias":1},"option":"Part 0 + Part 4","bone":true,"at":[0,4,5],"offShot":"ok","onShot":"ok","rows":[{"k":"em043_00|em043_00u|1301|event","st":1,"live":92,"lit":48,"s":48,"px":17235,"verdict":"draws"}]}
+PASS HYPER-EYE em002_00  -- {"head":{"id":1,"group":0,"part":6,"key":1301,"joint":3,"exported":true,"meat":[0],"meatBias":1},"option":"Part 6 + Part 0","bone":true,"at":[0,2,4],"offShot":"ok","onShot":"ok","rows":[{"k":"em002_00|em002_00u|1301|event","st":1,"live":92,"lit":48,"s":48,"px":7659,"verdict":"draws"}]}
+PASS HYPER-EYE em080_00  -- {"head":{"id":1,"group":0,"part":0,"key":1301,"joint":3,"exported":true,"meat":[0],"meatBias":1},"option":"Part 0 + Part 6","bone":true,"at":[0,3,4],"offShot":"ok","onShot":"ok","rows":[{"k":"em080_00|em080_00u|1301|event","st":1,"live":92,"lit":48,"s":48,"px":18227,"verdict":"draws"}]}
+PASS HYPER-EYE em057_00  -- {"head":{"id":1,"group":0,"part":0,"key":1301,"joint":3,"exported":true,"meat":[0],"meatBias":1},"option":"Part 0 + Part 7","bone":true,"at":[0,3,4],"offShot":"ok","onShot":"ok","rows":[{"k":"em057_00|em057_00u|1301|event","st":1,"live":92,"lit":48,"s":48,"px":7523,"verdict":"draws"}]}
+
+4 passed, 1 failed

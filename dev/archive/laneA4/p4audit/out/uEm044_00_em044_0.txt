@@ -1,0 +1,34 @@
+uEm044_00 em044 v0 (0, 0x7) ph0A: PH 1 | POST 4@e83e00 | M L0M1@e83e14 | SET MOG@e8c824
+uEm044_00 em044 v0 (0, 0x7) ph1B: VT3E8@e8c824
+uEm044_00 em044 v0 (6, 0x0) ph0A: PH 1 | POST 0@e86218 | M L4M4@e8622c
+uEm044_00 em044 v0 (6, 0x0) ph1B: VT3E8@e8c868
+uEm044_00 em044 v0 (6, 0x1) ph0A: PH 1 | POST 4@e862f4 | M L0M1@e86308 | SET MOG@e86318
+uEm044_00 em044 v0 (6, 0x1) ph1B: VT3E8@e8c868
+uEm044_00 em044 v0 (6, 0x2) ph0A: PH 1 | POST 4@e863b8 | M L0M13@e863cc | SET MOG@e8c868
+uEm044_00 em044 v0 (6, 0x2) ph1C: VT3E8@e8c868
+uEm044_00 em044 v0 (6, 0x3) ph0A: PH 1 | POST 4@e864a8 | M L0M6@e864bc | SET MOG@e864ec
+uEm044_00 em044 v0 (6, 0x3) ph1C: VT3E8@e8c868
+uEm044_00 em044 v0 (6, 0x4) ph0A: PH 1 | POST 4@e8659c | TURN 0x169e664 {L0M15; L0M3 / L0M4}@e865bc | SET MOG@e8c868
+uEm044_00 em044 v0 (6, 0x4) ph1C: VT3E8@e8c868
+uEm044_00 em044 v0 (6, 0x5) ph0A: PH 1 | POST 4@e86664 | M L4M5@e86744 | SET -600@e86750
+uEm044_00 em044 v0 (6, 0x5) ph1A: ADD 25@e866e0 | SET 0@e86700
+uEm044_00 em044 v0 (6, 0x5) ph1B: ADD 25@e866e0 | SET 0@e86700 | IDLE
+uEm044_00 em044 v0 (6, 0x6) ph0A: PH 1 | POST 4@e864a8 | M L0M6@e864bc | SET MOG@e864ec
+uEm044_00 em044 v0 (6, 0x6) ph1C: VT3E8@e8c868
+uEm044_00 em044 v0 (6, 0x7) ph0A: PH 1 | POST 4@e867d8 | M L4M3@e867ec | SET MOG@e8c868
+uEm044_00 em044 v0 (6, 0x7) ph1A: ADD 5@e8680c | SET 0@e86830 | POST 4@e8683c | CHG set(6,0xc)
+uEm044_00 em044 v0 (6, 0x8) ph0A: PH 1 | POST 4@e868b0 | M L4M3@e868c8 | SET 0@e868d4
+uEm044_00 em044 v0 (6, 0x8) ph1B: PH 2 | CHG follow(6,0x9)
+uEm044_00 em044 v0 (6, 0x9) ph0A: PH 1 | POST 4@e86664 | M L4M5@e86684 | SET 0@e86690
+uEm044_00 em044 v0 (6, 0x9) ph1B: IDLE
+uEm044_00 em044 v0 (6, 0xa) ph0A: PH 1 | POST 4@e869cc | M L4M3@e869e4 | SET 0@e869f0
+uEm044_00 em044 v0 (6, 0xa) ph1B: POST 4@e86a40 | CHG set(6,0xc)
+uEm044_00 em044 v0 (6, 0xc) ph0A: PH 1 | POST 4@e86ac0 | M L4M3@e86ad8 | SET 0@e86ae4
+uEm044_00 em044 v0 (6, 0xc) ph1B: POST 4@e86b20 | CHG set(6,0xc)
+uEm044_00 em044 v0 (6, 0xd) ph0A: PH 1 | POST 4@e86ba0 | M L4M3@e86bb8 | SET 0@e86bc4
+uEm044_00 em044 v0 (6, 0xd) ph1C: POST 4@e86c18 | CHG set(6,0xc)
+uEm044_00 em044 v0 (6, 0xe) ph0A: PH 1 | POST 4@e864a8 | M L0M6@e864bc | SET MOG@e864ec
+uEm044_00 em044 v0 (6, 0xe) ph1C: VT3E8@e8c868
+uEm044_00 em044 v0 (12, 0x0) ph0A: PH 1 | POST 4@e86664 | M L4M5@e86744 | SET -600@e86750
+uEm044_00 em044 v0 (12, 0x0) ph1A: ADD 25@e866e0 | SET 0@e86700
+uEm044_00 em044 v0 (12, 0x0) ph1B: ADD 25@e866e0 | SET 0@e86700 | IDLE

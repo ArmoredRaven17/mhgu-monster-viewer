@@ -1,0 +1,1 @@
+{"id": "em088_00", "steps": [{"partSweep": {"clip": "3|Motion[2]", "frames": 60, "reps": 2}}, {"set": {"monCarry": "0"}}, {"clip": "2|Motion[13]*", "frames": 200}, {"clip": "2|Motion[19]*", "frames": 120}], "want": ["em088_00|em088_00u|1017|event", "em088_00|em088_00u|10|thread"]}

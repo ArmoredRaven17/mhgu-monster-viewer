@@ -1,0 +1,3 @@
+PASS PROBE em060_04  -- {"log":["monGroundType=g8","played 0|Motion[22]"],"rows":[{"k":"em060_04|em060_04u|120|clip","st":1,"live":1,"lit":0,"s":1,"px":0,"verdict":"live, no draw","clips":["em060_04|0|Motion[22]"],"nodraw":{"clip":"em060_04|0|Motion[22]","units":[{"w0c":"14cb3","gens":0,"mask1":"ffffffff","mask2":"21","nrow":752,"rows":[["4","354"],["e0050000","20120000"],["2000","e005"],["2000","e005"],["0","0"],["2000","e005"],["0","0"],["2000","e005"],["0","0"],["0","0"]]}]}}],"missing":[]}
+
+1 passed, 0 failed

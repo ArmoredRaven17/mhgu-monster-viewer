@@ -1,0 +1,5 @@
+PASS em032_00 0|Motion[9] f7 off  -- {"redPixels":1186,"frame":7}
+PASS em032_00 0|Motion[9] f7 built  -- {"redPixels":10591,"frame":7}
+PASS em032_00 0|Motion[9] f7 noBurst  -- {"redPixels":6778,"frame":7}
+
+3 passed, 0 failed

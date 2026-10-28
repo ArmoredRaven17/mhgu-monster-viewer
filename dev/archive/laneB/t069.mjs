@@ -1,0 +1,10 @@
+import { pathToFileURL } from 'node:url';
+const MS = await import(pathToFileURL('C:/MHGU-Extract/MHGU-Monster-Viewer/docs/render/motion-states.js').href);
+const m = new MS.MotionStates();
+const ev = [];
+const run = (list, clip, n, action) => { for (let f = 0; f < n; f++){ const out = { fire: [], holdOn: [], holdOff: [], alpha: [] };
+  m.stepClassTimers('em069_00', list, clip, f % 300, null, { action, rank: 5 }, out);
+  if (out.holdOn.length || out.holdOff.length) ev.push([list + '|' + clip, f, JSON.stringify(out.holdOn), JSON.stringify(out.holdOff), JSON.stringify(m.classT.t)]); } };
+m.dead = () => false; m.rage = () => false; m.eyesOff = () => [];
+run('4', 'Motion[66]', 177, [1, 1]); run('0', 'Motion[1]_loop', 4000, [0, 0]); run('4', 'Motion[42]', 60, [7, 9]); run('0', 'Motion[1]_loop#B', 60, [7, 0x4d]);
+console.log(ev.map(e => e.join(' ')).join('\n'));

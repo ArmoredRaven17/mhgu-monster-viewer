@@ -46,3 +46,9 @@ so the shared latch `0xadc98` cannot open (dev/em010_00-effects-spec.md 3; rom-m
 psl-mask.js `em036_00` + CLIP_ACTIONS (variants); motion-states.js CLIP_VARIANTS em036_00 and the rows above; effects json
 `--apply` +3 (c 16, u 241, u 60) and u 1120 retagged `event`; `--record` 8 sets; lifted. The shell00 / shell01 spit and pool
 records (u 0..4, 30..33, 90, 91, 100..102): the shells lane.
+
+## Lane A3 (2026-10-26): u 1400
+
+Never requested: no class site asks it, and the shared latch 0xadc98 needs e+0x1404 bits 20 + 21 together with e+0x1408 bit 0;
+bit 0 is raised by Lavasioth alone and bit 20 by eleven other classes (not Lavasioth). A ROM reason for the coordinator
+(rom-map "Effects lane A3").

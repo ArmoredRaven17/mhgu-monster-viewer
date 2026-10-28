@@ -1,0 +1,3 @@
+PASS PROBE em055_00  -- {"log":["played 2|Motion[29]","played 2|Motion[31]","played 2|Motion[32]"],"rows":[{"k":"em055_00|em055_00u|100|event","st":2,"live":187,"lit":42,"s":42,"px":6038,"verdict":"draws","clips":["em055_00|2|Motion[31]","em055_00|2|Motion[32]"]}],"missing":[]}
+
+1 passed, 0 failed

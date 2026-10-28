@@ -580,6 +580,21 @@ export class EffectHost {
     if (!C) return;
     const v4 = (a, v) => { for (let k = 0; k < 3; k++) m.wf32(a + 4 * k, v[k]); m.wf32(a + 12, 0); };
     if (eye) v4(C + 0x40, eye);
+    // +0x70 = the camera's position as the effects read it (node facing 0x9bca30 -> 0xafb350 aims at it; 0xa55190 / 0xaec0bc
+    // measure distances from it). Its writer, READ 2026-10-27: uCamera vt+0x28 0x895af8 runs every frame -- the view from vt+0x4c
+    // (the look-at 0x1c33c over +0x40 / +0x60 / +0x50), then +0x70.. = -(the view's translation through its 3x3), i.e. the eye
+    // recovered from the view (0x895b34..0x895ba8), +0x7c = 0; the ctor 0x89566c starts it equal to +0x40. Transcribed here.
+    if (eye || up || target){
+      const V = this.GAMECAM_V || (this.GAMECAM_V = this.malloc(0x40));
+      liftedCall(m, m.u32(m.u32(C) + 0x4c), [V, C]);                     // 0x895b30 blx [vt+0x4c]
+      const F = Math.fround, f = o => m.f32(V + o);
+      const s0 = f(0x34), s12 = f(0x30), s1 = f(0x38);
+      let s4 = F(f(4) * s0); s4 = F(s4 + F(f(0) * s12));
+      let s10 = F(f(0x14) * s0); let t0 = F(f(0x24) * s0);
+      s10 = F(s10 + F(f(0x10) * s12)); t0 = F(t0 + F(f(0x20) * s12));
+      s4 = F(s4 + F(f(8) * s1)); s10 = F(s10 + F(f(0x18) * s1)); t0 = F(t0 + F(f(0x28) * s1));
+      m.wf32(C + 0x70, -s4); m.wf32(C + 0x74, -s10); m.wf32(C + 0x78, -t0); m.w32(C + 0x7c, 0);
+    }
     if (up) v4(C + 0x50, up);
     if (target) v4(C + 0x60, target);
     if (hunter) v4(this.HUNTER + 0x40, hunter);
@@ -623,7 +638,17 @@ export class EffectHost {
     //   (Pass 0x15 draws into mpRTPostTarget, pass 0x11 into mpRTMainTarget -- separate colour buffers with HDR on, the
     //   depth shared (nDraw::Scene 0xb03434..0xb03594, 0xb02748 -> 0xb054dc); what copies or tone-maps Main into Post,
     //   and what the scene's pass-0x15 full-screen quads draw, is not read. The viewer has one target: it keeps the order.)
-    invoke(m, 0x87cf70, [this.VIEW, 0x15, 0]);
+    // THE PASS AN EARLIER UNIT LEFT (framePass, hyper-eye lane 2026-10-27; dev/hyper-states.md 5). The viewer's frame holds the
+    // monster's effects only, so its first unit sees the scene setup's 0x15. The game's frame draws other units first (line 22
+    // holds the effect units, proof.js registerUnit), and a cParticleNode's draw leaves 0x11 (0xb91aac / 0xb91b7c: 0x11, 0x13
+    // when its test is hi). framePass = 0x11 draws the frame as after such a unit: every opaque-colour model draw takes the
+    // SORTED emit (0xc8ea44 fails) with its own flags' depth (0xc8eb10) and its depth / bias order, instead of the unsorted
+    // emit's fixed slot 0x1b9 (DSZTestWrite). READ (rom-map "0x87cf70 -- who sets the context pass"): a model unit pushes /
+    // pops the context state around its draw (uModel 0x93815c: 0x8777e4 / 0x8787b0), an effect unit (0x9b75e8) does not, so only
+    // an earlier effect unit's node draw leaves 0x11; with the job system each worker draws on its own copy of the context
+    // (0xc03cd0 -> 0x878b38) in a dynamic order. The page sets this for the units it does not have (index.html fxPassNow); the
+    // viewer's own node draws still set 0x11 for the units after them, as here.
+    invoke(m, 0x87cf70, [this.VIEW, this.framePass === 0x11 ? 0x11 : 0x15, 0]);
     m.w32(this.VIEW + 0x168, (m.u32(this.VIEW + 0x168) & ~0xff) >>> 0);
     m.w32(this.VIEW + 0x164, m.u32(this.VIEW + 0x164) & 0x1f);
     // sGpuParticle's frame (effects-node.md 4.2): vfn +0x28 0xb8fcbc begins it -- write pointers to the current

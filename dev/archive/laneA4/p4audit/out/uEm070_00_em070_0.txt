@@ -1,0 +1,33 @@
+uEm070_00 em070 v0 (0, 0x7) ph0A: PH 1 | POST 4@f9d9c0 | M L0M1@f9d9d4 | SET MOG@4ffffffc
+uEm070_00 em070 v0 (0, 0x7) ph1B: VT3E8@4ffffffc
+uEm070_00 em070 v0 (3, 0x24) ph0A: PH 1 | POST 4@fa393c | M L4M33@4ffffffc
+uEm070_00 em070 v0 (3, 0x24) ph1B: PH 2 | SET -1000@fa39a4 | M L0M1@fa39b8 | CHG follow(3,0x25)
+uEm070_00 em070 v0 (3, 0x25) ph0A: PH 1 | POST 4@fa3a94 | SET -1000@fa3aa0 | M L0M1@4ffffffc
+uEm070_00 em070 v0 (3, 0x25) ph1A: PH 2
+uEm070_00 em070 v0 (3, 0x25) ph2A: SET -1000@fa3b24
+uEm070_00 em070 v0 (3, 0x26) ph0A: PH 1 | POST 4@fa393c | M L4M33@4ffffffc
+uEm070_00 em070 v0 (3, 0x26) ph1B: PH 2 | SET -1000@fa39a4 | M L0M1@fa39b8 | CHG follow(3,0x25)
+uEm070_00 em070 v0 (3, 0x27) ph0A: PH 1 | POST 4@fa3a94 | SET -1000@fa3aa0 | M L0M1@4ffffffc
+uEm070_00 em070 v0 (3, 0x27) ph1A: PH 2
+uEm070_00 em070 v0 (3, 0x27) ph2A: SET -1000@fa3b24
+uEm070_00 em070 v0 (3, 0x28) ph0A: PH 1 | POST 4@fa393c | M L4M33@4ffffffc
+uEm070_00 em070 v0 (3, 0x28) ph1B: PH 2 | SET -1000@fa39a4 | M L0M1@fa39b8 | CHG follow(3,0x27)
+uEm070_00 em070 v0 (3, 0x29) ph0A: PH 1 | POST 4@fa393c | M L4M33@4ffffffc
+uEm070_00 em070 v0 (3, 0x29) ph1B: PH 2 | SET -1000@fa39a4 | M L0M1@fa39b8 | CHG follow(3,0x27)
+uEm070_00 em070 v0 (3, 0x2c) ph0A: SET -1000@fa4014 | PH 1 | POST 4@fa4064 | SET -1000@fa4070 | M L0M1@fa4084
+uEm070_00 em070 v0 (3, 0x2c) ph1A: SET -1000@fa4014
+uEm070_00 em070 v0 (3, 0x2c) ph1B: SET -1000@fa4014 | POST 0@fa40ec | SET 0@fa40fc | M L4M34@fa4110 | CHG follow(7,0x3b)
+uEm070_00 em070 v0 (3, 0x2c) ph2A?: SET -1000@fa4014
+uEm070_00 em070 v0 (3, 0x2c) ph3A?: SET -1000@fa4014
+uEm070_00 em070 v0 (3, 0x2c) ph4A?: SET -1000@fa4014
+uEm070_00 em070 v0 (3, 0x2c) ph5A?: SET -1000@fa4014
+uEm070_00 em070 v0 (3, 0x2c) ph6A?: SET -1000@fa4014
+uEm070_00 em070 v0 (3, 0x2c) ph7A?: SET -1000@fa4014
+uEm070_00 em070 v0 (3, 0x2c) ph8A?: SET -1000@fa4014
+uEm070_00 em070 v0 (3, 0x2c) ph9A?: SET -1000@fa4014
+uEm070_00 em070 v0 (3, 0x2c) ph10A?: SET -1000@fa4014
+uEm070_00 em070 v0 (3, 0x2c) ph11A?: SET -1000@fa4014
+uEm070_00 em070 v0 (6, 0x0) ph0A: PH 1 | POST 0@fa47b0 | M L4M33@4ffffffc
+uEm070_00 em070 v0 (6, 0x0) ph1B: VT3E8@4ffffffc
+uEm070_00 em070 v0 (6, 0x1) ph0A: PH 1 | POST 4@fa49fc | M L0M1@fa4a10 | SET MOG@4ffffffc
+uEm070_00 em070 v0 (6, 0x1) ph1B: VT3E8@4ffffffc

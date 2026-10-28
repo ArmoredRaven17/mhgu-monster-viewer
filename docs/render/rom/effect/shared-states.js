@@ -79,10 +79,13 @@ export const SHARED_STATES = {
   // NOT from here -- a toggle would fire them while the monster walks about normally:
   //
   //   c 1101 / c 1102  the sleep and tired states -- already `every` rows on 60 / 61 monsters
-  //   c 1103           stun, a `hold` row across the stun clips
+  //   c 1103           stun, a `hold` row across the stun clips -- AND the flash's blindness, which is not animation-tied:
+  //                    FLASH below (the Flashed switch, index.html stepFlashed, 2026-10-25)
   //   c 1104           tired, an `every` row on the tired clip
   //   c 1109           the exhaust REACTION, Rathian's L3 M2 as (10,0x1b) -- one request at frame 0
   //   c 1200           the notice sequence ((2,1) turn, then (2,9) L0 M5)
+  //   (c 1200 / c 1201 are driven from index.html stepNotice since 2026-10-25: the sense scan 0xc3088 on the stand-in hunter,
+  //    render/notice-sense.js; it requests them by key through the schedule, as combat() would)
   //
   // c 1105 is not here either: its gate 0x80254 is unread, so there is nothing to say when it should run.
 };
@@ -95,6 +98,82 @@ export const SHARED_STATES = {
 // INFERRED blast in the note (the tune+0x54 status proc).
 export const BLAST_PART_BASE = 1130;
 export const BLAST_PARTS = 8;
+
+// FLASHED -- the blindness timer P+0x59c (Flashed state read, 2026-10-25; dev/flashed-state.md, rom-map "Flashed"). A STATE, like
+// poison: it outlives any clip. Every step READ, the gate chain emulated on each monster's own loaded files with controls
+// (dev/archive/flashed/flashemu.py):
+//   THE FLASH. Three shell classes register a source in the enemy manager's table of 8 (G+0x28f8 + 24 i, 0x5bacc: position, radius,
+//   area byte, live): uShellPlcom_000 (0x47caf0), uShellOt001 (0x441a8c), uShellPlw04_000 (0x46e840) -- by their names a hunter's,
+//   a Palico's and a weapon's flash (I). Each frame the sense scan 0xc3088 (0xc3934..0xc3bc4) tests every live source in his area:
+//   horizontal distance <= its radius, height within the sense record's band (+0x10 / +0x14), yaw / pitch within the record's
+//   FLASH half-angles +0x1c / +0x1e (the eye's cone; dttune obj+0x78, P+0x249 = 0 -> record 0). Gates first: P+0x24a bit 1 (3 at
+//   spawn 0xb8f1c and at every action change 0x76748), 0x99c58(e, 4) = P+0x3a8 bit 2 (P+0x3a8 = the dtbase obj +0x6c, 0x9cd50; bit 3
+//   lets it through in posture 4), P+0x5a4 <= 0, no Chameleos area timer (0x5c1a8), e+0x7420, not (10, 0xa1..0xa6 / 0xbd / 0xbe /
+//   0xc1 / 0xc2) (0x810d4); then P+0x59c already > 0 -> nothing; e+0xba47 & 0x26 -> P+0x59c = 0; else 0xa1a88(e, 1) and the command
+//   restart 0x82cd0(e, 0x18, 0) (group 8, the flash reaction -- animation, held).
+//   THE TIMER. 0xa1a88: P+0x59c = s16 row[calm | enraged-or-0x816b8 | tired] of [[dttune obj+0x64]+0x58][1] (a null entry: 1800.0),
+//   minus 300 x P+0x5a1 (the flashes so far, +1 per flash, held at 3), never below 300. Counted down 1.0 a frame (0xc9080). Zeroed
+//   at death (0x75be4) and by the resets.
+//   THE EFFECT. 0xa3ef0 (vt+0x28): while P+0x59c > 0 (or the stun bit P+0x5e08 bit 4, or P+0x5cde == 1) it requests id 3 = c 1103
+//   ONCE into the handle e+0xb62c; when none holds, 0x6f124 stops it. The same handle as the stun's: one c 1103, held across clips.
+//   It is the only request P+0x59c gates (the #0x59c scan of main.text: no other effect, material, part-set or hit-zone reader;
+//   the sense scan also skips the hunter test while it runs, 0xc362c, and 0x7e9c8 refuses the notice, 0x7ea24).
+// FLASH_BLIND: the flashable monsters (bit 2 set, no class override) -> the dttune row [calm, enraged, tired] in frames (null: the
+// 1800 default). The viewer's switch holds the state until it is turned off; the game's would end after these.
+export const FLASH = { key: 1103, rom: '0xa3ef0 -> vt+0x1cc id 3 into e+0xb62c while P+0x59c > 0; 0x6f124 stops it' };
+export const FLASH_BLIND = {
+  em001_00: [1080, 1080, 1800], em001_02: [1500, 1500, 2100], em001_04: [1080, 1080, 1800], em002_00: [1080, 1080, 1800],
+  em002_02: [1500, 1500, 2100], em002_04: [1080, 1080, 1800], em004_00: [900, 900, 1800], em005_00: [900, 900, 1800],
+  em007_00: [1200, 900, 1500], em007_04: [1200, 900, 1500], em008_00: [1200, 1200, 1800], em010_00: [450, 300, 750],
+  em014_00: [1200, 900, 1800], em015_00: [1200, 900, 1800], em016_00: [1200, 900, 1800], em018_00: [1800, 1800, 1800],
+  em018_04: [1800, 1800, 1800], em021_00: [1800, 1200, 1800], em022_00: [1200, 1200, 1800], em023_00: [1800, 900, 1800],
+  em023_05: [1800, 900, 1800], em024_00: [900, 900, 900], em025_00: [1800, 1200, 0], em027_00: [1200, 600, 1800],
+  em030_00: [1200, 1200, 1800], em032_00: [1200, 1200, 1800], em032_04: [1200, 1200, 1800], em033_00: [60, 60, 60],
+  em034_00: [1200, 900, 1800], em037_00: [1200, 1200, 1800], em037_04: [1200, 1200, 1800], em038_00: [60, 60, 60],
+  em042_00: [1200, 1200, 1800], em043_00: [900, 900, 1800], em043_05: [900, 900, 1800], em044_00: [1200, 1200, 1800],
+  em045_00: [1200, 900, 1500], em045_04: [1200, 900, 1500], em046_00: [1200, 600, 1800], em047_00: [1200, 600, 1500],
+  em049_00: [1200, 600, 1800], em050_00: [450, 450, 450], em055_00: [1200, 1200, 1500], em057_00: [1200, 900, 1800],
+  em057_04: [1200, 900, 1800], em058_00: [480, 480, 480], em060_00: [1200, 1200, 1800], em060_04: [1200, 1200, 1800],
+  em061_00: [1200, 1200, 1800], em061_04: [1200, 1200, 1800], em062_00: [1200, 1200, 1800], em063_00: [1200, 1200, 1800],
+  em063_05: [1200, 1200, 1800], em065_00: [1200, 1200, 1800], em066_00: [1800, 1200, 1800], em066_04: [1800, 1200, 1800],
+  em067_00: [1800, 1200, 1800], em068_00: [1200, 1200, 1800], em069_00: [1200, 1200, 1800], em070_00: [1200, 1200, 1800],
+  em072_00: [1200, 1200, 1800], em076_00: [1200, 1200, 1800], em077_00: [1080, 1080, 1800], em079_00: [1080, 900, 1800],
+  em079_04: [1080, 900, 1800], em080_00: [900, 900, 1800], em080_04: [900, 900, 1800], em081_00: [1080, 1080, 1800],
+  em081_04: [1080, 1080, 1800], em082_00: [1080, 1080, 1800], em083_00: [1080, 1080, 1800], em083_04: [1080, 1080, 1800],
+  em085_00: [1200, 1200, 1800], em086_00: null, em088_00: [0, 0, 0], ems001_00: [1800, 1800, 1800], ems002_00: [1800, 1800, 1800],
+  ems003_00: [1800, 1800, 1800], ems004_00: [1800, 1800, 1800], ems005_00: [1800, 1800, 1800], ems006_00: [1800, 1800, 1800],
+  ems007_00: [1800, 1800, 1800], ems008_00: [1800, 1800, 1800], ems009_00: [1800, 1800, 1800], ems010_00: [1800, 1800, 1800],
+  ems011_00: [1800, 1800, 1800], ems013_00: [1800, 1800, 1800], ems014_00: [1800, 1800, 1800], ems015_00: [1800, 1800, 1800],
+  ems016_00: [1800, 1800, 1800], ems022_00: null, ems023_00: [1800, 1800, 1800], ems025_00: [1800, 1800, 1800],
+  ems026_00: [1800, 1800, 1800], ems027_00: [1800, 1800, 1800], ems034_00: [1800, 1800, 1800], ems035_00: [1800, 1800, 1800],
+  ems039_00: [1800, 1800, 1800], ems040_00: [1800, 1800, 1800], ems041_00: [1800, 1800, 1800], ems042_00: [1800, 1800, 1800],
+  ems044_00: [1800, 1800, 1800], ems046_00: [1800, 1800, 1800], ems047_00: [1800, 1800, 1800], ems048_00: [1800, 1800, 1800]
+};
+// IMMUNE: the flash test can never pass. Control (flashemu.py): the same run blinds Rathian (1080) and Fatalis with bit 2 forced on
+// (1800), and refuses Rathian with bit 2 forced off.
+export const FLASH_IMMUNE = {
+  em003_00: 'dtbase +0x6c = 0x400062, bit 2 clear', em009_00: 'dtbase +0x6c = 0x400022, bit 2 clear',
+  em011_00: 'dtbase +0x6c = 0x2, bit 2 clear', em012_00: 'dtbase +0x6c = 0x40402, bit 2 clear',
+  em013_00: 'dtbase +0x6c = 0x400402, bit 2 clear', em013_01: 'dtbase +0x6c = 0x400402, bit 2 clear',
+  em013_02: 'dtbase +0x6c = 0x400402, bit 2 clear', em017_00: 'dtbase +0x6c = 0x8000072, bit 2 clear',
+  em019_00: 'dtbase +0x6c = 0x400072, bit 2 clear', em019_04: 'dtbase +0x6c = 0x400072, bit 2 clear',
+  em020_00: 'dtbase +0x6c = 0x72, bit 2 clear', em020_04: 'dtbase +0x6c = 0x72, bit 2 clear',
+  em036_00: 'dtbase +0x6c = 0x400072, bit 2 clear', em056_00: 'dtbase +0x6c = 0x42, bit 2 clear',
+  em071_00: 'dtbase +0x6c = 0x8400062, bit 2 clear',
+  em071_05: "uEm071_00 vt+0x204 0xfadfd4: em 0x47 -> P+0x24a = 1 at every action start (after changeAction's 3 at 0x76748)",
+  em082_04: 'dtbase +0x6c = 0x400062, bit 2 clear', em084_00: 'dtbase +0x6c = 0x412, bit 2 clear',
+  em087_00: 'dtbase +0x6c = 0x50402, bit 2 clear', ems012_00: 'dtbase +0x6c = 0x8200013, bit 2 clear',
+  ems017_00: 'dtbase +0x6c = 0x100203, bit 2 clear', ems019_00: 'dtbase +0x6c = 0x813, bit 2 clear',
+  ems020_00: 'dtbase +0x6c = 0x13, bit 2 clear', ems021_00: 'dtbase +0x6c = 0x13, bit 2 clear',
+  ems045_00: 'dtbase +0x6c = 0x10000012, bit 2 clear',
+};
+export function flashable(id){ return Object.prototype.hasOwnProperty.call(FLASH_BLIND, id); }
+// the timer 0xa1a88 sets for a flash: state 0 calm / 1 enraged / 2 tired, `count` = P+0x5a1 before it (the flashes so far)
+export function flashFrames(id, state = 0, count = 0){
+  if (!flashable(id)) return 0;
+  const row = FLASH_BLIND[id], v = row ? row[state] : 1800;
+  return Math.max(v - 300 * Math.min(count, 3), 300);
+}
 
 // NOT IMPLEMENTED HERE, deliberately. c 1101 (ailment bit 4), c 1102, c 1105 and u 1400 are named in
 // the note's mechanism prose -- the pass addresses and, for 1101, the bit -- but it gives no PERIOD and

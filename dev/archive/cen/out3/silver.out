@@ -1,0 +1,3 @@
+FAIL PROBE em037_04  -- {"log":["parts all last","monRage=true","played 0|Motion[1]_loop"],"rows":[{"k":"em037_04|em037_04u|1121|rage","st":1,"live":154,"lit":12,"s":33,"px":10,"verdict":"draws","clips":["em037_04|0|Motion[25]"]}],"missing":["em037_04|em037_04u|1120|rage"]}
+
+0 passed, 1 failed

@@ -1,0 +1,1 @@
+{"id": "em067_00", "steps": [{"clip": "4|Motion[10]*", "frames": 330}, {"partSweep": {"clip": "3|Motion[1]", "frames": 60, "reps": 3}}], "want": ["em067_00|em067_00u|370|clip", "em067_00|em067_00u|1006|event"]}

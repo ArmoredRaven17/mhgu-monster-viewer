@@ -1,0 +1,5 @@
+PASS em003_00 2|Motion[4] f52 off  -- {"redPixels":1740,"frame":52}
+PASS em003_00 2|Motion[4] f52 built  -- {"redPixels":2024,"frame":52}
+PASS em003_00 2|Motion[4] f52 noBurst  -- {"redPixels":2067,"frame":52}
+
+3 passed, 0 failed

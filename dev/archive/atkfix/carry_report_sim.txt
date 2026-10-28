@@ -1,0 +1,159 @@
+em001_00 1|Motion[32]|0|40|3|-1.0|3:0x33: carried 1|Motion[29]+127
+em001_00 4|Motion[26]|0|14|3|50.0|7:0x1: refused  -- not-in-lists
+em001_02 1|Motion[32]|0|40|3|-1.0|3:0x33: carried 1|Motion[29]+127
+em001_02 4|Motion[26]|0|14|3|50.0|7:0x1: refused  -- not-in-lists
+em001_04 1|Motion[32]|0|40|3|-1.0|3:0x33: carried 1|Motion[29]+127
+em001_04 4|Motion[26]|0|14|3|50.0|7:0x1: refused  -- not-in-lists
+em001_04 9|Motion[4]|0|1030|1|-1.0|7:0xfc: refused  -- frame-gated
+em002_00 1|Motion[32]|0|40|3|-1.0|3:0x33: carried 1|Motion[29]+127
+em002_00 4|Motion[26]|0|14|3|50.0|7:0x1: refused  -- several  [simulator: carried 4|Motion[25]+91 -- not applied]
+em002_02 1|Motion[32]|0|40|3|-1.0|3:0x33: carried 1|Motion[29]+127
+em002_02 4|Motion[26]|0|14|3|50.0|7:0x1: refused  -- several  [simulator: carried 4|Motion[25]+91 -- not applied]
+em002_04 1|Motion[32]|0|40|3|-1.0|3:0x33: carried 1|Motion[29]+127
+em002_04 4|Motion[26]|0|14|3|50.0|7:0x1: refused  -- several  [simulator: carried 4|Motion[25]+91 -- not applied]
+em003_00 2|Motion[4]|0|29|9|74.0|2:0x3: carried 2|Motion[4]+76@lap1
+em003_00 2|Motion[4]|0|29|9|-1.0|7:0x0: carried 2|Motion[39]+77
+em003_00 2|Motion[4]|0|41|5129|-1.0|7:0x9: refused  -- stub-answer:0x168ebc,0x7fc00,0xb0934
+em003_00 0|Motion[21]|0|29|9|-1.0|3:0x43: carried 2|Motion[39]+77
+em007_00 3|Motion[24]|0|46|193|74.0|1:0x8: refused  -- action-ends (simulator: waits)
+em007_04 3|Motion[24]|0|46|193|74.0|1:0x8: refused  -- action-ends (simulator: waits)
+em007_04 9|Motion[26]|1|1029|1|-1.0|7:0xc8: carried 9|Motion[27]+19
+em007_04 9|Motion[27]|0|1030|11|-1.0|7:0xc8: refused  -- several  [simulator: carried 9|Motion[27]+85 -- stub-answer:0x13ecc20,0x13ecc2c,0x723dc,0x7bd18,0x7d65c,0x7db70 -- not applied]
+em009_00 4|Motion[26]|0|52|11|-1.0|3:0xe: carried 4|Motion[27]+23 -- waits
+em009_00 4|Motion[28]|0|52|11|-1.0|3:0x24: carried 4|Motion[29]+33 4|Motion[4]+52
+em009_00 4|Motion[40]|0|52|11|-1.0|3:0x26: carried 4|Motion[41]+21 4|Motion[4]+30
+em010_00 2|Motion[3]|0|1|11|-1.0|2:0x14: carried 2|Motion[4]+69
+em013_00 2|Motion[16]|0|15|3|-1.0|7:0x2d: carried 2|Motion[54]+159 2|Motion[54]+224@lap1
+em013_00 4|Motion[14]|0|30|11|144.0|7:0x51: refused  -- not-in-lists
+em013_01 2|Motion[16]|0|15|3|-1.0|7:0x2d: carried 2|Motion[54]+159 2|Motion[54]+224@lap1
+em013_01 4|Motion[14]|0|30|11|144.0|7:0x51: refused  -- not-in-lists
+em013_02 2|Motion[16]|0|15|3|-1.0|7:0x2d: carried 2|Motion[54]+159 2|Motion[54]+224@lap1
+em014_00 2|Motion[1]|0|3|3|-1.0|7:0x2: carried 2|Motion[2]+23
+em015_00 2|Motion[1]|0|8|3|-1.0|7:0x2: carried 2|Motion[2]+23
+em016_00 2|Motion[1]|0|9|3|-1.0|7:0x2: carried 2|Motion[2]+23
+em017_00 2|Motion[12]|0|14|1|18.0|pf+0x208: refused  -- per-frame (simulator: per-frame)
+em018_00 1|Motion[32]|0|2|3|-1.0|3:0xe: carried 1|Motion[29]+127
+em018_00 1|Motion[24]|0|2|3|-1.0|3:0x19: carried 1|Motion[25]+31 1|Motion[26]+136
+em018_04 1|Motion[32]|0|2|3|-1.0|3:0xe: carried 1|Motion[29]+127
+em018_04 1|Motion[24]|0|2|3|-1.0|3:0x19: carried 1|Motion[25]+31 1|Motion[26]+136
+em019_00 3|Motion[30]|0|49|3|92.0|1:0x1a: carried 3|Motion[30]+15@lap1 3|Motion[31]+30 3|Motion[32]+51 3|Motion[33]+72 3|Motion[34]+95 3|Motion[35]+146
+em019_04 3|Motion[30]|0|1049|3|92.0|1:0x1a: carried 3|Motion[30]+15@lap1 3|Motion[31]+30 3|Motion[32]+51 3|Motion[33]+72 3|Motion[34]+95 3|Motion[35]+146
+em021_00 0|Motion[29]|0|11|5|128.0|1:0x9: refused  -- action-ends  [simulator: carried 0|Motion[29]+93 -- not applied]
+em021_00 0|Motion[34]|0|22|3|-1.0|3:0x33: carried 0|Motion[34]+69@lap1
+em021_00 5|Motion[29]|1|30|3|40.0|7:0x52: carried 5|Motion[29]+42@lap1 -- stub-answer:0x76c08,0x7a820,0x7bd18,0x7fc00,0xbe518,0xbf52c
+em021_00 5|Motion[29]|1|30|3|-1.0|7:0x55: refused  -- stub-answer:0x76c08,0x7a820,0x7bd18,0x7fc00,0xbe518,0xbf52c
+em021_00 5|Motion[29]|1|33|3|40.0|7:0x59: carried 5|Motion[29]+42@lap1 -- stub-answer:0x76c08,0x7a820,0x7bd18,0x7fc00,0xbe518,0xbf52c
+em021_00 5|Motion[29]|1|33|3|-1.0|7:0x5c: refused  -- stub-answer:0x76c08,0x7a820,0x7bd18,0x7fc00,0xbe518,0xbf52c
+em022_00 4|Motion[10]|0|33|1|-1.0|7:0x25: refused  -- several  [simulator: carried 4|Motion[10]+75 -- frame-gated -- not applied]
+em024_00 1|Motion[24]|0|31|3|-1.0|3:0x1c: carried 1|Motion[25]+109
+em025_00 0|Motion[40]|0|6|3|-1.0|2:0x8: carried 0|Motion[41]+15 0|Motion[42]+28
+em025_00 0|Motion[40]|1|18|3|-1.0|2:0x8: carried 0|Motion[41]+15 0|Motion[42]+28
+em025_00 0|Motion[43]|0|6|3|-1.0|2:0x9: carried 0|Motion[44]+15 0|Motion[45]+42
+em025_00 0|Motion[43]|1|18|3|-1.0|2:0x9: carried 0|Motion[44]+15 0|Motion[45]+42
+em025_00 0|Motion[30]|0|6|3|-1.0|2:0xa: carried 0|Motion[31]+15 0|Motion[32]+34
+em025_00 0|Motion[30]|1|18|3|-1.0|2:0xa: carried 0|Motion[31]+15 0|Motion[32]+34
+em025_00 0|Motion[33]|0|6|3|-1.0|2:0xb: carried 0|Motion[34]+15 0|Motion[35]+48
+em025_00 0|Motion[33]|1|18|3|-1.0|2:0xb: carried 0|Motion[34]+15 0|Motion[35]+48
+em025_00 2|Motion[51]|0|17|3|90.0|7:0x21: carried 2|Motion[51]+89@lap1
+em027_00 1|Motion[24]|0|39|3|-1.0|3:0x1c: carried 1|Motion[25]+109
+em027_00 4|Motion[1]|0|29|3|2.0|7:0x8: carried 4|Motion[1]+25@lap1 4|Motion[11]+50
+em032_00 0|Motion[53]|0|6|11|96.0|7:0x1e: carried 0|Motion[53]+49@lap1 -- waits
+em032_00 2|Motion[3]|0|25|1|-1.0|13:0x4: carried 2|Motion[2]+27
+em032_00 2|Motion[7]|1|5|3|32.0|pf+0x208: refused  -- per-frame (simulator: per-frame)
+em032_04 0|Motion[53]|0|1003|11|96.0|7:0x1e: carried 0|Motion[53]+49@lap1 -- waits
+em032_04 2|Motion[3]|0|25|1|-1.0|13:0x4: carried 2|Motion[2]+27
+em032_04 2|Motion[7]|1|1002|3|32.0|pf+0x208: refused  -- per-frame (simulator: per-frame)
+em034_00 2|Motion[1]|0|24|3|-1.0|7:0x2: carried 2|Motion[2]+23
+em037_00 2|Motion[10]|0|7|1|-1.0|7:0x3c: carried 2|Motion[11]+27
+em037_00 2|Motion[10]|0|23|1|-1.0|13:0x4: refused  -- several  [simulator: carried 2|Motion[11]+27 -- not applied]
+em037_00 2|Motion[10]|0|7|1|8.0|pf+0x208: refused  -- per-frame (simulator: per-frame)
+em037_00 2|Motion[14]|0|8|1|-1.0|7:0xe7: carried 2|Motion[15]+27
+em037_00 2|Motion[14]|0|8|1|8.0|pf+0x208: refused  -- per-frame (simulator: per-frame)
+em037_04 2|Motion[10]|0|7|1|-1.0|7:0x3c: carried 2|Motion[11]+27
+em037_04 2|Motion[10]|0|23|1|-1.0|13:0x4: refused  -- several  [simulator: carried 2|Motion[11]+27 -- not applied]
+em037_04 2|Motion[10]|0|7|1|8.0|pf+0x208: refused  -- per-frame (simulator: per-frame)
+em037_04 2|Motion[14]|0|8|1|-1.0|7:0xe7: carried 2|Motion[15]+27
+em037_04 2|Motion[14]|0|8|1|8.0|pf+0x208: refused  -- per-frame (simulator: per-frame)
+em037_04 9|Motion[8]|0|1059|9|-1.0|7:0xef: refused  -- several (simulator: stub-answer:0x6f618)
+em037_04 9|Motion[8]|1|1060|1|-1.0|7:0xef: refused  -- several (simulator: stub-answer:0x6f618)
+em038_00 2|Motion[26]|0|30|3|124.0|pf+0x208: refused  -- per-frame (simulator: per-frame)
+em042_00 2|Motion[4]|0|13|11|42.0|7:0xe: refused  -- action-ends  [simulator: carried 2|Motion[4]+63 -- waits -- not applied]
+em042_00 2|Motion[8]|0|10|11|94.0|7:0xf: refused  -- action-ends  [simulator: carried 2|Motion[8]+127 -- not applied]
+em045_00 0|Motion[32]|1|40|1|-1.0|3:0x4: carried 0|Motion[33]+225
+em045_04 0|Motion[32]|1|1049|1|-1.0|3:0x4: carried 0|Motion[33]+225
+em046_00 2|Motion[7]|0|8|11|78.0|7:0xd: carried 2|Motion[8]+110
+em046_00 2|Motion[7]|1|63|27|78.0|7:0x4f: carried 2|Motion[8]+110
+em046_00 2|Motion[7]|1|30|27|78.0|7:0x93: carried 2|Motion[8]+110
+em047_00 15|Motion[255]|0|5|3|64.0|7:0x3: refused  -- not-in-lists
+em047_00 15|Motion[255]|1|17|3|64.0|7:0x3: refused  -- not-in-lists
+em047_00 15|Motion[255]|0|5|3|90.0|7:0xc: refused  -- not-in-lists
+em047_00 15|Motion[255]|1|17|3|90.0|7:0xc: refused  -- not-in-lists
+em047_00 2|Motion[25]|0|37|1|-1.0|7:0x3d: refused  -- several (simulator: stub-answer:0x6f618,0x78b78,0x7db70,0xb0944)
+em049_00 2|Motion[21]|0|19|3|74.0|7:0xd: refused  -- frame-gated
+em049_00 2|Motion[35]|0|36|11|70.0|7:0x26: refused  -- frame-gated
+em049_00 2|Motion[35]|0|36|11|-1.0|7:0x33: carried 2|Motion[8]+65
+em050_00 1|Motion[16]|0|30|3|-1.0|4:0xa: carried 1|Motion[17]+251
+em050_00 1|Motion[2]|0|14|11|-1.0|7:0x1d: refused  -- several (simulator: frame-gated)
+em050_00 1|Motion[2]|1|15|27|-1.0|7:0x1d: refused  -- several (simulator: frame-gated)
+em055_00 2|Motion[29]|0|31|1|210.0|7:0x1e: carried 2|Motion[23]+379
+em055_00 2|Motion[29]|1|43|1|210.0|7:0x1e: carried 2|Motion[23]+379
+em057_00 0|Motion[40]|0|63|3|-1.0|3:0x0: carried 0|Motion[41]+5
+em057_00 0|Motion[46]|0|64|3|-1.0|3:0x1: carried 0|Motion[47]+21
+em057_00 2|Motion[16]|0|1|1|36.0|7:0x0: carried 2|Motion[16]+43@lap1 -- stub-answer:0x7d65c,0xbf4e4,0xc0354
+em057_00 2|Motion[19]|0|1|1|36.0|7:0x1: carried 2|Motion[19]+43@lap1 -- stub-answer:0x7d65c,0xbf4e4,0xc0354
+em057_00 2|Motion[12]|0|9|3|-1.0|7:0x14: carried 2|Motion[8]+79
+em057_00 2|Motion[37]|0|26|1|-1.0|7:0x7d: carried 2|Motion[16]+155
+em057_00 2|Motion[38]|0|26|1|-1.0|7:0x7e: carried 2|Motion[19]+155
+em057_04 0|Motion[40]|0|63|3|-1.0|3:0x0: carried 0|Motion[41]+5
+em057_04 0|Motion[46]|0|64|3|-1.0|3:0x1: carried 0|Motion[47]+21
+em057_04 2|Motion[16]|0|39|1|36.0|7:0x0: carried 2|Motion[16]+43@lap1 -- stub-answer:0x7d65c,0xbf4e4,0xc0354
+em057_04 2|Motion[19]|0|39|1|36.0|7:0x1: carried 2|Motion[19]+43@lap1 -- stub-answer:0x7d65c,0xbf4e4,0xc0354
+em057_04 2|Motion[12]|0|9|3|-1.0|7:0x14: carried 2|Motion[8]+79
+em057_04 2|Motion[37]|0|26|1|-1.0|7:0x7d: carried 2|Motion[16]+155
+em057_04 2|Motion[38]|0|26|1|-1.0|7:0x7e: carried 2|Motion[19]+155
+em061_04 0|Motion[3]|0|1049|1|-1.0|1:0xa: carried 0|Motion[52]+43
+em063_00 2|Motion[12]|0|23|265|-1.0|13:0x3: carried 2|Motion[13]+59
+em063_05 2|Motion[12]|0|23|265|-1.0|13:0x3: carried 2|Motion[13]+59
+em065_00 2|Motion[88]|0|6|3|-1.0|7:0x2: carried 2|Motion[88]+89@lap1
+em065_00 2|Motion[121]|0|36|11|-1.0|7:0x1a: carried 2|Motion[121]+63@lap1 2|Motion[122]+126
+em065_00 2|Motion[67]|0|12|1|-1.0|7:0x35: carried 2|Motion[68]+101
+em069_00 4|Motion[25]|0|5|3|-1.0|7:0x3c: refused  -- action-ends  [simulator: carried 4|Motion[7]+2 4|Motion[24]+51 -- change:set -- not applied]
+em069_00 4|Motion[71]|0|25|11|-1.0|7:0x3d: carried 4|Motion[72]+149
+em071_00 4|Motion[12]|0|9|5|108.0|7:0x53: refused  -- not-in-lists
+em071_05 4|Motion[12]|0|9|5|108.0|7:0x53: refused  -- not-in-lists
+em076_00 2|Motion[18]|0|6|1|-1.0|7:0x0: carried 2|Motion[32]+155
+em076_00 2|Motion[21]|0|8|1|-1.0|9:0x2: carried 2|Motion[33]+99
+em077_00 1|Motion[57]|0|13|3|-1.0|3:0x33: carried 1|Motion[55]+127
+em079_00 2|Motion[34]|0|0|1|-1.0|7:0x29: carried 2|Motion[35]+19
+em079_00 2|Motion[34]|0|1|1|-1.0|7:0x2a: carried 2|Motion[35]+19
+em079_04 2|Motion[34]|0|0|1|-1.0|7:0x29: carried 2|Motion[35]+19
+em079_04 2|Motion[34]|0|1|1|-1.0|7:0x2a: carried 2|Motion[35]+19
+em079_04 2|Motion[34]|0|1010|1|-1.0|7:0xd3: carried 2|Motion[35]+19
+em081_00 4|Motion[26]|0|0|3|50.0|7:0x1: refused  -- several  [simulator: carried 4|Motion[25]+91 -- not applied]
+em081_04 4|Motion[26]|0|0|3|50.0|7:0x1: refused  -- several  [simulator: carried 4|Motion[25]+91 -- not applied]
+em082_00 0|Motion[21]|0|49|1|-1.0|3:0x0: carried 0|Motion[22]+19
+em082_00 0|Motion[24]|0|51|1|-1.0|3:0x1: carried 0|Motion[25]+21
+em082_04 0|Motion[21]|0|49|1|-1.0|3:0x0: carried 0|Motion[22]+19
+em082_04 0|Motion[24]|0|51|1|-1.0|3:0x1: carried 0|Motion[25]+21
+em083_00 2|Motion[39]|0|1|1|60.0|7:0x3: refused  -- frame-gated
+em083_00 2|Motion[39]|0|1|1|-1.0|7:0x5c: carried 2|Motion[37]+127
+em083_00 2|Motion[50]|0|59|1|-1.0|7:0x45: carried 2|Motion[5]+59
+em083_00 2|Motion[50]|1|60|1|-1.0|7:0x45: carried 2|Motion[5]+59
+em083_04 2|Motion[39]|0|1018|1|60.0|7:0x3: refused  -- frame-gated
+em083_04 2|Motion[39]|0|1018|1|-1.0|7:0x5c: carried 2|Motion[37]+127
+em083_04 2|Motion[50]|0|1024|1|-1.0|7:0x45: carried 2|Motion[5]+59
+em083_04 2|Motion[50]|1|1025|1|-1.0|7:0x45: carried 2|Motion[5]+59
+em084_00 0|Motion[8]|0|21|1|-1.0|2:0x0: carried 0|Motion[4]+219
+em084_00 0|Motion[8]|1|22|1|-1.0|2:0x0: carried 0|Motion[4]+219
+em084_00 0|Motion[9]|0|23|1|-1.0|2:0x2: carried 0|Motion[5]+199
+em084_00 0|Motion[9]|1|24|1|-1.0|2:0x2: carried 0|Motion[5]+199
+em085_00 2|Motion[31]|0|15|1|-1.0|7:0x1f: carried 2|Motion[46]+27
+em085_00 2|Motion[31]|0|1|1|54.0|7:0x63: carried 2|Motion[31]+27@lap1 2|Motion[46]+54
+em086_00 2|Motion[87]|0|34|9|-1.0|2:0xc: carried 2|Motion[88]+79
+em086_00 1|Motion[2]|0|42|3|-1.0|3:0x0: carried 1|Motion[2]+23@lap1 1|Motion[5]+46
+em086_00 2|Motion[76]|0|21|25|-1.0|7:0x0: refused  -- several (simulator: stub-answer:0x6f640,0x7a820,0x7bd18,0xbf52c)
+em086_00 2|Motion[79]|0|21|25|-1.0|7:0x1: refused  -- several (simulator: stub-answer:0x6f640,0x7a820,0x7bd18,0xbf52c)
+em086_00 2|Motion[98]|1|3|1|-1.0|7:0x18: carried 2|Motion[86]+29
+em086_00 2|Motion[101]|1|2|1|-1.0|7:0x19: carried 2|Motion[84]+29
+em086_00 2|Motion[70]|1|24|1|-1.0|7:0x32: carried 2|Motion[71]+137
+em086_00 2|Motion[72]|0|19|1|2.0|7:0x32: carried 2|Motion[72]+17@lap1 1|Motion[5]+34

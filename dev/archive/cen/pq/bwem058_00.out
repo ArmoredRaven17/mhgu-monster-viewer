@@ -1,0 +1,3 @@
+PASS PROBE em058_00  -- {"log":["monGroundType=g2shallow","no clip 3|Motion[5]#B","played 3|Motion[13]","monGroundType=plain"],"rows":[{"k":"em058_00|em058_00c|1500|event","st":2,"live":182,"lit":33,"s":41,"px":4082,"verdict":"draws","clips":["em058_00|3|Motion[13]"],"nodraw":{"clip":"em058_00|3|Motion[13]","units":[{"w0c":"14cb2","gens":3,"mask1":"ffffffff","mask2":"ffffffff","nrow":2352,"rows":[["ffffffff","14"],["ffffffff","14"],["ffffffff","14"],["77012","7a001"],["0","0"],["0","0"],["0","0"],["4000","28002"],["0","0"],["4000","28002"],["0","0"],["0","0"]]}]}}],"missing":[]}
+
+1 passed, 0 failed

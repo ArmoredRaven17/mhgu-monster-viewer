@@ -1,0 +1,66 @@
+uEm071_00 em071 v0 (0, 0x6) ph0A: ADD -2.5@fb2334 | PH 1 | POST 3@fb237c | M L1M7@4ffffffc
+uEm071_00 em071 v0 (0, 0x6) ph1A: ADD -2.5@fb2334
+uEm071_00 em071 v0 (0, 0x6) ph2A?: ADD -2.5@fb2334
+uEm071_00 em071 v0 (0, 0x6) ph3A?: ADD -2.5@fb2334
+uEm071_00 em071 v0 (0, 0x6) ph4A?: ADD -2.5@fb2334
+uEm071_00 em071 v0 (0, 0x6) ph5A?: ADD -2.5@fb2334
+uEm071_00 em071 v0 (0, 0x6) ph6A?: ADD -2.5@fb2334
+uEm071_00 em071 v0 (0, 0x6) ph7A?: ADD -2.5@fb2334
+uEm071_00 em071 v0 (0, 0x6) ph8A?: ADD -2.5@fb2334
+uEm071_00 em071 v0 (0, 0x6) ph9A?: ADD -2.5@fb2334
+uEm071_00 em071 v0 (0, 0x6) ph10A?: ADD -2.5@fb2334
+uEm071_00 em071 v0 (0, 0x6) ph11A?: ADD -2.5@fb2334
+uEm071_00 em071 v0 (7, 0x23) ph0A: PH 1 | POST 3@fb9c1c | M L2M44@fb9c30
+uEm071_00 em071 v0 (7, 0x23) ph1A: SET 0@fb9ee4
+uEm071_00 em071 v0 (7, 0x23) ph1B: SET 0@fb9ee4 | PH 2 | M L2M45@fb9f54
+uEm071_00 em071 v0 (7, 0x23) ph2A: ADD -2.5@fb9ff4
+uEm071_00 em071 v0 (7, 0x23) ph2C: ADD -2.5@fb9ff4 | PH 3 | POST 0@fba0c0 | M L2M46@fba154 | SET 0@fba160
+uEm071_00 em071 v0 (7, 0x23) ph3B: IDLE
+uEm071_00 em071 v0 (7, 0x23) ph4A?: SET 450@fb9cb8
+uEm071_00 em071 v0 (7, 0x23) ph4B?: SET 30@fb9cb8
+uEm071_00 em071 v0 (7, 0x23) ph4C?: SET 400@fb9cb8
+uEm071_00 em071 v0 (7, 0x24) ph0A: PH 1 | POST 3@fb9c1c | M L2M44@fb9c30
+uEm071_00 em071 v0 (7, 0x24) ph1A: SET 0@fb9ee4
+uEm071_00 em071 v0 (7, 0x24) ph1B: SET 0@fb9ee4 | PH 2 | M L2M45@fb9f54
+uEm071_00 em071 v0 (7, 0x24) ph2A: ADD -2.5@fb9ff4
+uEm071_00 em071 v0 (7, 0x24) ph2C: ADD -2.5@fb9ff4 | PH 3 | POST 0@fba0c0 | M L2M46@fba154 | SET 0@fba160
+uEm071_00 em071 v0 (7, 0x24) ph3B: IDLE
+uEm071_00 em071 v0 (7, 0x24) ph4A?: SET 450@fb9cb8
+uEm071_00 em071 v0 (7, 0x24) ph4B?: SET 30@fb9cb8
+uEm071_00 em071 v0 (7, 0x24) ph4C?: SET 400@fb9cb8
+uEm071_00 em071 v0 (7, 0x25) ph0A: PH 1 | POST 3@fb9c1c | M L2M44@fb9c30
+uEm071_00 em071 v0 (7, 0x25) ph1A: SET 0@fb9ee4
+uEm071_00 em071 v0 (7, 0x25) ph1B: SET 0@fb9ee4 | PH 2 | M L2M45@fb9f54
+uEm071_00 em071 v0 (7, 0x25) ph2A: ADD -2.5@fb9ff4
+uEm071_00 em071 v0 (7, 0x25) ph2C: ADD -2.5@fb9ff4 | PH 3 | POST 0@fba0c0 | M L2M46@fba154 | SET 0@fba160
+uEm071_00 em071 v0 (7, 0x25) ph3B: IDLE
+uEm071_00 em071 v0 (7, 0x25) ph4A?: SET 450@fb9cb8
+uEm071_00 em071 v0 (7, 0x25) ph4B?: SET 30@fb9cb8
+uEm071_00 em071 v0 (7, 0x25) ph4C?: SET 400@fb9cb8
+uEm071_00 em071 v0 (7, 0x26) ph0A: PH 1 | POST 3@fb9c1c | M L2M44@fb9c30
+uEm071_00 em071 v0 (7, 0x26) ph1A: SET 0@fb9ee4
+uEm071_00 em071 v0 (7, 0x26) ph1B: SET 0@fb9ee4 | PH 2 | M L2M45@fb9f54
+uEm071_00 em071 v0 (7, 0x26) ph2A: ADD -2.5@fb9ff4
+uEm071_00 em071 v0 (7, 0x26) ph2C: ADD -2.5@fb9ff4 | PH 4 | M L2M47@fba080
+uEm071_00 em071 v0 (7, 0x26) ph3B?: IDLE
+uEm071_00 em071 v0 (7, 0x26) ph4A: SET 450@fb9cb8
+uEm071_00 em071 v0 (7, 0x26) ph4B: SET 30@fb9cb8
+uEm071_00 em071 v0 (7, 0x26) ph4C: SET 400@fb9cb8
+uEm071_00 em071 v0 (7, 0x27) ph0A: PH 1 | POST 3@fb9c1c | M L2M44@fb9c30
+uEm071_00 em071 v0 (7, 0x27) ph1A: SET 0@fb9ee4
+uEm071_00 em071 v0 (7, 0x27) ph1B: SET 0@fb9ee4 | PH 2 | M L2M45@fb9f54
+uEm071_00 em071 v0 (7, 0x27) ph2A: ADD -2.5@fb9ff4
+uEm071_00 em071 v0 (7, 0x27) ph2C: ADD -2.5@fb9ff4 | PH 4 | M L2M47@fba080
+uEm071_00 em071 v0 (7, 0x27) ph3B?: IDLE
+uEm071_00 em071 v0 (7, 0x27) ph4A: SET 450@fb9cb8
+uEm071_00 em071 v0 (7, 0x27) ph4B: SET 30@fb9cb8
+uEm071_00 em071 v0 (7, 0x27) ph4C: SET 400@fb9cb8
+uEm071_00 em071 v0 (7, 0x28) ph0A: PH 1 | POST 3@fb9c1c | M L2M44@fb9c30
+uEm071_00 em071 v0 (7, 0x28) ph1A: SET 0@fb9ee4
+uEm071_00 em071 v0 (7, 0x28) ph1B: SET 0@fb9ee4 | PH 2 | M L2M45@fb9f54
+uEm071_00 em071 v0 (7, 0x28) ph2A: ADD -2.5@fb9ff4
+uEm071_00 em071 v0 (7, 0x28) ph2C: ADD -2.5@fb9ff4 | PH 4 | M L2M47@fba080
+uEm071_00 em071 v0 (7, 0x28) ph3B?: IDLE
+uEm071_00 em071 v0 (7, 0x28) ph4A: SET 450@fb9cb8
+uEm071_00 em071 v0 (7, 0x28) ph4B: SET 30@fb9cb8
+uEm071_00 em071 v0 (7, 0x28) ph4C: SET 400@fb9cb8

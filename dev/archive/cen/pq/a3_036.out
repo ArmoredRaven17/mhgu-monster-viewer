@@ -1,0 +1,3 @@
+PASS PROBE em036_00  -- {"log":["partSweep 3|Motion[2] over 2 rows"],"rows":[{"k":"em036_00|em036_00u|1031|event","st":1,"live":40,"lit":10,"s":11,"px":9920,"verdict":"draws","clips":["em036_00|3|Motion[2]"]}],"missing":[]}
+
+1 passed, 0 failed

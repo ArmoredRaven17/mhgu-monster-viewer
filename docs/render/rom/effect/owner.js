@@ -26,6 +26,7 @@ import { Scratch } from './motion.js';
 import { eulerMatrix } from './spawn.js';
 import { matMulTo } from './polyline.js';
 import { liftedCall } from './bridge.js';
+import { inv232e24 } from './rom-inv44.js';
 import './lifted-particles.js';
 
 const GOT_EFFECT_MANAGER = 0x183b9ec;        // -> 0x211f554, the manager singleton
@@ -447,13 +448,99 @@ function nodeStore(m, inst, node, f110){
   for (let k = 0; k < 0x40; k += 4) m.w32(inst + k, m.u32(node + k));
   if (f110 & 0x40) throw new Unverified('0x9bc1d0 node +0x110 bit 6');
   for (let k = 0; k < 0x40; k += 4) m.w32(inst + 0x40 + k, m.u32(node + k));   // 0x9bc9ac
-  // 0x9bca10: node +0x110 bit 12 calls the node DRAW-REGISTRATION (0x9bca30) -- it walks the render singleton's
-  // active passes (0xe75730 +0x54/+0x204/... ) and, for each, computes the node's per-pass draw matrix from the
-  // camera (the world x view combine at 0x9bce20). The viewer does not draw through the ROM's render passes; it
-  // draws each effect through host.drawFrame with its own camera, so that registration is LEFT OUT here rather
-  // than translated (it needs the render singleton the viewer never stands up). The node's own matrix at
-  // inst+0x00..0x7c is already written above. If a model's placement/orientation comes out wrong, translate it.
+  // 0x9bc9a4..0x9bca18: with the node's +0x110 bit 12 (re-read: [[sp+0x2c] + 8]) the tail calls 0x9bca30 -- THE NODE
+  // FACES THE CAMERA (nodeCamera below). Until 2026-10-27 this was left out as a "draw registration"; it is not one: it
+  // re-aims the node's own matrix at the viewport camera, which every emitter then spawns through (Kushala's wind aura).
+  if (m.u32(inst + 0x110) & 0x1000) nodeCamera(m, m.u32(inst + 0x100), inst);
 }
+
+// 0x9bca30(owner, node), READ whole 2026-10-27 (dev/em024_00-effects-spec.md 9; rom-map "Kushala's wind aura"): the node's
+// matrix turned to the camera of the first viewport its owner draws in. The viewport: owner +0xc bits 16..23, the first
+// set bit k whose sCamera (*0x211f504) slot +0x54 + 0x1b0 k holds a camera; none -> return (0x9bca40..0x9bcad8).
+//   node +0x110 bit 13 (0x9bcaec) -> 0x9bcda0: 0xafb350(node rows, camera +0x70, camera +0x50) -- the node's Z aimed at the
+//     camera's +0x70 point (the camera position: 0xa55190 / 0xaec0bc measure distances from it) with the camera's up
+//     (+0x50, uCamera mCameraUp), each row keeping its length, the translation kept.
+//   else -> 0x9bcaf4: the rows times the inverse of the camera's view (vt+0x4c, the look-at 0x1c33c; inverse 0x232e24 = rom-inv44.js;
+//     product 0x1ebe8 in place), the translation kept.
+//   Then the +0x40 copy: node +0x110 bit 6 -> the same on it (0x9bcc54 / 0x9bcf10: refused, nodeStore already does), else the
+//   new +0x00..+0x3c (0x9bcd4c / 0x9bd000).
+// The node bits come from the node block +4 (0xae83c8: bit 12 = +4 & 0x30000, bit 13 = +4 bit 17 -- 0x20020 / 0x20028 on
+// em024_00_004's two nodes both set both).
+// NODE_CAMERA.off: a before / after switch for the check tools only (dev/archive/kushwind/kwshot.mjs `old`), never set by the page.
+export const NODE_CAMERA = { off: false };
+export function nodeCamera(m, owner, inst){
+  const G = m.u32(0x211f504);
+  if (!G || NODE_CAMERA.off) return;
+  const view = (m.u32(owner + 0xc) >>> 16) & 0xff;
+  let cam = 0;
+  for (let k = 0; k < 8 && !cam; k++) if (view & (1 << k)) cam = m.u32(G + 0x54 + 0x1b0 * k);
+  if (!cam) return;
+  const sc = new Scratch(m);
+  const M = sc.alloc(0x40);
+  for (let k = 0; k < 0x40; k += 4) m.w32(M + k, m.u32(inst + k));
+  if (m.u32(inst + 0x110) & 0x2000){                                       // 0x9bcda0
+    const P = sc.alloc(0x10), U = sc.alloc(0x10);
+    for (let k = 0; k < 12; k += 4){ m.w32(P + k, m.u32(cam + 0x70 + k)); m.w32(U + k, m.u32(cam + 0x50 + k)); }
+    m.w32(P + 12, 0); m.w32(U + 12, 0);
+    aimRows(m, M, P, U);                                                   // 0x9bce68 bl 0xafb350
+  } else {                                                                 // 0x9bcaf4
+    const V = sc.alloc(0x40), W = sc.alloc(0x40);
+    liftedCall(m, m.u32(m.u32(cam) + 0x4c), [V, cam]);                     // 0x9bcb04 the camera's view
+    inv232e24(m, W, V, m.u32(0x1832afc));                                  // 0x9bcb14 bl 0x232e24 (rom-inv44.js; GOT 0x1832afc -> Identity)
+    const t = [0x30, 0x34, 0x38, 0x3c].map(o => m.u32(inst + o));
+    m.w32(M + 0x30, 0); m.w32(M + 0x34, 0); m.w32(M + 0x38, 0); m.w32(M + 0x3c, 0x3f800000);
+    liftedCall(m, 0x1ebe8, [M, W]);                                        // 0x9bcba4, in place
+    [0x30, 0x34, 0x38, 0x3c].forEach((o, i) => m.w32(M + o, t[i]));
+  }
+  for (let k = 0; k < 0x40; k += 4){ const w = m.u32(M + k); m.w32(inst + k, w); m.w32(inst + 0x40 + k, w); }
+  sc.free();
+}
+
+// 0xafb350(M, P, U), READ whole: M's rows turned so row 2 points from M's translation to P (or keeps M's row 2 when P is
+// the translation exactly), row 0 = normalise(U x z) (or, when that is zero, row 1 = normalise(z x row 0) first), row 1 =
+// normalise(z x row 0); each row scaled by its old length (the 4-wide length, w included); w words 0; translation kept.
+// Transcribed in the ROM's order and single precision; sqrtf's NaN fallback (0x13ecc14) gives the same value.
+function aimRows(m, M, P, U){
+  const len4 = o => F(Math.sqrt(F(F(F(m.f32(M + o + 4) * m.f32(M + o + 4)) + F(m.f32(M + o) * m.f32(M + o))) +
+                                  F(m.f32(M + o + 8) * m.f32(M + o + 8))) + F(m.f32(M + o + 12) * m.f32(M + o + 12))));
+  const s16 = len4(0), s18 = len4(0x10), s20 = len4(0x20);
+  const EPS = F(1.1920928955078125e-07), zero = m.u32(0x1831a78);       // GOT MtVector3 Zero; 0xafb6e4
+  const Z0 = m.f32(zero), Z1 = m.f32(zero + 4), Z2 = m.f32(zero + 8);
+  let zx = F(m.f32(P) - m.f32(M + 0x30)), zy = F(m.f32(P + 4) - m.f32(M + 0x34)), zz = F(m.f32(P + 8) - m.f32(M + 0x38));
+  if (zx === Z0 && zy === Z1 && zz === Z2){                                // 0xafb460: P is the translation
+    zx = m.f32(M + 0x20); zy = m.f32(M + 0x24); zz = m.f32(M + 0x28);
+  } else {                                                                 // 0xafb590
+    const l = F(Math.sqrt(F(F(F(zy * zy) + F(zx * zx)) + F(zz * zz))));
+    if (!(l < EPS)){ const i = F(1 / l); zz = F(zz * i); zy = F(zy * i); zx = F(zx * i); }
+  }
+  const ux = m.f32(U), uy = m.f32(U + 4), uz = m.f32(U + 8);              // 0xafb46c
+  let x0 = F(F(zz * uy) - F(zy * uz));                                     // s17
+  let x2 = F(F(zy * ux) - F(zx * uy));                                     // s30
+  let x1 = F(F(zx * uz) - F(zz * ux));                                     // s28
+  let y0, y1, y2;                                                          // s19, s21, s23
+  if (x0 === Z0 && x1 === Z1 && x2 === Z2){                                // 0xafb4c4: U along z -- from M's row 0
+    const r0 = m.f32(M), r1 = m.f32(M + 4), r2 = m.f32(M + 8);
+    y0 = F(F(zz * r0) - F(zx * r2)); y1 = F(F(zy * r2) - F(zz * r1)); y2 = F(F(zx * r1) - F(zy * r0));
+    let l = F(Math.sqrt(F(F(F(y0 * y0) + F(y1 * y1)) + F(y2 * y2))));
+    if (!(l < EPS)){ const i = F(1 / l); y2 = F(y2 * i); y0 = F(i * y0); y1 = F(i * y1); }
+    x1 = F(F(zx * y2) - F(zz * y1)); x0 = F(F(zz * y0) - F(zy * y2)); x2 = F(F(zy * y1) - F(zx * y0));
+    l = F(Math.sqrt(F(F(F(x1 * x1) + F(x0 * x0)) + F(x2 * x2))));
+    if (!(l < EPS)){ const i = F(1 / l); x2 = F(x2 * i); x1 = F(i * x1); x0 = F(i * x0); }
+  } else {                                                                 // 0xafb5dc
+    const l = F(Math.sqrt(F(F(F(x1 * x1) + F(x0 * x0)) + F(x2 * x2))));
+    if (!(l < EPS)){ const i = F(1 / l); x2 = F(x2 * i); x1 = F(x1 * i); x0 = F(x0 * i); }
+    y0 = F(F(zz * x0) - F(zx * x2)); y1 = F(F(zy * x2) - F(zz * x1)); y2 = F(F(zx * x1) - F(zy * x0));
+    const l2 = F(Math.sqrt(F(F(F(y0 * y0) + F(y1 * y1)) + F(y2 * y2))));
+    if (!(l2 < EPS)){ const i = F(1 / l2); y2 = F(y2 * i); y0 = F(i * y0); y1 = F(i * y1); }
+  }
+  // 0xafb680: row 0 = s16 (s17, s28, s30), row 1 = s18 (s21, s19, s23), row 2 = s20 (z); the w words 0
+  m.wf32(M, F(s16 * x0)); m.wf32(M + 4, F(s16 * x1)); m.wf32(M + 8, F(s16 * x2)); m.w32(M + 0xc, 0);
+  m.wf32(M + 0x10, F(s18 * y1)); m.wf32(M + 0x14, F(s18 * y0)); m.wf32(M + 0x18, F(s18 * y2)); m.w32(M + 0x1c, 0);
+  m.wf32(M + 0x20, F(s20 * zx)); m.wf32(M + 0x24, F(s20 * zy)); m.wf32(M + 0x28, F(s20 * zz)); m.w32(M + 0x2c, 0);
+}
+
+// 0x232e24 (the 4x4 inverse) is rom-inv44.js: generated line by line (dev/archive/kushwind/vfp2js.py) and bit-exact against the
+// ROM run on unicorn over 401 matrices (inv44check.py / .mjs) -- it replaced the general-inverse stand-in of the first build.
 
 // 0xae9340: the node's start delay: state 0 loads it (delay * the effect's count scale), state 1 counts
 // it down, state 2 counts frames since.

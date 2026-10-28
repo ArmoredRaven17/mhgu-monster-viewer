@@ -1,0 +1,3 @@
+FAIL PROBE em083_00  -- {"log":["monHunterDist=1200","played 0|Motion[30]_start","played 0|Motion[30]_loop","played 2|Motion[21]_loop","played 2|Motion[23]","played 2|Motion[33]"],"rows":[{"k":"em083_00|em083_00u|256|clip","st":2,"live":1213,"lit":1199,"s":1213,"px":902,"verdict":"draws","clips":["em083_00|0|Motion[30]","em083_00|2|Motion[21]"],"nodraw":{"clip":"em083_00|0|Motion[30]","units":[{"w0c":"14cb2","gens":1,"mask1":"2","mask2":"ffffffff","nrow":3008,"rows":[["2","100"],["4","100"],["10","ffffffff"],["10","100"],["20008","10010009"],["5000","35005"],["0","0"],["0","0"],["5000","35005"],["0","0"],["5000","35005"],["0","0"]]}]}}],"missing":["em083_00|em083_00u|242|clip","em083_00|em083_00u|400|clip"]}
+
+0 passed, 1 failed

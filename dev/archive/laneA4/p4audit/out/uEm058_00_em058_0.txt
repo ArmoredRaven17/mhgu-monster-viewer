@@ -1,0 +1,3 @@
+uEm058_00 em058 v0 (1, 0x14) ph0A: SET 0@f0aa7c | POST 0@f0aa88 | M L3M9@f0aae4 | PH 1
+uEm058_00 em058 v0 (1, 0x14) ph0B: SET 4@f0aa7c | POST 0@f0aa88 | M L3M9@f0aae4 | PH 1
+uEm058_00 em058 v0 (1, 0x14) ph1B: POST 3@f0aad0 | M L3M8@f0aae4 | PH 2

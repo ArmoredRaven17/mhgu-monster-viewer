@@ -1,0 +1,9 @@
+PASS em003_00 2|Motion[12] f60 (clip 60) Gtired  -- {"shot":"em003_00_Motion12_f60_Gtired","blue":263,"bright":117,"far":1,"rmaxPx":205,"w":1280,"h":800,"root":[-1,3,4],"hyper":"","rank":5,"tired":true}
+PASS em003_00 2|Motion[12] f120 (clip 121) Gtired  -- {"shot":"em003_00_Motion12_f120_Gtired","blue":3096,"bright":424,"far":357,"rmaxPx":247,"w":1280,"h":800,"root":[0,1,5],"hyper":"","rank":5,"tired":true}
+PASS em003_00 2|Motion[12] f150 (clip 151) Gtired  -- {"shot":"em003_00_Motion12_f150_Gtired","blue":157,"bright":483,"far":119,"rmaxPx":224,"w":1280,"h":800,"root":[0,1,4],"hyper":"","rank":5,"tired":true}
+PASS meter em003_00|em003_00c|1104|event  -- {"efl":"cm200_006.efl","starts":4,"clips":{"em003_00|2|Motion[12]":4},"drawFrames":28,"visibleFrames":28,"samples":38,"litSamples":28,"pixMax":13771,"pixMean":2004,"verdict":"draws"}
+PASS meter em003_00|em003_00c|1200|event  -- {"efl":"cm200_020.efl","starts":1,"clips":{"em003_00|2|Motion[12]":1},"drawFrames":17,"visibleFrames":17,"samples":17,"litSamples":15,"pixMax":2407,"pixMean":1864,"verdict":"draws"}
+PASS meter em003_00|em003_00u|270|clip  -- {"efl":"em003_00_000.efl","starts":1,"clips":{"em003_00|2|Motion[12]":1},"drawFrames":26,"visibleFrames":26,"samples":26,"litSamples":26,"pixMax":33149,"pixMean":12111,"verdict":"draws"}
+PASS meter em003_00|em003_00u|271|clip  -- {"efl":"em003_00_001.efl","starts":1,"clips":{"em003_00|2|Motion[12]":1},"drawFrames":8,"visibleFrames":6,"samples":8,"litSamples":6,"pixMax":44074,"pixMean":24461,"verdict":"draws"}
+
+7 passed, 0 failed

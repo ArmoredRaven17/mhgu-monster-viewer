@@ -1,0 +1,13 @@
+bits kept: [{"bit":17,"efl":"em084_00_122.efl","key":215,"on":[[420,430]]}]
+  life steps (slot +4 / +8 / +0xc before; r = 0 frees): {"before":["0","10000","30000"],"r":0,"age":1} {"before":["0","10000","30000"],"r":0,"age":1}
+f421 clip 421 key 215: draws prim 0 gpu 0 model 0 :: u+0xc=14cb2 [vt1789734 t5 mode2 st4 cd13 age1 spawned2 live0 f10=30007 n48=2 n4c=0 n50=1 n54=d delay=0x1 col2=0/0/0/0 ed=1]
+f422 clip 422 key 215: draws prim 0 gpu 0 model 0 :: u+0xc=14cb2 [vt1789734 t5 mode2 st4 cd12 age2 spawned2 live0 f10=30007 n48=2 n4c=0 n50=1 n54=d delay=0x1 col2=0/0/0/0 ed=2]
+f423 clip 423 key 215: draws prim 0 gpu 0 model 0 :: u+0xc=14cb2 [vt1789734 t5 mode2 st4 cd11 age3 spawned2 live0 f10=30007 n48=2 n4c=0 n50=1 n54=d delay=0x1 col2=0/0/0/0 ed=1]
+f424 clip 424 key 215: draws prim 0 gpu 0 model 0 :: u+0xc=14cb2 [vt1789734 t5 mode2 st4 cd10 age4 spawned2 live0 f10=30007 n48=2 n4c=0 n50=1 n54=d delay=0x1 col2=0/0/0/0 ed=2]
+f425 clip 425 key 215: draws prim 0 gpu 0 model 0 :: u+0xc=14cb2 [vt1789734 t5 mode2 st4 cd9 age5 spawned2 live0 f10=30007 n48=2 n4c=0 n50=1 n54=d delay=0x1 col2=0/0/0/0 ed=1]
+f426 clip 426 key 215: draws prim 0 gpu 0 model 0 :: u+0xc=14cb2 [vt1789734 t5 mode2 st4 cd8 age6 spawned2 live0 f10=30007 n48=2 n4c=0 n50=1 n54=d delay=0x1 col2=0/0/0/0 ed=2]
+f427 clip 427 key 215: draws prim 0 gpu 0 model 0 :: u+0xc=14cb2 [vt1789734 t5 mode2 st4 cd7 age7 spawned2 live0 f10=30007 n48=2 n4c=0 n50=1 n54=d delay=0x1 col2=0/0/0/0 ed=1]
+f428 clip 428 key 215: draws prim 0 gpu 0 model 0 :: u+0xc=14cb2 [vt1789734 t5 mode2 st4 cd6 age8 spawned2 live0 f10=30007 n48=2 n4c=0 n50=1 n54=d delay=0x1 col2=0/0/0/0 ed=2]
+f429 clip 429 key 215: draws prim 0 gpu 0 model 0 :: u+0xc=14cb2 [vt1789734 t5 mode2 st4 cd5 age9 spawned2 live0 f10=30007 n48=2 n4c=0 n50=1 n54=d delay=0x1 col2=0/0/0/0 ed=1]
+f430 clip 430 key 215: draws prim 0 gpu 0 model 0 :: u+0xc=14cb2 [vt1789734 t5 mode2 st4 cd4 age10 spawned2 live0 f10=30007 n48=2 n4c=0 n50=1 n54=d delay=0x1 col2=0/0/0/0 ed=2]
+f431 clip 431 key 215: draws prim 0 gpu 0 model 0 :: u+0xc=14cb3 [vt1789734 t5 mode2 st5 cd4 age11 spawned2 live0 f10=80030000 n48=2 n4c=0 n50=1 n54=d delay=0x1 col2=0/0/0/0 ed=1]

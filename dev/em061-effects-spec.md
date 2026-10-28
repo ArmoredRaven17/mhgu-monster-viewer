@@ -20,3 +20,14 @@ psl-mask.js `em061(v4)` + CLIP_ACTIONS (EM061_ACTIONS); nothing new to export. T
 L3 M13 / L3 M73 A / B). Check dev/checks/em061_00.mjs 96 / 0 (the stale "6 event" count fixed); soaks 87 / 0, 98 / 0.
 
 * **Draw meter (2026-10-19):** c 64 draws nothing in the game either: its MASK1 0x100000 selects no row; the rows carry 1 / 2 / 4. u 12's shell draws off camera, at z 26413 (Snowbaron Lagombi: z 31230), for the shells lane to confirm.
+
+## Lane A2 (2026-10-26): u 30 built (both)
+
+* (1, 0x15) `0xf257b0`: L0 M32, and at f217 it asks id 1001 = **u 30** (block +8 = 2, handle e+0xcae0). Built as MOTION_STATES
+  `'0|Motion[32]'` fireFrom 217 with `{ type8: 2 }` on em061_00 and em061_04. Both draw (`<archive>/cen/pq/a2_061`, `a2_061_04`).
+
+## Lane A3 (2026-10-26): c 64 recorded
+
+The recorder's own runs of c 64 (both monsters, both camera sets) reach the factory's zero-generator test 0x9bb30c and never the
+build 0x9bb330; u 230 / 290 / 300 / 302 / 501 on the same em061_00_001.efl reach both. The ROM builds nothing for c 64's MASK1
+(0x100000) -- the Gravios u 241 form. A ROM reason for the coordinator.

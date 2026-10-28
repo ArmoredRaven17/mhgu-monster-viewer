@@ -1,0 +1,301 @@
+010528ac  push     {r4, r5, r6, r7, r8, sb, sl, fp, lr}    
+010528b0  sub      sp, sp, #0x1c                           
+010528b4  mov      r4, r0                                  
+010528b8  movw     r0, #0x73e0                             
+010528bc  ldrb     r0, [r4, r0]                            
+010528c0  cmp      r0, #7                                  
+010528c4  bne      #0x105295c                              
+010528c8  movw     r0, #0x73e1                             
+010528cc  ldrb     r0, [r4, r0]                            
+010528d0  sub      r1, r0, #0x6b                           
+010528d4  cmp      r1, #2                                  
+010528d8  bhs      #0x1052908                              
+010528dc  movw     r0, #0x4b4                              
+010528e0  ldrh     r0, [r4, r0]                            
+010528e4  cmp      r0, #0x910                              
+010528e8  movwne   r1, #0x912                              
+010528ec  cmpne    r0, r1                                  
+010528f0  beq      #0x10529ac                              
+010528f4  movw     r1, #0x911                              
+010528f8  cmp      r0, r1                                  
+010528fc  bne      #0x105295c                              
+01052900  vldr     s0, [pc, #0x2d8]                        
+01052904  b        #0x1052924                              
+01052908  cmp      r0, #0x6a                               
+0105290c  bne      #0x105295c                              
+01052910  movw     r0, #0x4b4                              
+01052914  ldrh     r0, [r4, r0]                            
+01052918  cmp      r0, #0x910                              
+0105291c  bne      #0x105295c                              
+01052920  vldr     s0, [pc, #0x2bc]                        
+01052924  mov      r0, r4                                  
+01052928  bl       #0xb09b0                                
+0105292c  cmp      r0, #1                                  
+01052930  bne      #0x10529ac                              
+01052934  movw     r0, #0xcb20                             
+01052938  mov      r5, r4                                  
+0105293c  ldr      r0, [r5, r0]!                           
+01052940  cmp      r0, #0                                  
+01052944  beq      #0x10529ac                              
+01052948  mov      r1, #1                                  
+0105294c  bl       #0x329c40                               
+01052950  mov      r0, #0                                  
+01052954  str      r0, [r5]                                
+01052958  b        #0x10529ac                              
+0105295c  movw     r0, #0xcb20                             
+01052960  mov      r5, r4                                  
+01052964  ldr      r0, [r5, r0]!                           
+01052968  cmp      r0, #0                                  
+0105296c  beq      #0x10529ac                              
+01052970  mov      r1, #1                                  
+01052974  bl       #0x329c40                               
+01052978  mov      r0, #0                                  
+0105297c  movw     r1, #0xb64c                             
+01052980  mov      r2, r4                                  
+01052984  str      r0, [r5]                                
+01052988  movw     r0, #0x1054                             
+0105298c  ldrb     r0, [r4, r0]                            
+01052990  strb     r0, [r4, r1]                            
+01052994  movw     r0, #0xb640                             
+01052998  movw     r1, #0x3f6                              
+0105299c  ldr      r0, [r2], r0                            
+010529a0  ldr      r3, [r0, #0x1d0]                        
+010529a4  mov      r0, r4                                  
+010529a8  blx      r3                                      
+010529ac  movw     r0, #0xcb64                             
+010529b0  mov      r5, r4                                  
+010529b4  ldr      r7, [r5, r0]!                           
+010529b8  movw     r0, #0xea91                             
+010529bc  movt     r0, #0xffff                             
+010529c0  mov      r6, r5                                  
+010529c4  ldrb     r1, [r5, r0]                            
+010529c8  ldr      r0, [r5, #-0x14]                        
+010529cc  ldr      r2, [r5, #0x1c]                         
+010529d0  ldr      sb, [r5, #0x20]                         
+010529d4  ldr      sl, [r6, #-0x10]!                       
+010529d8  cmp      r1, #4                                  
+010529dc  bne      #0x1052ae8                              
+010529e0  ldr      r8, [r5, #0x30]                         
+010529e4  cmp      r2, r0                                  
+010529e8  beq      #0x1052a30                              
+010529ec  mvn      r1, #0                                  
+010529f0  cmp      r0, #0                                  
+010529f4  movweq   r1, #0x3ea                              
+010529f8  cmp      r0, #1                                  
+010529fc  movweq   r1, #0x3e9                              
+01052a00  cmn      r1, #1                                  
+01052a04  beq      #0x1052a30                              
+01052a08  movw     r0, #0x1054                             
+01052a0c  movw     r2, #0xb64c                             
+01052a10  ldrb     r0, [r4, r0]                            
+01052a14  strb     r0, [r4, r2]                            
+01052a18  movw     r0, #0xb640                             
+01052a1c  mov      r2, r4                                  
+01052a20  ldr      r0, [r2], r0                            
+01052a24  ldr      r3, [r0, #0x1d0]                        
+01052a28  mov      r0, r4                                  
+01052a2c  blx      r3                                      
+01052a30  cmp      sb, sl                                  
+01052a34  beq      #0x1052a80                              
+01052a38  ldr      r0, [r6]                                
+01052a3c  mvn      r1, #0                                  
+01052a40  cmp      r0, #0                                  
+01052a44  movweq   r1, #0x3ec                              
+01052a48  cmp      r0, #1                                  
+01052a4c  movweq   r1, #0x3eb                              
+01052a50  cmn      r1, #1                                  
+01052a54  beq      #0x1052a80                              
+01052a58  movw     r0, #0x1054                             
+01052a5c  movw     r2, #0xb64c                             
+01052a60  ldrb     r0, [r4, r0]                            
+01052a64  strb     r0, [r4, r2]                            
+01052a68  movw     r0, #0xb640                             
+01052a6c  mov      r2, r4                                  
+01052a70  ldr      r0, [r2], r0                            
+01052a74  ldr      r3, [r0, #0x1d0]                        
+01052a78  mov      r0, r4                                  
+01052a7c  blx      r3                                      
+01052a80  cmp      r8, r7                                  
+01052a84  beq      #0x1052bd8                              
+01052a88  movw     r0, #0x4b4                              
+01052a8c  ldrh     r0, [r4, r0]                            
+01052a90  cmp      r0, #0x210                              
+01052a94  beq      #0x1052bd8                              
+01052a98  ldr      r0, [r5]                                
+01052a9c  mvn      r1, #0                                  
+01052aa0  cmp      r0, #0                                  
+01052aa4  movweq   r1, #0x3f4                              
+01052aa8  cmp      r0, #1                                  
+01052aac  movweq   r1, #0x3f3                              
+01052ab0  cmn      r1, #1                                  
+01052ab4  beq      #0x1052bd8                              
+01052ab8  movw     r0, #0x1054                             
+01052abc  movw     r2, #0xb64c                             
+01052ac0  ldrb     r0, [r4, r0]                            
+01052ac4  strb     r0, [r4, r2]                            
+01052ac8  movw     r0, #0xb640                             
+01052acc  mov      r2, r4                                  
+01052ad0  ldr      r0, [r2], r0                            
+01052ad4  ldr      r3, [r0, #0x1d0]                        
+01052ad8  mov      r0, r4                                  
+01052adc  add      sp, sp, #0x1c                           
+01052ae0  pop      {r4, r5, r6, r7, r8, sb, sl, fp, lr}    
+01052ae4  bx       r3                                      
+01052ae8  ldr      r1, [r5, #0x24]                         
+01052aec  mov      fp, r5                                  
+01052af0  mov      r8, r5                                  
+01052af4  movw     r3, #0x201                              
+01052af8  ldr      ip, [fp, #-4]!                          
+01052afc  str      r1, [sp, #0x14]                         
+01052b00  ldr      r1, [r8, #-8]!                          
+01052b04  ldr      r7, [r5, #0x28]                         
+01052b08  ldr      lr, [r5, #0x2c]                         
+01052b0c  str      r1, [sp, #0x18]                         
+01052b10  ldr      r1, [r5, #-0xc]!                        
+01052b14  str      r1, [sp, #0x10]                         
+01052b18  movw     r1, #0x4b4                              
+01052b1c  ldrh     r1, [r4, r1]                            
+01052b20  sub      r1, r1, r3                              
+01052b24  cmp      r1, #0x26                               
+01052b28  bhi      #0x1052be8                              
+01052b2c  lsl      r1, r1, #2                              
+01052b30  add      r3, pc, #4                              
+01052b34  ldr      r1, [r1, r3]                            
+01052b38  add      pc, r1, r3                              
+01052b3c  muleq    r0, ip, r0                              
+01052b40  muleq    r0, ip, r0                              
+01052b44  andeq    r0, r0, ip, lsr #1                      
+01052b48  andeq    r0, r0, ip, lsr #1                      
+01052b4c  andeq    r0, r0, ip, lsr #1                      
+01052b50  muleq    r0, ip, r0                              
+01052b54  andeq    r0, r0, ip, lsr #1                      
+01052b58  andeq    r0, r0, ip, lsr #1                      
+01052b5c  andeq    r0, r0, ip, lsr #1                      
+01052b60  andeq    r0, r0, ip, lsr #1                      
+01052b64  andeq    r0, r0, ip, lsr #1                      
+01052b68  andeq    r0, r0, ip, lsr #1                      
+01052b6c  andeq    r0, r0, ip, lsr #1                      
+01052b70  andeq    r0, r0, ip, lsr #1                      
+01052b74  andeq    r0, r0, ip, lsr #1                      
+01052b78  andeq    r0, r0, ip, lsr #1                      
+01052b7c  andeq    r0, r0, ip, lsr #1                      
+01052b80  andeq    r0, r0, ip, lsr #1                      
+01052b84  andeq    r0, r0, ip, lsr #1                      
+01052b88  andeq    r0, r0, ip, lsr #1                      
+01052b8c  andeq    r0, r0, ip, lsr #1                      
+01052b90  andeq    r0, r0, ip, lsr #1                      
+01052b94  andeq    r0, r0, ip, lsr #1                      
+01052b98  andeq    r0, r0, ip, lsr #1                      
+01052b9c  andeq    r0, r0, ip, lsr #1                      
+01052ba0  andeq    r0, r0, ip, lsr #1                      
+01052ba4  andeq    r0, r0, ip, lsr #1                      
+01052ba8  andeq    r0, r0, ip, lsr #1                      
+01052bac  andeq    r0, r0, ip, lsr #1                      
+01052bb0  andeq    r0, r0, ip, lsr #1                      
+01052bb4  andeq    r0, r0, ip, lsr #1                      
+01052bb8  andeq    r0, r0, ip, lsr #1                      
+01052bbc  andeq    r0, r0, ip, lsr #1                      
+01052bc0  andeq    r0, r0, ip, lsr #1                      
+01052bc4  andeq    r0, r0, ip, lsr #1                      
+01052bc8  andeq    r0, r0, ip, lsr #1                      
+01052bcc  muleq    r0, ip, r0                              
+01052bd0  andeq    r0, r0, ip, lsr #1                      
+01052bd4  muleq    r0, ip, r0                              
+01052bd8  add      sp, sp, #0x1c                           
+01052bdc  pop      {r4, r5, r6, r7, r8, sb, sl, fp, pc}    
+01052be0  sbcsmi   r0, ip, #0                              
+01052be4  addsmi   r0, r0, #0                              
+01052be8  cmp      r2, r0                                  
+01052bec  str      ip, [sp, #0xc]                          
+01052bf0  stmib    sp, {r7, lr}                            
+01052bf4  beq      #0x1052c3c                              
+01052bf8  movw     r1, #0x1054                             
+01052bfc  movw     r2, #0xb64c                             
+01052c00  cmp      r0, #1                                  
+01052c04  ldrb     r1, [r4, r1]                            
+01052c08  strb     r1, [r4, r2]                            
+01052c0c  mov      r1, #0                                  
+01052c10  mov      r2, r4                                  
+01052c14  movweq   r1, #0x3e9                              
+01052c18  cmp      r0, #0                                  
+01052c1c  movw     r0, #0xb640                             
+01052c20  ldr      r0, [r2], r0                            
+01052c24  movweq   r1, #0x3ea                              
+01052c28  ldr      r3, [r0, #0x1d0]                        
+01052c2c  mov      r0, r4                                  
+01052c30  blx      r3                                      
+01052c34  ldmib    sp, {r7, lr}                            
+01052c38  ldr      ip, [sp, #0xc]                          
+01052c3c  cmp      sb, sl                                  
+01052c40  beq      #0x1052c8c                              
+01052c44  movw     r0, #0x1054                             
+01052c48  ldr      r2, [r6]                                
+01052c4c  movw     r1, #0xb64c                             
+01052c50  ldrb     r0, [r4, r0]                            
+01052c54  cmp      r2, #1                                  
+01052c58  strb     r0, [r4, r1]                            
+01052c5c  mov      r1, #0                                  
+01052c60  movw     r0, #0xb640                             
+01052c64  movweq   r1, #0x3eb                              
+01052c68  cmp      r2, #0                                  
+01052c6c  mov      r2, r4                                  
+01052c70  ldr      r0, [r2], r0                            
+01052c74  movweq   r1, #0x3ec                              
+01052c78  ldr      r3, [r0, #0x1d0]                        
+01052c7c  mov      r0, r4                                  
+01052c80  blx      r3                                      
+01052c84  ldmib    sp, {r7, lr}                            
+01052c88  ldr      ip, [sp, #0xc]                          
+01052c8c  ldr      r0, [sp, #0x14]                         
+01052c90  ldr      r1, [sp, #0x10]                         
+01052c94  cmp      r0, r1                                  
+01052c98  beq      #0x1052ce4                              
+01052c9c  movw     r0, #0x1054                             
+01052ca0  ldr      r2, [r5]                                
+01052ca4  movw     r1, #0xb64c                             
+01052ca8  ldrb     r0, [r4, r0]                            
+01052cac  cmp      r2, #1                                  
+01052cb0  strb     r0, [r4, r1]                            
+01052cb4  mov      r1, #0                                  
+01052cb8  movw     r0, #0xb640                             
+01052cbc  movweq   r1, #0x3ed                              
+01052cc0  cmp      r2, #0                                  
+01052cc4  mov      r2, r4                                  
+01052cc8  ldr      r0, [r2], r0                            
+01052ccc  movweq   r1, #0x3ee                              
+01052cd0  ldr      r3, [r0, #0x1d0]                        
+01052cd4  mov      r0, r4                                  
+01052cd8  blx      r3                                      
+01052cdc  ldmib    sp, {r7, lr}                            
+01052ce0  ldr      ip, [sp, #0xc]                          
+01052ce4  ldr      r0, [sp, #0x18]                         
+01052ce8  cmp      r7, r0                                  
+01052cec  beq      #0x1052d38                              
+01052cf0  movw     r0, #0x1054                             
+01052cf4  ldr      r2, [r8]                                
+01052cf8  movw     r1, #0xb64c                             
+01052cfc  ldrb     r0, [r4, r0]                            
+01052d00  cmp      r2, #1                                  
+01052d04  strb     r0, [r4, r1]                            
+01052d08  mov      r1, #0                                  
+01052d0c  movw     r0, #0xb640                             
+01052d10  movweq   r1, #0x3ef                              
+01052d14  cmp      r2, #0                                  
+01052d18  mov      r2, r4                                  
+01052d1c  ldr      r0, [r2], r0                            
+01052d20  movweq   r1, #0x3f0                              
+01052d24  ldr      r3, [r0, #0x1d0]                        
+01052d28  mov      r0, r4                                  
+01052d2c  blx      r3                                      
+01052d30  ldr      lr, [sp, #8]                            
+01052d34  ldr      ip, [sp, #0xc]                          
+01052d38  cmp      lr, ip                                  
+01052d3c  beq      #0x1052bd8                              
+01052d40  ldr      r0, [fp]                                
+01052d44  cmp      r0, #0                                  
+01052d48  bne      #0x1052bd8                              
+01052d4c  movw     r0, #0x1054                             
+01052d50  movw     r1, #0xb64c                             
+01052d54  mov      r2, r4                                  
+01052d58  ldrb     r0, [r4, r0]                            
+01052d5c  strb     r0, [r4, r1]                            

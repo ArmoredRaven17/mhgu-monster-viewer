@@ -1,0 +1,8 @@
+uEm042_00 em042 v0 (7, 0xf) ph0A: PH 1 | POST 3@e6b608 | M L2M7@e6b620 | SET 0@e6b634
+uEm042_00 em042 v0 (7, 0xf) ph1A: ADD 0@e6b810
+uEm042_00 em042 v0 (7, 0xf) ph1B: ADD 0@e6b810 | PH 2 | POST 0@e6b8a4 | M L2M8@e6b9c8 | SET 0@e6b9e8
+uEm042_00 em042 v0 (7, 0xf) ph2B: IDLE
+uEm042_00 em042 v0 (7, 0x1c) ph0A: PH 1 | POST 3@e6b608 | M L2M7@e6b620 | SET 0@e6b634
+uEm042_00 em042 v0 (7, 0x1c) ph1A: ADD 0@e6b810
+uEm042_00 em042 v0 (7, 0x1c) ph1B: ADD 0@e6b810 | PH 2 | POST 0@e6b8a4 | M L2M16@e6b8c0 | SET 0@e6b9e8
+uEm042_00 em042 v0 (7, 0x1c) ph2B: IDLE

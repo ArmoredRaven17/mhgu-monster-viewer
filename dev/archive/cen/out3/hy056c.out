@@ -1,0 +1,3 @@
+FAIL HY056  -- {"failed":false,"err":null,"rowHidden":false,"recs":["em056_00|em056_00u|1301|event st1 lit21/21 draws","em056_00|em056_00u|1302|event st1 lit21/21 draws"],"rts":"no","opts":["","1,2","1,3"],"val":"1,2","ents":[{"k":1301,"pel":"em056_00u","when":"event","reqs":1,"units":[1]},{"k":1302,"pel":"em056_00u","when":"event","reqs":1,"units":[1]},{"k":1303,"pel":"em056_00u","when":"event","reqs":0,"units":[]},{"k":1311,"pel":"em056_00u","when":"event","reqs":0,"units":[]},{"k":1312,"pel":"em056_00u","when":"event","reqs":0,"units":[]},{"k":1313,"pel":"em056_00u","when":"event","reqs":0,"units":[]}]}
+
+0 passed, 1 failed

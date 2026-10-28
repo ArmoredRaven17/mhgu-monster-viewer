@@ -1,0 +1,46 @@
+uEm018_00 em018 v0 (7, 0x25) ph0A: PH 1 | POST 0@dad8bc | M L4M72@dad8d0
+uEm018_00 em018 v0 (7, 0x25) ph0B: PH 1 | POST 0@dad8bc | M L4M72@dad8d0 | PH 2 | POST 3@dad920 | M L4M75@dad9e4 | W5C 0xdada3c -150
+uEm018_00 em018 v0 (7, 0x25) ph1B: PH 2 | POST 3@dad920 | M L4M75@dad9e4 | W5C 0xdada3c -150
+uEm018_00 em018 v0 (7, 0x25) ph2A: ADD -6.66667@dad950
+uEm018_00 em018 v0 (7, 0x26) ph0A: PH 1 | W5C 0xdadb5c 0 | P1 | M L4M65@dadb78
+uEm018_00 em018 v0 (7, 0x26) ph1B: PH 2
+uEm018_00 em018 v0 (7, 0x26) ph2B: PH 3
+uEm018_00 em018 v0 (7, 0x26) ph2C: PH 3 | PH 4 | POST 0@daddbc | M L4M66@daddd0
+uEm018_00 em018 v0 (7, 0x26) ph3C: PH 4 | POST 0@daddbc | M L4M66@daddd0
+uEm018_00 em018 v0 (7, 0x26) ph4B: IDLE
+uEm018_00 em018 v0 (7, 0x28) ph0A: PH 1 | POST 0@dad8bc | M L4M72@dad8d0 | PH 2 | POST 3@dad920 | M L4M75@dad9e4 | W5C 0xdada3c -200
+uEm018_00 em018 v0 (7, 0x28) ph1B: PH 2 | POST 3@dad920 | M L4M75@dad9e4 | W5C 0xdada3c -150
+uEm018_00 em018 v0 (7, 0x28) ph2A: ADD -6.66667@dad950
+uEm018_00 em018 v0 (7, 0x2a) ph0B: PH 1 | POST 3@dae450 | M L4M75@dae464 | W5C 0xdae4a8 361
+uEm018_00 em018 v0 (7, 0x2a) ph1A: CHG follow(7,0x2b)
+uEm018_00 em018 v0 (7, 0x2a) ph1B: ADD -18.05@dae4dc
+uEm018_00 em018 v0 (7, 0x2b) ph0A: PH 1
+uEm018_00 em018 v0 (7, 0x2b) ph1A: ADD -6.66667@dae64c
+uEm018_00 em018 v0 (7, 0x2b) ph1C: ADD -6.66667@dae64c | W5C 0xdae6b0 0 | CHG follow(7,0x26)
+uEm018_00 em018 v0 (7, 0x2d) ph0A: PH 1 | POST 0@dad8bc | M L4M72@dad8d0 | PH 2 | POST 3@dad920 | M L4M75@dad9e4 | W5C 0xdada3c -200
+uEm018_00 em018 v0 (7, 0x2d) ph1B: PH 2 | POST 3@dad920 | M L4M75@dad9e4 | W5C 0xdada3c -150
+uEm018_00 em018 v0 (7, 0x2d) ph2A: ADD -6.66667@dad950
+uEm018_00 em018 v0 (7, 0x2e) ph0A: PH 1 | W5C 0xdae9f8 0 | P1 | M L4M65@daea1c
+uEm018_00 em018 v0 (7, 0x2e) ph1B: CHG follow(7,0x2f)
+uEm018_00 em018 v0 (7, 0x2f) ph0B: PH 1 | POST 3@dae450 | M L4M75@dae464 | W5C 0xdae4a8 361
+uEm018_00 em018 v0 (7, 0x2f) ph1A: CHG follow(7,0x2b)
+uEm018_00 em018 v0 (7, 0x2f) ph1B: ADD -18.05@dae4dc
+uEm018_00 em018 v0 (7, 0x31) ph0A: PH 1 | POST 0@daee90 | M L4M72@daeea8
+uEm018_00 em018 v0 (7, 0x31) ph0B: PH 1 | POST 0@daee90 | M L4M72@daeea8 | PH 2 | POST 3@daefe8 | M L4M75@daeffc | W5C 0xdaf040 -150
+uEm018_00 em018 v0 (7, 0x31) ph1B: PH 2 | POST 3@daefe8 | M L4M75@daeffc | W5C 0xdaf040 -150
+uEm018_00 em018 v0 (7, 0x31) ph2A: ADD -6.66667@daef0c
+uEm018_00 em018 v0 (7, 0xfa) ph0A: PH 1 | W5C 0xdadb5c 0 | P1 | M L4M65@dadb78
+uEm018_00 em018 v0 (7, 0xfa) ph1B: PH 2
+uEm018_00 em018 v0 (7, 0xfa) ph2B: PH 3
+uEm018_00 em018 v0 (7, 0xfa) ph2C: PH 3 | PH 4 | POST 0@daddbc | M L4M66@daddd0
+uEm018_00 em018 v0 (7, 0xfa) ph3C: PH 4 | POST 0@daddbc | M L4M66@daddd0
+uEm018_00 em018 v0 (7, 0xfa) ph4B: IDLE
+uEm018_00 em018 v0 (7, 0xfc) ph0A: PH 1 | POST 0@dad8bc | M L4M72@dad8d0 | PH 2 | POST 3@dad920 | M L4M75@dad9e4 | W5C 0xdada3c -200
+uEm018_00 em018 v0 (7, 0xfc) ph1B: PH 2 | POST 3@dad920 | M L4M75@dad9e4 | W5C 0xdada3c -150
+uEm018_00 em018 v0 (7, 0xfc) ph2A: ADD -6.66667@dad950
+uEm018_00 em018 v0 (7, 0xfd) ph0A: PH 1
+uEm018_00 em018 v0 (7, 0xfd) ph1A: ADD -6.66667@dae64c
+uEm018_00 em018 v0 (7, 0xfd) ph1C: ADD -6.66667@dae64c | W5C 0xdae6b0 0 | CHG follow(7,0x26)
+uEm018_00 em018 v0 (7, 0xfe) ph0A: PH 1
+uEm018_00 em018 v0 (7, 0xfe) ph1A: ADD -6.66667@dae64c
+uEm018_00 em018 v0 (7, 0xfe) ph1C: ADD -6.66667@dae64c | W5C 0xdae6b0 0 | CHG follow(7,0x26)

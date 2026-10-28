@@ -1,0 +1,10 @@
+{"rules":["cur","unit"],"items":[
+ {"id":"em027_00","list":"0","clip":"Motion[1]_loop","frame":150,"ctl":1,"loop":true,"label":"em027_00 aura u0 (L0 M1 idle, Fire Aura on)"},
+ {"id":"em027_00","list":"4","clip":"Motion[1]","frame":12,"label":"em027_00 c40 (L4 M1)"},
+ {"id":"em083_00","list":"2","clip":"Motion[23]","frame":245,"label":"em083_00 u242 (L2 M23)"},
+ {"id":"em083_00","list":"2","clip":"Motion[33]","frame":75,"label":"em083_00 u400 (L2 M33)"},
+ {"id":"em050_00","list":"0","clip":"Motion[11]","frame":72,"label":"em050_00 c4 (L0 M11)"},
+ {"id":"em081_04","list":"0","clip":"Motion[22]","frame":12,"label":"em081_04 c130 (L0 M22)"},
+ {"id":"em032_04","list":"1","clip":"Motion[3]_start","frame":40,"label":"em032_04 c200 (L1 M3)"},
+ {"id":"em077_00","list":"0","clip":"Motion[22]","frame":12,"label":"em077_00 c21 (L0 M22)"}
+]}

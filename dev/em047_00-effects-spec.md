@@ -19,3 +19,9 @@ L2 M8: (2, 7 / 9 / 0xd / 0x10), (12, 6) posture 0 and (6, 7 / 8) burrowed (postu
 ## 4. Implemented
 
 psl-mask.js `em047_00` + CLIP_ACTIONS; CLIP_VARIANTS L2 M8. `--apply` +2 (c 182, c 183), recorded, lifted.
+
+## Lane A3 (2026-10-26): u 1400
+
+Never requested: no class site asks it, and the shared latch 0xadc98 needs e+0x1404 bits 20 + 21 together with e+0x1408 bit 0;
+bit 0 is raised by Lavasioth alone and bit 20 by eleven other classes (not Lavasioth). A ROM reason for the coordinator
+(rom-map "Effects lane A3").

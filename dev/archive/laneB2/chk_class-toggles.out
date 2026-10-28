@@ -1,0 +1,52 @@
+PASS Basarios (Begins Burrowed): mounted  -- "em004_00"
+PASS Basarios (Begins Burrowed): the effect runtime is up
+PASS Basarios (Begins Burrowed): the Begins Burrowed switch is shown
+PASS Basarios (Begins Burrowed): L0 M7 B, off: begun from the surface -- bits 27-28  -- "0x180001ff"
+PASS Basarios (Begins Burrowed): L0 M7 B, Begins Burrowed: sunk -- no bits 27-28  -- "0x1ff"
+PASS Basarios (Begins Burrowed): L0 M7 A (posture 0) keeps bits 27-28 with the switch on  -- "0x180001ff"
+PASS Basarios (Begins Burrowed): the effect runtime never stopped
+PASS Rathalos (Tired with Rage): mounted  -- "em002_00"
+PASS Rathalos (Tired with Rage): the effect runtime is up
+PASS Rathalos (Tired with Rage): the word: L4 M32 (7, 3) enraged lights bits 27-29 unless tired  -- ["0x38000e3f","0xe3f"]
+PASS Rathalos (Tired with Rage): the Tired (with Rage) switch is shown
+PASS Rathalos (Tired with Rage): Enraged, L4 M32: bits 27-29 off with the switch on (the play reads tired)  -- ["0x38000e3f","0xe3f"]
+PASS Rathalos (Tired with Rage): the effect runtime never stopped
+PASS Kushala (Poisoned): mounted  -- "em024_00"
+PASS Kushala (Poisoned): the effect runtime is up
+PASS Kushala (Poisoned): the Poisoned switch is shown
+PASS Kushala (Poisoned): Poisoned: c 1100 at once and every 90 frames (0xa4518)  -- 2
+PASS Kushala (Poisoned): Wind level 3: the word reads ctl+0x18 (poisoned) -- bits 15-17 for 21-23  -- ["0x381ff","0xe001ff"]
+PASS Kushala (Poisoned): the effect runtime never stopped
+PASS Teostra (Poisoned): mounted  -- "em027_00"
+PASS Teostra (Poisoned): the effect runtime is up
+PASS Teostra (Poisoned): the Poisoned switch is shown
+PASS Teostra (Poisoned): Poisoned: c 1100 at once and every 90 frames (0xa4518)  -- 2
+PASS Teostra (Poisoned): Fire Aura on, Poisoned: u 0 is not held (0xe10f7c tests P+0x5e08 bit 1)  -- false
+PASS Teostra (Poisoned): Fire Aura on, not poisoned: u 0 held again  -- true
+PASS Teostra (Poisoned): the effect runtime never stopped
+PASS Amatsu (aura fade): mounted  -- "em058_00"
+PASS Amatsu (aura fade): the effect runtime is up
+PASS Amatsu (aura fade): at rest: u 0 held, its colour block at 1.0  -- 1
+PASS Amatsu (aura fade): L2 Motion[1] (status 7): u 0 kept, drawn at 0  -- [true,0]
+PASS Amatsu (aura fade): ...and u 3 once as it hides  -- [3]
+PASS Amatsu (aura fade): back at rest: the block rises 0.02 a frame (about 0.2 after 10 frames)  -- 0.25999999046325684
+PASS Amatsu (aura fade): the effect runtime never stopped
+PASS Valstrax (glow fade): mounted  -- "em086_00"
+PASS Valstrax (glow fade): the effect runtime is up
+PASS Valstrax (glow fade): enraged at rest: the glow u 1121 held  -- {"rage":true,"held":true}
+PASS Valstrax (glow fade): L2 Motion[1] (state 2): the glow fades 1/60 a frame  -- {"a1":0.5333333611488342,"a2":0.3333333432674408,"frames":11.999999999999998,"rate":0.016666668156782787}
+PASS Valstrax (glow fade): the effect runtime never stopped
+PASS Soulseer (L0 M4 D): mounted  -- "em082_04"
+PASS Soulseer (L0 M4 D): the effect runtime is up
+PASS Soulseer (L0 M4 D): L0 M4 D ((2, 0x36) repeated): u 330 as it starts  -- [330]
+PASS Soulseer (L0 M4 D): ...and u 310 held, as copy C  -- true
+PASS Soulseer (L0 M4 D): L0 M4 C (the first play): no u 330  -- []
+PASS Soulseer (L0 M4 D): the effect runtime never stopped
+PASS Deadeye (L0 M7 B): mounted  -- "em018_04"
+PASS Deadeye (L0 M7 B): the effect runtime is up
+PASS Deadeye (L0 M7 B): L0 M7 B ((7, 0xe3) / (7, 0xe5)): the clip starts at frame 18  -- 19
+PASS Deadeye (L0 M7 B): ...with bits 27-29 (u 290, u 531)  -- "0x380001ff"
+PASS Deadeye (L0 M7 B): L0 M7 A ((2, 2)): from frame 0  -- 1
+PASS Deadeye (L0 M7 B): the effect runtime never stopped
+
+50 passed, 0 failed

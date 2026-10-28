@@ -1,0 +1,60 @@
+000c8d20  push     {r4, r5, r6, r7, fp, lr}                
+000c8d24  vpush    {d8}                                    
+000c8d28  mov      r4, r0                                  
+000c8d2c  movw     r0, #0x75c8                             
+000c8d30  ldrb     r0, [r4, r0]                            
+000c8d34  cmp      r0, #0                                  
+000c8d38  beq      #0xc8d44                                
+000c8d3c  vpop     {d8}                                    
+000c8d40  pop      {r4, r5, r6, r7, fp, pc}                
+000c8d44  mov      r0, r4                                  
+000c8d48  bl       #0xc9548                                
+000c8d4c  movw     r0, #0x1428                             
+000c8d50  mov      r5, r4                                  
+000c8d54  ldr      r0, [r5, r0]!                           
+000c8d58  ldrb     r1, [r0, #0x2c0]                        
+000c8d5c  cmp      r1, #2                                  
+000c8d60  beq      #0xc8d84                                
+000c8d64  cmp      r1, #1                                  
+000c8d68  bne      #0xc8de4                                
+000c8d6c  ldrb     r1, [r0, #0x24d]                        
+000c8d70  cmp      r1, #0                                  
+000c8d74  beq      #0xc8da0                                
+000c8d78  mov      r1, #0                                  
+000c8d7c  str      r1, [r0, #0x2c4]                        
+000c8d80  b        #0xc8de4                                
+000c8d84  ldrb     r1, [r0, #0x24d]                        
+000c8d88  cmp      r1, #0                                  
+000c8d8c  bne      #0xc8de4                                
+000c8d90  ldrb     r0, [r0, #0x24f]                        
+000c8d94  cmp      r0, #0                                  
+000c8d98  bne      #0xc8de4                                
+000c8d9c  b        #0xc8dd8                                
+000c8da0  vldr     s0, [r0, #0x2c4]                        
+000c8da4  vldr     s2, [r4, #0x1c]                         
+000c8da8  vadd.f32 s0, s2, s0                              
+000c8dac  vstr     s0, [r0, #0x2c4]                        
+000c8db0  ldr      r0, [r5]                                
+000c8db4  vldr     s16, [r0, #0x2c4]                       
+000c8db8  mov      r0, r4                                  
+000c8dbc  bl       #0x71248                                
+000c8dc0  ldrsh    r0, [r0, #2]                            
+000c8dc4  vmov     s0, r0                                  
+000c8dc8  vcvt.f32.s32 s0, s0                                  
+000c8dcc  vcmpe.f32 s16, s0                                 
+000c8dd0  vmrs     apsr_nzcv, fpscr                        
+000c8dd4  ble      #0xc8de4                                
+000c8dd8  mov      r0, r4                                  
+000c8ddc  mov      r1, #0                                  
+000c8de0  bl       #0xbcae0                                
+000c8de4  mov      r0, r4                                  
+000c8de8  bl       #0xc975c                                
+000c8dec  mov      r0, r4                                  
+000c8df0  bl       #0x70fbc                                
+000c8df4  ldr      r6, [r0, #0x78]                         
+000c8df8  cmp      r6, #0                                  
+000c8dfc  beq      #0xc8e60                                
+000c8e00  mov      r0, r4                                  
+000c8e04  bl       #0x81670                                   ; isEnraged?
+000c8e08  cmp      r0, #1                                  
+000c8e0c  bne      #0xc8e60                                

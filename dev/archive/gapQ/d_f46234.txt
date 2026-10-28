@@ -1,0 +1,195 @@
+00f46234  push     {r4, r5, r6, r7, r8, sb, fp, lr}        
+00f46238  mov      r4, r0                                  
+00f4623c  movw     r0, #0xcacc                             
+00f46240  mov      r5, r1                                  
+00f46244  mov      r6, r4                                  
+00f46248  ldr      r0, [r6, r0]!                           
+00f4624c  add      r0, r0, r5, lsl #2                      
+00f46250  ldr      r0, [r0, #0xc0]                         
+00f46254  cmp      r0, #0                                  
+00f46258  beq      #0xf46274                               
+00f4625c  mov      r1, #1                                  
+00f46260  bl       #0x329c40                               
+00f46264  ldr      r0, [r6]                                
+00f46268  mov      r1, #0                                  
+00f4626c  add      r0, r0, r5, lsl #2                      
+00f46270  str      r1, [r0, #0xc0]                         
+00f46274  movw     r0, #0x7420                             
+00f46278  ldrb     r0, [r4, r0]                            
+00f4627c  cmp      r0, #0                                  
+00f46280  beq      #0xf462a4                               
+00f46284  ldr      r0, [r6]                                
+00f46288  add      r0, r0, r5, lsl #3                      
+00f4628c  ldrh     r1, [r0, #0x54]                         
+00f46290  cmp      r1, #2                                  
+00f46294  bne      #0xf4633c                               
+00f46298  movw     r1, #0                                  
+00f4629c  movt     r1, #0xbf80                             
+00f462a0  str      r1, [r0, #0x50]                         
+00f462a4  ldr      r0, [r6]                                
+00f462a8  mov      sb, #0                                  
+00f462ac  cmp      r5, #3                                  
+00f462b0  add      r0, r0, r5, lsl #3                      
+00f462b4  strb     sb, [r0, #0x56]                         
+00f462b8  bhi      #0xf46340                               
+00f462bc  lsl      r0, r5, #2                              
+00f462c0  add      r1, pc, #4                              
+00f462c4  ldr      r0, [r0, r1]                            
+00f462c8  add      pc, r0, r1                              
+00f462cc  andeq    r0, r0, r0, lsl r0                      
+00f462d0  andeq    r0, r0, ip, ror r0                      
+00f462d4  ldrdeq   r0, r1, [r0], -ip                       
+00f462d8  andeq    r0, r0, ip, lsr r1                      
+00f462dc  mov      r0, r4                                  
+00f462e0  mov      r1, #3                                  
+00f462e4  bl       #0x9d36c                                   ; breakLevel(part)
+00f462e8  mov      r8, r0                                  
+00f462ec  movw     r0, #0x75f0                             
+00f462f0  ldr      r0, [r4, r0]                            
+00f462f4  ldr      r0, [r0, #0x64]                         
+00f462f8  ldrb     r7, [r0, #5]                            
+00f462fc  ldrb     r5, [r0, #6]                            
+00f46300  ldr      r0, [pc, #0x224]                           ; literal 0x8eb948
+00f46304  ldr      r0, [pc, r0]                            
+00f46308  ldr      r0, [r0]                                
+00f4630c  bl       #0x3a8430                                  ; questRank
+00f46310  cmp      r0, #4                                  
+00f46314  mov      r0, r4                                  
+00f46318  movle    r5, r7                                  
+00f4631c  uxtb     r5, r5                                  
+00f46320  bl       #0x81670                                   ; isEnraged?
+00f46324  cmp      r8, r5                                  
+00f46328  bhs      #0xf46438                               
+00f4632c  mov      r7, #0x19                               
+00f46330  cmp      r0, #0                                  
+00f46334  movwne   r7, #0x1a                               
+00f46338  b        #0xf46474                               
+00f4633c  pop      {r4, r5, r6, r7, r8, sb, fp, pc}        
+00f46340  mov      r7, #0x17                               
+00f46344  b        #0xf46474                               
+00f46348  mov      r0, r4                                  
+00f4634c  mov      r1, #2                                  
+00f46350  bl       #0x9d36c                                   ; breakLevel(part)
+00f46354  mov      r8, r0                                  
+00f46358  movw     r0, #0x75f0                             
+00f4635c  ldr      r0, [r4, r0]                            
+00f46360  ldr      r0, [r0, #0x64]                         
+00f46364  ldrb     r7, [r0, #5]                            
+00f46368  ldrb     r5, [r0, #6]                            
+00f4636c  ldr      r0, [pc, #0x1b4]                           ; literal 0x8eb8dc
+00f46370  ldr      r0, [pc, r0]                            
+00f46374  ldr      r0, [r0]                                
+00f46378  bl       #0x3a8430                                  ; questRank
+00f4637c  cmp      r0, #4                                  
+00f46380  mov      r0, r4                                  
+00f46384  movle    r5, r7                                  
+00f46388  uxtb     r5, r5                                  
+00f4638c  bl       #0x81670                                   ; isEnraged?
+00f46390  cmp      r8, r5                                  
+00f46394  bhs      #0xf46448                               
+00f46398  mov      r7, #0x1b                               
+00f4639c  cmp      r0, #0                                  
+00f463a0  movwne   r7, #0x1c                               
+00f463a4  b        #0xf46474                               
+00f463a8  mov      r0, r4                                  
+00f463ac  mov      r1, #0                                  
+00f463b0  bl       #0x9d36c                                   ; breakLevel(part)
+00f463b4  mov      r8, r0                                  
+00f463b8  movw     r0, #0x75f0                             
+00f463bc  ldr      r0, [r4, r0]                            
+00f463c0  ldr      r0, [r0, #0x64]                         
+00f463c4  ldrb     r7, [r0, #1]                            
+00f463c8  ldrb     r5, [r0, #2]                            
+00f463cc  ldr      r0, [pc, #0x150]                           ; literal 0x8eb87c
+00f463d0  ldr      r0, [pc, r0]                            
+00f463d4  ldr      r0, [r0]                                
+00f463d8  bl       #0x3a8430                                  ; questRank
+00f463dc  cmp      r0, #4                                  
+00f463e0  mov      r0, r4                                  
+00f463e4  movle    r5, r7                                  
+00f463e8  uxtb     r5, r5                                  
+00f463ec  bl       #0x81670                                   ; isEnraged?
+00f463f0  cmp      r8, r5                                  
+00f463f4  bhs      #0xf46458                               
+00f463f8  mov      r7, #0x17                               
+00f463fc  cmp      r0, #0                                  
+00f46400  movwne   r7, #0x18                               
+00f46404  b        #0xf46474                               
+00f46408  mov      r0, r4                                  
+00f4640c  mov      r1, #6                                  
+00f46410  bl       #0x9d36c                                   ; breakLevel(part)
+00f46414  mov      r5, r0                                  
+00f46418  mov      r0, r4                                  
+00f4641c  bl       #0x81670                                   ; isEnraged?
+00f46420  cmp      r5, #0                                  
+00f46424  beq      #0xf46468                               
+00f46428  mov      r7, #0x25                               
+00f4642c  cmp      r0, #0                                  
+00f46430  movwne   r7, #0x26                               
+00f46434  b        #0xf46474                               
+00f46438  mov      r7, #0x21                               
+00f4643c  cmp      r0, #0                                  
+00f46440  movwne   r7, #0x22                               
+00f46444  b        #0xf46474                               
+00f46448  mov      r7, #0x23                               
+00f4644c  cmp      r0, #0                                  
+00f46450  movwne   r7, #0x24                               
+00f46454  b        #0xf46474                               
+00f46458  mov      r7, #0x1f                               
+00f4645c  cmp      r0, #0                                  
+00f46460  movwne   r7, #0x20                               
+00f46464  b        #0xf46474                               
+00f46468  mov      r7, #0x1d                               
+00f4646c  cmp      r0, #0                                  
+00f46470  movwne   r7, #0x1e                               
+00f46474  ldr      r0, [pc, #0xb4]                            ; literal 0x8eb848
+00f46478  mov      r1, #0x10                               
+00f4647c  ldr      r0, [pc, r0]                            
+00f46480  ldr      r5, [r0]                                
+00f46484  mov      r0, #0x40                               
+00f46488  bl       #0x3fa2bc                               
+00f4648c  movw     r2, #0xcac0                             
+00f46490  mov      r1, r0                                  
+00f46494  movw     r0, #0x1428                             
+00f46498  ldr      r2, [r4, r2]                            
+00f4649c  ldr      r0, [r4, r0]                            
+00f464a0  stmib    r1, {r2, r7}                            
+00f464a4  ldr      r2, [pc, #0x88]                            ; literal 0x8ef7b8
+00f464a8  str      r4, [r1, #0xc]                          
+00f464ac  ldr      r2, [pc, r2]                            
+00f464b0  add      r2, r2, #8                              
+00f464b4  str      r2, [r1]                                
+00f464b8  ldr      r2, [pc, #0x78]                            ; literal 0x8eb5b0
+00f464bc  str      sb, [r1, #0x2c]                         
+00f464c0  ldr      r2, [pc, r2]                            
+00f464c4  ldr      r3, [r2]                                
+00f464c8  str      r3, [r1, #0x10]                         
+00f464cc  ldr      r7, [r2, #4]                            
+00f464d0  str      r7, [r1, #0x14]                         
+00f464d4  ldr      r2, [r2, #8]                            
+00f464d8  str      r2, [r1, #0x18]                         
+00f464dc  str      sb, [r1, #0x1c]                         
+00f464e0  ldr      r4, [r0, #0x50]                         
+00f464e4  ldr      r6, [r0, #0x54]                         
+00f464e8  ldr      r0, [r0, #0x58]                         
+00f464ec  str      r0, [r1, #0x38]                         
+00f464f0  movw     r0, #0xffff                             
+00f464f4  str      r6, [r1, #0x34]                         
+00f464f8  str      r4, [r1, #0x30]                         
+00f464fc  strh     r0, [r1, #0x3c]                         
+00f46500  str      r3, [r1, #0x20]                         
+00f46504  str      r7, [r1, #0x24]                         
+00f46508  str      r2, [r1, #0x28]                         
+00f4650c  str      sb, [r1, #0x2c]                         
+00f46510  mov      r0, r5                                  
+00f46514  mov      r2, #0                                  
+00f46518  mov      r3, #0                                  
+00f4651c  pop      {r4, r5, r6, r7, r8, sb, fp, lr}        
+00f46520  b        #0x48b884                               
+00f46524  addeq    fp, lr, ip, ror r8                      
+00f46528  ldrdeq   fp, ip, [lr], ip                        
+00f4652c  addeq    fp, lr, r8, asr #18                     
+00f46530  addeq    fp, lr, r8, asr #16                     
+00f46534  strheq   pc, [lr], r8                            
+00f46538  strheq   fp, [lr], r0                            
+00f4653c  push     {r4, r5, r6, r7, r8, sb, sl, fp, lr}    

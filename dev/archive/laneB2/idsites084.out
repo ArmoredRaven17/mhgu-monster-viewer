@@ -1,0 +1,9 @@
+010687d4  r1 = movw r1, #0x3ed
+01068864  r1 = movw r1, #0x3e9
+010688f4  r1 = movw r1, #0x3eb
+01068910  r1 = mov r1, #0x3ec
+0107b6f4  r1 = addlo r1, r0, r2 | r0 <- 0107b6b4 ldrb r0, [r3] | r2 <- 0107b6d4 movw r2, #0x3e9
+0107b9d4  r1 = addlo r1, r2, r0 | r2 <- 0107b9a0 ldrb r2, [r6] | r0 <- 0107b9b4 movw r0, #0x3e9
+0107edd4  r1 = addlo r1, r7, r0 | r7 <- 0107ed28 ldrb r7, [r8, r0]! | r0 <- 0107edb8 movw r0, #0x3ed
+0107ef44  r1 = addlo r1, r5, r0 | r5 <- 0107eebc ldrb r5, [r8] | r0 <- 0107ef28 movw r0, #0x3f1
+sites 8

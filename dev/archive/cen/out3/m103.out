@@ -1,0 +1,3 @@
+PASS PROBE em004_00  -- {"log":["played 0|Motion[103]_start","played 0|Motion[103]_loop"],"rows":[{"k":"em004_00|em004_00c|150|clip","st":4,"live":216,"lit":53,"s":54,"px":186,"verdict":"draws","clips":["em004_00|0|Motion[103]"],"nodraw":{"clip":"em004_00|0|Motion[103]","units":[{"w0c":"14cb3","gens":2,"mask1":"ffffffff","mask2":"ffffffff","nrow":1648,"rows":[["ffffffff","ffffffff"],["ffffffff","ffffffff"],["120001b0","20004d0"],["0","0"],["0","0"],["0","0"],["3000","1b000"],["0","0"],["3000","1b000"]]}]}}],"missing":[]}
+
+1 passed, 0 failed

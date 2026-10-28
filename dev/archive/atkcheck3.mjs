@@ -17,7 +17,10 @@ async function atkCheck3(){
   const ground = document.getElementById('monGroundRow');
   out.push([head && /Animation/.test(head.textContent) && !document.getElementById('hitZonesPanel').contains(row),
     'the Attack Hitboxes row is in the Animation panel', head ? head.textContent.trim() : 'no panel']);
-  out.push([ground && ground.nextElementSibling === row, 'it sits right after the Ground row', row.previousElementSibling && row.previousElementSibling.id]);
+  // (2026-10-27, atkfix lane) the "Effects drawn before" row (monFxPassRow) now sits between Ground and Attack Hitboxes: accepted
+  const fxPass = document.getElementById('monFxPassRow');
+  out.push([!!ground && (ground.nextElementSibling === row || (!!fxPass && ground.nextElementSibling === fxPass && fxPass.nextElementSibling === row)),
+    'it sits after the Ground row (directly, or with only the Effects drawn before row between)', row.previousElementSibling && row.previousElementSibling.id]);
   // open the Animation panel (the accordion: Hit Zones closed)
   if (sec.dataset.open !== 'true') head.click();
   await frames(5);

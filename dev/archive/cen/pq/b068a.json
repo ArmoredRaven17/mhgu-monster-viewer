@@ -1,0 +1,1 @@
+{"id": "em068_00", "steps": [{"clip": "2|Motion[70]*", "frames": 80}, {"clip": "2|Motion[71]*", "frames": 80}, {"clip": "2|Motion[72]*", "frames": 80}, {"clip": "2|Motion[73]*", "frames": 80}, {"clip": "2|Motion[74]*", "frames": 80}, {"clip": "0|Motion[44]*", "frames": 200}], "want": ["em068_00|em068_00u|300|clip", "em068_00|em068_00u|1400|event"]}

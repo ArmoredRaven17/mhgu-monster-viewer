@@ -78,3 +78,91 @@ On the snow maps (ctl+0x2d set) vt+0x208 holds id 1004 = u 210 calm / 1005 = u 2
 * **The pulse clock's writers** (ctl+0x1c): ctor `0xdeeebc`, vt+0x1d8 `0xdef070`, the pulse reset `0xdf08a4`, the add `0x7264c` at
   `0xdf0880`. rom-map row "ctl+0x1c (Kushala's pulse clock) -- writers"; `<archive>\gapF\RESULT.md` a3.6.
 * Which sp_01 modes the page never makes: closed 2026-10-20 (all the frame handler's; rom-map row "Kushala's c 29 / 30 / 32..35").
+
+## 9. Where the wind aura draws (Raven, 2026-10-27: "Review Wind Aura's location"; tools `<archive>/kushwind/`)
+
+Raven's view: side-on, facing left, Level 3 -- the dark cloud well in front of and below his head, not around him.
+
+**What draws the cloud.** u 10 (Level 3, em024_00_004 rows MASK1 4) has six model rows. The dark cloud is rows 7 / 8: cm101_002
+mesh 0 (a dome, local z 0..4.7), facing mode 9, pushed along the camera ray. Drawing u 10's draws one at a time from the side
+puts the cloud on cm101_002 #0 (`shots/final`, `shot_mesh.out`).
+
+**The records' placement (READ, payload):** u 0 / u 1 / u 10 are **joint 0** (+0x32 = 0, not -1), mode 0, **space 2**
+(+0x38), +0x37 4, offset u 1 (0, 0, 250), u 0 / u 10 (0, 0, 0), scale 1.0 / 1.5 / 1.5. The request goes through the shared
+block e+0xb640 (`0xdf05cc`: `ldr r0, [r2], r0` with r2 = e is the vtable read, r2 += 0xb640), whose override words stay 0
+(`0x40a54` -> `0x31b6b0`; no store to e+0xb654 / e+0xb692 in the image), so every field is the record's. The joint -1 rule
+(live.js unitMatrix) does not touch these records.
+
+**Each link, read:**
+
+1. Start `0x32a284`: compose state 0 -> `0x9ba5d8` with the quaternion `[GOT 0x15087c4]` (a constant identity), the joint
+   `ldrsh [desc+0x72]` and offset desc+0x40; parent mode 3 (`0x32a2d4`).
+2. Recompose `0x327188` -> `0x31d16c`, space 2 (`0x31d410..0x31d46c`): the angles = the effect's start angles (+0x340, from its
+   own quaternion, `0x326e4c` / `0x8a4b88`) + (payload +0x54 ? +0x350 : 0) + radians(payload +0x10), stored to the result's +0x30
+   (`0x31f0a8`) -> `0x8a4dfc` sets the rotation. All zero here: **the effect's frame is the world's axes**, not his yaw, not the
+   joint's (measured: its rows exactly identity while joint 0 tilts ~14 deg). Payload +0x39 = 0, so the joint arm (`0x31f130` ->
+   `0x31f620`) gives the position: joint 0, his hips, (0, 320, 0) on L0 M1.
+3. Nodes: both em024_00_004 nodes are transform mode 2 (+0x10c 0x20020 / 0x20028): position from the product, rows from the
+   node's own quaternion (`0x9bbebc`) -- identity.
+4. Spawn `0xa59c1c` -> shape `0xa5b488`: rows 6 / 7 / 8 / 12 are **shape 6** (base +0x78), whose arm `0xa5bc50` gives
+   z = base +0x70 + rnd x base +0x74 = **500**, times the node scale 1.2 (1.5 x his 0.8) = **600 along the frame's +Z**, i.e.
+   world +z. Measured: rows 7 / 8 particles at (0, 320, 600).
+5. Draw `0xa9272c` (the Model generator's draw): the camera block's +0xb0 copied (`0xa54e84`); facing mode = param +0x100 bits
+   8..11 (9 for rows 7 / 8; `0xaf9d20` leaves mode 9 the camera's world matrix as it is; `0xafa464` re-aims the rows for 9..12);
+   the result's translation is the particle position (`0xa93354`); with param +0x10c bit 28 (`0xa9281c`) the position moves
+   `param +0x110 x gen +0xfc` along unit(position - eye) (`0xa93374..0xa93408`): rows 7 / 8 500 / 400 x 1.2 = 600 / 480 **away
+   from the camera**.
+6. The camera block itself (`0x88287c`, the scene's camera block builder): +0x70 = the view as handed in, +0xb0 = its rigid
+   inverse (3x3 transposed, translation -(t . R^T)), +0x40 = that inverse's translation (the eye). The viewer's host.setCamera
+   writes the same three (view, viewI, eye) -- the convention matches.
+
+**So the cloud's place depends on the camera's angle** -- measured (`shot_sweep.out`, camera yaw around him at the same height):
+the dome's translation is (1, 226, 7) from the front (the 600 forward and the 600 push cancel: it frames him, `front_l3_aura`),
+(-561, 264, 806) from his right side (Raven's view), (0, 276, 1198) from behind. A push along the camera ray never moves a
+particle on screen, so what the side view shows is the emitter's own 600 forward -- ~200 past his head, at hip height (the dome
+then reads "in front of and below his head"). Freezing the draw camera at the front view puts it back on him; freezing the game
+camera (host.setGameCamera) changes nothing: it is the draw's camera block.
+
+**Level 2 (u 0)**: rows 4 / 6: cm120_016 #1 at (0, 314, 720) -- shape 6 +500 x 1.2 forward, then 100 x 1.2 toward the camera --
+720 ahead of his hips even from the front. Level 1 (u 1): the record offset (0, 0, 250) turned by joint 0 lands at (-27, 273, 192).
+
+~~**Verdict: the viewer runs the ROM's own code for every link, and no input differs ... NOT CHANGED.**~~ WITHDRAWN the same
+day (rom-map Withdrawn): one link was not the ROM's -- the node update's tail call `0x9bca30`, which the viewer left out as a
+"draw registration" (owner.js nodeStore, a no-op native in bridge.js).
+
+**The cause, READ (2026-10-27, second pass):**
+
+7. Node update tail `0x9bca10`: with the node's +0x110 bit 12 it calls **`0x9bca30(owner, node)`**, which takes the sCamera
+   viewport camera (`*0x211f504` +0x54, the owner's first draw view) and **turns the node's matrix to it**: with +0x110 bit 13
+   (`0x9bcda0`) `0xafb350` aims the node's Z at the camera's position (camera +0x70) with the camera's up (+0x50); without it
+   (`0x9bcaf4`) the rows are multiplied by the inverse of the camera's view. The node init `0xae83c8` sets bit 12 from block +4
+   & 0x30000 and bit 13 from block +4 bit 17: em024_00_004's two nodes (+4 0x20020 / 0x20028) have both. So both nodes' +Z
+   point at the camera, and shape 6's +500 is emitted **toward the camera** -- rows 7 / 8 then pushed 500 / 400 back land on
+   the hips / 100 in front of them from every side, as the data's pairing says.
+8. The three leads: the start pose +0x340 / +0x350 (`0x326e48` = vt+0x12c) is the effect's own identity start pose (+0x350 only
+   with payload +0x54) -- not the turn. Node 1's block +4 bit 3 has no reader in the node init or update (`blk4scan.py`, control:
+   the init's bits 0 / 1 / 4 / 5 / 16 / 17) -- not the turn. The spawn `0xa59c1c` and its four callees read no camera; shape 6's
+   +Z is in the node's frame, which `0x9bca30` has turned.
+
+**Built** (owner.js nodeCamera / aimRows from `0x9bca30` / `0xafb350`; bridge.js's 0x9bca30 native now calls it for the lifted
+node update; host.js setGameCamera writes camera +0x70 as the ROM does -- **its writer READ: uCamera vt+0x28 `0x895af8`**, every
+frame, the eye recovered from the look-at view: -(the view's translation through its 3x3), +0x7c = 0; the ctor `0x89566c`
+starts it equal to +0x40). The bit-12-only arm's inverse `0x232e24` is transcribed line by line (rom-inv44.js, generated by
+`<archive>/kushwind/vfp2js.py`) and bit-exact against the ROM run on unicorn over 401 matrices (`inv44check.py` / `.mjs`).
+Level 1's u 1 is not missing: alone it lights 45280 px at f5 and 13600..15614 at f80..f160, with dark troughs at f60 (111 px)
+and f120 (0) -- a pulse; over 270 frames 48 / 56 meter samples are lit (`u1_frames.out`, `meter_u1_loop.out`). Results (`<archive>/kushwind/`): u 10's dome at (0, 320, 0) from every yaw (`fix_sweep.out`); side shots
+`shots/reshoot/after_kushala_l{1,2,3}_{side,front,behind}.png` (aura only) and `after_kushala_l{1,2,3}_side_full.png`, the
+`before_*` beside them (NODE_CAMERA.off); meter at Raven's camera unchanged (L1 u 1 24/26, L2 u 0 26/26, L3 u 10 26/26 lit);
+soak of all 96 monster ids with every event / rage record started from the side: 0 refusals; elders.mjs 403/403.
+
+**Audit** (`<archive>/kushwind/pushaudit.py`, census.out): every exported record whose model rows pair a shape-6 offset with a
+camera push -- 207 records over 52 monster ids (22 of them event / rage / puff records); the class-held ones: Kushala u 0 (row 6) / u 10 (rows 7 / 8 / 12); **Amatsu u 0 /
+u 1** (em058_00_100: joint 0, space 2, the same cm120_016 shape-6 +500 rows -- the same placement as Kushala's); Teostra u 0 / u 10
+row 2 (cm100_000, shape 6 -400, push -500 toward the camera; his block's root joint 3). Kushala's barrier u 230 / 240 / 210 / 220
+(mode 4, at the camera) and Chameleos's held records (shared c 1100 / 1108 / 1130..: no shape-6 push) are not this pattern.
+After the fix (`nodeaudit.py` -> nodecensus.out): 1055 exported records have rows on a camera node (event 530, clip 338, shell
+187), 652 of them with a shape-6 offset row there (those move on screen; the rest only turn), the shared break / state records
+(cm202_060 u 1000.., cm200_004 c 1106 / 1108) on every monster among them. Amatsu u 0 / u 1 now wrap him from the side
+(`after_amatsu_*`); Teostra u 0 / u 10 are pixel-identical before / after (no camera node on their rows).
+Meter at Raven's camera (`meter_side.out`, L0 M1 looped, 120 frames): Level 1 u 1 1 start, 24 / 26 lit; Level 2 u 0 1 start,
+26 / 26; Level 3 u 10 1 start, 26 / 26.

@@ -1,0 +1,12 @@
+PASS em003_00 2|Motion[12] f60 (clip 60) Gheld12  -- {"shot":"em003_00_Motion12_f60_Gheld12","blue":215,"bright":268,"far":303,"rmaxPx":251,"w":1280,"h":800,"root":[-1,3,4],"hyper":"1,2","rank":5,"tired":false}
+PASS em003_00 2|Motion[12] f90 (clip 91) Gheld12  -- {"shot":"em003_00_Motion12_f90_Gheld12","blue":1018,"bright":277,"far":0,"rmaxPx":127,"w":1280,"h":800,"root":[0,5,1],"hyper":"1,2","rank":5,"tired":false}
+PASS em003_00 2|Motion[12] f120 (clip 121) Gheld12  -- {"shot":"em003_00_Motion12_f120_Gheld12","blue":23086,"bright":230,"far":13792,"rmaxPx":369,"w":1280,"h":800,"root":[0,1,5],"hyper":"1,2","rank":5,"tired":false}
+PASS em003_00 2|Motion[12] f150 (clip 151) Gheld12  -- {"shot":"em003_00_Motion12_f150_Gheld12","blue":12748,"bright":299,"far":6952,"rmaxPx":321,"w":1280,"h":800,"root":[0,1,4],"hyper":"1,2","rank":5,"tired":false}
+PASS em003_00 2|Motion[12] f180 (clip 181) Gheld12  -- {"shot":"em003_00_Motion12_f180_Gheld12","blue":16135,"bright":280,"far":9188,"rmaxPx":375,"w":1280,"h":800,"root":[1,1,4],"hyper":"1,2","rank":5,"tired":false}
+PASS meter em003_00|em003_00c|1200|event  -- {"efl":"cm200_020.efl","starts":1,"clips":{"em003_00|2|Motion[12]":1},"drawFrames":18,"visibleFrames":18,"samples":18,"litSamples":15,"pixMax":2407,"pixMean":1766,"verdict":"draws"}
+PASS meter em003_00|em003_00u|1301|event  -- {"efl":"cm202_100.efl","starts":1,"clips":{"em003_00|2|Motion[12]":1},"drawFrames":47,"visibleFrames":47,"samples":47,"litSamples":47,"pixMax":975401,"pixMean":121379,"verdict":"draws"}
+PASS meter em003_00|em003_00u|1302|event  -- {"efl":"cm202_100.efl","starts":1,"clips":{"em003_00|2|Motion[12]":1},"drawFrames":47,"visibleFrames":47,"samples":47,"litSamples":47,"pixMax":846861,"pixMean":110693,"verdict":"draws"}
+PASS meter em003_00|em003_00u|260|clip  -- {"efl":"em003_00_000.efl","starts":1,"clips":{"em003_00|2|Motion[12]":1},"drawFrames":27,"visibleFrames":27,"samples":28,"litSamples":27,"pixMax":28024,"pixMean":9341,"verdict":"draws"}
+PASS meter em003_00|em003_00u|263|clip  -- {"efl":"em003_00_001.efl","starts":1,"clips":{"em003_00|2|Motion[12]":1},"drawFrames":22,"visibleFrames":19,"samples":22,"litSamples":19,"pixMax":75078,"pixMean":49374,"verdict":"draws"}
+
+10 passed, 0 failed

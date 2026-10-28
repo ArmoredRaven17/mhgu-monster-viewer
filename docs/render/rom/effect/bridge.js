@@ -438,12 +438,11 @@ native(0x13ecbe4, (m, d, n) => { for (let i = 0; i < n; i++) m.w8(d + i, 0); ret
 native(0x13ece0c, () => 0, [], 'r0');   // nn::os::GetCurrentThread: 0, as the emulator answers an unknown import
 // 0x9bd170, uEffect vtable +0xfc: bx lr (the generator's preUpdate calls it) -- touches no register
 registerNative(0x9bd170, () => {});
-// 0x9bca30, the node DRAW-REGISTRATION: the lifted node update (L_9bba54) reaches it by a direct bl when a
-// node sets +0x110 bit 12 (Soulseer em082_04's eye flame does). It walks the render singleton's passes and
-// combines each with the camera -- the viewer stands up no render singleton and draws every effect itself
-// through host.drawFrame, so this is LEFT OUT, exactly as owner.js's hand nodeUpdate skips the same branch
-// (the vtable path). Its return is unused by the caller (0x9bca18 falls straight into the epilogue).
-registerNative(0x9bca30, () => {});
+// 0x9bca30(owner, node): the lifted node update (L_9bba54) reaches it by a direct bl when a node sets +0x110 bit 12
+// (Soulseer em082_04's eye flame, Kushala's wind aura). It was a stub ("draw registration") until 2026-10-27: READ whole
+// it turns the node's matrix to the viewport camera (owner.js nodeCamera, the hand nodeUpdate's same call). Its return is
+// unused (0x9bca18 falls into the epilogue).
+native(0x9bca30, (m, o, n) => owner.nodeCamera(m, o, n), A2, null);
 // nn::os::InitializeMutex (a singleton's constructor): the emulator's import does nothing and answers 0
 native(0x13ecde8, () => 0, [], 'r0');
 // the effect manager's unique id (0xb8f4b8: lock, ++[mgr +0x22c], unlock), the harness's next_id service

@@ -1,0 +1,1 @@
+{"id": "em020_04", "steps": [{"clip": "0|Motion[15]*", "frames": 790}, {"set": {"monTired": true}}, {"clip": "0|Motion[1]*", "frames": 120}, {"set": {"monTired": false}}, {"partSweep": {"clip": "4|Motion[3]", "frames": 60, "reps": 1}}], "want": ["em020_04|em020_00c|320|clip", "em020_04|em020_00c|1104|event", "em020_04|em020_04u|610|clip", "em020_04|em020_04u|611|clip"]}

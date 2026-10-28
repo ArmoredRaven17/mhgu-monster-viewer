@@ -1,0 +1,49 @@
+== em063_00 shell\em\em063_00_shell01\em063_00_01 modes 39 cmn None
+  mode 0 {"scale": 1.0, "sh": ["em063_00_01_sh000", {"ints": [-1, -1, -1, -1, -1], "floats": [], "vecs": [[0.0, 0.0, 0.0]]}], "hit": ["em063_00_01_hit000", {"ints": [0], "floats": [], "vecs": []}], "snd": ["em063_00_01_snd000", {"ints": [], "floats": [], "vecs": []}], "ef": ["em063_00_01_ef000", [[[0], [[0, 31]]]]]}
+  mode 1 {"scale": 1.0, "sh": ["em063_00_01_sh001", {"ints": [-1, 7, -1, -1, -1], "floats": [], "vecs": [[0.0, 0.0, 0.0]]}], "hit": ["em063_00_01_hit001", {"ints": [1], "floats": [], "vecs": []}], "snd": ["em063_00_01_snd001", {"ints": [], "floats": [], "vecs": []}], "ef": ["em063_00_01_ef001", [[[0], [[0, 30]]]]]}
+  mode 2 {"scale": 1.0, "sh": ["em063_00_01_sh002", {"ints": [-1, -1, -1, -1, -1], "floats": [], "vecs": [[0.0, 0.0, 0.0]]}], "hit": ["em063_00_01_hit002", {"ints": [2], "floats": [], "vecs": []}], "snd": ["em063_00_01_snd002", {"ints": [], "floats": [], "vecs": []}], "ef": ["em063_00_01_ef002", [[[0], [[0, 1]]]]]}
+  mode 3 {"scale": 1.0, "sh": ["em063_00_01_sh003", {"ints": [-1, -1, -1, -1, -1], "floats": [], "vecs": [[0.0, 0.0, 0.0]]}], "hit": ["em063_00_01_hit003", {"ints": [3], "floats": [], "vecs": []}], "snd": ["em063_00_01_snd003", {"ints": [], "floats": [], "vecs": []}], "ef": ["em063_00_01_ef003", [[[0], [[0, 50]]]]]}
+  mode 4 {"scale": 1.0, "sh": ["em063_00_01_sh004", {"ints": [-1, -1, -1, -1, -1], "floats": [], "vecs": [[0.0, 0.0, 100.0]]}], "hit": ["em063_00_01_hit004", {"ints": [4], "floats": [], "vecs": []}], "snd": ["em063_00_01_snd004", {"ints": [], "floats": [], "vecs": []}], "ef": ["em063_00_01_ef004", [[[0], [[0, 40]]]]]}
+  mode 5 {"scale": 1.0, "sh": ["em063_00_01_sh005", {"ints": [-1, -1, -1, -1, -1], "floats": [], "vecs": [[0.0, 0.0, 100.0]]}], "hit": ["em063_00_01_hit005", {"ints": [5], "floats": [], "vecs": []}], "snd": ["em063_00_01_snd005", {"ints": [], "floats": [], "vecs": []}], "ef": ["em063_00_01_ef005", [[[0], [[0, 41]]]]]}
+  mode 6 {"scale": 1.0, "sh": ["em063_00_01_sh006", {"ints": [-1, -1, -1, -1, -1], "floats": [], "vecs": [[0.0, 0.0, 0.0]]}], "hit": ["em063_00_01_hit006", {"ints": [6], "floats": [], "vecs": []}], "snd": ["em063_00_01_snd006", {"ints": [], "floats": [], "vecs": []}], "ef": ["em063_00_01_ef006", [[[0], [[0, 1]]]]]}
+  mode 7 {"scale": 1.0, "sh": ["em063_00_01_sh007", {"ints": [-1, -1, -1, -1, -1], "floats": [], "vecs": [[0.0, 0.0, 0.0]]}], "hit": ["em063_00_01_hit007", {"ints": [7], "floats": [], "vecs": []}], "snd": ["em063_00_01_snd007", {"ints": [], "floats": [], "vecs": []}], "ef": ["em063_00_01_ef007", [[[0], [[0, 11]]]]]}
+  mode 8 {"scale": 1.0, "sh": ["em063_00_01_sh008", {"ints": [-1, -1, -1, -1, -1], "floats": [], "vecs": [[0.0, 0.0, 0.0]]}], "hit": ["em063_00_01_hit008", {"ints": [8], "floats": [], "vecs": []}], "snd": ["em063_00_01_snd008", {"ints": [], "floats": [], "vecs": []}], "ef": ["em063_00_01_ef008", [[[0], [[0, 51]]]]]}
+  mode 9 {"scale": 1.0, "sh": ["em063_00_01_sh009", {"ints": [-1, -1, -1, -1, -1], "floats": [], "vecs": [[0.0, 0.0, 0.0]]}], "hit": ["em063_00_01_hit009", {"ints": [9], "floats": [], "vecs": []}], "snd": ["em063_00_01_snd009", {"ints": [], "floats": [], "vecs": []}], "ef": ["em063_00_01_ef009", [[[0], [[0, 40]]]]]}
+  mode 10 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 11 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 12 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 13 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 14 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 15 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 16 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 17 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 18 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 19 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 20 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 21 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 22 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 23 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 24 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 25 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 26 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 27 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 28 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 29 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 30 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 31 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 32 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 33 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 34 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 35 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 36 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 37 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 38 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+== em063_00 shell\em\em063_00_shell11\em063_00_11 modes 2 cmn None
+  mode 0 {"scale": 1.0, "sh": ["em063_00_11_sh000", {"ints": [12, 7], "floats": [0.0, 6.0, 12.0, 18.0, 30.0, 36.0, 42.0, 48.0, 60.0, 66.0, 72.0, 78.0, 30.0], "vecs": [[0.0, 0.0, 400.0], [0.0, 0.0, 400.0], [0.0, 0.0, 400.0], [0.0, 0.0, 400.0], [0.0, 0.0, 400.0], [0.0, 0.0, 700.0], [0.0, 0.0, 700.0], [0.0, 0.0, 700.0], [0.0, 0.0, 700.0], [0.0, 0.0, 1000.0], [0.0, 0.0, 1000.0], [0.0, 0.0, 1000.0], [0.0, 0.0, 1000.0]]}], "hit": ["em063_00_11_hit000", {"ints": [], "floats": [], "vecs": []}], "snd": ["em063_00_11_snd000", {"ints": [], "floats": [], "vecs": []}], "ef": ["em063_00_11_ef000", [[[0], []]]]}
+  mode 1 {"scale": 1.0, "sh": ["em063_00_11_sh001", {"ints": [8, -1], "floats": [0.0, 6.0, 12.0, 18.0, 24.0, 30.0, 36.0, 42.0, 0.0, 0.0, 0.0, 0.0, 0.0], "vecs": [[0.0, 0.0, 0.0], [0.0, 0.0, 400.0], [0.0, 0.0, 700.0], [100.0, 0.0, 1000.0], [-100.0, 0.0, 1300.0], [0.0, 0.0, 1600.0], [200.0, 0.0, 1900.0], [-200.0, 0.0, 2200.0], [0.0, 0.0, 2500.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]}], "hit": ["em063_00_11_hit001", {"ints": [], "floats": [], "vecs": []}], "snd": ["em063_00_11_snd001", {"ints": [], "floats": [], "vecs": []}], "ef": ["em063_00_11_ef001", [[[0], []]]]}
+== em063_00 shell\em\em063_00_shell35\em063_00_35 modes 5 cmn None
+  mode 0 {"scale": 1.0, "sh": ["em063_00_35_sh000", {"ints": [-1, 6], "floats": [300.0, 1.0, 1.0, 0.0], "vecs": [[0.0, 5.0, 0.0]]}], "hit": ["em063_00_35_hit000", {"ints": [0], "floats": [], "vecs": []}], "snd": ["em063_00_35_snd000", {"ints": [], "floats": [], "vecs": []}], "ef": ["em063_00_35_ef000", [[[0], [[0, 0]]]]]}
+  mode 1 {"scale": 1.0, "sh": ["em063_00_35_sh001", {"ints": [0, 7], "floats": [300.0, 1.0, 2.0, 250.0], "vecs": [[0.0, 5.0, 0.0]]}], "hit": ["em063_00_35_hit001", {"ints": [1], "floats": [], "vecs": []}], "snd": ["em063_00_35_snd001", {"ints": [], "floats": [], "vecs": []}], "ef": ["em063_00_35_ef001", [[[0], [[0, 10]]]]]}
+  mode 2 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 3 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}
+  mode 4 {"scale": 1.0, "sh": null, "hit": null, "snd": null, "ef": null}

@@ -260,3 +260,14 @@ next status-6 step beyond the EMC chain the table shows; what c 0 / c 100 / c 12
   is the stun's motion). (10, 0xbb / 0xbc) are grouped with (10, 0xbf / 0xc0) in the damage step (I: the mounted reactions).
 * **What starts command-table groups 8 / 12 / 13 / 18 -- READ** (rom-map "EMC group starts"): 12 from the tick when the area-link
   test `0xb6e50` passes (I the area move -> category a); 18 from an EMC op path; 8 and 13 have no start anywhere in main.text.
+
+## 7. u 100 on L2 M29 -- the floor under a posture-0 slam (effects lane A, 2026-10-25) -- R, fixed
+
+u 100 (em055_00u UNIQUE 100, em055_00_010, joint 144) is held from f270 / f313 / f403 of L2 M29 / M31 / M32 (motion-states.js
+`holdAt`, rom-map `0xed3adc`). Its payload turns on the base step's spawn-height test (+0x40 = 1) with a limit of **400.0** (+0x58)
+and the ground ray (+0x5c bit 4). On M29 the core's ray starts 378.7 above the unit at f271; the viewer's lowest-reach floor sat
+21.8 below his feet, so the point was 400.5 above the ground and `0x328c10` ended the core on its first move. The action that
+plays L2 M29, (7, 0xc), sets **posture 0** (`0xbc7f4(e, 0)`) before the clip, so the ground is the unit (`0xbf284`); index.html
+FLOOR_AT_UNIT_CLIPS now carries em055_00 L2 M29. Re-metered: draws. Portable lesson (engine E4 / E17): a record with a tight
+spawn-height limit is a test of the floor rule -- when one dies on its first move, measure the core's ray point against the
+floor answered before suspecting the record (tools: `<archive>/laneA/u100ray.mjs`, `posture_any.py`).

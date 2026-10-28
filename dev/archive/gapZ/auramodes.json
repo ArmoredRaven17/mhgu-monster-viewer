@@ -1,0 +1,584 @@
+{
+ "em046_00/shell01": {
+  "base": "base01",
+  "baseNum": 1,
+  "modes": {
+   "0": {
+    "aura": 5,
+    "flags": 0,
+    "hitSide": true
+   },
+   "1": {
+    "aura": 5,
+    "flags": 0,
+    "hitSide": true
+   },
+   "2": {
+    "aura": 5,
+    "flags": 12,
+    "hitSide": true
+   },
+   "3": {
+    "aura": 5,
+    "flags": 12,
+    "hitSide": true
+   },
+   "4": {
+    "aura": 5,
+    "flags": 12,
+    "hitSide": true
+   },
+   "5": {
+    "aura": 5,
+    "flags": 12,
+    "hitSide": true
+   },
+   "6": {
+    "aura": 5,
+    "flags": 12,
+    "hitSide": true
+   },
+   "7": {
+    "aura": 5,
+    "flags": 0,
+    "hitSide": true
+   },
+   "8": {
+    "aura": 5,
+    "flags": 12,
+    "hitSide": true
+   },
+   "9": {
+    "aura": 5,
+    "flags": 12,
+    "hitSide": true
+   },
+   "10": {
+    "aura": 5,
+    "flags": 12,
+    "hitSide": true
+   },
+   "11": {
+    "aura": 5,
+    "flags": 12,
+    "hitSide": true
+   },
+   "12": {
+    "aura": 5,
+    "flags": 12,
+    "hitSide": true
+   },
+   "13": {
+    "aura": 5,
+    "flags": 12,
+    "hitSide": true
+   },
+   "14": {
+    "aura": 5,
+    "flags": 12,
+    "hitSide": true
+   },
+   "15": {
+    "aura": 5,
+    "flags": 12,
+    "hitSide": true
+   },
+   "16": {
+    "aura": 5,
+    "flags": 12,
+    "hitSide": true
+   },
+   "17": {
+    "aura": 5,
+    "flags": 0,
+    "hitSide": true
+   },
+   "18": {
+    "aura": 5,
+    "flags": 0,
+    "hitSide": true
+   },
+   "20": {
+    "aura": 1,
+    "flags": 2048,
+    "hitSide": true
+   },
+   "21": {
+    "aura": 1,
+    "flags": 2048,
+    "hitSide": true
+   },
+   "22": {
+    "aura": 5,
+    "flags": 12,
+    "hitSide": true
+   },
+   "23": {
+    "aura": 5,
+    "flags": 12,
+    "hitSide": true
+   },
+   "24": {
+    "aura": 5,
+    "flags": 12,
+    "hitSide": true
+   },
+   "25": {
+    "aura": 5,
+    "flags": 12,
+    "hitSide": true
+   },
+   "26": {
+    "aura": 5,
+    "flags": 12,
+    "hitSide": true
+   },
+   "27": {
+    "aura": 5,
+    "flags": 0,
+    "hitSide": true
+   }
+  }
+ },
+ "em057_00/shell18": {
+  "base": "base00",
+  "baseNum": 0,
+  "modes": {
+   "0": {
+    "aura": -1,
+    "flags": 163,
+    "hitSide": true
+   },
+   "1": {
+    "aura": -1,
+    "flags": 163,
+    "hitSide": true
+   },
+   "2": {
+    "aura": -1,
+    "flags": 163,
+    "hitSide": true
+   },
+   "3": {
+    "aura": -1,
+    "flags": 163,
+    "hitSide": true
+   },
+   "4": {
+    "aura": -1,
+    "flags": 163,
+    "hitSide": true
+   },
+   "5": {
+    "aura": -1,
+    "flags": 163,
+    "hitSide": true
+   },
+   "42": {
+    "aura": 0,
+    "flags": 2211,
+    "hitSide": false
+   },
+   "43": {
+    "aura": 0,
+    "flags": 2211,
+    "hitSide": false
+   },
+   "44": {
+    "aura": 0,
+    "flags": 2211,
+    "hitSide": false
+   },
+   "45": {
+    "aura": 0,
+    "flags": 2211,
+    "hitSide": false
+   },
+   "46": {
+    "aura": 0,
+    "flags": 2211,
+    "hitSide": false
+   },
+   "47": {
+    "aura": 0,
+    "flags": 2211,
+    "hitSide": false
+   },
+   "48": {
+    "aura": 0,
+    "flags": 2211,
+    "hitSide": false
+   },
+   "49": {
+    "aura": 0,
+    "flags": 2211,
+    "hitSide": false
+   },
+   "50": {
+    "aura": 0,
+    "flags": 2211,
+    "hitSide": false
+   },
+   "51": {
+    "aura": 0,
+    "flags": 2211,
+    "hitSide": false
+   },
+   "54": {
+    "aura": 0,
+    "flags": 2211,
+    "hitSide": false
+   },
+   "55": {
+    "aura": 0,
+    "flags": 2211,
+    "hitSide": false
+   }
+  }
+ },
+ "em070_00/shell00": {
+  "base": "base00",
+  "baseNum": 0,
+  "modes": {
+   "0": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "1": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "2": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "3": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "4": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "5": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "6": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "7": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "8": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "9": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "10": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "11": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "12": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "13": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "14": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "15": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "16": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "17": {
+    "aura": 0,
+    "flags": 2181,
+    "hitSide": false
+   },
+   "18": {
+    "aura": 2,
+    "flags": 132,
+    "hitSide": true
+   },
+   "19": {
+    "aura": 2,
+    "flags": 132,
+    "hitSide": true
+   },
+   "20": {
+    "aura": 2,
+    "flags": 132,
+    "hitSide": true
+   },
+   "21": {
+    "aura": 2,
+    "flags": 132,
+    "hitSide": true
+   },
+   "22": {
+    "aura": 2,
+    "flags": 132,
+    "hitSide": true
+   },
+   "23": {
+    "aura": 2,
+    "flags": 132,
+    "hitSide": true
+   },
+   "24": {
+    "aura": 2,
+    "flags": 132,
+    "hitSide": true
+   },
+   "25": {
+    "aura": 2,
+    "flags": 132,
+    "hitSide": true
+   },
+   "26": {
+    "aura": 2,
+    "flags": 132,
+    "hitSide": true
+   },
+   "27": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "28": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "29": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "30": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "31": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "32": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "33": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "34": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   },
+   "35": {
+    "aura": 2,
+    "flags": 133,
+    "hitSide": true
+   }
+  }
+ },
+ "em070_00/shell00_02": {
+  "base": "base00",
+  "baseNum": 0,
+  "modes": {
+   "0": {
+    "aura": 4,
+    "flags": 0,
+    "hitSide": true
+   },
+   "1": {
+    "aura": 4,
+    "flags": 0,
+    "hitSide": true
+   }
+  }
+ },
+ "em070_00/shell01": {
+  "base": "base01",
+  "baseNum": 1,
+  "modes": {
+   "0": {
+    "aura": 2,
+    "flags": 12,
+    "hitSide": true
+   },
+   "1": {
+    "aura": 2,
+    "flags": 12,
+    "hitSide": true
+   },
+   "2": {
+    "aura": 2,
+    "flags": 12,
+    "hitSide": true
+   },
+   "3": {
+    "aura": 2,
+    "flags": 0,
+    "hitSide": true
+   },
+   "4": {
+    "aura": 2,
+    "flags": 0,
+    "hitSide": true
+   },
+   "5": {
+    "aura": 2,
+    "flags": 0,
+    "hitSide": true
+   },
+   "6": {
+    "aura": 4,
+    "flags": 12,
+    "hitSide": true
+   },
+   "7": {
+    "aura": 4,
+    "flags": 12,
+    "hitSide": true
+   },
+   "8": {
+    "aura": 0,
+    "flags": 4096,
+    "hitSide": false
+   }
+  }
+ },
+ "em070_00/shell13": {
+  "base": "base13",
+  "baseNum": 13,
+  "modes": {
+   "0": {
+    "aura": -1,
+    "flags": null,
+    "hitSide": true
+   },
+   "1": {
+    "aura": -1,
+    "flags": null,
+    "hitSide": true
+   },
+   "2": {
+    "aura": -1,
+    "flags": null,
+    "hitSide": true
+   },
+   "3": {
+    "aura": -1,
+    "flags": null,
+    "hitSide": true
+   },
+   "4": {
+    "aura": -1,
+    "flags": null,
+    "hitSide": true
+   },
+   "5": {
+    "aura": -1,
+    "flags": null,
+    "hitSide": true
+   },
+   "6": {
+    "aura": -1,
+    "flags": null,
+    "hitSide": true
+   },
+   "7": {
+    "aura": -1,
+    "flags": null,
+    "hitSide": true
+   },
+   "8": {
+    "aura": -1,
+    "flags": null,
+    "hitSide": true
+   }
+  }
+ },
+ "em081_00/shell01": {
+  "base": "base01",
+  "baseNum": 1,
+  "modes": {
+   "0": {
+    "aura": 4,
+    "flags": 1,
+    "hitSide": true
+   },
+   "1": {
+    "aura": 3,
+    "flags": 1,
+    "hitSide": true
+   },
+   "11": {
+    "aura": 0,
+    "flags": 4224,
+    "hitSide": false
+   },
+   "12": {
+    "aura": 0,
+    "flags": 4224,
+    "hitSide": false
+   },
+   "13": {
+    "aura": 0,
+    "flags": 4224,
+    "hitSide": false
+   },
+   "21": {
+    "aura": 0,
+    "flags": 4129,
+    "hitSide": false
+   },
+   "22": {
+    "aura": 0,
+    "flags": 4129,
+    "hitSide": false
+   }
+  }
+ }
+}

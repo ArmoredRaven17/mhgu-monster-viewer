@@ -1,0 +1,11 @@
+FAILED: TypeError: Failed to fetch
+    at FileLoader.load (https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js:44426:3)
+    at GLTFLoader.load (https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/loaders/GLTFLoader.js:241:10)
+    at https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js:44295:10
+    at new Promise (<anonymous>)
+    at GLTFLoader.loadAsync (https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js:44293:10)
+    at clipFor (http://localhost:5781/render/monster.js:1171:35)
+    at play (http://localhost:5781/?scene=none:7754:68)
+    at remount (http://localhost:5781/?scene=none:5866:27)
+    at async monSel.onchange (http://localhost:5781/?scene=none:8019:3)
+    at async check (<anonymous>:13:25)

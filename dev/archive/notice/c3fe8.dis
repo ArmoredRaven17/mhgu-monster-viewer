@@ -1,0 +1,77 @@
+000c3fe8  ldr      r2, [r0, #0x54]                         
+000c3fec  mov      r1, #1                                  
+000c3ff0  vldr     s0, [pc, #0xd4]                         
+000c3ff4  add      r3, r1, r2, lsr #11                     
+000c3ff8  vmul.f32 s0, s16, s0                             
+000c3ffc  and      r3, r3, #0x1f                           
+000c4000  lsl      ip, r1, r3                              
+000c4004  ubfx     r3, r2, #0xb, #5                        
+000c4008  ldr      r0, [r0, #0x7a4]                        
+000c400c  orr      ip, ip, r1, lsl r3                      
+000c4010  mov      r3, #2                                  
+000c4014  add      r3, r3, r2, lsr #11                     
+000c4018  and      r3, r3, #0x1f                           
+000c401c  orr      ip, ip, r1, lsl r3                      
+000c4020  mov      r3, #3                                  
+000c4024  add      r3, r3, r2, lsr #11                     
+000c4028  and      r3, r3, #0x1f                           
+000c402c  orr      ip, ip, r1, lsl r3                      
+000c4030  mov      r3, #4                                  
+000c4034  add      r3, r3, r2, lsr #11                     
+000c4038  and      r3, r3, #0x1f                           
+000c403c  orr      ip, ip, r1, lsl r3                      
+000c4040  mov      r3, #0x1f                               
+000c4044  add      r3, r3, r2, lsr #11                     
+000c4048  and      r3, r3, #0x1f                           
+000c404c  orr      ip, ip, r1, lsl r3                      
+000c4050  mov      r3, #0x1e                               
+000c4054  add      r3, r3, r2, lsr #11                     
+000c4058  and      r3, r3, #0x1f                           
+000c405c  orr      ip, ip, r1, lsl r3                      
+000c4060  mov      r3, #0x1d                               
+000c4064  add      r3, r3, r2, lsr #11                     
+000c4068  and      lr, r3, #0x1f                           
+000c406c  movw     r3, #0x1418                             
+000c4070  add      sl, r4, r3                              
+000c4074  mov      r3, #0x1c                               
+000c4078  orr      ip, ip, r1, lsl lr                      
+000c407c  add      r2, r3, r2, lsr #11                     
+000c4080  vldr     s2, [sl]                                
+000c4084  and      r2, r2, #0x1f                           
+000c4088  orr      r1, ip, r1, lsl r2                      
+000c408c  tst      r0, r1                                  
+000c4090  vseleq.f32 s0, s16, s0                             
+000c4094  vadd.f32 s0, s2, s0                              
+000c4098  vldr     s2, [pc, #0x30]                         
+000c409c  vcmpe.f32 s0, s2                                  
+000c40a0  vstr     s0, [sl]                                
+000c40a4  vmrs     apsr_nzcv, fpscr                        
+000c40a8  ble      #0xc3db0                                
+000c40ac  movw     r0, #0                                  
+000c40b0  movt     r0, #0x44e1                             
+000c40b4  str      r0, [sl]                                
+000c40b8  ldr      r0, [sb]                                
+000c40bc  orr      r0, r0, #0x20                           
+000c40c0  str      r0, [sb]                                
+000c40c4  b        #0xc3db0                                
+000c40c8  ldrsbeq  sp, [r6, #-0xd4]!                       
+000c40cc  rsbsmi   r0, r0, #0                              
+000c40d0  strbtmi  r0, [r1], #0                            
+000c40d4  orrsmi   r0, r6, #0                              
+000c40d8  push     {r4, r5, fp, lr}                        
+000c40dc  mov      r4, r1                                  
+000c40e0  movw     r1, #0x1428                             
+000c40e4  mov      r5, r0                                  
+000c40e8  mov      r3, #1                                  
+000c40ec  ldr      r1, [r5, r1]!                           
+000c40f0  ldrb     r2, [r1, #0x24d]                        
+000c40f4  orr      r2, r2, r3, lsl r4                      
+000c40f8  strb     r2, [r1, #0x24d]                        
+000c40fc  bl       #0x71248                                
+000c4100  ldrsh    r0, [r0]                                
+000c4104  ldr      r1, [r5]                                
+000c4108  vmov     s0, r0                                  
+000c410c  add      r0, r1, r4, lsl #2                      
+000c4110  vcvt.f32.s32 s0, s0                                  
+000c4114  vstr     s0, [r0, #0x2c8]                        
+000c4118  pop      {r4, r5, fp, pc}                        

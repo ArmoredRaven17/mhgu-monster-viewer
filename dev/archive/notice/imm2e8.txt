@@ -1,0 +1,54 @@
+00041f10  add      r0, r4, #0x2e4
+00041fa4  add      r0, r4, #0x2e4
+00064330  vldr     s16, [r1, #0x2e8]
+000899b8  vldr     s0, [r1, #0x2e8]
+000899bc  vldr     s2, [r1, #0x2ec]
+000899c0  vldr     s4, [r1, #0x2f0]
+000899c4  vldr     s6, [r1, #0x2f4]
+0008e4ac  vldr     s0, [r0, #0x2e8]
+0008e4b0  vldr     s2, [r0, #0x2ec]
+0008e4b4  vldr     s4, [r0, #0x2f0]
+0008e4b8  vldr     s6, [r0, #0x2f4]
+000a547c  mov      sb, #0x2e8
+000b9374  str      r6, [r0, #0x2e8]
+000b9394  str      r6, [r0, #0x2ec]
+000b93b4  str      r6, [r0, #0x2f0]
+000b93d4  str      r6, [r0, #0x2f4]
+000b945c  str      r4, [r0, #0x2e4]
+000bbc2c  vldr     s0, [r0, #0x2e8]
+000c3680  mov      sb, #0x2e8
+000c9720  add      r1, r0, #0x2e4
+000c9730  vldr     s0, [r0, #0x2e4]
+000c9754  str      r1, [r0, #0x2e4]
+00cf7b84  mvn      r2, #0x2e8
+00d49b00  mvn      r2, #0x2e8
+00daaae4  mvn      r2, #0x2e8
+00ebd9c4  vldr     s18, [r0, #0x2e8]
+00ecee08  str      r3, [r0, #0x2e4]
+00ecee14  str      r3, [r0, #0x2e8]
+00ecee1c  str      r4, [r0, #0x2ec]
+00ecee24  str      r3, [r0, #0x2f0]
+00ecee2c  str      r1, [r0, #0x2f4]
+00ecf4a8  str      r4, [r0, #0x2e4]
+00ecf4ac  str      r6, [r0, #0x2e8]
+00ecf4b0  str      r4, [r0, #0x2ec]
+00ecf4b4  str      r7, [r0, #0x2f0]
+00ecf4b8  str      r4, [r0, #0x2f4]
+00f04274  str      sb, [r0, #0x2e4]
+00f04284  str      r4, [r0, #0x2e8]
+00f04288  str      r5, [r0, #0x2ec]
+00f0428c  str      r2, [r0, #0x2f0]
+00f04294  str      r5, [r0, #0x2f4]
+00f1663c  add      r0, r0, #0x2e8
+00f16938  add      r0, r0, #0x2e8
+00f16ccc  add      r0, r0, #0x2e8
+00f16f70  add      r0, r0, #0x2e8
+00fe5078  mvn      r2, #0x2e8
+010200a4  mvn      r2, #0x2e8
+0104dc44  str      r4, [r0, #0x2ec]
+0104dc50  str      r2, [r0, #0x2f0]
+0104dc58  str      r4, [r0, #0x2f4]
+01065658  add      r0, r4, #0x2e8
+01065664  add      r0, r4, #0x2e4
+0107b668  str      r0, [r1, #0x2e4]
+011243f8  str      r6, [r0, #0x2e8]

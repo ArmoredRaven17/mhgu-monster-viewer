@@ -1,0 +1,10 @@
+PASS em003_00 2|Motion[12] f60 (clip 60) Goff  -- {"shot":"em003_00_Motion12_f60_Goff","blue":417,"bright":199,"far":46,"rmaxPx":220,"w":1280,"h":800,"root":[-1,3,4],"hyper":"","rank":5,"tired":false}
+PASS em003_00 2|Motion[12] f90 (clip 91) Goff  -- {"shot":"em003_00_Motion12_f90_Goff","blue":786,"bright":390,"far":0,"rmaxPx":170,"w":1280,"h":800,"root":[0,5,1],"hyper":"","rank":5,"tired":false}
+PASS em003_00 2|Motion[12] f120 (clip 121) Goff  -- {"shot":"em003_00_Motion12_f120_Goff","blue":22011,"bright":435,"far":13364,"rmaxPx":383,"w":1280,"h":800,"root":[0,1,5],"hyper":"","rank":5,"tired":false}
+PASS em003_00 2|Motion[12] f150 (clip 151) Goff  -- {"shot":"em003_00_Motion12_f150_Goff","blue":13277,"bright":460,"far":6202,"rmaxPx":316,"w":1280,"h":800,"root":[0,1,4],"hyper":"","rank":5,"tired":false}
+PASS em003_00 2|Motion[12] f180 (clip 181) Goff  -- {"shot":"em003_00_Motion12_f180_Goff","blue":16669,"bright":385,"far":8390,"rmaxPx":369,"w":1280,"h":800,"root":[1,1,4],"hyper":"","rank":5,"tired":false}
+PASS meter em003_00|em003_00c|1200|event  -- {"efl":"cm200_020.efl","starts":1,"clips":{"em003_00|2|Motion[12]":1},"drawFrames":18,"visibleFrames":18,"samples":18,"litSamples":15,"pixMax":2407,"pixMean":1765,"verdict":"draws"}
+PASS meter em003_00|em003_00u|260|clip  -- {"efl":"em003_00_000.efl","starts":1,"clips":{"em003_00|2|Motion[12]":1},"drawFrames":28,"visibleFrames":28,"samples":28,"litSamples":28,"pixMax":35484,"pixMean":11663,"verdict":"draws"}
+PASS meter em003_00|em003_00u|263|clip  -- {"efl":"em003_00_001.efl","starts":1,"clips":{"em003_00|2|Motion[12]":1},"drawFrames":21,"visibleFrames":18,"samples":21,"litSamples":18,"pixMax":75944,"pixMean":48121,"verdict":"draws"}
+
+8 passed, 0 failed

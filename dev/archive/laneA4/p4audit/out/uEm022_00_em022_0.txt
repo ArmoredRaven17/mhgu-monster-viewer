@@ -1,0 +1,52 @@
+uEm022_00 em022 v0 (0, 0x7) ph0A: PH 1 | POST 4@ddaa74 | SET MOG@ddaa84 | M L0M20@dd9edc
+uEm022_00 em022 v0 (0, 0x7) ph1B: VT3E8@dd9edc
+uEm022_00 em022 v0 (6, 0x1) ph0A: PH 1 | POST 4@ddec64 | M L0M19@dd9f20
+uEm022_00 em022 v0 (6, 0x1) ph1B: VT3E8@dd9f20
+uEm022_00 em022 v0 (6, 0x2) ph0A: PH 1 | POST 4@ddaa74 | SET MOG@ddaa84 | M L0M20@dd9f20
+uEm022_00 em022 v0 (6, 0x2) ph1B: VT3E8@dd9f20
+uEm022_00 em022 v0 (6, 0x3) ph0A: PH 1 | POST 0@ddedb8 | SET 0@ddedc8 | M L0M21@dd9f20
+uEm022_00 em022 v0 (6, 0x3) ph1B: IDLE
+uEm022_00 em022 v0 (6, 0x4) ph0A: PH 1 | POST 4@ddee80 | SET MOG@ddee90 | TURN 0x169ceac {L0M0; L0M6 / L0M5}@ddeecc
+uEm022_00 em022 v0 (6, 0x4) ph1C: VT3E8@dd9f20
+uEm022_00 em022 v0 (6, 0x5) ph0A: PH 1 | POST 4@ddef7c | SET MOG@ddef8c | M L0M20@ddefa4
+uEm022_00 em022 v0 (6, 0x5) ph1B: PH 2
+uEm022_00 em022 v0 (6, 0x5) ph2A: VT3E8@dd9f20
+uEm022_00 em022 v0 (6, 0x6) ph0A: PH 1 | POST 4@ddaa74 | SET MOG@ddaa84 | M L0M20@dd9f20
+uEm022_00 em022 v0 (6, 0x6) ph1B: VT3E8@dd9f20
+uEm022_00 em022 v0 (6, 0x7) ph0A: PH 1 | POST 4@ddf234 | SET MOG@ddf244 | M L0M18@ddf25c
+uEm022_00 em022 v0 (6, 0x7) ph1C: VT3E8@dd9f20
+uEm022_00 em022 v0 (6, 0x8) ph0A: PH 1 | POST 4@ddf234 | SET MOG@ddf244 | M L0M18@ddf25c
+uEm022_00 em022 v0 (6, 0x8) ph1C: VT3E8@dd9f20
+uEm022_00 em022 v0 (6, 0x9) ph0A: PH 1 | POST 4@ddee80 | SET MOG@ddee90 | TURN 0x169ceec {L0M0; L0M8 / L0M7}@ddeecc
+uEm022_00 em022 v0 (6, 0x9) ph1C: VT3E8@dd9f20
+uEm022_00 em022 v0 (6, 0xa) ph0A: PH 1 | POST 4@ddef7c | SET MOG@ddef8c | M L0M20@ddefa4
+uEm022_00 em022 v0 (6, 0xa) ph1B: PH 2
+uEm022_00 em022 v0 (6, 0xa) ph2A: VT3E8@dd9f20
+uEm022_00 em022 v0 (6, 0xb) ph0A: PH 1 | POST 4@ddef7c | SET MOG@ddef8c | M L0M20@ddefa4
+uEm022_00 em022 v0 (6, 0xb) ph1B: PH 2
+uEm022_00 em022 v0 (6, 0xb) ph2A: VT3E8@dd9f20
+uEm022_00 em022 v0 (6, 0xc) ph0A: PH 1 | POST 4@ddf234 | SET MOG@ddf244 | M L0M18@ddf25c
+uEm022_00 em022 v0 (6, 0xc) ph1C: VT3E8@dd9f20
+uEm022_00 em022 v0 (6, 0xd) ph0A: PH 1 | POST 4@ddee80 | SET MOG@ddee90 | TURN 0x169ceac {L0M0; L0M6 / L0M5}@ddeecc
+uEm022_00 em022 v0 (6, 0xd) ph1C: VT3E8@dd9f20
+uEm022_00 em022 v0 (6, 0xe) ph0A: PH 1 | POST 4@ddee80 | SET MOG@ddee90 | TURN 0x169ceac {L0M0; L0M6 / L0M5}@ddeecc
+uEm022_00 em022 v0 (6, 0xe) ph1C: VT3E8@dd9f20
+uEm022_00 em022 v0 (6, 0xf) ph0A: PH 1 | POST 4@ddee80 | SET MOG@ddee90 | TURN 0x169ceec {L0M0; L0M8 / L0M7}@ddeecc
+uEm022_00 em022 v0 (6, 0xf) ph1C: VT3E8@dd9f20
+uEm022_00 em022 v0 (6, 0x10) ph0A: PH 1 | POST 4@ddee80 | SET MOG@ddee90 | TURN 0x169ceec {L0M0; L0M8 / L0M7}@ddeecc
+uEm022_00 em022 v0 (6, 0x10) ph1C: VT3E8@dd9f20
+uEm022_00 em022 v0 (7, 0x14) ph0A: PH 1 | POST 4@dddc20 | SET MOG@dddc30 | M L0M20@dddc44
+uEm022_00 em022 v0 (7, 0x14) ph1B: PH 2 | POST 0@dddccc | SET 0@dddcd8 | M L0M21@ddde00
+uEm022_00 em022 v0 (7, 0x14) ph2B: IDLE
+uEm022_00 em022 v0 (7, 0x14) ph3B?: PH 4 | M L0M18@dddd8c
+uEm022_00 em022 v0 (7, 0x14) ph4B?: IDLE
+uEm022_00 em022 v0 (7, 0x15) ph0A: PH 1 | POST 4@dddc20 | SET MOG@dddc30 | M L0M20@dddc44
+uEm022_00 em022 v0 (7, 0x15) ph1B: PH 2 | POST 0@dddccc | SET 0@dddcd8 | M L2M17@dddcf8
+uEm022_00 em022 v0 (7, 0x15) ph2B: IDLE
+uEm022_00 em022 v0 (7, 0x15) ph3B?: PH 4 | M L0M18@dddd8c
+uEm022_00 em022 v0 (7, 0x15) ph4B?: IDLE
+uEm022_00 em022 v0 (7, 0x16) ph0A: PH 1 | POST 4@dddc20 | SET MOG@dddc30 | M L0M20@dddc44
+uEm022_00 em022 v0 (7, 0x16) ph1B: PH 2 | POST 0@dddccc | SET 0@dddcd8 | M L2M17@dddcf8
+uEm022_00 em022 v0 (7, 0x16) ph2B: PH 3 | M L2M18@dd9f2c
+uEm022_00 em022 v0 (7, 0x16) ph3B: PH 4 | M L0M18@dddd8c
+uEm022_00 em022 v0 (7, 0x16) ph4B: IDLE

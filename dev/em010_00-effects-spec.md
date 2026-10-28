@@ -39,3 +39,9 @@ psl-mask.js `em010_00` (CLASS_MASK, PSL_MASK_MONSTERS) + CLIP_ACTIONS em010_00 +
 and `plays.cn`; motion-states.js CLIP_VARIANTS em010_00 L0 M18 A / B. `--apply`: nothing new to export. Check
 dev/checks/em010_00.mjs: word asserts, L2 M2 back-to-back plays, L0 M18 copies A / B; its stale "9 event" count (the schedule
 now also carries the shared states) replaced by his named records. **Check 55 / 0.**
+
+## Lane A3 (2026-10-26): u 1400
+
+Never requested: no class site asks it, and the shared latch 0xadc98 needs e+0x1404 bits 20 + 21 together with e+0x1408 bit 0;
+bit 0 is raised by Lavasioth alone and bit 20 by eleven other classes (not Lavasioth). A ROM reason for the coordinator
+(rom-map "Effects lane A3").

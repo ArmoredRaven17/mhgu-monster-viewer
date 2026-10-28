@@ -1,0 +1,23 @@
+PASS em004_00: the Attack Hitboxes row is shown, in the Animation panel
+PASS em004_00 2|Motion[3]: records on the clip
+PASS em004_00: type-3 records placed (none skipped)
+PASS em004_00: a type-3 shape touched the Solid hunter (dist 0) at some frame: true
+PASS em004_00: every record row carries its power / element / status
+PASS em004_00: the hover text
+PASS em012_00: the Attack Hitboxes row is shown, in the Animation panel
+PASS em012_00 3|Motion[1]: records on the clip
+PASS em012_00: the per-frame arms (pf+...) are drawn
+PASS em012_00: every record row carries its power / element / status
+PASS em012_00: the hover text
+PASS em087_00: the Attack Hitboxes row is shown, in the Animation panel
+PASS em087_00 3|Motion[16]: records on the clip
+PASS em087_00: the per-frame arms (pf+...) are drawn
+PASS em087_00: every record row carries its power / element / status
+PASS em087_00: the hover text
+PASS em001_00: the Attack Hitboxes row is shown, in the Animation panel
+PASS em001_00 4|Motion[6]: records on the clip
+PASS em001_00: every record row carries its power / element / status
+PASS em001_00: the hover text
+PASS hit-type3.js in the page: the ROM-RUN meets (flat ends: (0, 111) and (0, 150) miss; the rim (58, 105) meets)
+
+21 passed, 0 failed

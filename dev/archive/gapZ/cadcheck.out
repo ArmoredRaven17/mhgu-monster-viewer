@@ -1,0 +1,18 @@
+hyper 1 cad9c id -1 -> 1
+hyper 1 cad9c id 0 -> 0
+hyper 1 cad9c id 1 -> 1
+hyper 1 cad9c id 3 -> 1
+hyper 1 cad9c id 5 -> 0
+hyper 0 cad9c id -1 -> 0
+hyper 0 cad9c id 0 -> 0
+hyper 0 cad9c id 1 -> 0
+hyper 0 cad9c id 3 -> 0
+hyper 0 cad9c id 5 -> 0
+caa30 cls 3 id -1 -> 1 atk 1.20 scale 1.30
+caa30 cls 0 id -1 -> 1 atk 1.10 scale 2.00
+caa30 cls 2 id -1 -> 0 
+caa30 cls 3 id 1 -> 1 atk 1.20 scale 1.30
+caa30 cls 3 id 3 -> 1 atk 1.50 scale 1.70
+caa30 cls 0 id 1 -> 0 
+caa30 cls 0 id 3 -> 1 atk 1.10 scale 2.00
+caa30 cls 3 id 0 -> 0 

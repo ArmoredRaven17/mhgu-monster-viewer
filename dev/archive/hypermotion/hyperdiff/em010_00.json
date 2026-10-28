@@ -1,0 +1,48 @@
+{
+"mon": "em010_00",
+"class": "uEm010_00",
+"ids": [
+1,
+3
+],
+"rank": 5,
+"diffs": [
+{
+"act": "7:0x0d",
+"phase": 1,
+"ended": 1,
+"frame": 1,
+"off_only": [
+"0xc0dbc r1=0x1555 r2=0x0 r3=0x0 s0=0.0"
+],
+"on_only": [
+"0xc0dbc r1=0xeaac r2=0x0 r3=0x0 s0=0.0"
+]
+},
+{
+"act": "7:0x28",
+"phase": 1,
+"ended": 1,
+"frame": 1,
+"off_only": [
+"0xc0dbc r1=0xeaac r2=0x0 r3=0x0 s0=0.0"
+],
+"on_only": [
+"0xc0dbc r1=0x39a r2=0x0 r3=0x0 s0=0.0"
+]
+},
+{
+"act": "7:0x32",
+"phase": 1,
+"ended": 1,
+"frame": 1,
+"off_only": [
+"0xc0dbc r1=0x1555 r2=0x0 r3=0x0 s0=0.0"
+],
+"on_only": [
+"0xc0dbc r1=0xeaac r2=0x0 r3=0x0 s0=0.0"
+]
+}
+],
+"handled": 305
+}

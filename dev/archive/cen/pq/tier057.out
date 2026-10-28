@@ -1,0 +1,3 @@
+PASS PROBE em057_00  -- {"log":["levels 0:Normal,1:Charging,2:Fully Charged","toggle true"],"control":[{"k":"em057_00|em057_00u|30|event","st":1,"live":119,"lit":26,"s":26,"px":5589,"verdict":"draws","clips":[]}],"rows":[{"k":"em057_00|em057_00u|30|event","st":2,"live":160,"lit":36,"s":37,"px":9656,"verdict":"draws","clips":[]},{"k":"em057_00|em057_00u|31|event","st":1,"live":159,"lit":34,"s":34,"px":15369,"verdict":"draws","clips":[]}],"missing":[]}
+
+1 passed, 0 failed

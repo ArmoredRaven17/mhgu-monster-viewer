@@ -1,0 +1,1 @@
+{"id":"em044_00","steps":[{"partSweep":{"clip":"2|Motion[12]","frames":125,"reps":1}},{"partSweep":{"clip":"2|Motion[13]","frames":60,"reps":1}},{"partsAll":"last"},{"clip":"2|Motion[12]*","frames":125},{"clip":"2|Motion[13]*","frames":60}],"want":["em044_00|em044_00u|340|clip","em044_00|em044_00u|350|clip","em044_00|em044_00u|360|clip"]}

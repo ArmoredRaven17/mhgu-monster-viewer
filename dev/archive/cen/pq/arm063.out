@@ -1,0 +1,3 @@
+FAIL PROBE em063_00  -- {"log":["partSweep 2|Motion[13] over 5 rows","partSweep 2|Motion[11] over 5 rows"],"rows":[{"k":"em063_00|em063_00c|140|clip","st":1,"live":95,"lit":21,"s":21,"px":26223,"verdict":"draws","clips":["em063_00|2|Motion[13]"]},{"k":"em063_00|em063_00c|141|clip","st":1,"live":95,"lit":22,"s":22,"px":26449,"verdict":"draws","clips":["em063_00|2|Motion[11]"]}],"missing":["em063_00|em063_00c|130|clip","em063_00|em063_00c|131|clip"]}
+
+0 passed, 1 failed

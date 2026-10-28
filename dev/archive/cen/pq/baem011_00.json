@@ -1,0 +1,1 @@
+{"id": "em011_00", "steps": [{"set": {"monRage": true}}, {"set": {"monRage": false}}, {"set": {"monTired": true}}, {"set": {"monTired": false}}, {"partsAll": "last"}, {"partsAll": "first"}], "want": ["em011_00|em011_00c|1500|event"]}

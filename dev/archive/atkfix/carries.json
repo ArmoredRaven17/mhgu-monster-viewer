@@ -1,0 +1,1923 @@
+{
+"em001_00": {
+"1|Motion[32]|0|40|3|-1.0|3:0x33": {
+"kind": "carried",
+"hops": [
+[
+"1|Motion[29]",
+127,
+0
+]
+],
+"why": null
+},
+"4|Motion[26]|0|14|3|50.0|7:0x1": {
+"kind": "refused",
+"hops": [],
+"why": "not-in-lists"
+}
+},
+"em001_02": {
+"1|Motion[32]|0|40|3|-1.0|3:0x33": {
+"kind": "carried",
+"hops": [
+[
+"1|Motion[29]",
+127,
+0
+]
+],
+"why": null
+},
+"4|Motion[26]|0|14|3|50.0|7:0x1": {
+"kind": "refused",
+"hops": [],
+"why": "not-in-lists"
+}
+},
+"em001_04": {
+"1|Motion[32]|0|40|3|-1.0|3:0x33": {
+"kind": "carried",
+"hops": [
+[
+"1|Motion[29]",
+127,
+0
+]
+],
+"why": null
+},
+"4|Motion[26]|0|14|3|50.0|7:0x1": {
+"kind": "refused",
+"hops": [],
+"why": "not-in-lists"
+},
+"9|Motion[4]|0|1030|1|-1.0|7:0xfc": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[10]",
+129,
+0
+]
+],
+"why": null
+}
+},
+"em002_00": {
+"1|Motion[32]|0|40|3|-1.0|3:0x33": {
+"kind": "carried",
+"hops": [
+[
+"1|Motion[29]",
+127,
+0
+]
+],
+"why": null
+},
+"4|Motion[26]|0|14|3|50.0|7:0x1": {
+"kind": "carried",
+"hops": [
+[
+"4|Motion[25]",
+91,
+0
+]
+],
+"why": null
+}
+},
+"em002_02": {
+"1|Motion[32]|0|40|3|-1.0|3:0x33": {
+"kind": "carried",
+"hops": [
+[
+"1|Motion[29]",
+127,
+0
+]
+],
+"why": null
+},
+"4|Motion[26]|0|14|3|50.0|7:0x1": {
+"kind": "carried",
+"hops": [
+[
+"4|Motion[25]",
+91,
+0
+]
+],
+"why": null
+}
+},
+"em002_04": {
+"1|Motion[32]|0|40|3|-1.0|3:0x33": {
+"kind": "carried",
+"hops": [
+[
+"1|Motion[29]",
+127,
+0
+]
+],
+"why": null
+},
+"4|Motion[26]|0|14|3|50.0|7:0x1": {
+"kind": "carried",
+"hops": [
+[
+"4|Motion[25]",
+91,
+0
+]
+],
+"why": null
+}
+},
+"em003_00": {
+"2|Motion[4]|0|29|9|74.0|2:0x3": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[4]",
+76,
+1
+]
+],
+"why": null
+},
+"2|Motion[4]|0|29|9|-1.0|7:0x0": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[39]",
+77,
+0
+]
+],
+"why": null
+},
+"2|Motion[4]|0|41|5129|-1.0|7:0x9": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[39]",
+77,
+0
+]
+],
+"why": null
+},
+"0|Motion[21]|0|29|9|-1.0|3:0x43": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[39]",
+77,
+0
+]
+],
+"why": "stub-answer:ground-contact:0xbf52c@2|Motion[39]:f1"
+}
+},
+"em007_00": {
+"3|Motion[24]|0|46|193|74.0|1:0x8": {
+"kind": "held",
+"hops": [],
+"why": null
+}
+},
+"em007_04": {
+"3|Motion[24]|0|46|193|74.0|1:0x8": {
+"kind": "held",
+"hops": [],
+"why": null
+},
+"9|Motion[26]|1|1029|1|-1.0|7:0xc8": {
+"kind": "carried",
+"hops": [
+[
+"9|Motion[27]",
+19,
+0
+]
+],
+"why": null
+},
+"9|Motion[27]|0|1030|11|-1.0|7:0xc8": {
+"kind": "carried",
+"hops": [
+[
+"9|Motion[27]",
+85,
+1
+]
+],
+"why": "stub-answer:ground-contact:0xbf52c@9|Motion[27]:f85"
+}
+},
+"em009_00": {
+"4|Motion[26]|0|52|11|-1.0|3:0xe": {
+"kind": "carried",
+"hops": [
+[
+"4|Motion[27]",
+23,
+0
+]
+],
+"why": null
+},
+"4|Motion[28]|0|52|11|-1.0|3:0x24": {
+"kind": "carried",
+"hops": [
+[
+"4|Motion[29]",
+33,
+0
+],
+[
+"4|Motion[4]",
+52,
+0
+]
+],
+"why": null
+},
+"4|Motion[40]|0|52|11|-1.0|3:0x26": {
+"kind": "carried",
+"hops": [
+[
+"4|Motion[41]",
+21,
+0
+],
+[
+"4|Motion[4]",
+30,
+0
+]
+],
+"why": null
+}
+},
+"em010_00": {
+"2|Motion[3]|0|1|11|-1.0|2:0x14": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[4]",
+69,
+0
+]
+],
+"why": null
+}
+},
+"em013_00": {
+"2|Motion[16]|0|15|3|-1.0|7:0x2d": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[54]",
+159,
+0
+],
+[
+"2|Motion[54]",
+224,
+1
+]
+],
+"why": null
+},
+"4|Motion[14]|0|30|11|144.0|7:0x51": {
+"kind": "refused",
+"hops": [],
+"why": "not-in-lists"
+}
+},
+"em013_01": {
+"2|Motion[16]|0|15|3|-1.0|7:0x2d": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[54]",
+159,
+0
+],
+[
+"2|Motion[54]",
+224,
+1
+]
+],
+"why": null
+},
+"4|Motion[14]|0|30|11|144.0|7:0x51": {
+"kind": "refused",
+"hops": [],
+"why": "not-in-lists"
+}
+},
+"em013_02": {
+"2|Motion[16]|0|15|3|-1.0|7:0x2d": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[54]",
+159,
+0
+],
+[
+"2|Motion[54]",
+224,
+1
+]
+],
+"why": null
+}
+},
+"em014_00": {
+"2|Motion[1]|0|3|3|-1.0|7:0x2": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[2]",
+23,
+0
+]
+],
+"why": null
+}
+},
+"em015_00": {
+"2|Motion[1]|0|8|3|-1.0|7:0x2": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[2]",
+23,
+0
+]
+],
+"why": null
+}
+},
+"em016_00": {
+"2|Motion[1]|0|9|3|-1.0|7:0x2": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[2]",
+23,
+0
+]
+],
+"why": null
+}
+},
+"em017_00": {
+"2|Motion[12]|0|14|1|18.0|pf+0x208": {
+"kind": "refused",
+"hops": [],
+"why": "per-frame"
+}
+},
+"em018_00": {
+"1|Motion[32]|0|2|3|-1.0|3:0xe": {
+"kind": "carried",
+"hops": [
+[
+"1|Motion[29]",
+127,
+0
+]
+],
+"why": null
+},
+"1|Motion[24]|0|2|3|-1.0|3:0x19": {
+"kind": "carried",
+"hops": [
+[
+"1|Motion[25]",
+31,
+0
+],
+[
+"1|Motion[26]",
+136,
+0
+]
+],
+"why": null
+}
+},
+"em018_04": {
+"1|Motion[32]|0|2|3|-1.0|3:0xe": {
+"kind": "carried",
+"hops": [
+[
+"1|Motion[29]",
+127,
+0
+]
+],
+"why": null
+},
+"1|Motion[24]|0|2|3|-1.0|3:0x19": {
+"kind": "carried",
+"hops": [
+[
+"1|Motion[25]",
+31,
+0
+],
+[
+"1|Motion[26]",
+136,
+0
+]
+],
+"why": null
+}
+},
+"em019_00": {
+"3|Motion[30]|0|49|3|92.0|1:0x1a": {
+"kind": "carried",
+"hops": [
+[
+"3|Motion[31]",
+93,
+0
+],
+[
+"3|Motion[32]",
+114,
+0
+],
+[
+"3|Motion[33]",
+135,
+0
+],
+[
+"3|Motion[34]",
+158,
+0
+]
+],
+"why": null
+}
+},
+"em019_04": {
+"3|Motion[30]|0|1049|3|92.0|1:0x1a": {
+"kind": "carried",
+"hops": [
+[
+"3|Motion[31]",
+93,
+0
+],
+[
+"3|Motion[32]",
+114,
+0
+],
+[
+"3|Motion[33]",
+135,
+0
+],
+[
+"3|Motion[34]",
+158,
+0
+]
+],
+"why": null
+}
+},
+"em021_00": {
+"0|Motion[29]|0|11|5|128.0|1:0x9": {
+"kind": "held",
+"hops": [],
+"why": null
+},
+"0|Motion[34]|0|22|3|-1.0|3:0x33": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[34]",
+69,
+1
+]
+],
+"why": null
+},
+"5|Motion[29]|1|30|3|40.0|7:0x52": {
+"kind": "carried",
+"hops": [
+[
+"5|Motion[29]",
+42,
+1
+]
+],
+"why": "stub-answer:ground-contact:0xbf52c@5|Motion[29]:f41"
+},
+"5|Motion[29]|1|30|3|-1.0|7:0x55": {
+"kind": "refused",
+"hops": [],
+"why": "stub-answer:ground-contact:0xbf52c@5|Motion[29]:f41"
+},
+"5|Motion[29]|1|33|3|40.0|7:0x59": {
+"kind": "carried",
+"hops": [
+[
+"5|Motion[29]",
+42,
+1
+]
+],
+"why": "stub-answer:ground-contact:0xbf52c@5|Motion[29]:f41"
+},
+"5|Motion[29]|1|33|3|-1.0|7:0x5c": {
+"kind": "refused",
+"hops": [],
+"why": "stub-answer:ground-contact:0xbf52c@5|Motion[29]:f41"
+}
+},
+"em022_00": {
+"4|Motion[10]|0|33|1|-1.0|7:0x25": {
+"kind": "carried",
+"hops": [
+[
+"4|Motion[10]",
+75,
+1
+]
+],
+"why": "stub-answer:ground-contact:0xbf0bc@4|Motion[10]:f40"
+}
+},
+"em024_00": {
+"1|Motion[24]|0|31|3|-1.0|3:0x1c": {
+"kind": "carried",
+"hops": [
+[
+"1|Motion[25]",
+109,
+0
+]
+],
+"why": null
+}
+},
+"em025_00": {
+"0|Motion[40]|0|6|3|-1.0|2:0x8": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[41]",
+15,
+0
+],
+[
+"0|Motion[42]",
+28,
+0
+]
+],
+"why": null
+},
+"0|Motion[40]|1|18|3|-1.0|2:0x8": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[41]",
+15,
+0
+],
+[
+"0|Motion[42]",
+28,
+0
+]
+],
+"why": null
+},
+"0|Motion[43]|0|6|3|-1.0|2:0x9": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[44]",
+15,
+0
+],
+[
+"0|Motion[45]",
+42,
+0
+]
+],
+"why": null
+},
+"0|Motion[43]|1|18|3|-1.0|2:0x9": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[44]",
+15,
+0
+],
+[
+"0|Motion[45]",
+42,
+0
+]
+],
+"why": null
+},
+"0|Motion[30]|0|6|3|-1.0|2:0xa": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[31]",
+15,
+0
+],
+[
+"0|Motion[32]",
+34,
+0
+]
+],
+"why": null
+},
+"0|Motion[30]|1|18|3|-1.0|2:0xa": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[31]",
+15,
+0
+],
+[
+"0|Motion[32]",
+34,
+0
+]
+],
+"why": null
+},
+"0|Motion[33]|0|6|3|-1.0|2:0xb": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[34]",
+15,
+0
+],
+[
+"0|Motion[35]",
+48,
+0
+]
+],
+"why": null
+},
+"0|Motion[33]|1|18|3|-1.0|2:0xb": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[34]",
+15,
+0
+],
+[
+"0|Motion[35]",
+48,
+0
+]
+],
+"why": null
+},
+"2|Motion[51]|0|17|3|90.0|7:0x21": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[51]",
+91,
+1
+]
+],
+"why": null
+}
+},
+"em027_00": {
+"1|Motion[24]|0|39|3|-1.0|3:0x1c": {
+"kind": "carried",
+"hops": [
+[
+"1|Motion[25]",
+109,
+0
+]
+],
+"why": null
+},
+"4|Motion[1]|0|29|3|2.0|7:0x8": {
+"kind": "carried",
+"hops": [
+[
+"4|Motion[1]",
+25,
+1
+],
+[
+"4|Motion[11]",
+50,
+0
+]
+],
+"why": null
+}
+},
+"em032_00": {
+"0|Motion[53]|0|6|11|96.0|7:0x1e": {
+"kind": "refused",
+"hops": [],
+"why": "waits"
+},
+"2|Motion[3]|0|25|1|-1.0|13:0x4": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[2]",
+27,
+0
+]
+],
+"why": null
+},
+"2|Motion[7]|1|5|3|32.0|pf+0x208": {
+"kind": "refused",
+"hops": [],
+"why": "per-frame"
+}
+},
+"em032_04": {
+"0|Motion[53]|0|1003|11|96.0|7:0x1e": {
+"kind": "refused",
+"hops": [],
+"why": "waits"
+},
+"2|Motion[3]|0|25|1|-1.0|13:0x4": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[2]",
+27,
+0
+]
+],
+"why": null
+},
+"2|Motion[7]|1|1002|3|32.0|pf+0x208": {
+"kind": "refused",
+"hops": [],
+"why": "per-frame"
+}
+},
+"em034_00": {
+"2|Motion[1]|0|24|3|-1.0|7:0x2": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[2]",
+23,
+0
+]
+],
+"why": null
+}
+},
+"em037_00": {
+"2|Motion[10]|0|7|1|-1.0|7:0x3c": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[11]",
+27,
+0
+]
+],
+"why": null
+},
+"2|Motion[10]|0|23|1|-1.0|13:0x4": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[11]",
+27,
+0
+]
+],
+"why": null
+},
+"2|Motion[10]|0|7|1|8.0|pf+0x208": {
+"kind": "refused",
+"hops": [],
+"why": "per-frame"
+},
+"2|Motion[14]|0|8|1|-1.0|7:0xe7": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[15]",
+27,
+0
+]
+],
+"why": null
+},
+"2|Motion[14]|0|8|1|8.0|pf+0x208": {
+"kind": "refused",
+"hops": [],
+"why": "per-frame"
+}
+},
+"em037_04": {
+"2|Motion[10]|0|7|1|-1.0|7:0x3c": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[11]",
+27,
+0
+]
+],
+"why": null
+},
+"2|Motion[10]|0|23|1|-1.0|13:0x4": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[11]",
+27,
+0
+]
+],
+"why": null
+},
+"2|Motion[10]|0|7|1|8.0|pf+0x208": {
+"kind": "refused",
+"hops": [],
+"why": "per-frame"
+},
+"2|Motion[14]|0|8|1|-1.0|7:0xe7": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[15]",
+27,
+0
+]
+],
+"why": null
+},
+"2|Motion[14]|0|8|1|8.0|pf+0x208": {
+"kind": "refused",
+"hops": [],
+"why": "per-frame"
+},
+"9|Motion[8]|0|1059|9|-1.0|7:0xef": {
+"kind": "carried",
+"hops": [
+[
+"9|Motion[9]",
+45,
+0
+]
+],
+"why": null
+},
+"9|Motion[8]|1|1060|1|-1.0|7:0xef": {
+"kind": "carried",
+"hops": [
+[
+"9|Motion[9]",
+45,
+0
+]
+],
+"why": null
+}
+},
+"em038_00": {
+"2|Motion[26]|0|30|3|124.0|pf+0x208": {
+"kind": "refused",
+"hops": [],
+"why": "per-frame"
+}
+},
+"em042_00": {
+"2|Motion[4]|0|13|11|42.0|7:0xe": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[4]",
+63,
+1
+]
+],
+"why": null
+},
+"2|Motion[8]|0|10|11|94.0|7:0xf": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[8]",
+127,
+1
+]
+],
+"why": null
+}
+},
+"em045_00": {
+"0|Motion[32]|1|40|1|-1.0|3:0x4": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[33]",
+225,
+0
+]
+],
+"why": null
+}
+},
+"em045_04": {
+"0|Motion[32]|1|1049|1|-1.0|3:0x4": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[33]",
+225,
+0
+]
+],
+"why": null
+}
+},
+"em046_00": {
+"2|Motion[7]|0|8|11|78.0|7:0xd": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[8]",
+110,
+0
+]
+],
+"why": null
+},
+"2|Motion[7]|1|63|27|78.0|7:0x4f": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[8]",
+110,
+0
+]
+],
+"why": null
+},
+"2|Motion[7]|1|30|27|78.0|7:0x93": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[8]",
+110,
+0
+]
+],
+"why": null
+}
+},
+"em047_00": {
+"15|Motion[255]|0|5|3|64.0|7:0x3": {
+"kind": "refused",
+"hops": [],
+"why": "not-in-lists"
+},
+"15|Motion[255]|1|17|3|64.0|7:0x3": {
+"kind": "refused",
+"hops": [],
+"why": "not-in-lists"
+},
+"15|Motion[255]|0|5|3|90.0|7:0xc": {
+"kind": "refused",
+"hops": [],
+"why": "not-in-lists"
+},
+"15|Motion[255]|1|17|3|90.0|7:0xc": {
+"kind": "refused",
+"hops": [],
+"why": "not-in-lists"
+},
+"2|Motion[25]|0|37|1|-1.0|7:0x3d": {
+"kind": "refused",
+"hops": [],
+"why": "stub-answer:arrival:0x78b78@2|Motion[25]:f109"
+}
+},
+"em049_00": {
+"2|Motion[21]|0|19|3|74.0|7:0xd": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[23]",
+101,
+0
+]
+],
+"why": null
+},
+"2|Motion[35]|0|36|11|70.0|7:0x26": {
+"kind": "refused",
+"hops": [],
+"why": "waits"
+},
+"2|Motion[35]|0|36|11|-1.0|7:0x33": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[8]",
+65,
+0
+]
+],
+"why": null
+}
+},
+"em050_00": {
+"1|Motion[16]|0|30|3|-1.0|4:0xa": {
+"kind": "carried",
+"hops": [
+[
+"1|Motion[17]",
+251,
+0
+]
+],
+"why": "stub-answer:ground-contact:0xbf4e4@1|Motion[17]:f1"
+},
+"1|Motion[2]|0|14|11|-1.0|7:0x1d": {
+"kind": "refused",
+"hops": [],
+"why": "stub-answer:arrival:0x78b78@1|Motion[2]:f64"
+},
+"1|Motion[2]|1|15|27|-1.0|7:0x1d": {
+"kind": "refused",
+"hops": [],
+"why": "stub-answer:arrival:0x78b78@1|Motion[2]:f64"
+}
+},
+"em055_00": {
+"2|Motion[29]|0|31|1|210.0|7:0x1e": {
+"kind": "held",
+"hops": [],
+"why": null
+},
+"2|Motion[29]|1|43|1|210.0|7:0x1e": {
+"kind": "held",
+"hops": [],
+"why": null
+}
+},
+"em057_00": {
+"0|Motion[40]|0|63|3|-1.0|3:0x0": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[41]",
+5,
+0
+]
+],
+"why": null
+},
+"0|Motion[46]|0|64|3|-1.0|3:0x1": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[47]",
+21,
+0
+]
+],
+"why": null
+},
+"2|Motion[16]|0|1|1|36.0|7:0x0": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[16]",
+43,
+1
+]
+],
+"why": "stub-answer:ground-contact:0xbf4e4@2|Motion[16]:f44"
+},
+"2|Motion[19]|0|1|1|36.0|7:0x1": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[19]",
+43,
+1
+]
+],
+"why": "stub-answer:ground-contact:0xbf4e4@2|Motion[19]:f44"
+},
+"2|Motion[12]|0|9|3|-1.0|7:0x14": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[8]",
+79,
+0
+]
+],
+"why": null
+},
+"2|Motion[37]|0|26|1|-1.0|7:0x7d": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[16]",
+155,
+0
+]
+],
+"why": null
+},
+"2|Motion[38]|0|26|1|-1.0|7:0x7e": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[19]",
+155,
+0
+]
+],
+"why": null
+}
+},
+"em057_04": {
+"0|Motion[40]|0|63|3|-1.0|3:0x0": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[41]",
+5,
+0
+]
+],
+"why": null
+},
+"0|Motion[46]|0|64|3|-1.0|3:0x1": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[47]",
+21,
+0
+]
+],
+"why": null
+},
+"2|Motion[16]|0|39|1|36.0|7:0x0": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[16]",
+43,
+1
+]
+],
+"why": "stub-answer:ground-contact:0xbf4e4@2|Motion[16]:f44"
+},
+"2|Motion[19]|0|39|1|36.0|7:0x1": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[19]",
+43,
+1
+]
+],
+"why": "stub-answer:ground-contact:0xbf4e4@2|Motion[19]:f44"
+},
+"2|Motion[12]|0|9|3|-1.0|7:0x14": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[8]",
+79,
+0
+]
+],
+"why": null
+},
+"2|Motion[37]|0|26|1|-1.0|7:0x7d": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[16]",
+155,
+0
+]
+],
+"why": null
+},
+"2|Motion[38]|0|26|1|-1.0|7:0x7e": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[19]",
+155,
+0
+]
+],
+"why": null
+}
+},
+"em061_04": {
+"0|Motion[3]|0|1049|1|-1.0|1:0xa": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[52]",
+43,
+0
+]
+],
+"why": null
+}
+},
+"em063_00": {
+"2|Motion[12]|0|23|265|-1.0|13:0x3": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[13]",
+59,
+0
+]
+],
+"why": null
+}
+},
+"em063_05": {
+"2|Motion[12]|0|23|265|-1.0|13:0x3": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[13]",
+59,
+0
+]
+],
+"why": null
+}
+},
+"em065_00": {
+"2|Motion[88]|0|6|3|-1.0|7:0x2": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[88]",
+89,
+1
+]
+],
+"why": null
+},
+"2|Motion[121]|0|36|11|-1.0|7:0x1a": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[121]",
+63,
+1
+],
+[
+"2|Motion[122]",
+126,
+0
+]
+],
+"why": null
+},
+"2|Motion[67]|0|12|1|-1.0|7:0x35": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[68]",
+101,
+0
+]
+],
+"why": null
+}
+},
+"em069_00": {
+"4|Motion[25]|0|5|3|-1.0|7:0x3c": {
+"kind": "carried",
+"hops": [
+[
+"4|Motion[7]",
+2,
+0
+],
+[
+"4|Motion[24]",
+51,
+0
+]
+],
+"why": "change:set"
+},
+"4|Motion[71]|0|25|11|-1.0|7:0x3d": {
+"kind": "carried",
+"hops": [
+[
+"4|Motion[72]",
+149,
+0
+]
+],
+"why": null
+}
+},
+"em071_00": {
+"4|Motion[12]|0|9|5|108.0|7:0x53": {
+"kind": "refused",
+"hops": [],
+"why": "not-in-lists"
+}
+},
+"em071_05": {
+"4|Motion[12]|0|9|5|108.0|7:0x53": {
+"kind": "refused",
+"hops": [],
+"why": "not-in-lists"
+}
+},
+"em076_00": {
+"2|Motion[18]|0|6|1|-1.0|7:0x0": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[32]",
+155,
+0
+],
+[
+"2|Motion[34]",
+156,
+0
+],
+[
+"2|Motion[34]",
+157,
+1
+],
+[
+"2|Motion[34]",
+158,
+2
+],
+[
+"2|Motion[34]",
+159,
+3
+],
+[
+"2|Motion[34]",
+160,
+4
+],
+[
+"2|Motion[34]",
+161,
+5
+],
+[
+"2|Motion[34]",
+162,
+6
+],
+[
+"2|Motion[34]",
+163,
+7
+],
+[
+"2|Motion[34]",
+164,
+8
+],
+[
+"2|Motion[34]",
+165,
+9
+],
+[
+"2|Motion[34]",
+166,
+10
+],
+[
+"2|Motion[34]",
+167,
+11
+],
+[
+"2|Motion[34]",
+168,
+12
+],
+[
+"2|Motion[34]",
+169,
+13
+],
+[
+"2|Motion[34]",
+170,
+14
+],
+[
+"2|Motion[34]",
+171,
+15
+],
+[
+"2|Motion[34]",
+172,
+16
+],
+[
+"2|Motion[34]",
+173,
+17
+],
+[
+"2|Motion[34]",
+174,
+18
+],
+[
+"2|Motion[34]",
+175,
+19
+],
+[
+"2|Motion[34]",
+176,
+20
+],
+[
+"2|Motion[34]",
+177,
+21
+],
+[
+"2|Motion[34]",
+178,
+22
+],
+[
+"2|Motion[34]",
+179,
+23
+]
+],
+"why": null
+},
+"2|Motion[21]|0|8|1|-1.0|9:0x2": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[33]",
+99,
+0
+]
+],
+"why": null
+}
+},
+"em077_00": {
+"1|Motion[57]|0|13|3|-1.0|3:0x33": {
+"kind": "carried",
+"hops": [
+[
+"1|Motion[55]",
+127,
+0
+]
+],
+"why": null
+}
+},
+"em079_00": {
+"2|Motion[34]|0|0|1|-1.0|7:0x29": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[35]",
+19,
+0
+]
+],
+"why": null
+},
+"2|Motion[34]|0|1|1|-1.0|7:0x2a": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[35]",
+19,
+0
+]
+],
+"why": null
+}
+},
+"em079_04": {
+"2|Motion[34]|0|0|1|-1.0|7:0x29": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[35]",
+19,
+0
+]
+],
+"why": null
+},
+"2|Motion[34]|0|1|1|-1.0|7:0x2a": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[35]",
+19,
+0
+]
+],
+"why": null
+},
+"2|Motion[34]|0|1010|1|-1.0|7:0xd3": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[35]",
+19,
+0
+]
+],
+"why": null
+}
+},
+"em081_00": {
+"4|Motion[26]|0|0|3|50.0|7:0x1": {
+"kind": "carried",
+"hops": [
+[
+"4|Motion[25]",
+91,
+0
+]
+],
+"why": null
+}
+},
+"em081_04": {
+"4|Motion[26]|0|0|3|50.0|7:0x1": {
+"kind": "carried",
+"hops": [
+[
+"4|Motion[25]",
+91,
+0
+]
+],
+"why": null
+}
+},
+"em082_00": {
+"0|Motion[21]|0|49|1|-1.0|3:0x0": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[22]",
+19,
+0
+]
+],
+"why": null
+},
+"0|Motion[24]|0|51|1|-1.0|3:0x1": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[25]",
+21,
+0
+]
+],
+"why": null
+}
+},
+"em082_04": {
+"0|Motion[21]|0|49|1|-1.0|3:0x0": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[22]",
+19,
+0
+]
+],
+"why": null
+},
+"0|Motion[24]|0|51|1|-1.0|3:0x1": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[25]",
+21,
+0
+]
+],
+"why": null
+}
+},
+"em083_00": {
+"2|Motion[39]|0|1|1|60.0|7:0x3": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[39]",
+62,
+1
+]
+],
+"why": null
+},
+"2|Motion[39]|0|1|1|-1.0|7:0x5c": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[37]",
+127,
+0
+]
+],
+"why": null
+},
+"2|Motion[50]|0|59|1|-1.0|7:0x45": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[5]",
+59,
+0
+]
+],
+"why": null
+},
+"2|Motion[50]|1|60|1|-1.0|7:0x45": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[5]",
+59,
+0
+]
+],
+"why": null
+}
+},
+"em083_04": {
+"2|Motion[39]|0|1018|1|60.0|7:0x3": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[39]",
+62,
+1
+]
+],
+"why": null
+},
+"2|Motion[39]|0|1018|1|-1.0|7:0x5c": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[37]",
+127,
+0
+]
+],
+"why": null
+},
+"2|Motion[50]|0|1024|1|-1.0|7:0x45": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[5]",
+59,
+0
+]
+],
+"why": null
+},
+"2|Motion[50]|1|1025|1|-1.0|7:0x45": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[5]",
+59,
+0
+]
+],
+"why": null
+}
+},
+"em084_00": {
+"0|Motion[8]|0|21|1|-1.0|2:0x0": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[4]",
+219,
+0
+]
+],
+"why": null
+},
+"0|Motion[8]|1|22|1|-1.0|2:0x0": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[4]",
+219,
+0
+]
+],
+"why": null
+},
+"0|Motion[9]|0|23|1|-1.0|2:0x2": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[5]",
+199,
+0
+]
+],
+"why": null
+},
+"0|Motion[9]|1|24|1|-1.0|2:0x2": {
+"kind": "carried",
+"hops": [
+[
+"0|Motion[5]",
+199,
+0
+]
+],
+"why": null
+}
+},
+"em085_00": {
+"2|Motion[31]|0|15|1|-1.0|7:0x1f": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[46]",
+27,
+0
+]
+],
+"why": null
+},
+"2|Motion[31]|0|1|1|54.0|7:0x63": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[46]",
+55,
+0
+]
+],
+"why": null
+}
+},
+"em086_00": {
+"2|Motion[87]|0|34|9|-1.0|2:0xc": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[88]",
+79,
+0
+]
+],
+"why": null
+},
+"1|Motion[2]|0|42|3|-1.0|3:0x0": {
+"kind": "carried",
+"hops": [
+[
+"1|Motion[2]",
+23,
+1
+],
+[
+"1|Motion[5]",
+46,
+0
+]
+],
+"why": null
+},
+"2|Motion[76]|0|21|25|-1.0|7:0x0": {
+"kind": "refused",
+"hops": [],
+"why": "stub-answer:ground-contact:0xbf52c@2|Motion[76]:f7"
+},
+"2|Motion[79]|0|21|25|-1.0|7:0x1": {
+"kind": "refused",
+"hops": [],
+"why": "stub-answer:ground-contact:0xbf52c@2|Motion[79]:f7"
+},
+"2|Motion[98]|1|3|1|-1.0|7:0x18": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[86]",
+29,
+0
+]
+],
+"why": null
+},
+"2|Motion[101]|1|2|1|-1.0|7:0x19": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[84]",
+29,
+0
+]
+],
+"why": null
+},
+"2|Motion[70]|1|24|1|-1.0|7:0x32": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[71]",
+137,
+0
+]
+],
+"why": null
+},
+"2|Motion[72]|0|19|1|2.0|7:0x32": {
+"kind": "carried",
+"hops": [
+[
+"2|Motion[72]",
+17,
+1
+],
+[
+"1|Motion[5]",
+34,
+0
+]
+],
+"why": null
+}
+}
+}

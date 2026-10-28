@@ -1,0 +1,3 @@
+PASS PROBE em079_04  -- {"log":["toggle true","played 0|Motion[1]_loop","played 3|Motion[17]","played 0|Motion[1]_loop","[\"function\",[]]","played 3|Motion[17]","[\"function\",[]]","[[\"hold\",100,false],[\"fire\",200]]","failed undefined err ","ents [[\"event\",200,0],[\"event\",100,0]]"],"control":[],"rows":[{"k":"em079_04|em079_04u|100|event","st":1,"live":200,"lit":39,"s":42,"px":23914,"verdict":"draws","clips":["em079_04|3|Motion[17]"]},{"k":"em079_04|em079_04u|200|event","st":1,"live":70,"lit":15,"s":16,"px":7098,"verdict":"draws","clips":["em079_04|3|Motion[17]"]}],"missing":[]}
+
+1 passed, 0 failed

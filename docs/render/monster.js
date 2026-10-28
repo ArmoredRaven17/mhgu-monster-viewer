@@ -1703,6 +1703,154 @@ ROM_PARTNER_BODY.em069_00.free = {
   ride: { clip: 'Motion[35]_loop', blend: 10, decideAt: 180 },
   picks: [{ w: 20, clip: 'Motion[31]', blend: 8 }, { w: 70, clip: 'Motion[32]', blend: 8 }, { w: 10, clip: null }],
 };
+
+// AHTAL-KA + AHTAL-NESET, THE COMBINED ANIMATIONS (Raven, 2026-10-26: "Athal-Ka pulls up Neset then enters it. We can do the
+// combine animations. However, for the time being keep Neset its own entry"). dev/em088-em087-combined-spec.md has every read;
+// rom-map "Ahtal-Ka + Ahtal-Neset -- the combined actions". Unlike the Seltas duo the two are NOT linked: each is a unit of its
+// own and they meet through the fight's global G (GOT 0x1832980 -> 0x2132968; G+0x34 Neset, G+0x38 Ka) and four flag bytes:
+//   G+0xcc  Ka sets it at L2 M47 frame >= 56 of (1, 0x21) (0x10bdd1c..0x10bdd64 -> 0x10aeb28); Neset's (1, 2) waits on it
+//           (0x10b14c8) -> (1, 0x14) (0x10b14e8);
+//   G+0xcd  Neset sets it (0x10b026c -> 0x10aeb44) in (1, 0x14) once L0 M9 has reached 230 and his drawn lift P+0x5c is up;
+//           Ka's (1, 0x21) phase 5 waits on it (0x10bdd74) -> L2 M48;
+//   G+0xca  Ka sets it at L2 M14 frame 240 of (1, 0x21) (0x10be23c) and at EVERY (1, 0x10) start (vt+0x204 0x10b5e18);
+//           Neset's (1, 0x14) -> (1, 0x15) (0x10b0060), (1, 0xf) -> (1, 8) (0x10b1454);
+//   G+0xcb  Neset sets it at (1, 0xf)'s start (0x10a74cc) and in 0x10a7bac(e, 1) (0x10a7de4, his second collapse); Ka's
+//           (1, 0x10) waits on it (0x10bd5a0) -> by G+0x32: 3 / 5 -> (1, 0x11), 6 -> (1, 0x12).
+// THE ACTIONS (status-1 bodies, Ka 0x10bc790 / Neset 0x10af6e0):
+//   Ka (1, 0x20) 0x10bfc84(e, 2): L0 M4 b4, at its end (1, 0x21) -- the only request of (1, 0x21) (0x10bfd54; reqscan, control: Neset's
+//     four). (1, 0x20) is issued by em088_00_cmdtbl g0 s14 case 0 after the turns (2, 0x12) / (2, 0x11) / (2, 0xb) toward the Neset.
+//   Ka (1, 0x21) 0x10bdba4, phases P+0x1a1: L2 M25 b4 -> M26 x3 (P+0x1a2 = 3, its timer P+0x1bc from 0) -> M27 -> M47 b4 (f >= 56:
+//     G+0xcc) -> wait G+0xcd -> M48 b4 -> M13 b4 (the jump: target = Neset + R(yaw)(40, 0, 1300), 0x10bde10..0x10bde70; f >= 72 the
+//     flight 0x7a820 until the landing 0x78b78) -> M14 b4 (facing turned 0x8000 off the Neset, horizontal velocity (target - pos) / 20,
+//     snapped to the target at f150; f230 u 420 (id 0x406, 0x10be1fc); f240 G+0xca) -> at its end alpha 0 (0xbee74(e, 0, 0)) and (1, 0x10).
+//   Ka (1, 0x10) 0x10bd4d0: L2 M28 set at its LAST frame (0xb0934 -> +0x4fc / +0x500), alpha 0, e+0xc bit 10 cleared -- he is NOT
+//     DRAWN while inside the Neset, and not attached to it (no joint link; his unit stays where M14 left it).
+//   Ka (1, 6) 0x10bd330: L2 M28 b4, at its end alpha 0 and (1, 0x10) -- the climb back in (g0 s14 case 2, after (2, 0xb) / (2, 0xc)).
+//   Ka (1, 0x11) 0x10bd624: its start (vt+0x204 0x10b5b88) alpha 1, e+0xc bit 10 set, P+0x40 / P+0x50 = Neset's position and angles
+//     (0x10b5e6c..0x10b5ed4); L0 M7 b0, sound 0x2260 -- he comes out of the Neset.
+//   Ka (1, 0x12) 0x10bd6c0: L0 M1 b0, 30 frames later the pull of object 1 (no further setMotion). Placed by Neset's 0x10a7bac(e, 1)
+//     -> 0x10ae878 -> 0x10bc254 (Neset's position and angles) and drawn again by his vt+0x1dc on G+0x33 (0x10b38b0..0x10b38c8).
+//   Neset (1, 2) / (1, 0xf) 0x10b1320(e, 2 / 0): L3 M12 set at its LAST frame (the collapsed pose); (1, 0x10) (e, 1): L3 M16 at its last
+//     frame and alpha 0 -- after the second collapse he is not drawn.
+//   Neset (1, 0x14) 0x10afebc: L0 M9 b0 from 0, rate 1 to 226, then -0.25 a frame (floor 0.1) and held at 230 with rate 0; his drawn
+//     lift P+0x5c (0xbf700 / 0xbf71c) +4 a frame (tune 0x2a) to 300 (tune 0x29); from f170 six joint turns ramp in over 60 frames.
+//   Neset (1, 0x15) 0x10b029c: L0 M9 b0 FROM 230 at rate 0.6, rate 1.0 from f260 (0xb0968 mode 2: frame < 260); P+0x5c 300, -3 a frame
+//     (tune 0x2b) to 0; the joint turns ramp back out over 60 frames; the lifts of objects 0 and 1 (B6, 40 frames apart).
+//   Neset (1, 8) 0x10afc44: L0 M9 b0 from 0 at rate 0 until the lift of object 1 ends (or 1200 frames), then rate 1.
+//   Neset (10, 0x8e) 0x10b16d0: L3 M12 b10 (first, HP 65 %) or L3 M16 b10 (second, HP 5 %), then (1, 0xf) / (1, 0x10).
+// THE NODE TURNS (vt+0x2a0 0x10a6668 -> 0x10a6d58, after the pose): six nodes made in (1, 0x14) (0x10ad6a0, ids 0x16a33e4), each a joint
+// whose local rotation (vt+0xd8 0x539e60) is turned by Y, then X, then Z (0x23220c / 0x232118 / 0x2322fc, standard right-handed turns,
+// degrees x 182.044) and written back (0x7237c). Angles (static init, init_array run -- ahtalduo/initdump.py) x the ramp e+0xd4cc.
+// THE COUPLING SHOWN: Neset is a WORLD-PLACED partner (`place: 'world'`), not on a joint of hers -- his unit in Ka's frame per entry
+// (`place`: Ka-local game units and the relative yaw), his drawn lift (`lift`, P+0x5c), his node turns (`nodes`), and either model
+// hidden where the ROM writes alpha 0 (`hide`). Frames are 60 a second; one frame per hand-off between the two (each side polls the
+// other's flag on its own update: the order of the two in the enemy loop is NOT READ -- the Seltas duo's §5). Lengths are the viewer's
+// clip frames (monsters.json).
+const NESET_NODES = [[100, [-34, 18.05, -20]], [101, [15, -17.5, -2]], [102, [27.5, -4.2, -3]], [103, [4, -7, -5.7]], [3, [27.5, -14, 0]], [4, [15.6, 0, 0]]];
+// WHERE KA STANDS (dev/em088-em087-combined-spec.md 4; re-read 2026-10-26). Before the M13 jump he is where the AI left him: the cmdtbl
+// streams only TURN him toward the Neset ((2, 0xb) / (2, 0x12) 0x10c0848 -> the angle-picked turn 0x7a284; (2, 0xc) / (2, 0x11)
+// 0x10c04dc), no walk, so his distance is not in the ROM -- A VIEWER CHOICE: he is shown at the jump's target, Neset-local (40, 0,
+// 1300), facing the Neset (Neset 1300.6 straight ahead, turned 180 - 1.76 degrees). The jump itself (phase 6, READ): 0x78410 turns him
+// toward the target over M13 frames 10..20, at most 45 degrees (tune vec 12 = (10, 20, 45)); 0x78acc -> 0x79274 sets the move distance
+// P+0x1f0 = |target - P+0x40| (horizontal) - 500 x size, floored at 0 -- 0 from the target itself, so no steering to show; phase 8 ends
+// when 0x78b78 sees him arrive (P+0x5ea0 travel > 150, the target passed along his motion and within 150) -- with no distance to cover
+// M13 is shown as its _start. M14 (phase 9, READ): 0x78410(e, 0xf8e4, P+0x30, Neset, 2, 0x8000, 2, 0) with s0 18 / s1 48 -- he turns to
+// face 0x8000 off the Neset's centre over M14 frames 18..48 at angle / 30 a frame (P+0x5e70 / +0x5e74 / +0x5e78, stepped by 0x78600 ->
+// 0x77d28 every frame; 0x77d28's own travel gate is not transcribed): 180 degrees, CLOCKWISE -- flags 2 force the direction byte
+// P+0x5e66 = 1 (0x785dc..0x785ec), and direction 1 is yaw -= step (0x77f90..0x77f9c).
+// The turn and the slide are KA's (`ka`, partnerWorldAt -> index.html stepTurn / stepWorldPartner): the Neset stays where he stands
+// (corrected 2026-10-27 on Raven's report -- the first build swung the Neset about Ka instead).
+const KA_FACES_NESET = { pos: [0, 0, 1300.615], yaw: Math.PI - Math.atan2(40, 1300) };
+const KA_IN_NESET = { pos: [0, 0, 0], yaw: 0 };              // (1, 0x11) / (1, 0x12): Neset's own position and angles
+// THE LIFT WAIT of (1, 8) (READ): rate 0 until object 1's lift leaves states 1 / 2 (0x4307c0) or 1200 frames (+0x1c0). The lift (B6
+// 0x10ac10c) is made on (1, 8)'s first phase-1 update; base57's state 1 counts its delay +0x4c = 60.0 down (0x4303a8 state 1, then 2),
+// state 2 is behaviour 6's t += dt / float 0 to 1 (0x4320a4; float 0 = 50.0, em088_00_shell57 mode 25) -- 110 shell moves in states
+// 1 / 2. Its first move on the update it is made (shell units updated after the enemies: I), Neset sees it gone on the next: 111 frames.
+const NESET_LIFT_WAIT = 111;
+// (each piece of his names its action, `act`: his shells' rows take that action's or none -- index.html partnerRockInput)
+const N14 = [1, 0x14], N15 = [1, 0x15];
+const RISE = (from, hold) => [   // Neset's (1, 0x14): L0 M9 0 -> 230 (254 updates, ahtalduo/timeline.py), then held at 230 for `hold`
+  { list: '0', clip: 'Motion[9]', start: 0, frames: 226, act: N14 },
+  { list: '0', clip: 'Motion[9]', start: 226, frames: 1, rate: 0.75, act: N14 }, { list: '0', clip: 'Motion[9]', start: 226.75, frames: 1, rate: 0.5, act: N14 },
+  { list: '0', clip: 'Motion[9]', start: 227.25, frames: 1, rate: 0.25, act: N14 }, { list: '0', clip: 'Motion[9]', start: 227.5, frames: 25, rate: 0.1, act: N14 },
+  { list: '0', clip: 'Motion[9]', mode: 'hold', start: 230, frames: hold, act: N14 }];
+const STAND = [                  // Neset's (1, 0x15): L0 M9 from 230 at 0.6 (50 updates to 260), then 1.0 to its end (553)
+  { list: '0', clip: 'Motion[9]', start: 230, frames: 50, rate: 0.6, act: N15 }, { list: '0', clip: 'Motion[9]', start: 260, frames: 293, act: N15 }];
+const A21 = [1, 0x21];
+ROM_PARTNER_BODY.em088_00 = { monster: 'em087_00', place: 'world', list: '0', nodes: NESET_NODES,
+  // every clip of his raw lists plays him alone (Raven: raw clips left uncombined); the combined entries are this list's
+  partnerList: { id: 'neset', label: 'Combined (with Ahtal-Neset)', from: '0', prefix: '', herLists: [], clips: {
+    // (1) THE RAISE AND THE ENTRY: Ka (1, 0x20) -> (1, 0x21) -> (1, 0x10); Neset (1, 2) -> (1, 0x14) -> (1, 0x15). THE HAND-OFFS (READ
+    //   2026-10-26, spec 1.1): Ka updates BEFORE Neset each frame (boss slot 1 / 2 of both Ahtal quests, the move line appended in order
+    //   0xc03670 and walked head first 0xc044c4; that bosses spawn in slot order: I), so a flag Ka sets is seen by Neset the same frame and
+    //   one Neset sets by Ka the next; a request through 0x769f4 starts its action on the NEXT update, one through 0x10ade4c / 0x10bc334
+    //   (0x6d564 -> the follow 0x768c8) or 0x7699c (+0x73ea) the SAME update (0xa5af4 re-run). On Ka's frames:
+    //   0 L0 M4 (to 187, then (1, 0x21) by 0x769f4: one frame later) | 188 M25 | 243 M26 x3 | 342 M27 | 405 M47 (461: its f56, G+0xcc) |
+    //   462 Neset L0 M9 from 0 (0x769f4) | 716 Neset at 230, G+0xcd | 717 M48 | 774 M13 -- phase 7 to its frame 72, phase 8's first
+    //   update (M13 f73) ends it: 0x78b78 returns 0x78ec0's "move distance used up", and P+0x1f0 is 0 from the shown place (re-read
+    //   2026-10-26, spec 2.1) | 847 M14: phase 9 slides him back to the target over 20 frames ((P+0x30 - P+0x40) / 20; M13's own travel
+    //   left him 457.1 behind it, measured on its reference track), turns him 865..895 (M14 f18..48); 1077 its f230: u 420; 1087 its
+    //   f240: G+0xca, Neset (1, 0x15) the same frame, L0 M9 from 230 | 1112 M14's end: Ka hidden, (1, 0x10) | 1430 end.
+    'Ahtal-Ka raises Ahtal-Neset and enters it': { his: 'Motion[9]', frames: 1430,
+      body: [['0', 'Motion[4]', { act: [1, 0x20] }], ['0', 'Motion[4]', { hold: true, start: 187, frames: 1, act: [1, 0x20] }],
+             ['2', 'Motion[25]', { blend: 4, act: A21 }], ['2', 'Motion[26]_loop', { frames: 99, act: A21 }],
+             ['2', 'Motion[27]', { act: A21 }], ['2', 'Motion[47]_start', { blend: 4, act: A21 }], ['2', 'Motion[47]_loop', { frames: 246, act: A21 }],
+             ['2', 'Motion[48]', { blend: 4, act: A21 }], ['2', 'Motion[13]_start', { frames: 73, blend: 4, act: A21 }], ['2', 'Motion[14]', { blend: 4, act: A21 }],
+             ['2', 'Motion[28]', { hold: true, start: 301, frames: 318, act: [1, 0x10] }]],
+      hisSeq: [{ list: '3', clip: 'Motion[12]', mode: 'hold', start: 305, frames: 462, act: [1, 2] }, ...RISE(462, 371), ...STAND],
+      place: [{ from: 0, ...KA_FACES_NESET }],
+      ka: { slide: { from: 847, to: 867, d: [0, 0, -457.1] }, turn: { from: 865, to: 895, angle: -Math.PI } },
+      hide: { host: [[1112, 1430]] },
+      lift: [[462, 0], [537, 300], [1087, 300], [1187, 0]],
+      nodes: [[631, 0], [691, 1], [1087, 1], [1147, 0]] },
+    // (2) THE FIRST COLLAPSE (HP 65 %, reaction code 0x1a): Neset (10, 0x8e) L3 M12; at its end (1, 0xf) by 0x10ade4c the same update
+    //   (G+0xcb, G+0x32 = 3), holding its last frame; Ka, hidden in (1, 0x10), sees G+0xcb the next frame -> (1, 0x11) the same update
+    //   (0x10bc334): placed on the Neset, drawn, L0 M7.
+    'Neset falls, Ahtal-Ka comes out': { his: 'Motion[9]', frames: 547,
+      body: [['2', 'Motion[28]', { hold: true, start: 301, frames: 306, act: [1, 0x10] }], ['0', 'Motion[7]', { act: [1, 0x11] }]],
+      hisSeq: [{ list: '3', clip: 'Motion[12]', start: 0, frames: 305, act: [10, 0x8e] }, { list: '3', clip: 'Motion[12]', mode: 'hold', start: 305, frames: 242, act: [1, 0xf] }],
+      place: [{ from: 0, ...KA_IN_NESET }], hide: { host: [[0, 306]] } },
+    // (3) THE RE-ENTRY: Ka (1, 6) L2 M28 -> at its end alpha 0 and (1, 0x10) the same update (G+0xca at its start); Neset, the same frame,
+    //   (1, 0xf) -> (1, 8) by 0x10ade4c: L0 M9 at frame 0 and rate 0 for the lift wait, then the whole rise at rate 1
+    'Ahtal-Ka re-enters, Neset rises again': { his: 'Motion[9]', frames: 301 + NESET_LIFT_WAIT + 553,
+      body: [['2', 'Motion[28]', { blend: 4, act: [1, 6] }], ['2', 'Motion[28]', { hold: true, start: 301, frames: NESET_LIFT_WAIT + 553, act: [1, 0x10] }]],
+      hisSeq: [{ list: '3', clip: 'Motion[12]', mode: 'hold', start: 305, frames: 301, act: [1, 0xf] }, { list: '0', clip: 'Motion[9]', mode: 'hold', start: 0, frames: NESET_LIFT_WAIT, act: [1, 8] },
+               { list: '0', clip: 'Motion[9]', start: 0, frames: 553, act: [1, 8] }],
+      place: [{ from: 0, ...KA_FACES_NESET }], hide: { host: [[301, 301 + NESET_LIFT_WAIT + 553]] } },
+    // (4) THE SECOND COLLAPSE (HP 5 %): Neset (10, 0x8e) L3 M16; its start places Ka on him (0x10bc254); Ka the next frame drawn (vt+0x1dc
+    //   on G+0x33) and in (1, 0x12) the same update (0x7699c): L0 M1. At L3 M16's end (1, 0x10) the same update: alpha 0.
+    'Neset destroyed, Ahtal-Ka comes out': { his: 'Motion[9]', frames: 311,
+      body: [['2', 'Motion[28]', { hold: true, start: 301, frames: 1, act: [1, 0x10] }], ['0', 'Motion[1]_loop', { frames: 310, act: [1, 0x12] }]],
+      hisSeq: [{ list: '3', clip: 'Motion[16]', start: 0, frames: 251, act: [10, 0x8e] }, { list: '3', clip: 'Motion[16]', mode: 'hold', start: 251, frames: 60, act: [1, 0x10] }],
+      place: [{ from: 0, ...KA_IN_NESET }], hide: { host: [[0, 1]], partner: [[251, 311]] } },
+  } },
+};
+// THE ENTRY'S COUPLING AT A FRAME of a world-placed partner (ROM_PARTNER_BODY `place: 'world'`): his unit in the host's frame, his
+// drawn lift (game units), his node-turn weight, and whether each model is drawn
+export function partnerWorldAt(ent, f){
+  if (!ent) return null;
+  let pl = (ent.place || [])[0] || { pos: [0, 0, 0], yaw: 0 };
+  for (const p of ent.place || []) if (f >= p.from) pl = p;
+  const lerpKeys = (keys, d) => {
+    if (!keys || !keys.length) return d;
+    if (f <= keys[0][0]) return keys[0][1];
+    for (let i = 1; i < keys.length; i++) if (f <= keys[i][0]){ const [a, va] = keys[i - 1], [b, vb] = keys[i]; return b > a ? va + (vb - va) * (f - a) / (b - a) : vb; }
+    return keys[keys.length - 1][1];
+  };
+  const inR = rs => (rs || []).some(([a, b]) => f >= a && f < b);
+  const h = ent.hide || {};
+  // KA'S OWN CODE MOTION (`ka`), on KA, never on the Neset (Raven, 2026-10-27: "Neset spins around, we need to ensure it stays put, it is
+  // Athal-Ka who likely spins around"): `slide` -- his unit moved by code from `d` (game units, the world group's axes) back to his place
+  // at a constant rate over [from, to] ((1, 0x21) phase 9: (P+0x30 - P+0x40) / 20); `turn` -- his yaw changed by `angle` radians at a
+  // constant rate over [from, to] (0x78410's window, stepped by 0x78600; negative = clockwise, MT yaw -= step). The Neset's `place` is
+  // where he stands in the world group, unmoved by them.
+  const k01 = (a, b) => Math.max(0, Math.min(1, (f - a) / Math.max(1, b - a)));
+  const ka = ent.ka || {}, sl = ka.slide, tu = ka.turn;
+  const kaOff = sl ? sl.d.map(v => v * (f < sl.from ? 0 : 1 - k01(sl.from, sl.to))) : [0, 0, 0];
+  const kaYaw = tu ? tu.angle * k01(tu.from, tu.to) * (f >= tu.from ? 1 : 0) : 0;
+  return { pos: pl.pos, yaw: pl.yaw, kaOff, kaYaw, lift: lerpKeys(ent.lift, 0), nodes: ent.nodes ? lerpKeys(ent.nodes, 0) : 0,
+           hostHidden: inR(h.host), partnerHidden: inR(h.partner) };
+}
 // the game's generator (0x7c9234): xorshift128, four words of state; the draw is its low 16 bits (0x3f76e4 uxth)
 export function xorshift128(seed){
   const s = new Uint32Array([seed >>> 0 || 0x1234567, 0x75bcd15, 0x159a55e5, 0x1f123bb5]);
@@ -1772,6 +1920,13 @@ export const ROM_ANIMATIONS = {
     // Khezu L2/Motion[28] (PSL em003_00_2 slot 28, 275 frames): em003_00_000 f0-131 then em003_00_001 f132-273.
     // Copied to the Special list to test which attack this is -- replicated straight from the ROM (Raven's note).
     { name: 'Motion 28', pieces: [['2', 'Motion[28]_start'], ['2', 'Motion[28]_loop']] },
+    // KHEZU'S (7, 0x4d), WHOLE (shells lane, 2026-10-27; READ 0xd16e08): phase 0 sets L2 M3 (0x203, blend 8); phase 1 makes modes 15 / 16 /
+    // 17 at 176.0 (0xd1780c) and at 200.0 (0xd17df8: `cmp r5, #5` picks the table's second word, 0xd17f54) sets phase 3 and L2 M3 AGAIN
+    // from frame 40 with a 20-frame blend (0xafce8(e, 0x203, s0 20.0, s1 40.0) 0xd17e30..0xd17e54); phase 3 makes modes 18 / 19 at 176.0
+    // of that play (0xd17130..0xd172cc) and at 254.0 hands on to L2 M13 (0x20d, blend 2: 0xd172d0 -> 0xd17e58). Every other index of the
+    // handler leaves at 254.0 straight to L2 M13 (0xd17f50). The pieces: M3's _start (0..254) to 200, the same from 40, then M13.
+    { name: 'S. Motion 3 (7:0x4d)', pieces: [['2', 'Motion[3]_start', 0, { to: 200 }], ['2', 'Motion[3]_start', 20, { from: 40 }], ['2', 'Motion[13]', 2]],
+      motions: true, action: [7, 0x4d] },
   ],
   // Nerscylla (em070_00): the motions that fire its OWN effects, copied to the Special list so the effects can be
   // linked (CLIP_EFFECTS) without touching Lists 0/2/4 (Raven, 2026-09-16: "place copies of the animations into
@@ -1887,10 +2042,19 @@ export function specialMotionAt(monId, listId, clipName, pieces, t){
   if (!an || !an.motions) return null;
   const bare = p => p.clip.replace(/_(start|loop)$/, ''), lid = p => String(p.list.id != null ? p.list.id : p.list);
   let at = 0;
+  const ranged = p => p.from != null || p.to != null;
   for (let i = 0; i < pieces.length; ){
     let j = i;
-    while (j < pieces.length && lid(pieces[j]) === lid(pieces[i]) && bare(pieces[j]) === bare(pieces[i])) j++;
+    // a ranged piece is its own run: the motion set again (its frame from `from`, a wrap to `from` for the shells -- the same action
+    // goes on: loopStart = from when the run before it is the same motion)
+    if (ranged(pieces[i])) j = i + 1;
+    else while (j < pieces.length && !ranged(pieces[j]) && lid(pieces[j]) === lid(pieces[i]) && bare(pieces[j]) === bare(pieces[i])) j++;
     const run = pieces.slice(i, j), len = run.reduce((n, p) => n + Math.round(p.dur * 60), 0);
+    if (ranged(pieces[i]) && (t < at + len || j === pieces.length)){
+      const p = pieces[i], from = p.from || 0, prev = pieces[i - 1];
+      const again = !!prev && lid(prev) === lid(p) && bare(prev) === bare(p) && from > 0;
+      return { list: lid(p), clip: bare(p), frame: from + (t - at), loopStart: again ? from : null, loopSeg: false, loopEnd: from + len };
+    }
     if (t < at + len || j === pieces.length){
       const s = run.find(p => /_start$/.test(p.clip)), l = run.find(p => /_loop$/.test(p.clip));
       const S = s ? Math.round(s.dur * 60) : 0, L = l ? Math.round(l.dur * 60) : 0;
@@ -9692,9 +9856,11 @@ export async function composeClip(name, pieces, modelUrl){
       const from = bl && f > 0 ? values.slice((f - 1) * k.size, f * k.size) : null;
       for (let j = 0; j < n; j++, f++){
         if (!ok) continue;
+        // `rate` (a `play` piece's motion speed, the factor 0xb07b4 sets -- Ahtal-Neset's L0 M9 at 0.6 / 0.1, dev/em088-em087-
+        // combined-spec.md 3): its frames advance `rate` a frame; 1 when not given
         const local = p.mode === 'hold' ? p.start
                     : p.mode === 'wrap' ? (dur > 0 ? (p.start + j / SEQ_FPS) % (p.period > 0 ? Math.min(p.period, dur) : dur) : 0)
-                    : Math.min(p.start + j / SEQ_FPS, dur);
+                    : Math.min(p.start + j * (p.rate > 0 ? p.rate : 1) / SEQ_FPS, dur);
         const v = interp ? interp.evaluate(local) : bind;
         if (from && j < bl){
           const w = j / bl, o = f * k.size;
@@ -9713,14 +9879,17 @@ export async function sequenceClipFor(entry, modelUrl){
   // THE ENTRY'S NAME IS PART OF THE KEY: the clip is built under that name, and two entries can join the same pieces --
   // Basarios's four gases are one motion played as four actions -- so a key of pieces alone handed every one of them
   // the first one's clip, and with it the first one's name, action and effects.
-  const key = 'seq:' + modelUrl + ':' + (entry.clip || '') + ':' + entry.pieces.map(p => p.list.file + '#' + p.clip + (p.blend ? '~' + p.blend : '')).join('|');
+  const key = 'seq:' + modelUrl + ':' + (entry.clip || '') + ':' + entry.pieces.map(p => p.list.file + '#' + p.clip + (p.blend ? '~' + p.blend : '') +
+                                                                    (p.from != null || p.to != null ? '@' + (p.from || 0) + '-' + (p.to != null ? p.to : '') : '')).join('|');
   const cached = poseCache.get(key);
   if (cached) return cached;
   const pieces = [];
   for (const p of entry.pieces){
     const clip = await clipFor(p.list, p.clip, modelUrl);
     if (!clip) return null;
-    pieces.push({ clip, frames: seqFrames(clip), mode: 'play', start: 0, blend: p.blend || 0 });
+    // a piece's FRAME RANGE ({ from, to }, 60 / s frames of the clip): the motion set again from a later frame (setMotion's start)
+    const from = p.from || 0, to = p.to != null ? Math.min(p.to, seqFrames(clip)) : seqFrames(clip);
+    pieces.push({ clip, frames: Math.max(1, to - from), mode: 'play', start: from / SEQ_FPS, blend: p.blend || 0 });
   }
   const out = await composeClip(entry.clip, pieces, modelUrl);
   poseCache.set(key, out);
@@ -9883,6 +10052,21 @@ export async function loadMonster(rec, opt, ctx){
       o.visible = false; o.userData.proxy = true;
     }
     const rom = specFor(ref, srcName);
+    // THE SECOND UV OF A ONE-UV VERTEX IS THE FIRST (READ 2026-10-25, the ROM's input layouts; rom-map trap 147). Raging
+    // Brachydios's four slime materials are MapBlend: lerp(albedo @ UVPrimary, blend map @ UVSecondary x fUVTransform2 (U +0.5,
+    // the red column), fAlbedoBlendColor.a). Their meshes are formats 0x...1d / 1a / 24 / 18 / 22 = IASkinTB2wt / TBC1wt / TBC4wt
+    // / TB1wt / TB4wt (the format's low byte is the layout index; every stride matches docs/effects/model-shaders.json `layouts`),
+    // and each of those layouts has ONE TexCoord and declares UV_Primary, UV_Secondary, UV_Unique and UV_Extend on its bytes. The
+    // glb then carries no TEXCOORD_1, the shader's `uv1` read the constant (0, 0), and Red (alpha 1) drew ONE texel of the red
+    // column over every slime part -- Raven, 2026-10-25: "The Red Slime effect reverted back to its less rendered form". The
+    // same BufferAttribute under both names is the layout's own aliasing. EVERY two-map albedo (TypeExtendModulate / Add and
+    // MapBlend) takes it, 2026-10-25 audit (rom-map trap 147): after the TEXCOORD_1 re-export of em003_00 / em080_00 (the census
+    // <scratchpad>/slimefix/audit/uvcensus.py), every two-map primitive with no TEXCOORD_1 is a one-TexCoord layout -- em045_04 (+
+    // head, tail) ore, em063_05's slime, em080_00 / em080_04 / em081_04's TB / TBC primitives; em050_00 is UVViewNormal (computed,
+    // its uv1 unread). A primitive whose layout HAS a second UV must carry it in the glb; this alias would be wrong there.
+    if (rom && rom.feat && /^(TypeExtend|MapBlend)/.test(String(rom.feat.albedo || '')) && rom.m && rom.m.t && rom.m.t.tAlbedoBlendMap
+        && o.geometry.attributes.uv && !o.geometry.attributes.uv1)
+      o.geometry.setAttribute('uv1', o.geometry.attributes.uv);
     // A mesh the game DRAWS but whose material its own material file does not define. The
     // model file names the material "Scene_Material" and the .mrl has no entry for it, so
     // there is no texture to bind and no ROM answer for what it should look like: 8 monsters,
@@ -10909,6 +11093,12 @@ export const ROM_STAGE_CLIPS = {
              { mats: ['XfB_0__m01_light'], clips: ['fade_out', 'fade_in'], manual: 'light', rest: 'auto' },
              { mats: ['#a525c570', '#15178149'], clips: ['stealth_start', 'stealth', 'stealth_end'], manual: 'stealth',
                frames: { stealth_start: 15, stealth: 120, stealth_end: 30 } }],
+  // RAGING BRACHYDIOS's four slime slots (0xf36588's colour machine, slots 0..3 = MRL ids 51..54: arm_l, arm_r, body, tail), each
+  // DRIVEN by index.html stepSlime063 from motion-states.js slime063 (0xf36100's per-slot state): Yellow_to_Red on a slot turning
+  // Red, Red_to_Yellow on one turning Yellow (15 frames each on fAlbedoBlendColor.a), held at the end -- as the ROM leaves the clip
+  // in the slot. The spawn pin (ROM_SPAWN_CLIP em063_05, Red_to_Yellow held) is the state before the first change.
+  em063_05: [0, 1, 2, 3].map(k => ({ mats: [['XfB__m01_nenkin_arm_l', 'XfB__m02_nenkin_arm_r', 'XfB__m03_nenkin_body', 'XfB__m04_nenkin_tail'][k]],
+                                     clips: ['Yellow_to_Red', 'Red_to_Yellow'], manual: 'slime' + k })),
   em021_00: { mats: ['XfB_N__E_m01_nose'], clips: ['angry_Change', 'angry_Loop', 'angry_End'],
               under: 'angry_Loop' },
   // AKANTOR: his rage material machine is vtable +0x210 = 0xe37560, a four-state switch on ctl[6] (jump table
@@ -12340,11 +12530,18 @@ export const ROM_ARM_SLIME = {
   // exposed for Raging. Raven, 2026: "the enraged effect that colors the slime on Raging's body." The
   // yellow<->red BLEND clips (Yellow_to_Red / fAlbedoBlendColor) are the eruption, NOT this -- see
   // ROM_SPAWN_CLIP and kept off the Enraged toggle.
+  //   [WITHDRAWN 2026-10-25 (rom-map WITHDRAWN "Raging's enrage U +0.5"): the U-offset switch is NOT Raging's. 0xf36dfc
+  // tail-calls Raging's driver 0xf36328 at 0xf36e24..0xf36e3c (e+0xb5f5 == 5) before the gauge block, so 0xf36fd8's bit and the
+  // arm loop's setters never run for him; in the class band 0xf35038..0xf47ca0 the only bl 0xb0eff8 / 0xb0f130 / movw #0x5cfc are
+  // 0xf36f5c..0xf37348, Brachydios's side (the control: the same scan finds those), and 0xf36328..0xf36984 calls neither. His Red
+  // IS the blend clip -- Yellow_to_Red held, the blend map's U +0.5 -- which drew one texel until his meshes' second UV was
+  // aliased (buildMesh above). With both, the clip's Red_to_Yellow (alpha 0) drew the albedo through this +0.5: the Yellow
+  // window after an eruption showed full Red, Red showed flat amber. enragedU 0: the entry stays for the parts panel's items.]
   em063_05: {
     mats: ['XfB__m01_nenkin_arm_l', 'XfB__m02_nenkin_arm_r', 'XfB__m03_nenkin_body', 'XfB__m04_nenkin_tail'],
     spawnLevel: 0,
     offsetV: [0],
-    enragedU: 0.5,
+    enragedU: 0,
   },
 };
 // The level each arm is showing, per mounted root: [left, right]. Absent = the ROM's spawn level.
