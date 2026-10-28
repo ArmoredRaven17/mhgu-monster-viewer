@@ -111,7 +111,7 @@ No hyper data (no `.mdd` in the arc, so never hyper): Dreadqueen Rathian (em001_
   (quest rank `0x3a8430` > 4), written at `0x6f1c0..0x6f1d8`. The monster's .rodata resource list holds both paths (Rathian
   `0x15d99d0`: `..._doumouka`, then `..._doumouka_G`). So the `_g.mdd` is the G-rank file. docs/hyper-auras.json now carries both
   (`normal`, `g`; `<archive>/cen/mkhyperauras.py`) and the Hyper row reads the Quest Rank's. Congalala (em021_00) and Nerscylla
-  (em070_00) have empty plain files: their auras exist at G only. Rajang (em023_00) and Gore Magala (em079_00) group differently.
+  (em070_00) have empty plain files: their auras exist at G only. Rajang (em023_00) and ~~Gore Magala~~ Malfestio (em079_00; name corrected 2026-10-28, hyper audit) group differently.
 * **The meat change (R).** vt+0x18c = `0xca900(e, slot)`: hyper, both group auras held, the slot in a held aura's MeatChange_Group
   -> its MeatChange_SpecificParts_Bias, else 1.0. Read by the deflect classifier `0x16d800` (cut and impact x the bias: the
   Hardness) and the two shot paths `0x171164` / `0x178298` (shot + the bias). No damage path reads it. **Built**: the Hit Zones'
@@ -250,6 +250,22 @@ Tools: `<archive>/hypermotion/` (hookemu.py, modmotions.py, mkhypermotion.py, mk
   sharing a clip counts. Of the 21: 19 play turn records (named there), Congalala (7, 0x47) is unhandled and Duramboros (7, 0x15)
   plays none of its own. Counted: 'census' 101 -> 30 (pair, clip) cases, 'ambiguous' 90 -> 206 -- e.g. Rathian's L1 M16 / L4 M12
   (section 6.4's factor rows) are now ambiguous and play at 1.
+  **[SUPERSEDED 2026-10-28 -- ANY ACTION, Raven's decision]**: Raven, 2026-10-28: "We don't need to worry about actions then. If a
+  part is hyper and impacts a clip's speed, use the hyper speed". hyperMotionAt now takes every action that plays the clip -- the
+  play's own (playNow) joined to the census (arms + actMotions + action-motions.json `motions`) -- each with 0xc9e88's own pick for
+  the held pair (hyperModifyEntry: both groups' ActionElements held, group 0's entries then group 1's, the first naming it; a pair
+  without them still gets none); if ANY gives a MotionSpeedRate factor other than 1 the clip plays at it, and of two or more different
+  ones the LARGEST (`how`: 'action' the play's own gives it, 'any' another action does, 'largest' several differ; `factors` /
+  `factorActs` name them; 'ambiguous' is gone). **A VIEWER CHOICE, not the game**: the game sets P+0x38c only at the action set, so
+  it applies the factor only when the hyper-affected action plays the clip. Unchanged: the hook rates (per clip and frame), the
+  per-file selection (below G / G by the Quest Rank), Hyper Off (exactly 1, nothing fired). The POWER (the Attack Hitboxes tooltip
+  only, nothing drawn) takes the same rule: any action's AttackRate / PowerRate other than x1 / +0, the largest (AttackRate, then
+  PowerRate); the line names the action(s) and says it is "per the hyper action" -- applied in the game only when that action plays.
+  Counted (`<archive>/hypermotion/anyaction.py` -> anyaction.out / .json, both files x every pair x the viewer's clips): **206 (pair,
+  clip) cases change factor** (82 of them hooked, so factor x the unchanged hook rates), 169 of them one play-once clip (metered,
+  6.4); **two or more different non-1 factors: 2** -- Silver Rathalos (em002_02) L4 M36 on 1,3, both files: x1.1 (7, 0x25) / (7,
+  0x5c) / (7, 0x66) and x1.2 (7, 0x64) -> x1.2. Power with two or more different values on one clip: 118 (pair, clip) cases on 13
+  monsters (listed in anyaction.out; the largest is shown).
 - **No new control.** The Hyper row's tooltip now says the motions change. No new labels.
 
 ### 6.3 Per monster: the clips a held aura changes (generated: `<archive>/hypermotion/mkdoc.py` -> `clipchanges.md`)
@@ -423,6 +439,16 @@ that action sets (`actMotions`); x1 entries are left out. Labels "part N" are th
   7 change speed within the clip and end level); bursts: 98 expected, **98 started, every row "draws"**. 26 hooked motions are split
   or absent from their list and were skipped (named per row in the output).
 - Not metered: the split clips' hooks (the frame is the whole slot's, so the same code path); the shells' scale (not applied).
+- **Re-metered 2026-10-28 under the any-action rule (6.2)**. At G, the same 44 x up to 3 run (`meter_all_g_anyaction.out`): 158 PASS,
+  0 FAIL, the same 132 clips; **3 change length**, each now at a ModifyData factor x its unchanged hook rates, on the prediction:
+  Tigrex 3,2 L0 M12 / M13 131 -> 98 (x1.35; were 131 at x1), Glavenus 1,2 L2 M14 338 -> 282 (x1.2); **the other 129 (factor 1, hook
+  only) are frame-for-frame the old run's** (largest difference 0), bursts the same (98 expected, all started, every row draws).
+  Below G (`meter_em001_factor_anyaction.out`): Rathian 1,3 L1 M16 (4, 1) x1.3 51 -> 41 (predicted 40), L4 M12 x1.3 35 -> 28, 1,2
+  L0 M8 x1.2 47 -> 40 -- `how: any` (they had fallen to 1, 'ambiguous', after the full census). **Every changed clip**
+  (`<archive>/hypermotion/anymeter.mjs` over anyaction.json, `anymeter.out`): 169 of the 206 changed (pair, clip) cases are one
+  play-once clip, both files: **169 PASS, 0 FAIL** (played length within 3 frames of factor x hook prediction, the page's factor the
+  new one; 67 of them hooked). Silver Rathalos 1,3 L4 M36 plays x1.2 (`how: largest`, factors [1.1, 1.2]): 201 -> 164 (was 197 at
+  the hook alone). The other 37 are split (_start / _loop) clips, not metered (same code path).
 
 ### 6.5 ShellElements -- built (shells lane, 2026-10-27; rom-map "Hyper ShellElements -- who carries the aura ID" / "-- APPLIED")
 
@@ -762,3 +788,33 @@ u 270 / 271. The viewer applies it (paintTired) except an Exhausted clip picked 
 - What the viewer cannot apply (flagged per monster): a ModifyData speed on a clip several actions play with different factors (the
   census branch gives 1, 'ambiguous') -- 125 actions (Nargacuga 51, Tigrex 18, the Rath line 32, Deviljho 8, ..); Khezu's (7, 5) bolts
   (pick 'unread'); power is listed in the tooltip only, and not where the clip's actions disagree.
+  **[UPDATED 2026-10-28 -- any action, section 6.2]**: Raven: "We don't need to worry about actions then. If a part is hyper and
+  impacts a clip's speed, use the hyper speed". The viewer now plays a clip at the ModifyData factor of ANY action that plays it (the
+  largest of several), and lists the largest power in the tooltip the same way -- a viewer choice; the game applies either only when
+  that action plays the clip. The table regenerated (dumpviewer.mjs, hyperattacks.py; its route() follows the rule, and the head says
+  so): ModifyData speed entries **187 "no" + 40 "partly" -> "yes"** (122 of the 125 actions); **3 stay "no"**: Silver Rathalos (7,
+  0x25) / (7, 0x5c) / (7, 0x66) x1.1 on L4 M36 (pair 1,3, both files), where (7, 0x64)'s x1.2 is the larger and plays. Power entries:
+  "no" 538 -> 27, "partly" 173 -> 50, "listed" 285 -> 879 -- the rest are clips where another action's larger power is listed (named
+  in each row). ("Flagged" per monster drops accordingly: Nargacuga 69 -> 3, Tigrex 21 -> 3, Rathian 13 -> 3, Deviljho 11 -> 3.)
+
+## 10. The effects audit, every monster (hyper audit, 2026-10-28; Raven: "Review Hyper Effects since some monsters do not seem to have them"; dev/hyper-effects-audit.md)
+
+- **The roster, from the ROM and the data.** The .mdd loader `0x4bd64` indexes its own table (`0x50aa8`: the (em, index) pairs at
+  `0x1594ca4`; rows `0x172ba68[index]`, GOT `0x1832544`): 44 of 137 rows have a path in column 0x26 and 0x27, the rest -1 (READ,
+  `<archive>/hyperaudit/rescols.py`). The romfs holds exactly those 44 x 2 files, each in its own arc. The quest files' large-monster
+  entries (file +0x64, 13 bytes, u16 em id) carry byte +3 = 1 on 245 entries, on the same 44 (INFERRED as the file form of the
+  in-memory +0xb that `0x3a964c` copies; the copy is not read). So the 44 of section 2 are every monster the game can make hyper,
+  and the 50 listed there never are. Congalala / Nerscylla: every hyper quest is G (file +0x13 = 5), matching their empty plain
+  files. Basarios / Gravios / Diablos / Barioth / Barroth are hyper only in G quests (their plain files are never loaded by a quest).
+- **On the page, every case passes** (`pageaudit.mjs`, 86 monster x rank cases): the row's options = the file's pairs; every aura of
+  every pair starts and draws under the meter; one hooked clip's bursts start and draw per monster and rank; the head aura's eye
+  pair on 36 monsters. **No viewer-side defect**: nothing in docs/ changed, no record exported.
+- **Eyes by data**: the eye pair is drawn only where an aura record's MASK1 carries the per-monster bit; **Khezu, Daimyo Hermitaur,
+  Shogun Ceanataur, Blangonga, Nargacuga, Najarala, Gore Magala and Malfestio have none** (all their auras are cm202_100 with MASK1
+  0x21 / 0x41). Gammoth's bit is in cm202_100 (u 1302, 0x80000081). Rajang / Uragaan / Nibelsnarf / Brachydios / Nerscylla: cores,
+  no halo.
+- **Why some look absent**: from the default front camera several monsters' auras are behind the body (Congalala, Daimyo, Shogun,
+  Nerscylla, Tetsucabra, Najarala, Lagiacrus; `dev/shots/hyperaudit_sheets/angles.png` shows them from the sides); the eyes need
+  "Effects drawn before" = A GPU-particle effect (section 5). Nibelsnarf's 2026-10-25 "no aura start" was the probe's frozen clip
+  (rom-map Withdrawn).
+- Section "Read 2026-10-25": the monster grouping differently with Rajang is Malfestio (em079_00), not Gore Magala (corrected).

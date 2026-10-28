@@ -1,0 +1,333 @@
+clips (monster x rank x pair x clip) with a non-1 factor from any action: 236; whose factor changes: 206 (82 of them hooked); with two or more different non-1 factors (the largest taken): 2
+
+== CHANGED (old -> new; played length at 1/60 s, the viewer's own list; "split" = _start / _loop, no single length) ==
+em001_00 below G 1,2   L0 M7    route census       x1 -> x1.2  split  x1.2: 7:0x06 7:0x07 7:0x20
+em001_00 below G 1,2   L0 M8    route census       x1 -> x1.2  47 -> 40  x1.2: 7:0x06 7:0x07
+em001_00 below G 1,3   L0 M7    route census       x1 -> x1.3  split  x1.3: 7:0x20
+em001_00 below G 1,3   L1 M2    route census       x1 -> x1.3  split  x1.3: 2:0x04 2:0x05
+em001_00 below G 1,3   L1 M8    route census       x1 -> x1.3  41 -> 32  x1.3: 4:0x07
+em001_00 below G 1,3   L1 M14   route census       x1 -> x1.3  55 -> 43  x1.3: 4:0x00
+em001_00 below G 1,3   L1 M16   route census       x1 -> x1.3  51 -> 40  x1.3: 4:0x01
+em001_00 below G 1,3   L1 M17   route census       x1 -> x1.3  107 -> 83  x1.3: 4:0x01
+em001_00 below G 1,3   L1 M18   route census       x1 -> x1.3  43 -> 34  x1.3: 4:0x07
+em001_00 below G 1,3   L1 M20   route census       x1 -> x1.3  37 -> 29  x1.3: 4:0x00
+em001_00 below G 1,3   L1 M40   route census       x1 -> x1.3  67 -> 52  x1.3: 4:0x18
+em001_00 below G 1,3   L1 M41   route census       x1 -> x1.3  29 -> 23  x1.3: 4:0x18
+em001_00 below G 1,3   L4 M12   route census       x1 -> x1.3  35 -> 28  x1.3: 2:0x04 2:0x05
+em001_00 below G 1,3   L4 M13   route census       x1 -> x1.3  31 -> 25  x1.3: 2:0x04 2:0x05
+em001_00 below G 1,3   L4 M14   route census       x1 -> x1.3  13 -> 11  x1.3: 2:0x04
+em001_00 below G 1,3   L4 M15   route census       x1 -> x1.3  117 -> 91  x1.3: 2:0x04 2:0x05
+em001_00 G     1,2   L0 M7    route census       x1 -> x1.2  split  x1.2: 7:0x06 7:0x07 7:0x20
+em001_00 G     1,2   L0 M8    route census       x1 -> x1.2  47 -> 40  x1.2: 7:0x06 7:0x07
+em001_00 G     1,3   L0 M7    route census       x1 -> x1.3  split  x1.3: 7:0x20
+em001_00 G     1,3   L1 M2    route census       x1 -> x1.3  split  x1.3: 2:0x04 2:0x05
+em001_00 G     1,3   L1 M8    route census       x1 -> x1.3  41 -> 32  x1.3: 4:0x07
+em001_00 G     1,3   L1 M14   route census       x1 -> x1.3  55 -> 43  x1.3: 4:0x00
+em001_00 G     1,3   L1 M16   route census       x1 -> x1.3  51 -> 40  x1.3: 4:0x01
+em001_00 G     1,3   L1 M17   route census       x1 -> x1.3  107 -> 83  x1.3: 4:0x01
+em001_00 G     1,3   L1 M18   route census       x1 -> x1.3  43 -> 34  x1.3: 4:0x07
+em001_00 G     1,3   L1 M20   route census       x1 -> x1.3  37 -> 29  x1.3: 4:0x00
+em001_00 G     1,3   L1 M40   route census       x1 -> x1.3  67 -> 52  x1.3: 4:0x18
+em001_00 G     1,3   L1 M41   route census       x1 -> x1.3  29 -> 23  x1.3: 4:0x18
+em001_00 G     1,3   L4 M12   route census       x1 -> x1.3  35 -> 28  x1.3: 2:0x04 2:0x05
+em001_00 G     1,3   L4 M13   route census       x1 -> x1.3  31 -> 25  x1.3: 2:0x04 2:0x05
+em001_00 G     1,3   L4 M14   route census       x1 -> x1.3  13 -> 11  x1.3: 2:0x04
+em001_00 G     1,3   L4 M15   route census       x1 -> x1.3  117 -> 91  x1.3: 2:0x04 2:0x05
+em001_02 below G 1,2   L0 M7    route census       x1 -> x1.2  split  x1.2: 7:0x06 7:0x07 7:0x20
+em001_02 below G 1,2   L0 M8    route census       x1 -> x1.2  47 -> 40  x1.2: 7:0x06 7:0x07
+em001_02 below G 1,3   L0 M7    route census       x1 -> x1.3  split  x1.3: 7:0x20
+em001_02 below G 1,3   L1 M2    route census       x1 -> x1.3  split  x1.3: 2:0x04 2:0x05
+em001_02 below G 1,3   L1 M8    route census       x1 -> x1.3  41 -> 32  x1.3: 4:0x07
+em001_02 below G 1,3   L1 M14   route census       x1 -> x1.3  55 -> 43  x1.3: 4:0x00
+em001_02 below G 1,3   L1 M16   route census       x1 -> x1.3  51 -> 40  x1.3: 4:0x01
+em001_02 below G 1,3   L1 M17   route census       x1 -> x1.3  107 -> 83  x1.3: 4:0x01
+em001_02 below G 1,3   L1 M18   route census       x1 -> x1.3  43 -> 34  x1.3: 4:0x07
+em001_02 below G 1,3   L1 M20   route census       x1 -> x1.3  37 -> 29  x1.3: 4:0x00
+em001_02 below G 1,3   L1 M40   route census       x1 -> x1.3  67 -> 52  x1.3: 4:0x18
+em001_02 below G 1,3   L1 M41   route census       x1 -> x1.3  29 -> 23  x1.3: 4:0x18
+em001_02 below G 1,3   L4 M12   route census       x1 -> x1.3  35 -> 28  x1.3: 2:0x04 2:0x05
+em001_02 below G 1,3   L4 M13   route census       x1 -> x1.3  31 -> 25  x1.3: 2:0x04 2:0x05
+em001_02 below G 1,3   L4 M14   route census       x1 -> x1.3  13 -> 11  x1.3: 2:0x04
+em001_02 below G 1,3   L4 M15   route census       x1 -> x1.3  117 -> 91  x1.3: 2:0x04 2:0x05
+em001_02 G     1,2   L0 M7    route census       x1 -> x1.2  split  x1.2: 7:0x06 7:0x07 7:0x20
+em001_02 G     1,2   L0 M8    route census       x1 -> x1.2  47 -> 40  x1.2: 7:0x06 7:0x07
+em001_02 G     1,3   L0 M7    route census       x1 -> x1.3  split  x1.3: 7:0x20
+em001_02 G     1,3   L1 M2    route census       x1 -> x1.3  split  x1.3: 2:0x04 2:0x05
+em001_02 G     1,3   L1 M8    route census       x1 -> x1.3  41 -> 32  x1.3: 4:0x07
+em001_02 G     1,3   L1 M14   route census       x1 -> x1.3  55 -> 43  x1.3: 4:0x00
+em001_02 G     1,3   L1 M16   route census       x1 -> x1.3  51 -> 40  x1.3: 4:0x01
+em001_02 G     1,3   L1 M17   route census       x1 -> x1.3  107 -> 83  x1.3: 4:0x01
+em001_02 G     1,3   L1 M18   route census       x1 -> x1.3  43 -> 34  x1.3: 4:0x07
+em001_02 G     1,3   L1 M20   route census       x1 -> x1.3  37 -> 29  x1.3: 4:0x00
+em001_02 G     1,3   L1 M40   route census       x1 -> x1.3  67 -> 52  x1.3: 4:0x18
+em001_02 G     1,3   L1 M41   route census       x1 -> x1.3  29 -> 23  x1.3: 4:0x18
+em001_02 G     1,3   L4 M12   route census       x1 -> x1.3  35 -> 28  x1.3: 2:0x04 2:0x05
+em001_02 G     1,3   L4 M13   route census       x1 -> x1.3  31 -> 25  x1.3: 2:0x04 2:0x05
+em001_02 G     1,3   L4 M14   route census       x1 -> x1.3  13 -> 11  x1.3: 2:0x04
+em001_02 G     1,3   L4 M15   route census       x1 -> x1.3  117 -> 91  x1.3: 2:0x04 2:0x05
+em002_00 below G 1,3   L4 M36   route census       x1 -> x1.1  197 -> 179 [hooked]  x1.1: 7:0x25 7:0x5c 7:0x64 7:0x66
+em002_00 G     1,3   L1 M2    route census       x1 -> x1.1  split  x1.1: 7:0x78
+em002_00 G     1,3   L4 M36   route census       x1 -> x1.1  197 -> 179 [hooked]  x1.1: 7:0x25 7:0x5c 7:0x64 7:0x66
+em002_00 G     1,3   L4 M56   route census       x1 -> x1.1  197 -> 179 [hooked]  x1.1: 7:0x78
+em002_02 below G 1,2   L0 M7    route census       x1 -> x1.1  split  x1.1: 7:0x06 7:0x07 7:0x20
+em002_02 below G 1,2   L0 M8    route census       x1 -> x1.1  47 -> 43  x1.1: 7:0x06 7:0x07
+em002_02 below G 1,3   L4 M1    route census       x1 -> x1.3  101 -> 78  x1.3: 7:0x1f
+em002_02 below G 1,3   L4 M17   route census       x1 -> x1.3  split  x1.3: 7:0x1f
+em002_02 below G 1,3   L4 M36   route census       x1 -> x1.2  197 -> 164 [hooked]  x1.1: 7:0x25 7:0x5c 7:0x66; x1.2: 7:0x64
+em002_02 G     1,2   L0 M7    route census       x1 -> x1.1  split  x1.1: 7:0x06 7:0x07 7:0x20
+em002_02 G     1,2   L0 M8    route census       x1 -> x1.1  47 -> 43  x1.1: 7:0x06 7:0x07
+em002_02 G     1,3   L4 M1    route census       x1 -> x1.3  101 -> 78  x1.3: 7:0x1f
+em002_02 G     1,3   L4 M17   route census       x1 -> x1.3  split  x1.3: 7:0x1f
+em002_02 G     1,3   L4 M36   route census       x1 -> x1.2  197 -> 164 [hooked]  x1.1: 7:0x25 7:0x5c 7:0x66; x1.2: 7:0x64
+em002_02 G     1,3   L4 M56   route census       x1 -> x1.1  197 -> 179 [hooked]  x1.1: 7:0x6f
+em004_00 G     1,2   L0 M7    route CLIP_ACTIONS x1 -> x1.1  split [hooked]  x1.1: 7:0x18
+em004_00 G     1,3   L0 M7    route CLIP_ACTIONS x1 -> x1.1  split [hooked]  x1.1: 7:0x18
+em005_00 G     1,2   L0 M5    route census       x1 -> x1.1  split  x1.1: 2:0x01
+em005_00 G     1,3   L0 M5    route census       x1 -> x1.1  split  x1.1: 2:0x01
+em021_00 G     1,3   L0 M8    route census       x1 -> x1.1  119 -> 109  x1.1: 2:0x05
+em021_00 G     1,3   L0 M10   route census       x1 -> x1.2  55 -> 46  x1.2: 7:0x09
+em021_00 G     1,3   L0 M14   route census       x1 -> x1.2  split  x1.2: 7:0x09
+em032_00 below G 1,2   L0 M27   route census       x1 -> x1.2  101 -> 85  x1.2: 7:0x75
+em032_00 below G 1,2   L0 M28   route census       x1 -> x1.2  147 -> 123  x1.2: 7:0x75
+em032_00 below G 1,2   L2 M7    route census       x1 -> x1.2  61 -> 51  x1.2: 7:0x73 7:0x74
+em032_00 below G 1,2   L2 M8    route census       x1 -> x1.2  99 -> 83  x1.2: 7:0x73 7:0x74
+em032_00 below G 1,4   L0 M9    route census       x1 -> x1.35  split [hooked]  x1.35: 2:0x0b 2:0x36 2:0x3b 2:0x3d 2:0x3e 2:0x40 2:0x42 2:0x45 2:0x48 2:0x77 2:0x78 2:0x7a 2:0x7b
+em032_00 below G 1,4   L0 M12   route census       x1 -> x1.35  131 -> 98 [hooked]  x1.35: 2:0x23
+em032_00 below G 1,4   L0 M13   route census       x1 -> x1.35  131 -> 98 [hooked]  x1.35: 2:0x23
+em032_00 below G 1,4   L0 M27   route census       x1 -> x1.2  101 -> 85  x1.2: 7:0x75
+em032_00 below G 1,4   L0 M28   route census       x1 -> x1.2  147 -> 123  x1.2: 7:0x75
+em032_00 below G 1,4   L0 M33   route census       x1 -> x1.35  131 -> 98  x1.35: 2:0x14
+em032_00 below G 1,4   L2 M7    route census       x1 -> x1.2  61 -> 51  x1.2: 7:0x73 7:0x74
+em032_00 below G 1,4   L2 M8    route census       x1 -> x1.2  99 -> 83  x1.2: 7:0x73 7:0x74
+em032_00 below G 3,2   L0 M9    route census       x1 -> x1.35  split [hooked]  x1.35: 2:0x0b 2:0x36 2:0x3b 2:0x3d 2:0x3e 2:0x40 2:0x42 2:0x45 2:0x48 2:0x77 2:0x78 2:0x7a 2:0x7b
+em032_00 below G 3,2   L0 M12   route census       x1 -> x1.35  131 -> 98 [hooked]  x1.35: 2:0x23
+em032_00 below G 3,2   L0 M13   route census       x1 -> x1.35  131 -> 98 [hooked]  x1.35: 2:0x23
+em032_00 below G 3,2   L0 M33   route census       x1 -> x1.35  131 -> 98  x1.35: 2:0x14
+em032_00 below G 3,2   L2 M7    route census       x1 -> x1.2  61 -> 51  x1.2: 7:0x73 7:0x74
+em032_00 below G 3,2   L2 M8    route census       x1 -> x1.2  99 -> 83  x1.2: 7:0x73 7:0x74
+em032_00 below G 3,4   L0 M9    route census       x1 -> x1.35  split [hooked]  x1.35: 2:0x0b 2:0x36 2:0x3b 2:0x3d 2:0x3e 2:0x40 2:0x42 2:0x45 2:0x48 2:0x77 2:0x78 2:0x7a 2:0x7b
+em032_00 below G 3,4   L0 M12   route census       x1 -> x1.35  131 -> 98 [hooked]  x1.35: 2:0x23
+em032_00 below G 3,4   L0 M13   route census       x1 -> x1.35  131 -> 98 [hooked]  x1.35: 2:0x23
+em032_00 below G 3,4   L0 M33   route census       x1 -> x1.35  131 -> 98  x1.35: 2:0x14
+em032_00 below G 3,4   L2 M7    route census       x1 -> x1.2  61 -> 51  x1.2: 7:0x73 7:0x74
+em032_00 below G 3,4   L2 M8    route census       x1 -> x1.2  99 -> 83  x1.2: 7:0x73 7:0x74
+em032_00 G     1,2   L0 M27   route census       x1 -> x1.2  101 -> 85  x1.2: 7:0x75
+em032_00 G     1,2   L0 M28   route census       x1 -> x1.2  147 -> 123  x1.2: 7:0x75
+em032_00 G     1,2   L2 M7    route census       x1 -> x1.2  61 -> 51  x1.2: 7:0x73 7:0x74
+em032_00 G     1,2   L2 M8    route census       x1 -> x1.2  99 -> 83  x1.2: 7:0x73 7:0x74
+em032_00 G     1,4   L0 M9    route census       x1 -> x1.35  split [hooked]  x1.35: 2:0x0b 2:0x36 2:0x3b 2:0x3d 2:0x3e 2:0x40 2:0x42 2:0x45 2:0x48 2:0x77 2:0x78 2:0x7a 2:0x7b
+em032_00 G     1,4   L0 M12   route census       x1 -> x1.35  131 -> 98 [hooked]  x1.35: 2:0x23
+em032_00 G     1,4   L0 M13   route census       x1 -> x1.35  131 -> 98 [hooked]  x1.35: 2:0x23
+em032_00 G     1,4   L0 M27   route census       x1 -> x1.2  101 -> 85  x1.2: 7:0x75
+em032_00 G     1,4   L0 M28   route census       x1 -> x1.2  147 -> 123  x1.2: 7:0x75
+em032_00 G     1,4   L0 M33   route census       x1 -> x1.35  131 -> 98  x1.35: 2:0x14
+em032_00 G     1,4   L2 M7    route census       x1 -> x1.2  61 -> 51  x1.2: 7:0x73 7:0x74
+em032_00 G     1,4   L2 M8    route census       x1 -> x1.2  99 -> 83  x1.2: 7:0x73 7:0x74
+em032_00 G     3,2   L0 M9    route census       x1 -> x1.35  split [hooked]  x1.35: 2:0x0b 2:0x36 2:0x3b 2:0x3d 2:0x3e 2:0x40 2:0x42 2:0x45 2:0x48 2:0x77 2:0x78 2:0x7a 2:0x7b
+em032_00 G     3,2   L0 M12   route census       x1 -> x1.35  131 -> 98 [hooked]  x1.35: 2:0x23
+em032_00 G     3,2   L0 M13   route census       x1 -> x1.35  131 -> 98 [hooked]  x1.35: 2:0x23
+em032_00 G     3,2   L0 M33   route census       x1 -> x1.35  131 -> 98  x1.35: 2:0x14
+em032_00 G     3,2   L2 M7    route census       x1 -> x1.2  61 -> 51  x1.2: 7:0x73 7:0x74
+em032_00 G     3,2   L2 M8    route census       x1 -> x1.2  99 -> 83  x1.2: 7:0x73 7:0x74
+em032_00 G     3,4   L0 M9    route census       x1 -> x1.35  split [hooked]  x1.35: 2:0x0b 2:0x36 2:0x3b 2:0x3d 2:0x3e 2:0x40 2:0x42 2:0x45 2:0x48 2:0x77 2:0x78 2:0x7a 2:0x7b
+em032_00 G     3,4   L0 M12   route census       x1 -> x1.35  131 -> 98 [hooked]  x1.35: 2:0x23
+em032_00 G     3,4   L0 M13   route census       x1 -> x1.35  131 -> 98 [hooked]  x1.35: 2:0x23
+em032_00 G     3,4   L0 M33   route census       x1 -> x1.35  131 -> 98  x1.35: 2:0x14
+em032_00 G     3,4   L2 M7    route census       x1 -> x1.2  61 -> 51  x1.2: 7:0x73 7:0x74
+em032_00 G     3,4   L2 M8    route census       x1 -> x1.2  99 -> 83  x1.2: 7:0x73 7:0x74
+em037_00 below G 1,2   L2 M9    route census       x1 -> x1.15  split [hooked]  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x4e 7:0x4f 7:0x50
+em037_00 below G 1,2   L2 M10   route census       x1 -> x1.15  27 -> 24 [hooked]  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x48 7:0x49 7:0x4a 7:0x4b 7:0x4c 7:0x4d 7:0x4e 7:0x4f 7:0x50 7:0x51 7:0x52 7:0x53 7:0x54 7:0x55 7:0x56 7:0x57 7:0x58 7:0x59 7:0x5a 7:0x5b 7:0x5c 7:0x5d 7:0x5e 7:0x5f 7:0x60 7:0x61 7:0x62 7:0x63 7:0x64 7:0x65 7:0x66 7:0x67 7:0x68 7:0x69 7:0x6a 7:0x6b
+em037_00 below G 1,2   L2 M11   route census       x1 -> x1.15  39 -> 35 [hooked]  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x48 7:0x49 7:0x4a 7:0x4b 7:0x4c 7:0x4d 7:0x4e 7:0x4f 7:0x50 7:0x51 7:0x52 7:0x53 7:0x54 7:0x55 7:0x56 7:0x57 7:0x58 7:0x59 7:0x5a 7:0x5b 7:0x5c 7:0x5d 7:0x5e 7:0x5f 7:0x60 7:0x61 7:0x62 7:0x63 7:0x64 7:0x65 7:0x66 7:0x67 7:0x68 7:0x69 7:0x6a 7:0x6b
+em037_00 below G 1,2   L2 M12   route census       x1 -> x1.15  39 -> 35 [hooked]  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x48 7:0x49 7:0x4a 7:0x4b 7:0x4c 7:0x4d 7:0x54 7:0x55 7:0x56 7:0x57 7:0x58 7:0x59 7:0x5a 7:0x5b 7:0x5c 7:0x5d 7:0x5e 7:0x5f 7:0x66 7:0x67 7:0x68 7:0x69 7:0x6a 7:0x6b
+em037_00 below G 1,2   L2 M13   route census       x1 -> x1.15  split [hooked]  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x4e 7:0x4f 7:0x50
+em037_00 below G 1,2   L2 M14   route census       x1 -> x1.15  27 -> 24 [hooked]  x1.15: 7:0x54 7:0x56 7:0x59 7:0x5a 7:0x5c 7:0x5f 7:0x60 7:0x62 7:0x65
+em037_00 below G 1,2   L2 M15   route census       x1 -> x1.15  39 -> 35 [hooked]  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x48 7:0x49 7:0x4a 7:0x4b 7:0x4c 7:0x4d 7:0x4e 7:0x4f 7:0x50 7:0x51 7:0x52 7:0x53 7:0x54 7:0x55 7:0x56 7:0x57 7:0x58 7:0x59 7:0x5a 7:0x5b 7:0x5c 7:0x5d 7:0x5e 7:0x5f 7:0x60 7:0x61 7:0x62 7:0x63 7:0x64 7:0x65 7:0x66 7:0x67 7:0x68 7:0x69 7:0x6a 7:0x6b
+em037_00 below G 1,2   L2 M16   route census       x1 -> x1.15  39 -> 35 [hooked]  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x48 7:0x49 7:0x4a 7:0x4b 7:0x4c 7:0x4d 7:0x54 7:0x55 7:0x56 7:0x57 7:0x58 7:0x59 7:0x5a 7:0x5b 7:0x5c 7:0x5d 7:0x5e 7:0x5f 7:0x66 7:0x67 7:0x68 7:0x69 7:0x6a 7:0x6b
+em037_00 below G 5,2   L2 M9    route census       x1 -> x1.15  split  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x4e 7:0x4f 7:0x50
+em037_00 below G 5,2   L2 M10   route census       x1 -> x1.15  27 -> 24  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x48 7:0x49 7:0x4a 7:0x4b 7:0x4c 7:0x4d 7:0x4e 7:0x4f 7:0x50 7:0x51 7:0x52 7:0x53 7:0x54 7:0x55 7:0x56 7:0x57 7:0x58 7:0x59 7:0x5a 7:0x5b 7:0x5c 7:0x5d 7:0x5e 7:0x5f 7:0x60 7:0x61 7:0x62 7:0x63 7:0x64 7:0x65 7:0x66 7:0x67 7:0x68 7:0x69 7:0x6a 7:0x6b
+em037_00 below G 5,2   L2 M11   route census       x1 -> x1.15  39 -> 35  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x48 7:0x49 7:0x4a 7:0x4b 7:0x4c 7:0x4d 7:0x4e 7:0x4f 7:0x50 7:0x51 7:0x52 7:0x53 7:0x54 7:0x55 7:0x56 7:0x57 7:0x58 7:0x59 7:0x5a 7:0x5b 7:0x5c 7:0x5d 7:0x5e 7:0x5f 7:0x60 7:0x61 7:0x62 7:0x63 7:0x64 7:0x65 7:0x66 7:0x67 7:0x68 7:0x69 7:0x6a 7:0x6b
+em037_00 below G 5,2   L2 M12   route census       x1 -> x1.15  39 -> 35  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x48 7:0x49 7:0x4a 7:0x4b 7:0x4c 7:0x4d 7:0x54 7:0x55 7:0x56 7:0x57 7:0x58 7:0x59 7:0x5a 7:0x5b 7:0x5c 7:0x5d 7:0x5e 7:0x5f 7:0x66 7:0x67 7:0x68 7:0x69 7:0x6a 7:0x6b
+em037_00 below G 5,2   L2 M13   route census       x1 -> x1.15  split [hooked]  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x4e 7:0x4f 7:0x50
+em037_00 below G 5,2   L2 M14   route census       x1 -> x1.15  27 -> 24 [hooked]  x1.15: 7:0x54 7:0x56 7:0x59 7:0x5a 7:0x5c 7:0x5f 7:0x60 7:0x62 7:0x65
+em037_00 below G 5,2   L2 M15   route census       x1 -> x1.15  39 -> 35 [hooked]  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x48 7:0x49 7:0x4a 7:0x4b 7:0x4c 7:0x4d 7:0x4e 7:0x4f 7:0x50 7:0x51 7:0x52 7:0x53 7:0x54 7:0x55 7:0x56 7:0x57 7:0x58 7:0x59 7:0x5a 7:0x5b 7:0x5c 7:0x5d 7:0x5e 7:0x5f 7:0x60 7:0x61 7:0x62 7:0x63 7:0x64 7:0x65 7:0x66 7:0x67 7:0x68 7:0x69 7:0x6a 7:0x6b
+em037_00 below G 5,2   L2 M16   route census       x1 -> x1.15  39 -> 35 [hooked]  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x48 7:0x49 7:0x4a 7:0x4b 7:0x4c 7:0x4d 7:0x54 7:0x55 7:0x56 7:0x57 7:0x58 7:0x59 7:0x5a 7:0x5b 7:0x5c 7:0x5d 7:0x5e 7:0x5f 7:0x66 7:0x67 7:0x68 7:0x69 7:0x6a 7:0x6b
+em037_00 G     1,2   L2 M10   route census       x1 -> x1.15  27 -> 24 [hooked]  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x48 7:0x49 7:0x4a 7:0x4b 7:0x4c 7:0x4d 7:0x4e 7:0x4f 7:0x50 7:0x51 7:0x52 7:0x53 7:0x54 7:0x55 7:0x56 7:0x57 7:0x58 7:0x59 7:0x5a 7:0x5b 7:0x5c 7:0x5d 7:0x5e 7:0x5f 7:0x60 7:0x61 7:0x62 7:0x63 7:0x64 7:0x65 7:0x66 7:0x67 7:0x68 7:0x69 7:0x6a 7:0x6b 7:0x86 7:0x87 7:0x88
+em037_00 G     1,2   L2 M11   route census       x1 -> x1.15  39 -> 35 [hooked]  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x48 7:0x49 7:0x4a 7:0x4b 7:0x4c 7:0x4d 7:0x4e 7:0x4f 7:0x50 7:0x51 7:0x52 7:0x53 7:0x54 7:0x55 7:0x56 7:0x57 7:0x58 7:0x59 7:0x5a 7:0x5b 7:0x5c 7:0x5d 7:0x5e 7:0x5f 7:0x60 7:0x61 7:0x62 7:0x63 7:0x64 7:0x65 7:0x66 7:0x67 7:0x68 7:0x69 7:0x6a 7:0x6b 7:0x86 7:0x87 7:0x88
+em037_00 G     1,2   L2 M12   route census       x1 -> x1.15  39 -> 35 [hooked]  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x48 7:0x49 7:0x4a 7:0x4b 7:0x4c 7:0x4d 7:0x54 7:0x55 7:0x56 7:0x57 7:0x58 7:0x59 7:0x5a 7:0x5b 7:0x5c 7:0x5d 7:0x5e 7:0x5f 7:0x66 7:0x67 7:0x68 7:0x69 7:0x6a 7:0x6b
+em037_00 G     1,2   L2 M14   route census       x1 -> x1.15  27 -> 24 [hooked]  x1.15: 7:0x54 7:0x56 7:0x59 7:0x5a 7:0x5c 7:0x5f 7:0x60 7:0x62 7:0x65
+em037_00 G     1,2   L2 M15   route census       x1 -> x1.15  39 -> 35 [hooked]  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x48 7:0x49 7:0x4a 7:0x4b 7:0x4c 7:0x4d 7:0x4e 7:0x4f 7:0x50 7:0x51 7:0x52 7:0x53 7:0x54 7:0x55 7:0x56 7:0x57 7:0x58 7:0x59 7:0x5a 7:0x5b 7:0x5c 7:0x5d 7:0x5e 7:0x5f 7:0x60 7:0x61 7:0x62 7:0x63 7:0x64 7:0x65 7:0x66 7:0x67 7:0x68 7:0x69 7:0x6a 7:0x6b 7:0x86 7:0x87 7:0x88
+em037_00 G     1,2   L2 M16   route census       x1 -> x1.15  39 -> 35 [hooked]  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x48 7:0x49 7:0x4a 7:0x4b 7:0x4c 7:0x4d 7:0x54 7:0x55 7:0x56 7:0x57 7:0x58 7:0x59 7:0x5a 7:0x5b 7:0x5c 7:0x5d 7:0x5e 7:0x5f 7:0x66 7:0x67 7:0x68 7:0x69 7:0x6a 7:0x6b
+em037_00 G     5,2   L2 M10   route census       x1 -> x1.15  27 -> 24  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x48 7:0x49 7:0x4a 7:0x4b 7:0x4c 7:0x4d 7:0x4e 7:0x4f 7:0x50 7:0x51 7:0x52 7:0x53 7:0x54 7:0x55 7:0x56 7:0x57 7:0x58 7:0x59 7:0x5a 7:0x5b 7:0x5c 7:0x5d 7:0x5e 7:0x5f 7:0x60 7:0x61 7:0x62 7:0x63 7:0x64 7:0x65 7:0x66 7:0x67 7:0x68 7:0x69 7:0x6a 7:0x6b 7:0x86 7:0x87 7:0x88
+em037_00 G     5,2   L2 M11   route census       x1 -> x1.15  39 -> 35  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x48 7:0x49 7:0x4a 7:0x4b 7:0x4c 7:0x4d 7:0x4e 7:0x4f 7:0x50 7:0x51 7:0x52 7:0x53 7:0x54 7:0x55 7:0x56 7:0x57 7:0x58 7:0x59 7:0x5a 7:0x5b 7:0x5c 7:0x5d 7:0x5e 7:0x5f 7:0x60 7:0x61 7:0x62 7:0x63 7:0x64 7:0x65 7:0x66 7:0x67 7:0x68 7:0x69 7:0x6a 7:0x6b 7:0x86 7:0x87 7:0x88
+em037_00 G     5,2   L2 M12   route census       x1 -> x1.15  39 -> 35  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x48 7:0x49 7:0x4a 7:0x4b 7:0x4c 7:0x4d 7:0x54 7:0x55 7:0x56 7:0x57 7:0x58 7:0x59 7:0x5a 7:0x5b 7:0x5c 7:0x5d 7:0x5e 7:0x5f 7:0x66 7:0x67 7:0x68 7:0x69 7:0x6a 7:0x6b
+em037_00 G     5,2   L2 M14   route census       x1 -> x1.15  27 -> 24 [hooked]  x1.15: 7:0x54 7:0x56 7:0x59 7:0x5a 7:0x5c 7:0x5f 7:0x60 7:0x62 7:0x65
+em037_00 G     5,2   L2 M15   route census       x1 -> x1.15  39 -> 35 [hooked]  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x48 7:0x49 7:0x4a 7:0x4b 7:0x4c 7:0x4d 7:0x4e 7:0x4f 7:0x50 7:0x51 7:0x52 7:0x53 7:0x54 7:0x55 7:0x56 7:0x57 7:0x58 7:0x59 7:0x5a 7:0x5b 7:0x5c 7:0x5d 7:0x5e 7:0x5f 7:0x60 7:0x61 7:0x62 7:0x63 7:0x64 7:0x65 7:0x66 7:0x67 7:0x68 7:0x69 7:0x6a 7:0x6b 7:0x86 7:0x87 7:0x88
+em037_00 G     5,2   L2 M16   route census       x1 -> x1.15  39 -> 35 [hooked]  x1.15: 7:0x3c 7:0x3d 7:0x3e 7:0x3f 7:0x40 7:0x41 7:0x42 7:0x43 7:0x44 7:0x45 7:0x46 7:0x47 7:0x48 7:0x49 7:0x4a 7:0x4b 7:0x4c 7:0x4d 7:0x54 7:0x55 7:0x56 7:0x57 7:0x58 7:0x59 7:0x5a 7:0x5b 7:0x5c 7:0x5d 7:0x5e 7:0x5f 7:0x66 7:0x67 7:0x68 7:0x69 7:0x6a 7:0x6b
+em043_00 below G 1,2   L0 M14   route census       x1 -> x1.1  59 -> 54  x1.1: 7:0x00 7:0x0e
+em043_00 below G 1,2   L2 M1    route census       x1 -> x1.1  186 -> 170 [hooked]  x1.1: 7:0x02
+em043_00 below G 1,2   L2 M3    route census       x1 -> x1.1  113 -> 102 [hooked]  x1.1: 7:0x00
+em043_00 below G 1,2   L2 M4    route census       x1 -> x1.1  113 -> 102 [hooked]  x1.1: 7:0x00
+em043_00 below G 1,2   L2 M5    route census       x1 -> x1.1  164 -> 149 [hooked]  x1.1: 7:0x0e
+em043_00 below G 1,2   L2 M6    route census       x1 -> x1.1  164 -> 149 [hooked]  x1.1: 7:0x0e
+em043_00 below G 1,2   L2 M7    route census       x1 -> x1.1  159 -> 145 [hooked]  x1.1: 7:0x0c
+em043_00 below G 1,2   L2 M8    route census       x1 -> x1.1  159 -> 145 [hooked]  x1.1: 7:0x0c
+em043_00 below G 1,2   L2 M10   route census       x1 -> x1.1  211 -> 192 [hooked]  x1.1: 7:0x20
+em043_00 below G 1,2   L2 M11   route census       x1 -> x1.1  split [hooked]  x1.1: 7:0x03
+em043_00 below G 1,2   L2 M12   route census       x1 -> x1.1  179 -> 163  x1.1: 7:0x03
+em043_00 below G 1,2   L2 M22   route census       x1 -> x1.1  292 -> 266 [hooked]  x1.1: 7:0x02 7:0x0d
+em043_00 G     1,2   L0 M14   route census       x1 -> x1.1  59 -> 54  x1.1: 7:0x00 7:0x0e
+em043_00 G     1,2   L2 M1    route census       x1 -> x1.1  186 -> 170 [hooked]  x1.1: 7:0x02
+em043_00 G     1,2   L2 M3    route census       x1 -> x1.1  113 -> 102 [hooked]  x1.1: 7:0x00
+em043_00 G     1,2   L2 M4    route census       x1 -> x1.1  113 -> 102 [hooked]  x1.1: 7:0x00
+em043_00 G     1,2   L2 M5    route census       x1 -> x1.1  164 -> 149 [hooked]  x1.1: 7:0x0e
+em043_00 G     1,2   L2 M6    route census       x1 -> x1.1  164 -> 149 [hooked]  x1.1: 7:0x0e
+em043_00 G     1,2   L2 M7    route census       x1 -> x1.1  159 -> 145 [hooked]  x1.1: 7:0x0c
+em043_00 G     1,2   L2 M8    route census       x1 -> x1.1  159 -> 145 [hooked]  x1.1: 7:0x0c
+em043_00 G     1,2   L2 M10   route census       x1 -> x1.1  211 -> 192 [hooked]  x1.1: 7:0x20
+em043_00 G     1,2   L2 M11   route census       x1 -> x1.1  split [hooked]  x1.1: 7:0x03
+em043_00 G     1,2   L2 M12   route census       x1 -> x1.1  179 -> 163  x1.1: 7:0x03
+em043_00 G     1,2   L2 M22   route census       x1 -> x1.1  292 -> 266 [hooked]  x1.1: 7:0x02 7:0x0d
+em043_00 G     1,2   L2 M43   route census       x1 -> x1.1  107 -> 98  x1.1: 7:0x91
+em043_00 G     1,2   L2 M45   route census       x1 -> x1.1  split  x1.1: 7:0x91
+em046_00 below G 1,4   L4 M3    route census       x1 -> x1.1  274 -> 250 [hooked]  x1.1: 7:0x6c
+em046_00 below G 1,4   L4 M4    route census       x1 -> x1.1  274 -> 250 [hooked]  x1.1: 7:0x6d
+em046_00 G     1,4   L4 M3    route census       x1 -> x1.1  274 -> 250 [hooked]  x1.1: 7:0x6c
+em046_00 G     1,4   L4 M4    route census       x1 -> x1.1  274 -> 250 [hooked]  x1.1: 7:0x6d
+em046_00 G     1,4   L4 M34   route census       x1 -> x1.1  67 -> 61 [hooked]  x1.1: 7:0x8f
+em046_00 G     1,4   L4 M35   route census       x1 -> x1.1  split [hooked]  x1.1: 7:0x8f
+em046_00 G     1,4   L4 M36   route pick         x1 -> x1.1  102 -> 93 [hooked]  x1.1: 7:0x8f
+em068_00 below G 1,2   L2 M18   route census       x1 -> x1.3  318 -> 245 [hooked]  x1.3: 7:0x0a
+em068_00 below G 3,2   L2 M18   route census       x1 -> x1.3  318 -> 245 [hooked]  x1.3: 7:0x0a
+em068_00 G     1,2   L2 M18   route census       x1 -> x1.3  318 -> 245 [hooked]  x1.3: 7:0x0a
+em068_00 G     3,2   L2 M18   route census       x1 -> x1.3  318 -> 245 [hooked]  x1.3: 7:0x0a
+em070_00 G     4,1   L2 M6    route census       x1 -> x1.2  147 -> 123  x1.2: 7:0x3e
+em070_00 G     4,1   L2 M84   route census       x1 -> x1.2  split [hooked]  x1.2: 7:0x3e
+em077_00 G     1,3   L2 M25   route census       x1 -> x1.2  79 -> 66  x1.2: 7:0x00 7:0x03 7:0x3a 7:0x3b
+em077_00 G     1,3   L2 M26   route pick         x1/1.2 -> x1.2  153/128 -> 128 [hooked]  x1.2: 7:0x00 7:0x03 7:0x3a 7:0x3b
+em077_00 G     1,3   L2 M33   route census       x1 -> x1.2  51 -> 43  x1.2: 7:0x08
+em077_00 G     1,3   L2 M34   route pick         x1/1.2 -> x1.2  171/143 -> 143 [hooked]  x1.2: 7:0x08
+em080_00 G     1,2   L2 M14   route census       x1 -> x1.2  338 -> 282 [hooked]  x1.2: 7:0x68 7:0x8d
+
+== TWO OR MORE DIFFERENT NON-1 FACTORS (the largest is played) ==
+em002_02 below G 1,3   L4 M36   -> x1.2   x1.1: 7:0x25 7:0x5c 7:0x66; x1.2: 7:0x64
+em002_02 G     1,3   L4 M36   -> x1.2   x1.1: 7:0x25 7:0x5c 7:0x66; x1.2: 7:0x64
+
+== POWER (tooltip only): TWO OR MORE DIFFERENT AttackRate / PowerRate ON ONE CLIP (the largest is listed): 118 ==
+em001_00 below G 1,4   L2 M1    -> x1.5 +15   x1.2 +20: 7:0x0d; x1.5 +15: 7:0x00
+em001_00 G     1,4   L2 M1    -> x1.5 +15   x1.2 +20: 7:0x0d; x1.5 +15: 7:0x00
+em001_02 below G 1,4   L2 M1    -> x1.4 +15   x1.2 +20: 7:0x0d; x1.4 +15: 7:0x00
+em001_02 G     1,4   L2 M1    -> x1.4 +15   x1.2 +20: 7:0x0d; x1.4 +15: 7:0x00
+em002_02 below G 1,2   L0 M7    -> x1.3 +20   x1.2 +15: 7:0x06 7:0x07 7:0x20; x1.3 +20: 7:0x0d 7:0x13
+em002_02 below G 1,2   L2 M1    -> x1.3 +20   x1.3 +15: 7:0x00; x1.3 +20: 7:0x0d
+em002_02 below G 1,3   L2 M1    -> x1.3 +20   x1.3 +15: 7:0x00; x1.3 +20: 7:0x0d
+em002_02 below G 1,4   L2 M1    -> x1.3 +20   x1.3 +15: 7:0x00; x1.3 +20: 7:0x0d
+em002_02 G     1,2   L0 M7    -> x1.3 +20   x1.2 +15: 7:0x06 7:0x07 7:0x20; x1.3 +20: 7:0x0d 7:0x13
+em002_02 G     1,2   L2 M1    -> x1.3 +20   x1.3 +15: 7:0x00; x1.3 +20: 7:0x0d
+em002_02 G     1,3   L2 M1    -> x1.3 +20   x1.3 +15: 7:0x00; x1.3 +20: 7:0x0d
+em002_02 G     1,4   L2 M1    -> x1.3 +20   x1.3 +15: 7:0x00; x1.3 +20: 7:0x0d
+em004_00 G     1,2   L0 M7    -> x1.4 +10   x1.3 +10: 7:0x18; x1.4 +10: 7:0x57
+em004_00 G     1,3   L0 M7    -> x1.4 +10   x1.3 +10: 7:0x18; x1.4 +10: 7:0x57
+em010_00 below G 2,3   L2 M2    -> x0.9 +0   x0.75 +0: 7:0x12; x0.9 +0: 7:0x13
+em010_00 G     2,3   L2 M2    -> x0.9 +0   x0.75 +0: 7:0x12; x0.9 +0: 7:0x13
+em042_00 below G 1,4   L2 M1    -> x1.1 +0   x0.9 +0: 7:0x0d; x1.1 +0: 7:0x28
+em042_00 below G 1,3   L2 M1    -> x1.1 +0   x0.9 +0: 7:0x0d; x1.1 +0: 7:0x28
+em042_00 below G 2,4   L1 M17   -> x1.4 +20   x1.1 +0: 7:0x1e; x1.4 +20: 7:0x14
+em042_00 below G 2,4   L2 M7    -> x1.3 +20   x1.1 +0: 7:0x1c; x1.3 +20: 7:0x0f
+em042_00 below G 2,4   L2 M8    -> x1.4 +20   x1.2 +10: 7:0x11; x1.3 +20: 7:0x0f; x1.4 +20: 7:0x14
+em042_00 below G 2,4   L2 M14   -> x1.4 +20   x1.1 +0: 7:0x1d 7:0x1e; x1.2 +10: 7:0x11; x1.4 +20: 7:0x14
+em042_00 below G 2,3   L1 M17   -> x1.4 +20   x1.1 +0: 7:0x1e; x1.4 +20: 7:0x14
+em042_00 below G 2,3   L2 M7    -> x1.3 +20   x1.1 +0: 7:0x1c; x1.3 +20: 7:0x0f
+em042_00 below G 2,3   L2 M8    -> x1.4 +20   x1.2 +10: 7:0x11; x1.3 +20: 7:0x0f; x1.4 +20: 7:0x14
+em042_00 below G 2,3   L2 M14   -> x1.4 +20   x1.1 +0: 7:0x1d 7:0x1e; x1.2 +10: 7:0x11; x1.4 +20: 7:0x14
+em042_00 G     2,4   L1 M17   -> x1.3 +20   x1.3 +0: 7:0x1e; x1.3 +20: 7:0x14
+em042_00 G     2,4   L2 M7    -> x1.3 +20   x1.3 +0: 7:0x1c; x1.3 +20: 7:0x0f
+em042_00 G     2,4   L2 M8    -> x1.3 +20   x1.3 +10: 7:0x11; x1.3 +20: 7:0x0f 7:0x14
+em042_00 G     2,4   L2 M14   -> x1.3 +20   x1.3 +0: 7:0x1d 7:0x1e; x1.3 +10: 7:0x11; x1.3 +20: 7:0x14
+em042_00 G     2,3   L1 M17   -> x1.3 +20   x1.3 +0: 7:0x1e; x1.3 +20: 7:0x14
+em042_00 G     2,3   L2 M7    -> x1.3 +20   x1.3 +0: 7:0x1c; x1.3 +20: 7:0x0f
+em042_00 G     2,3   L2 M8    -> x1.3 +20   x1.3 +10: 7:0x11; x1.3 +20: 7:0x0f 7:0x14
+em042_00 G     2,3   L2 M14   -> x1.3 +20   x1.3 +0: 7:0x1d 7:0x1e; x1.3 +10: 7:0x11; x1.3 +20: 7:0x14
+em043_00 below G 1,2   L2 M22   -> x1.3 +20   x1.2 +20: 7:0x02; x1.3 +20: 7:0x0d
+em043_00 G     1,2   L2 M22   -> x1.3 +20   x1.2 +20: 7:0x02; x1.3 +20: 7:0x0d
+em044_00 below G 1,2   L2 M6    -> x1.4 +20   x1.3 +20: 7:0x07 7:0x0d 7:0x23 7:0x24 7:0x25 7:0x2a 7:0x2b 7:0x2c; x1.4 +20: 7:0x08
+em044_00 below G 1,4   L2 M6    -> x1.4 +20   x1.3 +20: 7:0x07 7:0x0d 7:0x23 7:0x24 7:0x25 7:0x2a 7:0x2b 7:0x2c; x1.4 +20: 7:0x08
+em044_00 G     1,2   L2 M6    -> x1.4 +20   x1.3 +20: 7:0x07 7:0x0d 7:0x23 7:0x24 7:0x25 7:0x2a 7:0x2b 7:0x2c; x1.4 +20: 7:0x08
+em044_00 G     1,4   L2 M6    -> x1.4 +20   x1.3 +20: 7:0x07 7:0x0d 7:0x23 7:0x24 7:0x25 7:0x2a 7:0x2b 7:0x2c; x1.4 +20: 7:0x08
+em049_00 below G 1,2   L2 M24   -> x1.4 +10   x1.3 +10: 7:0x0b; x1.4 +10: 7:0x10 7:0x11 7:0x12 7:0x13 7:0x17 7:0x18 7:0x19 7:0x1a 7:0x23 7:0x24
+em049_00 below G 1,2   L2 M25   -> x1.4 +10   x1.3 +10: 7:0x0b; x1.4 +10: 7:0x10 7:0x11 7:0x12 7:0x13 7:0x17 7:0x18 7:0x19 7:0x1a 7:0x23 7:0x24
+em049_00 below G 1,2   L2 M26   -> x1.4 +10   x1.3 +10: 7:0x0b; x1.4 +10: 7:0x10 7:0x11 7:0x12 7:0x13 7:0x17 7:0x18 7:0x19 7:0x1a 7:0x23 7:0x24
+em049_00 below G 3,2   L2 M24   -> x1.4 +10   x1.3 +10: 7:0x0b; x1.4 +10: 7:0x10 7:0x11 7:0x12 7:0x13 7:0x17 7:0x18 7:0x19 7:0x1a 7:0x23 7:0x24
+em049_00 below G 3,2   L2 M25   -> x1.4 +10   x1.3 +10: 7:0x0b; x1.4 +10: 7:0x10 7:0x11 7:0x12 7:0x13 7:0x17 7:0x18 7:0x19 7:0x1a 7:0x23 7:0x24
+em049_00 below G 3,2   L2 M26   -> x1.4 +10   x1.3 +10: 7:0x0b; x1.4 +10: 7:0x10 7:0x11 7:0x12 7:0x13 7:0x17 7:0x18 7:0x19 7:0x1a 7:0x23 7:0x24
+em049_00 G     1,2   L2 M24   -> x1.4 +10   x1.3 +10: 7:0x0b; x1.4 +10: 7:0x10 7:0x11 7:0x12 7:0x13 7:0x17 7:0x18 7:0x19 7:0x1a 7:0x23 7:0x24
+em049_00 G     1,2   L2 M25   -> x1.4 +10   x1.3 +10: 7:0x0b; x1.4 +10: 7:0x10 7:0x11 7:0x12 7:0x13 7:0x17 7:0x18 7:0x19 7:0x1a 7:0x23 7:0x24
+em049_00 G     1,2   L2 M26   -> x1.4 +10   x1.3 +10: 7:0x0b; x1.4 +10: 7:0x10 7:0x11 7:0x12 7:0x13 7:0x17 7:0x18 7:0x19 7:0x1a 7:0x23 7:0x24
+em049_00 G     3,2   L2 M24   -> x1.4 +10   x1.3 +10: 7:0x0b; x1.4 +10: 7:0x10 7:0x11 7:0x12 7:0x13 7:0x17 7:0x18 7:0x19 7:0x1a 7:0x23 7:0x24
+em049_00 G     3,2   L2 M25   -> x1.4 +10   x1.3 +10: 7:0x0b; x1.4 +10: 7:0x10 7:0x11 7:0x12 7:0x13 7:0x17 7:0x18 7:0x19 7:0x1a 7:0x23 7:0x24
+em049_00 G     3,2   L2 M26   -> x1.4 +10   x1.3 +10: 7:0x0b; x1.4 +10: 7:0x10 7:0x11 7:0x12 7:0x13 7:0x17 7:0x18 7:0x19 7:0x1a 7:0x23 7:0x24
+em055_00 below G 1,4   L2 M1    -> x1.4 +30   x1.4 +20: 7:0x07; x1.4 +30: 7:0x0e 7:0x0f 7:0x10 7:0x11
+em055_00 below G 1,4   L2 M15   -> x1.8 +20   x1.4 +20: 7:0x25; x1.8 +20: 7:0x04
+em055_00 below G 1,4   L2 M17   -> x1.8 +20   x1.4 +20: 7:0x24 7:0x25; x1.8 +20: 7:0x04
+em055_00 below G 1,4   L2 M18   -> x1.8 +20   x1.4 +20: 7:0x24 7:0x25; x1.8 +20: 7:0x04
+em055_00 below G 1,4   L2 M19   -> x1.4 +20   x1.2 +20: 7:0x12 7:0x13 7:0x14 7:0x16 7:0x17 7:0x18 7:0x19 7:0x2e 7:0x2f; x1.4 +20: 7:0x21 7:0x22 7:0x24 7:0x25 7:0x26
+em055_00 below G 1,4   L2 M20   -> x1.4 +20   x1.2 +20: 7:0x14 7:0x19; x1.4 +20: 7:0x23
+em055_00 below G 1,4   L2 M23   -> x1.4 +30   x1.4 +20: 7:0x06 7:0x1e; x1.4 +30: 7:0x0c
+em055_00 below G 1,4   L2 M29   -> x1.4 +30   x1.4 +20: 7:0x06 7:0x1e; x1.4 +30: 7:0x0c
+em055_00 below G 1,4   L2 M33   -> x1.4 +30   x1.4 +20: 7:0x07; x1.4 +30: 7:0x0e 7:0x0f 7:0x10 7:0x11
+em055_00 below G 3,4   L2 M1    -> x1.4 +30   x1.4 +20: 7:0x07; x1.4 +30: 7:0x0e 7:0x0f 7:0x10 7:0x11
+em055_00 below G 3,4   L2 M19   -> x1.4 +20   x1.2 +20: 7:0x12 7:0x13 7:0x14 7:0x16 7:0x17 7:0x18 7:0x19 7:0x2e 7:0x2f; x1.4 +20: 7:0x21 7:0x22 7:0x24 7:0x25 7:0x26
+em055_00 below G 3,4   L2 M20   -> x1.4 +20   x1.2 +20: 7:0x14 7:0x19; x1.4 +20: 7:0x23
+em055_00 below G 3,4   L2 M23   -> x1.4 +30   x1.4 +20: 7:0x06 7:0x1e; x1.4 +30: 7:0x0c
+em055_00 below G 3,4   L2 M29   -> x1.4 +30   x1.4 +20: 7:0x06 7:0x1e; x1.4 +30: 7:0x0c
+em055_00 below G 3,4   L2 M33   -> x1.4 +30   x1.4 +20: 7:0x07; x1.4 +30: 7:0x0e 7:0x0f 7:0x10 7:0x11
+em055_00 G     1,4   L2 M1    -> x1.4 +30   x1.4 +20: 7:0x07; x1.4 +30: 7:0x0e 7:0x0f 7:0x10 7:0x11
+em055_00 G     1,4   L2 M15   -> x1.8 +20   x1.4 +20: 7:0x25; x1.8 +20: 7:0x04
+em055_00 G     1,4   L2 M17   -> x1.8 +20   x1.4 +20: 7:0x24 7:0x25; x1.8 +20: 7:0x04
+em055_00 G     1,4   L2 M18   -> x1.8 +20   x1.4 +20: 7:0x24 7:0x25; x1.8 +20: 7:0x04
+em055_00 G     1,4   L2 M19   -> x1.4 +20   x1.2 +20: 7:0x12 7:0x13 7:0x14 7:0x16 7:0x17 7:0x18 7:0x19 7:0x2e 7:0x2f; x1.4 +20: 7:0x21 7:0x22 7:0x24 7:0x25 7:0x26
+em055_00 G     1,4   L2 M20   -> x1.4 +20   x1.2 +20: 7:0x14 7:0x19; x1.4 +20: 7:0x23
+em055_00 G     1,4   L2 M23   -> x1.4 +30   x1.4 +20: 7:0x06 7:0x1e; x1.4 +30: 7:0x0c
+em055_00 G     1,4   L2 M29   -> x1.4 +30   x1.4 +20: 7:0x06 7:0x1e; x1.4 +30: 7:0x0c
+em055_00 G     1,4   L2 M33   -> x1.4 +30   x1.4 +20: 7:0x07; x1.4 +30: 7:0x0e 7:0x0f 7:0x10 7:0x11
+em055_00 G     3,4   L2 M1    -> x1.4 +30   x1.4 +20: 7:0x07; x1.4 +30: 7:0x0e 7:0x0f 7:0x10 7:0x11
+em055_00 G     3,4   L2 M19   -> x1.4 +20   x1.2 +20: 7:0x12 7:0x13 7:0x14 7:0x16 7:0x17 7:0x18 7:0x19 7:0x2e 7:0x2f; x1.4 +20: 7:0x21 7:0x22 7:0x24 7:0x25 7:0x26
+em055_00 G     3,4   L2 M20   -> x1.4 +20   x1.2 +20: 7:0x14 7:0x19; x1.4 +20: 7:0x23
+em055_00 G     3,4   L2 M23   -> x1.4 +30   x1.4 +20: 7:0x06 7:0x1e; x1.4 +30: 7:0x0c
+em055_00 G     3,4   L2 M29   -> x1.4 +30   x1.4 +20: 7:0x06 7:0x1e; x1.4 +30: 7:0x0c
+em055_00 G     3,4   L2 M33   -> x1.4 +30   x1.4 +20: 7:0x07; x1.4 +30: 7:0x0e 7:0x0f 7:0x10 7:0x11
+em070_00 G     4,1   L2 M6    -> x1.6 +10   x1.2 +10: 7:0x3e; x1.5 +10: 7:0x0c; x1.6 +10: 7:0x01
+em070_00 G     4,1   L2 M84   -> x1.7 +10   x1.2 +10: 7:0x3e; x1.7 +10: 7:0x3f
+em071_00 below G 1,5   L2 M44   -> x1.1 +20   x1.1 +10: 7:0x24 7:0x25 7:0x26 7:0x27 7:0x28; x1.1 +20: 7:0x23
+em071_00 below G 1,5   L2 M45   -> x1.1 +20   x1.1 +10: 7:0x24 7:0x25 7:0x26 7:0x27 7:0x28; x1.1 +20: 7:0x23
+em071_00 below G 1,5   L2 M46   -> x1.1 +20   x1.1 +10: 7:0x24 7:0x25; x1.1 +20: 7:0x23
+em071_00 below G 4,2   L2 M44   -> x1.1 +20   x1.1 +10: 7:0x24 7:0x25 7:0x26 7:0x27 7:0x28; x1.1 +20: 7:0x23
+em071_00 below G 4,2   L2 M45   -> x1.1 +20   x1.1 +10: 7:0x24 7:0x25 7:0x26 7:0x27 7:0x28; x1.1 +20: 7:0x23
+em071_00 below G 4,2   L2 M46   -> x1.1 +20   x1.1 +10: 7:0x24 7:0x25; x1.1 +20: 7:0x23
+em071_00 below G 4,5   L2 M44   -> x1.1 +20   x1.1 +10: 7:0x24 7:0x25 7:0x26 7:0x27 7:0x28; x1.1 +20: 7:0x23
+em071_00 below G 4,5   L2 M45   -> x1.1 +20   x1.1 +10: 7:0x24 7:0x25 7:0x26 7:0x27 7:0x28; x1.1 +20: 7:0x23
+em071_00 below G 4,5   L2 M46   -> x1.1 +20   x1.1 +10: 7:0x24 7:0x25; x1.1 +20: 7:0x23
+em071_00 G     1,5   L2 M44   -> x1.25 +20   x1.25 +10: 7:0x24 7:0x25 7:0x26 7:0x27 7:0x28; x1.25 +20: 7:0x23
+em071_00 G     1,5   L2 M45   -> x1.25 +20   x1.25 +10: 7:0x24 7:0x25 7:0x26 7:0x27 7:0x28; x1.25 +20: 7:0x23
+em071_00 G     1,5   L2 M46   -> x1.25 +20   x1.25 +10: 7:0x24 7:0x25; x1.25 +20: 7:0x23
+em071_00 G     4,2   L2 M44   -> x1.25 +20   x1.25 +10: 7:0x24 7:0x25 7:0x26 7:0x27 7:0x28; x1.25 +20: 7:0x23
+em071_00 G     4,2   L2 M45   -> x1.25 +20   x1.25 +10: 7:0x24 7:0x25 7:0x26 7:0x27 7:0x28; x1.25 +20: 7:0x23
+em071_00 G     4,2   L2 M46   -> x1.25 +20   x1.25 +10: 7:0x24 7:0x25; x1.25 +20: 7:0x23
+em071_00 G     4,5   L2 M44   -> x1.25 +20   x1.25 +10: 7:0x24 7:0x25 7:0x26 7:0x27 7:0x28; x1.25 +20: 7:0x23
+em071_00 G     4,5   L2 M45   -> x1.25 +20   x1.25 +10: 7:0x24 7:0x25 7:0x26 7:0x27 7:0x28; x1.25 +20: 7:0x23
+em071_00 G     4,5   L2 M46   -> x1.25 +20   x1.25 +10: 7:0x24 7:0x25; x1.25 +20: 7:0x23
+em083_00 below G 1,3   L2 M16   -> x1.5 +20   x1.3 +20: 7:0x35; x1.5 +20: 7:0x10 7:0x11
+em083_00 below G 1,3   L2 M18   -> x1.5 +20   x1.2 +20: 7:0x41; x1.5 +20: 7:0x11
+em083_00 below G 1,4   L2 M16   -> x1.5 +20   x1.3 +20: 7:0x35; x1.5 +20: 7:0x10 7:0x11
+em083_00 below G 1,4   L2 M18   -> x1.5 +20   x1.2 +20: 7:0x41; x1.5 +20: 7:0x11
+em083_00 below G 2,3   L2 M82   -> x1.3 +15   x1.2 +15: 7:0x46 7:0x47 7:0x50 7:0x51 7:0x52; x1.3 +15: 7:0x07
+em083_00 below G 2,3   L2 M83   -> x1.3 +15   x1.2 +15: 7:0x48 7:0x53 7:0x54; x1.3 +15: 7:0x3e
+em083_00 below G 2,4   L2 M82   -> x1.3 +15   x1.2 +15: 7:0x46 7:0x47 7:0x50 7:0x51 7:0x52; x1.3 +15: 7:0x07
+em083_00 below G 2,4   L2 M83   -> x1.3 +15   x1.2 +15: 7:0x48 7:0x53 7:0x54; x1.3 +15: 7:0x3e
+em083_00 G     1,3   L2 M16   -> x1.5 +20   x1.3 +20: 7:0x35; x1.5 +20: 7:0x10 7:0x11
+em083_00 G     1,3   L2 M18   -> x1.5 +20   x1.2 +20: 7:0x41; x1.5 +20: 7:0x11
+em083_00 G     1,4   L2 M16   -> x1.5 +20   x1.3 +20: 7:0x35; x1.5 +20: 7:0x10 7:0x11
+em083_00 G     1,4   L2 M18   -> x1.5 +20   x1.2 +20: 7:0x41; x1.5 +20: 7:0x11
+em083_00 G     2,3   L2 M82   -> x1.3 +15   x1.2 +15: 7:0x46 7:0x47 7:0x50 7:0x51 7:0x52; x1.3 +15: 7:0x07
+em083_00 G     2,3   L2 M83   -> x1.3 +15   x1.2 +15: 7:0x48 7:0x53 7:0x54; x1.3 +15: 7:0x3e
+em083_00 G     2,4   L2 M82   -> x1.3 +15   x1.2 +15: 7:0x46 7:0x47 7:0x50 7:0x51 7:0x52; x1.3 +15: 7:0x07
+em083_00 G     2,4   L2 M83   -> x1.3 +15   x1.2 +15: 7:0x48 7:0x53 7:0x54; x1.3 +15: 7:0x3e

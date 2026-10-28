@@ -32,7 +32,7 @@ def played(length, factor, rates):
         t += r; steps += 1; r = factor * hr
     return steps
 
-rows, multi = [], []
+rows, multi, powmulti = [], [], []
 for mon in [m for m in HA.HM if m != '_about']:
     M = HA.Mon(mon); dur = durations(mon)
     for fk in M.files:
@@ -42,7 +42,7 @@ for mon in [m for m in HA.HM if m != '_about']:
                 fac = lambda a: HA.factor(HA.modify_entry(M, fk, pair, a)[0])
                 how, named = M.viewer_actions(ck)
                 cen = M.census(ck)
-                if how == 'census':
+                if how == 'census' or not named:                 # (a CLIP_ACTIONS entry naming no action: the play has none)
                     fs = {fac(a) for a in cen}
                     old = sorted(fs) if len(fs) == 1 else [1]
                 else:
@@ -62,7 +62,17 @@ for mon in [m for m in HA.HM if m != '_about']:
                          len=n, before=[played(n, f, rates) for f in old] if n else None, after=played(n, new, rates) if n else None)
                 rows.append(r)
                 if len(by) > 1: multi.append(r)
-json.dump({'_about': __doc__.strip().splitlines()[0], 'rows': rows}, open(os.path.join(HERE, 'anyaction.json'), 'w', encoding='utf8'), indent=0)
+            # the power (the Attack Hitboxes tooltip only), the same rule: AttackRate / PowerRate other than x1 / +0, the largest
+            for ck in sorted(M.vclips, key=lambda c: [int(x) for x in re.findall(r'\d+', c)]):
+                how, named = M.viewer_actions(ck)
+                pw = collections.defaultdict(list)
+                for a in set(M.census(ck)) | set(named or ()):
+                    e = HA.modify_entry(M, fk, pair, a)[0]
+                    if e and len(e) > 6 and (e[5] != 1 or e[6] != 0): pw[(e[5], e[6])].append(HA.aname(a))
+                if len(pw) > 1:
+                    powmulti.append(dict(mon=mon, rank=HA.RANK[fk], pair=pair, clip=HA.hkey(ck), pick='x%g +%g' % max(pw),
+                                         values={'x%g +%g' % k: sorted(v) for k, v in sorted(pw.items())}))
+json.dump({'_about': __doc__.strip().splitlines()[0], 'rows': rows, 'powerMulti': powmulti},open(os.path.join(HERE, 'anyaction.json'), 'w', encoding='utf8'), indent=0)
 ch = [r for r in rows if r['old'] != [r['new']]]
 with open(os.path.join(HERE, 'anyaction.out'), 'w', encoding='utf8') as o:
     def p(s=''): o.write(s + '\n')
@@ -76,4 +86,7 @@ with open(os.path.join(HERE, 'anyaction.out'), 'w', encoding='utf8') as o:
     p(); p('== TWO OR MORE DIFFERENT NON-1 FACTORS (the largest is played) ==')
     for r in multi:
         p('%s %-5s %-5s %-8s -> x%g   %s' % (r['mon'], r['rank'], r['pair'], r['clip'], r['new'], '; '.join('x%s: %s' % (f, ' '.join(a)) for f, a in r['factors'].items())))
+    p(); p('== POWER (tooltip only): TWO OR MORE DIFFERENT AttackRate / PowerRate ON ONE CLIP (the largest is listed): %d ==' % len(powmulti))
+    for r in powmulti:
+        p('%s %-5s %-5s %-8s -> %s   %s' % (r['mon'], r['rank'], r['pair'], r['clip'], r['pick'], '; '.join('%s: %s' % (k, ' '.join(a)) for k, a in r['values'].items())))
 print(open(os.path.join(HERE, 'anyaction.out'), encoding='utf8').readline().strip())

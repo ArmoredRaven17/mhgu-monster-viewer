@@ -1,0 +1,10 @@
+serving C:\MHGU-Extract\MHGU-Monster-Viewer\docs on http://localhost:5841/  (shots -> C:\MHGU-Extract\MHGU-Monster-Viewer\dev\shots)
+"POST /shot?run=eyeaudit&name=em002_02_R3_on HTTP/1.1" 200 -
+"POST /shot?run=eyeaudit&name=em002_02_R3_on HTTP/1.1" 200 -
+"POST /shot?run=eyeaudit&name=em002_02_R3_off HTTP/1.1" 200 -
+"POST /shot?run=eyeaudit&name=em002_02_R5_on HTTP/1.1" 200 -
+"POST /shot?run=eyeaudit&name=em002_02_R5_on HTTP/1.1" 200 -
+"POST /shot?run=eyeaudit&name=em002_02_R5_off HTTP/1.1" 200 -
+"POST /shot?run=eyeaudit&name=em002_00_R3_on HTTP/1.1" 200 -
+"POST /shot?run=eyeaudit&name=em002_00_R3_on HTTP/1.1" 200 -
+"POST /shot?run=eyeaudit&name=em002_00_R3_off HTTP/1.1" 200 -

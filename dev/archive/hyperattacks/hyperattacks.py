@@ -219,19 +219,24 @@ def mech_modify(M, fk, pair, row):
     e, at = modify_entry(M, fk, pair, row['act'])
     if not e: return []
     out = []; src = 'ModifyData ID %d #%d' % (at[0], at[1])
-    def route(val, label):
-        """index.html hyperMotionAt: the play's action (a Special, the shells' pick, CLIP_ACTIONS), else the clip's census when every
-        action that plays it gives the same value -- else none ('ambiguous')."""
+    def route(val, fmt):
+        """index.html hyperMotionAt (2026-10-28, Raven: "If a part is hyper and impacts a clip's speed, use the hyper speed"): ANY action
+        that plays the clip -- the play's own (a Special, the shells' pick, CLIP_ACTIONS) and the census's -- with a value other than the
+        default gives the clip that value; of two or more different ones the largest. val(entry) -> a comparable value, None = default.
+        (The rule before: the play's named action, else the census only when every action agreed -- else none, 'ambiguous'.)"""
         vws = []
         for ck in sorted(row['clips']):
-            how, acts = M.viewer_actions(ck)
-            if how == 'census':
-                fs = {val(modify_entry(M, fk, pair, a)[0]) for a in M.census(ck)}
-                ok = fs == {val(e)}
-                vws.append((ck, 'yes' if ok else 'no', 'census agrees' if ok else 'ambiguous: %d actions, %s' % (len(M.census(ck)), '/'.join(sorted(str(f) for f in fs)))))
-            else:
-                ok = row['act'] in acts
-                vws.append((ck, 'yes' if ok else 'no', 'the play names it (%s)' % how if ok else 'plays name %d other action(s) (%s)' % (len(acts), how)))
+            how, named = M.viewer_actions(ck)
+            acts = set(M.census(ck)) | set(named or ())
+            by = collections.defaultdict(list)
+            for a in acts:
+                v = val(modify_entry(M, fk, pair, a)[0])
+                if v is not None: by[v].append(aname(a))
+            pick = max(by) if by else None
+            ok = pick == val(e)
+            more = ' (the largest of %d: %s)' % (len(by), ' / '.join(fmt(v) for v in sorted(by))) if len(by) > 1 else ''
+            vws.append((ck, 'yes' if ok else 'no', ('any action' + more) if ok else
+                        'the clip takes %s from %s%s' % (fmt(pick),' '.join(sorted(by[pick])), more) if by else 'no action of the clip gives it'))
         sp = M.specials_for(row['act'])
         vws = [v for v in vws if v[0] in M.vclips] or vws
         ys = [v for v in vws if v[1] == 'yes']
@@ -240,14 +245,14 @@ def mech_modify(M, fk, pair, row):
         if sp: why = (why + '; ' if why else '') + 'Special %s names it' % ' / '.join("'%s'" % n for n in sp)
         return vw, why
     if factor(e) != 1:
-        vw, why = route(lambda x: 'x%g' % factor(x), 'factors')
+        vw, why = route(lambda x: factor(x) if x and factor(x) != 1 else None, lambda v: 'x%g' % v)
         out.append(dict(kind='speed (ModifyData)', cls='motion', what='x%g (MotionSpeedRate %g, Limit %g) on every motion of the action' % (factor(e), e[3], e[4]),
                         ids='ID %d' % at[0], addr=src + ' -> 0xc9e88 / 0xc046c', viewer=vw, why=why))
     if len(e) > 6 and (e[5] != 1 or e[6] != 0):
         recs = sorted(row['records'])
         R = M.A.get('records') or []; R2 = M.A.get('records2') or []
         def rec(h): return (R2[h - 1000] if h >= 1000 and h - 1000 < len(R2) else R[h] if h < len(R) else None)
-        vwp, whyp = route(lambda x: 'x%g +%g' % (x[5], x[6]) if x and len(x) > 6 else 'none', 'powers')
+        vwp, whyp = route(lambda x: (x[5], x[6]) if x and len(x) > 6 and (x[5] != 1 or x[6] != 0) else None, lambda v: 'x%g +%g' % v)
         pw = ', '.join('r%d %d -> %g, byte +0xb %d -> %d' % (h, rec(h)[5], round(rec(h)[5] * e[5], 2), rec(h)[8], rec(h)[8] + e[6]) for h in recs if rec(h))
         out.append(dict(kind='power', cls='power', what='AttackRate x%g, PowerRate +%g%s' % (e[5], e[6], ' (' + pw + ')' if pw else ' (no attack record of its own: every hit it arms)'),
                         ids='ID %d' % at[0], addr=src + ' -> 0xc9e88 -> 0x1689b0',
@@ -557,7 +562,11 @@ def main():
             'Rows: every action that arms an attack record, makes a shell or beam, requests an effect from its own code, plays a clip whose PSL',
             'fires effect records, or is named by ModifyData. Columns: below G (`_doumouka.mdd`) and G (`_g.mdd`) x every pair the Hyper row',
             'offers. "rank / pair" says where a change holds. Viewer: yes / no / partly / listed (power: the Attack Hitboxes tooltip, not drawn).',
-            'Speed "f N xR" holds from motion frame N to the motion\'s end (or the next); the clip\'s speed is the ModifyData factor x the hook rate.', '',
+            'Speed "f N xR" holds from motion frame N to the motion\'s end (or the next); the clip\'s speed is the ModifyData factor x the hook rate.',
+            'ModifyData in the viewer (Raven, 2026-10-28: "We don\'t need to worry about actions then. If a part is hyper and impacts a clip\'s',
+            'speed, use the hyper speed"): a clip takes the factor (and the tooltip the power) of ANY action that plays it, the largest of',
+            'several -- a viewer choice; the game applies it only when that action plays the clip. "viewer no" on a ModifyData row now means a',
+            'larger value from another action on the same clip wins (named in the row).', '',
             '| monster | id | impacted | of which projectile / effect | absent (never tired) | motion (speed / bursts) | power only | not impacted | rows with a tired-only change | to build / flagged |', '|---|---|---|---|---|---|---|---|---|---|']
     body, J_out, counts = [], {}, []
     for m in ordered:

@@ -599,14 +599,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           <div class="field" id="monGroundRow" title="The ground under the monster: the floor flag word (e+0x1068) and attribute byte (e+0x1066) the game's ground probe reports. Picks the effects' floor rows and the shells' floor choices; changing it replays the clip. Working names.">
             <label for="monGroundType">Ground</label>
             <select id="monGroundType"></select></div>
-          <!-- THE EFFECTS DRAWN BEFORE (hyper-eye lane, 2026-10-27; dev/hyper-states.md 5, rom-map "0x87cf70"): the draw context's pass
-               when the monster's effects draw depends on the units drawn before them on the same context this frame (the scene setup
-               leaves 0x15; a model unit pushes / pops it, 0x8777e4 / 0x8787b0; an effect unit whose cParticleNode draws leaves 0x11).
-               The viewer's own effects already do this among themselves; this is the units the viewer does not have (the stage's,
-               the hunter's, other monsters'). WORKING labels: Raven names them. -->
-          <div class="field" id="monFxPassRow" title="What the game drew before this monster's effects in the frame: nothing that changes the draw pass, or an effect with GPU particles (pass 0x11). Opaque effect models then draw without writing depth, in depth order -- e.g. the GU Hyper eyes' core over its halo. Working names.">
-            <label for="monFxPass">Effects drawn before</label>
-            <select id="monFxPass"><option value="none">None (0x15)</option><option value="node">A GPU-particle effect (0x11)</option></select></div>
+          <!-- (the "Effects drawn before" row moved to the Debug panel, 2026-10-28: Raven, "move it into the Debug panel, defaulting ON") -->
           <!-- THE MONSTER'S ATTACK SHAPES (Raven, 2026-10-22: "can you look into Monster Attack Hit Capsules? ... I want to see what hits a
                hunter or not"): render/attack-hitboxes.js, the ROM's records armed for the playing clip on their joints. Red: can hit a
                hunter (target mask bit 0); orange: other monsters only; blue: neither; yellow: touching the Solid stand-in hunter. Working
@@ -960,6 +953,16 @@ input[type=range]{width:100%;accent-color:var(--accent)}
                "Make Tired (with Rage) a Debug option for now, until I know what it entails" -- the Rath line's tiredRage. Off while
                this panel is hidden (resetHiddenDebug / DEBUG_TOGGLES). -->
           <div id="monDebugToggles"></div>
+          <!-- THE EFFECTS DRAWN BEFORE (hyper-eye lane, 2026-10-27; dev/hyper-states.md 5, rom-map "0x87cf70"): the draw context's pass
+               when the monster's effects draw depends on the units drawn before them on the same context this frame (the scene setup
+               leaves 0x15; a model unit pushes / pops it, 0x8777e4 / 0x8787b0; an effect unit whose cParticleNode draws leaves 0x11).
+               The viewer's own effects already do this among themselves; this is the units the viewer does not have (the stage's,
+               the hunter's, other monsters'). WORKING labels: Raven names them. MOVED HERE from the Animation panel, defaulting to
+               0x11 (Raven, 2026-10-28: "Enable the setting", then "move it into the Debug panel, defaulting ON"): while this panel
+               is hidden resetHiddenDebug forces it to 0x11 (DEBUG_DEFAULTS `fxPass`), so the eye glow is always on. -->
+          <div class="field" id="monFxPassRow" title="What the game drew before this monster's effects in the frame: nothing that changes the draw pass, or an effect with GPU particles (pass 0x11). Opaque effect models then draw without writing depth, in depth order -- e.g. the GU Hyper eyes' core over its halo. The default is A GPU-particle effect (0x11), by Raven's choice; None (0x15) is the frame with nothing drawn before. Working names.">
+            <label for="monFxPass">Effects drawn before</label>
+            <select id="monFxPass"><option value="none">None (0x15)</option><option value="node" selected>A GPU-particle effect (0x11)</option></select></div>
           <label class="chk" id="monProxyRow" hidden><input type="checkbox" id="monProxy"><span id="monProxyText">Draw Mask-Hidden Meshes</span></label>
           <label class="chk" id="monExtendRow" hidden><input type="checkbox" id="monExtend"><span id="monExtendText">Draw the Overlays Whose Albedo Needs a Second Map</span></label>
           <div class="field"><label for="monNormalScale">Normal Strength <span id="monNormalScaleVal" class="hint"></span></label>
@@ -3482,13 +3485,15 @@ const state = { id: '', list: '', clip: '', groups: null, loop: true, tail: fals
                 zoneColour: ZONE_CAPSULE_AUTO,
                 // a gag, off unless asked for: Nibelsnarf's eye piece on a monster GAG_EYES names (Khezu)
                 gagEyes: false,
+                // the Debug panel's "Effects drawn before": 'node' = 0x11, Raven's default (2026-10-28; fxPassNow)
+                fxPass: 'node',
                 // the additive effect meshes as a class; the ROM's part table already keeps
                 // them off at rest, so this is a way to look at them, not a correction
                 effects: true };
 // WHAT THE DEBUG PANEL SETS, AT THE VALUES THE APP OPENS WITH -- read off `state` before anything is
 // restored, so there is no second copy of the defaults to keep in step. See resetHiddenDebug().
 const DEBUG_DEFAULTS = Object.fromEntries(['anchor', 'groundLock', 'normalFlip', 'normalScale', 'undef', 'tail',
-                                           'rawParts', 'gap', 'proxy', 'extend'].map(k => [k, state[k]]));
+                                           'rawParts', 'gap', 'proxy', 'extend', 'fxPass'].map(k => [k, state[k]]));
 // A HIDDEN PANEL CANNOT BE LEFT HOLDING A SETTING. Raven, 2026-09-14, once the Debug panel was hidden:
 // "Yes, reset the debug settings to defaults". A view saved while one was on -- Ignore the Review File,
 // Show the Severed Parts, Draw Undefined Meshes -- would otherwise keep applying it with no switch on
@@ -8553,8 +8558,9 @@ function stepHyper(rt){
 //   * MODIFYDATA: at every action set (0x767c8) vt+0x16c 0xc9e88 takes, with BOTH groups' ActionElements held (e+0xca94 / e+0xcaa8),
 //     group 0's entries then group 1's, the first naming the new action (status, number) whose Rate beats the roll (every Rate in the
 //     files is 100) -> e+0xb724 / +0xb728; vt+0x368 0xc046c then sets P+0x38c = base x MotionSpeedRate, clamped to the Limit -- the
-//     speed every motion of that action starts at (0xafdd0) and 0xb07b4 multiplies (0xb082c). The action is the play's (playNow); a
-//     play with none named takes the clip's census actions (attack-hitshapes.json `arms`) when their factors all agree, else 1 (named).
+//     speed every motion of that action starts at (0xafdd0) and 0xb07b4 multiplies (0xb082c). The viewer plays a clip at it when ANY
+//     action that plays the clip (the play's own and the census's) has a factor other than 1 for the held pair, the largest of several
+//     (Raven, 2026-10-28; a viewer choice -- the game applies it only when that action plays: hyperMotionAt below).
 // The clip's speed = the ModifyData factor x the hook's rate, as the action's timeScale (the frame step). Hyper Off: exactly 1.
 let HYPER_MOTION = null;
 fetch('hyper-motion.json').then(r => r.json()).then(d => { HYPER_MOTION = d; }).catch(() => {});
@@ -8586,32 +8592,45 @@ function hyperMotionAt(play, frame){
   const f = hyperMotionFile(state.id);
   if (!f) return null;
   const hk = (f.hooks[state.hyper] || {})['L' + play.motion.list + ' M' + play.motion.slot] || null;
-  let factor = 1, how = null, attack = null;
-  if (play.action){ factor = hyperModifyFactor(f, play.action); attack = hyperAttackOf(f, play.action); how = 'action'; }
+  let factor = 1, how = null, attack = null, factors = null, factorActs = null;
+  // ANY ACTION (Raven, 2026-10-28: "We don't need to worry about actions then. If a part is hyper and impacts a clip's speed, use the
+  // hyper speed"; dev/hyper-states.md 6.2). The actions that play this clip -- the play's own (playNow), ModifyData's (`actMotions`,
+  // each action's main under the tracer), the attack census's (attack-hitshapes.json `arms`) and the FULL action census
+  // (action-motions.json `motions`; dev/action-motions.md) -- each take 0xc9e88's own pick for the held pair (hyperModifyEntry); if
+  // any gives a factor other than 1 the clip plays at it, and of two or more different ones the largest ('largest'). A VIEWER CHOICE:
+  // the game applies the factor only when that action plays the clip (the per-action rule this replaces gave 1 where they disagreed).
+  // The power (the tooltip only) takes the same rule: any action's AttackRate / PowerRate other than x1 / +0, the largest.
+  const D = attackDataFor(state.id);
+  if (!D) loadAttackData();
+  const mk = play.motion.list + '|' + play.motion.clip, am = (HYPER_MOTION[state.id] || {}).actMotions || {};
+  if (!ACTION_MOTIONS){ loadActionMotions(); how = 'loading'; }            // (the census not in yet: 1, never the partial answer)
   else {
-    // the actions known to set this motion: ModifyData's own (`actMotions`, each action's main under the tracer), the attack
-    // census's (attack-hitshapes.json `arms`) and the FULL action census (action-motions.json `motions`: every handled action of
-    // the class, its setMotions, turn-table records and status scripts; dev/action-motions.md) -- so an unmodified action sharing
-    // the clip now counts, and a clip its actions disagree on stays 1 ('ambiguous', not guessed)
-    const D = attackDataFor(state.id);
-    if (!D) loadAttackData();
-    const mk = play.motion.list + '|' + play.motion.clip, am = (HYPER_MOTION[state.id] || {}).actMotions || {};
-    if (!ACTION_MOTIONS){ loadActionMotions(); how = 'loading'; }          // (the census not in yet: 1, never the partial answer)
-    else {
-      const full = ((ACTION_MOTIONS[state.id] || {}).motions || {})[mk] || [];
-      const names = new Set([...(D && D.arms ? (D.arms[mk] || []).map(a => a[4]) : []), ...Object.keys(am).filter(a => am[a].includes(mk)), ...full]);
-      const acts = [...names].map(actionOf).filter(Boolean);
-      const fs = [...new Set(acts.map(a => hyperModifyFactor(f, a)))];
-      if (fs.length === 1){ factor = fs[0]; how = 'census'; } else if (fs.length > 1) how = 'ambiguous';
-      const as = [...new Set(acts.map(a => JSON.stringify(hyperAttackOf(f, a))))];
-      if (as.length === 1) attack = JSON.parse(as[0]);
+    const full = ((ACTION_MOTIONS[state.id] || {}).motions || {})[mk] || [];
+    const names = new Set([...(play.action ? [actionName(play.action)] : []), ...(D && D.arms ? (D.arms[mk] || []).map(a => a[4]) : []),
+                           ...Object.keys(am).filter(a => am[a].includes(mk)), ...full]);
+    const acts = [...new Set([...names].map(actionOf).filter(Boolean).map(actionName))].map(actionOf);
+    const by = new Map();                                                   // factor -> the actions giving it
+    for (const a of acts){ const x = hyperModifyFactor(f, a); if (x !== 1) by.set(x, [...(by.get(x) || []), actionName(a)]); }
+    if (by.size){
+      factor = Math.max(...by.keys()); factorActs = by.get(factor); factors = [...by.keys()].sort((x, y) => x - y);
+      how = by.size > 1 ? 'largest' : play.action && factorActs.includes(actionName(play.action)) ? 'action' : 'any';
     }
+    const ps = new Map();                                                   // 'rate|power' -> { rate, power, acts }
+    for (const a of acts){
+      const x = hyperAttackOf(f, a);
+      if (!x || (x.rate === 1 && !x.power)) continue;
+      const k = x.rate + '|' + x.power;
+      if (!ps.has(k)) ps.set(k, { rate: x.rate, power: x.power, acts: [] });
+      ps.get(k).acts.push(actionName(a));
+    }
+    for (const x of ps.values()) if (!attack || x.rate > attack.rate || (x.rate === attack.rate && x.power > attack.power)) attack = x;
+    if (attack) attack = { ...attack, kinds: ps.size };
   }
   let rate = 1;
   if (hk) for (const [fr, x] of hk.rates) if (frame >= fr) rate = x;
   const bursts = hk ? hk.bursts.filter(([fr]) => play.prevFrame < fr && frame >= fr).map(b => b[1]) : [];
   if (!hk && factor === 1 && !attack) return null;
-  return { rate: rate * factor, hookRate: rate, factor, how, hook: !!hk, bursts, attack };
+  return { rate: rate * factor, hookRate: rate, factor, factors, factorActs, how, hook: !!hk, bursts, attack };
 }
 let hyperSpeedAct = null;                           // the action whose timeScale Hyper set (mixer actions are cached per clip)
 function stepHyperMotion(rt, play, frame){
@@ -8632,14 +8651,20 @@ function stepHyperMotion(rt, play, frame){
 // +0xac..+0x204 that holds the pass); an effect unit (0x9b75e8) does not, and a cParticleNode it draws leaves 0x11 (0xb91aac ..). With
 // the job system's workers each unit draws on its worker's copy of the context (0xc03cd0 -> 0x878b38), taken in a dynamic order
 // (0xba356c), so in the game it varies with what else is live. The viewer's own effects already set it among themselves (the lifted
-// node draw); this input stands for the units the viewer does not have. 'node' = a GPU-particle effect drew first (0x11); the default
-// 'none' assumes none (the viewer's live set alone decides). Both occur in the game: the GU Hyper eyes are lit only under 'node'
+// node draw); this input stands for the units the viewer does not have. 'node' = a GPU-particle effect drew first (0x11, the default
+// since 2026-10-28, Raven's choice); 'none' assumes none (the viewer's live set alone decides). Both occur in the game: the GU Hyper eyes are lit only under 'node'
 // (dev/hyper-states.md 5), Rathalos's fireball flames are brighter under 'none' (<archive>/hypereye/pagepass.out).
-function fxPassNow(){ return state.fxPass === 'node' ? 0x11 : 0x15; }
+// THE DEFAULT IS 'node' (0x11), by Raven's choice (2026-10-28: "Enable the setting", then "move it into the Debug panel, defaulting
+// ON"): state.fxPass starts 'node' and is a DEBUG_DEFAULTS key, so while the Debug panel is hidden resetHiddenDebug puts it back
+// after every restore / Open -- a saved None cannot stick. Unhide the panel and a saved choice is restored (applySet), None included.
+// (Before 2026-10-28 a view saved the key but applySet never read it back: no saved None was ever restored.)
+function fxPassNow(){ return state.fxPass === 'none' ? 0x15 : 0x11; }
 function applyFxPass(rt){ if (rt && rt.host) rt.host.framePass = fxPassNow(); }
+// the Debug panel's select shows state.fxPass (after the boot restore / Open and resetHiddenDebug: syncFxPassSel)
+function syncFxPassSel(){ const sel = document.getElementById('monFxPass'); if (sel) sel.value = state.fxPass === 'none' ? 'none' : 'node'; }
 {
   const sel = document.getElementById('monFxPass');
-  if (sel){ sel.value = state.fxPass === 'node' ? 'node' : 'none'; sel.onchange = () => { state.fxPass = sel.value; }; }
+  if (sel){ syncFxPassSel(); sel.onchange = () => { state.fxPass = sel.value; saveState(); }; }
 }
 // GLAVENUS / HELLBLADE's HEAT-HELD REQUEST (effects lane A, 2026-10-25; READ uEm080_00 vt+0x208 0xfffb24..0xfffc5c, rom-map `0xfffb24`):
 // every frame the handle e+0xcbd8 is dropped unless its core is in state 1 / 2; the heat byte P+0x1bb picks the id -- bit 4 clear: bit 3
@@ -9418,6 +9443,7 @@ async function loadSet(text, btn){
   document.getElementById('monUndef').checked = state.undef;
 document.getElementById('monGap').checked = state.gap;
   document.getElementById('monNormalFlip').checked = state.normalFlip;
+  syncFxPassSel();
   animLoopBtn.classList.toggle('on', state.loop);
   await remount({ frame: !o.camera });
   if (o.camera) applyCameraState(o.camera);
@@ -9469,6 +9495,8 @@ function applySet(o){
   // `groundLock`, not the old `ground`: a view saved while the lock defaulted on must not turn it back on
   for (const k of ['loop', 'tail', 'anchor', 'groundLock', 'normalFlip', 'undef', 'effects', 'extend', 'zoneShow', 'gap', 'heated', 'beamHeated'])
     if (typeof o[k] === 'boolean') state[k] = o[k];
+  // the Debug panel's "Effects drawn before" (fxPassNow); resetHiddenDebug puts 0x11 back while the panel is hidden
+  if (o.fxPass === 'none' || o.fxPass === 'node') state.fxPass = o.fxPass;
   // the heat map is a damage-type NAME and a table index, not booleans
   if (typeof o.heat === 'string') state.heat = o.heat;
   if (typeof o.heatTable === 'number') state.heatTable = Math.max(0, o.heatTable | 0);
@@ -9546,6 +9574,7 @@ document.getElementById('monGround').checked = state.groundLock;
 document.getElementById('monUndef').checked = state.undef;
 document.getElementById('monRawParts').checked = !!state.rawParts;
 document.getElementById('monExtend').checked = state.extend;
+syncFxPassSel();
 animLoopBtn.classList.toggle('on', state.loop);
 await mount();
 await play();
@@ -10903,9 +10932,12 @@ function stepAttackBoxes(){
     const box = el.getBoundingClientRect();
     const hit = atkBoxes.userData.pick(e.clientX - box.left, e.clientY - box.top, lensCamera(), box.width, box.height);
     if (!hit){ tip.style.display = 'none'; return; }
-    // Hyper: this play's ModifyData attack change (the hit fill 0x1689b0: power x AttackRate, byte +0xb + PowerRate) -- not a shape
+    // Hyper: the clip's ModifyData attack change (the hit fill 0x1689b0: power x AttackRate, byte +0xb + PowerRate) -- not a shape.
+    // Any action that plays the clip (hyperMotionAt, 2026-10-28), the largest; the game applies it only when that action plays
     const ha = window.__hyperMotion && window.__hyperMotion.attack;
-    tip.textContent = hit.text + (ha && (ha.rate !== 1 || ha.power) ? String.fromCharCode(10) + 'Hyper: power x' + ha.rate + ', byte +0xb +' + ha.power + ' (the shape is unchanged)' : '');
+    tip.textContent = hit.text + (ha && (ha.rate !== 1 || ha.power) ? String.fromCharCode(10) + 'Hyper: power x' + ha.rate + ', byte +0xb +' + ha.power
+      + (ha.kinds > 1 ? ' (the largest of ' + ha.kinds + ')' : '') + ', per the hyper action ' + ha.acts.join(' / ')
+      + ' (applied in the game only when it plays this clip; the shape is unchanged)' : '');
     tip.style.left = (e.clientX + 14) + 'px'; tip.style.top = (e.clientY + 14) + 'px';
     tip.style.display = 'block';
   });

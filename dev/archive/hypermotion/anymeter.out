@@ -1,0 +1,171 @@
+PASS em001_00 below G 1,2 L0 M8  -- {"off":47,"on":40,"predicted":40,"oldRule":[47],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em001_00 below G 1,3 L1 M8  -- {"off":41,"on":32,"predicted":32,"oldRule":[41],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 below G 1,3 L1 M14  -- {"off":55,"on":43,"predicted":43,"oldRule":[55],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 below G 1,3 L1 M16  -- {"off":51,"on":40,"predicted":40,"oldRule":[51],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 below G 1,3 L1 M17  -- {"off":107,"on":83,"predicted":83,"oldRule":[107],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 below G 1,3 L1 M18  -- {"off":43,"on":34,"predicted":34,"oldRule":[43],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 below G 1,3 L1 M20  -- {"off":37,"on":29,"predicted":29,"oldRule":[37],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 below G 1,3 L1 M40  -- {"off":67,"on":52,"predicted":52,"oldRule":[67],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 below G 1,3 L1 M41  -- {"off":29,"on":23,"predicted":23,"oldRule":[29],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 below G 1,3 L4 M12  -- {"off":35,"on":28,"predicted":28,"oldRule":[35],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 below G 1,3 L4 M13  -- {"off":31,"on":25,"predicted":25,"oldRule":[31],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 below G 1,3 L4 M14  -- {"off":13,"on":11,"predicted":11,"oldRule":[13],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 below G 1,3 L4 M15  -- {"off":117,"on":91,"predicted":91,"oldRule":[117],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 G 1,2 L0 M8  -- {"off":47,"on":40,"predicted":40,"oldRule":[47],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em001_00 G 1,3 L1 M8  -- {"off":41,"on":32,"predicted":32,"oldRule":[41],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 G 1,3 L1 M14  -- {"off":55,"on":43,"predicted":43,"oldRule":[55],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 G 1,3 L1 M16  -- {"off":51,"on":40,"predicted":40,"oldRule":[51],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 G 1,3 L1 M17  -- {"off":107,"on":83,"predicted":83,"oldRule":[107],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 G 1,3 L1 M18  -- {"off":43,"on":34,"predicted":34,"oldRule":[43],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 G 1,3 L1 M20  -- {"off":37,"on":29,"predicted":29,"oldRule":[37],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 G 1,3 L1 M40  -- {"off":67,"on":52,"predicted":52,"oldRule":[67],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 G 1,3 L1 M41  -- {"off":29,"on":23,"predicted":23,"oldRule":[29],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 G 1,3 L4 M12  -- {"off":35,"on":28,"predicted":28,"oldRule":[35],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 G 1,3 L4 M13  -- {"off":31,"on":25,"predicted":25,"oldRule":[31],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 G 1,3 L4 M14  -- {"off":13,"on":11,"predicted":11,"oldRule":[13],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_00 G 1,3 L4 M15  -- {"off":117,"on":91,"predicted":91,"oldRule":[117],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 below G 1,2 L0 M8  -- {"off":47,"on":40,"predicted":40,"oldRule":[47],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em001_02 below G 1,3 L1 M8  -- {"off":41,"on":32,"predicted":32,"oldRule":[41],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 below G 1,3 L1 M14  -- {"off":55,"on":43,"predicted":43,"oldRule":[55],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 below G 1,3 L1 M16  -- {"off":51,"on":40,"predicted":40,"oldRule":[51],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 below G 1,3 L1 M17  -- {"off":107,"on":83,"predicted":83,"oldRule":[107],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 below G 1,3 L1 M18  -- {"off":43,"on":34,"predicted":34,"oldRule":[43],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 below G 1,3 L1 M20  -- {"off":37,"on":29,"predicted":29,"oldRule":[37],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 below G 1,3 L1 M40  -- {"off":67,"on":52,"predicted":52,"oldRule":[67],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 below G 1,3 L1 M41  -- {"off":29,"on":23,"predicted":23,"oldRule":[29],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 below G 1,3 L4 M12  -- {"off":35,"on":28,"predicted":28,"oldRule":[35],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 below G 1,3 L4 M13  -- {"off":31,"on":25,"predicted":25,"oldRule":[31],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 below G 1,3 L4 M14  -- {"off":13,"on":11,"predicted":11,"oldRule":[13],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 below G 1,3 L4 M15  -- {"off":117,"on":91,"predicted":91,"oldRule":[117],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 G 1,2 L0 M8  -- {"off":47,"on":40,"predicted":40,"oldRule":[47],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em001_02 G 1,3 L1 M8  -- {"off":41,"on":32,"predicted":32,"oldRule":[41],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 G 1,3 L1 M14  -- {"off":55,"on":43,"predicted":43,"oldRule":[55],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 G 1,3 L1 M16  -- {"off":51,"on":40,"predicted":40,"oldRule":[51],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 G 1,3 L1 M17  -- {"off":107,"on":83,"predicted":83,"oldRule":[107],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 G 1,3 L1 M18  -- {"off":43,"on":34,"predicted":34,"oldRule":[43],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 G 1,3 L1 M20  -- {"off":37,"on":29,"predicted":29,"oldRule":[37],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 G 1,3 L1 M40  -- {"off":67,"on":52,"predicted":52,"oldRule":[67],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 G 1,3 L1 M41  -- {"off":29,"on":23,"predicted":23,"oldRule":[29],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 G 1,3 L4 M12  -- {"off":35,"on":28,"predicted":28,"oldRule":[35],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 G 1,3 L4 M13  -- {"off":31,"on":25,"predicted":25,"oldRule":[31],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 G 1,3 L4 M14  -- {"off":13,"on":11,"predicted":11,"oldRule":[13],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em001_02 G 1,3 L4 M15  -- {"off":117,"on":91,"predicted":91,"oldRule":[117],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em002_00 below G 1,3 L4 M36  -- {"off":201,"on":179,"predicted":179,"oldRule":[197],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em002_00 G 1,3 L4 M36  -- {"off":201,"on":179,"predicted":179,"oldRule":[197],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em002_00 G 1,3 L4 M56  -- {"off":201,"on":179,"predicted":179,"oldRule":[197],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em002_02 below G 1,2 L0 M8  -- {"off":47,"on":43,"predicted":43,"oldRule":[47],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":false}
+PASS em002_02 below G 1,3 L4 M1  -- {"off":101,"on":78,"predicted":78,"oldRule":[101],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em002_02 below G 1,3 L4 M36  -- {"off":201,"on":164,"predicted":164,"oldRule":[197],"factor":1.2,"want":1.2,"how":"largest","factors":[1.1,1.2],"hook":true}
+PASS em002_02 G 1,2 L0 M8  -- {"off":47,"on":43,"predicted":43,"oldRule":[47],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":false}
+PASS em002_02 G 1,3 L4 M1  -- {"off":101,"on":78,"predicted":78,"oldRule":[101],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":false}
+PASS em002_02 G 1,3 L4 M36  -- {"off":201,"on":164,"predicted":164,"oldRule":[197],"factor":1.2,"want":1.2,"how":"largest","factors":[1.1,1.2],"hook":true}
+PASS em002_02 G 1,3 L4 M56  -- {"off":201,"on":179,"predicted":179,"oldRule":[197],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em021_00 G 1,3 L0 M8  -- {"off":119,"on":109,"predicted":109,"oldRule":[119],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":false}
+PASS em021_00 G 1,3 L0 M10  -- {"off":55,"on":46,"predicted":46,"oldRule":[55],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 below G 1,2 L0 M27  -- {"off":101,"on":85,"predicted":85,"oldRule":[101],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 below G 1,2 L0 M28  -- {"off":147,"on":123,"predicted":123,"oldRule":[147],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 below G 1,2 L2 M7  -- {"off":61,"on":51,"predicted":51,"oldRule":[61],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 below G 1,2 L2 M8  -- {"off":99,"on":83,"predicted":83,"oldRule":[99],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 below G 1,4 L0 M12  -- {"off":131,"on":98,"predicted":98,"oldRule":[131],"factor":1.35,"want":1.35,"how":"any","factors":[1.35],"hook":true}
+PASS em032_00 below G 1,4 L0 M13  -- {"off":131,"on":98,"predicted":98,"oldRule":[131],"factor":1.35,"want":1.35,"how":"any","factors":[1.35],"hook":true}
+PASS em032_00 below G 1,4 L0 M27  -- {"off":101,"on":85,"predicted":85,"oldRule":[101],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 below G 1,4 L0 M28  -- {"off":147,"on":123,"predicted":123,"oldRule":[147],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 below G 1,4 L0 M33  -- {"off":131,"on":98,"predicted":98,"oldRule":[131],"factor":1.35,"want":1.35,"how":"any","factors":[1.35],"hook":false}
+PASS em032_00 below G 1,4 L2 M7  -- {"off":61,"on":51,"predicted":51,"oldRule":[61],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 below G 1,4 L2 M8  -- {"off":99,"on":83,"predicted":83,"oldRule":[99],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 below G 3,2 L0 M12  -- {"off":131,"on":98,"predicted":98,"oldRule":[131],"factor":1.35,"want":1.35,"how":"any","factors":[1.35],"hook":true}
+PASS em032_00 below G 3,2 L0 M13  -- {"off":131,"on":98,"predicted":98,"oldRule":[131],"factor":1.35,"want":1.35,"how":"any","factors":[1.35],"hook":true}
+PASS em032_00 below G 3,2 L0 M33  -- {"off":131,"on":98,"predicted":98,"oldRule":[131],"factor":1.35,"want":1.35,"how":"any","factors":[1.35],"hook":false}
+PASS em032_00 below G 3,2 L2 M7  -- {"off":61,"on":51,"predicted":51,"oldRule":[61],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 below G 3,2 L2 M8  -- {"off":99,"on":83,"predicted":83,"oldRule":[99],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 below G 3,4 L0 M12  -- {"off":131,"on":98,"predicted":98,"oldRule":[131],"factor":1.35,"want":1.35,"how":"any","factors":[1.35],"hook":true}
+PASS em032_00 below G 3,4 L0 M13  -- {"off":131,"on":98,"predicted":98,"oldRule":[131],"factor":1.35,"want":1.35,"how":"any","factors":[1.35],"hook":true}
+PASS em032_00 below G 3,4 L0 M33  -- {"off":131,"on":98,"predicted":98,"oldRule":[131],"factor":1.35,"want":1.35,"how":"any","factors":[1.35],"hook":false}
+PASS em032_00 below G 3,4 L2 M7  -- {"off":61,"on":51,"predicted":51,"oldRule":[61],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 below G 3,4 L2 M8  -- {"off":99,"on":83,"predicted":83,"oldRule":[99],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 G 1,2 L0 M27  -- {"off":101,"on":85,"predicted":85,"oldRule":[101],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 G 1,2 L0 M28  -- {"off":147,"on":123,"predicted":123,"oldRule":[147],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 G 1,2 L2 M7  -- {"off":61,"on":51,"predicted":51,"oldRule":[61],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 G 1,2 L2 M8  -- {"off":99,"on":83,"predicted":83,"oldRule":[99],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 G 1,4 L0 M12  -- {"off":131,"on":98,"predicted":98,"oldRule":[131],"factor":1.35,"want":1.35,"how":"any","factors":[1.35],"hook":true}
+PASS em032_00 G 1,4 L0 M13  -- {"off":131,"on":98,"predicted":98,"oldRule":[131],"factor":1.35,"want":1.35,"how":"any","factors":[1.35],"hook":true}
+PASS em032_00 G 1,4 L0 M27  -- {"off":101,"on":85,"predicted":85,"oldRule":[101],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 G 1,4 L0 M28  -- {"off":147,"on":123,"predicted":123,"oldRule":[147],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 G 1,4 L0 M33  -- {"off":131,"on":98,"predicted":98,"oldRule":[131],"factor":1.35,"want":1.35,"how":"any","factors":[1.35],"hook":false}
+PASS em032_00 G 1,4 L2 M7  -- {"off":61,"on":51,"predicted":51,"oldRule":[61],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 G 1,4 L2 M8  -- {"off":99,"on":83,"predicted":83,"oldRule":[99],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 G 3,2 L0 M12  -- {"off":131,"on":98,"predicted":98,"oldRule":[131],"factor":1.35,"want":1.35,"how":"any","factors":[1.35],"hook":true}
+PASS em032_00 G 3,2 L0 M13  -- {"off":131,"on":98,"predicted":98,"oldRule":[131],"factor":1.35,"want":1.35,"how":"any","factors":[1.35],"hook":true}
+PASS em032_00 G 3,2 L0 M33  -- {"off":131,"on":98,"predicted":98,"oldRule":[131],"factor":1.35,"want":1.35,"how":"any","factors":[1.35],"hook":false}
+PASS em032_00 G 3,2 L2 M7  -- {"off":61,"on":51,"predicted":51,"oldRule":[61],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 G 3,2 L2 M8  -- {"off":99,"on":83,"predicted":83,"oldRule":[99],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 G 3,4 L0 M12  -- {"off":131,"on":98,"predicted":98,"oldRule":[131],"factor":1.35,"want":1.35,"how":"any","factors":[1.35],"hook":true}
+PASS em032_00 G 3,4 L0 M13  -- {"off":131,"on":98,"predicted":98,"oldRule":[131],"factor":1.35,"want":1.35,"how":"any","factors":[1.35],"hook":true}
+PASS em032_00 G 3,4 L0 M33  -- {"off":131,"on":98,"predicted":98,"oldRule":[131],"factor":1.35,"want":1.35,"how":"any","factors":[1.35],"hook":false}
+PASS em032_00 G 3,4 L2 M7  -- {"off":61,"on":51,"predicted":51,"oldRule":[61],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em032_00 G 3,4 L2 M8  -- {"off":99,"on":83,"predicted":83,"oldRule":[99],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em037_00 below G 1,2 L2 M10  -- {"off":27,"on":24,"predicted":24,"oldRule":[27],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":true}
+PASS em037_00 below G 1,2 L2 M11  -- {"off":39,"on":34,"predicted":35,"oldRule":[39],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":true}
+PASS em037_00 below G 1,2 L2 M12  -- {"off":39,"on":34,"predicted":35,"oldRule":[39],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":true}
+PASS em037_00 below G 1,2 L2 M14  -- {"off":27,"on":24,"predicted":24,"oldRule":[27],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":true}
+PASS em037_00 below G 1,2 L2 M15  -- {"off":39,"on":34,"predicted":35,"oldRule":[39],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":true}
+PASS em037_00 below G 1,2 L2 M16  -- {"off":39,"on":34,"predicted":35,"oldRule":[39],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":true}
+PASS em037_00 below G 5,2 L2 M10  -- {"off":27,"on":24,"predicted":24,"oldRule":[27],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":false}
+PASS em037_00 below G 5,2 L2 M11  -- {"off":39,"on":34,"predicted":35,"oldRule":[39],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":false}
+PASS em037_00 below G 5,2 L2 M12  -- {"off":39,"on":34,"predicted":35,"oldRule":[39],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":false}
+PASS em037_00 below G 5,2 L2 M14  -- {"off":27,"on":24,"predicted":24,"oldRule":[27],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":true}
+PASS em037_00 below G 5,2 L2 M15  -- {"off":39,"on":34,"predicted":35,"oldRule":[39],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":true}
+PASS em037_00 below G 5,2 L2 M16  -- {"off":39,"on":34,"predicted":35,"oldRule":[39],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":true}
+PASS em037_00 G 1,2 L2 M10  -- {"off":27,"on":24,"predicted":24,"oldRule":[27],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":true}
+PASS em037_00 G 1,2 L2 M11  -- {"off":39,"on":34,"predicted":35,"oldRule":[39],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":true}
+PASS em037_00 G 1,2 L2 M12  -- {"off":39,"on":34,"predicted":35,"oldRule":[39],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":true}
+PASS em037_00 G 1,2 L2 M14  -- {"off":27,"on":24,"predicted":24,"oldRule":[27],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":true}
+PASS em037_00 G 1,2 L2 M15  -- {"off":39,"on":34,"predicted":35,"oldRule":[39],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":true}
+PASS em037_00 G 1,2 L2 M16  -- {"off":39,"on":34,"predicted":35,"oldRule":[39],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":true}
+PASS em037_00 G 5,2 L2 M10  -- {"off":27,"on":24,"predicted":24,"oldRule":[27],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":false}
+PASS em037_00 G 5,2 L2 M11  -- {"off":39,"on":34,"predicted":35,"oldRule":[39],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":false}
+PASS em037_00 G 5,2 L2 M12  -- {"off":39,"on":34,"predicted":35,"oldRule":[39],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":false}
+PASS em037_00 G 5,2 L2 M14  -- {"off":27,"on":24,"predicted":24,"oldRule":[27],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":true}
+PASS em037_00 G 5,2 L2 M15  -- {"off":39,"on":34,"predicted":35,"oldRule":[39],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":true}
+PASS em037_00 G 5,2 L2 M16  -- {"off":39,"on":34,"predicted":35,"oldRule":[39],"factor":1.15,"want":1.15,"how":"any","factors":[1.15],"hook":true}
+PASS em043_00 below G 1,2 L0 M14  -- {"off":59,"on":54,"predicted":54,"oldRule":[59],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":false}
+PASS em043_00 below G 1,2 L2 M1  -- {"off":165,"on":170,"predicted":170,"oldRule":[186],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em043_00 below G 1,2 L2 M3  -- {"off":109,"on":103,"predicted":102,"oldRule":[113],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em043_00 below G 1,2 L2 M4  -- {"off":109,"on":103,"predicted":102,"oldRule":[113],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em043_00 below G 1,2 L2 M5  -- {"off":161,"on":149,"predicted":149,"oldRule":[164],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em043_00 below G 1,2 L2 M6  -- {"off":161,"on":149,"predicted":149,"oldRule":[164],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em043_00 below G 1,2 L2 M7  -- {"off":157,"on":145,"predicted":145,"oldRule":[159],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em043_00 below G 1,2 L2 M8  -- {"off":157,"on":145,"predicted":145,"oldRule":[159],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em043_00 below G 1,2 L2 M10  -- {"off":211,"on":192,"predicted":192,"oldRule":[211],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em043_00 below G 1,2 L2 M12  -- {"off":179,"on":163,"predicted":163,"oldRule":[179],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":false}
+PASS em043_00 below G 1,2 L2 M22  -- {"off":313,"on":265,"predicted":266,"oldRule":[292],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em043_00 G 1,2 L0 M14  -- {"off":59,"on":54,"predicted":54,"oldRule":[59],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":false}
+PASS em043_00 G 1,2 L2 M1  -- {"off":165,"on":170,"predicted":170,"oldRule":[186],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em043_00 G 1,2 L2 M3  -- {"off":109,"on":103,"predicted":102,"oldRule":[113],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em043_00 G 1,2 L2 M4  -- {"off":109,"on":103,"predicted":102,"oldRule":[113],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em043_00 G 1,2 L2 M5  -- {"off":161,"on":149,"predicted":149,"oldRule":[164],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em043_00 G 1,2 L2 M6  -- {"off":161,"on":149,"predicted":149,"oldRule":[164],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em043_00 G 1,2 L2 M7  -- {"off":157,"on":145,"predicted":145,"oldRule":[159],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em043_00 G 1,2 L2 M8  -- {"off":157,"on":145,"predicted":145,"oldRule":[159],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em043_00 G 1,2 L2 M10  -- {"off":211,"on":192,"predicted":192,"oldRule":[211],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em043_00 G 1,2 L2 M12  -- {"off":179,"on":163,"predicted":163,"oldRule":[179],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":false}
+PASS em043_00 G 1,2 L2 M22  -- {"off":313,"on":265,"predicted":266,"oldRule":[292],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em043_00 G 1,2 L2 M43  -- {"off":107,"on":98,"predicted":98,"oldRule":[107],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":false}
+PASS em046_00 below G 1,4 L4 M3  -- {"off":247,"on":250,"predicted":250,"oldRule":[274],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em046_00 below G 1,4 L4 M4  -- {"off":247,"on":250,"predicted":250,"oldRule":[274],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em046_00 G 1,4 L4 M3  -- {"off":247,"on":250,"predicted":250,"oldRule":[274],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em046_00 G 1,4 L4 M4  -- {"off":247,"on":250,"predicted":250,"oldRule":[274],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em046_00 G 1,4 L4 M34  -- {"off":79,"on":61,"predicted":61,"oldRule":[67],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em046_00 G 1,4 L4 M36  -- {"off":107,"on":93,"predicted":93,"oldRule":[102],"factor":1.1,"want":1.1,"how":"any","factors":[1.1],"hook":true}
+PASS em068_00 below G 1,2 L2 M18  -- {"off":399,"on":246,"predicted":245,"oldRule":[318],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":true}
+PASS em068_00 below G 3,2 L2 M18  -- {"off":399,"on":246,"predicted":245,"oldRule":[318],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":true}
+PASS em068_00 G 1,2 L2 M18  -- {"off":399,"on":246,"predicted":245,"oldRule":[318],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":true}
+PASS em068_00 G 3,2 L2 M18  -- {"off":399,"on":246,"predicted":245,"oldRule":[318],"factor":1.3,"want":1.3,"how":"any","factors":[1.3],"hook":true}
+PASS em070_00 G 4,1 L2 M6  -- {"off":147,"on":123,"predicted":123,"oldRule":[147],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em077_00 G 1,3 L2 M25  -- {"off":79,"on":66,"predicted":66,"oldRule":[79],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em077_00 G 1,3 L2 M26  -- {"off":165,"on":128,"predicted":128,"oldRule":[153,128],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":true}
+PASS em077_00 G 1,3 L2 M33  -- {"off":51,"on":43,"predicted":43,"oldRule":[51],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":false}
+PASS em077_00 G 1,3 L2 M34  -- {"off":171,"on":143,"predicted":143,"oldRule":[171,143],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":true}
+PASS em080_00 G 1,2 L2 M14  -- {"off":317,"on":282,"predicted":282,"oldRule":[338],"factor":1.2,"want":1.2,"how":"any","factors":[1.2],"hook":true}
+
+169 passed, 0 failed

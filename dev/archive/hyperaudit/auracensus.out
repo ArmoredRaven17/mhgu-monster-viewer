@@ -1,0 +1,663 @@
+== em001_00 u 1301
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em001_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em001_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em001_00 u 1304
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em001_02 u 1301
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em001_02 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em001_02 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em001_02 u 1304
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em002_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em002_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em002_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em002_00 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em002_02 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em002_02 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em002_02 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em002_02 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em003_00 u 1301
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em003_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em003_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em004_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em004_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em004_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em004_00 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em005_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em005_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em005_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em005_00 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em007_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em007_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em007_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em007_00 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em008_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 4 cm150_000 rows: 1
+      2 effect\base\cm100_000 mesh 43 blend BSBlendBlendAlpha
+      2 effect\base\cm100_000 mesh 43 blend BSBlendRevSubAlpha
+== em008_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em008_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em009_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em009_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em009_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em010_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 0 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em010_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em010_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em018_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em018_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em018_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em018_00 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em019_00 u 1301
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em019_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em019_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em020_00 u 1301
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em020_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em020_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em021_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em021_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em021_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em022_00 u 1301
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em022_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em023_00 u 1301
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em023_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em023_00 u 1303
+exit 0
+frame 40 models 3 prims 2 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+== em032_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em032_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em032_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em032_00 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em036_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 0 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em036_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em036_00 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em037_00 u 1301
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em037_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em037_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em037_00 u 1305
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em042_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 0 blend BSBlendRevSubAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+== em042_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em042_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em042_00 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em043_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em043_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em043_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em044_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em044_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em044_00 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em045_00 u 1301
+exit 0
+frame 40 models 3 prims 2 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+== em045_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em045_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em046_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em046_00 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em046_00 u 1305
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em047_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em047_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em047_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em047_00 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em049_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em049_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em049_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em049_00 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em055_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em055_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em055_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em055_00 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em056_00 u 1301
+exit 0
+frame 40 models 3 prims 2 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 0 blend BSBlendBlendAlpha
+== em056_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em056_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em057_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em057_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em057_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em057_00 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em063_00 u 1301
+exit 0
+frame 40 models 3 prims 2 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendAddAlpha
+== em063_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em063_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em063_00 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em065_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 0 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 0 blend BSBlendRevSubBlendAlpha
+== em065_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em066_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em066_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em066_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em067_00 u 1301
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em067_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em067_00 u 1303
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 0 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em068_00 u 1301
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em068_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em068_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em069_00 u 1301
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em069_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em069_00 u 1303
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 0 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 0 blend BSBlendRevSubAlpha
+== em069_00 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em070_00 u 1301
+exit 0
+frame 40 models 7 prims 4 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      6 effect\base\cm200_108 mesh 0 blend BSBlendBlendAlpha
+== em070_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em070_00 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em071_00 u 1301
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em071_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em071_00 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em071_00 u 1305
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em077_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em077_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em077_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em079_00 u 1301
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em079_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em079_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em080_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em080_00 u 1302
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em080_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em081_00 u 1301
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em081_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em081_00 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em082_00 u 1301
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em082_00 u 1303
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em082_00 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em083_00 u 1301
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em083_00 u 1302
+exit 0
+frame 40 models 5 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+      2 effect\base\cm200_108 mesh 1 blend BSBlendBlendAlpha
+      2 effect\base\cm200_108 mesh 1 blend BSBlendRevSubAlpha
+== em083_00 u 1303
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1
+== em083_00 u 1304
+exit 0
+frame 40 models 1 prims 1 gpu 0
+cm100_000 rows: 0 cm150_000 rows: 1

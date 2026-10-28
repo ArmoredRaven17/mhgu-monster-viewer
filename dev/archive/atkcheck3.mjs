@@ -17,10 +17,11 @@ async function atkCheck3(){
   const ground = document.getElementById('monGroundRow');
   out.push([head && /Animation/.test(head.textContent) && !document.getElementById('hitZonesPanel').contains(row),
     'the Attack Hitboxes row is in the Animation panel', head ? head.textContent.trim() : 'no panel']);
-  // (2026-10-27, atkfix lane) the "Effects drawn before" row (monFxPassRow) now sits between Ground and Attack Hitboxes: accepted
+  // (2026-10-27, atkfix lane) the "Effects drawn before" row (monFxPassRow) sat between Ground and Attack Hitboxes; (2026-10-28, eye
+  // audit) it moved to the Debug panel (Raven: "move it into the Debug panel, defaulting ON"), so the row follows Ground directly again
   const fxPass = document.getElementById('monFxPassRow');
-  out.push([!!ground && (ground.nextElementSibling === row || (!!fxPass && ground.nextElementSibling === fxPass && fxPass.nextElementSibling === row)),
-    'it sits after the Ground row (directly, or with only the Effects drawn before row between)', row.previousElementSibling && row.previousElementSibling.id]);
+  out.push([!!ground && ground.nextElementSibling === row && !!fxPass && document.getElementById('debugPanel').contains(fxPass),
+    'it sits directly after the Ground row (Effects drawn before is in the Debug panel)', row.previousElementSibling && row.previousElementSibling.id]);
   // open the Animation panel (the accordion: Hit Zones closed)
   if (sec.dataset.open !== 'true') head.click();
   await frames(5);
